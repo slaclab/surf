@@ -1,0 +1,15 @@
+# Output products list for <pgp2_v4_vio>
+_xmsgs/
+pgp2_v4_vio.asy
+pgp2_v4_vio.cdc
+pgp2_v4_vio.gise
+pgp2_v4_vio.ise
+pgp2_v4_vio.ngc
+pgp2_v4_vio.vhd
+pgp2_v4_vio.vho
+pgp2_v4_vio.xco
+pgp2_v4_vio.xise
+pgp2_v4_vio_flist.txt
+pgp2_v4_vio_readme.txt
+pgp2_v4_vio_xdb/tmp/
+pgp2_v4_vio_xmdf.tcl

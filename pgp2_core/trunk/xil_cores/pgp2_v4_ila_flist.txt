@@ -1,0 +1,15 @@
+# Output products list for <pgp2_v4_ila>
+_xmsgs/
+pgp2_v4_ila.asy
+pgp2_v4_ila.cdc
+pgp2_v4_ila.gise
+pgp2_v4_ila.ise
+pgp2_v4_ila.ngc
+pgp2_v4_ila.vhd
+pgp2_v4_ila.vho
+pgp2_v4_ila.xco
+pgp2_v4_ila.xise
+pgp2_v4_ila_flist.txt
+pgp2_v4_ila_readme.txt
+pgp2_v4_ila_xdb/tmp/
+pgp2_v4_ila_xmdf.tcl
