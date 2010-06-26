@@ -1,0 +1,15 @@
+# Output products list for <pgp2_v5_afifo_18x1023>
+_xmsgs/
+fifo_generator_ug175.pdf
+pgp2_v5_afifo_18x1023.asy
+pgp2_v5_afifo_18x1023.gise
+pgp2_v5_afifo_18x1023.ise
+pgp2_v5_afifo_18x1023.ngc
+pgp2_v5_afifo_18x1023.vhd
+pgp2_v5_afifo_18x1023.vho
+pgp2_v5_afifo_18x1023.xco
+pgp2_v5_afifo_18x1023.xise
+pgp2_v5_afifo_18x1023_flist.txt
+pgp2_v5_afifo_18x1023_readme.txt
+pgp2_v5_afifo_18x1023_xdb/tmp/
+pgp2_v5_afifo_18x1023_xmdf.tcl

@@ -1,0 +1,14 @@
+# Output products list for <pgp2_v4_icon>
+_xmsgs/
+pgp2_v4_icon.asy
+pgp2_v4_icon.gise
+pgp2_v4_icon.ise
+pgp2_v4_icon.ngc
+pgp2_v4_icon.vhd
+pgp2_v4_icon.vho
+pgp2_v4_icon.xco
+pgp2_v4_icon.xise
+pgp2_v4_icon_flist.txt
+pgp2_v4_icon_readme.txt
+pgp2_v4_icon_xdb/tmp/
+pgp2_v4_icon_xmdf.tcl
