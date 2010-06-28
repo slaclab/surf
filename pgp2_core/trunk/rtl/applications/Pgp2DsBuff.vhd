@@ -35,7 +35,6 @@ entity Pgp2DsBuff is
       -- PGP Receive Signals
       vcFrameRxValid   : in  std_logic;
       vcFrameRxSOF     : in  std_logic;
-      vcFrameRxWidth   : in  std_logic;
       vcFrameRxEOF     : in  std_logic;
       vcFrameRxEOFE    : in  std_logic;
       vcFrameRxData    : in  std_logic_vector(15 downto 0);
