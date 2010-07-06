@@ -103,10 +103,11 @@ package Pgp2RcePackage is
    -- RCE Import Block
    component Pgp2RceImport
       generic (
-         FreeListA : natural := 1;
-         FreeListB : natural := 2;
-         FreeListC : natural := 3;
-         FreeListD : natural := 4
+         FreeListA     : natural := 1;
+         FreeListB     : natural := 2;
+         FreeListC     : natural := 3;
+         FreeListD     : natural := 4;
+         PayloadCntTop : integer := 7
       );
       port ( 
          pgpClk                       : in  std_logic;

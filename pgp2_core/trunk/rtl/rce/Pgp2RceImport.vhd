@@ -25,10 +25,11 @@ USE work.Pgp2CorePackage.all;
 
 entity Pgp2RceImport is 
    generic (
-      FreeListA : natural := 1;  -- Free List For Lane 0
-      FreeListB : natural := 2;  -- Free List For Lane 1
-      FreeListC : natural := 3;  -- Free List For Lane 2
-      FreeListD : natural := 4   -- Free List For Lane 3
+      FreeListA     : natural := 1;  -- Free List For Lane 0
+      FreeListB     : natural := 2;  -- Free List For Lane 1
+      FreeListC     : natural := 3;  -- Free List For Lane 2
+      FreeListD     : natural := 4;  -- Free List For Lane 3
+      PayloadCntTop : integer := 7   -- Top bit for payload counter
    );
    port ( 
 
@@ -95,7 +96,7 @@ architecture Pgp2RceImport of Pgp2RceImport is
    signal curEofeErr      : std_logic;
    signal curLinkErr      : std_logic;
    signal nxtLinkErr      : std_logic;
-   signal cellCount       : std_logic_vector(CellSizeTop downto 2);
+   signal cellCount       : std_logic_vector(PayloadCntTop downto 2);
    signal importAdvance   : std_logic;
    signal importLast      : std_logic;
    signal importLastValid : std_logic_vector(2  downto 0);
