@@ -313,26 +313,34 @@ begin
          -- Read occured
          fifoRdEnDly <= fifoRdEn after tpd;
 
-         -- EOF Counter
-         if fifoEofWr = '1' and fifoEofRd = '0' then
-            fifoEofCnt <= fifoEofCnt + 1 after tpd;
-         elsif fifoEofWr = '0' and fifoEofRd = '1' then
-            fifoEofCnt <= fifoEofCnt - 1 after tpd;
-         end if;
-
-         -- Track Valid
-         if fifoRdEn = '1' then
-            intValid <= '1' after tpd;
-         elsif vcFrameRxReady = '1' then
-            intValid <= '0' after tpd;
-         end if;
-
-         -- Valid output, EOF is at output or more than 1 EOF in buffer or 127 entries are in buffer
-         if vcFrameRxReady = '0' and intValid = '1' and 
-            (fifoEofCnt /= 0 or fifoRdData(65) = '1' or fifoCount >= 63) then
-            vcFrameRxReq <= '1' after tpd;
+         -- Link is down
+         if intLocLinkReady = '0' then
+            fifoEofCnt   <= (others=>'0') after tpd;
+            intValid     <= '0'           after tpd;
+            vcFrameRxReq <= '0'           after tpd;
          else
-            vcFrameRxReq <= '0' after tpd;
+
+            -- EOF Counter
+            if fifoEofWr = '1' and fifoEofRd = '0' then
+               fifoEofCnt <= fifoEofCnt + 1 after tpd;
+            elsif fifoEofWr = '0' and fifoEofRd = '1' then
+               fifoEofCnt <= fifoEofCnt - 1 after tpd;
+            end if;
+
+            -- Track Valid
+            if fifoRdEn = '1' then
+               intValid <= '1' after tpd;
+            elsif vcFrameRxReady = '1' then
+               intValid <= '0' after tpd;
+            end if;
+
+            -- Valid output, EOF is at output or more than 1 EOF in buffer or 127 entries are in buffer
+            if vcFrameRxReady = '0' and intValid = '1' and 
+               (fifoEofCnt /= 0 or fifoRdData(65) = '1' or fifoCount >= 63) then
+               vcFrameRxReq <= '1' after tpd;
+            else
+               vcFrameRxReq <= '0' after tpd;
+            end if;
          end if;
       end if;
    end process;
