@@ -144,7 +144,7 @@ architecture Pgp2Rce4x of Pgp2Rce4x is
    signal exportDebug      : std_logic_vector(63 downto 0);
    signal lane0Debug       : std_logic_vector(63 downto 0);
    signal lane1Debug       : std_logic_vector(63 downto 0);
-   signal importReset      : std_logic_vector(3  downto 0):
+   signal importReset      : std_logic_vector(3  downto 0);
 
    -- ICON
    component pgp2_v4_icon
