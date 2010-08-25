@@ -209,7 +209,7 @@ begin
          -- Rx Counter
          if cntReset = '1' then
             intCntRx <= (others=>'0') after tpd;
-         elsif ((intFrameTxValid and intFrameTxReady) /= 0) and vc0FrameTxEOF = '1' then
+         elsif intFrameRxValid /= 0 and intFrameRxEOF = '1' then
             intCntRx <= intCntRx + 1 after tpd;
          end if;
 
