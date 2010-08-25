@@ -453,7 +453,7 @@ begin
    pgpCntLinkDownC              <= (others=>'0');
    pgpCntLinkErrorC             <= (others=>'0');
    pgpRxFifoErr(2)              <= '0';
-   pgpRxCntC                    <= '0';
+   pgpRxCntC                    <= (others=>'0');
    vcFrameRxSOF(2)              <= '0';
    vcFrameRxEOF(2)              <= '0';
    vcFrameRxEOFE(2)             <= '0';
@@ -475,7 +475,7 @@ begin
    pgpCntLinkDownD              <= (others=>'0');
    pgpCntLinkErrorD             <= (others=>'0');
    pgpRxFifoErr(3)              <= '0';
-   pgpRxCntD                    <= '0';
+   pgpRxCntD                    <= (others=>'0');
    vcFrameRxSOF(3)              <= '0';
    vcFrameRxEOF(3)              <= '0';
    vcFrameRxEOFE(3)             <= '0';
