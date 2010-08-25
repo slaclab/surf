@@ -46,6 +46,7 @@ entity Pgp2RceLane is
       pgpCntLinkDown    : out std_logic_vector(3 downto 0);
       pgpCntLinkError   : out std_logic_vector(3 downto 0);
       pgpRxFifoErr      : out std_logic;
+      pgpRxCnt          : out std_logic_vector(3 downto 0);
 
       -- Lane Number for header
       laneNumber        : in  std_logic_vector(1 downto 0);
@@ -117,6 +118,7 @@ architecture Pgp2RceLane of Pgp2RceLane is
    signal intCntCellError : std_logic_vector(3 downto 0);
    signal intCntLinkDown  : std_logic_vector(3 downto 0);
    signal intCntLinkError : std_logic_vector(3 downto 0);
+   signal intCntRx        : std_logic_vector(3 downto 0);
    signal vcLocBuffAFull  : std_logic;
    signal vcLocBuffFull   : std_logic;
    signal intFrameTxValid : std_logic_vector(3 downto 0);
@@ -151,6 +153,7 @@ begin
    pgpCntCellError <= intCntCellError;
    pgpCntLinkDown  <= intCntLinkDown;
    pgpCntLinkError <= intCntLinkError;
+   pgpRxCnt        <= intCntRx;
 
    -- Link status
    pgpLocLinkReady <= intLocLinkReady;
@@ -179,6 +182,7 @@ begin
          intCntCellError <= (others=>'0') after tpd;
          intCntLinkDown  <= (others=>'0') after tpd;
          intCntLinkError <= (others=>'0') after tpd;
+         intCntRx        <= (others=>'0') after tpd;
       elsif rising_edge(pgpClk) then
 
          -- Cell error counter
@@ -201,6 +205,14 @@ begin
          elsif pgpRxLinkDown = '1' and intCntLinkDown /= x"F" then
             intCntLinkDown <= intCntLinkDown + 1 after tpd;
          end if;
+
+         -- Rx Counter
+         if cntReset = '1' then
+            intCntRx <= (others=>'0') after tpd;
+         elsif ((intFrameTxValid and intFrameTxReady) /= 0) and vc0FrameTxEOF = '1' then
+            intCntRx <= intCntRx + 1 after tpd;
+         end if;
+
       end if;
    end process;
 

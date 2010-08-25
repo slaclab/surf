@@ -39,6 +39,7 @@ package Pgp2RcePackage is
          pgpCntLinkDown    : out std_logic_vector(3 downto 0);
          pgpCntLinkError   : out std_logic_vector(3 downto 0);
          pgpRxFifoErr      : out std_logic;
+         pgpRxCnt          : out std_logic_vector(3 downto 0);
          laneNumber        : in  std_logic_vector(1 downto 0);
          vcFrameRxSOF      : out std_logic;
          vcFrameRxEOF      : out std_logic;

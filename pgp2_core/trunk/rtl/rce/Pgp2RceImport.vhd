@@ -15,6 +15,7 @@
 -- Modification history:
 -- 01/16/2010: created.
 -- 07/06/2010: Added payload count as generic.
+-- 08/24/2010: 32-bit endian swap.
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -200,8 +201,19 @@ begin
          -- Select Data
          if firstEn = '1' then
             importData <= (others=>'0') after tpd;
+
+         -- 32 bit endian swap for data
          elsif dataEn = '1' then
-            importData <= intFrameRxData after tpd;
+            importData(63 downto 56) <= intFrameRxData(39 downto 32) after tpd;
+            importData(55 downto 48) <= intFrameRxData(47 downto 40) after tpd;
+            importData(47 downto 40) <= intFrameRxData(55 downto 48) after tpd;
+            importData(39 downto 32) <= intFrameRxData(63 downto 56) after tpd;
+            importData(31 downto 24) <= intFrameRxData(7  downto  0) after tpd;
+            importData(23 downto 16) <= intFrameRxData(15 downto  8) after tpd;
+            importData(15 downto  8) <= intFrameRxData(23 downto 16) after tpd;
+            importData(7  downto  0) <= intFrameRxData(31 downto 24) after tpd;
+
+         -- Status
          elsif statusEn = '1' then
             importData(63 downto 32) <= (others=>'0') after tpd;
             importData(31 downto 16) <= userStatus    after tpd;

@@ -145,6 +145,10 @@ architecture Pgp2Rce4x of Pgp2Rce4x is
    signal lane0Debug       : std_logic_vector(63 downto 0);
    signal lane1Debug       : std_logic_vector(63 downto 0);
    signal importReset      : std_logic_vector(3  downto 0);
+   signal pgpRxCntD        : std_logic_vector(3  downto 0);
+   signal pgpRxCntC        : std_logic_vector(3  downto 0);
+   signal pgpRxCntB        : std_logic_vector(3  downto 0);
+   signal pgpRxCntA        : std_logic_vector(3  downto 0);
 
    -- ICON
    component pgp2_v4_icon
@@ -189,7 +193,6 @@ begin
    -- Create import reset vector
    importReset <= Import_Core_Reset & Import_Core_Reset & Import_Core_Reset & Import_Core_Reset;
 
-
    -- Dcr Reset generation, Sync to DCR Clock
    process ( Dcr_Clock ) begin
       if rising_edge(Dcr_Clock) then
@@ -232,7 +235,11 @@ begin
                Dcr_Read_Data( 7 downto  4) <= pgpCntLinkDownB  after tpd;
                Dcr_Read_Data( 3 downto  0) <= pgpCntLinkDownA  after tpd;
             when "11"  => 
-               Dcr_Read_Data               <= writeDataSync    after tpd;
+               Dcr_Read_Data(31 downto 16) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(15 downto 12) <= pgpRxCntD        after tpd;
+               Dcr_Read_Data(11 downto  8) <= pgpRxCntC        after tpd;
+               Dcr_Read_Data( 7 downto  4) <= pgpRxCntB        after tpd;
+               Dcr_Read_Data( 3 downto  0) <= pgpRxCntA        after tpd;
             when others => 
                Dcr_Read_Data               <= (others=>'0')    after tpd;
          end case;
@@ -356,6 +363,7 @@ begin
          pgpCntLinkDown    => pgpCntLinkDownA,
          pgpCntLinkError   => pgpCntLinkErrorA,
          pgpRxFifoErr      => pgpRxFifoErr(0),
+         pgpRxCnt          => pgpRxCntA,
          laneNumber        => "00",
          vcFrameRxSOF      => vcFrameRxSOF(0),
          vcFrameRxEOF      => vcFrameRxEOF(0),
@@ -406,6 +414,7 @@ begin
          pgpCntLinkDown    => pgpCntLinkDownB,
          pgpCntLinkError   => pgpCntLinkErrorB,
          pgpRxFifoErr      => pgpRxFifoErr(1),
+         pgpRxCnt          => pgpRxCntB,
          laneNumber        => "01",
          vcFrameRxSOF      => vcFrameRxSOF(1),
          vcFrameRxEOF      => vcFrameRxEOF(1),
@@ -456,6 +465,7 @@ begin
          pgpCntLinkDown    => pgpCntLinkDownC,
          pgpCntLinkError   => pgpCntLinkErrorC,
          pgpRxFifoErr      => pgpRxFifoErr(2),
+         pgpRxCnt          => pgpRxCntC,
          laneNumber        => "10",
          vcFrameRxSOF      => vcFrameRxSOF(2),
          vcFrameRxEOF      => vcFrameRxEOF(2),
@@ -506,6 +516,7 @@ begin
          pgpCntLinkDown    => pgpCntLinkDownD,
          pgpCntLinkError   => pgpCntLinkErrorD,
          pgpRxFifoErr      => pgpRxFifoErr(3),
+         pgpRxCnt          => pgpRxCntD,
          laneNumber        => "11",
          vcFrameRxSOF      => vcFrameRxSOF(3),
          vcFrameRxEOF      => vcFrameRxEOF(3),
