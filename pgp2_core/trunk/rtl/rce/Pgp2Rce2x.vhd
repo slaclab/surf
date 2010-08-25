@@ -142,6 +142,11 @@ architecture Pgp2Rce2x of Pgp2Rce2x is
    signal exportDebug      : std_logic_vector(63 downto 0);
    signal lane0Debug       : std_logic_vector(63 downto 0);
    signal lane1Debug       : std_logic_vector(63 downto 0);
+   signal importReset      : std_logic_vector(3  downto 0);
+   signal pgpRxCntD        : std_logic_vector(3  downto 0);
+   signal pgpRxCntC        : std_logic_vector(3  downto 0);
+   signal pgpRxCntB        : std_logic_vector(3  downto 0);
+   signal pgpRxCntA        : std_logic_vector(3  downto 0);
 
    -- ICON
    component pgp2_v4_icon
@@ -183,6 +188,8 @@ architecture Pgp2Rce2x of Pgp2Rce2x is
 
 begin
 
+   -- Create import reset vector
+   importReset <= Import_Core_Reset & Import_Core_Reset & Import_Core_Reset & Import_Core_Reset;
 
    -- Dcr Reset generation, Sync to DCR Clock
    process ( Dcr_Clock ) begin
@@ -226,7 +233,11 @@ begin
                Dcr_Read_Data( 7 downto  4) <= pgpCntLinkDownB  after tpd;
                Dcr_Read_Data( 3 downto  0) <= pgpCntLinkDownA  after tpd;
             when "11"  => 
-               Dcr_Read_Data               <= (others=>'0')    after tpd;
+               Dcr_Read_Data(31 downto 16) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(15 downto 12) <= pgpRxCntD        after tpd;
+               Dcr_Read_Data(11 downto  8) <= pgpRxCntC        after tpd;
+               Dcr_Read_Data( 7 downto  4) <= pgpRxCntB        after tpd;
+               Dcr_Read_Data( 3 downto  0) <= pgpRxCntA        after tpd;
             when others => 
                Dcr_Read_Data               <= (others=>'0')    after tpd;
          end case;
@@ -255,11 +266,11 @@ begin
          pllRxRst      <= (others=>'0') after tpd;
          mgtLoopback   <= (others=>'0') after tpd;
       elsif rising_edge(pgpClk) then
-         writeDataSync <= writeData                                           after tpd;
-         cntReset      <= writeDataSync(12)           or csCntrl(12)          after tpd;
-         pllTxRst      <= writeDataSync(11 downto  8) or csCntrl(3  downto 0) after tpd;
-         pllRxRst      <= writeDataSync(7  downto  4) or csCntrl(7  downto 4) after tpd;
-         mgtLoopback   <= writeDataSync(3  downto  0) or csCntrl(11 downto 8) after tpd;
+         writeDataSync <= writeData                                                             after tpd;
+         cntReset      <= writeDataSync(12)           or csCntrl(12)          or importReset(0) after tpd;
+         pllTxRst      <= writeDataSync(11 downto  8) or csCntrl(3  downto 0)                   after tpd;
+         pllRxRst      <= writeDataSync(7  downto  4) or csCntrl(7  downto 4) or importReset    after tpd;
+         mgtLoopback   <= writeDataSync(3  downto  0) or csCntrl(11 downto 8)                   after tpd;
       end if;
    end process;
 
@@ -350,6 +361,7 @@ begin
          pgpCntLinkDown    => pgpCntLinkDownA,
          pgpCntLinkError   => pgpCntLinkErrorA,
          pgpRxFifoErr      => pgpRxFifoErr(0),
+         pgpRxCnt          => pgpRxCntA,
          laneNumber        => "00",
          vcFrameRxSOF      => vcFrameRxSOF(0),
          vcFrameRxEOF      => vcFrameRxEOF(0),
@@ -400,6 +412,7 @@ begin
          pgpCntLinkDown    => pgpCntLinkDownB,
          pgpCntLinkError   => pgpCntLinkErrorB,
          pgpRxFifoErr      => pgpRxFifoErr(1),
+         pgpRxCnt          => pgpRxCntB,
          laneNumber        => "01",
          vcFrameRxSOF      => vcFrameRxSOF(1),
          vcFrameRxEOF      => vcFrameRxEOF(1),
@@ -440,6 +453,7 @@ begin
    pgpCntLinkDownC              <= (others=>'0');
    pgpCntLinkErrorC             <= (others=>'0');
    pgpRxFifoErr(2)              <= '0';
+   pgpRxCntC                    <= '0';
    vcFrameRxSOF(2)              <= '0';
    vcFrameRxEOF(2)              <= '0';
    vcFrameRxEOFE(2)             <= '0';
@@ -461,6 +475,7 @@ begin
    pgpCntLinkDownD              <= (others=>'0');
    pgpCntLinkErrorD             <= (others=>'0');
    pgpRxFifoErr(3)              <= '0';
+   pgpRxCntD                    <= '0';
    vcFrameRxSOF(3)              <= '0';
    vcFrameRxEOF(3)              <= '0';
    vcFrameRxEOFE(3)             <= '0';

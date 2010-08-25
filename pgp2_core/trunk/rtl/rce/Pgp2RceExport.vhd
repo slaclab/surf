@@ -14,6 +14,7 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 01/16/2010: created.
+-- 08/24/2010: 32-bit endian swap.
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -176,11 +177,15 @@ begin
             -- Set SOF0
             pgpTxSOF0 <= expSOF after tpd;
 
-            -- Set Data
-            pgpTxData0 <= Export_Data(15 downto  0) after tpd;
-            pgpTxData1 <= Export_Data(31 downto 16) after tpd;
-            pgpTxData2 <= Export_Data(47 downto 32) after tpd;
-            pgpTxData3 <= Export_Data(63 downto 48) after tpd;
+            -- Set Data, 32-bit endian swap
+            pgpTxData0(7  downto  0) <= Export_Data(31 downto 24) after tpd;
+            pgpTxData0(15 downto  8) <= Export_Data(23 downto 16) after tpd;
+            pgpTxData1(7  downto  0) <= Export_Data(15 downto  8) after tpd;
+            pgpTxData1(15 downto  8) <= Export_Data(7  downto  0) after tpd;
+            pgpTxData2(7  downto  0) <= Export_Data(63 downto 56) after tpd;
+            pgpTxData2(15 downto  8) <= Export_Data(55 downto 48) after tpd;
+            pgpTxData3(7  downto  0) <= Export_Data(47 downto 40) after tpd;
+            pgpTxData3(15 downto  8) <= Export_Data(39 downto 32) after tpd;
 
             -- Valid, EOF & Width Depend On Last Line/Valid Byte Flags
             if Export_Data_Last_Line = '1' then 
