@@ -580,10 +580,18 @@ begin
    -- pllRxRst      csCntrl(7  downto 4)
    -- mgtLoopback   csCntrl(11 downto 8)
 
-   csData <= importDebug when csCntrl(15 downto 14) = "00" else
-             exportDebug when csCntrl(15 downto 14) = "01" else
-             lane0Debug  when csCntrl(15 downto 14) = "10" else
-             lane1Debug;
+   -- Register chipscope signals
+   process ( pgpClk ) begin
+      if rising_edge(pgpClk) then
+         case csCntrl(15 downto 14) is 
+            when "00"   => csData <= importDebug after tpd;
+            when "01"   => csData <= exportDebug after tpd;
+            when "10"   => csData <= lane0Debug  after tpd;
+            when others => csData <= lane1Debug  after tpd;
+         end case;
+      end if;
+   end process;
+
 
 end Pgp2Rce4x;
 
