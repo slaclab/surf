@@ -122,7 +122,6 @@ begin
    Import_Clock <= pgpClk;
 
    -- Decode lane selection
-   intLocLinkReady <= pgpLocLinkReady(conv_integer(curSource));
    intFrameRxSOF   <= vcFrameRxSOF(conv_integer(curSource));
    intFrameRxEOF   <= vcFrameRxEOF(conv_integer(curSource));
    intFrameRxEOFE  <= vcFrameRxEOFE(conv_integer(curSource));
@@ -168,7 +167,11 @@ begin
          curEofeErr      <= '0'           after tpd;
          curLinkErr      <= '0'           after tpd;
          cellCount       <= (others=>'0') after tpd;
+         intLocLinkReady <= '0'           after tpd;
       elsif rising_edge(pgpClk) then
+
+         -- Link ready of current source
+         intLocLinkReady <= pgpLocLinkReady(conv_integer(curSource)) after tpd;
 
          -- Arbiter reset
          if Import_Core_Reset = '1' then
