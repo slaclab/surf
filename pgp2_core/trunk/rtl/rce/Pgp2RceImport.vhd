@@ -69,6 +69,9 @@ entity Pgp2RceImport is
       vcFrameRxWidthC              : in  std_logic_vector(1  downto 0);
       vcFrameRxWidthD              : in  std_logic_vector(1  downto 0);
 
+      -- Big endian mode
+      bigEndian                    : in  std_logic;
+
       -- Debug
       debug                        : out std_logic_vector(63 downto 0)
    );
@@ -205,16 +208,24 @@ begin
          if firstEn = '1' then
             importData <= (others=>'0') after tpd;
 
-         -- 32 bit endian swap for data
+         -- Data
          elsif dataEn = '1' then
-            importData(63 downto 56) <= intFrameRxData(39 downto 32) after tpd;
-            importData(55 downto 48) <= intFrameRxData(47 downto 40) after tpd;
-            importData(47 downto 40) <= intFrameRxData(55 downto 48) after tpd;
-            importData(39 downto 32) <= intFrameRxData(63 downto 56) after tpd;
-            importData(31 downto 24) <= intFrameRxData(7  downto  0) after tpd;
-            importData(23 downto 16) <= intFrameRxData(15 downto  8) after tpd;
-            importData(15 downto  8) <= intFrameRxData(23 downto 16) after tpd;
-            importData(7  downto  0) <= intFrameRxData(31 downto 24) after tpd;
+
+            -- Little endian
+            if bigEndian = '0' then
+               importData(63 downto 56) <= intFrameRxData(39 downto 32) after tpd;
+               importData(55 downto 48) <= intFrameRxData(47 downto 40) after tpd;
+               importData(47 downto 40) <= intFrameRxData(55 downto 48) after tpd;
+               importData(39 downto 32) <= intFrameRxData(63 downto 56) after tpd;
+               importData(31 downto 24) <= intFrameRxData(7  downto  0) after tpd;
+               importData(23 downto 16) <= intFrameRxData(15 downto  8) after tpd;
+               importData(15 downto  8) <= intFrameRxData(23 downto 16) after tpd;
+               importData(7  downto  0) <= intFrameRxData(31 downto 24) after tpd;
+
+            -- Big endian
+            else
+               importData <= intFrameRxData after tpd;
+            end if;
 
          -- Status
          elsif statusEn = '1' then

@@ -2,7 +2,7 @@
 -- Title         : Pretty Good Protocol, RCE Interface
 -- Project       : General Purpose Core
 -------------------------------------------------------------------------------
--- File          : Pgp2Rce2x.vhd
+-- File          : Pgp2Rce.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 06/06/2007
 -------------------------------------------------------------------------------
@@ -13,6 +13,7 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 01/18/2010: created.
+-- 09/08/2010: Integrated 4x and 2x into one module.
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -22,13 +23,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity Pgp2Rce2x is 
+entity Pgp2Rce is 
    generic (
       FreeListA  : natural := 1;         -- Free List For VC 0
       FreeListB  : natural := 2;         -- Free List For VC 1
       FreeListC  : natural := 3;         -- Free List For VC 2
       FreeListD  : natural := 4;         -- Free List For VC 3
-      RefClkSel  : string  := "REFCLK1"  -- Reference Clock To Use "REFCLK1" or "REFCLK2"
+      RefClkSel  : string  := "REFCLK1"; -- Reference Clock To Use "REFCLK1" or "REFCLK2"
+      PgpLaneCnt : natural := 4          -- Number of PGP lanes, 2 or 4.
    );
    port ( 
       
@@ -71,16 +73,16 @@ entity Pgp2Rce2x is
       pgpReset                        : in  std_logic;
 
       -- MGT Serial Pins
-      mgtRxN                          : in  std_logic_vector(1 downto 0);
-      mgtRxP                          : in  std_logic_vector(1 downto 0);
-      mgtTxN                          : out std_logic_vector(1 downto 0);
-      mgtTxP                          : out std_logic_vector(1 downto 0)
+      mgtRxN                          : in  std_logic_vector(PgpLaneCnt-1 downto 0);
+      mgtRxP                          : in  std_logic_vector(PgpLaneCnt-1 downto 0);
+      mgtTxN                          : out std_logic_vector(PgpLaneCnt-1 downto 0);
+      mgtTxP                          : out std_logic_vector(PgpLaneCnt-1 downto 0)
    );
-end Pgp2Rce2x;
+end Pgp2Rce;
 
 
 -- Define architecture
-architecture Pgp2Rce2x of Pgp2Rce2x is
+architecture Pgp2Rce of Pgp2Rce is
 
    -- Local Signals
    signal vcFrameTxVc      : std_logic_vector(1 downto 0);
@@ -125,6 +127,8 @@ architecture Pgp2Rce2x of Pgp2Rce2x is
    signal mgtLoopback      : std_logic_vector(3 downto 0);
    signal mgtCombusOutA    : std_logic_vector(15 downto 0);
    signal mgtCombusOutB    : std_logic_vector(15 downto 0);
+   signal mgtCombusOutC    : std_logic_vector(15 downto 0);
+   signal mgtCombusOutD    : std_logic_vector(15 downto 0);
    signal pllTxRst         : std_logic_vector(3  downto 0);
    signal pllRxRst         : std_logic_vector(3  downto 0);
    signal pllTxReady       : std_logic_vector(3  downto 0);
@@ -147,6 +151,7 @@ architecture Pgp2Rce2x of Pgp2Rce2x is
    signal pgpRxCntC        : std_logic_vector(3  downto 0);
    signal pgpRxCntB        : std_logic_vector(3  downto 0);
    signal pgpRxCntA        : std_logic_vector(3  downto 0);
+   signal bigEndian        : std_logic;
 
    -- ICON
    component pgp2_v4_icon
@@ -211,7 +216,8 @@ begin
                Dcr_Read_Data(27 downto 24) <= pgpLocLinkReady  after tpd;
                Dcr_Read_Data(23 downto 20) <= pllTxReady       after tpd;
                Dcr_Read_Data(19 downto 16) <= pllRxReady       after tpd;
-               Dcr_Read_Data(15 downto 13) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(15 downto 14) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(13)           <= bigEndian        after tpd;
                Dcr_Read_Data(12)           <= cntReset         after tpd;
                Dcr_Read_Data(11 downto  8) <= pllTxRst         after tpd;
                Dcr_Read_Data(7  downto  4) <= pllRxRst         after tpd;
@@ -262,11 +268,13 @@ begin
       if pgpReset = '1' then
          writeDataSync <= (others=>'0') after tpd;
          cntReset      <= '0'           after tpd;
+         bigEndian     <= '0'           after tpd;
          pllTxRst      <= (others=>'0') after tpd;
          pllRxRst      <= (others=>'0') after tpd;
          mgtLoopback   <= (others=>'0') after tpd;
       elsif rising_edge(pgpClk) then
          writeDataSync <= writeData                                                             after tpd;
+         bigEndian     <= writeDataSync(13)                                                     after tpd;
          cntReset      <= writeDataSync(12)           or csCntrl(12)          or importReset(0) after tpd;
          pllTxRst      <= writeDataSync(11 downto  8) or csCntrl(3  downto 0)                   after tpd;
          pllRxRst      <= writeDataSync(7  downto  4) or csCntrl(7  downto 4) or importReset    after tpd;
@@ -300,6 +308,7 @@ begin
       vcFrameTxReady                 => vcFrameTxReady,
       vcRemBuffAFull                 => vcRemBuffAFull,
       vcRemBuffFull                  => vcRemBuffFull,
+      bigEndian                      => bigEndian,
       debug                          => exportDebug
    );
 
@@ -338,6 +347,7 @@ begin
          vcFrameRxWidthB              => vcFrameRxWidthB,
          vcFrameRxWidthC              => vcFrameRxWidthC,
          vcFrameRxWidthD              => vcFrameRxWidthD,
+         bigEndian                    => bigEndian,
          debug                        => importDebug
       );
 
@@ -444,48 +454,160 @@ begin
       );
 
 
-   -- Lane C
-   pllRxReady(2)                <= '0';
-   pllTxReady(2)                <= '0';
-   pgpLocLinkReady(2)           <= '0';
-   pgpRemLinkReady(2)           <= '0';
-   pgpCntCellErrorC             <= (others=>'0');
-   pgpCntLinkDownC              <= (others=>'0');
-   pgpCntLinkErrorC             <= (others=>'0');
-   pgpRxFifoErr(2)              <= '0';
-   pgpRxCntC                    <= (others=>'0');
-   vcFrameRxSOF(2)              <= '0';
-   vcFrameRxEOF(2)              <= '0';
-   vcFrameRxEOFE(2)             <= '0';
-   vcFrameRxDataC               <= (others=>'0');
-   vcFrameRxReq(2)              <= '0';
-   vcFrameRxValid(2)            <= '0';
-   vcFrameRxWidthC              <= (others=>'0');
-   vcFrameTxReady(2)            <= '0';
-   vcRemBuffAFull(11 downto 8)  <= (others=>'0');
-   vcRemBuffFull(11 downto 8)   <= (others=>'0');
+   -- Enable upper two lanes
+   Pgp2UpperEn: if ( PgpLaneCnt = 4 ) generate
+
+      -- Lane C
+      U_Pgp2RceLaneC: Pgp2RcePackage.Pgp2RceLane 
+         generic map (
+            MgtMode   => "A",
+            RefClkSel => RefClkSel
+         ) port map ( 
+            pgpClk            => pgpClk,
+            pgpReset          => pgpReset,
+            pllTxRst          => pllTxRst(2),
+            pllRxRst          => pllRxRst(2),
+            pllRxReady        => pllRxReady(2),
+            pllTxReady        => pllTxReady(2),
+            pgpLocLinkReady   => pgpLocLinkReady(2),
+            pgpRemLinkReady   => pgpRemLinkReady(2),
+            cntReset          => cntReset,
+            pgpCntCellError   => pgpCntCellErrorC,
+            pgpCntLinkDown    => pgpCntLinkDownC,
+            pgpCntLinkError   => pgpCntLinkErrorC,
+            pgpRxFifoErr      => pgpRxFifoErr(2),
+            pgpRxCnt          => pgpRxCntC,
+            laneNumber        => "10",
+            vcFrameRxSOF      => vcFrameRxSOF(2),
+            vcFrameRxEOF      => vcFrameRxEOF(2),
+            vcFrameRxEOFE     => vcFrameRxEOFE(2),
+            vcFrameRxData     => vcFrameRxDataC,
+            vcFrameRxReq      => vcFrameRxReq(2),
+            vcFrameRxValid    => vcFrameRxValid(2),
+            vcFrameRxReady    => vcFrameRxReady(2),
+            vcFrameRxWidth    => vcFrameRxWidthC,
+            vcFrameTxVc       => vcFrameTxVc,
+            vcFrameTxValid    => vcFrameTxValid(2),
+            vcFrameTxReady    => vcFrameTxReady(2),
+            vcFrameTxSOF      => vcFrameTxSOF,
+            vcFrameTxEOF      => vcFrameTxEOF,
+            vcFrameTxEOFE     => vcFrameTxEOFE,
+            vcFrameTxData     => vcFrameTxData,
+            vcRemBuffAFull    => vcRemBuffAFull(11 downto 8),
+            vcRemBuffFull     => vcRemBuffFull(11 downto 8),
+            mgtLoopback       => mgtLoopback(2),
+            mgtRefClk1        => pgpRefClk1,
+            mgtRefClk2        => pgpRefClk2,
+            mgtRxN            => mgtRxN(2),
+            mgtRxP            => mgtRxP(2),
+            mgtTxN            => mgtTxN(2),
+            mgtTxP            => mgtTxP(2),
+            mgtCombusIn       => mgtCombusOutD,
+            mgtCombusOut      => mgtCombusOutC,
+            debug             => open
+         );
 
 
-   -- Lane D
-   pllRxReady(3)                <= '0';
-   pllTxReady(3)                <= '0';
-   pgpLocLinkReady(3)           <= '0';
-   pgpRemLinkReady(3)           <= '0';
-   pgpCntCellErrorD             <= (others=>'0');
-   pgpCntLinkDownD              <= (others=>'0');
-   pgpCntLinkErrorD             <= (others=>'0');
-   pgpRxFifoErr(3)              <= '0';
-   pgpRxCntD                    <= (others=>'0');
-   vcFrameRxSOF(3)              <= '0';
-   vcFrameRxEOF(3)              <= '0';
-   vcFrameRxEOFE(3)             <= '0';
-   vcFrameRxDataD               <= (others=>'0');
-   vcFrameRxReq(3)              <= '0';
-   vcFrameRxValid(3)            <= '0';
-   vcFrameRxWidthD              <= (others=>'0');
-   vcFrameTxReady(3)            <= '0';
-   vcRemBuffAFull(15 downto 12) <= (others=>'0');
-   vcRemBuffFull(15 downto 12)  <= (others=>'0');
+      -- Lane D
+      U_Pgp2RceLaneD: Pgp2RcePackage.Pgp2RceLane 
+         generic map (
+            MgtMode   => "B",
+            RefClkSel => RefClkSel
+         ) port map ( 
+            pgpClk            => pgpClk,
+            pgpReset          => pgpReset,
+            pllTxRst          => pllTxRst(3),
+            pllRxRst          => pllRxRst(3),
+            pllRxReady        => pllRxReady(3),
+            pllTxReady        => pllTxReady(3),
+            pgpLocLinkReady   => pgpLocLinkReady(3),
+            pgpRemLinkReady   => pgpRemLinkReady(3),
+            cntReset          => cntReset,
+            pgpCntCellError   => pgpCntCellErrorD,
+            pgpCntLinkDown    => pgpCntLinkDownD,
+            pgpCntLinkError   => pgpCntLinkErrorD,
+            pgpRxFifoErr      => pgpRxFifoErr(3),
+            pgpRxCnt          => pgpRxCntD,
+            laneNumber        => "11",
+            vcFrameRxSOF      => vcFrameRxSOF(3),
+            vcFrameRxEOF      => vcFrameRxEOF(3),
+            vcFrameRxEOFE     => vcFrameRxEOFE(3),
+            vcFrameRxData     => vcFrameRxDataD,
+            vcFrameRxReq      => vcFrameRxReq(3),
+            vcFrameRxValid    => vcFrameRxValid(3),
+            vcFrameRxReady    => vcFrameRxReady(3),
+            vcFrameRxWidth    => vcFrameRxWidthD,
+            vcFrameTxVc       => vcFrameTxVc,
+            vcFrameTxValid    => vcFrameTxValid(3),
+            vcFrameTxReady    => vcFrameTxReady(3),
+            vcFrameTxSOF      => vcFrameTxSOF,
+            vcFrameTxEOF      => vcFrameTxEOF,
+            vcFrameTxEOFE     => vcFrameTxEOFE,
+            vcFrameTxData     => vcFrameTxData,
+            vcRemBuffAFull    => vcRemBuffAFull(15 downto 12),
+            vcRemBuffFull     => vcRemBuffFull(15 downto 12),
+            mgtLoopback       => mgtLoopback(3),
+            mgtRefClk1        => pgpRefClk1,
+            mgtRefClk2        => pgpRefClk2,
+            mgtRxN            => mgtRxN(3),
+            mgtRxP            => mgtRxP(3),
+            mgtTxN            => mgtTxN(3),
+            mgtTxP            => mgtTxP(3),
+            mgtCombusIn       => mgtCombusOutC,
+            mgtCombusOut      => mgtCombusOutD,
+            debug             => open
+         );
+   end generate;
+
+
+   -- Disable upper two lanes
+   Pgp2UpperDis: if ( PgpLaneCnt = 2 ) generate
+
+      -- Lane C
+      pllRxReady(2)                <= '0';
+      pllTxReady(2)                <= '0';
+      pgpLocLinkReady(2)           <= '0';
+      pgpRemLinkReady(2)           <= '0';
+      pgpCntCellErrorC             <= (others=>'0');
+      pgpCntLinkDownC              <= (others=>'0');
+      pgpCntLinkErrorC             <= (others=>'0');
+      pgpRxFifoErr(2)              <= '0';
+      pgpRxCntC                    <= '0';
+      vcFrameRxSOF(2)              <= '0';
+      vcFrameRxEOF(2)              <= '0';
+      vcFrameRxEOFE(2)             <= '0';
+      vcFrameRxDataC               <= (others=>'0');
+      vcFrameRxReq(2)              <= '0';
+      vcFrameRxValid(2)            <= '0';
+      vcFrameRxWidthC              <= (others=>'0');
+      vcFrameTxReady(2)            <= '0';
+      vcRemBuffAFull(11 downto 8)  <= (others=>'0');
+      vcRemBuffFull(11 downto 8)   <= (others=>'0');
+      mgtCombusOutC                <= (others=>'0');
+
+      -- Lane D
+      pllRxReady(3)                <= '0';
+      pllTxReady(3)                <= '0';
+      pgpLocLinkReady(3)           <= '0';
+      pgpRemLinkReady(3)           <= '0';
+      pgpCntCellErrorD             <= (others=>'0');
+      pgpCntLinkDownD              <= (others=>'0');
+      pgpCntLinkErrorD             <= (others=>'0');
+      pgpRxFifoErr(3)              <= '0';
+      pgpRxCntD                    <= '0';
+      vcFrameRxSOF(3)              <= '0';
+      vcFrameRxEOF(3)              <= '0';
+      vcFrameRxEOFE(3)             <= '0';
+      vcFrameRxDataD               <= (others=>'0');
+      vcFrameRxReq(3)              <= '0';
+      vcFrameRxValid(3)            <= '0';
+      vcFrameRxWidthD              <= (others=>'0');
+      vcFrameTxReady(3)            <= '0';
+      vcRemBuffAFull(15 downto 12) <= (others=>'0');
+      vcRemBuffFull(15 downto 12)  <= (others=>'0');
+      mgtCombusOutD                <= (others=>'0');
+
+   end generate;
 
 
    -----------------------------
@@ -534,5 +656,6 @@ begin
       end if;
    end process;
 
-end Pgp2Rce2x;
+
+end Pgp2Rce;
 

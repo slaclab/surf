@@ -97,6 +97,7 @@ package Pgp2RcePackage is
          vcFrameTxReady                 : in  std_logic_vector(3  downto 0);
          vcRemBuffAFull                 : in  std_logic_vector(15 downto 0);
          vcRemBuffFull                  : in  std_logic_vector(15 downto 0);
+         bigEndian                      : in  std_logic;
          debug                          : out std_logic_vector(63 downto 0)
       );
    end component;
@@ -137,19 +138,21 @@ package Pgp2RcePackage is
          vcFrameRxWidthB              : in  std_logic_vector(1  downto 0);
          vcFrameRxWidthC              : in  std_logic_vector(1  downto 0);
          vcFrameRxWidthD              : in  std_logic_vector(1  downto 0);
+         bigEndian                    : in  std_logic;
          debug                        : out std_logic_vector(63 downto 0)
       );
    end component;
 
    
-   -- 4 Channel RCE Wrapper
-   component Pgp2Rce4x
+   -- RCE Wrapper
+   component Pgp2Rce
       generic (
          FreeListA  : natural := 1;
          FreeListB  : natural := 2;
          FreeListC  : natural := 3;
          FreeListD  : natural := 4;
-         RefClkSel  : string  := "REFCLK1"
+         RefClkSel  : string  := "REFCLK1";
+         PgpLaneCnt : natural := 4
       );
       port ( 
          Import_Clock                    : out std_logic;
@@ -188,52 +191,6 @@ package Pgp2RcePackage is
       );
    end component;
 
-
-   -- 2 Channel RCE Wrapper
-   component Pgp2Rce2x
-      generic (
-         FreeListA  : natural := 1;
-         FreeListB  : natural := 2;
-         FreeListC  : natural := 3;
-         FreeListD  : natural := 4;
-         RefClkSel  : string  := "REFCLK1"
-      );
-      port ( 
-         Import_Clock                    : out std_logic;
-         Import_Core_Reset               : in  std_logic;
-         Import_Free_List                : out std_logic_vector( 3 downto 0);
-         Import_Advance_Data_Pipeline    : out std_logic;
-         Import_Data_Last_Line           : out std_logic;
-         Import_Data_Last_Valid_Byte     : out std_logic_vector( 2 downto 0);
-         Import_Data                     : out std_logic_vector(63 downto 0);
-         Import_Data_Pipeline_Full       : in  std_logic;
-         Import_Pause                    : in  std_logic;
-         Export_Clock                    : out std_logic;
-         Export_Core_Reset               : in  std_logic;
-         Export_Data_Available           : in  std_logic;
-         Export_Data_Start               : in  std_logic;
-         Export_Advance_Data_Pipeline    : out std_logic;
-         Export_Data_Last_Line           : in  std_logic;
-         Export_Data_Last_Valid_Byte     : in  std_logic_vector( 2 downto 0);
-         Export_Data                     : in  std_logic_vector(63 downto 0);
-         Export_Advance_Status_Pipeline  : out std_logic;
-         Export_Status                   : out std_logic_vector(31 downto 0);
-         Export_Status_Full              : in  std_logic;
-         Dcr_Clock                       : in  std_logic;
-         Dcr_Write                       : in  std_logic;
-         Dcr_Write_Data                  : in  std_logic_vector(31 downto 0);
-         Dcr_Read_Address                : in  std_logic_vector( 1 downto 0);
-         Dcr_Read_Data                   : out std_logic_vector(31 downto 0);
-         pgpRefClk1                      : in  std_logic;
-         pgpRefClk2                      : in  std_logic;
-         pgpClk                          : in  std_logic;
-         pgpReset                        : in  std_logic;
-         mgtRxN                          : in  std_logic_vector(1 downto 0);
-         mgtRxP                          : in  std_logic_vector(1 downto 0);
-         mgtTxN                          : out std_logic_vector(1 downto 0);
-         mgtTxP                          : out std_logic_vector(1 downto 0)
-      );
-   end component;
 
 end Pgp2RcePackage;
 

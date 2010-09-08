@@ -60,6 +60,9 @@ entity Pgp2RceExport is port (
       vcRemBuffAFull                 : in  std_logic_vector(15 downto 0);
       vcRemBuffFull                  : in  std_logic_vector(15 downto 0);
 
+      -- Big endian mode
+      bigEndian                      : in  std_logic;
+
       -- Debug
       debug                          : out std_logic_vector(63 downto 0)
    );
@@ -177,15 +180,24 @@ begin
             -- Set SOF0
             pgpTxSOF0 <= expSOF after tpd;
 
-            -- Set Data, 32-bit endian swap
-            pgpTxData0(7  downto  0) <= Export_Data(31 downto 24) after tpd;
-            pgpTxData0(15 downto  8) <= Export_Data(23 downto 16) after tpd;
-            pgpTxData1(7  downto  0) <= Export_Data(15 downto  8) after tpd;
-            pgpTxData1(15 downto  8) <= Export_Data(7  downto  0) after tpd;
-            pgpTxData2(7  downto  0) <= Export_Data(63 downto 56) after tpd;
-            pgpTxData2(15 downto  8) <= Export_Data(55 downto 48) after tpd;
-            pgpTxData3(7  downto  0) <= Export_Data(47 downto 40) after tpd;
-            pgpTxData3(15 downto  8) <= Export_Data(39 downto 32) after tpd;
+            -- Little endian data
+            if bigEndian = '0' then
+               pgpTxData0(7  downto  0) <= Export_Data(31 downto 24) after tpd;
+               pgpTxData0(15 downto  8) <= Export_Data(23 downto 16) after tpd;
+               pgpTxData1(7  downto  0) <= Export_Data(15 downto  8) after tpd;
+               pgpTxData1(15 downto  8) <= Export_Data(7  downto  0) after tpd;
+               pgpTxData2(7  downto  0) <= Export_Data(63 downto 56) after tpd;
+               pgpTxData2(15 downto  8) <= Export_Data(55 downto 48) after tpd;
+               pgpTxData3(7  downto  0) <= Export_Data(47 downto 40) after tpd;
+               pgpTxData3(15 downto  8) <= Export_Data(39 downto 32) after tpd;
+
+            -- Big endian data
+            else
+               pgpTxData0 <= Export_Data(15 downto  0) after tpd;
+               pgpTxData1 <= Export_Data(31 downto 16) after tpd;
+               pgpTxData2 <= Export_Data(47 downto 32) after tpd;
+               pgpTxData3 <= Export_Data(63 downto 48) after tpd;
+            end if;
 
             -- Valid, EOF & Width Depend On Last Line/Valid Byte Flags
             if Export_Data_Last_Line = '1' then 
@@ -282,13 +294,23 @@ begin
             curTxState <= nxtTxState after tpd;
          end if;
 
-         -- Store CID, VC, Lane, endian swapped
+         -- Store CID, VC, Lane
          if expSOF = '1' then
-            expCID(23 downto 16) <= Export_Data(7  downto  0) after tpd;
-            expCID(15 downto  8) <= Export_Data(15 downto  8) after tpd;
-            expCID(7  downto  0) <= Export_Data(23 downto 16) after tpd;
-            expVc                <= Export_Data(25 downto 24) after tpd;
-            expLane              <= Export_Data(31 downto 30) after tpd;
+
+            -- Little endian
+            if bigEndian = '0' then
+               expCID(23 downto 16) <= Export_Data(7  downto  0) after tpd;
+               expCID(15 downto  8) <= Export_Data(15 downto  8) after tpd;
+               expCID(7  downto  0) <= Export_Data(23 downto 16) after tpd;
+               expVc                <= Export_Data(25 downto 24) after tpd;
+               expLane              <= Export_Data(31 downto 30) after tpd;
+
+            -- Big endian
+            else
+               expCID  <= Export_Data(31 downto 8) after tpd;
+               expVc   <= Export_Data(1  downto 0) after tpd;
+               expLane <= Export_Data(7  downto 6) after tpd;
+            end if;
          end if;
 
          -- Status Write
