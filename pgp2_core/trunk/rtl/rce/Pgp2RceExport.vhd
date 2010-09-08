@@ -282,11 +282,13 @@ begin
             curTxState <= nxtTxState after tpd;
          end if;
 
-         -- Store CID, VC, Lane
+         -- Store CID, VC, Lane, endian swapped
          if expSOF = '1' then
-            expCID  <= Export_Data(31 downto 8);
-            expVc   <= Export_Data(1  downto 0);
-            expLane <= Export_Data(7  downto 6);
+            expCID(23 downto 16) <= Export_Data(7  downto  0) after tpd;
+            expCID(15 downto  8) <= Export_Data(15 downto  8) after tpd;
+            expCID(7  downto  0) <= Export_Data(23 downto 16) after tpd;
+            expVc                <= Export_Data(25 downto 24) after tpd;
+            expLane              <= Export_Data(31 downto 30) after tpd;
          end if;
 
          -- Status Write
