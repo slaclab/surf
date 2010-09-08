@@ -152,6 +152,8 @@ architecture Pgp2Rce of Pgp2Rce is
    signal pgpRxCntB        : std_logic_vector(3  downto 0);
    signal pgpRxCntA        : std_logic_vector(3  downto 0);
    signal bigEndian        : std_logic;
+   signal importPauseDly   : std_logic;
+   signal importPauseCnt   : std_logic_vector(3  downto 0);
 
    -- ICON
    component pgp2_v4_icon
@@ -239,7 +241,8 @@ begin
                Dcr_Read_Data( 7 downto  4) <= pgpCntLinkDownB  after tpd;
                Dcr_Read_Data( 3 downto  0) <= pgpCntLinkDownA  after tpd;
             when "11"  => 
-               Dcr_Read_Data(31 downto 16) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(31 downto 20) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(19 downto 16) <= importPauseCnt   after tpd;
                Dcr_Read_Data(15 downto 12) <= pgpRxCntD        after tpd;
                Dcr_Read_Data(11 downto  8) <= pgpRxCntC        after tpd;
                Dcr_Read_Data( 7 downto  4) <= pgpRxCntB        after tpd;
@@ -279,6 +282,24 @@ begin
          pllTxRst      <= writeDataSync(11 downto  8) or csCntrl(3  downto 0)                   after tpd;
          pllRxRst      <= writeDataSync(7  downto  4) or csCntrl(7  downto 4) or importReset    after tpd;
          mgtLoopback   <= writeDataSync(3  downto  0) or csCntrl(11 downto 8)                   after tpd;
+      end if;
+   end process;
+
+
+   -- Pause cycle counter
+   process ( pgpReset, pgpClk ) begin
+      if pgpReset = '1' then
+         importPauseDly <= '0'           after tpd;
+         importPauseCnt <= (others=>'0') after tpd;
+      elsif rising_edge(pgpClk) then
+         importPauseDly <= Import_Pause after tpd;
+
+         -- Pause assertion counter
+         if cntReset = '1' then
+            importPauseCnt <= (others=>'0') after tpd;
+         elsif Import_Pause = '1' and importPauseDly = '0' and importPauseCnt /= x"F" then
+            importPauseCnt <= importPauseCnt + 1 after tpd;
+         end if;
       end if;
    end process;
 
