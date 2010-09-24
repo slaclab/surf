@@ -46,8 +46,8 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../rtl/*/*.vhd
 
 # Smart Models
-smart_src:
-	cd $(SIM_DIR); vhdlan $(EN64) $(XILINX)/smartmodel/$(PLATFORM)/wrappers/vcsmxvhdl/*.vhd
+#smart_src:
+#	cd $(SIM_DIR); vhdlan $(EN64) $(XILINX)/smartmodel/$(PLATFORM)/wrappers/vcsmxvhdl/*.vhd
 
 # RTL Files
 core_src:
