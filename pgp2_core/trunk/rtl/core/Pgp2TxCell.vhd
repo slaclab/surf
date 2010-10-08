@@ -475,7 +475,7 @@ begin
             nxtTxSOF        <= '0';
             nxtTxAck        <= '1';
             serialCntEn     <= '1';
-            nxtData         <= (others=>'0');
+            nxtData         <= eocWord;
             nxtType         <= curTypeLast;
             nxtTypeLast     <= curTypeLast;
             nxtFrameTxReady <= '0';

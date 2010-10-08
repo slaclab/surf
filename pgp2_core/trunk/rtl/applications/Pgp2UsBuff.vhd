@@ -128,8 +128,8 @@ begin
             fifoErr <= '0' after tpd;
          end if;
 
-         -- Almost full at 3/4 capacity
-         frameTxAFull <= txFifoFull or (txFifoCount(9) and txFifoCount(8));
+         -- Almost full at 1/2 capacity
+         frameTxAFull <= txFifoFull or txFifoCount(9);
 
       end if;
    end process;
