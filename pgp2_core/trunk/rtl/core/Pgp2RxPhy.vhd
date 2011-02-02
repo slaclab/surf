@@ -16,6 +16,7 @@
 -- 11/23/2009: Renamed package.
 -- 01/13/2010: Added init of reset controller if failed to link after 1023 clocks.
 --             fixed bug in dealing with an inverted receive link.
+-- 02/01/2011: Rem data and rem link not updated if EOF fields don't match.
 ---------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -468,15 +469,15 @@ begin
                ( rxDetectLtsRaw(1) = '1' or RxLaneCnt < 2 ) and
                ( rxDetectLtsRaw(2) = '1' or RxLaneCnt < 3 ) and
                ( rxDetectLtsRaw(3) = '1' or RxLaneCnt < 4 ) then
-               rxDetectInvert  <= rxDetectInvertRaw        after tpd;
-               rxDetectRemLink <= dly0RxData(15)           after tpd;
-               rxDetectRemData <= dly0RxData(7  downto  0) after tpd;
-               rxDetectLts     <= '1'                      after tpd;
+               rxDetectInvert  <= rxDetectInvertRaw after tpd;
+               rxDetectLts     <= '1'               after tpd;
 
                -- Lane count and ID must match
                if dly0RxData(13 downto 12) = conv_std_logic_vector(RxLaneCnt-1,2) and
                   dly0RxData(11 downto  8) = Pgp2Id then
-                  rxDetectLtsOk <= '1' after tpd;
+                  rxDetectLtsOk   <= '1'                      after tpd;
+                  rxDetectRemLink <= dly0RxData(15)           after tpd;
+                  rxDetectRemData <= dly0RxData(7  downto  0) after tpd;
                else
                   rxDetectLtsOk <= '0' after tpd;
                end if;
