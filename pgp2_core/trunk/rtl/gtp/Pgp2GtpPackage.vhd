@@ -31,6 +31,7 @@ package Pgp2GtpPackage is
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpClk2x          : in  std_logic;                     -- 2x master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Flash frame state
          pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pllRxReady        : out std_logic;                     -- MGT Receive logic is ready
@@ -116,6 +117,7 @@ package Pgp2GtpPackage is
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpClk2x          : in  std_logic;                     -- 2x master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Flash frame state
          pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pllRxReady        : out std_logic;                     -- MGT Receive logic is ready
@@ -201,6 +203,7 @@ package Pgp2GtpPackage is
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpClk2x          : in  std_logic;                     -- 2x master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Flash frame state
          pll0TxRst         : in  std_logic;                     -- Reset transmit PLL logic
          pll0RxRst         : in  std_logic;                     -- Reset receive  PLL logic
          pll0RxReady       : out std_logic;                     -- MGT Receive logic is ready

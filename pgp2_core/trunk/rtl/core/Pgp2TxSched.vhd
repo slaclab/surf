@@ -32,6 +32,9 @@ entity Pgp2TxSched is
       pgpTxClk          : in  std_logic;                     -- Master clock
       pgpTxReset        : in  std_logic;                     -- Synchronous reset input
 
+      -- Link flush
+      pgpTxFlush        : in  std_logic;                     -- Flush the link
+
       -- Link is ready
       pgpTxLinkReady    : in  std_logic;                     -- Local side has link
 
@@ -232,8 +235,8 @@ begin
          vcInFrame    <= "0000"        after tpd;
       elsif rising_edge(pgpTxClk) then
 
-         -- Link is down, reset status
-         if pgpTxLinkReady  = '0' then
+         -- Link is down or flush requested, reset status
+         if pgpTxLinkReady  = '0' or pgpTxFlush = '1' then
             vcInFrame <= "0000" after tpd;
          else
 

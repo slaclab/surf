@@ -381,6 +381,7 @@ begin
       ) port map (
          pgpClk            => pgpClk,
          pgpReset          => pgpReset,
+         pgpFlush          => '0',
          pllTxRst          => pllTxRst,         
          pllRxRst          => pllRxRst,         
          pllRxReady        => pllRxReady,       

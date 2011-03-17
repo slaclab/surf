@@ -30,6 +30,7 @@ package Pgp2GtxPackage is
       port (
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Frame state flush
          pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pllRxReady        : out std_logic;                     -- MGT Receive logic is ready
@@ -198,6 +199,7 @@ package Pgp2GtxPackage is
       port (
          pgpClk             : in  std_logic;                     -- Pgp master clock
          pgpReset           : in  std_logic;                     -- Synchronous reset input
+         pgpFlush           : in  std_logic;                     -- Frame state flush
          pll0TxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pll0RxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pll0RxReady        : out std_logic;                     -- MGT Receive logic is ready

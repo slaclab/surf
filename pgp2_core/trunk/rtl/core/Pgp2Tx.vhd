@@ -37,6 +37,9 @@ entity Pgp2Tx is
       pgpTxClk          : in  std_logic;                                 -- Master clock
       pgpTxReset        : in  std_logic;                                 -- Synchronous reset input
 
+      -- Link flush
+      pgpTxFlush        : in  std_logic;                                 -- Flush the link
+
       -- Link is ready
       pgpTxLinkReady    : out std_logic;                                 -- Local side has link
 
@@ -161,6 +164,7 @@ begin
       ) port map ( 
          pgpTxClk          => pgpTxClk,
          pgpTxReset        => pgpTxReset,
+         pgpTxFlush        => pgpTxFlush,
          pgpTxLinkReady    => intTxLinkReady,
          schTxSOF          => schTxSOF,
          schTxEOF          => schTxEOF,

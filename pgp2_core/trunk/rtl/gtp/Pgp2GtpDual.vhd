@@ -38,6 +38,7 @@ entity Pgp2GtpDual is
       pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
       pgpClk2x          : in  std_logic;                     -- 2x master clock
       pgpReset          : in  std_logic;                     -- Synchronous reset input
+      pgpFlush          : in  std_logic;                     -- Flash frame state
 
       -- PLL Reset Control
       pll0TxRst         : in  std_logic;                     -- Reset transmit PLL logic
@@ -350,6 +351,7 @@ begin
       ) port map (
          pgpRxClk          => pgpClk,
          pgpRxReset        => pgpReset,
+         pgpRxFlush        => pgpFlush,
          pgpRxLinkReady    => pgp0RxLinkReady,
          pgpRxCellError    => pgp0RxCellError,
          pgpRxLinkDown     => pgp0RxLinkDown,
@@ -398,6 +400,7 @@ begin
       ) port map ( 
          pgpTxClk          => pgpClk,
          pgpTxReset        => pgpReset,
+         pgpTxFlush        => pgpFlush,
          pgpTxLinkReady    => pgp0TxLinkReady,
          pgpTxOpCodeEn     => pgp0TxOpCodeEn,
          pgpTxOpCode       => pgp0TxOpCode,
@@ -546,6 +549,7 @@ begin
       ) port map (
          pgpRxClk          => pgpClk,
          pgpRxReset        => pgpReset,
+         pgpRxFlush        => pgpFlush,
          pgpRxLinkReady    => pgp1RxLinkReady,
          pgpRxCellError    => pgp1RxCellError,
          pgpRxLinkDown     => pgp1RxLinkDown,
@@ -594,6 +598,7 @@ begin
       ) port map ( 
          pgpTxClk          => pgpClk,
          pgpTxReset        => pgpReset,
+         pgpTxFlush        => pgpFlush,
          pgpTxLinkReady    => pgp1TxLinkReady,
          pgpTxOpCodeEn     => pgp1TxOpCodeEn,
          pgpTxOpCode       => pgp1TxOpCode,

@@ -50,6 +50,7 @@ package Pgp2CorePackage is
       port (
          pgpRxClk          : in  std_logic;
          pgpRxReset        : in  std_logic;
+         pgpRxFlush        : in  std_logic;
          pgpRxLinkReady    : out std_logic;
          pgpRxCellError    : out std_logic;
          pgpRxLinkDown     : out std_logic;
@@ -100,6 +101,7 @@ package Pgp2CorePackage is
       port (
          pgpTxClk          : in  std_logic;
          pgpTxReset        : in  std_logic;
+         pgpTxFlush        : in  std_logic;
          pgpTxLinkReady    : out std_logic;
          pgpTxOpCodeEn     : in  std_logic;
          pgpTxOpCode       : in  std_logic_vector(7 downto 0);
@@ -191,6 +193,7 @@ package Pgp2CorePackage is
       port (
          pgpRxClk          : in  std_logic;                                 -- Master clock
          pgpRxReset        : in  std_logic;                                 -- Synchronous reset input
+         pgpRxFlush        : in  std_logic;                                 -- Flush the link
          pgpRxLinkReady    : in  std_logic;                                 -- Local side has link
          pgpRxCellError    : out std_logic;                                 -- A cell error has occured
          cellRxPause       : in  std_logic;                                 -- Cell data pause
@@ -319,6 +322,7 @@ package Pgp2CorePackage is
       port (
          pgpTxClk          : in  std_logic;                     -- Master clock
          pgpTxReset        : in  std_logic;                     -- Synchronous reset input
+         pgpTxFlush        : in  std_logic;                     -- Transmit state flush
          pgpTxLinkReady    : in  std_logic;                     -- Local side has link
          schTxSOF          : in  std_logic;                     -- Cell contained SOF
          schTxEOF          : in  std_logic;                     -- Cell contained EOF

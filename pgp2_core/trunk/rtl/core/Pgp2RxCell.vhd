@@ -36,6 +36,9 @@ entity Pgp2RxCell is
       pgpRxClk          : in  std_logic;                                 -- Master clock
       pgpRxReset        : in  std_logic;                                 -- Synchronous reset input
 
+      -- Link flush
+      pgpRxFlush        : in  std_logic;                                 -- Flush the link
+
       -- Link is ready
       pgpRxLinkReady    : in  std_logic;                                 -- Local side has link
 
@@ -527,8 +530,12 @@ begin
             abortVc <= (others=>'0') after tpd;
             abortEn <= '0'           after tpd;
 
+            -- Link flush set
+            if pgpRxFlush = '1' then
+               vcInFrame <= (others=>'0') after tpd;
+
             -- Pipeline enable
-            if cellRxPause = '0' then
+            elsif cellRxPause = '0' then
 
                -- SOC Received
                if detSOC = '1' then

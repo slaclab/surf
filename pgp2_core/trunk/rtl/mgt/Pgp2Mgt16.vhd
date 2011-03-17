@@ -41,6 +41,9 @@ entity Pgp2Mgt16 is
       pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
       pgpReset          : in  std_logic;                     -- Synchronous reset input
 
+      -- Frame state sync
+      pgpFlush          : in  std_logic;                     -- Frame state sync
+
       -- PLL Reset Control
       pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
       pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
@@ -240,6 +243,7 @@ begin
       ) port map (
          pgpRxClk          => pgpClk,
          pgpRxReset        => pgpReset,
+         pgpRxFlush        => pgpFlush,
          pgpRxLinkReady    => pgpRxLinkReady,
          pgpRxCellError    => pgpRxCellError,
          pgpRxLinkDown     => pgpRxLinkDown,
@@ -288,6 +292,7 @@ begin
       ) port map ( 
          pgpTxClk          => pgpClk,
          pgpTxReset        => pgpReset,
+         pgpTxFlush        => pgpFlush,
          pgpTxLinkReady    => pgpTxLinkReady,
          pgpTxOpCodeEn     => pgpTxOpCodeEn,
          pgpTxOpCode       => pgpTxOpCode,
