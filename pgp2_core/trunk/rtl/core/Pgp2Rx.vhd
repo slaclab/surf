@@ -37,6 +37,9 @@ entity Pgp2Rx is
       pgpRxClk          : in  std_logic;                                 -- Master clock
       pgpRxReset        : in  std_logic;                                 -- Synchronous reset input
 
+      -- Link flush
+      pgpRxFlush        : in  std_logic;                                 -- Flush the link
+
       -- Link is ready
       pgpRxLinkReady    : out std_logic;                                 -- Local side has link
 
@@ -161,6 +164,7 @@ begin
       ) port map (
          pgpRxClk         => pgpRxClk,
          pgpRxReset       => pgpRxReset,
+         pgpRxFlush       => pgpRxFlush,
          pgpRxLinkReady   => intRxLinkReady,
          pgpRxCellError   => pgpRxCellError,
          cellRxPause      => cellRxPause,

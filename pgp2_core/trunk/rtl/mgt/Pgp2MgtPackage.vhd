@@ -32,6 +32,7 @@ package Pgp2MgtPackage is
       port (
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Frame state reset
          pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pllRxReady        : out std_logic;                     -- MGT Receive logic is ready
@@ -119,6 +120,7 @@ package Pgp2MgtPackage is
       port (
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Frame state reset
          pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pllRxReady        : out std_logic;                     -- MGT Receive logic is ready
@@ -204,6 +206,7 @@ package Pgp2MgtPackage is
       port (
          pgpClk            : in  std_logic;                     -- 156.25Mhz master clock
          pgpReset          : in  std_logic;                     -- Synchronous reset input
+         pgpFlush          : in  std_logic;                     -- Frame state reset
          pllTxRst          : in  std_logic;                     -- Reset transmit PLL logic
          pllRxRst          : in  std_logic;                     -- Reset receive  PLL logic
          pllRxReady        : out std_logic;                     -- MGT Receive logic is ready
