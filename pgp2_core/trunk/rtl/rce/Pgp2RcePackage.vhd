@@ -184,10 +184,10 @@ package Pgp2RcePackage is
          pgpRefClk2                      : in  std_logic;
          pgpClk                          : in  std_logic;
          pgpReset                        : in  std_logic;
-         mgtRxN                          : in  std_logic_vector(3 downto 0);
-         mgtRxP                          : in  std_logic_vector(3 downto 0);
-         mgtTxN                          : out std_logic_vector(3 downto 0);
-         mgtTxP                          : out std_logic_vector(3 downto 0)
+         mgtRxN                          : in  std_logic_vector(PgpLaneCnt-1 downto 0);
+         mgtRxP                          : in  std_logic_vector(PgpLaneCnt-1 downto 0);
+         mgtTxN                          : out std_logic_vector(PgpLaneCnt-1 downto 0);
+         mgtTxP                          : out std_logic_vector(PgpLaneCnt-1 downto 0)
       );
    end component;
 
