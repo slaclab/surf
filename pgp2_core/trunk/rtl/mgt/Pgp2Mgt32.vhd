@@ -243,7 +243,7 @@ begin
 
 
    -- PGP Receive Core
-   U_Pgp2Rx: Pgp2CorePackage.Pgp2Rx 
+   U_Pgp2Rx: Pgp2Rx 
       generic map (
          RxLaneCnt    => 2,
          EnShortCells => EnShortCells
@@ -292,7 +292,7 @@ begin
 
 
    -- PGP Transmit Core
-   U_Pgp2Tx: Pgp2CorePackage.Pgp2Tx 
+   U_Pgp2Tx: Pgp2Tx 
       generic map (
          TxLaneCnt    => 2,
          VcInterleave => VcInterleave
@@ -349,7 +349,7 @@ begin
 
 
    -- MGTA Receive Reset
-   U_Pgp2MgtRxRstA: Pgp2MgtPackage.Pgp2MgtRxRst port map (
+   U_Pgp2MgtRxRstA: Pgp2MgtRxRst port map (
       mgtRxClk       => pgpClk,
       mgtRxRst       => intRxRst,
       mgtRxReady     => intRxReady(0),
@@ -362,7 +362,7 @@ begin
 
 
    -- MGTB Receive Reset
-   U_Pgp2MgtRxRstB: Pgp2MgtPackage.Pgp2MgtRxRst port map (
+   U_Pgp2MgtRxRstB: Pgp2MgtRxRst port map (
       mgtRxClk       => pgpClk,
       mgtRxRst       => intRxRst,
       mgtRxReady     => intRxReady(1),
@@ -375,7 +375,7 @@ begin
 
 
    -- MGTA Transmit Reset
-   U_Pgp2MgtTxRstA: Pgp2MgtPackage.Pgp2MgtTxRst port map (
+   U_Pgp2MgtTxRstA: Pgp2MgtTxRst port map (
       mgtTxClk       => pgpClk,
       mgtTxRst       => intTxRst,
       mgtTxReady     => intTxReady(0),
@@ -387,7 +387,7 @@ begin
 
 
    -- MGTB Transmit Reset
-   U_Pgp2MgtTxRstB: Pgp2MgtPackage.Pgp2MgtTxRst port map (
+   U_Pgp2MgtTxRstB: Pgp2MgtTxRst port map (
       mgtTxClk       => pgpClk,
       mgtTxRst       => intTxRst,
       mgtTxReady     => intTxReady(1),

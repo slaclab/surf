@@ -371,7 +371,7 @@ begin
 
 
    -- 16-bit wrapper
-   U_Pgp2Mgt16: Pgp2MgtPackage.Pgp2Mgt16 
+   U_Pgp2Mgt16: Pgp2Mgt16 
    --U_Pgp2Mgt16Model: Pgp2TbPackage.Pgp2Mgt16Model -- For Simulation
       generic map (
          EnShortCells      => 1,

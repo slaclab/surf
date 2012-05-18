@@ -20,7 +20,7 @@
 
 LIBRARY ieee;
 USE work.ALL;
-USE work.Pgp2CorePackage.ALL;
+USE work.Pgp2CorePackage.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -124,7 +124,7 @@ begin
    pgpRxLinkReady <= intRxLinkReady;
 
    -- PHY Logic
-   U_Pgp2RxPhy: Pgp2CorePackage.Pgp2RxPhy 
+   U_Pgp2RxPhy: Pgp2RxPhy 
       generic map ( 
          RxLaneCnt        => RxLaneCnt
       ) port map (
@@ -156,7 +156,7 @@ begin
 
 
    -- Cell Receiver
-   U_Pgp2RxCell: Pgp2CorePackage.Pgp2RxCell 
+   U_Pgp2RxCell: Pgp2RxCell 
       generic map ( 
          RxLaneCnt        => RxLaneCnt, 
          EnShortCells     => EnShortCells,

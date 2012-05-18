@@ -305,7 +305,7 @@ begin
 
 
    -- Export Interface
-   U_Pgp2RceExport: Pgp2RcePackage.Pgp2RceExport port map ( 
+   U_Pgp2RceExport: Pgp2RceExport port map ( 
       pgpClk                         => pgpClk,
       pgpReset                       => pgpReset,
       Export_Clock                   => Export_Clock,
@@ -335,7 +335,7 @@ begin
 
 
    -- Import Interface
-   U_Pgp2RceImport: Pgp2RcePackage.Pgp2RceImport 
+   U_Pgp2RceImport: Pgp2RceImport 
       generic map (
          FreeListA => FreeListA,
          FreeListB => FreeListB,
@@ -374,7 +374,7 @@ begin
 
 
    -- Lane A
-   U_Pgp2RceLaneA: Pgp2RcePackage.Pgp2RceLane 
+   U_Pgp2RceLaneA: Pgp2RceLane 
       generic map (
          MgtMode   => "A",
          RefClkSel => RefClkSel
@@ -425,7 +425,7 @@ begin
 
 
    -- Lane B
-   U_Pgp2RceLaneB: Pgp2RcePackage.Pgp2RceLane 
+   U_Pgp2RceLaneB: Pgp2RceLane 
       generic map (
          MgtMode   => "B",
          RefClkSel => RefClkSel
@@ -479,7 +479,7 @@ begin
    Pgp2UpperEn: if ( PgpLaneCnt = 4 ) generate
 
       -- Lane C
-      U_Pgp2RceLaneC: Pgp2RcePackage.Pgp2RceLane 
+      U_Pgp2RceLaneC: Pgp2RceLane 
          generic map (
             MgtMode   => "A",
             RefClkSel => RefClkSel
@@ -530,7 +530,7 @@ begin
 
 
       -- Lane D
-      U_Pgp2RceLaneD: Pgp2RcePackage.Pgp2RceLane 
+      U_Pgp2RceLaneD: Pgp2RceLane 
          generic map (
             MgtMode   => "B",
             RefClkSel => RefClkSel
