@@ -13,6 +13,7 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 05/18/2009: created.
+-- 05/18/2012: Added VC transmit timeout
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -44,6 +45,7 @@ entity Pgp2TxSched is
       schTxIdle         : out std_logic;                     -- Force IDLE transmit
       schTxReq          : out std_logic;                     -- Cell transmit request
       schTxAck          : in  std_logic;                     -- Cell transmit acknowledge
+      schTxTimeout      : out std_logic;                     -- Cell transmit timeout
       schTxDataVc       : out std_logic_vector(1 downto 0);  -- Cell transmit virtual channel
 
       -- VC Data Valid Signals
@@ -70,6 +72,13 @@ architecture Pgp2TxSched of Pgp2TxSched is
    signal intTxIdle    : std_logic;
    signal nxtTxReq     : std_logic;
    signal nxtTxIdle    : std_logic;
+   signal nxtTxTimeout : std_logic;
+   signal intTxTimeout : std_logic;
+   signal vcTimerA     : std_logic_vector(23 downto 0);
+   signal vcTimerB     : std_logic_vector(23 downto 0);
+   signal vcTimerC     : std_logic_vector(23 downto 0);
+   signal vcTimerD     : std_logic_vector(23 downto 0);
+   signal vcTimeout    : std_logic_vector(3  downto 0);
 
    -- Schedular state
    constant ST_RST   : std_logic_vector(2 downto 0) := "001";
@@ -87,18 +96,20 @@ architecture Pgp2TxSched of Pgp2TxSched is
 begin
 
    -- Outgoing signals
-   schTxReq    <= intTxReq;
-   schTxIdle   <= intTxIdle;
-   schTxDataVc <= currVc;
+   schTxReq     <= intTxReq;
+   schTxIdle    <= intTxIdle;
+   schTxDataVc  <= currVc;
+   schTxTimeout <= intTxTimeout;
 
 
    -- State transition logic
    process ( pgpTxClk, pgpTxReset ) begin
       if pgpTxReset = '1' then
-         curState  <= ST_ARB        after tpd;
-         currVc    <= "00"          after tpd;
-         intTxReq  <= '0'           after tpd;
-         intTxIdle <= '0'           after tpd;
+         curState     <= ST_ARB        after tpd;
+         currVc       <= "00"          after tpd;
+         intTxReq     <= '0'           after tpd;
+         intTxIdle    <= '0'           after tpd;
+         intTxTimeout <= '0'           after tpd;
       elsif rising_edge(pgpTxClk) then
 
          -- Force state to select state when link goes down
@@ -109,47 +120,80 @@ begin
          end if;
 
          -- Control signals
-         currVc    <= nextVc    after tpd;
-         intTxReq  <= nxtTxReq  after tpd;
-         intTxIdle <= nxtTxIdle after tpd;
+         currVc       <= nextVc       after tpd;
+         intTxReq     <= nxtTxReq     after tpd;
+         intTxIdle    <= nxtTxIdle    after tpd;
+         intTxTimeout <= nxtTxTimeout after tpd;
 
       end if;
    end process;
 
 
    -- Scheduler state machine
-   process ( curState, arbValid, arbVc, currVc, schTxAck, vcInFrame, currValid ) begin
+   process ( curState, arbValid, arbVc, currVc, schTxAck, vcInFrame, currValid, vcTimeout ) begin
       case curState is
 
          -- Held in reset due to non-link
          when ST_RST =>
-            nxtTxIdle  <= '0';
-            nxtTxReq   <= '0';
-            nextVc     <= (others=>'0');
-            nxtState   <= ST_ARB;
+            nxtTxIdle    <= '0';
+            nxtTxReq     <= '0';
+            nxtTxTimeout <= '0';
+            nextVc       <= (others=>'0');
+            nxtState     <= ST_ARB;
 
          -- IDLE, wait for ack receiver to be ready 
          when ST_ARB =>
 
+            -- VC0 Timeout
+            if vcTimeout(0) = '1' then
+               nxtTxIdle    <= '0';
+               nxtTxReq     <= '1';
+               nxtTxTimeout <= '1';
+               nextVc       <= "00";
+
+            -- VC1 Timeout
+            elsif vcTimeout(1) = '1' then
+               nxtTxIdle    <= '0';
+               nxtTxReq     <= '1';
+               nxtTxTimeout <= '1';
+               nextVc       <= "01";
+
+            -- VC2 Timeout
+            elsif vcTimeout(2) = '1' then
+               nxtTxIdle    <= '0';
+               nxtTxReq     <= '1';
+               nxtTxTimeout <= '1';
+               nextVc       <= "10";
+
+            -- VC3 Timeout
+            elsif vcTimeout(3) = '1' then
+               nxtTxIdle    <= '0';
+               nxtTxReq     <= '1';
+               nxtTxTimeout <= '1';
+               nextVc       <= "11";
+
             -- Non-interleave mode and current is in frame
-            if VcInterleave = 0 and vcInFrame(conv_integer(currVc)) = '1' then
-               nxtTxIdle <= not currValid;
-               nxtTxReq  <= currValid;
-               nextVc    <= currVc;
+            elsif VcInterleave = 0 and vcInFrame(conv_integer(currVc)) = '1' then
+               nxtTxIdle    <= not currValid;
+               nxtTxReq     <= currValid;
+               nextVc       <= currVc;
+               nxtTxTimeout <= '0';
 
             -- Else use new arb winner if valid
             else
-               nxtTxIdle <= not arbValid;
-               nxtTxReq  <= arbValid;
-               nextVc    <= arbVc;
+               nxtTxIdle    <= not arbValid;
+               nxtTxReq     <= arbValid;
+               nextVc       <= arbVc;
+               nxtTxTimeout <= '0';
             end if;
             nxtState <= ST_CELL;
 
          -- Transmit Cell Data
          when ST_CELL =>
-            nxtTxIdle  <= '0';
-            nxtTxReq   <= '0';
-            nextVc     <= currVc;
+            nxtTxIdle    <= '0';
+            nxtTxTimeout <= '0';
+            nxtTxReq     <= '0';
+            nextVc       <= currVc;
 
             -- Cell is done
             if schTxAck = '1' then
@@ -160,31 +204,35 @@ begin
 
          -- Wait between cells
          when ST_GAP_A =>
-            nxtTxIdle  <= '0';
-            nxtTxReq   <= '0';
-            nextVc     <= currVc;
-            nxtState   <= ST_GAP_B;
+            nxtTxIdle    <= '0';
+            nxtTxReq     <= '0';
+            nxtTxTimeout <= '0';
+            nextVc       <= currVc;
+            nxtState     <= ST_GAP_B;
 
          -- Wait between cells
          when ST_GAP_B =>
-            nxtTxIdle  <= '0';
-            nxtTxReq   <= '0';
-            nextVc     <= currVc;
-            nxtState   <= ST_GAP_C;
+            nxtTxIdle    <= '0';
+            nxtTxReq     <= '0';
+            nxtTxTimeout <= '0';
+            nextVc       <= currVc;
+            nxtState     <= ST_GAP_C;
 
          -- Wait between cells
          when ST_GAP_C =>
-            nxtTxIdle  <= '0';
-            nxtTxReq   <= '0';
-            nextVc     <= currVc;
-            nxtState   <= ST_ARB;
+            nxtTxIdle    <= '0';
+            nxtTxReq     <= '0';
+            nxtTxTimeout <= '0';
+            nextVc       <= currVc;
+            nxtState     <= ST_ARB;
 
          -- Just in case
          when others =>
-            nxtTxIdle  <= '0';
-            nxtTxReq   <= '0';
-            nextVc     <= (others=>'0');
-            nxtState   <= ST_ARB;
+            nxtTxIdle    <= '0';
+            nxtTxReq     <= '0';
+            nxtTxTimeout <= '0';
+            nextVc       <= (others=>'0');
+            nxtState     <= ST_ARB;
       end case;
    end process;
 
@@ -249,6 +297,58 @@ begin
             elsif schTxEOF = '1' then
                vcInFrame(conv_integer(currVc)) <= '0' after tpd;
             end if;
+         end if;
+      end if;
+   end process;
+
+   -- Detect frame transmit timeout
+   process ( pgpTxClk, pgpTxReset ) begin
+      if pgpTxReset = '1' then
+         vcTimerA  <= (others=>'0') after tpd;
+         vcTimerB  <= (others=>'0') after tpd;
+         vcTimerC  <= (others=>'0') after tpd;
+         vcTimerD  <= (others=>'0') after tpd;
+         vcTimeout <= (others=>'0') after tpd;
+      elsif rising_edge(pgpTxClk) then
+
+         if vcInFrame(0) = '0' or (currVc = 0 and intTxReq = '1') then
+            vcTimerA     <= (others=>'0') after tpd;
+            vcTimeout(0) <= '0'           after tpd;
+         elsif vcTimerA /= x"FFFFFF" then
+            vcTimerA     <= vcTimerA + 1 after tpd;
+            vcTimeout(0) <= '0'          after tpd;
+         else
+            vcTimeout(0) <= '1'          after tpd;
+         end if;
+
+         if vcInFrame(1) = '0' or (currVc = 1 and intTxReq = '1') then
+            vcTimerB     <= (others=>'0') after tpd;
+            vcTimeout(1) <= '0'           after tpd;
+         elsif vcTimerB /= x"FFFFFF" then
+            vcTimerB     <= vcTimerB + 1 after tpd;
+            vcTimeout(1) <= '0'          after tpd;
+         else
+            vcTimeout(1) <= '1'          after tpd;
+         end if;
+
+         if vcInFrame(2) = '0' or (currVc = 2 and intTxReq = '1') then
+            vcTimerC     <= (others=>'0') after tpd;
+            vcTimeout(2) <= '0'           after tpd;
+         elsif vcTimerC /= x"FFFFFF" then
+            vcTimerC     <= vcTimerC + 1 after tpd;
+            vcTimeout(2) <= '0'          after tpd;
+         else
+            vcTimeout(2) <= '1'          after tpd;
+         end if;
+
+         if vcInFrame(3) = '0' or (currVc = 3 and intTxReq = '1') then
+            vcTimerD     <= (others=>'0') after tpd;
+            vcTimeout(3) <= '0'           after tpd;
+         elsif vcTimerD /= x"FFFFFF" then
+            vcTimerD     <= vcTimerD + 1 after tpd;
+            vcTimeout(3) <= '0'          after tpd;
+         else
+            vcTimeout(3) <= '1'          after tpd;
          end if;
       end if;
    end process;

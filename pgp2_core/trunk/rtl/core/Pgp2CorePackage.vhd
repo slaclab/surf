@@ -16,6 +16,7 @@
 -- 11/23/2009: Renamed package.
 -- 12/13/2010: Added received init line to help linking.
 -- 06/25/2010: Added payload size config as generic.
+-- 05/18/2012: Added VC transmit timeout
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -274,6 +275,7 @@ package Pgp2CorePackage is
          schTxIdle         : in  std_logic;                                 -- Force IDLE transmit
          schTxReq          : in  std_logic;                                 -- Cell transmit request
          schTxAck          : out std_logic;                                 -- Cell transmit acknowledge
+         schTxTimeout      : in  std_logic;                                 -- Cell transmit timeout
          schTxDataVc       : in  std_logic_vector(1 downto 0);              -- Cell transmit virtual channel
          vc0FrameTxValid   : in  std_logic;                                 -- User frame data is valid
          vc0FrameTxReady   : out std_logic;                                 -- PGP is ready
@@ -329,6 +331,7 @@ package Pgp2CorePackage is
          schTxIdle         : out std_logic;                     -- Force IDLE transmit
          schTxReq          : out std_logic;                     -- Cell transmit request
          schTxAck          : in  std_logic;                     -- Cell transmit acknowledge
+         schTxTimeout      : out std_logic;                     -- Cell transmit timeout
          schTxDataVc       : out std_logic_vector(1 downto 0);  -- Cell transmit virtual channel
          vc0FrameTxValid   : in  std_logic;                     -- User frame data is valid
          vc1FrameTxValid   : in  std_logic;                     -- User frame data is valid

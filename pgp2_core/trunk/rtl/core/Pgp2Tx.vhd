@@ -16,6 +16,7 @@
 -- 11/23/2009: Renamed package.
 -- 01/13/2010: Added received init line to help linking.
 -- 06/25/2010: Added payload size config as generic.
+-- 05/18/2012: Added VC transmit timeout
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -126,6 +127,7 @@ architecture Pgp2Tx of Pgp2Tx is
    signal schTxAck          : std_logic;
    signal schTxDataVc       : std_logic_vector(1 downto 0);
    signal intTxLinkReady    : std_logic;
+   signal schTxTimeout      : std_logic;
 
 begin
 
@@ -172,6 +174,7 @@ begin
          schTxReq          => schTxReq,
          schTxAck          => schTxAck,
          schTxDataVc       => schTxDataVc,
+         schTxTimeout      => schTxTimeout,
          vc0FrameTxValid   => vc0FrameTxValid,
          vc1FrameTxValid   => vc1FrameTxValid,
          vc2FrameTxValid   => vc2FrameTxValid,
@@ -198,6 +201,7 @@ begin
          schTxIdle         => schTxIdle,
          schTxReq          => schTxReq,
          schTxAck          => schTxAck,
+         schTxTimeout      => schTxTimeout,
          schTxDataVc       => schTxDataVc,
          vc0FrameTxValid   => vc0FrameTxValid,
          vc0FrameTxReady   => vc0FrameTxReady,

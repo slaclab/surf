@@ -15,6 +15,7 @@
 -- 05/18/2009: created.
 -- 11/23/2009: Renamed package.
 -- 06/25/2010: Added payload size config as generic.
+-- 05/18/2012: Added VC transmit timeout
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -26,7 +27,7 @@ use ieee.std_logic_unsigned.all;
 
 entity Pgp2TxCell is 
    generic (
-      TxLaneCnt     : integer := 4; -- Number of receive lanes, 1-4
+      TxLaneCnt     : integer := 4; -- Number of bonded lanes, 1-4
       PayloadCntTop : integer := 7  -- Top bit for payload counter
    );
    port ( 
@@ -52,6 +53,7 @@ entity Pgp2TxCell is
       schTxIdle         : in  std_logic;                                 -- Force IDLE transmit
       schTxReq          : in  std_logic;                                 -- Cell transmit request
       schTxAck          : out std_logic;                                 -- Cell transmit acknowledge
+      schTxTimeout      : in  std_logic;                                 -- Cell transmit timeout
       schTxDataVc       : in  std_logic_vector(1 downto 0);              -- Cell transmit virtual channel
 
       -- Frame Transmit Interface, VC 0
@@ -147,6 +149,7 @@ architecture Pgp2TxCell of Pgp2TxCell is
    signal int1FrameTxReady   : std_logic;
    signal int2FrameTxReady   : std_logic;
    signal int3FrameTxReady   : std_logic;
+   signal intTimeout         : std_logic;
 
    -- Transmit Data Marker
    constant TX_DATA   : std_logic_vector(2 downto 0) := "000";
@@ -238,6 +241,7 @@ begin
          int1FrameTxReady <= '0'           after tpd;
          int2FrameTxReady <= '0'           after tpd;
          int3FrameTxReady <= '0'           after tpd;
+         intTimeout       <= '0'           after tpd;
          schTxSOF         <= '0'           after tpd;
          schTxEOF         <= '0'           after tpd;
          schTxAck         <= '0'           after tpd;
@@ -286,6 +290,11 @@ begin
                int3FrameTxReady <= nxtFrameTxReady after tpd;
          end case;
 
+         -- Register timeout request
+         if schTxReq = '1' then
+            intTimeout <= schTxTimeout after tpd;
+         end if;
+
          -- Update Last Type
          curTypeLast <= nxtTypeLast after tpd;
 
@@ -321,7 +330,7 @@ begin
 
 
    -- Async state control
-   process ( curState, schTxIdle, schTxReq, cellCnt, eocWord, socWord, curTypeLast,
+   process ( curState, schTxIdle, schTxReq, intTimeout, schTxTimeout, cellCnt, eocWord, socWord, curTypeLast,
             muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData ) begin
       case curState is 
 
@@ -366,7 +375,7 @@ begin
          -- Send first charactor of cell, assert ready
          when ST_SOC =>
             cellCntRst      <= '1';
-            nxtFrameTxReady <= '1';
+            nxtFrameTxReady <= not intTimeout;
             nxtTxEOF        <= '0';
             nxtTxAck        <= '0';
             serialCntEn     <= '0';
@@ -374,7 +383,10 @@ begin
             nxtTypeLast     <= (others=>'0');
 
             -- Determine type
-            if muxFrameTxSOF = '1' then
+            if intTimeout = '1' then
+               nxtType  <= TX_SOC;
+               nxtTxSOF <= '0';
+            elsif muxFrameTxSOF = '1' then
                nxtType  <= TX_SOF;
                nxtTxSOF <= '1';
             else
@@ -393,10 +405,16 @@ begin
             nxtTxAck     <= '0';
             serialCntEn  <= '0';
             nxtData      <= muxFrameTxData;
-            nxtType      <= TX_DATA;
+
+            -- Timeout frame, force EOFE
+            if intTimeout = '1' then
+               nxtType         <= TX_DATA;
+               nxtTypeLast     <= TX_EOFE;
+               nxtState        <= ST_CRCA;
+               nxtFrameTxReady <= '0';
 
             -- Valid is de-asserted
-            if muxFrameTxValid = '0' then
+            elsif muxFrameTxValid = '0' then
                nxtTypeLast     <= TX_EOC;
                nxtFrameTxReady <= '0';
                nxtType         <= TX_CRCA;
