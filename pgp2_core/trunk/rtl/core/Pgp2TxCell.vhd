@@ -330,7 +330,7 @@ begin
 
 
    -- Async state control
-   process ( curState, schTxIdle, schTxReq, intTimeout, schTxTimeout, cellCnt, eocWord, socWord, curTypeLast,
+   process ( curState, schTxIdle, schTxReq, intTimeout, cellCnt, eocWord, socWord, curTypeLast,
             muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData ) begin
       case curState is 
 
