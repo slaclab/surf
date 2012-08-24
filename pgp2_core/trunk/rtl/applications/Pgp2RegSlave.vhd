@@ -41,7 +41,7 @@ use ieee.std_logic_unsigned.all;
 
 entity Pgp2RegSlave is
    generic (
-      FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+      FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, V6 = Virtex 6
    );
    port ( 
 
@@ -93,6 +93,21 @@ end Pgp2RegSlave;
 -- Define architecture
 architecture Pgp2RegSlave of Pgp2RegSlave is
 
+
+   -- S6 Async FIFO
+   component pgp2_s6_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component;
+	
    -- V4 Async FIFO
    component pgp2_v4_afifo_18x1023 port (
       din:           IN  std_logic_VECTOR(17 downto 0);
@@ -247,6 +262,38 @@ begin
    U_GenRxV5Fifo: if FifoType = "V5" generate
       U_RegRxV5Fifo: pgp2_v5_afifo_18x1023 port map (
          din           => rxFifoDin,
+         rd_clk        => locClk,
+         rd_en         => rxFifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => rxFifoDout,
+         empty         => rxFifoEmpty,
+         full          => rxFifoFull,
+         wr_data_count => rxFifoCount
+      );
+   end generate;
+
+   -- S6 Receive FIFO
+   U_GenRxS6Fifo0: if FifoType = "S6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+        din           => rxFifoDin,
+         rd_clk        => locClk,
+         rd_en         => rxFifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => rxFifoDout,
+         empty         => rxFifoEmpty,
+         full          => rxFifoFull,
+         wr_data_count => rxFifoCount
+      );
+   end generate;
+
+   -- V6 Receive FIFO
+   U_GenRxV6Fifo0: if FifoType = "V6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+        din           => rxFifoDin,
          rd_clk        => locClk,
          rd_en         => rxFifoRd,
          rst           => pgpRxReset,
@@ -785,6 +832,40 @@ begin
       );
    end generate;
 
+   -- S6 Receive FIFO
+   U_GenRxS6Fifo1: if FifoType = "S6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpTxClk,
+         rd_en         => txFifoRd,
+         rst           => pgpTxReset,
+         wr_clk        => locClk,
+         wr_en         => txFifoWr,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+
+      );
+   end generate;
+
+   -- v6 Receive FIFO
+   U_GenRxV6Fifo1: if FifoType = "V6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpTxClk,
+         rd_en         => txFifoRd,
+         rst           => pgpTxReset,
+         wr_clk        => locClk,
+         wr_en         => txFifoWr,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+
+      );
+   end generate;
+	
    -- Data valid
    process ( pgpTxClk, pgpTxReset ) begin
       if pgpTxReset = '1' then
