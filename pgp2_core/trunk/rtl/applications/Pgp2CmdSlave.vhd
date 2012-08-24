@@ -38,7 +38,7 @@ entity Pgp2CmdSlave is
    generic (
       DestId     : natural := 0;     -- Destination ID Value To Match
       DestMask   : natural := 0;     -- Destination ID Mask For Match
-      FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+      FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
    );
    port ( 
 
@@ -87,6 +87,20 @@ architecture Pgp2CmdSlave of Pgp2CmdSlave is
 
    -- V5 Async FIFO
    component pgp2_v5_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component;
+
+   -- S6 Async FIFO
+   component pgp2_s6_afifo_18x1023 port (
       din:           IN  std_logic_VECTOR(17 downto 0);
       rd_clk:        IN  std_logic;
       rd_en:         IN  std_logic;
@@ -183,6 +197,37 @@ begin
       );
    end generate;
 
+   -- S6 Receive FIFO
+   U_GenRxS6Fifo: if FifoType = "S6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+         din           => fifoDin,
+         rd_clk        => locClk,
+         rd_en         => fifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => fifoDout,
+         empty         => fifoEmpty,
+         full          => fifoFull,
+         wr_data_count => fifoCount
+      );
+   end generate;
+
+   -- V6 Receive FIFO
+   U_GenRxV6Fifo: if FifoType = "V6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+         din           => fifoDin,
+         rd_clk        => locClk,
+         rd_en         => fifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => fifoDout,
+         empty         => fifoEmpty,
+         full          => fifoFull,
+         wr_data_count => fifoCount
+      );
+   end generate;
 
    -- Data coming out of Rx FIFO
    locSOF   <= '1' when fifoDout(17 downto 16) = "01" else '0';

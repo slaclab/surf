@@ -23,7 +23,7 @@ package Pgp2AppPackage is
    -- Register Slave
    component Pgp2RegSlave
       generic (
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4,  S6 = Spartan 6, V6 = Virtex 6
       );
       port ( 
          pgpRxClk         : in  std_logic;                     -- PGP Clock
@@ -63,7 +63,7 @@ package Pgp2AppPackage is
       generic (
          DestId     : natural := 0;     -- Destination ID Value To Match
          DestMask   : natural := 0;     -- Destination ID Mask For Match
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
       );
       port ( 
          pgpRxClk         : in  std_logic;                      -- PGP Clock
@@ -86,7 +86,7 @@ package Pgp2AppPackage is
    -- Downstream Buffer
    component Pgp2DsBuff
       generic (
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
       );
       port ( 
          pgpClk           : in  std_logic;
@@ -113,7 +113,7 @@ package Pgp2AppPackage is
    -- Upstream Buffer
    component Pgp2UsBuff
       generic (
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
       );
       port ( 
          pgpClk           : in  std_logic;
