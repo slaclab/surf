@@ -40,7 +40,7 @@ architecture ClkRst of ClkRst is
   
 begin
 
-  clkFb <= not clkFb after CLK_PERIOD_C/2.0;
+  clkFb <= not clkFb after CLK_PERIOD_G/2.0;
 
   process is
   begin
