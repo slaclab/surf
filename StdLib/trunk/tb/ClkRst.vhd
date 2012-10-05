@@ -31,7 +31,7 @@ entity ClkRst is
     rst  : out sl;
     rstL : out sl);
 
-end entity CkRst;
+end entity ClkRst;
 
 architecture ClkRst of ClkRst is
 
