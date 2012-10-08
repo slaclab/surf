@@ -42,10 +42,10 @@ HDL_SRC= $(PWD)/../../StdLib/rtl/StdRtlPkg.vhd \
          $(PWD)/../../StdLib/rtl/SynchronizePkg.vhd \
          $(PWD)/../../StdLib/rtl/RstSync.vhd \
          $(PWD)/../../StdLib/tb/ClkRst.vhd \
-         $(PWD)/import/pgp2/rtl/applications/Pgp2RegSlave.vhd \
-         $(PWD)/import/pgp2/xil_cores/*.vhd \
-	 $(PWD)/import/simlink/SimLinkRx.vhd \
-	 $(PWD)/import/simlink/SimLinkTx.vhd \
+         $(PWD)/external/pgp2/rtl/applications/Pgp2RegSlave.vhd \
+         $(PWD)/external/pgp2/xil_cores/*.vhd \
+	 $(PWD)/external/simlink/SimLinkRx.vhd \
+	 $(PWD)/external/simlink/SimLinkTx.vhd \
          $(PWD)/hdl/Pgp2FrontEndSim.vhd \
          $(PWD)/hdl/Version.vhd \
          $(PWD)/../rtl/SaciMasterPkg.vhd \
@@ -74,9 +74,9 @@ rtl_src:
 
 # VHPI Library
 vhpi_src:
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/import/simlink/VhpiGeneric.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/import/simlink/SimLinkRx.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/import/simlink/SimLinkTx.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/external/simlink/VhpiGeneric.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/external/simlink/SimLinkRx.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/external/simlink/SimLinkTx.c
 	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o SimLinkRx.o SimLinkTx.o
 
 sim_dig:
