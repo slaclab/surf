@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-10-02
--- Last update: 2012-10-02
+-- Last update: 2012-10-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -18,6 +18,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
+use work.FrontEndPkg.all;
+use work.SaciMasterPkg.all;
 
 entity FrontEndDsciTb is
 
@@ -25,23 +27,19 @@ end entity FrontEndDsciTb;
 
 architecture testbench of FrontEndDsciTb is
 
+  constant TPD_C : time := 1 ns;
+
   -- Clocks and resets
   signal gtpClk    : sl;
   signal fpgaRst   : sl;
-  signal sysClk125 : sl;
-  signal sysRst125 : sl;
+  signal pgpClk : sl;
+  signal pgpRst : sl;
   signal saciClkIn : sl;
   signal saciRst   : sl;
 
   -- Front End Register Interface
-  signal regReq     : sl;
-  signal regOp      : sl;
-  signal regInp     : sl;
-  signal regAck     : sl;
-  signal regFail    : sl;
-  signal regAddr    : sl;
-  signal regDataOut : slv(31 downto 0);
-  signal regDataIn  : sl(31 downto 0);
+  signal frontEndRegCntlIn : FrontEndRegCntlInType;
+  signal frontEndRegCntlOut : FrontEndRegCntlOutType;
 
   -- SACI Master Parallel Interface
   signal saciMasterIn  : SaciMasterInType;
@@ -49,7 +47,7 @@ architecture testbench of FrontEndDsciTb is
 
   -- SACI serial interface
   signal saciClk  : sl;
-  signal saciSelL : sl;
+  signal saciSelL : slv(SACI_NUM_SLAVES_C-1 downto 0);
   signal saciCmd  : sl;
   signal saciRsp  : sl;
 
@@ -59,18 +57,18 @@ architecture testbench of FrontEndDsciTb is
   signal exec          : sl;
   signal ack           : sl;
   signal readL         : sl;
-  signal cmd           : sl;
-  signal addr          : sl;
-  signal wrData        : sl;
-  signal rdData        : sl;
+  signal cmd           : slv(6 downto 0);
+  signal addr          : slv(11 downto 0);
+  signal wrData        : slv(31 downto 0);
+  signal rdData        : slv(31 downto 0);
 
   
 begin
 
-  -- Create 125 MHz system clock and main reset
-  ClkRstBfm_1 : entity work.ClkRstBfm
+  -- Create 156.25 MHz system clock and main reset
+  ClkRst_1 : entity work.ClkRst
     generic map (
-      CLK_FREQUENCY_G   => 125 Mhz,
+      CLK_PERIOD_G   => 6.4 ns,
       RST_START_DELAY_G => 1 ns,
       RST_HOLD_TIME_G   => 6 us)
     port map (
@@ -80,9 +78,9 @@ begin
       rstL => open);
 
   -- Create 1 MHz SACI Serial Clock
-  ClkRstBfm_1 : entity work.ClkRstBfm
+  ClkRst_2 : entity work.ClkRst
     generic map (
-      CLK_FREQUENCY_G => 1 Mhz)
+      CLK_PERIOD_G => 1 us)
     port map (
       clkP => saciClkIn,
       clkN => open,
@@ -92,64 +90,61 @@ begin
   -- Synchronize main reset to sysClk125
   RstSync_1 : entity work.RstSync
     generic map (
-      DELAY_G => 1 ns)
+      DELAY_G => TPD_C)
     port map (
-      clk      => sysClk125,
+      clk      => pgpClk,
       asyncRst => fpgaRst,
-      syncRst  => sysRst125);
+      syncRst  => pgpRst);
 
   -- Synchronize main reset to SACI serial clock
-  RstSync_1 : entity work.RstSync
+  RstSync_2 : entity work.RstSync
     generic map (
-      DELAY_G => 1 ns)
+      DELAY_G => TPD_C)
     port map (
       clk      => saciClkIn,
       asyncRst => fpgaRst,
       syncRst  => saciRst);
 
+  --------------------------------------------------------------------------------------------------
+
   -- Front End register interface
-  EthFrontEnd_1 : entity work.EthFrontEnd
+  Pgp2FrontEnd_1: entity work.Pgp2FrontEnd
     port map (
-      gtpClk        => gtpClk,
-      gtpClkRst     => sysRst125,
-      gtpRefClk     => sysClk125,
-      gtpRefClkOut  => sysClk125,
-      cmdEn         => open,
-      cmdOpCode     => open,
-      cmdCtxOut     => open,
-      regReq        => regReq,
-      regOp         => regOp,
-      regInp        => regInp,
-      regAck        => regAck,
-      regFail       => regFail,
-      regAddr       => regAddr,
-      regDataOut    => regDataOut,
-      regDataIn     => regDataIn,
-      frameTxEnable => '0',
-      frameTxSOF    => '0',
-      frameTxEOF    => '0',
-      frameTxAfull  => open,
-      frameTxData   => (others => '0'),
-      gtpRxN        => '0',
-      gtpRxP        => '0',
-      gtpTxN        => open,
-      gtpTxP        => open);
+      pgpRefClk    => gtpClk,
+      pgpRefClkOut => pgpClk,
+      pgpClk       => pgpClk,
+      pgpClk2x     => '0',              -- Not used in sim variant
+      pgpReset     => pgpRst,
+      locClk       => pgpClk,
+      locReset     => pgpRst,
+      regReq       => frontEndRegCntlOut.regReq,
+      regOp        => frontEndRegCntlOut.regOp,
+      regInp       => frontEndRegCntlOut.regInp,
+      regAck       => frontEndRegCntlIn.regAck,
+      regFail      => frontEndRegCntlIn.regFail,
+      regAddr      => frontEndRegCntlOut.regAddr,
+      regDataOut   => frontEndRegCntlOut.regDataOut,
+      regDataIn    => frontEndRegCntlIn.regDataIn,
+      pgpRxN       => '0',
+      pgpRxP       => '0',
+      pgpTxN       => open,
+      pgpTxP       => open);
 
-  -- Tie Front End Registers to SaciMaster interface
-  saciMasterIn.req <= regReq;
-  saciMasterIn.reset <= regReq and regAddr(23) and regOp;
-  saciMasterIn.cmd <= regAddr(6 downto 0);
-  saciMasterIn.addr <= regAddr(18 downto 7);
-  saciMasterIn.chip <= regAddr(SACI_CHIP_WIDTH_C+19 downto 19);
-  saciMasterIn.wrData <= regDataOut;
-  regAck <= saciMasterOut.ack;
-  regFail <= saciMasterOut.fail;
-  regDataIn <= saciMasterOut.rdData;
-
+  -- Register Decoder
+  FrontEndRegDecoder_1: entity work.FrontEndRegDecoder
+    generic map (
+      DELAY_G => TPD_C)
+    port map (
+      sysClk             => pgpClk,
+      sysRst             => pgpRst,
+      frontEndRegCntlOut => frontEndRegCntlOut,
+      frontEndRegCntlIn  => frontEndRegCntlIn,
+      saciMasterIn       => saciMasterIn,
+      saciMasterOut      => saciMasterOut);
   
   SaciMaster_1 : entity work.SaciMaster
     generic map (
-      TPD_G                 => 1 ns,
+      TPD_G                 => TPD_C,
       SYNCHRONIZE_CONTROL_G => true)
     port map (
       clk           => saciClkIn,
@@ -161,13 +156,28 @@ begin
       saciMasterIn  => saciMasterIn,
       saciMasterOut => saciMasterOut);
 
+  -- End of FPGA Side
+  --------------------------------------------------------------------------------------------------
+
+  -- ASIC Side
+  -- Create Asic Reset
+  ClkRst_3 : entity work.ClkRst
+    generic map (
+      RST_START_DELAY_G => 1 ns,
+      RST_HOLD_TIME_G   => 6 us)
+    port map (
+      clkP => open,
+      clkN => open,
+      rst  => open,
+      rstL => asicRstL);
+
   SaciSlave_1 : entity work.SaciSlave
     generic map (
-      TPD_G => TPD_G)
+      TPD_G => TPD_C)
     port map (
       rstL     => asicRstL,
       saciClk  => saciClk,
-      saciSelL => saciSelL,
+      saciSelL => saciSelL(0),
       saciCmd  => saciCmd,
       saciRsp  => saciRsp,
       rstOutL  => saciSlaveRstL,
@@ -185,7 +195,7 @@ begin
       dsciClkOut => saciClk,
       exec       => exec,
       ack        => ack,
-      readN      => readN,
+      readL      => readL,
       cmd        => cmd,
       addr       => addr,
       wrData     => wrData,
