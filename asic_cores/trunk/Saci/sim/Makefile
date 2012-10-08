@@ -14,18 +14,19 @@
 ##-----------------------------------------------------------------------------
 
 # Set Default Output
-SIM_DIR=/u1/bareese/kpix/sim/newsimrun
+SIM_DIR=/u1/rherbst/w_si/out
 
 # Analog netlist
-ANA_NET = kpix_b_trunc2.cir
+ANA_NET = saci_slave.cir
 
 # Shared memory id. Changed this if you need to run multiple instances
 # Resulting shared memory file is simlink_username_id
 SHM_ID=1
+SHM_NAME="saci"
 
 # Set Top Level
-DIG_TOP=SmallTb
-ANA_TOP=AnalogTb
+DIG_TOP=FrontEndDsciTb
+ANA_TOP=FrontEndDsciTb
 
 # Set 64-bit mode
 EN64=-full64
@@ -37,52 +38,30 @@ ANA_INC = $(PWD)/analog/olib_tsmc025.cir \
           $(PWD)/analog/resis_map.txt
 
 # HDL Source Files
-HDL_SRC= $(PWD)/../firmware/modules/StdLib/rtl/StdRtlPkg.vhd \
-         $(PWD)/../firmware/modules/StdLib/rtl/SynchronizePkg.vhd \
-         $(PWD)/../firmware/modules/StdLib/rtl/RstSync.vhd \
-	 $(PWD)/../firmware/projects/KpixSmall/rtl/Version.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixPkg.vhd \
-	 $(PWD)/../firmware/modules/KpixCore/rtl/reg_rw_32.vhd \
-	 $(PWD)/../firmware/modules/KpixCore/rtl/command_control.vhd \
-	 $(PWD)/../firmware/modules/KpixCore/rtl/analog_control.vhd \
-	 $(PWD)/../firmware/modules/KpixCore/rtl/readout_control.vhd \
-	 $(PWD)/../firmware/modules/KpixCore/rtl/memory_array_control.vhd \
-	 $(PWD)/../firmware/modules/eth_client/xil_cores/*.vhd \
-	 $(PWD)/../firmware/modules/eth_client/rtl/1g/EthRegSlave.vhd \
-	 $(PWD)/../firmware/modules/eth_client/rtl/1g/EthCmdSlave.vhd \
-	 $(PWD)/../firmware/modules/KpixDaq/xil_cores/*.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/UsBuff64.vhd \
-         $(PWD)/hdl/EthFrontEndSim.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixRegRxPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixRegRx.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixDataRxPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixDataRx.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixLocalPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixLocal.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixClockGenPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixClockGen.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/FrontEndPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/TriggerPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/Trigger.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/FrontEndRegDecoder.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/EventBuilderFifoPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/EventBuilder.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixRegCntlPkg.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixRegCntl.vhd \
-         $(PWD)/../firmware/modules/KpixDaq/rtl/KpixDaqCore.vhd \
-	 $(PWD)/../firmware/projects/KpixSmall/xil_cores/*.vhd \
-	 $(PWD)/../firmware/projects/KpixSmall/rtl/KpixSmall.vhd \
-	 $(PWD)/hdl/AnalogReg.vhd \
-	 $(PWD)/hdl/DataRead.vhd \
-	 $(PWD)/hdl/AsicSim.vhd \
-	 $(PWD)/hdl/SmallTb.vhd
+HDL_SRC= $(PWD)/../../StdLib/rtl/StdRtlPkg.vhd \
+         $(PWD)/../../StdLib/rtl/SynchronizePkg.vhd \
+         $(PWD)/../../StdLib/rtl/RstSync.vhd \
+         $(PWD)/../../StdLib/tb/ClkRst.vhd \
+         $(PWD)/hdl/Pgp2/applications/Pgp2RegSlave.vhd \
+         $(PWD)/hdl/Pgp2/
+	 $(PWD)/simlink/SimLinkRx.vhd \
+	 $(PWD)/simlink/SimLinkTx.vhd \
+         $(PWD)/hdl/Pgp2FrontEndSim.vhd \
+         $(PWD)/hdl/Version.vhd \
+         $(PWD)/../rtl/SaciMasterPkg.vhd \
+         $(PWD)/../rtl/SaciMaster.vhd \
+         $(PWD)/../rtl/SaciSlave.vhd \
+         $(PWD)/hdl/FrontEndPkg.vhd \
+         $(PWD)/hdl/FrontEndRegDecoder.vhd \
+         $(PWD)/hdl/DsciSlaveRam.vhd \
+	 $(PWD)/hdl/FrontEndDsciTb.vhd \
 
 # Verilog Source Files
-VLOG = $(PWD)/hdl/AsicSimAnalog.v 
+#VLOG = $(PWD)/hdl/Kpix.v 
 
 # Targets
-all:    dir syn_setup rtl_src sysc_src sim_dig
-analog: dir syn_setup rtl_src sysc_src ana_files ana_partition sim_ana
+all:    dir env syn_setup rtl_src vhpi_src sim_dig
+#analog: dir env syn_setup rtl_src vhpi_src ana_files ana_partition sim_ana
 
 # Directory
 dir:
@@ -91,18 +70,20 @@ dir:
 # RTL Files
 rtl_src:
 	@cd $(SIM_DIR); vhdlan $(EN64) $(HDL_SRC)
-	@cd $(SIM_DIR); vlogan +v2k $(EN64) $(VLOG)
+#	@cd $(SIM_DIR); vlogan +v2k $(EN64) $(VLOG)
 
-# System C Files
-sysc_src:
-	@cd $(SIM_DIR); syscan $(EN64) -cpp g++ -cflags "-DSHM_ID=$(SHM_ID)" -port $(PWD)/sysc/SimLinkRx.map $(PWD)/sysc/SimLinkRx.cpp:SimLinkRx
-	@cd $(SIM_DIR); syscan $(EN64) -cpp g++ -cflags "-DSHM_ID=$(SHM_ID)" -port $(PWD)/sysc/SimLinkTx.map $(PWD)/sysc/SimLinkTx.cpp:SimLinkTx
+# VHPI Library
+vhpi_src:
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/VhpiGeneric.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/SimLinkRx.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/SimLinkTx.c
+	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o SimLinkRx.o SimLinkTx.o
 
 sim_dig:
-	@cd $(SIM_DIR); vcs $(EN64) -sysc $(DIG_TOP) -cpp g++ -cc gcc -lrt -debug_all -timescale=1ns/1ps 
+	@cd $(SIM_DIR); vcs $(EN64) $(DIG_TOP) -parallel -cpp g++ -cc gcc -lrt -debug -time "ns" -time_res "1ps"
 
-sim_ana:
-	@cd $(SIM_DIR); vcs $(EN64) -sysc $(ANA_TOP) -cpp g++ -cc gcc -lrt -debug -timescale=1ns/1ps -nc +ad=$(SIM_DIR)/partition.txt
+#sim_ana:
+#	@cd $(SIM_DIR); vcs $(EN64) $(ANA_TOP) -parallel -cpp g++ -cc gcc -lrt -debug -time "ns" -time_res "1ps" -nc +ad=$(SIM_DIR)/partition.txt -notice
 
 clean: 
 	@rm -rf $(SIM_DIR)/*
@@ -116,17 +97,23 @@ syn_setup:
 	@echo "SIMPRIM:$(XIL_SIMLIB)/simprim"              >> $(SIM_DIR)/.synopsys_vss.setup
 
 # Analog simulation files
-ana_files:
-	@rm -f $(SIM_DIR)/sim_src
-	@cp $(PWD)/../netlists/$(ANA_NET).gz  $(SIM_DIR)
-	@cp $(ANA_INC)                        $(SIM_DIR)
-	@gzip -df $(SIM_DIR)/*.gz
+#ana_files:
+#	@rm -f $(SIM_DIR)/sim_src
+#	@cp $(PWD)/../netlists/$(ANA_NET).gz  $(SIM_DIR)
+#	@cp $(ANA_INC)                        $(SIM_DIR)
+#	@gzip -df $(SIM_DIR)/*.gz
 
 # Analog partition file
-ana_partition:
-	@rm -f $(SIM_DIR)/partition.txt
-	@echo "partition -cell AsicSimAnalog;"                               >  $(SIM_DIR)/partition.txt
-	@echo "choose nanosim -A -n $(ANA_NET) -C nanosim_cfg.txt -out wdb;" >> $(SIM_DIR)/partition.txt
-	@echo "set bus_format %d;"                                           >> $(SIM_DIR)/partition.txt
-	@echo "set rmap resis_map.txt;"                                      >> $(SIM_DIR)/partition.txt
+#ana_partition:
+#	@rm -f $(SIM_DIR)/partition.txt
+#	@echo "partition -cell Kpix;"                                        >  $(SIM_DIR)/partition.txt
+#	@echo "choose nanosim -A -n $(ANA_NET) -C nanosim_cfg.txt -out wdb;" >> $(SIM_DIR)/partition.txt
+#	@echo "set bus_format %d;"                                           >> $(SIM_DIR)/partition.txt
+#	@echo "set rmap resis_map.txt;"                                      >> $(SIM_DIR)/partition.txt
+
+# Create setup env script
+env:
+	@rm -f $(SIM_DIR)/setup_env.csh
+	@echo "limit stacksize 60000"                                 >> $(SIM_DIR)/setup_env.csh
+	@echo "setenv LD_LIBRARY_PATH $(SIM_DIR):${LD_LIBRARY_PATH}"  >> $(SIM_DIR)/setup_env.csh
 
