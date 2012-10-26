@@ -14,10 +14,10 @@
 ##-----------------------------------------------------------------------------
 
 # Set Default Output
-SIM_DIR=/u1/rherbst/w_si/out
+SIM_DIR=$(PWD)/build
 
 # Analog netlist
-ANA_NET = saci_slave.cir
+ANA_NET = test_saci_rev2bm.spc
 
 # Shared memory id. Changed this if you need to run multiple instances
 # Resulting shared memory file is simlink_username_id
@@ -26,7 +26,7 @@ SHM_NAME="saci"
 
 # Set Top Level
 DIG_TOP=FrontEndDsciTb
-ANA_TOP=FrontEndDsciTb
+ANA_TOP=FrontEndDsciAnalogTb
 
 # Set 64-bit mode
 EN64=-full64
@@ -54,14 +54,17 @@ HDL_SRC= $(PWD)/../../StdLib/rtl/StdRtlPkg.vhd \
          $(PWD)/hdl/FrontEndPkg.vhd \
          $(PWD)/hdl/FrontEndRegDecoder.vhd \
          $(PWD)/hdl/DsciSlaveRam.vhd \
+         $(PWD)/hdl/SaciSlaveWrapper.vhd \
+         $(PWD)/hdl/SaciSlaveWrapperAnalog.vhd \
 	 $(PWD)/hdl/FrontEndDsciTb.vhd \
+	 $(PWD)/hdl/FrontEndDsciAnalogTb.vhd \
 
 # Verilog Source Files
-#VLOG = $(PWD)/hdl/Kpix.v 
+VLOG = $(PWD)/hdl/SaciSlaveAnalog.v 
 
 # Targets
 all:    dir env syn_setup rtl_src vhpi_src sim_dig
-#analog: dir env syn_setup rtl_src vhpi_src ana_files ana_partition sim_ana
+analog: dir env syn_setup rtl_src vhpi_src ana_files ana_partition sim_ana
 
 # Directory
 dir:
@@ -69,8 +72,8 @@ dir:
 
 # RTL Files
 rtl_src:
+	@cd $(SIM_DIR); vlogan +v2k $(EN64) $(VLOG)
 	@cd $(SIM_DIR); vhdlan $(EN64) $(HDL_SRC)
-#	@cd $(SIM_DIR); vlogan +v2k $(EN64) $(VLOG)
 
 # VHPI Library
 vhpi_src:
@@ -82,8 +85,8 @@ vhpi_src:
 sim_dig:
 	@cd $(SIM_DIR); vcs $(EN64) $(DIG_TOP) -parallel -cpp g++ -cc gcc -lrt -debug -time "ns" -time_res "1ps"
 
-#sim_ana:
-#	@cd $(SIM_DIR); vcs $(EN64) $(ANA_TOP) -parallel -cpp g++ -cc gcc -lrt -debug -time "ns" -time_res "1ps" -nc +ad=$(SIM_DIR)/partition.txt -notice
+sim_ana:
+	@cd $(SIM_DIR); vcs $(EN64) $(ANA_TOP) -parallel -cpp g++ -cc gcc -lrt -debug -time "ns" -time_res "1ps" -nc +ad=$(SIM_DIR)/partition.txt -notice
 
 clean: 
 	@rm -rf $(SIM_DIR)/*
@@ -97,19 +100,19 @@ syn_setup:
 	@echo "SIMPRIM:$(XIL_SIMLIB)/simprim"              >> $(SIM_DIR)/.synopsys_vss.setup
 
 # Analog simulation files
-#ana_files:
-#	@rm -f $(SIM_DIR)/sim_src
-#	@cp $(PWD)/../netlists/$(ANA_NET).gz  $(SIM_DIR)
-#	@cp $(ANA_INC)                        $(SIM_DIR)
+ana_files:
+	@rm -f $(SIM_DIR)/sim_src
+	@cp $(PWD)/analog/$(ANA_NET)  $(SIM_DIR)
+	@cp $(ANA_INC)                        $(SIM_DIR)
 #	@gzip -df $(SIM_DIR)/*.gz
 
 # Analog partition file
-#ana_partition:
-#	@rm -f $(SIM_DIR)/partition.txt
-#	@echo "partition -cell Kpix;"                                        >  $(SIM_DIR)/partition.txt
-#	@echo "choose nanosim -A -n $(ANA_NET) -C nanosim_cfg.txt -out wdb;" >> $(SIM_DIR)/partition.txt
-#	@echo "set bus_format %d;"                                           >> $(SIM_DIR)/partition.txt
-#	@echo "set rmap resis_map.txt;"                                      >> $(SIM_DIR)/partition.txt
+ana_partition:
+	@rm -f $(SIM_DIR)/partition.txt
+	@echo "partition -cell SaciSlaveAnalog;"                             >  $(SIM_DIR)/partition.txt
+	@echo "choose nanosim -A -n $(ANA_NET) -C nanosim_cfg.txt -out wdb;" >> $(SIM_DIR)/partition.txt
+	@echo "set bus_format %d;"                                           >> $(SIM_DIR)/partition.txt
+	@echo "set rmap resis_map.txt;"                                      >> $(SIM_DIR)/partition.txt
 
 # Create setup env script
 env:

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-07-12
--- Last update: 2012-09-28
+-- Last update: 2012-10-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -164,8 +164,8 @@ begin
         -- Do exec/ack cycle
         rVar.exec         := '1';
         rVar.shiftCount   := (others => '0');
-        rVar.dataShiftReg := rdData;
         if (ack = '1') then
+          rVar.dataShiftReg := rdData;
           rVar.state := SHIFT_HEADER_OUT_S;
         end if;
 

@@ -20,9 +20,15 @@ CntrlFpga::CntrlFpga ( uint destination, uint index, Device *parent ) :
    addRegister(new Register("Version", 0x01000000));
    addVariable(new Variable("Version", Variable::Status));
    getVariable("Version")->setDescription("FPGA version field");
+   addRegister(new Register("Reset", 0x01000001));
+
+   // Add Commands
+   addCommand(new Command("ResetSaciSlaves"));
+   getCommand("ResetSaciSlaves")->setDescription("Reset all attached SACI Slaves");
 
    // Add sub-devices
    addDevice(new SaciAsic(destination,0x01100000,0,this));
+   addDevice(new SaciAsic(destination,0x01180000,1,this));
 
    getVariable("Enabled")->setHidden(true);
 }
@@ -32,14 +38,25 @@ CntrlFpga::~CntrlFpga ( ) { }
 
 // Method to process a command
 void CntrlFpga::command ( string name, string arg) {
-   Device::command(name, arg);
+   if (name == "ResetSaciSlaves") {
+      REGISTER_LOCK
+            
+      getRegister("Reset")->set(0x1);
+      writeRegister(getRegister("Reset"), true, true);
+      
+      REGISTER_UNLOCK
+   } else {
+      Device::command(name, arg);
+   }
 }
 
 // Method to read status registers and update variables
 void CntrlFpga::readStatus ( ) {
    REGISTER_LOCK
 
+           
    readRegister(getRegister("Version"));
+
    getVariable("Version")->setInt(getRegister("Version")->get());
 
 

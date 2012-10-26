@@ -8,6 +8,18 @@
 #include <signal.h>
 using namespace std;
 
+const uint VALUES[4] = {0, 0xa5a5a5a5, 0x5a5a5a5a, 0xffffffff};
+
+void testPattern(SaciControl* saci, int asicNum, uint startIndex) {
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_00_000",VALUES[startIndex%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_2A_AAA",VALUES[(startIndex+1)%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_55_555",VALUES[(startIndex+2)%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_7F_FFF",VALUES[(startIndex+3)%4]);
+   
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->verifyConfig();
+   cout << "Test Pattern " << startIndex << " Done.\n" << endl;
+}
+
 int main (int argc, char **argv) {
    string        defFile;
    uint          shmId;
@@ -32,14 +44,23 @@ int main (int argc, char **argv) {
       simLink.open("saci",shmId);
       usleep(100);
 
+      saci.setDebug(true);
+
       // Test FPGA Read
       cout << "Fgga Version: 0x" << hex << setw(8) << setfill('0') << saci.device("cntrlFpga",0)->readSingle("Version") << endl;
 
-      // Asic Write
-      saci.device("cntrlFpga",0)->device("saciAsic",0)->writeSingle("RegA",0xa5a5a5a5);
+      // Reset SACI Slaves
+      cout << "Reset SACI Slaves" << endl;
+      saci.device("cntrlFpga",0)->command("ResetSaciSlaves","");
+      cout << "Done" << endl;
 
-      // Asic Read
-      cout << "Read: 0x" << hex << setw(8) << setfill('0') << saci.device("cntrlFpga",0)->device("saciAsic",0)->readSingle("RegA") << endl;
+      for (int i = 0; i < 2; i++) {
+         testPattern(&saci, i, 0);
+         testPattern(&saci, i, 1);
+         testPattern(&saci, i, 2);
+         testPattern(&saci, i, 3);
+      }
+      
 
    } catch ( string error ) {
       cout << "Caught Error: " << endl;
