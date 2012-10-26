@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : FrontEndDsciTb.vhd
+-- File       : FrontEndSaciAnalogTb.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-10-02
--- Last update: 2012-10-09
+-- Last update: 2012-10-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Simple Dsci testbench with Dsci Master connected to the
+-- Description: Simple Saci testbench with Saci Master connected to the
 -- standard Front End Register interface.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2012 SLAC National Accelerator Laboratory
@@ -21,24 +21,24 @@ use work.StdRtlPkg.all;
 use work.FrontEndPkg.all;
 use work.SaciMasterPkg.all;
 
-entity FrontEndDsciTb is
+entity FrontEndSaciAnalogTb is
 
-end entity FrontEndDsciTb;
+end entity FrontEndSaciAnalogTb;
 
-architecture testbench of FrontEndDsciTb is
+architecture testbench of FrontEndSaciAnalogTb is
 
   constant TPD_C : time := 1 ns;
 
   -- Clocks and resets
   signal gtpClk    : sl;
   signal fpgaRst   : sl;
-  signal pgpClk : sl;
-  signal pgpRst : sl;
+  signal pgpClk    : sl;
+  signal pgpRst    : sl;
   signal saciClkIn : sl;
   signal saciRst   : sl;
 
   -- Front End Register Interface
-  signal frontEndRegCntlIn : FrontEndRegCntlInType;
+  signal frontEndRegCntlIn  : FrontEndRegCntlInType;
   signal frontEndRegCntlOut : FrontEndRegCntlOutType;
 
   -- SACI Master Parallel Interface
@@ -52,7 +52,7 @@ architecture testbench of FrontEndDsciTb is
   signal saciRsp  : sl;
 
   -- SACI Slave Parallel Interface
-  signal asicRstL      : sl;
+  signal asicRstL : sl;
 --  signal saciSlaveRstL : sl;
 --  signal exec          : sl;
 --  signal ack           : sl;
@@ -68,7 +68,7 @@ begin
   -- Create 156.25 MHz system clock and main reset
   ClkRst_1 : entity work.ClkRst
     generic map (
-      CLK_PERIOD_G   => 6.4 ns,
+      CLK_PERIOD_G      => 6.4 ns,
       RST_START_DELAY_G => 1 ns,
       RST_HOLD_TIME_G   => 6 us)
     port map (
@@ -108,7 +108,7 @@ begin
   --------------------------------------------------------------------------------------------------
 
   -- Front End register interface
-  Pgp2FrontEnd_1: entity work.Pgp2FrontEnd
+  Pgp2FrontEnd_1 : entity work.Pgp2FrontEnd
     port map (
       pgpRefClk    => gtpClk,
       pgpRefClkOut => pgpClk,
@@ -131,7 +131,7 @@ begin
       pgpTxP       => open);
 
   -- Register Decoder
-  FrontEndRegDecoder_1: entity work.FrontEndRegDecoder
+  FrontEndRegDecoder_1 : entity work.FrontEndRegDecoder
     generic map (
       DELAY_G => TPD_C)
     port map (
@@ -141,7 +141,7 @@ begin
       frontEndRegCntlIn  => frontEndRegCntlIn,
       saciMasterIn       => saciMasterIn,
       saciMasterOut      => saciMasterOut);
-  
+
   SaciMaster_1 : entity work.SaciMaster
     generic map (
       TPD_G                 => TPD_C,
@@ -171,14 +171,24 @@ begin
       rst  => open,
       rstL => asicRstL);
 
-  SaciSlaveGen: for i in 0 to 1 generate
-    SaciSlaveWrapper_i: entity work.SaciSlaveWrapper
-      port map (
-        asicRstL => asicRstL,
-        saciClk  => saciClk,
-        saciSelL => saciSelL(i),
-        saciCmd  => saciCmd,
-        saciRsp  => saciRsp);
-  end generate;
+
+  SaciSlaveWrapperAnalog_i : entity work.SaciSlaveWrapperAnalog
+    port map (
+      asicRstL => asicRstL,
+      saciClk  => saciClk,
+      saciSelL => saciSelL(0),
+      saciCmd  => saciCmd,
+      saciRsp  => saciRsp);
+
+  SaciSlaveWrapper_i : entity work.SaciSlaveWrapper
+    port map (
+      asicRstL => asicRstL,
+      saciClk  => saciClk,
+      saciSelL => saciSelL(1),
+      saciCmd  => saciCmd,
+      saciRsp  => saciRsp);
+
+
+
 
 end architecture testbench;

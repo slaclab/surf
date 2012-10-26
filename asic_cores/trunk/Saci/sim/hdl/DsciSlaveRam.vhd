@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-09-19
--- Last update: 2012-10-05
+-- Last update: 2012-10-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,14 +30,14 @@ entity DsciSlaveRam is
     cmd        : in  slv(6 downto 0);
     addr       : in  slv(11 downto 0);
     wrData     : in  slv(31 downto 0);
-    rdData     : out slv(31 downto 0));
+    rdData     : out slv(31 downto 0) := (others => '0'));
 
 end entity DsciSlaveRam;
 
 architecture rtl of DsciSlaveRam is
 
   type RamType is array (0 to 2**19) of slv(31 downto 0);
-  signal ram : RamType;
+  signal ram : RamType := (others => X"00000000");
 
 begin
 

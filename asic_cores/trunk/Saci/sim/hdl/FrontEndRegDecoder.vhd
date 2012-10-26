@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-05-07
--- Last update: 2012-10-05
+-- Last update: 2012-10-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -109,10 +109,11 @@ begin
       -- Pass FrontEndCntl io right though
       -- Will revert back when frontEndRegCntlOut.regReq falls
       rVar.saciMasterIn.req            := frontEndRegCntlOut.regReq;
+      rVar.saciMasterIn.op             := frontEndRegCntlOut.regOp;
       rVar.saciMasterIn.reset          := '0';
-      rVar.saciMasterIn.cmd            := frontEndRegCntlOut.regAddr(6 downto 0);
-      rVar.saciMasterIn.addr           := frontEndRegCntlOut.regAddr(18 downto 7);
-      rVar.saciMasterIn.chip           := frontEndRegCntlOut.regAddr(SACI_CHIP_WIDTH_C+19 downto 19);
+      rVar.saciMasterIn.addr           := frontEndRegCntlOut.regAddr(11 downto 0);
+      rVar.saciMasterIn.cmd            := frontEndRegCntlOut.regAddr(18 downto 12);
+      rVar.saciMasterIn.chip           := frontEndRegCntlOut.regAddr((SACI_CHIP_WIDTH_C-1)+19 downto 19);
       rVar.saciMasterIn.wrData         := frontEndRegCntlOut.regDataOut;
       rVar.frontEndRegCntlIn.regAck    := saciMasterOut.ack;
       rVar.frontEndRegCntlIn.regFail   := saciMasterOut.fail;
@@ -129,6 +130,7 @@ begin
 
         when VERSION_REG_ADDR_C =>
           rVar.frontEndRegCntlIn.regDataIn := FPGA_VERSION_C;
+          rVar.frontEndRegCntlIn.regAck := '1';
 
         when SACI_RESET_REG_ADDR_C =>
           if (frontEndRegCntlOut.regOp = FRONT_END_REG_WRITE_C) then

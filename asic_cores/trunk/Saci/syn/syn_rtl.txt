@@ -1,7 +1,7 @@
 # Commands for exemplar synthesis
 
 set process typical
-set_working_dir /afs/slac/u/re/bareese/projects/epix/out1
+set_working_dir /afs/slac/u/re/bareese/projects/asic_cores/Saci/syn
 
 set temp 25
 set voltage 2.5
@@ -10,8 +10,8 @@ load_library tsmm025DL_258
 set encoding Gray
 
 read -dont_elaborate -technology "tsmm025DL_258"  { 
-  /afs/slac/u/re/bareese/projects/StdLib/rtl/StdRtlPkg.vhd
-  /afs/slac/u/re/bareese/projects/epix/Saci/rtl/SaciSlave.vhd 
+  /afs/slac/u/re/bareese/projects/asic_cores/StdLib/rtl/StdRtlPkg.vhd
+  /afs/slac/u/re/bareese/projects/asic_cores/Saci/rtl/SaciSlave.vhd 
 }
 elaborate SaciSlave -architecture rtl
 
@@ -24,8 +24,8 @@ set architecture rtl
 set input2register 10.000000
 set register2output 10.000000
 set register2register 30.000000
-set_clock -name .work.SaciSlave.rtl.cclk -clock_cycle "25.000000"
-set_clock -name .work.SaciSlave.rtl.cclk -pulse_width "12.500000"
+set_clock -name .work.SaciSlave.rtl.saciClk -clock_cycle "25.000000"
+set_clock -name .work.SaciSlave.rtl.saciClk -pulse_width "12.500000"
 
 optimize .work.SaciSlave.rtl -target tsmm025DL_258 -macro -area -effort standard -hierarchy flatten
 optimize_timing .work.SaciSlave.rtl 
