@@ -277,15 +277,15 @@ begin
     generic map (
       TPD_G => TPD_G)
     port map (
-      gtpRxUsrClk2    => gtpRxUsrClk2,
-      gtpResetDone    => rxRecClkPllLocked,
-      gtpRxData       => gtpRxData,
-      codeErr         => phyRxLanesIn(0).decErr,
-      dispErr         => phyRxLanesIn(0).dispErr,
-      gtpRxUsrClk2Sel => gtpRxUsrClk2Sel,
-      gtpRxSlide      => gtpRxSlide,
-      gtpRxCdrReset   => rxCommaAlignReset,
-      aligned         => phyRxReady);
+      gtpRxUsrClk2     => gtpRxUsrClk2,
+      gtpRxUsrClk2RstL => rxRecClkPllLocked,
+      gtpRxData        => gtpRxData,
+      codeErr          => phyRxLanesIn(0).decErr,
+      dispErr          => phyRxLanesIn(0).dispErr,
+      gtpRxUsrClk2Sel  => gtpRxUsrClk2Sel,
+      gtpRxSlide       => gtpRxSlide,
+      gtpRxCdrReset    => rxCommaAlignReset,
+      aligned          => phyRxReady);
 
   Decoder8b10b_1 : entity work.Decoder8b10b
     generic map (
@@ -793,7 +793,7 @@ begin
       DWE                  => '0',
       --------------------- Shared Ports - Tile and PLL Ports --------------------
       CLKIN                => gtpClkIn,
-      GTPRESET             => gtpResetBla,
+      GTPRESET             => gtpReset,
       GTPTEST              => (others => '0'),
       INTDATAWIDTH         => '1',
       PLLLKDET             => gtpLockDetect,
