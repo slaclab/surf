@@ -135,7 +135,7 @@ begin
    pgpTxLinkReady <= intTxLinkReady;
 
    -- Physical Interface
-   U_Pgp2TxPhy: Pgp2TxPhy 
+   U_Pgp2TxPhy: entity work.Pgp2TxPhy 
       generic map (
          TxLaneCnt         => TxLaneCnt
       ) port map ( 
@@ -160,7 +160,7 @@ begin
 
 
    -- Scheduler
-   U_Pgp2TxSched: Pgp2TxSched 
+   U_Pgp2TxSched: entity work.Pgp2TxSched 
       generic map (
          VcInterleave      => VcInterleave
       ) port map ( 
@@ -183,7 +183,7 @@ begin
 
 
    -- Cell Transmitter
-   U_Pgp2TxCell: Pgp2TxCell 
+   U_Pgp2TxCell: entity work.Pgp2TxCell 
       generic map (
          TxLaneCnt         => TxLaneCnt
       ) port map ( 
