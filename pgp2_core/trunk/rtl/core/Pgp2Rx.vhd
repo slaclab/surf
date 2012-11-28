@@ -124,7 +124,7 @@ begin
    pgpRxLinkReady <= intRxLinkReady;
 
    -- PHY Logic
-   U_Pgp2RxPhy: Pgp2RxPhy 
+   U_Pgp2RxPhy: entity work.Pgp2RxPhy 
       generic map ( 
          RxLaneCnt        => RxLaneCnt
       ) port map (
@@ -156,7 +156,7 @@ begin
 
 
    -- Cell Receiver
-   U_Pgp2RxCell: Pgp2RxCell 
+   U_Pgp2RxCell: entity work.Pgp2RxCell 
       generic map ( 
          RxLaneCnt        => RxLaneCnt, 
          EnShortCells     => EnShortCells,
