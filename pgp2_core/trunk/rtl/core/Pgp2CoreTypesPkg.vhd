@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-02
--- Last update: 2012-11-15
+-- Last update: 2012-11-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,6 +76,7 @@ package Pgp2CoreTypesPkg is
     flush : std_logic;                  -- Flush the link
     resetRx : std_logic;
   end record PgpRxInType;
+  type PgpRxInArray is array (natural range <>) of PgpRxInType;
 
   type PgpRxOutType is record
     linkReady    : std_logic;                     -- Local side has link
@@ -89,6 +90,7 @@ package Pgp2CoreTypesPkg is
 --    vcCommon     : PgpRxVcCommonOutType;
 --    vcQuad       : PgpRxVcQuadOutType;
   end record PgpRxOutType;
+  type PgpRxOutArray is array (natural range <>) of PgpRxOutType;
 
   type PgpTxInType is record
     flush        : std_logic;                     -- Flush the link
@@ -98,11 +100,13 @@ package Pgp2CoreTypesPkg is
     locData      : std_logic_vector(7 downto 0);  -- Far end side User Data
 --    vcQuad       : PgpTxVcQuadInType;
   end record PgpTxInType;
+  type PgpTxInArray is array (natural range <>) of PgpTxInType;
 
   type PgpTxOutType is record
     linkReady : std_logic;              -- Local side has link
 --    vcQuad    : PgpRxVcQuadOutType;
   end record PgpTxOutType;
+  type PgpTxOutArray is array (natural range <>) of PgpTxOutType;
 
 
 
