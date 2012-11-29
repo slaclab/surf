@@ -120,14 +120,9 @@ architecture rtl of Pgp2Gtp16LowLat is
   signal gtpRxElecIdle    : std_logic;
   signal gtpRxElecIdleRst : std_logic;
   signal gtpRxReset       : std_logic;
+  signal gtpRxCdrReset1   : std_logic;
   signal gtpRxCdrReset    : std_logic;
-
   signal rxCommaAlignReset : std_logic;
---  signal gtpRxCdrReset1   : std_logic;
---  signal gtpRxCdrReset2   : std_logic;
---  signal gtpRxCdrReset3   : std_logic;
---  signal rxResetDone      : std_logic;
---  signal gtpResetBla      : std_logic;
 
   -- GTP Data
   signal gtpRxData  : std_logic_vector(19 downto 0);  -- Raw rx data from GTP (8b10b encoded)
@@ -198,16 +193,8 @@ begin
       gtpRstDone       => gtpRstDone,
       gtpRxElecIdleRst => gtpRxElecIdleRst,
       gtpRxReset       => gtpRxReset,
-      gtpRxCdrReset    => gtpRxCdrReset
+      gtpRxCdrReset    => gtpRxCdrReset1
       );
-
-  -- Recovered clock buffering and DCM
---  RxRecClkBufR : BUFR
---    port map (
---      O   => gtpRxUsrClk,               -- Goes straight to GTP RXUSRCLK
---      CE  => '1',                       -- Clock enable input
---      CLR => '0',                       -- Clock buffer reset input
---      I   => gtpRxRecClk);              -- From GTP RXRECCLK
 
   RX_REC_CLK_BUFG : BUFG
     port map (
@@ -269,8 +256,8 @@ begin
   pgpRxRecClk2x  <= gtpRxUsrClk;
   pgpRxRecClkRst <= not rxRecClkPllLocked;  -- EHH?
 
-  gtpReset <= rxCommaAlignReset or pgpReset;
-
+  gtpReset <= pgpReset;
+  gtpRxCdrReset <= gtpRxCdrReset1 or rxCommaAlignReset;
 
   -- Manual comma aligner
   GtpRxCommaAligner_1 : entity work.GtpRxCommaAligner
