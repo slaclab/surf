@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-02
--- Last update: 2012-11-28
+-- Last update: 2012-11-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,7 +22,11 @@ package Pgp2CoreTypesPkg is
   --------------------------------------------------------------------------------------------------
   -- These types might be useful
   --------------------------------------------------------------------------------------------------
+  type slv2Array is array (natural range <>) of std_logic_vector(1 downto 0);
+  type slv3Array is array (natural range <>) of std_logic_vector(2 downto 0);
   type slv16Array is array (integer range <>) of std_logic_vector(15 downto 0);
+  type slv20Array is array (integer range <>) of std_logic_vector(19 downto 0);
+  type slv32Array is array (integer range <>) of std_logic_vector(31 downto 0);
 
     --------------------------------------------------------------------------------------------------
   -- Virtural Channel IO
@@ -173,6 +177,7 @@ package Pgp2CoreTypesPkg is
     width : std_logic;                      -- Receive CRC value init
     init  : std_logic;                      -- Receive data for CRC is valid
   end record PgpCrcInType;
+  type PgpCrcInArray is array (natural range <>) of PgpCrcInType;
 
   -- Out type is 32 bit slv
 

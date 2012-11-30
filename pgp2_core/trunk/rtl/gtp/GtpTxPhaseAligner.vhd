@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-12
--- Last update: 2012-11-26
+-- Last update: 2012-11-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,12 +24,12 @@ entity GtpTxPhaseAligner is
     TPD_G : time := 1 ns);
 
   port (
-    pgpTxClk             : in  std_logic;
+    gtpTxUsrClk2         : in  std_logic;
     gtpReset             : in  std_logic;
     gtpPllLockDetect     : in  std_logic;
-    gtpTxClkLocked       : in  std_logic;
     gtpTxEnPmaPhaseAlign : out std_logic;
-    gtpTxPmaSetPhase     : out std_logic);
+    gtpTxPmaSetPhase     : out std_logic;
+    gtpTxAligned         : out std_logic);
 
 end entity GtpTxPhaseAligner;
 
@@ -48,14 +48,14 @@ architecture rtl of GtpTxPhaseAligner is
 
 begin
 
-  seq : process (pgpTxClk, gtpReset, gtpPllLockDetect, gtpTxClkLocked) is
+  seq : process (gtpTxUsrClk2, gtpReset, gtpPllLockDetect) is
   begin
-    if (gtpReset = '1' or gtpPllLockDetect = '0' or gtpTxClkLocked = '0') then
+    if (gtpReset = '1' or gtpPllLockDetect = '0') then
       r.state                <= PHASE_ALIGN_S   after TPD_G;
       r.counter              <= (others => '0') after TPD_G;
       r.gtpTxEnPmaPhaseAlign <= '0'             after TPD_G;
       r.gtpTxPmaSetPhase     <= '0'             after TPD_G;
-    elsif (rising_edge(pgpTxClk)) then
+    elsif (rising_edge(gtpTxUsrClk2)) then
       r <= rin after TPD_G;
     end if;
   end process seq;
@@ -67,6 +67,7 @@ begin
 
     v.gtpTxPmaSetPhase     := '0';
     v.gtpTxEnPmaPhaseAlign := '0';
+    gtpTxAligned           <= '0';
 
     case r.state is
       when PHASE_ALIGN_S =>
@@ -89,7 +90,7 @@ begin
       when ALIGNED_S =>
         v.gtpTxEnPmaPhaseAlign := '1';
         v.gtpTxPmaSetPhase     := '0';
-        
+        gtpTxAligned           <= '1';
     end case;
 
     rin <= v;
@@ -97,6 +98,7 @@ begin
     gtpTxPmaSetPhase     <= r.gtpTxPmaSetPhase;
     gtpTxEnPmaPhaseAlign <= r.gtpTxEnPmaPhaseAlign;
 
+    
   end process comb;
 
 end architecture rtl;
