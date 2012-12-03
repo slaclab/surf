@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-02
--- Last update: 2012-11-29
+-- Last update: 2012-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -100,8 +100,8 @@ package Pgp2CoreTypesPkg is
     flush        : std_logic;                     -- Flush the link
     opCodeEn     : std_logic;                     -- Opcode receive enable
     opCode       : std_logic_vector(7 downto 0);  -- Opcode receive value
-    locLinkReady : std_logic;                     -- Far end side has link
-    locData      : std_logic_vector(7 downto 0);  -- Far end side User Data
+    locLinkReady : std_logic;                     -- Near end side has link
+    locData      : std_logic_vector(7 downto 0);  -- Near end side User Data
 --    vcQuad       : PgpTxVcQuadInType;
   end record PgpTxInType;
   type PgpTxInArray is array (natural range <>) of PgpTxInType;
@@ -122,6 +122,7 @@ package Pgp2CoreTypesPkg is
   end record PgpRxPhyLaneOutType;
   type PgpRxPhyLaneOutArray is array (natural range <>) of PgpRxPhyLaneOutType;
 
+                                                             
   type PgpRxPhyLaneInType is record
     data    : std_logic_vector(15 downto 0);  -- PHY receive data
     dataK   : std_logic_vector(1 downto 0);   -- PHY receive data is K character
@@ -129,6 +130,7 @@ package Pgp2CoreTypesPkg is
     decErr  : std_logic_vector(1 downto 0);   -- PHY receive data not in table
   end record PgpRxPhyLaneInType;
   type PgpRxPhyLaneInArray is array (natural range <>) of PgpRxPhyLaneInType;
+
 
   type PgpTxPhyLaneOutType is record
     data  : std_logic_vector(15 downto 0);  -- PHY transmit data
