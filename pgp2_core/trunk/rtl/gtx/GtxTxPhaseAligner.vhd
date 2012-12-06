@@ -39,7 +39,7 @@ architecture rtl of GtpTxPhaseAligner is
 
   type RegType is record
     state                : StateType;
-    counter              : unsigned(13 downto 0);
+    counter              : unsigned(12 downto 0);
     gtpTxEnPmaPhaseAlign : std_logic;
     gtpTxPmaSetPhase     : std_logic;
   end record RegType;
@@ -74,7 +74,7 @@ begin
         v.gtpTxPmaSetPhase     := '0';
         v.gtpTxEnPmaPhaseAlign := '1';
         v.counter              := r.counter + 1;
-        if (r.counter(9) = '1') then    -- Count reached 512
+        if (r.counter(5) = '1') then    -- Count reached 32
           v.counter := (others => '0');
           v.state   := SET_PHASE_S;
         end if;
@@ -83,7 +83,7 @@ begin
         v.gtpTxEnPmaPhaseAlign := '1';
         v.gtpTxPmaSetPhase     := '1';
         v.counter              := r.counter + 1;
-        if (r.counter(13) = '1') then   -- Count reached 16384
+        if (r.counter(12) = '1') then   -- Count reached 8192
           v.state := ALIGNED_S;
         end if;
 

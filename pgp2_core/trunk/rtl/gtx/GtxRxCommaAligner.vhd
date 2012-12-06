@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : GtpPgpWordAligner.vhd
+-- File       : GtxPgpWordAligner.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
@@ -20,25 +20,24 @@ use ieee.numeric_std.all;
 use work.Pgp2CoreTypesPkg.all;
 
 
-entity GtpRxCommaAligner is
+entity GtxRxCommaAligner is
   
   generic (
     TPD_G : time := 1 ns);
 
   port (
-    gtpRxUsrClk2     : in  std_logic;
-    gtpRxUsrClk2Rst : in  std_logic;
-    gtpRxData        : in  std_logic_vector(19 downto 0);
+    gtxRxUsrClk2     : in  std_logic;
+    gtxRxUsrClk2Rst : in  std_logic;
+    gtxRxData        : in  std_logic_vector(19 downto 0);
     codeErr          : in  std_logic_vector(1 downto 0);
     dispErr          : in  std_logic_vector(1 downto 0);
-    gtpRxUsrClk2Sel  : out std_logic;   -- Select phase of usrclk2
-    gtpRxSlide       : out std_logic;
-    gtpRxCdrReset    : out std_logic;
+    gtxRxSlide       : out std_logic;
+    gtxRxCdrReset    : out std_logic;
     aligned          : out std_logic);
 
-end entity GtpRxCommaAligner;
+end entity GtxRxCommaAligner;
 
-architecture rtl of GtpRxCommaAligner is
+architecture rtl of GtxRxCommaAligner is
 
   constant RAW_COMMA_C : std_logic_vector(9 downto 0) := "0101111100";
 
@@ -51,9 +50,8 @@ architecture rtl of GtpRxCommaAligner is
     waitCounter : unsigned(4 downto 0);
 
     -- Outputs
-    gtpRxUsrClk2Sel : std_logic;        -- Select phase of usrclk2
-    gtpRxSlide      : std_logic;
-    gtpRxCdrReset   : std_logic;
+    gtxRxSlide      : std_logic;
+    gtxRxCdrReset   : std_logic;
     aligned         : std_logic;
   end record RegType;
 
@@ -61,67 +59,60 @@ architecture rtl of GtpRxCommaAligner is
 
 begin
 
-  seq : process (gtpRxUsrClk2, gtpRxUsrClk2Rst) is
+  seq : process (gtxRxUsrClk2, gtxRxUsrClk2Rst) is
   begin
-    if (gtpRxUsrClk2Rst = '0') then
+    if (gtxRxUsrClk2Rst = '1') then
       r.state       <= SEARCH_S        after TPD_G;
       r.last        <= (others => '0') after TPD_G;
       r.slideCount  <= (others => '0') after TPD_G;
       r.waitCounter <= (others => '0') after TPD_G;
 
-      r.gtpRxUsrClk2Sel <= '0' after TPD_G;
-      r.gtpRxSlide      <= '0' after TPD_G;
-      r.gtpRxCdrReset   <= '0' after TPD_G;
+      r.gtxRxSlide      <= '0' after TPD_G;
+      r.gtxRxCdrReset   <= '0' after TPD_G;
       r.aligned         <= '0' after TPD_G;
-    elsif (rising_edge(gtpRxUsrClk2)) then
+    elsif (rising_edge(gtxRxUsrClk2)) then
       r <= rin after TPD_G;
     end if;
   end process;
 
-  comb : process (r, gtpRxData, codeErr, dispErr) is
+  comb : process (r, gtxRxData, codeErr, dispErr) is
     variable v         : RegType;
     variable searchVar : std_logic_vector(29 downto 0);
   begin
     v := r;
 
-    v.gtpRxCdrReset := '0';
-    v.gtpRxSlide    := '0';
+    v.gtxRxCdrReset := '0';
+    v.gtxRxSlide    := '0';
     v.aligned       := '0';
 
-    v.last    := gtpRxData(19 downto 10);  -- Save high byte
-    searchVar := gtpRxData & r.last;
+    v.last    := gtxRxData(19 downto 10);  -- Save high byte
+    searchVar := gtxRxData & r.last;
 
     case r.state is
       when SEARCH_S =>
-        for i in 0 to 20 loop
+        for i in 1 to 20 loop
           -- Look for pos or neg comma
           if (searchVar((i+9) downto i) = RAW_COMMA_C or searchVar(i+9 downto i) = not RAW_COMMA_C) then
-            if (i = 2 or i = 4 or i = 6 or i = 8 or i = 0) then
---              v.slideCount := to_unsigned(9-i, 3);
---              v.state      := SLIDE_S;
-              v.gtpRxUsrClk2Sel := not r.gtpRxUsrClk2Sel;  -- Invert clock
-            elsif (i = 12 or i = 14 or i = 16 or i = 18) then
-              v.slideCount := to_unsigned(i-11, 3);
-              v.state      := SLIDE_S;
-              -- Not sure if this can be done here.
-              -- Might want some wait time before starting slides
-              
-            elsif (i = 10) then
+            if (i = 10) then
               v.state := ALIGNED_S;
+            elsif (i mod 2 = 0) then
+              -- Even number of slides needed
+              v.slideCount := to_unsigned(((i+10) mod 20)-1, 3);
+              v.state      := SLIDE_S;
             else
               -- else reset the rx and hope for a new lock requiring an even number of slides
-              v.gtpRxCdrReset := '1';
+              v.gtxRxCdrReset := '1';
               v.state         := RESET_S;
             end if;
           end if;
         end loop;
 
       when RESET_S =>
-        v.gtpRxCdrReset := '1';
+        v.gtxRxCdrReset := '1';
         -- Async reset will eventually get everything back to SEARCH_S state
 
       when SLIDE_S =>
-        v.gtpRxSlide := '1';
+        v.gtxRxSlide := '1';
         v.state      := SLIDE_WAIT_0_S;
 
       when SLIDE_WAIT_0_S =>
@@ -158,9 +149,9 @@ begin
 
     rin <= v;
 
-    gtpRxUsrClk2Sel <= r.gtpRxUsrClk2Sel;
-    gtpRxSlide      <= r.gtpRxSlide;
-    gtpRxCdrReset   <= r.gtpRxCdrReset;
+    gtxRxUsrClk2Sel <= r.gtxRxUsrClk2Sel;
+    gtxRxSlide      <= r.gtxRxSlide;
+    gtxRxCdrReset   <= r.gtxRxCdrReset;
     aligned         <= r.aligned;
 
   end process comb;

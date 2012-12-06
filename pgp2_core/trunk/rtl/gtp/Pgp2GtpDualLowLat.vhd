@@ -125,7 +125,7 @@ architecture rtl of Pgp2GtpDualLowLat is
   --------------------------------------------------------------------------------------------------
   -- PgpTx Signals
   signal phyTxLanesOut : PgpTxPhy1LaneOutArray(1 downto 0);
-  signal phyTxReady    : std_logic_vector(1 downto 0);
+  signal phyTxReady    : std_logic;
   signal crcTxIn       : PgpCrcInArray(1 downto 0);
   signal crcTxOut      : slv32Array(1 downto 0);
 
@@ -157,8 +157,8 @@ begin
       port map (
         gtpRxClk         => pgpTxClk,   -- Need free-running clock here so use TxClk
         gtpRxRst         => pgpReset,
-        gtpRxReady       => open,       -- rxResetDone,
-        gtpRxInit        => '0',
+        gtpRxReady       => open,       
+        gtpRxInit        => gtpRxInit(i),
         gtpLockDetect    => gtpPllLockDet,
         gtpRxElecIdle    => gtpRxElecIdle(i),
         gtpRxBuffStatus  => "000",
@@ -187,7 +187,7 @@ begin
         pgpRxVcQuadOut   => pgpRxVcQuadOut(i),
         phyRxLanesOut    => phyRxLanesOut(i),
         phyRxLanesIn     => phyRxLanesIn(i),
-        phyRxReady       => phyRxReady(i),  -- RxAligned?
+        phyRxReady       => phyRxReady(i),  -- gtpRxAligned
         phyRxInit        => phyRxInit(i),
         crcRxIn          => crcRxIn(i),
         crcRxOut         => crcRxOut(i),
@@ -231,7 +231,7 @@ begin
         pgpTxVcQuadIn  => pgpTxVcQuadIn(i),
         pgpTxVcQuadOut => pgpTxVcQuadOut(i),
         phyTxLanesOut  => phyTxLanesOut(i),
-        phyTxReady     => phyTxReady(i),
+        phyTxReady     => phyTxReady,
         crcTxIn        => crcTxIn(i),
         crcTxOut       => crcTxOut(i),
         debug          => open);
@@ -284,7 +284,7 @@ begin
       PLL_DIVSEL_FB   => 2,
       PLL_DIVSEL_REF  => 1,
       REC_CLK_PERIOD  => 4.000,
-      REC_PLL_MULT    => 4,
+      REC_PLL_MULT    => 4,             -- 4 runs PLL at optimal VCO freq
       REC_PLL_DIV     => 1)
     port map (
       gtpClkIn         => gtpClkIn,
@@ -305,14 +305,14 @@ begin
       gtpRxUsrClk2     => gtpRxUsrClk2,
       gtpRxUsrClkRst   => gtpRxUsrClkRst,
       gtpRxData(0)     => phyRxLanesIn(0)(0).data,
-      gtpRxDataK(0)    => phyRxLanesIn(0)(0).dataK,
-      gtpRxDecErr(0)   => phyRxLanesIn(0)(0).decErr,
-      gtpRxDispErr(0)  => phyRxLanesIn(0)(0).dispErr,
-      gtpRxPolarity(0) => phyRxLanesOut(0)(0).polarity,
       gtpRxData(1)     => phyRxLanesIn(1)(0).data,
+      gtpRxDataK(0)    => phyRxLanesIn(0)(0).dataK,
       gtpRxDataK(1)    => phyRxLanesIn(1)(0).dataK,
+      gtpRxDecErr(0)   => phyRxLanesIn(0)(0).decErr,
       gtpRxDecErr(1)   => phyRxLanesIn(1)(0).decErr,
+      gtpRxDispErr(0)  => phyRxLanesIn(0)(0).dispErr,
       gtpRxDispErr(1)  => phyRxLanesIn(1)(0).dispErr,
+      gtpRxPolarity(0) => phyRxLanesOut(0)(0).polarity,
       gtpRxPolarity(1) => phyRxLanesOut(1)(0).polarity,
       gtpRxAligned     => phyRxReady,
       gtpTxReset       => gtpTxReset,
@@ -320,8 +320,8 @@ begin
       gtpTxUsrClk2     => pgpTxClk,
       gtpTxAligned     => phyTxReady,
       gtpTxData(0)     => phyTxLanesOut(0)(0).data,
-      gtpTxDataK(0)    => phyTxLanesOut(0)(0).dataK,
       gtpTxData(1)     => phyTxLanesOut(1)(0).data,
+      gtpTxDataK(0)    => phyTxLanesOut(0)(0).dataK,
       gtpTxDataK(1)    => phyTxLanesOut(1)(0).dataK);
   
 end rtl;

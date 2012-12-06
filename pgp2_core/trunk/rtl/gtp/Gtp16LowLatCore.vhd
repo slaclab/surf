@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-28
--- Last update: 2012-11-29
+-- Last update: 2012-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ end Gtp16LowLatCore;
 architecture rtl of Gtp16LowLatCore is
 
   signal gtpPllLockDetInt : std_logic;
-  signal tmpRefClkOut : std_logic;
+  signal tmpRefClkOut     : std_logic;
 
   --------------------------------------------------------------------------------------------------
   -- Rx Signals
@@ -197,15 +197,15 @@ begin
     generic map (
       TPD_G => TPD_G)
     port map (
-      gtpRxUsrClk2     => gtpRxUsrClk2Int,
-      gtpRxUsrClk2RstL => rxRecClkPllLocked,
-      gtpRxData        => gtpRxDataRaw,
-      codeErr          => gtpRxDecErrInt,
-      dispErr          => gtpRxDispErrInt,
-      gtpRxUsrClk2Sel  => rxUsrClk2Sel,
-      gtpRxSlide       => gtpRxSlide,
-      gtpRxCdrReset    => rxCommaAlignReset,
-      aligned          => gtpRxAligned);
+      gtpRxUsrClk2    => gtpRxUsrClk2Int,
+      gtpRxUsrClk2Rst => gtpRxUsrClkRst,
+      gtpRxData       => gtpRxDataRaw,
+      codeErr         => gtpRxDecErrInt,
+      dispErr         => gtpRxDispErrInt,
+      gtpRxUsrClk2Sel => rxUsrClk2Sel,
+      gtpRxSlide      => gtpRxSlide,
+      gtpRxCdrReset   => rxCommaAlignReset,
+      aligned         => gtpRxAligned);
 
   Decoder8b10b_1 : entity work.Decoder8b10b
     generic map (
@@ -258,7 +258,7 @@ begin
       --_______________________ Simulation-Only Attributes ___________________
 
       SIM_GTPRESET_SPEEDUP => 0,
-      SIM_PLL_PERDIV2      => x"0C8",
+      SIM_PLL_PERDIV2      => SIM_PLL_PERDIV2,  -- x"0C8",
 
       --___________________________ Shared Attributes ________________________
 
