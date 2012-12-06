@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-28
--- Last update: 2012-11-30
+-- Last update: 2012-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ entity GtpDualLowLatCore is
 
     -- Tx Data
     gtpTxData  : in slv16Array(1 downto 0);
-    gtpTxDataK : in slv2Array(1 downto 0);
+    gtpTxDataK : in slv2Array(1 downto 0)
     );
 
 end GtpDualLowLatCore;
@@ -134,8 +134,8 @@ begin
     --------------------------------------------------------------------------------------------------
     RX_REC_CLK_BUFG : BUFG
       port map (
-        O => gtpRxRecClkBufG(i),           -- Feeds pll clkin
-        I => gtpRxRecClk(i));              -- From GTP RXRECCLK
+        O => gtpRxRecClkBufG(i),        -- Feeds pll clkin
+        I => gtpRxRecClk(i));           -- From GTP RXRECCLK
 
     RX_REC_CLK_PLL : PLL_BASE
       generic map(
@@ -200,15 +200,15 @@ begin
       generic map (
         TPD_G => TPD_G)
       port map (
-        gtpRxUsrClk2     => gtpRxUsrClk2Int(i),
-        gtpRxUsrClk2RstL => rxRecClkPllLocked(i),
-        gtpRxData        => gtpRxDataRaw(i),
-        codeErr          => gtpRxDecErrInt(i),
-        dispErr          => gtpRxDispErrInt(i),
-        gtpRxUsrClk2Sel  => rxUsrClk2Sel(i),
-        gtpRxSlide       => gtpRxSlide(i),
-        gtpRxCdrReset    => rxCommaAlignReset(i),
-        aligned          => gtpRxAligned(i));
+        gtpRxUsrClk2    => gtpRxUsrClk2Int(i),
+        gtpRxUsrClk2Rst => gtpRxUsrClkRst(i),
+        gtpRxData       => gtpRxDataRaw(i),
+        codeErr         => gtpRxDecErrInt(i),
+        dispErr         => gtpRxDispErrInt(i),
+        gtpRxUsrClk2Sel => rxUsrClk2Sel(i),
+        gtpRxSlide      => gtpRxSlide(i),
+        gtpRxCdrReset   => rxCommaAlignReset(i),
+        aligned         => gtpRxAligned(i));
 
     Decoder8b10b_1 : entity work.Decoder8b10b
       generic map (
@@ -262,7 +262,7 @@ begin
       --_______________________ Simulation-Only Attributes ___________________
 
       SIM_GTPRESET_SPEEDUP => 0,
-      SIM_PLL_PERDIV2      => x"0C8",
+      SIM_PLL_PERDIV2      => SIM_PLL_PERDIV2,  -- x"0C8",
 
       --___________________________ Shared Attributes ________________________
 
@@ -507,9 +507,9 @@ begin
       LOOPBACK0(0)         => '0',
       LOOPBACK0(1)         => gtpLoopback(0),
       LOOPBACK0(2)         => '0',
-      LOOPBACK1(0) => '0',
-      LOOPBACK1(1) => gtpLoopback(1),
-      LOOPBACK1(2)            => '0',
+      LOOPBACK1(0)         => '0',
+      LOOPBACK1(1)         => gtpLoopback(1),
+      LOOPBACK1(2)         => '0',
       RXPOWERDOWN0         => (others => '0'),
       RXPOWERDOWN1         => (others => '0'),
       TXPOWERDOWN0         => (others => '0'),
@@ -519,15 +519,15 @@ begin
       RXCHARISCOMMA1       => open,
       RXCHARISK0(0)        => gtpRxDataRaw(0)(8),
       RXCHARISK0(1)        => gtpRxDataRaw(0)(18),
-      RXCHARISK1(0)           => gtpRxDataRaw(1)(8),
-      RXCHARISK1(1) => gtpRxDataRaw(1)(18),
+      RXCHARISK1(0)        => gtpRxDataRaw(1)(8),
+      RXCHARISK1(1)        => gtpRxDataRaw(1)(18),
       RXDEC8B10BUSE0       => '0',
       RXDEC8B10BUSE1       => '0',
       RXDISPERR0(0)        => gtpRxDataRaw(0)(9),
       RXDISPERR0(1)        => gtpRxDataRaw(0)(19),
-      RXDISPERR1(0)           => gtpRxDataRaw(1)(9),
-      RXDISPERR1(1) => gtpRxDataRaw(1)(19),
-      RXNOTINTABLE0        => open,     
+      RXDISPERR1(0)        => gtpRxDataRaw(1)(9),
+      RXDISPERR1(1)        => gtpRxDataRaw(1)(19),
+      RXNOTINTABLE0        => open,
       RXNOTINTABLE1        => open,
       RXRUNDISP0           => open,
       RXRUNDISP1           => open,
@@ -568,7 +568,7 @@ begin
       ------------------- Receive Ports - RX Data Path interface -----------------
       RXDATA0(7 downto 0)  => gtpRxDataRaw(0)(7 downto 0),
       RXDATA0(15 downto 8) => gtpRxDataRaw(0)(17 downto 10),
-      RXDATA1(7 downto 0) => gtpRxDataRaw(1)(7 downto 0),
+      RXDATA1(7 downto 0)  => gtpRxDataRaw(1)(7 downto 0),
       RXDATA1(15 downto 8) => gtpRxDataRaw(1)(17 downto 10),
       RXDATAWIDTH0         => '1',
       RXDATAWIDTH1         => '1',
@@ -665,7 +665,7 @@ begin
       TXRUNDISP0           => open,
       TXRUNDISP1           => open,
       ------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-      TXBUFSTATUS0         => open,     
+      TXBUFSTATUS0         => open,
       TXBUFSTATUS1         => open,
       ------------------ Transmit Ports - TX Data Path interface -----------------
       TXDATA0              => gtpTxData(0),
