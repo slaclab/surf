@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-28
--- Last update: 2012-12-06
+-- Last update: 2012-12-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ entity GtpDualLowLatCore is
     TPD_G : time := 1 ns;
 
     -- GTP Parameters
-    SIM_PLL_PERDIV2 : std_logic_vector(8 downto 0) := "011001000";
-    CLK25_DIVIDER   : integer                      := 5;
-    PLL_DIVSEL_FB   : integer                      := 2;
-    PLL_DIVSEL_REF  : integer                      := 1;
+    SIM_PLL_PERDIV2 : bit_vector := X"0C8";  -- "011001000";
+    CLK25_DIVIDER   : integer    := 5;
+    PLL_DIVSEL_FB   : integer    := 2;
+    PLL_DIVSEL_REF  : integer    := 1;
 
     -- Recovered clock parameters
     REC_CLK_PERIOD : real    := 4.000;
@@ -107,6 +107,7 @@ architecture rtl of GtpDualLowLatCore is
   signal rxUsrClk2Sel      : std_logic_vector(1 downto 0);  -- Selects which 2 byte clock is used
   signal gtpRxUsrClkInt    : std_logic_vector(1 downto 0);
   signal gtpRxUsrClk2Int   : std_logic_vector(1 downto 0);
+  signal gtpRxUsrClkRstInt : std_logic_vector(1 downto 0);
 
   -- Rx Data
   signal gtpRxDataRaw    : slv20Array(1 downto 0);
@@ -187,6 +188,8 @@ begin
         S  => rxUsrClk2Sel(i),
         O  => gtpRxUsrClk2Int(i));
 
+    gtpRxUsrClkRstInt <= not rxRecClkPllLocked;
+
     -- Output recovered clocks for external use
     gtpRxUsrClk2(i)   <= gtpRxUsrClk2Int(i);
     gtpRxUsrClk(i)    <= gtpRxUsrClkInt(i);
@@ -201,7 +204,7 @@ begin
         TPD_G => TPD_G)
       port map (
         gtpRxUsrClk2    => gtpRxUsrClk2Int(i),
-        gtpRxUsrClk2Rst => gtpRxUsrClkRst(i),
+        gtpRxUsrClk2Rst => gtpRxUsrClkRstInt(i),
         gtpRxData       => gtpRxDataRaw(i),
         codeErr         => gtpRxDecErrInt(i),
         dispErr         => gtpRxDispErrInt(i),

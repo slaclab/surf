@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2012-12-06
+-- Last update: 2012-12-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,14 +26,14 @@ entity GtxRxCommaAligner is
     TPD_G : time := 1 ns);
 
   port (
-    gtxRxUsrClk2     : in  std_logic;
-    gtxRxUsrClk2Rst : in  std_logic;
-    gtxRxData        : in  std_logic_vector(19 downto 0);
-    codeErr          : in  std_logic_vector(1 downto 0);
-    dispErr          : in  std_logic_vector(1 downto 0);
-    gtxRxSlide       : out std_logic;
-    gtxRxCdrReset    : out std_logic;
-    aligned          : out std_logic);
+    gtxRxUsrClk    : in  std_logic;
+    gtxRxUsrClkRst : in  std_logic;
+    gtxRxData      : in  std_logic_vector(19 downto 0);
+    codeErr        : in  std_logic_vector(1 downto 0);
+    dispErr        : in  std_logic_vector(1 downto 0);
+    gtxRxSlide     : out std_logic;
+    gtxRxCdrReset  : out std_logic;
+    aligned        : out std_logic);
 
 end entity GtxRxCommaAligner;
 
@@ -46,31 +46,31 @@ architecture rtl of GtxRxCommaAligner is
   type RegType is record
     state       : StateType;
     last        : std_logic_vector(9 downto 0);
-    slideCount  : unsigned(2 downto 0);
+    slideCount  : unsigned(4 downto 0);
     waitCounter : unsigned(4 downto 0);
 
     -- Outputs
-    gtxRxSlide      : std_logic;
-    gtxRxCdrReset   : std_logic;
-    aligned         : std_logic;
+    gtxRxSlide    : std_logic;
+    gtxRxCdrReset : std_logic;
+    aligned       : std_logic;
   end record RegType;
 
   signal r, rin : RegType;
 
 begin
 
-  seq : process (gtxRxUsrClk2, gtxRxUsrClk2Rst) is
+  seq : process (gtxRxUsrClk, gtxRxUsrClkRst) is
   begin
-    if (gtxRxUsrClk2Rst = '1') then
+    if (gtxRxUsrClkRst = '1') then
       r.state       <= SEARCH_S        after TPD_G;
       r.last        <= (others => '0') after TPD_G;
       r.slideCount  <= (others => '0') after TPD_G;
       r.waitCounter <= (others => '0') after TPD_G;
 
-      r.gtxRxSlide      <= '0' after TPD_G;
-      r.gtxRxCdrReset   <= '0' after TPD_G;
-      r.aligned         <= '0' after TPD_G;
-    elsif (rising_edge(gtxRxUsrClk2)) then
+      r.gtxRxSlide    <= '0' after TPD_G;
+      r.gtxRxCdrReset <= '0' after TPD_G;
+      r.aligned       <= '0' after TPD_G;
+    elsif (rising_edge(gtxRxUsrClk)) then
       r <= rin after TPD_G;
     end if;
   end process;
@@ -97,7 +97,7 @@ begin
               v.state := ALIGNED_S;
             elsif (i mod 2 = 0) then
               -- Even number of slides needed
-              v.slideCount := to_unsigned(((i+10) mod 20)-1, 3);
+              v.slideCount := to_unsigned(((i+10) mod 20)-1, 5);
               v.state      := SLIDE_S;
             else
               -- else reset the rx and hope for a new lock requiring an even number of slides
@@ -109,6 +109,10 @@ begin
 
       when RESET_S =>
         v.gtxRxCdrReset := '1';
+--        v.slideCount := r.slideCount + 1;
+--        if (r.slideCount = 3) then
+--          v.state := SEARCH_S;
+--        end if;
         -- Async reset will eventually get everything back to SEARCH_S state
 
       when SLIDE_S =>
@@ -149,10 +153,9 @@ begin
 
     rin <= v;
 
-    gtxRxUsrClk2Sel <= r.gtxRxUsrClk2Sel;
-    gtxRxSlide      <= r.gtxRxSlide;
-    gtxRxCdrReset   <= r.gtxRxCdrReset;
-    aligned         <= r.aligned;
+    gtxRxSlide    <= r.gtxRxSlide;
+    gtxRxCdrReset <= r.gtxRxCdrReset;
+    aligned       <= r.aligned;
 
   end process comb;
 

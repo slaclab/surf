@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-28
--- Last update: 2012-12-06
+-- Last update: 2012-12-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ entity Gtp16LowLatCore is
     TPD_G : time := 1 ns;
 
     -- GTP Parameters
-    SIM_PLL_PERDIV2 : std_logic_vector(8 downto 0) := "011001000";
-    CLK25_DIVIDER   : integer                      := 5;
-    PLL_DIVSEL_FB   : integer                      := 2;
-    PLL_DIVSEL_REF  : integer                      := 1;
+    SIM_PLL_PERDIV2 : bit_vector := X"0C8";
+    CLK25_DIVIDER   : integer    := 5;
+    PLL_DIVSEL_FB   : integer    := 2;
+    PLL_DIVSEL_REF  : integer    := 1;
 
     -- Recovered clock parameters
     REC_CLK_PERIOD : real    := 4.000;
@@ -107,6 +107,7 @@ architecture rtl of Gtp16LowLatCore is
   signal rxUsrClk2Sel      : std_logic;  -- Selects which 2 byte clock is used
   signal gtpRxUsrClkInt    : std_logic;
   signal gtpRxUsrClk2Int   : std_logic;
+  signal gtpRxUsrClkRstInt : std_logic;
 
   -- Rx Data
   signal gtpRxDataRaw    : std_logic_vector(19 downto 0);
@@ -184,10 +185,12 @@ begin
       S  => rxUsrClk2Sel,
       O  => gtpRxUsrClk2Int);
 
+  gtpRxUsrClkRstInt <= not rxRecClkPllLocked;
+
   -- Output recovered clocks for external use
   gtpRxUsrClk2   <= gtpRxUsrClk2Int;
   gtpRxUsrClk    <= gtpRxUsrClkInt;
-  gtpRxUsrClkRst <= not rxRecClkPllLocked;
+  gtpRxUsrClkRst <= gtpRxUsrClkRstInt;
 
   -- Comma aligner and RxRst modules both drive CDR Reset
   gtpRxCdrResetFinal <= gtpRxCdrReset or rxCommaAlignReset;
@@ -198,7 +201,7 @@ begin
       TPD_G => TPD_G)
     port map (
       gtpRxUsrClk2    => gtpRxUsrClk2Int,
-      gtpRxUsrClk2Rst => gtpRxUsrClkRst,
+      gtpRxUsrClk2Rst => gtpRxUsrClkRstInt,
       gtpRxData       => gtpRxDataRaw,
       codeErr         => gtpRxDecErrInt,
       dispErr         => gtpRxDispErrInt,
