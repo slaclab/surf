@@ -1,0 +1,68 @@
+-------------------------------------------------------------------------------
+-- Title      : 
+-------------------------------------------------------------------------------
+-- File       : V5ClkOutBuf.vhd
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2012-12-07
+-- Last update: 2012-12-07
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: 
+-------------------------------------------------------------------------------
+-- Copyright (c) 2012 SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use work.StdRtlPkg.all;
+
+library UNISIM;
+use UNISIM.VCOMPONENTS.all;
+
+entity V5ClkOutBuf is
+  generic (
+    INVERT_G   : boolean := false;
+    DIFF_OUT_G : boolean := true);       
+  port (
+    clkIn   : in  sl;
+    clkOutP : out sl;                   -- differential output buffer
+    clkOutN : out sl;                   -- differential output buffer
+    clkOut  : out sl);                  -- Single ended output buffer
+end V5ClkOutBuf;
+
+architecture rtl of V5ClkOutBuf is
+
+  signal clkDdr : sl;
+
+begin
+
+  ODDR_I : ODDR
+    port map (
+      C  => clkIn,
+      Q  => clkDdr,
+      CE => '1',
+      D1 => toSl(not INVERT_G),
+      D2 => toSl(INVERT_G),
+      R  => '0',
+      S  => '0');
+
+  DIFF_OUT_OPT : if (DIFF_OUT_G) generate
+    OBUFDS_I : OBUFDS
+      port map (
+        I  => clkDdr,
+        O  => clkOutP,
+        OB => clkOutN);
+    clkOut <= '0';
+  end generate DIFF_OUT_OPT;
+  SINGLE_OUT_OPT : if (not DIFF_OUT_G) generate
+    -- Single ended output buffer
+    OBUF_I : OBUF
+      port map (
+        I => clkDdr,
+        O => clkOut);
+    clkOutP <= '0';
+    clkOutN <= '0';
+  end generate SINGLE_OUT_OPT;
+end rtl;
