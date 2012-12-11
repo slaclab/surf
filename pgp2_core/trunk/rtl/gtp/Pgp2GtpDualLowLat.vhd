@@ -158,7 +158,7 @@ begin
         gtpRxClk         => pgpTxClk,   -- Need free-running clock here so use TxClk
         gtpRxRst         => pgpReset,
         gtpRxReady       => open,       
-        gtpRxInit        => gtpRxInit(i),
+        gtpRxInit        => phyRxInit(i),
         gtpLockDetect    => gtpPllLockDet,
         gtpRxElecIdle    => gtpRxElecIdle(i),
         gtpRxBuffStatus  => "000",
@@ -279,7 +279,7 @@ begin
   GtpDualLowLatCore_1 : entity work.GtpDualLowLatCore
     generic map (
       TPD_G           => TPD_G,
-      SIM_PLL_PERDIV2 => "011001000",
+      SIM_PLL_PERDIV2 => X"0C8",
       CLK25_DIVIDER   => 5,
       PLL_DIVSEL_FB   => 2,
       PLL_DIVSEL_REF  => 1,

@@ -37,10 +37,8 @@ entity Pgp2Gtx16LowLat is
     -- System clock, reset & control
     pgpReset   : in std_logic;          -- Synchronous reset input
     pgpTxClk   : in std_logic;          -- 125 MHz Tx clock (PgpTx)
-    pgpTxClk2x : in std_logic;          -- 250 MHz Tx clock (GTX)
 
     pgpRxRecClk    : out std_logic;     -- rxrecclk basically
-    pgpRxRecClk2x  : out std_logic;     -- double byte clock
     pgpRxRecClkRst : out std_logic;     -- Reset for recovered clock
 
     -- Non VC Rx Signals
@@ -91,13 +89,11 @@ architecture rtl of Pgp2Gtx16LowLat is
   -- Rx Signals
   --------------------------------------------------------------------------------------------------
   -- Rx Clocks
-  signal gtxRxUsrClk    : std_logic;    -- Recovered 1 byte clock
-  signal gtxRxUsrClk2   : std_logic;    -- Recovered 2 byte clock
+  signal gtxRxUsrClk    : std_logic;    -- Recovered 2 byte clock
   signal gtxRxUsrClkRst : std_logic;
 
   -- Rx Resets
   signal gtxRxElecIdle    : std_logic;
-  signal gtxRxElecIdleRst : std_logic;
   signal gtxRxReset       : std_logic;
   signal gtxRxCdrReset    : std_logic;
 
@@ -152,7 +148,7 @@ begin
       gtxRxClk         => pgpTxClk,     -- Need free-running clock here so use TxClk
       gtxRxRst         => pgpReset,
       gtxRxReady       => open,
-      gtxRxInit        => gtxRxInit,
+      gtxRxInit        => phyRxInit,
       gtxLockDetect    => gtxPllLockDet,
       gtxRxElecIdle    => gtxRxElecIdle,
       gtxRxBuffStatus  => "000",
@@ -162,8 +158,7 @@ begin
       );
 
   -- Output recovered clocks for external use
-  pgpRxRecClk    <= gtxRxUsrClk2;
-  pgpRxRecClk2x  <= gtxRxUsrClk;
+  pgpRxRecClk    <= gtxRxUsrClk;
   pgpRxRecClkRst <= gtxRxUsrClkRst;
 
   -- PGP RX Block
@@ -172,7 +167,7 @@ begin
       RxLaneCnt    => 1,
       EnShortCells => EnShortCells)
     port map (
-      pgpRxClk         => gtxRxUsrClk2,
+      pgpRxClk         => gtxRxUsrClk,
       pgpRxReset       => pgpReset,
       pgpRxIn          => pgpRxIn,
       pgpRxOut         => pgpRxOut,
@@ -200,7 +195,7 @@ begin
       CRC_INIT => x"FFFFFFFF"
       ) port map(
         CRCOUT       => crcRxOutGtx,
-        CRCCLK       => gtxRxUsrClk2,
+        CRCCLK       => gtxRxUsrClk,
         CRCDATAVALID => crcRxIn.valid,
         CRCDATAWIDTH => crcRxWidthGtx,
         CRCIN        => crcRxInGtx,
@@ -272,7 +267,7 @@ begin
   Gtx16LowLatCore_1 : entity work.Gtx16LowLatCore
     generic map (
       TPD_G           => TPD_G,
-      SIM_PLL_PERDIV2 => "011001000",
+      SIM_PLL_PERDIV2 => X"0C8", --"011001000",
       CLK25_DIVIDER   => 5,
       PLL_DIVSEL_FB   => 2,
       PLL_DIVSEL_REF  => 1,
@@ -294,7 +289,6 @@ begin
       gtxRxCdrReset    => gtxRxCdrReset,
       gtxRxElecIdle    => gtxRxElecIdle,
       gtxRxUsrClk      => gtxRxUsrClk,
-      gtxRxUsrClk2     => gtxRxUsrClk2,
       gtxRxUsrClkRst   => gtxRxUsrClkRst,
       gtxRxData        => phyRxLanesIn(0).data,
       gtxRxDataK       => phyRxLanesIn(0).dataK,
@@ -303,8 +297,7 @@ begin
       gtxRxPolarity    => phyRxLanesOut(0).polarity,
       gtxRxAligned     => phyRxReady,
       gtxTxReset       => gtxTxReset,
-      gtxTxUsrClk      => pgpTxClk2x,
-      gtxTxUsrClk2     => pgpTxClk,
+      gtxTxUsrClk      => pgpTxClk,
       gtxTxAligned     => phyTxReady,
       gtxTxData        => phyTxLanesOut(0).data,
       gtxTxDataK       => phyTxLanesOut(0).dataK);

@@ -101,7 +101,6 @@ architecture rtl of Pgp2Gtp16LowLat is
   signal gtpRxReset       : std_logic;
   signal gtpRxCdrReset    : std_logic;
 
-
   -- PgpRx Signals
   signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
   signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GTP
@@ -152,7 +151,7 @@ begin
       gtpRxClk         => pgpTxClk,     -- Need free-running clock here so use TxClk
       gtpRxRst         => pgpReset,
       gtpRxReady       => open,
-      gtpRxInit        => gtpRxInit,
+      gtpRxInit        => phyRxInit,
       gtpLockDetect    => gtpPllLockDet,
       gtpRxElecIdle    => gtpRxElecIdle,
       gtpRxBuffStatus  => "000",
@@ -273,7 +272,7 @@ begin
   Gtp16LowLatCore_1 : entity work.Gtp16LowLatCore
     generic map (
       TPD_G           => TPD_G,
-      SIM_PLL_PERDIV2 => "011001000",
+      SIM_PLL_PERDIV2 => X"0C8",
       CLK25_DIVIDER   => 5,
       PLL_DIVSEL_FB   => 2,
       PLL_DIVSEL_REF  => 1,

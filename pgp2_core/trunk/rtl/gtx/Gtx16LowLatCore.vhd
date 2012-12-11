@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-28
--- Last update: 2012-12-06
+-- Last update: 2012-12-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ entity Gtx16LowLatCore is
     TPD_G : time := 1 ns;
 
     -- GTX Parameters
-    SIM_PLL_PERDIV2 : std_logic_vector(8 downto 0) := "011001000";
-    CLK25_DIVIDER   : integer                      := 5;
-    PLL_DIVSEL_FB   : integer                      := 2;
-    PLL_DIVSEL_REF  : integer                      := 1;
+    SIM_PLL_PERDIV2 : bit_vector := X"0C8";  --"011001000";
+    CLK25_DIVIDER   : integer    := 5;
+    PLL_DIVSEL_FB   : integer    := 2;
+    PLL_DIVSEL_REF  : integer    := 1;
 
     -- Recovered clock parameters
     REC_CLK_PERIOD : real    := 8.000;
@@ -53,13 +53,12 @@ entity Gtx16LowLatCore is
     gtxLoopback   : in  std_logic;
 
     -- Rx Resets
-    gtxRxReset       : in  std_logic;
-    gtxRxCdrReset    : in  std_logic;
-    gtxRxElecIdle    : out std_logic;
+    gtxRxReset    : in  std_logic;
+    gtxRxCdrReset : in  std_logic;
+    gtxRxElecIdle : out std_logic;
 
     -- Rx Clocks
     gtxRxUsrClk    : out std_logic;     -- 2 byte clock (recovered)
-    gtxRxUsrClk2   : out std_logic;     -- Same as gtxRxUsrClk for GTX
     gtxRxUsrClkRst : out std_logic;     -- Reset for gtxRxUsrClk
 
     -- Rx Data
@@ -74,8 +73,7 @@ entity Gtx16LowLatCore is
     gtxTxReset : in std_logic;
 
     -- Tx Clocks
-    gtxTxUsrClk  : in std_logic;
-    gtxTxUsrClk2 : in std_logic;
+    gtxTxUsrClk : in std_logic;
 
     gtxTxAligned : out std_logic;
 
@@ -95,6 +93,7 @@ architecture rtl of Gtx16LowLatCore is
   -- Rx Signals
   --------------------------------------------------------------------------------------------------
   -- Clocking
+  signal gtxResetDoneInt   : std_logic;
   signal gtxRxRecClk       : std_logic;  -- Raw rxrecclk from GTX, not square, needs DCM or PLL
   signal gtxRxRecClkBufG   : std_logic;
   signal rxRecClkPllOut0   : std_logic;  -- 2 byte clock
@@ -102,7 +101,7 @@ architecture rtl of Gtx16LowLatCore is
   signal rxRecClkPllFbOut  : std_logic;
   signal rxRecClkPllLocked : std_logic;
   signal gtxRxUsrClkInt    : std_logic;
-  signal gtxRxUsrClk2Int   : std_logic;
+  signal gtxRxUsrClkRstInt : std_logic;
 
   -- Rx Data
   signal gtxRxDataRaw    : std_logic_vector(19 downto 0);
@@ -116,11 +115,22 @@ architecture rtl of Gtx16LowLatCore is
   signal gtxTxEnPmaPhaseAlign : std_logic;
   signal gtxTxPmaSetPhase     : std_logic;
 
+  -- Inputs to GTX must match expected sizes.
+  signal gtxTxDataInt  : std_logic_vector(31 downto 0);
+  signal gtxTxDataKInt : std_logic_vector(3 downto 0);
+
   -- Resets
   signal gtxRxCdrResetFinal : std_logic;
   signal rxCommaAlignReset  : std_logic;
 
+  -- Modelsim needs this crap
+  signal rxCharIsKExtra : std_logic_vector(1 downto 0);
+  signal rxDispErrExtra : std_logic_vector(1 downto 0);
+  signal rxDataExtra    : std_logic_vector(15 downto 0);
+
 begin
+
+  gtxResetDone <= gtxResetDoneInt;
 
   --------------------------------------------------------------------------------------------------
   -- Rx Data Path
@@ -165,12 +175,20 @@ begin
       I => rxRecClkPllOut0,
       O => gtxRxUsrClkInt);
 
-  gtxRxUsrClk2Int <= gtxRxUsrClkInt;    -- Same for GTX
+  RX_USR_CLK_RST : entity work.RstSync
+    generic map (
+      DELAY_G        => TPD_G,
+      IN_POLARITY_G  => '0',
+      OUT_POLARITY_G => '1')
+    port map (
+      clk      => gtxRxUsrClkInt,
+      asyncRst => gtxResetDoneInt,
+      syncRst  => gtxRxUsrClkRstInt);
 
   -- Output recovered clocks for external use
-  gtxRxUsrClk2   <= gtxRxUsrClk2Int;    --
   gtxRxUsrClk    <= gtxRxUsrClkInt;
-  gtxRxUsrClkRst <= not rxRecClkPllLocked;
+  gtxRxUsrClkRst <= gtxRxUsrClkRstInt;
+
 
   -- Comma aligner and RxRst modules both drive CDR Reset
   gtxRxCdrResetFinal <= gtxRxCdrReset or rxCommaAlignReset;
@@ -180,21 +198,21 @@ begin
     generic map (
       TPD_G => TPD_G)
     port map (
-      gtxRxUsrClk2    => gtxRxUsrClk2Int,
-      gtxRxUsrClk2Rst => gtxRxUsrClk2Rst,
-      gtxRxData       => gtxRxDataRaw,
-      codeErr         => gtxRxDecErrInt,
-      dispErr         => gtxRxDispErrInt,
-      gtxRxSlide      => gtxRxSlide,
-      gtxRxCdrReset   => rxCommaAlignReset,
-      aligned         => gtxRxAligned);
+      gtxRxUsrClk    => gtxRxUsrClkInt,
+      gtxRxUsrClkRst => gtxRxUsrClkRstInt,
+      gtxRxData      => gtxRxDataRaw,
+      codeErr        => gtxRxDecErrInt,
+      dispErr        => gtxRxDispErrInt,
+      gtxRxSlide     => gtxRxSlide,
+      gtxRxCdrReset  => rxCommaAlignReset,
+      aligned        => gtxRxAligned);
 
   Decoder8b10b_1 : entity work.Decoder8b10b
     generic map (
       TPD_G       => TPD_G,
       NUM_BYTES_G => 2)
     port map (
-      clk      => gtxRxUsrClk2Int,
+      clk      => gtxRxUsrClkInt,
       rstN     => rxRecClkPllLocked,
       dataIn   => gtxRxDataRaw,
       dataOut  => gtxRxData,
@@ -214,7 +232,7 @@ begin
     generic map (
       TPD_G => TPD_G)
     port map (
-      gtxTxUsrClk2         => gtxTxUsrClk2,
+      gtxTxUsrClk          => gtxTxUsrClk,
       gtxReset             => gtxReset,
       gtxPllLockDetect     => gtxPllLockDetInt,
       gtxTxEnPmaPhaseAlign => gtxTxEnPmaPhaseAlign,
@@ -231,6 +249,8 @@ begin
   --------------------------------------------------------------------------------------------------
   -- GTX Instance
   --------------------------------------------------------------------------------------------------
+  gtxTxDataInt  <= X"0000" & gtxTxData;
+  gtxTxDataKInt <= "00" & gtxTxDataK;
   ----------------------------- GTX_DUAL Instance  --------------------------   
   UGtxDual : GTX_DUAL
     generic map (
@@ -241,7 +261,7 @@ begin
       SIM_RECEIVER_DETECT_PASS_1 => true,
       SIM_MODE                   => "FAST",
       SIM_GTXRESET_SPEEDUP       => 0,
-      SIM_PLL_PERDIV2            => SIM_PLL_PERDIV2, x"140", !!!
+      SIM_PLL_PERDIV2            => SIM_PLL_PERDIV2,
 
       --___________________________ Shared Attributes ________________________
 
@@ -315,8 +335,8 @@ begin
       TERMINATION_IMP_0     => 50,
       AC_CAP_DIS_1          => true,
       OOBDETECT_THRESHOLD_1 => "111",
-      PMA_CDR_SCAN_1        => x"640403a",
-      PMA_RX_CFG_1          => x"0f44088",
+      PMA_CDR_SCAN_1        => x"640403c",
+      PMA_RX_CFG_1          => x"0f44089",
       RCV_TERM_GND_1        => false,
       RCV_TERM_VTTRX_1      => true,
       TERMINATION_IMP_1     => 50,
@@ -548,13 +568,13 @@ begin
         RXCHARISCOMMA1         => open,
         RXCHARISK0(0)          => gtxRxDataRaw(8),
         RXCHARISK0(1)          => gtxRxDataRaw(18),
-        RXCHARISK0(3 downto 2) => open,
+        RXCHARISK0(3 downto 2) => rxCharIsKExtra,
         RXCHARISK1             => open,
         RXDEC8B10BUSE0         => '0',
         RXDEC8B10BUSE1         => '0',
         RXDISPERR0(0)          => gtxRxDataRaw(9),
         RXDISPERR0(1)          => gtxRxDataRaw(19),
-        RXDISPERR0(3 downto 2) => open,
+        RXDISPERR0(3 downto 2) => rxDispErrExtra,
         RXDISPERR1             => open,
         RXNOTINTABLE0          => open,    -- phyRxDecErr,
         RXNOTINTABLE1          => open,
@@ -585,7 +605,7 @@ begin
         RXENMCOMMAALIGN1       => '0',
         RXENPCOMMAALIGN0       => '0',
         RXENPCOMMAALIGN1       => '0',
-        RXSLIDE0               => 'gtxRxSlide',
+        RXSLIDE0               => gtxRxSlide,
         RXSLIDE1               => '0',
         ----------------------- Receive Ports - PRBS Detection ---------------------
         PRBSCNTRESET0          => '0',
@@ -595,9 +615,9 @@ begin
         RXPRBSERR0             => open,
         RXPRBSERR1             => open,
         ------------------- Receive Ports - RX Data Path interface -----------------
-        RXDATA0(7 downto 0)    => gtpRxDataRaw(7 downto 0),
-        RXDATA0(15 downto 8)   => gtpRxDataRaw(17 downto 10),
-        RXDATA0(31 downto 16)  => open,
+        RXDATA0(7 downto 0)    => gtxRxDataRaw(7 downto 0),
+        RXDATA0(15 downto 8)   => gtxRxDataRaw(17 downto 10),
+        RXDATA0(31 downto 16)  => rxDataExtra,
         RXDATA1                => open,
         RXDATAWIDTH0           => "01",
         RXDATAWIDTH1           => "01",
@@ -678,7 +698,7 @@ begin
         RXVALID0               => open,
         RXVALID1               => open,
         ----------------- Receive Ports - RX Polarity Control Ports ----------------
-        RXPOLARITY0            => gtpRxPolarity,
+        RXPOLARITY0            => gtxRxPolarity,
         RXPOLARITY1            => '0',
         ------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
         DADDR                  => (others => '0'),
@@ -698,7 +718,7 @@ begin
         PLLPOWERDOWN           => '0',
         REFCLKOUT              => tmpRefClkOut,
         REFCLKPWRDNB           => '1',
-        RESETDONE0             => gtxResetDone,
+        RESETDONE0             => gtxResetDoneInt,
         RESETDONE1             => open,
         -------------- Transmit Ports - 64b66b and 64b67b Gearbox Ports ------------
         TXGEARBOXREADY0        => open,
@@ -716,8 +736,7 @@ begin
         TXCHARDISPMODE1        => (others => '0'),
         TXCHARDISPVAL0         => (others => '0'),
         TXCHARDISPVAL1         => (others => '0'),
-        TXCHARISK0(1 downto 0) => gtxTxDataK,
-        TXCHARISK0(3 downto 2) => (others => '0'),
+        TXCHARISK0             => gtxTxDataKInt,
         TXCHARISK1             => (others => '0'),
         TXENC8B10BUSE0         => '1',
         TXENC8B10BUSE1         => '1',
@@ -729,8 +748,7 @@ begin
         TXBUFSTATUS0           => open,
         TXBUFSTATUS1           => open,
         ------------------ Transmit Ports - TX Data Path interface -----------------
-        TXDATA0(15 downto 0)   => gtxTxData, ,
-        TXDATA0(31 downto 16)  => (others => '0'),
+        TXDATA0                => gtxTxDataInt,
         TXDATA1                => (others => '0'),
         TXDATAWIDTH0           => "01",
         TXDATAWIDTH1           => "01",
