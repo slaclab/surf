@@ -76,8 +76,6 @@ entity Gtx7TxRst is
     GT_TYPE                : string                := "GTX";
     STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
     RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
-    TX_QPLL_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
-    RX_QPLL_USED           : boolean               := false;  -- share these two generic values
     PHASE_ALIGNMENT_MANUAL : boolean               := false  -- Decision if a manual phase-alignment is necessary or the automatic 
                                         -- is enough. For single-lane applications the automatic alignment is 
                                         -- sufficient              
@@ -87,23 +85,20 @@ entity Gtx7TxRst is
                                         --or reference-clock present at startup.
     TXUSERCLK         : in  std_logic;  --TXUSERCLK as used in the design
     SOFT_RESET        : in  std_logic;  --User Reset, can be pulled any time
-    QPLLREFCLKLOST    : in  std_logic;  --QPLL Reference-clock for the GT is lost
-    CPLLREFCLKLOST    : in  std_logic;  --CPLL Reference-clock for the GT is lost
-    QPLLLOCK          : in  std_logic;  --Lock Detect from the QPLL of the GT
-    CPLLLOCK          : in  std_logic;  --Lock Detect from the CPLL of the GT
+    PLLREFCLKLOST     : in  std_logic;  --PLL Reference-clock for the GT is lost
+    PLLLOCK           : in  std_logic;  --Lock Detect from the PLL of the GT
     TXRESETDONE       : in  std_logic;
     MMCM_LOCK         : in  std_logic;
     GTTXRESET         : out std_logic := '0';
     MMCM_RESET        : out std_logic := '1';
-    QPLL_RESET        : out std_logic := '0';  --Reset QPLL
-    CPLL_RESET        : out std_logic := '0';  --Reset CPLL
+    PLL_RESET         : out std_logic := '0';             --Reset PLL
     TX_FSM_RESET_DONE : out std_logic;  --Reset-sequence has sucessfully been finished.
     TXUSERRDY         : out std_logic := '0';
     RUN_PHALIGNMENT   : out std_logic := '0';
     RESET_PHALIGNMENT : out std_logic := '0';
     PHALIGNMENT_DONE  : in  std_logic;
 
-    RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')-- Number of 
+    RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of 
                                         -- Retries it took to get the transceiver up and running
     );
 end Gtx7TxRst;
@@ -317,7 +312,7 @@ begin
     end if;
   end process;
 
-  refclk_lost <= '1' when ((TX_QPLL_USED and QPLLREFCLKLOST = '1') or (not TX_QPLL_USED and CPLLREFCLKLOST = '1')) else '0';
+  refclk_lost <= PLLREFCLKLOST;
 
 
   --FSM for resetting the GTX/GTH/GTP in the 7-series. 
@@ -340,15 +335,15 @@ begin
   reset_fsm : process(STABLE_CLOCK)
   begin
     if rising_edge(STABLE_CLOCK) then
-      if(SOFT_RESET = '1' or (not(tx_state = INIT) and not(tx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
+      if(SOFT_RESET = '1' or
+         (not(tx_state = INIT) and not(tx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
         tx_state                <= INIT;
         TXUSERRDY               <= '0';
         GTTXRESET               <= '0';
         MMCM_RESET              <= '1';
         tx_fsm_reset_done_int   <= '0';
-        QPLL_RESET              <= '0';
-        CPLL_RESET              <= '0';
-        pll_reset_asserted      <= '0';
+        PLL_RESET               <= '0';
+--        pll_reset_asserted      <= '0'; -- Only assert after powerup
         reset_time_out          <= '0';
         retry_counter_int       <= 0;
         run_phase_alignment_int <= '0';
@@ -371,21 +366,14 @@ begin
             --case the transceiver never comes up for some reason, this machine 
             --will still continue its best and rerun until the FPGA is turned off
             --or the transceivers come up correctly.
-            if TX_QPLL_USED then
-              if pll_reset_asserted = '0' then
-                QPLL_RESET         <= '1';
-                pll_reset_asserted <= '1';
-              else
-                QPLL_RESET <= '0';
-              end if;
+
+            if pll_reset_asserted = '0' then
+              PLL_RESET          <= '1';
+              pll_reset_asserted <= '1';
             else
-              if pll_reset_asserted = '0' then
-                CPLL_RESET         <= '1';
-                pll_reset_asserted <= '1';
-              else
-                CPLL_RESET <= '0';
-              end if;
+              PLL_RESET <= '0';
             end if;
+
             TXUSERRDY               <= '0';
             GTTXRESET               <= '1';
             MMCM_RESET              <= '1';
@@ -393,8 +381,7 @@ begin
             run_phase_alignment_int <= '0';
             RESET_PHALIGNMENT       <= '1';
 
-            if (TX_QPLL_USED and (QPLLREFCLKLOST = '0') and pll_reset_asserted = '1') or
-              (not TX_QPLL_USED and (CPLLREFCLKLOST = '0') and pll_reset_asserted = '1') then
+            if (PLLREFCLKLOST = '0' and pll_reset_asserted = '1') then
               tx_state <= RELEASE_PLL_RESET;
             end if;
             
@@ -403,8 +390,7 @@ begin
             --starts running.
             pll_reset_asserted <= '1';
 
-            if (TX_QPLL_USED and (QPLLLOCK = '1')) or
-              (not TX_QPLL_USED and (CPLLLOCK = '1')) then
+            if (PLLLOCK = '1') then
               tx_state       <= RELEASE_MMCM_RESET;
               reset_time_out <= '1';
             end if;
