@@ -78,8 +78,6 @@ entity Gtx7RxRst is
     EQ_MODE                : string                := "DFE";  --RX Equalisation Mode; set to DFE or LPM
     STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
     RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
-    TX_QPLL_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
-    RX_QPLL_USED           : boolean               := false;  -- share these two generic values
     PHASE_ALIGNMENT_MANUAL : boolean               := true  -- Decision if a manual phase-alignment is necessary or the automatic 
                                              -- is enough. For single-lane applications the automatic alignment is 
                                              -- sufficient                         
@@ -89,30 +87,28 @@ entity Gtx7RxRst is
                                              --or reference-clock present at startup.
     RXUSERCLK              : in  std_logic;  --RXUSERCLK as used in the design
     SOFT_RESET             : in  std_logic;  --User Reset, can be pulled any time
-    QPLLREFCLKLOST         : in  std_logic;  --QPLL Reference-clock for the GT is lost
-    CPLLREFCLKLOST         : in  std_logic;  --CPLL Reference-clock for the GT is lost
-    QPLLLOCK               : in  std_logic;  --Lock Detect from the QPLL of the GT
-    CPLLLOCK               : in  std_logic;  --Lock Detect from the CPLL of the GT
+    PLLREFCLKLOST          : in  std_logic;  --PLL Reference-clock for the GT is lost
+    PLLLOCK                : in  std_logic;  --Lock Detect from the PLL of the GT
     RXRESETDONE            : in  std_logic;
     MMCM_LOCK              : in  std_logic;
     RECCLK_STABLE          : in  std_logic;
-    RECCLK_MONITOR_RESTART : in  std_logic                                            := '0';
+    RECCLK_MONITOR_RESTART : in  std_logic := '0';
     DATA_VALID             : in  std_logic;
     TXUSERRDY              : in  std_logic;  --TXUSERRDY from GT 
-    GTRXRESET              : out std_logic                                            := '0';
-    MMCM_RESET             : out std_logic                                            := '1';
-    QPLL_RESET             : out std_logic                                            := '0';  --Reset QPLL (only if RX uses QPLL)
-    CPLL_RESET             : out std_logic                                            := '0';  --Reset CPLL (only if RX uses CPLL)
+    GTRXRESET              : out std_logic := '0';
+    MMCM_RESET             : out std_logic := '1';
+    PLL_RESET              : out std_logic := '0';        --Reset PLL 
     RX_FSM_RESET_DONE      : out std_logic;  --Reset-sequence has sucessfully been finished.
-    RXUSERRDY              : out std_logic                                            := '0';
+    RXUSERRDY              : out std_logic := '0';
     RUN_PHALIGNMENT        : out std_logic;
     PHALIGNMENT_DONE       : in  std_logic;
-    RESET_PHALIGNMENT      : out std_logic                                            := '0';
+    RESET_PHALIGNMENT      : out std_logic := '0';
     RXDFEAGCHOLD           : out std_logic;
     RXDFELFHOLD            : out std_logic;
     RXLPMLFHOLD            : out std_logic;
     RXLPMHFHOLD            : out std_logic;
-    RETRY_COUNTER          : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')-- Number of 
+
+    RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of 
                                         -- Retries it took to get the transceiver up and running
     );
 end Gtx7RxRst;
@@ -391,7 +387,7 @@ begin
     end if;
   end process;
 
-  refclk_lost <= '1' when ((RX_QPLL_USED and QPLLREFCLKLOST = '1') or (not RX_QPLL_USED and CPLLREFCLKLOST = '1')) else '0';
+  refclk_lost <= PLLREFCLKLOST;
 
 
 
@@ -415,15 +411,15 @@ begin
   reset_fsm : process(STABLE_CLOCK)
   begin
     if rising_edge(STABLE_CLOCK) then
-      if (SOFT_RESET = '1' or (not(rx_state = INIT) and not(rx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
+      if (SOFT_RESET = '1' or
+          (not(rx_state = INIT) and not(rx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
         rx_state                <= INIT;
         RXUSERRDY               <= '0';
         GTRXRESET               <= '0';
         MMCM_RESET              <= '1';
         rx_fsm_reset_done_int   <= '0';
-        QPLL_RESET              <= '0';
-        CPLL_RESET              <= '0';
-        pll_reset_asserted      <= '0';
+        PLL_RESET               <= '0';
+--        pll_reset_asserted      <= '0'; -- Only assert after powerup
         reset_time_out          <= '1';
         retry_counter_int       <= 0;
         run_phase_alignment_int <= '0';
@@ -453,20 +449,11 @@ begin
             --case the transceiver never comes up for some reason, this machine 
             --will still continue its best and rerun until the FPGA is turned off
             --or the transceivers come up correctly.
-            if RX_QPLL_USED and not TX_QPLL_USED then
-              if pll_reset_asserted = '0' then
-                QPLL_RESET         <= '1';
-                pll_reset_asserted <= '1';
-              else
-                QPLL_RESET <= '0';
-              end if;
-            elsif not RX_QPLL_USED and TX_QPLL_USED then
-              if pll_reset_asserted = '0' then
-                CPLL_RESET         <= '1';
-                pll_reset_asserted <= '1';
-              else
-                CPLL_RESET <= '0';
-              end if;
+            if pll_reset_asserted = '0' then
+              PLL_RESET          <= '1';
+              pll_reset_asserted <= '1';
+            else
+              PLL_RESET <= '0';
             end if;
 
             RXUSERRDY               <= '0';
@@ -479,10 +466,7 @@ begin
             adapt_count_reset       <= '1';
 
 
-            if (RX_QPLL_USED and (QPLLREFCLKLOST = '0') and pll_reset_asserted = '1') or
-              (not RX_QPLL_USED and TX_QPLL_USED and (CPLLREFCLKLOST = '0') and pll_reset_asserted = '1') or
-              (not RX_QPLL_USED and not TX_QPLL_USED and (CPLLREFCLKLOST = '0')) or
-              (RX_QPLL_USED and TX_QPLL_USED and (QPLLREFCLKLOST = '0')) then
+            if (PLLREFCLKLOST = '0' and pll_reset_asserted = '1') then
               rx_state       <= RELEASE_PLL_RESET;
               reset_time_out <= '1';
             end if;
@@ -494,8 +478,7 @@ begin
             reset_time_out     <= '0';
 
 
-            if (RX_QPLL_USED and (QPLLLOCK = '1')) or
-              (not RX_QPLL_USED and (CPLLLOCK = '1')) then
+            if (PLLLOCK = '1') then
               rx_state               <= VERIFY_RECCLK_STABLE;
               reset_time_out         <= '1';
               recclk_mon_count_reset <= '0';
