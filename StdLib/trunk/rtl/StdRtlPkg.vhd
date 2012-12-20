@@ -31,7 +31,7 @@ package StdRtlPkg is
 
   -- Very useful functions
   function log2 (constant number : integer) return integer;
-  function bitReverse (a        : slv) return slv;
+  function bitReverse (a         : slv) return slv;
 
   function list (constant start : integer;
                  constant size  : integer;
@@ -41,6 +41,8 @@ package StdRtlPkg is
   -- This should be unnecessary in VHDL 2008
   function toBoolean (logic : sl) return boolean;
   function toSl (bool       : boolean) return sl;
+  function toString (bool   : boolean) return string;
+  function toBoolean (str   : string) return boolean;
 
   -- Unary reduction operators, also unnecessary in VHDL 2008
   function uOr (vec      : slv) return sl;
@@ -51,12 +53,12 @@ package StdRtlPkg is
   function uXorBool (vec : slv) return boolean;
 
   -- Avoid bla = "00000" literal comarisons that don't scale naturally with bla'length
-  function slvAll (value : sl; length : natural) return slv;
-  function slvZero (length      : integer) return slv;
+  function slvAll (value   : sl; length : natural) return slv;
+  function slvZero (length : integer) return slv;
 --  function unsignedZero (length : integer) return unsigned;
-  function isAll (vec : slv; value : sl) return boolean;
-  function isAll (vec   : unsigned; value : sl)  return boolean;
-  function isZero (vec          : slv) return boolean;
+  function isAll (vec      : slv; value : sl) return boolean;
+  function isAll (vec      : unsigned; value : sl) return boolean;
+  function isZero (vec     : slv) return boolean;
 
 
   -- Create an slv of given size with every bit set to value
@@ -71,6 +73,7 @@ package StdRtlPkg is
   function grayEncode (vec : slv) return slv;
   function grayDecode (vec : unsigned) return unsigned;
   function grayDecode (vec : slv) return slv;
+
 
 
   -- Some synthesis tools wont accept unit types
@@ -154,6 +157,28 @@ package body StdRtlPkg is
       return '0';
     end if;
   end function toSl;
+
+  function toString (
+    bool : boolean)
+    return string is
+  begin
+    if (bool) then
+      return "TRUE";
+    else
+      return "FALSE";
+    end if;
+  end function toString;
+
+  function toBoolean (
+    str : string)
+    return boolean is
+  begin
+    if (str = "TRUE" or str = "true") then
+      return true;
+    else
+      return false;
+    end if;
+  end function toBoolean;
 
   ---------------------------------------------------------------------------------------------------------------------
   -- Unary reduction operators
