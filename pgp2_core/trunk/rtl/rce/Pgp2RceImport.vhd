@@ -16,6 +16,7 @@
 -- 01/16/2010: created.
 -- 07/06/2010: Added payload count as generic.
 -- 08/24/2010: 32-bit endian swap.
+-- 01/09/2013: Fixed import last valid byte size error.
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -188,7 +189,7 @@ begin
          -- Output signals
          importAdvance   <= dataEn or statusEn or firstEn after tpd;
          importLast      <= lastEn                        after tpd;
-         importLastValid <= "1" & intFrameRxWidth         after tpd;
+         importLastValid <= intFrameRxWidth & "1"         after tpd;
 
          -- Free list selection
          if firstEn = '1' then
