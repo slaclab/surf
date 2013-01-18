@@ -329,7 +329,7 @@ begin
               v.i2cMasterOut.txnDone  := '1';
               v.state                 := WAIT_REQ_FALL_S;
             else
-              -- If not last byte decrement byteCount and start another read
+              -- If not last byte decrement byteCount and start another write
               v.byteCount := r.byteCount - 1;
               v.state     := WRITE_S;
             end if;

@@ -63,6 +63,22 @@ package i2cPkg is
     rdData   : slv(31 downto 0);        -- Data received during read txn
   end record i2cMasterOutType;
 
+  type i2cSlaveInType is record
+    enable  : sl;
+    txValid : sl;
+    txData  : slv(7 downto 0);
+    rxAck   : sl;
+  end record i2cSlaveInType;
+
+  type i2cSlaveOutType is record
+    rxActive : sl;
+    rxValid : sl;
+    rxData  : slv(7 downto 0);
+    txActive : sl;
+    txAck   : sl;
+    nack    : sl;
+  end record i2cSlaveOutType;
+
   -- Opencores i2c
   component i2c_master_byte_ctrl is
     generic (filter : integer; dynfilt : integer);
