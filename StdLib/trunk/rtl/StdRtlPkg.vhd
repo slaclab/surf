@@ -31,6 +31,7 @@ package StdRtlPkg is
 
   -- Very useful functions
   function log2 (constant number : integer) return integer;
+  function bitSize (constant number : positive) return positive;
   function bitReverse (a         : slv) return slv;
 
   function list (constant start : integer;
@@ -112,6 +113,18 @@ package body StdRtlPkg is
       retVar := retVar + 1;
     end loop;
     return retVar;
+  end function;
+
+  -- Find number of bits needed to store a number
+  function bitSize (
+    constant number : positive)
+    return positive is
+  begin
+    if (number = 1) then
+      return 1;
+    else
+      return log2(number);
+    end if;
   end function;
 
   -- NOTE: XST will crap its pants if you try to pass a constant to this function
