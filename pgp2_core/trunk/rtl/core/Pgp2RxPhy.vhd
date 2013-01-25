@@ -439,8 +439,8 @@ begin
          dly0RxDecErr  <= phyRxDecErr   after tpd;
          dly1RxData    <= dly0RxData    after tpd;
          dly1RxDataK   <= dly0RxDataK   after tpd;
-         dly0RxDispErr <= dly0RxDispErr after tpd;
-         dly0RxDecErr  <= dly0RxDecErr  after tpd;
+         dly1RxDispErr <= dly0RxDispErr after tpd;
+         dly1RxDecErr  <= dly0RxDecErr  after tpd;
       end if;
    end process;
 
