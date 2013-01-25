@@ -26,8 +26,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
---library grlib;
---use grlib.amba.all;
 
 package i2cPkg is
 
@@ -44,7 +42,8 @@ package i2cPkg is
     enable : std_ulogic;
   end record;
 
-  type i2cMasterInType is record
+  --------------------------------------------------------------------------------------------------
+  type i2cMasterOldInType is record
     enable   : sl;                      -- Enable the master
     prescale : slv(15 downto 0);        -- Determines i2c clock speed
     filter   : slv(15 downto 0);        -- Dynamic filter value
@@ -55,14 +54,59 @@ package i2cPkg is
     tenbit   : sl;                      -- use 10 bit addressing
     txnSize  : slv(1 downto 0);         -- Support up to 4 bytes / txn
     wrData   : slv(31 downto 0);        -- Data sent during write txn
-  end record i2cMasterInType;
+  end record;
 
-  type i2cMasterOutType is record
+  type i2cMasterOldOutType is record
     txnDone  : sl;                      -- Asserted when tranaction is complete or errors out
     txnError : sl;                      -- An error occured during the txn
     rdData   : slv(31 downto 0);        -- Data received during read txn
-  end record i2cMasterOutType;
+  end record;
 
+  constant INVALID_ADDR_ERROR_C     : slv(7 downto 0) := X"01";
+  constant WRITE_ACK_ERROR_C        : slv(7 downto 0) := X"02";
+  constant ARBITRATION_LOST_ERROR_C : slv(7 downto 0) := X"03";
+
+  type i2cMasterInType is record
+    enable     : sl;                    -- Enable the master
+    prescale   : slv(15 downto 0);      -- Determines i2c clock speed
+    filter     : slv(15 downto 0);      -- Dynamic filter value
+    txnReq     : sl;                    -- Execute a transaction
+    stop       : sl;                    -- Set STOP when done
+    op         : sl;                    -- 1 for write, 0 for read
+    addr       : slv(9 downto 0);       -- i2c device address
+    tenbit     : sl;                    -- use 10 bit addressing
+    wrValid    : sl;
+    wrData     : slv(7 downto 0);       -- Data sent during write txn
+    rdAck      : sl;
+  end record;
+
+  type i2cMasterOutType is record
+    txnError : sl;                      -- An error occured during the txn
+    wrAck    : sl;
+    rdValid  : sl;
+    rdData   : slv(7 downto 0);         -- Data received during read txn
+  end record;
+  --------------------------------------------------------------------------------------------------
+  type i2cRegMasterInType is record
+    i2cAddr     : slv(9 downto 0);
+    tenbit      : sl;
+    regAddr     : slv(31 downto 0);
+    regWrData   : slv(31 downto 0);
+    regOp       : sl;
+    regAddrSize : slv(1 downto 0);
+    regDataSize : slv(1 downto 0);
+    regReq      : sl;
+    endianness  : sl;
+  end record;
+
+  type i2cRegMasterOutType is record
+    regAck      : sl;
+    regFail     : sl;
+    regFailCode : slv(7 downto 0);
+    regRdData   : slv(31 downto 0);
+  end record;
+
+  --------------------------------------------------------------------------------------------------
   type i2cSlaveInType is record
     enable  : sl;
     txValid : sl;
@@ -72,13 +116,14 @@ package i2cPkg is
 
   type i2cSlaveOutType is record
     rxActive : sl;
-    rxValid : sl;
-    rxData  : slv(7 downto 0);
+    rxValid  : sl;
+    rxData   : slv(7 downto 0);
     txActive : sl;
-    txAck   : sl;
-    nack    : sl;
+    txAck    : sl;
+    nack     : sl;
   end record i2cSlaveOutType;
 
+  --------------------------------------------------------------------------------------------------
   -- Opencores i2c
   component i2c_master_byte_ctrl is
     generic (filter : integer; dynfilt : integer);
