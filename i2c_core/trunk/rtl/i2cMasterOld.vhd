@@ -47,7 +47,7 @@ entity i2cMaster is
   generic (
     TPD_G                : time                   := 1 ns;  -- Simulated propagation delay
     OUTPUT_EN_POLARITY_G : integer range 0 to 1   := 0;     -- output enable polarity
-    FILTER_G             : integer range 2 to 512 := 126;   -- filter bit size
+    FILTER_G             : integer range 2 to 512 := 126;     -- filter bit size
     DYNAMIC_FILTER_G     : integer range 0 to 1   := 0);
   port (
     clk : in sl;
@@ -102,6 +102,7 @@ architecture rtl of i2cMaster is
   type RegType is record
     byteCtrlIn   : ByteCtrlInType;
     state        : StateType;
+    byteCount    : unsigned(1 downto 0);
     tenbit       : sl;
     i2cMasterOut : i2cMasterOutType;
   end record RegType;
@@ -167,9 +168,27 @@ begin
   end generate soepol1;
 
 
+  reg : process (clk, rst)
+  begin
+    if (rst = '1') then
+      r.byteCtrlIn.start      <= '0'             after TPD_G;
+      r.byteCtrlIn.stop       <= '0'             after TPD_G;
+      r.byteCtrlIn.read       <= '0'             after TPD_G;
+      r.byteCtrlIn.write      <= '0'             after TPD_G;
+      r.byteCtrlIn.ackIn      <= '0'             after TPD_G;
+      r.byteCtrlIn.din        <= (others => '0') after TPD_G;
+      r.state                 <= WAIT_TXN_REQ_S  after TPD_G;
+      r.byteCount             <= (others => '0') after TPD_G;
+      r.tenbit                <= '0'             after TPD_G;
+      r.i2cMasterOut.txnDone  <= '0'             after TPD_G;
+      r.i2cMasterOut.txnError <= '0'             after TPD_G;
+      r.i2cMasterOut.rdData   <= (others => '0') after TPD_G;
+    elsif rising_edge(clk) then
+      r <= rin after TPD_G;
+    end if;
+  end process reg;
 
-
-  comb : process (r, byteCtrlOut, i2cMasterIn, rst)
+  comb : process (r, byteCtrlOut, i2cMasterIn)
     variable v        : RegType;
     variable indexVar : integer;
   begin  -- process comb
@@ -183,21 +202,17 @@ begin
     v.byteCtrlIn.write := '0';
     v.byteCtrlIn.ackIn := '0';
 
-    v.i2cMasterOut.wrAck := '0';        -- pulsed
-
-    if (i2cMasterIn.rdAck = '1') then
-      v.i2cMasterOut.rdValid  := '0';
-      v.i2cMasterOut.txnError := '0';
-    end if;
-
     case (r.state) is
       when WAIT_TXN_REQ_S =>
         -- Reset front end outputs
-        v.i2cMasterOut.rdData := (others => '0');  -- Necessary?
-        -- If new request and any previous rdData has been acked.
-        if (i2cMasterIn.txnReq = '1' and r.i2cMasterOut.rdValid = '0') then
-          v.state  := ADDR_S;
-          v.tenbit := i2cMasterIn.tenbit;
+        v.i2cMasterOut.txnDone  := '0';
+        v.i2cMasterOut.txnError := '0';
+        v.i2cMasterOut.rdData   := (others => '0');
+
+        if (i2cMasterIn.txnReq = '1') then
+          v.byteCount := unsigned(i2cMasterIn.txnSize);
+          v.state     := ADDR_S;
+          v.tenbit    := i2cMasterIn.tenbit;
         end if;
 
       when ADDR_S =>
@@ -222,9 +237,16 @@ begin
 
         
       when WAIT_ADDR_ACK_S =>
-        if (byteCtrlOut.cmdAck = '1') then    -- Master sent the command
-          if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
-            if (r.tenbit = '1') then          -- Must send second half of addr if tenbit set
+        -- Clear command bits
+        v.byteCtrlIn.start := '0';
+        v.byteCtrlIn.write := '0';
+
+        if (byteCtrlOut.cmdAck = '1') then
+          -- Master sent the command
+          if (byteCtrlOut.ackOut = '0') then
+            -- Slave ack'd the transfer
+            if (r.tenbit = '1') then
+              -- Must send second half of addr if tenbit set
               v.tenbit := '0';
               v.state  := ADDR_S;
             else
@@ -238,71 +260,73 @@ begin
           else
             -- Slave did not ack the transfer, fail the txn
             v.i2cMasterOut.txnError := '1';
-            v.i2cMasterOut.rdValid  := '1';
-            v.i2cMasterOut.rdData   := INVALID_ADDR_ERROR_C;
-            v.state                 := WAIT_TXN_REQ_S;
+            v.i2cMasterOut.txnDone  := '1';
+            v.state                 := WAIT_REQ_FALL_S;
           end if;
         end if;
 
         
       when READ_S =>
-        if (r.i2cMasterOut.rdValid = '0') then  -- Previous byte has been ack'd
-          v.byteCtrlIn.read  := '1';
-          -- If last byte of txn send nack.
-          -- Send stop on last byte if enabled (else repeated start will occur on next txn).
-          v.byteCtrlIn.ackIn := not i2cMasterIn.txnReq;
-          v.byteCtrlIn.stop  := not i2cMasterIn.txnReq and i2cMasterIn.stop;
-          v.state            := WAIT_READ_DATA_S;
-        end if;
+        v.byteCtrlIn.read  := '1';
+        -- If last byte of txn send ack (will nack). Send stop if enabled
+        v.byteCtrlIn.ackIn := toSl(r.byteCount = 0);
+        v.byteCtrlIn.stop  := toSl(r.byteCount = 0) and i2cMasterIn.stop;
+        v.state            := WAIT_READ_DATA_S;
 
 
       when WAIT_READ_DATA_S =>
-        v.byteCtrlIn.stop := r.byteCtrlIn.stop;  -- Hold stop or it wont get seen
-        v.byteCtrlIn.ackIn := r.byteCtrlIn.ackIn;  -- This too
-        if (byteCtrlOut.cmdAck = '1') then    -- Master sent the command
-          v.byteCtrlIn.stop := '0';     -- Drop stop asap or it will be repeated
-          v.byteCtrlIn.ackIn := '0';
-          v.i2cMasterOut.rdData  := byteCtrlOut.dout;
-          v.i2cMasterOut.rdValid := '1';
-          if (i2cMasterIn.txnReq = '0') then  -- Last byte of txn
-            v.i2cMasterOut.txnError := '0';   -- Necessary? Should already be 0
-            v.state                 := WAIT_TXN_REQ_S;
+        if (byteCtrlOut.cmdAck = '1') then
+          -- Master sent the command
+          indexVar := (3-to_integer(r.byteCount))*8;
+
+          v.i2cMasterOut.rdData(indexVar+7 downto indexVar) := byteCtrlOut.dout;
+          if (r.byteCount = 0) then
+            -- If last byte then done
+            v.i2cMasterOut.txnError := '0';
+            v.i2cMasterOut.txnDone  := '1';
+            v.state                 := WAIT_REQ_FALL_S;
           else
-            -- If not last byte, read another.
-            v.state := READ_S;
+            -- If not last byte decrement byteCount and start another read
+            v.byteCount := r.byteCount - 1;
+            v.state     := READ_S;
           end if;
         end if;
 
       when WRITE_S =>
         -- Write the next byte
-        if (i2cMasterIn.wrValid = '1' and r.i2cMasterOut.wrAck = '0') then
-          v.byteCtrlIn.write := '1';
-          -- Send stop on last byte if enabled (else repeated start will occur on next txn).
-          v.byteCtrlIn.stop  := not i2cMasterIn.txnReq and i2cMasterIn.stop;
-          v.byteCtrlIn.din   := i2cMasterIn.wrData;
-          v.state            := WAIT_WRITE_ACK_S;
-        end if;
+        v.byteCtrlIn.write := '1';
+        v.byteCtrlIn.stop  := toSl(r.byteCount = 0) and i2cMasterIn.stop;
+        indexVar           := (3-to_integer(r.byteCount))*8;
+        v.byteCtrlIn.din   := i2cMasterIn.wrData(indexVar+7 downto indexVar);
+        v.state            := WAIT_WRITE_ACK_S;
 
       when WAIT_WRITE_ACK_S =>
-        v.byteCtrlIn.stop := r.byteCtrlIn.stop;
-        if (byteCtrlOut.cmdAck = '1') then      -- Master sent the command
-          if (byteCtrlOut.ackOut = '0') then    -- Slave ack'd the transfer
-            v.byteCtrlIn.stop := '0';
-            v.i2cMasterOut.wrAck := '1';        -- Pass wr ack to front end
-            if (i2cMasterIn.txnReq = '0') then  -- Last byte of txn
-              v.i2cMasterOut.txnError := '0';   -- Necessary, should already be 0?
-              v.state                 := WAIT_TXN_REQ_S;
+        v.byteCtrlIn.write := '0';
+        if (byteCtrlOut.cmdAck = '1') then
+          -- Master sent the command
+          if (byteCtrlOut.ackOut = '0') then
+            -- Slave ack'd the transfer
+            if (r.byteCount = 0) then
+              -- If last byte then done
+              v.i2cMasterOut.txnError := '0';
+              v.i2cMasterOut.txnDone  := '1';
+              v.state                 := WAIT_REQ_FALL_S;
             else
-              -- If not last byte, write nother
-              v.state := WRITE_S;
+              -- If not last byte decrement byteCount and start another write
+              v.byteCount := r.byteCount - 1;
+              v.state     := WRITE_S;
             end if;
           else
             -- Slave did not ack the transfer, fail the txn
             v.i2cMasterOut.txnError := '1';
-            v.i2cMasterOut.rdValid  := '1';
-            v.i2cMasterOut.rdData   := WRITE_ACK_ERROR_C;
-            v.state                 := WAIT_TXN_REQ_S;
+            v.i2cMasterOut.txnDone  := '1';
+            v.state                 := WAIT_REQ_FALL_S;
           end if;
+        end if;
+
+      when WAIT_REQ_FALL_S =>
+        if (i2cMasterIn.txnReq = '0') then
+          v.state := WAIT_TXN_REQ_S;
         end if;
         
       when others => null;
@@ -312,34 +336,9 @@ begin
     if (byteCtrlOut.al = '1') then
       -- Retry the entire TXN. Nothing done has been valid if arbitration is lost.
       -- Should probably have a retry limit.
-      v.state                := WAIT_TXN_REQ_S;
-      v.i2cMasterOut.rdValid := '1';
-      v.i2cMasterOut.rdData  := ARBITRATION_LOST_ERROR_C;
+      v.state := WAIT_TXN_REQ_S;
     end if;
 
-    ------------------------------------------------------------------------------------------------
-    -- Synchronous Reset
-    ------------------------------------------------------------------------------------------------
-    if (rst = '1') then
-      v.state                 := WAIT_TXN_REQ_S;
-      v.tenbit                := '0';
-            
-      v.byteCtrlIn.start      := '0';
-      v.byteCtrlIn.stop       := '0';
-      v.byteCtrlIn.read       := '0';
-      v.byteCtrlIn.write      := '0';
-      v.byteCtrlIn.ackIn      := '0';
-      v.byteCtrlIn.din        := (others => '0');
-
-      v.i2cMasterOut.txnError := '0';
-      v.i2cMasterOut.wrAck    := '0';
-      v.i2cMasterOut.rdValid  := '0';
-      v.i2cMasterOut.rdData   := (others => '0');
-    end if;
-
-    ------------------------------------------------------------------------------------------------
-    -- Signal Assignments
-    ------------------------------------------------------------------------------------------------
     -- Update registers
     rin <= v;
 
@@ -348,13 +347,5 @@ begin
 
   end process comb;
   filter <= i2cMasterIn.filter when DYNAMIC_FILTER_G = 1 else (others => '0');
-
-  reg : process (clk, rst)
-  begin
-    if rising_edge(clk) then
-      r <= rin after TPD_G;
-    end if;
-  end process reg;
-
   
 end architecture rtl;

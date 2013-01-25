@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : I2C Slave RAM Interface
 -------------------------------------------------------------------------------
--- File       : i2cSlaveRam.vhd
+-- File       : i2cRegSlave.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-16
--- Last update: 2013-01-17
+-- Last update: 2013-01-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,8 +22,9 @@ use work.StdRtlPkg.all;
 use work.i2cPkg.all;
 
 
-entity i2cSlaveRam is
+entity i2cRegSlave is
   generic (
+    TPD_G                : time                    := 1 ns;
     -- Generics passed down to i2cSlave
     TENBIT_G             : integer range 0 to 1    := 0;
     I2C_ADDR_G           : integer range 0 to 1023 := 0;
@@ -31,9 +32,10 @@ entity i2cSlaveRam is
     FILTER_G             : integer range 2 to 512  := 4;
     -- RAM generics
     ADDR_SIZE_G          : positive                := 2;   -- in bytes
-    DATA_SIZE_G          : positive                := 1);  -- in bytes
+    DATA_SIZE_G          : positive                := 1;   -- in bytes
+    ENDIANNESS_G         : integer range 0 to 1    := 0);  -- 0=LE, 1=BE
   port (
-    rstn   : in  sl;
+    rst    : in  sl;
     clk    : in  sl;
     -- Front End Ram Interface
     addr   : out slv((8*ADDR_SIZE_G)-1 downto 0);
@@ -44,15 +46,15 @@ entity i2cSlaveRam is
     -- I2C Signals
     i2ci   : in  i2c_in_type;
     i2co   : out i2c_out_type);
-end entity i2cSlaveRam;
+end entity i2cRegSlave;
 
-architecture rtl of i2cSlaveRam is
+architecture rtl of i2cRegSlave is
 
   type StateType is (IDLE_S, ADDR_S, WRITE_DATA_S, READ_DATA_S);
 
   type RegType is record
     state   : StateType;
-    byteCnt : unsigned(bitSize(ADDR_SIZE_G)-1 downto 0);
+    byteCnt : unsigned(bitSize(max(ADDR_SIZE_G,DATA_SIZE_G))-1 downto 0);
 
     addr       : unsigned((8*ADDR_SIZE_G)-1 downto 0);
     wrEn       : sl;
@@ -64,6 +66,20 @@ architecture rtl of i2cSlaveRam is
   signal r, rin      : RegType;
   signal i2cSlaveOut : i2cSlaveOutType;  -- From i2cSlave
   signal i2cSlaveIn  : i2cSlaveInType;   -- To i2cSlave
+
+  function getIndex (
+    byteCount  : unsigned;
+    totalBytes : positive)
+    return integer is
+  begin
+    if (ENDIANNESS_G = 0) then
+      -- little endian
+      return to_integer(byteCount)*8;
+    else
+      -- big endian
+      return (totalBytes-1-to_integer(byteCount))*8;
+    end if;
+  end function getIndex;
   
 begin
 
@@ -76,19 +92,24 @@ begin
       RMODE_G              => 0,
       TMODE_G              => 0)
     port map (
-      rstn        => rstn,
+      rst         => rst,
       clk         => clk,
       i2cSlaveIn  => i2cSlaveIn,
       i2cSlaveOut => i2cSlaveOut,
       i2ci        => i2ci,
       i2co        => i2co);
 
-  comb : process (rdData, r, i2cSlaveOut) is
-    variable v          : RegType;
-    variable byteCntVar : integer;
+  comb : process (rdData, r, i2cSlaveOut, rst) is
+    variable v            : RegType;
+    variable byteCntVar   : integer;
+    variable addrIndexVar : integer;
+    variable dataIndexVar : integer;
   begin
     v := r;
-    byteCntVar := to_integer(r.byteCnt);
+
+    byteCntVar   := to_integer(r.byteCnt);
+    addrIndexVar := getIndex(r.byteCnt, ADDR_SIZE_G);
+    dataIndexVar := getIndex(r.byteCnt, DATA_SIZE_G);
 
     -- Enable the i2cSlave after reset
     v.i2cSlaveIn.enable := '1';
@@ -101,9 +122,20 @@ begin
     -- Can get away with pulsing.
     v.i2cSlaveIn.rxAck := '0';
 
+    -- Auto increment the address after each read or write
+    -- This enables bursts.
+    if (r.wrEn = '1' or r.rdEn = '1') then
+      v.addr := r.addr + 1;
+    end if;
+
+    -- Tx Data always valid, assigned based on byte cnt
+        v.i2cSlaveIn.txValid := '1';
+
     case (r.state) is
       when IDLE_S =>
         v.byteCnt := (others => '0');
+        -- Get txData ready in case a read occurs.
+        v.i2cSlaveIn.txData  := rdData(dataIndexVar+7 downto dataIndexVar);
 
         -- Wait here for slave to be addressed
         if (i2cSlaveOut.rxActive = '1') then
@@ -119,8 +151,8 @@ begin
       when ADDR_S =>
         if (i2cSlaveOut.rxValid = '1') then
           -- Received a byte of the address
-          v.addr((8*byteCntVar)+7 downto 8*byteCntVar) := unsigned(i2cSlaveOut.rxData);
-          v.byteCnt                                    := r.byteCnt + 1;
+          v.addr(addrIndexVar+7 downto addrIndexVar) := unsigned(i2cSlaveOut.rxData);
+          v.byteCnt                                  := r.byteCnt + 1;
           if (r.byteCnt = ADDR_SIZE_G-1) then
             v.byteCnt := (others => '0');
             v.state   := WRITE_DATA_S;
@@ -135,14 +167,13 @@ begin
       when WRITE_DATA_S =>
         if (i2cSlaveOut.rxValid = '1') then
           -- Received another byte
-          v.wrData((8*byteCntVar)+7 downto 8*byteCntVar) := i2cSlaveOut.rxData;
-          v.byteCnt                                      := r.byteCnt + 1;
+          v.wrData(dataIndexVar+7 downto dataIndexVar) := i2cSlaveOut.rxData;
+          v.byteCnt                                    := r.byteCnt + 1;
 --          v.i2cSlaveIn.rxAck := '1';
           if (byteCntVar = DATA_SIZE_G -1) then
             -- Received a whole word. Increment addr, reset byteCnt
             v.wrEn    := '1';
             v.byteCnt := (others => '0');
-            v.addr    := r.addr + 1;
           end if;
         end if;
 
@@ -151,9 +182,7 @@ begin
         end if;
 
       when READ_DATA_S =>
-        -- Could maybe move txData and txValid assignments up a level
-        v.i2cSlaveIn.txData  := rdData((8*byteCntVar)+7 downto 8*byteCntVar);
-        v.i2cSlaveIn.txValid := '1';
+        v.i2cSlaveIn.txData  := rdData(dataIndexVar+7 downto dataIndexVar);
         if (i2cSlaveOut.txAck = '1') then
           -- Byte was sent
           v.byteCnt := r.byteCnt + 1;
@@ -161,7 +190,6 @@ begin
             -- Word was sent. Increment addr to get next word, reset byteCnt
             v.rdEn    := '1';
             v.byteCnt := (others => '0');
-            v.addr    := r.addr + 1;
           end if;
         end if;
 
@@ -176,17 +204,17 @@ begin
     ------------------------------------------------------------------------------------------------
     -- Synchronous Reset
     ------------------------------------------------------------------------------------------------
-    if (rstn = '0') then
-      v.state := IDLE_S;
-    v.byteCnt := (others => '0');
-      v.addr := (others => '0');
-      v.wrEn := '0';
-      v.wrData := (others => '0');
-      v.rdEn := '0';
-      v.i2cSlaveIn.enable := '0';
+    if (rst = '1') then
+      v.state              := IDLE_S;
+      v.byteCnt            := (others => '0');
+      v.addr               := (others => '0');
+      v.wrEn               := '0';
+      v.wrData             := (others => '0');
+      v.rdEn               := '0';
+      v.i2cSlaveIn.enable  := '0';
       v.i2cSlaveIn.txValid := '0';
-      v.i2cSlaveIn.txData := (others => '0');
-      v.i2cSlaveIn.rxAck := '0';
+      v.i2cSlaveIn.txData  := (others => '0');
+      v.i2cSlaveIn.rxAck   := '0';
     end if;
 
     ------------------------------------------------------------------------------------------------
@@ -196,21 +224,21 @@ begin
     rin <= v;
 
     -- Internal signals
-    i2cSlaveIn <= r.i2cSlaveIn;
+    i2cSlaveIn       <= r.i2cSlaveIn;
     i2cSlaveIn.rxAck <= i2cSlaveOut.rxValid;  -- Always ack
 
     -- Update Outputs
-    addr       <= slv(r.addr);
-    wrData     <= r.wrData;
-    wrEn       <= r.wrEn;
-    rdEn       <= r.rdEn;
+    addr   <= slv(r.addr);
+    wrData <= r.wrData;
+    wrEn   <= r.wrEn;
+    rdEn   <= r.rdEn;
     
   end process comb;
 
-  seq: process (clk) is
+  seq : process (clk) is
   begin
     if (rising_edge(clk)) then
-      r <= rin;
+      r <= rin after TPD_G;
     end if;
   end process seq;
 

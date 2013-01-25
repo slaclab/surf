@@ -88,7 +88,7 @@ entity i2cSlave is
     TMODE_G              : integer range 0 to 1    := 0
     );
   port (
-    rstn        : in  std_ulogic;
+    rst         : in  std_ulogic;
     clk         : in  std_ulogic;
     -- Front End
     i2cSlaveIn  : in  i2cSlaveInType;
@@ -187,7 +187,7 @@ architecture rtl of i2cSlave is
 
 begin
 
-  comb : process (r, rstn, i2ci, i2cSlaveIn)
+  comb : process (r, rst, i2ci, i2cSlaveIn)
     variable v       : i2cslv_reg_type;
     variable sclfilt : std_logic_vector(FILTER_G-1 downto 0);
     variable sdafilt : std_logic_vector(FILTER_G-1 downto 0);
@@ -408,12 +408,19 @@ begin
     -- Reset and idle operation
     ----------------------------------------------------------------------------
 
-    if rstn = '0' then
-      v.slvstate := idle;
-      v.scl      := '0';
-      v.active   := false;
-      v.scloen   := I2C_HIZ_C;
-      v.sdaoen   := I2C_HIZ_C;
+    if (rst = '1') then
+      v.slvstate   := idle;
+      v.scl        := '0';
+      v.active     := false;
+      v.scloen     := I2C_HIZ_C;
+      v.sdaoen     := I2C_HIZ_C;
+      v.o.rxActive := '0';
+      v.o.rxValid  := '0';
+      v.o.rxData   := (others => '0');
+      v.o.txActive := '0';
+      v.o.txAck    := '0';
+      v.o.nack     := '0';
+      
     end if;
 
     ----------------------------------------------------------------------------
