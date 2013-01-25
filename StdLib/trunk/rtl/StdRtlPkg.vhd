@@ -30,9 +30,9 @@ package StdRtlPkg is
   type Slv8Array is array (natural range <>) of slv(7 downto 0);
 
   -- Very useful functions
-  function log2 (constant number : integer) return integer;
+  function log2 (constant number    : integer) return integer;
   function bitSize (constant number : positive) return positive;
-  function bitReverse (a         : slv) return slv;
+  function bitReverse (a            : slv) return slv;
 
   function list (constant start : integer;
                  constant size  : integer;
@@ -75,7 +75,8 @@ package StdRtlPkg is
   function grayDecode (vec : unsigned) return unsigned;
   function grayDecode (vec : slv) return slv;
 
-
+  function max (left, right : integer) return integer;
+  function min (left, right : integer) return integer;
 
   -- Some synthesis tools wont accept unit types
   --type frequency is range 0 to 2147483647
@@ -352,5 +353,19 @@ package body StdRtlPkg is
   --begin
   --  return(1.0 sec / (f/Hz));
   --end function;
+
+  function max (left, right : integer) return integer is
+  begin
+    if left > right then return left;
+    else return right;
+    end if;
+  end max;
+
+  function min (left, right : integer) return integer is
+  begin
+    if left < right then return left;
+    else return right;
+    end if;
+  end min;
   
 end package body StdRtlPkg;

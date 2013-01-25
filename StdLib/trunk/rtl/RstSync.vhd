@@ -41,7 +41,7 @@ begin
 
       if (HOLD_CYCLES_G > 1) then
         for i in 0 to HOLD_CYCLES_G-2 loop
-          syncReg(i) <= syncReg(i+1);
+          syncReg(i) <= syncReg(i+1) after DELAY_G;
         end loop;
       end if;
 
