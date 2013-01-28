@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-16
--- Last update: 2013-01-25
+-- Last update: 2013-01-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,7 +35,8 @@ entity i2cRegSlave is
     DATA_SIZE_G          : positive                := 1;   -- in bytes
     ENDIANNESS_G         : integer range 0 to 1    := 0);  -- 0=LE, 1=BE
   port (
-    rst    : in  sl;
+    sRst   : in  sl := '0'; 
+    aRst   : in  sl := '0';
     clk    : in  sl;
     -- Front End Ram Interface
     addr   : out slv((8*ADDR_SIZE_G)-1 downto 0);
@@ -54,7 +55,7 @@ architecture rtl of i2cRegSlave is
 
   type RegType is record
     state   : StateType;
-    byteCnt : unsigned(bitSize(max(ADDR_SIZE_G,DATA_SIZE_G))-1 downto 0);
+    byteCnt : unsigned(bitSize(max(ADDR_SIZE_G, DATA_SIZE_G))-1 downto 0);
 
     addr       : unsigned((8*ADDR_SIZE_G)-1 downto 0);
     wrEn       : sl;
@@ -92,14 +93,15 @@ begin
       RMODE_G              => 0,
       TMODE_G              => 0)
     port map (
-      rst         => rst,
+      sRst        => sRst,
+      aRst        => aRst,
       clk         => clk,
       i2cSlaveIn  => i2cSlaveIn,
       i2cSlaveOut => i2cSlaveOut,
       i2ci        => i2ci,
       i2co        => i2co);
 
-  comb : process (rdData, r, i2cSlaveOut, rst) is
+  comb : process (rdData, r, i2cSlaveOut, sRst) is
     variable v            : RegType;
     variable byteCntVar   : integer;
     variable addrIndexVar : integer;
@@ -129,13 +131,13 @@ begin
     end if;
 
     -- Tx Data always valid, assigned based on byte cnt
-        v.i2cSlaveIn.txValid := '1';
+    v.i2cSlaveIn.txValid := '1';
 
     case (r.state) is
       when IDLE_S =>
-        v.byteCnt := (others => '0');
+        v.byteCnt           := (others => '0');
         -- Get txData ready in case a read occurs.
-        v.i2cSlaveIn.txData  := rdData(dataIndexVar+7 downto dataIndexVar);
+        v.i2cSlaveIn.txData := rdData(dataIndexVar+7 downto dataIndexVar);
 
         -- Wait here for slave to be addressed
         if (i2cSlaveOut.rxActive = '1') then
@@ -182,7 +184,7 @@ begin
         end if;
 
       when READ_DATA_S =>
-        v.i2cSlaveIn.txData  := rdData(dataIndexVar+7 downto dataIndexVar);
+        v.i2cSlaveIn.txData := rdData(dataIndexVar+7 downto dataIndexVar);
         if (i2cSlaveOut.txAck = '1') then
           -- Byte was sent
           v.byteCnt := r.byteCnt + 1;
@@ -204,7 +206,7 @@ begin
     ------------------------------------------------------------------------------------------------
     -- Synchronous Reset
     ------------------------------------------------------------------------------------------------
-    if (rst = '1') then
+    if (sRst = '1') then
       v.state              := IDLE_S;
       v.byteCnt            := (others => '0');
       v.addr               := (others => '0');
@@ -235,9 +237,20 @@ begin
     
   end process comb;
 
-  seq : process (clk) is
+  seq : process (clk, aRst) is
   begin
-    if (rising_edge(clk)) then
+    if (aRst = '1') then
+      r.state              <= IDLE_S          after TPD_G;
+      r.byteCnt            <= (others => '0') after TPD_G;
+      r.addr               <= (others => '0') after TPD_G;
+      r.wrEn               <= '0'             after TPD_G;
+      r.wrData             <= (others => '0') after TPD_G;
+      r.rdEn               <= '0'             after TPD_G;
+      r.i2cSlaveIn.enable  <= '0'             after TPD_G;
+      r.i2cSlaveIn.txValid <= '0'             after TPD_G;
+      r.i2cSlaveIn.txData  <= (others => '0') after TPD_G;
+      r.i2cSlaveIn.rxAck   <= '0'             after TPD_G;
+    elsif (rising_edge(clk)) then
       r <= rin after TPD_G;
     end if;
   end process seq;
