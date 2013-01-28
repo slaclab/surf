@@ -79,6 +79,7 @@ use work.stdlib.all;
 
 entity i2cSlave is
   generic (
+    TPD_G : time := 1 ns;
     -- I2C configuration
     TENBIT_G             : integer range 0 to 1    := 0;
     I2C_ADDR_G           : integer range 0 to 1023 := 0;
@@ -88,7 +89,8 @@ entity i2cSlave is
     TMODE_G              : integer range 0 to 1    := 0
     );
   port (
-    rst         : in  std_ulogic;
+    sRst        : in  std_ulogic := '0';       -- Synchronous Reset - active high
+    aRst        : in  std_ulogic := '0';       -- Asynchronous Reset - active high
     clk         : in  std_ulogic;
     -- Front End
     i2cSlaveIn  : in  i2cSlaveInType;
@@ -187,7 +189,7 @@ architecture rtl of i2cSlave is
 
 begin
 
-  comb : process (r, rst, i2ci, i2cSlaveIn)
+  comb : process (r, sRst, i2ci, i2cSlaveIn)
     variable v       : i2cslv_reg_type;
     variable sclfilt : std_logic_vector(FILTER_G-1 downto 0);
     variable sdafilt : std_logic_vector(FILTER_G-1 downto 0);
@@ -408,7 +410,7 @@ begin
     -- Reset and idle operation
     ----------------------------------------------------------------------------
 
-    if (rst = '1') then
+    if (sRst = '1') then
       v.slvstate   := idle;
       v.scl        := '0';
       v.active     := false;
@@ -439,10 +441,22 @@ begin
     i2co.enable <= i2cSlaveIn.enable;
   end process comb;
 
-  reg : process (clk)
+  reg : process (clk, aRst)
   begin  -- process reg
-    if rising_edge(clk) then
-      r <= rin;
+    if (aRst = '1') then
+      r.slvstate   <= idle after TPD_G;
+      r.scl        <= '0' after TPD_G;
+      r.active     <= false after TPD_G;
+      r.scloen     <= I2C_HIZ_C after TPD_G;
+      r.sdaoen     <= I2C_HIZ_C after TPD_G;
+      r.o.rxActive <= '0' after TPD_G;
+      r.o.rxValid  <= '0' after TPD_G;
+      r.o.rxData   <= (others => '0') after TPD_G;
+      r.o.txActive <= '0' after TPD_G;
+      r.o.txAck    <= '0' after TPD_G;
+      r.o.nack     <= '0' after TPD_G;
+    elsif rising_edge(clk) then
+      r <= rin after TPD_G;
     end if;
   end process reg;
 
