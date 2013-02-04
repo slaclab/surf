@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-22
--- Last update: 2013-01-22
+-- Last update: 2013-02-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -133,8 +133,6 @@ begin
           end if;
         end if;
 
-        -- Must check for errors here
-
       when WRITE_S =>
         -- Txn started in WAIT_REQ_S still active
         -- Put wrData on the bus one byte at a time
@@ -149,9 +147,7 @@ begin
             v.state := REG_ACK_S;
           end if;
         end if;
-
-        -- Must check for errors here
-
+        
 
       when READ_TXN_S =>
         -- Start new txn to read data bytes
@@ -172,20 +168,28 @@ begin
             -- Done
             v.state := REG_ACK_S;
           end if;
-        -- Must check for errors here
         end if;
 
       when REG_ACK_S =>
-        -- Fix this
-        v.regOut.regAck := '1';
+        -- Req done. Ack the req.
+        -- Might have failed so hold regFail (would be set to 0 otherwise).
+        v.regOut.regAck  := '1';
+        v.regOut.regFail := r.regOut.regFail;
         if (regIn.regReq = '0') then
-          v.regOut.regAck := '0';
-          v.state         := WAIT_REQ_S;
+--          v.regOut.regAck := '0'; Might want this back. 
+          v.state := WAIT_REQ_S;
         end if;
 
     end case;
 
-
+    -- Always check for errors an cancel the txn if they happen
+    if (i2cMasterOut.txnError = '1' and i2cMasterOut.rdValid = '1') then
+      v.regOut.regFail     := '1';
+      v.regOut.regFailCode := i2cMasterOut.rdData;
+      v.i2cMasterIn.txnReq := '0';
+      v.i2cMasterIn.rdAck  := '1';
+      v.state              := REG_ACK_S;
+    end if;
 
     ------------------------------------------------------------------------------------------------
     -- Synchronous Reset
