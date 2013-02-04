@@ -239,7 +239,7 @@ begin
             -- Slave did not ack the transfer, fail the txn
             v.i2cMasterOut.txnError := '1';
             v.i2cMasterOut.rdValid  := '1';
-            v.i2cMasterOut.rdData   := INVALID_ADDR_ERROR_C;
+            v.i2cMasterOut.rdData   := I2C_INVALID_ADDR_ERROR_C;
             v.state                 := WAIT_TXN_REQ_S;
           end if;
         end if;
@@ -300,7 +300,7 @@ begin
             -- Slave did not ack the transfer, fail the txn
             v.i2cMasterOut.txnError := '1';
             v.i2cMasterOut.rdValid  := '1';
-            v.i2cMasterOut.rdData   := WRITE_ACK_ERROR_C;
+            v.i2cMasterOut.rdData   := I2C_WRITE_ACK_ERROR_C;
             v.state                 := WAIT_TXN_REQ_S;
           end if;
         end if;
@@ -314,7 +314,7 @@ begin
       -- Should probably have a retry limit.
       v.state                := WAIT_TXN_REQ_S;
       v.i2cMasterOut.rdValid := '1';
-      v.i2cMasterOut.rdData  := ARBITRATION_LOST_ERROR_C;
+      v.i2cMasterOut.rdData  := I2C_ARBITRATION_LOST_ERROR_C;
     end if;
 
     ------------------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-24
--- Last update: 2013-01-24
+-- Last update: 2013-01-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ begin
       DATA_SIZE_G          => DATA_SIZE_G,
       ENDIANNESS_G         => ENDIANNESS_G)
     port map (
-      rst    => rst,
+      sRst    => rst,
       clk    => clk,
       addr   => addr,
       wrEn   => wrEn,

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-24
--- Last update: 2013-01-25
+-- Last update: 2013-01-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -143,8 +143,8 @@ begin
       TENBIT_G     => 0,                --(j = 3),
       FILTER_G     => 2,                --integer((50.0 / (8.0+i)) + 2.0),
       ADDR_SIZE_G  => 2,
-      DATA_SIZE_G  => 4,
-      ENDIANNESS_G => 1)                --i = 2 or i = 3)
+      DATA_SIZE_G  => 1,
+      ENDIANNESS_G => 0)                --i = 2 or i = 3)
     port map (
       clk    => slaveClk(0),
       rst    => slaveRst(0),
@@ -156,29 +156,34 @@ begin
     variable i2cAddr   : slv(6 downto 0);
     variable tenbit    : boolean;
     variable regAddr   : slv(15 downto 0);
-    variable regRdData : slv(31 downto 0);
-    variable regWrData : slv(31 downto 0);
+    variable regRdData : Slv8Array(0 to 3);
+    variable regWrData : Slv8Array(0 to 3);
   begin
     wait until masterRst = '1';
     wait until masterRst = '0';
 
     i2cAddr := "1010101";               -- 25 = i=1, j=0
-    for i in 99 to 120 loop
-      regAddr   := slv(to_unsigned(i, regAddr'length));
-      regWrData := slv(to_unsigned(i, regWrData'length));
-      writeI2cReg(masterClk, regIn, regOut, i2cAddr, regAddr, regWrData, '1', true);
-    --wait for 10 us;
-    end loop;
+--    for i in 99 to 120 loop
+--      regAddr   := slv(to_unsigned(i, regAddr'length));
+--      regWrData := slv(to_unsigned(i, regWrData'length));
+--      writeI2cReg(masterClk, regIn, regOut, i2cAddr, regAddr, regWrData, '1', true);
+--    --wait for 10 us;
+--    end loop;
 
 
-    wait for 100 us;
+--    wait for 100 us;
 
 
-    for i in 99 to 120 loop
-      regAddr := slv(to_unsigned(i, regAddr'length));
-      readI2cReg(masterClk, regIn, regOut, i2cAddr, regAddr, regRdData, '1', true);
-    end loop;
+--    for i in 99 to 120 loop
+--      regAddr := slv(to_unsigned(i, regAddr'length));
+--      readI2cReg(masterClk, regIn, regOut, i2cAddr, regAddr, regRdData, '1', true);
+--    end loop;
 
+    regAddr := (others => '0');
+    regWrData := (0 => X"11", 1 => X"22", 2 => X"33", 3 => X"44");
+    writeI2cBurst8(masterClk, regIn, regOut, i2cAddr, regAddr, regWrData, '0', true);
+
+    readI2cBurst8(masterClk, regIn, regOut, i2cAddr, regAddr, regRdData, '0', true);
 
 
   end process;

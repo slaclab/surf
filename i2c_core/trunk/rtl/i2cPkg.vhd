@@ -43,28 +43,9 @@ package i2cPkg is
   end record;
 
   --------------------------------------------------------------------------------------------------
-  type i2cMasterOldInType is record
-    enable   : sl;                      -- Enable the master
-    prescale : slv(15 downto 0);        -- Determines i2c clock speed
-    filter   : slv(15 downto 0);        -- Dynamic filter value
-    txnReq   : sl;                      -- Execute a transaction
-    stop     : sl;                      -- Set STOP when done
-    op       : sl;                      -- 1 for write, 0 for read
-    addr     : slv(9 downto 0);         -- i2c device address
-    tenbit   : sl;                      -- use 10 bit addressing
-    txnSize  : slv(1 downto 0);         -- Support up to 4 bytes / txn
-    wrData   : slv(31 downto 0);        -- Data sent during write txn
-  end record;
-
-  type i2cMasterOldOutType is record
-    txnDone  : sl;                      -- Asserted when tranaction is complete or errors out
-    txnError : sl;                      -- An error occured during the txn
-    rdData   : slv(31 downto 0);        -- Data received during read txn
-  end record;
-
-  constant INVALID_ADDR_ERROR_C     : slv(7 downto 0) := X"01";
-  constant WRITE_ACK_ERROR_C        : slv(7 downto 0) := X"02";
-  constant ARBITRATION_LOST_ERROR_C : slv(7 downto 0) := X"03";
+  constant I2C_INVALID_ADDR_ERROR_C     : slv(7 downto 0) := X"01";
+  constant I2C_WRITE_ACK_ERROR_C        : slv(7 downto 0) := X"02";
+  constant I2C_ARBITRATION_LOST_ERROR_C : slv(7 downto 0) := X"03";
 
   type i2cMasterInType is record
     enable     : sl;                    -- Enable the master
