@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-04-30
--- Last update: 2012-06-14
+-- Last update: 2013-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,9 +41,17 @@ package SynchronizePkg is
     nextOut : out SynchronizerType);
 
   procedure synchronize (
+    var   : inout SynchronizerType;
+    input : in    sl);
+
+  procedure synchronize (
     input   : in  slv;
     current : in  SynchronizerArray;
     nextOut : out SynchronizerArray);
+
+  procedure synchronize (
+    var   : inout SynchronizerArray;
+    input : in    slv);
 
   function toSlvSync (
     input : SynchronizerArray)
@@ -91,6 +99,16 @@ package body SynchronizePkg is
     nextOut.last := current.sync;
   end procedure;
 
+  -- Simplified. Can be used when v := r has already been called.
+  procedure synchronize (
+    var   : inout SynchronizerType;
+    input : in    sl) is
+  begin
+    var.last := var.sync;
+    var.sync := var.tmp;
+    var.tmp  := input;
+  end procedure synchronize;
+
   procedure synchronize (
     input   : in  slv;
     current : in  SynchronizerArray;
@@ -100,6 +118,16 @@ package body SynchronizePkg is
       synchronize(input(i), current(i), nextOut(i));
     end loop;
   end procedure;
+
+  -- Simplified. Can be used when v := r has already been called.
+  procedure synchronize (
+    var   : inout SynchronizerArray;
+    input : in    slv) is
+  begin
+    for i in input'range loop
+      synchronize(var(i), input(i));
+    end loop;
+  end procedure synchronize;
 
   function toSlvSync (
     input : SynchronizerArray)
