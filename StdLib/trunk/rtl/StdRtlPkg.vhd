@@ -29,15 +29,21 @@ package StdRtlPkg is
   type Slv16Array is array (natural range <>) of slv(15 downto 0);
   type Slv8Array is array (natural range <>) of slv(7 downto 0);
 
+  -- Create an arbitrary sized slv with all bits set high or low
+  function slvZero (size : positive) return slv;
+  function slvOne (size  : positive) return slv;
+
   -- Very useful functions
   function log2 (constant number    : integer) return integer;
   function bitSize (constant number : positive) return positive;
   function bitReverse (a            : slv) return slv;
 
-  function list (constant start : integer;
-                 constant size  : integer;
-                 constant step  : integer := 1)
-    return IntegerArray;
+  -- Similar to python's range() function
+  function list (constant start, size, step : integer) return IntegerArray;
+
+  -- Simple decoder and mux functions
+  function decode(v    : slv) return slv;
+  function genmux(s, v : slv) return sl;
 
   -- This should be unnecessary in VHDL 2008
   function toBoolean (logic : sl) return boolean;
@@ -49,20 +55,9 @@ package StdRtlPkg is
   function uOr (vec      : slv) return sl;
   function uAnd (vec     : slv) return sl;
   function uXor (vec     : slv) return sl;
-  function uOrBool (vec  : slv) return boolean;
-  function uAndBool (vec : slv) return boolean;
-  function uXorBool (vec : slv) return boolean;
-
-  -- Avoid bla = "00000" literal comarisons that don't scale naturally with bla'length
-  function slvAll (value   : sl; length : natural) return slv;
-  function slvZero (length : integer) return slv;
---  function unsignedZero (length : integer) return unsigned;
-  function isAll (vec      : slv; value : sl) return boolean;
-  function isAll (vec      : unsigned; value : sl) return boolean;
-  function isZero (vec     : slv) return boolean;
-
-
-  -- Create an slv of given size with every bit set to value
+--  function uOrBool (vec  : slv) return boolean;
+--  function uAndBool (vec : slv) return boolean;
+--  function uXorBool (vec : slv) return boolean;
 
   -- These just use uXor to calulate parity
   -- Output is parity bit value needed to achieve that parity given vec.
@@ -79,20 +74,33 @@ package StdRtlPkg is
   function min (left, right : integer) return integer;
 
   -- Some synthesis tools wont accept unit types
-  --type frequency is range 0 to 2147483647
-  --  units
-  --    Hz;
-  --    kHz = 1000 Hz;
-  --    MHz = 1000 kHz;
-  --    GHz = 1000 MHz;
-  --  end units;
+  -- pragma translate_off
+  type frequency is range 0 to 2147483647
+    units
+      Hz;
+      kHz = 1000 Hz;
+      MHz = 1000 kHz;
+      GHz = 1000 MHz;
+    end units;
 
-  --function toTime(f : frequency) return time;
+  function toTime(f : frequency) return time;
+  -- pragma translate_on
 
 end StdRtlPkg;
 
 package body StdRtlPkg is
 
+  function slvZero (size : positive) return slv is
+    variable retVar : slv(size-1 downto 0) := (others => '0');
+  begin
+    return retVar;
+  end function;
+  
+  function slvOne (size : positive) return slv is
+    variable retVar : slv(size-1 downto 0) := (others => '1');
+  begin
+    return retVar;
+  end function;
 
   ---------------------------------------------------------------------------------------------------------------------
   -- Function: log2
@@ -102,10 +110,7 @@ package body StdRtlPkg is
   -- Arg: number - integer to find log2 of
   -- Returns: Integer containing log base two of input.
   ---------------------------------------------------------------------------------------------------------------------
-  function log2(
-    constant number : integer)
-    return integer
-  is
+  function log2(constant number : integer) return integer is
     variable divVar : real    := real(number);
     variable retVar : integer := 0;
   begin
@@ -129,9 +134,7 @@ package body StdRtlPkg is
   end function;
 
   -- NOTE: XST will crap its pants if you try to pass a constant to this function
-  function bitReverse (a : slv)
-    return slv
-  is
+  function bitReverse (a : slv) return slv is
     variable resultVar : slv(a'range);
     alias aa           : slv(a'reverse_range) is a;
   begin
@@ -141,11 +144,7 @@ package body StdRtlPkg is
     return resultVar;
   end;
 
-  function list (
-    constant start : integer;
-    constant size  : integer;
-    constant step  : integer := 1)
-    return IntegerArray is
+  function list (constant start, size, step : integer) return IntegerArray is
     variable retVar : IntegerArray(0 to size-1);
   begin
     for i in retVar'range loop
@@ -154,17 +153,13 @@ package body StdRtlPkg is
     return retVar;
   end function list;
 
-  function toBoolean (
-    logic : sl)
-    return boolean is
+  function toBoolean (logic : sl) return boolean is
   begin  -- function toBoolean
     return logic = '1';
   end function toBoolean;
 
-  function toSl (
-    bool : boolean)
-    return sl is
-  begin  -- function toSl
+  function toSl (bool : boolean) return sl is
+  begin
     if (bool) then
       return '1';
     else
@@ -172,9 +167,7 @@ package body StdRtlPkg is
     end if;
   end function toSl;
 
-  function toString (
-    bool : boolean)
-    return string is
+  function toString (bool : boolean) return string is
   begin
     if (bool) then
       return "TRUE";
@@ -183,9 +176,7 @@ package body StdRtlPkg is
     end if;
   end function toString;
 
-  function toBoolean (
-    str : string)
-    return boolean is
+  function toBoolean (str : string) return boolean is
   begin
     if (str = "TRUE" or str = "true") then
       return true;
@@ -193,6 +184,32 @@ package body StdRtlPkg is
       return false;
     end if;
   end function toBoolean;
+
+  --------------------------------------------------------------------------------------------------
+  -- Decode and genmux
+  --------------------------------------------------------------------------------------------------
+  -- generic decoder
+  function decode(v : slv) return slv is
+    variable res : slv((2**v'length)-1 downto 0);
+    variable i   : integer range res'range;
+  begin
+    res    := (others => '0');
+    i      := 0;
+    i      := to_integer(unsigned(v));
+    res(i) := '1';
+    return res;
+  end;
+
+  -- generic multiplexer
+  function genmux(s, v : slv) return sl is
+    variable res : slv(v'length-1 downto 0);
+    variable i   : integer range res'range;
+  begin
+    res := v;
+    i   := 0;
+    i   := to_integer(unsigned(s));
+    return res(i);
+  end;
 
   ---------------------------------------------------------------------------------------------------------------------
   -- Unary reduction operators
@@ -230,60 +247,21 @@ package body StdRtlPkg is
     return intVar;
   end function uXor;
 
-  function uOrBool (vec : slv) return boolean is
-  begin
-    return toBoolean(uOr(vec));
-  end function;
+--  function uOrBool (vec : slv) return boolean is
+--  begin
+--    return toBoolean(uOr(vec));
+--  end function;
 
-  function uAndBool (vec : slv) return boolean is
-  begin
-    return toBoolean(uAnd(vec));
-  end function;
+--  function uAndBool (vec : slv) return boolean is
+--  begin
+--    return toBoolean(uAnd(vec));
+--  end function;
 
-  function uXorBool (vec : slv) return boolean is
-    variable intVar : sl;
-  begin
-    return toBoolean(uXor(vec));
-  end function;
-
-  ---------------------------------------------------------------------------------------------------------------------
-  -- Functions to get a vector of all same value
-  ---------------------------------------------------------------------------------------------------------------------
-  function slvAll (value : sl; length : natural) return slv is
-    variable retVar : slv(length-1 downto 0) := (others => value);
-  begin
-    return retVar;
-  end function;
-
-  function slvZero (length : integer) return slv is
-  begin
-    return slvAll('0', length);
-  end function;
-
-  function unsignedZero (length : integer) return unsigned is
-  begin
-    return unsigned(slvZero(length));
-  end function;
-
-  function isAll (vec : slv; value : sl)
-    return boolean is
-  begin
-    return vec = slvAll(value, vec'length);
-  end function;
-
-  function isAll (vec : unsigned; value : sl)
-    return boolean is
-  begin
-    return slv(vec) = slvAll(value, vec'length);
-  end function;
-
-  function isZero (vec : slv)
-    return boolean is
-  begin
-    return vec = slvZero(vec'length);
-  end function;
-
-
+--  function uXorBool (vec : slv) return boolean is
+--    variable intVar : sl;
+--  begin
+--   return toBoolean(uXor(vec));
+--  end function;
 
   -----------------------------------------------------------------------------
   -- Functions to determine parity of arbitrary sized slv
@@ -349,11 +327,16 @@ package body StdRtlPkg is
   ---------------------------------------------------------------------------------------------------------------------
   -- Convert a frequency to a period (time).
   ---------------------------------------------------------------------------------------------------------------------
-  --function toTime(f : frequency) return time is
-  --begin
-  --  return(1.0 sec / (f/Hz));
-  --end function;
-
+  -- pragma translate_off
+  function toTime(f : frequency) return time is
+  begin
+    return(1.0 sec / (f/Hz));
+  end function;
+  --pragma translate_on
+  
+  -----------------------------
+  -- Min and Max
+  -----------------------------
   function max (left, right : integer) return integer is
   begin
     if left > right then return left;
