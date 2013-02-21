@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2012-12-19
+-- Last update: 2012-12-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -102,19 +102,23 @@ entity Gtx7Core is
     rxOutClkOut    : out sl;
     rxUsrClkIn     : in  sl;
     rxUsrClk2In    : in  sl;
-    rxUserResetIn  : in  sl;
     rxUserRdyOut   : out sl;
-    rxResetDoneOut : out sl;
     rxMmcmResetOut : out sl;
     rxMmcmLockedIn : in  sl := '1';
-    rxDataValidIn  : in  sl := '1';
-    rxSlideIn      : in  sl := '0';
 
+    -- Rx User Reset Signals
+    rxUserResetIn  : in  sl;
+    rxResetDoneOut : out sl;
+
+    -- Manual Comma Align signals
+    rxDataValidIn : in sl := '1';
+    rxSlideIn     : in sl := '0';
+ 
     -- Rx Data and decode signals
     rxDataOut      : out slv(RX_EXT_DATA_WIDTH_G-1 downto 0);
-    rxCharIsKOut   : out slv(log2(RX_EXT_DATA_WIDTH_G)-1 downto 0);
-    rxDecErrOut    : out slv(log2(RX_EXT_DATA_WIDTH_G)-1 downto 0);
-    rxDispErrOut   : out slv(log2(RX_EXT_DATA_WIDTH_G)-1 downto 0);
+    rxCharIsKOut   : out slv((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);  -- If WIDTH not mult of 8 then
+    rxDecErrOut    : out slv((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);  -- not using 8b10b and these dont matter
+    rxDispErrOut   : out slv((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
     rxPolarityIn   : in  sl := '0';
     rxBufStatusOut : out slv(2 downto 0);
 
@@ -122,15 +126,16 @@ entity Gtx7Core is
     txOutClkOut    : out sl;
     txUsrClkIn     : in  sl;
     txUsrClk2In    : in  sl;
-    txUserResetIn  : in  sl;
     txUserRdyOut   : out sl;
-    txResetDoneOut : out sl;
     txMmcmResetOut : out sl;
     txMmcmLockedIn : in  sl := '1';
 
+    txUserResetIn  : in  sl;
+    txResetDoneOut : out sl;
+
     -- Tx Data
     txDataIn       : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
-    txCharIsKIn    : in  slv(log2(TX_EXT_DATA_WIDTH_G)-1 downto 0);
+    txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
     txBufStatusOut : out slv(1 downto 0);
 
     loopbackIn : in slv(2 downto 0) := "000"
@@ -375,7 +380,7 @@ begin
     txDataFull                                          <= (others => '0');
     txDataFull(TX_EXT_DATA_WIDTH_G-1 downto 0)          <= txDataIn;
     txCharIsKFull                                       <= (others => '0');
-    txCharIsKFull(log2(TX_EXT_DATA_WIDTH_G)-1 downto 0) <= txCharIsKIn;
+    txCharIsKFull((TX_EXT_DATA_WIDTH_G/8)-1 downto 0) <= txCharIsKIn;
   end process TX_DATA_GLUE;
 
   -- Mux proper PLL Lock signal onto txPllLock
