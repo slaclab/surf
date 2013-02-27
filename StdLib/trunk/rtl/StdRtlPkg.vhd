@@ -24,10 +24,19 @@ package StdRtlPkg is
   -- Declare arrays of built in types
   type IntegerArray is array (integer range <>) of integer;
   type NaturalArray is array (natural range <>) of natural;
+  -- Add more slv array sizes here as they become needed
+  type Slv128Array is array (natural range <>) of slv(127 downto 0);
   type Slv64Array is array (natural range <>) of slv(63 downto 0);
   type Slv32Array is array (natural range <>) of slv(31 downto 0);
   type Slv16Array is array (natural range <>) of slv(15 downto 0);
+  type Slv14Array is array (natural range <>) of slv(13 downto 0);
   type Slv8Array is array (natural range <>) of slv(7 downto 0);
+  type Slv7Array is array (natural range <>) of slv(6 downto 0);
+  type Slv6Array is array (natural range <>) of slv(5 downto 0);
+  type Slv5Array is array (natural range <>) of slv(4 downto 0);
+  type Slv4Array is array (natural range <>) of slv(3 downto 0);
+  type Slv3Array is array (natural range <>) of slv(2 downto 0);
+  type Slv2Array is array (natural range <>) of slv(1 downto 0);
 
   -- Create an arbitrary sized slv with all bits set high or low
   function slvZero (size : positive) return slv;
@@ -52,12 +61,9 @@ package StdRtlPkg is
   function toBoolean (str   : string) return boolean;
 
   -- Unary reduction operators, also unnecessary in VHDL 2008
-  function uOr (vec      : slv) return sl;
-  function uAnd (vec     : slv) return sl;
-  function uXor (vec     : slv) return sl;
---  function uOrBool (vec  : slv) return boolean;
---  function uAndBool (vec : slv) return boolean;
---  function uXorBool (vec : slv) return boolean;
+  function uOr (vec  : slv) return sl;
+  function uAnd (vec : slv) return sl;
+  function uXor (vec : slv) return sl;
 
   -- These just use uXor to calulate parity
   -- Output is parity bit value needed to achieve that parity given vec.
@@ -95,7 +101,7 @@ package body StdRtlPkg is
   begin
     return retVar;
   end function;
-  
+
   function slvOne (size : positive) return slv is
     variable retVar : slv(size-1 downto 0) := (others => '1');
   begin
@@ -122,9 +128,7 @@ package body StdRtlPkg is
   end function;
 
   -- Find number of bits needed to store a number
-  function bitSize (
-    constant number : positive)
-    return positive is
+  function bitSize (constant number : positive) return positive is
   begin
     if (number = 1) then
       return 1;
@@ -333,7 +337,7 @@ package body StdRtlPkg is
     return(1.0 sec / (f/Hz));
   end function;
   --pragma translate_on
-  
+
   -----------------------------
   -- Min and Max
   -----------------------------
