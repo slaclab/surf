@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-10-02
--- Last update: 2012-10-18
+-- Last update: 2013-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ begin
       rstL => asicRstL);
 
 
-  SaciSlaveWrapperAnalog_i : entity work.SaciSlaveWrapperAnalog
+  SaciSlaveWrapper_0 : entity work.SaciSlaveWrapper
     port map (
       asicRstL => asicRstL,
       saciClk  => saciClk,
@@ -180,7 +180,7 @@ begin
       saciCmd  => saciCmd,
       saciRsp  => saciRsp);
 
-  SaciSlaveWrapper_i : entity work.SaciSlaveWrapper
+  SaciSlaveWrapper_1 : entity work.SaciSlaveWrapper
     port map (
       asicRstL => asicRstL,
       saciClk  => saciClk,

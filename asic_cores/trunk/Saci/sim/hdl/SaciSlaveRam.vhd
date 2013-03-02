@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : DsciSlaveRam.vhd
+-- File       : SaciSlaveRam.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-09-19
--- Last update: 2012-10-15
+-- Last update: 2013-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,10 +20,10 @@ use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
-entity DsciSlaveRam is
+entity SaciSlaveRam is
   
   port (
-    dsciClkOut : in  sl;
+    saciClkOut : in  sl;
     exec       : in  sl;
     ack        : out sl;
     readL      : in  sl;
@@ -32,9 +32,9 @@ entity DsciSlaveRam is
     wrData     : in  slv(31 downto 0);
     rdData     : out slv(31 downto 0) := (others => '0'));
 
-end entity DsciSlaveRam;
+end entity SaciSlaveRam;
 
-architecture rtl of DsciSlaveRam is
+architecture rtl of SaciSlaveRam is
 
   type RamType is array (0 to 2**19) of slv(31 downto 0);
   signal ram : RamType := (others => X"00000000");
@@ -45,7 +45,7 @@ begin
     variable addrV  : slv(18 downto 0);
     variable indexV : integer;
   begin
-    wait until dsciClkOut = '1';
+    wait until saciClkOut = '1';
     ack  <= '0';
     -- Transaction rx'd
     if (exec = '1') then
@@ -53,13 +53,13 @@ begin
       indexV := to_integer(unsigned(addrV));
       if (readL = '0') then
         rdData <= ram(indexV);
-        wait until dsciClkOut = '1';
+        wait until saciClkOut = '1';
         ack  <= '1';
         wait until exec = '0';
         ack  <= '0';
       else
         ram(indexV) <= wrData;
-        wait until dsciClkOut = '1';
+        wait until saciClkOut = '1';
         ack         <= '1';
         wait until exec = '0';
         ack         <= '0';

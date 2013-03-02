@@ -49,9 +49,9 @@ begin
       wrData   => wrData,
       rdData   => rdData);
 
-  DsciSlaveRam_1 : entity work.DsciSlaveRam
+  SaciSlaveRam_1 : entity work.SaciSlaveRam
     port map (
-      dsciClkOut => saciClk,
+      saciClkOut => saciClk,
       exec       => exec,
       ack        => ack,
       readL      => readL,

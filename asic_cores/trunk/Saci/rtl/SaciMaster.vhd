@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-08-10
--- Last update: 2012-10-02
+-- Last update: 2013-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ begin
       case (r.state) is
         when IDLE_S =>
           rVar.saciMasterOut.fail := '0';
-          rVar.saciSelL           := (others => '1');
+--          rVar.saciSelL           := (others => '1');
           rVar.shiftReg           := (others => '0');
           rVar.shiftCount         := (others => '0');
           if (reqVar = '1') then
@@ -159,6 +159,7 @@ begin
           end if;
 
         when CHIP_SELECT_S =>
+          rVar.saciSelL := (others => '1');
           rVar.saciSelL(to_integer(unsigned(saciMasterIn.chip))) := '0';
           rVar.state                                             := TX_S;
 
