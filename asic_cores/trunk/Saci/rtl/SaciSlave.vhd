@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-07-12
--- Last update: 2012-10-11
+-- Last update: 2013-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ architecture rtl of SaciSlave is
   type RegType is record
     headerShiftReg : slv(20 downto 0);
     dataShiftReg   : slv(31 downto 0);
-    shiftCount     : unsigned(4 downto 0);
+    shiftCount     : unsigned(5 downto 0);
     state          : StateType;
     exec           : sl;
     writeFlag      : sl;
@@ -130,7 +130,7 @@ begin
         -- Shift in bits until a start bit is seen
         shiftInLeft(saciCmdFall, r.headerShiftReg, rVar.headerShiftReg);
         rVar.shiftCount := (others => '0');
-        -- Require two start bits
+        rVar.dataShiftReg := (others => '0');
         if (saciCmdFall = '1') then
           rVar.state := SHIFT_HEADER_IN_S;
         end if;

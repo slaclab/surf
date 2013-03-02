@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : FrontEndDsciTb.vhd
+-- File       : FrontEndSaciTb.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-10-02
--- Last update: 2012-10-09
+-- Last update: 2013-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Simple Dsci testbench with Dsci Master connected to the
+-- Description: Simple Saci testbench with Saci Master connected to the
 -- standard Front End Register interface.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2012 SLAC National Accelerator Laboratory
@@ -21,11 +21,11 @@ use work.StdRtlPkg.all;
 use work.FrontEndPkg.all;
 use work.SaciMasterPkg.all;
 
-entity FrontEndDsciTb is
+entity FrontEndSaciTb is
 
-end entity FrontEndDsciTb;
+end entity FrontEndSaciTb;
 
-architecture testbench of FrontEndDsciTb is
+architecture testbench of FrontEndSaciTb is
 
   constant TPD_C : time := 1 ns;
 

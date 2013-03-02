@@ -25,8 +25,8 @@ SHM_ID=1
 SHM_NAME="saci"
 
 # Set Top Level
-DIG_TOP=FrontEndDsciTb
-ANA_TOP=FrontEndDsciAnalogTb
+DIG_TOP=FrontEndSaciTb
+ANA_TOP=FrontEndSaciAnalogTb
 
 # Set 64-bit mode
 EN64=-full64
@@ -53,17 +53,17 @@ HDL_SRC= $(PWD)/../../StdLib/rtl/StdRtlPkg.vhd \
          $(PWD)/../rtl/SaciSlave.vhd \
          $(PWD)/hdl/FrontEndPkg.vhd \
          $(PWD)/hdl/FrontEndRegDecoder.vhd \
-         $(PWD)/hdl/DsciSlaveRam.vhd \
+         $(PWD)/hdl/SaciSlaveRam.vhd \
          $(PWD)/hdl/SaciSlaveWrapper.vhd \
          $(PWD)/hdl/SaciSlaveWrapperAnalog.vhd \
-	 $(PWD)/hdl/FrontEndDsciTb.vhd \
-	 $(PWD)/hdl/FrontEndDsciAnalogTb.vhd \
+	 $(PWD)/hdl/FrontEndSaciTb.vhd \
+	 $(PWD)/hdl/FrontEndSaciAnalogTb.vhd \
 
 # Verilog Source Files
 VLOG = $(PWD)/hdl/SaciSlaveAnalog.v 
 
 # Targets
-all:    dir env syn_setup rtl_src vhpi_src sim_dig
+all:    env syn_setup rtl_src vhpi_src sim_dig
 analog: dir env syn_setup rtl_src vhpi_src ana_files ana_partition sim_ana
 
 # Directory

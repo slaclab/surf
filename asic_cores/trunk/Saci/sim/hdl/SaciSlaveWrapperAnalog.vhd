@@ -127,9 +127,9 @@ begin
       rdData_31 => rdData(31));
 
 
-  DsciSlaveRam_1 : entity work.DsciSlaveRam
+  SaciSlaveRam_1 : entity work.SaciSlaveRam
     port map (
-      dsciClkOut => saciClk,
+      saciClkOut => saciClk,
       exec       => exec,
       ack        => ack,
       readL      => readL,
