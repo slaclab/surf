@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-05-07
--- Last update: 2012-10-11
+-- Last update: 2013-03-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
+use work.SynchronizePkg.all;
 use work.Version.all;
 use work.FrontEndPkg.all;
 use work.SaciMasterPkg.all;
@@ -59,6 +60,7 @@ architecture rtl of FrontEndRegDecoder is
   type RegType is record
     frontEndRegCntlIn : FrontEndRegCntlInType;  -- Outputs to FrontEnd module
     saciMasterIn      : SaciMasterInType;       -- Outputs to Saci Master
+    saciMasterAckSync : SynchronizerType;
   end record RegType;
 
   signal r, rin : RegType;
@@ -79,6 +81,8 @@ begin
       r.saciMasterIn.cmd    <= (others => '0') after DELAY_G;
       r.saciMasterIn.addr   <= (others => '0') after DELAY_G;
       r.saciMasterIn.wrData <= (others => '0') after DELAY_G;
+
+      r.saciMasterAckSync <= SYNCHRONIZER_INIT_0_C after DELAY_G;
 
     elsif (rising_edge(sysClk)) then
       r <= rin after DELAY_G;
@@ -103,6 +107,8 @@ begin
     rVar.saciMasterIn.addr   := (others => '0');
     rVar.saciMasterIn.wrData := (others => '0');
 
+    synchronize(saciMasterOut.ack, r.saciMasterAckSync, rVar.saciMasterAckSync);
+
 
     if (frontEndRegCntlOut.regAddr(ADDR_BLOCK_RANGE_C) = SACI_REGS_ADDR_C) then
       -- SACI regs being accessed
@@ -115,7 +121,7 @@ begin
       rVar.saciMasterIn.cmd            := frontEndRegCntlOut.regAddr(18 downto 12);
       rVar.saciMasterIn.chip           := frontEndRegCntlOut.regAddr((SACI_CHIP_WIDTH_C-1)+19 downto 19);
       rVar.saciMasterIn.wrData         := frontEndRegCntlOut.regDataOut;
-      rVar.frontEndRegCntlIn.regAck    := saciMasterOut.ack;
+      rVar.frontEndRegCntlIn.regAck    := r.saciMasterAckSync.sync;
       rVar.frontEndRegCntlIn.regFail   := saciMasterOut.fail;
       rVar.frontEndRegCntlIn.regDataIn := saciMasterOut.rdData;
 
@@ -135,7 +141,7 @@ begin
         when SACI_RESET_REG_ADDR_C =>
           if (frontEndRegCntlOut.regOp = FRONT_END_REG_WRITE_C) then
             rVar.saciMasterIn.reset       := '1';
-            rVar.frontEndRegCntlIn.regAck := saciMasterOut.ack;
+            rVar.frontEndRegCntlIn.regAck := r.saciMasterAckSync.sync;
           end if;
 
         when others =>
