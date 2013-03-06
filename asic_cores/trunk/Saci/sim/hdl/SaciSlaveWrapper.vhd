@@ -30,7 +30,7 @@ begin
 
   saciRsp <= saciRspInt when saciSelL = '0' else 'Z';
 
-  SaciSlave_i : entity work.SaciSlave
+  SaciSlave_i : entity work.SaciSlave2
     generic map (
       TPD_G => TPD_G)
     port map (

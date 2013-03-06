@@ -20,6 +20,18 @@ void testPattern(SaciControl* saci, int asicNum, uint startIndex) {
    cout << "Test Pattern " << startIndex << " Done.\n" << endl;
 }
 
+void testPattern2(SaciControl* saci, int asicNum, uint startIndex) {
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_00_000",VALUES[startIndex%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->verifyConfig();
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_2A_AAA",VALUES[(startIndex+1)%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->verifyConfig();
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_55_555",VALUES[(startIndex+2)%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->verifyConfig();
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->writeSingle("Reg_7F_FFF",VALUES[(startIndex+3)%4]);
+   saci->device("cntrlFpga",0)->device("saciAsic",asicNum)->verifyConfig();
+   cout << "Test Pattern " << startIndex << " Done.\n" << endl;
+}
+
 int main (int argc, char **argv) {
    string        defFile;
    uint          shmId;
@@ -50,15 +62,19 @@ int main (int argc, char **argv) {
       cout << "Fgga Version: 0x" << hex << setw(8) << setfill('0') << saci.device("cntrlFpga",0)->readSingle("Version") << endl;
 
       // Reset SACI Slaves
-      cout << "Reset SACI Slaves" << endl;
-      saci.device("cntrlFpga",0)->command("ResetSaciSlaves","");
-      cout << "Done" << endl;
+      //      cout << "Reset SACI Slaves" << endl;
+      //saci.device("cntrlFpga",0)->command("ResetSaciSlaves","");
+      //cout << "Done" << endl;
 
       for (int i = 0; i < 2; i++) {
          testPattern(&saci, i, 0);
+         testPattern2(&saci, i, 0);
          testPattern(&saci, i, 1);
+         testPattern2(&saci, i, 1);
          testPattern(&saci, i, 2);
+         testPattern2(&saci, i, 2);
          testPattern(&saci, i, 3);
+         testPattern2(&saci, i, 3);
       }
       
 

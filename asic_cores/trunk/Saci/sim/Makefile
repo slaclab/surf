@@ -51,6 +51,7 @@ HDL_SRC= $(PWD)/../../StdLib/rtl/StdRtlPkg.vhd \
          $(PWD)/../rtl/SaciMasterPkg.vhd \
          $(PWD)/../rtl/SaciMaster.vhd \
          $(PWD)/../rtl/SaciSlave.vhd \
+         $(PWD)/../rtl/SaciSlave2.vhd \
          $(PWD)/hdl/FrontEndPkg.vhd \
          $(PWD)/hdl/FrontEndRegDecoder.vhd \
          $(PWD)/hdl/SaciSlaveRam.vhd \
