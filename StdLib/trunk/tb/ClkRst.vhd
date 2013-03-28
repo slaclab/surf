@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-09-18
--- Last update: 2013-01-24
+-- Last update: 2013-03-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,12 +24,12 @@ entity ClkRst is
   generic (
     CLK_PERIOD_G      : time    := 10 ns;
     CLK_DELAY_G       : time    := 0 ns;
-    RST_START_DELAY_G : time    := 1 ns;    -- Wait this long into simulation before asserting reset
-    RST_HOLD_TIME_G   : time    := 6 us;
-    SYNC_RESET_G      : boolean := false);  -- Hold reset for this long
+    RST_START_DELAY_G : time    := 1 ns;  -- Wait this long into simulation before asserting reset
+    RST_HOLD_TIME_G   : time    := 6 us;  -- Hold reset for this long
+    SYNC_RESET_G      : boolean := false);  
   port (
     clkP : out sl;
-    clkN : out sl;                          -- Inverted clock
+    clkN : out sl;                        -- Inverted clock
     rst  : out sl;
     rstL : out sl);
 
