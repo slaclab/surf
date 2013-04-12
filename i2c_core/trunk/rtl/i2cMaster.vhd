@@ -50,9 +50,9 @@ entity i2cMaster is
     FILTER_G             : integer range 2 to 512 := 126;   -- filter bit size
     DYNAMIC_FILTER_G     : integer range 0 to 1   := 0);
   port (
-    clk : in sl;
-    rst : in sl;
-
+    clk          : in  sl;
+    srst         : in  sl := '0';
+    arst         : in  sl := '0';
     -- Front End
     i2cMasterIn  : in  i2cMasterInType;
     i2cMasterOut : out i2cMasterOutType;
@@ -118,8 +118,11 @@ architecture rtl of i2cMaster is
   signal iSclOEn     : sl;                                           -- Internal SCL output enable
   signal iSdaOEn     : sl;                                           -- Internal SDA output enablee
   signal filter      : slv((FILTER_G-1)*DYNAMIC_FILTER_G downto 0);  -- filt input to byte_ctrl
+  signal arstL       : sl;
 
 begin
+
+  arstL <= not arst;
 
   -- Byte Controller from OpenCores I2C master,
   -- by Richard Herveille (richard@asics.ws). The asynchronous
@@ -131,8 +134,8 @@ begin
       dynfilt => DYNAMIC_FILTER_G)
     port map (
       clk      => clk,
-      rst      => rst,
-      nReset   => '1',
+      rst      => srst,
+      nReset   => arstL,
       ena      => i2cMasterIn.enable,
       clk_cnt  => i2cMasterIn.prescale,
       start    => r.byteCtrlIn.start,
@@ -169,7 +172,7 @@ begin
 
 
 
-  comb : process (r, byteCtrlOut, i2cMasterIn, rst)
+  comb : process (r, byteCtrlOut, i2cMasterIn, srst)
     variable v        : RegType;
     variable indexVar : integer;
   begin  -- process comb
@@ -193,7 +196,7 @@ begin
     case (r.state) is
       when WAIT_TXN_REQ_S =>
         -- Reset front end outputs
-        v.i2cMasterOut.rdData := (others => '0');  -- Necessary?
+        v.i2cMasterOut.rdData := (others => '0');    -- Necessary?
         -- If new request and any previous rdData has been acked.
         if (i2cMasterIn.txnReq = '1' and r.i2cMasterOut.rdValid = '0') then
           v.state  := ADDR_S;
@@ -257,15 +260,15 @@ begin
 
 
       when WAIT_READ_DATA_S =>
-        v.byteCtrlIn.stop := r.byteCtrlIn.stop;  -- Hold stop or it wont get seen
+        v.byteCtrlIn.stop  := r.byteCtrlIn.stop;   -- Hold stop or it wont get seen
         v.byteCtrlIn.ackIn := r.byteCtrlIn.ackIn;  -- This too
-        if (byteCtrlOut.cmdAck = '1') then    -- Master sent the command
-          v.byteCtrlIn.stop := '0';     -- Drop stop asap or it will be repeated
-          v.byteCtrlIn.ackIn := '0';
+        if (byteCtrlOut.cmdAck = '1') then         -- Master sent the command
+          v.byteCtrlIn.stop      := '0';           -- Drop stop asap or it will be repeated
+          v.byteCtrlIn.ackIn     := '0';
           v.i2cMasterOut.rdData  := byteCtrlOut.dout;
           v.i2cMasterOut.rdValid := '1';
-          if (i2cMasterIn.txnReq = '0') then  -- Last byte of txn
-            v.i2cMasterOut.txnError := '0';   -- Necessary? Should already be 0
+          if (i2cMasterIn.txnReq = '0') then       -- Last byte of txn
+            v.i2cMasterOut.txnError := '0';        -- Necessary? Should already be 0
             v.state                 := WAIT_TXN_REQ_S;
           else
             -- If not last byte, read another.
@@ -287,7 +290,7 @@ begin
         v.byteCtrlIn.stop := r.byteCtrlIn.stop;
         if (byteCtrlOut.cmdAck = '1') then      -- Master sent the command
           if (byteCtrlOut.ackOut = '0') then    -- Slave ack'd the transfer
-            v.byteCtrlIn.stop := '0';
+            v.byteCtrlIn.stop    := '0';
             v.i2cMasterOut.wrAck := '1';        -- Pass wr ack to front end
             if (i2cMasterIn.txnReq = '0') then  -- Last byte of txn
               v.i2cMasterOut.txnError := '0';   -- Necessary, should already be 0?
@@ -320,16 +323,16 @@ begin
     ------------------------------------------------------------------------------------------------
     -- Synchronous Reset
     ------------------------------------------------------------------------------------------------
-    if (rst = '1') then
-      v.state                 := WAIT_TXN_REQ_S;
-      v.tenbit                := '0';
-            
-      v.byteCtrlIn.start      := '0';
-      v.byteCtrlIn.stop       := '0';
-      v.byteCtrlIn.read       := '0';
-      v.byteCtrlIn.write      := '0';
-      v.byteCtrlIn.ackIn      := '0';
-      v.byteCtrlIn.din        := (others => '0');
+    if (srst = '1') then
+      v.state       := WAIT_TXN_REQ_S;
+      v.tenbit      := '0';
+
+      v.byteCtrlIn.start := '0';
+      v.byteCtrlIn.stop  := '0';
+      v.byteCtrlIn.read  := '0';
+      v.byteCtrlIn.write := '0';
+      v.byteCtrlIn.ackIn := '0';
+      v.byteCtrlIn.din   := (others => '0');
 
       v.i2cMasterOut.txnError := '0';
       v.i2cMasterOut.wrAck    := '0';
@@ -349,12 +352,27 @@ begin
   end process comb;
   filter <= i2cMasterIn.filter when DYNAMIC_FILTER_G = 1 else (others => '0');
 
-  reg : process (clk, rst)
+  reg : process (clk, arst)
   begin
-    if rising_edge(clk) then
+    if (arst = '1') then
+      r.state       <= WAIT_TXN_REQ_S after TPD_G;
+      r.tenbit      <= '0'            after TPD_G;
+
+      r.byteCtrlIn.start <= '0'             after TPD_G;
+      r.byteCtrlIn.stop  <= '0'             after TPD_G;
+      r.byteCtrlIn.read  <= '0'             after TPD_G;
+      r.byteCtrlIn.write <= '0'             after TPD_G;
+      r.byteCtrlIn.ackIn <= '0'             after TPD_G;
+      r.byteCtrlIn.din   <= (others => '0') after TPD_G;
+
+      r.i2cMasterOut.txnError <= '0'             after TPD_G;
+      r.i2cMasterOut.wrAck    <= '0'             after TPD_G;
+      r.i2cMasterOut.rdValid  <= '0'             after TPD_G;
+      r.i2cMasterOut.rdData   <= (others => '0') after TPD_G;
+    elsif rising_edge(clk) then
       r <= rin after TPD_G;
     end if;
   end process reg;
 
-  
+
 end architecture rtl;
