@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-22
--- Last update: 2013-02-04
+-- Last update: 2013-04-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ entity i2cRegMaster is
     PRESCALE_G           : integer range 0 to 655535 := 62);
   port (
     clk    : in  sl;
-    rst    : in  sl;
+    srst   : in  sl := '0';
+    arst   : in  sl := '0';
     regIn  : in  i2cRegMasterInType;
     regOut : out i2cRegMasterOutType;
     i2ci   : in  i2c_in_type;
@@ -79,13 +80,14 @@ begin
       DYNAMIC_FILTER_G     => 0)
     port map (
       clk          => clk,
-      rst          => rst,
+      srst         => srst,
+      arst         => arst,
       i2cMasterIn  => i2cMasterIn,
       i2cMasterOut => i2cMasterOut,
       i2ci         => i2ci,
       i2co         => i2co);
 
-  comb : process (regIn, i2cMasterOut, r, rst) is
+  comb : process (regIn, i2cMasterOut, r, srst) is
     variable v            : RegType;
     variable addrIndexVar : integer;
     variable dataIndexVar : integer;
@@ -105,8 +107,8 @@ begin
         v.byteCount := (others => '0');
         if (regIn.regReq = '1') then
           v.i2cMasterIn.txnReq := '1';
-          v.i2cMasterIn.op     := '1';          -- Write address bytes       
-          v.i2cMasterIn.stop   := regIn.regOp;  -- no i2c stop after addr when reg read
+          v.i2cMasterIn.op     := '1';  -- Write address bytes       
+          v.i2cMasterIn.stop   := '1';  --regIn.regOp;  -- no i2c stop after addr when reg read
           v.state              := ADDR_S;
         end if;
         
@@ -194,7 +196,7 @@ begin
     ------------------------------------------------------------------------------------------------
     -- Synchronous Reset
     ------------------------------------------------------------------------------------------------
-    if (rst = '1') then
+    if (srst = '1') then
       v.state     := WAIT_REQ_S;
       v.byteCount := (others => '0');
 
@@ -235,9 +237,25 @@ begin
     
   end process comb;
 
-  seq : process (clk) is
+  seq : process (clk, arst) is
   begin
-    if (rising_edge(clk)) then
+    if (arst = '1') then
+      
+      r.state     <= WAIT_REQ_S;
+      r.byteCount <= (others => '0');
+
+      r.regOut.regAck      <= '0';
+      r.regOut.regFail     <= '0';
+      r.regOut.regFailCode <= (others => '0');
+      r.regOut.regRdData   <= (others => '0');
+
+      r.i2cMasterIn.txnReq  <= '0';
+      r.i2cMasterIn.stop    <= '0';
+      r.i2cMasterIn.op      <= '0';
+      r.i2cMasterIn.wrValid <= '0';
+      r.i2cMasterIn.wrData  <= (others => '0');
+      r.i2cMasterIn.rdAck   <= '0';
+    elsif (rising_edge(clk)) then
       r <= rin after TPD_G;
     end if;
   end process seq;
