@@ -60,11 +60,9 @@ begin
    begin
       v := r;
 
-      if (req(to_integer(r.lastSelected)) = '0') then
+      if (req(to_integer(r.lastSelected)) = '0' or r.valid = '0') then
          arbitrate(req, r.lastSelected, v.lastSelected, v.valid, v.ack);
       end if;
-
-      
 
       if (USE_SRST_G and sRst = '1') then
          v := REG_RESET_C;
