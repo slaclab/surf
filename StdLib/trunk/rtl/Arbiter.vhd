@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-05-01
+-- Last update: 2013-05-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,12 +55,16 @@ architecture rtl of Arbiter is
    
 begin
 
-   comb : process (r, req) is
+   comb : process (r, req, sRst) is
       variable v : RegType;
    begin
       v := r;
 
-      arbitrate(req, r.lastSelected, v.lastSelected, v.valid, v.ack);
+      if (req(to_integer(r.lastSelected)) = '0') then
+         arbitrate(req, r.lastSelected, v.lastSelected, v.valid, v.ack);
+      end if;
+
+      
 
       if (USE_SRST_G and sRst = '1') then
          v := REG_RESET_C;
