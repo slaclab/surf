@@ -101,7 +101,7 @@ entity Gtx7RxRst is
     RX_FSM_RESET_DONE      : out std_logic;  --Reset-sequence has sucessfully been finished.
     RXUSERRDY              : out std_logic := '0';
     RUN_PHALIGNMENT        : out std_logic;
-    PHALIGNMENT_DONE       : in  std_logic;
+    PHALIGNMENT_DONE       : in  std_logic;  -- Drive high if phase alignment not needed
     RESET_PHALIGNMENT      : out std_logic := '0';
     RXDFEAGCHOLD           : out std_logic;
     RXDFELFHOLD            : out std_logic;
@@ -474,7 +474,7 @@ begin
           when RELEASE_PLL_RESET =>
             --PLL-Reset of the GTX gets released and the time-out counter
             --starts running.
-            pll_reset_asserted <= '0';
+            pll_reset_asserted <= '1';
             reset_time_out     <= '0';
 
 
