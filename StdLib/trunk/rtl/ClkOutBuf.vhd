@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : V5ClkOutBuf.vhd
+-- File       : ClkOutBuf.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-07
--- Last update: 2012-12-07
+-- Last update: 2013-05-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Special buffer for outputting a clock on Xilinx FPGA pins.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2012 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use work.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity V5ClkOutBuf is
+entity ClkOutBuf is
   generic (
     INVERT_G   : boolean := false;
     DIFF_OUT_G : boolean := true);       
@@ -30,9 +30,9 @@ entity V5ClkOutBuf is
     clkOutP : out sl;                   -- differential output buffer
     clkOutN : out sl;                   -- differential output buffer
     clkOut  : out sl);                  -- Single ended output buffer
-end V5ClkOutBuf;
+end ClkOutBuf;
 
-architecture rtl of V5ClkOutBuf is
+architecture rtl of ClkOutBuf is
 
   signal clkDdr : sl;
 
