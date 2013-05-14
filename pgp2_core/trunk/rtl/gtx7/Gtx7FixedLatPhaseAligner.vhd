@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2013-05-13
+-- Last update: 2013-05-14
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -85,19 +85,19 @@ architecture rtl of Gtx7FixedLatPhaseAligner is
 begin
 
    -- Must use async resets since rxUsrClk can drop out
-   RstSync_1: entity work.RstSync
+   RstSync_1 : entity work.RstSync
       generic map (
-         DELAY_G        => TPD_G,
+         TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClk,
          asyncRst => rxRunPhAlignment,
          syncRst  => rxRunPhAlignmentSync);
-   
-   RstSync_2: entity work.RstSync
+
+   RstSync_2 : entity work.RstSync
       generic map (
-         DELAY_G        => TPD_G,
+         TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '0')
       port map (
@@ -106,14 +106,14 @@ begin
          syncRst  => rxCdrLockSync);
 
    comb : process (r, rxData) is
-      variable v         : RegType;
+      variable v : RegType;
    begin
       v := r;
 
       v.rxSlide              := '0';
       v.rxPhaseAlignmentDone := '0';
 
-      v.last    := rxData & r.last(WORD_SIZE_G*2-1 downto WORD_SIZE_G);              -- Save last word
+      v.last := rxData & r.last(WORD_SIZE_G*2-1 downto WORD_SIZE_G);  -- Save last word
 
       case r.state is
          when SEARCH_S =>
