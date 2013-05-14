@@ -125,16 +125,16 @@ begin
   port map
          (
             clk             =>  STABLE_CLOCK,
-            data_in         =>  PHALIGNDONE,
-            data_out        =>  phaligndone_sync 
+            dataIn         =>  PHALIGNDONE,
+            dataOut        =>  phaligndone_sync 
          );
 
   sync_DLYSRESETDONE : entity work.Synchronizer
   port map
          (
             clk             =>  STABLE_CLOCK,
-            data_in         =>  DLYSRESETDONE,
-            data_out        =>  dlysresetdone_sync 
+            dataIn         =>  DLYSRESETDONE,
+            dataOut        =>  dlysresetdone_sync 
          );
 
 

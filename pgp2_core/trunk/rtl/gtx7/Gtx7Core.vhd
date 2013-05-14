@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2013-05-13
+-- Last update: 2013-05-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -390,10 +390,9 @@ begin
    --------------------------------------------------------------------------------------------------
    RstSync_Rx : entity work.RstSync
       generic map (
-         DELAY_G        => TPD_G,
+         TPD_G        => TPD_G,
          IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0',
-         HOLD_CYCLES_G  => 1)
+         OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClkIn,
          asyncRst => rxFsmResetDone,
@@ -499,10 +498,9 @@ begin
    --------------------------------------------------------------------------------------------------
    RstSync_Tx : entity work.RstSync
       generic map (
-         DELAY_G        => TPD_G,
+         TPD_G        => TPD_G,
          IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0',
-         HOLD_CYCLES_G  => 1)
+         OUT_POLARITY_G => '0')
       port map (
          clk      => txUsrClkIn,
          asyncRst => txFsmResetDone,
