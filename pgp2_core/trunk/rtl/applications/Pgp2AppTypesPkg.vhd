@@ -1,7 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use work.StdRtlPkg.all;
 
-package Pgp2AppPackage is
+package Pgp2AppTypesPkg is
 
   --------------------------------------------------------------------------------------------------
   -- These might be useful
