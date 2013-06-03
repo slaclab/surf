@@ -55,23 +55,23 @@ package Pgp2AppTypesPkg is
   end record;
 
   type UsBuff64InArray is array (natural range <>) of UsBuffInType;
-  
- 	--Initializing Constants
-  constant RegSlaveInInit	: RegSlaveInType := (
-    '0',--regAck
-    '0',--regFail
-    (others=>'0'));-- regDataIn 
-		
-  constant RegSlaveOutInit	: RegSlaveOutType := (
-    '0',--regInp
-    '0',--regReq
-    '0',--regOp
-    (others=>'0'),--regAddr
-    (others=>'0'));-- regDataOut  
-	 
-  constant CmdSlaveOutInit	: CmdSlaveOutType := (
-    '0',--cmdEn
-    (others=>'0'),--cmdOpCode
-    (others=>'0'));-- cmdCtxOut  
-  ----------------------------------------------------------------------------------------------------
+
+  --Initializing Constants
+  constant RegSlaveInInit : RegSlaveInType := (
+    '0',                                --regAck
+    '0',                                --regFail
+    (others => '0'));                   -- regDataIn 
+
+  constant RegSlaveOutInit : RegSlaveOutType := (
+    '0',                                --regInp
+    '0',                                --regReq
+    '0',                                --regOp
+    (others => '0'),                    --regAddr
+    (others => '0'));                   -- regDataOut  
+
+  constant CmdSlaveOutInit : CmdSlaveOutType := (
+    '0',                                --cmdEn
+    (others => '0'),                    --cmdOpCode
+    (others => '0'));                   -- cmdCtxOut  
+----------------------------------------------------------------------------------------------------
 end package;
