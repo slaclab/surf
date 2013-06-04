@@ -46,6 +46,16 @@ package Pgp2AppTypesPkg is
 
   type UsBuffInArray is array (natural range <>) of UsBuffInType;
 
+  type UsBuff32InType is record
+    frameTxEnable : sl;
+    frameTxSOF    : sl;
+    frameTxEOF    : sl;
+    frameTxEOFE   : sl;
+    frameTxData   : slv(31 downto 0);
+  end record;
+
+  type UsBuff32InArray is array (natural range <>) of UsBuff32InType;
+
   type UsBuff64InType is record
     frameTxEnable : sl;
     frameTxSOF    : sl;
@@ -54,7 +64,7 @@ package Pgp2AppTypesPkg is
     frameTxData   : slv(63 downto 0);
   end record;
 
-  type UsBuff64InArray is array (natural range <>) of UsBuffInType;
+  type UsBuff64InArray is array (natural range <>) of UsBuff64InType;
 
   --Initializing Constants
   constant RegSlaveInInit : RegSlaveInType := (
