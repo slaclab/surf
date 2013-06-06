@@ -24,7 +24,7 @@ package SaciMasterPkg is
 
   constant SACI_WRITE_C      : sl       := '1';
   constant SACI_READ_C       : sl       := '0';
-  constant SACI_NUM_SLAVES_C : positive := 2;
+  constant SACI_NUM_SLAVES_C : positive := 4;
   constant SACI_CHIP_WIDTH_C : natural  := log2(SACI_NUM_SLAVES_C);
 
   type SaciMasterInType is record
