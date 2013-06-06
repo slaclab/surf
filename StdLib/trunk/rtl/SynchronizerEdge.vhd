@@ -75,7 +75,7 @@ begin
          rin <= INIT_G;
       end if;
 
-      dataOut <= r(STAGES_G-2) and not (STAGES_G-1);
+      dataOut <= r(STAGES_G-2) and not r(STAGES_G-1);
    end process comb;
 
    seq : process (clk, aRst) is

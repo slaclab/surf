@@ -71,7 +71,7 @@ architecture Pgp2Us32Buff of Pgp2Us32Buff is
    end component;
 
    -- V5 Async FIFO
-   component pgp2_v5_afifo_35x1023 port (
+   component pgp2_v5_afifo_36x512 port (
       din:           IN  std_logic_VECTOR(35 downto 0);
       rd_clk:        IN  std_logic;
       rd_en:         IN  std_logic;
@@ -101,10 +101,10 @@ architecture Pgp2Us32Buff of Pgp2Us32Buff is
    -- Black Box Attributes
    attribute syn_black_box : boolean;
    attribute syn_noprune   : boolean;
-   attribute syn_black_box of pgp2_v4_afifo_18x1023 : component is TRUE;
-   attribute syn_noprune   of pgp2_v4_afifo_18x1023 : component is TRUE;
-   attribute syn_black_box of pgp2_v5_afifo_18x1023 : component is TRUE;
-   attribute syn_noprune   of pgp2_v5_afifo_18x1023 : component is TRUE;
+   attribute syn_black_box of pgp2_v4_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_v4_afifo_36x512  : component is TRUE;
+   attribute syn_black_box of pgp2_v5_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_v5_afifo_36x512  : component is TRUE;
 
 begin
 
@@ -137,7 +137,7 @@ begin
 
    -- V4 Receive FIFO
    U_GenRxV4Fifo: if FifoType = "V4" generate
-      U_RegRxV4Fifo: pgp2_v4_afifo_36x1023 port map (
+      U_RegRxV4Fifo: pgp2_v4_afifo_36x512 port map (
          din           => txFifoDin,
          rd_clk        => pgpClk,
          rd_en         => txFifoRd,
@@ -153,7 +153,7 @@ begin
 
    -- V5 Receive FIFO
    U_GenRxV5Fifo: if FifoType = "V5" generate
-      U_RegRxV5Fifo: pgp2_v5_afifo_36x1023 port map (
+      U_RegRxV5Fifo: pgp2_v5_afifo_36x512 port map (
          din           => txFifoDin,
          rd_clk        => pgpClk,
          rd_en         => txFifoRd,
@@ -176,11 +176,11 @@ begin
          if txFifoRd = '1' then
             txFifoValid <= '1' after tpd;
             txFifoHalf  <= '0' after tpd;
-         elsif vcFrameTxReady = '1' 
+         elsif vcFrameTxReady = '1' then
             if txFifoHalf = '1' then
                txFifoValid <= '0' after tpd;
             end if;
-            txFifoHalf = '0' after tpd;
+            txFifoHalf <= '0' after tpd;
          end if;
       end if;
    end process;
@@ -194,7 +194,7 @@ begin
    vcFrameTxEOFE  <= txFifoDout(34) when txFifoHalf = '1' else '0';
    vcFrameTxEOF   <= txFifoDout(33) when txFifoHalf = '1' else '0';
    vcFrameTxSOF   <= txFifoDout(32) when txFifoHalf = '0' else '0';
-   vcFrameTxData  <= txFifoDout(31 downto 0);
+   vcFrameTxData  <= txFifoDout(15 downto 0) when txFifoHalf = '0' else txFifoDout(31 downto 16);
 
-end Pgp2UsBuff;
+end Pgp2Us32Buff;
 
