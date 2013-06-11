@@ -22,7 +22,7 @@
 --    devices, or systems.  Use in such applications are expressly            --
 --    prohibited.                                                             --
 --                                                                            --
---    (c) Copyright 1995-2012 Xilinx, Inc.                                    --
+--    (c) Copyright 1995-2013 Xilinx, Inc.                                    --
 --    All rights reserved.                                                    --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ COMPONENT wrapped_pgp2_s6_afifo_18x1023
 END COMPONENT;
 
 -- Configuration specification
-  FOR ALL : wrapped_pgp2_s6_afifo_18x1023 USE ENTITY XilinxCoreLib.fifo_generator_v8_1(behavioral)
+  FOR ALL : wrapped_pgp2_s6_afifo_18x1023 USE ENTITY XilinxCoreLib.fifo_generator_v9_3(behavioral)
     GENERIC MAP (
       c_add_ngc_constraint => 0,
       c_application_type_axis => 0,
@@ -120,7 +120,7 @@ END COMPONENT;
       c_error_injection_type_wach => 0,
       c_error_injection_type_wdch => 0,
       c_error_injection_type_wrch => 0,
-      c_family => "virtex6",
+      c_family => "spartan6",
       c_full_flags_rst_val => 1,
       c_has_almost_empty => 0,
       c_has_almost_full => 0,
@@ -193,12 +193,12 @@ END COMPONENT;
       c_prog_empty_thresh_assert_val_wrch => 1022,
       c_prog_empty_thresh_negate_val => 3,
       c_prog_empty_type => 0,
-      c_prog_empty_type_axis => 5,
-      c_prog_empty_type_rach => 5,
-      c_prog_empty_type_rdch => 5,
-      c_prog_empty_type_wach => 5,
-      c_prog_empty_type_wdch => 5,
-      c_prog_empty_type_wrch => 5,
+      c_prog_empty_type_axis => 0,
+      c_prog_empty_type_rach => 0,
+      c_prog_empty_type_rdch => 0,
+      c_prog_empty_type_wach => 0,
+      c_prog_empty_type_wdch => 0,
+      c_prog_empty_type_wrch => 0,
       c_prog_full_thresh_assert_val => 1021,
       c_prog_full_thresh_assert_val_axis => 1023,
       c_prog_full_thresh_assert_val_rach => 1023,
@@ -208,12 +208,12 @@ END COMPONENT;
       c_prog_full_thresh_assert_val_wrch => 1023,
       c_prog_full_thresh_negate_val => 1020,
       c_prog_full_type => 0,
-      c_prog_full_type_axis => 5,
-      c_prog_full_type_rach => 5,
-      c_prog_full_type_rdch => 5,
-      c_prog_full_type_wach => 5,
-      c_prog_full_type_wdch => 5,
-      c_prog_full_type_wrch => 5,
+      c_prog_full_type_axis => 0,
+      c_prog_full_type_rach => 0,
+      c_prog_full_type_rdch => 0,
+      c_prog_full_type_wach => 0,
+      c_prog_full_type_wdch => 0,
+      c_prog_full_type_wrch => 0,
       c_rach_type => 0,
       c_rd_data_count_width => 10,
       c_rd_depth => 1024,
@@ -226,6 +226,7 @@ END COMPONENT;
       c_reg_slice_mode_wach => 0,
       c_reg_slice_mode_wdch => 0,
       c_reg_slice_mode_wrch => 0,
+      c_synchronizer_stage => 2,
       c_underflow_low => 0,
       c_use_common_overflow => 0,
       c_use_common_underflow => 0,
