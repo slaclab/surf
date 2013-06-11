@@ -343,7 +343,7 @@ begin
         MMCM_RESET              <= '1';
         tx_fsm_reset_done_int   <= '0';
         PLL_RESET               <= '0';
---        pll_reset_asserted      <= '0'; -- Only assert after powerup
+--        pll_reset_asserted      <= '0'; -- Only assert after powerup?
         reset_time_out          <= '0';
         retry_counter_int       <= 0;
         run_phase_alignment_int <= '0';

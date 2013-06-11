@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2013-05-14
+-- Last update: 2013-05-28
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ begin
       if (rising_edge(rxUsrClk)) then
          r <= rin after TPD_G;
       end if;
-      if (rxRunPhAlignmentSync = '0' or rxCdrLockSync = '0') then
+      if (rxRunPhAlignmentSync = '0') then-- or rxCdrLockSync = '0') then
          r <= REG_RESET_C after TPD_G;
       end if;
    end process;
