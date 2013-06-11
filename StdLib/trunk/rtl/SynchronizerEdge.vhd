@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : SynchronizerEdge.vhd
+-- File       : Synchronizer.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2013-05-14
+-- Last update: 2013-05-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,16 +22,18 @@ use work.StdRtlPkg.all;
 entity SynchronizerEdge is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';        -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G : sl       := '1';            -- '1' for active high rst, '0' for active low
       STAGES_G       : positive := 3;
       INIT_G         : slv      := "000"
       );
    port (
-      clk     : in  sl;                        -- clock to be sync'ed to
-      aRst    : in  sl := not RST_POLARITY_G;  -- Optional async reset
-      sRst    : in  sl := not RST_POLARITY_G;  -- Optional synchronous reset
-      dataIn  : in  sl;                        -- Data to be 'synced'
-      dataOut : out sl                         -- synced data
+      clk         : in  sl;                        -- clock to be sync'ed to
+      aRst        : in  sl := not RST_POLARITY_G;  -- Optional async reset
+      sRst        : in  sl := not RST_POLARITY_G;  -- Optional synchronous reset
+      dataIn      : in  sl;                        -- Data to be 'synced'
+      dataOut     : out sl;                        -- synced data
+      risingEdge  : out sl;                        -- Rising edge detected
+      fallingEdge : out sl                         -- Falling edge detected
       );
 begin
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
@@ -40,7 +42,10 @@ end SynchronizerEdge;
 
 architecture rtl of SynchronizerEdge is
 
+   -- r(STAGES_G-1) used for edge detection.
+   -- Optimized out if edge detection not used.
    signal r, rin : slv(STAGES_G-1 downto 0) := INIT_G;
+
 
    -- These attributes will stop Vivado translating the desired flip-flops into an
    -- SRL based shift register. (Breaks XST for some reason so keep commented for now).
@@ -75,7 +80,9 @@ begin
          rin <= INIT_G;
       end if;
 
-      dataOut <= r(STAGES_G-2) and not r(STAGES_G-1);
+      dataOut     <= r(STAGES_G-2);
+      risingEdge  <= r(STAGES_G-2) and not r(STAGES_G-1);
+      fallingEdge <= not r(STAGES_G-2) and r(STAGES_G-1);
    end process comb;
 
    seq : process (clk, aRst) is

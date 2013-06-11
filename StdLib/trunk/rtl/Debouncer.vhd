@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-05-14
+-- Last update: 2013-05-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ begin
             dataOut => iSynced);
    end generate SynchronizerGen;
 
-   comb : process (r, i, sRst) is
+   comb : process (r, i, iSynced, sRst) is
       variable v : RegType;
    begin
       v := r;
