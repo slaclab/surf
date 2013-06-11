@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2012-11-15
+-- Last update: 2013-05-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ entity Decoder8b10b is
 
    port (
       clk      : in  sl;
-      rstN     : in  sl;
+      rstL     : in  sl;
       dataIn   : in  slv(NUM_BYTES_G*10-1 downto 0);
       dataOut  : out slv(NUM_BYTES_G*8-1 downto 0);
       dataKOut : out slv(NUM_BYTES_G-1 downto 0);
@@ -74,9 +74,9 @@ begin
       dispErr  <= r.dispErr;
    end process comb;
 
-   seq : process (clk, rstN) is
+   seq : process (clk, rstL) is
    begin
-      if (rstN = '0') then
+      if (rstL = '0') then
          r.runDisp  <= '0';
          r.dataOut  <= (others => '0');
          r.dataKOut <= (others => '0');
