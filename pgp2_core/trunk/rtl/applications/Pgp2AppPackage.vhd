@@ -13,6 +13,7 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 11/23/2009: created.
+-- 06/10/2013: updated for series 7 FPGAs (LLR)
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -23,7 +24,10 @@ package Pgp2AppPackage is
    -- Register Slave
    component Pgp2RegSlave
       generic (
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4,  S6 = Spartan 6, V6 = Virtex 6
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"
       );
       port ( 
          pgpRxClk         : in  std_logic;                     -- PGP Clock
@@ -63,7 +67,10 @@ package Pgp2AppPackage is
       generic (
          DestId     : natural := 0;     -- Destination ID Value To Match
          DestMask   : natural := 0;     -- Destination ID Mask For Match
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"
       );
       port ( 
          pgpRxClk         : in  std_logic;                      -- PGP Clock
@@ -86,7 +93,10 @@ package Pgp2AppPackage is
    -- Downstream Buffer
    component Pgp2DsBuff
       generic (
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"
       );
       port ( 
          pgpClk           : in  std_logic;
@@ -110,10 +120,13 @@ package Pgp2AppPackage is
    end component;
 
 
-   -- Upstream Buffer
+   -- Upstream Buffer: 16-bit wide
    component Pgp2UsBuff
       generic (
-         FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, S6 = Spartan 6, V6 = Virtex 6
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"   
       );
       port ( 
          pgpClk           : in  std_logic;
@@ -125,6 +138,36 @@ package Pgp2AppPackage is
          frameTxEOF       : in  std_logic;
          frameTxEOFE      : in  std_logic;
          frameTxData      : in  std_logic_vector(15 downto 0);
+         frameTxAFull     : out std_logic;
+         vcFrameTxValid   : out std_logic;
+         vcFrameTxReady   : in  std_logic;
+         vcFrameTxSOF     : out std_logic;
+         vcFrameTxEOF     : out std_logic;
+         vcFrameTxEOFE    : out std_logic;
+         vcFrameTxData    : out std_logic_vector(15 downto 0);
+         vcRemBuffAFull   : in  std_logic;
+         vcRemBuffFull    : in  std_logic
+      );
+   end component;
+   
+   -- Upstream Buffer: 32-bit wide
+   component Pgp2Us32Buff
+      generic (
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"   
+      );
+      port ( 
+         pgpClk           : in  std_logic;
+         pgpReset         : in  std_logic;
+         locClk           : in  std_logic;
+         locReset         : in  std_logic;
+         frameTxValid     : in  std_logic;
+         frameTxSOF       : in  std_logic;
+         frameTxEOF       : in  std_logic;
+         frameTxEOFE      : in  std_logic;
+         frameTxData      : in  std_logic_vector(31 downto 0);
          frameTxAFull     : out std_logic;
          vcFrameTxValid   : out std_logic;
          vcFrameTxReady   : in  std_logic;

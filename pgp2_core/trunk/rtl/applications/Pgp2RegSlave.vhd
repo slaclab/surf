@@ -31,6 +31,7 @@
 -- Modification history:
 -- 11/20/2009: created.
 -- 05/24/2010: Modified FIFO
+-- 06/10/2013: updated for series 7 FPGAs (LLR)
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -41,7 +42,10 @@ use ieee.std_logic_unsigned.all;
 
 entity Pgp2RegSlave is
    generic (
-      FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4, V6 = Virtex 6
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"
    );
    port ( 
 
@@ -93,21 +97,6 @@ end Pgp2RegSlave;
 -- Define architecture
 architecture Pgp2RegSlave of Pgp2RegSlave is
 
-
-   -- S6 Async FIFO
-   component pgp2_s6_afifo_18x1023 port (
-      din:           IN  std_logic_VECTOR(17 downto 0);
-      rd_clk:        IN  std_logic;
-      rd_en:         IN  std_logic;
-      rst:           IN  std_logic;
-      wr_clk:        IN  std_logic;
-      wr_en:         IN  std_logic;
-      dout:          OUT std_logic_VECTOR(17 downto 0);
-      empty:         OUT std_logic;
-      full:          OUT std_logic;
-      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
-   end component;
-	
    -- V4 Async FIFO
    component pgp2_v4_afifo_18x1023 port (
       din:           IN  std_logic_VECTOR(17 downto 0);
@@ -135,6 +124,76 @@ architecture Pgp2RegSlave of Pgp2RegSlave is
       full:          OUT std_logic;
       wr_data_count: OUT std_logic_VECTOR(9 downto 0));
    end component;
+   
+   -- V6 Async FIFO
+   component pgp2_v6_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component;
+
+   -- V7 Async FIFO
+   component pgp2_v7_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component;   
+
+   -- S6 Async FIFO
+   component pgp2_s6_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component;
+   
+   -- A7 Async FIFO
+   component pgp2_a7_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component;  
+
+   -- K7 Async FIFO
+   component pgp2_k7_afifo_18x1023 port (
+      din:           IN  std_logic_VECTOR(17 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(17 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(9 downto 0));
+   end component; 
 
    -- Local Signals
    signal rxFifoDin      : std_logic_vector(17 downto 0);
@@ -228,6 +287,16 @@ architecture Pgp2RegSlave of Pgp2RegSlave is
    attribute syn_noprune   of pgp2_v4_afifo_18x1023 : component is TRUE;
    attribute syn_black_box of pgp2_v5_afifo_18x1023 : component is TRUE;
    attribute syn_noprune   of pgp2_v5_afifo_18x1023 : component is TRUE;
+   attribute syn_black_box of pgp2_v6_afifo_18x1023 : component is TRUE;
+   attribute syn_noprune   of pgp2_v6_afifo_18x1023 : component is TRUE;
+   attribute syn_black_box of pgp2_v7_afifo_18x1023 : component is TRUE;
+   attribute syn_noprune   of pgp2_v7_afifo_18x1023 : component is TRUE;
+   attribute syn_black_box of pgp2_s6_afifo_18x1023 : component is TRUE;
+   attribute syn_noprune   of pgp2_s6_afifo_18x1023 : component is TRUE;
+   attribute syn_black_box of pgp2_a7_afifo_18x1023 : component is TRUE;
+   attribute syn_noprune   of pgp2_a7_afifo_18x1023 : component is TRUE;
+   attribute syn_black_box of pgp2_k7_afifo_18x1023 : component is TRUE;
+   attribute syn_noprune   of pgp2_k7_afifo_18x1023 : component is TRUE;
 
 begin
 
@@ -273,6 +342,38 @@ begin
          wr_data_count => rxFifoCount
       );
    end generate;
+   
+   -- V6 Receive FIFO
+   U_GenRxV6Fifo0: if FifoType = "V6" generate
+      U_RegRxV6Fifo: pgp2_v6_afifo_18x1023 port map (
+        din           => rxFifoDin,
+         rd_clk        => locClk,
+         rd_en         => rxFifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => rxFifoDout,
+         empty         => rxFifoEmpty,
+         full          => rxFifoFull,
+         wr_data_count => rxFifoCount
+      );
+   end generate; 
+
+   -- V7 Receive FIFO
+   U_GenRxV7Fifo0: if FifoType = "V7" generate
+      U_RegRxV7Fifo: pgp2_v7_afifo_18x1023 port map (
+        din           => rxFifoDin,
+         rd_clk        => locClk,
+         rd_en         => rxFifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => rxFifoDout,
+         empty         => rxFifoEmpty,
+         full          => rxFifoFull,
+         wr_data_count => rxFifoCount
+      );
+   end generate;    
 
    -- S6 Receive FIFO
    U_GenRxS6Fifo0: if FifoType = "S6" generate
@@ -289,10 +390,26 @@ begin
          wr_data_count => rxFifoCount
       );
    end generate;
+   
+   -- A7 Receive FIFO
+   U_GenRxA7Fifo0: if FifoType = "A7" generate
+      U_RegRxA7Fifo: pgp2_a7_afifo_18x1023 port map (
+        din           => rxFifoDin,
+         rd_clk        => locClk,
+         rd_en         => rxFifoRd,
+         rst           => pgpRxReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => vcFrameRxValid,
+         dout          => rxFifoDout,
+         empty         => rxFifoEmpty,
+         full          => rxFifoFull,
+         wr_data_count => rxFifoCount
+      );
+   end generate;
 
-   -- V6 Receive FIFO
-   U_GenRxV6Fifo0: if FifoType = "V6" generate
-      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+   -- K7 Receive FIFO
+   U_GenRxK7Fifo0: if FifoType = "K7" generate
+      U_RegRxK7Fifo: pgp2_k7_afifo_18x1023 port map (
         din           => rxFifoDin,
          rd_clk        => locClk,
          rd_en         => rxFifoRd,
@@ -799,7 +916,6 @@ begin
       end if;
    end process;
 
-
    -- V4 Transmit FIFO
    U_GenTxV4Fifo: if FifoType = "V4" generate
       U_RegTxV4Fifo: pgp2_v4_afifo_18x1023 port map (
@@ -831,6 +947,38 @@ begin
          wr_data_count => txFifoCount
       );
    end generate;
+   
+   -- V6 Receive FIFO
+   U_GenRxV6Fifo1: if FifoType = "V6" generate
+      U_RegRxV6Fifo: pgp2_v6_afifo_18x1023 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpTxClk,
+         rd_en         => txFifoRd,
+         rst           => pgpTxReset,
+         wr_clk        => locClk,
+         wr_en         => txFifoWr,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;  
+
+   -- V7 Receive FIFO
+   U_GenRxV7Fifo1: if FifoType = "V7" generate
+      U_RegRxV7Fifo: pgp2_v7_afifo_18x1023 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpTxClk,
+         rd_en         => txFifoRd,
+         rst           => pgpTxReset,
+         wr_clk        => locClk,
+         wr_en         => txFifoWr,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;   
 
    -- S6 Receive FIFO
    U_GenRxS6Fifo1: if FifoType = "S6" generate
@@ -845,13 +993,12 @@ begin
          empty         => txFifoEmpty,
          full          => txFifoFull,
          wr_data_count => txFifoCount
-
       );
    end generate;
 
-   -- v6 Receive FIFO
-   U_GenRxV6Fifo1: if FifoType = "V6" generate
-      U_RegRxS6Fifo: pgp2_s6_afifo_18x1023 port map (
+   -- A7 Receive FIFO
+   U_GenRxA7Fifo1: if FifoType = "A7" generate
+      U_RegRxA7Fifo: pgp2_a7_afifo_18x1023 port map (
          din           => txFifoDin,
          rd_clk        => pgpTxClk,
          rd_en         => txFifoRd,
@@ -862,9 +1009,24 @@ begin
          empty         => txFifoEmpty,
          full          => txFifoFull,
          wr_data_count => txFifoCount
-
       );
-   end generate;
+   end generate; 
+   
+   -- K7 Receive FIFO
+   U_GenRxK7Fifo1: if FifoType = "K7" generate
+      U_RegRxK7Fifo: pgp2_k7_afifo_18x1023 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpTxClk,
+         rd_en         => txFifoRd,
+         rst           => pgpTxReset,
+         wr_clk        => locClk,
+         wr_en         => txFifoWr,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate; 
 	
    -- Data valid
    process ( pgpTxClk, pgpTxReset ) begin
