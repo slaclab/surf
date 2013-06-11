@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2013-05-03
+-- Last update: 2013-05-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ entity Encoder8b10b is
 
    port (
       clk     : in  sl;
-      rstN    : in  sl;
+      rstL    : in  sl;
       dataIn  : in  slv(NUM_BYTES_G*8-1 downto 0);
       dataKIn : in  slv(NUM_BYTES_G-1 downto 0);
       dataOut : out slv(NUM_BYTES_G*10-1 downto 0));
@@ -64,9 +64,9 @@ begin
       dataOut  <= r.dataOut;
    end process comb;
 
-   seq : process (clk, rstN) is
+   seq : process (clk, rstL) is
    begin
-      if (rstN = '0') then
+      if (rstL = '0') then
          r.runDisp  <= '0';
          r.dataOut  <= (others => '0');
       elsif (rising_edge(clk)) then
