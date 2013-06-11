@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2013-05-14
+-- Last update: 2013-05-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ entity Gtx7Core is
       TPD_G : time := 1 ns;
 
       -- Sim Generics --
-      SIM_GTRESET_SPEEDUP_G : string := "false";
+      SIM_GTRESET_SPEEDUP_G : string := "FALSE";
       SIM_VERSION_G         : string := "4.0";
 
       STABLE_CLOCK_PERIOD_G : time := 8 ns;
@@ -57,9 +57,10 @@ entity Gtx7Core is
       RX_8B10B_EN_G       : boolean := true;
 
       -- Configure Buffer usage
-      TX_BUF_EN_G     : boolean := true;
-      TX_OUTCLK_SRC_G : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
-      TX_DLY_BYPASS_G : sl      := '1';          -- 1 for bypass, 0 for delay
+      TX_BUF_EN_G      : boolean := true;
+      TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
+      TX_DLY_BYPASS_G  : sl      := '1';          -- 1 for bypass, 0 for delay
+      TX_PHASE_ALIGN_G : string  := "AUTO";
 
       RX_BUF_EN_G     : boolean := true;
       RX_OUTCLK_SRC_G : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
@@ -68,24 +69,24 @@ entity Gtx7Core is
       RX_DDIEN_G      : sl      := '0';          -- Supposed to be '1' when bypassing rx buffer
 
       -- Configure RX comma alignment
-      RX_ALIGN_MODE_G       : string     := "GT";   -- Or "FIXED_LAT" or "NONE"
-      ALIGN_COMMA_DOUBLE_G  : string     := "FALSE";
-      ALIGN_COMMA_ENABLE_G  : bit_vector := "1111111111";
-      ALIGN_COMMA_WORD_G    : integer    := 2;
-      ALIGN_MCOMMA_DET_G    : string     := "FALSE";
-      ALIGN_MCOMMA_VALUE_G  : bit_vector := "1010000011";
-      ALIGN_MCOMMA_EN_G     : sl         := '0';
-      ALIGN_PCOMMA_DET_G    : string     := "FALSE";
-      ALIGN_PCOMMA_VALUE_G  : bit_vector := "0101111100";
-      ALIGN_PCOMMA_EN_G     : sl         := '0';
-      SHOW_REALIGN_COMMA_G  : string     := "FALSE";
-      RXSLIDE_MODE_G        : string     := "PCS";  -- Set to PMA for fixed latency operation
-      
+      RX_ALIGN_MODE_G      : string     := "GT";   -- Or "FIXED_LAT" or "NONE"
+      ALIGN_COMMA_DOUBLE_G : string     := "FALSE";
+      ALIGN_COMMA_ENABLE_G : bit_vector := "1111111111";
+      ALIGN_COMMA_WORD_G   : integer    := 2;
+      ALIGN_MCOMMA_DET_G   : string     := "FALSE";
+      ALIGN_MCOMMA_VALUE_G : bit_vector := "1010000011";
+      ALIGN_MCOMMA_EN_G    : sl         := '0';
+      ALIGN_PCOMMA_DET_G   : string     := "FALSE";
+      ALIGN_PCOMMA_VALUE_G : bit_vector := "0101111100";
+      ALIGN_PCOMMA_EN_G    : sl         := '0';
+      SHOW_REALIGN_COMMA_G : string     := "FALSE";
+      RXSLIDE_MODE_G       : string     := "PCS";  -- Set to PMA for fixed latency operation
+
       -- Fixed Latency comma alignment (If RX_ALIGN_MODE_G = "FIXED_LAT")
-      FIXED_ALIGN_COMMA_0_G : slv        := "----------0101111100";
-      FIXED_ALIGN_COMMA_1_G : slv        := "----------1010000011";
-      FIXED_ALIGN_COMMA_2_G : slv        := "XXXXXXXXXXXXXXXXXXXX";
-      FIXED_ALIGN_COMMA_3_G : slv        := "XXXXXXXXXXXXXXXXXXXX";
+      FIXED_ALIGN_COMMA_0_G : slv := "----------0101111100";
+      FIXED_ALIGN_COMMA_1_G : slv := "----------1010000011";
+      FIXED_ALIGN_COMMA_2_G : slv := "XXXXXXXXXXXXXXXXXXXX";
+      FIXED_ALIGN_COMMA_3_G : slv := "XXXXXXXXXXXXXXXXXXXX";
 
       -- Configure RX 8B10B decoding (If RX_8B10B_EN_G = true)
       RX_DISPERR_SEQ_MATCH_G : string := "TRUE";
@@ -99,10 +100,11 @@ entity Gtx7Core is
 
       cPllRefClkIn : in sl := '0';      -- Drives CPLL if used
 
-      qPllRefClkIn : in  sl := '0';     -- Signals from QPLL if used
-      qPllClkIn    : in  sl := '0';
-      qPllLockIn   : in  sl := '0';
-      qPllResetOut : out sl;
+      qPllRefClkIn     : in  sl := '0';  -- Signals from QPLL if used
+      qPllClkIn        : in  sl := '0';
+      qPllLockIn       : in  sl := '0';
+      qPllRefClkLostIn : in  sl := '0';
+      qPllResetOut     : out sl;
 
       -- Serial IO
       gtTxP : out sl;
@@ -161,16 +163,6 @@ end entity Gtx7Core;
 
 architecture rtl of Gtx7Core is
 
-   function ite (i : boolean; t : string; e : string) return string is
-   begin
-      if (i) then return t; else return e; end if;
-   end function ite;
-
-   function ite (i : boolean; t : slv; e : slv) return slv is
-   begin
-      if (i) then return t; else return e; end if;
-   end function ite;
-
    function getOutClkSelVal (OUT_CLK_SRC : string) return bit_vector is
    begin
       if (OUT_CLK_SRC = "PLLREFCLK") then
@@ -190,7 +182,6 @@ architecture rtl of Gtx7Core is
          return (EXT_DATA_WIDTH / 8) * 10;
       end if;
    end function;
-
 
    --------------------------------------------------------------------------------------------------
    -- Constants
@@ -212,8 +203,9 @@ architecture rtl of Gtx7Core is
    --------------------------------------------------------------------------------------------------
 
    -- CPll Reset
-   signal cPllLock  : sl;
-   signal cPllReset : sl;
+   signal cPllLock       : sl;
+   signal cPllReset      : sl;
+   signal cPllRefClkLost : sl;
 
    -- Gtx CPLL Input Clocks
    signal gtGRefClk      : sl;
@@ -228,8 +220,9 @@ architecture rtl of Gtx7Core is
    -- Rx Signals
    signal rxGtRefClk : sl;
 
-   signal rxPllLock  : sl;
-   signal rxPllReset : sl;
+   signal rxPllLock       : sl;
+   signal rxPllReset      : sl;
+   signal rxPllRefClkLost : sl;
 
    signal gtRxReset    : sl;            -- GT GTRXRESET
    signal rxResetDone  : sl;            -- GT RXRESETDONE
@@ -248,6 +241,11 @@ architecture rtl of Gtx7Core is
    signal rxSlide              : sl;    -- GT RXSLIDE
    signal rxCdrLock            : sl;    -- GT RXCDRLOCK
 
+   signal rxDfeAgcHold : sl;
+   signal rxDfeLfHold  : sl;
+   signal rxLpmLfHold  : sl;
+   signal rxLpmHfHold  : sl;
+
    -- Rx Data
    signal rxDataInt     : slv(RX_EXT_DATA_WIDTH_G-1 downto 0);
    signal rxDataFull    : slv(63 downto 0);  -- GT RXDATA
@@ -260,8 +258,9 @@ architecture rtl of Gtx7Core is
    -- Tx Signals
    signal txGtRefClk : sl;
 
-   signal txPllLock  : sl;
-   signal txPllReset : sl;
+   signal txPllLock       : sl;
+   signal txPllReset      : sl;
+   signal txPllRefClkLost : sl;
 
    signal gtTxReset    : sl;            -- GT GTTXRESET
    signal txResetDone  : sl;            -- GT TXRESETDONE
@@ -269,11 +268,17 @@ architecture rtl of Gtx7Core is
 
    signal txFsmResetDone : sl;
 
+   signal txResetPhAlignment   : sl;
    signal txRunPhAlignment     : sl;
    signal txPhaseAlignmentDone : sl;
+   signal txPhAlignEn          : sl;    -- GT TXPHALIGNEN
    signal txDlySReset          : sl;    -- GT TXDLYSRESET
    signal txDlySResetDone      : sl;    -- GT TXDLYSRESETDONE
+   signal txPhInit             : sl;    -- GT TXPHINIT
+   signal txPhInitDone         : sl;    -- GT TXPHINITDONE
+   signal txPhAlign            : sl;    -- GT TXPHALIGN
    signal txPhAlignDone        : sl;    -- GT TXPHALIGNDONE
+   signal txDlyEn              : sl;    -- GT TXDLYEN
 
    -- Tx Data Signals
    signal txDataFull    : slv(63 downto 0);
@@ -332,6 +337,9 @@ begin
    -- Mux proper PLL Lock signal onto rxPllLock
    rxPllLock <= cPllLock when (RX_PLL_G = "CPLL") else qPllLockIn when (RX_PLL_G = "QPLL") else '0';
 
+   -- Mux proper PLL RefClkLost signal on rxPllRefClkLost
+   rxPllRefClkLost <= cPllRefClkLost when (RX_PLL_G = "CPLL") else qPllRefClkLostIn when (RX_PLL_G = "QPLL") else '0';
+
    rxUserResetInt <= rxUserResetIn or rxAlignReset;
    rxRstTxUserRdy <= txUserRdyInt when RX_USRCLK_SRC_G = "TXOUTCLK" else '1';
 
@@ -363,7 +371,7 @@ begin
          STABLE_CLOCK           => stableClkIn,
          RXUSERCLK              => rxUsrClkIn,
          SOFT_RESET             => rxUserResetInt,
-         PLLREFCLKLOST          => '0',
+         PLLREFCLKLOST          => rxPllRefClkLost,
          PLLLOCK                => rxPllLock,
          RXRESETDONE            => rxResetDone,           -- From GT
          MMCM_LOCK              => rxMmcmLockedIn,
@@ -379,10 +387,10 @@ begin
          RUN_PHALIGNMENT        => rxRunPhAlignment,      -- To Phase Alignment module
          PHALIGNMENT_DONE       => rxPhaseAlignmentDone,  -- From Phase Alignment module
          RESET_PHALIGNMENT      => open,                  -- For manual phase align
-         RXDFEAGCHOLD           => open,                  -- Explore using these later
-         RXDFELFHOLD            => open,
-         RXLPMLFHOLD            => open,
-         RXLPMHFHOLD            => open,
+         RXDFEAGCHOLD           => rxDfeAgcHold,          -- Explore using these later
+         RXDFELFHOLD            => rxDfeLfHold,
+         RXLPMLFHOLD            => rxLpmLfHold,
+         RXLPMHFHOLD            => rxLpmHfHold,
          RETRY_COUNTER          => open);
 
    --------------------------------------------------------------------------------------------------
@@ -390,7 +398,7 @@ begin
    --------------------------------------------------------------------------------------------------
    RstSync_Rx : entity work.RstSync
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '0')
       port map (
@@ -437,7 +445,7 @@ begin
             rxSlide              => rxSlide,
             rxPhaseAlignmentDone => rxPhaseAlignmentDone);
       rxDlySReset <= '0';
-   -- FixedPhaseAligner doesn't output comma detection. Right?
+      -- FixedPhaseAligner doesn't output comma detection. Right?
    end generate;
 
    NO_ALIGN_GEN : if (RX_BUF_EN_G = true or RX_ALIGN_MODE_G = "NONE") generate
@@ -462,6 +470,9 @@ begin
    -- Mux proper PLL Lock signal onto txPllLock
    txPllLock <= cPllLock when (TX_PLL_G = "CPLL") else qPllLockIn when (TX_PLL_G = "QPLL") else '0';
 
+   -- Mux proper PLL RefClkLost signal on txPllRefClkLost
+   txPllRefClkLost <= cPllRefClkLost when (TX_PLL_G = "CPLL") else qPllRefClkLostIn when (TX_PLL_G = "QPLL") else '0';
+
    -- Drive outputs that have internal use
    txUserRdyOut <= txUserRdyInt;
 
@@ -473,15 +484,15 @@ begin
          GT_TYPE                => "GTX",
          STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
          RETRY_COUNTER_BITWIDTH => 8,
-         PHASE_ALIGNMENT_MANUAL => not TX_BUF_EN_G)  -- Must do phase alignment if tx buffer
-                                                     -- disabled (maybe)
+         PHASE_ALIGNMENT_MANUAL => (TX_PHASE_ALIGN_G = "MANUAL"))  -- Must do phase alignment if tx buffer
+                                                                   -- disabled (maybe)
       port map (
          STABLE_CLOCK      => stableClkIn,
          TXUSERCLK         => txUsrClkIn,
          SOFT_RESET        => txUserResetIn,
-         PLLREFCLKLOST     => '0',
+         PLLREFCLKLOST     => txPllRefClkLost,
          PLLLOCK           => txPllLock,
-         TXRESETDONE       => txResetDone,           -- From GT
+         TXRESETDONE       => txResetDone,                         -- From GT
          MMCM_LOCK         => txMmcmLockedIn,
          GTTXRESET         => gtTxReset,
          MMCM_RESET        => txMmcmResetOut,
@@ -489,16 +500,16 @@ begin
          TX_FSM_RESET_DONE => txFsmResetDone,
          TXUSERRDY         => txUserRdyInt,
          RUN_PHALIGNMENT   => txRunPhAlignment,
-         RESET_PHALIGNMENT => open,                  -- Used for manual align I think
+         RESET_PHALIGNMENT => txResetPhAlignment,                  -- Used for manual alignment
          PHALIGNMENT_DONE  => txPhaseAlignmentDone,
-         RETRY_COUNTER     => open);                 -- Might be interesting to look at
+         RETRY_COUNTER     => open);    -- Might be interesting to look at
 
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
    RstSync_Tx : entity work.RstSync
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '0')
       port map (
@@ -510,18 +521,44 @@ begin
    -- Tx Phase aligner
    -- Only used when bypassing buffer
    -------------------------------------------------------------------------------------------------
-   PhaseAlign_Tx : entity work.Gtx7AutoPhaseAligner
-      generic map (
-         GT_TYPE => "GTX")
-      port map (
-         STABLE_CLOCK         => stableClkIn,
-         RUN_PHALIGNMENT      => txRunPhAlignment,
-         PHASE_ALIGNMENT_DONE => txPhaseAlignmentDone,
-         PHALIGNDONE          => txPhAlignDone,
-         DLYSRESET            => txDlySReset,
-         DLYSRESETDONE        => txDlySResetDone,
-         RECCLKSTABLE         => '1');
+   AutoTxPhaseAlignGen : if (TX_PHASE_ALIGN_G = "AUTO") generate
+      
+      PhaseAlign_Tx : entity work.Gtx7AutoPhaseAligner
+         generic map (
+            GT_TYPE => "GTX")
+         port map (
+            STABLE_CLOCK         => stableClkIn,
+            RUN_PHALIGNMENT      => txRunPhAlignment,
+            PHASE_ALIGNMENT_DONE => txPhaseAlignmentDone,
+            PHALIGNDONE          => txPhAlignDone,
+            DLYSRESET            => txDlySReset,
+            DLYSRESETDONE        => txDlySResetDone,
+            RECCLKSTABLE         => '1');
+      txPhAlignEn <= '0';               -- Auto Mode
+      txPhInit    <= '0';
+      txPhAlign   <= '0';
+      txDlyEn     <= '0';
+   end generate AutoTxPhaseAlignGen;
 
+   ManualTxPhaseAlignGen : if (TX_PHASE_ALIGN_G = "MANUAL") generate
+      Gtx7ManualTxPhaseAligner_1 : entity work.Gtx7ManualTxPhaseAligner
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            stableClk          => stableClkIn,
+            resetPhAlignment   => txResetPhAlignment,
+            runPhAlignment     => txRunPhAlignment,
+            phaseAlignmentDone => txPhaseAlignmentDone,
+            gtTxDlySReset      => txDlySReset,
+            gtTxDlySResetDone  => txDlySResetDone,
+            gtTxPhInit         => txPhInit,
+            gtTxPhInitDone     => txPhInitDone,
+            gtTxPhAlign        => txPhAlign,
+            gtTxPhAlignDone    => txPhAlignDone,
+            gtTxDlyEn          => txDlyEn);
+      txPhAlignEn <= '1';
+      
+   end generate ManualTxPhaseAlignGen;
    --------------------------------------------------------------------------------------------------
    -- GTX Instantiation
    --------------------------------------------------------------------------------------------------
@@ -535,7 +572,7 @@ begin
          SIM_RESET_SPEEDUP        => (SIM_GTRESET_SPEEDUP_G),
          SIM_TX_EIDLE_DRIVE_LEVEL => ("X"),
          SIM_CPLLREFCLK_SEL       => (CPLL_REFCLK_SEL_G),  --("001"),  -- GTPREFCLK0
---         SIM_VERSION              => (SIM_VERSION_G),
+         SIM_VERSION              => (SIM_VERSION_G),
 
 
          ------------------RX Byte and Word Alignment Attributes---------------
@@ -832,10 +869,10 @@ begin
          -------------------------------- Channel PLL -------------------------------
          CPLLFBCLKLOST    => open,
          CPLLLOCK         => cPllLock,
-         CPLLLOCKDETCLK   => '0',
+         CPLLLOCKDETCLK   => stableClkIn,
          CPLLLOCKEN       => '1',
          CPLLPD           => '0',
-         CPLLREFCLKLOST   => open,
+         CPLLREFCLKLOST   => cPllRefClkLost,
          CPLLREFCLKSEL    => to_stdlogicvector(CPLL_REFCLK_SEL_G),
          CPLLRESET        => cPllReset,
          ------------------------------- Eye Scan Ports -----------------------------
@@ -909,10 +946,10 @@ begin
          RXUSRCLK         => rxUsrClkIn,
          RXUSRCLK2        => rxUsrClk2In,
          ------------ Receive Ports - RX Decision Feedback Equalizer(DFE) -----------
-         RXDFEAGCHOLD     => '0',
+         RXDFEAGCHOLD     => rxDfeAgcHold,
          RXDFEAGCOVRDEN   => '0',
          RXDFECM1EN       => '0',
-         RXDFELFHOLD      => '0',
+         RXDFELFHOLD      => rxDfeLfHold,
          RXDFELFOVRDEN    => '1',
          RXDFELPMRESET    => '0',
          RXDFETAP2HOLD    => '0',
@@ -947,9 +984,9 @@ begin
          RXELECIDLE       => open,
          RXELECIDLEMODE   => "11",
          RXLPMEN          => '0',
-         RXLPMHFHOLD      => '0',
+         RXLPMHFHOLD      => rxLpmHfHold,
          RXLPMHFOVRDEN    => '0',
-         RXLPMLFHOLD      => '0',
+         RXLPMLFHOLD      => rxLpmLfHold,
          RXLPMLFKLOVRDEN  => '0',
          RXOOBRESET       => '0',
          -------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
@@ -1013,19 +1050,19 @@ begin
          ------------ Transmit Ports - TX Buffer and Phase Alignment Ports ----------
          TXBUFSTATUS      => txBufStatusOut,
          TXDLYBYPASS      => TX_DLY_BYPASS_G,  -- Use the tx delay alignment circuit
-         TXDLYEN          => '0',       -- Use auto alignment
+         TXDLYEN          => txDlyEn,   -- Manual Align
          TXDLYHOLD        => '0',
          TXDLYOVRDEN      => '0',
          TXDLYSRESET      => txDlySReset,
          TXDLYSRESETDONE  => txDlySResetDone,
          TXDLYUPDOWN      => '0',
-         TXPHALIGN        => '0',       -- Use auto alignment
+         TXPHALIGN        => txPhAlign,   -- Manual Align
          TXPHALIGNDONE    => txPhAlignDone,
-         TXPHALIGNEN      => '0',       -- Use auto alignment
+         TXPHALIGNEN      => txPhAlignEn,      -- Enables manual align
          TXPHDLYPD        => '0',
          TXPHDLYRESET     => '0',       -- Use SReset instead
-         TXPHINIT         => '0',       -- Use auto alignment
-         TXPHINITDONE     => open,
+         TXPHINIT         => txPhInit,  -- Manual Align
+         TXPHINITDONE     => txPhInitDone,
          TXPHOVRDEN       => '0',
          ------------------ Transmit Ports - TX Data Path interface -----------------
          GTTXRESET        => gtTxReset,

@@ -29,7 +29,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-use unisim.vpkg.all;
+--use unisim.vpkg.all;
 
 entity CRC32_V7 is
    generic (
