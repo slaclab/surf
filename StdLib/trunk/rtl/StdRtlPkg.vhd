@@ -85,6 +85,12 @@ package StdRtlPkg is
    function max (left, right : integer) return integer;
    function min (left, right : integer) return integer;
 
+   -- One line if-then-else functions. Usefull for assigning constants based on generics.
+   function ite(i : boolean; t : sl; e : sl) return sl;
+   function ite(i : boolean; t : slv; e : slv) return slv;
+   function ite(i : boolean; t : string; e : string) return string;
+   function ite(i : boolean; t : integer; e : integer) return integer;
+
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
    type frequency is range 0 to 2147483647
@@ -255,22 +261,6 @@ package body StdRtlPkg is
       return intVar;
    end function uXor;
 
---  function uOrBool (vec : slv) return boolean is
---  begin
---    return toBoolean(uOr(vec));
---  end function;
-
---  function uAndBool (vec : slv) return boolean is
---  begin
---    return toBoolean(uAnd(vec));
---  end function;
-
---  function uXorBool (vec : slv) return boolean is
---    variable intVar : sl;
---  begin
---   return toBoolean(uXor(vec));
---  end function;
-
    function allBits (vec : slv; test : sl) return boolean is
    begin
       for i in vec'range loop
@@ -352,16 +342,29 @@ package body StdRtlPkg is
       return slv(grayDecode(unsigned(vec)));
    end function;
 
-   ---------------------------------------------------------------------------------------------------------------------
-   -- Convert a frequency to a period (time).
-   ---------------------------------------------------------------------------------------------------------------------
-   -- pragma translate_off
-   function toTime(f : frequency) return time is
+   -------------------------------------------------------------------------------------------------
+   -- One line if-then-else functions.
+   -------------------------------------------------------------------------------------------------
+   function ite (i : boolean; t : sl; e : sl) return sl is
    begin
-      return(1.0 sec / (f/Hz));
-   end function;
-   --pragma translate_on
+      if (i) then return t; else return e; end if;
+   end function ite;
 
+   function ite (i : boolean; t : slv; e : slv) return slv is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : string; e : string) return string is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+   
+   function ite (i : boolean; t : integer; e : integer) return integer is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+   
    -----------------------------
    -- Min and Max
    -----------------------------
@@ -378,5 +381,17 @@ package body StdRtlPkg is
       else return right;
       end if;
    end min;
+   
+   ---------------------------------------------------------------------------------------------------------------------
+   -- Convert a frequency to a period (time).
+   ---------------------------------------------------------------------------------------------------------------------
+   -- pragma translate_off
+   function toTime(f : frequency) return time is
+   begin
+      return(1.0 sec / (f/Hz));
+   end function;
+   --pragma translate_on
+
+
    
 end package body StdRtlPkg;
