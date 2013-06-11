@@ -13,6 +13,7 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 01/11/2010: created.
+-- 06/10/2013: updated for series 7 FPGAs (LLR)
 -------------------------------------------------------------------------------
 LIBRARY ieee;
 use work.all;
@@ -22,7 +23,10 @@ use ieee.std_logic_unsigned.all;
 
 entity Pgp2Us32Buff is
    generic (
-      FifoType   : string  := "V5"   -- V5 = Virtex 5, V4 = Virtex 4
+         -- FifoType: (default = V5)
+         -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
+         -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+         FifoType   : string  := "V5"   
    );
    port ( 
 
@@ -83,6 +87,76 @@ architecture Pgp2Us32Buff of Pgp2Us32Buff is
       full:          OUT std_logic;
       wr_data_count: OUT std_logic_VECTOR(8 downto 0));
    end component;
+   
+   -- V6 Async FIFO
+   component pgp2_v6_afifo_36x512 port (
+      din:           IN  std_logic_VECTOR(35 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(35 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(8 downto 0));
+   end component;
+   
+   -- V7 Async FIFO
+   component pgp2_v7_afifo_36x512 port (
+      din:           IN  std_logic_VECTOR(35 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(35 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(8 downto 0));
+   end component;
+   
+   -- S6 Async FIFO
+   component pgp2_s6_afifo_36x512 port (
+      din:           IN  std_logic_VECTOR(35 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(35 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(8 downto 0));
+   end component;
+   
+   -- A7 Async FIFO
+   component pgp2_a7_afifo_36x512 port (
+      din:           IN  std_logic_VECTOR(35 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(35 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(8 downto 0));
+   end component;
+   
+   -- K7 Async FIFO
+   component pgp2_k7_afifo_36x512 port (
+      din:           IN  std_logic_VECTOR(35 downto 0);
+      rd_clk:        IN  std_logic;
+      rd_en:         IN  std_logic;
+      rst:           IN  std_logic;
+      wr_clk:        IN  std_logic;
+      wr_en:         IN  std_logic;
+      dout:          OUT std_logic_VECTOR(35 downto 0);
+      empty:         OUT std_logic;
+      full:          OUT std_logic;
+      wr_data_count: OUT std_logic_VECTOR(8 downto 0));
+   end component;
 
    -- Local Signals
    signal txFifoDin      : std_logic_vector(35 downto 0);
@@ -105,6 +179,16 @@ architecture Pgp2Us32Buff of Pgp2Us32Buff is
    attribute syn_noprune   of pgp2_v4_afifo_36x512  : component is TRUE;
    attribute syn_black_box of pgp2_v5_afifo_36x512  : component is TRUE;
    attribute syn_noprune   of pgp2_v5_afifo_36x512  : component is TRUE;
+   attribute syn_black_box of pgp2_v6_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_v6_afifo_36x512  : component is TRUE;
+   attribute syn_black_box of pgp2_v7_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_v7_afifo_36x512  : component is TRUE;
+   attribute syn_black_box of pgp2_s6_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_s6_afifo_36x512  : component is TRUE;
+   attribute syn_black_box of pgp2_a7_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_a7_afifo_36x512  : component is TRUE;
+   attribute syn_black_box of pgp2_k7_afifo_36x512  : component is TRUE;
+   attribute syn_noprune   of pgp2_k7_afifo_36x512  : component is TRUE;
 
 begin
 
@@ -154,6 +238,86 @@ begin
    -- V5 Receive FIFO
    U_GenRxV5Fifo: if FifoType = "V5" generate
       U_RegRxV5Fifo: pgp2_v5_afifo_36x512 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpClk,
+         rd_en         => txFifoRd,
+         rst           => pgpReset,
+         wr_clk        => locClk,
+         wr_en         => frameTxValid,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;
+   
+   -- V6 Receive FIFO
+   U_GenRxV6Fifo: if FifoType = "V6" generate
+      U_RegRxV6Fifo: pgp2_v6_afifo_36x512 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpClk,
+         rd_en         => txFifoRd,
+         rst           => pgpReset,
+         wr_clk        => locClk,
+         wr_en         => frameTxValid,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;
+   
+   -- V7 Receive FIFO
+   U_GenRxV7Fifo: if FifoType = "V7" generate
+      U_RegRxV7Fifo: pgp2_v7_afifo_36x512 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpClk,
+         rd_en         => txFifoRd,
+         rst           => pgpReset,
+         wr_clk        => locClk,
+         wr_en         => frameTxValid,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;
+   
+   -- S6 Receive FIFO
+   U_GenRxS6Fifo: if FifoType = "S6" generate
+      U_RegRxS6Fifo: pgp2_s6_afifo_36x512 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpClk,
+         rd_en         => txFifoRd,
+         rst           => pgpReset,
+         wr_clk        => locClk,
+         wr_en         => frameTxValid,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;
+   
+   -- A7 Receive FIFO
+   U_GenRxA7Fifo: if FifoType = "A7" generate
+      U_RegRxA7Fifo: pgp2_a7_afifo_36x512 port map (
+         din           => txFifoDin,
+         rd_clk        => pgpClk,
+         rd_en         => txFifoRd,
+         rst           => pgpReset,
+         wr_clk        => locClk,
+         wr_en         => frameTxValid,
+         dout          => txFifoDout,
+         empty         => txFifoEmpty,
+         full          => txFifoFull,
+         wr_data_count => txFifoCount
+      );
+   end generate;
+   
+   -- K7 Receive FIFO
+   U_GenRxK7Fifo: if FifoType = "K7" generate
+      U_RegRxK7Fifo: pgp2_k7_afifo_36x512 port map (
          din           => txFifoDin,
          rd_clk        => pgpClk,
          rd_en         => txFifoRd,
