@@ -356,7 +356,7 @@ begin
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,                -- Should sync to stableClk???
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkRest???
+         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
