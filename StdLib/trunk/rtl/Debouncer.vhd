@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-05-24
+-- Last update: 2013-06-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ entity Debouncer is
       INPUT_POLARITY_G  : sl       := '0';
       OUTPUT_POLARITY_G : sl       := '1';
       FILTER_SIZE_G     : positive := 16;
+      FILTER_INIT_G     : slv      := X"0000";
       SYNCHRONIZE_G     : boolean  := true);  -- Run input through 2 FFs before filtering
 
    port (
@@ -35,7 +36,8 @@ entity Debouncer is
       sRst : in  sl := not RST_POLARITY_G;
       i    : in  sl;
       o    : out sl);
-
+begin
+   assert (FILTER_INIT_G'length = FILTER_SIZE_G) report "FILTER_INIT_G length must = FILTER_SIZE_G" severity failure;
 end entity Debouncer;
 
 architecture rtl of Debouncer is
@@ -46,11 +48,11 @@ architecture rtl of Debouncer is
    end record RegType;
 
    constant REG_RESET_C : RegType :=
-      (filter => (others => '0'),
+      (filter => FILTER_INIT_G,
        o      => not OUTPUT_POLARITY_G);
 
    signal r, rin  : RegType := REG_RESET_C;
-   signal iSynced : sl := INPUT_POLARITY_G;
+   signal iSynced : sl      := INPUT_POLARITY_G;
 
 begin
 
