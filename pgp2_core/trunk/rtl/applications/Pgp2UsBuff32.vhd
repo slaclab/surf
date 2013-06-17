@@ -2,7 +2,7 @@
 -- Title			  : Pretty Good Protocol Applications, Upstream Data Buffer
 -- Project		  : Reconfigurable Cluster Element
 -------------------------------------------------------------------------------
--- File			  : Pgp2Us32Buff.vhd
+-- File			  : Pgp2UsBuff32.vhd
 -- Author		  : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created		  : 01/11/2010
 -------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity Pgp2Us32Buff is
+entity Pgp2UsBuff32 is
 	generic (
 		-- FifoType: (default = V5)
 		-- V4 = Virtex 4,	 V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
@@ -55,11 +55,11 @@ entity Pgp2Us32Buff is
 		vcRemBuffAFull : in	std_logic;
 		vcRemBuffFull	: in	std_logic
 		);
-end Pgp2Us32Buff;
+end Pgp2UsBuff32;
 
 
 -- Define architecture
-architecture Pgp2Us32Buff of Pgp2Us32Buff is
+architecture Pgp2UsBuff32 of Pgp2UsBuff32 is
 
 	-- V4 Async FIFO
 	component pgp2_v4_afifo_36x512 port (
@@ -363,5 +363,5 @@ begin
 	vcFrameTxSOF	<= txFifoDout(32)				when txFifoHalf = '0' else '0';
 	vcFrameTxData	<= txFifoDout(15 downto 0) when txFifoHalf = '0' else txFifoDout(31 downto 16);
 
-end Pgp2Us32Buff;
+end Pgp2UsBuff32;
 
