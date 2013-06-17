@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
--- Title			  : Pretty Good Protocol Applications, Downstream Data Buffer
+-- Title			  : Pretty Good Protocol Applications, Upstream Data Buffer
 -- Project		  : Reconfigurable Cluster Element
 -------------------------------------------------------------------------------
--- File			  : Pgp2DsBuff.vhd
+-- File			  : Pgp2UsBuff16.vhd
 -- Author		  : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created		  : 01/11/2010
 -------------------------------------------------------------------------------
 -- Description:
--- VHDL source file for buffer block for downstream data.
+-- VHDL source file for buffer block for upstream data.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2010 by Ryan Herbst. All rights reserved.
 -------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity Pgp2DsBuff is
+entity Pgp2UsBuff16 is
 	generic (
 		-- FifoType: (default = V5)
 		-- V4 = Virtex 4,	 V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
@@ -37,28 +37,29 @@ entity Pgp2DsBuff is
 		locClk	: in std_logic;
 		locReset : in std_logic;
 
-		-- PGP Receive Signals
-		vcFrameRxValid : in	std_logic;
-		vcFrameRxSOF	: in	std_logic;
-		vcFrameRxEOF	: in	std_logic;
-		vcFrameRxEOFE	: in	std_logic;
-		vcFrameRxData	: in	std_logic_vector(15 downto 0);
-		vcLocBuffAFull : out std_logic;
-		vcLocBuffFull	: out std_logic;
-
 		-- Local data transfer signals
-		frameRxValid : out std_logic;
-		frameRxReady : in	 std_logic;
-		frameRxSOF	 : out std_logic;
-		frameRxEOF	 : out std_logic;
-		frameRxEOFE	 : out std_logic;
-		frameRxData	 : out std_logic_vector(15 downto 0)
+		frameTxValid : in	 std_logic;
+		frameTxSOF	 : in	 std_logic;
+		frameTxEOF	 : in	 std_logic;
+		frameTxEOFE	 : in	 std_logic;
+		frameTxData	 : in	 std_logic_vector(15 downto 0);
+		frameTxAFull : out std_logic;
+
+		-- PGP Transmit Signals
+		vcFrameTxValid : out std_logic;
+		vcFrameTxReady : in	std_logic;
+		vcFrameTxSOF	: out std_logic;
+		vcFrameTxEOF	: out std_logic;
+		vcFrameTxEOFE	: out std_logic;
+		vcFrameTxData	: out std_logic_vector(15 downto 0);
+		vcRemBuffAFull : in	std_logic;
+		vcRemBuffFull	: in	std_logic
 		);
-end Pgp2DsBuff;
+end Pgp2UsBuff16;
 
 
 -- Define architecture
-architecture Pgp2DsBuff of Pgp2DsBuff is
+architecture Pgp2UsBuff16 of Pgp2UsBuff16 is
 
 	-- V4 Async FIFO
 	component pgp2_v4_afifo_18x1023 port (
@@ -159,13 +160,13 @@ architecture Pgp2DsBuff of Pgp2DsBuff is
 	end component;
 
 	-- Local Signals
-	signal rxFifoDin	 : std_logic_vector(17 downto 0);
-	signal rxFifoDout	 : std_logic_vector(17 downto 0);
-	signal rxFifoRd	 : std_logic;
-	signal rxFifoValid : std_logic;
-	signal rxFifoCount : std_logic_vector(9 downto 0);
-	signal rxFifoEmpty : std_logic;
-	signal rxFifoFull	 : std_logic;
+	signal txFifoDin	 : std_logic_vector(17 downto 0);
+	signal txFifoDout	 : std_logic_vector(17 downto 0);
+	signal txFifoRd	 : std_logic;
+	signal txFifoCount : std_logic_vector(9 downto 0);
+	signal txFifoEmpty : std_logic;
+	signal txFifoFull	 : std_logic;
+	signal txFifoValid : std_logic;
 	signal fifoErr		 : std_logic;
 
 	-- Register delay for simulation
@@ -191,172 +192,170 @@ architecture Pgp2DsBuff of Pgp2DsBuff is
 
 begin
 
-	-- Data going into Rx FIFO
-	rxFifoDin(17 downto 16) <= "11" when vcFrameRxEOFE = '1' or fifoErr = '1' else
-										"10" when vcFrameRxEOF = '1' else
-										"01" when vcFrameRxSOF = '1' else
+	-- Data going into Tx FIFO
+	txFifoDin(17 downto 16) <= "11" when frameTxEOFE = '1' or fifoErr = '1' else
+										"10" when frameTxEOF = '1' else
+										"01" when frameTxSOF = '1' else
 										"00";
-	rxFifoDin(15 downto 0) <= vcFrameRxData;
+	txFifoDin(15 downto 0) <= frameTxData;
 
-	-- Generate flow control
-	process (pgpClk, pgpReset)
+	-- Generate fifo error signal
+	process (locClk, locReset)
 	begin
-		if pgpReset = '1' then
-			vcLocBuffAFull <= '0' after tpd;
-			vcLocBuffFull	<= '0' after tpd;
-			fifoErr			<= '0' after tpd;
-		elsif rising_edge(pgpClk) then
+		if locReset = '1' then
+			fifoErr		 <= '0' after tpd;
+			frameTxAFull <= '0' after tpd;
+		elsif rising_edge(locClk) then
 
 			-- Generate full error
-			if rxFifoCount >= 1020 or rxFifoFull = '1' then
+			if txFifoCount >= 1020 or txFifoFull = '1' then
 				fifoErr <= '1' after tpd;
 			else
 				fifoErr <= '0' after tpd;
 			end if;
 
-			-- Almost full at 1/4 capacity
-			vcLocBuffAFull <= rxFifoFull or rxFifoCount(9) or rxFifoCount(8);
+			-- Almost full at 1/2 capacity
+			frameTxAFull <= txFifoFull or txFifoCount(9);
 
-			-- Full at 1/2 capacity
-			vcLocBuffFull <= rxFifoFull or rxFifoCount(9);
 		end if;
 	end process;
 
 	-- V4 Receive FIFO
 	U_GenRxV4Fifo : if FifoType = "V4" generate
 		U_RegRxV4Fifo : pgp2_v4_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- V5 Receive FIFO
 	U_GenRxV5Fifo : if FifoType = "V5" generate
 		U_RegRxV5Fifo : pgp2_v5_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- V6 Receive FIFO
 	U_GenRxV6Fifo : if FifoType = "V6" generate
 		U_RegRxV6Fifo : pgp2_v6_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- V7 Receive FIFO
 	U_GenRxV7Fifo : if FifoType = "V7" generate
 		U_RegRxV7Fifo : pgp2_v7_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- S6 Receive FIFO
 	U_GenRxS6Fifo : if FifoType = "S6" generate
 		U_RegRxS6Fifo : pgp2_s6_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- A7 Receive FIFO
 	U_GenRxA7Fifo : if FifoType = "A7" generate
 		U_RegRxA7Fifo : pgp2_a7_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- K7 Receive FIFO
 	U_GenRxK7Fifo : if FifoType = "K7" generate
 		U_RegRxK7Fifo : pgp2_k7_afifo_18x1023 port map (
-			din			  => rxFifoDin,
-			rd_clk		  => locClk,
-			rd_en			  => rxFifoRd,
+			din			  => txFifoDin,
+			rd_clk		  => pgpClk,
+			rd_en			  => txFifoRd,
 			rst			  => pgpReset,
-			wr_clk		  => pgpClk,
-			wr_en			  => vcFrameRxValid,
-			dout			  => rxFifoDout,
-			empty			  => rxFifoEmpty,
-			full			  => rxFifoFull,
-			wr_data_count => rxFifoCount
+			wr_clk		  => locClk,
+			wr_en			  => frameTxValid,
+			dout			  => txFifoDout,
+			empty			  => txFifoEmpty,
+			full			  => txFifoFull,
+			wr_data_count => txFifoCount
 			);
 	end generate;
 
 	-- Data valid
-	process (locClk, locReset)
+	process (pgpClk, pgpReset)
 	begin
-		if locReset = '1' then
-			rxFifoValid <= '0' after tpd;
-		elsif rising_edge(locClk) then
-			if rxFifoRd = '1' then
-				rxFifoValid <= '1' after tpd;
-			elsif frameRxReady = '1' then
-				rxFifoValid <= '0' after tpd;
+		if pgpReset = '1' then
+			txFifoValid <= '0' after tpd;
+		elsif rising_edge(pgpClk) then
+			if txFifoRd = '1' then
+				txFifoValid <= '1' after tpd;
+			elsif vcFrameTxReady = '1' then
+				txFifoValid <= '0' after tpd;
 			end if;
 		end if;
 	end process;
 
 	-- Control reads
-	rxFifoRd <= (not rxFifoEmpty) and ((not rxFifoValid) or frameRxReady);
+	txFifoRd <= (not txFifoEmpty) and (not vcRemBuffAFull) and (not vcRemBuffFull) and
+					((not txFifoValid) or vcframeTxReady);
 
 	-- Outgoing signals
-	frameRxValid <= rxFifoValid;
-	frameRxSOF	 <= '1' when rxFifoDout(17 downto 16) = "01" else '0';
-	frameRxEOF	 <= rxFifoDout(17);
-	frameRxEOFE	 <= '1' when rxFifoDout(17 downto 16) = "11" else '0';
-	frameRxData	 <= rxFifoDout(15 downto 0);
+	vcFrameTxValid <= txFifoValid;
+	vcFrameTxSOF	<= '1' when txFifoDout(17 downto 16) = "01" else '0';
+	vcFrameTxEOF	<= txFifoDout(17);
+	vcFrameTxEOFE	<= '1' when txFifoDout(17 downto 16) = "11" else '0';
+	vcFrameTxData	<= txFifoDout(15 downto 0);
 
-end Pgp2DsBuff;
+end Pgp2UsBuff16;
 

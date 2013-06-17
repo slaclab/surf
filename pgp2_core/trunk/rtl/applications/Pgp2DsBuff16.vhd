@@ -2,7 +2,7 @@
 -- Title			  : Pretty Good Protocol Applications, Downstream Data Buffer
 -- Project		  : Reconfigurable Cluster Element
 -------------------------------------------------------------------------------
--- File			  : Pgp2DsBuff.vhd
+-- File			  : Pgp2DsBuff16.vhd
 -- Author		  : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created		  : 01/11/2010
 -------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity Pgp2DsBuff is
+entity Pgp2DsBuff16 is
 	generic (
 		-- FifoType: (default = V5)
 		-- V4 = Virtex 4,	 V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
@@ -54,11 +54,11 @@ entity Pgp2DsBuff is
 		frameRxEOFE	 : out std_logic;
 		frameRxData	 : out std_logic_vector(15 downto 0)
 		);
-end Pgp2DsBuff;
+end Pgp2DsBuff16;
 
 
 -- Define architecture
-architecture Pgp2DsBuff of Pgp2DsBuff is
+architecture Pgp2DsBuff16 of Pgp2DsBuff16 is
 
 	-- V4 Async FIFO
 	component pgp2_v4_afifo_18x1023 port (
@@ -348,15 +348,15 @@ begin
 		end if;
 	end process;
 
-	-- Control reads
+													 -- Control reads
 	rxFifoRd <= (not rxFifoEmpty) and ((not rxFifoValid) or frameRxReady);
 
-	-- Outgoing signals
+													 -- Outgoing signals
 	frameRxValid <= rxFifoValid;
 	frameRxSOF	 <= '1' when rxFifoDout(17 downto 16) = "01" else '0';
 	frameRxEOF	 <= rxFifoDout(17);
 	frameRxEOFE	 <= '1' when rxFifoDout(17 downto 16) = "11" else '0';
 	frameRxData	 <= rxFifoDout(15 downto 0);
 
-end Pgp2DsBuff;
+end Pgp2DsBuff16;
 
