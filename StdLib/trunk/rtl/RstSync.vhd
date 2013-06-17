@@ -44,23 +44,5 @@ begin
          dataIn  => not OUT_POLARITY_G,
          dataOut => syncRst);
 
---   process (clk, asyncRst)
---   begin
---      if (asyncRst = IN_POLARITY_G) then
---         syncReg <= (others => OUT_POLARITY_G) after DELAY_G;
---         syncRst <= OUT_POLARITY_G             after DELAY_G;
---      elsif (rising_edge(clk)) then
---         syncRst <= syncReg(0) after DELAY_G;
-
---         if (HOLD_CYCLES_G > 1) then
---            for i in 0 to HOLD_CYCLES_G-2 loop
---               syncReg(i) <= syncReg(i+1) after DELAY_G;
---            end loop;
---         end if;
-
---         syncReg(HOLD_CYCLES_G-1) <= not OUT_POLARITY_G after DELAY_G;
---      end if;
---   end process;
-
 end rtl;
 
