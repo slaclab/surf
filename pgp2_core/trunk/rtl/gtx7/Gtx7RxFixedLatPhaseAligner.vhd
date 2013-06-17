@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : Gtx7RxCommaAligner.vhd
+-- File       : 
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2013-05-28
+-- Last update: 2013-06-13
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use work.StdRtlPkg.all;
 use work.SynchronizePkg.all;
 
 
-entity Gtx7FixedLatPhaseAligner is
+entity Gtx7RxFixedLatPhaseAligner is
    
    generic (
       TPD_G       : time    := 1 ns;
@@ -44,15 +44,14 @@ entity Gtx7FixedLatPhaseAligner is
    port (
       rxUsrClk             : in  sl;
       rxRunPhAlignment     : in  sl;    -- From RxRst, active low reset, not clocked by rxUsrClk
-      rxCdrLock            : in  sl;    -- From GT, may not work, async
       rxData               : in  slv(WORD_SIZE_G-1 downto 0);  -- Encoded raw rx data
       rxReset              : out sl;
       rxSlide              : out sl;    -- RXSLIDE input to GTX
       rxPhaseAlignmentDone : out sl);   -- Alignment has been achieved.
 
-end entity Gtx7FixedLatPhaseAligner;
+end entity Gtx7RxFixedLatPhaseAligner;
 
-architecture rtl of Gtx7FixedLatPhaseAligner is
+architecture rtl of Gtx7RxFixedLatPhaseAligner is
 
    constant SLIDE_WAIT_C : integer := 32;  -- Dictated by UG476 GTX Tranceiver Guide
 
@@ -80,7 +79,6 @@ architecture rtl of Gtx7FixedLatPhaseAligner is
    signal r, rin : RegType := REG_RESET_C;
 
    signal rxRunPhAlignmentSync : sl;
-   signal rxCdrLockSync        : sl;
    
 begin
 
@@ -95,15 +93,6 @@ begin
          asyncRst => rxRunPhAlignment,
          syncRst  => rxRunPhAlignmentSync);
 
-   RstSync_2 : entity work.RstSync
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0')
-      port map (
-         clk      => rxUsrClk,
-         asyncRst => rxCdrLock,
-         syncRst  => rxCdrLockSync);
 
    comb : process (r, rxData) is
       variable v : RegType;
@@ -120,9 +109,9 @@ begin
             for i in 0 to WORD_SIZE_G - 1 loop
                -- Look for pos or neg comma
                if (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_0_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G)) then  -- or
---                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
---                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
+                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G) or
+                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
+                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
                   if (i = 0) then
                      v.state := ALIGNED_S;
                   elsif (i mod 2 = 0) then
@@ -171,12 +160,12 @@ begin
       rxPhaseAlignmentDone <= r.rxPhaseAlignmentDone;
    end process comb;
 
-   seq : process (rxUsrClk, rxRunPhAlignmentSync, rxCdrLockSync) is
+   seq : process (rxUsrClk, rxRunPhAlignmentSync) is
    begin
       if (rising_edge(rxUsrClk)) then
          r <= rin after TPD_G;
       end if;
-      if (rxRunPhAlignmentSync = '0') then-- or rxCdrLockSync = '0') then
+      if (rxRunPhAlignmentSync = '0') then
          r <= REG_RESET_C after TPD_G;
       end if;
    end process;

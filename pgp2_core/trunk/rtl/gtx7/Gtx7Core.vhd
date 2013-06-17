@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2013-05-28
+-- Last update: 2013-06-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ entity Gtx7Core is
       TX_BUF_EN_G      : boolean := true;
       TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
       TX_DLY_BYPASS_G  : sl      := '1';          -- 1 for bypass, 0 for delay
-      TX_PHASE_ALIGN_G : string  := "AUTO";
+      TX_PHASE_ALIGN_G : string  := "AUTO";       -- Or "MANUAL" or "NONE"
 
       RX_BUF_EN_G     : boolean := true;
       RX_OUTCLK_SRC_G : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
@@ -218,7 +218,10 @@ architecture rtl of Gtx7Core is
 
    ----------------------------
    -- Rx Signals
-   signal rxGtRefClk : sl;
+   signal rxGtRefClk     : sl;
+   signal rxGtRefClkBufg : sl;
+   signal rxOutClk       : sl;
+   signal rxOutClkBufg   : sl;
 
    signal rxPllLock       : sl;
    signal rxPllReset      : sl;
@@ -231,6 +234,9 @@ architecture rtl of Gtx7Core is
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
    signal rxRstTxUserRdy : sl;          --
+
+   signal rxRecClkStable         : sl;
+   signal rxRecClkMonitorRestart : sl;
 
    signal rxRunPhAlignment     : sl;
    signal rxPhaseAlignmentDone : sl;
@@ -286,7 +292,9 @@ architecture rtl of Gtx7Core is
    
 begin
 
-   rxRefClkOut <= rxGtRefClk;
+   rxRefClkOut <= rxGtRefClkBufg;
+   rxOutClkOut <= rxOutClkBufg;
+
    txRefClkOut <= txGtRefClk;
 
    --------------------------------------------------------------------------------------------------
@@ -359,14 +367,14 @@ begin
    -- 9. Wait DATA_VALID (aligned) - 100 us
    --10. Wait 1 us, Set rxFsmResetDone. 
    --------------------------------------------------------------------------------------------------
-   Gtx7RxRst_1 : entity work.Gtx7RxRst
+   Gtx7RxRst_Inst : entity work.Gtx7RxRst
       generic map (
+         TPD_G                  => TPD_G,
          EXAMPLE_SIMULATION     => 0,
          GT_TYPE                => "GTX",
          EQ_MODE                => "DFE",
          STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
-         RETRY_COUNTER_BITWIDTH => 8,
-         PHASE_ALIGNMENT_MANUAL => not RX_BUF_EN_G)       
+         RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK           => stableClkIn,
          RXUSERCLK              => rxUsrClkIn,
@@ -375,8 +383,8 @@ begin
          PLLLOCK                => rxPllLock,
          RXRESETDONE            => rxResetDone,           -- From GT
          MMCM_LOCK              => rxMmcmLockedIn,
-         RECCLK_STABLE          => rxCdrLock,             -- Asserted after 50,000 UI as per DS183
-         RECCLK_MONITOR_RESTART => '0',
+         RECCLK_STABLE          => rxRecClkStable,        -- Asserted after 50,000 UI as per DS183
+         RECCLK_MONITOR_RESTART => rxRecClkMonitorRestart,
          DATA_VALID             => rxDataValidIn,         -- From external decoder if used
          TXUSERRDY              => rxRstTxUserRdy,        -- Need to know when txUserRdy
          GTRXRESET              => gtRxReset,             -- To GT
@@ -396,7 +404,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_Rx : entity work.RstSync
+   RstSync_RxResetDone : entity work.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -406,14 +414,48 @@ begin
          asyncRst => rxFsmResetDone,
          syncRst  => rxResetDoneOut);   -- Output
 
+   -------------------------------------------------------------------------------------------------
+   -- Recovered clock monitor
+   -------------------------------------------------------------------------------------------------
+   BUFG_RX_OUT_CLK : BUFG
+      port map (
+         I => rxOutClk,
+         O => rxOutClkBufg);
+
+   BUFG_RX_REF_CLK : BUFG
+      port map (
+         I => rxGtRefClk,
+         O => rxGtRefClkBufg);
+
+   GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
+      Gtx7RecClkMonitor_Inst : entity work.Gtx7RecClkMonitor
+         generic map (
+            COUNTER_UPPER_VALUE      => 15,
+            GCLK_COUNTER_UPPER_VALUE => 15,
+            CLOCK_PULSES             => 164,
+            EXAMPLE_SIMULATION       => 0)
+         port map (
+            GT_RST        => gtRxReset,
+            REF_CLK       => rxGtRefClkBufg,
+            RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
+            SYSTEM_CLK    => stableClkIn,
+            PLL_LK_DET    => rxPllLock,
+            RECCLK_STABLE => rxRecClkStable,
+            EXEC_RESTART  => rxRecClkMonitorRestart);
+   end generate;
+
+   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
+      -- Should have a counter here!
+      rxRecClkStable <= '1';
+   end generate RX_NO_RECCLK_MON_GEN;
 
    -------------------------------------------------------------------------------------------------
    -- Phase alignment needed when rx buffer is disabled
    -- Use normal Auto Phase Align module when RX_BUF_EN_G=false and RX_ALIGN_FIXED_LAT_G=false
    -- Use special fixed latency aligner when RX_BUF_EN_G=false and RX_ALIGN_FIXED_LAT_G=true
    -------------------------------------------------------------------------------------------------
-   AUTO_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "GT") generate
-      PHASE_ALIGN_AUTO_RX : entity work.Gtx7AutoPhaseAligner
+   RX_AUTO_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "GT") generate
+      Gtx7AutoPhaseAligner_Rx : entity work.Gtx7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -423,12 +465,12 @@ begin
             PHALIGNDONE          => rxPhAlignDone,         -- From gt
             DLYSRESET            => rxDlySReset,           -- To gt
             DLYSRESETDONE        => rxDlySResetDone,       -- From gt
-            RECCLKSTABLE         => rxCdrLock);
+            RECCLKSTABLE         => rxRecClkStable);
       rxSlide <= rxSlideIn;                                -- User controlled rxSlide
-   end generate AUTO_ALIGN_GEN;
+   end generate;
 
-   FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
-      Gtx7FixedLatPhaseAligner_2 : entity work.Gtx7FixedLatPhaseAligner
+   RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
+      Gtx7RxFixedLatPhaseAligner_Inst : entity work.Gtx7RxFixedLatPhaseAligner
          generic map (
             TPD_G       => TPD_G,
             WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
@@ -439,19 +481,18 @@ begin
          port map (
             rxUsrClk             => rxUsrClkIn,
             rxRunPhAlignment     => rxRunPhAlignment,
-            rxCdrLock            => rxCdrLock,
             rxData               => rxDataInt,
             rxReset              => rxAlignReset,
             rxSlide              => rxSlide,
             rxPhaseAlignmentDone => rxPhaseAlignmentDone);
       rxDlySReset <= '0';
-      -- FixedPhaseAligner doesn't output comma detection. Right?
    end generate;
 
-   NO_ALIGN_GEN : if (RX_BUF_EN_G = true or RX_ALIGN_MODE_G = "NONE") generate
-      rxSlide     <= rxSlideIn;
-      rxDlySReset <= '0';
-   end generate NO_ALIGN_GEN;
+   RX_NO_ALIGN_GEN : if (RX_BUF_EN_G = true or RX_ALIGN_MODE_G = "NONE") generate
+      rxPhaseAlignmentDone <= '1';
+      rxSlide              <= rxSlideIn;
+      rxDlySReset          <= '0';
+   end generate;
 
 
 
@@ -479,20 +520,19 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Reset Module
    --------------------------------------------------------------------------------------------------
-   Gtx7TxRst_1 : entity work.Gtx7TxRst
+   Gtx7TxRst_Inst : entity work.Gtx7TxRst
       generic map (
+         TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
          STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
-         RETRY_COUNTER_BITWIDTH => 8,
-         PHASE_ALIGNMENT_MANUAL => (TX_PHASE_ALIGN_G = "MANUAL"))  -- Must do phase alignment if tx buffer
-                                                                   -- disabled (maybe)
+         RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK      => stableClkIn,
          TXUSERCLK         => txUsrClkIn,
          SOFT_RESET        => txUserResetIn,
          PLLREFCLKLOST     => txPllRefClkLost,
          PLLLOCK           => txPllLock,
-         TXRESETDONE       => txResetDone,                         -- From GT
+         TXRESETDONE       => txResetDone,         -- From GT
          MMCM_LOCK         => txMmcmLockedIn,
          GTTXRESET         => gtTxReset,
          MMCM_RESET        => txMmcmResetOut,
@@ -500,9 +540,9 @@ begin
          TX_FSM_RESET_DONE => txFsmResetDone,
          TXUSERRDY         => txUserRdyInt,
          RUN_PHALIGNMENT   => txRunPhAlignment,
-         RESET_PHALIGNMENT => txResetPhAlignment,                  -- Used for manual alignment
+         RESET_PHALIGNMENT => txResetPhAlignment,  -- Used for manual alignment
          PHALIGNMENT_DONE  => txPhaseAlignmentDone,
-         RETRY_COUNTER     => open);    -- Might be interesting to look at
+         RETRY_COUNTER     => open);               -- Might be interesting to look at
 
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
@@ -521,7 +561,7 @@ begin
    -- Tx Phase aligner
    -- Only used when bypassing buffer
    -------------------------------------------------------------------------------------------------
-   AutoTxPhaseAlignGen : if (TX_PHASE_ALIGN_G = "AUTO") generate
+   TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
       
       PhaseAlign_Tx : entity work.Gtx7AutoPhaseAligner
          generic map (
@@ -538,10 +578,10 @@ begin
       txPhInit    <= '0';
       txPhAlign   <= '0';
       txDlyEn     <= '0';
-   end generate AutoTxPhaseAlignGen;
+   end generate TxAutoPhaseAlignGen;
 
-   ManualTxPhaseAlignGen : if (TX_PHASE_ALIGN_G = "MANUAL") generate
-      Gtx7ManualTxPhaseAligner_1 : entity work.Gtx7ManualTxPhaseAligner
+   TxManualPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "MANUAL") generate
+      Gtx7TxManualPhaseAligner_1 : entity work.Gtx7TxManualPhaseAligner
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -557,8 +597,16 @@ begin
             gtTxPhAlignDone    => txPhAlignDone,
             gtTxDlyEn          => txDlyEn);
       txPhAlignEn <= '1';
-      
-   end generate ManualTxPhaseAlignGen;
+   end generate TxManualPhaseAlignGen;
+
+   NoTxPhaseAlignGen : if (TX_BUF_EN_G = true or TX_PHASE_ALIGN_G = "NONE") generate
+      txPhaseAlignmentDone <= '1';
+      txDlySReset          <= '0';
+      txPhInit             <= '0';
+      txPhAlign            <= '0';
+      txDlyEn              <= '0';
+   end generate NoTxPhaseAlignGen;
+
    --------------------------------------------------------------------------------------------------
    -- GTX Instantiation
    --------------------------------------------------------------------------------------------------
@@ -937,7 +985,7 @@ begin
          ------------------- Receive Ports - RX Data Path interface -----------------
          GTRXRESET        => gtRxReset,
          RXDATA           => rxDataFull,
-         RXOUTCLK         => rxOutClkOut,
+         RXOUTCLK         => rxOutClk,
          RXOUTCLKFABRIC   => rxGtRefClk,
          RXOUTCLKPCS      => open,
          RXOUTCLKSEL      => to_stdlogicvector(RX_OUTCLK_SEL_C),  -- Selects rx recovered clk for rxoutclk
