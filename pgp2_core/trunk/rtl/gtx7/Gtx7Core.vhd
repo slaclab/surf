@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2013-06-14
+-- Last update: 2013-06-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,9 +39,11 @@ entity Gtx7Core is
       CPLL_REFCLK_DIV_G : integer    := 1;
       RXOUT_DIV_G       : integer    := 2;
       TXOUT_DIV_G       : integer    := 2;
+      RX_CLK25_DIV_G    : integer    := 5;  -- Use 5 for 2.5 Gbps and 7 for 3.124 Gbps
+      TX_CLK25_DIV_G    : integer    := 5;  -- ug476 does not explain what the hell these are
 
-      -- ???
-      PMA_RSV_G : bit_vector := X"00018480";  -- or x"001E7080"
+      PMA_RSV_G : bit_vector := X"00018480";  -- Use X"00018480" when RXPLL=CPLL
+                                              -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
 
       -- Configure PLL sources
       TX_PLL_G : string := "CPLL";
@@ -57,16 +59,18 @@ entity Gtx7Core is
       RX_8B10B_EN_G       : boolean := true;
 
       -- Configure Buffer usage
-      TX_BUF_EN_G      : boolean := true;
-      TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
-      TX_DLY_BYPASS_G  : sl      := '1';          -- 1 for bypass, 0 for delay
-      TX_PHASE_ALIGN_G : string  := "AUTO";       -- Or "MANUAL" or "NONE"
+      TX_BUF_EN_G        : boolean := true;
+      TX_OUTCLK_SRC_G    : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
+      TX_DLY_BYPASS_G    : sl      := '1';          -- 1 for bypass, 0 for delay
+      TX_PHASE_ALIGN_G   : string  := "AUTO";       -- Or "MANUAL" or "NONE"
+      TX_BUF_ADDR_MODE_G : string  := "FAST";       -- Or "FULL"
 
-      RX_BUF_EN_G     : boolean := true;
-      RX_OUTCLK_SRC_G : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
-      RX_USRCLK_SRC_G : string  := "RXOUTCLK";   -- or "TXOUTCLK"
-      RX_DLY_BYPASS_G : sl      := '1';          -- 1 for bypass, 0 for delay
-      RX_DDIEN_G      : sl      := '0';          -- Supposed to be '1' when bypassing rx buffer
+      RX_BUF_EN_G        : boolean := true;
+      RX_OUTCLK_SRC_G    : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
+      RX_USRCLK_SRC_G    : string  := "RXOUTCLK";   -- or "TXOUTCLK"
+      RX_DLY_BYPASS_G    : sl      := '1';          -- 1 for bypass, 0 for delay
+      RX_DDIEN_G         : sl      := '0';          -- Supposed to be '1' when bypassing rx buffer
+      RX_BUF_ADDR_MODE_G : string  := "FAST";
 
       -- Configure RX comma alignment
       RX_ALIGN_MODE_G      : string     := "GT";   -- Or "FIXED_LAT" or "NONE"
@@ -92,7 +96,49 @@ entity Gtx7Core is
       RX_DISPERR_SEQ_MATCH_G : string := "TRUE";
       DEC_MCOMMA_DETECT_G    : string := "TRUE";
       DEC_PCOMMA_DETECT_G    : string := "TRUE";
-      DEC_VALID_COMMA_ONLY_G : string := "FALSE"
+      DEC_VALID_COMMA_ONLY_G : string := "FALSE";
+
+      -- Configure Clock Correction
+      CBCC_DATA_SOURCE_SEL_G : string     := "DECODED";
+      CLK_COR_SEQ_2_USE_G    : string     := "FALSE";
+      CLK_COR_KEEP_IDLE_G    : string     := "FALSE";
+      CLK_COR_MAX_LAT_G      : integer    := 9;
+      CLK_COR_MIN_LAT_G      : integer    := 7;
+      CLK_COR_PRECEDENCE_G   : string     := "TRUE";
+      CLK_COR_REPEAT_WAIT_G  : integer    := 0;
+      CLK_COR_SEQ_LEN_G      : integer    := 1;
+      CLK_COR_SEQ_1_ENABLE_G : bit_vector := "1111";
+      CLK_COR_SEQ_1_1_G      : bit_vector := "0100000000";  -- UG476 pg 249
+      CLK_COR_SEQ_1_2_G      : bit_vector := "0000000000";
+      CLK_COR_SEQ_1_3_G      : bit_vector := "0000000000";
+      CLK_COR_SEQ_1_4_G      : bit_vector := "0000000000";
+      CLK_CORRECT_USE_G      : string     := "FALSE";
+      CLK_COR_SEQ_2_ENABLE_G : bit_vector := "0000";
+      CLK_COR_SEQ_2_1_G      : bit_vector := "0100000000";  -- UG476 pg 249
+      CLK_COR_SEQ_2_2_G      : bit_vector := "0000000000";
+      CLK_COR_SEQ_2_3_G      : bit_vector := "0000000000";
+      CLK_COR_SEQ_2_4_G      : bit_vector := "0000000000";
+
+      -- Configure Channel Bonding
+      RX_CHAN_BOND_EN_G        : boolean    := false;
+      RX_CHAN_BOND_MASTER_G    : boolean    := false;  --True: Master, False: Slave
+      CHAN_BOND_KEEP_ALIGN_G   : string     := "FALSE";
+      CHAN_BOND_MAX_SKEW_G     : integer    := 1;
+      CHAN_BOND_SEQ_LEN_G      : integer    := 1;
+      CHAN_BOND_SEQ_1_1_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_1_2_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_1_3_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_1_4_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_1_ENABLE_G : bit_vector := "1111";
+      CHAN_BOND_SEQ_2_1_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_2_2_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_2_3_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_2_4_G      : bit_vector := "0000000000";
+      CHAN_BOND_SEQ_2_ENABLE_G : bit_vector := "0000";
+      CHAN_BOND_SEQ_2_USE_G    : string     := "FALSE";
+      FTS_DESKEW_SEQ_ENABLE_G  : bit_vector := "1111";
+      FTS_LANE_DESKEW_CFG_G    : bit_vector := "1111";
+      FTS_LANE_DESKEW_EN_G     : string     := "FALSE"
       );
 
    port (
@@ -136,6 +182,11 @@ entity Gtx7Core is
       rxDispErrOut   : out slv((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       rxPolarityIn   : in  sl := '0';
       rxBufStatusOut : out slv(2 downto 0);
+
+      -- Rx Channel Bonding
+      rxChBondLevelIn : in  slv(2 downto 0) := "000";
+      rxChBondIn      : in  slv(4 downto 0) := "00000";
+      rxChBondOut     : out slv(4 downto 0);
 
       -- Tx Clock Related Signals
       txRefClkOut    : out sl;          -- For Debugging
@@ -323,9 +374,9 @@ begin
    begin
       if (RX_8B10B_EN_G) then
          rxDataInt    <= rxDataFull(RX_EXT_DATA_WIDTH_G-1 downto 0);
-         rxCharIsKOut <= rxCharIsKFull(log2(RX_EXT_DATA_WIDTH_G)-1 downto 0);
-         rxDispErrOut <= rxDispErrFull(log2(RX_EXT_DATA_WIDTH_G)-1 downto 0);
-         rxDecErrOut  <= rxDecErrFull(log2(RX_EXT_DATA_WIDTH_G)-1 downto 0);
+         rxCharIsKOut <= rxCharIsKFull((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
+         rxDispErrOut <= rxDispErrFull((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
+         rxDecErrOut  <= rxDecErrFull((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       else
          for i in RX_EXT_DATA_WIDTH_G-1 downto 0 loop
             if ((i-8) mod 10 = 0) then
@@ -433,7 +484,7 @@ begin
             COUNTER_UPPER_VALUE      => 15,
             GCLK_COUNTER_UPPER_VALUE => 15,
             CLOCK_PULSES             => 164,
-            EXAMPLE_SIMULATION       => 0)
+            EXAMPLE_SIMULATION       => 1)
          port map (
             GT_RST        => gtRxReset,
             REF_CLK       => rxGtRefClkBufg,
@@ -644,44 +695,44 @@ begin
          DEC_VALID_COMMA_ONLY => DEC_VALID_COMMA_ONLY_G,
 
          ------------------------RX Clock Correction Attributes----------------------
-         CBCC_DATA_SOURCE_SEL => ("DECODED"),
-         CLK_COR_SEQ_2_USE    => ("FALSE"),
-         CLK_COR_KEEP_IDLE    => ("FALSE"),
-         CLK_COR_MAX_LAT      => (9),
-         CLK_COR_MIN_LAT      => (7),
-         CLK_COR_PRECEDENCE   => ("TRUE"),
-         CLK_COR_REPEAT_WAIT  => (0),
-         CLK_COR_SEQ_LEN      => (1),
-         CLK_COR_SEQ_1_ENABLE => ("1111"),
-         CLK_COR_SEQ_1_1      => ("0100000000"),  -- UG476 pg 249
-         CLK_COR_SEQ_1_2      => ("0000000000"),
-         CLK_COR_SEQ_1_3      => ("0000000000"),
-         CLK_COR_SEQ_1_4      => ("0000000000"),
-         CLK_CORRECT_USE      => ("FALSE"),
-         CLK_COR_SEQ_2_ENABLE => ("1111"),
-         CLK_COR_SEQ_2_1      => ("0100000000"),  -- UG476 pg 249
-         CLK_COR_SEQ_2_2      => ("0000000000"),
-         CLK_COR_SEQ_2_3      => ("0000000000"),
-         CLK_COR_SEQ_2_4      => ("0000000000"),
+         CBCC_DATA_SOURCE_SEL => CBCC_DATA_SOURCE_SEL_G,
+         CLK_COR_SEQ_2_USE    => CLK_COR_SEQ_2_USE_G,
+         CLK_COR_KEEP_IDLE    => CLK_COR_KEEP_IDLE_G,
+         CLK_COR_MAX_LAT      => CLK_COR_MAX_LAT_G,
+         CLK_COR_MIN_LAT      => CLK_COR_MIN_LAT_G,
+         CLK_COR_PRECEDENCE   => CLK_COR_PRECEDENCE_G,
+         CLK_COR_REPEAT_WAIT  => CLK_COR_REPEAT_WAIT_G,
+         CLK_COR_SEQ_LEN      => CLK_COR_SEQ_LEN_G,
+         CLK_COR_SEQ_1_ENABLE => CLK_COR_SEQ_1_ENABLE_G,
+         CLK_COR_SEQ_1_1      => CLK_COR_SEQ_1_1_G,  -- UG476 pg 249
+         CLK_COR_SEQ_1_2      => CLK_COR_SEQ_1_2_G,
+         CLK_COR_SEQ_1_3      => CLK_COR_SEQ_1_3_G,
+         CLK_COR_SEQ_1_4      => CLK_COR_SEQ_1_4_G,
+         CLK_CORRECT_USE      => CLK_CORRECT_USE_G,
+         CLK_COR_SEQ_2_ENABLE => CLK_COR_SEQ_2_ENABLE_G,
+         CLK_COR_SEQ_2_1      => CLK_COR_SEQ_2_1_G,  -- UG476 pg 249
+         CLK_COR_SEQ_2_2      => CLK_COR_SEQ_2_2_G,
+         CLK_COR_SEQ_2_3      => CLK_COR_SEQ_2_3_G,
+         CLK_COR_SEQ_2_4      => CLK_COR_SEQ_2_4_G,
 
          ------------------------RX Channel Bonding Attributes----------------------
-         CHAN_BOND_KEEP_ALIGN   => ("FALSE"),
-         CHAN_BOND_MAX_SKEW     => (1),
-         CHAN_BOND_SEQ_LEN      => (1),
-         CHAN_BOND_SEQ_1_1      => ("0000000000"),
-         CHAN_BOND_SEQ_1_2      => ("0000000000"),
-         CHAN_BOND_SEQ_1_3      => ("0000000000"),
-         CHAN_BOND_SEQ_1_4      => ("0000000000"),
-         CHAN_BOND_SEQ_1_ENABLE => ("1111"),
-         CHAN_BOND_SEQ_2_1      => ("0000000000"),
-         CHAN_BOND_SEQ_2_2      => ("0000000000"),
-         CHAN_BOND_SEQ_2_3      => ("0000000000"),
-         CHAN_BOND_SEQ_2_4      => ("0000000000"),
-         CHAN_BOND_SEQ_2_ENABLE => ("1111"),
-         CHAN_BOND_SEQ_2_USE    => ("FALSE"),
-         FTS_DESKEW_SEQ_ENABLE  => ("1111"),
-         FTS_LANE_DESKEW_CFG    => ("1111"),
-         FTS_LANE_DESKEW_EN     => ("FALSE"),
+         CHAN_BOND_KEEP_ALIGN   => CHAN_BOND_KEEP_ALIGN_G,
+         CHAN_BOND_MAX_SKEW     => CHAN_BOND_MAX_SKEW_G,
+         CHAN_BOND_SEQ_LEN      => CHAN_BOND_SEQ_LEN_G,
+         CHAN_BOND_SEQ_1_1      => CHAN_BOND_SEQ_1_1_G,
+         CHAN_BOND_SEQ_1_2      => CHAN_BOND_SEQ_1_2_G,
+         CHAN_BOND_SEQ_1_3      => CHAN_BOND_SEQ_1_3_G,
+         CHAN_BOND_SEQ_1_4      => CHAN_BOND_SEQ_1_4_G,
+         CHAN_BOND_SEQ_1_ENABLE => CHAN_BOND_SEQ_1_ENABLE_G,
+         CHAN_BOND_SEQ_2_1      => CHAN_BOND_SEQ_2_1_G,
+         CHAN_BOND_SEQ_2_2      => CHAN_BOND_SEQ_2_2_G,
+         CHAN_BOND_SEQ_2_3      => CHAN_BOND_SEQ_2_3_G,
+         CHAN_BOND_SEQ_2_4      => CHAN_BOND_SEQ_2_4_G,
+         CHAN_BOND_SEQ_2_ENABLE => CHAN_BOND_SEQ_2_ENABLE_G,
+         CHAN_BOND_SEQ_2_USE    => CHAN_BOND_SEQ_2_USE_G,
+         FTS_DESKEW_SEQ_ENABLE  => FTS_DESKEW_SEQ_ENABLE_G,
+         FTS_LANE_DESKEW_CFG    => FTS_LANE_DESKEW_CFG_G,
+         FTS_LANE_DESKEW_EN     => FTS_LANE_DESKEW_EN_G,
 
          ---------------------------RX Margin Analysis Attributes----------------------------
          ES_CONTROL     => ("000000"),
@@ -699,8 +750,8 @@ begin
          RX_DATA_WIDTH => (RX_DATA_WIDTH_C),
 
          ---------------------------PMA Attributes----------------------------
-         OUTREFCLK_SEL_INV => ("11"),     -- ??
-         PMA_RSV           => PMA_RSV_G,  -- 
+         OUTREFCLK_SEL_INV => ("11"),          -- ??
+         PMA_RSV           => PMA_RSV_G,       -- 
          PMA_RSV2          => (x"2050"),
          PMA_RSV3          => ("00"),
          PMA_RSV4          => (x"00000000"),
@@ -713,8 +764,8 @@ begin
          TERM_RCAL_CFG     => ("10000"),
          TERM_RCAL_OVRD    => ('0'),
          TST_RSV           => (x"00000000"),
-         RX_CLK25_DIV      => (5),
-         TX_CLK25_DIV      => (5),
+         RX_CLK25_DIV      => RX_CLK25_DIV_G,  --(5),
+         TX_CLK25_DIV      => TX_CLK25_DIV_G,  --(5),
          UCODEER_CLR       => ('0'),
 
          ---------------------------PCI Express Attributes----------------------------
@@ -724,7 +775,7 @@ begin
          PCS_RSVD_ATTR => X"000000000000",  -- From wizard
 
          -------------RX Buffer Attributes------------
-         RXBUF_ADDR_MODE            => ("FAST"),
+         RXBUF_ADDR_MODE            => RX_BUF_ADDR_MODE_G,
          RXBUF_EIDLE_HI_CNT         => ("1000"),
          RXBUF_EIDLE_LO_CNT         => ("0000"),
          RXBUF_EN                   => toString(RX_BUF_EN_G),
@@ -959,12 +1010,12 @@ begin
          RXNOTINTABLE     => rxDecErrFull,
          ------------------- Receive Ports - Channel Bonding Ports ------------------
          RXCHANBONDSEQ    => open,
-         RXCHBONDEN       => '0',
-         RXCHBONDI        => "00000",
-         RXCHBONDLEVEL    => "000",
-         RXCHBONDMASTER   => '0',
-         RXCHBONDO        => open,
-         RXCHBONDSLAVE    => '0',
+         RXCHBONDEN       => toSl(RX_CHAN_BOND_EN_G),
+         RXCHBONDI        => rxChBondIn,  --"00000",
+         RXCHBONDLEVEL    => rxChBondLevelIn,  --"000",
+         RXCHBONDMASTER   => toSl(RX_CHAN_BOND_MASTER_G),
+         RXCHBONDO        => rxChBondOut,
+         RXCHBONDSLAVE    => toSl(RX_CHAN_BOND_MASTER_G = false),
          ------------------- Receive Ports - Channel Bonding Ports  -----------------
          RXCHANISALIGNED  => open,
          RXCHANREALIGN    => open,

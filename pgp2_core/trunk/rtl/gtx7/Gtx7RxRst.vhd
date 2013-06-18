@@ -297,16 +297,14 @@ begin
       --the MMCM is considered as "really" locked. 
       --The counter avoids that the FSM already starts on only a 
       --coarse lock of the MMCM (=toggling of the LOCK-signal).
-      if rising_edge(RXUSERCLK) then
-         if MMCM_LOCK = '0' then
-            mmcm_lock_count <= 0;
-            mmcm_lock_int   <= '0';
+      if MMCM_LOCK = '0' then
+         mmcm_lock_count <= 0;
+         mmcm_lock_int   <= '0';
+      elsif rising_edge(RXUSERCLK) then
+         if mmcm_lock_count < MMCM_LOCK_CNT_MAX - 1 then
+            mmcm_lock_count <= mmcm_lock_count + 1;
          else
-            if mmcm_lock_count < MMCM_LOCK_CNT_MAX - 1 then
-               mmcm_lock_count <= mmcm_lock_count + 1;
-            else
-               mmcm_lock_int <= '1';
-            end if;
+            mmcm_lock_int <= '1';
          end if;
       end if;
    end process;
@@ -440,7 +438,7 @@ begin
    reset_fsm : process(STABLE_CLOCK)
    begin
       if rising_edge(STABLE_CLOCK) then
-         if (soft_reset_rise = '1' or
+         if (soft_reset_sync = '1' or
              (not(rx_state = INIT) and not(rx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
             rx_state                <= INIT;
             RXUSERRDY               <= '0';

@@ -218,22 +218,19 @@ begin
 
    mmcm_lock_wait : process(TXUSERCLK)
    begin
-      if rising_edge(TXUSERCLK) then
-         if MMCM_LOCK = '0' then
-            mmcm_lock_count <= 0;
-            mmcm_lock_int   <= '0';
+      if MMCM_LOCK = '0' then
+         mmcm_lock_count <= 0;
+         mmcm_lock_int   <= '0';
+      elsif rising_edge(TXUSERCLK) then
+         if mmcm_lock_count < MMCM_LOCK_CNT_MAX - 1 then
+            mmcm_lock_count <= mmcm_lock_count + 1;
          else
-            if mmcm_lock_count < MMCM_LOCK_CNT_MAX - 1 then
-               mmcm_lock_count <= mmcm_lock_count + 1;
-            else
-               mmcm_lock_int <= '1';
-            end if;
+            mmcm_lock_int <= '1';
          end if;
       end if;
    end process;
 
-
-
+   
    -- Clock Domain Crossing
    Synchronizer_run_phase_alignment : entity work.Synchronizer
       generic map (
@@ -341,7 +338,7 @@ begin
    reset_fsm : process(STABLE_CLOCK)
    begin
       if rising_edge(STABLE_CLOCK) then
-         if(soft_reset_rise = '1' or
+         if(soft_reset_sync = '1' or
             (not(tx_state = INIT) and not(tx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
             tx_state                <= INIT;
             TXUSERRDY               <= '0';

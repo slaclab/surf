@@ -177,7 +177,7 @@ begin
          NUM_BYTES_G => 2)
       port map (
          clk      => pgpRxClk,
-         rstL     => gtRxResetDone,     -- ???
+         rstL     => gtRxResetDone,    
          dataIn   => gtRxData,
          dataOut  => phyRxLanesIn(0).data,
          dataKOut => phyRxLanesIn(0).dataK,
@@ -194,7 +194,7 @@ begin
          EnShortCells => EnShortCells)
       port map (
          pgpRxClk         => pgpRxClk,
-         pgpRxReset       => pgpRxReset,  -- Hold in reset until gtx rx is up
+         pgpRxReset       => gtRxResetDoneL,  -- Hold in reset until gtx rx is up
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxVcCommonOut => pgpRxVcCommonOut,
@@ -202,7 +202,7 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => gtRxUserReset,  --open,      -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => open, --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
          crcRxIn          => crcRxIn,
          crcRxOut         => crcRxOut,
          debug            => open);
@@ -355,7 +355,7 @@ begin
          rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
-         rxUserResetIn    => gtRxUserReset,                -- Should sync to stableClk???
+         rxUserResetIn    => pgpRxReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
