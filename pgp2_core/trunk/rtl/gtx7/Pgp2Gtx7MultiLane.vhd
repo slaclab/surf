@@ -31,7 +31,7 @@ entity Pgp2Gtx7MultiLane is
       -- GT Settings
       ----------------------------------------------------------------------------------------------
       -- Sim Generics
-      SIM_GTRESET_SPEEDUP_G : string               := "TRUE";
+      SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
       SIM_VERSION_G         : string               := "4.0";
       STABLE_CLOCK_PERIOD_G : time                 := 6.4 ns;
       -- CPLL Settings
@@ -290,7 +290,7 @@ begin
             TXOUT_DIV_G              => TXOUT_DIV_G,
             RX_CLK25_DIV_G           => RX_CLK25_DIV_G,
             TX_CLK25_DIV_G           => TX_CLK25_DIV_G,
---         PMA_RSV_G                => PMA_RSV_G,
+				PMA_RSV_G                => x"00018480",
             TX_PLL_G                 => TX_PLL_G,
             RX_PLL_G                 => RX_PLL_G,
             TX_EXT_DATA_WIDTH_G      => 16,
@@ -320,12 +320,8 @@ begin
             ALIGN_PCOMMA_DET_G       => "TRUE",
             ALIGN_PCOMMA_VALUE_G     => "0101111100",  -- Default
             ALIGN_PCOMMA_EN_G        => '1',
-            SHOW_REALIGN_COMMA_G     => "FALSE",       -- Maybe "TRUE"
-            RXSLIDE_MODE_G           => "AUTO",        -- Maybe "OFF"
---         FIXED_ALIGN_COMMA_0_G    => FIXED_ALIGN_COMMA_0_G,
---         FIXED_ALIGN_COMMA_1_G    => FIXED_ALIGN_COMMA_1_G,
---         FIXED_ALIGN_COMMA_2_G    => FIXED_ALIGN_COMMA_2_G,
---         FIXED_ALIGN_COMMA_3_G    => FIXED_ALIGN_COMMA_3_G,
+            SHOW_REALIGN_COMMA_G     => "FALSE",     
+            RXSLIDE_MODE_G           => "AUTO",      
             RX_DISPERR_SEQ_MATCH_G   => "TRUE",        -- Default
             DEC_MCOMMA_DETECT_G      => "TRUE",        -- Default
             DEC_PCOMMA_DETECT_G      => "TRUE",        -- Default
@@ -333,8 +329,8 @@ begin
             CBCC_DATA_SOURCE_SEL_G   => "DECODED",     -- Default
             CLK_COR_SEQ_2_USE_G      => "FALSE",       -- Default
             CLK_COR_KEEP_IDLE_G      => "FALSE",       -- Default
-            CLK_COR_MAX_LAT_G        => 48,
-            CLK_COR_MIN_LAT_G        => 36,
+            CLK_COR_MAX_LAT_G        => 21,
+            CLK_COR_MIN_LAT_G        => 18,
             CLK_COR_PRECEDENCE_G     => "TRUE",        -- Default
             CLK_COR_REPEAT_WAIT_G    => 0,             -- Default
             CLK_COR_SEQ_LEN_G        => 4,
@@ -367,7 +363,8 @@ begin
             CHAN_BOND_SEQ_2_USE_G    => "FALSE",       -- Default
             FTS_DESKEW_SEQ_ENABLE_G  => "1111",        -- Default
             FTS_LANE_DESKEW_CFG_G    => "1111",        -- Default
-            FTS_LANE_DESKEW_EN_G     => "FALSE")       -- Default
+            FTS_LANE_DESKEW_EN_G     => "FALSE",       -- Default
+				RX_DFE_KL_CFG2_G			 => x"3010D90C")
          port map (
             stableClkIn      => stableClk,
             cPllRefClkIn     => gtCPllRefClk,
