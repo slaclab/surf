@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2013-06-13
+-- Last update: 2013-06-29
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use work.StdRtlPkg.all;
 use work.SynchronizePkg.all;
 
 
-entity Gtx7RxFixedLatPhaseAligner is
+entity Gtp7RxFixedLatPhaseAligner is
    
    generic (
       TPD_G       : time    := 1 ns;
@@ -43,15 +43,15 @@ entity Gtx7RxFixedLatPhaseAligner is
       COMMA_3_G   : slv     := "XXXXXXXXXXXXXXXXXXXX");
    port (
       rxUsrClk             : in  sl;
-      rxRunPhAlignment     : in  sl;    -- From RxRst, active low reset, not clocked by rxUsrClk
+      rxRunPhAlignment     : in  sl;  -- From RxRst, active low reset, not clocked by rxUsrClk
       rxData               : in  slv(WORD_SIZE_G-1 downto 0);  -- Encoded raw rx data
       rxReset              : out sl;
       rxSlide              : out sl;    -- RXSLIDE input to GTX
       rxPhaseAlignmentDone : out sl);   -- Alignment has been achieved.
 
-end entity Gtx7RxFixedLatPhaseAligner;
+end entity Gtp7RxFixedLatPhaseAligner;
 
-architecture rtl of Gtx7RxFixedLatPhaseAligner is
+architecture rtl of Gtp7RxFixedLatPhaseAligner is
 
    constant SLIDE_WAIT_C : integer := 32;  -- Dictated by UG476 GTX Tranceiver Guide
 
@@ -94,7 +94,7 @@ begin
          syncRst  => rxRunPhAlignmentSync);
 
 
-   comb : process (r, rxData) is
+   comb : process (r, rxData, rxPhaseAlignmentDone, rxReset, rxSlide) is
       variable v : RegType;
    begin
       v := r;
@@ -160,7 +160,7 @@ begin
       rxPhaseAlignmentDone <= r.rxPhaseAlignmentDone;
    end process comb;
 
-   seq : process (rxUsrClk, rxRunPhAlignmentSync) is
+   seq : process (rxRunPhAlignmentSync, rxUsrClk) is
    begin
       if (rising_edge(rxUsrClk)) then
          r <= rin after TPD_G;

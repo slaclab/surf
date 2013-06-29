@@ -1,25 +1,24 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : Gtx7TxManualPhaseAligner.vhd
+-- File       : Gtp7TxManualPhaseAligner.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-23
--- Last update: 2013-06-13
+-- Created    : 2013-06-29
+-- Last update: 2013-06-29
 -- Platform   : 
--- Standard   : VHDL'93
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use work.StdRtlPkg.all;
 
-entity Gtx7TxManualPhaseAligner is
+entity Gtp7TxManualPhaseAligner is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -38,9 +37,9 @@ entity Gtx7TxManualPhaseAligner is
       gtTxPhAlign       : out sl;
       gtTxPhAlignDone   : in  sl;
       gtTxDlyEn         : out sl);
-end Gtx7TxManualPhaseAligner;
+end Gtp7TxManualPhaseAligner;
 
-architecture rtl of Gtx7TxManualPhaseAligner is
+architecture rtl of Gtp7TxManualPhaseAligner is
 
    type StateType is (
       INIT_S,
@@ -103,8 +102,9 @@ begin
          risingEdge  => gtTxPhAlignDoneEdge,
          fallingEdge => open);
 
-   comb : process (r, gtTxDlySResetDoneSync, gtTxPhInitDoneSync, gtTxPhAlignDoneSync, gtTxPhAlignDoneEdge,
-                   resetPhAlignment, runPhAlignment) is
+   comb : process (gtTxDlyEn, gtTxDlySReset, gtTxDlySResetDoneSync, gtTxPhAlign,
+                   gtTxPhAlignDoneEdge, gtTxPhInit, gtTxPhInitDoneSync,
+                   phaseAlignmentDone, r, resetPhAlignment, runPhAlignment) is
       variable v : RegType;
    begin
       v := r;
@@ -136,7 +136,7 @@ begin
                v.gtTxPhAlign := '0';
                v.gtTxDlyEn   := '1';
 --               v.state       := WAIT_PH_ALIGN_DONE_2_S;
-               v.state := DONE_S;
+               v.state       := DONE_S;
             end if;
 
          when WAIT_PH_ALIGN_DONE_2_S =>

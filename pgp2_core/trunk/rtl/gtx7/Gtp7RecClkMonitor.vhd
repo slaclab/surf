@@ -4,7 +4,7 @@
 --// /___/  \  /    Vendor: Xilinx 
 --// \   \   \/     Version : 2.2
 --//  \   \         Application : 7 Series FPGAs Transceivers Wizard 
---//  /   /         Filename : kintexgtxlowlat_recclk_monitor.vhd
+--//  /   /         Filename : Gtp7RecClkMonitor.vhd
 --// /___/   /\     
 --// \   \  /  \ 
 --//  \___\/\___\ 
@@ -123,7 +123,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-ENTITY Gtx7RecClkMonitor is
+ENTITY Gtp7RecClkMonitor is
    generic(
       COUNTER_UPPER_VALUE      : integer := 20; --ppm counter. For 2^20 cntr.  
       GCLK_COUNTER_UPPER_VALUE : integer := 20; --ppm counter. For 2^20 cntr.
@@ -145,10 +145,10 @@ ENTITY Gtx7RecClkMonitor is
 	RECCLK_STABLE : out std_logic;
         EXEC_RESTART  : out std_logic
 	);
-end ENTITY Gtx7RecClkMonitor;
+end ENTITY Gtp7RecClkMonitor;
 
 
-ARCHITECTURE RTL of Gtx7RecClkMonitor is
+ARCHITECTURE RTL of Gtp7RecClkMonitor is
 
 --------------------------------------------------------------------------------
 -- Declaration of wires/regs
