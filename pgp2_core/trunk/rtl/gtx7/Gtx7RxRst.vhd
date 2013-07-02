@@ -290,7 +290,7 @@ begin
    end process;
 
 
-   mmcm_lock_wait : process(RXUSERCLK)
+   mmcm_lock_wait : process(RXUSERCLK, MMCM_LOCK)
    begin
       --The lock-signal from the MMCM is not immediately used but 
       --enabling a counter. Only when the counter hits its maximum,
@@ -633,7 +633,7 @@ begin
                   if (data_valid_sync = '0') then
                      rx_fsm_reset_done_int <= '0';
                      reset_time_out        <= '1';
-                     rx_state              <= MONITOR_DATA_VALID;
+                     rx_state              <= ASSERT_ALL_RESETS;
                   elsif (time_out_1us = '1') then
                      rx_fsm_reset_done_int <= '1';
                   end if;
