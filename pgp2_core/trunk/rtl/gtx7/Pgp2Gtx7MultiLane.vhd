@@ -108,6 +108,7 @@ architecture rtl of Pgp2Gtx7MultiLane is
    signal pgpRxMmcmResets : slv((LANE_CNT_G-1) downto 0);
    signal gtRxResetDone   : slv((LANE_CNT_G-1) downto 0);
    signal gtRxUserReset   : sl;
+   signal gtRxUserResetIn : sl;
    signal phyRxLanesIn    : PgpRxPhyLaneInArray((LANE_CNT_G-1) downto 0);
    signal phyRxLanesOut   : PgpRxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyRxReady      : sl;
@@ -129,6 +130,7 @@ architecture rtl of Pgp2Gtx7MultiLane is
    -- PgpTx Signals
    signal pgpTxMmcmResets : slv((LANE_CNT_G-1) downto 0);
    signal gtTxResetDone   : slv((LANE_CNT_G-1) downto 0);
+   signal gtTxUserResetIn : sl;   
    signal phyTxLanesOut   : PgpTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
    signal crcTxIn         : PgpCrcInType;
@@ -149,6 +151,9 @@ begin
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
+   
+   gtRxUserResetIn <= gtRxUserReset or pgpRxReset;
+   gtTxUserResetIn <= pgpTxReset;
 
    -- PGP RX Block
    Pgp2RxWrapper_1 : entity work.Pgp2RxWrapper
@@ -384,7 +389,7 @@ begin
             rxUserRdyOut     => open,
             rxMmcmResetOut   => pgpRxMmcmResets(i),
             rxMmcmLockedIn   => pgpRxMmcmLocked,
-            rxUserResetIn    => gtRxUserReset,
+            rxUserResetIn    => gtRxUserResetIn,
             rxResetDoneOut   => gtRxResetDone(i),
             rxDataValidIn    => '1',
             rxSlideIn        => '0',
@@ -405,7 +410,7 @@ begin
             txUserRdyOut     => open,
             txMmcmResetOut   => pgpTxMmcmResets(i),
             txMmcmLockedIn   => pgpTxMmcmLocked,
-            txUserResetIn    => pgpTxReset,
+            txUserResetIn    => gtTxUserResetIn,
             txResetDoneOut   => gtTxResetDone(i),
             txDataIn         => phyTxLanesOut(i).data,
             txCharIsKIn      => phyTxLanesOut(i).dataK,

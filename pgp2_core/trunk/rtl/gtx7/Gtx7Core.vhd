@@ -678,6 +678,7 @@ begin
       txPhInit             <= '0';
       txPhAlign            <= '0';
       txDlyEn              <= '0';
+      txPhAlignEn 			<= '0';
    end generate NoTxPhaseAlignGen;
 
    --------------------------------------------------------------------------------------------------
