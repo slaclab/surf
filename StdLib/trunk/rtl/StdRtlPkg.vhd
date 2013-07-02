@@ -38,6 +38,7 @@ package StdRtlPkg is
    type Slv4Array is array (natural range <>) of slv(3 downto 0);
    type Slv3Array is array (natural range <>) of slv(2 downto 0);
    type Slv2Array is array (natural range <>) of slv(1 downto 0);
+   type Slv1Array is array (natural range <>) of slv(0 downto 0);
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
