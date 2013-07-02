@@ -216,7 +216,7 @@ begin
       end if;
    end process;
 
-   mmcm_lock_wait : process(TXUSERCLK)
+   mmcm_lock_wait : process(TXUSERCLK, MMCM_LOCK)
    begin
       if MMCM_LOCK = '0' then
          mmcm_lock_count <= 0;

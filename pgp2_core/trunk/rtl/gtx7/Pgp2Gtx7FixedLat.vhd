@@ -36,6 +36,7 @@ entity Pgp2Gtx7Fixedlat is
       -- Sim Generics --
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "4.0";
+      SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : time       := 8 ns;
       -- CPLL Settings - Defaults to 2.5 Gbps operation 
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
@@ -44,6 +45,8 @@ entity Pgp2Gtx7Fixedlat is
       CPLL_REFCLK_DIV_G     : integer    := 1;
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
+      RX_CLK25_DIV_G        : integer    := 5;
+      TX_CLK25_DIV_G        : integer    := 5;
       -- Configure PLL sources
       TX_PLL_G              : string     := "CPLL";
       RX_PLL_G              : string     := "QPLL";
@@ -177,7 +180,7 @@ begin
          NUM_BYTES_G => 2)
       port map (
          clk      => pgpRxClk,
-         rstL     => gtRxResetDone,    
+         rstL     => gtRxResetDone,
          dataIn   => gtRxData,
          dataOut  => phyRxLanesIn(0).data,
          dataKOut => phyRxLanesIn(0).dataK,
@@ -202,7 +205,7 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => open, --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => open,  --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
          crcRxIn          => crcRxIn,
          crcRxOut         => crcRxOut,
          debug            => open);
@@ -290,6 +293,7 @@ begin
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
          SIM_VERSION_G         => SIM_VERSION_G,
+         SIMULATION_G          => SIMULATION_G,
          STABLE_CLOCK_PERIOD_G => STABLE_CLOCK_PERIOD_G,
          CPLL_REFCLK_SEL_G     => CPLL_REFCLK_SEL_G,
          CPLL_FBDIV_G          => CPLL_FBDIV_G,
@@ -297,6 +301,8 @@ begin
          CPLL_REFCLK_DIV_G     => CPLL_REFCLK_DIV_G,
          RXOUT_DIV_G           => RXOUT_DIV_G,
          TXOUT_DIV_G           => TXOUT_DIV_G,
+         RX_CLK25_DIV_G        => RX_CLK25_DIV_G,
+         TX_CLK25_DIV_G        => TX_CLK25_DIV_G,
 --         PMA_RSV_G              => PMA_RSV_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
