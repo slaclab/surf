@@ -27,8 +27,11 @@ package StdRtlPkg is
    type NaturalArray is array (natural range <>) of natural;
    -- Add more slv array sizes here as they become needed
    type Slv128Array is array (natural range <>) of slv(127 downto 0);
+   type Slv72Array is array (natural range <>) of slv(71 downto 0);
    type Slv64Array is array (natural range <>) of slv(63 downto 0);
+   type Slv36Array is array (natural range <>) of slv(35 downto 0);
    type Slv32Array is array (natural range <>) of slv(31 downto 0);
+   type Slv18Array is array (natural range <>) of slv(17 downto 0);
    type Slv16Array is array (natural range <>) of slv(15 downto 0);
    type Slv14Array is array (natural range <>) of slv(13 downto 0);
    type Slv8Array is array (natural range <>) of slv(7 downto 0);
