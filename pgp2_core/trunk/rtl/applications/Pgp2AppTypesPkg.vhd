@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
-use work.Pgp2CoreTypesPkg.all;
 
 package Pgp2AppTypesPkg is
    ------------------------------------------------------------------------
@@ -241,67 +240,6 @@ package Pgp2AppTypesPkg is
       (others => '0'));                 --frameRxData    
 
    type DsBuff128OutArrayType is array (natural range <>) of DsBuff128OutType;
-
-   ------------------------------------------------------------------------
-   -- Some useful initialization constants                        
-   ------------------------------------------------------------------------
-   constant PgpTxVcInInit : PgpTxVcInType := (
-      '0',                              --frameTxValid
-      '0',                              --frameTxSOF
-      '0',                              --frameTxEOF
-      '0',                              --frameTxEOFE
-      (others => (others => '0')),      --frameTxData
-      '0',                              --locBuffAFull
-      '0');                             --locBuffFull       
-
-   constant PgpTxVcQuadInInit : PgpTxVcQuadInType := (
-      (others => PgpTxVcInInit));
-
-   constant PgpTxVcOutInit : PgpTxVcOutType := (
-      (others => '0'));                 --frameTxReady
-
-   constant PgpTxVcQuadOutInit : PgpTxVcQuadOutType := (
-      (others => PgpTxVcOutInit));     
-
-   constant PgpRxVcCommonOutInit : PgpRxVcCommonOutType := (
-      '0',                              --frameRxSOF
-      '0',                              --frameRxEOF
-      '0',                              --frameRxEOFE
-      (others => (others => '0')));     --frameRxData
-
-
-   constant PgpRxVcOutInit : PgpRxVcOutType := (
-      '0',                              --frameRxValid
-      '0',                              --remBuffAFull
-      '0');                             --remBuffFull
-
-   constant PgpRxVcQuadOutInit : PgpRxVcQuadOutType := (
-      (others => PgpRxVcOutInit)); 
-
-
-   constant PgpRxInInit : PgpRxInType := (
-      '0',                              --flush
-      '0');                             --resetRx         
-
-   constant PgpRxOutInit : PgpRxOutType := (
-      '0',                              --linkReady
-      '0',                              --cellError
-      '0',                              --linkDown
-      '0',                              --linkError
-      '0',                              --opCodeEn
-      (others => '0'),                  --opCode
-      '0',                              --remLinkReady
-      (others => '0'));                 --remLinkData         
-
-   constant PgpTxInInit : PgpTxInType := (
-      '0',                              --flush
-      '0',                              --opCodeEn
-      (others => '0'),                  --opCode
-      '0',                              --locLinkReady
-      (others => '0'));                 --locData                   
-
-   constant PgpTxOutInit : PgpTxOutType := (
-      (others => '0'));                 --linkReady  
 
 ----------------------------------------------------------------------------------------------------
 end package;
