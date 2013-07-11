@@ -22,6 +22,7 @@ use work.StdRtlPkg.all;
 entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
+		TPD_G        : time                     := 1 ns;
       MODE_G       : string                   := "read-first";
       BRAM_EN_G    : boolean                  := true;
       DATA_WIDTH_G : integer range 1 to 65535 := 18;
@@ -70,7 +71,7 @@ begin
                if wea = '1' then
                   mem(conv_integer(addra)) := dina;
                else
-                  douta <= mem(conv_integer(addra));
+                  douta <= mem(conv_integer(addra)) after TPD_G;
                end if;
             end if;
          end if;
@@ -84,7 +85,7 @@ begin
                if web = '1' then
                   mem(conv_integer(addrb)) := dinb;
                else
-                  doutb <= mem(conv_integer(addrb));
+                  doutb <= mem(conv_integer(addrb)) after TPD_G;
                end if;
             end if;
          end if;
@@ -98,7 +99,7 @@ begin
       begin
          if rising_edge(clka) then
             if ena = '1' then
-               douta <= mem(conv_integer(addra));
+               douta <= mem(conv_integer(addra)) after TPD_G;
                if wea = '1' then
                   mem(conv_integer(addra)) := dina;
                end if;
@@ -111,7 +112,7 @@ begin
       begin
          if rising_edge(clkb) then
             if enb = '1' then
-               doutb <= mem(conv_integer(addrb));
+               doutb <= mem(conv_integer(addrb)) after TPD_G;
                if web = '1' then
                   mem(conv_integer(addrb)) := dinb;
                end if;
@@ -130,7 +131,7 @@ begin
                if wea = '1' then
                   mem(conv_integer(addra)) := dina;
                end if;
-               douta <= mem(conv_integer(addra));
+               douta <= mem(conv_integer(addra)) after TPD_G;
             end if;
          end if;
       end process;
@@ -143,7 +144,7 @@ begin
                if web = '1' then
                   mem(conv_integer(addrb)) := dinb;
                end if;
-               doutb <= mem(conv_integer(addrb));
+               doutb <= mem(conv_integer(addrb)) after TPD_G;
             end if;
          end if;
       end process;
