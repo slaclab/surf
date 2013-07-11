@@ -239,7 +239,8 @@ begin
    portB.din  <= (others => '0');
 
    DualPortRam_Inst : entity work.DualPortRam
-      generic map (
+      generic map(
+         TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
