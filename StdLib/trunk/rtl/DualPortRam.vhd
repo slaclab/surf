@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-09
--- Last update: 2013-07-10
+-- Last update: 2013-07-11
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,11 +22,11 @@ use work.StdRtlPkg.all;
 entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
-		TPD_G        : time                     := 1 ns;
-      MODE_G       : string                   := "read-first";
-      BRAM_EN_G    : boolean                  := true;
-      DATA_WIDTH_G : integer range 1 to 65535 := 18;
-      ADDR_WIDTH_G : integer range 1 to 65535 := 4);
+      TPD_G        : time                       := 1 ns;
+      MODE_G       : string                     := "read-first";
+      BRAM_EN_G    : boolean                    := true;
+      DATA_WIDTH_G : integer range 1 to (2**24) := 18;
+      ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
    port (
       -- Port A     
       clka  : in  sl                           := '0';
@@ -41,7 +41,12 @@ entity DualPortRam is
       web   : in  sl                           := '0';
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       dinb  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      doutb : out slv(DATA_WIDTH_G-1 downto 0));   
+      doutb : out slv(DATA_WIDTH_G-1 downto 0));
+begin
+   -- MODE_G check
+   assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
+      report "MODE_G must be either no-change, read-first, or write-first"
+      severity failure; 
 end DualPortRam;
 
 architecture rtl of DualPortRam is
