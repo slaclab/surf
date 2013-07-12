@@ -27,7 +27,7 @@ entity SynchronizerFifo is
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := false;
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
-      DATA_WIDTH_G  : integer range 1 to (2**24) := 18);
+      DATA_WIDTH_G  : integer range 1 to (2**24) := 73);
    port (
       -- Asynchronous Reset
       rst    : in  sl;
@@ -40,6 +40,8 @@ entity SynchronizerFifo is
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
+   signal empty : sl;
+   signal notEmpty : sl;
 begin
    FifoAsync_1 : entity work.FifoAsync
       generic map (
@@ -59,12 +61,13 @@ begin
          almost_full   => open,
          full          => open,
          rd_clk        => rd_clk,
-         rd_en         => '1',
+         rd_en         => notEmpty,
          dout          => dout,
          rd_data_count => open,
          valid         => open,
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
-         empty         => open);
+         empty         => empty);
+   notEmpty <= not empty;
 end architecture rtl;
