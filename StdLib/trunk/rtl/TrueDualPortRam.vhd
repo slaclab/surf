@@ -5,11 +5,11 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-07-11
+-- Last update: 2013-07-12
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: XST will infer this module as Block RAM only
+-- Description: This will infer this module as Block RAM only
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ entity TrueDualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G        : time                       := 1 ns;
+      ALTERA_RAM_G : string                     := "M-RAM";
       MODE_G       : string                     := "write-first";
       DATA_WIDTH_G : integer range 1 to (2**24) := 18;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
@@ -46,7 +47,17 @@ begin
    -- MODE_G check
    assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
       report "MODE_G must be either no-change, read-first, or write-first"
-      severity failure; 
+      severity failure;
+   -- ALTERA_RAM_G check
+   assert ((ALTERA_RAM_G = "M512")
+           or (ALTERA_RAM_G = "M4K")
+           or (ALTERA_RAM_G = "M9K")
+           or (ALTERA_RAM_G = "M10K")
+           or (ALTERA_RAM_G = "M20K")
+           or (ALTERA_RAM_G = "M144K")
+           or (ALTERA_RAM_G = "M-RAM"))
+      report "Invalid ALTERA_RAM_G string"
+      severity failure;
 end TrueDualPortRam;
 
 architecture rtl of TrueDualPortRam is
@@ -54,7 +65,7 @@ architecture rtl of TrueDualPortRam is
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
    shared variable mem : mem_type := (others => (others => '0'));
 
-   -- Attribute for XST
+   -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
    attribute ram_style of mem : variable is "block";
 
@@ -63,6 +74,10 @@ architecture rtl of TrueDualPortRam is
 
    attribute keep        : string;
    attribute keep of mem : variable is "TRUE";
+
+   -- Attribute for Altera Synthesizer
+   attribute ramstyle        : string;
+   attribute ramstyle of mem : variable is ALTERA_RAM_G;
    
 begin
    NO_CHANGE_MODE : if MODE_G = "no-change" generate
