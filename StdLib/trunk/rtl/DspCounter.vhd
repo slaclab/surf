@@ -24,9 +24,9 @@ use work.StdRtlPkg.all;
 
 entity DspCounter is
    generic (
-      TPD_G        : time                       := 1 ns;
-      DATA_WIDTH_G : integer range 1 to (2**24) := 16;
-      INCREMENT_G  : integer range 1 to (2**24) := 1);
+      TPD_G        : time                  := 1 ns;
+      DATA_WIDTH_G : integer range 1 to 48 := 16;
+      INCREMENT_G  : integer range 1 to 48 := 1);
    port (
       clk : in  sl := '0';
       rst : in  sl := '0';
