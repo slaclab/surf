@@ -74,9 +74,10 @@ architecture rtl of FifoSync is
    end record;
 
    signal portA, portB : RamPortType;
-   signal raddr        : slv (ADDR_WIDTH_G-1 downto 0);
-   signal waddr        : slv (ADDR_WIDTH_G-1 downto 0);
-   signal cnt          : slv (ADDR_WIDTH_G-1 downto 0);
+
+   signal raddr : slv (ADDR_WIDTH_G-1 downto 0);
+   signal waddr : slv (ADDR_WIDTH_G-1 downto 0);
+   signal cnt   : slv (ADDR_WIDTH_G-1 downto 0);
 
    signal writeAck : sl;
    signal readAck  : sl;
@@ -180,7 +181,7 @@ begin
    portB.addr <= raddr;
    portB.din  <= (others => '0');
 
-   DualPortRam_Inst : entity work.DualPortRam
+   SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
       generic map(
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
@@ -193,13 +194,10 @@ begin
          wea   => portA.we,
          addra => portA.addr,
          dina  => portA.din,
-         douta => portA.dout,
          -- Port B
          clkb  => portB.clk,
          enb   => portB.en,
-         web   => portB.we,
          addrb => portB.addr,
-         dinb  => portB.din,
          doutb => portB.dout);     
 
 end rtl;

@@ -238,7 +238,7 @@ begin
    portB.addr <= rdReg.raddr;
    portB.din  <= (others => '0');
 
-   DualPortRam_Inst : entity work.DualPortRam
+   SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
       generic map(
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
@@ -251,13 +251,10 @@ begin
          wea   => portA.we,
          addra => portA.addr,
          dina  => portA.din,
-         douta => portA.dout,
          -- Port B
          clkb  => portB.clk,
          enb   => portB.en,
-         web   => portB.we,
          addrb => portB.addr,
-         dinb  => portB.din,
-         doutb => portB.dout);     
+         doutb => portB.dout);      
 
 end architecture rtl;
