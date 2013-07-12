@@ -5,11 +5,11 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-07-11
+-- Last update: 2013-07-12
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: XST will infer this module as either Block RAM or distributed RAM
+-- Description: This will infer this module as either Block RAM or distributed RAM
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ entity SimpleDualPortRam is
    generic (
       TPD_G        : time                       := 1 ns;
       BRAM_EN_G    : boolean                    := true;
+      ALTERA_RAM_G : string                     := "M-RAM";
       DATA_WIDTH_G : integer range 1 to (2**24) := 18;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
    port (
@@ -38,24 +39,40 @@ entity SimpleDualPortRam is
       enb   : in  sl                           := '1';
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0));
+begin
+   -- ALTERA_RAM_G check
+   assert ((ALTERA_RAM_G = "M512")
+           or (ALTERA_RAM_G = "M4K")
+           or (ALTERA_RAM_G = "M9K")
+           or (ALTERA_RAM_G = "M10K")
+           or (ALTERA_RAM_G = "M20K")
+           or (ALTERA_RAM_G = "M144K")
+           or (ALTERA_RAM_G = "M-RAM"))
+      report "Invalid ALTERA_RAM_G string"
+      severity failure;
 end SimpleDualPortRam;
 
 architecture rtl of SimpleDualPortRam is
-   constant BRAM_STYLE_C : string := ite(BRAM_EN_G, "block", "distributed");
+   constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
+   constant ALTERA_BRAM_STYLE_C : string := ite(BRAM_EN_G, ALTERA_RAM_G, "MLAB");
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
    shared variable mem : mem_type := (others => (others => '0'));
 
-   -- Attribute for XST
+   -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
-   attribute ram_style of mem : variable is BRAM_STYLE_C;
+   attribute ram_style of mem : variable is XST_BRAM_STYLE_C;
 
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
    attribute keep        : string;
    attribute keep of mem : variable is "TRUE";
+
+   -- Attribute for Altera Synthesizer
+   attribute ramstyle        : string;
+   attribute ramstyle of mem : variable is ALTERA_BRAM_STYLE_C;
    
 begin
    -- Port A
