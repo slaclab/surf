@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-11
+-- Last update: 2013-07-12
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,8 +26,9 @@ entity FifoSync is
    generic (
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := true;
+      USE_DSP48_G   : string                     := "no";
       DATA_WIDTH_G  : integer range 1 to (2**24) := 1;
-      ADDR_WIDTH_G  : integer range 4 to (2**24) := 4;
+      ADDR_WIDTH_G  : integer range 4 to 48      := 4;
       FULL_THRES_G  : integer range 3 to (2**24) := 3;
       EMPTY_THRES_G : integer range 2 to (2**24) := 2);
    port (
@@ -58,6 +59,10 @@ begin
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-3))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-3)"
       severity failure;
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
 end FifoSync;
 
 architecture rtl of FifoSync is
@@ -87,6 +92,10 @@ architecture rtl of FifoSync is
 
    signal fullStatus  : sl;
    signal emptyStatus : sl;
+
+   -- Attribute for XST
+   attribute use_dsp48        : string;
+   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
    
