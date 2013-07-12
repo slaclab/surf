@@ -4,7 +4,7 @@
 -- File       : SimpleDualPortRam.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-07-09
+-- Created    : 2013-07-11
 -- Last update: 2013-07-11
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
@@ -23,7 +23,7 @@ use work.StdRtlPkg.all;
 entity SimpleDualPortRam is
    generic (
       TPD_G        : time                       := 1 ns;
-      BRAM_EN_G    : boolean                    := false;
+      BRAM_EN_G    : boolean                    := true;
       DATA_WIDTH_G : integer range 1 to (2**24) := 18;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
    port (
