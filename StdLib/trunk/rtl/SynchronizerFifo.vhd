@@ -28,7 +28,7 @@ entity SynchronizerFifo is
       BRAM_EN_G     : boolean                    := false;
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 73);
-   port (
+   port ( 
       -- Asynchronous Reset
       rst    : in  sl;
       --Write Ports (wr_clk domain)
@@ -36,7 +36,11 @@ entity SynchronizerFifo is
       din    : in  slv(DATA_WIDTH_G-1 downto 0);
       --Read Ports (rd_clk domain)
       rd_clk : in  sl;
+      valid  : out sl;
       dout   : out slv(DATA_WIDTH_G-1 downto 0));
+      -------------------------------------------------------------------------
+      -- Note: rd_clk frequency must be greater than or equal to wr_clk!!!!!!!!
+      -------------------------------------------------------------------------
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
@@ -64,7 +68,7 @@ begin
          rd_en         => notEmpty,
          dout          => dout,
          rd_data_count => open,
-         valid         => open,
+         valid         => valid,
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
