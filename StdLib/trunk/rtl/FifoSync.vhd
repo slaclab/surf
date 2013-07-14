@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-12
+-- Last update: 2013-07-14
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,9 @@ entity FifoSync is
    generic (
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := true;
+      FWFT_EN_G     : boolean                    := false;
       USE_DSP48_G   : string                     := "no";
+      ALTERA_RAM_G  : string                     := "M-RAM";
       DATA_WIDTH_G  : integer range 1 to (2**24) := 1;
       ADDR_WIDTH_G  : integer range 4 to 48      := 4;
       FULL_THRES_G  : integer range 3 to (2**24) := 3;
@@ -77,48 +79,86 @@ architecture rtl of FifoSync is
       din  : slv(DATA_WIDTH_G-1 downto 0);
       dout : slv(DATA_WIDTH_G-1 downto 0);
    end record;
-
    signal portA, portB : RamPortType;
+
+   type ReadStatusType is
+   record
+      --count       : slv(ADDR_WIDTH_G-1 downto 0);
+      prog_empty   : sl;
+      almost_empty : sl;
+      empty        : sl;
+   end record;
+   constant READ_STATUS_INIT_C : ReadStatusType := (
+      --(others => '0'),
+      '1',
+      '1',
+      '1');   
+   signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    signal raddr : slv (ADDR_WIDTH_G-1 downto 0);
    signal waddr : slv (ADDR_WIDTH_G-1 downto 0);
    signal cnt   : slv (ADDR_WIDTH_G-1 downto 0);
 
-   signal writeAck : sl;
-   signal readAck  : sl;
-
+   signal writeAck        : sl;
+   signal readAck         : sl;
    signal overflowStatus  : sl;
    signal underflowStatus : sl;
-
-   signal fullStatus  : sl;
-   signal emptyStatus : sl;
+   signal fullStatus      : sl;
+   signal readEnable      : sl;
 
    -- Attribute for XST
    attribute use_dsp48        : string;
    attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
-   
-   dout       <= portB.dout;
-   data_count <= cnt;
+   --write ports
+   data_count  <= cnt;
+   full        <= fullStatus;
+   wr_ack      <= writeAck;
+   overflow    <= overflowStatus;
+   prog_full   <= '1' when (cnt >= FULL_THRES_G)    else '0';
+   almost_full <= '1' when (cnt >= (RAM_DEPTH_C-2)) else '0';
+   fullStatus  <= '1' when (cnt >= (RAM_DEPTH_C-1)) else '0';
 
-   full  <= fullStatus;
-   empty <= emptyStatus;
-
-   wr_ack <= writeAck;
-   valid  <= readAck;
-
-   overflow  <= overflowStatus;
+   --read ports
+   dout      <= portB.dout;
    underflow <= underflowStatus;
 
-   prog_full  <= '1' when (cnt >= FULL_THRES_G)  else '0';
-   prog_empty <= '1' when (cnt <= EMPTY_THRES_G) else '0';
+   fifoStatus.prog_empty   <= '1' when (cnt <= EMPTY_THRES_G) else '0';
+   fifoStatus.almost_empty <= '1' when (cnt <= 1)             else '0';
+   fifoStatus.empty        <= '1' when (cnt <= 0)             else '0';
 
-   almost_full  <= '1' when (cnt >= (RAM_DEPTH_C-2)) else '0';
-   almost_empty <= '1' when (cnt <= 1)               else '0';
+   FIFO_Gen : if (FWFT_EN_G = false) generate
+      readEnable   <= rd_en;
+      valid        <= readAck;
+      prog_empty   <= fifoStatus.prog_empty;
+      almost_empty <= fifoStatus.almost_empty;
+      empty        <= fifoStatus.empty;
+   end generate;
 
-   fullStatus  <= '1' when (cnt >= (RAM_DEPTH_C-1)) else '0';
-   emptyStatus <= '1' when (cnt <= 0)               else '0';
+   FWFT_Gen : if (FWFT_EN_G = true) generate
+      readEnable   <= (rd_en or fwftStatus.empty) and not(fifoStatus.empty);
+      valid        <= not(fwftStatus.empty);
+      prog_empty   <= fwftStatus.prog_empty;
+      almost_empty <= fwftStatus.almost_empty;
+      empty        <= fwftStatus.empty;
+      process (clk, rst) is
+      begin
+         --asychronous reset
+         if rst = '1' then
+            fwftStatus <= READ_STATUS_INIT_C after TPD_G;
+         elsif rising_edge(clk) then
+            --sychronous reset
+            if srst = '1'then
+               fwftStatus <= READ_STATUS_INIT_C after TPD_G;
+            else
+               fwftStatus.prog_empty   <= fifoStatus.prog_empty                            after TPD_G;
+               fwftStatus.almost_empty <= fifoStatus.almost_empty                          after TPD_G;
+               fwftStatus.empty        <= (rd_en or fwftStatus.empty) and fifoStatus.empty after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate;
 
    process (clk, rst) is
    begin
@@ -155,8 +195,8 @@ begin
             end if;
 
             --check for read operation
-            if rd_en = '1' then
-               if emptyStatus = '0' then
+            if readEnable = '1' then
+               if fifoStatus.empty = '0' then
                   --increment the read address pointer
                   raddr   <= raddr + 1 after TPD_G;
                   readAck <= '1'       after TPD_G;
@@ -166,9 +206,9 @@ begin
             end if;
 
             --increment the FIFO counter
-            if (rd_en = '1') and (wr_en = '0') and (emptyStatus = '0') then
+            if (readEnable = '1') and (wr_en = '0') and (fifoStatus.empty = '0') then
                cnt <= cnt - 1 after TPD_G;
-            elsif (rd_en = '0') and (wr_en = '1') and (fullStatus = '0') then
+            elsif (readEnable = '0') and (wr_en = '1') and (fullStatus = '0') then
                cnt <= cnt + 1 after TPD_G;
             end if;
             
@@ -185,7 +225,7 @@ begin
 
    -- RAM Port B Mapping
    portB.clk  <= clk;
-   portB.en   <= rd_en and not(emptyStatus);
+   portB.en   <= readEnable and not(fifoStatus.empty);
    portB.we   <= '0';
    portB.addr <= raddr;
    portB.din  <= (others => '0');
@@ -194,6 +234,7 @@ begin
       generic map(
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
+         ALTERA_RAM_G => ALTERA_RAM_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (
