@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-12
+-- Last update: 2013-07-14
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,9 @@ entity FifoAsync is
    generic (
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := true;
+      FWFT_EN_G     : boolean                    := false;
       USE_DSP48_G   : string                     := "no";
+      ALTERA_RAM_G  : string                     := "M-RAM";
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 18;
       ADDR_WIDTH_G  : integer range 4 to 48      := 4;
@@ -92,8 +94,7 @@ architecture rtl of FifoAsync is
 
    signal rdReg, wrReg : RegType := REG_INIT_C;
    signal fullStatus   : sl;
-   signal emptyStatus  : sl;
-
+   signal readEnable   : sl;
 
    constant GRAY_INIT_C  : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
    signal   rdReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0) := GRAY_INIT_C;
@@ -109,8 +110,21 @@ architecture rtl of FifoAsync is
       din  : slv(DATA_WIDTH_G-1 downto 0);
       dout : slv(DATA_WIDTH_G-1 downto 0);
    end record;
-
    signal portA, portB : RamPortType;
+
+   type ReadStatusType is
+   record
+      count        : slv(ADDR_WIDTH_G-1 downto 0);
+      prog_empty   : sl;
+      almost_empty : sl;
+      empty        : sl;
+   end record;
+   constant READ_STATUS_INIT_C : ReadStatusType := (
+      (others => '0'),
+      '1',
+      '1',
+      '1');   
+   signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    -- Attribute for XST
    attribute use_dsp48          : string;
@@ -121,15 +135,43 @@ begin
    -------------------------------
    -- rd_clk domain
    -------------------------------
-   dout          <= portB.dout;
-   rd_data_count <= rdReg.cnt;
-   empty         <= emptyStatus;
-   valid         <= rdReg.Ack;
-   underflow     <= rdReg.error;
+   dout      <= portB.dout;
+   underflow <= rdReg.error;
 
-   prog_empty   <= '1' when (rdReg.cnt <= EMPTY_THRES_G) else '0';
-   almost_empty <= '1' when (rdReg.cnt <= 1)             else '0';
-   emptyStatus  <= '1' when (rdReg.cnt <= 0)             else '0';
+   fifoStatus.count        <= rdReg.cnt;
+   fifoStatus.prog_empty   <= '1' when (rdReg.cnt <= EMPTY_THRES_G) else '0';
+   fifoStatus.almost_empty <= '1' when (rdReg.cnt <= 1)             else '0';
+   fifoStatus.empty        <= '1' when (rdReg.cnt <= 0)             else '0';
+
+   FIFO_Gen : if (FWFT_EN_G = false) generate
+      readEnable    <= rd_en;
+      valid         <= rdReg.Ack;
+      prog_empty    <= fifoStatus.prog_empty;
+      almost_empty  <= fifoStatus.almost_empty;
+      empty         <= fifoStatus.empty;
+      rd_data_count <= fifoStatus.count;
+   end generate;
+
+   FWFT_Gen : if (FWFT_EN_G = true) generate
+      readEnable    <= (rd_en or fwftStatus.empty) and not(fifoStatus.empty);
+      valid         <= not(fwftStatus.empty);
+      prog_empty    <= fwftStatus.prog_empty;
+      almost_empty  <= fwftStatus.almost_empty;
+      empty         <= fwftStatus.empty;
+      rd_data_count <= fwftStatus.count;
+      process (rd_clk, rst) is
+      begin
+         --asychronous reset
+         if rst = '1' then
+            fwftStatus <= READ_STATUS_INIT_C after TPD_G;
+         elsif rising_edge(rd_clk) then
+            fwftStatus.prog_empty   <= fifoStatus.prog_empty                            after TPD_G;
+            fwftStatus.almost_empty <= fifoStatus.almost_empty                          after TPD_G;
+            fwftStatus.empty        <= (rd_en or fwftStatus.empty) and fifoStatus.empty after TPD_G;
+            fwftStatus.count        <= fifoStatus.count                                 after TPD_G;
+         end if;
+      end process;
+   end generate;
 
    SYNC_WriteToRead : entity work.SynchronizerVector
       generic map (
@@ -153,8 +195,8 @@ begin
          rdReg.waddr <= grayDecode(rdReg_wrGray) after TPD_G;
 
          --check for read operation
-         if rd_en = '1' then
-            if emptyStatus = '0' then
+         if readEnable = '1' then
+            if fifoStatus.empty = '0' then
                --increment the read address pointer
                rdReg.raddr   <= rdReg.raddr + 1             after TPD_G;
                rdReg.advance <= rdReg.advance + 1           after TPD_G;
@@ -243,7 +285,7 @@ begin
 
    -- RAM Port B Mapping
    portB.clk  <= rd_clk;
-   portB.en   <= rd_en and not(emptyStatus);
+   portB.en   <= readEnable and not(fifoStatus.empty);
    portB.we   <= '0';
    portB.addr <= rdReg.raddr;
    portB.din  <= (others => '0');
@@ -252,6 +294,7 @@ begin
       generic map(
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
+         ALTERA_RAM_G => ALTERA_RAM_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (
