@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-11
+-- Last update: 2013-07-16
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,8 +27,9 @@ entity SynchronizerFifo is
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := false;
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
-      DATA_WIDTH_G  : integer range 1 to (2**24) := 73);
-   port ( 
+      DATA_WIDTH_G  : integer range 1 to (2**24) := 73;
+      ADDR_WIDTH_G  : integer range 2 to 48      := 4);
+   port (
       -- Asynchronous Reset
       rst    : in  sl;
       --Write Ports (wr_clk domain)
@@ -38,21 +39,21 @@ entity SynchronizerFifo is
       rd_clk : in  sl;
       valid  : out sl;
       dout   : out slv(DATA_WIDTH_G-1 downto 0));
-      -------------------------------------------------------------------------
-      -- Note: rd_clk frequency must be greater than or equal to wr_clk!!!!!!!!
-      -------------------------------------------------------------------------
+   -------------------------------------------------------------------------
+   -- Note: rd_clk frequency must be greater than or equal to wr_clk!!!!!!!!
+   -------------------------------------------------------------------------
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
-   signal empty : sl;
+   signal empty    : sl;
    signal notEmpty : sl;
 begin
    FifoAsync_1 : entity work.FifoAsync
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G, 
+         BRAM_EN_G    => BRAM_EN_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => 4)
+         ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (
          rst           => rst,
          wr_clk        => wr_clk,
