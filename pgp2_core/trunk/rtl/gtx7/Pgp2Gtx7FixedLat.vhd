@@ -21,6 +21,7 @@ use ieee.std_logic_1164.all;
 --use work.Pgp2CorePackage.all;
 use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
+use work.VcPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
@@ -94,12 +95,12 @@ entity Pgp2Gtx7Fixedlat is
       pgpTxOut : out PgpTxOutType;
 
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxVcQuadIn  : in  PgpTxVcQuadInType;
-      pgpTxVcQuadOut : out PgpTxVcQuadOutType;
+      pgpTxVcQuadIn  : in  TxVcQuadInType;
+      pgpTxVcQuadOut : out TxVcQuadOutType;
 
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxVcCommonOut : out PgpRxVcCommonOutType;
-      pgpRxVcQuadOut   : out PgpRxVcQuadOutType;
+      pgpRxVcCommonOut : out RxVcCommonOutType;
+      pgpRxVcQuadOut   : out RxVcQuadOutType;
 
       -- GT loopback control
       loopback : in slv(2 downto 0);    -- GT Serial Loopback Control

@@ -17,6 +17,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.Pgp2CoreTypesPkg.all;
+use work.VcPkg.all;
 
 entity Pgp2RxWrapper is
   
@@ -36,8 +37,8 @@ entity Pgp2RxWrapper is
     pgpRxOut : out PgpRxOutType;
 
     -- VC Outputs
-    pgpRxVcCommonOut : out PgpRxVcCommonOutType;  -- Frame Receive common to all VCs
-    pgpRxVcQuadOut   : out PgpRxVcQuadOutType;    -- Frame Receive, 4 VCs
+    pgpRxVcCommonOut : out RxVcCommonOutType;  -- Frame Receive common to all VCs
+    pgpRxVcQuadOut   : out RxVcQuadOutType;    -- Frame Receive, 4 VCs
 
     -- PHY interface
     phyRxLanesOut : out PgpRxPhyLaneOutArray(0 to RxLaneCnt-1);
