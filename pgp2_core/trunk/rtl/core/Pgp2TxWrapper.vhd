@@ -17,6 +17,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.Pgp2CoreTypesPkg.all;
+use work.VcPkg.all;
 
 entity Pgp2TxWrapper is
   
@@ -36,8 +37,8 @@ entity Pgp2TxWrapper is
     pgpTxOut : out PgpTxOutType;
 
     -- VC Interface
-    pgpTxVcQuadIn  : in  PgpTxVcQuadInType;
-    pgpTxVcQuadOut : out PgpTxVcQuadOutType;
+    pgpTxVcQuadIn  : in  TxVcQuadInType;
+    pgpTxVcQuadOut : out TxVcQuadOutType;
 
     phyTxLanesOut : out PgpTxPhyLaneOutArray(0 to TxLaneCnt-1);
     phyTxReady    : in  std_logic;

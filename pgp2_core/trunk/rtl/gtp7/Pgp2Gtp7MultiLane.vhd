@@ -19,7 +19,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
-
+use work.VcPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
@@ -78,11 +78,11 @@ entity Pgp2Gtp7MultiLane is
       pgpTxIn          : in  PgpTxInType;
       pgpTxOut         : out PgpTxOutType;
       -- Frame Transmit Interface - Array of 4 VCs
-      pgpTxVcQuadIn    : in  PgpTxVcQuadInType;
-      pgpTxVcQuadOut   : out PgpTxVcQuadOutType;
+      pgpTxVcQuadIn    : in  TxVcQuadInType;
+      pgpTxVcQuadOut   : out TxVcQuadOutType;
       -- Frame Receive Interface - Array of 4 VCs
-      pgpRxVcCommonOut : out PgpRxVcCommonOutType;
-      pgpRxVcQuadOut   : out PgpRxVcQuadOutType;
+      pgpRxVcCommonOut : out RxVcCommonOutType;
+      pgpRxVcQuadOut   : out RxVcQuadOutType;
       -- GT loopback control
       loopback         : in  slv(2 downto 0);
       -- Debug
