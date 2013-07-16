@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-15
+-- Last update: 2013-07-16
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ entity FifoSync is
       ALTERA_RAM_G  : string                     := "M-RAM";
       DATA_WIDTH_G  : integer range 1 to (2**24) := 1;
       ADDR_WIDTH_G  : integer range 4 to 48      := 4;
-      FULL_THRES_G  : integer range 3 to (2**24) := 3;
-      EMPTY_THRES_G : integer range 2 to (2**24) := 2);
+      FULL_THRES_G  : integer range 1 to (2**24) := 1;
+      EMPTY_THRES_G : integer range 0 to (2**24) := 0);
    port (
       rst          : in  sl := '0';
       srst         : in  sl := '0';
@@ -54,12 +54,12 @@ entity FifoSync is
       empty        : out sl);
 begin
    -- FULL_THRES_G upper range check
-   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-2))
-      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
+   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
+      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
       severity failure;
    -- EMPTY_THRES_G upper range check
-   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-3))
-      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-3)"
+   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
+      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
       severity failure;
    -- USE_DSP48_G check
    assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
@@ -117,14 +117,6 @@ architecture rtl of FifoSync is
    attribute use_dsp48 of wcnt  : signal is USE_DSP48_G;
    
 begin
-   READ_RstSync : entity work.RstSync
-      generic map (
-         TPD_G => TPD_G)   
-      port map (
-         clk      => clk,
-         asyncRst => rst,
-         syncRst  => reset); 
-
    --write ports
    data_count  <= wcnt;
    full        <= fullStatus;
@@ -156,10 +148,10 @@ begin
       prog_empty   <= fwftStatus.prog_empty;
       almost_empty <= fwftStatus.almost_empty;
       empty        <= fwftStatus.empty;
-      process (clk, reset) is
+      process (clk, rst) is
       begin
          --asychronous reset
-         if reset = '1' then
+         if rst = '1' then
             fwftStatus <= READ_STATUS_INIT_C after TPD_G;
          elsif rising_edge(clk) then
             --sychronous reset
@@ -174,10 +166,10 @@ begin
       end process;
    end generate;
 
-   process (clk, reset) is
+   process (clk, rst) is
    begin
       --asychronous reset
-      if reset = '1' then
+      if rst = '1' then
          writeAck        <= '0'             after TPD_G;
          readAck         <= '0'             after TPD_G;
          waddr           <= (others => '0') after TPD_G;
