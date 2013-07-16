@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2012-12-06
+-- Last update: 2013-07-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -17,7 +17,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.Pgp2CoreTypesPkg.all;
 
 
 entity GtpRxCommaAligner is
@@ -63,7 +62,7 @@ begin
 
   seq : process (gtpRxUsrClk2, gtpRxUsrClk2Rst) is
   begin
-    if (gtpRxUsrClk2Rst = '0') then
+    if (gtpRxUsrClk2Rst = '1') then
       r.state       <= SEARCH_S        after TPD_G;
       r.last        <= (others => '0') after TPD_G;
       r.slideCount  <= (others => '0') after TPD_G;
@@ -151,7 +150,7 @@ begin
           v.waitCounter := r.waitCounter + 1;
         end if;
         if (r.waitCounter = "11111") then
-          v.state := RESET_S;
+           v.state := RESET_S;
         end if;
         
     end case;

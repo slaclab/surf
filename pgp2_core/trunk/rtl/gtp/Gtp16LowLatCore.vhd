@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-28
--- Last update: 2012-12-07
+-- Last update: 2013-07-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -15,9 +15,6 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use work.Pgp2GtpPackage.all;
-use work.Pgp2CorePackage.all;
-use work.Pgp2CoreTypesPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
@@ -216,7 +213,7 @@ begin
       NUM_BYTES_G => 2)
     port map (
       clk      => gtpRxUsrClk2Int,
-      rstN     => rxRecClkPllLocked,
+      rstL     => rxRecClkPllLocked,
       dataIn   => gtpRxDataRaw,
       dataOut  => gtpRxData,
       dataKOut => gtpRxDataK,
