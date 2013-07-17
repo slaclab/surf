@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-16
+-- Last update: 2013-07-17
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,13 +45,12 @@ entity SynchronizerFifo is
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
-   signal empty    : sl;
-   signal notEmpty : sl;
 begin
    FifoAsync_1 : entity work.FifoAsync
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
+         FWFT_EN_G    => true,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (
@@ -66,13 +65,12 @@ begin
          almost_full   => open,
          full          => open,
          rd_clk        => rd_clk,
-         rd_en         => notEmpty,
+         rd_en         => '1',
          dout          => dout,
          rd_data_count => open,
          valid         => valid,
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
-         empty         => empty);
-   notEmpty <= not empty;
+         empty         => open);
 end architecture rtl;

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-16
+-- Last update: 2013-07-17
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,6 +82,7 @@ architecture rtl of FifoAsync is
       cnt     : slv(ADDR_WIDTH_G-1 downto 0);
       Ack     : sl;
       error   : sl;
+      rdy     : sl;
       done    : sl;
    end record;
    
@@ -92,6 +93,7 @@ architecture rtl of FifoAsync is
       (others => '0'),                  --empty during reset
       '0',
       '0',
+      '0',
       '0');       
 
    constant WRITE_INIT_C : RegType := (
@@ -99,6 +101,7 @@ architecture rtl of FifoAsync is
       (others => '0'),
       conv_std_logic_vector(1, ADDR_WIDTH_G),
       (others => '1'),                  --full during reset
+      '0',
       '0',
       '0',
       '0');       
@@ -248,7 +251,9 @@ begin
                   --Calculate the count
                   rdReg.cnt     <= rdReg.waddr - rdReg.advance after TPD_G;
                else
-                  rdReg.error <= '1' after TPD_G;
+                  --Calculate the count
+                  rdReg.cnt   <= rdReg.waddr - rdReg.raddr after TPD_G;
+                  rdReg.error <= '1'                       after TPD_G;
                end if;
             else
                --Calculate the count
@@ -313,30 +318,37 @@ begin
          wrReg.done <= '1' after TPD_G;
          wrReg.Ack  <= '0' after TPD_G;
          if wrReg_rdy = '1' then
-
-            --Decode the Gray code pointer
-            wrReg.raddr <= grayDecode(wrReg_rdGray) after TPD_G;
-
-            --check for write operation
-            if wr_en = '1' then
-               if fullStatus = '0' then
-                  --increment the read address pointer
-                  wrReg.waddr   <= wrReg.waddr + 1             after TPD_G;
-                  wrReg.advance <= wrReg.advance + 1           after TPD_G;
-                  wrReg.Ack     <= '1'                         after TPD_G;
-                  --Calculate the count
-                  wrReg.cnt     <= wrReg.advance - wrReg.raddr after TPD_G;
-               else
-                  wrReg.error <= '1' after TPD_G;
-               end if;
+            if wrReg.rdy = '0' then
+               wrReg.rdy <= '1';
+               wrReg.cnt <= (others => '0');
             else
-               --Calculate the count
-               wrReg.cnt <= wrReg.waddr - wrReg.raddr after TPD_G;
+
+               --Decode the Gray code pointer
+               wrReg.raddr <= grayDecode(wrReg_rdGray) after TPD_G;
+
+               --check for write operation
+               if wr_en = '1' then
+                  if fullStatus = '0' then
+                     --increment the read address pointer
+                     wrReg.waddr   <= wrReg.waddr + 1             after TPD_G;
+                     wrReg.advance <= wrReg.advance + 1           after TPD_G;
+                     wrReg.Ack     <= '1'                         after TPD_G;
+                     --Calculate the count
+                     wrReg.cnt     <= wrReg.advance - wrReg.raddr after TPD_G;
+                  else
+                     wrReg.error <= '1'                       after TPD_G;
+                     --Calculate the count
+                     wrReg.cnt   <= wrReg.waddr - wrReg.raddr after TPD_G;
+                  end if;
+               else
+                  --Calculate the count
+                  wrReg.cnt <= wrReg.waddr - wrReg.raddr after TPD_G;
+               end if;
+
+               --Encode the Gray code pointer
+               wrReg_wrGray <= grayEncode(wrReg.waddr) after TPD_G;
+               
             end if;
-
-            --Encode the Gray code pointer
-            wrReg_wrGray <= grayEncode(wrReg.waddr) after TPD_G;
-
          end if;
       end if;
    end process WRITE_SEQUENCE;
