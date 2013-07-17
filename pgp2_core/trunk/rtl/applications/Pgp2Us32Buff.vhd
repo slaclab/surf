@@ -347,14 +347,14 @@ begin
             if txFifoHalf = '1' then
                txFifoValid <= '0' after tpd;
             end if;
-            txFifoHalf <= '0' after tpd;
+            txFifoHalf <= '1' after tpd;
          end if;
       end if;
    end process;
 
    -- Control reads
    txFifoRd <= (not txFifoEmpty) and (not vcRemBuffAFull) and (not vcRemBuffFull) and
-               ((not txFifoValid) or (vcframeTxReady and txFifoHalf));
+               ((not txFifoValid) or (vcFrameTxReady and txFifoHalf));
 
    -- Outgoing signals
    vcFrameTxValid <= txFifoValid;
