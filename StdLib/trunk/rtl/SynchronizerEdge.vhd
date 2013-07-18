@@ -24,7 +24,7 @@ entity SynchronizerEdge is
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';            -- '1' for active high rst, '0' for active low
       STAGES_G       : positive := 3;
-      INIT_G         : slv      := "000"
+      INIT_G         : slv      := "0"
       );
    port (
       clk         : in  sl;                        -- clock to be sync'ed to
@@ -37,14 +37,14 @@ entity SynchronizerEdge is
       );
 begin
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
-   assert (INIT_G'length = STAGES_G) report "Size of INIT_G must equal STAGES_G" severity failure;
 end SynchronizerEdge;
 
 architecture rtl of SynchronizerEdge is
+   constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G="0", slvZero(STAGES_G), INIT_G);
 
    -- r(STAGES_G-1) used for edge detection.
    -- Optimized out if edge detection not used.
-   signal r, rin : slv(STAGES_G-1 downto 0) := INIT_G;
+   signal r, rin : slv(STAGES_G-1 downto 0) := INIT_C;
 
 
    -- These attributes will stop Vivado translating the desired flip-flops into an
@@ -77,7 +77,7 @@ begin
 
       -- Synchronous Reset
       if (sRst = RST_POLARITY_G) then
-         rin <= INIT_G;
+         rin <= INIT_C;
       end if;
 
       dataOut     <= r(STAGES_G-2);
@@ -91,7 +91,7 @@ begin
          r <= rin after TPD_G;
       end if;
       if (aRst = RST_POLARITY_G) then
-         r <= INIT_G after TPD_G;
+         r <= INIT_C after TPD_G;
       end if;
    end process seq;
 
