@@ -116,8 +116,7 @@ begin
    SynchronizerFifo_Inst : entity work.SynchronizerFifo
       generic map(
          DATA_WIDTH_G => DATA_WIDTH_C,
-         ADDR_WIDTH_G => ADDR_WIDTH_C,
-         INIT_G       => conv_std_logic_vector(0, DATA_WIDTH_C))
+         ADDR_WIDTH_G => ADDR_WIDTH_C)
       port map (
          rst    => rst,
          wr_clk => wr_clk,
