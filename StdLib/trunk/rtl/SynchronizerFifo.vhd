@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-17
+-- Last update: 2013-07-18
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,8 +27,9 @@ entity SynchronizerFifo is
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := false;
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
-      DATA_WIDTH_G  : integer range 1 to (2**24) := 73;
-      ADDR_WIDTH_G  : integer range 2 to 48      := 4);
+      DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G  : integer range 2 to 48      := 4;
+      INIT_G        : slv                        := x"0000");
    port (
       -- Asynchronous Reset
       rst    : in  sl;
@@ -40,7 +41,8 @@ entity SynchronizerFifo is
       valid  : out sl;
       dout   : out slv(DATA_WIDTH_G-1 downto 0));
    -------------------------------------------------------------------------
-   -- Note: rd_clk frequency must be greater than or equal to wr_clk!!!!!!!!
+   -- Note: rd_clk frequency must be greater than or equal to wr_clk
+   --       else you will lose information due to buffer overflows
    -------------------------------------------------------------------------
 end SynchronizerFifo;
 
@@ -52,7 +54,8 @@ begin
          BRAM_EN_G    => BRAM_EN_G,
          FWFT_EN_G    => true,
          DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G)
+         ADDR_WIDTH_G => ADDR_WIDTH_G,
+         INIT_G       => INIT_G)
       port map (
          rst           => rst,
          wr_clk        => wr_clk,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-14
--- Last update: 2013-07-16
+-- Last update: 2013-07-18
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,8 +29,9 @@ entity Fifo is
       USE_DSP48_G     : string                     := "no";
       ALTERA_RAM_G    : string                     := "M-RAM";
       SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
-      DATA_WIDTH_G    : integer range 1 to (2**24) := 18;
+      DATA_WIDTH_G    : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G    : integer range 4 to 48      := 4;
+      INIT_G          : slv                        := x"0000";
       FULL_THRES_G    : integer range 1 to (2**24) := 1;
       EMPTY_THRES_G   : integer range 0 to (2**24) := 0);
    port (
@@ -78,6 +79,7 @@ begin
             SYNC_STAGES_G => SYNC_STAGES_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             ADDR_WIDTH_G  => ADDR_WIDTH_G,
+            INIT_G        => INIT_G,
             FULL_THRES_G  => FULL_THRES_G,
             EMPTY_THRES_G => EMPTY_THRES_G)
          port map (
@@ -115,6 +117,7 @@ begin
             ALTERA_RAM_G  => ALTERA_RAM_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             ADDR_WIDTH_G  => ADDR_WIDTH_G,
+            INIT_G        => INIT_G,
             FULL_THRES_G  => FULL_THRES_G,
             EMPTY_THRES_G => EMPTY_THRES_G)
          port map (
