@@ -29,7 +29,7 @@ entity SynchronizerFifo is
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G  : integer range 2 to 48      := 4;
-      INIT_G        : slv                        := x"0000");
+      INIT_G        : slv                        := "0");
    port (
       -- Asynchronous Reset
       rst    : in  sl;
@@ -47,6 +47,7 @@ entity SynchronizerFifo is
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
 begin
    FifoAsync_1 : entity work.FifoAsync
       generic map (
@@ -55,7 +56,7 @@ begin
          FWFT_EN_G    => true,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G,
-         INIT_G       => INIT_G)
+         INIT_G       => INIT_C)
       port map (
          rst           => rst,
          wr_clk        => wr_clk,
