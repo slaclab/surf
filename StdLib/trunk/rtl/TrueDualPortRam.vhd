@@ -65,16 +65,23 @@ architecture rtl of TrueDualPortRam is
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
    shared variable mem : mem_type := (others => (others => '0'));
 
-   -- Attribute for XST (Xilinx Synthesis)
+   -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
    attribute ram_style of mem : variable is "block";
 
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : string;
-   attribute keep of mem : variable is "TRUE";
+   attribute keep        : boolean;--"keep" is same for XST and Altera
+   attribute keep of mem : variable is true;--"keep" is same for XST and Altera
+   
+   -- Attribute for Synplicity Synthesizer 
+   attribute syn_ramstyle        : string;
+   attribute syn_ramstyle of mem : variable is "block";
 
+   attribute syn_keep        : string;
+   attribute syn_keep of mem : variable is "TRUE";
+   
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
    attribute ramstyle of mem : variable is ALTERA_RAM_G;

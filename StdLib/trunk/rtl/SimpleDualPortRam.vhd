@@ -67,9 +67,16 @@ architecture rtl of SimpleDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : string;
-   attribute keep of mem : variable is "TRUE";
+   attribute keep        : boolean;--"keep" is same for XST and Altera
+   attribute keep of mem : variable is true;--"keep" is same for XST and Altera
+   
+   -- Attribute for Synplicity Synthesizer 
+   attribute syn_ramstyle        : string;
+   attribute syn_ramstyle of mem : variable is XST_BRAM_STYLE_C;
 
+   attribute syn_keep        : string;
+   attribute syn_keep of mem : variable is "TRUE";
+   
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
    attribute ramstyle of mem : variable is ALTERA_BRAM_STYLE_C;
