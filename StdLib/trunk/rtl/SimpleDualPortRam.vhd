@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-07-12
+-- Last update: 2013-07-18
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,8 +25,9 @@ entity SimpleDualPortRam is
       TPD_G        : time                       := 1 ns;
       BRAM_EN_G    : boolean                    := true;
       ALTERA_RAM_G : string                     := "M-RAM";
-      DATA_WIDTH_G : integer range 1 to (2**24) := 18;
-      ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
+      DATA_WIDTH_G : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
+      INIT_G       : slv                        := x"0000");
    port (
       -- Port A     
       clka  : in  sl                           := '0';
@@ -37,6 +38,7 @@ entity SimpleDualPortRam is
       -- Port B
       clkb  : in  sl                           := '0';
       enb   : in  sl                           := '1';
+      rstb  : in  sl                           := '0';
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0));
 begin
@@ -58,7 +60,7 @@ architecture rtl of SimpleDualPortRam is
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   shared variable mem : mem_type := (others => (others => '0'));
+   shared variable mem : mem_type := (others => INIT_G);
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
@@ -67,16 +69,16 @@ architecture rtl of SimpleDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : boolean;--"keep" is same for XST and Altera
-   attribute keep of mem : variable is true;--"keep" is same for XST and Altera
-   
+   attribute keep        : boolean;     --"keep" is same for XST and Altera
+   attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
+
    -- Attribute for Synplicity Synthesizer 
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : variable is XST_BRAM_STYLE_C;
 
    attribute syn_keep        : string;
    attribute syn_keep of mem : variable is "TRUE";
-   
+
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
    attribute ramstyle of mem : variable is ALTERA_BRAM_STYLE_C;
@@ -98,9 +100,12 @@ begin
    process(clkb)
    begin
       if rising_edge(clkb) then
-         if enb = '1' then
+         if rstb = '1' then
+            doutb <= INIT_G after TPD_G;
+         elsif enb = '1' then
             doutb <= mem(conv_integer(addrb)) after TPD_G;
          end if;
       end if;
    end process;
+   
 end rtl;
