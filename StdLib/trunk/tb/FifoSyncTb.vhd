@@ -97,8 +97,7 @@ begin
          DATA_WIDTH_G  => DATA_WIDTH_C,
          ADDR_WIDTH_G  => ADDR_WIDTH_C,
          FULL_THRES_G  => ((2**ADDR_WIDTH_C)-2),
-         EMPTY_THRES_G => 2,
-         INIT_G        => conv_std_logic_vector(0, DATA_WIDTH_C))
+         EMPTY_THRES_G => 2)
       port map (
          srst         => srst,
          clk          => clk,
