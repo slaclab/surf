@@ -32,7 +32,7 @@ entity FifoAsync is
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G  : integer range 2 to 48      := 4;
-      INIT_G        : slv                        := x"0000";
+      INIT_G        : slv                        := "0";
       FULL_THRES_G  : integer range 1 to (2**24) := 1;
       EMPTY_THRES_G : integer range 0 to (2**24) := 0);
    port (
@@ -74,6 +74,7 @@ begin
 end FifoAsync;
 
 architecture rtl of FifoAsync is
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
    constant RAM_DEPTH_C : integer := 2**ADDR_WIDTH_G;
 
    type RegType is record
@@ -381,7 +382,7 @@ begin
          ALTERA_RAM_G => ALTERA_RAM_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G,
-         INIT_G       => INIT_G)
+         INIT_G       => INIT_C)
       port map (
          -- Port A
          clka  => portA.clk,

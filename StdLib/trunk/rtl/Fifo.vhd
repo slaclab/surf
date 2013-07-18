@@ -31,7 +31,7 @@ entity Fifo is
       SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G    : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G    : integer range 4 to 48      := 4;
-      INIT_G          : slv                        := x"0000";
+      INIT_G          : slv                        := "0";
       FULL_THRES_G    : integer range 1 to (2**24) := 1;
       EMPTY_THRES_G   : integer range 0 to (2**24) := 0);
    port (
@@ -61,6 +61,7 @@ entity Fifo is
 end Fifo;
 
 architecture rtl of Fifo is
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
    signal rstAsyncFifo : sl                           := '0';
    signal data_count   : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
 begin
@@ -79,7 +80,7 @@ begin
             SYNC_STAGES_G => SYNC_STAGES_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             ADDR_WIDTH_G  => ADDR_WIDTH_G,
-            INIT_G        => INIT_G,
+            INIT_G        => INIT_C,
             FULL_THRES_G  => FULL_THRES_G,
             EMPTY_THRES_G => EMPTY_THRES_G)
          port map (
@@ -117,7 +118,7 @@ begin
             ALTERA_RAM_G  => ALTERA_RAM_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             ADDR_WIDTH_G  => ADDR_WIDTH_G,
-            INIT_G        => INIT_G,
+            INIT_G        => INIT_C,
             FULL_THRES_G  => FULL_THRES_G,
             EMPTY_THRES_G => EMPTY_THRES_G)
          port map (

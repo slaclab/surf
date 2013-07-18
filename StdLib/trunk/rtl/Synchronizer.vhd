@@ -24,7 +24,7 @@ entity Synchronizer is
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';        -- '1' for active high rst, '0' for active low
       STAGES_G       : positive := 2;
-      INIT_G         : slv      := "00"
+      INIT_G         : slv      := "0"
       );
    port (
       clk     : in  sl;                        -- clock to be sync'ed to
@@ -35,12 +35,12 @@ entity Synchronizer is
       );
 begin
    assert (STAGES_G >= 2) report "STAGES_G must be >= 2" severity failure;
-   assert (INIT_G'length = STAGES_G) report "Size of INIT_G must equal STAGES_G" severity failure;
 end Synchronizer;
 
 architecture rtl of Synchronizer is
-
-   signal r, rin : slv(STAGES_G-1 downto 0) := INIT_G;
+   constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G="0", slvZero(STAGES_G), INIT_G);
+   
+   signal r, rin : slv(STAGES_G-1 downto 0) := INIT_C;
 
    -- These attributes will stop Vivado translating the desired flip-flops into an
    -- SRL based shift register. (Breaks XST for some reason so keep commented for now).
@@ -72,7 +72,7 @@ begin
 
       -- Synchronous Reset
       if (sRst = RST_POLARITY_G) then
-         rin <= INIT_G;
+         rin <= INIT_C;
       end if;
 
       dataOut <= r(STAGES_G-1);
@@ -84,7 +84,7 @@ begin
          r <= rin after TPD_G;
       end if;
       if (aRst = RST_POLARITY_G) then
-         r <= INIT_G after TPD_G;
+         r <= INIT_C after TPD_G;
       end if;
    end process seq;
 

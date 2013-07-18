@@ -16,6 +16,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
@@ -27,7 +28,7 @@ entity SimpleDualPortRam is
       ALTERA_RAM_G : string                     := "M-RAM";
       DATA_WIDTH_G : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
-      INIT_G       : slv                        := x"0000");
+      INIT_G       : slv                        := "0");
    port (
       -- Port A     
       clka  : in  sl                           := '0';
@@ -55,12 +56,14 @@ begin
 end SimpleDualPortRam;
 
 architecture rtl of SimpleDualPortRam is
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
+
    constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
    constant ALTERA_BRAM_STYLE_C : string := ite(BRAM_EN_G, ALTERA_RAM_G, "MLAB");
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   shared variable mem : mem_type := (others => INIT_G);
+   shared variable mem : mem_type := (others => INIT_C);
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
@@ -101,7 +104,7 @@ begin
    begin
       if rising_edge(clkb) then
          if rstb = '1' then
-            doutb <= INIT_G after TPD_G;
+            doutb <= INIT_C after TPD_G;
          elsif enb = '1' then
             doutb <= mem(conv_integer(addrb)) after TPD_G;
          end if;
