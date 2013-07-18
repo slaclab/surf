@@ -120,12 +120,12 @@ package body StdRtlPkg is
 
    function slvZero (size : positive) return slv is
    begin
-      return slvAll(size, '1');
+      return slvAll(size, '0');
    end function;
 
    function slvOne (size : positive) return slv is
    begin
-      return slvAll(size, '0');
+      return slvAll(size, '1');
    end function;
 
    ---------------------------------------------------------------------------------------------------------------------
