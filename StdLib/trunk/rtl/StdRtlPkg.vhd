@@ -30,6 +30,7 @@ package StdRtlPkg is
    type Slv72Array is array (natural range <>) of slv(71 downto 0);
    type Slv64Array is array (natural range <>) of slv(63 downto 0);
    type Slv36Array is array (natural range <>) of slv(35 downto 0);
+   type Slv35Array is array (natural range <>) of slv(34 downto 0);
    type Slv32Array is array (natural range <>) of slv(31 downto 0);
    type Slv18Array is array (natural range <>) of slv(17 downto 0);
    type Slv16Array is array (natural range <>) of slv(15 downto 0);
@@ -363,12 +364,12 @@ package body StdRtlPkg is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
-   
+
    function ite (i : boolean; t : integer; e : integer) return integer is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
-   
+
    -----------------------------
    -- Min and Max
    -----------------------------
@@ -385,7 +386,7 @@ package body StdRtlPkg is
       else return right;
       end if;
    end min;
-   
+
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
    ---------------------------------------------------------------------------------------------------------------------
