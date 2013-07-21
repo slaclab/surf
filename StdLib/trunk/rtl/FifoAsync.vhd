@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-18
+-- Last update: 2013-07-21
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -74,8 +74,8 @@ begin
 end FifoAsync;
 
 architecture rtl of FifoAsync is
-   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
-   constant RAM_DEPTH_C : integer := 2**ADDR_WIDTH_G;
+   constant INIT_C      : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
+   constant RAM_DEPTH_C : integer                      := 2**ADDR_WIDTH_G;
 
    type RegType is record
       waddr   : slv(ADDR_WIDTH_G-1 downto 0);
@@ -286,7 +286,7 @@ begin
    full          <= fullStatus;
    wr_ack        <= wrReg.Ack;
    overflow      <= wrReg.error;
-   prog_full     <= '1' when (wrReg.cnt >= EMPTY_THRES_G)   else '0';
+   prog_full     <= '1' when (wrReg.cnt >= FULL_THRES_G)    else '0';
    almost_full   <= '1' when (wrReg.cnt >= (RAM_DEPTH_C-2)) else '0';
    fullStatus    <= '1' when (wrReg.cnt >= (RAM_DEPTH_C-1)) else '0';
 
