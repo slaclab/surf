@@ -4,6 +4,92 @@ use work.StdRtlPkg.all;
 
 package Pgp2AppTypesPkg is
    ------------------------------------------------------------------------
+   -- PgpTxVcIn Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpTxVcInType is record
+      frameTxValid : sl;                  -- User frame data is valid
+      frameTxSOF   : sl;                  -- User frame data start of frame
+      frameTxEOF   : sl;                  -- User frame data end of frame
+      frameTxEOFE  : sl;                  -- User frame data error
+      frameTxData  : slv16Array(0 to 3);  -- User frame data (up to 4 lanes)
+      locBuffAFull : sl;                  -- Remote buffer almost full
+      locBuffFull  : sl;                  -- Remote buffer full
+   end record;
+   type PgpTxVcInArray is array (natural range <>) of PgpTxVcInType;
+   constant PGP_TX_VC_IN_INIT_C : PgpTxVcInType := (
+      '0',
+      '0',
+      '0',
+      '0',
+      (others => (others => '0')),
+      '0',
+      '0');   
+
+   ------------------------------------------------------------------------
+   -- PgpTxVcQuadIn Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpTxVcQuadInType is array (0 to 3) of PgpTxVcInType;  -- 4 Virtual Channel inputs
+   type PgpTxVcQuadInArray is array (natural range <>) of PgpTxVcQuadInType;
+   constant PGP_TX_VC_QUAD_IN_INIT_C : PgpTxVcQuadInType := (
+      (others => PGP_TX_VC_IN_INIT_C)); 
+
+   ------------------------------------------------------------------------
+   -- PgpTxVcOut Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpTxVcOutType is record
+      frameTxReady : sl;                -- PGP is ready
+   end record;
+   type PgpTxVcOutArray is array (natural range <>) of PgpTxVcOutType;
+   constant PGP_TX_VC_OUT_INIT_C : PgpTxVcOutType := (
+      (others => '0'));                 --frameTxReady   
+
+   ------------------------------------------------------------------------
+   -- PgpTxVcQuadOut Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpTxVcQuadOutType is array (0 to 3) of PgpTxVcOutType;  -- 4 Virtual Channel inputs
+   type PgpTxVcQuadOutArray is array (natural range <>) of PgpTxVcQuadOutType;
+   constant PGP_TX_VC_QUAD_OUT_INIT_C : PgpTxVcQuadOutType := (
+      (others => PGP_TX_VC_OUT_INIT_C));
+
+   ------------------------------------------------------------------------
+   -- PgpRxVcCommonOut Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpRxVcCommonOutType is record
+      frameRxSOF  : sl;                  -- PGP frame data start of frame
+      frameRxEOF  : sl;                  -- PGP frame data end of frame
+      frameRxEOFE : sl;                  -- PGP frame data error
+      frameRxData : slv16Array(0 to 3);  -- PGP frame data
+   end record;
+   type PgpRxVcCommonOutArray is array (natural range <>) of PgpRxVcCommonOutType;
+   constant PGP_RX_VC_COMMON_OUT_INIT_C : PgpRxVcCommonOutType := (
+      '0',
+      '0',
+      '0',
+      (others => (others => '0')));    
+
+   ------------------------------------------------------------------------
+   -- PgpRxVcOut Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpRxVcOutType is record
+      frameRxValid : sl;                -- PGP frame data is valid
+      remBuffAFull : sl;                -- Remote buffer almost full
+      remBuffFull  : sl;                -- Remote buffer full
+   end record;
+   type PgpRxVcOutArray is array (natural range <>) of PgpRxVcOutType;
+   constant PGP_RX_VC_OUT_INIT_C : PgpRxVcOutType := (
+      '0',
+      '0',
+      '0');       
+
+   ------------------------------------------------------------------------
+   -- PgpRxVcQuadOut Types/Constants                             
+   ------------------------------------------------------------------------
+   type PgpRxVcQuadOutType is array (0 to 3) of PgpRxVcOutType;  -- 4 Rx Virtual Channel outputs
+   type PgpRxVcQuadOutArray is array (natural range <>) of PgpRxVcQuadOutType;
+   constant PGP_RX_VC_QUAD_OUT_INIT_C : PgpRxVcQuadOutType := (
+      (others => PGP_RX_VC_OUT_INIT_C));  
+
+   ------------------------------------------------------------------------
    -- Command Types/Constants                             
    ------------------------------------------------------------------------
    type CmdSlaveOutType is record
