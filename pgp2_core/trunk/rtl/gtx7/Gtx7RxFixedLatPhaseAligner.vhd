@@ -29,7 +29,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 --use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
-use work.SynchronizePkg.all;
+--use work.SynchronizePkg.all;
 
 
 entity Gtx7RxFixedLatPhaseAligner is
