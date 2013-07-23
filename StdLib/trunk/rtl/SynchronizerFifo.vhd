@@ -32,7 +32,7 @@ entity SynchronizerFifo is
       INIT_G        : slv                        := "0");
    port (
       -- Asynchronous Reset
-      rst    : in  sl;
+      rst    : in  sl := '0';
       --Write Ports (wr_clk domain)
       wr_clk : in  sl;
       din    : in  slv(DATA_WIDTH_G-1 downto 0);
