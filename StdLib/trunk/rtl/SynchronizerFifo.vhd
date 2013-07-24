@@ -35,6 +35,7 @@ entity SynchronizerFifo is
       rst    : in  sl := '0';
       --Write Ports (wr_clk domain)
       wr_clk : in  sl;
+      wr_en  : in  sl := '1';
       din    : in  slv(DATA_WIDTH_G-1 downto 0);
       --Read Ports (rd_clk domain)
       rd_clk : in  sl;
@@ -60,7 +61,7 @@ begin
       port map (
          rst           => rst,
          wr_clk        => wr_clk,
-         wr_en         => '1',
+         wr_en         => wr_en,
          din           => din,
          wr_data_count => open,
          wr_ack        => open,
