@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-18
+-- Last update: 2013-07-24
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ entity SynchronizerFifo is
       din    : in  slv(DATA_WIDTH_G-1 downto 0);
       --Read Ports (rd_clk domain)
       rd_clk : in  sl;
+      rd_en  : in  sl := '1';
       valid  : out sl;
       dout   : out slv(DATA_WIDTH_G-1 downto 0));
    -------------------------------------------------------------------------
@@ -48,7 +49,7 @@ entity SynchronizerFifo is
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
-   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 begin
    FifoAsync_1 : entity work.FifoAsync
       generic map (
@@ -70,7 +71,7 @@ begin
          almost_full   => open,
          full          => open,
          rd_clk        => rd_clk,
-         rd_en         => '1',
+         rd_en         => rd_en,
          dout          => dout,
          rd_data_count => open,
          valid         => valid,
