@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : QPllCore.vhd
+-- File       : Gtx7QPllCore.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-06
@@ -21,7 +21,7 @@ use work.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity QPllCore is
+entity Gtx7QPllCore is
    
    generic (
       SIM_RESET_SPEEDUP_G : string     := "TRUE";
@@ -40,9 +40,9 @@ entity QPllCore is
       qPllRefClkLost : out sl;
       qPllReset      : in  sl);
 
-end entity QPllCore;
+end entity Gtx7QPllCore;
 
-architecture rtl of QPllCore is
+architecture rtl of Gtx7QPllCore is
 
    signal gtRefClk0      : sl;
    signal gtRefClk1      : sl;
