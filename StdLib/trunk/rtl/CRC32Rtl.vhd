@@ -2,7 +2,7 @@
 -- Title         : Pretty Good Protocol, CRC32 implementation for Xilinx 7 FPGA
 -- Project       : General Purpose Core
 -------------------------------------------------------------------------------
--- File          : CRC32.vhd
+-- File          : CRC32Rtl.vhd
 -- Author        : Leonid Sapozhnikov, leosap@slac.stanford.edu
 -- Created       : 08/18/2009
 -------------------------------------------------------------------------------
@@ -23,33 +23,26 @@
 -------------------------------------------------------------------------------
 
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
---use unisim.vpkg.all;
 
-entity CRC32 is
+entity CRC32Rtl is
    generic (
-      CRC_INIT : bit_vector := x"FFFFFFFF"
-      );
+      CRC_INIT : bit_vector := x"FFFFFFFF");
    port (
-
       CRCOUT       : out std_logic_vector(31 downto 0);  -- CRC output
       CRCCLK       : in  std_logic;     -- system clock
       CRCDATAVALID : in  std_logic;  -- indicate that new data arrived and CRC can be computed
       CRCDATAWIDTH : in  std_logic_vector(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
       CRCIN        : in  std_logic_vector(31 downto 0);  -- input data for CRC calculation
-      CRCRESET     : in  std_logic   -- to set CRC logic to value in crc_cNIT
-      );
+      CRCRESET     : in  std_logic);  -- to set CRC logic to value in crc_cNIT
+end CRC32Rtl;
 
-end CRC32;
-
-
--- Define architecture
-architecture rtl of CRC32 is
+architecture rtl of CRC32Rtl is
 
    -- Local Signals
    signal   data             : std_logic_vector(31 downto 0);
@@ -58,8 +51,6 @@ architecture rtl of CRC32 is
    constant Polyval          : std_logic_vector(31 downto 0) := X"04C11DB7";
    type     fb_array is array (32 downto 0) of std_logic_vector(31 downto 0);
    signal   MSBVect, TempXOR : fb_array;
-
-
 
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
@@ -110,8 +101,6 @@ begin
       end if;
    end process;
 
-
-
    CRCP : process (CRCCLK)
    begin
       if rising_edge(CRCCLK) then
@@ -131,7 +120,7 @@ begin
       end if;
    end process;
 
--- Trasposing CRC bytes
+   -- Trasposing CRC bytes
    CRCOUT <= not(crc(24) & crc(25) & crc(26) & crc(27) & crc(28) & crc(29) & crc(30) & crc(31)
                  & crc(16) & crc(17) & crc(18) & crc(19) & crc(20) & crc(21) & crc(22) & crc(23)
                  & crc(8) & crc(9) & crc(10) & crc(11) & crc(12) & crc(13) & crc(14) & crc(15)
