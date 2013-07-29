@@ -85,11 +85,11 @@ entity Pgp2Gtx7MultiLane is
       pgpTxIn          : in  PgpTxInType;
       pgpTxOut         : out PgpTxOutType;
       -- Frame Transmit Interface - Array of 4 VCs
-      pgpTxVcQuadIn    : in  TxVcQuadInType;
-      pgpTxVcQuadOut   : out TxVcQuadOutType;
+      pgpTxVcQuadIn    : in  VcTxQuadInType;
+      pgpTxVcQuadOut   : out VcTxQuadOutType;
       -- Frame Receive Interface - Array of 4 VCs
-      pgpRxVcCommonOut : out RxVcCommonOutType;
-      pgpRxVcQuadOut   : out RxVcQuadOutType;
+      pgpRxVcCommonOut : out VcRxCommonOutType;
+      pgpRxVcQuadOut   : out VcRxQuadOutType;
       -- GT loopback control
       loopback         : in  slv(2 downto 0);
       -- Debug
@@ -201,7 +201,7 @@ begin
    end generate CRC_RX_4xLANE;
    crcRxOut <= not crcRxOutGtx7;
 
-   Rx_CRC : entity work.CRC32_V7
+   Rx_CRC : entity work.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(
@@ -256,7 +256,7 @@ begin
    end generate CRC_TX_4xLANE;
    crcTxOut <= not crcTxOutGtx7;
 
-   Tx_CRC : entity work.CRC32_V7
+   Tx_CRC : entity work.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(

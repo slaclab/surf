@@ -95,12 +95,12 @@ entity Pgp2Gtx7Fixedlat is
       pgpTxOut : out PgpTxOutType;
 
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxVcQuadIn  : in  TxVcQuadInType;
-      pgpTxVcQuadOut : out TxVcQuadOutType;
+      pgpTxVcQuadIn  : in  VcTxQuadInType;
+      pgpTxVcQuadOut : out VcTxQuadOutType;
 
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxVcCommonOut : out RxVcCommonOutType;
-      pgpRxVcQuadOut   : out RxVcQuadOutType;
+      pgpRxVcCommonOut : out VcRxCommonOutType;
+      pgpRxVcQuadOut   : out VcRxQuadOutType;
 
       -- GT loopback control
       loopback : in slv(2 downto 0);    -- GT Serial Loopback Control
@@ -222,7 +222,7 @@ begin
    crcRxInGtx7(15 downto 0)  <= (others => '0');
    crcRxOut                  <= not crcRxOutGtx7;  -- Invert Output CRC
 
-   Rx_CRC : entity work.CRC32_V7
+   Rx_CRC : entity work.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(
@@ -267,7 +267,7 @@ begin
    crcTxOut                  <= not crcTxOutGtx7;
 
    -- TX CRC BLock
-   Tx_CRC : entity work.CRC32_V7
+   Tx_CRC : entity work.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(
