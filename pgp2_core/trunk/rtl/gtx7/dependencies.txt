@@ -1,6 +1,1 @@
-Pgp2Gtx7MultiLane.vhd:
 ^/mgt_core/trunk/rtl/gtx7
-
-Pgp2Gtx7FixedLat.vhd:
-^/mgt_core/trunk/rtl/gtx7
-^/asic_cores/trunk/8b10b
