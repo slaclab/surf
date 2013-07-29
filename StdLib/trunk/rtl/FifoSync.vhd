@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-18
+-- Last update: 2013-07-29
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,6 +52,7 @@ entity FifoSync is
       almost_full  : out sl;
       almost_empty : out sl;
       full         : out sl;
+      not_full     : out sl;
       empty        : out sl);
 begin
    -- FULL_THRES_G upper range check
@@ -69,8 +70,8 @@ begin
 end FifoSync;
 
 architecture rtl of FifoSync is
-   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
-   constant RAM_DEPTH_C : integer := 2**ADDR_WIDTH_G;
+   constant INIT_C      : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
+   constant RAM_DEPTH_C : integer                      := 2**ADDR_WIDTH_G;
 
    type RamPortType is
    record
@@ -100,8 +101,7 @@ architecture rtl of FifoSync is
 
    signal raddr : slv (ADDR_WIDTH_G-1 downto 0);
    signal waddr : slv (ADDR_WIDTH_G-1 downto 0);
-   signal rcnt  : slv (ADDR_WIDTH_G-1 downto 0);
-   signal wcnt  : slv (ADDR_WIDTH_G-1 downto 0);
+   signal cnt   : slv (ADDR_WIDTH_G-1 downto 0);
 
    signal writeAck        : sl;
    signal readAck         : sl;
@@ -109,33 +109,34 @@ architecture rtl of FifoSync is
    signal underflowStatus : sl;
    signal fullStatus      : sl;
    signal readEnable      : sl;
-   signal reset           : sl;
-   signal ready           : sl;
+   signal rstFlags      : sl;
 
    -- Attribute for XST
    attribute use_dsp48          : string;
    attribute use_dsp48 of raddr : signal is USE_DSP48_G;
    attribute use_dsp48 of waddr : signal is USE_DSP48_G;
-   attribute use_dsp48 of rcnt  : signal is USE_DSP48_G;
-   attribute use_dsp48 of wcnt  : signal is USE_DSP48_G;
+   attribute use_dsp48 of cnt   : signal is USE_DSP48_G;
    
 begin
+   rstFlags <= rst or srst;
+
    --write ports
-   data_count  <= wcnt;
+   data_count  <= cnt when (rstFlags = '0') else (others => '1');
    full        <= fullStatus;
+   not_full    <= not(fullStatus);
    wr_ack      <= writeAck;
    overflow    <= overflowStatus;
-   prog_full   <= '1' when (wcnt >= FULL_THRES_G)    else '0';
-   almost_full <= '1' when (wcnt >= (RAM_DEPTH_C-2)) else '0';
-   fullStatus  <= '1' when (wcnt >= (RAM_DEPTH_C-1)) else '0';
+   prog_full   <= '1' when (cnt >= FULL_THRES_G)    else rstFlags;
+   almost_full <= '1' when (cnt >= (RAM_DEPTH_C-2)) else rstFlags;
+   fullStatus  <= '1' when (cnt >= (RAM_DEPTH_C-1)) else rstFlags;
 
    --read ports
    dout      <= portB.dout;
    underflow <= underflowStatus;
 
-   fifoStatus.prog_empty   <= '1' when (rcnt <= EMPTY_THRES_G) else '0';
-   fifoStatus.almost_empty <= '1' when (rcnt <= 1)             else '0';
-   fifoStatus.empty        <= '1' when (rcnt <= 0)             else '0';
+   fifoStatus.prog_empty   <= '1' when (cnt <= EMPTY_THRES_G) else rstFlags;
+   fifoStatus.almost_empty <= '1' when (cnt <= 1)             else rstFlags;
+   fifoStatus.empty        <= '1' when (cnt <= 0)             else rstFlags;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable   <= rd_en;
@@ -177,11 +178,9 @@ begin
          readAck         <= '0'             after TPD_G;
          waddr           <= (others => '0') after TPD_G;
          raddr           <= (others => '0') after TPD_G;
-         rcnt            <= (others => '0') after TPD_G;
-         wcnt            <= (others => '1') after TPD_G;
+         cnt             <= (others => '0') after TPD_G;
          overflowStatus  <= '0'             after TPD_G;
          underflowStatus <= '0'             after TPD_G;
-         ready           <= '0'             after TPD_G;
       elsif rising_edge(clk) then
          writeAck <= '0' after TPD_G;
          readAck  <= '0' after TPD_G;
@@ -189,17 +188,10 @@ begin
          if srst = '1'then
             waddr           <= (others => '0') after TPD_G;
             raddr           <= (others => '0') after TPD_G;
-            rcnt            <= (others => '0') after TPD_G;
-            wcnt            <= (others => '1') after TPD_G;
+            cnt             <= (others => '0') after TPD_G;
             overflowStatus  <= '0'             after TPD_G;
             underflowStatus <= '0'             after TPD_G;
-            ready           <= '0'             after TPD_G;
          else
-            --check if this is first cycle after reset
-            if ready = '0' then
-               ready <= '1'             after TPD_G;
-               wcnt  <= (others => '0') after TPD_G;
-            end if;
 
             --check for write operation
             if wr_en = '1' then
@@ -225,11 +217,9 @@ begin
 
             --increment the FIFO counter
             if (readEnable = '1') and (wr_en = '0') and (fifoStatus.empty = '0') then
-               rcnt <= rcnt - 1 after TPD_G;
-               wcnt <= rcnt - 1 after TPD_G;
+               cnt <= cnt - 1 after TPD_G;
             elsif (readEnable = '0') and (wr_en = '1') and (fullStatus = '0') then
-               rcnt <= rcnt + 1 after TPD_G;
-               wcnt <= rcnt + 1 after TPD_G;
+               cnt <= cnt + 1 after TPD_G;
             end if;
             
          end if;
