@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-21
+-- Last update: 2013-07-29
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ entity FifoAsync is
       prog_full     : out sl;
       almost_full   : out sl;
       full          : out sl;
+      not_full      : out sl;
       --Read Ports (rd_clk domain)
       rd_clk        : in  sl;
       rd_en         : in  sl;
@@ -284,6 +285,7 @@ begin
 
    wr_data_count <= wrReg.cnt;
    full          <= fullStatus;
+   not_full      <= not(fullStatus);
    wr_ack        <= wrReg.Ack;
    overflow      <= wrReg.error;
    prog_full     <= '1' when (wrReg.cnt >= FULL_THRES_G)    else '0';
