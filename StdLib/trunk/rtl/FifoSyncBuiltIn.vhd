@@ -89,6 +89,10 @@ begin
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
       severity failure;
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;      
 end FifoSyncBuiltIn;
 
 architecture mapping of FifoSyncBuiltIn is
