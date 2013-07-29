@@ -27,35 +27,39 @@ use unimacro.vcomponents.all;
 
 entity FifoAsyncBuiltIn is
    generic (
-      TPD_G         : time                    := 1 ns;
-      WCLK_PERIOD_G : time                    := 1 ns;  --write clock period 
-      RCLK_PERIOD_G : time                    := 1 ns;  --read clock period
-      XIL_DEVICE_G  : string                  := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
-      FWFT_EN_G     : boolean                 := false;
-      DATA_WIDTH_G  : integer range 1 to 72   := 18;
-      ADDR_WIDTH_G  : integer range 9 to 13   := 10;
-      FULL_THRES_G  : integer range 6 to 8191 := 8191;
-      EMPTY_THRES_G : integer range 6 to 8191 := 6);
+      TPD_G         : time                       := 1 ns;
+      FWFT_EN_G     : boolean                    := false;
+      USE_DSP48_G   : string                     := "no";
+      XIL_DEVICE_G  : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
+      SYNC_STAGES_G : integer range 2 to (2**24) := 2;
+      DATA_WIDTH_G  : integer range 1 to 72      := 18;
+      ADDR_WIDTH_G  : integer range 9 to 13      := 10;
+      FULL_THRES_G  : integer range 1 to 8190    := 1;
+      EMPTY_THRES_G : integer range 0 to 8190    := 0);
    port (
-      -- Resets
-      rst        : in  sl := '0';       -- Asynchronous Reset
+      -- Asynchronous Reset
+      rst           : in  sl;
       --Write Ports (wr_clk domain)
-      wr_clk     : in  sl;
-      wr_en      : in  sl := '0';
-      din        : in  slv(DATA_WIDTH_G-1 downto 0);
-      wr_ack     : out sl;
-      overflow   : out sl;
-      prog_full  : out sl;
-      full       : out sl;
-      not_full   : out sl;
+      wr_clk        : in  sl;
+      wr_en         : in  sl;
+      din           : in  slv(DATA_WIDTH_G-1 downto 0);
+      wr_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
+      wr_ack        : out sl;
+      overflow      : out sl;
+      prog_full     : out sl;
+      almost_full   : out sl;
+      full          : out sl;
+      not_full      : out sl;
       --Read Ports (rd_clk domain)
-      rd_clk     : in  sl;
-      rd_en      : in  sl := '0';
-      dout       : out slv(DATA_WIDTH_G-1 downto 0);
-      valid      : out sl;
-      underflow  : out sl;
-      prog_empty : out sl;
-      empty      : out sl);
+      rd_clk        : in  sl;
+      rd_en         : in  sl;
+      dout          : out slv(DATA_WIDTH_G-1 downto 0);
+      rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
+      valid         : out sl;
+      underflow     : out sl;
+      prog_empty    : out sl;
+      almost_empty  : out sl;
+      empty         : out sl);
 begin
    -- check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
    assert (((DATA_WIDTH_G >= 37) and (DATA_WIDTH_G    <= 72) and (ADDR_WIDTH_G = 9))
@@ -82,36 +86,18 @@ begin
    --     1-4    |   "36Kb"  |     8192   |        13-bit         --
    --     1-4    |   "18Kb"  |     4096   |        12-bit         --
    -----------------------------------------------------------------       
-   -- check that the user set the WCLK_PERIOD_G parameter
-   assert (WCLK_PERIOD_G > 1.0000001 ns)
-      report "WCLK_PERIOD_G not configured yet"
-      severity failure;
-
-   -- check that the user set the WCLK_PERIOD_G parameter
-   assert (RCLK_PERIOD_G > 1.0000001 ns)
-      report "RCLK_PERIOD_G not configured yet"
-      severity failure;
-
-   -- FULL_THRES_G lower range check
-   assert (FULL_THRES_G >= ((4*(RCLK_PERIOD_G/WCLK_PERIOD_G))-6))
-      report "FULL_THRES_G must be >= ((4*(RCLK_PERIOD_G/WCLK_PERIOD_G))-6)"
-      severity failure;
-
-   -- EMPTY_THRES_G lower range check
-   assert (EMPTY_THRES_G >= ((4*(RCLK_PERIOD_G/WCLK_PERIOD_G))-6))
-      report "EMPTY_THRES_G must be >= ((4*(RCLK_PERIOD_G/WCLK_PERIOD_G))-6)"
-      severity failure;
-
    -- FULL_THRES_G upper range check
-   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)- 5))
-      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)- 5)"
+   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
+      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
       severity failure;
-
    -- EMPTY_THRES_G upper range check
-   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)- 7))
-      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)- 7)"
+   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
+      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
       severity failure;
-
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
 end FifoAsyncBuiltIn;
 
 architecture mapping of FifoAsyncBuiltIn is
@@ -141,33 +127,51 @@ architecture mapping of FifoAsyncBuiltIn is
       end if;
    end;
 
-   constant FIFO_LENGTH_C         : integer    := ((2**ADDR_WIDTH_G)- 1);
-   constant ALMOST_FULL_OFFSET_C  : bit_vector := to_bitvector(conv_std_logic_vector((FIFO_LENGTH_C-FULL_THRES_G), 16));
-   constant ALMOST_EMPTY_OFFSET_C : bit_vector := to_bitvector(conv_std_logic_vector(EMPTY_THRES_G, 16));
-   constant FIFO_SIZE_C           : string     := GetFifoType(DATA_WIDTH_G, ADDR_WIDTH_G);
+   constant FIFO_LENGTH_C : integer := ((2**ADDR_WIDTH_G)- 1);
+   constant FIFO_SIZE_C   : string  := GetFifoType(DATA_WIDTH_G, ADDR_WIDTH_G);
 
    signal wrAddrPntr,
-      rdAddrPntr : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      rdAddrPntr,
+      wrGrayPntr,
+      rdGrayPntr,
+      wcnt,
+      rcnt : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
 
    signal buildInFull,
       buildInEmpty,
       progEmpty,
       progFull,
-      WRERR,
-      RDERR,
-      fifoRst,
+      fifoWrRst,
+      fifoRdRst,
+      rstEmpty,
       rstFull : sl := '0';
+
+   -- Attribute for XST
+   attribute use_dsp48         : string;
+   attribute use_dsp48 of wcnt : signal is USE_DSP48_G;
+   attribute use_dsp48 of rcnt : signal is USE_DSP48_G;
    
 begin
-   RstSync_FIFO : entity work.RstSync
+   -------------------------------
+   -- Resets
+   -------------------------------   
+   RstSync_WR : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 6)   
       port map (
          clk      => wr_clk,
          asyncRst => rst,
-         syncRst  => fifoRst); 
+         syncRst  => fifoWrRst); 
 
+   RstSync_RD : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G,
+         RELEASE_DELAY_G => 6)   
+      port map (
+         clk      => rd_clk,
+         asyncRst => rst,
+         syncRst  => fifoRdRst);          
 
    RstSync_FULL : entity work.RstSync
       generic map (
@@ -176,37 +180,66 @@ begin
       port map (
          clk      => wr_clk,
          asyncRst => rst,
-         syncRst  => rstFull);           
+         syncRst  => rstFull); 
+
+   RstSync_EMPTY : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G,
+         RELEASE_DELAY_G => 8)   
+      port map (
+         clk      => rd_clk,
+         asyncRst => rst,
+         syncRst  => rstEmpty);          
 
    FIFO_DUALCLOCK_MACRO_inst : FIFO_DUALCLOCK_MACRO
       generic map (
          DEVICE                  => XIL_DEVICE_G,  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"
-         ALMOST_FULL_OFFSET      => ALMOST_FULL_OFFSET_C,  -- Sets almost full threshold
-         ALMOST_EMPTY_OFFSET     => ALMOST_EMPTY_OFFSET_C,  -- Sets the almost empty threshold
+         ALMOST_FULL_OFFSET      => x"000F",  -- Sets almost full threshold
+         ALMOST_EMPTY_OFFSET     => x"000F",  -- Sets the almost empty threshold
          DATA_WIDTH              => DATA_WIDTH_G,  -- Valid values are 1-72 (37-72 only valid when FIFO_SIZE="36Kb")
          FIFO_SIZE               => FIFO_SIZE_C,  -- Target BRAM, "18Kb" or "36Kb"
          FIRST_WORD_FALL_THROUGH => FWFT_EN_G)  -- Sets the FIFO FWFT to TRUE or FALSE
       port map (
-         RST         => fifoRst,      -- 1-bit input reset
+         RST         => fifoWrRst,      -- 1-bit input reset
          WRCLK       => wr_clk,         -- 1-bit input write clock
          WREN        => wr_en,          -- 1-bit input write enable
          DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
-         WRCOUNT     => rdAddrPntr,     -- Output write address pointer
+         WRCOUNT     => wrAddrPntr,     -- Output write address pointer
          WRERR       => open,           -- 1-bit output write error
-         ALMOSTFULL  => progFull,       -- 1-bit output almost full
+         ALMOSTFULL  => open,           -- 1-bit output almost full
          FULL        => buildInFull,    -- 1-bit output full
          RDCLK       => rd_clk,         -- 1-bit input read clock
          RDEN        => rd_en,          -- 1-bit input read enable
          DO          => dout,  -- Output data, width defined by DATA_WIDTH parameter
-         RDCOUNT     => wrAddrPntr,     -- Output read address pointer
+         RDCOUNT     => rdAddrPntr,     -- Output read address pointer
          RDERR       => underflow,      -- 1-bit output read error
-         ALMOSTEMPTY => progEmpty,      -- 1-bit output almost empty
+         ALMOSTEMPTY => open,           -- 1-bit output almost empty
          EMPTY       => buildInEmpty);  -- 1-bit output empty
 
+
+   -------------------------------
+   -- wr_clk domain
+   -------------------------------  
+   SynchronizerVector_0 : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => SYNC_STAGES_G,
+         WIDTH_G  => ADDR_WIDTH_G)
+      port map (
+         aRst    => fifoWrRst,
+         clk     => wr_clk,
+         dataIn  => grayEncode(rdAddrPntr),
+         dataOut => rdGrayPntr); 
+
+   -- calculate wr_data_count
+   wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
+
    -- Full signals
-   full      <= buildInFull or rstFull;
-   not_full  <= not(buildInFull or rstFull);
-   prog_full <= progFull or rstFull;
+   prog_full     <= '1'  when (wcnt >= FULL_THRES_G)      else rstFull;
+   almost_full   <= '1'  when (wcnt >= (FIFO_LENGTH_C-2)) else rstFull;
+   full          <= buildInFull or rstFull;
+   not_full      <= not(buildInFull or rstFull);
+   wr_data_count <= wcnt when(rstFull = '0')              else (others => '1');
 
    process(wr_clk)
    begin
@@ -230,12 +263,31 @@ begin
       end if;
    end process;
 
+   -------------------------------
+   -- rd_clk domain
+   -------------------------------
+   SynchronizerVector_1 : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => SYNC_STAGES_G,
+         WIDTH_G  => ADDR_WIDTH_G)
+      port map (
+         aRst    => fifoRdRst,
+         clk     => rd_clk,
+         dataIn  => grayEncode(wrAddrPntr),
+         dataOut => wrGrayPntr); 
+
+   -- calculate rd_data_count
+   rcnt <= grayDecode(wrGrayPntr) - rdAddrPntr;  
+
    -- Empty signals
-   empty      <= buildInEmpty;
-   prog_empty <= progEmpty;
-   
+   prog_empty    <= '1'  when (rcnt <= EMPTY_THRES_G) else rstEmpty;
+   almost_empty  <= '1'  when (rcnt <= 1)             else rstEmpty;
+   empty         <= buildInEmpty or rstEmpty;
+   rd_data_count <= rcnt when(rstEmpty = '0')         else (others => '0');
+
    FIFO_Gen : if (FWFT_EN_G = false) generate
-      process(buildInEmpty, rd_clk)
+      process(rd_clk)
       begin
          if rising_edge(rd_clk) then
             if (rd_en = '1') then
@@ -246,9 +298,9 @@ begin
          end if;
       end process;
    end generate;
-   
+
    FWFT_Gen : if (FWFT_EN_G = true) generate
       valid <= not(buildInEmpty);
    end generate;
-  
+   
 end architecture mapping;

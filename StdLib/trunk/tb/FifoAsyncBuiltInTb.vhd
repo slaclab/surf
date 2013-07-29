@@ -126,33 +126,31 @@ begin
    FifoAsyncBuiltIn_Inst : entity work.FifoAsyncBuiltIn
       generic map(
          TPD_G         => TPD_C,
-         WCLK_PERIOD_G => WRITE_CLK_C,
-         RCLK_PERIOD_G => READ_CLK_C,
          XIL_DEVICE_G  => XIL_DEVICE_C,
          FWFT_EN_G     => FWFT_EN_C,
          DATA_WIDTH_G  => DATA_WIDTH_C,
          ADDR_WIDTH_G  => ADDR_WIDTH_C,
-         FULL_THRES_G  => ((2**ADDR_WIDTH_C)- 5),
-         EMPTY_THRES_G => 10)
+         FULL_THRES_G  => ((2**ADDR_WIDTH_C)-2),
+         EMPTY_THRES_G => 2)
       port map (
          rst           => rst,
          wr_clk        => wr_clk,
          wr_en         => wr_en,
          din           => din,
-         --wr_data_count => wr_data_count,
+         wr_data_count => wr_data_count,
          wr_ack        => wr_ack,
          overflow      => overflow,
          prog_full     => prog_full,
-         --almost_full   => almost_full,
+         almost_full   => almost_full,
          full          => full,
          rd_clk        => rd_clk,
          rd_en         => rd_en,
          dout          => dout,
-         --rd_data_count => rd_data_count,
+         rd_data_count => rd_data_count,
          valid         => valid,
          underflow     => underflow,
          prog_empty    => prog_empty,
-         --almost_empty  => almost_empty,
+         almost_empty  => almost_empty,
          empty         => empty);         
 --*********************************************************************************--   
    WRITE_PATTERN : process(rst, wr_clk)
@@ -165,7 +163,7 @@ begin
       elsif rising_edge(wr_clk) then
          wr_en <= '0' after TPD_C;
          if (writeDone = '0') then
-            if prog_full = '0' then
+            if almost_full = '0' then
                din   <= writeCnt after TPD_C;
                wr_en <= '1'      after TPD_C;
                if writeCnt = MAX_VALUE_C then
