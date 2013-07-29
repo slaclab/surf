@@ -61,7 +61,7 @@ entity FifoMux is
       almost_empty : out sl;
       empty        : out sl);
 begin
-   assert ((WR_DATA_WIDTH_G > RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
+   assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
            (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
       report "Data widths must be even number multipes of each other" severity failure;
 end FifoMux;
