@@ -7,6 +7,10 @@
 -------------------------------------------------------------------------------
 -- Description: Synchronizes the trailing edge of an asynchronous reset to a
 --              given clock.
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/Synchronizer.vhd
+-------------------------------------------------------------------------------
+-- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library IEEE;
@@ -18,7 +22,7 @@ entity RstSync is
       TPD_G           : time     := 1 ns;  -- Simulation FF output delay
       IN_POLARITY_G   : sl       := '1';   -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl       := '1';
-      RELEASE_DELAY_G : positive := 2);    -- Delay between deassertion of async and sync resets
+      RELEASE_DELAY_G : positive := 2);  -- Delay between deassertion of async and sync resets
    port (
       clk      : in  sl;
       asyncRst : in  sl;
@@ -40,7 +44,7 @@ begin
          INIT_G         => slvAll(RELEASE_DELAY_G, OUT_POLARITY_G))
       port map (
          clk     => clk,
-         aRst     => asyncRst,
+         aRst    => asyncRst,
          dataIn  => not OUT_POLARITY_G,
          dataOut => syncRst);
 

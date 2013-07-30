@@ -5,11 +5,12 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-07-29
+-- Last update: 2013-07-30
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
+-- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -92,7 +93,7 @@ begin
    -- USE_DSP48_G check
    assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
       report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;      
+      severity failure;
 end FifoSyncBuiltIn;
 
 architecture mapping of FifoSyncBuiltIn is
@@ -126,7 +127,7 @@ architecture mapping of FifoSyncBuiltIn is
    constant ALMOST_FULL_OFFSET_C  : bit_vector := to_bitvector(conv_std_logic_vector((FIFO_LENGTH_C-FULL_THRES_G), 16));
    constant ALMOST_EMPTY_OFFSET_C : bit_vector := to_bitvector(conv_std_logic_vector(EMPTY_THRES_G, 16));
    constant FIFO_SIZE_C           : string     := GetFifoType(DATA_WIDTH_G, ADDR_WIDTH_G);
-   
+
    type ReadStatusType is
    record
       prog_empty   : sl;
@@ -217,7 +218,7 @@ begin
          end if;
       end if;
    end process;
-   
+
    process(clk)
    begin
       if rising_edge(clk) then
@@ -227,7 +228,7 @@ begin
             overflow <= '1' after TPD_G;  --latch error strobe
          end if;
       end if;
-   end process;   
+   end process;
 
    --read signals   
    fifoStatus.prog_empty   <= progEmpty;

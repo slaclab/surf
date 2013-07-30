@@ -5,11 +5,14 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-07-29
+-- Last update: 2013-07-30
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Xilinx's builtin
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
+--                ^/StdLib/trunk/rtl/SynchronizerVector.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -278,7 +281,7 @@ begin
          dataOut => wrGrayPntr); 
 
    -- calculate rd_data_count
-   rcnt <= grayDecode(wrGrayPntr) - rdAddrPntr;  
+   rcnt <= grayDecode(wrGrayPntr) - rdAddrPntr;
 
    -- Empty signals
    prog_empty    <= '1'  when (rcnt <= EMPTY_THRES_G) else rstEmpty;

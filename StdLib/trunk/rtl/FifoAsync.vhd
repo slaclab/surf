@@ -5,11 +5,16 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-29
+-- Last update: 2013-07-30
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
+--                ^/StdLib/trunk/rtl/SynchronizerVector.vhd
+--                ^/StdLib/trunk/rtl/Synchronizer.vhd
+--                ^/StdLib/trunk/rtl/SimpleDualPortRam.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
