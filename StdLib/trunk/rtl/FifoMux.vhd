@@ -197,8 +197,7 @@ begin
          asyncRst => wrRst,
          syncRst  => rdRst);
 
-   rdComb : process (empty, fifo_dout, fifo_empty, fifo_valid, rdR, rd_en,
-                     valid) is
+   rdComb : process (fifo_dout, fifo_empty, fifo_valid, rdR, rd_en) is
       variable v      : RdRegType;
       variable rdData : RdDataArray;
       variable index  : integer;
