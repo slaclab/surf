@@ -61,12 +61,6 @@ entity Fifo is
       prog_empty    : out sl;
       almost_empty  : out sl;
       empty         : out sl);
-begin
-   -- check for FIFO support
-   assert ((USE_BUILT_IN_G = false)
-           or ((USE_BUILT_IN_G = true) and (GEN_SYNC_FIFO_G = true)))
-      report "ERROR: This FIFO wrapper doesn't support built-in Asynchronous FIFO"
-      severity failure;
 end Fifo;
 
 architecture rtl of Fifo is
@@ -195,6 +189,40 @@ begin
          --    When mapping the FifoSync, I am assuming that
          --    wr_clk = rd_clk (both in frequency and in phase)
          --    and I only pass wr_clk into the FifoSyncBuiltIn_Inst
+      end generate;
+      FIFO_ASYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = false) generate
+         FifoAsyncBuiltIn_Inst : entity work.FifoAsyncBuiltIn
+            generic map (
+               TPD_G         => TPD_G,
+               FWFT_EN_G     => FWFT_EN_G,
+               USE_DSP48_G   => USE_DSP48_G,
+               XIL_DEVICE_G  => XIL_DEVICE_G,
+               SYNC_STAGES_G => SYNC_STAGES_G,
+               DATA_WIDTH_G  => DATA_WIDTH_G,
+               ADDR_WIDTH_G  => ADDR_WIDTH_G,
+               FULL_THRES_G  => FULL_THRES_G,
+               EMPTY_THRES_G => EMPTY_THRES_G)            
+            port map (
+               rst           => rstAsyncFifo,
+               wr_clk        => wr_clk,
+               wr_en         => wr_en,
+               din           => din,
+               wr_data_count => wr_data_count,
+               wr_ack        => wr_ack,
+               overflow      => overflow,
+               prog_full     => prog_full,
+               almost_full   => almost_full,
+               full          => full,
+               not_full      => not_full,
+               rd_clk        => rd_clk,
+               rd_en         => rd_en,
+               dout          => dout,
+               rd_data_count => rd_data_count,
+               valid         => valid,
+               underflow     => underflow,
+               prog_empty    => prog_empty,
+               almost_empty  => almost_empty,
+               empty         => empty);   
       end generate;
    end generate;
    
