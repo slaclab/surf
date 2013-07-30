@@ -1,31 +1,33 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, V2, GTP Wrapper
--- Project       : General Purpose Core
+-- Title      : 
 -------------------------------------------------------------------------------
--- File          : Pgp2Gtx7.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 08/18/2009
+-- File       : Pgp2Gtx7Fixedlat.vhd
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-06-29
+-- Last update: 2013-07-30
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- VHDL source file containing the PGP, GTX7 and CRC blocks.
+-- Description: Gtx7 Wrapper
+--
+-- Dependencies:  ^/pgp2_core/trunk/rtl/core/Pgp2RxWrapper.vhd
+--                ^/pgp2_core/trunk/rtl/core/Pgp2TxWrapper.vhd
+--                ^/StdLib/trunk/rtl/CRC32Rtl.vhd
+--                ^/MgtLib/trunk/rtl/gtx7/Gtx7Core.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2006 by Ryan Herbst. All rights reserved.
--------------------------------------------------------------------------------
--- Modification history:
--- 08/18/2009: created.
--- 01/13/2010: Added received init line to help linking.
+-- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
---use work.Pgp2CorePackage.all;
+
 use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
 use work.VcPkg.all;
+
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
-
-
 
 entity Pgp2Gtx7Fixedlat is
    generic (
@@ -55,12 +57,12 @@ entity Pgp2Gtx7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      EnShortCells : integer := 1;       -- Enable short non-EOF cells
-      VcInterleave : integer := 1        -- Interleave Frames
+      EnShortCells : integer := 1;      -- Enable short non-EOF cells
+      VcInterleave : integer := 1       -- Interleave Frames
       );
    port (
       -- GT Clocking
-      stableClk        : in  sl;         -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
       gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';
@@ -82,7 +84,7 @@ entity Pgp2Gtx7Fixedlat is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -133,12 +135,12 @@ architecture rtl of Pgp2Gtx7Fixedlat is
 --   signal pgpRxReset1    : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
-   signal dataValid     : sl;                            -- no decode or disparity errors
+   signal gtRxData      : slv(19 downto 0);  -- Feed to 8B10B decoder
+   signal dataValid     : sl;           -- no decode or disparity errors
    signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
-   signal phyRxReady    : sl;                            -- To RxRst
-   signal phyRxInit     : sl;                            -- To RxRst
+   signal phyRxReady    : sl;           -- To RxRst
+   signal phyRxInit     : sl;           -- To RxRst
    signal crcRxIn       : PgpCrcInType;
    signal crcRxOut      : slv(31 downto 0);
 
@@ -359,11 +361,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => pgpRxReset,
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,  -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
