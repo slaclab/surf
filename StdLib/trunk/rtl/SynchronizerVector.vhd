@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-10
+-- Last update: 2013-07-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,11 +38,14 @@ begin
 end SynchronizerVector;
 
 architecture rtl of SynchronizerVector is
-   constant INIT_C : slv(WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(WIDTH_G), INIT_G);
+   constant INIT_C : slv(WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(WIDTH_G), INIT_G);
 
    type   RegArray is array (STAGES_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
    signal r, rin : RegArray := (others => INIT_C);
 
+   -------------------------------
+   -- XST/Synplify Attributes
+   -------------------------------
    -- These attributes will stop Vivado translating the desired flip-flops into an
    -- SRL based shift register. (Breaks XST for some reason so keep commented for now).
    attribute ASYNC_REG      : string;
@@ -64,6 +67,20 @@ architecture rtl of SynchronizerVector is
    -- Don't let register balancing move logic between the register chain
    attribute register_balancing      : string;
    attribute register_balancing of r : signal is "no";
+
+   -------------------------------
+   -- Altera Attributes 
+   -- NOTE: These attributes have not been tested yet!!!
+   ------------------------------- 
+   attribute altera_attribute : string;
+
+   -- Disable Auto Shift Register Recognition logic option
+   -- Optimize for metastability
+   -- Don't let register balancing move logic between the register chain
+   attribute altera_attribute of r : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF -name OPTIMIZE_FOR_METASTABILITY ON -name USE_LOGICLOCK_CONSTRAINTS_IN_BALANCING OFF";
+
+   -- This attribute will stop timing errors
+   attribute altera_attribute of rin : signal is "-name CUT ON -from dataIn -to rin";
    
 begin
 
