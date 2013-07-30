@@ -5,11 +5,16 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-06-29
+-- Last update: 2013-07-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Gtp7 Wrapper
+--
+-- Dependencies:  ^/pgp2_core/trunk/rtl/core/Pgp2RxWrapper.vhd
+--                ^/pgp2_core/trunk/rtl/core/Pgp2TxWrapper.vhd
+--                ^/StdLib/trunk/rtl/CRC32Rtl.vhd
+--                ^/MgtLib/trunk/rtl/gtp7/Gtp7Core.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -128,7 +133,7 @@ architecture rtl of Pgp2Gtp7MultiLane is
    -- PgpTx Signals
    signal pgpTxMmcmResets : slv((LANE_CNT_G-1) downto 0);
    signal gtTxResetDone   : slv((LANE_CNT_G-1) downto 0);
-   signal gtTxUserResetIn : sl;  
+   signal gtTxUserResetIn : sl;
    signal phyTxLanesOut   : PgpTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
    signal crcTxIn         : PgpCrcInType;
@@ -149,9 +154,9 @@ begin
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
-   
+
    gtRxUserResetIn <= gtRxUserReset or pgpRxReset;
-   gtTxUserResetIn <= pgpTxReset;   
+   gtTxUserResetIn <= pgpTxReset;
 
    -- PGP RX Block
    Pgp2RxWrapper_1 : entity work.Pgp2RxWrapper
