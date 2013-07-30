@@ -10,6 +10,8 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Debouncer for pushbutton switches
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/Synchronizer.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

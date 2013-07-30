@@ -5,11 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-29
+-- Last update: 2013-07-30
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/SimpleDualPortRam.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -109,7 +111,7 @@ architecture rtl of FifoSync is
    signal underflowStatus : sl;
    signal fullStatus      : sl;
    signal readEnable      : sl;
-   signal rstFlags      : sl;
+   signal rstFlags        : sl;
 
    -- Attribute for XST
    attribute use_dsp48          : string;
@@ -121,7 +123,7 @@ begin
    rstFlags <= rst or srst;
 
    --write ports
-   data_count  <= cnt when (rstFlags = '0') else (others => '1');
+   data_count  <= cnt when (rstFlags = '0')         else (others => '1');
    full        <= fullStatus;
    not_full    <= not(fullStatus);
    wr_ack      <= writeAck;

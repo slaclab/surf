@@ -5,11 +5,13 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-24
+-- Last update: 2013-07-30
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Synchronizing FIFO wrapper
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/FifoAsync.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

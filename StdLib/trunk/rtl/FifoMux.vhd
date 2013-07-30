@@ -5,11 +5,13 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2013-07-25
+-- Last update: 2013-07-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
+--
+-- Dependencies:  ^/StdLib/trunk/rtl/Fifo.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -86,10 +88,10 @@ architecture rtl of FifoMux is
       wrData => (others => (others => '0')),
       wrEn   => '0');
 
-   signal wrR, wrRin      : WrRegType := WR_REG_INIT_C;
-   signal fifo_din        : slv(FIFO_DATA_WIDTH_C-1 downto 0);
-   signal fifo_wr_en      : sl;
-   signal wrRst           : sl;
+   signal   wrR, wrRin    : WrRegType := WR_REG_INIT_C;
+   signal   fifo_din      : slv(FIFO_DATA_WIDTH_C-1 downto 0);
+   signal   fifo_wr_en    : sl;
+   signal   wrRst         : sl;
    -------------------------------------------------------------------------------------------------
    constant RD_LOGIC_EN_C : boolean   := (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G);
    constant RD_SIZE_C     : integer   := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
@@ -126,7 +128,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Write Logic
    -------------------------------------------------------------------------------------------------
-   wrComb : process (din, wrR, wr_en, srst) is
+   wrComb : process (din, srst, wrR, wr_en) is
       variable v     : WrRegType;
       variable index : integer;
       variable high  : integer;
@@ -170,7 +172,7 @@ begin
 
    end process wrComb;
 
-   wrSeq : process (wr_clk, rst) is
+   wrSeq : process (rst, wr_clk) is
    begin
       if (rst = '1') then
          wrR <= WR_REG_INIT_C after TPD_G;
@@ -195,7 +197,8 @@ begin
          asyncRst => wrRst,
          syncRst  => rdRst);
 
-   rdComb : process (fifo_dout, fifo_empty, fifo_valid, rdR, rd_en) is
+   rdComb : process (empty, fifo_dout, fifo_empty, fifo_valid, rdR, rd_en,
+                     valid) is
       variable v      : RdRegType;
       variable rdData : RdDataArray;
       variable index  : integer;
@@ -256,7 +259,7 @@ begin
       
    end process rdComb;
 
-   rdSeq : process (rd_clk, rdRst) is
+   rdSeq : process (rdRst, rd_clk) is
    begin
       if (rdRst = '1') then
          rdR <= RD_REG_INIT_C after TPD_G;
