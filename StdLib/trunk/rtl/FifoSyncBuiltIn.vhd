@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-07-30
+-- Last update: 2013-08-02
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,16 +28,17 @@ use unimacro.vcomponents.all;
 
 entity FifoSyncBuiltIn is
    generic (
-      TPD_G         : time                    := 1 ns;
-      XIL_DEVICE_G  : string                  := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
-      USE_DSP48_G   : string                  := "no";
-      FWFT_EN_G     : boolean                 := false;
-      DATA_WIDTH_G  : integer range 1 to 72   := 18;
-      ADDR_WIDTH_G  : integer range 9 to 13   := 10;
-      FULL_THRES_G  : integer range 1 to 8190 := 1;
-      EMPTY_THRES_G : integer range 1 to 8190 := 1);
+      TPD_G          : time                    := 1 ns;
+      RST_POLARITY_G : sl                      := '1';  -- '1' for active high rst, '0' for active low
+      FWFT_EN_G      : boolean                 := false;
+      USE_DSP48_G    : string                  := "no";
+      XIL_DEVICE_G   : string                  := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
+      DATA_WIDTH_G   : integer range 1 to 72   := 18;
+      ADDR_WIDTH_G   : integer range 9 to 13   := 10;
+      FULL_THRES_G   : integer range 1 to 8190 := 1;
+      EMPTY_THRES_G  : integer range 1 to 8190 := 1);
    port (
-      rst          : in  sl := '0';     -- Asynchronous Reset
+      rst          : in  sl := '0';
       clk          : in  sl;
       wr_en        : in  sl;
       rd_en        : in  sl;
@@ -159,6 +160,7 @@ begin
    RstSync_FIFO : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => 6)   
       port map (
          clk      => clk,
@@ -168,6 +170,7 @@ begin
    RstSync_FULL : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => 8)   
       port map (
          clk      => clk,

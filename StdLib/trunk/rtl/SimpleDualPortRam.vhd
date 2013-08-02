@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-07-18
+-- Last update: 2013-08-02
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,12 +23,13 @@ use work.StdRtlPkg.all;
 
 entity SimpleDualPortRam is
    generic (
-      TPD_G        : time                       := 1 ns;
-      BRAM_EN_G    : boolean                    := true;
-      ALTERA_RAM_G : string                     := "M-RAM";
-      DATA_WIDTH_G : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
-      INIT_G       : slv                        := "0");
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
+      BRAM_EN_G      : boolean                    := true;
+      ALTERA_RAM_G   : string                     := "M-RAM";
+      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
+      INIT_G         : slv                        := "0");
    port (
       -- Port A     
       clka  : in  sl                           := '0';
@@ -56,7 +57,7 @@ begin
 end SimpleDualPortRam;
 
 architecture rtl of SimpleDualPortRam is
-   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G="0", slvZero(DATA_WIDTH_G), INIT_G);
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 
    constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
    constant ALTERA_BRAM_STYLE_C : string := ite(BRAM_EN_G, ALTERA_RAM_G, "MLAB");
@@ -103,7 +104,7 @@ begin
    process(clkb)
    begin
       if rising_edge(clkb) then
-         if rstb = '1' then
+         if rstb = RST_POLARITY_G then
             doutb <= INIT_C after TPD_G;
          elsif enb = '1' then
             doutb <= mem(conv_integer(addrb)) after TPD_G;

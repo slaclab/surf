@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-12
--- Last update: 2013-07-12
+-- Last update: 2013-08-02
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,9 +24,11 @@ use work.StdRtlPkg.all;
 
 entity DspCounter is
    generic (
-      TPD_G        : time                  := 1 ns;
-      DATA_WIDTH_G : integer range 1 to 48 := 16;
-      INCREMENT_G  : integer range 1 to 48 := 1);
+      TPD_G          : time                  := 1 ns;
+      RST_POLARITY_G : sl                    := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean               := false;
+      DATA_WIDTH_G   : integer range 1 to 48 := 16;
+      INCREMENT_G    : integer range 1 to 48 := 1);
    port (
       clk : in  sl := '0';
       rst : in  sl := '0';
@@ -54,10 +56,14 @@ begin
 
    cnt <= counter;
 
-   process(clk)
+   process(clk, rst)
    begin
-      if rising_edge(clk) then
-         if rst = '1' then
+      --asychronous reset
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         counter <= (others => '0') after TPD_G;
+      elsif rising_edge(clk) then
+         --sychronous reset
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
             counter <= (others => '0') after TPD_G;
          else
             if en = '1' then
