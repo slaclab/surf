@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2013-05-21
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,12 +22,13 @@ use work.Code8b10bPkg.all;
 entity Decoder8b10b is
    
    generic (
-      TPD_G       : time     := 1 ns;
-      NUM_BYTES_G : positive := 2);
-
+      TPD_G          : time     := 1 ns;
+      NUM_BYTES_G    : positive := 2;
+      RST_POLARITY_G : sl       := '1';
+      RST_ASYNC_G    : boolean  := false);
    port (
       clk      : in  sl;
-      rstL     : in  sl;
+      rst      : in  sl;
       dataIn   : in  slv(NUM_BYTES_G*10-1 downto 0);
       dataOut  : out slv(NUM_BYTES_G*8-1 downto 0);
       dataKOut : out slv(NUM_BYTES_G-1 downto 0);
@@ -46,11 +47,19 @@ architecture rtl of Decoder8b10b is
       dispErr  : slv(NUM_BYTES_G-1 downto 0);
    end record RegType;
 
-   signal r, rin : RegType;
+   constant REG_INIT_C : RegType := (
+      runDisp  => '0',
+      dataOut  => (others => '0'),
+      dataKOut => (others => '0'),
+      codeErr  => (others => '0'),
+      dispErr  => (others => '0'));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
 begin
 
-   comb : process (r, dataIn) is
+   comb : process (r, dataIn, rst) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
@@ -67,6 +76,10 @@ begin
       end loop;
       v.runDisp := dispChainVar;
 
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
+      end if;
+
       rin      <= v;
       dataOut  <= r.dataOut;
       dataKOut <= r.dataKOut;
@@ -74,16 +87,12 @@ begin
       dispErr  <= r.dispErr;
    end process comb;
 
-   seq : process (clk, rstL) is
+   seq : process (clk, rst) is
    begin
-      if (rstL = '0') then
-         r.runDisp  <= '0';
-         r.dataOut  <= (others => '0');
-         r.dataKOut <= (others => '0');
-         r.codeErr  <= (others => '0');
-         r.dispErr  <= (others => '0');
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(clk)) then
-         r <= rin;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 

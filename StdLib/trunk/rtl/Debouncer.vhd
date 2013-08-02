@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-06-12
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ entity Debouncer is
    generic (
       TPD_G             : time     := 1 ns;
       RST_POLARITY_G    : sl       := '1';    -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G       : boolean  := false;
       INPUT_POLARITY_G  : sl       := '0';
       OUTPUT_POLARITY_G : sl       := '1';
       FILTER_SIZE_G     : positive := 16;
@@ -33,11 +34,10 @@ entity Debouncer is
       SYNCHRONIZE_G     : boolean  := true);  -- Run input through 2 FFs before filtering
 
    port (
-      clk  : in  sl;
-      aRst : in  sl := not RST_POLARITY_G;
-      sRst : in  sl := not RST_POLARITY_G;
-      i    : in  sl;
-      o    : out sl);
+      clk : in  sl;
+      rst : in  sl := not RST_POLARITY_G;
+      i   : in  sl;
+      o   : out sl);
 begin
    assert (FILTER_INIT_G'length = FILTER_SIZE_G) report "FILTER_INIT_G length must = FILTER_SIZE_G" severity failure;
 end entity Debouncer;
@@ -53,7 +53,8 @@ architecture rtl of Debouncer is
       (filter => FILTER_INIT_G,
        o      => not OUTPUT_POLARITY_G);
 
-   signal r, rin  : RegType := REG_RESET_C;
+   signal r       : RegType := REG_RESET_C;
+   signal rin     : RegType;
    signal iSynced : sl      := INPUT_POLARITY_G;
 
 begin
@@ -63,17 +64,17 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             STAGES_G       => 2,
             INIT_G         => "00")
          port map (
             clk     => clk,
-            aRst    => aRst,
-            sRst    => sRst,
+            rst     => rst,
             dataIn  => i,
             dataOut => iSynced);
    end generate SynchronizerGen;
 
-   comb : process (r, i, iSynced, sRst) is
+   comb : process (r, i, iSynced, rst) is
       variable v : RegType;
    begin
       v := r;
@@ -92,7 +93,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (sRst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_RESET_C;
       end if;
 
@@ -101,9 +102,9 @@ begin
       
    end process comb;
 
-   seq : process (clk, aRst) is
+   seq : process (clk, rst) is
    begin
-      if (aRst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_RESET_C after TPD_G;
       elsif (rising_edge(clk)) then
          r <= rin after TPD_G;

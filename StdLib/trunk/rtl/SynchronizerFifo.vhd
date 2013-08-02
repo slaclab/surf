@@ -48,6 +48,9 @@ entity SynchronizerFifo is
    -- Note: rd_clk frequency must be greater than or equal to wr_clk
    --       else you will lose information due to buffer overflows
    -------------------------------------------------------------------------
+begin
+   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
+      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is

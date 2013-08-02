@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-30
+-- Last update: 2013-08-02
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -77,6 +77,9 @@ begin
    assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
+   -- INIT_G length check
+   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
+      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 end FifoAsync;
 
 architecture rtl of FifoAsync is
@@ -127,12 +130,12 @@ architecture rtl of FifoAsync is
    signal wrReg_rdy : sl;
 
 
-   constant SYNC_INIT_C  : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
-   constant GRAY_INIT_C  : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
-   signal   rdReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal   rdReg_wrGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal   wrReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal   wrReg_wrGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   constant SYNC_INIT_C : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
+   constant GRAY_INIT_C : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
+   signal rdReg_rdGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal rdReg_wrGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal wrReg_rdGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal wrReg_wrGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
 
    type RamPortType is record
       clk  : sl;
@@ -217,24 +220,26 @@ begin
 
    SynchronizerVector_0 : entity work.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         WIDTH_G  => ADDR_WIDTH_G,
-         INIT_G   => GRAY_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,
+         STAGES_G    => SYNC_STAGES_G,
+         WIDTH_G     => ADDR_WIDTH_G,
+         INIT_G      => GRAY_INIT_C)
       port map (
-         aRst    => readRst,
+         rst     => readRst,
          clk     => rd_clk,
          dataIn  => wrReg_wrGray,
          dataOut => rdReg_wrGray);   
 
    Synchronizer_0 : entity work.Synchronizer
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         INIT_G   => SYNC_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,
+         STAGES_G    => SYNC_STAGES_G,
+         INIT_G      => SYNC_INIT_C)
       port map (
          clk     => rd_clk,
-         aRst    => readRst,
+         rst     => readRst,
          dataIn  => wrReg.done,
          dataOut => rdReg_rdy);         
 
@@ -299,24 +304,26 @@ begin
 
    SynchronizerVector_1 : entity work.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         WIDTH_G  => ADDR_WIDTH_G,
-         INIT_G   => GRAY_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,
+         STAGES_G    => SYNC_STAGES_G,
+         WIDTH_G     => ADDR_WIDTH_G,
+         INIT_G      => GRAY_INIT_C)
       port map (
-         aRst    => writeRst,
+         rst     => writeRst,
          clk     => wr_clk,
          dataIn  => rdReg_rdGray,
          dataOut => wrReg_rdGray);
 
    Synchronizer_1 : entity work.Synchronizer
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         INIT_G   => SYNC_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,
+         STAGES_G    => SYNC_STAGES_G,
+         INIT_G      => SYNC_INIT_C)
       port map (
          clk     => wr_clk,
-         aRst    => writeRst,
+         rst     => writeRst,
          dataIn  => rdReg.done,
          dataOut => wrReg_rdy);           
 
