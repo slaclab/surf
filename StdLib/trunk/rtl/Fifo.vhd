@@ -28,6 +28,8 @@ use work.StdRtlPkg.all;
 entity Fifo is
    generic (
       TPD_G           : time                       := 1 ns;
+      RST_POLARITY_G  : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G     : boolean                    := false;
       GEN_SYNC_FIFO_G : boolean                    := false;
       BRAM_EN_G       : boolean                    := true;
       FWFT_EN_G       : boolean                    := false;
@@ -43,8 +45,7 @@ entity Fifo is
       EMPTY_THRES_G   : integer range 0 to (2**24) := 0);
    port (
       -- Resets
-      rst           : in  sl := '0';    -- Asynchronous Reset
-      srst          : in  sl := '0';    -- Synchronous Reset 
+      rst           : in  sl := '0';
       --Write Ports (wr_clk domain)
       wr_clk        : in  sl;
       wr_en         : in  sl := '0';
@@ -72,29 +73,27 @@ begin
 end Fifo;
 
 architecture rtl of Fifo is
-   constant INIT_C       : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
-   signal   rstAsyncFifo : sl                           := '0';
-   signal   data_count   : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+   constant INIT_C     : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
+   signal   data_count : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
 begin
-   rstAsyncFifo <= rst or srst;
-
    NON_BUILT_IN_GEN : if (USE_BUILT_IN_G = false) generate
       FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
          FifoAsync_Inst : entity work.FifoAsync
             generic map (
-               TPD_G         => TPD_G,
-               BRAM_EN_G     => BRAM_EN_G,
-               FWFT_EN_G     => FWFT_EN_G,
-               USE_DSP48_G   => USE_DSP48_G,
-               ALTERA_RAM_G  => ALTERA_RAM_G,
-               SYNC_STAGES_G => SYNC_STAGES_G,
-               DATA_WIDTH_G  => DATA_WIDTH_G,
-               ADDR_WIDTH_G  => ADDR_WIDTH_G,
-               INIT_G        => INIT_C,
-               FULL_THRES_G  => FULL_THRES_G,
-               EMPTY_THRES_G => EMPTY_THRES_G)
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               BRAM_EN_G      => BRAM_EN_G,
+               FWFT_EN_G      => FWFT_EN_G,
+               USE_DSP48_G    => USE_DSP48_G,
+               ALTERA_RAM_G   => ALTERA_RAM_G,
+               SYNC_STAGES_G  => SYNC_STAGES_G,
+               DATA_WIDTH_G   => DATA_WIDTH_G,
+               ADDR_WIDTH_G   => ADDR_WIDTH_G,
+               INIT_G         => INIT_C,
+               FULL_THRES_G   => FULL_THRES_G,
+               EMPTY_THRES_G  => EMPTY_THRES_G)
             port map (
-               rst           => rstAsyncFifo,
+               rst           => rst,
                wr_clk        => wr_clk,
                wr_en         => wr_en,
                din           => din,
@@ -122,19 +121,20 @@ begin
 
          FifoSync_Inst : entity work.FifoSync
             generic map (
-               TPD_G         => TPD_G,
-               BRAM_EN_G     => BRAM_EN_G,
-               FWFT_EN_G     => FWFT_EN_G,
-               USE_DSP48_G   => USE_DSP48_G,
-               ALTERA_RAM_G  => ALTERA_RAM_G,
-               DATA_WIDTH_G  => DATA_WIDTH_G,
-               ADDR_WIDTH_G  => ADDR_WIDTH_G,
-               INIT_G        => INIT_C,
-               FULL_THRES_G  => FULL_THRES_G,
-               EMPTY_THRES_G => EMPTY_THRES_G)
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               RST_ASYNC_G    => RST_ASYNC_G,
+               BRAM_EN_G      => BRAM_EN_G,
+               FWFT_EN_G      => FWFT_EN_G,
+               USE_DSP48_G    => USE_DSP48_G,
+               ALTERA_RAM_G   => ALTERA_RAM_G,
+               DATA_WIDTH_G   => DATA_WIDTH_G,
+               ADDR_WIDTH_G   => ADDR_WIDTH_G,
+               INIT_G         => INIT_C,
+               FULL_THRES_G   => FULL_THRES_G,
+               EMPTY_THRES_G  => EMPTY_THRES_G)
             port map (
                rst          => rst,
-               srst         => srst,
                clk          => wr_clk,
                wr_en        => wr_en,
                rd_en        => rd_en,
@@ -166,16 +166,17 @@ begin
 
          FifoSyncBuiltIn_Inst : entity work.FifoSyncBuiltIn
             generic map (
-               TPD_G         => TPD_G,
-               XIL_DEVICE_G  => XIL_DEVICE_G,
-               USE_DSP48_G   => USE_DSP48_G,
-               FWFT_EN_G     => FWFT_EN_G,
-               DATA_WIDTH_G  => DATA_WIDTH_G,
-               ADDR_WIDTH_G  => ADDR_WIDTH_G,
-               FULL_THRES_G  => FULL_THRES_G,
-               EMPTY_THRES_G => EMPTY_THRES_G)
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               XIL_DEVICE_G   => XIL_DEVICE_G,
+               USE_DSP48_G    => USE_DSP48_G,
+               FWFT_EN_G      => FWFT_EN_G,
+               DATA_WIDTH_G   => DATA_WIDTH_G,
+               ADDR_WIDTH_G   => ADDR_WIDTH_G,
+               FULL_THRES_G   => FULL_THRES_G,
+               EMPTY_THRES_G  => EMPTY_THRES_G)
             port map (
-               rst          => rstAsyncFifo,
+               rst          => rst,
                clk          => wr_clk,
                wr_en        => wr_en,
                rd_en        => rd_en,
@@ -201,17 +202,18 @@ begin
       FIFO_ASYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = false) generate
          FifoAsyncBuiltIn_Inst : entity work.FifoAsyncBuiltIn
             generic map (
-               TPD_G         => TPD_G,
-               FWFT_EN_G     => FWFT_EN_G,
-               USE_DSP48_G   => USE_DSP48_G,
-               XIL_DEVICE_G  => XIL_DEVICE_G,
-               SYNC_STAGES_G => SYNC_STAGES_G,
-               DATA_WIDTH_G  => DATA_WIDTH_G,
-               ADDR_WIDTH_G  => ADDR_WIDTH_G,
-               FULL_THRES_G  => FULL_THRES_G,
-               EMPTY_THRES_G => EMPTY_THRES_G)            
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               FWFT_EN_G      => FWFT_EN_G,
+               USE_DSP48_G    => USE_DSP48_G,
+               XIL_DEVICE_G   => XIL_DEVICE_G,
+               SYNC_STAGES_G  => SYNC_STAGES_G,
+               DATA_WIDTH_G   => DATA_WIDTH_G,
+               ADDR_WIDTH_G   => ADDR_WIDTH_G,
+               FULL_THRES_G   => FULL_THRES_G,
+               EMPTY_THRES_G  => EMPTY_THRES_G)            
             port map (
-               rst           => rstAsyncFifo,
+               rst           => rst,
                wr_clk        => wr_clk,
                wr_en         => wr_en,
                din           => din,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-08-01
+-- Last update: 2013-08-02
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,15 +30,16 @@ use unimacro.vcomponents.all;
 
 entity FifoAsyncBuiltIn is
    generic (
-      TPD_G         : time                       := 1 ns;
-      FWFT_EN_G     : boolean                    := false;
-      USE_DSP48_G   : string                     := "no";
-      XIL_DEVICE_G  : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
-      SYNC_STAGES_G : integer range 2 to (2**24) := 2;
-      DATA_WIDTH_G  : integer range 1 to 72      := 18;
-      ADDR_WIDTH_G  : integer range 9 to 13      := 10;
-      FULL_THRES_G  : integer range 1 to 8190    := 1;
-      EMPTY_THRES_G : integer range 0 to 8190    := 0);
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      FWFT_EN_G      : boolean                    := false;
+      USE_DSP48_G    : string                     := "no";
+      XIL_DEVICE_G   : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
+      SYNC_STAGES_G  : integer range 2 to (2**24) := 2;
+      DATA_WIDTH_G   : integer range 1 to 72      := 18;
+      ADDR_WIDTH_G   : integer range 9 to 13      := 10;
+      FULL_THRES_G   : integer range 1 to 8190    := 1;
+      EMPTY_THRES_G  : integer range 0 to 8190    := 0);
    port (
       -- Asynchronous Reset
       rst           : in  sl;
@@ -161,6 +162,7 @@ begin
    RstSync_WR : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => 6)   
       port map (
          clk      => wr_clk,
@@ -170,6 +172,7 @@ begin
    RstSync_RD : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => 6)   
       port map (
          clk      => rd_clk,
@@ -179,6 +182,7 @@ begin
    RstSync_FULL : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => 8)   
       port map (
          clk      => wr_clk,
@@ -188,6 +192,7 @@ begin
    RstSync_EMPTY : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => 8)   
       port map (
          clk      => rd_clk,
@@ -197,23 +202,23 @@ begin
    FIFO_DUALCLOCK_MACRO_inst : FIFO_DUALCLOCK_MACRO
       generic map (
          DEVICE                  => XIL_DEVICE_G,  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"
-         ALMOST_FULL_OFFSET      => x"000F",       -- Sets almost full threshold
-         ALMOST_EMPTY_OFFSET     => x"000F",       -- Sets the almost empty threshold
+         ALMOST_FULL_OFFSET      => x"000F",  -- Sets almost full threshold
+         ALMOST_EMPTY_OFFSET     => x"000F",  -- Sets the almost empty threshold
          DATA_WIDTH              => DATA_WIDTH_G,  -- Valid values are 1-72 (37-72 only valid when FIFO_SIZE="36Kb")
-         FIFO_SIZE               => FIFO_SIZE_C,   -- Target BRAM, "18Kb" or "36Kb"
-         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)     -- Sets the FIFO FWFT to TRUE or FALSE
+         FIFO_SIZE               => FIFO_SIZE_C,  -- Target BRAM, "18Kb" or "36Kb"
+         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)  -- Sets the FIFO FWFT to TRUE or FALSE
       port map (
          RST         => fifoWrRst,      -- 1-bit input reset
          WRCLK       => wr_clk,         -- 1-bit input write clock
          WREN        => wr_en,          -- 1-bit input write enable
-         DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
+         DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
          WRCOUNT     => wrAddrPntr,     -- Output write address pointer
          WRERR       => open,           -- 1-bit output write error
          ALMOSTFULL  => open,           -- 1-bit output almost full
          FULL        => buildInFull,    -- 1-bit output full
          RDCLK       => rd_clk,         -- 1-bit input read clock
          RDEN        => rd_en,          -- 1-bit input read enable
-         DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
+         DO          => dout,  -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read address pointer
          RDERR       => underflow,      -- 1-bit output read error
          ALMOSTEMPTY => open,           -- 1-bit output almost empty

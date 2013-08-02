@@ -26,19 +26,20 @@ use work.StdRtlPkg.all;
 
 entity FifoSync is
    generic (
-      TPD_G         : time                       := 1 ns;
-      BRAM_EN_G     : boolean                    := true;
-      FWFT_EN_G     : boolean                    := false;
-      USE_DSP48_G   : string                     := "no";
-      ALTERA_RAM_G  : string                     := "M-RAM";
-      DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G  : integer range 4 to 48      := 4;
-      INIT_G        : slv                        := "0";
-      FULL_THRES_G  : integer range 1 to (2**24) := 1;
-      EMPTY_THRES_G : integer range 0 to (2**24) := 0);
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean                    := false;
+      BRAM_EN_G      : boolean                    := true;
+      FWFT_EN_G      : boolean                    := false;
+      USE_DSP48_G    : string                     := "no";
+      ALTERA_RAM_G   : string                     := "M-RAM";
+      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G   : integer range 4 to 48      := 4;
+      INIT_G         : slv                        := "0";
+      FULL_THRES_G   : integer range 1 to (2**24) := 1;
+      EMPTY_THRES_G  : integer range 0 to (2**24) := 0);
    port (
       rst          : in  sl := '0';
-      srst         : in  sl := '0';
       clk          : in  sl;
       wr_en        : in  sl;
       rd_en        : in  sl;
@@ -114,7 +115,6 @@ architecture rtl of FifoSync is
    signal underflowStatus : sl;
    signal fullStatus      : sl;
    signal readEnable      : sl;
-   signal rstFlags        : sl;
 
    -- Attribute for XST
    attribute use_dsp48          : string;
@@ -123,25 +123,23 @@ architecture rtl of FifoSync is
    attribute use_dsp48 of cnt   : signal is USE_DSP48_G;
    
 begin
-   rstFlags <= rst or srst;
-
    --write ports
-   data_count  <= cnt when (rstFlags = '0')         else (others => '1');
+   data_count  <= cnt when (rst = '0')              else (others => '1');
    full        <= fullStatus;
    not_full    <= not(fullStatus);
    wr_ack      <= writeAck;
    overflow    <= overflowStatus;
-   prog_full   <= '1' when (cnt >= FULL_THRES_G)    else rstFlags;
-   almost_full <= '1' when (cnt >= (RAM_DEPTH_C-2)) else rstFlags;
-   fullStatus  <= '1' when (cnt >= (RAM_DEPTH_C-1)) else rstFlags;
+   prog_full   <= '1' when (cnt >= FULL_THRES_G)    else rst;
+   almost_full <= '1' when (cnt >= (RAM_DEPTH_C-2)) else rst;
+   fullStatus  <= '1' when (cnt >= (RAM_DEPTH_C-1)) else rst;
 
    --read ports
    dout      <= portB.dout;
    underflow <= underflowStatus;
 
-   fifoStatus.prog_empty   <= '1' when (cnt <= EMPTY_THRES_G) else rstFlags;
-   fifoStatus.almost_empty <= '1' when (cnt <= 1)             else rstFlags;
-   fifoStatus.empty        <= '1' when (cnt <= 0)             else rstFlags;
+   fifoStatus.prog_empty   <= '1' when (cnt <= EMPTY_THRES_G) else rst;
+   fifoStatus.almost_empty <= '1' when (cnt <= 1)             else rst;
+   fifoStatus.empty        <= '1' when (cnt <= 0)             else rst;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable   <= rd_en;
@@ -160,11 +158,11 @@ begin
       process (clk, rst) is
       begin
          --asychronous reset
-         if rst = '1' then
+         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
             fwftStatus <= READ_STATUS_INIT_C after TPD_G;
          elsif rising_edge(clk) then
             --sychronous reset
-            if srst = '1'then
+            if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
                fwftStatus <= READ_STATUS_INIT_C after TPD_G;
             else
                fwftStatus.prog_empty   <= fifoStatus.prog_empty                            after TPD_G;
@@ -178,7 +176,7 @@ begin
    process (clk, rst) is
    begin
       --asychronous reset
-      if rst = '1' then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          writeAck        <= '0'             after TPD_G;
          readAck         <= '0'             after TPD_G;
          waddr           <= (others => '0') after TPD_G;
@@ -190,7 +188,7 @@ begin
          writeAck <= '0' after TPD_G;
          readAck  <= '0' after TPD_G;
          --sychronous reset
-         if srst = '1'then
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
             waddr           <= (others => '0') after TPD_G;
             raddr           <= (others => '0') after TPD_G;
             cnt             <= (others => '0') after TPD_G;
@@ -241,19 +239,20 @@ begin
    -- RAM Port B Mapping
    portB.clk  <= clk;
    portB.en   <= readEnable and not(fifoStatus.empty);
-   portB.rst  <= rst or srst;
+   portB.rst  <= rst;
    portB.we   <= '0';
    portB.addr <= raddr;
    portB.din  <= (others => '0');
 
    SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
       generic map(
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
-         ALTERA_RAM_G => ALTERA_RAM_G,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G,
-         INIT_G       => INIT_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         BRAM_EN_G      => BRAM_EN_G,
+         ALTERA_RAM_G   => ALTERA_RAM_G,
+         DATA_WIDTH_G   => DATA_WIDTH_G,
+         ADDR_WIDTH_G   => ADDR_WIDTH_G,
+         INIT_G         => INIT_C)
       port map (
          -- Port A
          clka  => portA.clk,

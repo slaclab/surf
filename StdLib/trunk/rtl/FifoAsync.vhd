@@ -29,17 +29,18 @@ use work.StdRtlPkg.all;
 
 entity FifoAsync is
    generic (
-      TPD_G         : time                       := 1 ns;
-      BRAM_EN_G     : boolean                    := true;
-      FWFT_EN_G     : boolean                    := false;
-      USE_DSP48_G   : string                     := "no";
-      ALTERA_RAM_G  : string                     := "M-RAM";
-      SYNC_STAGES_G : integer range 2 to (2**24) := 2;
-      DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G  : integer range 2 to 48      := 4;
-      INIT_G        : slv                        := "0";
-      FULL_THRES_G  : integer range 1 to (2**24) := 1;
-      EMPTY_THRES_G : integer range 0 to (2**24) := 0);
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      BRAM_EN_G      : boolean                    := true;
+      FWFT_EN_G      : boolean                    := false;
+      USE_DSP48_G    : string                     := "no";
+      ALTERA_RAM_G   : string                     := "M-RAM";
+      SYNC_STAGES_G  : integer range 2 to (2**24) := 2;
+      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G   : integer range 2 to 48      := 4;
+      INIT_G         : slv                        := "0";
+      FULL_THRES_G   : integer range 1 to (2**24) := 1;
+      EMPTY_THRES_G  : integer range 0 to (2**24) := 0);
    port (
       -- Asynchronous Reset
       rst           : in  sl;
@@ -130,12 +131,12 @@ architecture rtl of FifoAsync is
    signal wrReg_rdy : sl;
 
 
-   constant SYNC_INIT_C : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
-   constant GRAY_INIT_C : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
-   signal rdReg_rdGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal rdReg_wrGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal wrReg_rdGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal wrReg_wrGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   constant SYNC_INIT_C  : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
+   constant GRAY_INIT_C  : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
+   signal   rdReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal   rdReg_wrGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal   wrReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal   wrReg_wrGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
 
    type RamPortType is record
       clk  : sl;
@@ -174,6 +175,7 @@ begin
    READ_RstSync : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => SYNC_STAGES_G)   
       port map (
          clk      => rd_clk,
@@ -287,6 +289,7 @@ begin
    WRITE_RstSync : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
+         IN_POLARITY_G   => RST_POLARITY_G,
          RELEASE_DELAY_G => SYNC_STAGES_G)   
       port map (
          clk      => wr_clk,
