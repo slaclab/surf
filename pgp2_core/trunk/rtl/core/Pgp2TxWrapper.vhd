@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-02
--- Last update: 2013-07-29
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,8 +37,8 @@ entity Pgp2TxWrapper is
       pgpTxOut : out PgpTxOutType;
 
       -- VC Interface
-      pgpTxVcQuadIn  : in  VcTxQuadInType;
-      pgpTxVcQuadOut : out VcTxQuadOutType;
+      pgpVcTxQuadIn  : in  VcTxQuadInType;
+      pgpVcTxQuadOut : out VcTxQuadOutType;
 
       phyTxLanesOut : out PgpTxPhyLaneOutArray(0 to TxLaneCnt-1);
       phyTxReady    : in  std_logic;
@@ -63,11 +63,11 @@ architecture rtl of Pgp2TxWrapper is
    
 begin
 
-   wrap : process (intCrcInData, intPhyTxData, intPhyTxDataK, pgpTxVcQuadIn) is
+   wrap : process (intCrcInData, intPhyTxData, intPhyTxDataK, pgpVcTxQuadIn) is
    begin
       for i in 0 to TxLaneCnt-1 loop
          for j in 0 to 3 loop
-            intVcFrameTxData(j)(16*i+15 downto 16*i) <= pgpTxVcQuadIn(j).data(i);
+            intVcFrameTxData(j)(16*i+15 downto 16*i) <= pgpVcTxQuadIn(j).data(i);
          end loop;
          phyTxLanesOut(i).data              <= intPhyTxData(16*i+15 downto 16*i);
          phyTxLanesOut(i).dataK             <= intPhyTxDataK(2*i+1 downto 2*i);
@@ -89,38 +89,38 @@ begin
          pgpTxOpCode     => pgpTxIn.opCode,
          pgpLocLinkReady => pgpTxIn.locLinkReady,
          pgpLocData      => pgpTxIn.locData,
-         vc0FrameTxValid => pgpTxVcQuadIn(0).valid,
-         vc0FrameTxReady => pgpTxVcQuadOut(0).ready,
-         vc0FrameTxSOF   => pgpTxVcQuadIn(0).sof,
-         vc0FrameTxEOF   => pgpTxVcQuadIn(0).eof,
-         vc0FrameTxEOFE  => pgpTxVcQuadIn(0).eofe,
+         vc0FrameTxValid => pgpVcTxQuadIn(0).valid,
+         vc0FrameTxReady => pgpVcTxQuadOut(0).ready,
+         vc0FrameTxSOF   => pgpVcTxQuadIn(0).sof,
+         vc0FrameTxEOF   => pgpVcTxQuadIn(0).eof,
+         vc0FrameTxEOFE  => pgpVcTxQuadIn(0).eofe,
          vc0FrameTxData  => intVcFrameTxData(0),
-         vc0LocBuffAFull => pgpTxVcQuadIn(0).LocBuffAFull,
-         vc0LocBuffFull  => pgpTxVcQuadIn(0).locBuffFull,
-         vc1FrameTxValid => pgpTxVcQuadIn(1).valid,
-         vc1FrameTxReady => pgpTxVcQuadOut(1).ready,
-         vc1FrameTxSOF   => pgpTxVcQuadIn(1).sof,
-         vc1FrameTxEOF   => pgpTxVcQuadIn(1).eof,
-         vc1FrameTxEOFE  => pgpTxVcQuadIn(1).eofe,
+         vc0LocBuffAFull => pgpVcTxQuadIn(0).LocBuffAFull,
+         vc0LocBuffFull  => pgpVcTxQuadIn(0).locBuffFull,
+         vc1FrameTxValid => pgpVcTxQuadIn(1).valid,
+         vc1FrameTxReady => pgpVcTxQuadOut(1).ready,
+         vc1FrameTxSOF   => pgpVcTxQuadIn(1).sof,
+         vc1FrameTxEOF   => pgpVcTxQuadIn(1).eof,
+         vc1FrameTxEOFE  => pgpVcTxQuadIn(1).eofe,
          vc1FrameTxData  => intVcFrameTxData(1),
-         vc1LocBuffAFull => pgpTxVcQuadIn(1).locBuffAFull,
-         vc1LocBuffFull  => pgpTxVcQuadIn(1).LocBuffFull,
-         vc2FrameTxValid => pgpTxVcQuadIn(2).valid,
-         vc2FrameTxReady => pgpTxVcQuadOut(2).ready,
-         vc2FrameTxSOF   => pgpTxVcQuadIn(2).sof,
-         vc2FrameTxEOF   => pgpTxVcQuadIn(2).eof,
-         vc2FrameTxEOFE  => pgpTxVcQuadIn(2).eofe,
+         vc1LocBuffAFull => pgpVcTxQuadIn(1).locBuffAFull,
+         vc1LocBuffFull  => pgpVcTxQuadIn(1).LocBuffFull,
+         vc2FrameTxValid => pgpVcTxQuadIn(2).valid,
+         vc2FrameTxReady => pgpVcTxQuadOut(2).ready,
+         vc2FrameTxSOF   => pgpVcTxQuadIn(2).sof,
+         vc2FrameTxEOF   => pgpVcTxQuadIn(2).eof,
+         vc2FrameTxEOFE  => pgpVcTxQuadIn(2).eofe,
          vc2FrameTxData  => intVcFrameTxData(2),
-         vc2LocBuffAFull => pgpTxVcQuadIn(2).LocBuffAFull,
-         vc2LocBuffFull  => pgpTxVcQuadIn(2).locBuffFull,
-         vc3FrameTxValid => pgpTxVcQuadIn(3).valid,
-         vc3FrameTxReady => pgpTxVcQuadOut(3).ready,
-         vc3FrameTxSOF   => pgpTxVcQuadIn(3).sof,
-         vc3FrameTxEOF   => pgpTxVcQuadIn(3).eof,
-         vc3FrameTxEOFE  => pgpTxVcQuadIn(3).eofe,
+         vc2LocBuffAFull => pgpVcTxQuadIn(2).LocBuffAFull,
+         vc2LocBuffFull  => pgpVcTxQuadIn(2).locBuffFull,
+         vc3FrameTxValid => pgpVcTxQuadIn(3).valid,
+         vc3FrameTxReady => pgpVcTxQuadOut(3).ready,
+         vc3FrameTxSOF   => pgpVcTxQuadIn(3).sof,
+         vc3FrameTxEOF   => pgpVcTxQuadIn(3).eof,
+         vc3FrameTxEOFE  => pgpVcTxQuadIn(3).eofe,
          vc3FrameTxData  => intVcFrameTxData(3),
-         vc3LocBuffAFull => pgpTxVcQuadIn(3).locBuffAFull,
-         vc3LocBuffFull  => pgpTxVcQuadIn(3).LocBuffFull,
+         vc3LocBuffAFull => pgpVcTxQuadIn(3).locBuffAFull,
+         vc3LocBuffFull  => pgpVcTxQuadIn(3).LocBuffFull,
          phyTxData       => intPhyTxData,
          phyTxDataK      => intPhyTxDataK,
          phyTxReady      => phyTxReady,
