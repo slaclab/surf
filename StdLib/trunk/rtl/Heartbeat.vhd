@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-07-18
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,12 +45,13 @@ architecture rtl of Heartbeat is
 
    constant REG_RESET_C : RegType := (counter => (others => '0'));
 
-   signal r, rin : RegType := REG_RESET_C;
+   signal r   : RegType := REG_RESET_C;
+   signal rin : RegType;
 
    -- Attribute for XST
    attribute use_dsp48        : string;
    attribute use_dsp48 of rin : signal is USE_DSP48_G;
- 
+   
 begin
 
    comb : process (r) is

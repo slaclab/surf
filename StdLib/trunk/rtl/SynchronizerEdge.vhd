@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2013-07-30
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,21 +22,23 @@ use work.StdRtlPkg.all;
 entity SynchronizerEdge is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G : sl       := '1';            -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean  := false;
       STAGES_G       : positive := 3;
       INIT_G         : slv      := "0"
       );
    port (
-      clk         : in  sl;             -- clock to be sync'ed to
-      aRst        : in  sl := not RST_POLARITY_G;  -- Optional async reset
-      sRst        : in  sl := not RST_POLARITY_G;  -- Optional synchronous reset
-      dataIn      : in  sl;             -- Data to be 'synced'
-      dataOut     : out sl;             -- synced data
-      risingEdge  : out sl;             -- Rising edge detected
-      fallingEdge : out sl              -- Falling edge detected
+      clk         : in  sl;                        -- clock to be sync'ed to
+      rst         : in  sl := not RST_POLARITY_G;  -- Optional reset
+      dataIn      : in  sl;                        -- Data to be 'synced'
+      dataOut     : out sl;                        -- synced data
+      risingEdge  : out sl;                        -- Rising edge detected
+      fallingEdge : out sl                         -- Falling edge detected
       );
 begin
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
+   assert (INIT_G = "0" or INIT_G'length = STAGES_G) report
+      "INIT_G must either be ""0"" or the same length as STAGES_G" severity failure;
 end SynchronizerEdge;
 
 architecture rtl of SynchronizerEdge is
@@ -44,7 +46,8 @@ architecture rtl of SynchronizerEdge is
 
    -- r(STAGES_G-1) used for edge detection.
    -- Optimized out if edge detection not used.
-   signal r, rin : slv(STAGES_G-1 downto 0) := INIT_C;
+   signal r   : slv(STAGES_G-1 downto 0) := INIT_C;
+   signal rin : slv(STAGES_G-1 downto 0);
 
 
    -------------------------------
@@ -52,8 +55,8 @@ architecture rtl of SynchronizerEdge is
    -------------------------------
    -- These attributes will stop Vivado translating the desired flip-flops into an
    -- SRL based shift register. (Breaks XST for some reason so keep commented for now).
-   attribute ASYNC_REG      : string;
-   attribute ASYNC_REG of r : signal is "TRUE";
+--   attribute ASYNC_REG      : string;
+--   attribute ASYNC_REG of r : signal is "TRUE";
 
    -- Synplify Pro: disable shift-register LUT (SRL) extraction
    attribute syn_srlstyle      : string;
@@ -88,12 +91,12 @@ architecture rtl of SynchronizerEdge is
    
 begin
 
-   comb : process (dataIn, r, sRst) is
+   comb : process (dataIn, r, rst) is
    begin
       rin <= r(STAGES_G-2 downto 0) & dataIn;
 
       -- Synchronous Reset
-      if (sRst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          rin <= INIT_C;
       end if;
 
@@ -102,12 +105,12 @@ begin
       fallingEdge <= not r(STAGES_G-2) and r(STAGES_G-1);
    end process comb;
 
-   seq : process (aRst, clk) is
+   seq : process (rst, clk) is
    begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;
       end if;
-      if (aRst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= INIT_C after TPD_G;
       end if;
    end process seq;

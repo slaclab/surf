@@ -22,7 +22,7 @@ entity RstSync is
       TPD_G           : time     := 1 ns;  -- Simulation FF output delay
       IN_POLARITY_G   : sl       := '1';   -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl       := '1';
-      RELEASE_DELAY_G : positive := 2);  -- Delay between deassertion of async and sync resets
+      RELEASE_DELAY_G : positive := 2);    -- Delay between deassertion of async and sync resets
    port (
       clk      : in  sl;
       asyncRst : in  sl;
@@ -40,11 +40,12 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => IN_POLARITY_G,
+         RST_ASYNC_G    => true,
          STAGES_G       => RELEASE_DELAY_G,
          INIT_G         => slvAll(RELEASE_DELAY_G, OUT_POLARITY_G))
       port map (
          clk     => clk,
-         aRst    => asyncRst,
+         rst     => asyncRst,
          dataIn  => not OUT_POLARITY_G,
          dataOut => syncRst);
 

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-07-30
+-- Last update: 2013-08-01
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -197,23 +197,23 @@ begin
    FIFO_DUALCLOCK_MACRO_inst : FIFO_DUALCLOCK_MACRO
       generic map (
          DEVICE                  => XIL_DEVICE_G,  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"
-         ALMOST_FULL_OFFSET      => x"000F",  -- Sets almost full threshold
-         ALMOST_EMPTY_OFFSET     => x"000F",  -- Sets the almost empty threshold
+         ALMOST_FULL_OFFSET      => x"000F",       -- Sets almost full threshold
+         ALMOST_EMPTY_OFFSET     => x"000F",       -- Sets the almost empty threshold
          DATA_WIDTH              => DATA_WIDTH_G,  -- Valid values are 1-72 (37-72 only valid when FIFO_SIZE="36Kb")
-         FIFO_SIZE               => FIFO_SIZE_C,  -- Target BRAM, "18Kb" or "36Kb"
-         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)  -- Sets the FIFO FWFT to TRUE or FALSE
+         FIFO_SIZE               => FIFO_SIZE_C,   -- Target BRAM, "18Kb" or "36Kb"
+         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)     -- Sets the FIFO FWFT to TRUE or FALSE
       port map (
          RST         => fifoWrRst,      -- 1-bit input reset
          WRCLK       => wr_clk,         -- 1-bit input write clock
          WREN        => wr_en,          -- 1-bit input write enable
-         DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
+         DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
          WRCOUNT     => wrAddrPntr,     -- Output write address pointer
          WRERR       => open,           -- 1-bit output write error
          ALMOSTFULL  => open,           -- 1-bit output almost full
          FULL        => buildInFull,    -- 1-bit output full
          RDCLK       => rd_clk,         -- 1-bit input read clock
          RDEN        => rd_en,          -- 1-bit input read enable
-         DO          => dout,  -- Output data, width defined by DATA_WIDTH parameter
+         DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read address pointer
          RDERR       => underflow,      -- 1-bit output read error
          ALMOSTEMPTY => open,           -- 1-bit output almost empty
@@ -225,11 +225,12 @@ begin
    -------------------------------  
    SynchronizerVector_0 : entity work.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         WIDTH_G  => ADDR_WIDTH_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,
+         STAGES_G    => SYNC_STAGES_G,
+         WIDTH_G     => ADDR_WIDTH_G)
       port map (
-         aRst    => fifoWrRst,
+         rst     => fifoWrRst,
          clk     => wr_clk,
          dataIn  => grayEncode(rdAddrPntr),
          dataOut => rdGrayPntr); 
@@ -271,11 +272,12 @@ begin
    -------------------------------
    SynchronizerVector_1 : entity work.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         WIDTH_G  => ADDR_WIDTH_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,
+         STAGES_G    => SYNC_STAGES_G,
+         WIDTH_G     => ADDR_WIDTH_G)
       port map (
-         aRst    => fifoRdRst,
+         rst     => fifoRdRst,
          clk     => rd_clk,
          dataIn  => grayEncode(wrAddrPntr),
          dataOut => wrGrayPntr); 
