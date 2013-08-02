@@ -22,11 +22,12 @@ use ieee.std_logic_1164.all;
 use work.Pgp2GtpPackage.all;
 use work.Pgp2CorePackage.all;
 use work.Pgp2CoreTypesPkg.all;
+use work.VcPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
 
-entity Pgp2Gtp16LowLat is
+entity Pgp2Gtp16FixedLat is
   generic (
     TPD_G        : time    := 1 ns;
     EnShortCells : integer := 1;        -- Enable short non-EOF cells
@@ -52,12 +53,12 @@ entity Pgp2Gtp16LowLat is
     pgpTxOut : out PgpTxOutType;
 
     -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-    pgpTxVcQuadIn  : in  PgpTxVcQuadInType;
-    pgpTxVcQuadOut : out PgpTxVcQuadOutType;
+    pgpVcTxQuadIn  : in  VcTxQuadInType;
+    pgpVcTxQuadOut : out VcTxQuadOutType;
 
     -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-    pgpRxVcCommonOut : out PgpRxVcCommonOutType;
-    pgpRxVcQuadOut   : out PgpRxVcQuadOutType;
+    pgpVcRxCommonOut : out VcRxCommonOutType;
+    pgpVcRxQuadOut   : out VcRxQuadOutType;
 
     -- GTP loopback control
     gtpLoopback : in std_logic;         -- GTP Serial Loopback Control
@@ -74,11 +75,11 @@ entity Pgp2Gtp16LowLat is
     debug : out std_logic_vector(63 downto 0)
     );
 
-end Pgp2Gtp16LowLat;
+end Pgp2Gtp16FixedLat;
 
 
 -- Define architecture
-architecture rtl of Pgp2Gtp16LowLat is
+architecture rtl of Pgp2Gtp16FixedLat is
 
   --------------------------------------------------------------------------------------------------
   -- Shared GTP Signals
@@ -176,8 +177,8 @@ begin
       pgpRxReset       => pgpReset,
       pgpRxIn          => pgpRxIn,
       pgpRxOut         => pgpRxOut,
-      pgpRxVcCommonOut => pgpRxVcCommonOut,
-      pgpRxVcQuadOut   => pgpRxVcQuadOut,
+      pgpVcRxCommonOut => pgpVcRxCommonOut,
+      pgpVcRxQuadOut   => pgpVcRxQuadOut,
       phyRxLanesOut    => phyRxLanesOut,
       phyRxLanesIn     => phyRxLanesIn,
       phyRxReady       => phyRxReady,   -- gtpRxAligned
@@ -221,8 +222,8 @@ begin
       pgpTxReset     => pgpReset,
       pgpTxIn        => pgpTxIn,
       pgpTxOut       => pgpTxOut,
-      pgpTxVcQuadIn  => pgpTxVcQuadIn,
-      pgpTxVcQuadOut => pgpTxVcQuadOut,
+      pgpVcTxQuadIn  => pgpVcTxQuadIn,
+      pgpVcTxQuadOut => pgpVcTxQuadOut,
       phyTxLanesOut  => phyTxLanesOut,
       phyTxReady     => phyTxReady,     -- Tx Aligned?
       crcTxIn        => crcTxIn,
@@ -269,7 +270,7 @@ begin
   --------------------------------------------------------------------------------------------------
   -- GTP Low Lat
   --------------------------------------------------------------------------------------------------
-  Gtp16LowLatCore_1 : entity work.Gtp16LowLatCore
+  Gtp16FixedLatCore_1 : entity work.Gtp16FixedLatCore
     generic map (
       TPD_G           => TPD_G,
       SIM_PLL_PERDIV2 => X"0C8",

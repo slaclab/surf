@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-10-31
--- Last update: 2013-07-29
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,8 +37,8 @@ entity Pgp2RxWrapper is
       pgpRxOut : out PgpRxOutType;
 
       -- VC Outputs
-      pgpRxVcCommonOut : out VcRxCommonOutType;  -- Frame Receive common to all VCs
-      pgpRxVcQuadOut   : out VcRxQuadOutType;    -- Frame Receive, 4 VCs
+      pgpVcRxCommonOut : out VcRxCommonOutType;  -- Frame Receive common to all VCs
+      pgpVcRxQuadOut   : out VcRxQuadOutType;    -- Frame Receive, 4 VCs
 
       -- PHY interface
       phyRxLanesOut : out PgpRxPhyLaneOutArray(0 to RxLaneCnt-1);
@@ -71,7 +71,7 @@ begin
                    phyRxLanesIn) is
    begin
       for i in 0 to RxLaneCnt-1 loop
-         pgpRxVcCommonOut.data(i)           <= intVcFrameRxData(16*i+15 downto 16*i);
+         pgpVcRxCommonOut.data(i)           <= intVcFrameRxData(16*i+15 downto 16*i);
          phyRxLanesOut(i).polarity          <= intPhyRxPolarity(i);
          intPhyRxData(16*i+15 downto 16*i)  <= phyRxLanesIn(i).data;
          intPhyRxDataK(2*i+1 downto 2*i)    <= phyRxLanesIn(i).dataK;
@@ -98,22 +98,22 @@ begin
          pgpRxOpCode     => pgpRxOut.opCode,        --pgpRxOpCode,
          pgpRemLinkReady => pgpRxOut.remLinkReady,  --pgpRemLinkReady,
          pgpRemData      => pgpRxOut.remLinkData,   --pgpRemData,
-         vcFrameRxSOF    => pgpRxVcCommonOut.sof,   --vcFrameRxSOF,
-         vcFrameRxEOF    => pgpRxVcCommonOut.eof,   --vcFrameRxEOF,
-         vcFrameRxEOFE   => pgpRxVcCommonOut.eofe,  --vcFrameRxEOFE,
+         vcFrameRxSOF    => pgpVcRxCommonOut.sof,   --vcFrameRxSOF,
+         vcFrameRxEOF    => pgpVcRxCommonOut.eof,   --vcFrameRxEOF,
+         vcFrameRxEOFE   => pgpVcRxCommonOut.eofe,  --vcFrameRxEOFE,
          vcFrameRxData   => intVcFrameRxData,
-         vc0FrameRxValid => pgpRxVcQuadOut(0).valid,
-         vc0RemBuffAFull => pgpRxVcQuadOut(0).remBuffAFull,
-         vc0RemBuffFull  => pgpRxVcQuadOut(0).remBuffFull,
-         vc1FrameRxValid => pgpRxVcQuadOut(1).valid,
-         vc1RemBuffAFull => pgpRxVcQuadOut(1).remBuffAFull,
-         vc1RemBuffFull  => pgpRxVcQuadOut(1).remBuffFull,
-         vc2FrameRxValid => pgpRxVcQuadOut(2).valid,
-         vc2RemBuffAFull => pgpRxVcQuadOut(2).remBuffAFull,
-         vc2RemBuffFull  => pgpRxVcQuadOut(2).remBuffFull,
-         vc3FrameRxValid => pgpRxVcQuadOut(3).valid,
-         vc3RemBuffAFull => pgpRxVcQuadOut(3).remBuffAFull,
-         vc3RemBuffFull  => pgpRxVcQuadOut(3).remBuffFull,
+         vc0FrameRxValid => pgpVcRxQuadOut(0).valid,
+         vc0RemBuffAFull => pgpVcRxQuadOut(0).remBuffAFull,
+         vc0RemBuffFull  => pgpVcRxQuadOut(0).remBuffFull,
+         vc1FrameRxValid => pgpVcRxQuadOut(1).valid,
+         vc1RemBuffAFull => pgpVcRxQuadOut(1).remBuffAFull,
+         vc1RemBuffFull  => pgpVcRxQuadOut(1).remBuffFull,
+         vc2FrameRxValid => pgpVcRxQuadOut(2).valid,
+         vc2RemBuffAFull => pgpVcRxQuadOut(2).remBuffAFull,
+         vc2RemBuffFull  => pgpVcRxQuadOut(2).remBuffFull,
+         vc3FrameRxValid => pgpVcRxQuadOut(3).valid,
+         vc3RemBuffAFull => pgpVcRxQuadOut(3).remBuffAFull,
+         vc3RemBuffFull  => pgpVcRxQuadOut(3).remBuffFull,
          phyRxPolarity   => intPhyRxPolarity,
          phyRxData       => intPhyRxData,
          phyRxDataK      => intPhyRxDataK,
