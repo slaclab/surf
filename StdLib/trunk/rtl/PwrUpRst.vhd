@@ -32,7 +32,7 @@ entity PwrUpRst is
       USE_DSP48_G    : string                         := "yes";
       DURATION_G     : natural range 0 to ((2**31)-1) := 156250000);
    port (
-      arst   : in  sl := not RST_POLARITY_G;
+      arst   : in  sl := not IN_POLARITY_G;
       clk    : in  sl;
       rstOut : out sl);
 begin
@@ -61,8 +61,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => OUT_POLARITY_G,
-         RELEASE_DELAY_G => RELEASE_DELAY_G)
+         OUT_POLARITY_G  => OUT_POLARITY_G)
       port map (
          clk      => clk,
          asyncRst => arst,
