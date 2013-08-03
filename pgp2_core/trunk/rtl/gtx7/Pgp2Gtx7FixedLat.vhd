@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-07-30
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -179,11 +179,12 @@ begin
    gtRxResetDoneL <= not gtRxResetDone;
    Decoder8b10b_1 : entity work.Decoder8b10b
       generic map (
-         TPD_G       => TPD_G,
-         NUM_BYTES_G => 2)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '0',         --active low polarity
+         NUM_BYTES_G    => 2)
       port map (
          clk      => pgpRxClk,
-         rstL     => gtRxResetDone,
+         rst      => gtRxResetDone,
          dataIn   => gtRxData,
          dataOut  => phyRxLanesIn(0).data,
          dataKOut => phyRxLanesIn(0).dataK,
