@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-18
+-- Last update: 2013-08-02
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ begin
          FULL_THRES_G  => ((2**ADDR_WIDTH_C)-2),
          EMPTY_THRES_G => 2)
       port map (
-         srst         => srst,
+         rst          => srst,
          clk          => clk,
          wr_en        => wr_en,
          rd_en        => rd_en,
