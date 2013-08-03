@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2013-07-30
+-- Last update: 2013-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,6 +25,8 @@ use work.StdRtlPkg.all;
 entity FifoMux is
    generic (
       TPD_G           : time                       := 1 ns;
+      RST_POLARITY_G  : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G     : boolean                    := false;
       GEN_SYNC_FIFO_G : boolean                    := false;
       BRAM_EN_G       : boolean                    := true;
       FWFT_EN_G       : boolean                    := true;
@@ -40,8 +42,7 @@ entity FifoMux is
       EMPTY_THRES_G   : integer range 0 to (2**24) := 0);
    port (
       -- Resets
-      rst          : in  sl := '0';     -- Asynchronous Reset
-      srst         : in  sl := '0';     -- Synchronous Reset 
+      rst          : in  sl := '0';     --  Reset
       --Write Ports (wr_clk domain)
       wr_clk       : in  sl;
       wr_en        : in  sl := '0';
@@ -88,10 +89,10 @@ architecture rtl of FifoMux is
       wrData => (others => (others => '0')),
       wrEn   => '0');
 
-   signal   wrR, wrRin    : WrRegType := WR_REG_INIT_C;
-   signal   fifo_din      : slv(FIFO_DATA_WIDTH_C-1 downto 0);
-   signal   fifo_wr_en    : sl;
-   signal   wrRst         : sl;
+   signal wrR, wrRin      : WrRegType := WR_REG_INIT_C;
+   signal fifo_din        : slv(FIFO_DATA_WIDTH_C-1 downto 0);
+   signal fifo_wr_en      : sl;
+   signal wrRst           : sl;
    -------------------------------------------------------------------------------------------------
    constant RD_LOGIC_EN_C : boolean   := (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G);
    constant RD_SIZE_C     : integer   := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
@@ -128,17 +129,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Write Logic
    -------------------------------------------------------------------------------------------------
-   wrComb : process (din, srst, wrR, wr_en) is
+   wrComb : process (din, wrR, wr_en) is
       variable v     : WrRegType;
       variable index : integer;
       variable high  : integer;
       variable low   : integer;
    begin
       v := wrR;
-
---      index := ite(LITTLE_ENDIAN_G, to_integer(wrR.count), WR_SIZE_C-to_integer(wrR.count));
---      high  := index * WR_DATA_WIDTH_G + WR_DATA_WIDTH_G - 1;
---      low   := index * WR_DATA_WIDTH_G;
 
       v.wrEn := '0';
 
@@ -149,10 +146,6 @@ begin
             v.count := (others => '0');
             v.wrEn  := '1';
          end if;
-      end if;
-
-      if (srst = '1') then
-         v := WR_REG_INIT_C;
       end if;
 
       wrRin <= v;
@@ -174,10 +167,14 @@ begin
 
    wrSeq : process (rst, wr_clk) is
    begin
-      if (rst = '1') then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          wrR <= WR_REG_INIT_C after TPD_G;
       elsif (rising_edge(wr_clk)) then
-         wrR <= wrRin after TPD_G;
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+            wrR <= WR_REG_INIT_C after TPD_G;
+         else
+            wrR <= wrRin after TPD_G;
+         end if;
       end if;
    end process wrSeq;
 
@@ -186,15 +183,14 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Module reset should be driven by wr_clk
    -- Must synchronize it over to the rd_clk
-   wrRst <= rst or srst;
    RstSync_RdRst : entity work.RstSync
       generic map (
          TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
+         IN_POLARITY_G  => RST_POLARITY_G,
+         OUT_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => rd_clk,
-         asyncRst => wrRst,
+         asyncRst => rst,
          syncRst  => rdRst);
 
    rdComb : process (fifo_dout, fifo_empty, fifo_valid, rdR, rd_en) is
@@ -258,12 +254,17 @@ begin
       
    end process rdComb;
 
+   -- If fifo is asynchronous, must use async reset on rd side.
    rdSeq : process (rdRst, rd_clk) is
    begin
-      if (rdRst = '1') then
+      if (GEN_SYNC_FIFO_G = false and rdRst = RST_POLARITY_G) then
          rdR <= RD_REG_INIT_C after TPD_G;
       elsif (rising_edge(rd_clk)) then
-         rdR <= rdRin after TPD_G;
+         if (GEN_SYNC_FIFO_G and RST_ASYNC_G = false and rdRst = RST_POLARITY_G) then
+            rdR <= RD_REG_INIT_C after TPD_G;
+         else
+            rdR <= rdRin after TPD_G;
+         end if;
       end if;
    end process rdSeq;
 
@@ -273,6 +274,8 @@ begin
    Fifo_1 : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
          BRAM_EN_G       => BRAM_EN_G,
          FWFT_EN_G       => FWFT_EN_G,
@@ -286,7 +289,6 @@ begin
          EMPTY_THRES_G   => EMPTY_THRES_G)
       port map (
          rst           => rst,
-         srst          => srst,
          wr_clk        => wr_clk,
          wr_en         => fifo_wr_en,
          din           => fifo_din,
