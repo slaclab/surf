@@ -1,1 +1,0 @@
-^/mgt_core/trunk/rtl/gtx7
