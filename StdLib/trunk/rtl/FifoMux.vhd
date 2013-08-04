@@ -32,6 +32,8 @@ entity FifoMux is
       FWFT_EN_G       : boolean                    := true;
       USE_DSP48_G     : string                     := "no";
       ALTERA_RAM_G    : string                     := "M-RAM";
+      USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
+      XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
       WR_DATA_WIDTH_G : integer range 1 to (2**24) := 64;
       RD_DATA_WIDTH_G : integer range 1 to (2**24) := 16;
@@ -281,6 +283,8 @@ begin
          FWFT_EN_G       => FWFT_EN_G,
          USE_DSP48_G     => USE_DSP48_G,
          ALTERA_RAM_G    => ALTERA_RAM_G,
+         USE_BUILT_IN_G  => USE_BUILT_IN_G,
+         XIL_DEVICE_G    => XIL_DEVICE_G,
          SYNC_STAGES_G   => SYNC_STAGES_G,
          DATA_WIDTH_G    => FIFO_DATA_WIDTH_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_G,
