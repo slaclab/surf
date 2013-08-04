@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-07-30
+-- Last update: 2013-08-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -91,11 +91,11 @@ entity Pgp2Gtx7MultiLane is
       pgpTxIn          : in  PgpTxInType;
       pgpTxOut         : out PgpTxOutType;
       -- Frame Transmit Interface - Array of 4 VCs
-      pgpTxVcQuadIn    : in  VcTxQuadInType;
-      pgpTxVcQuadOut   : out VcTxQuadOutType;
+      pgpVcTxQuadIn    : in  VcTxQuadInType;
+      pgpVcTxQuadOut   : out VcTxQuadOutType;
       -- Frame Receive Interface - Array of 4 VCs
-      pgpRxVcCommonOut : out VcRxCommonOutType;
-      pgpRxVcQuadOut   : out VcRxQuadOutType;
+      pgpVcRxCommonOut : out VcRxCommonOutType;
+      pgpVcRxQuadOut   : out VcRxQuadOutType;
       -- GT loopback control
       loopback         : in  slv(2 downto 0);
       -- Debug
@@ -172,8 +172,8 @@ begin
          pgpRxReset       => pgpRxReset,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
-         pgpRxVcCommonOut => pgpRxVcCommonOut,
-         pgpRxVcQuadOut   => pgpRxVcQuadOut,
+         pgpVcRxCommonOut => pgpVcRxCommonOut,
+         pgpVcRxQuadOut   => pgpVcRxQuadOut,
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => phyRxReady,
@@ -229,8 +229,8 @@ begin
          pgpTxReset     => pgpTxReset,
          pgpTxIn        => pgpTxIn,
          pgpTxOut       => pgpTxOut,
-         pgpTxVcQuadIn  => pgpTxVcQuadIn,
-         pgpTxVcQuadOut => pgpTxVcQuadOut,
+         pgpVcTxQuadIn  => pgpVcTxQuadIn,
+         pgpVcTxQuadOut => pgpVcTxQuadOut,
          phyTxLanesOut  => phyTxLanesOut,
          phyTxReady     => phyTxReady,
          crcTxIn        => crcTxIn,
