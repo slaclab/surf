@@ -115,7 +115,8 @@ architecture rtl of FifoSync is
    signal underflowStatus : sl;
    signal fullStatus      : sl;
    signal readEnable      : sl;
-
+   signal rstStatus       : sl;
+   
    -- Attribute for XST
    attribute use_dsp48          : string;
    attribute use_dsp48 of raddr : signal is USE_DSP48_G;
@@ -123,23 +124,25 @@ architecture rtl of FifoSync is
    attribute use_dsp48 of cnt   : signal is USE_DSP48_G;
    
 begin
+   rstStatus <= rst when(RST_POLARITY_G = '1') else not(rst);
+   
    --write ports
-   data_count  <= cnt when (rst = '0')              else (others => '1');
+   data_count  <= cnt when (rstStatus = '0')              else (others => '1');
    full        <= fullStatus;
    not_full    <= not(fullStatus);
    wr_ack      <= writeAck;
    overflow    <= overflowStatus;
-   prog_full   <= '1' when (cnt >= FULL_THRES_G)    else rst;
-   almost_full <= '1' when (cnt >= (RAM_DEPTH_C-2)) else rst;
-   fullStatus  <= '1' when (cnt >= (RAM_DEPTH_C-1)) else rst;
+   prog_full   <= '1' when (cnt > FULL_THRES_G)   else rstStatus;
+   almost_full <= '1' when (cnt = (RAM_DEPTH_C-2)) else fullStatus;
+   fullStatus  <= '1' when (cnt = (RAM_DEPTH_C-1)) else rstStatus;
 
    --read ports
    dout      <= portB.dout;
    underflow <= underflowStatus;
 
-   fifoStatus.prog_empty   <= '1' when (cnt <= EMPTY_THRES_G) else rst;
-   fifoStatus.almost_empty <= '1' when (cnt <= 1)             else rst;
-   fifoStatus.empty        <= '1' when (cnt <= 0)             else rst;
+   fifoStatus.prog_empty   <= '1' when (cnt < EMPTY_THRES_G) else rstStatus;
+   fifoStatus.almost_empty <= '1' when (cnt = 1)              else fifoStatus.empty;
+   fifoStatus.empty        <= '1' when (cnt = 0)              else rstStatus;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable   <= rd_en;
@@ -239,7 +242,7 @@ begin
    -- RAM Port B Mapping
    portB.clk  <= clk;
    portB.en   <= readEnable and not(fifoStatus.empty);
-   portB.rst  <= rst;
+   portB.rst  <= rstStatus;
    portB.we   <= '0';
    portB.addr <= raddr;
    portB.din  <= (others => '0');

@@ -186,9 +186,9 @@ begin
    underflow <= rdReg.error;
 
    fifoStatus.count        <= rdReg.cnt;
-   fifoStatus.prog_empty   <= '1' when (rdReg.cnt <= EMPTY_THRES_G) else '0';
-   fifoStatus.almost_empty <= '1' when (rdReg.cnt <= 1)             else '0';
-   fifoStatus.empty        <= '1' when (rdReg.cnt <= 0)             else '0';
+   fifoStatus.prog_empty   <= '1' when (rdReg.cnt < EMPTY_THRES_G) else readRst;
+   fifoStatus.almost_empty <= '1' when (rdReg.cnt = 1)              else fifoStatus.empty;
+   fifoStatus.empty        <= '1' when (rdReg.cnt = 0)              else readRst;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable    <= rd_en;
@@ -301,9 +301,9 @@ begin
    not_full      <= not(fullStatus);
    wr_ack        <= wrReg.Ack;
    overflow      <= wrReg.error;
-   prog_full     <= '1' when (wrReg.cnt >= FULL_THRES_G)    else '0';
-   almost_full   <= '1' when (wrReg.cnt >= (RAM_DEPTH_C-2)) else '0';
-   fullStatus    <= '1' when (wrReg.cnt >= (RAM_DEPTH_C-1)) else '0';
+   prog_full   <= '1' when (wrReg.cnt > FULL_THRES_G)   else writeRst;
+   almost_full <= '1' when (wrReg.cnt = (RAM_DEPTH_C-2)) else fullStatus;
+   fullStatus  <= '1' when (wrReg.cnt = (RAM_DEPTH_C-1)) else writeRst;
 
    SynchronizerVector_1 : entity work.SynchronizerVector
       generic map (
