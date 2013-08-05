@@ -344,7 +344,7 @@ begin
    ------------------------------------------
 
    -- PGP0 RX Block
-   U_Pgp2Rx0: Pgp2CorePackage.Pgp2Rx 
+   U_Pgp2Rx0: entity work.Pgp2Rx 
       generic map (
          RxLaneCnt    => 1,
          EnShortCells => EnShortCells
@@ -393,7 +393,7 @@ begin
 
 
    -- PGP TX Block
-   U_Pgp2Tx0: Pgp2CorePackage.Pgp2Tx 
+   U_Pgp2Tx0: entity work.Pgp2Tx 
       generic map (
          TxLaneCnt    => 1,
          VcInterleave => VcInterleave
@@ -508,7 +508,7 @@ begin
 
 
    -- RX Reset Control
-   U_Pgp2GtpRxRst0: Pgp2GtpPackage.Pgp2GtpRxRst
+   U_Pgp2GtpRxRst0: entity work.Pgp2GtpRxRst
       port map (
          gtpRxClk          => pgpClk,
          gtpRxRst          => int0RxRst,
@@ -525,7 +525,7 @@ begin
 
 
    -- TX Reset Control
-   U_Pgp2GtpTxRst0: Pgp2GtpPackage.Pgp2GtpTxRst
+   U_Pgp2GtpTxRst0: entity work.Pgp2GtpTxRst
       port map (
          gtpTxClk          => pgpClk,
          gtpTxRst          => int0TxRst,
@@ -542,7 +542,7 @@ begin
    ------------------------------------------
 
    -- PGP1 RX Block
-   U_Pgp2Rx1: Pgp2CorePackage.Pgp2Rx 
+   U_Pgp2Rx1: entity work.Pgp2Rx 
       generic map (
          RxLaneCnt    => 1,
          EnShortCells => EnShortCells
@@ -591,7 +591,7 @@ begin
 
 
    -- PGP TX Block
-   U_Pgp2Tx1: Pgp2CorePackage.Pgp2Tx 
+   U_Pgp2Tx1: entity work.Pgp2Tx 
       generic map (
          TxLaneCnt    => 1,
          VcInterleave => VcInterleave
@@ -706,7 +706,7 @@ begin
 
 
    -- RX Reset Control
-   U_Pgp2GtpRxRst1: Pgp2GtpPackage.Pgp2GtpRxRst
+   U_Pgp2GtpRxRst1: entity work.Pgp2GtpRxRst
       port map (
          gtpRxClk          => pgpClk,
          gtpRxRst          => int1RxRst,
@@ -723,7 +723,7 @@ begin
 
 
    -- TX Reset Control
-   U_Pgp2GtpTxRst1: Pgp2GtpPackage.Pgp2GtpTxRst
+   U_Pgp2GtpTxRst1: entity work.Pgp2GtpTxRst
       port map (
          gtpTxClk          => pgpClk,
          gtpTxRst          => int1TxRst,
