@@ -209,7 +209,7 @@ begin
    full        <= buildInFull or rstFull;
    not_full    <= not(buildInFull or rstFull);
    prog_full   <= progFull or rstFull;
-   almost_full <= '1' when (cnt >= (FIFO_LENGTH_C-1)) else rstFull;
+   almost_full <= '1' when (cnt = (FIFO_LENGTH_C-1)) else (buildInFull or rstFull);
 
    process(clk)
    begin
@@ -235,7 +235,7 @@ begin
 
    --read signals   
    fifoStatus.prog_empty   <= progEmpty;
-   fifoStatus.almost_empty <= '1' when (cnt <= 1) else '0';
+   fifoStatus.almost_empty <= '1' when (cnt = 1) else buildInEmpty;
    fifoStatus.empty        <= buildInEmpty;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate

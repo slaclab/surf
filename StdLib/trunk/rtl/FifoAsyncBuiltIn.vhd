@@ -244,8 +244,8 @@ begin
    wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
 
    -- Full signals
-   prog_full     <= '1'  when (wcnt >= FULL_THRES_G)      else rstFull;
-   almost_full   <= '1'  when (wcnt >= (FIFO_LENGTH_C-2)) else rstFull;
+   prog_full     <= '1'  when (wcnt > FULL_THRES_G)      else rstFull;
+   almost_full   <= '1'  when (wcnt = (FIFO_LENGTH_C-2)) else (buildInFull or rstFull);
    full          <= buildInFull or rstFull;
    not_full      <= not(buildInFull or rstFull);
    wr_data_count <= wcnt when(rstFull = '0')              else (others => '1');
@@ -291,8 +291,8 @@ begin
    rcnt <= grayDecode(wrGrayPntr) - rdAddrPntr;
 
    -- Empty signals
-   prog_empty    <= '1'  when (rcnt <= EMPTY_THRES_G) else rstEmpty;
-   almost_empty  <= '1'  when (rcnt <= 1)             else rstEmpty;
+   prog_empty    <= '1'  when (rcnt < EMPTY_THRES_G) else rstEmpty;
+   almost_empty  <= '1'  when (rcnt = 1)             else (buildInEmpty or rstEmpty);
    empty         <= buildInEmpty or rstEmpty;
    rd_data_count <= rcnt when(rstEmpty = '0')         else (others => '0');
 
