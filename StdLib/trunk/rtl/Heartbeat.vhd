@@ -24,7 +24,7 @@ entity Heartbeat is
    
    generic (
       TPD_G        : time                   := 1 ns;
-      USE_DSP48_G  : string                 := "yes";
+      USE_DSP48_G  : string                 := "auto";
       COUNT_SIZE_G : positive range 1 to 48 := 27);
 
    port (
