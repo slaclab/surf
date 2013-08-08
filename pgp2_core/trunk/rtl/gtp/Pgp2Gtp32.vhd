@@ -441,7 +441,7 @@ begin
 
 
    ----------------------------- GTP_DUAL Instance  --------------------------   
-   UGtpDual : GTP_DUAL
+   U_GtpDual : GTP_DUAL
       generic map (
 
          --_______________________ Simulation-Only Attributes ___________________
