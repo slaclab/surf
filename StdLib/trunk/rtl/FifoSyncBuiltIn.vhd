@@ -5,12 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-08-02
+-- Last update: 2013-08-14
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
+--                ^/StdLib/trunk/rtl/SynchronizerEdge.vhd
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -149,33 +150,42 @@ architecture mapping of FifoSyncBuiltIn is
       progEmpty,
       progFull,
       readEnable,
-      rstFull,
-      fifoRst : sl := '0';
+      rstFlags,
+      fifoRst,
+      wrEn,
+      rstDet : sl := '0';
 
    -- Attribute for XST
    attribute use_dsp48        : string;
    attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
-   RstSync_FIFO : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 6)   
-      port map (
-         clk      => clk,
-         asyncRst => rst,
-         syncRst  => fifoRst); 
-
    RstSync_FULL : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 8)   
+         RELEASE_DELAY_G => 10)   
       port map (
          clk      => clk,
          asyncRst => rst,
-         syncRst  => rstFull);  
+         syncRst  => rstFlags); 
+
+   SynchronizerEdge_FULL : entity work.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)   
+      port map (
+         clk        => clk,
+         dataIn     => rstFlags,
+         risingEdge => rstDet);                 
+
+   RstSync_FIFO : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G,
+         RELEASE_DELAY_G => 6)   
+      port map (
+         clk      => clk,
+         asyncRst => rstDet,
+         syncRst  => fifoRst); 
 
    FIFO_SYNC_MACRO_Inst : FIFO_SYNC_MACRO
       generic map (
@@ -188,7 +198,7 @@ begin
       port map (
          RST         => fifoRst,        -- 1-bit input reset
          CLK         => clk,            -- 1-bit input clock
-         WREN        => wr_en,          -- 1-bit input write enable
+         WREN        => wrEn,           -- 1-bit input write enable
          RDEN        => readEnable,     -- 1-bit input read enable
          DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
          DO          => dout,  -- Output data, width defined by DATA_WIDTH parameter
@@ -206,10 +216,11 @@ begin
    data_count <= cnt;
 
    --write signals
-   full        <= buildInFull or rstFull;
-   not_full    <= not(buildInFull or rstFull);
-   prog_full   <= progFull or rstFull;
-   almost_full <= '1' when (cnt = (FIFO_LENGTH_C-1)) else (buildInFull or rstFull);
+   wrEn        <= wr_en and not(rstFlags);
+   full        <= buildInFull or rstFlags;
+   not_full    <= not(buildInFull or rstFlags);
+   prog_full   <= progFull or rstFlags;
+   almost_full <= '1' when (cnt = (FIFO_LENGTH_C-1)) else (buildInFull or rstFlags);
 
    process(clk)
    begin
@@ -225,7 +236,7 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
-         if rstFull = '1' then
+         if rstFlags = '1' then
             overflow <= '0' after TPD_G;
          elsif (wr_en = '1') and (buildInFull = '1') then
             overflow <= '1' after TPD_G;  --latch error strobe
@@ -234,9 +245,9 @@ begin
    end process;
 
    --read signals   
-   fifoStatus.prog_empty   <= progEmpty;
-   fifoStatus.almost_empty <= '1' when (cnt = 1) else buildInEmpty;
-   fifoStatus.empty        <= buildInEmpty;
+   fifoStatus.prog_empty   <= progEmpty or rstFlags;
+   fifoStatus.almost_empty <= '1' when (cnt = 1) else (buildInEmpty or rstFlags);
+   fifoStatus.empty        <= buildInEmpty or rstFlags;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable   <= rd_en;
@@ -247,7 +258,7 @@ begin
       process(clk)
       begin
          if rising_edge(clk) then
-            if rd_en = '1' then
+            if (rd_en = '1') and (rstFlags = '0') then
                valid <= not(buildInEmpty) after TPD_G;
             else
                valid <= '0' after TPD_G;
@@ -267,7 +278,7 @@ begin
       begin
          --asychronous reset
          if rising_edge(clk) then
-            if fifoRst = '1'then
+            if rstFlags = '1'then
                fwftStatus <= READ_STATUS_INIT_C after TPD_G;
             else
                fwftStatus.prog_empty   <= fifoStatus.prog_empty                            after TPD_G;

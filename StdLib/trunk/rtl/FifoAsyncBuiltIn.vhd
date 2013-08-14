@@ -148,7 +148,9 @@ architecture mapping of FifoAsyncBuiltIn is
       fifoWrRst,
       fifoRdRst,
       rstEmpty,
-      rstFull : sl := '0';
+      rstFull,
+      wrEn,
+      rstDet : sl := '0';      
 
    -- Attribute for XST
    attribute use_dsp48         : string;
@@ -159,14 +161,31 @@ begin
    -------------------------------
    -- Resets
    -------------------------------   
-   RstSync_WR : entity work.RstSync
+   RstSync_FULL : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 6)   
+         RELEASE_DELAY_G => 10)   
       port map (
          clk      => wr_clk,
          asyncRst => rst,
+         syncRst  => rstFull); 
+
+   SynchronizerEdge_FULL : entity work.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)   
+      port map (
+         clk        => wr_clk,
+         dataIn     => rstFull,
+         risingEdge => rstDet);                 
+
+   RstSync_FIFO : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G,
+         RELEASE_DELAY_G => 6)   
+      port map (
+         clk      => wr_clk,
+         asyncRst => rstDet,
          syncRst  => fifoWrRst); 
 
    RstSync_RD : entity work.RstSync
@@ -179,21 +198,11 @@ begin
          asyncRst => rst,
          syncRst  => fifoRdRst);          
 
-   RstSync_FULL : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 8)   
-      port map (
-         clk      => wr_clk,
-         asyncRst => rst,
-         syncRst  => rstFull); 
-
    RstSync_EMPTY : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 8)   
+         RELEASE_DELAY_G => 10)   
       port map (
          clk      => rd_clk,
          asyncRst => rst,
@@ -210,7 +219,7 @@ begin
       port map (
          RST         => fifoWrRst,      -- 1-bit input reset
          WRCLK       => wr_clk,         -- 1-bit input write clock
-         WREN        => wr_en,          -- 1-bit input write enable
+         WREN        => wrEn,          -- 1-bit input write enable
          DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
          WRCOUNT     => wrAddrPntr,     -- Output write address pointer
          WRERR       => open,           -- 1-bit output write error
@@ -244,6 +253,7 @@ begin
    wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
 
    -- Full signals
+   wrEn        <= wr_en and not(rstFull);
    prog_full     <= '1'  when (wcnt > FULL_THRES_G)      else rstFull;
    almost_full   <= '1'  when (wcnt = (FIFO_LENGTH_C-2)) else (buildInFull or rstFull);
    full          <= buildInFull or rstFull;
