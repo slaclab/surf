@@ -349,6 +349,7 @@ package StdRtlPkg is
    type Slv3Array is array (natural range <>) of slv(2 downto 0);
    type Slv2Array is array (natural range <>) of slv(1 downto 0);
    type Slv1Array is array (natural range <>) of slv(0 downto 0);
+   type SlArray is array (natural range <>) of sl;
 
    -- Add more slv vector array sizes here as they become needed
    type Slv256VectorArray is array (natural range<>, natural range<>) of slv(255 downto 0);
@@ -607,6 +608,7 @@ package StdRtlPkg is
    type Slv3VectorArray is array (natural range<>, natural range<>) of slv(2 downto 0);
    type Slv2VectorArray is array (natural range<>, natural range<>) of slv(1 downto 0);
    type Slv1VectorArray is array (natural range<>, natural range<>) of slv(0 downto 0);   
+   type SlVectorArray is array (natural range<>, natural range<>) of sl;   
 
 end StdRtlPkg;
 
