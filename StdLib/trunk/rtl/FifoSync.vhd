@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-08-02
+-- Last update: 2013-09-03
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ architecture rtl of FifoSync is
    signal fullStatus      : sl;
    signal readEnable      : sl;
    signal rstStatus       : sl;
-   
+
    -- Attribute for XST
    attribute use_dsp48          : string;
    attribute use_dsp48 of raddr : signal is USE_DSP48_G;
@@ -125,24 +125,59 @@ architecture rtl of FifoSync is
    
 begin
    rstStatus <= rst when(RST_POLARITY_G = '1') else not(rst);
-   
+
    --write ports
-   data_count  <= cnt when (rstStatus = '0')              else (others => '1');
-   full        <= fullStatus;
-   not_full    <= not(fullStatus);
-   wr_ack      <= writeAck;
-   overflow    <= overflowStatus;
-   prog_full   <= '1' when (cnt > FULL_THRES_G)   else rstStatus;
-   almost_full <= '1' when (cnt = (RAM_DEPTH_C-2)) else fullStatus;
-   fullStatus  <= '1' when (cnt = (RAM_DEPTH_C-1)) else rstStatus;
+   full     <= fullStatus;
+   not_full <= not(fullStatus);
+   wr_ack   <= writeAck;
+   overflow <= overflowStatus;
+
+   process (clk, rst) is
+   begin
+      --asychronous reset
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         data_count  <= (others => '1') after TPD_G;
+         prog_full   <= '1'             after TPD_G;
+         almost_full <= '1'             after TPD_G;
+         fullStatus  <= '1'             after TPD_G;
+      elsif rising_edge(clk) then
+         --sychronous reset
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+            data_count  <= (others => '1') after TPD_G;
+            prog_full   <= '1'             after TPD_G;
+            almost_full <= '1'             after TPD_G;
+            fullStatus  <= '1'             after TPD_G;
+         else
+            data_count <= cnt after TPD_G;
+            --prog_full
+            if (cnt > FULL_THRES_G) then
+               prog_full <= '1' after TPD_G;
+            else
+               prog_full <= '0' after TPD_G;
+            end if;
+            --almost_full
+            if (cnt = (RAM_DEPTH_C-1)) or (cnt = (RAM_DEPTH_C-2)) or (cnt = (RAM_DEPTH_C-3)) then
+               almost_full <= '1' after TPD_G;
+            else
+               almost_full <= '0' after TPD_G;
+            end if;
+            --fullStatus
+            if (cnt = (RAM_DEPTH_C-1)) or (cnt = (RAM_DEPTH_C-2)) then
+               fullStatus <= '1' after TPD_G;
+            else
+               fullStatus <= '0' after TPD_G;
+            end if;
+         end if;
+      end if;
+   end process;
 
    --read ports
    dout      <= portB.dout;
    underflow <= underflowStatus;
 
    fifoStatus.prog_empty   <= '1' when (cnt < EMPTY_THRES_G) else rstStatus;
-   fifoStatus.almost_empty <= '1' when (cnt = 1)              else fifoStatus.empty;
-   fifoStatus.empty        <= '1' when (cnt = 0)              else rstStatus;
+   fifoStatus.almost_empty <= '1' when (cnt = 1)             else fifoStatus.empty;
+   fifoStatus.empty        <= '1' when (cnt = 0)             else rstStatus;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable   <= rd_en;
