@@ -1,11 +1,11 @@
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------- 
 -- Title      : 
 -------------------------------------------------------------------------------
 -- File       : FifoAsync.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-08-02
+-- Last update: 2013-09-03
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -187,8 +187,8 @@ begin
 
    fifoStatus.count        <= rdReg.cnt;
    fifoStatus.prog_empty   <= '1' when (rdReg.cnt < EMPTY_THRES_G) else readRst;
-   fifoStatus.almost_empty <= '1' when (rdReg.cnt = 1)              else fifoStatus.empty;
-   fifoStatus.empty        <= '1' when (rdReg.cnt = 0)              else readRst;
+   fifoStatus.almost_empty <= '1' when (rdReg.cnt = 1)             else fifoStatus.empty;
+   fifoStatus.empty        <= '1' when (rdReg.cnt = 0)             else readRst;
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       readEnable    <= rd_en;
@@ -301,9 +301,34 @@ begin
    not_full      <= not(fullStatus);
    wr_ack        <= wrReg.Ack;
    overflow      <= wrReg.error;
-   prog_full   <= '1' when (wrReg.cnt > FULL_THRES_G)   else writeRst;
-   almost_full <= '1' when (wrReg.cnt = (RAM_DEPTH_C-2)) else fullStatus;
-   fullStatus  <= '1' when (wrReg.cnt = (RAM_DEPTH_C-1)) else writeRst;
+
+   process (wr_clk, writeRst) is
+   begin
+      if writeRst = '1' then
+         prog_full   <= '1' after TPD_G;
+         almost_full <= '1' after TPD_G;
+         fullStatus  <= '1' after TPD_G;
+      elsif rising_edge(wr_clk) then
+         --prog_full
+         if (wrReg.cnt > FULL_THRES_G) then
+            prog_full <= '1' after TPD_G;
+         else
+            prog_full <= '0' after TPD_G;
+         end if;
+         --almost_full
+         if (wrReg.cnt = (RAM_DEPTH_C-1)) or (wrReg.cnt = (RAM_DEPTH_C-2)) or (wrReg.cnt = (RAM_DEPTH_C-3)) then
+            almost_full <= '1' after TPD_G;
+         else
+            almost_full <= '0' after TPD_G;
+         end if;
+         --fullStatus
+         if (wrReg.cnt = (RAM_DEPTH_C-1)) or (wrReg.cnt = (RAM_DEPTH_C-2)) then
+            fullStatus <= '1' after TPD_G;
+         else
+            fullStatus <= '0' after TPD_G;
+         end if;
+      end if;
+   end process;
 
    SynchronizerVector_1 : entity work.SynchronizerVector
       generic map (
