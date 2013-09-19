@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-07-18
+-- Last update: 2013-09-19
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -19,10 +19,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-use work.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+use work.StdRtlPkg.all;
 
 entity FifoAsyncTb is end FifoAsyncTb;
 

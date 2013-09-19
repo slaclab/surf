@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2013-08-02
+-- Last update: 2013-09-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ entity FifoMux is
       BRAM_EN_G       : boolean                    := true;
       FWFT_EN_G       : boolean                    := true;
       USE_DSP48_G     : string                     := "no";
-      ALTERA_RAM_G    : string                     := "M-RAM";
+      ALTERA_SYN_G    : boolean                    := false;
+      ALTERA_RAM_G    : string                     := "M9K";
       USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
       XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
@@ -91,10 +92,10 @@ architecture rtl of FifoMux is
       wrData => (others => (others => '0')),
       wrEn   => '0');
 
-   signal wrR, wrRin      : WrRegType := WR_REG_INIT_C;
-   signal fifo_din        : slv(FIFO_DATA_WIDTH_C-1 downto 0);
-   signal fifo_wr_en      : sl;
-   signal wrRst           : sl;
+   signal   wrR, wrRin    : WrRegType := WR_REG_INIT_C;
+   signal   fifo_din      : slv(FIFO_DATA_WIDTH_C-1 downto 0);
+   signal   fifo_wr_en    : sl;
+   signal   wrRst         : sl;
    -------------------------------------------------------------------------------------------------
    constant RD_LOGIC_EN_C : boolean   := (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G);
    constant RD_SIZE_C     : integer   := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
@@ -282,6 +283,7 @@ begin
          BRAM_EN_G       => BRAM_EN_G,
          FWFT_EN_G       => FWFT_EN_G,
          USE_DSP48_G     => USE_DSP48_G,
+         ALTERA_SYN_G    => ALTERA_SYN_G,
          ALTERA_RAM_G    => ALTERA_RAM_G,
          USE_BUILT_IN_G  => USE_BUILT_IN_G,
          XIL_DEVICE_G    => XIL_DEVICE_G,

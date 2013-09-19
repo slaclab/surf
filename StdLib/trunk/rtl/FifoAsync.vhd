@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-09-03
+-- Last update: 2013-09-19
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ entity FifoAsync is
       BRAM_EN_G      : boolean                    := true;
       FWFT_EN_G      : boolean                    := false;
       USE_DSP48_G    : string                     := "no";
-      ALTERA_RAM_G   : string                     := "M-RAM";
+      ALTERA_SYN_G   : boolean                    := false;
+      ALTERA_RAM_G   : string                     := "M9K";
       SYNC_STAGES_G  : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G   : integer range 2 to 48      := 4;
@@ -421,6 +422,7 @@ begin
       generic map(
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
+         ALTERA_SYN_G => ALTERA_SYN_G,
          ALTERA_RAM_G => ALTERA_RAM_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-07-12
+-- Last update: 2013-09-19
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ entity TrueDualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G        : time                       := 1 ns;
-      ALTERA_RAM_G : string                     := "M-RAM";
+      ALTERA_RAM_G : string                     := "M9K";
       MODE_G       : string                     := "write-first";
       DATA_WIDTH_G : integer range 1 to (2**24) := 18;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
@@ -72,16 +72,16 @@ architecture rtl of TrueDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : boolean;--"keep" is same for XST and Altera
-   attribute keep of mem : variable is true;--"keep" is same for XST and Altera
-   
+   attribute keep        : boolean;     --"keep" is same for XST and Altera
+   attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
+
    -- Attribute for Synplicity Synthesizer 
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : variable is "block";
 
    attribute syn_keep        : string;
    attribute syn_keep of mem : variable is "TRUE";
-   
+
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
    attribute ramstyle of mem : variable is ALTERA_RAM_G;
