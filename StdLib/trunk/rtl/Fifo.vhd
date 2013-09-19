@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-14
--- Last update: 2013-08-02
+-- Last update: 2013-09-19
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ entity Fifo is
       BRAM_EN_G       : boolean                    := true;
       FWFT_EN_G       : boolean                    := false;
       USE_DSP48_G     : string                     := "no";
-      ALTERA_RAM_G    : string                     := "M-RAM";
+      ALTERA_SYN_G    : boolean                    := false;
+      ALTERA_RAM_G    : string                     := "M9K";
       USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
       XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
@@ -85,6 +86,7 @@ begin
                BRAM_EN_G      => BRAM_EN_G,
                FWFT_EN_G      => FWFT_EN_G,
                USE_DSP48_G    => USE_DSP48_G,
+               ALTERA_SYN_G   => ALTERA_SYN_G,
                ALTERA_RAM_G   => ALTERA_RAM_G,
                SYNC_STAGES_G  => SYNC_STAGES_G,
                DATA_WIDTH_G   => DATA_WIDTH_G,

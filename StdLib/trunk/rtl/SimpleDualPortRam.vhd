@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-08-02
+-- Last update: 2013-09-19
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,8 @@ entity SimpleDualPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
       BRAM_EN_G      : boolean                    := true;
-      ALTERA_RAM_G   : string                     := "M-RAM";
+      ALTERA_SYN_G   : boolean                    := false;
+      ALTERA_RAM_G   : string                     := "M9K";
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
@@ -100,16 +101,32 @@ begin
       end if;
    end process;
 
-   -- Port B
-   process(clkb)
-   begin
-      if rising_edge(clkb) then
-         if rstb = RST_POLARITY_G then
-            doutb <= INIT_C after TPD_G;
-         elsif enb = '1' then
+   
+   XILINX_BUILD : if (ALTERA_SYN_G = false) generate   
+      -- Port B
+      process(clkb)
+      begin
+         if rising_edge(clkb) then
+            if rstb = RST_POLARITY_G then
+               doutb <= INIT_C after TPD_G;
+            elsif enb = '1' then
+               doutb <= mem(conv_integer(addrb)) after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate; 
+   
+   ---------------------------------------------------------------
+   --NOTE: rstb and enb not supported in Altera when inferring RAM
+   ---------------------------------------------------------------
+   ALTERA_BUILD : if (ALTERA_SYN_G = true) generate
+      -- Port B
+      process(clkb)
+      begin
+         if rising_edge(clkb) then
             doutb <= mem(conv_integer(addrb)) after TPD_G;
          end if;
-      end if;
-   end process;
+      end process;
+   end generate;    
    
 end rtl;

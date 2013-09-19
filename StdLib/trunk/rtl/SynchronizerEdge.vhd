@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2013-08-02
+-- Last update: 2013-09-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,18 +22,18 @@ use work.StdRtlPkg.all;
 entity SynchronizerEdge is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';            -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
       STAGES_G       : positive := 3;
       INIT_G         : slv      := "0"
       );
    port (
-      clk         : in  sl;                        -- clock to be sync'ed to
+      clk         : in  sl;             -- clock to be sync'ed to
       rst         : in  sl := not RST_POLARITY_G;  -- Optional reset
-      dataIn      : in  sl;                        -- Data to be 'synced'
-      dataOut     : out sl;                        -- synced data
-      risingEdge  : out sl;                        -- Rising edge detected
-      fallingEdge : out sl                         -- Falling edge detected
+      dataIn      : in  sl;             -- Data to be 'synced'
+      dataOut     : out sl;             -- synced data
+      risingEdge  : out sl;             -- Rising edge detected
+      fallingEdge : out sl              -- Falling edge detected
       );
 begin
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
@@ -77,17 +77,9 @@ architecture rtl of SynchronizerEdge is
 
    -------------------------------
    -- Altera Attributes 
-   -- NOTE: These attributes have not been tested yet!!!
    ------------------------------- 
-   attribute altera_attribute : string;
-
-   -- Disable Auto Shift Register Recognition logic option
-   -- Optimize for metastability
-   -- Don't let register balancing move logic between the register chain
-   attribute altera_attribute of r : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF -name OPTIMIZE_FOR_METASTABILITY ON -name USE_LOGICLOCK_CONSTRAINTS_IN_BALANCING OFF";
-
-   -- This attribute will stop timing errors
-   attribute altera_attribute of rin : signal is "-name CUT ON -from dataIn -to rin";
+   attribute altera_attribute      : string;
+   attribute altera_attribute of r : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF";
    
 begin
 
@@ -105,7 +97,7 @@ begin
       fallingEdge <= not r(STAGES_G-2) and r(STAGES_G-1);
    end process comb;
 
-   seq : process (rst, clk) is
+   seq : process (clk, rst) is
    begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;

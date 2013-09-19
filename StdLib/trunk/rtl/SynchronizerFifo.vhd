@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-07-30
+-- Last update: 2013-09-19
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,8 @@ entity SynchronizerFifo is
    generic (
       TPD_G         : time                       := 1 ns;
       BRAM_EN_G     : boolean                    := false;
+      ALTERA_SYN_G  : boolean                    := false;
+      ALTERA_RAM_G  : string                     := "M9K";
       SYNC_STAGES_G : integer range 2 to (2**24) := 2;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G  : integer range 2 to 48      := 4;
@@ -58,12 +60,15 @@ architecture rtl of SynchronizerFifo is
 begin
    FifoAsync_1 : entity work.FifoAsync
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G,
-         INIT_G       => INIT_C)
+         TPD_G         => TPD_G,
+         BRAM_EN_G     => BRAM_EN_G,
+         FWFT_EN_G     => true,
+         ALTERA_SYN_G  => ALTERA_SYN_G,
+         ALTERA_RAM_G  => ALTERA_RAM_G,
+         SYNC_STAGES_G => SYNC_STAGES_G,
+         DATA_WIDTH_G  => DATA_WIDTH_G,
+         ADDR_WIDTH_G  => ADDR_WIDTH_G,
+         INIT_G        => INIT_C)
       port map (
          rst           => rst,
          wr_clk        => wr_clk,
