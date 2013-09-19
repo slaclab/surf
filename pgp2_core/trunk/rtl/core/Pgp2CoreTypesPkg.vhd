@@ -149,6 +149,11 @@ package Pgp2CoreTypesPkg is
       init  : sl;                       -- Receive data for CRC is valid
    end record PgpCrcInType;
    type PgpCrcInArray is array (natural range <>) of PgpCrcInType;
+   constant PGP_CRC_IN_INIT_C : PgpCrcInType := (
+      (others => '0'),
+      '0',
+      '0',
+      '0');    
 
    -- Out type is 32 bit slv
 
