@@ -82,6 +82,8 @@ package Pgp2CoreTypesPkg is
       polarity : sl;                    -- PHY receive signal polarity
    end record PgpRxPhyLaneOutType;
    type PgpRxPhyLaneOutArray is array (natural range <>) of PgpRxPhyLaneOutType;
+   constant PGP_RX_PHY_LANE_OUT_INIT_C : PgpRxPhyLaneOutType := (
+      (others => '0'));   
 
    type PgpRxPhyLaneInType is record
       data    : slv(15 downto 0);       -- PHY receive data
@@ -90,12 +92,20 @@ package Pgp2CoreTypesPkg is
       decErr  : slv(1 downto 0);        -- PHY receive data not in table
    end record PgpRxPhyLaneInType;
    type PgpRxPhyLaneInArray is array (natural range <>) of PgpRxPhyLaneInType;
+   constant PGP_RX_PHY_LANE_IN_INIT_C : PgpRxPhyLaneInType := (
+      (others => '0'),
+      (others => '0'),
+      (others => '0'),
+      (others => '0'));    
 
    type PgpTxPhyLaneOutType is record
       data  : slv(15 downto 0);         -- PHY transmit data
       dataK : slv(1 downto 0);          -- PHY transmit data is K character
    end record PgpTxPhyLaneOutType;
    type PgpTxPhyLaneOutArray is array (natural range <>) of PgpTxPhyLaneOutType;
+   constant PGP_TX_PHY_LANE_OUT_INIT_C : PgpTxPhyLaneOutType := (
+      (others => '0'),
+      (others => '0'));    
 
    --------------------------------------------------------------------------------------------------
    -- PGP Cell IO
