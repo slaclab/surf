@@ -27,9 +27,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
-
 entity CRC32Rtl is
    generic (
       CRC_INIT : bit_vector := x"FFFFFFFF");
