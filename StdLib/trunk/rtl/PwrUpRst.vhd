@@ -5,11 +5,11 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-30
--- Last update: 2013-08-02
+-- Last update: 2013-09-24
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Synchronizes a reset signal and holds it for a parametized
+-- Description: Synchronizes a reset signal and holds it for a parametrized
 -- number of cycles.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
@@ -43,13 +43,10 @@ begin
 end PwrUpRst;
 
 architecture rtl of PwrUpRst is
-
-   constant CNT_SIZE_C : natural := ite(SIM_SPEEDUP_G, 127, (DURATION_G-1));
-
-   signal rstSync : sl;
-
-   signal rst : sl                                := OUT_POLARITY_G;
-   signal cnt : natural range 0 to (DURATION_G-1) := 0;
+   constant CNT_SIZE_C : natural := ite(SIM_SPEEDUP_G, 127, DURATION_G);
+   signal   rstSync,
+      rst : sl := OUT_POLARITY_G;
+   signal cnt : natural range 0 to DURATION_G := 0;
 
    -- Attribute for XST
    attribute use_dsp48        : string;
@@ -57,27 +54,29 @@ architecture rtl of PwrUpRst is
    
 begin
 
-   RstSync_1 : entity work.RstSync
+   RstSync_Inst : entity work.RstSync
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => OUT_POLARITY_G)
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => IN_POLARITY_G,
+         OUT_POLARITY_G => OUT_POLARITY_G)
       port map (
          clk      => clk,
          asyncRst => arst,
          syncRst  => rstSync);
 
-   process (clk, rstSync)
+   process (clk)
    begin
-      if rstSync = OUT_POLARITY_G then
-         rst <= OUT_POLARITY_G after TPD_G;
-         cnt <= 0              after TPD_G;
-      elsif rising_edge(clk) then
-         if cnt = CNT_SIZE_C then
-            rst <= not OUT_POLARITY_G after TPD_G;
-         else
+      if rising_edge(clk) then
+         if rstSync = OUT_POLARITY_G then
             rst <= OUT_POLARITY_G after TPD_G;
-            cnt <= cnt + 1        after TPD_G;
+            cnt <= 0              after TPD_G;
+         else
+            if cnt /= CNT_SIZE_C then
+               rst <= OUT_POLARITY_G after TPD_G;
+               cnt <= cnt + 1        after TPD_G;
+            else
+               rst <= not(OUT_POLARITY_G) after TPD_G;
+            end if;
          end if;
       end if;
    end process;
