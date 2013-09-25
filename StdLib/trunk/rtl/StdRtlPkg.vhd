@@ -6,8 +6,8 @@
 -- Standard   : VHDL'93/02, Math Packages
 -------------------------------------------------------------------------------
 -- Description: This package defines "sl" and "slv" shorthand subtypes for
---              std_logic and std_logic_vector repectively.  It also defines
---              many handy untility functions. Nearly every .vhd file should
+--              std_logic and std_logic_vector receptively.  It also defines
+--              many handy utility functions. Nearly every .vhd file should
 --              use this package.
 -------------------------------------------------------------------------------
 
