@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-08-04
+-- Last update: 2013-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -81,6 +81,7 @@ entity Pgp2Gtx7MultiLane is
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
+      pgpRxRecClk      : out sl;        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmReset   : out sl;
       pgpRxMmcmLocked  : in  sl;
@@ -97,10 +98,7 @@ entity Pgp2Gtx7MultiLane is
       pgpVcRxCommonOut : out VcRxCommonOutType;
       pgpVcRxQuadOut   : out VcRxQuadOutType;
       -- GT loopback control
-      loopback         : in  slv(2 downto 0);
-      -- Debug
-      debug            : out slv(63 downto 0));
-
+      loopback         : in  slv(2 downto 0));
 end Pgp2Gtx7MultiLane;
 
 -- Define architecture
@@ -112,6 +110,7 @@ architecture rtl of Pgp2Gtx7MultiLane is
 
    -- PgpRx Signals
    signal pgpRxMmcmResets : slv((LANE_CNT_G-1) downto 0);
+   signal pgpRxRecClock   : slv((LANE_CNT_G-1) downto 0);
    signal gtRxResetDone   : slv((LANE_CNT_G-1) downto 0);
    signal gtRxUserReset   : sl;
    signal gtRxUserResetIn : sl;
@@ -149,11 +148,11 @@ architecture rtl of Pgp2Gtx7MultiLane is
    signal crcTxOutGtx7   : slv(31 downto 0);
 
 begin
-   debug <= (others => '0');
 
    gtQPllReset    <= gtQPllResets(0);
    pgpTxMmcmReset <= pgpTxMmcmResets(0);
    pgpRxMmcmReset <= pgpRxMmcmResets(0);
+   pgpRxRecClk    <= pgpRxRecClock(0);
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
@@ -389,7 +388,7 @@ begin
             gtRxP            => gtRxP(i),
             gtRxN            => gtRxN(i),
             rxRefClkOut      => open,
-            rxOutClkOut      => open,
+            rxOutClkOut      => pgpRxRecClock(i),
             rxUsrClkIn       => pgpRxClk,
             rxUsrClk2In      => pgpRxClk,
             rxUserRdyOut     => open,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-08-22
+-- Last update: 2013-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,8 +43,8 @@ entity Pgp2Gtp7MultiLane is
       -- Configure PLL 
       RXOUT_DIV_G           : integer              := 2;
       TXOUT_DIV_G           : integer              := 2;
-      RX_CLK25_DIV_G        : integer              := 7;    -- Set by wizard
-      TX_CLK25_DIV_G        : integer              := 7;    -- Set by wizard
+      RX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
+      TX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Number of Lanes
@@ -52,12 +52,12 @@ entity Pgp2Gtp7MultiLane is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PayloadCntTop         : integer              := 7;    -- Top bit for payload counter
-      EnShortCells          : integer              := 1;    -- Enable short non-EOF cells
-      VcInterleave          : integer              := 1);   -- Interleave Frames
+      PayloadCntTop         : integer              := 7;  -- Top bit for payload counter
+      EnShortCells          : integer              := 1;  -- Enable short non-EOF cells
+      VcInterleave          : integer              := 1);  -- Interleave Frames
    port (
       -- GT Clocking
-      stableClk        : in  sl;                            -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);
@@ -75,6 +75,7 @@ entity Pgp2Gtp7MultiLane is
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
+      pgpRxRecClk      : out sl;        -- recovered clock      
       pgpRxClk         : in  sl;
       pgpRxMmcmReset   : out sl;
       pgpRxMmcmLocked  : in  sl;
@@ -109,6 +110,7 @@ architecture rtl of Pgp2Gtp7MultiLane is
 
    -- PgpRx Signals
    signal pgpRxMmcmResets : slv((LANE_CNT_G-1) downto 0);
+   signal pgpRxRecClock   : slv((LANE_CNT_G-1) downto 0);
    signal gtRxResetDone   : slv((LANE_CNT_G-1) downto 0);
    signal gtRxUserReset   : sl;
    signal gtRxUserResetIn : sl;
@@ -150,6 +152,7 @@ begin
    gtQPllReset    <= gtQPllResets(0);
    pgpTxMmcmReset <= pgpTxMmcmResets(0);
    pgpRxMmcmReset <= pgpRxMmcmResets(0);
+   pgpRxRecClk    <= pgpRxRecClock(0);
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
@@ -308,14 +311,14 @@ begin
             TX_BUF_ADDR_MODE_G       => "FULL",
             RX_BUF_EN_G              => true,
             RX_OUTCLK_SRC_G          => "OUTCLKPMA",
-            RX_USRCLK_SRC_G          => "RXOUTCLK",    -- Not 100% sure, doesn't really matter
+            RX_USRCLK_SRC_G          => "RXOUTCLK",  -- Not 100% sure, doesn't really matter
             RX_DLY_BYPASS_G          => '1',
             RX_DDIEN_G               => '0',
             RX_BUF_ADDR_MODE_G       => "FULL",
-            RX_ALIGN_MODE_G          => "GT",          -- Default
-            ALIGN_COMMA_DOUBLE_G     => "FALSE",       -- Default
+            RX_ALIGN_MODE_G          => "GT",        -- Default
+            ALIGN_COMMA_DOUBLE_G     => "FALSE",     -- Default
             ALIGN_COMMA_ENABLE_G     => "1111111111",  -- Default
-            ALIGN_COMMA_WORD_G       => 2,             -- Default
+            ALIGN_COMMA_WORD_G       => 2,           -- Default
             ALIGN_MCOMMA_DET_G       => "TRUE",
             ALIGN_MCOMMA_VALUE_G     => "1010000011",  -- Default
             ALIGN_MCOMMA_EN_G        => '1',
@@ -324,48 +327,48 @@ begin
             ALIGN_PCOMMA_EN_G        => '1',
             SHOW_REALIGN_COMMA_G     => "FALSE",
             RXSLIDE_MODE_G           => "AUTO",
-            RX_DISPERR_SEQ_MATCH_G   => "TRUE",        -- Default
-            DEC_MCOMMA_DETECT_G      => "TRUE",        -- Default
-            DEC_PCOMMA_DETECT_G      => "TRUE",        -- Default
-            DEC_VALID_COMMA_ONLY_G   => "FALSE",       -- Default
-            CBCC_DATA_SOURCE_SEL_G   => "DECODED",     -- Default
-            CLK_COR_SEQ_2_USE_G      => "FALSE",       -- Default
-            CLK_COR_KEEP_IDLE_G      => "FALSE",       -- Default
+            RX_DISPERR_SEQ_MATCH_G   => "TRUE",      -- Default
+            DEC_MCOMMA_DETECT_G      => "TRUE",      -- Default
+            DEC_PCOMMA_DETECT_G      => "TRUE",      -- Default
+            DEC_VALID_COMMA_ONLY_G   => "FALSE",     -- Default
+            CBCC_DATA_SOURCE_SEL_G   => "DECODED",   -- Default
+            CLK_COR_SEQ_2_USE_G      => "FALSE",     -- Default
+            CLK_COR_KEEP_IDLE_G      => "FALSE",     -- Default
             CLK_COR_MAX_LAT_G        => 21,
             CLK_COR_MIN_LAT_G        => 18,
-            CLK_COR_PRECEDENCE_G     => "TRUE",        -- Default
-            CLK_COR_REPEAT_WAIT_G    => 0,             -- Default
+            CLK_COR_PRECEDENCE_G     => "TRUE",      -- Default
+            CLK_COR_REPEAT_WAIT_G    => 0,           -- Default
             CLK_COR_SEQ_LEN_G        => 4,
-            CLK_COR_SEQ_1_ENABLE_G   => "1111",        -- Default
+            CLK_COR_SEQ_1_ENABLE_G   => "1111",      -- Default
             CLK_COR_SEQ_1_1_G        => "0110111100",
             CLK_COR_SEQ_1_2_G        => "0100011100",
             CLK_COR_SEQ_1_3_G        => "0100011100",
             CLK_COR_SEQ_1_4_G        => "0100011100",
             CLK_CORRECT_USE_G        => "TRUE",
-            CLK_COR_SEQ_2_ENABLE_G   => "0000",        -- Default
+            CLK_COR_SEQ_2_ENABLE_G   => "0000",      -- Default
             CLK_COR_SEQ_2_1_G        => "0000000000",  -- Default
             CLK_COR_SEQ_2_2_G        => "0000000000",  -- Default
             CLK_COR_SEQ_2_3_G        => "0000000000",  -- Default
             CLK_COR_SEQ_2_4_G        => "0000000000",  -- Default
             RX_CHAN_BOND_EN_G        => true,
             RX_CHAN_BOND_MASTER_G    => (i = 0),
-            CHAN_BOND_KEEP_ALIGN_G   => "FALSE",       -- Default
+            CHAN_BOND_KEEP_ALIGN_G   => "FALSE",     -- Default
             CHAN_BOND_MAX_SKEW_G     => 10,
-            CHAN_BOND_SEQ_LEN_G      => 1,             -- Default
+            CHAN_BOND_SEQ_LEN_G      => 1,           -- Default
             CHAN_BOND_SEQ_1_1_G      => "0110111100",
             CHAN_BOND_SEQ_1_2_G      => "0111011100",
             CHAN_BOND_SEQ_1_3_G      => "0111011100",
             CHAN_BOND_SEQ_1_4_G      => "0111011100",
-            CHAN_BOND_SEQ_1_ENABLE_G => "1111",        -- Default
+            CHAN_BOND_SEQ_1_ENABLE_G => "1111",      -- Default
             CHAN_BOND_SEQ_2_1_G      => "0000000000",  -- Default
             CHAN_BOND_SEQ_2_2_G      => "0000000000",  -- Default
             CHAN_BOND_SEQ_2_3_G      => "0000000000",  -- Default
             CHAN_BOND_SEQ_2_4_G      => "0000000000",  -- Default
-            CHAN_BOND_SEQ_2_ENABLE_G => "0000",        -- Default
-            CHAN_BOND_SEQ_2_USE_G    => "FALSE",       -- Default
-            FTS_DESKEW_SEQ_ENABLE_G  => "1111",        -- Default
-            FTS_LANE_DESKEW_CFG_G    => "1111",        -- Default
-            FTS_LANE_DESKEW_EN_G     => "FALSE")       -- Default
+            CHAN_BOND_SEQ_2_ENABLE_G => "0000",      -- Default
+            CHAN_BOND_SEQ_2_USE_G    => "FALSE",     -- Default
+            FTS_DESKEW_SEQ_ENABLE_G  => "1111",      -- Default
+            FTS_LANE_DESKEW_CFG_G    => "1111",      -- Default
+            FTS_LANE_DESKEW_EN_G     => "FALSE")     -- Default
          port map (
             stableClkIn      => stableClk,
             qPllRefClkIn     => gtQPllOutRefClk,
@@ -378,7 +381,7 @@ begin
             gtRxP            => gtRxP(i),
             gtRxN            => gtRxN(i),
             rxRefClkOut      => open,
-            rxOutClkOut      => open,
+            rxOutClkOut      => pgpRxRecClock(i),
             rxUsrClkIn       => pgpRxClk,
             rxUsrClk2In      => pgpRxClk,
             rxUserRdyOut     => open,
