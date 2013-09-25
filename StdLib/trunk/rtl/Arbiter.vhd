@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-08-02
+-- Last update: 2013-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -17,20 +17,19 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
---use ieee.std_logic_unsigned.all;
+
 use work.StdRtlPkg.all;
 use work.ArbiterPkg.all;
 
 entity Arbiter is
    generic (
-      TPD_G      : time     := 1 ns;
-      USE_SRST_G : boolean  := true;
-      USE_ARST_G : boolean  := false;
-      REQ_SIZE_G : positive := 16);
+      TPD_G          : time     := 1 ns;
+      RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
+      REQ_SIZE_G     : positive := 16);
    port (
-      clk  : in sl;
-      aRst : in sl := '0';
-      sRst : in sl := '0';
+      clk : in sl;
+      rst : in sl := not RST_POLARITY_G;   -- Optional reset
 
       req      : in  slv(REQ_SIZE_G-1 downto 0);
       selected : out slv(bitSize(REQ_SIZE_G)-1 downto 0);
@@ -56,7 +55,7 @@ architecture rtl of Arbiter is
    
 begin
 
-   comb : process (r, req, sRst) is
+   comb : process (r, req, rst) is
       variable v : RegType;
    begin
       v := r;
@@ -65,7 +64,7 @@ begin
          arbitrate(req, r.lastSelected, v.lastSelected, v.valid, v.ack);
       end if;
 
-      if (USE_SRST_G and sRst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_RESET_C;
       end if;
 
@@ -76,12 +75,12 @@ begin
       
    end process comb;
 
-   seq : process (clk, aRst) is
+   seq : process (clk, rst) is
    begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;
       end if;
-      if (USE_ARST_G and aRst = '1') then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_RESET_C after TPD_G;
       end if;
    end process seq;
