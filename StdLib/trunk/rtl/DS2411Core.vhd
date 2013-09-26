@@ -9,9 +9,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
---    Contains controller for DS2411 serial ID Prom On Flash DIMM.
---    SerClkIn is asserted for one clock every 6.55us.
+-- Description: Controller for DS2411 serial ID Prom.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -28,13 +26,13 @@ entity DS2411Core is
       TPD_G        : time := 1 ns;
       CLK_PERIOD_G : time := 6.4 ns);
    port (
-      -- PGP Clock & Reset Signals
+      -- Clock & Reset Signals
       clk       : in    sl;
       rst       : in    sl;
-      -- FMC DIMM ID Prom Signals
+      -- ID Prom Signals
       fdSerSdio : inout sl;
       -- Serial Number
-      fdSerial  : out   std_logic_vector(63 downto 0);
+      fdSerial  : out   slv(63 downto 0);
       fdValid   : out   sl);
 end DS2411Core;
 
