@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-08-02
+-- Last update: 2013-09-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -17,16 +17,17 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
 entity Heartbeat is
-   
    generic (
-      TPD_G        : time                   := 1 ns;
-      USE_DSP48_G  : string                 := "auto";
-      COUNT_SIZE_G : positive range 1 to 48 := 27);
-
+      TPD_G        : time   := 1 ns;
+      USE_DSP48_G  : string := "auto";
+      PERIOD_IN_G  : time   := 6.4 ns;
+      PERIOD_OUT_G : time   := 1000 ms);
    port (
       clk : in  sl;
       o   : out sl);
@@ -35,42 +36,44 @@ begin
    assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
+   -- PERIOD_IN_G & PERIOD_OUT_G check
+   assert ((PERIOD_IN_G/(0.5 ns)) <= (PERIOD_OUT_G/(1 ns)))
+      report "PERIOD_IN_G must be less than 2*PERIOD_OUT_G"
+      severity failure;
 end entity Heartbeat;
 
 architecture rtl of Heartbeat is
+   
+   constant CNT_SIZE_C : natural := (PERIOD_OUT_G/(2*PERIOD_IN_G));
+   constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1),bitSize(CNT_SIZE_C));
 
-   type RegType is record
-      counter : unsigned(COUNT_SIZE_G-1 downto 0);
-   end record RegType;
-
-   constant REG_RESET_C : RegType := (counter => (others => '0'));
-
-   signal r   : RegType := REG_RESET_C;
-   signal rin : RegType;
+   signal cnt    : slv(bitSize(CNT_SIZE_C)-1 downto 0) := (others => '0');
+   signal toggle : sl                                  := '0';
 
    -- Attribute for XST
    attribute use_dsp48        : string;
-   attribute use_dsp48 of rin : signal is USE_DSP48_G;
+   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
+   o <= toggle;
 
-   comb : process (r) is
-      variable v : RegType;
+   process (clk)
    begin
-      v := r;
-
-      v.counter := r.counter + 1;
-
-      rin <= v;
-      o   <= r.counter(COUNT_SIZE_G-1);
-      
-   end process comb;
-
-   seq : process (clk) is
-   begin
-      if (rising_edge(clk)) then
-         r <= rin after TPD_G;
+      if rising_edge(clk) then
+         --increment the counter
+         cnt <= cnt + 1 after TPD_G;
+         --check for max value
+         if cnt = CNT_MAX_C then
+            --reset the counter
+            cnt <= (others => '0') after TPD_G;
+            --toggle the output bit
+            if toggle = '1' then
+               toggle <= '0' after TPD_G;
+            else
+               toggle <= '1' after TPD_G;
+            end if;
+         end if;
       end if;
-   end process seq;
+   end process;
 
 end architecture rtl;
