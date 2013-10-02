@@ -26,7 +26,7 @@ entity Heartbeat is
    generic (
       TPD_G        : time   := 1 ns;
       USE_DSP48_G  : string := "auto";
-      PERIOD_IN_G  : time   := 6.4 ns;
+      PERIOD_IN_G  : time   := 6400 ps;
       PERIOD_OUT_G : time   := 1000 ms);
    port (
       clk : in  sl;
