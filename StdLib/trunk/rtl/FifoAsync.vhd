@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-09-19
+-- Last update: 2013-10-06
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -249,7 +249,8 @@ begin
    READ_SEQUENCE : process (rd_clk, readRst) is
    begin
       if readRst = '1' then
-         rdReg <= READ_INIT_C after TPD_G;
+         rdReg        <= READ_INIT_C after TPD_G;
+         rdReg_rdGray <= GRAY_INIT_C after TPD_G;
       elsif rising_edge(rd_clk) then
          rdReg.done <= '1' after TPD_G;
          rdReg.Ack  <= '0' after TPD_G;
@@ -359,7 +360,8 @@ begin
    WRITE_SEQUENCE : process (wr_clk, writeRst) is
    begin
       if writeRst = '1' then
-         wrReg <= WRITE_INIT_C after TPD_G;
+         wrReg        <= WRITE_INIT_C after TPD_G;
+         wrReg_wrGray <= GRAY_INIT_C  after TPD_G;
       elsif rising_edge(wr_clk) then
          wrReg.done <= '1' after TPD_G;
          wrReg.Ack  <= '0' after TPD_G;
