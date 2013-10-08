@@ -104,6 +104,7 @@ architecture rtl of FifoMux is
       count  : unsigned(log2(RD_SIZE_C)-1 downto 0);
       rdData : slv(RD_DATA_WIDTH_G-1 downto 0);
       rdEn   : sl;
+      armed  : sl;
       valid  : sl;
       empty  : sl;
    end record RdRegType;
@@ -111,6 +112,7 @@ architecture rtl of FifoMux is
    constant RD_REG_INIT_C : RdRegType := (
       count  => to_unsigned(ite(FWFT_EN_G, 0, RD_SIZE_C-1), log2(RD_SIZE_C)),
       rdData => (others => '0'),
+      armed  => '1',
       rdEn   => '0',
       valid  => '0',
       empty  => '1');
@@ -155,7 +157,7 @@ begin
 
       if (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G) then
          for i in 0 to WR_SIZE_C-1 loop
-            index                     := ite(LITTLE_ENDIAN_G, i, WR_SIZE_C-1-i);
+            index                     := ite(LITTLE_ENDIAN_G, WR_SIZE_C-1-i, i);
             high                      := index * WR_DATA_WIDTH_G + WR_DATA_WIDTH_G - 1;
             low                       := index * WR_DATA_WIDTH_G;
             fifo_din(high downto low) <= wrR.wrData(i);
@@ -207,8 +209,16 @@ begin
 
       if (FWFT_EN_G) then
 
-         -- Increment counter every external read
+         --check for a pre-increment
+         -- if (rd_en = '0') and (fifo_valid = '1') and (rdR.armed = '1') then
+            -- v.armed := '0';
+            -- v.count := rdR.count + 1;
+            -- if (rdR.count = RD_SIZE_C-1) then
+               -- v.count := (others => '0');
+            -- end if;
+         --check for normal read
          if (rd_en = '1') then
+            v.armed := '1';
             v.count := rdR.count + 1;
             if (rdR.count = RD_SIZE_C-1) then
                v.count := (others => '0');
@@ -221,7 +231,7 @@ begin
 
          -- Separate fifo_dout into an array of RD_DATA_WIDTH_G sized vectors
          for i in 0 to RD_SIZE_C-1 loop
-            index     := ite(LITTLE_ENDIAN_G, i, RD_SIZE_C-1-i);
+            index     := ite(LITTLE_ENDIAN_G, RD_SIZE_C-1-i, i);
             high      := index * RD_DATA_WIDTH_G + RD_DATA_WIDTH_G - 1;
             low       := index * RD_DATA_WIDTH_G;
             rdData(i) := fifo_dout(high downto low);
@@ -229,25 +239,24 @@ begin
 
          -- Select word for output
          if (fifo_valid = '1') then
-            v.rdData := rdData(to_integer(v.count));
+            v.rdData := rdData(to_integer(rdR.count));
          end if;
 
          -- Send read to fifo so next word will be ready as last of current word goes out
          v.rdEn := '0';
-         if (v.count = RD_SIZE_C-2) then
+         if (v.count = RD_SIZE_C-1 and rd_en = '1') then
             v.rdEn := '1';
          end if;
-
          
       end if;
 
       rdRin <= v;
 
       if (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G) then
-         fifo_rd_en <= rdR.rdEn;
-         dout       <= rdR.rdData;
-         valid      <= rdR.valid;
-         empty      <= rdR.empty;
+         fifo_rd_en <= v.rdEn;
+         dout       <= v.rdData;
+         valid      <= v.valid;
+         empty      <= v.empty;
       else
          fifo_rd_en <= rd_en;
          dout       <= fifo_dout;
