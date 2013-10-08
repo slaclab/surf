@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-09-26
+-- Last update: 2013-10-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,8 +25,8 @@ use work.StdRtlPkg.all;
 entity Heartbeat is
    generic (
       TPD_G        : time   := 1 ns;
-      USE_DSP48_G  : string := "auto";
-      PERIOD_IN_G  : time   := 6400 ps;
+      USE_DSP48_G  : string := "yes";
+      PERIOD_IN_G  : time   := 6.4 ns;
       PERIOD_OUT_G : time   := 1000 ms);
    port (
       clk : in  sl;
@@ -44,8 +44,8 @@ end entity Heartbeat;
 
 architecture rtl of Heartbeat is
    
-   constant CNT_SIZE_C : natural := (PERIOD_OUT_G/(2*PERIOD_IN_G));
-   constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1),bitSize(CNT_SIZE_C));
+   constant CNT_SIZE_C : natural                             := (PERIOD_OUT_G/(2*PERIOD_IN_G));
+   constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1), bitSize(CNT_SIZE_C));
 
    signal cnt    : slv(bitSize(CNT_SIZE_C)-1 downto 0) := (others => '0');
    signal toggle : sl                                  := '0';
@@ -60,18 +60,15 @@ begin
    process (clk)
    begin
       if rising_edge(clk) then
-         --increment the counter
-         cnt <= cnt + 1 after TPD_G;
          --check for max value
          if cnt = CNT_MAX_C then
             --reset the counter
-            cnt <= (others => '0') after TPD_G;
+            cnt    <= (others => '0') after TPD_G;
             --toggle the output bit
-            if toggle = '1' then
-               toggle <= '0' after TPD_G;
-            else
-               toggle <= '1' after TPD_G;
-            end if;
+            toggle <= not(toggle);
+         else
+            --increment the counter
+            cnt <= cnt + 1 after TPD_G;
          end if;
       end if;
    end process;
