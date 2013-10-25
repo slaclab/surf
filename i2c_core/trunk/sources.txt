@@ -1,0 +1,4 @@
+vhdl    work rtl/i2cPkg.vhd
+vhdl    work rtl/i2cRegSlave.vhd
+vhdl    work rtl/i2cSlave.vhd
+vhdl    work rtl/stdlib.vhd
