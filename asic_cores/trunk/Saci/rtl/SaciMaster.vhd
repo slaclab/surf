@@ -76,7 +76,8 @@ architecture rtl of SaciMaster is
 
 begin
 
-  saciClk <= clk;
+  saciClk <= '0' when r.state = IDLE_S and r.reqSync.sync = '0' else
+             clk;
 
   --------------------------------------------------------------------------------------------------
   -- Capture serial input on falling edge of clock
@@ -141,7 +142,7 @@ begin
       case (r.state) is
         when IDLE_S =>
           rVar.saciMasterOut.fail := '0';
---          rVar.saciSelL           := (others => '1');
+          rVar.saciSelL           := (others => '1');
           rVar.shiftReg           := (others => '0');
           rVar.shiftCount         := (others => '0');
           if (reqVar = '1') then
