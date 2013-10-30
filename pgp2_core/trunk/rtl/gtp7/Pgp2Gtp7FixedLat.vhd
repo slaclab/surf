@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-08-22
+-- Last update: 2013-10-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -118,15 +118,15 @@ architecture rtl of Pgp2Gtp7Fixedlat is
    -- Rx Resets
    signal gtRxResetDone  : sl;
    signal gtRxResetDoneL : sl;
-   signal gtRxUserReset  : sl;
+--   signal gtRxUserReset  : sl;
 
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
    signal dataValid     : sl;                            -- no decode or disparity errors
    signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
-   signal phyRxReady    : sl;                            -- To RxRst
-   signal phyRxInit     : sl;                            -- To RxRst
+--   signal phyRxReady    : sl;                            -- To RxRst
+--   signal phyRxInit     : sl;                            -- To RxRst
    signal crcRxIn       : PgpCrcInType;
    signal crcRxOut      : slv(31 downto 0);
 
@@ -146,7 +146,7 @@ architecture rtl of Pgp2Gtp7Fixedlat is
 
    -- PgpTx Signals
    signal phyTxLanesOut : PgpTxPhyLaneOutArray(0 to 0);
-   signal phyTxReady    : sl;
+--   signal phyTxReady    : sl;
    signal crcTxIn       : PgpCrcInType;
    signal crcTxOut      : slv(31 downto 0);
 

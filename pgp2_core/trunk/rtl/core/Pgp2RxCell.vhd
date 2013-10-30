@@ -18,7 +18,7 @@
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.ALL;
+--USE work.ALL;
 USE work.Pgp2CorePackage.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
