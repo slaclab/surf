@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : I2C Slave RAM Interface
 -------------------------------------------------------------------------------
--- File       : i2cRegSlave.vhd
+-- File       : I2cRegSlave.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-16
--- Last update: 2013-01-28
+-- Last update: 2013-10-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -19,13 +19,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
-use work.i2cPkg.all;
+use work.I2cPkg.all;
 
 
-entity i2cRegSlave is
+entity I2cRegSlave is
   generic (
     TPD_G                : time                    := 1 ns;
-    -- Generics passed down to i2cSlave
+    -- Generics passed down to I2cSlave
     TENBIT_G             : integer range 0 to 1    := 0;
     I2C_ADDR_G           : integer range 0 to 1023 := 0;
     OUTPUT_EN_POLARITY_G : integer range 0 to 1    := 0;
@@ -47,9 +47,9 @@ entity i2cRegSlave is
     -- I2C Signals
     i2ci   : in  i2c_in_type;
     i2co   : out i2c_out_type);
-end entity i2cRegSlave;
+end entity I2cRegSlave;
 
-architecture rtl of i2cRegSlave is
+architecture rtl of I2cRegSlave is
 
   type StateType is (IDLE_S, ADDR_S, WRITE_DATA_S, READ_DATA_S);
 
@@ -61,12 +61,12 @@ architecture rtl of i2cRegSlave is
     wrEn       : sl;
     wrData     : slv((8*DATA_SIZE_G)-1 downto 0);
     rdEn       : sl;
-    i2cSlaveIn : i2cSlaveInType;        -- Signals to i2cSlave
+    i2cSlaveIn : I2cSlaveInType;        -- Signals to i2cSlave
   end record RegType;
 
   signal r, rin      : RegType;
-  signal i2cSlaveOut : i2cSlaveOutType;  -- From i2cSlave
-  signal i2cSlaveIn  : i2cSlaveInType;   -- To i2cSlave
+  signal i2cSlaveOut : I2cSlaveOutType;  -- From i2cSlave
+  signal i2cSlaveIn  : I2cSlaveInType;   -- To I2cSlave
 
   function getIndex (
     byteCount  : unsigned;
@@ -84,7 +84,7 @@ architecture rtl of i2cRegSlave is
   
 begin
 
-  i2cSlave_1 : entity work.i2cSlave
+  I2cSlave_1 : entity work.I2cSlave
     generic map (
       TENBIT_G             => TENBIT_G,
       I2C_ADDR_G           => I2C_ADDR_G,
@@ -164,6 +164,7 @@ begin
         if (i2cSlaveOut.rxActive = '0') then
           -- Didn't get enough bytes, go back to idle
           v.state := IDLE_S;
+          v.byteCnt := (others => '0');
         end if;
 
       when WRITE_DATA_S =>

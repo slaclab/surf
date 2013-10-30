@@ -73,11 +73,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
-use work.i2cPkg.all;
+use work.I2cPkg.all;
 use work.stdlib.all;
 
 
-entity i2cSlave is
+entity I2cSlave is
   generic (
     TPD_G : time := 1 ns;
     -- I2C configuration
@@ -93,15 +93,15 @@ entity i2cSlave is
     aRst        : in  std_ulogic := '0';       -- Asynchronous Reset - active high
     clk         : in  std_ulogic;
     -- Front End
-    i2cSlaveIn  : in  i2cSlaveInType;
-    i2cSlaveOut : out i2cSlaveOutType;
+    i2cSlaveIn  : in  I2cSlaveInType;
+    i2cSlaveOut : out I2cSlaveOutType;
     -- I2C signals
     i2ci        : in  i2c_in_type;
     i2co        : out i2c_out_type
     );
-end entity i2cSlave;
+end entity I2cSlave;
 
-architecture rtl of i2cSlave is
+architecture rtl of I2cSlave is
   -----------------------------------------------------------------------------
   -- Constants
   -----------------------------------------------------------------------------
@@ -149,7 +149,7 @@ architecture rtl of i2cSlave is
     scloen   : std_ulogic;
     sdaoen   : std_ulogic;
     -- Registered Outputs
-    o        : i2cSlaveOutType;
+    o        : I2cSlaveOutType;
   end record;
 
   -----------------------------------------------------------------------------
