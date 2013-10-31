@@ -28,6 +28,7 @@ entity Decoder8b10b is
       RST_ASYNC_G    : boolean  := false);
    port (
       clk      : in  sl;
+      clkEn    : in  sl := '1';
       rst      : in  sl;
       dataIn   : in  slv(NUM_BYTES_G*10-1 downto 0);
       dataOut  : out slv(NUM_BYTES_G*8-1 downto 0);
@@ -92,7 +93,9 @@ begin
       if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(clk)) then
-         r <= rin after TPD_G;
+         if (clkEn = '1') then
+            r <= rin after TPD_G;
+         end if;
       end if;
    end process seq;
 
