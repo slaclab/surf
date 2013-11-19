@@ -1,0 +1,8 @@
+vhdl work Gtx7AutoPhaseAligner.vhd
+vhdl work Gtx7Core.vhd
+vhdl work Gtx7QuadPll.vhd
+vhdl work Gtx7RecClkMonitor.vhd
+vhdl work Gtx7RxFixedLatPhaseAligner.vhd
+vhdl work Gtx7RxRst.vhd
+vhdl work Gtx7TxManualPhaseAligner.vhd
+vhdl work Gtx7TxRst.vhd
