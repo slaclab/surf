@@ -385,7 +385,7 @@ begin
    Gtp7RxRst_Inst : entity work.Gtp7RxRst
       generic map (
          TPD_G                  => TPD_G,
-         STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C,
          RX_PLL0_USED           => RX_PLL0_USED_C)
@@ -548,7 +548,7 @@ begin
    Gtp7TxRst_Inst : entity work.Gtp7TxRst
       generic map (
          TPD_G                  => TPD_G,
-         STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C)
       port map (
