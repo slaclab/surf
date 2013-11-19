@@ -78,6 +78,9 @@ package StdRtlPkg is
    function ite(i : boolean; t : slv; e : slv) return slv;
    function ite(i : boolean; t : string; e : string) return string;
    function ite(i : boolean; t : integer; e : integer) return integer;
+   
+   --gets a time ratio
+   function getTimeRatio (T1,T2 : time) return natural;
 
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -886,6 +889,14 @@ package body StdRtlPkg is
       else return right;
       end if;
    end min;
+   
+   -----------------------------
+   -- gets a time ratio
+   -----------------------------   
+   function getTimeRatio (T1,T2 : time) return natural is
+   begin
+      return natural(T1/T2);
+   end function;     
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).

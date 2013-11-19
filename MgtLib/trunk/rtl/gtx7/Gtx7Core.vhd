@@ -432,7 +432,7 @@ begin
          EXAMPLE_SIMULATION     => 0,
          GT_TYPE                => "GTX",
          EQ_MODE                => "DFE",
-         STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
          RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK           => stableClkIn,
@@ -598,7 +598,7 @@ begin
       generic map (
          TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
-         STABLE_CLOCK_PERIOD    => integer(STABLE_CLOCK_PERIOD_G/1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
          RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK      => stableClkIn,
