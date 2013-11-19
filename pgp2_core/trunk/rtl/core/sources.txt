@@ -1,0 +1,11 @@
+vhdl work Pgp2CorePackage.vhd
+vhdl work Pgp2CoreTypesPkg.vhd
+vhdl work Pgp2Rx.vhd
+vhdl work Pgp2RxCell.vhd
+vhdl work Pgp2RxPhy.vhd
+vhdl work Pgp2RxWrapper.vhd
+vhdl work Pgp2Tx.vhd
+vhdl work Pgp2TxCell.vhd
+vhdl work Pgp2TxPhy.vhd
+vhdl work Pgp2TxSched.vhd
+vhdl work Pgp2TxWrapper.vhd

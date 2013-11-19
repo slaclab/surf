@@ -1,0 +1,5 @@
+vhdl work Pgp2RcePackage.vhd
+vhdl work Pgp2Rce.vhd
+vhdl work Pgp2RceExport.vhd
+vhdl work Pgp2RceImport.vhd
+vhdl work Pgp2RceLane.vhd

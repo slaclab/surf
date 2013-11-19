@@ -1,0 +1,6 @@
+vhdl work Pgp2GtxV6Package.vhd
+vhdl work CRC32_V6.vhd
+vhdl work Pgp2GtxV6Clk.vhd
+vhdl work Pgp2GtxV6RxRst.vhd
+vhdl work Pgp2GtxV6TxRst.vhd
+vhdl work Pgp2GtxV616.vhd

@@ -1,0 +1,7 @@
+vhdl work Pgp2MgtPackage.vhd
+vhdl work Pgp2Mgt16.vhd
+vhdl work Pgp2Mgt32.vhd
+vhdl work Pgp2Mgt64.vhd
+vhdl work Pgp2MgtClk.vhd
+vhdl work Pgp2MgtRxRst.vhd
+vhdl work Pgp2MgtTxRst.vhd

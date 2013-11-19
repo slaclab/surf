@@ -1,0 +1,9 @@
+vhdl work Pgp2GtpPackage.vhd
+vhdl work Pgp2Gtp16.vhd
+vhdl work Pgp2Gtp16FixedLat.vhd
+vhdl work Pgp2Gtp32.vhd
+vhdl work Pgp2GtpClk.vhd
+vhdl work Pgp2GtpDual.vhd
+vhdl work Pgp2GtpDualFixedLat.vhd
+vhdl work Pgp2GtpRxRst.vhd
+vhdl work Pgp2GtpTxRst.vhd
