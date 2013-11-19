@@ -1,0 +1,12 @@
+vhdl work Pgp2GtxPackage.vhd
+vhdl work Gtx16LowLatCore.vhd
+vhdl work GtxDualLowLatCore.vhd
+vhdl work GtxRxCommaAligner.vhd
+vhdl work GtxTxPhaseAligner.vhd
+vhdl work Pgp2Gtx16.vhd
+vhdl work Pgp2Gtx16B.vhd
+vhdl work Pgp2Gtx16LowLat.vhd
+vhdl work Pgp2GtxClk.vhd
+vhdl work Pgp2GtxDual.vhd
+vhdl work Pgp2GtxRxRst.vhd
+vhdl work Pgp2GtxTxRst.vhd
