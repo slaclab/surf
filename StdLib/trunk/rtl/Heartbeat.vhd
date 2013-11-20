@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-10-03
+-- Last update: 2013-11-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,8 +25,8 @@ use work.StdRtlPkg.all;
 entity Heartbeat is
    generic (
       TPD_G        : time   := 1 ns;
-      USE_DSP48_G  : string := "yes";
-      PERIOD_IN_G  : time   := 6.4 ns;
+      USE_DSP48_G  : string := "no";
+      PERIOD_IN_G  : time   := 6400 ps;
       PERIOD_OUT_G : time   := 1000 ms);
    port (
       clk : in  sl;
@@ -37,14 +37,14 @@ begin
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
    -- PERIOD_IN_G & PERIOD_OUT_G check
-   assert ((PERIOD_IN_G/(0.5 ns)) <= (PERIOD_OUT_G/(1 ns)))
-      report "PERIOD_IN_G must be less than 2*PERIOD_OUT_G"
-      severity failure;
+   assert getTimeRatio(PERIOD_IN_G, 500 ps) <= getTimeRatio(PERIOD_OUT_G, 1 ns)
+                                              report "PERIOD_IN_G must be less than 2*PERIOD_OUT_G"
+                                              severity failure;
 end entity Heartbeat;
 
 architecture rtl of Heartbeat is
    
-   constant CNT_SIZE_C : natural                             := (PERIOD_OUT_G/(2*PERIOD_IN_G));
+   constant CNT_SIZE_C : natural                             := getTimeRatio(PERIOD_OUT_G, (2*PERIOD_IN_G));
    constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1), bitSize(CNT_SIZE_C));
 
    signal cnt    : slv(bitSize(CNT_SIZE_C)-1 downto 0) := (others => '0');
