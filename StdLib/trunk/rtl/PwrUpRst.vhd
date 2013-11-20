@@ -29,7 +29,7 @@ entity PwrUpRst is
       SIM_SPEEDUP_G  : boolean                        := false;
       IN_POLARITY_G  : sl                             := '1';
       OUT_POLARITY_G : sl                             := '1';
-      USE_DSP48_G    : string                         := "auto";
+      USE_DSP48_G    : string                         := "no";
       DURATION_G     : natural range 0 to ((2**31)-1) := 156250000);
    port (
       arst   : in  sl := not IN_POLARITY_G;
