@@ -25,8 +25,7 @@ package StdRtlPkg is
    -- Declare arrays of built in types
    type IntegerArray is array (integer range <>) of integer;
    type NaturalArray is array (natural range <>) of natural;
-   
-   
+
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
    function slvZero (size : positive) return slv;
@@ -78,9 +77,15 @@ package StdRtlPkg is
    function ite(i : boolean; t : slv; e : slv) return slv;
    function ite(i : boolean; t : string; e : string) return string;
    function ite(i : boolean; t : integer; e : integer) return integer;
-   
+
+   -- conv_std_logic_vector functions
+   function conv_slv(ARG : integer; SIZE : integer) return slv;
+   function conv_slv(ARG : unsigned; SIZE : integer) return slv;
+   function conv_slv(ARG : signed; SIZE : integer) return slv;
+   function conv_slv(ARG : std_ulogic; SIZE : integer) return slv;
+
    --gets a time ratio
-   function getTimeRatio (T1,T2 : time) return natural;
+   function getTimeRatio (T1, T2 : time) return natural;
 
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -94,7 +99,7 @@ package StdRtlPkg is
 
    function toTime(f : frequency) return time;
    -- pragma translate_on   
-   
+
    -- Add more slv array sizes here as they become needed
    type Slv256Array is array (natural range <>) of slv(255 downto 0);
    type Slv255Array is array (natural range <>) of slv(254 downto 0);
@@ -107,7 +112,7 @@ package StdRtlPkg is
    type Slv248Array is array (natural range <>) of slv(247 downto 0);
    type Slv247Array is array (natural range <>) of slv(246 downto 0);
    type Slv246Array is array (natural range <>) of slv(245 downto 0);
-   type Slv245Array is array (natural range <>) of slv(244 downto 0);   
+   type Slv245Array is array (natural range <>) of slv(244 downto 0);
    type Slv244Array is array (natural range <>) of slv(243 downto 0);
    type Slv243Array is array (natural range <>) of slv(242 downto 0);
    type Slv242Array is array (natural range <>) of slv(241 downto 0);
@@ -152,7 +157,7 @@ package StdRtlPkg is
    type Slv203Array is array (natural range <>) of slv(202 downto 0);
    type Slv202Array is array (natural range <>) of slv(201 downto 0);
    type Slv201Array is array (natural range <>) of slv(200 downto 0);
-   type Slv200Array is array (natural range <>) of slv(199 downto 0);   
+   type Slv200Array is array (natural range <>) of slv(199 downto 0);
    type Slv199Array is array (natural range <>) of slv(198 downto 0);
    type Slv198Array is array (natural range <>) of slv(197 downto 0);
    type Slv197Array is array (natural range <>) of slv(196 downto 0);
@@ -207,7 +212,7 @@ package StdRtlPkg is
    type Slv148Array is array (natural range <>) of slv(147 downto 0);
    type Slv147Array is array (natural range <>) of slv(146 downto 0);
    type Slv146Array is array (natural range <>) of slv(145 downto 0);
-   type Slv145Array is array (natural range <>) of slv(144 downto 0);   
+   type Slv145Array is array (natural range <>) of slv(144 downto 0);
    type Slv144Array is array (natural range <>) of slv(143 downto 0);
    type Slv143Array is array (natural range <>) of slv(142 downto 0);
    type Slv142Array is array (natural range <>) of slv(141 downto 0);
@@ -365,7 +370,7 @@ package StdRtlPkg is
    type Slv248VectorArray is array (natural range<>, natural range<>) of slv(247 downto 0);
    type Slv247VectorArray is array (natural range<>, natural range<>) of slv(246 downto 0);
    type Slv246VectorArray is array (natural range<>, natural range<>) of slv(245 downto 0);
-   type Slv245VectorArray is array (natural range<>, natural range<>) of slv(244 downto 0);   
+   type Slv245VectorArray is array (natural range<>, natural range<>) of slv(244 downto 0);
    type Slv244VectorArray is array (natural range<>, natural range<>) of slv(243 downto 0);
    type Slv243VectorArray is array (natural range<>, natural range<>) of slv(242 downto 0);
    type Slv242VectorArray is array (natural range<>, natural range<>) of slv(241 downto 0);
@@ -410,7 +415,7 @@ package StdRtlPkg is
    type Slv203VectorArray is array (natural range<>, natural range<>) of slv(202 downto 0);
    type Slv202VectorArray is array (natural range<>, natural range<>) of slv(201 downto 0);
    type Slv201VectorArray is array (natural range<>, natural range<>) of slv(200 downto 0);
-   type Slv200VectorArray is array (natural range<>, natural range<>) of slv(199 downto 0);   
+   type Slv200VectorArray is array (natural range<>, natural range<>) of slv(199 downto 0);
    type Slv199VectorArray is array (natural range<>, natural range<>) of slv(198 downto 0);
    type Slv198VectorArray is array (natural range<>, natural range<>) of slv(197 downto 0);
    type Slv197VectorArray is array (natural range<>, natural range<>) of slv(196 downto 0);
@@ -465,7 +470,7 @@ package StdRtlPkg is
    type Slv148VectorArray is array (natural range<>, natural range<>) of slv(147 downto 0);
    type Slv147VectorArray is array (natural range<>, natural range<>) of slv(146 downto 0);
    type Slv146VectorArray is array (natural range<>, natural range<>) of slv(145 downto 0);
-   type Slv145VectorArray is array (natural range<>, natural range<>) of slv(144 downto 0);   
+   type Slv145VectorArray is array (natural range<>, natural range<>) of slv(144 downto 0);
    type Slv144VectorArray is array (natural range<>, natural range<>) of slv(143 downto 0);
    type Slv143VectorArray is array (natural range<>, natural range<>) of slv(142 downto 0);
    type Slv142VectorArray is array (natural range<>, natural range<>) of slv(141 downto 0);
@@ -609,8 +614,8 @@ package StdRtlPkg is
    type Slv4VectorArray is array (natural range<>, natural range<>) of slv(3 downto 0);
    type Slv3VectorArray is array (natural range<>, natural range<>) of slv(2 downto 0);
    type Slv2VectorArray is array (natural range<>, natural range<>) of slv(1 downto 0);
-   type Slv1VectorArray is array (natural range<>, natural range<>) of slv(0 downto 0);   
-   type SlVectorArray is array (natural range<>, natural range<>) of sl;   
+   type Slv1VectorArray is array (natural range<>, natural range<>) of slv(0 downto 0);
+   type SlVectorArray is array (natural range<>, natural range<>) of sl;
 
 end StdRtlPkg;
 
@@ -889,14 +894,102 @@ package body StdRtlPkg is
       else return right;
       end if;
    end min;
-   
+
+   -----------------------------
+   -- conv_std_logic_vector functions
+   -- without calling the STD_LOGIC_ARITH library
+   -----------------------------
+
+   -- convert an integer to an STD_LOGIC_VECTOR
+   function conv_slv(ARG : integer; SIZE : integer) return slv is
+      variable result : slv (SIZE-1 downto 0);
+      variable temp   : integer;
+      -- synopsys built_in SYN_INTEGER_TO_SIGNED
+      -- synopsys subpgm_id 381
+   begin
+      -- synopsys synthesis_off
+      temp := ARG;
+      for i in 0 to SIZE-1 loop
+         if (temp mod 2) = 1 then
+            result(i) := '1';
+         else
+            result(i) := '0';
+         end if;
+         if temp > 0 then
+            temp := temp / 2;
+         elsif (temp > integer'low) then
+            temp := (temp - 1) / 2;     -- simulate ASR
+         else
+            temp := temp / 2;           -- simulate ASR
+         end if;
+      end loop;
+      return result;
+      -- synopsys synthesis_on
+   end;
+
+   function conv_slv(ARG : unsigned; SIZE : integer) return slv is
+      constant msb        : integer := min(ARG'length, SIZE) - 1;
+      subtype  rtype is slv (SIZE-1 downto 0);
+      variable new_bounds : slv (ARG'length-1 downto 0);
+      variable result     : rtype;
+      -- synopsys built_in SYN_ZERO_EXTEND
+      -- synopsys subpgm_id 382
+   begin
+      -- synopsys synthesis_off
+      new_bounds := MAKE_BINARY(ARG);
+      if (new_bounds(0) = 'X') then
+         result := rtype'(others => 'X');
+         return result;
+      end if;
+      result               := rtype'(others => '0');
+      result(msb downto 0) := new_bounds(msb downto 0);
+      return result;
+      -- synopsys synthesis_on
+   end;
+
+   function conv_slv(ARG : signed; SIZE : integer) return slv is
+      constant msb        : integer := min(ARG'length, SIZE) - 1;
+      subtype  rtype is slv (SIZE-1 downto 0);
+      variable new_bounds : slv (ARG'length-1 downto 0);
+      variable result     : rtype;
+      -- synopsys built_in SYN_SIGN_EXTEND
+      -- synopsys subpgm_id 383
+   begin
+      -- synopsys synthesis_off
+      new_bounds := MAKE_BINARY(ARG);
+      if (new_bounds(0) = 'X') then
+         result := rtype'(others => 'X');
+         return result;
+      end if;
+      result               := rtype'(others => new_bounds(new_bounds'left));
+      result(msb downto 0) := new_bounds(msb downto 0);
+      return result;
+      -- synopsys synthesis_on
+   end;
+
+   function conv_slv(ARG : std_ulogic; SIZE : integer) return slv is
+      subtype  rtype is slv (SIZE-1 downto 0);
+      variable result : rtype;
+      -- synopsys built_in SYN_ZERO_EXTEND
+      -- synopsys subpgm_id 384
+   begin
+      -- synopsys synthesis_off
+      result    := rtype'(others => '0');
+      result(0) := MAKE_BINARY(ARG);
+      if (result(0) = 'X') then
+         result := rtype'(others => 'X');
+      end if;
+      return result;
+      -- synopsys synthesis_on
+   end;
+
    -----------------------------
    -- gets a time ratio
    -----------------------------   
-   function getTimeRatio (T1,T2 : time) return natural is
+   function getTimeRatio (T1, T2 : time) return natural is
    begin
       return natural(T1/T2);
-   end function;     
+   end function;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
@@ -907,7 +1000,5 @@ package body StdRtlPkg is
       return(1.0 sec / (f/Hz));
    end function;
    --pragma translate_on
-
-
    
 end package body StdRtlPkg;
