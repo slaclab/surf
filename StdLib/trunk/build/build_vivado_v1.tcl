@@ -19,7 +19,7 @@ create_project -quiet ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 add_files -fileset sources_1 -quiet ${RTL_FILES}
 
 # Add core Files
-add_files -fileset sources_1 -quiet ${CORE_FILES}
+add_files -fileset -quiet ${CORE_FILES}
 
 # Add XDC FILES
 add_files -fileset constrs_1 -quiet ${XDC_FILES}
