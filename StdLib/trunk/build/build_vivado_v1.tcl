@@ -15,9 +15,6 @@ set OPT_ARGS   ""
 set PLACE_ARGS ""
 set ROUTE_ARGS ""
 
-# Create a project
-create_project -in_memory -part ${PRJ_PART}
-
 # Run source file commands
 source ${SOURCE_FILE}
 
@@ -35,9 +32,6 @@ set_msg_config -suppress -id {Synth 8-4472}
 
 # Message Suppression: WARNING: "ignoring unsynthesizable construct" due to assert error checking
 set_msg_config -suppress -id {Synth 8-312}
-
-# Save project before Synthesize
-save_project_as -quiet ${PROJECT}_project -force ${OUT_DIR}
 
 # Synthesize
 synth_design -top ${PROJECT} -part ${PRJ_PART} {*}${SYNTH_ARGS}
@@ -78,3 +72,4 @@ source ${VIVADO_DIR}/post_route.tcl
 
 # Write Bitstream
 write_bitstream -quiet -force ${PROJECT}.bit 
+
