@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-08-04
+-- Last update: 2013-11-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.math_real.all;
 
 use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
@@ -40,7 +41,7 @@ entity Pgp2Gtx7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "4.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : time       := 8 ns;
+      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;  --units of seconds
       -- CPLL Settings - Defaults to 2.5 Gbps operation 
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       CPLL_FBDIV_G          : integer    := 4;

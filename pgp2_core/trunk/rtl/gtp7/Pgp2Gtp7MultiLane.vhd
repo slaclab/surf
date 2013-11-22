@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-09-25
+-- Last update: 2013-11-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,6 +22,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
@@ -39,7 +40,7 @@ entity Pgp2Gtp7MultiLane is
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
       SIM_VERSION_G         : string               := "1.0";
-      STABLE_CLOCK_PERIOD_G : time                 := 6.4 ns;
+      STABLE_CLOCK_PERIOD_G : real                 := 6.4E-9;  --units of seconds
       -- Configure PLL 
       RXOUT_DIV_G           : integer              := 2;
       TXOUT_DIV_G           : integer              := 2;

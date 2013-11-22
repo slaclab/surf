@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-10-23
+-- Last update: 2013-11-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.math_real.all;
 
 use work.Pgp2CoreTypesPkg.all;
 use work.StdRtlPkg.all;
@@ -40,12 +41,12 @@ entity Pgp2Gtp7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "1.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : time       := 8 ns;
+      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;  --units of seconds
       -- TX/RX Settings - Defaults to 2.5 Gbps operation 
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;  -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;  -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;       -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;       -- Set by wizard
       PMA_RSV_G             : bit_vector := x"00000333";  -- Set by wizard --Might be a differentd default value for Fixed Latancey mode???
 
       -- Configure PLL sources
@@ -55,12 +56,12 @@ entity Pgp2Gtp7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      EnShortCells : integer := 1;                     -- Enable short non-EOF cells
-      VcInterleave : integer := 1                      -- Interleave Frames
+      EnShortCells : integer := 1;      -- Enable short non-EOF cells
+      VcInterleave : integer := 1       -- Interleave Frames
       );
    port (
       -- GT Clocking
-      stableClk        : in  sl;                       -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtQPllOutRefClk  : in  slv(1 downto 0) := "00";  -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
@@ -81,7 +82,7 @@ entity Pgp2Gtp7Fixedlat is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -121,8 +122,8 @@ architecture rtl of Pgp2Gtp7Fixedlat is
 --   signal gtRxUserReset  : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
-   signal dataValid     : sl;                            -- no decode or disparity errors
+   signal gtRxData      : slv(19 downto 0);  -- Feed to 8B10B decoder
+   signal dataValid     : sl;           -- no decode or disparity errors
    signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
 --   signal phyRxReady    : sl;                            -- To RxRst
@@ -341,11 +342,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => pgpRxReset,
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,  -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
