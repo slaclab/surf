@@ -9,12 +9,6 @@ set OUT_DIR     $::env(OUT_DIR)
 set TOP_DIR     $::env(TOP_DIR)
 set VIVADO_DIR  $::env(VIVADO_DIR)
 
-# Setup Args
-set SYNTH_ARGS ""
-set OPT_ARGS   ""
-set PLACE_ARGS ""
-set ROUTE_ARGS ""
-
 # Create a project
 create_project -quiet ${PROJECT}_project -force ${OUT_DIR} -part ${PRJ_PART}
 
@@ -49,3 +43,4 @@ set_msg_config -id {Vivado 12-1387} -new_severity {ERROR}
 
 # Start GUI
 start_gui
+
