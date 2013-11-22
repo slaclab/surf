@@ -115,7 +115,7 @@ endef
 	$(call ACTION_HEADER,"Vivado Build")
 	@$(STAMP_CMD); mv $(PROJ_DIR)/Version.new $(PROJ_DIR)/Version.vhd
 	$(call VIVADO_PREPARE)
-	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/build_vivado.tcl
+	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/modules/StdLib/build/build_vivado_v1.tcl
 
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit : $(OUT_DIR)/$(PROJECT).bit
 	@cp $< $@
