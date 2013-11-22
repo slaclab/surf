@@ -134,8 +134,9 @@ interactive : $(CORE_LISTS) $(SRC_LISTS) $(RTL_FILES) $(XDC_FILES) $(CORE_FILES)
 .PHONY : gui
 gui : $(CORE_LISTS) $(SRC_LISTS) $(RTL_FILES) $(XDC_FILES) $(CORE_FILES)
 	$(call ACTION_HEADER,"Vivado GUI")
+	@$(STAMP_CMD); mv $(PROJ_DIR)/Version.new $(PROJ_DIR)/Version.vhd
 	$(call VIVADO_PREPARE)
-	@cd $(OUT_DIR); vivado -mode gui ${PROJECT}_project
+	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/modules/StdLib/build/build_vivado_gui_v1.tcl
 
 #### PROM ##################################################
 PROM_OPTIONS_FILE = $(ISE_DIR)/promgen_options.txt
