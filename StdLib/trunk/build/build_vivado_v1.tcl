@@ -39,7 +39,7 @@ set_msg_config -id {Synth 8-3512} -new_severity {ERROR};# SYNTH: Assigned value 
 set_msg_config -id {Synth 8-3919} -new_severity {ERROR};# SYNTH: Null Assignment in logic
 
 # Messages: Change from WARNING to CRITICAL_WARNING
-set_msg_config -id {Vivado 12-508} -new_severity {CRITICAL_WARNING};# XDC: No pins matched 
+set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pins matched 
 
 # Messages: Change from CRITICAL_WARNING to ERROR
 set_msg_config -id {Vivado 12-1387} -new_severity {ERROR};# XDC: No valid object(s) found 
