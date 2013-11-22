@@ -17,7 +17,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.math_real.all;
+
 use work.StdRtlPkg.all;
+
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
@@ -32,7 +35,7 @@ entity Gtx7Core is
 
       SIMULATION_G : boolean := false;
 
-      STABLE_CLOCK_PERIOD_G : time := 8 ns;
+      STABLE_CLOCK_PERIOD_G : real := 8.0E-9;--units of seconds
 
       -- CPLL Settings --
       CPLL_REFCLK_SEL_G : bit_vector := "001";
@@ -432,7 +435,7 @@ begin
          EXAMPLE_SIMULATION     => 0,
          GT_TYPE                => "GTX",
          EQ_MODE                => "DFE",
-         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK           => stableClkIn,
@@ -598,7 +601,7 @@ begin
       generic map (
          TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
-         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK      => stableClkIn,
