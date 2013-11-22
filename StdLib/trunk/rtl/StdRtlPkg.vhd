@@ -84,8 +84,14 @@ package StdRtlPkg is
    function conv_slv(ARG : signed; SIZE : integer) return slv;
    function conv_slv(ARG : std_ulogic; SIZE : integer) return slv;
 
+   -- gets real multiplication
+   function getRealMult (A, B : real) return real;
+   function getRealMult (A: integer; B : real) return real;
+   function getRealMult (A: real; B : integer) return real;
+   
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;
+   function getTimeRatio (T1, T2 : real) return natural;
 
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -982,7 +988,25 @@ package body StdRtlPkg is
       return result;
       -- synopsys synthesis_on
    end;
+   
+   -----------------------------
+   -- gets real multiplication
+   -----------------------------      
+   function getRealMult (A, B : real) return real is
+   begin
+      return real(A*B);
+   end function;   
 
+   function getRealMult (A: integer; B : real) return real is
+   begin
+      return real(real(A)*B);
+   end function;   
+
+   function getRealMult (A: real; B : integer) return real is
+   begin
+      return real(A*real(B));
+   end function;   
+   
    -----------------------------
    -- gets a time ratio
    -----------------------------   
@@ -990,6 +1014,11 @@ package body StdRtlPkg is
    begin
       return natural(T1/T2);
    end function;
+   
+   function getTimeRatio (T1, T2 : real) return natural is
+   begin
+      return natural(ROUND(ABS(T1/T2)));
+   end function;   
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
