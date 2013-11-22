@@ -33,6 +33,12 @@ set_msg_config -suppress -id {Synth 8-4472}
 # Message Suppression: WARNING: "ignoring unsynthesizable construct" due to assert error checking
 set_msg_config -suppress -id {Synth 8-312}
 
+# Messages: Change from WARNING to ERROR
+set_msg_config -id {Vivado 12-508} -new_severity {ERROR}
+
+# Messages: Change from CRITICAL_WARNING to ERROR
+set_msg_config -id {Vivado 12-1387} -new_severity {ERROR}
+
 # Synthesize
 synth_design -top ${PROJECT} -part ${PRJ_PART} {*}${SYNTH_ARGS}
 
