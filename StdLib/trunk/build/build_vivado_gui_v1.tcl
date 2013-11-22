@@ -32,5 +32,20 @@ set_property top ${PROJECT} [current_fileset]
 # Pre-synthesis Target Script
 source ${VIVADO_DIR}/pre_synthesis.tcl
 
+# Message Suppression: INFO: Synthesizing Module messages
+set_msg_config -suppress -id {Synth 8-256}
+set_msg_config -suppress -id {Synth 8-113}
+set_msg_config -suppress -id {Synth 8-226}
+set_msg_config -suppress -id {Synth 8-4472}
+
+# Message Suppression: WARNING: "ignoring unsynthesizable construct" due to assert error checking
+set_msg_config -suppress -id {Synth 8-312}
+
+# Messages: Change from WARNING to ERROR
+set_msg_config -id {Vivado 12-508} -new_severity {ERROR}
+
+# Messages: Change from CRITICAL_WARNING to ERROR
+set_msg_config -id {Vivado 12-1387} -new_severity {ERROR}
+
 # Start GUI
 start_gui
