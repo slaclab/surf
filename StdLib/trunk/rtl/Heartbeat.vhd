@@ -16,9 +16,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.math_real.all;
 
 use work.StdRtlPkg.all;
 
@@ -26,8 +26,8 @@ entity Heartbeat is
    generic (
       TPD_G        : time   := 1 ns;
       USE_DSP48_G  : string := "no";
-      PERIOD_IN_G  : time   := 6400 ps;
-      PERIOD_OUT_G : time   := 1000 ms);
+      PERIOD_IN_G  : real   := 6.4E-9;--units of seconds
+      PERIOD_OUT_G : real   := 1.0E-0);--units of seconds
    port (
       clk : in  sl;
       o   : out sl);
@@ -36,15 +36,11 @@ begin
    assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
-   -- PERIOD_IN_G & PERIOD_OUT_G check
-   assert getTimeRatio(PERIOD_IN_G, 500 ps) <= getTimeRatio(PERIOD_OUT_G, 1 ns)
-                                              report "PERIOD_IN_G must be less than 2*PERIOD_OUT_G"
-                                              severity failure;
 end entity Heartbeat;
 
 architecture rtl of Heartbeat is
    
-   constant CNT_SIZE_C : natural                             := getTimeRatio(PERIOD_OUT_G, (2*PERIOD_IN_G));
+   constant CNT_SIZE_C : natural                             := getTimeRatio(PERIOD_OUT_G, getRealMult(2,PERIOD_IN_G));
    constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1), bitSize(CNT_SIZE_C));
 
    signal cnt    : slv(bitSize(CNT_SIZE_C)-1 downto 0) := (others => '0');

@@ -16,10 +16,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+use ieee.math_real.all;
+
 use work.StdRtlPkg.all;
+
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
@@ -34,7 +34,7 @@ entity Gtp7Core is
 
       SIMULATION_G : boolean := false;
 
-      STABLE_CLOCK_PERIOD_G : time   := 8 ns;
+      STABLE_CLOCK_PERIOD_G : real := 8.0E-9;--units of seconds
 
       -- TX/RX Settings --
       RXOUT_DIV_G    : integer    := 2;
@@ -385,7 +385,7 @@ begin
    Gtp7RxRst_Inst : entity work.Gtp7RxRst
       generic map (
          TPD_G                  => TPD_G,
-         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C,
          RX_PLL0_USED           => RX_PLL0_USED_C)
@@ -548,7 +548,7 @@ begin
    Gtp7TxRst_Inst : entity work.Gtp7TxRst
       generic map (
          TPD_G                  => TPD_G,
-         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1 ns),
+         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G,1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C)
       port map (
