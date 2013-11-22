@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-11-20
+-- Last update: 2013-11-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ entity Heartbeat is
    generic (
       TPD_G        : time   := 1 ns;
       USE_DSP48_G  : string := "no";
-      PERIOD_IN_G  : real   := 6.4E-9;--units of seconds
-      PERIOD_OUT_G : real   := 1.0E-0);--units of seconds
+      PERIOD_IN_G  : real   := 6.4E-9;   --units of seconds
+      PERIOD_OUT_G : real   := 1.0E-0);  --units of seconds
    port (
       clk : in  sl;
       o   : out sl);
@@ -40,7 +40,7 @@ end entity Heartbeat;
 
 architecture rtl of Heartbeat is
    
-   constant CNT_SIZE_C : natural                             := getTimeRatio(PERIOD_OUT_G, getRealMult(2,PERIOD_IN_G));
+   constant CNT_SIZE_C : natural                             := getTimeRatio(PERIOD_OUT_G, getRealMult(2, PERIOD_IN_G));
    constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1), bitSize(CNT_SIZE_C));
 
    signal cnt    : slv(bitSize(CNT_SIZE_C)-1 downto 0) := (others => '0');

@@ -86,9 +86,9 @@ package StdRtlPkg is
 
    -- gets real multiplication
    function getRealMult (A, B : real) return real;
-   function getRealMult (A: integer; B : real) return real;
-   function getRealMult (A: real; B : integer) return real;
-   
+   function getRealMult (A    : integer; B : real) return real;
+   function getRealMult (A    : real; B : integer) return real;
+
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;
    function getTimeRatio (T1, T2 : real) return natural;
@@ -988,25 +988,25 @@ package body StdRtlPkg is
       return result;
       -- synopsys synthesis_on
    end;
-   
+
    -----------------------------
    -- gets real multiplication
    -----------------------------      
    function getRealMult (A, B : real) return real is
    begin
       return real(A*B);
-   end function;   
+   end function;
 
-   function getRealMult (A: integer; B : real) return real is
+   function getRealMult (A : integer; B : real) return real is
    begin
       return real(real(A)*B);
-   end function;   
+   end function;
 
-   function getRealMult (A: real; B : integer) return real is
+   function getRealMult (A : real; B : integer) return real is
    begin
       return real(A*real(B));
-   end function;   
-   
+   end function;
+
    -----------------------------
    -- gets a time ratio
    -----------------------------   
@@ -1014,11 +1014,11 @@ package body StdRtlPkg is
    begin
       return natural(T1/T2);
    end function;
-   
+
    function getTimeRatio (T1, T2 : real) return natural is
    begin
-      return natural(ROUND(ABS(T1/T2)));
-   end function;   
+      return natural(ROUND(abs(T1/T2)));
+   end function;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
