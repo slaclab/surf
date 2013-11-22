@@ -49,11 +49,7 @@ write_checkpoint -quiet -force ${PROJECT}_post_synth.dcp
 source ${VIVADO_DIR}/post_synthesis.tcl
 
 # Optimize
-if { ${OPT_ARGS} == "" } {
-   opt_design 
-} else {
-   opt_design ${OPT_ARGS}
-}
+opt_design {*}${OPT_ARGS}
 
 # Power optimization
 power_opt_design -quiet 
