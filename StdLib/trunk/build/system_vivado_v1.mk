@@ -10,11 +10,13 @@ export TOP_DIR  = $(abspath $(PROJ_DIR)/../..)
 export OUT_DIR = $(abspath $(TOP_DIR)/build/$(PROJECT))
 
 # Location of synthesis options files
-export VIVADO_DIR   = $(abspath $(PROJ_DIR)/vivado)
-export ISE_DIR      = $(abspath $(PROJ_DIR)/ise)
-export VIVADO_FILES = $(abspath $(PROJ_DIR)/vivado/pre_synthesis.tcl \
-                                $(PROJ_DIR)/vivado/post_synthesis.tcl \
-                                $(PROJ_DIR)/vivado/post_route.tcl )
+export ISE_DIR        = $(abspath $(PROJ_DIR)/ise)
+export VIVADO_DIR     = $(abspath $(PROJ_DIR)/vivado)
+export VIVADO_GUI     = false
+export VIVADO_PROJECT = $(PROJECT)_project
+export VIVADO_FILES   = $(abspath $(PROJ_DIR)/vivado/pre_synthesis.tcl \
+                                  $(PROJ_DIR)/vivado/post_synthesis.tcl \
+                                  $(PROJ_DIR)/vivado/post_route.tcl )
 
 # Images Directory
 export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
@@ -29,7 +31,6 @@ export CORE_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell g
 # Source Files
 export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sources.txt))
 export RTL_FILES   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(shell grep -v "\#" $(ARG)/sources.txt | sed 's|\(\S\+\)\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|$(ARG)/\5|')))
-export SOURCE_FILE = $(OUT_DIR)/$(PROJECT)_source.tcl
 
 # XDC Files
 export XDC_FILES   = $(abspath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
@@ -89,11 +90,6 @@ dir:
 	@test -d $*.xdc || echo "$*.xdc does not exist"; false;
 
 #### Source Generation Commands #############################################
-VER_CMDS  = $(foreach ARG, $(abspath $(MODULE_DIRS)), \
-   grep "^verilog" $(ARG)/sources.txt | sed 's|^verilog\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|read_verilog -library \2 $(ARG)/\4|' >> $(SOURCE_FILE);)
-VHDL_CMDS = $(foreach ARG, $(abspath $(MODULE_DIRS)), \
-	grep "^vhdl" $(ARG)/sources.txt | sed 's|^vhdl\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|read_vhdl -library \2 $(ARG)/\4|' >> $(SOURCE_FILE);)
-CORE_CMDS = $(foreach ARG, $(CORE_FILES),echo add_files $(ARG) >> $(SOURCE_FILE);)
 STAMP_CMD = sed 's|\(constant BUILD_STAMP_C : string := \).*|\1\"Built $(shell date) by $(USER)\";|' $(PROJ_DIR)/Version.vhd > $(PROJ_DIR)/Version.new
 
 # Common vivado commands
@@ -110,11 +106,6 @@ define VIVADO_PREPARE
 		 echo "   ln -s /tmp/build $(TOP_DIR)/build"; \
 		 echo ""; false; }
 @test -d $(OUT_DIR) || mkdir $(OUT_DIR)
-@rm -f $(SOURCE_FILE)
-@touch $(SOURCE_FILE)
-@$(VER_CMDS)
-@$(VHDL_CMDS)
-@$(CORE_CMDS)
 endef
 
 #### Vivado Batch #############################################
@@ -124,7 +115,7 @@ endef
 	$(call VIVADO_PREPARE)
 	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/modules/StdLib/build/build_vivado_v1.tcl
 
-$(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit : $(OUT_DIR)/$(PROJECT).bit
+$(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit : $(OUT_DIR)/$(VIVADO_PROJECT).runs/impl_1/$(PROJECT).bit
 	@cp $< $@
 	@echo ""
 	@echo "Bit file copied to $@"
@@ -136,14 +127,6 @@ interactive : $(CORE_LISTS) $(SRC_LISTS) $(RTL_FILES) $(XDC_FILES) $(CORE_FILES)
 	$(call ACTION_HEADER,"Vivado Interactive")
 	$(call VIVADO_PREPARE)
 	@cd $(OUT_DIR); vivado -mode tcl
-
-#### Vivado GUI #############################################
-.PHONY : gui
-gui : $(CORE_LISTS) $(SRC_LISTS) $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(VIVADO_FILES)
-	$(call ACTION_HEADER,"Vivado GUI")
-	@$(STAMP_CMD); mv $(PROJ_DIR)/Version.new $(PROJ_DIR)/Version.vhd
-	$(call VIVADO_PREPARE)
-	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/modules/StdLib/build/build_vivado_gui_v1.tcl
 
 #### PROM ##################################################
 PROM_OPTIONS_FILE = $(ISE_DIR)/promgen_options.txt
@@ -184,4 +167,6 @@ bitbin  : bit $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bitbin
 .PHONY : clean
 clean:
 	rm -rf $(OUT_DIR) 
+
+
 
