@@ -2,7 +2,7 @@
 # Get Environment Variables
 set XDC_FILES      $::env(XDC_FILES)
 set RTL_FILES      $::env(RTL_FILES)
-set CORE_FILES     $::env(RTL_FILES)
+set CORE_FILES     $::env(CORE_FILES)
 set PRJ_PART       $::env(PRJ_PART)
 set PROJECT        $::env(PROJECT)
 set PROJ_DIR       $::env(PROJ_DIR)
@@ -16,13 +16,15 @@ set VIVADO_GUI     $::env(VIVADO_GUI)
 create_project -quiet ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 
 # Add source Files
-add_files -fileset sources_1 -quiet ${RTL_FILES}
+add_files -quiet -fileset sources_1 ${RTL_FILES}
 
 # Add core Files
-add_files -fileset -quiet ${CORE_FILES}
+if { ${CORE_FILES} != " " } {
+   add_files -quiet -fileset sources_1 ${CORE_FILES}
+}
 
 # Add XDC FILES
-add_files -fileset constrs_1 -quiet ${XDC_FILES}
+add_files -quiet -fileset constrs_1 ${XDC_FILES}
 
 # Set the top level
 set_property top ${PROJECT} [current_fileset]
