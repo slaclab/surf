@@ -24,6 +24,13 @@ source ${SOURCE_FILE}
 # Read XDC FILES
 read_xdc ${XDC_FILES}
 
+# Refresh the GUI with the source files
+import_files -force
+update_compile_order -fileset sources_1
+set_property top ${PROJECT} [current_fileset]
+
+# Pre-synthesis Target Script
+source ${VIVADO_DIR}/pre_synthesis.tcl
+
 # Start GUI
 start_gui
-
