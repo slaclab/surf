@@ -18,9 +18,7 @@ source ${SOURCE_FILE}
 # Read XDC FILES
 read_xdc ${XDC_FILES}
 
-# Refresh the GUI with the source files
-import_files -force
-update_compile_order -fileset sources_1
+# Point to the Top Level Module
 set_property top ${PROJECT} [current_fileset]
 
 # Pre-synthesis Target Script
