@@ -10,7 +10,6 @@ set OUT_DIR        $::env(OUT_DIR)
 set TOP_DIR        $::env(TOP_DIR)
 set VIVADO_DIR     $::env(VIVADO_DIR)
 set VIVADO_PROJECT $::env(VIVADO_PROJECT)
-set VIVADO_GUI     $::env(VIVADO_GUI)
 
 # Create a project
 create_project -quiet ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
@@ -51,33 +50,9 @@ set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1] 
 
-# Pre-synthesis Target Script
-source ${VIVADO_DIR}/pre_synthesis.tcl
+# Setup pre and post scripts for synthesis
+set_property STEPS.SYNTH_DESIGN.TCL.PRE  ${TOP_DIR}/modules/StdLib/build/vivado_timestamp_v1.tcl [get_runs synth_1]
 
-# GUI Branch
-if { ${VIVADO_GUI} == "true" } {
-   start_gui
-} else {
-
-# Synthesize
-launch_run  synth_1
-wait_on_run synth_1
-
-# Checkpoint
-write_checkpoint -quiet -force ${PROJECT}_post_synth.dcp
-
-# Post-synthesis Target Script
-source ${VIVADO_DIR}/post_synthesis.tcl
-
-# Implement
-launch_run  -to_step write_bitstream impl_1
-wait_on_run impl_1
-
-# Save the database after post route
-write_checkpoint -quiet -force ${PROJECT}_post_route.dcp
-
-# Post-palce & Route Target Script
-source ${VIVADO_DIR}/post_route.tcl
-
-}
+# Target specific project setup script
+source ${VIVADO_DIR}/project_setup.tcl
 
