@@ -49,3 +49,6 @@ set_property STEPS.WRITE_BITSTREAM.TCL.PRE             ${VIVADO_BUILD_DIR}/vivad
 
 # Target specific project setup script
 source ${VIVADO_DIR}/project_setup.tcl
+
+# Close the project
+close_project
