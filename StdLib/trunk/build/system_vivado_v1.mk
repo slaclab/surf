@@ -11,11 +11,12 @@ export OUT_DIR  = $(abspath $(TOP_DIR)/build/$(PROJECT))
 export IMPL_DIR = $(OUT_DIR)/$(VIVADO_PROJECT).runs/impl_1
 
 # Synthesis Variables
-export ISE_DIR        = $(abspath $(PROJ_DIR)/ise)
-export VIVADO_DIR     = $(abspath $(PROJ_DIR)/vivado)
-export VIVADO_PROJECT = $(PROJECT)_project
-export VIVADO_DEPEND  = $(OUT_DIR)/$(PROJECT)_project.xpr
-export PROJECT_SETUP  = $(abspath $(PROJ_DIR)/vivado/project_setup.tcl)
+export ISE_DIR          = $(abspath $(PROJ_DIR)/ise)
+export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado)
+export VIVADO_PROJECT   = $(PROJECT)_project
+export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
+export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
+export PROJECT_SETUP    = $(abspath $(PROJ_DIR)/vivado/project_setup.tcl)
 
 # Images Directory
 export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
@@ -108,12 +109,12 @@ $(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(CORE_FILES) $(PROJE
 			 echo "   ln -s /tmp/build $(TOP_DIR)/build"; \
 			 echo ""; false; }
 	@test -d $(OUT_DIR) || mkdir $(OUT_DIR)
-	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/modules/StdLib/build/vivado_project_v1.tcl
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_project_v1.tcl
 
 #### Vivado Batch #############################################
 $(IMPL_DIR)/$(PROJECT).bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(VIVADO_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build")
-	@cd $(OUT_DIR); vivado -mode batch -source $(TOP_DIR)/modules/StdLib/build/vivado_build_v1.tcl
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_v1.tcl
 
 #### Bitfile Copy #############################################
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit : $(IMPL_DIR)/$(PROJECT).bit

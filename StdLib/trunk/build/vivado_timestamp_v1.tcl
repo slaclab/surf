@@ -3,6 +3,7 @@
 
 # Get Environment Variables
 set PROJ_DIR $::env(PROJ_DIR)
+set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 
 # Setup build string
 set DATE [exec date]
@@ -15,4 +16,7 @@ exec sed ${SEDS} ${PROJ_DIR}/Version.vhd > ${PROJ_DIR}/Version.new
 
 # Move the file
 exec mv ${PROJ_DIR}/Version.new ${PROJ_DIR}/Version.vhd
+
+# Message Filtering Script
+source ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 
