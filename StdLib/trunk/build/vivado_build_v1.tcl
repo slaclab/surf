@@ -24,3 +24,5 @@ wait_on_run impl_1
 # Target post route script
 source ${VIVADO_DIR}/post_route.tcl
 
+# Close the project
+close_project
