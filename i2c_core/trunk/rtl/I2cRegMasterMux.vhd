@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-21
--- Last update: 2013-10-28
+-- Last update: 2013-11-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ architecture rtl of I2cRegMasterMux is
 
 begin
 
-   comb : process (r, regIn, masterOut, srst) is
+   comb : process (lockReq, masterOut, r, regIn, srst) is
       variable v      : RegType;
       variable selInt : integer;
    begin

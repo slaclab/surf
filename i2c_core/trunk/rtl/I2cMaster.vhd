@@ -324,7 +324,7 @@ begin
                end if;
             end if;
             
-         when others => null;
+         when others => v.state := WAIT_TXN_REQ_S;
       end case;
 
       -- Must always monitor for arbitration loss
