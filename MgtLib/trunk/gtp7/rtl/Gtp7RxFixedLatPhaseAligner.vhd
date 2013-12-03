@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2013-06-29
+-- Last update: 2013-11-20
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -109,9 +109,9 @@ begin
             for i in 0 to WORD_SIZE_G - 1 loop
                -- Look for pos or neg comma
                if (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_0_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
+                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G)) then -- or
+--                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
+--                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
                   if (i = 0) then
                      v.state := ALIGNED_S;
                   elsif (i mod 2 = 0) then
