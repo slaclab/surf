@@ -1,4 +1,0 @@
-vhdl work Gtp16FixedLatCore.vhd
-vhdl work GtpDualFixedLatCore.vhd
-vhdl work GtpRxCommaAligner.vhd
-vhdl work GtpTxPhaseAligner.vhd

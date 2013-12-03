@@ -1,0 +1,4 @@
+vhdl work rtl/Gtp16FixedLatCore.vhd
+vhdl work rtl/GtpDualFixedLatCore.vhd
+vhdl work rtl/GtpRxCommaAligner.vhd
+vhdl work rtl/GtpTxPhaseAligner.vhd
