@@ -1,7 +1,10 @@
 
+# Project Batch-Mode Run Script
+
 # Get variables
-set VIVADO_PROJECT $::env(VIVADO_PROJECT)
-set VIVADO_DIR     $::env(VIVADO_DIR)
+set VIVADO_PROJECT   $::env(VIVADO_PROJECT)
+set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+set VIVADO_DIR       $::env(VIVADO_DIR)
 
 # Open the project
 open_project -quiet ${VIVADO_PROJECT}
@@ -15,7 +18,7 @@ launch_run  synth_1
 wait_on_run synth_1
 
 # Target post synthesis script
-source ${VIVADO_DIR}/post_synthesis.tcl
+source ${VIVADO_BUILD_DIR}/vivado_post_synthesis_v1.tcl
 
 # Implement
 launch_run -to_step write_bitstream impl_1
