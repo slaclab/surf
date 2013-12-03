@@ -1,6 +1,6 @@
 
 # Messages Suppression: INFO
-#set_msg_config -suppress -id {Synth 8-256};# SYNTH: done synthesizing module
+set_msg_config -suppress -id {Synth 8-256};# SYNTH: done synthesizing module
 set_msg_config -suppress -id {Synth 8-113};# SYNTH: binding component instance 'RTL_Inst' to cell 'PRIMITIVE'
 set_msg_config -suppress -id {Synth 8-226};# SYNTH: default block is never used
 set_msg_config -suppress -id {Synth 8-312};# SYNTH: "ignoring unsynthesizable construct" due to assert error checking
