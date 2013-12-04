@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2013-09-19
+-- Last update: 2013-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ architecture rtl of SynchronizerEdge is
 
    -- r(STAGES_G-1) used for edge detection.
    -- Optimized out if edge detection not used.
-   signal r   : slv(STAGES_G-1 downto 0) := INIT_C;
+   signal crossDomainSyncReg   : slv(STAGES_G-1 downto 0) := INIT_C;
    signal rin : slv(STAGES_G-1 downto 0);
 
 
@@ -56,54 +56,54 @@ architecture rtl of SynchronizerEdge is
    -- These attributes will stop Vivado translating the desired flip-flops into an
    -- SRL based shift register. (Breaks XST for some reason so keep commented for now).
 --   attribute ASYNC_REG      : string;
---   attribute ASYNC_REG of r : signal is "TRUE";
+--   attribute ASYNC_REG of crossDomainSyncReg : signal is "TRUE";
 
    -- Synplify Pro: disable shift-register LUT (SRL) extraction
    attribute syn_srlstyle      : string;
-   attribute syn_srlstyle of r : signal is "registers";
+   attribute syn_srlstyle of crossDomainSyncReg : signal is "registers";
 
    -- These attributes will stop timing errors being reported on the target flip-flop during back annotated SDF simulation.
    attribute MSGON      : string;
-   attribute MSGON of r : signal is "FALSE";
+   attribute MSGON of crossDomainSyncReg : signal is "FALSE";
 
    -- These attributes will stop XST translating the desired flip-flops into an
    -- SRL based shift register.
    attribute shreg_extract      : string;
-   attribute shreg_extract of r : signal is "no";
+   attribute shreg_extract of crossDomainSyncReg : signal is "no";
 
    -- Don't let register balancing move logic between the register chain
    attribute register_balancing      : string;
-   attribute register_balancing of r : signal is "no";
+   attribute register_balancing of crossDomainSyncReg : signal is "no";
 
    -------------------------------
    -- Altera Attributes 
    ------------------------------- 
    attribute altera_attribute      : string;
-   attribute altera_attribute of r : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF";
+   attribute altera_attribute of crossDomainSyncReg : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF";
    
 begin
 
-   comb : process (dataIn, r, rst) is
+   comb : process (dataIn, crossDomainSyncReg, rst) is
    begin
-      rin <= r(STAGES_G-2 downto 0) & dataIn;
+      rin <= crossDomainSyncReg(STAGES_G-2 downto 0) & dataIn;
 
       -- Synchronous Reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          rin <= INIT_C;
       end if;
 
-      dataOut     <= r(STAGES_G-2);
-      risingEdge  <= r(STAGES_G-2) and not r(STAGES_G-1);
-      fallingEdge <= not r(STAGES_G-2) and r(STAGES_G-1);
+      dataOut     <= crossDomainSyncReg(STAGES_G-2);
+      risingEdge  <= crossDomainSyncReg(STAGES_G-2) and not crossDomainSyncReg(STAGES_G-1);
+      fallingEdge <= not crossDomainSyncReg(STAGES_G-2) and crossDomainSyncReg(STAGES_G-1);
    end process comb;
 
    seq : process (clk, rst) is
    begin
       if (rising_edge(clk)) then
-         r <= rin after TPD_G;
+         crossDomainSyncReg <= rin after TPD_G;
       end if;
       if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-         r <= INIT_C after TPD_G;
+         crossDomainSyncReg <= INIT_C after TPD_G;
       end if;
    end process seq;
 
