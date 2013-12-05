@@ -29,7 +29,7 @@ add_files -quiet -fileset constrs_1 ${XDC_FILES}
 # Set the top level
 set_property top ${PROJECT} [current_fileset]
 
-# Set VHDL as prefered language
+# Set VHDL as preferred language
 set_property target_language VHDL [current_project]
 
 # Message Filtering Script
