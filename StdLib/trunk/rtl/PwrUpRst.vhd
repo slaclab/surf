@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-30
--- Last update: 2013-09-24
+-- Last update: 2013-12-05
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ entity PwrUpRst is
       IN_POLARITY_G  : sl                             := '1';
       OUT_POLARITY_G : sl                             := '1';
       USE_DSP48_G    : string                         := "no";
-      DURATION_G     : natural range 0 to ((2**31)-1) := 156250000);
+      DURATION_G     : natural range 0 to ((2**30)-1) := 156250000);
    port (
       arst   : in  sl := not IN_POLARITY_G;
       clk    : in  sl;
