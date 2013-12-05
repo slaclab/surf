@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2013-11-22
+-- Last update: 2013-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -910,7 +910,7 @@ begin
          RXSYNC_SKIP_DA             => ('0'),
          ------------------TX Buffer Attributes---------------
          TXSYNC_MULTILANE           => ('0'),
-         TXSYNC_OVRD                => ('0'),
+         TXSYNC_OVRD                => ('1'),
          TXSYNC_SKIP_DA             => ('0'))
       port map
       (
