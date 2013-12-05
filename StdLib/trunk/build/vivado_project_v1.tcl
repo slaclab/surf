@@ -29,6 +29,9 @@ add_files -quiet -fileset constrs_1 ${XDC_FILES}
 # Set the top level
 set_property top ${PROJECT} [current_fileset]
 
+# Set VHDL as prefered language
+set_property target_language VHDL [current_project]
+
 # Message Filtering Script
 source ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 
