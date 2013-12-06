@@ -79,10 +79,7 @@ package StdRtlPkg is
    function ite(i : boolean; t : integer; e : integer) return integer;
 
    -- conv_std_logic_vector functions
-   function conv_slv(ARG : integer; SIZE : integer) return slv;
-   function conv_slv(ARG : unsigned; SIZE : integer) return slv;
-   function conv_slv(ARG : signed; SIZE : integer) return slv;
-   function conv_slv(ARG : std_ulogic; SIZE : integer) return slv;
+   function toSlv(ARG : integer; SIZE : integer) return slv;
 
    -- gets real multiplication
    function getRealMult (A, B : real) return real;
@@ -907,86 +904,9 @@ package body StdRtlPkg is
    -----------------------------
 
    -- convert an integer to an STD_LOGIC_VECTOR
-   function conv_slv(ARG : integer; SIZE : integer) return slv is
-      variable result : slv (SIZE-1 downto 0);
-      variable temp   : integer;
-      -- synopsys built_in SYN_INTEGER_TO_SIGNED
-      -- synopsys subpgm_id 381
+   function toSlv(ARG : integer; SIZE : integer) return slv is
    begin
-      -- synopsys synthesis_off
-      temp := ARG;
-      for i in 0 to SIZE-1 loop
-         if (temp mod 2) = 1 then
-            result(i) := '1';
-         else
-            result(i) := '0';
-         end if;
-         if temp > 0 then
-            temp := temp / 2;
-         elsif (temp > integer'low) then
-            temp := (temp - 1) / 2;     -- simulate ASR
-         else
-            temp := temp / 2;           -- simulate ASR
-         end if;
-      end loop;
-      return result;
-      -- synopsys synthesis_on
-   end;
-
-   function conv_slv(ARG : unsigned; SIZE : integer) return slv is
-      constant msb        : integer := min(ARG'length, SIZE) - 1;
-      subtype  rtype is slv (SIZE-1 downto 0);
-      variable new_bounds : slv (ARG'length-1 downto 0);
-      variable result     : rtype;
-      -- synopsys built_in SYN_ZERO_EXTEND
-      -- synopsys subpgm_id 382
-   begin
-      -- synopsys synthesis_off
-      new_bounds := MAKE_BINARY(ARG);
-      if (new_bounds(0) = 'X') then
-         result := rtype'(others => 'X');
-         return result;
-      end if;
-      result               := rtype'(others => '0');
-      result(msb downto 0) := new_bounds(msb downto 0);
-      return result;
-      -- synopsys synthesis_on
-   end;
-
-   function conv_slv(ARG : signed; SIZE : integer) return slv is
-      constant msb        : integer := min(ARG'length, SIZE) - 1;
-      subtype  rtype is slv (SIZE-1 downto 0);
-      variable new_bounds : slv (ARG'length-1 downto 0);
-      variable result     : rtype;
-      -- synopsys built_in SYN_SIGN_EXTEND
-      -- synopsys subpgm_id 383
-   begin
-      -- synopsys synthesis_off
-      new_bounds := MAKE_BINARY(ARG);
-      if (new_bounds(0) = 'X') then
-         result := rtype'(others => 'X');
-         return result;
-      end if;
-      result               := rtype'(others => new_bounds(new_bounds'left));
-      result(msb downto 0) := new_bounds(msb downto 0);
-      return result;
-      -- synopsys synthesis_on
-   end;
-
-   function conv_slv(ARG : std_ulogic; SIZE : integer) return slv is
-      subtype  rtype is slv (SIZE-1 downto 0);
-      variable result : rtype;
-      -- synopsys built_in SYN_ZERO_EXTEND
-      -- synopsys subpgm_id 384
-   begin
-      -- synopsys synthesis_off
-      result    := rtype'(others => '0');
-      result(0) := MAKE_BINARY(ARG);
-      if (result(0) = 'X') then
-         result := rtype'(others => 'X');
-      end if;
-      return result;
-      -- synopsys synthesis_on
+      return slv(to_unsigned(ARG, SIZE));
    end;
 
    -----------------------------
