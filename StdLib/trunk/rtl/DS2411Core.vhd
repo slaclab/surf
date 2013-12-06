@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2007-12-19
--- Last update: 2013-11-22
+-- Last update: 2013-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ begin
                bitCntEn   <= '0';
 
                -- Wait 830us
-               if timeCnt = conv_slv(getTimeRatio(830.0E-6, CLK_PERIOD_G), 32) then
+               if timeCnt = toSlv(getTimeRatio(830.0E-6, CLK_PERIOD_G), 32) then
                   nxtState   <= ST_RESET;
                   timeCntRst <= '1';
                else
@@ -148,7 +148,7 @@ begin
                bitCntEn   <= '0';
 
                -- Continue for 500us
-               if timeCnt = conv_slv(getTimeRatio(500.0E-6, CLK_PERIOD_G), 32) then
+               if timeCnt = toSlv(getTimeRatio(500.0E-6, CLK_PERIOD_G), 32) then
                   nxtState   <= ST_WAIT;
                   timeCntRst <= '1';
                else
@@ -165,7 +165,7 @@ begin
                bitCntEn   <= '0';
 
                -- Wait 500us
-               if timeCnt = conv_slv(getTimeRatio(500.0E-6, CLK_PERIOD_G), 32) then
+               if timeCnt = toSlv(getTimeRatio(500.0E-6, CLK_PERIOD_G), 32) then
                   nxtState   <= ST_WRITE;
                   timeCntRst <= '1';
                else
@@ -179,7 +179,7 @@ begin
                bitSet     <= '0';
 
                -- Assert start pulse for 12us
-               if timeCnt < conv_slv(getTimeRatio(12.0E-6, CLK_PERIOD_G), 32) then
+               if timeCnt < toSlv(getTimeRatio(12.0E-6, CLK_PERIOD_G), 32) then
                   timeCntRst <= '0';
                   bitCntEn   <= '0';
                   bitCntRst  <= '0';
@@ -188,7 +188,7 @@ begin
                   nxtState   <= curState;
 
                   -- Output write value for 52uS
-               elsif timeCnt < conv_slv(getTimeRatio(52.0E-6, CLK_PERIOD_G), 32) then
+               elsif timeCnt < toSlv(getTimeRatio(52.0E-6, CLK_PERIOD_G), 32) then
                   if bitCnt = 2 or bitCnt = 3 or bitCnt = 6 or bitCnt = 7 then
                      setOutLow <= '1';
                   else
@@ -200,7 +200,7 @@ begin
                   bitCntEn   <= '0';
 
                   -- Recovery Time of 62.4us
-               elsif timeCnt < conv_slv(getTimeRatio(62.4E-6, CLK_PERIOD_G), 32) then
+               elsif timeCnt < toSlv(getTimeRatio(62.4E-6, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   nxtState   <= curState;
                   timeCntRst <= '0';
@@ -232,7 +232,7 @@ begin
                bitCntEn   <= '0';
 
                -- Wait 60us
-               if timeCnt = conv_slv(getTimeRatio(60.0E-6, CLK_PERIOD_G), 32) then
+               if timeCnt = toSlv(getTimeRatio(60.0E-6, CLK_PERIOD_G), 32) then
                   nxtState   <= ST_READ;
                   timeCntRst <= '1';
                else
@@ -245,7 +245,7 @@ begin
                fdValidSet <= '0';
 
                -- Assert start pulse for 12us
-               if timeCnt < conv_slv(getTimeRatio(12.0E-6, CLK_PERIOD_G), 32) then
+               if timeCnt < toSlv(getTimeRatio(12.0E-6, CLK_PERIOD_G), 32) then
                   timeCntRst <= '0';
                   bitCntEn   <= '0';
                   bitCntRst  <= '0';
@@ -254,7 +254,7 @@ begin
                   nxtState   <= curState;
 
                   -- Sample data at 13.1uS
-               elsif timeCnt = conv_slv(getTimeRatio(13.1E-6, CLK_PERIOD_G), 32) then
+               elsif timeCnt = toSlv(getTimeRatio(13.1E-6, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   bitCntEn   <= '0';
                   timeCntRst <= '0';
@@ -263,7 +263,7 @@ begin
                   nxtState   <= curState;
 
                   -- Recovery Time of 62.4us
-               elsif timeCnt < conv_slv(getTimeRatio(62.4E-6, CLK_PERIOD_G), 32) then
+               elsif timeCnt < toSlv(getTimeRatio(62.4E-6, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   timeCntRst <= '0';
                   bitCntEn   <= '0';
