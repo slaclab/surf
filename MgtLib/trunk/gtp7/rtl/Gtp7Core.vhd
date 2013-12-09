@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2013-12-05
+-- Last update: 2013-12-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,11 +36,15 @@ entity Gtp7Core is
       STABLE_CLOCK_PERIOD_G : real := 8.0E-9;  --units of seconds
 
       -- TX/RX Settings --
-      RXOUT_DIV_G    : integer    := 2;
-      TXOUT_DIV_G    : integer    := 2;
-      RX_CLK25_DIV_G : integer    := 5;  -- Set by wizard
-      TX_CLK25_DIV_G : integer    := 5;  -- Set by wizard
-      PMA_RSV_G      : bit_vector := x"00000333";  -- Set by wizard --Might be a differentd default value for Fixed Latancey mode???
+      RXOUT_DIV_G      : integer    := 2;
+      TXOUT_DIV_G      : integer    := 2;
+      RX_CLK25_DIV_G   : integer    := 5;                -- Set by wizard
+      TX_CLK25_DIV_G   : integer    := 5;                -- Set by wizard
+      PMA_RSV_G        : bit_vector := x"00000333";  -- Set by wizard 
+      RX_OS_CFG_G      : bit_vector := "0001111110000";  -- Set by wizard
+      RXCDR_CFG_G      : bit_vector := x"0000107FE206001041010";  -- Set by wizard
+      RXLPM_INCM_CFG_G : bit        := '1';              -- Set by wizard
+      RXLPM_IPCM_CFG_G : bit        := '0';              -- Set by wizard
 
       -- Configure PLL sources
       TX_PLL_G : string := "PLL0";
@@ -725,7 +729,7 @@ begin
          RX_CM_SEL                  => ("10"),
          RX_CM_TRIM                 => ("1010"),
          RX_DEBUG_CFG               => ("00000000000000"),
-         RX_OS_CFG                  => ("0001111110000"),
+         RX_OS_CFG                  => RX_OS_CFG_G,        -- From wizard
          TERM_RCAL_CFG              => ("100001000010000"),
          TERM_RCAL_OVRD             => ("000"),
          TST_RSV                    => (x"00000000"),
@@ -760,7 +764,7 @@ begin
          RX_DDI_SEL                 => ("000000"),
          RX_DEFER_RESET_BUF_EN      => ("TRUE"),
          -----------------------CDR Attributes-------------------------
-         RXCDR_CFG                  => (x"0000107FE206001041010"),
+         RXCDR_CFG                  => RXCDR_CFG_G,        -- From wizard
          RXCDR_FR_RESET_ON_EIDLE    => ('0'),
          RXCDR_HOLD_DURING_EIDLE    => ('0'),
          RXCDR_PH_RESET_ON_EIDLE    => ('0'),
@@ -880,8 +884,8 @@ begin
          RXLPM_HF_CFG2              => ("01010"),
          RXLPM_HF_CFG3              => ("0000"),
          RXLPM_HOLD_DURING_EIDLE    => ('0'),
-         RXLPM_INCM_CFG             => ('1'),
-         RXLPM_IPCM_CFG             => ('0'),
+         RXLPM_INCM_CFG             => RXLPM_INCM_CFG_G,   -- From wizard
+         RXLPM_IPCM_CFG             => RXLPM_IPCM_CFG_G,   -- From wizard
          RXLPM_LF_CFG               => ("000000001111110000"),
          RXLPM_LF_CFG2              => ("01010"),
          RXLPM_OSINT_CFG            => ("000"),
