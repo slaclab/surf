@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-11-22
+-- Last update: 2013-12-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,6 +45,11 @@ entity Pgp2Gtp7MultiLane is
       TXOUT_DIV_G           : integer              := 2;
       RX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
       TX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
+      PMA_RSV_G             : bit_vector           := x"00000333";  -- Set by wizard
+      RX_OS_CFG_G           : bit_vector           := "0001111110000";  -- Set by wizard
+      RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
+      RXLPM_INCM_CFG_G      : bit                  := '1';  -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit                  := '0';  -- Set by wizard      
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Number of Lanes
@@ -295,7 +300,11 @@ begin
             TXOUT_DIV_G              => TXOUT_DIV_G,
             RX_CLK25_DIV_G           => RX_CLK25_DIV_G,
             TX_CLK25_DIV_G           => TX_CLK25_DIV_G,
-            PMA_RSV_G                => x"00000333",
+            PMA_RSV_G                => PMA_RSV_G,
+            RX_OS_CFG_G              => RX_OS_CFG_G,
+            RXCDR_CFG_G              => RXCDR_CFG_G,
+            RXLPM_INCM_CFG_G         => RXLPM_INCM_CFG_G,
+            RXLPM_IPCM_CFG_G         => RXLPM_IPCM_CFG_G,
             TX_PLL_G                 => TX_PLL_G,
             RX_PLL_G                 => RX_PLL_G,
             TX_EXT_DATA_WIDTH_G      => 16,
