@@ -39,6 +39,8 @@ entity Pgp2RceLane is
       pllTxReady        : out std_logic;
       pgpLocLinkReady   : out std_logic;
       pgpRemLinkReady   : out std_logic;
+      pgpLocData        : in  std_logic_vector(7 downto 0);
+      pgpRemData        : out std_logic_vector(7 downto 0);
 
       -- PGP Counters
       cntReset          : in  std_logic;
@@ -84,6 +86,14 @@ entity Pgp2RceLane is
       mgtTxP            : out std_logic;
       mgtCombusIn       : in  std_logic_vector(15 downto 0);
       mgtCombusOut      : out std_logic_vector(15 downto 0);
+
+      dclk              : in  std_logic;                     -- MGT Dynamic reconfig port
+      den               : in  std_logic;
+      dwen              : in  std_logic;
+      daddr             : in  std_logic_vector( 7 downto 0);
+      ddin              : in  std_logic_vector(15 downto 0);
+      drdy              : out std_logic;
+      ddout             : out std_logic_vector(15 downto 0);
 
       -- Debug
       debug             : out std_logic_vector(63 downto 0)
@@ -371,8 +381,7 @@ begin
 
 
    -- 16-bit wrapper
-   U_Pgp2Mgt16: Pgp2Mgt16 
-   --U_Pgp2Mgt16Model: Pgp2TbPackage.Pgp2Mgt16Model -- For Simulation
+   U_Pgp2Mgt16: entity work.Pgp2Mgt16 
       generic map (
          EnShortCells      => 1,
          VcInterleave      => 1,
@@ -386,8 +395,8 @@ begin
          pllRxRst          => pllRxRst,         
          pllRxReady        => pllRxReady,       
          pllTxReady        => pllTxReady,       
-         pgpRemData        => open,
-         pgpLocData        => (others=>'0'),
+         pgpRemData        => pgpRemData,
+         pgpLocData        => pgpLocData,
          pgpTxOpCodeEn     => '0',
          pgpTxOpCode       => (others=>'0'),
          pgpRxOpCodeEn     => open,
@@ -455,6 +464,13 @@ begin
          mgtTxP            => mgtTxP,
          mgtCombusIn       => mgtCombusIn,
          mgtCombusOut      => mgtCombusOut,
+         dclk              => dclk,
+         den               => den,
+         dwen              => dwen,
+         daddr             => daddr,
+         ddin              => ddin,
+         drdy              => drdy,
+         ddout             => ddout,
          debug             => debug
       );
 

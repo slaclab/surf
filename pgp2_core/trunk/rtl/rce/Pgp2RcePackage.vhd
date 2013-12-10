@@ -34,6 +34,8 @@ package Pgp2RcePackage is
          pllTxReady        : out std_logic;
          pgpLocLinkReady   : out std_logic;
          pgpRemLinkReady   : out std_logic;
+         pgpLocData        : in  std_logic_vector(7 downto 0);
+         pgpRemData        : out std_logic_vector(7 downto 0);
          cntReset          : in  std_logic;
          pgpCntCellError   : out std_logic_vector(3 downto 0);
          pgpCntLinkDown    : out std_logic_vector(3 downto 0);
@@ -67,6 +69,13 @@ package Pgp2RcePackage is
          mgtTxP            : out std_logic;
          mgtCombusIn       : in  std_logic_vector(15 downto 0);
          mgtCombusOut      : out std_logic_vector(15 downto 0);
+         dclk              : in  std_logic;                     -- MGT Dynamic reconfig port
+         den               : in  std_logic;
+         dwen              : in  std_logic;
+         daddr             : in  std_logic_vector( 7 downto 0);
+         ddin              : in  std_logic_vector(15 downto 0);
+         drdy              : out std_logic;
+         ddout             : out std_logic_vector(15 downto 0);
          debug             : out std_logic_vector(63 downto 0)
       );
    end component;

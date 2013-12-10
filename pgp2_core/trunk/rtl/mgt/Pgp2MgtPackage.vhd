@@ -106,6 +106,13 @@ package Pgp2MgtPackage is
          mgtTxP            : out std_logic;                     -- MGT Serial Transmit Positive
          mgtCombusIn       : in  std_logic_vector(15 downto 0);
          mgtCombusOut      : out std_logic_vector(15 downto 0);
+         dclk              : in  std_logic;                     -- MGT Dynamic reconfig port
+         den               : in  std_logic;
+         dwen              : in  std_logic;
+         daddr             : in  std_logic_vector( 7 downto 0);
+         ddin              : in  std_logic_vector(15 downto 0);
+         drdy              : out std_logic;
+         ddout             : out std_logic_vector(15 downto 0);
          debug             : out std_logic_vector(63 downto 0)
       );
    end component;

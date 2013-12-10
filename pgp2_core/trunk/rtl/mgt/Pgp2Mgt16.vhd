@@ -156,6 +156,15 @@ entity Pgp2Mgt16 is
       mgtCombusIn       : in  std_logic_vector(15 downto 0);
       mgtCombusOut      : out std_logic_vector(15 downto 0);
 
+      -- MGT Dynamic Reconfiguration Port
+      dclk              : in  std_logic; 
+      den               : in  std_logic;
+      dwen              : in  std_logic;
+      daddr             : in  std_logic_vector( 7 downto 0);
+      ddin              : in  std_logic_vector(15 downto 0);
+      drdy              : out std_logic;
+      ddout             : out std_logic_vector(15 downto 0);
+      
       -- Debug
       debug             : out std_logic_vector(63 downto 0)
    );
@@ -234,9 +243,8 @@ begin
    -- Link Ready
    pgpLocLinkReady <= pgpRxLinkReady and pgpTxLinkReady;
 
-
    -- PGP Receive Core
-   U_Pgp2Rx: Pgp2Rx 
+   U_Pgp2Rx: entity work.Pgp2Rx 
       generic map (
          RxLaneCnt    => 1,
          EnShortCells => EnShortCells
@@ -285,7 +293,7 @@ begin
 
 
    -- PGP Transmit Core
-   U_Pgp2Tx: Pgp2Tx 
+   U_Pgp2Tx: entity work.Pgp2Tx 
       generic map (
          TxLaneCnt    => 1,
          VcInterleave => VcInterleave
@@ -342,7 +350,7 @@ begin
 
 
    -- MGT Receive Reset
-   U_Pgp2MgtRxRst: Pgp2MgtRxRst port map (
+   U_Pgp2MgtRxRst: entity work.Pgp2MgtRxRst port map (
       mgtRxClk       => pgpClk,
       mgtRxRst       => intRxRst,
       mgtRxReady     => phyRxReady,
@@ -355,7 +363,7 @@ begin
 
 
    -- MGT Transmit Reset
-   U_Pgp2MgtTxRst: Pgp2MgtTxRst port map (
+   U_Pgp2MgtTxRst: entity work.Pgp2MgtTxRst port map (
       mgtTxClk       => pgpClk,
       mgtTxRst       => intTxRst,
       mgtTxReady     => phyTxReady,
@@ -490,6 +498,7 @@ begin
         RX_BUFFER_USE              =>      TRUE,
         RXCDRLOS                   =>      "000000",
         RXDCCOUPLE                 =>      TRUE,
+--        RXDCCOUPLE                 =>      FALSE,
         RXFDCAL_CLOCK_DIVIDE       =>      "NONE",
         TX_BUFFER_USE              =>      TRUE,   
         TXFDCAL_CLOCK_DIVIDE       =>      "NONE",
@@ -764,13 +773,13 @@ begin
 
        ------------------- Dynamic Reconfiguration Port (DRP) ------------------
  
-        DADDR                      =>      (others=>'0'),
-        DCLK                       =>      '0',
-        DEN                        =>      '0',
-        DI                         =>      (others=>'0'),
-        DO                         =>      open,
-        DRDY                       =>      open,
-        DWE                        =>      '0',
+        DADDR                      =>      daddr,
+        DCLK                       =>      dclk,
+        DEN                        =>      den,
+        DI                         =>      ddin,
+        DO                         =>      ddout,
+        DRDY                       =>      drdy,
+        DWE                        =>      dwen,
 
            --------------------- MGT Tile Communication Ports ------------------       
 
