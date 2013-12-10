@@ -135,8 +135,10 @@ architecture Pgp2Rce of Pgp2Rce is
    signal pllRxReady       : std_logic_vector(3  downto 0);
    signal dcrReset         : std_logic;                     
    signal dcrResetSync     : std_logic;                     
-   signal writeData        : std_logic_vector(31 downto 0); 
-   signal writeDataSync    : std_logic_vector(31 downto 0); 
+   signal writeDataA       : std_logic_vector(31 downto 0); 
+   signal writeDataASync   : std_logic_vector(31 downto 0); 
+   signal writeDataB       : std_logic_vector(31 downto 0); 
+   signal writeDataBSync   : std_logic_vector(31 downto 0); 
    signal csControl0       : std_logic_vector(35 downto 0);
    signal csControl1       : std_logic_vector(35 downto 0);
    signal csData           : std_logic_vector(63 downto 0);
@@ -154,7 +156,17 @@ architecture Pgp2Rce of Pgp2Rce is
    signal bigEndian        : std_logic;
    signal importPauseDly   : std_logic;
    signal importPauseCnt   : std_logic_vector(3  downto 0);
+   signal pgpLocData       : std_logic_vector(7  downto 0);
+   signal pgpRemDataA      : std_logic_vector(7  downto 0);
+   signal pgpRemDataB      : std_logic_vector(7  downto 0);
+   signal pgpRemDataC      : std_logic_vector(7  downto 0);
+   signal pgpRemDataD      : std_logic_vector(7  downto 0);
+   signal pgpRemDataMatch  : std_logic_vector(3  downto 0);
 
+   signal dclk, den, dwen, drdy : std_logic;
+   signal daddr : std_logic_vector(7 downto 0);
+   signal ddin, ddout : std_logic_vector(15 downto 0);
+   
    -- ICON
    component pgp2_v4_icon
      PORT (
@@ -208,9 +220,12 @@ begin
 
 
    -- DCR Read
-   process ( dcrReset, Dcr_Clock ) begin
+   process ( dcrReset, Dcr_Clock )
+     variable ddoutb : std_logic_vector(15 downto 0);
+   begin
       if dcrReset = '1' then
          Dcr_Read_Data <= (others=>'0') after tpd;
+         ddoutb        := (others=>'0');
       elsif rising_edge(Dcr_Clock) then
          case Dcr_Read_Address is 
             when "00"  => 
@@ -234,15 +249,17 @@ begin
                Dcr_Read_Data( 7 downto  4) <= pgpCntLinkErrorB after tpd;
                Dcr_Read_Data( 3 downto  0) <= pgpCntLinkErrorA after tpd;
             when "10"  => 
-               Dcr_Read_Data(31 downto 20) <= (others=>'0')    after tpd;
+               Dcr_Read_Data(31 downto 24) <= pgpLocData       after tpd;
+               Dcr_Read_Data(23 downto 20) <= pgpRemDataMatch  after tpd;
                Dcr_Read_Data(19 downto 16) <= pgpRxFifoErr     after tpd;
                Dcr_Read_Data(15 downto 12) <= pgpCntLinkDownD  after tpd;
                Dcr_Read_Data(11 downto  8) <= pgpCntLinkDownC  after tpd;
                Dcr_Read_Data( 7 downto  4) <= pgpCntLinkDownB  after tpd;
                Dcr_Read_Data( 3 downto  0) <= pgpCntLinkDownA  after tpd;
             when "11"  => 
-               Dcr_Read_Data(31 downto 20) <= (others=>'0')    after tpd;
-               Dcr_Read_Data(19 downto 16) <= importPauseCnt   after tpd;
+--                Dcr_Read_Data(31 downto 20) <= (others=>'0')    after tpd;
+--                Dcr_Read_Data(19 downto 16) <= importPauseCnt   after tpd;
+               Dcr_Read_Data(31 downto 16) <= ddoutb           after tpd;
                Dcr_Read_Data(15 downto 12) <= pgpRxCntD        after tpd;
                Dcr_Read_Data(11 downto  8) <= pgpRxCntC        after tpd;
                Dcr_Read_Data( 7 downto  4) <= pgpRxCntB        after tpd;
@@ -250,17 +267,41 @@ begin
             when others => 
                Dcr_Read_Data               <= (others=>'0')    after tpd;
          end case;
+         if drdy='1' then
+           ddoutb := ddout;
+         end if;
       end if;
    end process;
 
 
+   dclk <= Dcr_Clock;
+   
    -- DCR Write
-   process ( dcrReset, Dcr_Clock ) begin
+   process ( dcrReset, Dcr_Clock )
+   begin
       if dcrReset = '1' then
-         writeData <= (others=>'0') after tpd;
+        writeDataA <= (others=>'0') after tpd;
+        writeDataB <= (others=>'0') after tpd;
+        den        <= '0';
+        dwen       <= '0';
+        ddin       <= (others=>'0');
+        daddr      <= (others=>'0');
       elsif rising_edge(Dcr_Clock) then
+        den       <= '0';
+        dwen      <= '0';
          if Dcr_Write = '1' then
-            writeData <= Dcr_Write_Data after tpd;
+          case Dcr_Read_Address is
+            when "00" =>           writeDataA <= Dcr_Write_Data               after tpd;
+            when "10" =>           ddin       <= Dcr_Write_Data(15 downto  0) after tpd;
+                                   daddr      <= Dcr_Write_Data(23 downto 16) after tpd;
+                                   den        <= '1';
+                                   writeDataB <= Dcr_Write_Data               after tpd;
+            when "11" =>           ddin       <= Dcr_Write_Data(15 downto  0) after tpd;
+                                   daddr      <= Dcr_Write_Data(23 downto 16) after tpd;
+                                   den        <= '1';
+                                   dwen       <= '1';
+            when others => null;
+          end case;
          end if;
       end if;
    end process;
@@ -269,19 +310,49 @@ begin
    -- Synchronize Write Data
    process ( pgpReset, pgpClk ) begin
       if pgpReset = '1' then
-         writeDataSync <= (others=>'0') after tpd;
-         cntReset      <= '0'           after tpd;
-         bigEndian     <= '0'           after tpd;
-         pllTxRst      <= (others=>'0') after tpd;
-         pllRxRst      <= (others=>'0') after tpd;
-         mgtLoopback   <= (others=>'0') after tpd;
+         writeDataASync  <= (others=>'0') after tpd;
+         writeDataBSync  <= (others=>'0') after tpd;
+         cntReset        <= '0'           after tpd;
+         bigEndian       <= '0'           after tpd;
+         pllTxRst        <= (others=>'0') after tpd;
+         pllRxRst        <= (others=>'0') after tpd;
+         mgtLoopback     <= (others=>'0') after tpd;
+         pgpLocData      <= (others=>'0') after tpd;
+         pgpRemDataMatch <= (others=>'0') after tpd;
       elsif rising_edge(pgpClk) then
-         writeDataSync <= writeData                                                             after tpd;
-         bigEndian     <= writeDataSync(13)                                                     after tpd;
-         cntReset      <= writeDataSync(12)           or csCntrl(12)          or importReset(0) after tpd;
-         pllTxRst      <= writeDataSync(11 downto  8) or csCntrl(3  downto 0)                   after tpd;
-         pllRxRst      <= writeDataSync(7  downto  4) or csCntrl(7  downto 4) or importReset    after tpd;
-         mgtLoopback   <= writeDataSync(3  downto  0) or csCntrl(11 downto 8)                   after tpd;
+         writeDataASync <= writeDataA                                                             after tpd;
+         writeDataBSync <= writeDataB                                                             after tpd;
+         pgpLocData     <= writeDataBSync(31 downto 24)                                           after tpd;
+         bigEndian      <= writeDataASync(13)                                                     after tpd;
+         cntReset       <= writeDataASync(12)           or csCntrl(12)          or importReset(0) after tpd;
+         pllTxRst       <= writeDataASync(11 downto  8) or csCntrl(3  downto 0)                   after tpd;
+         pllRxRst       <= writeDataASync(7  downto  4) or csCntrl(7  downto 4) or importReset    after tpd;
+         mgtLoopback    <= writeDataASync(3  downto  0) or csCntrl(11 downto 8)                   after tpd;
+
+         if ( pgpRemDataA = pgpLocData ) then
+            pgpRemDataMatch(0) <= '1' after tpd;
+         else
+            pgpRemDataMatch(0) <= '0' after tpd;
+         end if;
+
+         if ( pgpRemDataB = pgpLocData ) then
+            pgpRemDataMatch(1) <= '1' after tpd;
+         else
+            pgpRemDataMatch(1) <= '0' after tpd;
+         end if;
+
+         if ( pgpRemDataC = pgpLocData ) then
+            pgpRemDataMatch(2) <= '1' after tpd;
+         else
+            pgpRemDataMatch(2) <= '0' after tpd;
+         end if;
+
+         if ( pgpRemDataD = pgpLocData ) then
+            pgpRemDataMatch(3) <= '1' after tpd;
+         else
+            pgpRemDataMatch(3) <= '0' after tpd;
+         end if;
+
       end if;
    end process;
 
@@ -305,7 +376,7 @@ begin
 
 
    -- Export Interface
-   U_Pgp2RceExport: Pgp2RceExport port map ( 
+   U_Pgp2RceExport: Pgp2RcePackage.Pgp2RceExport port map ( 
       pgpClk                         => pgpClk,
       pgpReset                       => pgpReset,
       Export_Clock                   => Export_Clock,
@@ -335,7 +406,7 @@ begin
 
 
    -- Import Interface
-   U_Pgp2RceImport: Pgp2RceImport 
+   U_Pgp2RceImport: Pgp2RcePackage.Pgp2RceImport 
       generic map (
          FreeListA => FreeListA,
          FreeListB => FreeListB,
@@ -374,7 +445,7 @@ begin
 
 
    -- Lane A
-   U_Pgp2RceLaneA: Pgp2RceLane 
+   U_Pgp2RceLaneA: Pgp2RcePackage.Pgp2RceLane 
       generic map (
          MgtMode   => "A",
          RefClkSel => RefClkSel
@@ -387,6 +458,8 @@ begin
          pllTxReady        => pllTxReady(0),
          pgpLocLinkReady   => pgpLocLinkReady(0),
          pgpRemLinkReady   => pgpRemLinkReady(0),
+         pgpLocData        => pgpLocData,
+         pgpRemData        => pgpRemDataA,
          cntReset          => cntReset,
          pgpCntCellError   => pgpCntCellErrorA,
          pgpCntLinkDown    => pgpCntLinkDownA,
@@ -420,12 +493,19 @@ begin
          mgtTxP            => mgtTxP(0),
          mgtCombusIn       => mgtCombusOutB,
          mgtCombusOut      => mgtCombusOutA,
+         dclk              => dclk,
+         den               => den,
+         dwen              => dwen,
+         daddr             => daddr,
+         ddin              => ddin,
+         drdy              => drdy,
+         ddout             => ddout,
          debug             => lane0Debug
       );
 
 
    -- Lane B
-   U_Pgp2RceLaneB: Pgp2RceLane 
+   U_Pgp2RceLaneB: Pgp2RcePackage.Pgp2RceLane 
       generic map (
          MgtMode   => "B",
          RefClkSel => RefClkSel
@@ -438,6 +518,8 @@ begin
          pllTxReady        => pllTxReady(1),
          pgpLocLinkReady   => pgpLocLinkReady(1),
          pgpRemLinkReady   => pgpRemLinkReady(1),
+         pgpLocData        => pgpLocData,
+         pgpRemData        => pgpRemDataB,
          cntReset          => cntReset,
          pgpCntCellError   => pgpCntCellErrorB,
          pgpCntLinkDown    => pgpCntLinkDownB,
@@ -471,6 +553,13 @@ begin
          mgtTxP            => mgtTxP(1),
          mgtCombusIn       => mgtCombusOutA,
          mgtCombusOut      => mgtCombusOutB,
+         dclk              => '0',
+         den               => '0',
+         dwen              => '0',
+         daddr             => (others=>'0'),
+         ddin              => (others=>'0'),
+         drdy              => open,
+         ddout             => open,
          debug             => lane1Debug
       );
 
@@ -479,7 +568,7 @@ begin
    Pgp2UpperEn: if ( PgpLaneCnt = 4 ) generate
 
       -- Lane C
-      U_Pgp2RceLaneC: Pgp2RceLane 
+      U_Pgp2RceLaneC: Pgp2RcePackage.Pgp2RceLane 
          generic map (
             MgtMode   => "A",
             RefClkSel => RefClkSel
@@ -492,6 +581,8 @@ begin
             pllTxReady        => pllTxReady(2),
             pgpLocLinkReady   => pgpLocLinkReady(2),
             pgpRemLinkReady   => pgpRemLinkReady(2),
+            pgpLocData        => pgpLocData,
+            pgpRemData        => pgpRemDataC,
             cntReset          => cntReset,
             pgpCntCellError   => pgpCntCellErrorC,
             pgpCntLinkDown    => pgpCntLinkDownC,
@@ -525,12 +616,19 @@ begin
             mgtTxP            => mgtTxP(2),
             mgtCombusIn       => mgtCombusOutD,
             mgtCombusOut      => mgtCombusOutC,
+            dclk              => '0',
+            den               => '0',
+            dwen              => '0',
+            daddr             => (others=>'0'),
+            ddin              => (others=>'0'),
+            drdy              => open,
+            ddout             => open,
             debug             => open
          );
 
 
       -- Lane D
-      U_Pgp2RceLaneD: Pgp2RceLane 
+      U_Pgp2RceLaneD: Pgp2RcePackage.Pgp2RceLane 
          generic map (
             MgtMode   => "B",
             RefClkSel => RefClkSel
@@ -543,6 +641,8 @@ begin
             pllTxReady        => pllTxReady(3),
             pgpLocLinkReady   => pgpLocLinkReady(3),
             pgpRemLinkReady   => pgpRemLinkReady(3),
+            pgpLocData        => pgpLocData,
+            pgpRemData        => pgpRemDataD,
             cntReset          => cntReset,
             pgpCntCellError   => pgpCntCellErrorD,
             pgpCntLinkDown    => pgpCntLinkDownD,
@@ -576,6 +676,13 @@ begin
             mgtTxP            => mgtTxP(3),
             mgtCombusIn       => mgtCombusOutC,
             mgtCombusOut      => mgtCombusOutD,
+            dclk              => '0',
+            den               => '0',
+            dwen              => '0',
+            daddr             => (others=>'0'),
+            ddin              => (others=>'0'),
+            drdy              => open,
+            ddout             => open,
             debug             => open
          );
    end generate;
@@ -594,6 +701,7 @@ begin
       pgpCntLinkErrorC             <= (others=>'0');
       pgpRxFifoErr(2)              <= '0';
       pgpRxCntC                    <= (others=>'0');
+      pgpRemDataC                  <= (others=>'0');
       vcFrameRxSOF(2)              <= '0';
       vcFrameRxEOF(2)              <= '0';
       vcFrameRxEOFE(2)             <= '0';
@@ -616,6 +724,7 @@ begin
       pgpCntLinkErrorD             <= (others=>'0');
       pgpRxFifoErr(3)              <= '0';
       pgpRxCntD                    <= (others=>'0');
+      pgpRemDataD                  <= (others=>'0');
       vcFrameRxSOF(3)              <= '0';
       vcFrameRxEOF(3)              <= '0';
       vcFrameRxEOFE(3)             <= '0';
