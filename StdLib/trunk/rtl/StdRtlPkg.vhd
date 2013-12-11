@@ -87,7 +87,7 @@ package StdRtlPkg is
    function getRealMult (A    : real; B : integer) return real;
 
    --gets a time ratio
-   function getTimeRatio (T1, T2 : time) return natural;
+   function getTimeRatio (T1, T2 : time) return natural;--not supported by Vivado
    function getTimeRatio (T1, T2 : real) return natural;
 
    -- Some synthesis tools wont accept unit types
