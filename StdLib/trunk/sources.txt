@@ -1,6 +1,7 @@
 vhdl work rtl/StdRtlPkg.vhd
 vhdl work rtl/PrbsPkg.vhd
 vhdl work rtl/ArbiterPkg.vhd
+vhdl work rtl/Arbiter.vhd
 vhdl work rtl/Code8b10bPkg.vhd
 vhdl work rtl/CRC32Rtl.vhd
 vhdl work rtl/ClkOutBuf.vhd
