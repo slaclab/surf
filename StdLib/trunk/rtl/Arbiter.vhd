@@ -16,7 +16,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.ArbiterPkg.all;
@@ -42,7 +43,7 @@ architecture rtl of Arbiter is
    constant SELECTED_SIZE_C : integer := bitSize(REQ_SIZE_G);
 
    type RegType is record
-      lastSelected : unsigned(SELECTED_SIZE_C-1 downto 0);
+      lastSelected : slv(SELECTED_SIZE_C-1 downto 0);
       valid        : sl;
       ack          : slv(REQ_SIZE_G-1 downto 0);
    end record RegType;
@@ -56,11 +57,11 @@ architecture rtl of Arbiter is
 begin
 
    comb : process (r, req, rst) is
-      variable v : RegType;
+      variable v    : RegType;
    begin
-      v := r;
+      v    := r;
 
-      if (req(to_integer(r.lastSelected)) = '0' or r.valid = '0') then
+      if (req(conv_integer(r.lastSelected)) = '0' or r.valid = '0') then
          arbitrate(req, r.lastSelected, v.lastSelected, v.valid, v.ack);
       end if;
 
