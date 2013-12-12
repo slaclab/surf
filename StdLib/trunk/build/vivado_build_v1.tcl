@@ -5,6 +5,7 @@
 set VIVADO_PROJECT   $::env(VIVADO_PROJECT)
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 set VIVADO_DIR       $::env(VIVADO_DIR)
+set CORE_FILES       $::env(CORE_FILES)
 
 # Open the project
 open_project -quiet ${VIVADO_PROJECT}
@@ -12,6 +13,9 @@ open_project -quiet ${VIVADO_PROJECT}
 # Cleaup runs
 reset_run synth_1
 reset_run impl_1
+
+# Re-generate all IP cores' output files
+generate_target all [get_ips *]
 
 # Synthesize
 launch_run  synth_1
