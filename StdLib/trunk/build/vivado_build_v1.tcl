@@ -15,7 +15,7 @@ reset_run synth_1
 reset_run impl_1
 
 # Re-generate all IP cores' output files
-generate_target all [get_ips *]
+generate_target -force all [get_ips *]
 
 # Synthesize
 launch_run  synth_1
