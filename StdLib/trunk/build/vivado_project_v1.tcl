@@ -20,7 +20,15 @@ add_files -quiet -fileset sources_1 ${RTL_FILES}
 
 # Add core Files
 if { ${CORE_FILES} != " " } {
-   add_files -quiet -fileset sources_1 ${CORE_FILES}
+   foreach corePntr ${CORE_FILES} {
+      if {[string match *.xci ${corePntr}]} {
+         # check extension for a Vivado IP Core file
+         import_ip -quiet ${corePntr}
+      } else {
+         # else it might be an .ngc file
+         add_files -quiet -fileset sources_1 ${corePntr}
+      }
+   }
 }
 
 # Add XDC FILES
