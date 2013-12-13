@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-06-29
+-- Last update: 2013-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -134,8 +134,8 @@ begin
             if (gtTxPhAlignDoneEdge = '1') then
                v.gtTxPhAlign := '0';
                v.gtTxDlyEn   := '1';
---               v.state       := WAIT_PH_ALIGN_DONE_2_S;
-               v.state := DONE_S;
+               v.state       := WAIT_PH_ALIGN_DONE_2_S;
+               --v.state := DONE_S;
             end if;
 
          when WAIT_PH_ALIGN_DONE_2_S =>
