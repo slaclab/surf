@@ -41,8 +41,7 @@ source ${VIVADO_BUILD_DIR}/vivado_post_synthesis_v1.tcl
 if { [get_property PROGRESS [get_runs synth_1]]!="100\%" || \
      [get_property STATUS [get_runs synth_1]]!="synth_design Complete!" } {
    close_project
-   set $::env(BUILD_FLAG) -1
-   exit
+   exit -1
 }
 
 # Implement
@@ -56,17 +55,16 @@ source ${VIVADO_BUILD_DIR}/vivado_post_route_v1.tcl
 if { [get_property PROGRESS [get_runs impl_1]]!="100\%" || \
      [get_property STATUS [get_runs impl_1]]!="write_bitstream Complete!" } {
    close_project
-   set $::env(BUILD_FLAG) -2
-   exit
+   exit -1
 }
 
 # Check if there were timing or routing errors during implement
 if { [CheckTiming]==false } {
    close_project
-   set $::env(BUILD_FLAG) -3
-   exit
+   exit -1
 }
 
 # Close the project
 close_project
-set $::env(BUILD_FLAG) 1
+exit 0
+
