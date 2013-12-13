@@ -134,7 +134,7 @@ interactive : $(VIVADO_DEPEND)
 .PHONY : gui
 gui : $(VIVADO_DEPEND)
 	$(call ACTION_HEADER,"Vivado GUI")
-	@cd $(OUT_DIR); vivado -mode gui $(VIVADO_PROJECT)
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_gui_v1.tcl
 
 #### Prom ##################################################
 PROM_OPTIONS_FILE = $(ISE_DIR)/promgen_options.txt
