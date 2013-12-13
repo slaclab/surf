@@ -30,7 +30,8 @@ entity Pgp2Tx is
    generic (
       TxLaneCnt     : integer := 4; -- Number of receive lanes, 1-4
       VcInterleave  : integer := 1; -- Interleave Frames
-      PayloadCntTop : integer := 7  -- Top bit for payload counter
+      PayloadCntTop : integer := 7;  -- Top bit for payload counter
+      NUM_VC_EN_G : integer range 1 to 4 := 4
    );
    port ( 
 
@@ -162,7 +163,8 @@ begin
    -- Scheduler
    U_Pgp2TxSched: entity work.Pgp2TxSched 
       generic map (
-         VcInterleave      => VcInterleave
+         VcInterleave      => VcInterleave,
+         NUM_VC_EN_G => NUM_VC_EN_G
       ) port map ( 
          pgpTxClk          => pgpTxClk,
          pgpTxReset        => pgpTxReset,
