@@ -25,6 +25,7 @@ package StdRtlPkg is
    -- Declare arrays of built in types
    type IntegerArray is array (integer range <>) of integer;
    type NaturalArray is array (natural range <>) of natural;
+   type StringArray  is array (natural range <>) of string;
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
