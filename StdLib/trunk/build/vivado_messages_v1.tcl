@@ -24,7 +24,6 @@ set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pi
 
 # Messages: Change from CRITICAL_WARNING to ERROR
 set_msg_config -id {Synth 8-3352} -new_severity ERROR;# SYNTH: multi-driven net
-set_msg_config -id {Vivado 12-1387} -new_severity ERROR;# XDC: No valid object(s) found 
 
 # Messages: Change from ERROR to WARNING
 # TBD Place holder
@@ -32,5 +31,5 @@ set_msg_config -id {Vivado 12-1387} -new_severity ERROR;# XDC: No valid object(s
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
 
-# Lets set this higher than 100. We want to see everything that happened in the log files right?
+# Set the messaging limit
 set_param messaging.defaultLimit 10000
