@@ -17,6 +17,7 @@ export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
 export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
 export PROJECT_SETUP    = $(abspath $(PROJ_DIR)/vivado/project_setup.tcl)
+export BUILD_FLAG       = 0
 
 # Images Directory
 export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
