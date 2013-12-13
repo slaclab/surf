@@ -31,3 +31,6 @@ set_msg_config -id {Vivado 12-1387} -new_severity ERROR;# XDC: No valid object(s
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
+
+# Lets set this higher than 100. We want to see everything that happened in the log files right?
+set_param messaging.defaultLimit 10000
