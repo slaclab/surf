@@ -26,6 +26,8 @@ package StdRtlPkg is
    type IntegerArray is array (integer range <>) of integer;
    type NaturalArray is array (natural range <>) of natural;
    type StringArray  is array (natural range <>) of string;
+   type RealArray    is array (natural range <>) of real;
+   type TimeArray    is array (natural range <>) of time;
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
