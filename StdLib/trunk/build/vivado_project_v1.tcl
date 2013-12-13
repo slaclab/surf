@@ -16,26 +16,26 @@ set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 # Create a project
-create_project -quiet ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
+create_project ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 
 # Add source Files
-add_files -quiet -fileset sources_1 ${RTL_FILES}
+add_files -fileset sources_1 ${RTL_FILES}
 
 # Add core Files
 if { ${CORE_FILES} != " " } {
    foreach corePntr ${CORE_FILES} {
       if {[string match *.xci ${corePntr}]} {
          # check extension for a Vivado IP Core file
-         import_ip -quiet ${corePntr}
+         import_ip ${corePntr}
       } else {
          # else it might be an .ngc file
-         add_files -quiet -fileset sources_1 ${corePntr}
+         add_files -fileset sources_1 ${corePntr}
       }
    }
 }
 
 # Add XDC FILES
-add_files -quiet -fileset constrs_1 ${XDC_FILES}
+add_files -fileset constrs_1 ${XDC_FILES}
 
 # Set the top level
 set_property top ${PROJECT} [current_fileset]
