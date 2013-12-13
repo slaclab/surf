@@ -5,6 +5,7 @@ set_msg_config -suppress -id {Synth 8-113};# SYNTH: binding component instance '
 set_msg_config -suppress -id {Synth 8-226};# SYNTH: default block is never used
 set_msg_config -suppress -id {Synth 8-312};# SYNTH: "ignoring unsynthesizable construct" due to assert error checking
 set_msg_config -suppress -id {Synth 8-4472};# SYNTH: Detected and applied attribute shreg_extract = no
+set_msg_config -suppress -id {Designutils 20-1318};# DESIGN_UTILS: Multiple VHDL modules with the same architecture name
 
 # Messages Suppression: WARNING
 # TBD Place holder
