@@ -16,44 +16,45 @@
 -- 05/18/2012: Added VC transmit timeout
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 --USE work.ALL;
-USE work.Pgp2CorePackage.ALL;
+use work.Pgp2CorePackage.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity Pgp2TxSched is 
+entity Pgp2TxSched is
    generic (
-      VcInterleave : integer := 1  -- Interleave Frames
-   );
-   port ( 
+      VcInterleave : integer              := 1;  -- Interleave Frames
+      NUM_VC_EN_G  : integer range 1 to 4 := 4
+      );
+   port (
 
       -- System clock, reset & control
-      pgpTxClk          : in  std_logic;                     -- Master clock
-      pgpTxReset        : in  std_logic;                     -- Synchronous reset input
+      pgpTxClk   : in std_logic;        -- Master clock
+      pgpTxReset : in std_logic;        -- Synchronous reset input
 
       -- Link flush
-      pgpTxFlush        : in  std_logic;                     -- Flush the link
+      pgpTxFlush : in std_logic;        -- Flush the link
 
       -- Link is ready
-      pgpTxLinkReady    : in  std_logic;                     -- Local side has link
+      pgpTxLinkReady : in std_logic;    -- Local side has link
 
       -- Cell Transmit Interface
-      schTxSOF          : in  std_logic;                     -- Cell contained SOF
-      schTxEOF          : in  std_logic;                     -- Cell contained EOF
-      schTxIdle         : out std_logic;                     -- Force IDLE transmit
-      schTxReq          : out std_logic;                     -- Cell transmit request
-      schTxAck          : in  std_logic;                     -- Cell transmit acknowledge
-      schTxTimeout      : out std_logic;                     -- Cell transmit timeout
-      schTxDataVc       : out std_logic_vector(1 downto 0);  -- Cell transmit virtual channel
+      schTxSOF     : in  std_logic;                     -- Cell contained SOF
+      schTxEOF     : in  std_logic;                     -- Cell contained EOF
+      schTxIdle    : out std_logic;                     -- Force IDLE transmit
+      schTxReq     : out std_logic;                     -- Cell transmit request
+      schTxAck     : in  std_logic;                     -- Cell transmit acknowledge
+      schTxTimeout : out std_logic;                     -- Cell transmit timeout
+      schTxDataVc  : out std_logic_vector(1 downto 0);  -- Cell transmit virtual channel
 
       -- VC Data Valid Signals
-      vc0FrameTxValid   : in  std_logic;                     -- User frame data is valid
-      vc1FrameTxValid   : in  std_logic;                     -- User frame data is valid
-      vc2FrameTxValid   : in  std_logic;                     -- User frame data is valid
-      vc3FrameTxValid   : in  std_logic                      -- User frame data is valid
-   );
+      vc0FrameTxValid : in std_logic;   -- User frame data is valid
+      vc1FrameTxValid : in std_logic;   -- User frame data is valid
+      vc2FrameTxValid : in std_logic;   -- User frame data is valid
+      vc3FrameTxValid : in std_logic    -- User frame data is valid
+      );
 
 end Pgp2TxSched;
 
@@ -78,7 +79,7 @@ architecture Pgp2TxSched of Pgp2TxSched is
    signal vcTimerB     : std_logic_vector(23 downto 0);
    signal vcTimerC     : std_logic_vector(23 downto 0);
    signal vcTimerD     : std_logic_vector(23 downto 0);
-   signal vcTimeout    : std_logic_vector(3  downto 0);
+   signal vcTimeout    : std_logic_vector(3 downto 0);
 
    -- Schedular state
    constant ST_RST   : std_logic_vector(2 downto 0) := "001";
@@ -87,11 +88,11 @@ architecture Pgp2TxSched of Pgp2TxSched is
    constant ST_GAP_A : std_logic_vector(2 downto 0) := "100";
    constant ST_GAP_B : std_logic_vector(2 downto 0) := "101";
    constant ST_GAP_C : std_logic_vector(2 downto 0) := "110";
-   signal   curState : std_logic_vector(2 downto 0);
-   signal   nxtState : std_logic_vector(2 downto 0);
+   signal curState   : std_logic_vector(2 downto 0);
+   signal nxtState   : std_logic_vector(2 downto 0);
 
    -- Register delay for simulation
-   constant tpd:time := 0.5 ns;
+   constant tpd : time := 0.5 ns;
 
 begin
 
@@ -103,18 +104,19 @@ begin
 
 
    -- State transition logic
-   process ( pgpTxClk, pgpTxReset ) begin
+   process (pgpTxClk, pgpTxReset)
+   begin
       if pgpTxReset = '1' then
-         curState     <= ST_ARB        after tpd;
-         currVc       <= "00"          after tpd;
-         intTxReq     <= '0'           after tpd;
-         intTxIdle    <= '0'           after tpd;
-         intTxTimeout <= '0'           after tpd;
+         curState     <= ST_ARB after tpd;
+         currVc       <= "00"   after tpd;
+         intTxReq     <= '0'    after tpd;
+         intTxIdle    <= '0'    after tpd;
+         intTxTimeout <= '0'    after tpd;
       elsif rising_edge(pgpTxClk) then
 
          -- Force state to select state when link goes down
          if pgpTxLinkReady = '0' then
-            curState <= ST_RST   after tpd;
+            curState <= ST_RST after tpd;
          else
             curState <= nxtState after tpd;
          end if;
@@ -130,7 +132,8 @@ begin
 
 
    -- Scheduler state machine
-   process ( curState, arbValid, arbVc, currVc, schTxAck, vcInFrame, currValid, vcTimeout ) begin
+   process (curState, arbValid, arbVc, currVc, schTxAck, vcInFrame, currValid, vcTimeout)
+   begin
       case curState is
 
          -- Held in reset due to non-link
@@ -138,7 +141,7 @@ begin
             nxtTxIdle    <= '0';
             nxtTxReq     <= '0';
             nxtTxTimeout <= '0';
-            nextVc       <= (others=>'0');
+            nextVc       <= (others => '0');
             nxtState     <= ST_ARB;
 
          -- IDLE, wait for ack receiver to be ready 
@@ -152,21 +155,21 @@ begin
                nextVc       <= "00";
 
             -- VC1 Timeout
-            elsif vcTimeout(1) = '1' then
+            elsif vcTimeout(1) = '1' and NUM_VC_EN_G > 1 then
                nxtTxIdle    <= '0';
                nxtTxReq     <= '1';
                nxtTxTimeout <= '1';
                nextVc       <= "01";
 
             -- VC2 Timeout
-            elsif vcTimeout(2) = '1' then
+            elsif vcTimeout(2) = '1' and NUM_VC_EN_G > 2 then
                nxtTxIdle    <= '0';
                nxtTxReq     <= '1';
                nxtTxTimeout <= '1';
                nextVc       <= "10";
 
             -- VC3 Timeout
-            elsif vcTimeout(3) = '1' then
+            elsif vcTimeout(3) = '1' and NUM_VC_EN_G > 3 then
                nxtTxIdle    <= '0';
                nxtTxReq     <= '1';
                nxtTxTimeout <= '1';
@@ -231,7 +234,7 @@ begin
             nxtTxIdle    <= '0';
             nxtTxReq     <= '0';
             nxtTxTimeout <= '0';
-            nextVc       <= (others=>'0');
+            nextVc       <= (others => '0');
             nxtState     <= ST_ARB;
       end case;
    end process;
@@ -239,38 +242,40 @@ begin
 
    -- Current owner has valid asserted
    currValid <= vc0FrameTxValid when currVc = "00" else
-                vc1FrameTxValid when currVc = "01" else
-                vc2FrameTxValid when currVc = "10" else
-                vc3FrameTxValid;
+                vc1FrameTxValid when currVc = "01" and NUM_VC_EN_G > 1 else
+                vc2FrameTxValid when currVc = "10" and NUM_VC_EN_G > 2 else
+                vc3FrameTxValid when currVc = "11" and NUM_VC_EN_G > 3 else
+                '0';
 
 
    -- Arbitrate for the next VC value based upon current VC value and status of valid inputs
-   process ( currVc, vc0FrameTxValid, vc1FrameTxValid, vc2FrameTxValid, vc3FrameTxValid ) begin
+   process (currVc, vc0FrameTxValid, vc1FrameTxValid, vc2FrameTxValid, vc3FrameTxValid)
+   begin
       case currVc is
          when "00" =>
-            if    vc1FrameTxValid = '1' then arbVc <= "01"; arbValid <= '1';
-            elsif vc2FrameTxValid = '1' then arbVc <= "10"; arbValid <= '1';
-            elsif vc3FrameTxValid = '1' then arbVc <= "11"; arbValid <= '1';
-            elsif vc0FrameTxValid = '1' then arbVc <= "00"; arbValid <= '1';
-            else  arbVc <= currVc; arbValid <= '0'; end if;
+            if vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc    <= "01"; arbValid <= '1';
+            elsif vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            elsif vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            elsif vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
+            else arbVc                                                 <= "00"; arbValid <= '0'; end if;
          when "01" =>
-            if    vc2FrameTxValid = '1' then arbVc <= "10"; arbValid <= '1';
-            elsif vc3FrameTxValid = '1' then arbVc <= "11"; arbValid <= '1';
-            elsif vc0FrameTxValid = '1' then arbVc <= "00"; arbValid <= '1';
-            elsif vc1FrameTxValid = '1' then arbVc <= "01"; arbValid <= '1';
-            else  arbVc <= currVc; arbValid <= '0'; end if;
+            if vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc    <= "10"; arbValid <= '1';
+            elsif vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            elsif vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
+            elsif vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            else arbVc                                                 <= "01"; arbValid <= '0'; end if;
          when "10" =>
-            if    vc3FrameTxValid = '1' then arbVc <= "11"; arbValid <= '1';
-            elsif vc0FrameTxValid = '1' then arbVc <= "00"; arbValid <= '1';
-            elsif vc1FrameTxValid = '1' then arbVc <= "01"; arbValid <= '1';
-            elsif vc2FrameTxValid = '1' then arbVc <= "10"; arbValid <= '1';
-            else  arbVc <= currVc; arbValid <= '0'; end if;
+            if vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc    <= "11"; arbValid <= '1';
+            elsif vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
+            elsif vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            elsif vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            else arbVc                                                 <= "10"; arbValid <= '0'; end if;
          when "11" =>
-            if    vc0FrameTxValid = '1' then arbVc <= "00"; arbValid <= '1';
-            elsif vc1FrameTxValid = '1' then arbVc <= "01"; arbValid <= '1';
-            elsif vc2FrameTxValid = '1' then arbVc <= "10"; arbValid <= '1';
-            elsif vc3FrameTxValid = '1' then arbVc <= "11"; arbValid <= '1';
-            else  arbVc <= currVc; arbValid <= '0'; end if;
+            if vc0FrameTxValid = '1' then arbVc                        <= "00"; arbValid <= '1';
+            elsif vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            elsif vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            elsif vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            else arbVc                                                 <= "11"; arbValid <= '0'; end if;
          when others =>
             arbVc <= "00"; arbValid <= '0';
       end case;
@@ -278,13 +283,14 @@ begin
 
 
    -- Lock in the status of the last cell transmitted
-   process ( pgpTxClk, pgpTxReset ) begin
+   process (pgpTxClk, pgpTxReset)
+   begin
       if pgpTxReset = '1' then
-         vcInFrame    <= "0000"        after tpd;
+         vcInFrame <= "0000" after tpd;
       elsif rising_edge(pgpTxClk) then
 
          -- Link is down or flush requested, reset status
-         if pgpTxLinkReady  = '0' or pgpTxFlush = '1' then
+         if pgpTxLinkReady = '0' or pgpTxFlush = '1' then
             vcInFrame <= "0000" after tpd;
          else
 
@@ -292,7 +298,7 @@ begin
             -- SOF transmitted
             if schTxSOF = '1' then
                vcInFrame(conv_integer(currVc)) <= '1' after tpd;
-               
+
             -- EOF transmitted
             elsif schTxEOF = '1' then
                vcInFrame(conv_integer(currVc)) <= '0' after tpd;
@@ -302,53 +308,60 @@ begin
    end process;
 
    -- Detect frame transmit timeout
-   process ( pgpTxClk, pgpTxReset ) begin
+   process (pgpTxClk, pgpTxReset)
+   begin
       if pgpTxReset = '1' then
-         vcTimerA  <= (others=>'0') after tpd;
-         vcTimerB  <= (others=>'0') after tpd;
-         vcTimerC  <= (others=>'0') after tpd;
-         vcTimerD  <= (others=>'0') after tpd;
-         vcTimeout <= (others=>'0') after tpd;
+         vcTimerA  <= (others => '0') after tpd;
+         vcTimerB  <= (others => '0') after tpd;
+         vcTimerC  <= (others => '0') after tpd;
+         vcTimerD  <= (others => '0') after tpd;
+         vcTimeout <= (others => '0') after tpd;
       elsif rising_edge(pgpTxClk) then
 
          if vcInFrame(0) = '0' or (currVc = 0 and intTxReq = '1') then
-            vcTimerA     <= (others=>'0') after tpd;
-            vcTimeout(0) <= '0'           after tpd;
+            vcTimerA     <= (others => '0') after tpd;
+            vcTimeout(0) <= '0'             after tpd;
          elsif vcTimerA /= x"FFFFFF" then
             vcTimerA     <= vcTimerA + 1 after tpd;
             vcTimeout(0) <= '0'          after tpd;
          else
-            vcTimeout(0) <= '1'          after tpd;
+            vcTimeout(0) <= '1' after tpd;
          end if;
 
-         if vcInFrame(1) = '0' or (currVc = 1 and intTxReq = '1') then
-            vcTimerB     <= (others=>'0') after tpd;
-            vcTimeout(1) <= '0'           after tpd;
-         elsif vcTimerB /= x"FFFFFF" then
-            vcTimerB     <= vcTimerB + 1 after tpd;
-            vcTimeout(1) <= '0'          after tpd;
-         else
-            vcTimeout(1) <= '1'          after tpd;
+         if NUM_VC_EN_G > 1 then
+            if vcInFrame(1) = '0' or (currVc = 1 and intTxReq = '1') then
+               vcTimerB     <= (others => '0') after tpd;
+               vcTimeout(1) <= '0'             after tpd;
+            elsif vcTimerB /= x"FFFFFF" then
+               vcTimerB     <= vcTimerB + 1 after tpd;
+               vcTimeout(1) <= '0'          after tpd;
+            else
+               vcTimeout(1) <= '1' after tpd;
+            end if;
          end if;
 
-         if vcInFrame(2) = '0' or (currVc = 2 and intTxReq = '1') then
-            vcTimerC     <= (others=>'0') after tpd;
-            vcTimeout(2) <= '0'           after tpd;
-         elsif vcTimerC /= x"FFFFFF" then
-            vcTimerC     <= vcTimerC + 1 after tpd;
-            vcTimeout(2) <= '0'          after tpd;
-         else
-            vcTimeout(2) <= '1'          after tpd;
+         if NUM_VC_EN_G > 2 then
+            if vcInFrame(2) = '0' or (currVc = 2 and intTxReq = '1') then
+               vcTimerC     <= (others => '0') after tpd;
+               vcTimeout(2) <= '0'             after tpd;
+            elsif vcTimerC /= x"FFFFFF" then
+               vcTimerC     <= vcTimerC + 1 after tpd;
+               vcTimeout(2) <= '0'          after tpd;
+            else
+               vcTimeout(2) <= '1' after tpd;
+            end if;
          end if;
 
-         if vcInFrame(3) = '0' or (currVc = 3 and intTxReq = '1') then
-            vcTimerD     <= (others=>'0') after tpd;
-            vcTimeout(3) <= '0'           after tpd;
-         elsif vcTimerD /= x"FFFFFF" then
-            vcTimerD     <= vcTimerD + 1 after tpd;
-            vcTimeout(3) <= '0'          after tpd;
-         else
-            vcTimeout(3) <= '1'          after tpd;
+         if NUM_VC_EN_G > 3 then
+            if vcInFrame(3) = '0' or (currVc = 3 and intTxReq = '1') then
+               vcTimerD     <= (others => '0') after tpd;
+               vcTimeout(3) <= '0'             after tpd;
+            elsif vcTimerD /= x"FFFFFF" then
+               vcTimerD     <= vcTimerD + 1 after tpd;
+               vcTimeout(3) <= '0'          after tpd;
+            else
+               vcTimeout(3) <= '1' after tpd;
+            end if;
          end if;
       end if;
    end process;

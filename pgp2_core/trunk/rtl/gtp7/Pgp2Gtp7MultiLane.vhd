@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-12-09
+-- Last update: 2013-12-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,7 +59,9 @@ entity Pgp2Gtp7MultiLane is
       ----------------------------------------------------------------------------------------------
       PayloadCntTop         : integer              := 7;  -- Top bit for payload counter
       EnShortCells          : integer              := 1;  -- Enable short non-EOF cells
-      VcInterleave          : integer              := 1);  -- Interleave Frames
+      VcInterleave          : integer              := 1;  -- Interleave Frames
+      NUM_VC_EN_G : integer range 1 to 4 := 4
+      );
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
@@ -227,7 +229,8 @@ begin
       generic map (
          TxLaneCnt     => LANE_CNT_G,
          VcInterleave  => VcInterleave,
-         PayloadCntTop => PayloadCntTop)
+         PayloadCntTop => PayloadCntTop,
+         NUM_VC_EN_G => NUM_VC_EN_G)
       port map (
          pgpTxClk       => pgpTxClk,
          pgpTxReset     => pgpTxReset,

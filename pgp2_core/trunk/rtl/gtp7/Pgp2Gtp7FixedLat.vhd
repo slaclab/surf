@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-12-09
+-- Last update: 2013-12-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,7 +60,8 @@ entity Pgp2Gtp7Fixedlat is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       EnShortCells : integer := 1;      -- Enable short non-EOF cells
-      VcInterleave : integer := 1       -- Interleave Frames
+      VcInterleave : integer := 1;       -- Interleave Frames
+      NUM_VC_EN_G : integer range 1 to 4 := 4
       );
    port (
       -- GT Clocking
@@ -234,7 +235,8 @@ begin
    Pgp2TxWrapper_1 : entity work.Pgp2TxWrapper
       generic map (
          TxLaneCnt    => 1,
-         VcInterleave => VcInterleave)
+         VcInterleave => VcInterleave,
+         NUM_VC_EN_G => NUM_VC_EN_G)
       port map (
          pgpTxClk       => pgpTxClk,
          pgpTxReset     => pgpTxReset,

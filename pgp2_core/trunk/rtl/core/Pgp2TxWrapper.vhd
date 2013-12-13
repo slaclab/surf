@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-02
--- Last update: 2013-08-02
+-- Last update: 2013-12-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,8 @@ entity Pgp2TxWrapper is
    generic (
       TxLaneCnt     : integer := 4;     -- Number of receive lanes, 1-4
       VcInterleave  : integer := 1;     -- Interleave Frames
-      PayloadCntTop : integer := 7      -- Top bit for payload counter
+      PayloadCntTop : integer := 7;      -- Top bit for payload counter
+      NUM_VC_EN_G : integer range 1 to 4 := 4
       );
    port (
 
@@ -79,7 +80,8 @@ begin
       generic map (
          TxLaneCnt     => TxLaneCnt,
          VcInterleave  => VcInterleave,
-         PayloadCntTop => PayloadCntTop)
+         PayloadCntTop => PayloadCntTop,
+         NUM_VC_EN_G => NUM_VC_EN_G)
       port map (
          pgpTxClk        => pgpTxClk,
          pgpTxReset      => pgpTxReset,
