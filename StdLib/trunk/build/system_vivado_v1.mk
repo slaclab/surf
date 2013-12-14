@@ -109,6 +109,7 @@ $(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(CORE_FILES) $(PROJE
 			 echo "   ln -s /tmp/build $(TOP_DIR)/build"; \
 			 echo ""; false; }
 	@test -d $(OUT_DIR) || mkdir $(OUT_DIR)
+	@cd $(OUT_DIR); ln -s $(PROJ_DIR)/../.. firmware
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_project_v1.tcl
 
 #### Vivado Batch #############################################
