@@ -1,9 +1,6 @@
 
 # Custom Procedure Script
 
-# Get environment
-set PROJ_DIR $::env(PROJ_DIR)
-
 # Force "pwd" function to be "pwd -L" and not "pwd -P"
 proc pwd { } {
    return $::env(PWD)
@@ -40,6 +37,24 @@ proc CheckTiming { } {
    } else {
       return true
    }
+}
+
+# Create a Debug Core Function
+proc CreateDebugCore {ilaName} {
+   create_debug_core ${ilaName} labtools_ila_v3
+   set_property C_DATA_DEPTH 1024       [get_debug_cores ${ilaName}]
+   set_property C_INPUT_PIPE_STAGES 2   [get_debug_cores ${ilaName}]
+}
+
+# Sets the clock on the debug core
+proc SetDebugCoreClk {ilaName clkNetName} {
+   set_property port_width 1 [get_debug_ports ${ilaName}/clk]
+   connect_debug_port ${ilaName}/clk [get_nets clkNetName]
+}
+
+# Get Current Debug Probe Function
+proc GetCurrentProbe {ilaName} {
+   return ${ilaName}/probe[expr [llength [get_debug_ports ${ilaName}/probe*]] - 1]
 }
 
 # Probe Configuring function
