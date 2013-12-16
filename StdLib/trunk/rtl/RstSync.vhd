@@ -22,16 +22,18 @@ entity RstSync is
       TPD_G           : time     := 1 ns;  -- Simulation FF output delay
       IN_POLARITY_G   : sl       := '1';   -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl       := '1';
-      RELEASE_DELAY_G : positive := 2);    -- Delay between deassertion of async and sync resets
+      RELEASE_DELAY_G : positive := 3);    -- Delay between deassertion of async and sync resets
    port (
       clk      : in  sl;
       asyncRst : in  sl;
       syncRst  : out sl);
 begin
-   assert (RELEASE_DELAY_G >= 2) report "RELEASE_DELAY_G must be >= 2" severity failure;
+   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
 end RstSync;
 
 architecture rtl of RstSync is
+
+   signal syncInt : sl := OUT_POLARITY_G;
 
 begin
 
@@ -41,13 +43,23 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => IN_POLARITY_G,
          RST_ASYNC_G    => true,
-         STAGES_G       => RELEASE_DELAY_G,
-         INIT_G         => slvAll(RELEASE_DELAY_G, OUT_POLARITY_G))
+         STAGES_G       => RELEASE_DELAY_G-1,
+         INIT_G         => slvAll(RELEASE_DELAY_G-1, OUT_POLARITY_G))
       port map (
          clk     => clk,
          rst     => asyncRst,
          dataIn  => not OUT_POLARITY_G,
-         dataOut => syncRst);
+         dataOut => syncInt);
+
+   -- Final stage does not have async constraints applied, can be duplicated to ease timing
+   OUT_REG: process (clk, asyncRst) is
+   begin
+      if (asyncRst = IN_POLARITY_G) then
+         syncRst <= OUT_POLARITY_G after TPD_G;
+      elsif (rising_edge(clk)) then
+         syncRst <= syncInt after TPD_G;
+      end if;
+   end process OUT_REG;
 
 end rtl;
 
