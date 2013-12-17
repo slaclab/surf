@@ -76,8 +76,10 @@ if { [get_ips] != " " } {
    
       # Build the IP Core
       create_ip_run [get_ips ${corePntr}]
-      launch_runs [get_runs ${corePntr}_synth_1]
-      wait_on_run ${corePntr}_synth_1
+      puts "\nBuilding ${corePntr}.xci IP Core ..."
+      launch_runs -quiet [get_runs ${corePntr}_synth_1]
+      wait_on_run -quiet ${corePntr}_synth_1
+      puts "... Build Complete!\n"
       
       # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
       set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
