@@ -22,7 +22,7 @@ create_project ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 add_files -fileset sources_1 ${RTL_FILES}
 
 # Add core Files
-if { ${CORE_FILES} != " " } {
+if { ${CORE_FILES} != "" } {
 
    # add the IP Cores
    add_files -fileset sources_1 ${CORE_FILES}
@@ -71,7 +71,7 @@ open_project -quiet ${VIVADO_PROJECT}
 
 # Generate all IP cores' output files
 generate_target -force all [get_ips]
-if { [get_ips] != " " } {
+if { [get_ips] != "" } {
    foreach corePntr [get_ips] {
    
       # Build the IP Core
