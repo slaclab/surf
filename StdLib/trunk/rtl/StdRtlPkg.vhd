@@ -25,7 +25,6 @@ package StdRtlPkg is
    -- Declare arrays of built in types
    type IntegerArray is array (integer range <>) of integer;
    type NaturalArray is array (natural range <>) of natural;
-   type StringArray  is array (natural range <>) of string;
    type RealArray    is array (natural range <>) of real;
    type TimeArray    is array (natural range <>) of time;
 
