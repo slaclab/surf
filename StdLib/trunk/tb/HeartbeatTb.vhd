@@ -63,24 +63,24 @@ begin
 
    Heartbeat_0 : entity work.Heartbeat
       generic map(
-         PERIOD_IN_G  => 4 ns,
-         PERIOD_OUT_G => 1000 ms)
+         PERIOD_IN_G  => 4.0E-9,
+         PERIOD_OUT_G => 1.0E-3)
       port map (
          clk => clkIn(0),
          o   => clkOut(0));  
 
    Heartbeat_1 : entity work.Heartbeat
       generic map(
-         PERIOD_IN_G  => 20 ns,
-         PERIOD_OUT_G => 1000 ms)
+         PERIOD_IN_G  => 20.0E-9,
+         PERIOD_OUT_G => 1.0E-3)
       port map (
          clk => clkIn(1),
          o   => clkOut(1));  
 
    Heartbeat_2 : entity work.Heartbeat
       generic map(
-         PERIOD_IN_G  => 6.4 ns,
-         PERIOD_OUT_G => 1000 ms)
+         PERIOD_IN_G  => 6.4E-9,
+         PERIOD_OUT_G => 1.0E-3)
       port map (
          clk => clkIn(2),
          o   => clkOut(2));         
