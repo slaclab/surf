@@ -24,9 +24,9 @@ export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
 # Get Project Version
 export PRJ_VERSION = $(shell grep MAKE_VERSION $(PROJ_DIR)/Version.vhd | sed 's|.*x"\(\S\+\)";.*|\1|')
 
-# Core Directories
+# Core Directories (IP cores that exist external of the project must have a physical path, not a logical path)
 export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/cores.txt))
-export CORE_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/cores.txt),$(A1)/$(A2))))
+export CORE_FILES = $(realpath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/cores.txt),$(A1)/$(A2))))
 
 # Source Files
 export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sources.txt))
@@ -34,7 +34,7 @@ export RTL_FILES   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(shell grep -v "\#"
 
 # XDC Files
 export XDC_LIST    = $(PROJ_DIR)/constraints.txt))
-export XDC_FILES   = $(abspath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
+export XDC_FILES   = $(realpath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
 
 define ACTION_HEADER
 @echo 
@@ -109,6 +109,7 @@ $(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(CORE_FILES) $(PROJE
 			 echo "   ln -s /tmp/build $(TOP_DIR)/build"; \
 			 echo ""; false; }
 	@test -d $(OUT_DIR) || mkdir $(OUT_DIR)
+	@cd $(OUT_DIR); rm -f firmware
 	@cd $(OUT_DIR); ln -s $(PROJ_DIR)/../.. firmware
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_project_v1.tcl
 

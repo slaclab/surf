@@ -18,18 +18,6 @@ update_compile_order -fileset sim_1
 reset_run synth_1
 reset_run impl_1
 
-# Generate all IP cores' output files
-generate_target all [get_ips]
-if { [get_ips] != " " } {
-   foreach corePntr [get_ips] {
-      create_ip_run [get_ips ${corePntr}]
-      if { [get_property PROGRESS [get_runs ${corePntr}_synth_1]]!="100\%" } {
-         launch_runs [get_runs ${corePntr}_synth_1]
-         wait_on_run ${corePntr}_synth_1
-      }
-   }
-}
-
 # Synthesize
 launch_run  synth_1
 wait_on_run synth_1
