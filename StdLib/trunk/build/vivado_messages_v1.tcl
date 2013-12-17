@@ -25,6 +25,7 @@ set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pi
 # Messages: Change from CRITICAL_WARNING to ERROR
 set_msg_config -id {Synth 8-3352} -new_severity ERROR;# SYNTH: multi-driven net
 set_msg_config -id {Vivado 12-1411} -new_severity ERROR;# SYNTH: Cannot set LOC property of differential pair ports
+set_msg_config -id {HDL 9-806} -new_severity ERROR;# SYNTH: Syntax error near *** (example: missing semicolon)
 
 # Messages: Change from ERROR to WARNING
 # TBD Place holder
