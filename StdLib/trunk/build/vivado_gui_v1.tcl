@@ -13,7 +13,7 @@ set VIVADO_PROJECT   $::env(VIVADO_PROJECT)
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 
 # Load Custom Procedures
-source ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
+source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 # Open the project
 open_project -quiet ${VIVADO_PROJECT}
