@@ -4,6 +4,7 @@
 # Get Environment Variables
 set XDC_FILES        $::env(XDC_FILES)
 set RTL_FILES        $::env(RTL_FILES)
+set SIM_FILES        $::env(SIM_FILES)
 set CORE_FILES       $::env(CORE_FILES)
 set PRJ_PART         $::env(PRJ_PART)
 set PROJECT          $::env(PROJECT)
@@ -15,13 +16,16 @@ set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 # Load Custom Procedures
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
-# Create a project
+# Create a Project
 create_project ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 
-# Add source Files
+# Add RTL Source Files
 add_files -fileset sources_1 ${RTL_FILES}
 
-# Add core Files
+# Add Simulation Source Files
+add_files -fileset sim_1 ${SIM_FILES}
+
+# Add Core Files
 if { ${CORE_FILES} != "" } {
 
    # add the IP Cores
@@ -36,7 +40,7 @@ if { ${CORE_FILES} != "" } {
 add_files -fileset constrs_1 ${XDC_FILES}
 set_property PATH_MODE AbsoluteOnly [get_files ${XDC_FILES}]
 
-# Set the top level
+# Set the Top Level 
 set_property top ${PROJECT} [current_fileset]
 
 # Set VHDL as preferred language

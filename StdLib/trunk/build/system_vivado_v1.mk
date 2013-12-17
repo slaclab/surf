@@ -36,6 +36,10 @@ export RTL_FILES   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(shell grep -v "\#"
 export XDC_LIST    = $(PROJ_DIR)/constraints.txt))
 export XDC_FILES   = $(realpath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
 
+# Simulation Files
+export SIM_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sim.txt))
+export SIM_FILES   = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/sim.txt),$(A1)/$(A2))))
+
 define ACTION_HEADER
 @echo 
 @echo    "============================================================================="

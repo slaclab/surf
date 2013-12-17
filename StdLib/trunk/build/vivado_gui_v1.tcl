@@ -4,6 +4,7 @@
 # Get variables
 set XDC_FILES        $::env(XDC_FILES)
 set RTL_FILES        $::env(RTL_FILES)
+set SIM_FILES        $::env(SIM_FILES)
 set CORE_FILES       $::env(CORE_FILES)
 set PRJ_PART         $::env(PRJ_PART)
 set PROJECT          $::env(PROJECT)
