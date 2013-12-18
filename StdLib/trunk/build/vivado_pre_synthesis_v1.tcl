@@ -3,6 +3,7 @@
 
 # Get Environment Variables
 set PROJ_DIR $::env(PROJ_DIR)
+set VIVADO_DIR     $::env(VIVADO_DIR)
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 
 # Setup build string
@@ -18,4 +19,7 @@ exec sed ${SEDS} ${PROJ_DIR}/Version.vhd > ${PROJ_DIR}/Version.new
 exec mv ${PROJ_DIR}/Version.new ${PROJ_DIR}/Version.vhd
 
 # Message Filtering Script
-source ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+
+# Target pre synthesis script
+source ${VIVADO_DIR}/pre_synthesis.tcl
