@@ -23,7 +23,12 @@ create_project ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 add_files -fileset sources_1 ${RTL_FILES}
 
 # Add Simulation Source Files
-add_files -fileset sim_1 ${SIM_FILES}
+if { ${SIM_FILES} != "" } {
+
+   # add the simulation files
+   add_files -fileset sim_1 ${SIM_FILES}
+   
+}
 
 # Add Core Files
 if { ${CORE_FILES} != "" } {
