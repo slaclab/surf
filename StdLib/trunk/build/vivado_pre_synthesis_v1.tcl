@@ -22,4 +22,4 @@ exec mv ${PROJ_DIR}/Version.new ${PROJ_DIR}/Version.vhd
 source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 
 # Target pre synthesis script
-source ${VIVADO_DIR}/pre_synthesis.tcl
+#source ${VIVADO_DIR}/pre_synthesis.tcl
