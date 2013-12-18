@@ -99,7 +99,7 @@ dir:
 	@test -d $*.xdc || echo "$*.xdc does not exist"; false;
 
 #### Vivado Project #############################################
-$(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(CORE_FILES) $(PROJECT_SETUP)
+$(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(PROJECT_SETUP)
 	$(call ACTION_HEADER,"Vivado Project Creation")
 	@test -d $(TOP_DIR)/build/ || { \
 			 echo ""; \
