@@ -5,11 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-09-19
+-- Last update: 2013-12-18
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as Block RAM only
+--
+-- NOTE: TDP ram with read enable logic is not supported.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -23,16 +25,19 @@ use work.StdRtlPkg.all;
 entity TrueDualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
-      TPD_G        : time                       := 1 ns;
-      ALTERA_RAM_G : string                     := "M9K";
-      MODE_G       : string                     := "write-first";
-      DATA_WIDTH_G : integer range 1 to (2**24) := 18;
-      ADDR_WIDTH_G : integer range 1 to (2**24) := 4);
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      ALTERA_RAM_G   : string                     := "M9K";
+      MODE_G         : string                     := "write-first";
+      DATA_WIDTH_G   : integer range 1 to (2**24) := 18;
+      ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
+      INIT_G         : slv                        := "0");
    port (
       -- Port A     
       clka  : in  sl                           := '0';
       ena   : in  sl                           := '1';
       wea   : in  sl                           := '0';
+      rsta  : in  sl                           := not(RST_POLARITY_G);
       addra : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       dina  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       douta : out slv(DATA_WIDTH_G-1 downto 0);
@@ -40,6 +45,7 @@ entity TrueDualPortRam is
       clkb  : in  sl                           := '0';
       enb   : in  sl                           := '1';
       web   : in  sl                           := '0';
+      rstb  : in  sl                           := not(RST_POLARITY_G);
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       dinb  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0));
@@ -61,9 +67,11 @@ begin
 end TrueDualPortRam;
 
 architecture rtl of TrueDualPortRam is
+   constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
+
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   shared variable mem : mem_type := (others => (others => '0'));
+   shared variable mem : mem_type := (others => INIT_C);
 
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
@@ -92,8 +100,10 @@ begin
       process(clka)
       begin
          if rising_edge(clka) then
-            if ena = '1' then
-               if wea = '1' then
+            if rsta = RST_POLARITY_G then
+               douta <= INIT_C after TPD_G;
+            else
+               if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) := dina;
                else
                   douta <= mem(conv_integer(addra)) after TPD_G;
@@ -106,8 +116,10 @@ begin
       process(clkb)
       begin
          if rising_edge(clkb) then
-            if enb = '1' then
-               if web = '1' then
+            if rstb = RST_POLARITY_G then
+               doutb <= INIT_C after TPD_G;
+            else
+               if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) := dinb;
                else
                   doutb <= mem(conv_integer(addrb)) after TPD_G;
@@ -123,9 +135,11 @@ begin
       process(clka)
       begin
          if rising_edge(clka) then
-            if ena = '1' then
+            if rsta = RST_POLARITY_G then
+               douta <= INIT_C after TPD_G;
+            else
                douta <= mem(conv_integer(addra)) after TPD_G;
-               if wea = '1' then
+               if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) := dina;
                end if;
             end if;
@@ -136,9 +150,11 @@ begin
       process(clkb)
       begin
          if rising_edge(clkb) then
-            if enb = '1' then
+            if rstb = RST_POLARITY_G then
+               doutb <= INIT_C after TPD_G;
+            else
                doutb <= mem(conv_integer(addrb)) after TPD_G;
-               if web = '1' then
+               if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) := dinb;
                end if;
             end if;
@@ -152,8 +168,10 @@ begin
       process(clka)
       begin
          if rising_edge(clka) then
-            if ena = '1' then
-               if wea = '1' then
+            if rsta = RST_POLARITY_G then
+               douta <= INIT_C after TPD_G;
+            else
+               if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) := dina;
                end if;
                douta <= mem(conv_integer(addra)) after TPD_G;
@@ -165,8 +183,10 @@ begin
       process(clkb)
       begin
          if rising_edge(clkb) then
-            if enb = '1' then
-               if web = '1' then
+            if rstb = RST_POLARITY_G then
+               doutb <= INIT_C after TPD_G;
+            else
+               if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) := dinb;
                end if;
                doutb <= mem(conv_integer(addrb)) after TPD_G;

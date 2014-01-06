@@ -1,0 +1,2 @@
+vhdl work rtl/DeviceDna.vhd
+vhdl work rtl/Iprog7Series.vhd

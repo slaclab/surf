@@ -27,28 +27,42 @@ entity QuadPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       REG_EN_G       : boolean                    := true;
+      MODE_G         : string                     := "no-change";
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
       -- Port A (Read/Write)
+      clka  : in  sl                           := '0';
+      en_a  : in  sl                           := '1';
       wea   : in  sl                           := '0';
+      rsta  : in  sl                           := not(RST_POLARITY_G);
       addra : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       dina  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       douta : out slv(DATA_WIDTH_G-1 downto 0);
       -- Port B (Read Only)
+      clkb  : in  sl                           := '0';
+      en_b  : in  sl                           := '1';
+      rstb  : in  sl                           := not(RST_POLARITY_G);
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0);
       -- Port C (Read Only)
+      en_c  : in  sl                           := '1';
+      clkc  : in  sl                           := '0';
+      rstc  : in  sl                           := not(RST_POLARITY_G);
       addrc : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutc : out slv(DATA_WIDTH_G-1 downto 0);
       -- Port D (Read Only)
+      en_d  : in  sl                           := '1';
+      clkd  : in  sl                           := '0';
+      rstd  : in  sl                           := not(RST_POLARITY_G);
       addrd : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      doutd : out slv(DATA_WIDTH_G-1 downto 0);
-      -- common 
-      clk   : in  sl;
-      rst   : in  sl                           := '0');
+      doutd : out slv(DATA_WIDTH_G-1 downto 0));
 begin
+   -- MODE_G check
+   assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
+      report "MODE_G must be either no-change, read-first, or write-first"
+      severity failure;
 end QuadPortRam;
 
 architecture rtl of QuadPortRam is
@@ -76,43 +90,85 @@ architecture rtl of QuadPortRam is
 begin
 
    -- Port A
-   process(clk)
-   begin
-      if rising_edge(clk) then
-         if wea = '1' then
-            mem(conv_integer(addra)) := dina;
-         end if;
-      end if;
-   end process;
-
-   PORT_A_REG : if (REG_EN_G = true) generate
-      process(clk)
+   PORT_A_NOT_REG : if (REG_EN_G = false) generate
+      
+      process(clka)
       begin
-         if rising_edge(clk) then
-            if rst = RST_POLARITY_G then
-               douta <= INIT_C after TPD_G;
-            else
-               douta <= mem(conv_integer(addra)) after TPD_G;
+         if rising_edge(clka) then
+            if (en_a = '1') and (wea = '1') then
+               mem(conv_integer(addra)) := dina;
             end if;
          end if;
       end process;
-   end generate;
 
-   PORT_A_NOT_REG : if (REG_EN_G = false) generate
       process(addra)
       begin
          douta <= mem(conv_integer(addra));
       end process;
+      
+   end generate;
+
+   PORT_A_REG : if (REG_EN_G = true) generate
+      
+      NO_CHANGE_MODE : if MODE_G = "no-change" generate
+         process(clka)
+         begin
+            if rising_edge(clka) then
+               if rsta = RST_POLARITY_G then
+                  douta <= INIT_C after TPD_G;
+               elsif en_a = '1' then
+                  if wea = '1' then
+                     mem(conv_integer(addra)) := dina;
+                  else
+                     douta <= mem(conv_integer(addra)) after TPD_G;
+                  end if;
+               end if;
+            end if;
+         end process;
+      end generate;
+
+      READ_FIRST_MODE : if MODE_G = "read-first" generate
+         process(clka)
+         begin
+            if rising_edge(clka) then
+               if rsta = RST_POLARITY_G then
+                  douta <= INIT_C after TPD_G;
+               elsif en_a = '1' then
+                  douta <= mem(conv_integer(addra)) after TPD_G;
+                  if wea = '1' then
+                     mem(conv_integer(addra)) := dina;
+                  end if;
+               end if;
+            end if;
+         end process;
+      end generate;
+
+      WRITE_FIRST_MODE : if MODE_G = "write-first" generate
+         process(clka)
+         begin
+            if rising_edge(clka) then
+               if rsta = RST_POLARITY_G then
+                  douta <= INIT_C after TPD_G;
+               elsif en_a = '1' then
+                  if wea = '1' then
+                     mem(conv_integer(addra)) := dina;
+                  end if;
+                  douta <= mem(conv_integer(addra)) after TPD_G;
+               end if;
+            end if;
+         end process;
+      end generate;
+
    end generate;
 
    -- Port B
    PORT_B_REG : if (REG_EN_G = true) generate
-      process(clk)
+      process(clkb)
       begin
-         if rising_edge(clk) then
-            if rst = RST_POLARITY_G then
+         if rising_edge(clkb) then
+            if rstb = RST_POLARITY_G then
                doutb <= INIT_C after TPD_G;
-            else
+            elsif en_b = '1' then
                doutb <= mem(conv_integer(addrb)) after TPD_G;
             end if;
          end if;
@@ -128,12 +184,12 @@ begin
 
    -- Port C
    PORT_C_REG : if (REG_EN_G = true) generate
-      process(clk)
+      process(clkc)
       begin
-         if rising_edge(clk) then
-            if rst = RST_POLARITY_G then
+         if rising_edge(clkc) then
+            if rstc = RST_POLARITY_G then
                doutc <= INIT_C after TPD_G;
-            else
+            elsif en_c = '1' then
                doutc <= mem(conv_integer(addrc)) after TPD_G;
             end if;
          end if;
@@ -149,12 +205,12 @@ begin
 
    -- Port D
    PORT_D_REG : if (REG_EN_G = true) generate
-      process(clk)
+      process(clkd)
       begin
-         if rising_edge(clk) then
-            if rst = RST_POLARITY_G then
+         if rising_edge(clkd) then
+            if rstc = RST_POLARITY_G then
                doutd <= INIT_C after TPD_G;
-            else
+            elsif en_d = '1' then
                doutd <= mem(conv_integer(addrd)) after TPD_G;
             end if;
          end if;

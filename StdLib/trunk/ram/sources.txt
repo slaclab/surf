@@ -1,0 +1,4 @@
+vhdl work rtl/DualPortRam.vhd
+vhdl work rtl/QuadPortRam.vhd
+vhdl work rtl/SimpleDualPortRam.vhd
+vhdl work rtl/TrueDualPortRam.vhd

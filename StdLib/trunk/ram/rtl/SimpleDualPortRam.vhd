@@ -41,7 +41,7 @@ entity SimpleDualPortRam is
       -- Port B
       clkb  : in  sl                           := '0';
       enb   : in  sl                           := '1';
-      rstb  : in  sl                           := '0';
+      rstb  : in  sl                           := not(RST_POLARITY_G);
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0));
 begin
