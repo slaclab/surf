@@ -173,6 +173,9 @@ $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bitbin : $(IMPL_DIR)/$(PROJECT).bitbin
 	@echo "Don't forget to 'svn commit' when the image is stable!"
 
 #### Makefile Targets ######################################
+.PHONY : depend
+depend : $(VIVADO_DEPEND)
+
 .PHONY : bit
 bit    : $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit 
 

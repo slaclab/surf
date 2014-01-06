@@ -18,8 +18,8 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 # Open the project
 open_project -quiet ${VIVADO_PROJECT}
-update_compile_order -fileset sources_1
-update_compile_order -fileset sim_1
+#update_compile_order -fileset sources_1
+#update_compile_order -fileset sim_1
 
 # Clean up runs
 reset_run synth_1

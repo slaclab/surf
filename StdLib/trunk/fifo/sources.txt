@@ -1,0 +1,6 @@
+vhdl work rtl/Fifo.vhd
+vhdl work rtl/FifoAsync.vhd
+vhdl work rtl/FifoAsyncBuiltIn.vhd
+vhdl work rtl/FifoMux.vhd
+vhdl work rtl/FifoSync.vhd
+vhdl work rtl/FifoSyncBuiltIn.vhd
