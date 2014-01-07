@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2013-11-01
+-- Last update: 2014-01-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 --
 -- Dependencies:  ^/StdLib/trunk/rtl/Fifo.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -35,7 +35,7 @@ entity FifoMux is
       ALTERA_RAM_G    : string                     := "M9K";
       USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
       XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
-      SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
+      SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
       WR_DATA_WIDTH_G : integer range 1 to (2**24) := 64;
       RD_DATA_WIDTH_G : integer range 1 to (2**24) := 16;
       LITTLE_ENDIAN_G : boolean                    := false;
@@ -92,10 +92,10 @@ architecture rtl of FifoMux is
       wrData => (others => (others => '0')),
       wrEn   => '0');
 
-   signal wrR, wrRin      : WrRegType := WR_REG_INIT_C;
-   signal fifo_din        : slv(FIFO_DATA_WIDTH_C-1 downto 0);
-   signal fifo_wr_en      : sl;
-   signal wrRst           : sl;
+   signal   wrR, wrRin    : WrRegType := WR_REG_INIT_C;
+   signal   fifo_din      : slv(FIFO_DATA_WIDTH_C-1 downto 0);
+   signal   fifo_wr_en    : sl;
+   signal   wrRst         : sl;
    -------------------------------------------------------------------------------------------------
    constant RD_LOGIC_EN_C : boolean   := (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G);
    constant RD_SIZE_C     : integer   := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
