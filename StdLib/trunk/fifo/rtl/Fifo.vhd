@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-14
--- Last update: 2013-09-19
--- Platform   : ISE 14.5
+-- Last update: 2014-01-07
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: FIFO Wrapper
@@ -16,7 +16,7 @@
 --                ^/StdLib/trunk/rtl/FifoSyncBuiltIn.vhd
 --                ^/StdLib/trunk/rtl/FifoAsyncBuiltIn.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -38,7 +38,7 @@ entity Fifo is
       ALTERA_RAM_G    : string                     := "M9K";
       USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
       XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
-      SYNC_STAGES_G   : integer range 2 to (2**24) := 2;
+      SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
       DATA_WIDTH_G    : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G    : integer range 4 to 48      := 4;
       INIT_G          : slv                        := "0";

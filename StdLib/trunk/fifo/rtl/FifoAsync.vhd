@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-11-20
--- Platform   : ISE 14.5
+-- Last update: 2014-01-07
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
@@ -16,7 +16,7 @@
 --                ^/StdLib/trunk/rtl/Synchronizer.vhd
 --                ^/StdLib/trunk/rtl/SimpleDualPortRam.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -35,7 +35,7 @@ entity FifoAsync is
       USE_DSP48_G    : string                     := "no";
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
-      SYNC_STAGES_G  : integer range 2 to (2**24) := 2;
+      SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G   : integer range 2 to 48      := 4;
       INIT_G         : slv                        := "0";

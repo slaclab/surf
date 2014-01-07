@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-11-20
--- Platform   : ISE 14.5
+-- Last update: 2014-01-07
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Xilinx's builtin
@@ -14,7 +14,7 @@
 -- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
 --                ^/StdLib/trunk/rtl/SynchronizerVector.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -35,7 +35,7 @@ entity FifoAsyncBuiltIn is
       FWFT_EN_G      : boolean                    := false;
       USE_DSP48_G    : string                     := "no";
       XIL_DEVICE_G   : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
-      SYNC_STAGES_G  : integer range 2 to (2**24) := 2;
+      SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
       DATA_WIDTH_G   : integer range 1 to 72      := 18;
       ADDR_WIDTH_G   : integer range 9 to 13      := 10;
       FULL_THRES_G   : integer range 1 to 8190    := 1;
@@ -150,7 +150,7 @@ architecture mapping of FifoAsyncBuiltIn is
       rstEmpty,
       rstFull,
       wrEn,
-      rstDet : sl := '0';      
+      rstDet : sl := '0';
 
    -- Attribute for XST
    attribute use_dsp48         : string;
@@ -219,7 +219,7 @@ begin
       port map (
          RST         => fifoWrRst,      -- 1-bit input reset
          WRCLK       => wr_clk,         -- 1-bit input write clock
-         WREN        => wrEn,          -- 1-bit input write enable
+         WREN        => wrEn,           -- 1-bit input write enable
          DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
          WRCOUNT     => wrAddrPntr,     -- Output write address pointer
          WRERR       => open,           -- 1-bit output write error
@@ -253,12 +253,12 @@ begin
    wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
 
    -- Full signals
-   wrEn        <= wr_en and not(rstFull);
+   wrEn          <= wr_en and not(rstFull);
    prog_full     <= '1'  when (wcnt > FULL_THRES_G)      else rstFull;
    almost_full   <= '1'  when (wcnt = (FIFO_LENGTH_C-2)) else (buildInFull or rstFull);
    full          <= buildInFull or rstFull;
    not_full      <= not(buildInFull or rstFull);
-   wr_data_count <= wcnt when(rstFull = '0')              else (others => '1');
+   wr_data_count <= wcnt when(rstFull = '0')             else (others => '1');
 
    process(wr_clk)
    begin
@@ -304,7 +304,7 @@ begin
    prog_empty    <= '1'  when (rcnt < EMPTY_THRES_G) else rstEmpty;
    almost_empty  <= '1'  when (rcnt = 1)             else (buildInEmpty or rstEmpty);
    empty         <= buildInEmpty or rstEmpty;
-   rd_data_count <= rcnt when(rstEmpty = '0')         else (others => '0');
+   rd_data_count <= rcnt when(rstEmpty = '0')        else (others => '0');
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
       process(rd_clk)
