@@ -42,8 +42,16 @@ if { ${CORE_FILES} != "" } {
 }
 
 # Add XDC FILES
-add_files -fileset constrs_1 ${XDC_FILES}
-set_property PATH_MODE AbsoluteOnly [get_files ${XDC_FILES}]
+if { ${XDC_FILES} != "" } {
+   set index 1
+   foreach xdcPntr ${XDC_FILES} {
+      add_files -fileset constrs_${index} ${xdcPntr}
+      set_property PATH_MODE AbsoluteOnly [get_files ${xdcPntr}]
+      incr index
+      create_fileset -constrset constrs_${index}
+   }
+   delete_fileset constrs_${index}
+}   
 
 # Set the Top Level 
 set_property top ${PROJECT} [current_fileset]
