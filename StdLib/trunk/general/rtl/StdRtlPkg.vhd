@@ -60,7 +60,7 @@ package StdRtlPkg is
    function allBits (vec : slv; test : sl) return boolean;
    function noBits (vec  : slv; test : sl) return boolean;
 
-   -- These just use uXor to calulate parity
+   -- These just use uXor to calculate parity
    -- Output is parity bit value needed to achieve that parity given vec.
    function evenParity (vec : slv) return sl;
    function oddParity (vec  : slv) return sl;
@@ -74,11 +74,14 @@ package StdRtlPkg is
    function max (left, right : integer) return integer;
    function min (left, right : integer) return integer;
 
-   -- One line if-then-else functions. Usefull for assigning constants based on generics.
+   -- One line if-then-else functions. Useful for assigning constants based on generics.
    function ite(i : boolean; t : sl; e : sl) return sl;
    function ite(i : boolean; t : slv; e : slv) return slv;
+   function ite(i : boolean; t : bit_vector; e : bit_vector) return bit_vector;
    function ite(i : boolean; t : string; e : string) return string;
    function ite(i : boolean; t : integer; e : integer) return integer;
+   function ite(i : boolean; t : real; e : real) return real;
+   function ite(i : boolean; t : time; e : time) return time;
 
    -- conv_std_logic_vector functions
    function toSlv(ARG : integer; SIZE : integer) return slv;
@@ -833,7 +836,7 @@ package body StdRtlPkg is
       return slv(grayEncode(unsigned(vec)));
    end function;
 
-   -- Get the binary equivalent of a gray code created with gray_encode.
+   -- Get the binary equivalent of a Gray code created with gray_encode.
    function grayDecode (vec : unsigned)
       return unsigned is
       variable retVar : unsigned(vec'range) := (others => '0');
@@ -872,16 +875,31 @@ package body StdRtlPkg is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
+   
+   function ite (i : boolean; t : bit_vector; e : bit_vector) return bit_vector is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;   
 
    function ite (i : boolean; t : string; e : string) return string is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
-
+  
    function ite (i : boolean; t : integer; e : integer) return integer is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
+
+   function ite (i : boolean; t : real; e : real) return real is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : time; e : time) return time is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;   
 
    -----------------------------
    -- Min and Max
