@@ -49,7 +49,6 @@ proc CreateDebugCore {ilaName} {
 # Sets the clock on the debug core
 proc SetDebugCoreClk {ilaName clkNetName} {
    set_property port_width 1 [get_debug_ports ${ilaName}/clk]
-   puts "$clkNetName"
    connect_debug_port ${ilaName}/clk [get_nets ${clkNetName}]
 }
 
