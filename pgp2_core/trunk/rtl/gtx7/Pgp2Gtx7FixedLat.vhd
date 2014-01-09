@@ -16,7 +16,7 @@
 --                ^/StdLib/trunk/rtl/CRC32Rtl.vhd
 --                ^/MgtLib/trunk/rtl/gtx7/Gtx7Core.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -50,9 +50,16 @@ entity Pgp2Gtx7Fixedlat is
       TXOUT_DIV_G           : integer    := 2;
       RX_CLK25_DIV_G        : integer    := 5;
       TX_CLK25_DIV_G        : integer    := 5;
+      
+      RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
+      RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXDFEXYDEN_G : sl         := '0';          -- Set by wizard
+      
+      -- RX Equalizer Attributes
+      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";  -- Set by wizard
       -- Configure PLL sources
-      TX_PLL_G              : string     := "CPLL";
-      RX_PLL_G              : string     := "QPLL";
+      TX_PLL_G              : string     := "QPLL";
+      RX_PLL_G              : string     := "CPLL";
 
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -64,6 +71,7 @@ entity Pgp2Gtx7Fixedlat is
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
+      gtCPllLock       : out sl;
       gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';
       gtQPllLock       : in  sl := '0';
@@ -326,6 +334,10 @@ begin
          RX_DLY_BYPASS_G       => '1',
          RX_DDIEN_G            => '0',
          RX_ALIGN_MODE_G       => "FIXED_LAT",
+         RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
+         RX_OS_CFG_G           => RX_OS_CFG_G,
+         RXCDR_CFG_G           => RXCDR_CFG_G,
+         RXDFEXYDEN_G          => RXDFEXYDEN_G,       
 --         ALIGN_COMMA_DOUBLE_G   => ALIGN_COMMA_DOUBLE_G,
 --         ALIGN_COMMA_ENABLE_G   => ALIGN_COMMA_ENABLE_G,
 --         ALIGN_COMMA_WORD_G     => ALIGN_COMMA_WORD_G,
@@ -349,6 +361,7 @@ begin
       port map (
          stableClkIn      => stableClk,
          cPllRefClkIn     => gtCPllRefClk,
+         cPllLockOut      => gtCPllLock,
          qPllRefClkIn     => gtQPllRefClk,
          qPllClkIn        => gtQPllClk,
          qPllLockIn       => gtQPllLock,

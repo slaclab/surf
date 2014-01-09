@@ -5,13 +5,13 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2013-11-22
+-- Last update: 2014-01-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2012 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 
@@ -46,8 +46,11 @@ entity Gtx7Core is
       RX_CLK25_DIV_G    : integer    := 5;  -- Set by wizard
       TX_CLK25_DIV_G    : integer    := 5;  -- Set by wizard
 
-      PMA_RSV_G : bit_vector := X"00018480";  -- Use X"00018480" when RXPLL=CPLL
-                                              -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
+      PMA_RSV_G    : bit_vector := X"00018480";  -- Use X"00018480" when RXPLL=CPLL
+                                                 -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
+      RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
+      RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXDFEXYDEN_G : sl         := '0';          -- Set by wizard
 
       -- Configure PLL sources
       TX_PLL_G : string := "CPLL";
@@ -151,7 +154,8 @@ entity Gtx7Core is
    port (
       stableClkIn : in sl;  -- Freerunning clock needed to drive reset logic
 
-      cPllRefClkIn : in sl := '0';      -- Drives CPLL if used
+      cPllRefClkIn : in  sl := '0';     -- Drives CPLL if used
+      cPllLockOut  : out sl;
 
       qPllRefClkIn     : in  sl := '0';  -- Signals from QPLL if used
       qPllClkIn        : in  sl := '0';
@@ -357,6 +361,8 @@ begin
    rxOutClkOut <= rxOutClkBufg;
 
    txRefClkOut <= txGtRefClk;
+
+   cPllLockOut <= cPllLock;
 
    --------------------------------------------------------------------------------------------------
    -- PLL Resets. Driven from TX Rst if both use same PLL
@@ -787,7 +793,7 @@ begin
          RX_CM_SEL         => ("11"),
          RX_CM_TRIM        => ("010"),
          RX_DEBUG_CFG      => ("000000000000"),
-         RX_OS_CFG         => ("0000010000000"),
+         RX_OS_CFG         => RX_OS_CFG_G,
          TERM_RCAL_CFG     => ("10000"),
          TERM_RCAL_OVRD    => ('0'),
          TST_RSV           => (x"00000000"),
@@ -826,7 +832,7 @@ begin
          RX_DEFER_RESET_BUF_EN      => ("TRUE"),
 
          -----------------------CDR Attributes-------------------------
-         RXCDR_CFG               => (x"03000023ff40200020"),
+         RXCDR_CFG               => RXCDR_CFG_G,
          RXCDR_FR_RESET_ON_EIDLE => ('0'),
          RXCDR_HOLD_DURING_EIDLE => ('0'),
          RXCDR_PH_RESET_ON_EIDLE => ('0'),
@@ -1091,7 +1097,7 @@ begin
          RXDFEVPHOLD      => '0',
          RXDFEVPOVRDEN    => '0',
          RXDFEVSEN        => '0',
-         RXDFEXYDEN       => '0',
+         RXDFEXYDEN       => RXDFEXYDEN_G,
          RXDFEXYDHOLD     => '0',
          RXDFEXYDOVRDEN   => '0',
          RXMONITOROUT     => open,

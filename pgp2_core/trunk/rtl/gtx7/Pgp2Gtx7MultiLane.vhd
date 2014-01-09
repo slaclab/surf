@@ -16,7 +16,7 @@
 --                ^/StdLib/trunk/rtl/CRC32Rtl.vhd
 --                ^/MgtLib/trunk/rtl/gtx7/Gtx7Core.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -49,9 +49,17 @@ entity Pgp2Gtx7MultiLane is
       TXOUT_DIV_G           : integer              := 2;
       RX_CLK25_DIV_G        : integer              := 7;
       TX_CLK25_DIV_G        : integer              := 7;
+      
+      RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
+      RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXDFEXYDEN_G : sl         := '0';          -- Set by wizard
+      
+      -- RX Equalizer Attributes
+      RX_DFE_KL_CFG2_G      : bit_vector := x"3010D90C";  -- Set by wizard
       -- Configure PLL sources
-      TX_PLL_G              : string               := "CPLL";
-      RX_PLL_G              : string               := "CPLL";
+      TX_PLL_G              : string     := "QPLL";
+      RX_PLL_G              : string     := "CPLL";
+      
       -- Configure Number of Lanes
       LANE_CNT_G            : integer range 1 to 4 := 2;
       ----------------------------------------------------------------------------------------------
@@ -64,6 +72,7 @@ entity Pgp2Gtx7MultiLane is
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtCPllRefClk     : in  sl;        -- Drives CPLL if used
+      gtCPllLock       : out sl;
       gtQPllRefClk     : in  sl;        -- Signals from QPLL if used
       gtQPllClk        : in  sl;
       gtQPllLock       : in  sl;
@@ -374,10 +383,14 @@ begin
             FTS_DESKEW_SEQ_ENABLE_G  => "1111",      -- Default
             FTS_LANE_DESKEW_CFG_G    => "1111",      -- Default
             FTS_LANE_DESKEW_EN_G     => "FALSE",     -- Default
-            RX_DFE_KL_CFG2_G         => x"3010D90C")
+            RX_OS_CFG_G              => RX_OS_CFG_G,
+            RXCDR_CFG_G              => RXCDR_CFG_G,
+            RXDFEXYDEN_G             => RXDFEXYDEN_G,
+            RX_DFE_KL_CFG2_G         => RX_DFE_KL_CFG2_G)
          port map (
             stableClkIn      => stableClk,
             cPllRefClkIn     => gtCPllRefClk,
+            cPllLockOut      => gtCPllLock,
             qPllRefClkIn     => gtQPllRefClk,
             qPllClkIn        => gtQPllClk,
             qPllLockIn       => gtQPllLock,
