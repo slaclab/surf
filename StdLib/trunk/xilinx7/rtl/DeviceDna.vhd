@@ -4,14 +4,14 @@
 -- File       : DS2411Core.vhd
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2007-12-19
+-- Created    : 2013-09-25
 -- Last update: 2013-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Controller for DS2411 serial ID Prom.
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -26,6 +26,7 @@ use work.StdRtlPkg.all;
 
 entity DeviceDna is
    generic (
+      SIM_DNA_VALUE_G : bit_vector := X"000000000000000";
       TPD_G : time := 1 ns);
    port (
       -- Clock & Reset Signals
@@ -120,6 +121,8 @@ begin
    end process sync;
 
    DNA_PORT_I : DNA_PORT
+      generic map (
+         SIM_DNA_VALUE => SIM_DNA_VALUE_G)
       port map (
          CLK   => r.dnaClk,
          READ  => r.dnaRead,

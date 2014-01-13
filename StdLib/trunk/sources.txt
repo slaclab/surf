@@ -30,6 +30,7 @@ vhdl work ram/rtl/TrueDualPortRam.vhd
 
 vhdl work xilinx7/rtl/DeviceDna.vhd
 vhdl work xilinx7/rtl/Iprog7Series.vhd
+vhdl work xilinx7/rtl/XadcSimpleCore.vhd
 
 vhdl work sync/rtl/Synchronizer.vhd
 vhdl work sync/rtl/SynchronizerEdge.vhd
