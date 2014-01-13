@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : DS2411Core.vhd
--- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
+-- File       : DeviceDna.vhd
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-25
--- Last update: 2013-09-25
+-- Last update: 2014-01-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Controller for DS2411 serial ID Prom.
+-- Description: Wrapper for the DNA_PORT
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -26,8 +26,9 @@ use work.StdRtlPkg.all;
 
 entity DeviceDna is
    generic (
-      SIM_DNA_VALUE_G : bit_vector := X"000000000000000";
-      TPD_G : time := 1 ns);
+      TPD_G           : time       := 1 ns;
+      IN_POLARITY_G   : sl         := '1';
+      SIM_DNA_VALUE_G : bit_vector := X"000000000000000");
    port (
       -- Clock & Reset Signals
       clk      : in  sl;
@@ -42,6 +43,7 @@ architecture rtl of DeviceDna is
 
    type RegType is record
       state    : StateType;
+      divCnt   : slv(3 downto 0);
       bitCount : slv(bitSize(64)-1 downto 0);
       dnaValue : slv(63 downto 0);
       dnaValid : sl;
@@ -52,6 +54,7 @@ architecture rtl of DeviceDna is
 
    constant REG_INIT_C : RegType := (
       state    => READ_S,
+      divCnt   => (others => '0'),
       bitCount => (others => '0'),
       dnaValue => (others => '0'),
       dnaValid => '0',
@@ -81,7 +84,7 @@ begin
             end if;
 
          when SHIFT_S =>
-            if (r.dnaClk = '1') then
+            if (r.dnaClk = '1') then    -- Falling edge of dnaClk next
                v.dnaRead  := '0';
                v.dnaShift := '1';
                if (r.dnaShift = '1') then
@@ -102,7 +105,7 @@ begin
          when others => null;
       end case;
 
-      if (rst = '1') then
+      if (rst = IN_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -121,14 +124,11 @@ begin
    end process sync;
 
    DNA_PORT_I : DNA_PORT
-      generic map (
-         SIM_DNA_VALUE => SIM_DNA_VALUE_G)
       port map (
          CLK   => r.dnaClk,
          READ  => r.dnaRead,
          SHIFT => r.dnaShift,
          DIN   => '0',
          DOUT  => dnaDout);
-
 
 end rtl;
