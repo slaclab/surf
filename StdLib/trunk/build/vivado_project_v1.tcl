@@ -38,20 +38,22 @@ if { ${CORE_FILES} != "" } {
    add_files -fileset sources_1 ${CORE_FILES}
 
    # Force Absolute Path (not relative to project)
-   set_property PATH_MODE AbsoluteOnly [get_files ${CORE_FILES}]
+   set_property PATH_MODE AbsoluteFirst [get_files ${CORE_FILES}]
    
 }
 
 # Add XDC FILES
 if { ${XDC_FILES} != "" } {
+
    set index 1
    foreach xdcPntr ${XDC_FILES} {
       add_files -fileset constrs_${index} ${xdcPntr}
-      set_property PATH_MODE AbsoluteOnly [get_files ${xdcPntr}]
+      set_property PATH_MODE AbsoluteFirst [get_files ${xdcPntr}]
       incr index
       create_fileset -constrset constrs_${index}
    }
    delete_fileset constrs_${index}
+   
 }   
 
 # Set the Top Level 
@@ -83,28 +85,19 @@ set_property STEPS.PHYS_OPT_DESIGN.TCL.PRE             ${VIVADO_BUILD_DIR}/vivad
 set_property STEPS.ROUTE_DESIGN.TCL.PRE                ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl [get_runs impl_1]
 set_property STEPS.WRITE_BITSTREAM.TCL.PRE             ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl [get_runs impl_1]
 
-# Close/Open the project required for setting NEEDS_REFRESH=0 for ${corePntr}_synth_1
-close_project
-open_project -quiet ${VIVADO_PROJECT}
-
 # Generate all IP cores' output files
-generate_target -force all [get_ips]
+generate_target all [get_ips]
 if { [get_ips] != "" } {
    foreach corePntr [get_ips] {
    
       # Build the IP Core
-      create_ip_run [get_ips ${corePntr}]
       puts "\nBuilding ${corePntr}.xci IP Core ..."
-      launch_runs -quiet [get_runs ${corePntr}_synth_1]
-      wait_on_run -quiet ${corePntr}_synth_1
+      synth_ip -quiet [get_ips ${corePntr}]
       puts "... Build Complete!\n"
       
       # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
       set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
       set_property is_enabled false [get_files ${xdcPntr}]
-      
-      # IP Core thinks it needs refreshing because PATH_MODE changed from RelativeOnly to AbsoluteOnly
-      set_property NEEDS_REFRESH false [get_runs ${corePntr}_synth_1]
       
    }
 }
