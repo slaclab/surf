@@ -1,18 +1,8 @@
 
 # Project Batch-Mode Build Script
 
-# Get Environment Variables
-set XDC_FILES        $::env(XDC_FILES)
-set RTL_FILES        $::env(RTL_FILES)
-set SIM_FILES        $::env(SIM_FILES)
-set CORE_FILES       $::env(CORE_FILES)
-set PRJ_PART         $::env(PRJ_PART)
-set PROJECT          $::env(PROJECT)
-set PROJ_DIR         $::env(PROJ_DIR)
-set OUT_DIR          $::env(OUT_DIR)
-set VIVADO_DIR       $::env(VIVADO_DIR)
-set VIVADO_PROJECT   $::env(VIVADO_PROJECT)
-set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+# Get variables
+source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
 # Load Custom Procedures
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
@@ -44,10 +34,17 @@ if { ${CORE_FILES} != "" } {
 
 # Add XDC FILES
 if { ${XDC_FILES} != "" } {
-
+   
    set index 1
    foreach xdcPntr ${XDC_FILES} {
       add_files -fileset constrs_${index} ${xdcPntr}
+      
+      # Set the out_of_context .XDC files
+      # NOTE: I need to write this "if statement" to check for project .xdc file instead of the index pointer (LLR - 14JAN2014)
+      if { ${index} != 1 } {
+         set_property USED_IN {synthesis implementation out_of_context} [get_files ${xdcPntr}]
+      }
+      
       set_property PATH_MODE AbsoluteFirst [get_files ${xdcPntr}]
       incr index
       create_fileset -constrset constrs_${index}
