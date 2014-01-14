@@ -1,10 +1,8 @@
 
 # Pre-Synthesis Build Script
 
-# Get Environment Variables
-set PROJ_DIR $::env(PROJ_DIR)
-set VIVADO_DIR     $::env(VIVADO_DIR)
-set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+# Get variables
+source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
 # Setup build string
 set DATE [exec date]
