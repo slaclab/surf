@@ -41,9 +41,8 @@ if { ${XDC_FILES} != "" } {
       add_files -fileset constrs_${index} ${xdcPntr}
       
       # Set the out_of_context .XDC files
-      # NOTE: I need to write this "if statement" to check for project .xdc file instead of the index pointer (LLR - 14JAN2014)
-      if { ${index} != 1 } {
-         set_property USED_IN {synthesis implementation out_of_context} [get_files ${xdcPntr}]
+      if { [lsearch ${xdcPntr} *${PROJECT}.xdc] != 0 } {
+         set_property USED_IN {synthesis out_of_context} [get_files ${xdcPntr}]
       }
       
       set_property PATH_MODE AbsoluteFirst [get_files ${xdcPntr}]
