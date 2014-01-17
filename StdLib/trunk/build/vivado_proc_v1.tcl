@@ -77,17 +77,26 @@ proc GenPartialReconfigDcp {rtlName} {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+  
+   # Get a list of all runs  
+   set LIST_RUNS [get_runs]   
    
-   # create a synthesis run
-   create_run -flow {Vivado Synthesis 2013} ${rtlName}_1
-   
+   # Check if RTL synthesis run already exists
+   if { [lsearch ${LIST_RUNS} ${rtlName}_1] == -1 } {
+      # create a RTL synthesis run
+      create_run -flow {Vivado Synthesis 2013} ${rtlName}_1
+   } else {
+      # Clean up the run
+      reset_run ${rtlName}_1   
+   }
+
    # Get a list of all the constraint file sets
    set CONSTRS_LIST [get_filesets constr*]
    
    # Search of the matching constraint
    foreach constrPntr ${CONSTRS_LIST} {
       set CONSTRS_NAME [get_files -of_objects ${constrPntr}]
-      if { [lsearch ${CONSTRS_NAME} *${rtlName}.xdc] == 0 } {
+      if { [lsearch ${CONSTRS_NAME} *${rtlName}.xdc] != -1 } {
          # Set the constraint file
          set_property constrset ${constrPntr} [get_runs ${rtlName}_1]   
       }
