@@ -69,7 +69,7 @@ proc CheckForReconfigCheckPoint { } {
    }
 }
 
-# Generate Partial Reconfiguration RTL Block function
+# Generate Partial Reconfiguration RTL Block's checkpoint
 proc GenPartialReconfigDcp {rtlName} {
 
    puts "\n\nGenerating ${rtlName} RTL ... \n\n"
@@ -89,18 +89,12 @@ proc GenPartialReconfigDcp {rtlName} {
       # Clean up the run
       reset_run ${rtlName}_1   
    }
-
-   # Get a list of all the constraint file sets
-   set CONSTRS_LIST [get_filesets constr*]
    
-   # Search of the matching constraint
-   foreach constrPntr ${CONSTRS_LIST} {
-      set CONSTRS_NAME [get_files -of_objects ${constrPntr}]
-      if { [lsearch ${CONSTRS_NAME} *${rtlName}.xdc] != -1 } {
-         # Set the constraint file
-         set_property constrset ${constrPntr} [get_runs ${rtlName}_1]   
-      }
-   }    
+   # Disable all constraint file 
+   set_property is_enabled false [get_files *.xdc]
+   
+   # Only enable the targeted XDC file
+   set_property is_enabled true [get_files ${rtlName}.xdc]   
    
    # Don't flatten the hierarchy
    set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY none [get_runs ${rtlName}_1]
@@ -143,8 +137,16 @@ proc InsertStaticReconfigDcp { } {
       GenPartialReconfigDcp ${rtlPntr}
    }
 
+   # Reset all the Partial Reconfiguration RTL Block(s) and 
+   # their XDC files to disabled
+   foreach rtlPntr ${RECONFIG_NAME} {
+      set_property is_enabled false [get_files ${rtlPntr}.vhd]
+      set_property is_enabled false [get_files ${rtlPntr}.xdc]
+   }   
+   
    # Reset the top level module
    set_property is_enabled true [get_files ${PROJECT}.vhd]
+   set_property is_enabled true [get_files ${PROJECT}.xdc]
    set_property top ${PROJECT} [current_fileset]
    
    # Reset the "needs_refresh" flag because of top level assignment juggling
@@ -153,13 +155,13 @@ proc InsertStaticReconfigDcp { } {
       set_property needs_refresh false [get_runs ${rtlPntr}_1]
    }   
    
-   # open the top level check point
-   open_checkpoint ${SYNTH_DIR}/${PROJECT}.dcp
-
    # Backup the top level checkpoint and reports
-   write_checkpoint -force ${SYNTH_DIR}/${PROJECT}_backup.dcp
+   file copy   -force ${SYNTH_DIR}/${PROJECT}.dcp                   ${SYNTH_DIR}/${PROJECT}_backup.dcp
    file rename -force ${SYNTH_DIR}/${PROJECT}_utilization_synth.rpt ${SYNTH_DIR}/${PROJECT}_utilization_synth_backup.rpt
    file rename -force ${SYNTH_DIR}/${PROJECT}_utilization_synth.pb  ${SYNTH_DIR}/${PROJECT}_utilization_synth_backup.pb
+   
+   # open the top level check point
+   open_checkpoint ${SYNTH_DIR}/${PROJECT}.dcp   
 
    # Load the top-level constraint file
    read_xdc [lsearch -all -inline ${XDC_FILES} *${PROJECT}.xdc]
@@ -219,7 +221,7 @@ proc ImportStaticReconfigDcp { } {
    set SYNTH_DIR ${OUT_DIR}/${PROJECT}_project.runs/synth_1
    
    # Backup the Partial Reconfiguration RTL Block checkpoint and reports
-   file copy -force ${SYNTH_DIR}/${PROJECT}.dcp ${SYNTH_DIR}/${PROJECT}_backup.dcp
+   file copy   -force ${SYNTH_DIR}/${PROJECT}.dcp                   ${SYNTH_DIR}/${PROJECT}_backup.dcp
    file rename -force ${SYNTH_DIR}/${PROJECT}_utilization_synth.rpt ${SYNTH_DIR}/${PROJECT}_utilization_synth_backup.rpt
    file rename -force ${SYNTH_DIR}/${PROJECT}_utilization_synth.pb  ${SYNTH_DIR}/${PROJECT}_utilization_synth_backup.pb
    
@@ -277,7 +279,7 @@ proc CreateDebugCore {ilaName} {
 
 # Sets the clock on the debug core
 proc SetDebugCoreClk {ilaName clkNetName} {
-   set_property port_width 1 [get_debug_ports ${ilaName}/clk]
+   set_property port_width 1 [get_debug_ports  ${ilaName}/clk]
    connect_debug_port ${ilaName}/clk [get_nets ${clkNetName}]
 }
 

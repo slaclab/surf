@@ -12,45 +12,41 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 create_project ${VIVADO_PROJECT} -force ${OUT_DIR} -part ${PRJ_PART}
 
 # Add RTL Source Files
-add_files -fileset sources_1 ${RTL_FILES}
+foreach rtlPntr ${RTL_FILES} {
+   # Add the RTL Files
+   add_files -fileset sources_1 ${rtlPntr}
+   # Force Absolute Path (not relative to project)
+   set_property PATH_MODE AbsoluteFirst [get_files ${rtlPntr}]
+}
 
 # Add Simulation Source Files
 if { ${SIM_FILES} != "" } {
-
-   # add the simulation files
-   add_files -fileset sim_1 ${SIM_FILES}
-   
+   foreach simPntr ${SIM_FILES} {
+      # Add the Simulation Files
+      add_files -fileset sim_1 ${simPntr} 
+      # Force Absolute Path (not relative to project)
+      set_property PATH_MODE AbsoluteFirst [get_files ${simPntr}]
+   }
 }
 
 # Add Core Files
 if { ${CORE_FILES} != "" } {
-
-   # add the IP Cores
-   add_files -fileset sources_1 ${CORE_FILES}
-
-   # Force Absolute Path (not relative to project)
-   set_property PATH_MODE AbsoluteFirst [get_files ${CORE_FILES}]
-   
+   foreach corePntr ${CORE_FILES} {
+      # Add the IP Cores
+      add_files -fileset sources_1 ${corePntr}
+      # Force Absolute Path (not relative to project)
+      set_property PATH_MODE AbsoluteFirst [get_files ${corePntr}]
+   }
 }
 
 # Add XDC FILES
 if { ${XDC_FILES} != "" } {
-   
-   set index 1
    foreach xdcPntr ${XDC_FILES} {
-      add_files -fileset constrs_${index} ${xdcPntr}
-      
-      # Set the out_of_context .XDC files
-      if { [lsearch ${xdcPntr} *${PROJECT}.xdc] != 0 } {
-         set_property USED_IN {synthesis out_of_context} [get_files ${xdcPntr}]
-      }
-      
+      # Add the Constraint Files
+      add_files -fileset constrs_1 ${xdcPntr}
+      # Force Absolute Path (not relative to project)
       set_property PATH_MODE AbsoluteFirst [get_files ${xdcPntr}]
-      incr index
-      create_fileset -constrset constrs_${index}
-   }
-   delete_fileset constrs_${index}
-   
+   }   
 }   
 
 # Set the Top Level 

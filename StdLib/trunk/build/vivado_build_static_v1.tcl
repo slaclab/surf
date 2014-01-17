@@ -20,11 +20,12 @@ open_project -quiet ${VIVADO_PROJECT}
 reset_run synth_1
 reset_run impl_1
 
-# Disable all the Partial Reconfiguration RTL Block(s)
-# before launching the top level synthesis run
+# Disable all the Partial Reconfiguration RTL Block(s) and 
+# their XDC files before launching the top level synthesis run
 set RECONFIG_NAME $::env(RECONFIG_NAME)
 foreach rtlPntr ${RECONFIG_NAME} {
    set_property is_enabled false [get_files ${rtlPntr}.vhd]
+   set_property is_enabled false [get_files ${rtlPntr}.xdc]
 }
 
 # Synthesize
