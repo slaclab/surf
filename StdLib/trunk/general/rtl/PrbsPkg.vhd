@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-10
--- Last update: 2013-12-11
+-- Last update: 2014-01-22
 -- Platform   : ISE 14.7
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,9 @@ package PrbsPkg is
    function getPrbs1xTap (input : slv; tap0 : natural) return slv;
    function getPrbs2xTap (input : slv; tap0, tap1 : natural) return slv;
    function getPrbs3xTap (input : slv; tap0, tap1, tap2 : natural) return slv;
-
+	function getPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv;
+	function getGaloisPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv;
+	
    -- Randomizer based LTC2270 IC
    function getXorRand (input : slv; tap : natural) return slv;  -- NOTE: same function for encoding and decoding
 
@@ -92,6 +94,56 @@ package body PrbsPkg is
       -- calculate the "xor'd" feedback
       retVar(input'left) := input(0) xor input(tap0) xor input(tap1) xor input(tap2);
 
+      --return the result
+      return retVar;
+      
+   end function;
+-------------------------------------------------------------------------------   
+   function getPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv is
+      variable retVar : slv(input'left downto 0) := (others => '0');
+   begin
+
+      --check for a valid tap location
+      assert (tap0 <= input'left) report "PrbsPkg: getPrbs3xTap's tap0 input is out of range" severity failure;
+      assert (tap1 <= input'left) report "PrbsPkg: getPrbs3xTap's tap1 input is out of range" severity failure;
+      assert (tap2 <= input'left) report "PrbsPkg: getPrbs3xTap's tap2 input is out of range" severity failure;
+      assert (tap3 <= input'left) report "PrbsPkg: getPrbs3xTap's tap3 input is out of range" severity failure;
+		
+      -- shift register
+      for i in (input'left - 1) downto 0 loop
+         retVar(i) := input(i+1);
+      end loop;
+
+      -- calculate the "xor'd" feedback
+      retVar(input'left) := input(tap0) xor input(tap1) xor input(tap2) xor input(tap3);
+
+      --return the result
+      return retVar;
+      
+   end function;
+-------------------------------------------------------------------------------   
+   function getGaloisPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv is
+      variable retVar : slv(input'left downto 0) := (others => '0');
+   begin
+
+      --check for a valid tap location
+      assert (tap0 <= input'left) report "PrbsPkg: getGaloisPrbs3xTap's tap0 input is out of range" severity failure;
+      assert (tap1 <= input'left) report "PrbsPkg: getGaloisPrbs3xTap's tap1 input is out of range" severity failure;
+      assert (tap2 <= input'left) report "PrbsPkg: getGaloisPrbs3xTap's tap2 input is out of range" severity failure;
+      assert (tap3 <= input'left) report "PrbsPkg: getGaloisPrbs3xTap's tap3 input is out of range" severity failure;
+		
+      -- shift register
+      for i in 0 to (input'left-1) loop
+         retVar(i) := input(i+1);
+      end loop;
+		retVar(retVar'left) := '0';
+
+		for i in 0 to (input'left) loop
+			if (i = tap0 or i = tap1 or i = tap2 or i = tap3) then
+				retVar(i) := retVar(i) xor input(0);
+			end if;
+		end loop;
+		
       --return the result
       return retVar;
       
