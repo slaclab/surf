@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2013-06-13
+-- Last update: 2014-01-27
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@
 -- purpose is to obtain an output clock that exactly matches the phase of the
 -- commas. 
 -------------------------------------------------------------------------------
--- Copyright (c) 2012 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -43,7 +43,7 @@ entity Gtx7RxFixedLatPhaseAligner is
       COMMA_3_G   : slv     := "XXXXXXXXXXXXXXXXXXXX");
    port (
       rxUsrClk             : in  sl;
-      rxRunPhAlignment     : in  sl;    -- From RxRst, active low reset, not clocked by rxUsrClk
+      rxRunPhAlignment     : in  sl;  -- From RxRst, active low reset, not clocked by rxUsrClk
       rxData               : in  slv(WORD_SIZE_G-1 downto 0);  -- Encoded raw rx data
       rxReset              : out sl;
       rxSlide              : out sl;    -- RXSLIDE input to GTX
@@ -59,16 +59,19 @@ architecture rtl of Gtx7RxFixedLatPhaseAligner is
 
    type RegType is record
       state                : StateType;
+      alignmentValue       : integer;
       last                 : slv(WORD_SIZE_G*2-1 downto 0);
       slideCount           : unsigned(bitSize(WORD_SIZE_G)-1 downto 0);
       slideWaitCounter     : unsigned(bitSize(SLIDE_WAIT_C)-1 downto 0);
       rxReset              : sl;
       rxSlide              : sl;        -- Output
       rxPhaseAlignmentDone : sl;        --Output
+      
    end record RegType;
 
    constant REG_RESET_C : RegType :=
       (state                => SEARCH_S,
+       alignmentValue       => 0,
        last                 => (others => '0'),
        slideCount           => (others => '0'),
        slideWaitCounter     => (others => '0'),
@@ -79,6 +82,9 @@ architecture rtl of Gtx7RxFixedLatPhaseAligner is
    signal r, rin : RegType := REG_RESET_C;
 
    signal rxRunPhAlignmentSync : sl;
+
+   attribute mark_debug      : string;
+   attribute mark_debug of r : signal is "TRUE";
    
 begin
 
@@ -94,7 +100,7 @@ begin
          syncRst  => rxRunPhAlignmentSync);
 
 
-   comb : process (r, rxData) is
+   comb : process (r, rxData, rxPhaseAlignmentDone, rxReset, rxSlide) is
       variable v : RegType;
    begin
       v := r;
@@ -109,19 +115,26 @@ begin
             for i in 0 to WORD_SIZE_G - 1 loop
                -- Look for pos or neg comma
                if (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_0_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
+                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G)) then  -- or
+--                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
+--                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
                   if (i = 0) then
-                     v.state := ALIGNED_S;
+                     -- Latch the Alignment Value
+                     v.alignmentValue := i;
+                     -- Data is Aligned
+                     v.state          := ALIGNED_S;
                   elsif (i mod 2 = 0) then
+                     -- Latch the Alignment Value
+                     v.alignmentValue := i;
                      -- Even number of slides needed
                      -- slideCount set to number of slides needed - 1
-                     v.slideCount := to_unsigned(i-1, bitSize(WORD_SIZE_G));
-                     v.state      := SLIDE_S;
+                     v.slideCount     := to_unsigned(i-1, bitSize(WORD_SIZE_G));
+                     v.state          := SLIDE_S;
                   else
+                     -- Latch the Alignment Value
+                     v.alignmentValue := i;
                      -- Reset the rx and hope for a new lock requiring an even number of slides
-                     v.state := RESET_S;
+                     v.state          := RESET_S;
                   end if;
                end if;
             end loop;
@@ -160,7 +173,7 @@ begin
       rxPhaseAlignmentDone <= r.rxPhaseAlignmentDone;
    end process comb;
 
-   seq : process (rxUsrClk, rxRunPhAlignmentSync) is
+   seq : process (rxRunPhAlignmentSync, rxUsrClk) is
    begin
       if (rising_edge(rxUsrClk)) then
          r <= rin after TPD_G;
