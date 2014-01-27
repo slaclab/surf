@@ -100,7 +100,7 @@ begin
          syncRst  => rxRunPhAlignmentSync);
 
 
-   comb : process (r, rxData, rxPhaseAlignmentDone, rxReset, rxSlide) is
+   comb : process (r, rxData) is
       variable v : RegType;
    begin
       v := r;
