@@ -67,9 +67,12 @@
 
 --*****************************************************************************
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+
 
 entity Gtx7RxRst is
    generic(
@@ -189,6 +192,16 @@ architecture RTL of Gtx7RxRst is
    signal data_valid_sync       : std_logic := '0';
    signal plllock_sync          : std_logic := '0';
    signal phalignment_done_sync : std_logic := '0';
+   
+  signal fsmCnt : std_logic_vector(15 downto 0);   
+  
+   attribute mark_debug : string;
+   attribute mark_debug of rx_state,
+      reset_time_out,
+      recclk_mon_restart_count,
+      retry_counter_int,
+      time_out_wait_bypass_s3,
+      data_valid_sync : signal is "TRUE";    
    
 begin
    --Alias section, signals used within this module mapped to output ports:
@@ -458,6 +471,7 @@ begin
             RXDFELFHOLD             <= '0';
             RXLPMLFHOLD             <= '0';
             RXLPMHFHOLD             <= '0';
+            fsmCnt                  <= (others=>'0');
 
          else
             
@@ -600,7 +614,7 @@ begin
                   run_phase_alignment_int <= '1';
                   reset_time_out          <= '0';
 
-                  if phalignment_done_sync = '1' then  --
+                  if phalignment_done_sync = '1' then 
                      rx_state       <= MONITOR_DATA_VALID;
                      reset_time_out <= '1';
                   end if;
@@ -620,9 +634,15 @@ begin
                   reset_time_out <= '0';
 
                   if (time_out_100us = '1' and (data_valid_sync = '0')) then
+                     fsmCnt                <= (others=>'0');
                      rx_state              <= ASSERT_ALL_RESETS;
                      rx_fsm_reset_done_int <= '0';
+                 elsif fsmCnt = x"FFFF" then
+                    fsmCnt                <= (others=>'0');
+                    rx_state              <= ASSERT_ALL_RESETS; 
+                    rx_fsm_reset_done_int <= '0';                          
                   elsif (data_valid_sync = '1') then
+                     fsmCnt                <= fsmCnt + 1;
                      rx_state              <= FSM_DONE;
                      rx_fsm_reset_done_int <= '0';
                      reset_time_out        <= '1';
