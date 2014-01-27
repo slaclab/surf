@@ -274,6 +274,7 @@ architecture rtl of Gtp7Core is
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
    signal rxRstTxUserRdy : sl;
+   signal rxPmaResetDone : sl;
 
    signal rxRecClkStable         : sl;
    signal rxRecClkMonitorRestart : sl;
@@ -303,6 +304,7 @@ architecture rtl of Gtp7Core is
    ----------------------------
    -- Tx Signals
    signal txGtRefClk : sl;
+   signal txOutClk   : sl;
 
    signal txPllReset : slv(1 downto 0);
 
@@ -311,6 +313,7 @@ architecture rtl of Gtp7Core is
    signal txUserRdyInt : sl;            -- GT TXUSERRDY
 
    signal txFsmResetDone : sl;
+   signal txPmaResetDone : sl;
 
    signal txResetPhAlignment   : sl;
    signal txRunPhAlignment     : sl;
@@ -396,6 +399,8 @@ begin
          STABLE_CLOCK           => stableClkIn,
          RXUSERCLK              => rxUsrClkIn,
          SOFT_RESET             => rxUserResetInt,
+         RXPMARESETDONE         => rxPmaResetDone,
+         RXOUTCLK               => rxOutClkBufg,         
          PLL0REFCLKLOST         => qPllRefClkLostIn(0),
          PLL1REFCLKLOST         => qPllRefClkLostIn(1),
          PLL0LOCK               => qPllLockIn(0),
@@ -558,6 +563,8 @@ begin
          STABLE_CLOCK      => stableClkIn,
          TXUSERCLK         => txUsrClkIn,
          SOFT_RESET        => txUserResetIn,
+         TXPMARESETDONE    => txPmaResetDone,
+         TXOUTCLK          => txOutClk,
          PLL0REFCLKLOST    => qPllRefClkLostIn(0),
          PLL1REFCLKLOST    => qPllRefClkLostIn(1),
          PLL0LOCK          => qPllLockIn(0),
@@ -965,7 +972,7 @@ begin
          CLKRSVD1             => '0',
          DMONFIFORESET        => '0',
          DMONITORCLK          => '0',
-         RXPMARESETDONE       => open,
+         RXPMARESETDONE       => rxPmaResetDone,
          SIGVALIDCLK          => '0',
          ------------------------- Receive Ports - CDR Ports ------------------------
          RXCDRFREQRESET       => '0',
@@ -1126,7 +1133,7 @@ begin
          GTRESETSEL           => '0',   -- Sequential Mode
          RESETOVRD            => '0',
          ------------------------------- Transmit Ports -----------------------------
-         TXPMARESETDONE       => open,
+         TXPMARESETDONE       => open,--ADD LLR
          ----------------- Transmit Ports - Configurable Driver Ports ---------------
          PMARSVDIN0           => '0',
          PMARSVDIN1           => '0',
@@ -1181,7 +1188,7 @@ begin
          TXMAINCURSOR         => "0000000",
          TXPISOPD             => '0',
          ----------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
-         TXOUTCLK             => txOutClkOut,
+         TXOUTCLK             => txOutClk,
          TXOUTCLKFABRIC       => txGtRefClk,
          TXOUTCLKPCS          => txOutClkPcsOut,
          TXOUTCLKSEL          => to_stdlogicvector(TX_OUTCLK_SEL_C),
