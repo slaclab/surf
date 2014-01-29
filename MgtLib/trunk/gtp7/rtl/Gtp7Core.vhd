@@ -447,7 +447,7 @@ begin
          I => rxOutClk,
          O => rxOutClkBufg);
 
-   BUFG_RX_REF_CLK : BUFG
+   BUFH_RX_REF_CLK : BUFH
       port map (
          I => rxGtRefClk,
          O => rxGtRefClkBufg);
