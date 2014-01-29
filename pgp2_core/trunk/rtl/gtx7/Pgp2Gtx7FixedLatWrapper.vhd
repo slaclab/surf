@@ -28,31 +28,33 @@ use unisim.vcomponents.all;
 entity Pgp2Gtx7FixedLatWrapper is
    generic (
       -- Select Master or Slave
-      MASTER_SEL_G         : boolean    := true;
+      MASTER_SEL_G         : boolean              := true;
+      -- Configure Number of Lanes
+      NUM_VC_EN_G          : integer range 1 to 4 := 4;
       -- QPLL Configurations
-      QPLL_FBDIV_G         : bit_vector := "0100100000";
-      QPLL_FBDIV_RATIO_G   : bit        := '1';
-      QPLL_REFCLK_DIV_G    : integer    := 1;
+      QPLL_FBDIV_G         : bit_vector           := "0100100000";
+      QPLL_FBDIV_RATIO_G   : bit                  := '1';
+      QPLL_REFCLK_DIV_G    : integer              := 1;
       -- CPLL Configurations
-      CPLL_FBDIV_G         : integer    := 4;
-      CPLL_FBDIV_45_G      : integer    := 5;
-      CPLL_REFCLK_DIV_G    : integer    := 1;
+      CPLL_FBDIV_G         : integer range 1 to 5 := 4;
+      CPLL_FBDIV_45_G      : integer range 4 to 5 := 5;
+      CPLL_REFCLK_DIV_G    : integer range 1 to 2 := 1;
       -- MMCM Configurations
-      MMCM_CLKIN_PERIOD_G  : real       := 8.000;
-      MMCM_CLKFBOUT_MULT_G : real       := 8.000;
-      MMCM_GTCLK_DIVIDE_G  : real       := 8.000;
-      MMCM_TXCLK_DIVIDE_G  : natural    := 8;
+      MMCM_CLKIN_PERIOD_G  : real                 := 8.000;
+      MMCM_CLKFBOUT_MULT_G : real                 := 8.000;
+      MMCM_GTCLK_DIVIDE_G  : real                 := 8.000;
+      MMCM_TXCLK_DIVIDE_G  : natural              := 8;
       -- MGT Configurations
-      RXOUT_DIV_G          : integer    := 2;
-      TXOUT_DIV_G          : integer    := 4;
-      RX_CLK25_DIV_G       : integer    := 5;  -- Set by wizard
-      TX_CLK25_DIV_G       : integer    := 5;  -- Set by wizard
-      RX_OS_CFG_G          : bit_vector := "0000010000000";  -- Set by wizard
-      RXCDR_CFG_G          : bit_vector := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G         : sl         := '0';              -- Set by wizard
-      RX_DFE_KL_CFG2_G     : bit_vector := x"3008E56A";
-      TX_PLL_G             : string     := "QPLL";
-      RX_PLL_G             : string     := "CPLL");
+      RXOUT_DIV_G          : integer              := 2;
+      TXOUT_DIV_G          : integer              := 4;
+      RX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
+      TX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
+      RX_OS_CFG_G          : bit_vector           := "0000010000000";  -- Set by wizard
+      RXCDR_CFG_G          : bit_vector           := x"03000023ff40200020";  -- Set by wizard
+      RXDFEXYDEN_G         : sl                   := '0';  -- Set by wizard
+      RX_DFE_KL_CFG2_G     : bit_vector           := x"3008E56A";
+      TX_PLL_G             : string               := "QPLL";
+      RX_PLL_G             : string               := "CPLL");
    port (
       -- Manual Reset
       extRst           : in  sl;
@@ -236,7 +238,8 @@ begin
 
    Pgp2Gtx7Fixedlat_Inst : entity work.Pgp2Gtx7Fixedlat
       generic map (
-         STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout
+         NUM_VC_EN_G           => NUM_VC_EN_G,
+         STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout 
          -- CPLL Settings -
          CPLL_REFCLK_SEL_G     => "111",
          CPLL_FBDIV_G          => CPLL_FBDIV_G,
