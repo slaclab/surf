@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-11-22
+-- Last update: 2014-01-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,29 +50,29 @@ entity Pgp2Gtx7Fixedlat is
       TXOUT_DIV_G           : integer    := 2;
       RX_CLK25_DIV_G        : integer    := 5;
       TX_CLK25_DIV_G        : integer    := 5;
-      
+
       RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G : sl         := '0';          -- Set by wizard
-      
+      RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
+
       -- RX Equalizer Attributes
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";  -- Set by wizard
+      RX_DFE_KL_CFG2_G : bit_vector := x"3008E56A";  -- Set by wizard
       -- Configure PLL sources
-      TX_PLL_G              : string     := "QPLL";
-      RX_PLL_G              : string     := "CPLL";
+      TX_PLL_G         : string     := "QPLL";
+      RX_PLL_G         : string     := "CPLL";
 
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      EnShortCells : integer := 1;      -- Enable short non-EOF cells
-      VcInterleave : integer := 1       -- Interleave Frames
-      );
+      EnShortCells : integer              := 1;  -- Enable short non-EOF cells
+      VcInterleave : integer              := 1;  -- Interleave Frames
+      NUM_VC_EN_G  : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
+      gtCPllRefClk     : in  sl := '0';          -- Drives CPLL if used
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
+      gtQPllRefClk     : in  sl := '0';          -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';
       gtQPllLock       : in  sl := '0';
       gtQPllRefClkLost : in  sl := '0';
@@ -254,7 +254,8 @@ begin
    Pgp2TxWrapper_1 : entity work.Pgp2TxWrapper
       generic map (
          TxLaneCnt    => 1,
-         VcInterleave => VcInterleave)
+         VcInterleave => VcInterleave,
+         NUM_VC_EN_G  => NUM_VC_EN_G)
       port map (
          pgpTxClk       => pgpTxClk,
          pgpTxReset     => pgpTxReset,
@@ -337,7 +338,7 @@ begin
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          RX_OS_CFG_G           => RX_OS_CFG_G,
          RXCDR_CFG_G           => RXCDR_CFG_G,
-         RXDFEXYDEN_G          => RXDFEXYDEN_G,       
+         RXDFEXYDEN_G          => RXDFEXYDEN_G,
 --         ALIGN_COMMA_DOUBLE_G   => ALIGN_COMMA_DOUBLE_G,
 --         ALIGN_COMMA_ENABLE_G   => ALIGN_COMMA_ENABLE_G,
 --         ALIGN_COMMA_WORD_G     => ALIGN_COMMA_WORD_G,

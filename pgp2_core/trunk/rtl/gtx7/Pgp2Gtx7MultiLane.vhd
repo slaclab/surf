@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-11-22
+-- Last update: 2014-01-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,42 +32,44 @@ use UNISIM.VCOMPONENTS.all;
 
 entity Pgp2Gtx7MultiLane is
    generic (
-      TPD_G                 : time                 := 1 ns;
+      TPD_G                 : time       := 1 ns;
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
       -- Sim Generics
-      SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
-      SIM_VERSION_G         : string               := "4.0";
-      STABLE_CLOCK_PERIOD_G : real                 := 6.4E-9;  --units of seconds
+      SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
+      SIM_VERSION_G         : string     := "4.0";
+      STABLE_CLOCK_PERIOD_G : real       := 6.4E-9;  --units of seconds
       -- CPLL Settings
-      CPLL_REFCLK_SEL_G     : bit_vector           := "001";
-      CPLL_FBDIV_G          : integer              := 4;
-      CPLL_FBDIV_45_G       : integer              := 5;
-      CPLL_REFCLK_DIV_G     : integer              := 1;
-      RXOUT_DIV_G           : integer              := 2;
-      TXOUT_DIV_G           : integer              := 2;
-      RX_CLK25_DIV_G        : integer              := 7;
-      TX_CLK25_DIV_G        : integer              := 7;
-      
+      CPLL_REFCLK_SEL_G     : bit_vector := "001";
+      CPLL_FBDIV_G          : integer    := 4;
+      CPLL_FBDIV_45_G       : integer    := 5;
+      CPLL_REFCLK_DIV_G     : integer    := 1;
+      RXOUT_DIV_G           : integer    := 2;
+      TXOUT_DIV_G           : integer    := 2;
+      RX_CLK25_DIV_G        : integer    := 7;
+      TX_CLK25_DIV_G        : integer    := 7;
+
       RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G : sl         := '0';          -- Set by wizard
-      
+      RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
+
       -- RX Equalizer Attributes
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3010D90C";  -- Set by wizard
+      RX_DFE_KL_CFG2_G : bit_vector := x"3010D90C";  -- Set by wizard
       -- Configure PLL sources
-      TX_PLL_G              : string     := "QPLL";
-      RX_PLL_G              : string     := "CPLL";
-      
+      TX_PLL_G         : string     := "QPLL";
+      RX_PLL_G         : string     := "CPLL";
+
       -- Configure Number of Lanes
-      LANE_CNT_G            : integer range 1 to 4 := 2;
+      LANE_CNT_G    : integer range 1 to 4 := 2;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PayloadCntTop         : integer              := 7;  -- Top bit for payload counter
-      EnShortCells          : integer              := 1;  -- Enable short non-EOF cells
-      VcInterleave          : integer              := 1);  -- Interleave Frames
+      PayloadCntTop : integer              := 7;  -- Top bit for payload counter
+      EnShortCells  : integer              := 1;  -- Enable short non-EOF cells
+      VcInterleave  : integer              := 1;  -- Interleave Frames
+      NUM_VC_EN_G   : integer range 1 to 4 := 4
+      );
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
@@ -231,7 +233,8 @@ begin
       generic map (
          TxLaneCnt     => LANE_CNT_G,
          VcInterleave  => VcInterleave,
-         PayloadCntTop => PayloadCntTop)
+         PayloadCntTop => PayloadCntTop,
+         NUM_VC_EN_G   => NUM_VC_EN_G)
       port map (
          pgpTxClk       => pgpTxClk,
          pgpTxReset     => pgpTxReset,
