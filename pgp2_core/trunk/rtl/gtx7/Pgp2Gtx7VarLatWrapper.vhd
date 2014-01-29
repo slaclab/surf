@@ -29,10 +29,6 @@ entity Pgp2Gtx7VarLatWrapper is
    generic (
       -- Configure Number of Lanes
       NUM_VC_EN_G          : integer range 1 to 4 := 4;
-      -- QPLL Configurations
-      QPLL_FBDIV_G         : bit_vector           := "0100100000";
-      QPLL_FBDIV_RATIO_G   : bit                  := '1';
-      QPLL_REFCLK_DIV_G    : integer              := 1;
       -- CPLL Configurations
       CPLL_FBDIV_G         : integer range 1 to 5 := 4;
       CPLL_FBDIV_45_G      : integer range 4 to 5 := 5;
@@ -44,21 +40,18 @@ entity Pgp2Gtx7VarLatWrapper is
       MMCM_TXCLK_DIVIDE_G  : natural              := 8;
       -- MGT Configurations
       RXOUT_DIV_G          : integer              := 2;
-      TXOUT_DIV_G          : integer              := 4;
+      TXOUT_DIV_G          : integer              := 2;
       RX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
       TX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
       RX_OS_CFG_G          : bit_vector           := "0000010000000";  -- Set by wizard
       RXCDR_CFG_G          : bit_vector           := x"03000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G         : sl                   := '0';  -- Set by wizard
-      RX_DFE_KL_CFG2_G     : bit_vector           := x"3008E56A";
-      TX_PLL_G             : string               := "QPLL";
-      RX_PLL_G             : string               := "CPLL");
+      RX_DFE_KL_CFG2_G     : bit_vector           := x"3008E56A")  -- Set by wizard
    port (
       -- Manual Reset
       extRst           : in  sl;
       -- Status and Clock Signals
-      txPllLock        : out sl;
-      rxPllLock        : out sl;
+      pllLock          : out sl;
       locClk           : out sl;
       locRst           : out sl;
       -- Non VC Rx Signals
@@ -86,8 +79,7 @@ end Pgp2Gtx7VarLatWrapper;
 
 architecture rtl of Pgp2Gtx7VarLatWrapper is
 
-   signal gtClk,
-      gtClkDiv2,
+   signal gtClkDiv2,
       stableClk,
       stableRst,
       locked,
@@ -96,21 +88,15 @@ architecture rtl of Pgp2Gtx7VarLatWrapper is
       clkFbIn,
       clkFbOut,
       txClock,
-      txRst,
-      pllRefClk,
       gtCPllRefClk,
       gtCPllLock,
       qPllOutClk,
       qPllOutRefClk,
       qPllLock,
-      pllLockDetClk,
-      qPllRefClkLost,
-      qPllReset,
-      gtQPllReset : sl := '0';
+      qPllRefClkLost : sl := '0';
 begin
    -- Set the status outputs
-   txPllLock <= ite((TX_PLL_G = "QPLL"), qPllLock, gtCPllLock);
-   rxPllLock <= ite((RX_PLL_G = "QPLL"), qPllLock, gtCPllLock);
+   pllLock   <= gtCPllLock;
    locClk    <= txClock;
    locRst    <= not(locked);
 
@@ -204,34 +190,18 @@ begin
    BUFG_2 : BUFG
       port map (
          I => clkOut0,
-         O => gtClk); 
+         O => gtCPllRefClk); 
 
    BUFG_3 : BUFG
       port map (
          I => clkOut1,
          O => txClock);  
-
-   txRst <= stableRst;
-
-   gtCPllRefClk  <= gtClk;
-   pllRefClk     <= gtClk;
-   pllLockDetClk <= stableClk;
-   qPllReset     <= stableRst or gtQPllReset;
-
-   QPllCore_1 : entity work.Gtx7QuadPll
-      generic map (
-         QPLL_REFCLK_SEL_G  => "111",
-         QPLL_FBDIV_G       => QPLL_FBDIV_G,
-         QPLL_FBDIV_RATIO_G => QPLL_FBDIV_RATIO_G,
-         QPLL_REFCLK_DIV_G  => QPLL_REFCLK_DIV_G)
-      port map (
-         qPllRefClk     => pllRefClk,
-         qPllOutClk     => qPllOutClk,
-         qPllOutRefClk  => qPllOutRefClk,
-         qPllLock       => qPllLock,
-         qPllLockDetClk => pllLockDetClk,
-         qPllRefClkLost => qPllRefClkLost,
-         qPllReset      => qPllReset);                    
+   
+   --Not using the Quad PLL any more
+   qPllOutRefClk  <= '0';
+   qPllOutClk     <= '0';
+   qPllLock       <= '1';
+   qPllRefClkLost <= '0';                     
 
    Pgp2Gtx7MultiLane_Inst : entity work.Pgp2Gtx7MultiLane
       generic map (
@@ -253,8 +223,8 @@ begin
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          -- Configure PLL sources
-         TX_PLL_G              => TX_PLL_G,
-         RX_PLL_G              => RX_PLL_G)
+         TX_PLL_G              => "CPLL",
+         RX_PLL_G              => "CPLL")
       port map (
          -- GT Clocking
          stableClk        => stableClk,
@@ -264,19 +234,19 @@ begin
          gtQPllClk        => qPllOutClk,
          gtQPllLock       => qPllLock,
          gtQPllRefClkLost => qPllRefClkLost,
-         gtQPllReset      => gtQPllReset,
+         gtQPllReset      => open,
          -- Gt Serial IO
          gtTxP(0)         => gtTxP,
          gtTxN(0)         => gtTxN,
          gtRxP(0)         => gtRxP,
          gtRxN(0)         => gtRxN,
          -- Tx Clocking
-         pgpTxReset       => txRst,
+         pgpTxReset       => stableRst,
          pgpTxClk         => txClock,
          pgpTxMmcmReset   => open,
          pgpTxMmcmLocked  => locked,
          -- Rx clocking
-         pgpRxReset       => txRst,
+         pgpRxReset       => stableRst,
          pgpRxRecClk      => open,
          pgpRxClk         => txClock,
          pgpRxMmcmReset   => open,
