@@ -5,13 +5,13 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2013-12-09
+-- Last update: 2014-01-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2012 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -88,10 +88,11 @@ entity Gtp7Core is
       RXSLIDE_MODE_G       : string     := "PCS";  -- Set to PMA for fixed latency operation
 
       -- Fixed Latency comma alignment (If RX_ALIGN_MODE_G = "FIXED_LAT")
-      FIXED_ALIGN_COMMA_0_G : slv := "----------0101111100";
-      FIXED_ALIGN_COMMA_1_G : slv := "----------1010000011";
-      FIXED_ALIGN_COMMA_2_G : slv := "XXXXXXXXXXXXXXXXXXXX";
-      FIXED_ALIGN_COMMA_3_G : slv := "XXXXXXXXXXXXXXXXXXXX";
+      FIXED_COMMA_EN_G      : slv(3 downto 0) := "0011";
+      FIXED_ALIGN_COMMA_0_G : slv             := "----------0101111100";
+      FIXED_ALIGN_COMMA_1_G : slv             := "----------1010000011";
+      FIXED_ALIGN_COMMA_2_G : slv             := "XXXXXXXXXXXXXXXXXXXX";
+      FIXED_ALIGN_COMMA_3_G : slv             := "XXXXXXXXXXXXXXXXXXXX";
 
       -- Configure RX 8B10B decoding (If RX_8B10B_EN_G = true)
       RX_DISPERR_SEQ_MATCH_G : string := "TRUE";
@@ -514,6 +515,7 @@ begin
          generic map (
             TPD_G       => TPD_G,
             WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
+            COMMA_EN_G  => FIXED_COMMA_EN_G,
             COMMA_0_G   => FIXED_ALIGN_COMMA_0_G,
             COMMA_1_G   => FIXED_ALIGN_COMMA_1_G,
             COMMA_2_G   => FIXED_ALIGN_COMMA_2_G,

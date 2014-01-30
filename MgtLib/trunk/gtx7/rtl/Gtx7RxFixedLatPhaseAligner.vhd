@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2014-01-27
+-- Last update: 2014-01-30
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,20 +27,19 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
---use work.Pgp2CoreTypesPkg.all;
-use work.StdRtlPkg.all;
---use work.SynchronizePkg.all;
 
+use work.StdRtlPkg.all;
 
 entity Gtx7RxFixedLatPhaseAligner is
    
    generic (
-      TPD_G       : time    := 1 ns;
-      WORD_SIZE_G : integer := 20;
-      COMMA_0_G   : slv     := "----------0101111100";
-      COMMA_1_G   : slv     := "----------1010000011";
-      COMMA_2_G   : slv     := "XXXXXXXXXXXXXXXXXXXX";
-      COMMA_3_G   : slv     := "XXXXXXXXXXXXXXXXXXXX");
+      TPD_G       : time            := 1 ns;
+      WORD_SIZE_G : integer         := 20;
+      COMMA_EN_G  : slv(3 downto 0) := "0011";
+      COMMA_0_G   : slv             := "----------0101111100";
+      COMMA_1_G   : slv             := "----------1010000011";
+      COMMA_2_G   : slv             := "XXXXXXXXXXXXXXXXXXXX";
+      COMMA_3_G   : slv             := "XXXXXXXXXXXXXXXXXXXX");
    port (
       rxUsrClk             : in  sl;
       rxRunPhAlignment     : in  sl;  -- From RxRst, active low reset, not clocked by rxUsrClk
@@ -114,10 +113,10 @@ begin
          when SEARCH_S =>
             for i in 0 to WORD_SIZE_G - 1 loop
                -- Look for pos or neg comma
-               if (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_0_G) or
-                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G)) then  -- or
---                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) or
---                   std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G)) then
+               if (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_0_G) and (COMMA_EN_G(0) = '1')) or
+                  (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_1_G) and (COMMA_EN_G(1) = '1')) or
+                  (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_2_G) and (COMMA_EN_G(2) = '1')) or
+                  (std_match(r.last((i+WORD_SIZE_G-1) downto i), COMMA_3_G) and (COMMA_EN_G(3) = '1')) then
                   if (i = 0) then
                      -- Latch the Alignment Value
                      v.alignmentValue := i;
