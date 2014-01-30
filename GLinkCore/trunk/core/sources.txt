@@ -1,0 +1,3 @@
+vhdl work rtl/GLinkPkg.vhd
+vhdl work rtl/GLinkEncoder.vhd
+vhdl work rtl/GLinkDecoder.vhd
