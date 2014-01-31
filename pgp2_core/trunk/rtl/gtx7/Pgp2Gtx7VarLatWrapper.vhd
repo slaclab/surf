@@ -54,6 +54,7 @@ entity Pgp2Gtx7VarLatWrapper is
       pllLock          : out sl;
       locClk           : out sl;
       locRst           : out sl;
+      stableClk        : out sl;
       -- Non VC Rx Signals
       pgpRxIn          : in  PgpRxInType;
       pgpRxOut         : out PgpRxOutType;
@@ -80,7 +81,7 @@ end Pgp2Gtx7VarLatWrapper;
 architecture rtl of Pgp2Gtx7VarLatWrapper is
 
    signal gtClkDiv2,
-      stableClk,
+      stableClock,
       stableRst,
       locked,
       clkOut0,
@@ -99,6 +100,7 @@ begin
    pllLock   <= gtCPllLock;
    locClk    <= txClock;
    locRst    <= not(locked);
+   stableClk <= stableClock;
 
    -- GT Reference Clock
    IBUFDS_GTE2_Inst : IBUFDS_GTE2
@@ -112,13 +114,13 @@ begin
    BUFG_G : BUFG
       port map (
          I => gtClkDiv2,
-         O => stableClk);
+         O => stableClock);
 
    -- Power Up Reset      
    PwrUpRst_Inst : entity work.PwrUpRst
       port map (
          arst   => extRst,
-         clk    => stableClk,
+         clk    => stableClock,
          rstOut => stableRst);
 
    mmcm_adv_inst : MMCME2_ADV
@@ -158,7 +160,7 @@ begin
          CLKOUT6      => open,
          -- Input clock control
          CLKFBIN      => clkFbIn,
-         CLKIN1       => stableClk,
+         CLKIN1       => stableClock,
          CLKIN2       => '0',
          -- Tied to always select the primary input clock
          CLKINSEL     => '1',
@@ -227,7 +229,7 @@ begin
          RX_PLL_G              => "CPLL")
       port map (
          -- GT Clocking
-         stableClk        => stableClk,
+         stableClk        => stableClock,
          gtCPllRefClk     => gtCPllRefClk,
          gtCPllLock       => gtCPllLock,
          gtQPllRefClk     => qPllOutRefClk,
