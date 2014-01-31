@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2014-01-30
+-- Last update: 2014-01-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -448,7 +448,7 @@ begin
          I => rxOutClk,
          O => rxOutClkBufg);
 
-   BUFH_RX_REF_CLK : BUFH
+   BUFG_RX_REF_CLK : BUFG
       port map (
          I => rxGtRefClk,
          O => rxGtRefClkBufg);
