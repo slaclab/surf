@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-01-29
+-- Last update: 2014-01-31
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,6 +58,7 @@ entity Pgp2Gtp7VarLatWrapper is
       rxPllLock        : out sl;
       locClk           : out sl;
       locRst           : out sl;
+      stableClk        : out sl;
       -- Non VC Rx Signals
       pgpRxIn          : in  PgpRxInType;
       pgpRxOut         : out PgpRxOutType;
@@ -85,7 +86,7 @@ architecture rtl of Pgp2Gtp7VarLatWrapper is
 
    signal gtClk,
       gtClkDiv2,
-      stableClk,
+      stableClock,
       stableRst,
       locked,
       clkOut0,
@@ -108,6 +109,7 @@ begin
    rxPllLock <= ite((RX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
    locClk    <= txClock;
    locRst    <= not(locked);
+   stableClk <= stableClock;
 
    -- GT Reference Clock
    IBUFDS_GTE2_Inst : IBUFDS_GTE2
@@ -121,13 +123,13 @@ begin
    BUFH_0 : BUFH
       port map (
          I => gtClkDiv2,
-         O => stableClk);
+         O => stableClock);
 
    -- Power Up Reset      
    PwrUpRst_Inst : entity work.PwrUpRst
       port map (
          arst   => extRst,
-         clk    => stableClk,
+         clk    => stableClock,
          rstOut => stableRst);
 
    mmcm_adv_inst : MMCME2_ADV
@@ -167,7 +169,7 @@ begin
          CLKOUT6      => open,
          -- Input clock control
          CLKFBIN      => clkFbIn,
-         CLKIN1       => stableClk,
+         CLKIN1       => stableClock,
          CLKIN2       => '0',
          -- Tied to always select the primary input clock
          CLKINSEL     => '1',
@@ -210,12 +212,12 @@ begin
 
    -- PLL0 Port Mapping
    pllRefClk(0)     <= gtClk;
-   pllLockDetClk(0) <= stableClk;
+   pllLockDetClk(0) <= stableClock;
    qPllReset(0)     <= stableRst or gtQPllReset(0);
 
    -- PLL1 Port Mapping
    pllRefClk(1)     <= gtClk;
-   pllLockDetClk(1) <= stableClk;
+   pllLockDetClk(1) <= stableClock;
    qPllReset(1)     <= stableRst or gtQPllReset(1);
 
    Quad_Pll_Inst : entity work.Gtp7QuadPll
@@ -254,7 +256,7 @@ begin
          RX_PLL_G              => RX_PLL_G)
       port map (
          -- GT Clocking
-         stableClk        => stableClk,
+         stableClk        => stableClock,
          gtQPllOutRefClk  => qPllOutRefClk,
          gtQPllOutClk     => qPllOutClk,
          gtQPllLock       => qPllLock,
