@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : GLinkGtx7FixedLat.vhd
+-- File       : GLinkGtp7FixedLat.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
@@ -19,76 +19,62 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
+use work.GlinkPkg.all;
 
-entity GLinkGtx7FixedLat is
+entity GLinkGtp7FixedLat is
    generic (
       -- Simulation Generics
       TPD_G                 : time       := 1 ns;
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "4.0";
       SIMULATION_G          : boolean    := false;
-      -- CPLL Settings
-      CPLL_REFCLK_SEL_G     : bit_vector := "001";
-      CPLL_FBDIV_G          : integer    := 4;
-      CPLL_FBDIV_45_G       : integer    := 5;
-      CPLL_REFCLK_DIV_G     : integer    := 1;
       -- MGT Settings
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;                -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;                -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0000010000000";  -- Set by wizard
-      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G          : sl         := '0';              -- Set by wizard
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";      -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
+      RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
+      RXLPM_INCM_CFG_G      : bit        := '1';  -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';  -- Set by wizard         
       -- Configure PLL sources
-      TX_PLL_G              : string     := "QPLL";
-      RX_PLL_G              : string     := "CPLL");
+      TX_PLL_G              : string     := "PLL0";
+      RX_PLL_G              : string     := "PLL1");
    port (
-      -- TX Data Interface from FPGA
-      txDataIn         : in  slv(15 downto 0);
-      txIdle           : in  sl;
-      txControl        : in  sl;
-      -- RX Data Interface to FPGA
-      rxDataOut        : out slv(15 downto 0);
-      rxIsControl      : out sl;
-      rxIsData         : out sl;
-      rxIsIdle         : out sl;
-      rxFlag           : out sl;
-      -- TX Clocking
-      txRst            : in  sl;
+      -- TX Signals
+      gLinkTx          : in  GLinkTxType;
       txClk            : in  sl;
-      -- RX Clocking
+      txRst            : in  sl;
+      -- RX Signals
+      gLinkRx          : out GLinkRxType;
+      rxClk            : in  sl;-- Run recClk through external MMCM and sent to this input
+      rxRecClk         : out sl;-- recovered clock
       rxRst            : in  sl;
-      rxRecClk         : out sl;        -- rxrecclk basically
-      rxRecClkRst      : out sl;        -- Reset for recovered clock
-      rxClk            : in  sl;  -- Run recClk through external MMCM and sent to this input
       rxMmcmRst        : out sl;
       rxMmcmLocked     : in  sl := '1';
       -- MGT Clocking
-      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
-      gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
-      gtQPllClk        : in  sl := '0';
-      gtQPllLock       : in  sl := '0';
-      gtQPllRefClkLost : in  sl := '0';
-      gtQPllReset      : out sl;
+      stableClk        : in  sl;-- GT needs a stable clock to "boot up"
+      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";-- Signals from QPLLs
+      gtQPllOutClk     : in  slv(1 downto 0) := "00";
+      gtQPllLock       : in  slv(1 downto 0) := "00";
+      gtQPllRefClkLost : in  slv(1 downto 0) := "00";
+      gtQPllReset      : out slv(1 downto 0);
       -- MGT loopback control
       loopback         : in  slv(2 downto 0);
       -- MGT Serial IO
-      gtRxN            : in  sl;
-      gtRxP            : in  sl;
+      gtTxP            : out sl;
       gtTxN            : out sl;
-      gtTxP            : out sl);
+      gtRxP            : in  sl;
+      gtRxN            : in  sl);
 
-end GLinkGtx7FixedLat;
+end GLinkGtp7FixedLat;
 
-architecture rtl of GLinkGtx7FixedLat is
+architecture rtl of GLinkGtp7FixedLat is
    
-   constant FIXED_ALIGN_COMMA_0_G : slv(19 downto 0) := x"FF003";  --FF0
-   constant FIXED_ALIGN_COMMA_1_G : slv(19 downto 0) := x"FE003";  --FF1A
-   constant FIXED_ALIGN_COMMA_2_G : slv(19 downto 0) := x"FF803";  --FF1B
+   constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := x"FF003";  --FF0
+   constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := x"FE003";  --FF1A
+   constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := x"FF803";  --FF1B
 
    signal gtTxRstDone,
       gtRxRstDone,
@@ -105,9 +91,9 @@ begin
       port map (
          clk         => txClk,
          rst         => gtTxRstDone,
-         idle        => txIdle,
-         control     => txControl,
-         rawData     => txDataIn,
+         idle        => gLinkTx.idle,
+         control     => gLinkTx.control,
+         rawData     => gLinkTx.data,
          encodedData => gtTxData);
 
    GLinkDecoder_Inst : entity work.GLinkDecoder
@@ -117,11 +103,11 @@ begin
          clk          => rxClk,
          rst          => gtRxRstDone,
          gtRxData     => gtRxData,
-         decodedData  => rxDataOut,
-         isControl    => rxIsControl,
-         isData       => rxIsData,
-         isIdle       => rxIsIdle,
-         flag         => rxFlag,
+         decodedData  => gLinkRx.data,
+         isControl    => gLinkRx.isControl,
+         isData       => gLinkRx.isData,
+         isIdle       => gLinkRx.isIdle,
+         flag         => gLinkRx.flag,
          decoderError => decoderError);
 
    dataValid <= not(decoderError);
@@ -134,14 +120,15 @@ begin
          SIM_VERSION_G         => SIM_VERSION_G,
          SIMULATION_G          => SIMULATION_G,
          STABLE_CLOCK_PERIOD_G => 4.0E-9,
-         CPLL_REFCLK_SEL_G     => CPLL_REFCLK_SEL_G,
-         CPLL_FBDIV_G          => CPLL_FBDIV_G,
-         CPLL_FBDIV_45_G       => CPLL_FBDIV_45_G,
-         CPLL_REFCLK_DIV_G     => CPLL_REFCLK_DIV_G,
          RXOUT_DIV_G           => RXOUT_DIV_G,
          TXOUT_DIV_G           => TXOUT_DIV_G,
          RX_CLK25_DIV_G        => RX_CLK25_DIV_G,
          TX_CLK25_DIV_G        => TX_CLK25_DIV_G,
+         PMA_RSV_G             => PMA_RSV_G,
+         RX_OS_CFG_G           => RX_OS_CFG_G,
+         RXCDR_CFG_G           => RXCDR_CFG_G,
+         RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
+         RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          TX_EXT_DATA_WIDTH_G   => 20,
@@ -160,10 +147,6 @@ begin
          RX_DLY_BYPASS_G       => '1',
          RX_DDIEN_G            => '0',
          RX_ALIGN_MODE_G       => "FIXED_LAT",
-         RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
-         RX_OS_CFG_G           => RX_OS_CFG_G,
-         RXCDR_CFG_G           => RXCDR_CFG_G,
-         RXDFEXYDEN_G          => RXDFEXYDEN_G,
          RXSLIDE_MODE_G        => "PMA",
          FIXED_COMMA_EN_G      => "0111",
          FIXED_ALIGN_COMMA_0_G => FIXED_ALIGN_COMMA_0_C,
@@ -172,10 +155,8 @@ begin
          FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")
       port map (
          stableClkIn      => stableClk,
-         cPllRefClkIn     => gtCPllRefClk,
-         cPllLockOut      => gtCPllLock,
-         qPllRefClkIn     => gtQPllRefClk,
-         qPllClkIn        => gtQPllClk,
+         qPllRefClkIn     => gtQPllOutRefClk,
+         qPllClkIn        => gtQPllOutClk,
          qPllLockIn       => gtQPllLock,
          qPllRefClkLostIn => gtQPllRefClkLost,
          qPllResetOut     => gtQPllReset,
