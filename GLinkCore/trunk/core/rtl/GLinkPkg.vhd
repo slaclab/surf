@@ -23,6 +23,34 @@ use work.StdRtlPkg.all;
 
 package GLinkPkg is
 
+   type GLinkTxType is record
+      control : sl; 
+      idle    : sl;   
+      data    : slv(15 downto 0); 
+   end record;
+   type GLinkTxTypeArray is array (natural range <>) of GLinkTxType;
+   type GLinkTxTypeVectorArray is array (natural range<>, natural range<>) of GLinkTxType;
+   constant GLINK_TX_INIT_C : GLinkTxType := (
+      '0',
+      '0',
+      (others => '0'));
+      
+   type GLinkRxType is record
+      isControl : sl; 
+      isIdle    : sl;   
+      isData    : sl;   
+      flag      : sl;   
+      data      : slv(15 downto 0); 
+   end record;
+   type GLinkRxTypeArray is array (natural range <>) of GLinkRxType;
+   type GLinkRxTypeVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
+   constant GLINK_RX_INIT_C : GLinkRxType := (
+      '0',
+      '0',
+      '0',
+      '0',
+      (others => '0'));        
+
    -- Valid C Field values
    constant GLINK_CONTROL_WORD_C            : slv(3 downto 0) := "0011";
    constant GLINK_CONTROL_WORD_INV_C        : slv(3 downto 0) := "1100";
