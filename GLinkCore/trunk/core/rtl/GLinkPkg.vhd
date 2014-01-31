@@ -25,12 +25,14 @@ package GLinkPkg is
 
    type GLinkTxType is record
       control : sl; 
-      idle    : sl;   
+      idle    : sl;
+      flag    : sl;
       data    : slv(15 downto 0); 
    end record;
    type GLinkTxTypeArray is array (natural range <>) of GLinkTxType;
    type GLinkTxTypeVectorArray is array (natural range<>, natural range<>) of GLinkTxType;
    constant GLINK_TX_INIT_C : GLinkTxType := (
+      '0',
       '0',
       '0',
       (others => '0'));
@@ -46,7 +48,7 @@ package GLinkPkg is
    type GLinkRxTypeVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
    constant GLINK_RX_INIT_C : GLinkRxType := (
       '0',
-      '0',
+      '1',
       '0',
       '0',
       (others => '0'));        

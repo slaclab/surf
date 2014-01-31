@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-01-30
+-- Last update: 2014-01-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,6 +23,8 @@ use work.GlinkPkg.all;
 
 entity GLinkGtx7FixedLat is
    generic (
+      -- GLink Settings
+      FLAGSEL_G             : boolean    := false;
       -- Simulation Generics
       TPD_G                 : time       := 1 ns;
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
@@ -52,16 +54,16 @@ entity GLinkGtx7FixedLat is
       txRst            : in  sl;
       -- RX Signals
       gLinkRx          : out GLinkRxType;
-      rxClk            : in  sl;-- Run recClk through external MMCM and sent to this input
-      rxRecClk         : out sl;-- recovered clock
+      rxClk            : in  sl;  -- Run recClk through external MMCM and sent to this input
+      rxRecClk         : out sl;        -- recovered clock
       rxRst            : in  sl;
       rxMmcmRst        : out sl;
       rxMmcmLocked     : in  sl := '1';
       -- MGT Clocking
-      stableClk        : in  sl;-- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl := '0';-- Drives CPLL if used
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';-- Signals from QPLL if used
+      gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';
       gtQPllLock       : in  sl := '0';
       gtQPllRefClkLost : in  sl := '0';
@@ -78,42 +80,45 @@ end GLinkGtx7FixedLat;
 
 architecture rtl of GLinkGtx7FixedLat is
    
-   constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := x"FF003";  --FF0
-   constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := x"FE003";  --FF1A
-   constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := x"FF803";  --FF1B
+   constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C;  --FF0
+   constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := GLINK_IDLE_WORD_FF1L_C & GLINK_CONTROL_WORD_C;  --FF1A
+   constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := GLINK_IDLE_WORD_FF1H_C & GLINK_CONTROL_WORD_C;  --FF1B
 
    signal gtTxRstDone,
       gtRxRstDone,
+      gtTxReset,
+      gtRxReset,
       decoderError,
       dataValid : sl;
    signal gtTxData,
       gtRxData : slv(19 downto 0);
 
 begin
-   
+
+   gtTxReset <= not(gtRxRstDone) or not(gtTxRstDone);
+   gtRxReset <= not(gtRxRstDone);
+
    GLinkEncoder_Inst : entity work.GLinkEncoder
       generic map (
-         RST_POLARITY_G => '0')  
+         TPD_G          => TPD_G,
+         FLAGSEL_G      => FLAGSEL_G,
+         RST_POLARITY_G => '1')  
       port map (
          clk         => txClk,
-         rst         => gtTxRstDone,
-         idle        => gLinkTx.idle,
-         control     => gLinkTx.control,
-         rawData     => gLinkTx.data,
+         rst         => gtTxReset,
+         gLinkTx     => gLinkTx,
          encodedData => gtTxData);
 
    GLinkDecoder_Inst : entity work.GLinkDecoder
       generic map (
-         RST_POLARITY_G => '0')  
+         TPD_G          => TPD_G,
+         FLAGSEL_G      => FLAGSEL_G,
+         RST_POLARITY_G => '1')  
       port map (
          clk          => rxClk,
-         rst          => gtRxRstDone,
+         rst          => gtRxReset,
          gtRxData     => gtRxData,
-         decodedData  => gLinkRx.data,
-         isControl    => gLinkRx.isControl,
-         isData       => gLinkRx.isData,
-         isIdle       => gLinkRx.isIdle,
-         flag         => gLinkRx.flag,
+         gLinkRx      => gLinkRx,
          decoderError => decoderError);
 
    dataValid <= not(decoderError);
