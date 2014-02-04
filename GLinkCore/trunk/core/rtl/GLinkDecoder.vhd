@@ -42,8 +42,13 @@ architecture rtl of GLinkDecoder is
       gLinkRx      : GLinkRxType;
       error        : sl;
    end record;
+   
+   constant REG_TYPE_INIT_C : RegType := (
+      (others => '0'),
+      GLINK_RX_INIT_C,
+      '0');      
 
-   signal r, rin : RegType;
+   signal r, rin : RegType := REG_TYPE_INIT_C;
    
 begin
 
@@ -51,9 +56,7 @@ begin
    begin
       if rising_edge(clk) then
          if rst = RST_POLARITY_G then
-            r.lastGtRxData <= (others => '0') after TPD_G;
-            r.gLinkRx      <= GLINK_RX_INIT_C after TPD_G;
-            r.error        <= '0'             after TPD_G;
+            r <= REG_TYPE_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
          end if;

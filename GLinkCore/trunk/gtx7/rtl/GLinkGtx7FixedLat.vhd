@@ -52,6 +52,7 @@ entity GLinkGtx7FixedLat is
       gLinkTx          : in  GLinkTxType;
       txClk            : in  sl;
       txRst            : in  sl;
+      txReady          : out sl;
       -- RX Signals
       gLinkRx          : out GLinkRxType;
       rxClk            : in  sl;  -- Run recClk through external MMCM and sent to this input
@@ -59,6 +60,7 @@ entity GLinkGtx7FixedLat is
       rxRst            : in  sl;
       rxMmcmRst        : out sl;
       rxMmcmLocked     : in  sl := '1';
+      rxReady          : out sl;
       -- MGT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
@@ -89,11 +91,24 @@ architecture rtl of GLinkGtx7FixedLat is
       gtTxReset,
       gtRxReset,
       decoderError,
-      dataValid : sl;
+      dataValid : sl := '0';
    signal gtTxData,
-      gtRxData : slv(19 downto 0);
+      gtRxData : slv(19 downto 0) := (others=>'0');
+      
+   attribute mark_debug : string;
+   attribute mark_debug of gtTxData,
+      gtRxData,
+      gtTxRstDone,
+      gtRxRstDone,
+      gtTxReset,
+      gtRxReset,
+      decoderError,
+      dataValid : signal is "TRUE";        
 
 begin
+
+   txReady <= gtTxRstDone;
+   rxReady <= gtRxRstDone;
 
    gtTxReset <= not(gtRxRstDone) or not(gtTxRstDone);
    gtRxReset <= not(gtRxRstDone);
@@ -148,8 +163,8 @@ begin
          RX_INT_DATA_WIDTH_G   => 20,
          RX_8B10B_EN_G         => false,
          TX_BUF_EN_G           => false,
-         TX_OUTCLK_SRC_G       => "PLLREFCLK",
-         TX_DLY_BYPASS_G       => '0',
+         TX_OUTCLK_SRC_G       => "OUTCLKPMA",
+         TX_DLY_BYPASS_G       => '1',
          TX_PHASE_ALIGN_G      => "MANUAL",
          RX_BUF_EN_G           => false,
          RX_OUTCLK_SRC_G       => "OUTCLKPMA",

@@ -1,1 +1,2 @@
 vhdl work rtl/GLinkGtx7FixedLat.vhd
+vhdl work rtl/GLinkGtx7FixedLatWrapper.vhd
