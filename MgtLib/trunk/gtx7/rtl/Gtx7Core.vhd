@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2014-01-31
+-- Last update: 2014-02-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -13,7 +13,6 @@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
-
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -262,6 +261,9 @@ architecture rtl of Gtx7Core is
    constant TX_DATA_WIDTH_C : integer := getDataWidth(TX_8B10B_EN_G, TX_EXT_DATA_WIDTH_G);
 
    constant WAIT_TIME_CDRLOCK_C : integer := ite(SIM_GTRESET_SPEEDUP_G = "TRUE", 16, 65520);
+   
+   constant RX_INT_DATAWIDTH_C : integer := (RX_INT_DATA_WIDTH_G/32);
+   constant TX_INT_DATAWIDTH_C : integer := (TX_INT_DATA_WIDTH_G/32);   
 
    --------------------------------------------------------------------------------------------------
    -- Signals
@@ -353,8 +355,10 @@ architecture rtl of Gtx7Core is
    signal txDlyEn              : sl;    -- GT TXDLYEN
 
    -- Tx Data Signals
-   signal txDataFull    : slv(63 downto 0);
-   signal txCharIsKFull : slv(7 downto 0);
+   signal txDataFull     : slv(63 downto 0) := (others=>'0');
+   signal txCharIsKFull,
+      txCharDispMode,
+      txCharDispVal  : slv(7 downto 0) := (others=>'0');
    
 begin
 
@@ -397,10 +401,10 @@ begin
          rxDecErrOut  <= rxDecErrFull((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       else
          for i in RX_EXT_DATA_WIDTH_G-1 downto 0 loop
-            if ((i-8) mod 10 = 0) then
-               rxDataInt(i) <= rxCharIsKFull((i-8)/10);
-            elsif ((i-9) mod 10 = 0) then
+            if ((i-9) mod 10 = 0) then
                rxDataInt(i) <= rxDispErrFull((i-9)/10);
+            elsif ((i-8) mod 10 = 0) then
+               rxDataInt(i) <= rxCharIsKFull((i-8)/10);
             else
                rxDataInt(i) <= rxDataFull(i-2*(i/10));
             end if;
@@ -579,19 +583,32 @@ begin
       rxDlySReset          <= '0';
    end generate;
 
-
-
    --------------------------------------------------------------------------------------------------
    -- Tx Logic
    --------------------------------------------------------------------------------------------------
-   -- Fit GTX port sizes to 16 bit interface
-   TX_DATA_GLUE : process (txCharIsKIn, txDataIn) is
+
+   TX_DATA_8B10B_GLUE : process (txCharIsKIn, txDataIn) is
    begin
-      txDataFull                                        <= (others => '0');
-      txDataFull(TX_EXT_DATA_WIDTH_G-1 downto 0)        <= txDataIn;
-      txCharIsKFull                                     <= (others => '0');
-      txCharIsKFull((TX_EXT_DATA_WIDTH_G/8)-1 downto 0) <= txCharIsKIn;
-   end process TX_DATA_GLUE;
+      if (TX_8B10B_EN_G) then
+         txDataFull                                        <= (others => '0');
+         txDataFull(TX_EXT_DATA_WIDTH_G-1 downto 0)        <= txDataIn;
+         txCharIsKFull                                     <= (others => '0');
+         txCharIsKFull((TX_EXT_DATA_WIDTH_G/8)-1 downto 0) <= txCharIsKIn;
+         txCharDispMode                                    <= (others => '0');
+         txCharDispVal                                     <= (others => '0');
+      else
+         for i in TX_EXT_DATA_WIDTH_G-1 downto 0 loop
+            if ((i-9) mod 10 = 0) then
+               txCharDispMode((i-9)/10) <= txDataIn(i);
+            elsif ((i-8) mod 10 = 0) then
+               txCharDispVal((i-8)/10) <= txDataIn(i);
+            else
+               txDataFull(i-2*(i/10))  <= txDataIn(i);
+            end if;
+         end loop;
+         txCharIsKFull <= (others => '0');
+      end if;
+   end process TX_DATA_8B10B_GLUE;   
 
    -- Mux proper PLL Lock signal onto txPllLock
    txPllLock <= cPllLock when (TX_PLL_G = "CPLL") else qPllLockIn when (TX_PLL_G = "QPLL") else '0';
@@ -955,10 +972,10 @@ begin
          TX_CLKMUX_PD => ('1'),
 
          -------------------------FPGA RX Interface Attribute-------------------------
-         RX_INT_DATAWIDTH => (RX_INT_DATA_WIDTH_G/32),
+         RX_INT_DATAWIDTH => RX_INT_DATAWIDTH_C,
 
          -------------------------FPGA TX Interface Attribute-------------------------
-         TX_INT_DATAWIDTH => (TX_INT_DATA_WIDTH_G/32),
+         TX_INT_DATAWIDTH => TX_INT_DATAWIDTH_C,
 
          ------------------TX Configurable Driver Attributes---------------
          TX_QPI_STATUS_EN => ('0'),
@@ -1178,8 +1195,8 @@ begin
          ---------------- Transmit Ports - 8b10b Encoder Control Ports --------------
          TX8B10BBYPASS    => X"00",
          TX8B10BEN        => toSl(TX_8B10B_EN_G),
-         TXCHARDISPMODE   => X"00",
-         TXCHARDISPVAL    => X"00",
+         TXCHARDISPMODE   => txCharDispMode,
+         TXCHARDISPVAL    => txCharDispVal,
          TXCHARISK        => txCharIsKFull,
          ------------ Transmit Ports - TX Buffer and Phase Alignment Ports ----------
          TXBUFSTATUS      => txBufStatusOut,

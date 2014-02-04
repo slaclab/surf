@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2014-01-31
+-- Last update: 2014-02-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ architecture rtl of Gtp7Core is
    constant GT_TYPE_C : string := "GTP";
 
    constant WAIT_TIME_CDRLOCK_C : integer := ite(SIM_GTRESET_SPEEDUP_G = "TRUE", 16, 65520);
-
+   
    --------------------------------------------------------------------------------------------------
    -- Signals
    --------------------------------------------------------------------------------------------------
@@ -329,8 +329,10 @@ architecture rtl of Gtp7Core is
    signal txDlyEn              : sl;    -- GT TXDLYEN
 
    -- Tx Data Signals
-   signal txDataFull    : slv(31 downto 0);
-   signal txCharIsKFull : slv(3 downto 0);
+   signal txDataFull     : slv(31 downto 0) := (others=>'0');
+   signal txCharIsKFull,
+      txCharDispMode,
+      txCharDispVal  : slv(3 downto 0) := (others=>'0');
    
 begin
 
@@ -356,10 +358,10 @@ begin
          rxDecErrOut  <= rxDecErrFull((RX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       else
          for i in RX_EXT_DATA_WIDTH_G-1 downto 0 loop
-            if ((i-8) mod 10 = 0) then
-               rxDataInt(i) <= rxCharIsKFull((i-8)/10);
-            elsif ((i-9) mod 10 = 0) then
+            if ((i-9) mod 10 = 0) then
                rxDataInt(i) <= rxDispErrFull((i-9)/10);
+            elsif ((i-8) mod 10 = 0) then
+               rxDataInt(i) <= rxCharIsKFull((i-8)/10);
             else
                rxDataInt(i) <= rxDataFull(i-2*(i/10));
             end if;
@@ -540,14 +542,29 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Logic
    --------------------------------------------------------------------------------------------------
-   -- Fit GTX port sizes to 16 bit interface
-   TX_DATA_GLUE : process (txCharIsKIn, txDataIn) is
+
+   TX_DATA_8B10B_GLUE : process (txCharIsKIn, txDataIn) is
    begin
-      txDataFull                                        <= (others => '0');
-      txDataFull(TX_EXT_DATA_WIDTH_G-1 downto 0)        <= txDataIn;
-      txCharIsKFull                                     <= (others => '0');
-      txCharIsKFull((TX_EXT_DATA_WIDTH_G/8)-1 downto 0) <= txCharIsKIn;
-   end process TX_DATA_GLUE;
+      if (TX_8B10B_EN_G) then
+         txDataFull                                        <= (others => '0');
+         txDataFull(TX_EXT_DATA_WIDTH_G-1 downto 0)        <= txDataIn;
+         txCharIsKFull                                     <= (others => '0');
+         txCharIsKFull((TX_EXT_DATA_WIDTH_G/8)-1 downto 0) <= txCharIsKIn;
+         txCharDispMode                                    <= (others => '0');
+         txCharDispVal                                     <= (others => '0');
+      else
+         for i in TX_EXT_DATA_WIDTH_G-1 downto 0 loop
+            if ((i-9) mod 10 = 0) then
+               txCharDispMode((i-9)/10) <= txDataIn(i);
+            elsif ((i-8) mod 10 = 0) then
+               txCharDispVal((i-8)/10) <= txDataIn(i);
+            else
+               txDataFull(i-2*(i/10))  <= txDataIn(i);
+            end if;
+         end loop;
+         txCharIsKFull <= (others => '0');
+      end if;
+   end process TX_DATA_8B10B_GLUE;  
 
    -- Drive outputs that have internal use
    txUserRdyOut <= txUserRdyInt;
@@ -1152,8 +1169,8 @@ begin
          TXPRBSFORCEERR       => '0',
          ------------------ Transmit Ports - TX 8B/10B Encoder Ports ----------------
          TX8B10BBYPASS        => x"0",
-         TXCHARDISPMODE       => x"0",
-         TXCHARDISPVAL        => x"0",
+         TXCHARDISPMODE       => txCharDispMode,
+         TXCHARDISPVAL        => txCharDispVal,
          TXCHARISK            => txCharIsKFull,
          ------------------ Transmit Ports - TX Buffer Bypass Ports -----------------
          TXDLYBYPASS          => TX_DLY_BYPASS_G,  -- Use the tx delay alignment circuit
