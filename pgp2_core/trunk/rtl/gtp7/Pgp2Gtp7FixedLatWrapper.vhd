@@ -29,6 +29,7 @@ entity Pgp2Gtp7FixedLatWrapper is
    generic (
       -- Select Master or Slave
       MASTER_SEL_G         : boolean              := true;
+      RX_CLK_SEL_G         : boolean              := true;
       -- Configure Number of Lanes
       NUM_VC_EN_G          : integer range 1 to 4 := 4;
       -- Quad PLL Configurations
@@ -97,7 +98,8 @@ architecture rtl of Pgp2Gtp7FixedLatWrapper is
       clkFbOut,
       txClock,
       txRst,
-      rxClock : sl := '0';
+      rxClock,
+      rxRecClk, : sl := '0';
    signal pllRefClk,
       qPllOutClk,
       qPllOutRefClk,
@@ -222,6 +224,7 @@ begin
    pllRefClk(1)     <= gtClk when((MASTER_SEL_G = true) or (TX_PLL_G = "PLL1")) else stableClock;
    pllLockDetClk(1) <= stableClock;
    qPllReset(1)     <= stableRst or gtQPllReset(1);
+   rxClock       <= rxRecClk when(RX_CLK_SEL_G = true) else txClock;
 
    Quad_Pll_Inst : entity work.Gtp7QuadPll
       generic map (
@@ -274,7 +277,7 @@ begin
          pgpTxClk         => txClock,
          -- Rx clocking
          pgpRxReset       => extRst,
-         pgpRxRecClk      => rxClock,
+         pgpRxRecClk      => rxRecClk,
          pgpRxClk         => rxClock,
          pgpRxMmcmReset   => open,
          pgpRxMmcmLocked  => locked,
