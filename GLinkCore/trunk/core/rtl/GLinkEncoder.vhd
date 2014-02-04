@@ -82,8 +82,12 @@ architecture rtl of GLinkEncoder is
       encodedData      : slv(19 downto 0);
       runningDisparity : signed(4 downto 0);
    end record;
+   
+   constant REG_TYPE_INIT_C : RegType := (
+      (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C),
+      (others => '0'));    
 
-   signal r, rin : RegType;
+   signal r, rin : RegType := REG_TYPE_INIT_C;
    
 begin
 
@@ -91,8 +95,7 @@ begin
    begin  -- process seq
       if rising_edge(clk) then
          if rst = RST_POLARITY_G then
-            r.encodedData      <= GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C after TPD_G;
-            r.runningDisparity <= (others => '0')                              after TPD_G;
+            r <= REG_TYPE_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
          end if;
