@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-01-30
+-- Last update: 2014-02-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,25 +24,25 @@ use work.StdRtlPkg.all;
 package GLinkPkg is
 
    type GLinkTxType is record
-      control : sl; 
+      control : sl;
       idle    : sl;
       flag    : sl;
-      data    : slv(15 downto 0); 
+      data    : slv(15 downto 0);
    end record;
    type GLinkTxTypeArray is array (natural range <>) of GLinkTxType;
    type GLinkTxTypeVectorArray is array (natural range<>, natural range<>) of GLinkTxType;
    constant GLINK_TX_INIT_C : GLinkTxType := (
       '0',
-      '0',
+      '1',
       '0',
       (others => '0'));
-      
+
    type GLinkRxType is record
-      isControl : sl; 
-      isIdle    : sl;   
-      isData    : sl;   
-      flag      : sl;   
-      data      : slv(15 downto 0); 
+      isControl : sl;
+      isIdle    : sl;
+      isData    : sl;
+      flag      : sl;
+      data      : slv(15 downto 0);
    end record;
    type GLinkRxTypeArray is array (natural range <>) of GLinkRxType;
    type GLinkRxTypeVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
