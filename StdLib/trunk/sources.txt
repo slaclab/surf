@@ -35,5 +35,6 @@ vhdl work xilinx7/rtl/XadcSimpleCore.vhd
 vhdl work sync/rtl/Synchronizer.vhd
 vhdl work sync/rtl/SynchronizerEdge.vhd
 vhdl work sync/rtl/SynchronizerFifo.vhd
+vhdl work sync/rtl/SynchronizerOneShot.vhd
 vhdl work sync/rtl/SynchronizerVector.vhd
 vhdl work sync/rtl/RstSync.vhd
