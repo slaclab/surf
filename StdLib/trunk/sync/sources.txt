@@ -1,5 +1,6 @@
 vhdl work rtl/Synchronizer.vhd
 vhdl work rtl/SynchronizerEdge.vhd
 vhdl work rtl/SynchronizerFifo.vhd
+vhdl work rtl/SynchronizerOneShot.vhd
 vhdl work rtl/SynchronizerVector.vhd
 vhdl work rtl/RstSync.vhd
