@@ -5,39 +5,40 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2013-12-03
+-- Last update: 2014-02-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
 --              Sets attributes to keep synthesis for mucking with FF chain.
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 use work.StdRtlPkg.all;
 
 entity Synchronizer is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';        -- '1' for active high rst, '0' for active low
-      RST_ASYNC_G    : boolean  := false;      -- Reset is asynchronous
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
+      RST_ASYNC_G    : boolean  := false;-- Reset is asynchronous
       STAGES_G       : positive := 2;
-      INIT_G         : slv      := "0"
-      );
+      INIT_G         : slv      := "0");
    port (
-      clk     : in  sl;                        -- clock to be sync'ed to
+      clk     : in  sl;                        -- clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
       dataIn  : in  sl;                        -- Data to be 'synced'
-      dataOut : out sl                         -- synced data
-      );
+      dataOut : out sl);                       -- synced data
 begin
    assert (STAGES_G >= 2) report "STAGES_G must be >= 2" severity failure;
 end Synchronizer;
 
 architecture rtl of Synchronizer is
+
    constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G = "0", slvZero(STAGES_G), INIT_G);
 
    signal crossDomainSyncReg : slv(STAGES_G-1 downto 0) := INIT_C;
@@ -46,11 +47,6 @@ architecture rtl of Synchronizer is
    -------------------------------
    -- XST/Synplify Attributes
    -------------------------------
-   -- These attributes will stop Vivado translating the desired flip-flops into an
-   -- SRL based shift register.
-   -- (Breaks XST for some reason so keep commented for now and apply constraint in XDC file).
-   --attribute ASYNC_REG      : string;
-   --attribute ASYNC_REG of crossDomainSyncReg : signal is "TRUE";
 
    -- Synplify Pro: disable shift-register LUT (SRL) extraction
    attribute syn_srlstyle                       : string;
@@ -69,11 +65,6 @@ architecture rtl of Synchronizer is
    attribute register_balancing                       : string;
    attribute register_balancing of crossDomainSyncReg : signal is "no";
 
---   attribute use_sync_set        : string;
---   attribute use_sync_set of crossDomainSyncReg   : signal is "yes";
---   attribute use_sync_reset      : string;
---   attribute use_sync_reset of crossDomainSyncReg : signal is "yes";
-
    -------------------------------
    -- Altera Attributes 
    ------------------------------- 
@@ -91,7 +82,12 @@ begin
          rin <= INIT_C;
       end if;
 
-      dataOut <= crossDomainSyncReg(STAGES_G-1);
+      if (OUT_POLARITY_G = '1') then
+         dataOut <= crossDomainSyncReg(STAGES_G-1);
+      else
+         dataOut <= not(crossDomainSyncReg(STAGES_G-1));
+      end if;
+      
    end process comb;
 
    seq : process (clk, rst) is
