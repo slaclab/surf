@@ -21,7 +21,9 @@ use work.StdRtlPkg.all;
 
 entity SynchronizerOneShot is
    generic (
-      TPD_G : time := 1 ns);            -- Simulation FF output delay      
+      TPD_G          : time := 1 ns;    -- Simulation FF output delay
+      IN_POLARITY_G  : sl   := '1';     -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G : sl   := '1');    -- 0 for active LOW, 1 for active HIGH
    port (
       clk     : in  sl;                 -- clock to be sync'ed to
       dataIn  : in  sl;                 -- trigger to be sync'd
@@ -30,24 +32,28 @@ end SynchronizerOneShot;
 
 architecture mapping of SynchronizerOneShot is
    
-   signal pulse : sl;
+   signal syncRst,
+      pulse : sl;
    
 begin
 
    RstSync_Inst : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)   
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => IN_POLARITY_G)   
       port map (
          clk      => clk,
          asyncRst => dataIn,
-         syncRst  => pulse); 
+         syncRst  => syncRst); 
 
    SynchronizerEdge_Inst : entity work.SynchronizerEdge
       generic map (
-         TPD_G => TPD_G)   
+         TPD_G      => TPD_G)    
       port map (
          clk        => clk,
-         dataIn     => pulse,
-         risingEdge => dataOut);  
+         dataIn     => syncRst,
+         risingEdge => pulse);
+
+   dataOut <= pulse when(OUT_POLARITY_G='1') else not(pulse);
 
 end architecture mapping;

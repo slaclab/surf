@@ -5,106 +5,77 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2013-12-03
+-- Last update: 2014-02-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
---              Sets attributes to keep synthesis for mucking with FF chain.
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 use work.StdRtlPkg.all;
 
 entity SynchronizerEdge is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
-      RST_ASYNC_G    : boolean  := false;
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
+      RST_ASYNC_G    : boolean  := false;-- Reset is asynchronous
       STAGES_G       : positive := 3;
-      INIT_G         : slv      := "0"
-      );
+      INIT_G         : slv      := "0");
    port (
-      clk         : in  sl;             -- clock to be sync'ed to
+      clk         : in  sl;                        -- clock to be SYNC'd to
       rst         : in  sl := not RST_POLARITY_G;  -- Optional reset
-      dataIn      : in  sl;             -- Data to be 'synced'
-      dataOut     : out sl;             -- synced data
-      risingEdge  : out sl;             -- Rising edge detected
-      fallingEdge : out sl              -- Falling edge detected
-      );
+      dataIn      : in  sl;                        -- Data to be 'synced'
+      dataOut     : out sl;                        -- synced data
+      risingEdge  : out sl;                        -- Rising edge detected
+      fallingEdge : out sl);                       -- Falling edge detected
 begin
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
-   assert (INIT_G = "0" or INIT_G'length = STAGES_G) report
-      "INIT_G must either be ""0"" or the same length as STAGES_G" severity failure;
 end SynchronizerEdge;
 
 architecture rtl of SynchronizerEdge is
+
    constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G = "0", slvZero(STAGES_G), INIT_G);
 
-   -- r(STAGES_G-1) used for edge detection.
-   -- Optimized out if edge detection not used.
-   signal crossDomainSyncReg   : slv(STAGES_G-1 downto 0) := INIT_C;
-   signal rin : slv(STAGES_G-1 downto 0);
-
-
-   -------------------------------
-   -- XST/Synplify Attributes
-   -------------------------------
-   -- These attributes will stop Vivado translating the desired flip-flops into an
-   -- SRL based shift register. (Breaks XST for some reason so keep commented for now).
---   attribute ASYNC_REG      : string;
---   attribute ASYNC_REG of crossDomainSyncReg : signal is "TRUE";
-
-   -- Synplify Pro: disable shift-register LUT (SRL) extraction
-   attribute syn_srlstyle      : string;
-   attribute syn_srlstyle of crossDomainSyncReg : signal is "registers";
-
-   -- These attributes will stop timing errors being reported on the target flip-flop during back annotated SDF simulation.
-   attribute MSGON      : string;
-   attribute MSGON of crossDomainSyncReg : signal is "FALSE";
-
-   -- These attributes will stop XST translating the desired flip-flops into an
-   -- SRL based shift register.
-   attribute shreg_extract      : string;
-   attribute shreg_extract of crossDomainSyncReg : signal is "no";
-
-   -- Don't let register balancing move logic between the register chain
-   attribute register_balancing      : string;
-   attribute register_balancing of crossDomainSyncReg : signal is "no";
-
-   -------------------------------
-   -- Altera Attributes 
-   ------------------------------- 
-   attribute altera_attribute      : string;
-   attribute altera_attribute of crossDomainSyncReg : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF";
+   signal syncData,
+      dataDly : sl;
    
 begin
 
-   comb : process (dataIn, crossDomainSyncReg, rst) is
+   Synchronizer_Inst : entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         OUT_POLARITY_G => OUT_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         STAGES_G       => (STAGES_G-1),
+         INIT_G         => INIT_C(STAGES_G-2 downto 0))      
+   port map (
+      clk     => clk,
+      rst     => rst,
+      dataIn  => dataIn,
+      dataOut => syncData); 
+
+   process(clk, rst)
    begin
-      rin <= crossDomainSyncReg(STAGES_G-2 downto 0) & dataIn;
-
-      -- Synchronous Reset
-      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-         rin <= INIT_C;
+      if (RST_ASYNC_G = true) and (rst = RST_POLARITY_G) then
+         dataDly <= INIT_C(STAGES_G-1) after TPD_G;
+      elsif rising_edge(clk) then
+         if (RST_ASYNC_G = false) and (rst = RST_POLARITY_G) then
+            dataDly <= INIT_C(STAGES_G-1) after TPD_G;
+         else
+            dataDly <= syncData after TPD_G;
+         end if;
       end if;
+   end process;
 
-      dataOut     <= crossDomainSyncReg(STAGES_G-2);
-      risingEdge  <= crossDomainSyncReg(STAGES_G-2) and not crossDomainSyncReg(STAGES_G-1);
-      fallingEdge <= not crossDomainSyncReg(STAGES_G-2) and crossDomainSyncReg(STAGES_G-1);
-   end process comb;
-
-   seq : process (clk, rst) is
-   begin
-      if (rising_edge(clk)) then
-         crossDomainSyncReg <= rin after TPD_G;
-      end if;
-      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-         crossDomainSyncReg <= INIT_C after TPD_G;
-      end if;
-   end process seq;
-
+   dataOut     <= dataDly;
+   risingEdge  <= syncData and not(dataDly);
+   fallingEdge <= not(syncData) and dataDly;
+   
 end architecture rtl;
