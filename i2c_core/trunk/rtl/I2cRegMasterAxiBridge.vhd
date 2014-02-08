@@ -5,11 +5,11 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2013-10-03
+-- Last update: 2014-01-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -45,6 +45,9 @@ entity I2cRegMasterAxiBridge is
 end entity I2cRegMasterAxiBridge;
 
 architecture rtl of I2cRegMasterAxiBridge is
+
+   constant READ_C : boolean := false;
+   constant WRITE_C : boolean := true;
 
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
       I2C_REG_ADDR_SIZE_G + bitSize(DEVICE_MAP_G'length) -1 downto I2C_REG_ADDR_SIZE_G;
@@ -83,7 +86,7 @@ begin
          ret.i2cAddr := DEVICE_MAP_G(i).i2cAddress;
          ret.tenbit  := DEVICE_MAP_G(i).i2cTenbit;
 
-         if (readN) then
+         if (readN = READ_C) then
             ret.regAddr(I2C_REG_AXI_ADDR_RANGE_C) := axiWriteMaster.awaddr(I2C_REG_AXI_ADDR_RANGE_C);
          else
             ret.regAddr(I2C_REG_AXI_ADDR_RANGE_C) := axiReadMaster.araddr(I2C_REG_AXI_ADDR_RANGE_C);
@@ -108,7 +111,7 @@ begin
          -- Decode i2c device address and send command to I2cRegMaster
          devInt := conv_integer(axiWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
 
-         v.i2cRegMasterIn        := setI2cRegMaster(devInt, true);
+         v.i2cRegMasterIn        := setI2cRegMaster(devInt, WRITE_C);
          v.i2cRegMasterIn.regOp  := '1';  -- Write
          v.i2cRegMasterIn.regReq := '1';
 
@@ -116,7 +119,7 @@ begin
          devInt := conv_integer(axiReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
 
          -- Send transaction to I2cRegMaster
-         v.i2cRegMasterIn        := setI2cRegMaster(devInt, false);
+         v.i2cRegMasterIn        := setI2cRegMaster(devInt, READ_C);
          v.i2cRegMasterIn.regOp  := '0';  -- Read
          v.i2cRegMasterIn.regReq := '1';
 
