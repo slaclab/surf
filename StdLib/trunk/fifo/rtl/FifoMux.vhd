@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2014-01-07
+-- Last update: 2014-02-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ entity FifoMux is
       USE_DSP48_G     : string                     := "no";
       ALTERA_SYN_G    : boolean                    := false;
       ALTERA_RAM_G    : string                     := "M9K";
-      USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
-      XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
+      USE_BUILT_IN_G  : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
+      XIL_DEVICE_G    : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
       WR_DATA_WIDTH_G : integer range 1 to (2**24) := 64;
       RD_DATA_WIDTH_G : integer range 1 to (2**24) := 16;
@@ -50,7 +50,6 @@ entity FifoMux is
       wr_clk       : in  sl;
       wr_en        : in  sl := '0';
       din          : in  slv(WR_DATA_WIDTH_G-1 downto 0);
---      wr_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
       wr_ack       : out sl;
       overflow     : out sl;
       prog_full    : out sl;
@@ -60,7 +59,6 @@ entity FifoMux is
       rd_clk       : in  sl;            --unused if GEN_SYNC_FIFO_G = true
       rd_en        : in  sl := '0';
       dout         : out slv(RD_DATA_WIDTH_G-1 downto 0);
---      rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
       valid        : out sl;
       underflow    : out sl;
       prog_empty   : out sl;
@@ -69,14 +67,16 @@ entity FifoMux is
 begin
    assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
            (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
-      report "Data widths must be even number multipes of each other" severity failure;
+      report "Data widths must be even number multiples of each other" severity failure;
 end FifoMux;
 
 architecture rtl of FifoMux is
 
    constant FIFO_DATA_WIDTH_C : integer := ite(WR_DATA_WIDTH_G > RD_DATA_WIDTH_G, WR_DATA_WIDTH_G, RD_DATA_WIDTH_G);
 
-   -------------------------------------------------------------------------------------------------
+   ----------------
+   -- Write Signals
+   ----------------
    constant WR_LOGIC_EN_C : boolean := (WR_DATA_WIDTH_G < RD_DATA_WIDTH_G);
    constant WR_SIZE_C     : integer := ite(WR_LOGIC_EN_C, RD_DATA_WIDTH_G / WR_DATA_WIDTH_G, 1);
 
@@ -92,13 +92,16 @@ architecture rtl of FifoMux is
       wrData => (others => (others => '0')),
       wrEn   => '0');
 
-   signal   wrR, wrRin    : WrRegType := WR_REG_INIT_C;
-   signal   fifo_din      : slv(FIFO_DATA_WIDTH_C-1 downto 0);
-   signal   fifo_wr_en    : sl;
-   signal   wrRst         : sl;
-   -------------------------------------------------------------------------------------------------
-   constant RD_LOGIC_EN_C : boolean   := (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G);
-   constant RD_SIZE_C     : integer   := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
+   signal wrR, wrRin : WrRegType := WR_REG_INIT_C;
+   signal fifo_din   : slv(FIFO_DATA_WIDTH_C-1 downto 0);
+   signal fifo_wr_en : sl;
+   signal wrRst      : sl;
+
+   ---------------
+   -- Read Signals
+   ---------------
+   constant RD_LOGIC_EN_C : boolean := (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G);
+   constant RD_SIZE_C     : integer := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
 
    type RdRegType is record
       count : unsigned(log2(RD_SIZE_C)-1 downto 0);
@@ -109,7 +112,6 @@ architecture rtl of FifoMux is
 
    type RdDataArray is array (0 to RD_SIZE_C-1) of slv(RD_DATA_WIDTH_G-1 downto 0);
 
-
    signal rdR, rdRin   : RdRegType := RD_REG_INIT_C;
    signal fifo_dout    : slv(FIFO_DATA_WIDTH_C-1 downto 0);
    signal fifo_rd_data : slv(RD_DATA_WIDTH_G-1 downto 0);
@@ -117,14 +119,12 @@ architecture rtl of FifoMux is
    signal fifo_rd_en   : sl;
    signal fifo_empty   : sl;
    signal rdRst        : sl;
-   -------------------------------------------------------------------------------------------------
 
-   
 begin
 
-   -------------------------------------------------------------------------------------------------
+   --------------
    -- Write Logic
-   -------------------------------------------------------------------------------------------------
+   --------------
    wrComb : process (din, wrR, wr_en) is
       variable v     : WrRegType;
       variable index : integer;
@@ -148,7 +148,7 @@ begin
 
       if (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G) then
          for i in 0 to WR_SIZE_C-1 loop
-            index                     := ite(LITTLE_ENDIAN_G, WR_SIZE_C-1-i, i);
+            index                     := ite(LITTLE_ENDIAN_G, i, WR_SIZE_C-1-i);
             high                      := index * WR_DATA_WIDTH_G + WR_DATA_WIDTH_G - 1;
             low                       := index * WR_DATA_WIDTH_G;
             fifo_din(high downto low) <= wrR.wrData(i);
@@ -174,9 +174,9 @@ begin
       end if;
    end process wrSeq;
 
-   -------------------------------------------------------------------------------------------------
+   -------------
    -- Read logic
-   -------------------------------------------------------------------------------------------------
+   -------------
    -- Module reset should be driven by wr_clk
    -- Must synchronize it over to the rd_clk
    RstSync_RdRst : entity work.RstSync
@@ -208,7 +208,7 @@ begin
 
       -- Separate fifo_dout into an array of RD_DATA_WIDTH_G sized vectors
       for i in 0 to RD_SIZE_C-1 loop
-         index     := ite(LITTLE_ENDIAN_G, RD_SIZE_C-1-i, i);
+         index     := ite(LITTLE_ENDIAN_G, i, RD_SIZE_C-1-i);
          high      := index * RD_DATA_WIDTH_G + RD_DATA_WIDTH_G - 1;
          low       := index * RD_DATA_WIDTH_G;
          rdData(i) := fifo_dout(high downto low);
@@ -244,9 +244,9 @@ begin
       end if;
    end process rdSeq;
 
-   -------------------------------------------------------------------------------------------------
+   --------
    -- Fifo
-   -------------------------------------------------------------------------------------------------
+   --------
    Fifo_1 : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
