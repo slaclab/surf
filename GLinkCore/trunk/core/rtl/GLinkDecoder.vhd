@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-01-31
+-- Last update: 2014-02-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,13 +38,15 @@ end entity GLinkDecoder;
 architecture rtl of GLinkDecoder is
 
    type RegType is record
-      lastGtRxData : slv(9 downto 0);
-      gLinkRx      : GLinkRxType;
-      error        : sl;
+      firstDataFrame : sl;
+      toggle         : sl;
+      gLinkRx        : GLinkRxType;
+      err            : sl;
    end record;
    
    constant REG_TYPE_INIT_C : RegType := (
-      (others => '0'),
+      '0',
+      '0',
       GLINK_RX_INIT_C,
       '0');      
 
@@ -71,14 +73,14 @@ begin
 
       -- Default outputs
       rVar.gLinkRx := GLINK_RX_INIT_C;
-      rVar.error   := '0';
+      rVar.err     := '0';
 
       -- Convert input to GLinkWordType to use GLinkPkg functions for decoding
       glinkWordVar := toGLinkWord(gtRxData);
 
       if (not isValidWord(glinkWordVar)) then
          -- Invalid input, don't decode
-         rVar.error := not toSl(isValidWord(glinkWordVar));
+         rVar.err := '1';
       else
          -- Valid input, decode the input
          -- Check for control word
@@ -93,11 +95,38 @@ begin
 
          -- Check for data word
          if (isDataWord(glinkWordVar)) then
-            rVar.gLinkRx.isIdle := '0';
-            rVar.gLinkRx.isData := '1';
-            rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
             if FLAGSEL_G then
+               rVar.gLinkRx.isIdle := '0';
+               rVar.gLinkRx.isData := '1';
+               rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);     -- Bit flip done by function
                rVar.gLinkRx.flag   := getFlag(gLinkWordVar);
+            else
+               -- Check for first data frame
+               if r.firstDataFrame = '0' then
+                  -- First frame Detected
+                  rVar.firstDataFrame := '1';
+                  -- Set the gLinkRx bus
+                  rVar.gLinkRx.isIdle := '0';
+                  rVar.gLinkRx.isData := '1';
+                  rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
+                  rVar.gLinkRx.flag   := getFlag(gLinkWordVar);
+                  -- Latch the flag value
+                  rVar.toggle         := getFlag(gLinkWordVar);
+               else
+                  -- Check for flag error
+                  if (r.toggle = getFlag(gLinkWordVar)) then
+                     -- Invalid flag detected
+                     rVar.err := '1';
+                  else
+                     -- Set the gLinkRx bus
+                     rVar.gLinkRx.isIdle := '0';
+                     rVar.gLinkRx.isData := '1';
+                     rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
+                     rVar.gLinkRx.flag   := getFlag(gLinkWordVar);
+                     -- Latch the flag value
+                     rVar.toggle         := getFlag(gLinkWordVar);
+                  end if;
+               end if;
             end if;
          end if;
 
@@ -111,7 +140,7 @@ begin
 
       -- Assign outputs
       gLinkRx      <= r.gLinkRx;
-      decoderError <= r.error;
+      decoderError <= r.err;
    end process comb;
 
 end architecture rtl;

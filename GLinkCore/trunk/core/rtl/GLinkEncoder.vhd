@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-04-19
--- Last update: 2014-01-31
+-- Last update: 2014-02-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -79,11 +79,13 @@ architecture rtl of GLinkEncoder is
    end function;
 
    type RegType is record
+      toggle           : sl;
       encodedData      : slv(19 downto 0);
       runningDisparity : signed(4 downto 0);
    end record;
    
    constant REG_TYPE_INIT_C : RegType := (
+      '0',
       (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C),
       (others => '0'));    
 
@@ -111,15 +113,28 @@ begin
       rVar            := r;
       rawBufferflyVar := bitReverse(gLinkTx.data);
 
-      -- Default case - normal data
-      if (gLinkTx.flag = '1') and FLAGSEL_G then
-         glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
-      else
-         glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
+      -- Check for flag select enabled
+      if FLAGSEL_G then
+         if (gLinkTx.flag = '1') then
+            glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
+         else
+            glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
+         end if;
+         -- Internally alternate the flag bit
+         -- when transmitting data frames 
+         -- for additional error checking
+      elsif (gLinkTx.idle = '0') and (gLinkTx.control = '0') then
+         -- toggle the bit
+         rVar.toggle := not(r.toggle);
+         if r.toggle = '1' then
+            glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
+         else
+            glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
+         end if;
       end if;
       glinkWordVar.w := rawBufferflyVar;
 
-      -- Control overrides data assignments
+      -- Control overrides data assignments 
       if (gLinkTx.control = '1') then
          glinkWordVar.c := GLINK_CONTROL_WORD_C;
          glinkWordVar.w := rawBufferflyVar(0 to 6) & "01" & rawBufferflyVar(7 to 13);
