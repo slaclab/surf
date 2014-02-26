@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-02-04
+-- Last update: 2014-02-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -144,18 +144,23 @@ package body GLinkPkg is
    is
       variable validVar : boolean := true;
    begin
-      if (word.c = "-00-" or            -- Invalid C-field
-          word.c = "-11-" or            -- Invalid C-field
-          (word.c = "1100" and word.w(7) = '0') or  -- Control with invalid data
-          (word.c = "1100" and word.w(7 to 8) = "11") or  -- Control with invalid data
-          word.c = "1010" or            -- Invalid C-field
-          word.c = "0101") then         -- Invalid C-field
+      if (std_match(word.c, "-00-") or
+          std_match(word.c, "-11-") or
+          std_match(word.c, "0101") or
+          std_match(word.c, "1010")) then  
          validVar := false;
+      elsif word.c = "1100" then        --check for invalid Filled frames
+         if (std_match(word.w, "-------0--------") or
+             std_match(word.w, "-------11-------")) then  
+            validVar := false;
+         end if;
       end if;
       return validVar;
    end function isValidWord;
 
    function isControlWord (
+      -- we might want to add a 01/10 check in the isControlWord function, 
+      -- instead on relying on the isValidWord function (LLR - 26FEB2014)
       word : GLinkWordType)
       return boolean
    is

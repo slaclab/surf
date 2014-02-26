@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-01-31
+-- Last update: 2014-02-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,13 +33,13 @@ entity GLinkGtp7FixedLat is
       -- MGT Settings
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
-      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit        := '1';  -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';  -- Set by wizard         
+      RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard         
       -- Configure PLL sources
       TX_PLL_G              : string     := "PLL0";
       RX_PLL_G              : string     := "PLL1");
@@ -48,16 +48,18 @@ entity GLinkGtp7FixedLat is
       gLinkTx          : in  GLinkTxType;
       txClk            : in  sl;
       txRst            : in  sl;
+      txReady          : out sl;
       -- RX Signals
       gLinkRx          : out GLinkRxType;
-      rxClk            : in  sl;  -- Run recClk through external MMCM and sent to this input
+      rxClk            : in  sl;        -- Run recClk through external MMCM and sent to this input
       rxRecClk         : out sl;        -- recovered clock
       rxRst            : in  sl;
       rxMmcmRst        : out sl;
       rxMmcmLocked     : in  sl              := '1';
+      rxReady          : out sl;
       -- MGT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";  -- Signals from QPLLs
+      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";                  -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
@@ -74,22 +76,39 @@ end GLinkGtp7FixedLat;
 
 architecture rtl of GLinkGtp7FixedLat is
    
-   constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C;  --FF0
-   constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := GLINK_IDLE_WORD_FF1L_C & GLINK_CONTROL_WORD_C;  --FF1A
-   constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := GLINK_IDLE_WORD_FF1H_C & GLINK_CONTROL_WORD_C;  --FF1B
+   constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(0) & GLINK_CONTROL_WORD_C));  -- FF0
+   constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(1) & GLINK_CONTROL_WORD_C));  -- FF1A
+   constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(2) & GLINK_CONTROL_WORD_C));  -- FF1B
 
    signal gtTxRstDone,
       gtRxRstDone,
       gtTxReset,
       gtRxReset,
       decoderError,
-      dataValid : sl;
+      dataValid : sl := '0';
    signal gtTxData,
-      gtRxData : slv(19 downto 0);
+      gtRxData,
+      gtTxDataReversed,
+      gtRxDataReversed : slv(19 downto 0) := (others => '0');
+   
+   attribute mark_debug : string;
+   attribute mark_debug of gtTxData,
+      gtRxData,
+      gtTxDataReversed,
+      gtRxDataReversed,
+      gtTxRstDone,
+      gtRxRstDone,
+      gtTxReset,
+      gtRxReset,
+      decoderError,
+      dataValid : signal is "TRUE";
 
 begin
 
-   gtTxReset <= not(gtRxRstDone) or not(gtTxRstDone);
+   txReady <= gtTxRstDone;
+   rxReady <= gtRxRstDone;
+
+   gtTxReset <= not(gtTxRstDone);
    gtRxReset <= not(gtRxRstDone);
 
    GLinkEncoder_Inst : entity work.GLinkEncoder
@@ -100,7 +119,7 @@ begin
       port map (
          clk         => txClk,
          rst         => gtTxReset,
-         gLinkTx     => gLinkTx
+         gLinkTx     => gLinkTx,
          encodedData => gtTxData);
 
    GLinkDecoder_Inst : entity work.GLinkDecoder
@@ -116,6 +135,9 @@ begin
          decoderError => decoderError);
 
    dataValid <= not(decoderError);
+
+   gtTxDataReversed <= bitReverse(gtTxData);
+   gtRxData         <= bitReverse(gtRxDataReversed);
 
    -- GTP 7 Core in Fixed Latency mode
    Gtp7Core_Inst : entity work.Gtp7Core
@@ -179,11 +201,11 @@ begin
          rxUserResetIn    => rxRst,
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
-         rxSlideIn        => '0',       -- Slide is controlled internally
-         rxDataOut        => gtRxData,
-         rxCharIsKOut     => open,      -- Not using gt rx 8b10b
-         rxDecErrOut      => open,      -- Not using gt rx 8b10b
-         rxDispErrOut     => open,      -- Not using gt rx 8b10b
+         rxSlideIn        => '0',              -- Slide is controlled internally
+         rxDataOut        => gtRxDataReversed,
+         rxCharIsKOut     => open,             -- Not using gt rx 8b10b
+         rxDecErrOut      => open,             -- Not using gt rx 8b10b
+         rxDispErrOut     => open,             -- Not using gt rx 8b10b
          rxPolarityIn     => '0',
          rxBufStatusOut   => open,
          txRefClkOut      => open,
@@ -191,12 +213,12 @@ begin
          txOutClkPcsOut   => open,
          txUsrClkIn       => txClk,
          txUsrClk2In      => txClk,
-         txUserRdyOut     => open,      -- Not sure what to do with this
-         txMmcmResetOut   => open,      -- No Tx MMCM in Fixed Latency mode
+         txUserRdyOut     => open,             -- Not sure what to do with this
+         txMmcmResetOut   => open,             -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => '1',
          txUserResetIn    => txRst,
          txResetDoneOut   => gtTxRstDone,
-         txDataIn         => gtTxData,
+         txDataIn         => gtTxDataReversed,
          txCharIsKIn      => (others => '0'),  -- Not using gt rx 8b10b
          txBufStatusOut   => open,
          loopbackIn       => loopback);
