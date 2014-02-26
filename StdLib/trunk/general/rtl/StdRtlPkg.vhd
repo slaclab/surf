@@ -23,10 +23,18 @@ package StdRtlPkg is
    subtype slv is std_logic_vector;
 
    -- Declare arrays of built in types
-   type IntegerArray is array (integer range <>) of integer;
+   type IntegerArray is array (natural range <>) of integer;
    type NaturalArray is array (natural range <>) of natural;
    type RealArray    is array (natural range <>) of real;
    type TimeArray    is array (natural range <>) of time;
+   type BooleanArray is array (natural range <>) of boolean;
+   
+   -- Declare vector arrays of built in types
+   type IntegerVectorArray is array (natural range<>, natural range<>) of integer;
+   type NaturalVectorArray is array (natural range<>, natural range<>) of natural;
+   type RealVectorArray    is array (natural range<>, natural range<>) of real;
+   type TimeVectorArray    is array (natural range<>, natural range<>) of time;
+   type BooleanVectorArray is array (natural range<>, natural range<>) of boolean;   
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
