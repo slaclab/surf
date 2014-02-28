@@ -28,10 +28,10 @@ entity ClkRst is
     RST_HOLD_TIME_G   : time    := 6 us;  -- Hold reset for this long
     SYNC_RESET_G      : boolean := false);  
   port (
-    clkP : out sl;
-    clkN : out sl;                        -- Inverted clock
-    rst  : out sl;
-    rstL : out sl);
+    clkP : out sl := '0';
+    clkN : out sl := '1';                        -- Inverted clock
+    rst  : out sl := '1';
+    rstL : out sl := '0');
 
 end entity ClkRst;
 
