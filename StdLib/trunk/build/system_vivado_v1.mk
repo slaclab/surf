@@ -17,6 +17,7 @@ export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
 export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
 export PROJECT_SETUP    = $(abspath $(PROJ_DIR)/vivado/project_setup.tcl)
+export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 
 # Images Directory
 export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
@@ -26,7 +27,7 @@ export PRJ_VERSION = $(shell grep MAKE_VERSION $(PROJ_DIR)/Version.vhd | sed 's|
 
 # Core Directories (IP cores that exist external of the project must have a physical path, not a logical path)
 export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/cores.txt))
-export CORE_FILES = $(realpath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/cores.txt),$(A1)/$(A2))))
+export CORE_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/cores.txt),$(A1)/$(A2))))
 
 # Source Files
 export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sources.txt))
@@ -93,22 +94,13 @@ dir:
 #### Check Source Files #######################################
 ###############################################################
 
-%.txt : 
-	@test -d $*.txt || echo "$*.txt does not exist"; false;
-
-%.vhd : 
-	@test -d $*.vhd || echo "$*.vhd does not exist"; false;
-
-%.v : 
-	@test -d $*.v || echo "$*.v does not exist"; false;
-
-%.xdc : 
-	@test -d $*.xdc || echo "$*.xdc does not exist"; false;
+% : 
+	@test -d $* || echo "$* does not exist"; false;
 
 ###############################################################
 #### Vivado Project ###########################################
 ###############################################################
-$(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(PROJECT_SETUP)
+$(VIVADO_DEPEND) : $(PROJECT_SETUP)
 	$(call ACTION_HEADER,"Vivado Project Creation")
 	@test -d $(TOP_DIR)/build/ || { \
 			 echo ""; \
@@ -127,19 +119,27 @@ $(VIVADO_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(PROJEC
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_project_v1.tcl
 
 ###############################################################
+#### Vivado Sources ###########################################
+###############################################################
+$(SOURCE_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(VIVADO_DEPEND)
+	$(call ACTION_HEADER,"Vivado Source Setup")
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_sources_v1.tcl
+
+###############################################################
 #### Vivado Batch #############################################
 ###############################################################
-$(IMPL_DIR)/$(PROJECT).bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(VIVADO_DEPEND)
+$(IMPL_DIR)/$(PROJECT).bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_v1.tcl
 #### Vivado Batch (Partial Reconfiguration: Static) ###########
-$(IMPL_DIR)/$(PROJECT)_static.bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(VIVADO_DEPEND)
+$(IMPL_DIR)/$(PROJECT)_static.bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build (Partial Reconfiguration: Static)")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_static_v1.tcl
 #### Vivado Batch (Partial Reconfiguration: Dynamic) ##########
-$(IMPL_DIR)/$(PROJECT)_dynamic.bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(VIVADO_DEPEND)
+$(IMPL_DIR)/$(PROJECT)_dynamic.bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build (Partial Reconfiguration: Dynamic)")
-	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_dynamic_v1.tcl   
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_dynamic_v1.tcl
+
 ###############################################################
 #### Bitfile Copy #############################################
 ###############################################################
@@ -163,20 +163,23 @@ $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION)_dynamic.bit : $(IMPL_DIR)/$(PROJECT)_dyn
 	@echo ""
 	@echo "Bit file copied to $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"  
+
 ###############################################################
 #### Vivado Interactive #######################################
 ###############################################################
 .PHONY : interactive
-interactive : $(VIVADO_DEPEND)
+interactive : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Interactive")
 	@cd $(OUT_DIR); vivado -mode tcl
+
 ###############################################################
 #### Vivado Gui ###############################################
 ###############################################################
 .PHONY : gui
-gui : $(VIVADO_DEPEND)
+gui : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado GUI")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_gui_v1.tcl
+
 ###############################################################
 #### Prom #####################################################
 ###############################################################
@@ -186,6 +189,7 @@ $(IMPL_DIR)/$(PROJECT).mcs: $(PROM_OPTIONS_FILE) $(IMPL_DIR)/$(PROJECT).bit
 	@cd $(OUT_DIR); promgen \
 	  -f $(PROM_OPTIONS_FILE) \
 	  -u 0 $(IMPL_DIR)/$(PROJECT).bit
+
 ###############################################################
 #### Prom Copy ################################################
 ###############################################################
@@ -194,6 +198,7 @@ $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).mcs : $(IMPL_DIR)/$(PROJECT).mcs
 	@echo ""
 	@echo "Prom file copied to $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"
+
 ###############################################################
 #### BitBin ###################################################
 ###############################################################
@@ -201,6 +206,7 @@ $(IMPL_DIR)/$(PROJECT).bitbin : $(IMPL_DIR)/$(PROJECT).bit
 	$(call ACTION_HEADER,"Binary Bit file Generate")
 	@cd $(OUT_DIR); promgen -intstyle silent -p bin -data_width 32 -b -w -u 0x0 $(IMPL_DIR)/$(PROJECT).bit
 	@mv $(IMPL_DIR)/$(PROJECT).bin $(IMPL_DIR)/$(PROJECT).bitbin
+
 ###############################################################
 #### BitBin Copy ##############################################
 ###############################################################
@@ -209,11 +215,15 @@ $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bitbin : $(IMPL_DIR)/$(PROJECT).bitbin
 	@echo ""
 	@echo "Binary bit file generated at $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"
+
 ###############################################################
 #### Makefile Targets #########################################
 ###############################################################
 .PHONY      : depend
 depend      : $(VIVADO_DEPEND)
+
+.PHONY      : sources
+sources     : $(SOURCE_DEPEND)
 
 .PHONY      : bit
 bit         : $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit 
