@@ -32,7 +32,11 @@ if { ${SIM_FILES} != "" } {
 # Add Core Files
 if { ${CORE_FILES} != "" } {
    foreach corePntr ${CORE_FILES} {
-      import_ip -quiet -srcset sources_1 ${corePntr}
+      if { [file extension ${corePntr}] == ".ngc" } {
+         add_files -quiet -fileset sources_1 ${corePntr}
+      } else {
+         import_ip -quiet -srcset sources_1 ${corePntr}
+      }
    }
 }
 
@@ -49,6 +53,7 @@ if { ${XDC_FILES} != "" } {
 # Set the Top Level 
 set_property top ${PROJECT} [current_fileset]
 
+# Close and reopen project
 close_project
 open_project -quiet ${VIVADO_PROJECT}
 
@@ -65,7 +70,7 @@ if { [get_ips] != "" } {
       # Build the IP Core
       puts "\nBuilding ${corePntr}.xci IP Core ..."
       synth_ip [get_ips ${corePntr}]
-      puts "... Build Complete!\n"
+      puts "... Buil_ Complete!\n"
       
       # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
       set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
