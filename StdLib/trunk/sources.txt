@@ -38,3 +38,8 @@ vhdl work sync/rtl/SynchronizerFifo.vhd
 vhdl work sync/rtl/SynchronizerOneShot.vhd
 vhdl work sync/rtl/SynchronizerVector.vhd
 vhdl work sync/rtl/RstSync.vhd
+
+vhdl work axi/rtl/AxiLitePkg.vhd
+vhdl work axi/rtl/AxiLiteCrossbar.vhd
+vhdl work axi/rtl/AxiVersion.vhd
+vhdl work axi/rtl/AxiDualPortRam.vhd

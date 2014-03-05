@@ -1,10 +1,11 @@
-general/tb/ClkRst.vhd
-general/tb/HeartbeatTb.vhd
-general/tb/TextUtilPkg.vhd
+vhdl work general/tb/ClkRst.vhd
+vhdl work general/tb/HeartbeatTb.vhd
+vhdl work general/tb/TextUtilPkg.vhd
 
-fifo/tb/FifoAsyncBuiltInTb.vhd
-fifo/tb/FifoAsyncTb.vhd
-fifo/tb/FifoSyncBuiltInTb.vhd
-fifo/tb/FifoSyncTb.vhd
+vhdl work fifo/tb/FifoAsyncBuiltInTb.vhd
+vhdl work fifo/tb/FifoAsyncTb.vhd
+vhdl work fifo/tb/FifoSyncBuiltInTb.vhd
+vhdl work fifo/tb/FifoSyncTb.vhd
 
-sync/tb/SynchronizerFifoTb.vhd
+vhdl work sync/tb/SynchronizerFifoTb.vhd
+
