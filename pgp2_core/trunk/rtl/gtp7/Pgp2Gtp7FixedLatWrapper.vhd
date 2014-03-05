@@ -99,7 +99,7 @@ architecture rtl of Pgp2Gtp7FixedLatWrapper is
       txClock,
       txRst,
       rxClock,
-      rxRecClk, : sl := '0';
+      rxRecClk : sl := '0';
    signal pllRefClk,
       qPllOutClk,
       qPllOutRefClk,
