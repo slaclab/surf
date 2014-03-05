@@ -25,8 +25,8 @@ package StdRtlPkg is
    -- Declare arrays of built in types
    type IntegerArray is array (natural range <>) of integer;
    type NaturalArray is array (natural range <>) of natural;
-   type RealArray    is array (natural range <>) of real;
-   type TimeArray    is array (natural range <>) of time;
+   type RealArray is array (natural range <>) of real;
+   type TimeArray is array (natural range <>) of time;
    type BooleanArray is array (natural range <>) of boolean;
    
    -- Declare vector arrays of built in types
@@ -42,6 +42,8 @@ package StdRtlPkg is
    function slvOne (size  : positive) return slv;
 
    -- Very useful functions
+   function isPowerOf2 (number       : natural) return boolean;
+   function isPowerOf2 (vector       : slv) return boolean;
    function log2 (constant number    : positive) return natural;
    function bitSize (constant number : positive) return positive;
    function bitReverse (a            : slv) return slv;
@@ -79,6 +81,9 @@ package StdRtlPkg is
    function grayDecode (vec : unsigned) return unsigned;
    function grayDecode (vec : slv) return slv;
 
+   -- Linear Feedback Shift Register function
+   function lfsrShift (lfsr : slv; constant taps : NaturalArray; input : sl := '0') return slv;
+
    function max (left, right : integer) return integer;
    function min (left, right : integer) return integer;
 
@@ -99,8 +104,10 @@ package StdRtlPkg is
    function getRealMult (A    : integer; B : real) return real;
    function getRealMult (A    : real; B : integer) return real;
 
+   function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
+
    --gets a time ratio
-   function getTimeRatio (T1, T2 : time) return natural;--not supported by Vivado
+   function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
    function getTimeRatio (T1, T2 : real) return natural;
 
    -- Some synthesis tools wont accept unit types
@@ -653,6 +660,17 @@ package body StdRtlPkg is
       return slvAll(size, '1');
    end function;
 
+   function isPowerOf2 (number : natural) return boolean is
+   begin
+      return isPowerOf2(toSlv(number, 32));
+   end function isPowerOf2;
+
+   function isPowerOf2 (vector : slv) return boolean is
+   begin
+      return (unsigned(vector) /= 0) and
+         (unsigned(unsigned(vector) and (unsigned(vector)-1)) = 0);
+   end function isPowerOf2;
+
    ---------------------------------------------------------------------------------------------------------------------
    -- Function: log2
    -- Purpose: Finds the log base 2 of an integer
@@ -672,7 +690,11 @@ package body StdRtlPkg is
       if (number = 1) then
          return 1;
       else
-         return log2(number);
+         if (isPowerOf2(number)) then
+            return log2(number) + 1;
+         else
+            return log2(number);
+         end if;
       end if;
    end function;
 
@@ -872,6 +894,32 @@ package body StdRtlPkg is
    end function;
 
    -------------------------------------------------------------------------------------------------
+   -- Implements an N tap linear feedback shift operation
+   -- Size of LFSR is variable and determined by length of lfsr parameter
+   -- Number of taps is variable and determined by length of taps array parameter
+   -- An input parameter is also available for use in scramblers
+   -- Output is new lfsr value after one shift operation
+   -- The lfsr param can be indexed ascending or decending
+   -- The shift is in the direction of increasing index (left shift for decending, right for ascending)
+   -------------------------------------------------------------------------------------------------
+   function lfsrShift (lfsr : slv; constant taps : NaturalArray; input : sl := '0') return slv is
+      variable retVar : slv(lfsr'range) := (others => '0');
+   begin
+      if (lfsr'ascending) then
+         retVar := input & lfsr(lfsr'left to lfsr'right-1);
+      else
+         retVar := lfsr(lfsr'left-1 downto lfsr'right) & input;
+      end if;
+
+      for i in taps'range loop
+         assert (taps(i)  <= lfsr'high) report "lfsrShift() - Tap value exceedes lfsr range" severity failure;
+         retVar(lfsr'low) := retVar(lfsr'low) xor lfsr(taps(i));
+      end loop;
+
+      return retVar;
+   end function;
+
+   -------------------------------------------------------------------------------------------------
    -- One line if-then-else functions.
    -------------------------------------------------------------------------------------------------
    function ite (i : boolean; t : sl; e : sl) return sl is
@@ -883,17 +931,17 @@ package body StdRtlPkg is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
-   
+
    function ite (i : boolean; t : bit_vector; e : bit_vector) return bit_vector is
    begin
       if (i) then return t; else return e; end if;
-   end function ite;   
+   end function ite;
 
    function ite (i : boolean; t : string; e : string) return string is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
-  
+
    function ite (i : boolean; t : integer; e : integer) return integer is
    begin
       if (i) then return t; else return e; end if;
@@ -907,7 +955,7 @@ package body StdRtlPkg is
    function ite (i : boolean; t : time; e : time) return time is
    begin
       if (i) then return t; else return e; end if;
-   end function ite;   
+   end function ite;
 
    -----------------------------
    -- Min and Max
@@ -954,6 +1002,43 @@ package body StdRtlPkg is
    begin
       return real(A*real(B));
    end function;
+
+   -------------------------------------------------------------------------------------------------
+   -- Simulates an ADC conversion
+   -------------------------------------------------------------------------------------------------
+   function adcConversion (
+      ain      : real;
+      low      : real;
+      high     : real;
+      bits     : positive;
+      twosComp : boolean)
+      return slv is
+      variable tmpR : real;
+      variable tmpI : integer;
+
+      variable retSigned   : signed(bits-1 downto 0);
+      variable retUnsigned : unsigned(bits-1 downto 0);
+   begin
+      tmpR := ain;
+
+      -- Constrain input to full scale range
+      tmpR := realmin(high, tmpR);
+      tmpR := realmax(low, tmpR);
+
+      -- Scale to [0,1] or [-.5,.5]
+      tmpR := (tmpR-low)/(high-low) + ite(twosComp, -0.5, 0.0);
+
+      -- Scale to number of bits
+      tmpR := tmpR * real(2**bits);
+
+      if (twosComp) then
+         retSigned := to_signed(integer(round(tmpR)), bits);
+         return slv(retSigned);
+      else
+         retUnsigned := to_unsigned(integer(round(tmpR)), bits);
+         return slv(retUnsigned);
+      end if;
+   end function adcConversion;
 
    -----------------------------
    -- gets a time ratio
