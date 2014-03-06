@@ -46,9 +46,11 @@ proc CheckTiming { } {
 # Check if the Synthesize is completed
 proc CheckSynth { } {
 
-   if { [get_property PROGRESS [get_runs synth_1]]!="100\%" || \
-        [get_property NEEDS_REFRESH [get_runs synth_1]]!=0 || \
-        [get_property STATUS [get_runs synth_1]]!="synth_design Complete!" } {
+   if { [get_property PROGRESS [get_runs synth_1]] != "100\%" } {
+      return false
+   } elseif { [get_property NEEDS_REFRESH [get_runs synth_1]] == 1 } {
+      return false   
+   } elseif { [get_property STATUS [get_runs synth_1]] != "synth_design Complete!" } {
       return false
    } else {
       return true
@@ -58,9 +60,11 @@ proc CheckSynth { } {
 # Check if the Synthesize is completed
 proc CheckImpl { } {
 
-   if { [get_property PROGRESS [get_runs impl_1]]!="100\%" || \
-        [get_property NEEDS_REFRESH [get_runs impl_1]]!=0 || \
-        [get_property STATUS [get_runs impl_1]]!="write_bitstream Complete!" } {
+   if { [get_property PROGRESS [get_runs impl_1]] != "100\%" } {
+      return false
+   } elseif { [get_property NEEDS_REFRESH [get_runs impl_1]] == 1 } {
+      return false   
+   } elseif { [get_property STATUS [get_runs impl_1]] != "write_bitstream Complete!" } {
       return false
    } else {
       return true

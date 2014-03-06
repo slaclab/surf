@@ -27,21 +27,21 @@ open_project -quiet ${VIVADO_PROJECT}
 ########################################################
 ## Update the complie order
 ########################################################
-update_compile_order -fileset sources_1
-update_compile_order -fileset sim_1
+update_compile_order -quiet -fileset sources_1
+update_compile_order -quiet -fileset sim_1
 
 ########################################################
-## Check if we need to clean up the synthesis
-########################################################
-if { [CheckSynth] != true } {
-   reset_run synth_1
-}
-
-########################################################
-## Check if we need to clean up the implement
+## Check if we need to clean up or stop the implement
 ########################################################
 if { [CheckImpl] != true } {
    reset_run impl_1
+}
+
+########################################################
+## Check if we need to clean up or stop the synthesis
+########################################################
+if { [CheckSynth] != true } {
+   reset_run synth_1
 }
 
 ########################################################
@@ -61,6 +61,12 @@ if { [CheckSynth] != true } {
    launch_run  synth_1
    wait_on_run synth_1
 }
+
+########################################################
+## Force a refresh of project by close then open project
+########################################################
+close_project
+open_project -quiet ${VIVADO_PROJECT}
 
 ########################################################
 ## Target post synthesis script
