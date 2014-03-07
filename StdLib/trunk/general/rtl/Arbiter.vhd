@@ -33,14 +33,14 @@ entity Arbiter is
       rst : in sl := not RST_POLARITY_G;   -- Optional reset
 
       req      : in  slv(REQ_SIZE_G-1 downto 0);
-      selected : out slv(bitSize(REQ_SIZE_G)-1 downto 0);
+      selected : out slv(bitSize(REQ_SIZE_G-1)-1 downto 0);
       valid    : out sl;
       ack      : out slv(REQ_SIZE_G-1 downto 0));
 end entity Arbiter;
 
 architecture rtl of Arbiter is
 
-   constant SELECTED_SIZE_C : integer := bitSize(REQ_SIZE_G);
+   constant SELECTED_SIZE_C : integer := bitSize(REQ_SIZE_G-1);
 
    type RegType is record
       lastSelected : slv(SELECTED_SIZE_C-1 downto 0);

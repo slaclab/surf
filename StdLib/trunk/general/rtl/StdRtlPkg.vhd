@@ -45,7 +45,7 @@ package StdRtlPkg is
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
    function log2 (constant number    : positive) return natural;
-   function bitSize (constant number : positive) return positive;
+   function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
 
    -- Similar to python's range() function
@@ -685,9 +685,9 @@ package body StdRtlPkg is
    end function;
 
    -- Find number of bits needed to store a number
-   function bitSize (constant number : positive) return positive is
+   function bitSize (constant number : natural ) return positive is
    begin
-      if (number = 1) then
+      if (number = 0 or number = 1) then
          return 1;
       else
          if (isPowerOf2(number)) then

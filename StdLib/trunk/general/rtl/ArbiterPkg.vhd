@@ -41,7 +41,7 @@ package body ArbiterPkg is
    function priorityEncode (v : slv; p : integer) return slv is
       variable bestReq  : integer;
       variable rotatedV : unsigned(v'range);
-      variable ret      : unsigned(bitSize(v'length)-1 downto 0) := (others => '0');
+      variable ret      : unsigned(bitSize(v'length-1)-1 downto 0) := (others => '0');
    begin
 --      print("priorityEncode(" & str(v) & ", " & str(p) & ")");
       -- Rotate input by n to give n top priority
