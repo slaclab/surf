@@ -29,23 +29,7 @@ entity AxiLiteCrossbar is
       TPD_G              : time                             := 1 ns;
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
       NUM_MASTER_SLOTS_G : natural range 1 to 16            := 4;
-      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray := (
-         0               => (--AXI_CONFIG_REGS_INDEX_C          => (  -- General Configuration Registers
-            baseAddr     => X"00000000",
-            addrBits     => 8,
-            connectivity => X"0001"),
-         1               => (--AXI_HYBRID_CLOCK_PHASE_INDEX_C   => (  -- Hybrid (APV) Clock Phase Adjustment
-            baseAddr     => X"00000100",
-            addrBits     => 3,
-            connectivity => X"0003"),
-         2               => (--AXI_ADC_CLOCK_PHASE_INDEX_C      => (  -- ADC Clock Phase Adjustment
-            baseAddr     => X"00000110",
-            addrBits     => 3,
-            connectivity => X"0007"),
-         3               => (-- AXI_BOARD_I2C_INDEX_C            => (  -- Board I2C Interface
-            baseAddr     => X"00001000",
-            addrBits     => 11,
-            connectivity => X"000F")));
+      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray);
    port (
       axiClk    : in sl;
       axiClkRst : in sl;
@@ -70,8 +54,8 @@ architecture rtl of AxiLiteCrossbar is
 
    type SlaveStateType is (S_WAIT_AXI_TXN_S, S_WR_DEC_ERR_S, S_RD_DEC_ERR_S, S_DO_TXN_S);
 
-   constant REQ_NUM_SIZE_C : integer := bitSize(NUM_MASTER_SLOTS_G);
-   constant ACK_NUM_SIZE_C : integer := bitSize(NUM_SLAVE_SLOTS_G);
+   constant REQ_NUM_SIZE_C : integer := bitSize(NUM_MASTER_SLOTS_G-1);
+   constant ACK_NUM_SIZE_C : integer := bitSize(NUM_SLAVE_SLOTS_G-1);
 
    type SlaveType is record
       state  : SlaveStateType;
