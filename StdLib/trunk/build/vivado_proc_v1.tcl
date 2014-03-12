@@ -300,9 +300,13 @@ proc ExportPartialReconfigBit { } {
 
 # Create a Debug Core Function
 proc CreateDebugCore {ilaName} {
+   # Create the debug core
    create_debug_core ${ilaName} labtools_ila_v3
    set_property C_DATA_DEPTH 1024       [get_debug_cores ${ilaName}]
    set_property C_INPUT_PIPE_STAGES 2   [get_debug_cores ${ilaName}]
+   
+   # Force a reset of the implementation
+   reset_run impl_1
 }
 
 # Sets the clock on the debug core
