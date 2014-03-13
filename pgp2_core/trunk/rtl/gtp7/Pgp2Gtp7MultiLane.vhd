@@ -39,7 +39,7 @@ entity Pgp2Gtp7MultiLane is
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
       SIM_VERSION_G         : string               := "1.0";
-      STABLE_CLOCK_PERIOD_G : real                 := 6.4E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;  --units of seconds
       -- Configure PLL 
       RXOUT_DIV_G           : integer              := 2;
       TXOUT_DIV_G           : integer              := 2;
@@ -53,7 +53,7 @@ entity Pgp2Gtp7MultiLane is
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Number of Lanes
-      LANE_CNT_G            : integer range 1 to 4 := 2;
+      LANE_CNT_G            : integer range 1 to 4 := 1;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
