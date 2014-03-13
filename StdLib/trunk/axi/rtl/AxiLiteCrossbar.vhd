@@ -29,6 +29,7 @@ entity AxiLiteCrossbar is
       TPD_G              : time                             := 1 ns;
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
       NUM_MASTER_SLOTS_G : natural range 1 to 16            := 4;
+      DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
       MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray);
    port (
       axiClk    : in sl;
@@ -182,14 +183,15 @@ begin
 
             when S_WR_DEC_ERR_S =>
                if (sAxiWriteMasters(s).bready = '1') then
-                  v.sAxiWriteSlaves(s).bresp  := AXI_RESP_DECERR_C;
+                  v.sAxiWriteSlaves(s).bresp  := DEC_ERROR_RESP_G;
                   v.sAxiWriteSlaves(s).bvalid := '1';
                   v.slave(s).state            := S_WAIT_AXI_TXN_S;
                end if;
 
             when S_RD_DEC_ERR_S =>
                if (sAxiReadMasters(s).rready = '1') then
-                  v.sAxiReadSlaves(s).rresp  := AXI_RESP_DECERR_C;
+                  v.sAxiReadSlaves(s).rresp  := DEC_ERROR_RESP_G;
+                  v.sAxiReadSlaves(s).rdata  := (others=>'0');
                   v.sAxiReadSlaves(s).rvalid := '1';
                   v.slave(s).state           := S_WAIT_AXI_TXN_S;
                end if;

@@ -43,3 +43,5 @@ vhdl work axi/rtl/AxiLitePkg.vhd
 vhdl work axi/rtl/AxiLiteCrossbar.vhd
 vhdl work axi/rtl/AxiVersion.vhd
 vhdl work axi/rtl/AxiDualPortRam.vhd
+vhdl work axi/rtl/AxiLiteEmpty.vhd
+vhdl work axi/rtl/AxiLiteAsync.vhd

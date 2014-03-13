@@ -24,6 +24,9 @@ if { [CheckForReconfigCheckPoint] != true } {
 ########################################################
 open_project -quiet ${VIVADO_PROJECT}
 
+# Setup project properties
+source ${VIVADO_BUILD_DIR}/vivado_properties_v1.tcl
+
 ########################################################
 ## Update the complie order
 ########################################################
