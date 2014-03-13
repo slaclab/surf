@@ -1034,7 +1034,8 @@ begin
          ------------------------ Loopback and Powerdown Ports ----------------------
          LOOPBACK         => loopbackIn,
          RXPD             => "00",
-         TXPD             => "00",
+         TXPD(0)          => txUserResetIn,
+         TXPD(1)          => txUserResetIn,
          ----------------------------- PCS Reserved Ports ---------------------------
          PCSRSVDIN        => "0000000000000000",
          PCSRSVDIN2       => "00000",
@@ -1232,7 +1233,7 @@ begin
          TXBUFDIFFCTRL    => "100",
          TXDIFFCTRL       => "1000",
          TXDIFFPD         => '0',
-         TXINHIBIT        => '0',
+         TXINHIBIT        => txUserResetIn,
          TXMAINCURSOR     => "0000000",
          TXPDELECIDLEMODE => '0',
          TXPISOPD         => '0',
@@ -1248,7 +1249,7 @@ begin
          ----------------- Transmit Ports - TX Ports for PCI Express ----------------
          TXDEEMPH         => '0',
          TXDETECTRX       => '0',
-         TXELECIDLE       => '0',
+         TXELECIDLE       => txUserResetIn,
          TXMARGIN         => "000",
          TXSWING          => '0',
          --------------------- Transmit Ports - TX Ports for SATA -------------------
