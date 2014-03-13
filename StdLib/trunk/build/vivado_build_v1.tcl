@@ -17,6 +17,9 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 ########################################################
 open_project -quiet ${VIVADO_PROJECT}
 
+# Setup project properties
+source ${VIVADO_BUILD_DIR}/vivado_properties_v1.tcl
+
 ########################################################
 ## Update the complie order
 ########################################################
@@ -97,5 +100,6 @@ if { [CheckTiming] != true } {
 ########################################################
 ## Close the project and return sucessful flag
 ########################################################
+
 close_project
 exit 0
