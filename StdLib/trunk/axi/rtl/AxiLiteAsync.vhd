@@ -22,7 +22,6 @@ use IEEE.numeric_std.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
 use work.StdRtlPkg.all;
-use work.ArmRceG3Pkg.all;
 use work.AxiLitePkg.all;
 
 entity AxiLiteAsync is
@@ -157,6 +156,13 @@ begin
    -- Read: Master To Slave
    ------------------------------------
 
+
+
+
+
+
+
+
    -- Read Master To Slave FIFO
    U_ReadMastToSlaveFifo : entity work.FifoASync
       generic map (
@@ -211,6 +217,14 @@ begin
    -- Read control and valid
    sAxiReadSlave.rvalid <= readMastToSlaveValid;
    readMastToSlaveRead  <= sAxiReadMaster.rready;
+
+
+
+
+
+
+
+
 
 
    ------------------------------------
