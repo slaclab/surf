@@ -304,6 +304,7 @@ proc CreateDebugCore {ilaName} {
    create_debug_core ${ilaName} labtools_ila_v3
    set_property C_DATA_DEPTH 1024       [get_debug_cores ${ilaName}]
    set_property C_INPUT_PIPE_STAGES 2   [get_debug_cores ${ilaName}]
+   set_property C_EN_STRG_QUAL true     [get_debug_cores ${ilaName}]
    
    # Force a reset of the implementation
    reset_run impl_1
@@ -340,4 +341,14 @@ proc ConfigProbe {ilaName netName} {
 
    # increment the probe index
    create_debug_port ${ilaName} probe
+}
+
+# Write the port map file
+proc WriteDebugProbes {ilaName filePath} {
+
+   # Delete the last unused port
+   delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaName}]]
+
+   # Write the port map file
+   write_debug_probes -force ${filePath}
 }
