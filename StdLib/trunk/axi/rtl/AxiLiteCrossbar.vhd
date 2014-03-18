@@ -53,15 +53,18 @@ end entity AxiLiteCrossbar;
 
 architecture rtl of AxiLiteCrossbar is
 
-   type SlaveStateType is (S_WAIT_AXI_TXN_S, S_WR_DEC_ERR_S, S_RD_DEC_ERR_S, S_DO_TXN_S);
+   type SlaveStateType is (S_WAIT_AXI_TXN_S, S_DEC_ERR_S, S_ACK_S, S_TXN_S);
 
    constant REQ_NUM_SIZE_C : integer := bitSize(NUM_MASTER_SLOTS_G-1);
    constant ACK_NUM_SIZE_C : integer := bitSize(NUM_SLAVE_SLOTS_G-1);
 
    type SlaveType is record
-      state  : SlaveStateType;
-      reqs   : slv(NUM_MASTER_SLOTS_G-1 downto 0);
-      reqNum : slv(REQ_NUM_SIZE_C-1 downto 0);
+      wrState  : SlaveStateType;
+      wrReqs   : slv(NUM_MASTER_SLOTS_G-1 downto 0);
+      wrReqNum : slv(REQ_NUM_SIZE_C-1 downto 0);
+      rdState  : SlaveStateType;
+      rdReqs   : slv(NUM_MASTER_SLOTS_G-1 downto 0);
+      rdReqNum : slv(REQ_NUM_SIZE_C-1 downto 0);
    end record SlaveType;
 
    type SlaveArray is array (natural range <>) of SlaveType;
@@ -69,10 +72,14 @@ architecture rtl of AxiLiteCrossbar is
    type MasterStateType is (M_WAIT_REQ_S, M_WAIT_READYS_S, M_WAIT_REQ_FALL_S);
 
    type MasterType is record
-      state  : MasterStateType;
-      acks   : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
-      ackNum : slv(ACK_NUM_SIZE_C-1 downto 0);
-      valid  : sl;
+      wrState  : MasterStateType;
+      wrAcks   : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
+      wrAckNum : slv(ACK_NUM_SIZE_C-1 downto 0);
+      wrValid  : sl;
+      rdState  : MasterStateType;
+      rdAcks   : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
+      rdAckNum : slv(ACK_NUM_SIZE_C-1 downto 0);
+      rdValid  : sl;
    end record MasterType;
 
    type MasterArray is array (natural range <>) of MasterType;
@@ -89,15 +96,22 @@ architecture rtl of AxiLiteCrossbar is
    constant REG_INIT_C : RegType := (
       slave            => (
          others        => (
-            state      => S_WAIT_AXI_TXN_S,
-            reqs       => (others => '0'),
-            reqNum     => (others => '0'))),
+            wrState    => S_WAIT_AXI_TXN_S,
+            wrReqs     => (others => '0'),
+            wrReqNum   => (others => '0'),
+            rdState    => S_WAIT_AXI_TXN_S,
+            rdReqs     => (others => '0'),
+            rdReqNum   => (others => '0'))),
       master           => (
          others        => (
-            state      => M_WAIT_REQ_S,
-            acks       => (others => '0'),
-            ackNum     => (others => '0'),
-            valid      => '0')),
+            wrState    => M_WAIT_REQ_S,
+            wrAcks     => (others => '0'),
+            wrAckNum   => (others => '0'),
+            wrValid    => '0',
+            rdState    => M_WAIT_REQ_S,
+            rdAcks     => (others => '0'),
+            rdAckNum   => (others => '0'),
+            rdValid    => '0')),
       sAxiWriteSlaves  => (others => AXI_WRITE_SLAVE_INIT_C),
       sAxiReadSlaves   => (others => AXI_READ_SLAVE_INIT_C),
       mAxiWriteMasters => (others => AXI_WRITE_MASTER_INIT_C),
@@ -113,10 +127,12 @@ begin
    comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is
       variable v            : RegType;
       variable sAxiStatuses : AxiStatusArray(NUM_SLAVE_SLOTS_G-1 downto 0);
-      variable mReqs        : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
+      variable mRdReqs      : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
+      variable mWrReqs      : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
    begin
       v := r;
 
+      -- Control slave side outputs
       for s in NUM_SLAVE_SLOTS_G-1 downto 0 loop
 
          v.sAxiWriteSlaves(s).awready := '0';
@@ -133,121 +149,170 @@ begin
             v.sAxiReadSlaves(s).rvalid := '0';
          end if;
 
-         case (r.slave(s).state) is
+         -- Write state machine
+         case (r.slave(s).wrState) is
             when S_WAIT_AXI_TXN_S =>
 
                -- Incomming write
                if (sAxiWriteMasters(s).awvalid = '1' and sAxiWriteMasters(s).wvalid = '1') then
+
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
                      if (sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
                          MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits) and
                          MASTERS_CONFIG_G(m).connectivity(s) = '1') then
-                        v.slave(s).reqs(m) := '1';
-                        v.slave(s).reqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
+                        v.slave(s).wrReqs(m) := '1';
+                        v.slave(s).wrReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
 --                        print("AxiLiteCrossbar: Slave  " & str(s) & " reqd Master " & str(m) & " Write addr " & hstr(sAxiWriteMasters(s).awaddr));
                      end if;
                   end loop;
 
                   -- Respond with error if decode fails
-                  if (uOr(v.slave(s).reqs) = '0') then
+                  if (uOr(v.slave(s).wrReqs) = '0') then
                      v.sAxiWriteSlaves(s).awready := '1';
                      v.sAxiWriteSlaves(s).wready  := '1';
-                     v.slave(s).state             := S_WR_DEC_ERR_S;
+                     v.slave(s).wrState           := S_DEC_ERR_S;
                   else
-                     v.slave(s).state := S_DO_TXN_S;
+                     v.slave(s).wrState := S_ACK_S;
                   end if;
+               end if;
 
+            -- Send error
+            when S_DEC_ERR_S =>
+               if (sAxiWriteMasters(s).bready = '1') then
+                  v.sAxiWriteSlaves(s).bresp  := DEC_ERROR_RESP_G;
+                  v.sAxiWriteSlaves(s).bvalid := '1';
+                  v.slave(s).wrState          := S_WAIT_AXI_TXN_S;
+               end if;
+
+            -- Transaction is acked
+            when S_ACK_S =>
+               for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
+                  if (r.slave(s).wrReqNum = m and r.slave(s).wrReqs(m) = '1' and r.master(m).wrAcks(s) = '1') then
+                     v.sAxiWriteSlaves(s).awready := '1';
+                     v.sAxiWriteSlaves(s).wready  := '1';
+                     v.slave(s).wrState           := S_TXN_S;
+                  end if;
+               end loop;
+
+            -- Transaction in progress
+            when S_TXN_S =>
+               for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
+                  if (r.slave(s).wrReqNum = m and r.slave(s).wrReqs(m) = '1' and r.master(m).wrAcks(s) = '1') then
+
+                     -- Forward write response
+                     v.sAxiWriteSlaves(s).bresp  := mAxiWriteSlaves(m).bresp;
+                     v.sAxiWriteSlaves(s).bvalid := mAxiWriteSlaves(m).bvalid;
+
+                     -- bvalid or rvalid indicates txn concluding
+                     if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
+                        v.sAxiWriteSlaves(s) := AXI_WRITE_SLAVE_INIT_C;
+                        v.slave(s).wrReqs    := (others => '0');
+                        v.slave(s).wrState   := S_WAIT_AXI_TXN_S;
+                     end if;
+                  end if;
+               end loop;
+         end case;
+
+         -- Read state machine
+         case (r.slave(s).rdState) is
+            when S_WAIT_AXI_TXN_S =>
 
                -- Incomming read
-               elsif (sAxiReadMasters(s).arvalid = '1') then
+               if (sAxiReadMasters(s).arvalid = '1') then
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
                      if (sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
                          MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits) and
                          MASTERS_CONFIG_G(m).connectivity(s) = '1') then
-                        v.slave(s).reqs(m) := '1';
-                        v.slave(s).reqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
+                        v.slave(s).rdReqs(m) := '1';
+                        v.slave(s).rdReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
                      end if;
                   end loop;
 
                   -- Respond with error if decode fails
-                  if (uOr(v.slave(s).reqs) = '0') then
+                  if (uOr(v.slave(s).rdReqs) = '0') then
                      v.sAxiReadSlaves(s).arready := '1';
-                     v.slave(s).state            := S_RD_DEC_ERR_S;
+                     v.slave(s).rdState          := S_DEC_ERR_S;
                   else
-                     v.slave(s).state := S_DO_TXN_S;
+                     v.slave(s).rdState := S_ACK_S;
                   end if;
-
                end if;
 
-            when S_WR_DEC_ERR_S =>
-               if (sAxiWriteMasters(s).bready = '1') then
-                  v.sAxiWriteSlaves(s).bresp  := DEC_ERROR_RESP_G;
-                  v.sAxiWriteSlaves(s).bvalid := '1';
-                  v.slave(s).state            := S_WAIT_AXI_TXN_S;
-               end if;
-
-            when S_RD_DEC_ERR_S =>
+            -- Error
+            when S_DEC_ERR_S =>
                if (sAxiReadMasters(s).rready = '1') then
                   v.sAxiReadSlaves(s).rresp  := DEC_ERROR_RESP_G;
                   v.sAxiReadSlaves(s).rdata  := (others=>'0');
                   v.sAxiReadSlaves(s).rvalid := '1';
-                  v.slave(s).state           := S_WAIT_AXI_TXN_S;
+                  v.slave(s).rdState         := S_WAIT_AXI_TXN_S;
                end if;
 
-            when S_DO_TXN_S =>
+            -- Transaction is acked
+            when S_ACK_S =>
                for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
-                  if (r.slave(s).reqNum = m and r.slave(s).reqs(m) = '1' and r.master(m).acks(s) = '1') then
-                     -- Connect Masters to Slaves upon ack
-                     v.sAxiWriteSlaves(s) := mAxiWriteSlaves(m);
-                     v.sAxiReadSlaves(s)  := mAxiReadSlaves(m);
-                     if ((r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') or
-                         (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1')) then
-                        -- bvalid or rvalid indicates txn concluding
-                        v.sAxiWriteSlaves(s) := AXI_WRITE_SLAVE_INIT_C;
-                        v.sAxiReadSlaves(s)  := AXI_READ_SLAVE_INIT_C;
-                        v.slave(s).reqs      := (others => '0');
-                        v.slave(s).state     := S_WAIT_AXI_TXN_S;  --S_WAIT_DONE_S;
-                     end if;
+                  if (r.slave(s).rdReqNum = m and r.slave(s).rdReqs(m) = '1' and r.master(m).rdAcks(s) = '1') then
+                     v.sAxiReadSlaves(s).arready := '1';
+                     v.slave(s).rdState          := S_TXN_S;
                   end if;
                end loop;
 
+            -- Transaction in progress
+            when S_TXN_S =>
+               for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
+                  if (r.slave(s).rdReqNum = m and r.slave(s).rdReqs(m) = '1' and r.master(m).rdAcks(s) = '1') then
+
+                     -- Forward read response
+                     v.sAxiReadSlaves(s).rresp  := mAxiReadSlaves(m).rresp;
+                     v.sAxiReadSlaves(s).rdata  := mAxiReadSlaves(m).rdata;
+                     v.sAxiReadSlaves(s).rvalid := mAxiReadSlaves(m).rvalid;
+
+                     -- rvalid indicates txn concluding
+                     if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
+                        v.sAxiReadSlaves(s)  := AXI_READ_SLAVE_INIT_C;
+                        v.slave(s).rdReqs    := (others => '0');
+                        v.slave(s).rdState   := S_WAIT_AXI_TXN_S;  --S_WAIT_DONE_S;
+                     end if;
+                  end if;
+               end loop;
          end case;
       end loop;
 
 
-
+      -- Control master side outputs
       for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
+
          -- Group reqs by master
-         mReqs := (others => '0');
-         for i in mReqs'range loop
-            mReqs(i) := r.slave(i).reqs(m);
+         mWrReqs := (others => '0');
+         mRdReqs := (others => '0');
+         for i in mWrReqs'range loop
+            mWrReqs(i) := r.slave(i).wrReqs(m);
+            mRdReqs(i) := r.slave(i).rdReqs(m);
          end loop;
 
-         case (r.master(m).state) is
+         -- Write path processing
+         case (r.master(m).wrState) is
             when M_WAIT_REQ_S =>
 
                -- Keep these in reset state while waiting for requests
-               v.master(m).acks      := (others => '0');
+               v.master(m).wrAcks    := (others => '0');
                v.mAxiWriteMasters(m) := AXI_WRITE_MASTER_INIT_C;
-               v.mAxiReadMasters(m)  := AXI_READ_MASTER_INIT_C;
 
                -- Wait for a request, arbitrate between simultaneous requests
-               if (r.master(m).valid = '0') then
-                  arbitrate(mReqs, r.master(m).ackNum, v.master(m).ackNum, v.master(m).valid, v.master(m).acks);
+               if (r.master(m).wrValid = '0') then
+                  arbitrate(mWrReqs, r.master(m).wrAckNum, v.master(m).wrAckNum, v.master(m).wrValid, v.master(m).wrAcks);
                end if;
 
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
                -- busses to this master's outputs.
-               if (r.master(m).valid = '1') then
-                  v.master(m).acks      := r.master(m).acks;
-                  v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).ackNum));
-                  v.mAxiReadMasters(m)  := sAxiReadMasters(conv_integer(r.master(m).ackNum));
-                  v.master(m).state     := M_WAIT_READYS_S;
+               if (r.master(m).wrValid = '1') then
+                  v.master(m).wrAcks    := r.master(m).wrAcks;
+                  v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
+                  v.master(m).wrState   := M_WAIT_READYS_S;
                end if;
 
             when M_WAIT_READYS_S =>
+
                -- Wait for attached slave to respond
                -- Clear *valid signals upon *ready responses
                if (mAxiWriteSlaves(m).awready = '1') then
@@ -257,24 +322,65 @@ begin
                   v.mAxiWriteMasters(m).wvalid := '0';
                end if;
 
-               if (mAxiReadSlaves(m).arready = '1') then
-                  v.mAxiReadMasters(m).arvalid := '0';
-               end if;
-
                -- When all *valid signals cleared, wait for slave side to clear request
-               if (v.mAxiWriteMasters(m).awvalid = '0' and
-                   v.mAxiWriteMasters(m).wvalid = '0' and
-                   v.mAxiReadMasters(m).arvalid = '0') then
-                  v.master(m).state := M_WAIT_REQ_FALL_S;
+               if (v.mAxiWriteMasters(m).awvalid = '0' and v.mAxiWriteMasters(m).wvalid = '0' ) then
+                  v.master(m).wrState := M_WAIT_REQ_FALL_S;
                end if;
                
             when M_WAIT_REQ_FALL_S =>
                -- When slave side deasserts request, clear ack and valid and start waiting for next
                -- request
-               if (mReqs(conv_integer(r.master(m).ackNum)) = '0') then
-                  v.master(m).state := M_WAIT_REQ_S;
-                  v.master(m).acks  := (others => '0');
-                  v.master(m).valid := '0';
+               if (mWrReqs(conv_integer(r.master(m).wrAckNum)) = '0') then
+                  v.master(m).wrState := M_WAIT_REQ_S;
+                  v.master(m).wrAcks  := (others => '0');
+                  v.master(m).wrValid := '0';
+               end if;
+               
+            when others => null;
+         end case;
+
+
+         -- Read path processing
+         case (r.master(m).rdState) is
+            when M_WAIT_REQ_S =>
+
+               -- Keep these in reset state while waiting for requests
+               v.master(m).rdAcks    := (others => '0');
+               v.mAxiReadMasters(m)  := AXI_READ_MASTER_INIT_C;
+
+               -- Wait for a request, arbitrate between simultaneous requests
+               if (r.master(m).rdValid = '0') then
+                  arbitrate(mRdReqs, r.master(m).rdAckNum, v.master(m).rdAckNum, v.master(m).rdValid, v.master(m).rdAcks);
+               end if;
+
+               -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
+               -- busses to this master's outputs.
+               if (r.master(m).rdValid = '1') then
+                  v.master(m).rdAcks   := r.master(m).rdAcks;
+                  v.mAxiReadMasters(m) := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
+                  v.master(m).rdState  := M_WAIT_READYS_S;
+               end if;
+
+            when M_WAIT_READYS_S =>
+
+               -- Wait for attached slave to respond
+               -- Clear *valid signals upon *ready responses
+               if (mAxiReadSlaves(m).arready = '1') then
+                  v.mAxiReadMasters(m).arvalid := '0';
+               end if;
+
+               -- When all *valid signals cleared, wait for slave side to clear request
+               if (v.mAxiReadMasters(m).arvalid = '0') then
+                  v.master(m).rdState := M_WAIT_REQ_FALL_S;
+               end if;
+               
+            when M_WAIT_REQ_FALL_S =>
+               -- When slave side deasserts request, clear ack and valid and start waiting for next
+               -- request
+               if (mRdReqs(conv_integer(r.master(m).rdAckNum)) = '0') then
+                  v.master(m).rdState := M_WAIT_REQ_S;
+                  v.master(m).rdAcks  := (others => '0');
+                  v.master(m).rdValid := '0';
                end if;
                
             when others => null;
@@ -301,5 +407,5 @@ begin
       end if;
    end process seq;
 
-
 end architecture rtl;
+
