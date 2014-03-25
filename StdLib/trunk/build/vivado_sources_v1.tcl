@@ -69,13 +69,24 @@ if { [get_ips] != "" } {
 
       # Build the IP Core
       puts "\nBuilding ${corePntr}.xci IP Core ..."
-      synth_ip [get_ips ${corePntr}]
-      puts "... Buil_ Complete!\n"
+      
+      # Check if we need to create the IP_run
+      set ipSynthRun ${corePntr}_synth_1
+      if { [get_runs ${ipSynthRun}] != ${ipSynthRun}} {
+         create_ip_run [get_ips ${corePntr}]
+      }
+      
+      # Check if we need to synthesis the IP_run
+      if { [CheckIpSynth ${ipSynthRun}] != true } {
+         reset_run         ${ipSynthRun}
+         launch_run -quiet ${ipSynthRun}
+         wait_on_run       ${ipSynthRun}
+      }
+      puts "... ${corePntr}.xci Build Complete!\n"
       
       # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
       set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
       set_property is_enabled false [get_files ${xdcPntr}]
-      
    }
 }
 

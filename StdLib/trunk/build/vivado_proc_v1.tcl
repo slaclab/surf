@@ -58,6 +58,20 @@ proc CheckSynth { } {
 }
 
 # Check if the Synthesize is completed
+proc CheckIpSynth { ipSynthRun } {
+
+   if { [get_property PROGRESS [get_runs ${ipSynthRun}]] != "100\%" } {
+      return false
+   } elseif { [get_property NEEDS_REFRESH [get_runs ${ipSynthRun}]] == 1 } {
+      return false   
+   } elseif { [get_property STATUS [get_runs ${ipSynthRun}]] != "synth_design Complete!" } {
+      return false
+   } else {
+      return true
+   }
+}
+
+# Check if the Implementation is completed
 proc CheckImpl { } {
 
    if { [get_property PROGRESS [get_runs impl_1]] != "100\%" } {

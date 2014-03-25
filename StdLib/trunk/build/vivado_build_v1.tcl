@@ -41,6 +41,20 @@ if { [CheckSynth] != true } {
 }
 
 ########################################################
+## Check if we re-synthesis any of the IP cores
+########################################################
+if { [get_ips] != "" } {
+   foreach corePntr [get_ips] {
+      set ipSynthRun ${corePntr}_synth_1
+      if { [CheckIpSynth ${ipSynthRun}] != true } {
+         reset_run   ${ipSynthRun}
+         launch_run  ${ipSynthRun}
+         wait_on_run ${ipSynthRun}
+      }
+   }
+}
+
+########################################################
 ## Synthesize
 ########################################################
 if { [CheckSynth] != true } {
