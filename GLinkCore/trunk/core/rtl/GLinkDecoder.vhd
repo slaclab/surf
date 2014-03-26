@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-02-26
+-- Last update: 2014-03-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ entity GLinkDecoder is
       FLAGSEL_G      : boolean := false;
       RST_POLARITY_G : sl      := '1');
    port (
+      en           : in  sl := '1';
       clk          : in  sl;
       rst          : in  sl;
       gtRxData     : in  slv(19 downto 0);
@@ -59,7 +60,7 @@ begin
       if rising_edge(clk) then
          if rst = RST_POLARITY_G then
             r <= REG_TYPE_INIT_C after TPD_G;
-         else
+         elsif en = '1' then
             r <= rin after TPD_G;
          end if;
       end if;
