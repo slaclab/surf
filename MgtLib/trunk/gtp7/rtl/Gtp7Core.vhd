@@ -33,7 +33,7 @@ entity Gtp7Core is
 
       SIMULATION_G : boolean := false;
 
-      STABLE_CLOCK_PERIOD_G : real := 8.0E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real := 4.0E-9;  --units of seconds
 
       -- TX/RX Settings --
       RXOUT_DIV_G      : integer    := 2;
