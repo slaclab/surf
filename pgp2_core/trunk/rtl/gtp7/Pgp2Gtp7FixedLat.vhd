@@ -40,7 +40,7 @@ entity Pgp2Gtp7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "1.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds
       -- TX/RX Settings - Defaults to 2.5 Gbps operation 
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
