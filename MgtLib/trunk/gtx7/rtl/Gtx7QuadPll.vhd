@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-06
--- Last update: 2013-06-06
+-- Last update: 2014-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity Gtx7QuadPll is
       qPllLock       : out sl;
       qPllLockDetClk : in  sl;          -- Lock detect clock
       qPllRefClkLost : out sl;
+      qPllPowerDown  : in  sl := '0';
       qPllReset      : in  sl);
 
 end entity Gtx7QuadPll;
@@ -120,7 +121,7 @@ begin
          QPLLLOCKDETCLK   => qPllLockDetClk,
          QPLLLOCKEN       => '1',
          QPLLOUTRESET     => '0',
-         QPLLPD           => '0',
+         QPLLPD           => qPllPowerDown,
          QPLLREFCLKLOST   => qPllRefClkLost,
          QPLLREFCLKSEL    => to_stdlogicvector(QPLL_REFCLK_SEL_G),
          QPLLRESET        => qPllReset,
