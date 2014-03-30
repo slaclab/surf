@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-06-29
+-- Last update: 2014-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ entity Gtp7QuadPll is
       qPllLock       : out slv(1 downto 0);
       qPllLockDetClk : in  slv(1 downto 0);  -- Lock detect clock
       qPllRefClkLost : out slv(1 downto 0);
+      qPllPowerDown  : in  slv(1 downto 0) := (others => '0');
       qPllReset      : in  slv(1 downto 0));
 
 end entity Gtp7QuadPll;
@@ -121,7 +122,7 @@ begin
          PLL0LOCK          => qPllLock(0),
          PLL0LOCKDETCLK    => qPllLockDetClk(0),
          PLL0LOCKEN        => '1',
-         PLL0PD            => '0',
+         PLL0PD            => qPllPowerDown(0),
          PLL0REFCLKLOST    => qPllRefClkLost(0),
          PLL0REFCLKSEL     => to_stdlogicvector(PLL0_REFCLK_SEL_G),
          PLL0RESET         => qPllReset(0),
@@ -132,7 +133,7 @@ begin
          PLL1LOCK          => qPllLock(1),
          PLL1LOCKDETCLK    => qPllLockDetClk(1),
          PLL1LOCKEN        => '1',
-         PLL1PD            => '0',
+         PLL1PD            => qPllPowerDown(1),
          PLL1REFCLKLOST    => qPllRefClkLost(1),
          PLL1REFCLKSEL     => to_stdlogicvector(PLL1_REFCLK_SEL_G),
          PLL1RESET         => qPllReset(1),
