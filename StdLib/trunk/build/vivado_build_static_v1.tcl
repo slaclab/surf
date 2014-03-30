@@ -63,11 +63,16 @@ foreach rtlPntr ${RECONFIG_NAME} {
 if { [get_ips] != "" } {
    foreach corePntr [get_ips] {
       set ipSynthRun ${corePntr}_synth_1
-      if { [CheckIpSynth ${ipSynthRun}] != true } {
-         reset_run   ${ipSynthRun}
-         launch_run  ${ipSynthRun}
-         wait_on_run ${ipSynthRun}
-      }
+      if { [CheckIpSynth ${ipSynthRun}] != true } {      
+         # Build the IP Core
+         reset_run         ${ipSynthRun}
+         launch_run -quiet ${ipSynthRun}
+         wait_on_run       ${ipSynthRun}
+         
+         # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
+         set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
+         set_property is_enabled false [get_files ${xdcPntr}]   
+      }      
    }
 }
 
