@@ -164,6 +164,16 @@ package AxiLitePkg is
    -- Slave AXI Processing procedures
    -------------------------------------------------------------------------------------------------
 
+   procedure axiSlaveWaitWriteTxn (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable writeEnable   : inout sl);
+
+   procedure axiSlaveWaitReadTxn (
+      signal axiReadMaster  : in    AxiLiteReadMasterType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      variable readEnable   : inout sl);
+
    procedure axiSlaveWaitTxn (
       signal axiWriteMaster  : in    AxiLiteWriteMasterType;
       signal axiReadMaster   : in    AxiLiteReadMasterType;
@@ -172,22 +182,63 @@ package AxiLitePkg is
       variable axiStatus     : inout AxiLiteStatusType);
 
    procedure axiSlaveWriteResponse (
-      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
-      signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
-      variable axiReadSlave  : inout AxiLiteReadSlaveType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
 
    procedure axiSlaveReadResponse (
-      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
-      signal axiReadMaster   : in    AxiLiteReadMasterType;
-      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
-      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
 
 end AxiLitePkg;
 
 package body AxiLitePkg is
+
+   procedure axiSlaveWaitWriteTxn (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable writeEnable   : inout sl) is
+   begin
+      ----------------------------------------------------------------------------------------------
+      -- AXI Write Logic
+      ----------------------------------------------------------------------------------------------
+      writeEnable := '0';
+
+      axiWriteSlave.awready := '0';
+      axiWriteSlave.wready  := '0';
+
+      -- Incomming Write txn and last txn has concluded
+      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
+         writeEnable := '1';
+      end if;
+
+      -- Reset resp valid
+      if (axiWriteMaster.bready = '1') then
+         axiWriteSlave.bvalid := '0';
+      end if;
+   end procedure;
+
+   procedure axiSlaveWaitReadTxn (
+      signal axiReadMaster  : in    AxiLiteReadMasterType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      variable readEnable   : inout sl) is
+   begin
+      ----------------------------------------------------------------------------------------------
+      -- AXI Read Logic
+      ----------------------------------------------------------------------------------------------
+      readEnable := '0';
+
+      axiReadSlave.arready := '0';
+
+      -- Incomming read txn and last txn has concluded
+      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+         readEnable := '1';
+      end if;
+
+      -- Reset rvalid upon rready
+      if (axiReadMaster.rready = '1') then
+         axiReadSlave.rvalid := '0';
+      end if;
+   end procedure axiSlaveWaitReadTxn;
 
    procedure axiSlaveWaitTxn (
       signal axiWriteMaster  : in    AxiLiteWriteMasterType;
@@ -196,51 +247,12 @@ package body AxiLitePkg is
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
       variable axiStatus     : inout AxiLiteStatusType) is
    begin
-
-      ----------------------------------------------------------------------------------------------
-      -- AXI Write Logic
-      ----------------------------------------------------------------------------------------------
-      axiStatus.writeEnable := '0';
-
-      axiWriteSlave.awready := '0';
-      axiWriteSlave.wready := '0';
-
-      -- Incomming Write txn and last txn has concluded
-      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
-
-         axiStatus.writeEnable := '1';
-      end if;
-
-      -- Reset resp valid
-      if (axiWriteMaster.bready = '1') then
-         axiWriteSlave.bvalid := '0';
-      end if;
-
-      ----------------------------------------------------------------------------------------------
-      -- AXI Read Logic
-      ----------------------------------------------------------------------------------------------
-      axiStatus.readEnable := '0';
-
-      axiReadSlave.arready := '0';
-
-      -- Incomming read txn and last txn has concluded
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
-         axiStatus.readEnable := '1';
-      end if;
-
-      -- Reset rvalid upon rready
-      if (axiReadMaster.rready = '1') then
-         axiReadSlave.rvalid := '0';
-      end if;
+      axiSlaveWaitWriteTxn(axiWriteMaster, axiWriteSlave, axiStatus.writeEnable);
+      axiSlaveWaitReadTxn(axiReadMaster, axiReadSlave, axiStatus.readEnable);
    end procedure;
 
-
-   
    procedure axiSlaveWriteResponse (
-      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
-      signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
-      variable axiReadSlave  : inout AxiLiteReadSlaveType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
       axiWriteSlave.awready := '1';
@@ -250,11 +262,8 @@ package body AxiLitePkg is
    end procedure;
 
    procedure axiSlaveReadResponse (
-      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
-      signal axiReadMaster   : in    AxiLiteReadMasterType;
-      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
-      variable axiReadSlave  : inout AxiLiteReadSlaveType;
-      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C) is
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      axiResp               : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
       axiReadSlave.arready := '1';      -- not sure this is necessary
       axiReadSlave.rvalid  := '1';
