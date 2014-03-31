@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2014-03-04
+-- Last update: 2014-03-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,9 @@ use work.Version.all;
 
 entity AxiVersion is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G           : time    := 1 ns;
+      EN_DEVICE_DNA_G : boolean := false;
+      EN_DS2411_G     : boolean := false);
    port (
       axiClk    : in sl;
       axiClkRst : in sl;
@@ -40,9 +42,11 @@ entity AxiVersion is
       masterReset : out sl;
       fpgaReload  : out sl;
 
-      -- Optional  inputs from DS2411 readout
-      fdSerial : in slv(63 downto 0) := (others => '0');
-      fdValid  : in sl               := '0');
+      -- Optional user values
+      userValues : in Slv32Array(0 to 63) := (others => X"00000000");
+
+      -- Optional DS2411 interface
+      fdSerSdio : inout sl := 'Z');
 end AxiVersion;
 
 architecture rtl of AxiVersion is
@@ -57,11 +61,7 @@ architecture rtl of AxiVersion is
          c := BUILD_STAMP_C(i);
          ret((i-1)/4)(8*((i-1) mod 4)+7 downto 8*((i-1) mod 4)) :=
             conv_std_logic_vector(character'pos(c), 8);
---         print(c & " " & str(i) & " " & hstr(conv_std_logic_vector(character'pos(c), 8)));
       end loop;
---      for i in ret'range loop
---         print(hstr(ret(i)));
---      end loop;
       return ret;
    end function makeStringRom;
 
@@ -69,10 +69,9 @@ architecture rtl of AxiVersion is
 
 
    type RegType is record
-      scratchPad  : slv(31 downto 0);
-      masterReset : sl;
-      fpgaReload  : sl;
-
+      scratchPad    : slv(31 downto 0);
+      masterReset   : sl;
+      fpgaReload    : sl;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -90,21 +89,37 @@ architecture rtl of AxiVersion is
 
    signal dnaValid : sl               := '0';
    signal dnaValue : slv(63 downto 0) := (others => '0');
-
+   signal fdValid  : sl               := '0';
+   signal fdSerial : slv(63 downto 0) := (others => '0');
    
 begin
 
-   DeviceDna_1 : entity work.DeviceDna
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk      => axiClk,
-         rst      => axiClkRst,
-         dnaValue => dnaValue,
-         dnaValid => dnaValid);
+   GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
+      DeviceDna_1 : entity work.DeviceDna
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => axiClk,
+            rst      => axiClkRst,
+            dnaValue => dnaValue,
+            dnaValid => dnaValid);
+   end generate GEN_DEVICE_DNA;
 
-   comb : process (axiClkRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue,
-                   fdSerial, fdValid, r, stringRom) is
+   GEN_DS2411 : if (EN_DS2411_G) generate
+      DS2411Core_1 : entity work.DS2411Core
+         generic map (
+            TPD_G        => TPD_G,
+            CLK_PERIOD_G => 8.0E-9)
+         port map (
+            clk       => axiClk,
+            rst       => axiClkRst,
+            fdSerSdio => fdSerSdio,
+            fdSerial  => fdSerial,
+            fdValid   => fdValid);
+   end generate GEN_DS2411;
+
+   comb : process (axiClkRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
+                   r, stringRom, userValues) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
       
@@ -115,62 +130,68 @@ begin
 
       if (axiStatus.writeEnable = '1') then
          -- Decode address and perform write
-         case (axiWriteMaster.awaddr(7 downto 0)) is
-            when X"01" =>
+         case (axiWriteMaster.awaddr(11 downto 0)) is
+            when X"004" =>
                v.scratchPad := axiWriteMaster.wdata;
-            when X"06" =>
+            when X"018" =>
                v.masterReset := axiWriteMaster.wdata(0);
-            when X"07" =>
+            when X"01C" =>
                v.fpgaReload := axiWriteMaster.wdata(0);
             when others => null;
          end case;
 
          -- Send Axi response
-         axiSlaveWriteResponse(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+         axiSlaveWriteResponse(v.axiWriteSlave);
       end if;
 
       if (axiStatus.readEnable = '1') then
          -- Decode address and assign read data
          v.axiReadSlave.rdata := (others => '0');
-         case axiReadMaster.araddr(7 downto 0) is
-            when X"00" =>
-               v.axiReadSlave.rdata := FPGA_VERSION_C;
-            when X"01" =>
-               v.axiReadSlave.rdata := r.scratchPad;
-            when X"02" =>
-               v.axiReadSlave.rdata(31)          := dnaValid;
-               v.axiReadSlave.rdata(24 downto 0) := dnaValue(56 downto 32);
-            when X"03" =>
-               v.axiReadSlave.rdata := dnaValue(31 downto 0);
-            when X"04" =>
-               v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(63 downto 32), X"00000000");
-            when X"05" =>
-               v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(31 downto 0), X"00000000");
-            when X"06" =>
-               v.axiReadSlave.rdata(0) := r.masterReset;
-            when X"07" =>
-               v.axiReadSlave.rdata(0) := r.fpgaReload;
+         case (axiReadMaster.araddr(11 downto 8)) is
+            when X"0" =>
+               case (axiReadMaster.araddr(7 downto 0)) is
+                  when X"00" =>
+                     v.axiReadSlave.rdata := FPGA_VERSION_C;
+                  when X"04" =>
+                     v.axiReadSlave.rdata := r.scratchPad;
+                  when X"08" =>
+                     v.axiReadSlave.rdata(31)          := dnaValid;
+                     v.axiReadSlave.rdata(24 downto 0) := dnaValue(56 downto 32);
+                  when X"0C" =>
+                     v.axiReadSlave.rdata := dnaValue(31 downto 0);
+                  when X"10" =>
+                     v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(63 downto 32), X"00000000");
+                  when X"14" =>
+                     v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(31 downto 0), X"00000000");
+                  when X"18" =>
+                     v.axiReadSlave.rdata(0) := r.masterReset;
+                  when X"1C" =>
+                     v.axiReadSlave.rdata(0) := r.fpgaReload;
+                  when others => null;
+               end case;
+               
+            when X"1" =>
+               v.axiReadSlave.rdata := userValues(conv_integer(axiReadMaster.araddr(7 downto 2)));
+            when X"2" =>
+               v.axiReadSlave.rdata := stringRom(conv_integer(axiReadMaster.araddr(7 downto 2)));
             when others =>
-               if (axiReadMaster.araddr(7 downto 6) = "01") then
-                  v.axiReadSlave.rdata := stringRom(conv_integer(axiReadMaster.araddr(5 downto 0)));
-               end if;
+               null;
          end case;
 
-
          -- Send Axi Response
-         axiSlaveReadResponse(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+         axiSlaveReadResponse(v.axiReadSlave);
       end if;
 
       ----------------------------------------------------------------------------------------------
       -- Reset
       ----------------------------------------------------------------------------------------------
       if (axiClkRst = '1') then
-         v := REG_INIT_C;
+         v             := REG_INIT_C;
+         v.masterReset := r.masterReset;
       end if;
 
       rin <= v;
 
-      masterReset   <= r.masterReset;
       fpgaReload    <= r.fpgaReload;
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
@@ -183,5 +204,20 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   -- masterReset output needs asynchronous reset and this is the easiest way to do it
+   Synchronizer_1 : entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => true,
+         STAGES_G       => 2,
+         INIT_G         => "00")
+      port map (
+         clk     => axiClk,
+         rst     => axiClkRst,
+         dataIn  => r.masterReset,
+         dataOut => masterReset);
 
 end architecture rtl;
