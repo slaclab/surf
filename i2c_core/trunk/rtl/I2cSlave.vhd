@@ -78,387 +78,405 @@ use work.stdlib.all;
 
 
 entity I2cSlave is
-  generic (
-    TPD_G : time := 1 ns;
-    -- I2C configuration
-    TENBIT_G             : integer range 0 to 1    := 0;
-    I2C_ADDR_G           : integer range 0 to 1023 := 0;
-    OUTPUT_EN_POLARITY_G : integer range 0 to 1    := 0;
-    FILTER_G             : integer range 2 to 512  := 4;
-    RMODE_G              : integer range 0 to 1    := 0;
-    TMODE_G              : integer range 0 to 1    := 0
-    );
-  port (
-    sRst        : in  std_ulogic := '0';       -- Synchronous Reset - active high
-    aRst        : in  std_ulogic := '0';       -- Asynchronous Reset - active high
-    clk         : in  std_ulogic;
-    -- Front End
-    i2cSlaveIn  : in  I2cSlaveInType;
-    i2cSlaveOut : out I2cSlaveOutType;
-    -- I2C signals
-    i2ci        : in  i2c_in_type;
-    i2co        : out i2c_out_type
-    );
+   generic (
+      TPD_G                : time                    := 1 ns;
+      -- I2C configuration
+      TENBIT_G             : integer range 0 to 1    := 0;
+      I2C_ADDR_G           : integer range 0 to 1023 := 0;
+      OUTPUT_EN_POLARITY_G : integer range 0 to 1    := 0;
+      FILTER_G             : integer range 2 to 512  := 4;
+      RMODE_G              : integer range 0 to 1    := 0;
+      TMODE_G              : integer range 0 to 1    := 0
+      );
+   port (
+      sRst        : in  std_ulogic := '0';  -- Synchronous Reset - active high
+      aRst        : in  std_ulogic := '0';  -- Asynchronous Reset - active high
+      clk         : in  std_ulogic;
+      -- Front End
+      i2cSlaveIn  : in  I2cSlaveInType;
+      i2cSlaveOut : out I2cSlaveOutType;
+      -- I2C signals
+      i2ci        : in  i2c_in_type;
+      i2co        : out i2c_out_type
+      );
 end entity I2cSlave;
 
 architecture rtl of I2cSlave is
-  -----------------------------------------------------------------------------
-  -- Constants
-  -----------------------------------------------------------------------------
-  -- Core configuration
-  constant I2C_ADDR_LEN_C   : integer := 7 + TENBIT_G*3;
-  constant I2C_SLAVE_ADDR_C : std_logic_vector((I2C_ADDR_LEN_C-1) downto 0) :=
-    conv_std_logic_vector(I2C_ADDR_G, I2C_ADDR_LEN_C);
+   -----------------------------------------------------------------------------
+   -- Constants
+   -----------------------------------------------------------------------------
+   -- Core configuration
+   constant I2C_ADDR_LEN_C   : integer := 7 + TENBIT_G*3;
+   constant I2C_SLAVE_ADDR_C : std_logic_vector((I2C_ADDR_LEN_C-1) downto 0) :=
+      conv_std_logic_vector(I2C_ADDR_G, I2C_ADDR_LEN_C);
 
-  -- Misc constants
-  constant I2C_READ_C  : std_ulogic := '1';  -- R/Wn bit
-  constant I2C_WRITE_C : std_ulogic := '0';
+   -- Misc constants
+   constant I2C_READ_C  : std_ulogic := '1';  -- R/Wn bit
+   constant I2C_WRITE_C : std_ulogic := '0';
 
-  constant OEPOL_LEVEL_C : std_ulogic := conv_std_logic(OUTPUT_EN_POLARITY_G = 1);
+   constant OEPOL_LEVEL_C : std_ulogic := conv_std_logic(OUTPUT_EN_POLARITY_G = 1);
 
-  constant I2C_LOW_C : std_ulogic := OEPOL_LEVEL_C;  -- OE
-  constant I2C_HIZ_C : std_ulogic := not OEPOL_LEVEL_C;
+   constant I2C_LOW_C : std_ulogic := OEPOL_LEVEL_C;  -- OE
+   constant I2C_HIZ_C : std_ulogic := not OEPOL_LEVEL_C;
 
-  constant I2C_ACK_C : std_ulogic := '0';
+   constant I2C_ACK_C : std_ulogic := '0';
 
-  constant TENBIT_ADDR_START_C : std_logic_vector(4 downto 0) := "11110";
+   constant TENBIT_ADDR_START_C : std_logic_vector(4 downto 0) := "11110";
 
-  -----------------------------------------------------------------------------
-  -- Types
-  -----------------------------------------------------------------------------
-  type i2c_in_array is array (FILTER_G downto 0) of i2c_in_type;
+   -----------------------------------------------------------------------------
+   -- Types
+   -----------------------------------------------------------------------------
+   type i2c_in_array is array (FILTER_G downto 0) of i2c_in_type;
 
-  type slv_state_type is (idle, checkaddr, check10bitaddr, sclhold,
-                          movebyte, handshake);
+   type slv_state_type is (idle, checkaddr, check10bitaddr, sclhold,
+                           movebyte, handshake);
 
-  type i2cslv_reg_type is record
-    slvstate : slv_state_type;
-    -- Transfer phase
-    active   : boolean;
-    addr     : boolean;
+   type i2cslv_reg_type is record
+      slvstate : slv_state_type;
+      -- Transfer phase
+      active   : boolean;
+      addr     : boolean;
 --    transmit : boolean;
 --    receive  : boolean;
-    -- Shift register
-    sreg     : std_logic_vector(7 downto 0);
-    cnt      : std_logic_vector(2 downto 0);
-    -- Synchronizers for inputs SCL and SDA
-    scl      : std_ulogic;
-    sda      : std_ulogic;
-    i2ci     : i2c_in_array;
-    -- Output enables
-    scloen   : std_ulogic;
-    sdaoen   : std_ulogic;
-    -- Registered Outputs
-    o        : I2cSlaveOutType;
-  end record;
+      -- Shift register
+      sreg     : std_logic_vector(7 downto 0);
+      cnt      : std_logic_vector(2 downto 0);
+      -- Synchronizers for inputs SCL and SDA
+      scl      : std_ulogic;
+      sda      : std_ulogic;
+      i2ci     : i2c_in_array;
+      -- Output enables
+      scloen   : std_ulogic;
+      sdaoen   : std_ulogic;
+      -- Registered Outputs
+      o        : I2cSlaveOutType;
+   end record;
 
-  -----------------------------------------------------------------------------
-  -- Subprograms
-  -----------------------------------------------------------------------------
-  -- purpose: Compares the first byte of a received address with the slave's
-  -- address. The tba input determines if the slave is using a ten bit address.
-  function compaddr1stb (
-    ibyte : std_logic_vector(7 downto 0))  -- I2C byte
-    return boolean
-  is
-    variable correct : std_logic_vector(7 downto 1);
-  begin  -- compaddr1stb
-    if TENBIT_G = 1 then
-      correct(7 downto 3) := TENBIT_ADDR_START_C;
-      correct(2 downto 1) := I2C_SLAVE_ADDR_C((I2C_ADDR_LEN_C-1) downto (I2C_ADDR_LEN_C-2));
-    else
-      correct(7 downto 1) := I2C_SLAVE_ADDR_C(6 downto 0);
-    end if;
-    return ibyte(7 downto 1) = correct(7 downto 1);
-  end compaddr1stb;
+   constant REG_INIT_C : i2cslv_reg_type := (
+      slvstate => idle,
+      active => false,
+      addr => false,
+      sreg => (others => '0'),
+      cnt => (others => '0'),
+      scl => '0',
+      sda => '0',
+      i2ci => (others => (scl => '0', sda => '0')),
+      scloen => I2C_HIZ_C,
+      sdaoen => I2C_HIZ_C,
+      o => I2C_SLAVE_OUT_INIT_C);
+   
+   -----------------------------------------------------------------------------
+   -- Subprograms
+   -----------------------------------------------------------------------------
+   -- purpose: Compares the first byte of a received address with the slave's
+   -- address. The tba input determines if the slave is using a ten bit address.
+   function compaddr1stb (
+      ibyte : std_logic_vector(7 downto 0))  -- I2C byte
+      return boolean
+   is
+      variable correct : std_logic_vector(7 downto 1);
+   begin  -- compaddr1stb
+      if TENBIT_G = 1 then
+         correct(7 downto 3) := TENBIT_ADDR_START_C;
+         correct(2 downto 1) := I2C_SLAVE_ADDR_C((I2C_ADDR_LEN_C-1) downto (I2C_ADDR_LEN_C-2));
+      else
+         correct(7 downto 1) := I2C_SLAVE_ADDR_C(6 downto 0);
+      end if;
+      return ibyte(7 downto 1) = correct(7 downto 1);
+   end compaddr1stb;
 
-  -- purpose: Compares the 2nd byte of a ten bit address with the slave address
-  function compaddr2ndb (
-    ibyte : std_logic_vector(7 downto 0))  -- I2C byte
-    return boolean is
-  begin  -- compaddr2ndb
-    return ibyte((I2C_ADDR_LEN_C-3) downto 0) = I2C_SLAVE_ADDR_C((I2C_ADDR_LEN_C-3) downto 0);
-  end compaddr2ndb;
+   -- purpose: Compares the 2nd byte of a ten bit address with the slave address
+   function compaddr2ndb (
+      ibyte : std_logic_vector(7 downto 0))  -- I2C byte
+      return boolean is
+   begin  -- compaddr2ndb
+      return ibyte((I2C_ADDR_LEN_C-3) downto 0) = I2C_SLAVE_ADDR_C((I2C_ADDR_LEN_C-3) downto 0);
+   end compaddr2ndb;
 
-  -----------------------------------------------------------------------------
-  -- Signals
-  -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   -- Signals
+   -----------------------------------------------------------------------------
 
-  -- Register interface
-  signal r, rin : i2cslv_reg_type;
+   -- Register interface
+   signal r : i2cslv_reg_type := REG_INIT_C;
+   signal rin : i2cslv_reg_type;
 
 begin
 
-  comb : process (r, sRst, i2ci, i2cSlaveIn)
-    variable v       : i2cslv_reg_type;
-    variable sclfilt : std_logic_vector(FILTER_G-1 downto 0);
-    variable sdafilt : std_logic_vector(FILTER_G-1 downto 0);
-  begin  -- process comb
-    v := r;
+   comb : process (r, sRst, i2ci, i2cSlaveIn)
+      variable v       : i2cslv_reg_type;
+      variable sclfilt : std_logic_vector(FILTER_G-1 downto 0);
+      variable sdafilt : std_logic_vector(FILTER_G-1 downto 0);
+   begin  -- process comb
+      v := r;
 
-    v.i2ci(0) := i2ci; v.i2ci(FILTER_G downto 1) := r.i2ci(FILTER_G-1 downto 0);
+      v.i2ci(0) := i2ci; v.i2ci(FILTER_G downto 1) := r.i2ci(FILTER_G-1 downto 0);
 
-    ----------------------------------------------------------------------------
-    -- Bus filtering
-    ----------------------------------------------------------------------------
-    for i in 0 to FILTER_G-1 loop
-      sclfilt(i) := r.i2ci(i+1).scl; sdafilt(i) := r.i2ci(i+1).sda;
-    end loop;  -- i
-    if andv(sclfilt) = '1' then v.scl := '1'; end if;
-    if orv(sclfilt) = '0' then v.scl  := '0'; end if;
-    if andv(sdafilt) = '1' then v.sda := '1'; end if;
-    if orv(sdafilt) = '0' then v.sda  := '0'; end if;
+      ----------------------------------------------------------------------------
+      -- Bus filtering
+      ----------------------------------------------------------------------------
+      for i in 0 to FILTER_G-1 loop
+         sclfilt(i) := r.i2ci(i+1).scl; sdafilt(i) := r.i2ci(i+1).sda;
+      end loop;  -- i
+      if andv(sclfilt) = '1' then v.scl := '1'; end if;
+      if orv(sclfilt) = '0' then v.scl  := '0'; end if;
+      if andv(sdafilt) = '1' then v.sda := '1'; end if;
+      if orv(sdafilt) = '0' then v.sda  := '0'; end if;
 
-    -- txAck pulsed for 1 clock only when set by state machine below.
-    v.o.txAck := '0';
+      -- txAck pulsed for 1 clock only when set by state machine below.
+      v.o.txAck := '0';
 
-    -- Reset rxValid when ack'd from IO
-    if (r.o.rxValid = '1' and i2cSlaveIn.rxAck = '1') then
-      v.o.rxValid := '0';
-    end if;
+      -- Reset rxValid when ack'd from IO
+      if (r.o.rxValid = '1' and i2cSlaveIn.rxAck = '1') then
+         v.o.rxValid := '0';
+      end if;
 
-    ---------------------------------------------------------------------------
-    -- I2C slave control FSM
-    ---------------------------------------------------------------------------
-    case r.slvstate is
-      when idle =>
-        -- Release bus
-        if (r.scl and not v.scl) = '1' then
-          v.sdaoen := I2C_HIZ_C;
-        end if;
-        
-      when checkaddr =>
-        if compaddr1stb(r.sreg) then
-          if r.sreg(0) = I2C_READ_C then
-            if (TENBIT_G = 0 or (TENBIT_G = 1 and r.active)) then
-              if i2cSlaveIn.txValid = '1' then
-                -- Transmit data
-                v.o.txActive := '1';
-                v.slvstate   := handshake;
-              else
-                -- No data to transmit, NAK
-                v.o.nack   := '1';
-                v.slvstate := idle;
-              end if;
-            else
-              -- Ten bit address with R/Wn = 1 and slave not previously
-              -- addressed.
-              v.slvstate := idle;
+      ---------------------------------------------------------------------------
+      -- I2C slave control FSM
+      ---------------------------------------------------------------------------
+      case r.slvstate is
+         when idle =>
+            -- Release bus
+            if (r.scl and not v.scl) = '1' then
+               v.sdaoen := I2C_HIZ_C;
             end if;
-          else
-            v.o.rxActive := toSl(TENBIT_G = 0);
-            v.slvstate   := handshake;
-          end if;
-        else
-          -- Slave address did not match
-          v.active   := false;
-          v.slvstate := idle;
-        end if;
-        v.sreg := i2cSlaveIn.txData;
-        
-      when check10bitaddr =>
-        if compaddr2ndb(r.sreg) then
-          -- Slave has been addressed with a matching 10 bit address
-          -- If we receive a repeated start condition, matching address
-          -- and R/Wn = 1 we will transmit data. Without start condition we
-          -- will receive data.
-          v.addr       := true;
-          v.active     := true;
-          v.o.rxActive := '1';
-          v.slvstate   := handshake;
-        else
-          v.slvstate := idle;
-        end if;
-        
-      when sclhold =>
-        -- This state is used when the device has been addressed to see if SCL
-        -- should be kept low until the receive register is free or the
-        -- transmit register is filled. It is also used when a data byte has
-        -- been transmitted or received to SCL low until software acknowledges
-        -- the transfer.
-        if (r.scl and not v.scl) = '1' then
-          v.scloen := I2C_LOW_C;
-          v.sdaoen := I2C_HIZ_C;
-        end if;
-        -- Ack has happened and rxValid set back to '0'
-        if ((r.o.rxActive = '1' and (r.o.rxValid = '0' or RMODE_G = 0)) or
-            (r.o.txActive = '1' and (i2cSlaveIn.txValid = '1' or TMODE_G = 0))) then
-          v.slvstate := movebyte;
-          v.scloen   := I2C_HIZ_C;
-          -- Falling edge that should be detected in movebyte may have passed
-          if r.o.txActive = '1' and v.scl = '0' then
-            v.sdaoen := r.sreg(7) xor OEPOL_LEVEL_C;
-          end if;
-        end if;
-        v.sreg := i2cSlaveIn.txData;
+            
+         when checkaddr =>
+            if compaddr1stb(r.sreg) then
+               if r.sreg(0) = I2C_READ_C then
+                  if (TENBIT_G = 0 or (TENBIT_G = 1 and r.active)) then
+                     if i2cSlaveIn.txValid = '1' then
+                        -- Transmit data
+                        v.o.txActive := '1';
+                        v.slvstate   := handshake;
+                     else
+                        -- No data to transmit, NAK
+                        v.o.nack   := '1';
+                        v.slvstate := idle;
+                     end if;
+                  else
+                     -- Ten bit address with R/Wn = 1 and slave not previously
+                     -- addressed.
+                     v.slvstate := idle;
+                  end if;
+               else
+                  v.o.rxActive := toSl(TENBIT_G = 0);
+                  v.slvstate   := handshake;
+               end if;
+            else
+               -- Slave address did not match
+               v.active   := false;
+               v.slvstate := idle;
+            end if;
+            v.sreg := i2cSlaveIn.txData;
+            
+         when check10bitaddr =>
+            if compaddr2ndb(r.sreg) then
+               -- Slave has been addressed with a matching 10 bit address
+               -- If we receive a repeated start condition, matching address
+               -- and R/Wn = 1 we will transmit data. Without start condition we
+               -- will receive data.
+               v.addr       := true;
+               v.active     := true;
+               v.o.rxActive := '1';
+               v.slvstate   := handshake;
+            else
+               v.slvstate := idle;
+            end if;
+            
+         when sclhold =>
+            -- This state is used when the device has been addressed to see if SCL
+            -- should be kept low until the receive register is free or the
+            -- transmit register is filled. It is also used when a data byte has
+            -- been transmitted or received to SCL low until software acknowledges
+            -- the transfer.
+            if (r.scl and not v.scl) = '1' then
+               v.scloen := I2C_LOW_C;
+               v.sdaoen := I2C_HIZ_C;
+            end if;
+            -- Ack has happened and rxValid set back to '0'
+            if ((r.o.rxActive = '1' and (r.o.rxValid = '0' or RMODE_G = 0)) or
+                (r.o.txActive = '1' and (i2cSlaveIn.txValid = '1' or TMODE_G = 0))) then
+               v.slvstate := movebyte;
+               v.scloen   := I2C_HIZ_C;
+               -- Falling edge that should be detected in movebyte may have passed
+               if r.o.txActive = '1' and v.scl = '0' then
+                  v.sdaoen := r.sreg(7) xor OEPOL_LEVEL_C;
+               end if;
+            end if;
+            v.sreg := i2cSlaveIn.txData;
 
-      when movebyte =>
-        if (r.scl and not v.scl) = '1' then
-          if r.o.txActive = '1' then
-            v.sdaoen := r.sreg(7) xor OEPOL_LEVEL_C;
-          else
-            v.sdaoen := I2C_HIZ_C;
-          end if;
-        end if;
-        if (not r.scl and v.scl) = '1' then
-          v.sreg := r.sreg(6 downto 0) & r.sda;
-          if r.cnt = "111" then
-            if r.addr then
-              v.slvstate := checkaddr;
-            elsif r.o.rxActive = '1' nor r.o.txActive = '1' then
-              v.slvstate := check10bitaddr;
-            else
-              v.slvstate := handshake;
+         when movebyte =>
+            if (r.scl and not v.scl) = '1' then
+               if r.o.txActive = '1' then
+                  v.sdaoen := r.sreg(7) xor OEPOL_LEVEL_C;
+               else
+                  v.sdaoen := I2C_HIZ_C;
+               end if;
             end if;
-            v.cnt := (others => '0');
-          else
-            v.cnt := r.cnt + 1;
-          end if;
-        end if;
-        
-      when handshake =>
-        -- Falling edge
-        if (r.scl and not v.scl) = '1' then
-          if r.addr then
-            v.sdaoen := I2C_LOW_C;
-          elsif r.o.rxActive = '1' then
-            -- Receive, send ACK/NAK
-            -- Acknowledge byte if core has room in receive register
-            -- This code assumes that the core's receive register is free if we are
-            -- in RMODE 1. This should always be the case unless software has
-            -- reconfigured the core during operation.
-            if r.o.rxValid = '0' then
-              v.sdaoen    := I2C_LOW_C;
-              v.o.rxData  := r.sreg;
-              v.o.rxValid := '1';
-            else
-              -- NAK the byte, the master must abort the transfer
-              v.sdaoen   := I2C_HIZ_C;
-              v.slvstate := idle;
+            if (not r.scl and v.scl) = '1' then
+               v.sreg := r.sreg(6 downto 0) & r.sda;
+               if r.cnt = "111" then
+                  if r.addr then
+                     v.slvstate := checkaddr;
+                  elsif r.o.rxActive = '1' nor r.o.txActive = '1' then
+                     v.slvstate := check10bitaddr;
+                  else
+                     v.slvstate := handshake;
+                  end if;
+                  v.cnt := (others => '0');
+               else
+                  v.cnt := r.cnt + 1;
+               end if;
             end if;
-          else
-            -- Transmit, release bus
-            v.sdaoen  := I2C_HIZ_C;
-            -- Byte transmitted, ack it.
-            v.o.txAck := '1';
-          end if;
-          if not r.addr and r.o.rxActive = '1' and v.sdaoen = I2C_HIZ_C then
-            v.o.nack := '1';
-          end if;
-        end if;
-        -- Risinge edge
-        if (not r.scl and v.scl) = '1' then
-          if r.addr then
-            v.slvstate := movebyte;
-          else
-            if r.o.rxActive = '1' then
-              -- RMODE 0: Be ready to accept one more byte which will be NAK'd if
-              -- software has not read the receive register
-              -- RMODE 1: Keep SCL low until software has acknowledged received byte
-              if RMODE_G = 0 then
-                v.slvstate := movebyte;
-              else
-                v.slvstate := sclhold;
-              end if;
-            else
-              -- Transmit, check ACK/NAK from master
-              -- If the master NAKs the transmitted byte the transfer has ended and
-              -- we should wait for the master's next action. If the master ACKs the
-              -- byte the core will act depending on tmode:
-              -- TMODE 0:
-              -- If the master ACKs the byte we must continue to transmit and will
-              -- transmit the same byte on all requests.
-              -- TMODE 1:
-              -- IF the master ACKs the byte we will keep SCL low until software has
-              -- put new transmit data into the transmit register.
-              if r.sda = I2C_ACK_C then
-                if TMODE_G = 0 then
+            
+         when handshake =>
+            -- Falling edge
+            if (r.scl and not v.scl) = '1' then
+               if r.addr then
+                  v.sdaoen := I2C_LOW_C;
+               elsif r.o.rxActive = '1' then
+                  -- Receive, send ACK/NAK
+                  -- Acknowledge byte if core has room in receive register
+                  -- This code assumes that the core's receive register is free if we are
+                  -- in RMODE 1. This should always be the case unless software has
+                  -- reconfigured the core during operation.
+                  if r.o.rxValid = '0' then
+                     v.sdaoen    := I2C_LOW_C;
+                     v.o.rxData  := r.sreg;
+                     v.o.rxValid := '1';
+                  else
+                     -- NAK the byte, the master must abort the transfer
+                     v.sdaoen   := I2C_HIZ_C;
+                     v.slvstate := idle;
+                  end if;
+               else
+                  -- Transmit, release bus
+                  v.sdaoen  := I2C_HIZ_C;
+                  -- Byte transmitted, ack it.
+                  v.o.txAck := '1';
+               end if;
+               if not r.addr and r.o.rxActive = '1' and v.sdaoen = I2C_HIZ_C then
+                  v.o.nack := '1';
+               end if;
+            end if;
+            -- Risinge edge
+            if (not r.scl and v.scl) = '1' then
+               if r.addr then
                   v.slvstate := movebyte;
-                else
-                  v.slvstate := sclhold;
-                end if;
-              else
-                v.slvstate := idle;
-              end if;
+               else
+                  if r.o.rxActive = '1' then
+                     -- RMODE 0: Be ready to accept one more byte which will be NAK'd if
+                     -- software has not read the receive register
+                     -- RMODE 1: Keep SCL low until software has acknowledged received byte
+                     if RMODE_G = 0 then
+                        v.slvstate := movebyte;
+                     else
+                        v.slvstate := sclhold;
+                     end if;
+                  else
+                     -- Transmit, check ACK/NAK from master
+                     -- If the master NAKs the transmitted byte the transfer has ended and
+                     -- we should wait for the master's next action. If the master ACKs the
+                     -- byte the core will act depending on tmode:
+                     -- TMODE 0:
+                     -- If the master ACKs the byte we must continue to transmit and will
+                     -- transmit the same byte on all requests.
+                     -- TMODE 1:
+                     -- IF the master ACKs the byte we will keep SCL low until software has
+                     -- put new transmit data into the transmit register.
+                     if r.sda = I2C_ACK_C then
+                        if TMODE_G = 0 then
+                           v.slvstate := movebyte;
+                        else
+                           v.slvstate := sclhold;
+                        end if;
+                     else
+                        v.slvstate := idle;
+                     end if;
+                  end if;
+               end if;
+               v.addr := false;
+               v.sreg := i2cSlaveIn.txData;
             end if;
-          end if;
-          v.addr := false;
-          v.sreg := i2cSlaveIn.txData;
-        end if;
-    end case;
+      end case;
 
-    if i2cSlaveIn.enable = '1' then
-      -- STOP condition
-      if (r.scl and v.scl and not r.sda and v.sda) = '1' then
-        v.active     := false;
-        v.slvstate   := idle;
-        v.o.txActive := '0';
-        v.o.rxActive := '0';
+      if i2cSlaveIn.enable = '1' then
+         -- STOP condition
+         if (r.scl and v.scl and not r.sda and v.sda) = '1' then
+            v.active     := false;
+            v.slvstate   := idle;
+            v.o.txActive := '0';
+            v.o.rxActive := '0';
+         end if;
+
+         -- START or repeated START condition
+         if (r.scl and v.scl and r.sda and not v.sda) = '1' then
+            v.slvstate   := movebyte;
+            v.cnt        := (others => '0');
+            v.addr       := true;
+            v.o.txActive := '0';
+            v.o.rxActive := '0';
+         end if;
       end if;
 
-      -- START or repeated START condition
-      if (r.scl and v.scl and r.sda and not v.sda) = '1' then
-        v.slvstate   := movebyte;
-        v.cnt        := (others => '0');
-        v.addr       := true;
-        v.o.txActive := '0';
-        v.o.rxActive := '0';
+      ----------------------------------------------------------------------------
+      -- Reset and idle operation
+      ----------------------------------------------------------------------------
+
+      if (sRst = '1') then
+         v.slvstate   := idle;
+         v.scl        := '0';
+         v.active     := false;
+         v.scloen     := I2C_HIZ_C;
+         v.sdaoen     := I2C_HIZ_C;
+         v.sreg       := (others => '0');
+         v.cnt        := (others => '0');
+         v.o.rxActive := '0';
+         v.o.rxValid  := '0';
+         v.o.rxData   := (others => '0');
+         v.o.txActive := '0';
+         v.o.txAck    := '0';
+         v.o.nack     := '0';
+         
       end if;
-    end if;
 
-    ----------------------------------------------------------------------------
-    -- Reset and idle operation
-    ----------------------------------------------------------------------------
+      ----------------------------------------------------------------------------
+      -- Signal assignments
+      ----------------------------------------------------------------------------
 
-    if (sRst = '1') then
-      v.slvstate   := idle;
-      v.scl        := '0';
-      v.active     := false;
-      v.scloen     := I2C_HIZ_C;
-      v.sdaoen     := I2C_HIZ_C;
-      v.o.rxActive := '0';
-      v.o.rxValid  := '0';
-      v.o.rxData   := (others => '0');
-      v.o.txActive := '0';
-      v.o.txAck    := '0';
-      v.o.nack     := '0';
-      
-    end if;
+      -- Update registers
+      rin <= v;
 
-    ----------------------------------------------------------------------------
-    -- Signal assignments
-    ----------------------------------------------------------------------------
+      -- Update outputs
+      i2cSlaveOut <= r.o;
+      i2co.scl    <= '0';
+      i2co.scloen <= r.scloen;
+      i2co.sda    <= '0';
+      i2co.sdaoen <= r.sdaoen;
+      i2co.enable <= i2cSlaveIn.enable;
+   end process comb;
 
-    -- Update registers
-    rin <= v;
-
-    -- Update outputs
-    i2cSlaveOut <= r.o;
-    i2co.scl    <= '0';
-    i2co.scloen <= r.scloen;
-    i2co.sda    <= '0';
-    i2co.sdaoen <= r.sdaoen;
-    i2co.enable <= i2cSlaveIn.enable;
-  end process comb;
-
-  reg : process (clk, aRst)
-  begin  -- process reg
-    if (aRst = '1') then
-      r.slvstate   <= idle after TPD_G;
-      r.scl        <= '0' after TPD_G;
-      r.active     <= false after TPD_G;
-      r.scloen     <= I2C_HIZ_C after TPD_G;
-      r.sdaoen     <= I2C_HIZ_C after TPD_G;
-      r.o.rxActive <= '0' after TPD_G;
-      r.o.rxValid  <= '0' after TPD_G;
-      r.o.rxData   <= (others => '0') after TPD_G;
-      r.o.txActive <= '0' after TPD_G;
-      r.o.txAck    <= '0' after TPD_G;
-      r.o.nack     <= '0' after TPD_G;
-    elsif rising_edge(clk) then
-      r <= rin after TPD_G;
-    end if;
-  end process reg;
+   reg : process (clk, aRst)
+   begin  -- process reg
+      if (aRst = '1') then
+         r.slvstate   <= idle            after TPD_G;
+         r.scl        <= '0'             after TPD_G;
+         r.active     <= false           after TPD_G;
+         r.scloen     <= I2C_HIZ_C       after TPD_G;
+         r.sdaoen     <= I2C_HIZ_C       after TPD_G;
+         r.sreg       <= (others => '0') after TPD_G;
+         r.cnt        <= (others => '0') after TPD_G;
+         r.o.rxActive <= '0'             after TPD_G;
+         r.o.rxValid  <= '0'             after TPD_G;
+         r.o.rxData   <= (others => '0') after TPD_G;
+         r.o.txActive <= '0'             after TPD_G;
+         r.o.txAck    <= '0'             after TPD_G;
+         r.o.nack     <= '0'             after TPD_G;
+      elsif rising_edge(clk) then
+         r <= rin after TPD_G;
+      end if;
+   end process reg;
 
 
 end architecture rtl;

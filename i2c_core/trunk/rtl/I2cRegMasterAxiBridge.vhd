@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2014-01-31
+-- Last update: 2014-03-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,14 +46,14 @@ end entity I2cRegMasterAxiBridge;
 
 architecture rtl of I2cRegMasterAxiBridge is
 
-   constant READ_C : boolean := false;
+   constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
 
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
-      I2C_REG_ADDR_SIZE_G + bitSize(DEVICE_MAP_G'length) -1 downto I2C_REG_ADDR_SIZE_G;
+      I2C_REG_ADDR_SIZE_G+2 + log2(DEVICE_MAP_G'length) -1 downto I2C_REG_ADDR_SIZE_G+2;
 
    subtype I2C_REG_AXI_ADDR_RANGE_C is natural range
-      I2C_REG_ADDR_SIZE_G-1 downto 0;
+      I2C_REG_ADDR_SIZE_G+2-1 downto 2;
 
    type RegType is record
       axiReadSlave   : AxiLiteReadSlaveType;
@@ -68,6 +68,25 @@ architecture rtl of I2cRegMasterAxiBridge is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+   
+--  attribute keep : string;
+--   attribute keep of
+--      axiReadMaster,
+--      axiReadSlave,
+--      axiWriteMaster,
+--      axiWriteSlave,
+--      i2cRegMasterOut,
+--      i2cRegMasterIn : signal is "TRUE";
+   
+--   attribute mark_debug : string;
+--   attribute mark_debug of
+--      axiReadMaster,
+--      axiReadSlave,
+--      axiWriteMaster,
+--      axiWriteSlave,
+--      i2cRegMasterOut,
+--      i2cRegMasterIn : signal is "TRUE";
+
 
 begin
 
@@ -87,9 +106,9 @@ begin
          ret.tenbit  := DEVICE_MAP_G(i).i2cTenbit;
 
          if (readN = READ_C) then
-            ret.regAddr(I2C_REG_AXI_ADDR_RANGE_C) := axiWriteMaster.awaddr(I2C_REG_AXI_ADDR_RANGE_C);
+            ret.regAddr(I2C_REG_ADDR_SIZE_G-1 downto 0) := axiReadMaster.araddr(I2C_REG_AXI_ADDR_RANGE_C);
          else
-            ret.regAddr(I2C_REG_AXI_ADDR_RANGE_C) := axiReadMaster.araddr(I2C_REG_AXI_ADDR_RANGE_C);
+            ret.regAddr(I2C_REG_ADDR_SIZE_G-1 downto 0) := axiWriteMaster.awaddr(I2C_REG_AXI_ADDR_RANGE_C);
          end if;
 
          ret.regWrData(DEVICE_MAP_G(i).dataSize-1 downto 0) :=
@@ -129,10 +148,13 @@ begin
          v.i2cRegMasterIn.regReq := '0';
          axiResp                 := ite(i2cRegMasterOut.regFail = '1', AXI_RESP_SLVERR_C, AXI_RESP_OK_C);
          if (r.i2cRegMasterIn.regOp = '1') then
-            axiSlaveWriteResponse(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiResp);
+            axiSlaveWriteResponse(v.axiWriteSlave, axiResp);
          else
             v.axiReadSlave.rdata := i2cRegMasterOut.regRdData;
-            axiSlaveReadResponse(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiResp);
+            if (i2cRegMasterOut.regFail = '1') then
+               v.axiReadSlave.rdata := X"000000" & i2cRegMasterOut.regFailCode;
+            end if;
+            axiSlaveReadResponse(v.axiReadSlave, axiResp);
          end if;
 
       end if;
@@ -146,9 +168,9 @@ begin
 
       rin <= v;
 
-      axiReadSlave   <= v.axiReadSlave;
-      axiWriteSlave  <= v.axiWriteSlave;
-      i2cRegMasterIn <= v.i2cRegMasterIn;
+      axiReadSlave   <= r.axiReadSlave;
+      axiWriteSlave  <= r.axiWriteSlave;
+      i2cRegMasterIn <= r.i2cRegMasterIn;
 
    end process comb;
 
