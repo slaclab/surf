@@ -28,6 +28,7 @@ use work.Version.all;
 entity AxiVersion is
    generic (
       TPD_G           : time    := 1 ns;
+      CLK_PERIOD_G    : real    := 8.0E-9;-- units of seconds
       EN_DEVICE_DNA_G : boolean := false;
       EN_DS2411_G     : boolean := false);
    port (
@@ -109,7 +110,7 @@ begin
       DS2411Core_1 : entity work.DS2411Core
          generic map (
             TPD_G        => TPD_G,
-            CLK_PERIOD_G => 8.0E-9)
+            CLK_PERIOD_G => CLK_PERIOD_G)
          port map (
             clk       => axiClk,
             rst       => axiClkRst,
