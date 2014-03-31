@@ -44,7 +44,7 @@ package I2cPkg is
       enable : std_ulogic;
    end record;
 
-   type i2c_out_array is array (natural range <>) of i2c_out_type;   
+   type i2c_out_array is array (natural range <>) of i2c_out_type;
 
    --------------------------------------------------------------------------------------------------
    constant I2C_INVALID_ADDR_ERROR_C     : slv(7 downto 0) := X"01";
@@ -120,6 +120,12 @@ package I2cPkg is
       rxAck   : sl;
    end record I2cSlaveInType;
 
+   constant I2C_SLAVE_IN_INIT_C : I2cSlaveInType := (
+      enable  => '0',
+      txValid => '0',
+      txData  => (others => '0'),
+      rxAck   => '0');
+
    type I2cSlaveOutType is record
       rxActive : sl;
       rxValid  : sl;
@@ -129,14 +135,22 @@ package I2cPkg is
       nack     : sl;
    end record I2cSlaveOutType;
 
+   constant I2C_SLAVE_OUT_INIT_C : I2cSlaveOutType := (
+      rxActive => '0',
+      rxValid  => '0',
+      rxData   => (others => '0'),
+      txActive => '0',
+      txAck    => '0',
+      nack     => '0');
+
    -------------------------------------------------------------------------------------------------
    -- AXI Bridge Generic Type, stick here for now
    -------------------------------------------------------------------------------------------------
    type I2cAxiLiteDevType is record
-      i2cAddress  : slv(9 downto 0);
-      i2cTenbit   : sl;
-      dataSize    : integer;
-      endianness  : sl;
+      i2cAddress : slv(9 downto 0);
+      i2cTenbit  : sl;
+      dataSize   : integer;
+      endianness : sl;
    end record I2cAxiLiteDevType;
 
    type I2cAxiLiteDevArray is array (natural range <>) of I2cAxiLiteDevType;
