@@ -218,8 +218,9 @@ entity Gtx7Core is
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
 
-      loopbackIn : in slv(2 downto 0) := "000"
-      );
+      txPowerDown : in slv(1 downto 0) := "00";
+      rxPowerDown : in slv(1 downto 0) := "00";
+      loopbackIn  : in slv(2 downto 0) := "000");
 
 end entity Gtx7Core;
 
@@ -1033,9 +1034,8 @@ begin
          EYESCANTRIGGER   => '0',
          ------------------------ Loopback and Powerdown Ports ----------------------
          LOOPBACK         => loopbackIn,
-         RXPD             => "00",
-         TXPD(0)          => txUserResetIn,
-         TXPD(1)          => txUserResetIn,
+         RXPD             => rxPowerDown,
+         TXPD             => txPowerDown,
          ----------------------------- PCS Reserved Ports ---------------------------
          PCSRSVDIN        => "0000000000000000",
          PCSRSVDIN2       => "00000",
@@ -1233,7 +1233,7 @@ begin
          TXBUFDIFFCTRL    => "100",
          TXDIFFCTRL       => "1000",
          TXDIFFPD         => '0',
-         TXINHIBIT        => txUserResetIn,
+         TXINHIBIT        => '0',
          TXMAINCURSOR     => "0000000",
          TXPDELECIDLEMODE => '0',
          TXPISOPD         => '0',
@@ -1249,7 +1249,7 @@ begin
          ----------------- Transmit Ports - TX Ports for PCI Express ----------------
          TXDEEMPH         => '0',
          TXDETECTRX       => '0',
-         TXELECIDLE       => txUserResetIn,
+         TXELECIDLE       => '0',
          TXMARGIN         => "000",
          TXSWING          => '0',
          --------------------- Transmit Ports - TX Ports for SATA -------------------

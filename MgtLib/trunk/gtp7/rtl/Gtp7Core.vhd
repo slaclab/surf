@@ -205,8 +205,9 @@ entity Gtp7Core is
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
 
-      loopbackIn : in slv(2 downto 0) := "000"
-      );
+      txPowerDown : in slv(1 downto 0) := "00";
+      rxPowerDown : in slv(1 downto 0) := "00";
+      loopbackIn  : in slv(2 downto 0) := "000");
 
 end entity Gtp7Core;
 
@@ -975,8 +976,8 @@ begin
          PMARSVDIN3           => '0',
          PMARSVDIN4           => '0',
          ------------------------------ Power-Down Ports ----------------------------
-         RXPD                 => "00",
-         TXPD                 => "00",
+         RXPD                 => rxPowerDown,
+         TXPD                 => txPowerDown,
          -------------------------- RX 8B/10B Decoder Ports -------------------------
          SETERRSTATUS         => '0',
          --------------------- RX Initialization and Reset Ports --------------------
