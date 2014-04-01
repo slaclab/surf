@@ -5,14 +5,14 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2014-03-25
+-- Last update: 2014-04-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 
@@ -27,10 +27,11 @@ use work.Version.all;
 
 entity AxiVersion is
    generic (
-      TPD_G           : time    := 1 ns;
-      CLK_PERIOD_G    : real    := 8.0E-9;-- units of seconds
-      EN_DEVICE_DNA_G : boolean := false;
-      EN_DS2411_G     : boolean := false);
+      TPD_G            : time            := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+      CLK_PERIOD_G     : real            := 8.0E-9;  -- units of seconds
+      EN_DEVICE_DNA_G  : boolean         := false;
+      EN_DS2411_G      : boolean         := false);
    port (
       axiClk    : in sl;
       axiClkRst : in sl;
@@ -59,7 +60,7 @@ architecture rtl of AxiVersion is
       variable c   : character;
    begin
       for i in BUILD_STAMP_C'range loop
-         c := BUILD_STAMP_C(i);
+         c                                                      := BUILD_STAMP_C(i);
          ret((i-1)/4)(8*((i-1) mod 4)+7 downto 8*((i-1) mod 4)) :=
             conv_std_logic_vector(character'pos(c), 8);
       end loop;
@@ -123,18 +124,18 @@ begin
                    r, stringRom, userValues) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
-      variable axiWriteResp : slv(1 downto 0);      
+      variable axiWriteResp : slv(1 downto 0);
       variable axiReadResp  : slv(1 downto 0);
    begin
       -- Latch the current value
       v := r;
-      
+
       -- Determine the transaction type
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus); 
+      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       if (axiStatus.writeEnable = '1') then
          -- Check for an out of 32 bit aligned address
-         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_SLVERR_C);         
+         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          -- Decode address and perform write
          case (axiWriteMaster.awaddr(9 downto 2)) is
             when X"01" =>
@@ -143,16 +144,16 @@ begin
                v.masterReset := axiWriteMaster.wdata(0);
             when X"07" =>
                v.fpgaReload := axiWriteMaster.wdata(0);
-            when others => 
-               axiWriteResp := AXI_RESP_SLVERR_C;
+            when others =>
+               axiWriteResp := AXI_ERROR_RESP_G;
          end case;
          -- Send AXI response
-         axiSlaveWriteResponse(v.axiWriteSlave,axiWriteResp);
+         axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       end if;
 
       if (axiStatus.readEnable = '1') then
          -- Check for an out of 32 bit aligned address
-         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_SLVERR_C);      
+         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          -- Decode address and assign read data
          v.axiReadSlave.rdata := (others => '0');
          case (axiReadMaster.araddr(11 downto 10)) is
@@ -165,7 +166,7 @@ begin
                   when X"02" =>
                      v.axiReadSlave.rdata := ite(dnaValid = '1', dnaValue(63 downto 32), X"00000000");
                   when X"03" =>
-                     v.axiReadSlave.rdata := ite(dnaValid = '1', dnaValue(31 downto 0), X"00000000");                     
+                     v.axiReadSlave.rdata := ite(dnaValid = '1', dnaValue(31 downto 0), X"00000000");
                   when X"04" =>
                      v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(63 downto 32), X"00000000");
                   when X"05" =>
@@ -174,8 +175,8 @@ begin
                      v.axiReadSlave.rdata(0) := r.masterReset;
                   when X"07" =>
                      v.axiReadSlave.rdata(0) := r.fpgaReload;
-                  when others => 
-                     axiReadResp := AXI_RESP_SLVERR_C;
+                  when others =>
+                     axiReadResp := AXI_ERROR_RESP_G;
                end case;
                
             when "01" =>
@@ -183,10 +184,10 @@ begin
             when "10" =>
                v.axiReadSlave.rdata := stringRom(conv_integer(axiReadMaster.araddr(7 downto 2)));
             when others =>
-               axiReadResp := AXI_RESP_SLVERR_C;
+               axiReadResp := AXI_ERROR_RESP_G;
          end case;
          -- Send AXI Response
-         axiSlaveReadResponse(v.axiReadSlave,axiReadResp);
+         axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
       end if;
 
       ----------------------------------------------------------------------------------------------
