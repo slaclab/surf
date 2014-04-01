@@ -35,6 +35,3 @@ set_msg_config -id {HDL 9-806} -new_severity ERROR;# SYNTH: Syntax error near **
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
-
-# Set the messaging limit
-set_param messaging.defaultLimit 10000
