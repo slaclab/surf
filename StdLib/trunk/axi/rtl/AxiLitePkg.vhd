@@ -22,9 +22,27 @@ package AxiLitePkg is
    -- AXI bus response codes
    -------------------------------------------------------------------------------------------------
    constant AXI_RESP_OK_C     : slv(1 downto 0) := "00";  -- Access ok
+   
    constant AXI_RESP_EXOKAY_C : slv(1 downto 0) := "01";  -- Exclusive access ok
+   -- Note: There are no "exclusive access" in AXI-Lite.  This is just a placeholder constant.
+   
    constant AXI_RESP_SLVERR_C : slv(1 downto 0) := "10";  -- Slave Error
+   -- Note: A SLVERR response is returned to the master if the AXI peripheral interface receives any 
+   --       of the following unsupported accesses:
+   --
+   --          1) Any accesses with AWSIZE information other than 32-bit receives a SLVERR response.
+   --          2) Any accesses with AWLEN information other than zero receives a SLVERR response.
+   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2’b00, 
+   --             returns a SLVERR response where a read access returns all zeros and a write access 
+   --             does not modify the address location.
+   --          4) Any write access that attempts to make use of the WSTRB lines, 
+   --             for example where any bits of WSTRB[3:0] are 0, returns a SLVERR response 
+   --             and does not modify the address location.   
+   
    constant AXI_RESP_DECERR_C : slv(1 downto 0) := "11";  -- Decode Error
+   -- Note: Any transaction that does not decode to a legal master interface destination, 
+   --       or programmers view register, receives a DECERR response. For an AHB master, 
+   --       the AXI DECERR is mapped back to an AHB ERROR.
 
    --------------------------------------------------------
    -- AXI bus, read master signal record
