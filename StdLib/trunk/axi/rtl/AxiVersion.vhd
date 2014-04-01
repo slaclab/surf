@@ -121,66 +121,72 @@ begin
 
    comb : process (axiClkRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
                    r, stringRom, userValues) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
-      
+      variable v            : RegType;
+      variable axiStatus    : AxiLiteStatusType;
+      variable axiWriteResp : slv(1 downto 0);      
+      variable axiReadResp  : slv(1 downto 0);
    begin
+      -- Latch the current value
       v := r;
-
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus); 
 
       if (axiStatus.writeEnable = '1') then
+         -- Check for an out of 32 bit aligned address
+         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_SLVERR_C);         
          -- Decode address and perform write
-         case (axiWriteMaster.awaddr(11 downto 0)) is
-            when X"004" =>
+         case (axiWriteMaster.awaddr(9 downto 2)) is
+            when X"01" =>
                v.scratchPad := axiWriteMaster.wdata;
-            when X"018" =>
+            when X"06" =>
                v.masterReset := axiWriteMaster.wdata(0);
-            when X"01C" =>
+            when X"07" =>
                v.fpgaReload := axiWriteMaster.wdata(0);
-            when others => null;
+            when others => 
+               axiWriteResp := AXI_RESP_SLVERR_C;
          end case;
-
-         -- Send Axi response
-         axiSlaveWriteResponse(v.axiWriteSlave);
+         -- Send AXI response
+         axiSlaveWriteResponse(v.axiWriteSlave,axiWriteResp);
       end if;
 
       if (axiStatus.readEnable = '1') then
+         -- Check for an out of 32 bit aligned address
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_SLVERR_C);      
          -- Decode address and assign read data
          v.axiReadSlave.rdata := (others => '0');
-         case (axiReadMaster.araddr(11 downto 8)) is
-            when X"0" =>
-               case (axiReadMaster.araddr(7 downto 0)) is
+         case (axiReadMaster.araddr(11 downto 10)) is
+            when "00" =>
+               case (axiReadMaster.araddr(9 downto 2)) is
                   when X"00" =>
                      v.axiReadSlave.rdata := FPGA_VERSION_C;
-                  when X"04" =>
+                  when X"01" =>
                      v.axiReadSlave.rdata := r.scratchPad;
-                  when X"08" =>
-                     v.axiReadSlave.rdata(31)          := dnaValid;
-                     v.axiReadSlave.rdata(24 downto 0) := dnaValue(56 downto 32);
-                  when X"0C" =>
-                     v.axiReadSlave.rdata := dnaValue(31 downto 0);
-                  when X"10" =>
+                  when X"02" =>
+                     v.axiReadSlave.rdata := ite(dnaValid = '1', dnaValue(63 downto 32), X"00000000");
+                  when X"03" =>
+                     v.axiReadSlave.rdata := ite(dnaValid = '1', dnaValue(31 downto 0), X"00000000");                     
+                  when X"04" =>
                      v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(63 downto 32), X"00000000");
-                  when X"14" =>
+                  when X"05" =>
                      v.axiReadSlave.rdata := ite(fdValid = '1', fdSerial(31 downto 0), X"00000000");
-                  when X"18" =>
+                  when X"06" =>
                      v.axiReadSlave.rdata(0) := r.masterReset;
-                  when X"1C" =>
+                  when X"07" =>
                      v.axiReadSlave.rdata(0) := r.fpgaReload;
-                  when others => null;
+                  when others => 
+                     axiReadResp := AXI_RESP_SLVERR_C;
                end case;
                
-            when X"1" =>
+            when "01" =>
                v.axiReadSlave.rdata := userValues(conv_integer(axiReadMaster.araddr(7 downto 2)));
-            when X"2" =>
+            when "10" =>
                v.axiReadSlave.rdata := stringRom(conv_integer(axiReadMaster.araddr(7 downto 2)));
             when others =>
-               null;
+               axiReadResp := AXI_RESP_SLVERR_C;
          end case;
-
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axiReadSlave);
+         -- Send AXI Response
+         axiSlaveReadResponse(v.axiReadSlave,axiReadResp);
       end if;
 
       ----------------------------------------------------------------------------------------------
