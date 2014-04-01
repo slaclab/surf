@@ -17,6 +17,7 @@ set_msg_config -suppress -id {Pwropt 34-142};# Post-Place Power Opt: power_opt d
 # Messages: Change from WARNING to ERROR
 set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in logic is out of range 
 set_msg_config -id {Synth 8-3919} -new_severity ERROR;# SYNTH: Null Assignment in logic
+set_msg_config -id {Synth 8-153}  -new_severity ERROR;# SYNTH: Case statement has an input that will never be executed
 
 # Messages: Change from WARNING to CRITICAL_WARNING
 set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pins matched 
