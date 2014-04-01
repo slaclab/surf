@@ -80,7 +80,7 @@ begin
       if (axiStatus.writeEnable = '1') then
 
          -- Send Axi response
-         axiSlaveWriteResponse(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+         axiSlaveWriteResponse(v.axiWriteSlave);
 
       end if;
 
@@ -89,7 +89,7 @@ begin
          v.axiReadSlave.rdata := (others => '0');
 
          -- Send Axi Response
-         axiSlaveReadResponse(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+         axiSlaveReadResponse(v.axiReadSlave);
 
       end if;
 
