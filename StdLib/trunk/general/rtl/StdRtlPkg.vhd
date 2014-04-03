@@ -74,6 +74,10 @@ package StdRtlPkg is
    -- Output is parity bit value needed to achieve that parity given vec.
    function evenParity (vec : slv) return sl;
    function oddParity (vec  : slv) return sl;
+  
+   -- Functions for counting the number of '1' in a slv bus
+   function onesCount (vec : slv) return unsigned;
+   function onesCount (vec : slv) return slv;   
 
    -- Gray Code functions
    function grayEncode (vec : unsigned) return unsigned;
@@ -848,6 +852,50 @@ package body StdRtlPkg is
    begin
       return uXor(vec);
    end function;
+   
+   -----------------------------------------------------------------------------
+   -- Functions for counting the number of '1' in a slv bus
+   -----------------------------------------------------------------------------
+   function onesCount (vec : slv) return unsigned is
+      variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
+      variable bottomVar : slv(topVar'low-1 downto vec'low);
+      variable tmpVar    : slv(2 downto 0);
+   begin
+      if (vec'length = 1) then
+         return '0' & unsigned(vec);
+      end if;
+
+      if (vec'length = 2) then
+         return uAnd(vec) & uXor(vec);
+      end if;
+
+      if (vec'length = 3) then
+         tmpVar := vec;
+         case tmpVar is
+            when "000"  => return "00";
+            when "001"  => return "01";
+            when "010"  => return "01";
+            when "011"  => return "10";
+            when "100"  => return "01";
+            when "101"  => return "10";
+            when "110"  => return "10";
+            when "111"  => return "11";
+            when others => return "00";
+         end case;
+      end if;
+
+      topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
+      bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
+
+      return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
+   end function;  
+
+   -- SLV variant
+   function onesCount (vec : slv)
+      return slv is
+   begin
+      return slv(onesCount(vec));
+   end function;   
 
    -----------------------------------------------------------------------------
    -- Functions for encoding and decoding grey codes
