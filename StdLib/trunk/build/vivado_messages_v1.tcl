@@ -1,10 +1,17 @@
 
 # Messages Suppression: INFO
-set_msg_config -suppress -id {Synth 8-256};# SYNTH: done synthesizing module
-set_msg_config -suppress -id {Synth 8-113};# SYNTH: binding component instance 'RTL_Inst' to cell 'PRIMITIVE'
-set_msg_config -suppress -id {Synth 8-226};# SYNTH: default block is never used
-set_msg_config -suppress -id {Synth 8-312};# SYNTH: "ignoring unsynthesizable construct" due to assert error checking
+set_msg_config -suppress -id {Synth 8-256}; # SYNTH: done synthesizing module
+set_msg_config -suppress -id {Synth 8-113}; # SYNTH: binding component instance 'RTL_Inst' to cell 'PRIMITIVE'
+set_msg_config -suppress -id {Synth 8-226}; # SYNTH: default block is never used
+set_msg_config -suppress -id {Synth 8-312}; # SYNTH: "ignoring unsynthesizable construct" due to assert error checking
 set_msg_config -suppress -id {Synth 8-4472};# SYNTH: Detected and applied attribute shreg_extract = no
+
+set_msg_config -suppress -id {HDL 9-1061};  # SIM: Parsing VHDL file 
+set_msg_config -suppress -id {Runs 36-5};   # SIM: Copied auxiliary file
+set_msg_config -suppress -id {VRFC 10-163}; # SIM: Analyzing VHDL file
+set_msg_config -suppress -id {VRFC 10-165}; # SIM: Analyzing VERILOG file
+set_msg_config -suppress -id {Simtcl 6-16}; # SIM: Simulation closed 
+set_msg_config -suppress -id {Simtcl 6-17}; # SIM: Simulation restarted 
 
 # Messages Suppression: WARNING
 set_msg_config -suppress -id {Designutils 20-1318};# DESIGN_UTILS: Multiple VHDL modules with the same architecture name
@@ -21,6 +28,7 @@ set_msg_config -id {Synth 8-153}  -new_severity ERROR;# SYNTH: Case statement ha
 
 # Messages: Change from WARNING to CRITICAL_WARNING
 set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pins matched 
+set_msg_config -id {Synth 8-3330}  -new_severity "CRITICAL WARNING";# SYNTH: an empty top module top detected
 
 # Messages: Change from CRITICAL_WARNING to WARNING
 # TBD Place holder
