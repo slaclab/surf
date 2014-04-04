@@ -1,0 +1,2 @@
+vhdl work rtl/Vc64Pkg.vhd
+vhdl work rtl/Vc64Fifo.vhd
