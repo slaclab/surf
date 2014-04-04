@@ -30,6 +30,7 @@ entity Vc64Fifo is
       BRAM_EN_G          : boolean                    := true;
       USE_BUILT_IN_G     : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G    : boolean                    := false;
+      BYPASS_FIFO_G      : boolean                    := false;-- If GEN_SYNC_FIFO_G = true, BYPASS_FIFO_G = true will reduce FPGA resources
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
       USE_PROG_FULL      : boolean                    := false;
@@ -58,51 +59,62 @@ architecture mapping of Vc64Fifo is
    
 begin
 
-   -- Convert the input data into a input SLV bus
-   din <= toSlv(vcWrIn);
+   GEN_FIFO : if ((GEN_SYNC_FIFO_G = false) or ((GEN_SYNC_FIFO_G = true) and (BYPASS_FIFO_G = false)))  generate
+   
+      -- Convert the input data into a input SLV bus
+      din <= toSlv(vcWrIn);
 
-   -- Select either the progFull or almostFull for flow control
-   vcWrOut.almostFull <= progFull when (USE_PROG_FULL = true) else almostFull;
+      -- Select either the progFull or almostFull for flow control
+      vcWrOut.almostFull <= progFull when (USE_PROG_FULL = true) else almostFull;
 
-   Fifo_Inst : entity work.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-         BRAM_EN_G       => BRAM_EN_G,
-         FWFT_EN_G       => true,
-         ALTERA_SYN_G    => ALTERA_SYN_G,
-         ALTERA_RAM_G    => ALTERA_RAM_G,
-         USE_BUILT_IN_G  => USE_BUILT_IN_G,
-         XIL_DEVICE_G    => XIL_DEVICE_G,
-         SYNC_STAGES_G   => FIFO_SYNC_STAGES_G,
-         DATA_WIDTH_G    => 72,
-         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G,
-         FULL_THRES_G    => FIFO_AFULL_THRES_G)
-      port map (
-         -- Resets
-         rst         => vcWrRst,
-         --Write Ports (wr_clk domain)
-         wr_clk      => vcWrClk,
-         wr_en       => din(72),
-         din         => din(71 downto 0),
-         prog_full   => progFull,
-         almost_full => almostFull,
-         full        => vcWrOut.full,
-         --Read Ports (rd_clk domain)
-         rd_clk      => vcRdClk,
-         rd_en       => rdEn,
-         dout        => dout,
-         valid       => valid);
+      Fifo_Inst : entity work.Fifo
+         generic map (
+            TPD_G           => TPD_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
+            BRAM_EN_G       => BRAM_EN_G,
+            FWFT_EN_G       => true,
+            ALTERA_SYN_G    => ALTERA_SYN_G,
+            ALTERA_RAM_G    => ALTERA_RAM_G,
+            USE_BUILT_IN_G  => USE_BUILT_IN_G,
+            XIL_DEVICE_G    => XIL_DEVICE_G,
+            SYNC_STAGES_G   => FIFO_SYNC_STAGES_G,
+            DATA_WIDTH_G    => 72,
+            ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G,
+            FULL_THRES_G    => FIFO_AFULL_THRES_G)
+         port map (
+            -- Resets
+            rst         => vcWrRst,
+            --Write Ports (wr_clk domain)
+            wr_clk      => vcWrClk,
+            wr_en       => din(72),
+            din         => din(71 downto 0),
+            prog_full   => progFull,
+            almost_full => almostFull,
+            full        => vcWrOut.full,
+            --Read Ports (rd_clk domain)
+            rd_clk      => vcRdClk,
+            rd_en       => rdEn,
+            dout        => dout,
+            valid       => valid);
 
-   -- Check if we are ready to read the FIFO
-   -- Note: vcRdIn.ready not used in direct FIFO applications
-   rdEn <= valid and not(vcRdIn.full) and not(vcRdIn.almostFull);
+      -- Check if we are ready to read the FIFO
+      -- Note: vcRdIn.ready not used in direct FIFO applications
+      rdEn <= valid and not(vcRdIn.full) and not(vcRdIn.almostFull);
 
-   -- Convert the output SLV into the output data bus
-   vcRdOut <= toVc64Data(rdEn & dout);
+      -- Convert the output SLV into the output data bus
+      vcRdOut <= toVc64Data(rdEn & dout);
 
-   -- Unused Signals set logic high
-   vcWrOut.ready <= '1';
+      -- Unused Signals set logic high
+      vcWrOut.ready <= '1';
+      
+   end generate;
+   
+   BYPASS_FIFO : if ((GEN_SYNC_FIFO_G = true) and (BYPASS_FIFO_G = true))  generate
+
+      vcRdOut <= vcWrIn;
+      vcWrOut <= vcRdIn;
+      
+   end generate;
    
 end mapping;
