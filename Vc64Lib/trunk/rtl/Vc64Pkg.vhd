@@ -1,3 +1,19 @@
+-------------------------------------------------------------------------------
+-- Title      : 
+-------------------------------------------------------------------------------
+-- File       : Vc64Pkg.vhd
+-- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-04-04
+-- Last update: 2014-04-04
+-- Platform   : Vivado 2013.3
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: 
+-------------------------------------------------------------------------------
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -21,7 +37,7 @@ package Vc64Pkg is
    type Vc64DataVectorArray is array (integer range<>, integer range<>)of Vc64DataType;
    constant VC64_DATA_INIT_C : Vc64DataType := (
       '0',
-      '1',
+      '1',-- Default to 64-bits valid width
       (others => '0'),
       '0',
       '0',
@@ -29,25 +45,25 @@ package Vc64Pkg is
       (others => '0')); 
 
    type Vc64CtrlType is record
-      full       : sl;-- FIFO's full flag
-      almostFull : sl;-- FIFO's almostFull (or FIFO's progFull for back pressure applications)
-      ready      : sl;-- Not used in FIFO interface applications (Optional: depending on interface)
+      full       : sl;  -- FIFO's full flag
+      almostFull : sl;  -- FIFO's almostFull (or FIFO's progFull for back pressure applications)
+      ready      : sl;  -- Not used in FIFO interface applications (Optional: depending on interface)
    end record;
    type Vc64CtrlArray is array (natural range <>) of Vc64CtrlType;
    type Vc64CtrlVectorArray is array (integer range<>, integer range<>)of Vc64CtrlType;
    constant VC64_CTRL_INIT_C : Vc64CtrlType := (
-      '0',
-      '0',
-      '1');  
-      
+      '1', -- full flag should be high the first cycle after a reset
+      '1', -- almost full flag should be high the first cycle after a reset
+      '1');-- default to ready = '1'
+
    -- 64-bit Generic Streaming Data Functions       
-   function toSlv (vec            : Vc64DataType) return slv;
-   function toVc64Data (vec : slv(72 downto 0)) return Vc64DataType;   
+   function toSlv (vec      : Vc64DataType) return slv;
+   function toVc64Data (vec : slv(72 downto 0)) return Vc64DataType;
    
 end Vc64Pkg;
 
 package body Vc64Pkg is
-   
+
    ------------------------------------------------------------------------
    -- 64-bit Generic Streaming Data Functions                          
    ------------------------------------------------------------------------   
@@ -75,6 +91,6 @@ package body Vc64Pkg is
       retVar.eofe  := vec(64);
       retVar.data  := vec(63 downto 0);
       return retVar;
-   end function;   
+   end function;
    
 end package body Vc64Pkg;
