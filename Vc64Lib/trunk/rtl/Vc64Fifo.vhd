@@ -51,8 +51,11 @@ end Vc64Fifo;
 
 architecture rtl of Vc64Fifo is
    
-   constant BYPASS_FIFO_C : boolean := ((GEN_SYNC_FIFO_G = true) and (BYPASS_FIFO_G = true));
-   constant PIPE_STAGES_C : integer := ite((BYPASS_FIFO_C = true), 1, PIPE_STAGES_G);
+   constant BYPASS_FIFO_C   : boolean := ((GEN_SYNC_FIFO_G = true) and (BYPASS_FIFO_G = true));
+   constant GEN_FIFO_C      : boolean := ((GEN_SYNC_FIFO_G = false) or (BYPASS_FIFO_C = false));
+   
+   constant BYPASS_STAGES_C : integer := ite((PIPE_STAGES_G = 0), 1, PIPE_STAGES_G);
+   constant PIPE_STAGES_C   : integer := ite((BYPASS_FIFO_C = true), BYPASS_STAGES_C, PIPE_STAGES_G);
 
    signal din  : slv(72 downto 0);
    signal dout : slv(71 downto 0);
@@ -84,7 +87,7 @@ begin
    vcWrOut <= writeOut;
    vcRdOut <= rdOut(PIPE_STAGES_C);
 
-   GEN_FIFO : if ((GEN_SYNC_FIFO_G = false) or (BYPASS_FIFO_C = false)) generate
+   GEN_FIFO : if (GEN_FIFO_C = true) generate
 
       -- Convert the input data into a input SLV bus
       din <= toSlv(vcWrIn);
