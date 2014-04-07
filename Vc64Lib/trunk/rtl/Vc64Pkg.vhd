@@ -25,7 +25,7 @@ package Vc64Pkg is
    -- 64-bit Generic Streaming Data Interface Types/Constants                            
    ------------------------------------------------------------------------
    type Vc64DataType is record
-      valid : sl;              -- Data Valid (use on FIFO's wrEn)
+      valid : sl;              -- Data Valid
       size  : sl;              -- '0' = 32-bit word valid (data[31:0]), '1' = 64-bit word valid (data[63:0])
       vc    : slv(3 downto 0); -- VC channel pointer (Optional: depending on interface)
       sof   : sl;              -- Start of Frame Flag
@@ -45,16 +45,16 @@ package Vc64Pkg is
       (others => '0')); 
 
    type Vc64CtrlType is record
-      full       : sl;  -- FIFO's full flag
-      almostFull : sl;  -- FIFO's almostFull (or FIFO's progFull for back pressure applications)
-      ready      : sl;  -- Not used in FIFO interface applications (Optional: depending on interface)
+      overflow   : sl;  -- FIFO's overflow error status bit (only used in FIFO writing interfaces)
+      almostFull : sl;  -- FIFO's progFull status bit (only used in FIFO writing interfaces)
+      ready      : sl;  -- Ready to read the FIFO (only used in FIFO reading interfaces)
    end record;
    type Vc64CtrlArray is array (natural range <>) of Vc64CtrlType;
    type Vc64CtrlVectorArray is array (integer range<>, integer range<>)of Vc64CtrlType;
    constant VC64_CTRL_INIT_C : Vc64CtrlType := (
-      '1', -- full flag should be high the first cycle after a reset
-      '1', -- almost full flag should be high the first cycle after a reset
-      '1');-- default to ready = '1'
+      '0', 
+      '1',
+      '0');
 
    -- 64-bit Generic Streaming Data Functions       
    function toSlv (vec      : Vc64DataType) return slv;
