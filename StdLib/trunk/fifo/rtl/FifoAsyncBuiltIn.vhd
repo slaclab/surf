@@ -39,7 +39,7 @@ entity FifoAsyncBuiltIn is
       DATA_WIDTH_G   : integer range 1 to 72      := 18;
       ADDR_WIDTH_G   : integer range 9 to 13      := 10;
       FULL_THRES_G   : integer range 1 to 8190    := 1;
-      EMPTY_THRES_G  : integer range 0 to 8190    := 0);
+      EMPTY_THRES_G  : integer range 1 to 8190    := 1);
    port (
       -- Asynchronous Reset
       rst           : in  sl;

@@ -43,7 +43,7 @@ entity Fifo is
       ADDR_WIDTH_G    : integer range 4 to 48      := 4;
       INIT_G          : slv                        := "0";
       FULL_THRES_G    : integer range 1 to (2**24) := 1;
-      EMPTY_THRES_G   : integer range 0 to (2**24) := 0);
+      EMPTY_THRES_G   : integer range 1 to (2**24) := 1);
    port (
       -- Resets
       rst           : in  sl := '0';
