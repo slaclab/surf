@@ -45,8 +45,8 @@ architecture STRUCTURE of AxiLiteEmpty is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      axiReadSlave     => AXI_READ_SLAVE_INIT_C,
-      axiWriteSlave    => AXI_WRITE_SLAVE_INIT_C
+      axiReadSlave     => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave    => AXI_LITE_WRITE_SLAVE_INIT_C
    );
 
    signal r   : RegType := REG_INIT_C;
