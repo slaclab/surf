@@ -16,6 +16,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
@@ -70,6 +72,7 @@ package Vc64Pkg is
    -- 64-bit Generic Streaming Data Functions       
    function toSlv (vec      : Vc64DataType) return slv;
    function toVc64Data (vec : slv(72 downto 0)) return Vc64DataType;
+   function vc64DeMux (encIn : Vc64DataType; count : integer range 1 to 16) return Vc64DataArray;
    
 end Vc64Pkg;
 
@@ -103,5 +106,22 @@ package body Vc64Pkg is
       retVar.data  := vec(63 downto 0);
       return retVar;
    end function;
-   
+
+   function vc64DeMux (encIn : Vc64DataType; count : integer range 1 to 16) return Vc64DataArray is
+      variable retData : Vc64DataArray(count-1 downto 0);
+   begin
+
+      -- Init
+      for i in 0 to count-1 loop
+         retData(i) := encIn;
+         retData(i).valid := '0';
+         retData(i).vc    := conv_std_logic_vector(i,4);
+      end loop;
+
+      retData(conv_integer(encIn.vc)).valid := encIn.valid;
+
+      return retData;
+   end function;
+
 end package body Vc64Pkg;
+
