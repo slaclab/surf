@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-07
+-- Last update: 2014-04-08
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -130,15 +130,15 @@ begin
          FULL_THRES_G    => FIFO_AFULL_THRES_G)
       port map (
          -- Resets
-         rst       => vcTxRst,
+         rst       => vcRxRst,
          --Write Ports (wr_clk domain)
-         wr_clk    => vcTxClk,
+         wr_clk    => vcRxClk,
          wr_en     => vcRxData.valid,
          din       => din,
          prog_full => progFull,
          overflow  => overflow,
          --Read Ports (rd_clk domain)
-         rd_clk    => vcRxClk,
+         rd_clk    => vcTxClk,
          rd_en     => rdEn,
          dout      => dout,
          valid     => valid);
@@ -176,9 +176,9 @@ begin
       
    end generate;
 
-   PIPE_REG : if (PIPE_STAGES_G > 0) generate
+   PIPE_REG : if (PIPE_STAGES_C > 0) generate
       
-      comb : process (r, readOut, valid, vcRxRst, vcTxCtrl) is
+      comb : process (r, readOut, valid, vcTxCtrl, vcTxRst) is
          variable i : integer;
          variable j : integer;
          variable v : RegType;
@@ -194,7 +194,7 @@ begin
                v.ready    := '0';
                -- Pipeline the readout records
                v.rdOut(0) := r.rdBuffer;
-               for i in 1 to PIPE_STAGES_G loop
+               for i in 1 to PIPE_STAGES_C loop
                   v.rdOut(i) := r.rdOut(i-1);
                end loop;
                -- Check for a FIFO read
@@ -210,13 +210,13 @@ begin
                v.ready    := '1';
                -- Pipeline the readout records
                v.rdOut(0) := readOut;
-               for i in 1 to PIPE_STAGES_G loop
+               for i in 1 to PIPE_STAGES_C loop
                   v.rdOut(i) := r.rdOut(i-1);
                end loop;
             end if;
          else
             -- Check if we need to advance the pipeline
-            for i in PIPE_STAGES_G downto 1 loop
+            for i in PIPE_STAGES_C downto 1 loop
                if r.rdOut(i).valid = '0' then
                   -- Shift the data up the pipeline
                   v.rdOut(i)   := r.rdOut(i-1);
@@ -256,7 +256,7 @@ begin
          end if;
 
          -- Reset
-         if (vcRxRst = '1') then
+         if (vcTxRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -269,9 +269,9 @@ begin
          
       end process comb;
 
-      seq : process (vcRxClk) is
+      seq : process (vcTxClk) is
       begin
-         if rising_edge(vcRxClk) then
+         if rising_edge(vcTxClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;
