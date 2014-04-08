@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2014-02-21
+-- Last update: 2014-04-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,6 +55,7 @@ entity FifoMux is
       prog_full    : out sl;
       almost_full  : out sl;
       full         : out sl;
+      not_full     : out sl;
       --Read Ports (rd_clk domain)
       rd_clk       : in  sl;            --unused if GEN_SYNC_FIFO_G = true
       rd_en        : in  sl := '0';
@@ -277,6 +278,7 @@ begin
          prog_full     => prog_full,
          almost_full   => almost_full,
          full          => full,
+         not_full      => not_full,
          rd_clk        => rd_clk,
          rd_en         => fifo_rd_en,
          dout          => fifo_dout,
