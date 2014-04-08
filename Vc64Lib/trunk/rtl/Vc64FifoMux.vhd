@@ -33,7 +33,6 @@ entity Vc64FifoMux is
       ALTERA_RAM_G       : string                     := "M9K";
       BRAM_EN_G          : boolean                    := true;
       GEN_SYNC_FIFO_G    : boolean                    := false;
-      PIPE_STAGES_G      : integer range 0 to 16      := 0;  -- Used to add pipeline stages to the output ports to help with meeting timing
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
       FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 256);
@@ -59,17 +58,11 @@ architecture mapping of Vc64FifoMux is
    signal dout : slv(RD_DATA_WIDTH_C-1 downto 0);
    signal fifoRdEn,
       fifoValid,
-      fifoReady,
+      txValid,
       progFull,
       overflow : sl;
    
-   signal writeOut : Vc64CtrlType;
-   signal fifoData : Vc64DataType;
-   
 begin
-
-   -- Outputs
-   vcRxCtrl <= writeOut;
 
    -- Assign data based on lane generics
    STATUS_HDR : process (vcRxData) is
@@ -94,9 +87,9 @@ begin
    end process STATUS_HDR;
 
    -- Update the writing status flags
-   writeOut.ready      <= not(progFull);
-   writeOut.almostFull <= progFull;
-   writeOut.overflow   <= overflow;
+   vcRxCtrl.ready      <= not(progFull);
+   vcRxCtrl.almostFull <= progFull;
+   vcRxCtrl.overflow   <= overflow;
 
    FifoMux_Inst : entity work.FifoMux
       generic map (
@@ -130,44 +123,32 @@ begin
          valid     => fifoValid);
 
    -- Check if we are ready to read the FIFO
-   fifoRdEn <= fifoValid and fifoReady;
+   fifoRdEn <= fifoValid and vcTxCtrl.ready and not vcTxCtrl.almostFull;
+
+   -- Generate the TX valid signal
+   txValid <= fifoValid and not vcTxCtrl.almostFull;
 
    -- Pass the FIFO's valid signal
-   fifoData.valid <= fifoRdEn;
+   vcTxData.valid <= txValid;
 
    -- upper word flags
-   fifoData.size <= dout((TX_LANES_G-1)*24+23);
-   fifoData.vc   <= dout(((TX_LANES_G-1)*24+22) downto ((TX_LANES_G-1)*24+19));
-   fifoData.sof  <= dout((TX_LANES_G-1)*24+18);
+   vcTxData.size <= dout((TX_LANES_G-1)*24+23);
+   vcTxData.vc   <= dout(((TX_LANES_G-1)*24+22) downto ((TX_LANES_G-1)*24+19));
+   vcTxData.sof  <= dout((TX_LANES_G-1)*24+18);
 
    -- lower word flags
-   fifoData.eof  <= dout(17);
-   fifoData.eofe <= dout(16);
+   vcTxData.eof  <= dout(17);
+   vcTxData.eofe <= dout(16);
 
    -- Assign data based on lane generics
    dataLoop : for i in (TX_LANES_G-1) downto 0 generate
-      fifoData.data(i*16+15 downto i*16) <= dout(i*24+15 downto i*24);
+      vcTxData.data(i*16+15 downto i*16) <= dout(i*24+15 downto i*24);
    end generate dataLoop;
 
    maxLaneCheck : if (TX_LANES_G /= 4) generate
       zeroLoop : for i in 3 downto TX_LANES_G generate
-         fifoData.data(i*16+15 downto i*16) <= (others => '0');
+         vcTxData.data(i*16+15 downto i*16) <= (others => '0');
       end generate zeroLoop;
    end generate;
-
-   Vc64FifoRdCtrl_Inst : entity work.Vc64FifoRdCtrl
-      generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
-      port map (
-         -- FIFO Read Interface
-         fifoValid => fifoValid,
-         fifoReady => fifoReady,
-         fifoData  => fifoData,
-         -- Streaming TX Data Interface
-         vcTxCtrl  => vcTxCtrl,
-         vcTxData  => vcTxData,
-         vcTxClk   => vcTxClk,
-         vcTxRst   => vcTxRst);  
 
 end mapping;
