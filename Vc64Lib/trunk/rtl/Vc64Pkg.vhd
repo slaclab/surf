@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-04
+-- Last update: 2014-04-07
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,19 +25,19 @@ package Vc64Pkg is
    -- 64-bit Generic Streaming Data Interface Types/Constants                            
    ------------------------------------------------------------------------
    type Vc64DataType is record
-      valid : sl;              -- Data Valid
-      size  : sl;              -- '0' = 32-bit word valid (data[31:0]), '1' = 64-bit word valid (data[63:0])
-      vc    : slv(3 downto 0); -- VC channel pointer (Optional: depending on interface)
-      sof   : sl;              -- Start of Frame Flag
-      eof   : sl;              -- end of Frame Flag
-      eofe  : sl;              -- end of Frame with error(s) Flag
-      data  : slv(63 downto 0);-- streaming data
+      valid : sl;                       -- Data Valid
+      size  : sl;  -- '0' = 32-bit word valid (data[31:0]), '1' = 64-bit word valid (data[63:0])
+      vc    : slv(3 downto 0);          -- VC channel pointer (Optional: depending on interface)
+      sof   : sl;                       -- Start of Frame Flag
+      eof   : sl;                       -- end of Frame Flag
+      eofe  : sl;                       -- end of Frame with error(s) Flag
+      data  : slv(63 downto 0);         -- streaming data
    end record;
    type Vc64DataArray is array (natural range <>) of Vc64DataType;
    type Vc64DataVectorArray is array (integer range<>, integer range<>)of Vc64DataType;
    constant VC64_DATA_INIT_C : Vc64DataType := (
       '0',
-      '1',-- Default to 64-bits valid width
+      '1',                              -- Default to 64-bits valid width
       (others => '0'),
       '0',
       '0',
@@ -52,9 +52,13 @@ package Vc64Pkg is
    type Vc64CtrlArray is array (natural range <>) of Vc64CtrlType;
    type Vc64CtrlVectorArray is array (integer range<>, integer range<>)of Vc64CtrlType;
    constant VC64_CTRL_INIT_C : Vc64CtrlType := (
-      '0', 
+      '0',
       '1',
       '0');
+   constant VC64_CTRL_FORCE_C : Vc64CtrlType := (
+      '0',
+      '0',
+      '1');      
 
    -- 64-bit Generic Streaming Data Functions       
    function toSlv (vec      : Vc64DataType) return slv;

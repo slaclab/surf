@@ -1,1 +1,2 @@
 tb/Vc64FifoTb.vhd
+tb/Vc64PrbsTb.vhd
