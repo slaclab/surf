@@ -50,40 +50,26 @@ entity Vc64FifoMux is
       vcTxRst  : in  sl := '0');
 end Vc64FifoMux;
 
-architecture rtl of Vc64FifoMux is
+architecture mapping of Vc64FifoMux is
 
    constant WR_DATA_WIDTH_C : integer := 24*RX_LANES_G;
    constant RD_DATA_WIDTH_C : integer := 24*TX_LANES_G;
 
    signal din  : slv(WR_DATA_WIDTH_C-1 downto 0);
    signal dout : slv(RD_DATA_WIDTH_C-1 downto 0);
-   signal rdEn,
-      valid,
+   signal fifoRdEn,
+      fifoValid,
+      fifoReady,
       progFull,
-      overflow,
-      ready : sl;
+      overflow : sl;
    
-   type RegType is record
-      ready    : sl;
-      rdBuffer : Vc64DataType;
-      rdOut    : Vc64DataArray(0 to PIPE_STAGES_G);
-   end record RegType;
-   constant REG_INIT_C : RegType := (
-      '0',
-      VC64_DATA_INIT_C,
-      (others => VC64_DATA_INIT_C));
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
-   signal readOut  : Vc64DataType;
    signal writeOut : Vc64CtrlType;
-   signal rdOut    : Vc64DataArray(0 to PIPE_STAGES_G) := (others => VC64_DATA_INIT_C);
+   signal fifoData : Vc64DataType;
    
 begin
 
    -- Outputs
    vcRxCtrl <= writeOut;
-   vcTxData <= rdOut(PIPE_STAGES_G);
 
    -- Assign data based on lane generics
    STATUS_HDR : process (vcRxData) is
@@ -139,143 +125,49 @@ begin
          overflow  => overflow,
          --Read Ports (rd_clk domain)
          rd_clk    => vcTxClk,
-         rd_en     => rdEn,
+         rd_en     => fifoRdEn,
          dout      => dout,
-         valid     => valid);
+         valid     => fifoValid);
 
    -- Check if we are ready to read the FIFO
-   rdEn <= valid and ready;
+   fifoRdEn <= fifoValid and fifoReady;
 
    -- Pass the FIFO's valid signal
-   readOut.valid <= valid;
+   fifoData.valid <= fifoRdEn;
 
    -- upper word flags
-   readOut.size <= dout((TX_LANES_G-1)*24+23);
-   readOut.vc   <= dout(((TX_LANES_G-1)*24+22) downto ((TX_LANES_G-1)*24+19));
-   readOut.sof  <= dout((TX_LANES_G-1)*24+18);
+   fifoData.size <= dout((TX_LANES_G-1)*24+23);
+   fifoData.vc   <= dout(((TX_LANES_G-1)*24+22) downto ((TX_LANES_G-1)*24+19));
+   fifoData.sof  <= dout((TX_LANES_G-1)*24+18);
 
    -- lower word flags
-   readOut.eof  <= dout(17);
-   readOut.eofe <= dout(16);
+   fifoData.eof  <= dout(17);
+   fifoData.eofe <= dout(16);
 
    -- Assign data based on lane generics
    dataLoop : for i in (TX_LANES_G-1) downto 0 generate
-      readOut.data(i*16+15 downto i*16) <= dout(i*24+15 downto i*24);
+      fifoData.data(i*16+15 downto i*16) <= dout(i*24+15 downto i*24);
    end generate dataLoop;
 
    maxLaneCheck : if (TX_LANES_G /= 4) generate
       zeroLoop : for i in 3 downto TX_LANES_G generate
-         readOut.data(i*16+15 downto i*16) <= (others => '0');
+         fifoData.data(i*16+15 downto i*16) <= (others => '0');
       end generate zeroLoop;
    end generate;
 
-   ZERO_LATENCY : if (PIPE_STAGES_G = 0) generate
+   Vc64FifoRdCtrl_Inst : entity work.Vc64FifoRdCtrl
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
+      port map (
+         -- FIFO Read Interface
+         fifoValid => fifoValid,
+         fifoReady => fifoReady,
+         fifoData  => fifoData,
+         -- Streaming TX Data Interface
+         vcTxCtrl  => vcTxCtrl,
+         vcTxData  => vcTxData,
+         vcTxClk   => vcTxClk,
+         vcTxRst   => vcTxRst);  
 
-      rdOut(0) <= readOut;
-      ready    <= vcTxCtrl.ready;
-      
-   end generate;
-
-   PIPE_REG : if (PIPE_STAGES_C > 0) generate
-      
-      comb : process (r, readOut, valid, vcTxCtrl, vcTxRst) is
-         variable i : integer;
-         variable j : integer;
-         variable v : RegType;
-      begin
-         -- Latch the current value
-         v := r;
-
-         -- Check the external ready signal
-         if vcTxCtrl.ready = '1' then
-            -- Check that we have cleared out the rdBuffer
-            if r.rdBuffer.valid = '1' then
-               -- Reset the ready flag
-               v.ready    := '0';
-               -- Pipeline the readout records
-               v.rdOut(0) := r.rdBuffer;
-               for i in 1 to PIPE_STAGES_C loop
-                  v.rdOut(i) := r.rdOut(i-1);
-               end loop;
-               -- Check for a FIFO read
-               if (r.ready = '1') and (valid = '1') then
-                  -- Latch the data value
-                  v.rdBuffer := readOut;
-               else
-                  -- Clear the buffer
-                  v.rdBuffer.valid := '0';
-               end if;
-            else
-               -- Set the ready flag
-               v.ready    := '1';
-               -- Pipeline the readout records
-               v.rdOut(0) := readOut;
-               for i in 1 to PIPE_STAGES_C loop
-                  v.rdOut(i) := r.rdOut(i-1);
-               end loop;
-            end if;
-         else
-            -- Check if we need to advance the pipeline
-            for i in PIPE_STAGES_C downto 1 loop
-               if r.rdOut(i).valid = '0' then
-                  -- Shift the data up the pipeline
-                  v.rdOut(i)   := r.rdOut(i-1);
-                  -- Clear the cell that the data was shifted from
-                  v.rdOut(i-1) := VC64_DATA_INIT_C;
-               end if;
-            end loop;
-            -- Check if we need to advance the lowest stage
-            if r.rdOut(0).valid = '0' then
-               -- Shift the data up the pipeline
-               v.rdOut(0)       := r.rdBuffer;
-               -- Clear the buffer
-               v.rdBuffer.valid := '0';
-            end if;
-            -- Check if last cycle was pulling the FIFO
-            if r.ready = '1' then
-               -- Reset the ready flag
-               v.ready := '0';
-               -- Check for a FIFO read
-               if valid = '1' then
-                  -- Check where we need to write the data
-                  if r.rdOut(0).valid = '0' then
-                     -- Shift the data up the pipeline
-                     v.rdOut(0) := readOut;
-                  else
-                     -- Save the value in the buffer
-                     v.rdBuffer := readOut;
-                  end if;
-               end if;
-            else
-               -- Check that we cleared the buffers
-               if (r.rdOut(0).valid = '0') and (r.rdBuffer.valid = '0') then
-                  -- Set the ready flag
-                  v.ready := '1';
-               end if;
-            end if;
-         end if;
-
-         -- Reset
-         if (vcTxRst = '1') then
-            v := REG_INIT_C;
-         end if;
-
-         -- Register the variable for next clock cycle
-         rin <= v;
-
-         -- Outputs
-         ready <= r.ready;
-         rdOut <= r.rdOut;
-         
-      end process comb;
-
-      seq : process (vcTxClk) is
-      begin
-         if rising_edge(vcTxClk) then
-            r <= rin after TPD_G;
-         end if;
-      end process seq;
-      
-   end generate;
-   
-end rtl;
+end mapping;
