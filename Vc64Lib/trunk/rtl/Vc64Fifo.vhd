@@ -30,6 +30,7 @@ entity Vc64Fifo is
       BRAM_EN_G          : boolean                    := true;
       USE_BUILT_IN_G     : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G    : boolean                    := false;
+      IGNORE_TX_READY_G  : boolean                    := false;
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
       FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 256);
@@ -55,6 +56,7 @@ architecture mapping of Vc64Fifo is
       txValid,
       fifoReady,
       progFull,
+      ready,
       overflow : sl;
    
 begin
@@ -97,8 +99,11 @@ begin
          dout      => dout,
          valid     => fifoValid);
 
+   -- Check if we are ready to read the FIFO  
+   ready <= '1' when(IGNORE_TX_READY_G = true) else vcTxCtrl.ready;
+         
    -- Check if we are ready to read the FIFO
-   fifoRdEn <= fifoValid and vcTxCtrl.ready and not vcTxCtrl.almostFull;
+   fifoRdEn <= fifoValid and ready and not vcTxCtrl.almostFull;
 
    -- Generate the TX valid signal
    txValid <= fifoValid and not vcTxCtrl.almostFull;
