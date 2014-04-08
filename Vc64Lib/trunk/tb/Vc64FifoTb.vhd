@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-07
--- Last update: 2014-04-07
+-- Last update: 2014-04-08
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -14,10 +14,9 @@
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
+
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.Vc64Pkg.all;
@@ -31,32 +30,61 @@ architecture testbed of Vc64FifoTb is
    constant RD_CLK_PERIOD_C : time := 3.14 ns;  -- Test parameter
    constant TPD_C           : time := 1 ns;
 
-   constant GEN_SYNC_FIFO_C : boolean := true;  -- Test parameter
-   constant BYPASS_FIFO_C   : boolean := true;  -- Test parameter
+   constant CONFIG_TEST_C      : natural := 0;
+   constant CONFIG_TEST_SIZE_C : natural := (6-1);
+   
+   constant GEN_SYNC_FIFO_C : BooleanArray(0 to CONFIG_TEST_SIZE_C) := (
+      -- PIPE_STAGES_C = 0
+      false,
+      true,
+      -- PIPE_STAGES_C = 1
+      false,
+      true,
+      -- PIPE_STAGES_C = 2
+      false,
+      true);      
 
-   constant PIPE_STAGES_C : integer := 2;  -- Test parameter
+   constant PIPE_STAGES_C : IntegerArray(0 to CONFIG_TEST_SIZE_C) := (
+      -- PIPE_STAGES_C = 0
+      0,
+      0,
+      -- PIPE_STAGES_C = 1
+      1,
+      1,
+      -- PIPE_STAGES_C = 2
+      2,
+      2);     
 
-   constant LAST_DATA_C       : slv(63 downto 0) := toSlv(4096, 64);  -- Test parameter
-   constant READ_BUSY_THRES_C : slv(3 downto 0)  := toSlv(7, 4);      -- Test parameter
+   constant LAST_DATA_C       : slv(63 downto 0) := toSlv(4096, 64);
+   constant READ_BUSY_THRES_C : slv(3 downto 0)  := toSlv(7, 4);
 
    -- Signals
-   signal wrDone,
-      rdDone,
-      rdError,
-      vcTxClk,
-      vcTxRst,
-      clk,
+   signal clk,
       rst,
       vcRxClk,
       vcRxRst : sl;
-   signal vcWrIn  : Vc64DataType := VC64_DATA_INIT_C;
-   signal vcWrOut : Vc64CtrlType;
-   signal vcRdIn  : Vc64CtrlType;
-   signal vcRdOut : Vc64DataType;
-   signal rdCnt   : slv(3 downto 0);
-   signal rdData  : slv(63 downto 0);
+   signal wrDone,
+      rdDone,
+      rdError : slv(0 to CONFIG_TEST_SIZE_C);
+
+   signal simulationPassed,
+      simulationFailed : sl := '0';
 
 begin
+
+   simulationPassed <= uAnd(wrDone) and uAnd(rdDone) and not uOr(rdError);
+   simulationFailed <= uAnd(wrDone) and uAnd(rdDone) and uOr(rdError);
+
+   process(simulationFailed, simulationPassed)
+   begin
+      if simulationPassed = '1' then
+         assert false
+            report "Simulation Passed!" severity failure;
+      elsif simulationFailed = '1' then
+         assert false
+            report "Simulation Failed!" severity failure;
+      end if;
+   end process;
 
    -- Generate clocks and resets
    ClkRst_Write : entity work.ClkRst
@@ -81,82 +109,26 @@ begin
          rst  => rst,
          rstL => open); 
 
-   vcTxClk <= vcRxClk when(GEN_SYNC_FIFO_C = true) else clk;
-   vcTxRst <= vcRxRst when(GEN_SYNC_FIFO_C = true) else rst;
+   GEN_TEST_MODULES :
+   for i in 0 to CONFIG_TEST_SIZE_C generate
 
-   -- SynchronizerOneShot (VHDL module to be tested)
-   Vc64Fifo_Inst : entity work.Vc64Fifo
-      generic map (
-         TPD_G           => TPD_C,
-         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_C,
-         BYPASS_FIFO_G   => BYPASS_FIFO_C,
-         PIPE_STAGES_G   => PIPE_STAGES_C)
-      port map (
-         -- Streaming RX Data Interface (vcRxClk domain) 
-         vcRxData => vcWrIn,
-         vcRxCtrl => vcWrOut,
-         vcRxClk  => vcRxClk,
-         vcRxRst  => vcRxRst,
-         -- Streaming TX Data Interface (vcTxClk domain) 
-         vcTxCtrl => vcRdIn,
-         vcTxData => vcRdOut,
-         vcTxClk  => vcTxClk,
-         vcTxRst  => vcTxRst);      
-
-   -- Transmit the data pattern into the FIFO
-   process(vcRxClk)
-   begin
-      if rising_edge(vcRxClk) then
-         vcWrIn.valid <= '0' after TPD_C;
-         if vcRxRst = '1' then
-            wrDone      <= '0'             after TPD_C;
-            vcWrIn.data <= (others => '1') after TPD_C;
-         elsif (vcWrIn.data /= LAST_DATA_C) and (vcWrOut.almostFull = '0') then
-            -- Increment the counter
-            vcWrIn.data  <= vcWrIn.data + 1 after TPD_C;
-            -- Write the value to the FIFO
-            vcWrIn.valid <= '1'             after TPD_C;
-         elsif vcWrIn.data = LAST_DATA_C then
-            wrDone <= '1' after TPD_C;
-         end if;
-      end if;
-   end process;
-
-   -- Receive the data pattern into the FIFO and check if it is valid
-   process(vcTxClk)
-   begin
-      if rising_edge(vcTxClk) then
-         vcRdIn.ready <= '0' after TPD_C;
-         if vcTxRst = '1' then
-            rdDone  <= '0'              after TPD_C;
-            rdError <= '0'              after TPD_C;
-            rdCnt   <= (others => '0')  after TPD_C;
-            rdData  <= (others => '0')  after TPD_C;
-            vcRdIn  <= VC64_CTRL_INIT_C after TPD_C;
-         else
-            -- increment a counter
-            rdCnt <= rdCnt + 1 after TPD_C;
-            if rdCnt < READ_BUSY_THRES_C then
-               -- Ready to read the FIFO
-               vcRdIn.ready <= '1' after TPD_C;
-            end if;
-            -- Check if we were reading the FIFO
-            if (vcRdIn.ready = '1') and (vcRdOut.valid = '1') then
-               -- Check for an error in the data
-               if vcRdOut.data /= rdData then
-                  -- Error detected
-                  rdError <= '1' after TPD_C;
-               end if;
-               -- Check for roll over
-               if rdData /= LAST_DATA_C then
-                  -- increment the counter
-                  rdData <= rdData + 1 after TPD_C;
-               end if;
-            elsif rdData = LAST_DATA_C then
-               rdDone <= '1' after TPD_C;
-            end if;
-         end if;
-      end if;
-   end process;
+      Vc64FifoTbSubModule_Inst : entity work.Vc64FifoTbSubModule
+         generic map (
+            TPD_G             => TPD_C,
+            GEN_SYNC_FIFO_G   => GEN_SYNC_FIFO_C(i),
+            PIPE_STAGES_G     => PIPE_STAGES_C(i),
+            LAST_DATA_G       => LAST_DATA_C,
+            READ_BUSY_THRES_G => READ_BUSY_THRES_C)
+         port map (
+            -- Status
+            wrDone  => wrDone(i),
+            rdDone  => rdDone(i),
+            rdError => rdError(i),
+            -- Clocks and Resets
+            vcRxClk => vcRxClk,
+            vcRxRst => vcRxRst,
+            clk     => clk,
+            rst     => rst);  
+   end generate GEN_TEST_MODULES;
 
 end testbed;

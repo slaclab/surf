@@ -34,6 +34,7 @@ entity Vc64FifoMux is
       BRAM_EN_G          : boolean                    := true;
       GEN_SYNC_FIFO_G    : boolean                    := false;
       IGNORE_TX_READY_G  : boolean                    := false;
+      PIPE_STAGES_G      : integer range 0 to 16      := 0;  -- Used to add pipeline stages to the output ports to help with meeting timing
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
       FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 256);
@@ -60,9 +61,10 @@ architecture mapping of Vc64FifoMux is
    signal fifoRdEn,
       fifoValid,
       txValid,
-      ready,
-      progFull,
-      overflow : sl;
+      ready : sl;
+   
+   signal txCtrl : Vc64CtrlType;
+   signal txData : Vc64DataType;
    
 begin
 
@@ -88,11 +90,6 @@ begin
       end loop;
    end process STATUS_HDR;
 
-   -- Update the writing status flags
-   vcRxCtrl.ready      <= not(progFull);
-   vcRxCtrl.almostFull <= progFull;
-   vcRxCtrl.overflow   <= overflow;
-
    FifoMux_Inst : entity work.FifoMux
       generic map (
          TPD_G           => TPD_G,
@@ -116,22 +113,26 @@ begin
          wr_clk    => vcRxClk,
          wr_en     => vcRxData.valid,
          din       => din,
-         prog_full => progFull,
-         overflow  => overflow,
+         not_full  => vcRxCtrl.ready,
+         prog_full => vcRxCtrl.almostFull,
+         overflow  => vcRxCtrl.overflow,
          --Read Ports (rd_clk domain)
          rd_clk    => vcTxClk,
          rd_en     => fifoRdEn,
          dout      => dout,
          valid     => fifoValid);
 
-   -- Check if we are ready to read the FIFO  
-   ready <= '1' when(IGNORE_TX_READY_G = true) else vcTxCtrl.ready;
-         
-   -- Check if we are ready to read the FIFO
-   fifoRdEn <= fifoValid and ready and not vcTxCtrl.almostFull;
+   -- Generate the ready signal 
+   ready <= '1' when(IGNORE_TX_READY_G = true) else txCtrl.ready;
 
    -- Generate the TX valid signal
-   txValid <= fifoValid and not vcTxCtrl.almostFull;
+   txValid <= fifoValid and not txCtrl.almostFull;
+
+   -- Check if we are ready to read the FIFO
+   fifoRdEn <= txValid and ready;
+
+   -- Convert the output SLV into the output data bus
+   txData <= toVc64Data(txValid & dout);
 
    -- Pass the FIFO's valid signal
    vcTxData.valid <= txValid;
@@ -154,6 +155,32 @@ begin
       zeroLoop : for i in 3 downto TX_LANES_G generate
          vcTxData.data(i*16+15 downto i*16) <= (others => '0');
       end generate zeroLoop;
+   end generate;
+
+   ZERO_LATENCY : if (PIPE_STAGES_G = 0) generate
+
+      vcTxData <= txData;
+      txCtrl   <= vcTxCtrl;
+      
+   end generate;
+
+   PIPE_REG : if (PIPE_STAGES_G > 0) generate
+
+      Vc64Sync_Inst : entity work.Vc64Sync
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => PIPE_STAGES_G)
+         port map (
+            -- Streaming RX Data Interface
+            vcRxData => txData,
+            vcRxCtrl => txCtrl,
+            -- Streaming TX Data Interface
+            vcTxCtrl => vcTxCtrl,
+            vcTxData => vcTxData,
+            -- Clock and Reset
+            vcClk    => vcTxClk,
+            vcRst    => vcTxRst);      
+
    end generate;
 
 end mapping;
