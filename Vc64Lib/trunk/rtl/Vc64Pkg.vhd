@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-07
+-- Last update: 2014-04-08
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,6 +55,13 @@ package Vc64Pkg is
       '0',
       '1',
       '0');
+
+   -- VC64_CTRL_FORCE_C: 
+   --    This constant is used to force an enable write/read status flags
+   --    without overflow error. For example, you can use this constant 
+   --    to terminate a vcTxCtrl port to prevent back pressure of the 
+   --    downstream logic.  This constant SHOULD NOT be used to initialize 
+   --    registers.
    constant VC64_CTRL_FORCE_C : Vc64CtrlType := (
       '0',
       '0',
