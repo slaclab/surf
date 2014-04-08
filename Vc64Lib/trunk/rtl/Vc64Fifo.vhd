@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-07
+-- Last update: 2014-04-08
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -113,15 +113,15 @@ begin
             FULL_THRES_G    => FIFO_AFULL_THRES_G)
          port map (
             -- Resets
-            rst       => vcTxRst,
+            rst       => vcRxRst,
             --Write Ports (wr_clk domain)
-            wr_clk    => vcTxClk,
+            wr_clk    => vcRxClk,
             wr_en     => din(72),
             din       => din(71 downto 0),
             prog_full => progFull,
             overflow  => overflow,
             --Read Ports (rd_clk domain)
-            rd_clk    => vcRxClk,
+            rd_clk    => vcTxClk,
             rd_en     => rdEn,
             dout      => dout,
             valid     => valid);
@@ -152,7 +152,7 @@ begin
 
    PIPE_REG : if (PIPE_STAGES_C > 0) generate
       
-      comb : process (r, readOut, valid, vcRxRst, vcTxCtrl) is
+      comb : process (r, readOut, valid, vcTxCtrl, vcTxRst) is
          variable i : integer;
          variable j : integer;
          variable v : RegType;
@@ -230,7 +230,7 @@ begin
          end if;
 
          -- Reset
-         if (vcRxRst = '1') then
+         if (vcTxRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -243,9 +243,9 @@ begin
          
       end process comb;
 
-      seq : process (vcRxClk) is
+      seq : process (vcTxClk) is
       begin
-         if rising_edge(vcRxClk) then
+         if rising_edge(vcTxClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;
