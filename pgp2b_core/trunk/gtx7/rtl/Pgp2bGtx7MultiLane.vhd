@@ -61,7 +61,7 @@ entity Pgp2bGtx7MultiLane is
       RX_PLL_G         : string     := "CPLL";
 
       -- Configure Number of Lanes
-      LANE_CNT_G    : integer range 1 to 4 := 2;
+      LANE_CNT_G    : integer range 1 to 2 := 2;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
