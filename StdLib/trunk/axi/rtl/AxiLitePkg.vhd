@@ -59,7 +59,7 @@ package AxiLitePkg is
    end record;
 
    -- Initialization constants
-   constant AXI_READ_MASTER_INIT_C : AxiLiteReadMasterType := (
+   constant AXI_LITE_READ_MASTER_INIT_C : AxiLiteReadMasterType := (
       araddr  => (others => '0'),
       arprot  => (others => '0'),
       arvalid => '0',
@@ -85,7 +85,7 @@ package AxiLitePkg is
    end record;
 
    -- Initialization constants
-   constant AXI_READ_SLAVE_INIT_C : AxiLiteReadSlaveType := (
+   constant AXI_LITE_READ_SLAVE_INIT_C : AxiLiteReadSlaveType := (
       arready => '0',
       rdata   => (others => '0'),
       rresp   => (others => '0'),
@@ -115,7 +115,7 @@ package AxiLitePkg is
    end record;
 
    -- Initialization constants
-   constant AXI_WRITE_MASTER_INIT_C : AxiLiteWriteMasterType := (
+   constant AXI_LITE_WRITE_MASTER_INIT_C : AxiLiteWriteMasterType := (
       awaddr  => (others => '0'),
       awprot  => (others => '0'),
       awvalid => '0',
@@ -146,7 +146,7 @@ package AxiLitePkg is
    end record;
 
    -- Initialization constants
-   constant AXI_WRITE_SLAVE_INIT_C : AxiLiteWriteSlaveType := (
+   constant AXI_LITE_WRITE_SLAVE_INIT_C : AxiLiteWriteSlaveType := (
       awready => '0',
       wready  => '0',
       bresp   => (others => '0'),
@@ -161,7 +161,7 @@ package AxiLitePkg is
       readEnable  : sl;
    end record AxiLiteStatusType;
 
-   constant AXI_STATUS_INIT_C : AxiLiteStatusType := (
+   constant AXI_LITE_STATUS_INIT_C : AxiLiteStatusType := (
       writeEnable => '0',
       readEnable  => '0');
 
