@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2014-04-01
+-- Last update: 2014-04-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,14 +27,14 @@ use work.Version.all;
 
 entity AxiVersion is
    generic (
-      TPD_G            : time            := 1 ns;
+      TPD_G           : time    := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
-      CLK_PERIOD_G     : real            := 8.0E-9;  -- units of seconds
-      EN_DEVICE_DNA_G  : boolean         := false;
-      EN_DS2411_G      : boolean         := false);
+      CLK_PERIOD_G    : real    := 8.0E-9;  -- units of seconds
+      EN_DEVICE_DNA_G : boolean := false;
+      EN_DS2411_G     : boolean := false);
    port (
-      axiClk    : in sl;
-      axiClkRst : in sl;
+      axiClk : in sl;
+      axiRst : in sl;
 
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -82,8 +82,8 @@ architecture rtl of AxiVersion is
       scratchPad    => (others => '0'),
       masterReset   => '0',
       fpgaReload    => '0',
-      axiReadSlave  => AXI_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_WRITE_SLAVE_INIT_C);
+      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
 
    signal r   : RegType := REG_INIT_C;
@@ -102,7 +102,7 @@ begin
             TPD_G => TPD_G)
          port map (
             clk      => axiClk,
-            rst      => axiClkRst,
+            rst      => axiRst,
             dnaValue => dnaValue,
             dnaValid => dnaValid);
    end generate GEN_DEVICE_DNA;
@@ -114,13 +114,13 @@ begin
             CLK_PERIOD_G => CLK_PERIOD_G)
          port map (
             clk       => axiClk,
-            rst       => axiClkRst,
+            rst       => axiRst,
             fdSerSdio => fdSerSdio,
             fdSerial  => fdSerial,
             fdValid   => fdValid);
    end generate GEN_DS2411;
 
-   comb : process (axiClkRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
+   comb : process (axiRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
                    r, stringRom, userValues) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -193,7 +193,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Reset
       ----------------------------------------------------------------------------------------------
-      if (axiClkRst = '1') then
+      if (axiRst = '1') then
          v             := REG_INIT_C;
          v.masterReset := r.masterReset;
       end if;
@@ -224,7 +224,7 @@ begin
          INIT_G         => "00")
       port map (
          clk     => axiClk,
-         rst     => axiClkRst,
+         rst     => axiRst,
          dataIn  => r.masterReset,
          dataOut => masterReset);
 

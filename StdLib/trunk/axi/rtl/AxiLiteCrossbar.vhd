@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2014-03-05
+-- Last update: 2014-04-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -112,10 +112,10 @@ architecture rtl of AxiLiteCrossbar is
             rdAcks     => (others => '0'),
             rdAckNum   => (others => '0'),
             rdValid    => '0')),
-      sAxiWriteSlaves  => (others => AXI_WRITE_SLAVE_INIT_C),
-      sAxiReadSlaves   => (others => AXI_READ_SLAVE_INIT_C),
-      mAxiWriteMasters => (others => AXI_WRITE_MASTER_INIT_C),
-      mAxiReadMasters  => (others => AXI_READ_MASTER_INIT_C));
+      sAxiWriteSlaves  => (others => AXI_LITE_WRITE_SLAVE_INIT_C),
+      sAxiReadSlaves   => (others => AXI_LITE_READ_SLAVE_INIT_C),
+      mAxiWriteMasters => (others => AXI_LITE_WRITE_MASTER_INIT_C),
+      mAxiReadMasters  => (others => AXI_LITE_READ_MASTER_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -206,7 +206,7 @@ begin
 
                      -- bvalid or rvalid indicates txn concluding
                      if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
-                        v.sAxiWriteSlaves(s) := AXI_WRITE_SLAVE_INIT_C;
+                        v.sAxiWriteSlaves(s) := AXI_LITE_WRITE_SLAVE_INIT_C;
                         v.slave(s).wrReqs    := (others => '0');
                         v.slave(s).wrState   := S_WAIT_AXI_TXN_S;
                      end if;
@@ -269,7 +269,7 @@ begin
 
                      -- rvalid indicates txn concluding
                      if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
-                        v.sAxiReadSlaves(s)  := AXI_READ_SLAVE_INIT_C;
+                        v.sAxiReadSlaves(s)  := AXI_LITE_READ_SLAVE_INIT_C;
                         v.slave(s).rdReqs    := (others => '0');
                         v.slave(s).rdState   := S_WAIT_AXI_TXN_S;  --S_WAIT_DONE_S;
                      end if;
@@ -296,7 +296,7 @@ begin
 
                -- Keep these in reset state while waiting for requests
                v.master(m).wrAcks    := (others => '0');
-               v.mAxiWriteMasters(m) := AXI_WRITE_MASTER_INIT_C;
+               v.mAxiWriteMasters(m) := AXI_LITE_WRITE_MASTER_INIT_C;
 
                -- Wait for a request, arbitrate between simultaneous requests
                if (r.master(m).wrValid = '0') then
@@ -346,7 +346,7 @@ begin
 
                -- Keep these in reset state while waiting for requests
                v.master(m).rdAcks    := (others => '0');
-               v.mAxiReadMasters(m)  := AXI_READ_MASTER_INIT_C;
+               v.mAxiReadMasters(m)  := AXI_LITE_READ_MASTER_INIT_C;
 
                -- Wait for a request, arbitrate between simultaneous requests
                if (r.master(m).rdValid = '0') then

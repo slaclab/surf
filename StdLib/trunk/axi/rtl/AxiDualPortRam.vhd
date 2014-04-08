@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2014-03-31
+-- Last update: 2014-04-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,8 +63,8 @@ architecture rtl of AxiDualPortRam is
    end record;
 
    constant REG_INIT_C : RegType := (
-      axiWriteSlave => AXI_WRITE_SLAVE_INIT_C,
-      axiReadSlave  => AXI_READ_SLAVE_INIT_C,
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiAddr       => (others => '0'),
       axiWrData     => (others => '0'),
       axiWrEn       => '0',
