@@ -205,6 +205,7 @@ begin
 
    -- Upper Bits
    pgpRxVcData.data(63 downto RX_LANE_CNT_G*16) <= (others=>'0');
+   pgpRxVcData.size                             <= '0';
 
    -- RX CRC BLock
    crcRxRst                    <= pgpRxClkRst or crcRxInit or not phyRxReady;
