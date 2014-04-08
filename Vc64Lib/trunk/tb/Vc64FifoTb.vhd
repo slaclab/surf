@@ -43,12 +43,12 @@ architecture testbed of Vc64FifoTb is
    signal wrDone,
       rdDone,
       rdError,
-      vcWrClk,
-      vcWrRst,
+      vcTxClk,
+      vcTxRst,
       clk,
       rst,
-      vcRdClk,
-      vcRdRst : sl;
+      vcRxClk,
+      vcRxRst : sl;
    signal vcWrIn  : Vc64DataType := VC64_DATA_INIT_C;
    signal vcWrOut : Vc64CtrlType;
    signal vcRdIn  : Vc64CtrlType;
@@ -65,9 +65,9 @@ begin
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 500 ns)   -- Hold reset for this long)
       port map (
-         clkP => vcWrClk,
+         clkP => vcRxClk,
          clkN => open,
-         rst  => vcWrRst,
+         rst  => vcRxRst,
          rstL => open); 
 
    ClkRst_Read : entity work.ClkRst
@@ -81,8 +81,8 @@ begin
          rst  => rst,
          rstL => open); 
 
-   vcRdClk <= vcWrClk when(GEN_SYNC_FIFO_C = true) else clk;
-   vcRdRst <= vcWrRst when(GEN_SYNC_FIFO_C = true) else rst;
+   vcTxClk <= vcRxClk when(GEN_SYNC_FIFO_C = true) else clk;
+   vcTxRst <= vcRxRst when(GEN_SYNC_FIFO_C = true) else rst;
 
    -- SynchronizerOneShot (VHDL module to be tested)
    Vc64Fifo_Inst : entity work.Vc64Fifo
@@ -92,24 +92,23 @@ begin
          BYPASS_FIFO_G   => BYPASS_FIFO_C,
          PIPE_STAGES_G   => PIPE_STAGES_C)
       port map (
-         -- Streaming Write Data Interface (vcWrClk domain)
-         vcWrIn  => vcWrIn,
-         vcWrOut => vcWrOut,
-         -- Streaming Read Data Interface (vcRdClk domain)
-         vcRdIn  => vcRdIn,
-         vcRdOut => vcRdOut,
-         -- Clocks and resets
-         vcWrClk => vcWrClk,
-         vcWrRst => vcWrRst,
-         vcRdClk => vcRdClk,
-         vcRdRst => vcRdRst);       
+         -- Streaming RX Data Interface (vcRxClk domain) 
+         vcRxData => vcWrIn,
+         vcRxCtrl => vcWrOut,
+         vcRxClk  => vcRxClk,
+         vcRxRst  => vcRxRst,
+         -- Streaming TX Data Interface (vcTxClk domain) 
+         vcTxCtrl => vcRdIn,
+         vcTxData => vcRdOut,
+         vcTxClk  => vcTxClk,
+         vcTxRst  => vcTxRst);      
 
    -- Transmit the data pattern into the FIFO
-   process(vcWrClk)
+   process(vcRxClk)
    begin
-      if rising_edge(vcWrClk) then
+      if rising_edge(vcRxClk) then
          vcWrIn.valid <= '0' after TPD_C;
-         if vcWrRst = '1' then
+         if vcRxRst = '1' then
             wrDone      <= '0'             after TPD_C;
             vcWrIn.data <= (others => '1') after TPD_C;
          elsif (vcWrIn.data /= LAST_DATA_C) and (vcWrOut.almostFull = '0') then
@@ -124,11 +123,11 @@ begin
    end process;
 
    -- Receive the data pattern into the FIFO and check if it is valid
-   process(vcRdClk)
+   process(vcTxClk)
    begin
-      if rising_edge(vcRdClk) then
+      if rising_edge(vcTxClk) then
          vcRdIn.ready <= '0' after TPD_C;
-         if vcRdRst = '1' then
+         if vcTxRst = '1' then
             rdDone  <= '0'              after TPD_C;
             rdError <= '0'              after TPD_C;
             rdCnt   <= (others => '0')  after TPD_C;

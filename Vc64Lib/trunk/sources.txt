@@ -1,2 +1,5 @@
 vhdl work rtl/Vc64Pkg.vhd
 vhdl work rtl/Vc64Fifo.vhd
+vhdl work rtl/Vc64FifoMux.vhd
+vhdl work rtl/Vc64PrbsTx.vhd
+vhdl work rtl/Vc64PrbsRx.vhd
