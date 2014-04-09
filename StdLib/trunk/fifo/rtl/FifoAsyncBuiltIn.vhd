@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-04-08
+-- Last update: 2014-04-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -19,14 +19,16 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-library unimacro;
-use unimacro.vcomponents.all;
+library UNISIM;
+use UNISIM.vcomponents.all;
+
+library UNIMACRO;
+use UNIMACRO.vcomponents.all;
 
 entity FifoAsyncBuiltIn is
    generic (
@@ -43,7 +45,7 @@ entity FifoAsyncBuiltIn is
    port (
       -- Asynchronous Reset
       rst           : in  sl;
-      --Write Ports (wr_clk domain)
+      -- Write Ports (wr_clk domain)
       wr_clk        : in  sl;
       wr_en         : in  sl;
       din           : in  slv(DATA_WIDTH_G-1 downto 0);
@@ -54,7 +56,7 @@ entity FifoAsyncBuiltIn is
       almost_full   : out sl;
       full          : out sl;
       not_full      : out sl;
-      --Read Ports (rd_clk domain)
+      -- Read Ports (rd_clk domain)
       rd_clk        : in  sl;
       rd_en         : in  sl;
       dout          : out slv(DATA_WIDTH_G-1 downto 0);
@@ -65,7 +67,7 @@ entity FifoAsyncBuiltIn is
       almost_empty  : out sl;
       empty         : out sl);
 begin
-   -- check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
+   -- Check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
    assert (((DATA_WIDTH_G >= 37) and (DATA_WIDTH_G    <= 72) and (ADDR_WIDTH_G = 9))
            or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 10))
            or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 9))
@@ -127,7 +129,7 @@ architecture mapping of FifoAsyncBuiltIn is
       elsif ((d_width >= 1) and (d_width <= 4) and (a_width = 12)) then
          return "18Kb";
       else
-         return "???Kb";                --generate error in Xilinx marco
+         return "???Kb";                -- Generate error in Xilinx marco
       end if;
    end;
 
@@ -150,6 +152,9 @@ architecture mapping of FifoAsyncBuiltIn is
       rstEmpty,
       rstFull,
       wrEn,
+      dummyWRERR,
+      dummyALMOSTFULL,
+      dummyALMOSTEMPTY,
       rstDet : sl := '0';
 
    -- Attribute for XST
@@ -222,15 +227,15 @@ begin
          WREN        => wrEn,           -- 1-bit input write enable
          DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
          WRCOUNT     => wrAddrPntr,     -- Output write address pointer
-         WRERR       => open,           -- 1-bit output write error
-         ALMOSTFULL  => open,           -- 1-bit output almost full
+         WRERR       => dummyWRERR,     -- 1-bit output write error
+         ALMOSTFULL  => dummyALMOSTFULL,           -- 1-bit output almost full
          FULL        => buildInFull,    -- 1-bit output full
          RDCLK       => rd_clk,         -- 1-bit input read clock
          RDEN        => rd_en,          -- 1-bit input read enable
          DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read address pointer
          RDERR       => underflow,      -- 1-bit output read error
-         ALMOSTEMPTY => open,           -- 1-bit output almost empty
+         ALMOSTEMPTY => dummyALMOSTEMPTY,          -- 1-bit output almost empty
          EMPTY       => buildInEmpty);  -- 1-bit output empty
 
 
@@ -249,7 +254,7 @@ begin
          dataIn  => grayEncode(rdAddrPntr),
          dataOut => rdGrayPntr); 
 
-   -- calculate wr_data_count
+   -- Calculate wr_data_count
    wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
 
    -- Full signals
