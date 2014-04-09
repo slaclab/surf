@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-01-07
+-- Last update: 2014-04-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -211,23 +211,23 @@ begin
    FIFO_DUALCLOCK_MACRO_inst : FIFO_DUALCLOCK_MACRO
       generic map (
          DEVICE                  => XIL_DEVICE_G,  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"
-         ALMOST_FULL_OFFSET      => x"000F",  -- Sets almost full threshold
-         ALMOST_EMPTY_OFFSET     => x"000F",  -- Sets the almost empty threshold
+         ALMOST_FULL_OFFSET      => x"000F",       -- Sets almost full threshold
+         ALMOST_EMPTY_OFFSET     => x"000F",       -- Sets the almost empty threshold
          DATA_WIDTH              => DATA_WIDTH_G,  -- Valid values are 1-72 (37-72 only valid when FIFO_SIZE="36Kb")
-         FIFO_SIZE               => FIFO_SIZE_C,  -- Target BRAM, "18Kb" or "36Kb"
-         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)  -- Sets the FIFO FWFT to TRUE or FALSE
+         FIFO_SIZE               => FIFO_SIZE_C,   -- Target BRAM, "18Kb" or "36Kb"
+         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)     -- Sets the FIFO FWFT to TRUE or FALSE
       port map (
          RST         => fifoWrRst,      -- 1-bit input reset
          WRCLK       => wr_clk,         -- 1-bit input write clock
          WREN        => wrEn,           -- 1-bit input write enable
-         DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
+         DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
          WRCOUNT     => wrAddrPntr,     -- Output write address pointer
          WRERR       => open,           -- 1-bit output write error
          ALMOSTFULL  => open,           -- 1-bit output almost full
          FULL        => buildInFull,    -- 1-bit output full
          RDCLK       => rd_clk,         -- 1-bit input read clock
          RDEN        => rd_en,          -- 1-bit input read enable
-         DO          => dout,  -- Output data, width defined by DATA_WIDTH parameter
+         DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read address pointer
          RDERR       => underflow,      -- 1-bit output read error
          ALMOSTEMPTY => open,           -- 1-bit output almost empty
@@ -253,7 +253,7 @@ begin
    wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
 
    -- Full signals
-   wrEn          <= wr_en and not(rstFull);
+   wrEn          <= wr_en and not(rstFull) and not(buildInFull);
    prog_full     <= '1'  when (wcnt > FULL_THRES_G)      else rstFull;
    almost_full   <= '1'  when (wcnt = (FIFO_LENGTH_C-2)) else (buildInFull or rstFull);
    full          <= buildInFull or rstFull;
@@ -263,10 +263,9 @@ begin
    process(wr_clk)
    begin
       if rising_edge(wr_clk) then
-         if (wr_en = '1') and (rstFull = '0') then
+         wr_ack <= '0' after TPD_G;
+         if wr_en = '1' then
             wr_ack <= not(buildInFull) after TPD_G;
-         else
-            wr_ack <= '0' after TPD_G;
          end if;
       end if;
    end process;
@@ -274,10 +273,9 @@ begin
    process(wr_clk)
    begin
       if rising_edge(wr_clk) then
-         if rstFull = '1' then
-            overflow <= '0' after TPD_G;
-         elsif (wr_en = '1') and (buildInFull = '1') then
-            overflow <= '1' after TPD_G;  --latch error strobe
+         overflow <= '0' after TPD_G;
+         if (wr_en = '1') and (buildInFull = '1') then
+            overflow <= '1' after TPD_G;  -- Error strobe
          end if;
       end if;
    end process;
@@ -297,7 +295,7 @@ begin
          dataIn  => grayEncode(wrAddrPntr),
          dataOut => wrGrayPntr); 
 
-   -- calculate rd_data_count
+   -- Calculate rd_data_count
    rcnt <= grayDecode(wrGrayPntr) - rdAddrPntr;
 
    -- Empty signals
@@ -310,10 +308,9 @@ begin
       process(rd_clk)
       begin
          if rising_edge(rd_clk) then
-            if (rd_en = '1') then
+            valid <= '0' after TPD_G;
+            if rd_en = '1' then
                valid <= not(buildInEmpty) after TPD_G;
-            else
-               valid <= '0' after TPD_G;
             end if;
          end if;
       end process;
