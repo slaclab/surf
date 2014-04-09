@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-04-07
+-- Last update: 2014-04-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ use work.Vc64Pkg.all;
 entity Vc64PrbsRx is
    generic (
       TPD_G              : time                       := 1 ns;
+      SiZE_16BITS_G      : integer range 0 to 3       := 3;
       LANE_NUMBER_G      : integer range 0 to 255     := 0;
       VC_NUMBER_G        : integer range 0 to 3       := 0;
       RST_ASYNC_G        : boolean                    := false;
@@ -50,12 +51,13 @@ entity Vc64PrbsRx is
       vcTxCtrl        : in  Vc64CtrlType := VC64_CTRL_FORCE_C;
       vcTxData        : out Vc64DataType;
       vcTxClk         : in  sl;
-      vcTxRst         : in  sl           := '0';
+      vcTxRst         : in  sl;
       -- Error Detection Signals (vcRxClk domain)
       updatedResults  : out sl;
       busy            : out sl;
       errMissedPacket : out sl;
       errLength       : out sl;
+      errDataBus      : out sl;
       errEofe         : out sl;
       errWordCnt      : out slv(31 downto 0);
       errbitCnt       : out slv(31 downto 0);
@@ -83,6 +85,7 @@ architecture rtl of Vc64PrbsRx is
       errLength       : sl;
       updatedResults  : sl;
       errMissedPacket : sl;
+      errDataBus      : sl;
       errorBits       : slv(15 downto 0);
       bitPntr         : slv(3 downto 0);
       errWordCnt      : slv(31 downto 0);
@@ -105,6 +108,7 @@ architecture rtl of Vc64PrbsRx is
       '0',
       '0',
       '0',
+      '0',
       (others => '0'),
       (others => '0'),
       (others => '0'),
@@ -121,15 +125,15 @@ architecture rtl of Vc64PrbsRx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txData : Vc64DataType;
-   signal txCtrl : Vc64CtrlType;
+   signal rxData : Vc64DataType := VC64_DATA_INIT_C;
+   signal rxCtrl : Vc64CtrlType := VC64_CTRL_INIT_C;
 
-   signal rxData : Vc64DataType;
-   signal rxCtrl : Vc64CtrlType;
+   signal txData : Vc64DataType := VC64_DATA_INIT_C;
+   signal txCtrl : Vc64CtrlType := VC64_CTRL_INIT_C;
    
 begin
 
-   Vc64Fifo_Inst : entity work.Vc64Fifo
+   Vc64Fifo_Rx : entity work.Vc64Fifo
       generic map (
          TPD_G              => TPD_G,
          RST_ASYNC_G        => RST_ASYNC_G,
@@ -139,7 +143,6 @@ begin
          BRAM_EN_G          => BRAM_EN_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G    => true,
-         BYPASS_FIFO_G      => BYPASS_FIFO_G,
          PIPE_STAGES_G      => PIPE_STAGES_G,
          FIFO_SYNC_STAGES_G => FIFO_SYNC_STAGES_G,
          FIFO_ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G,
@@ -154,9 +157,10 @@ begin
          vcTxCtrl => txCtrl,
          vcTxData => txData,
          vcTxClk  => vcRxClk,
-         vcTxRst  => vcRxRst); 
+         vcTxRst  => vcRxRst);    
 
    comb : process (r, rxCtrl, txData, vcRxRst) is
+      variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value
@@ -179,9 +183,10 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the busy flag
-            v.busy         := '0';
+            v.busy              := '0';
             -- Ready to receive data
-            v.txCtrl.ready := '1';
+            v.txCtrl.ready      := '1';
+            v.txCtrl.almostFull := '0';
             -- Check for a FIFO read
             if (txData.valid = '1') and (r.txCtrl.ready = '1') then
                -- Check for a start of frame
@@ -194,6 +199,7 @@ begin
                   v.errbitCnt       := (others => '0');
                   v.errMissedPacket := '0';
                   v.errLength       := '0';
+                  v.errDataBus      := '0';
                   v.eof             := '0';
                   v.eofe            := '0';
                   -- Check if we have missed a packet 
@@ -205,12 +211,18 @@ begin
                   v.eventCnt   := txData.data(15 downto 0) + 1;
                   -- Latch the SEED for the randomization
                   v.randomData := (x"0000" & txData.data(15 downto 0));
+                  -- Check for a data bus error
+                  for i in 0 to SiZE_16BITS_G loop
+                     if txData.data(15 downto 0) /= txData.data(i*16+15 downto i*16) then
+                        v.errDataBus := '1';
+                     end if;
+                  end loop;
                   -- Set the busy flag
-                  v.busy       := '1';
+                  v.busy    := '1';
                   -- Increment the counter
-                  v.dataCnt    := r.dataCnt + 1;
+                  v.dataCnt := r.dataCnt + 1;
                   -- Next State
-                  v.state      := UPPER_S;
+                  v.state   := UPPER_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -219,10 +231,16 @@ begin
             if (txData.valid = '1') and (r.txCtrl.ready = '1') then
                -- Latch the upper packetLength value
                v.packetLength(31 downto 16) := txData.data(15 downto 0);
+               -- Check for a data bus error
+               for i in 0 to SiZE_16BITS_G loop
+                  if txData.data(15 downto 0) /= txData.data(i*16+15 downto i*16) then
+                     v.errDataBus := '1';
+                  end if;
+               end loop;
                -- Increment the counter
-               v.dataCnt                    := r.dataCnt + 1;
+               v.dataCnt := r.dataCnt + 1;
                -- Next State
-               v.state                      := LOWER_S;
+               v.state   := LOWER_S;
             end if;
          ----------------------------------------------------------------------
          when LOWER_S =>
@@ -232,15 +250,27 @@ begin
                v.randomData                := lfsrShift(r.randomData, TAP_C);
                -- Latch the lower packetLength value
                v.packetLength(15 downto 0) := txData.data(15 downto 0);
+               -- Check for a data bus error
+               for i in 0 to SiZE_16BITS_G loop
+                  if txData.data(15 downto 0) /= txData.data(i*16+15 downto i*16) then
+                     v.errDataBus := '1';
+                  end if;
+               end loop;
                -- Increment the counter
-               v.dataCnt                   := r.dataCnt + 1;
+               v.dataCnt := r.dataCnt + 1;
                -- Next State
-               v.state                     := DATA_S;
+               v.state   := DATA_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check for a FIFO read
             if (txData.valid = '1') and (r.txCtrl.ready = '1') then
+               -- Check for a data bus error
+               for i in 0 to SiZE_16BITS_G loop
+                  if txData.data(15 downto 0) /= txData.data(i*16+15 downto i*16) then
+                     v.errDataBus := '1';
+                  end if;
+               end loop;
                -- Calculate the next data word
                v.randomData := lfsrShift(r.randomData, TAP_C);
                -- Increment the data counter
@@ -253,9 +283,10 @@ begin
                      v.errWordCnt := r.errWordCnt + 1;
                   end if;
                   -- Latch the bits with error
-                  v.errorBits    := (r.randomData(15 downto 0) xor txData.data(15 downto 0));
+                  v.errorBits         := (r.randomData(15 downto 0) xor txData.data(15 downto 0));
                   -- Stop reading the FIFO
-                  v.txCtrl.ready := '0';
+                  v.txCtrl.ready      := '0';
+                  v.txCtrl.almostFull := '1';
                   -- Check the eof flag
                   if (r.dataCnt = r.packetLength) or (txData.eof = '1') then
                      -- Reset the counter
@@ -287,9 +318,10 @@ begin
                      v.errLength := '1';
                   end if;
                   -- Stop reading the FIFO
-                  v.txCtrl.ready := '0';
+                  v.txCtrl.ready      := '0';
+                  v.txCtrl.almostFull := '1';
                   -- Next State
-                  v.state        := SEND_RESULT_S;
+                  v.state             := SEND_RESULT_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -314,9 +346,10 @@ begin
                   v.state := SEND_RESULT_S;
                else
                   -- Ready for more data
-                  v.txCtrl.ready := '1';
+                  v.txCtrl.ready      := '1';
+                  v.txCtrl.almostFull := '0';
                   -- Next State
-                  v.state        := DATA_S;
+                  v.state             := DATA_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -350,12 +383,14 @@ begin
                      v.dataCnt                  := (others => '0');
                      -- Send the last word
                      v.rxData.eof               := '1';
-                     v.rxData.data(31 downto 3) := (others => '0');
+                     v.rxData.data(31 downto 4) := (others => '0');
+                     v.rxData.data(3)           := r.errDataBus;
                      v.rxData.data(2)           := r.eofe;
                      v.rxData.data(1)           := r.errLength;
                      v.rxData.data(0)           := r.errMissedPacket;
                      -- Ready to receive data
                      v.txCtrl.ready             := '1';
+                     v.txCtrl.almostFull        := '0';
                      -- Reset the busy flag
                      v.busy                     := '0';
                      -- Next State
@@ -379,6 +414,7 @@ begin
       updatedResults  <= r.updatedResults;
       errMissedPacket <= r.errMissedPacket;
       errLength       <= r.errLength;
+      errDataBus      <= r.errDataBus;
       errEofe         <= r.eofe;
       errWordCnt      <= r.errWordCnt;
       errbitCnt       <= r.errbitCnt;
@@ -395,7 +431,7 @@ begin
       end if;
    end process seq;
 
-   Vc64FifoMux_Inst : entity work.Vc64FifoMux
+   Vc64Fifo_TX : entity work.Vc64FifoMux
       generic map (
          TPD_G              => TPD_G,
          RST_ASYNC_G        => RST_ASYNC_G,
@@ -404,7 +440,7 @@ begin
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,
          BRAM_EN_G          => BRAM_EN_G,
-         GEN_SYNC_FIFO_G    => true,
+         GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          PIPE_STAGES_G      => PIPE_STAGES_G,
          FIFO_SYNC_STAGES_G => FIFO_SYNC_STAGES_G,
          FIFO_ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G,
@@ -419,5 +455,6 @@ begin
          vcTxCtrl => vcTxCtrl,
          vcTxData => vcTxData,
          vcTxClk  => vcTxClk,
-         vcTxRst  => vcTxRst);    
+         vcTxRst  => vcTxRst);         
+
 end rtl;

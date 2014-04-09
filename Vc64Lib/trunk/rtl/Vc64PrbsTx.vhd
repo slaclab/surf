@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-04-07
+-- Last update: 2014-04-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ entity Vc64PrbsTx is
       BRAM_EN_G          : boolean                    := true;
       USE_BUILT_IN_G     : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G    : boolean                    := false;
-      BYPASS_FIFO_G      : boolean                    := false;  -- If GEN_SYNC_FIFO_G = true, BYPASS_FIFO_G = true will reduce FPGA resources
       PIPE_STAGES_G      : integer range 0 to 16      := 0;  -- Used to add pipeline stages to the output ports to help with meeting timing
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
@@ -43,7 +42,7 @@ entity Vc64PrbsTx is
       vcTxCtrl     : in  Vc64CtrlType;
       vcTxData     : out Vc64DataType;
       vcTxClk      : in  sl;
-      vcTxRst      : in  sl := '0';
+      vcTxRst      : in  sl;
       -- Trigger Signal (locClk domain)
       trig         : in  sl;
       packetLength : in  slv(31 downto 0);
@@ -91,6 +90,7 @@ architecture rtl of Vc64PrbsTx is
 begin
 
    comb : process (locRst, packetLength, r, trig, vcRxCtrl) is
+      variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value
@@ -135,53 +135,61 @@ begin
             -- Check the FIFO status
             if vcRxCtrl.almostFull = '0' then
                -- Send the random seed word
-               v.vcRxData.valid             := '1';
-               v.vcRxData.sof               := '1';
-               v.vcRxData.data(15 downto 0) := r.eventCnt;
+               v.vcRxData.valid := '1';
+               v.vcRxData.sof   := '1';
+               for i in 0 to 3 loop
+                  v.vcRxData.data(i*16+15 downto i*16) := r.eventCnt;
+               end loop;
                -- Generate the next random data word
-               v.randomData                 := lfsrShift(r.randomData, TAP_C);
+               v.randomData := lfsrShift(r.randomData, TAP_C);
                -- Increment the counter
-               v.eventCnt                   := r.eventCnt + 1;
+               v.eventCnt   := r.eventCnt + 1;
                -- Increment the counter
-               v.dataCnt                    := r.dataCnt + 1;
+               v.dataCnt    := r.dataCnt + 1;
                -- Next State
-               v.state                      := UPPER_S;
+               v.state      := UPPER_S;
             end if;
          ----------------------------------------------------------------------
          when UPPER_S =>
             -- Check the FIFO status
             if vcRxCtrl.almostFull = '0' then
                -- Send the upper packetLength value
-               v.vcRxData.valid             := '1';
-               v.vcRxData.data(15 downto 0) := r.packetLength(31 downto 16);
+               v.vcRxData.valid := '1';
+               for i in 0 to 3 loop
+                  v.vcRxData.data(i*16+15 downto i*16) := r.packetLength(31 downto 16);
+               end loop;
                -- Increment the counter
-               v.dataCnt                    := r.dataCnt + 1;
+               v.dataCnt := r.dataCnt + 1;
                -- Next State
-               v.state                      := LOWER_S;
+               v.state   := LOWER_S;
             end if;
          ----------------------------------------------------------------------
          when LOWER_S =>
             -- Check the FIFO status
             if vcRxCtrl.almostFull = '0' then
                -- Send the lower packetLength value
-               v.vcRxData.valid             := '1';
-               v.vcRxData.data(15 downto 0) := r.packetLength(15 downto 0);
+               v.vcRxData.valid := '1';
+               for i in 0 to 3 loop
+                  v.vcRxData.data(i*16+15 downto i*16) := r.packetLength(15 downto 0);
+               end loop;
                -- Increment the counter
-               v.dataCnt                    := r.dataCnt + 1;
+               v.dataCnt := r.dataCnt + 1;
                -- Next State
-               v.state                      := DATA_S;
+               v.state   := DATA_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check the FIFO status
             if vcRxCtrl.almostFull = '0' then
                -- Send the random data word
-               v.vcRxData.valid             := '1';
-               v.vcRxData.data(15 downto 0) := r.randomData(15 downto 0);
+               v.vcRxData.valid := '1';
+               for i in 0 to 3 loop
+                  v.vcRxData.data(i*16+15 downto i*16) := r.randomData(15 downto 0);
+               end loop;
                -- Generate the next random data word
-               v.randomData                 := lfsrShift(r.randomData, TAP_C);
+               v.randomData := lfsrShift(r.randomData, TAP_C);
                -- Increment the counter
-               v.dataCnt                    := r.dataCnt + 1;
+               v.dataCnt    := r.dataCnt + 1;
                -- Check the counter
                if r.dataCnt = r.packetLength then
                   -- Reset the counter
@@ -228,7 +236,6 @@ begin
          BRAM_EN_G          => BRAM_EN_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BYPASS_FIFO_G      => BYPASS_FIFO_G,
          PIPE_STAGES_G      => PIPE_STAGES_G,
          FIFO_SYNC_STAGES_G => FIFO_SYNC_STAGES_G,
          FIFO_ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G,

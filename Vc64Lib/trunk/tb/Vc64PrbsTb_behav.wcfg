@@ -12,7 +12,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="12" />
+   <WVObjectSize size="13" />
    <wvobject fp_name="divider1689" type="divider">
       <obj_property name="label">Errors</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -28,6 +28,10 @@
    <wvobject fp_name="/Vc64PrbsTb/errLength" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">errLength</obj_property>
       <obj_property name="ObjectShortName">errLength</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Vc64PrbsTb/errDataBus" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">errDataBus</obj_property>
+      <obj_property name="ObjectShortName">errDataBus</obj_property>
    </wvobject>
    <wvobject fp_name="/Vc64PrbsTb/errEofe" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">errEofe</obj_property>
@@ -97,128 +101,5 @@
       <obj_property name="ElementShortName">r</obj_property>
       <obj_property name="ObjectShortName">r</obj_property>
       <obj_property name="Radix">HEXRADIX</obj_property>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.busy" type="logic" db_ref_id="1">
-         <obj_property name="ElementShortName">.busy</obj_property>
-         <obj_property name="ObjectShortName">r.busy</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.packetLength" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.packetLength</obj_property>
-         <obj_property name="ObjectShortName">r.packetLength</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.eof" type="logic" db_ref_id="1">
-         <obj_property name="ElementShortName">.eof</obj_property>
-         <obj_property name="ObjectShortName">r.eof</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.eofe" type="logic" db_ref_id="1">
-         <obj_property name="ElementShortName">.eofe</obj_property>
-         <obj_property name="ObjectShortName">r.eofe</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.errLength" type="logic" db_ref_id="1">
-         <obj_property name="ElementShortName">.errLength</obj_property>
-         <obj_property name="ObjectShortName">r.errLength</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.updatedResults" type="logic" db_ref_id="1">
-         <obj_property name="ElementShortName">.updatedResults</obj_property>
-         <obj_property name="ObjectShortName">r.updatedResults</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.errMissedPacket" type="logic" db_ref_id="1">
-         <obj_property name="ElementShortName">.errMissedPacket</obj_property>
-         <obj_property name="ObjectShortName">r.errMissedPacket</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.errorBits" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.errorBits</obj_property>
-         <obj_property name="ObjectShortName">r.errorBits</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.bitPntr" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.bitPntr</obj_property>
-         <obj_property name="ObjectShortName">r.bitPntr</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.errWordCnt" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.errWordCnt</obj_property>
-         <obj_property name="ObjectShortName">r.errWordCnt</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.errbitCnt" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.errbitCnt</obj_property>
-         <obj_property name="ObjectShortName">r.errbitCnt</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.eventCnt" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.eventCnt</obj_property>
-         <obj_property name="ObjectShortName">r.eventCnt</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.randomData" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.randomData</obj_property>
-         <obj_property name="ObjectShortName">r.randomData</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.dataCnt" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.dataCnt</obj_property>
-         <obj_property name="ObjectShortName">r.dataCnt</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.stopTime" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.stopTime</obj_property>
-         <obj_property name="ObjectShortName">r.stopTime</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.startTime" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.startTime</obj_property>
-         <obj_property name="ObjectShortName">r.startTime</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.packetRate" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.packetRate</obj_property>
-         <obj_property name="ObjectShortName">r.packetRate</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.txCtrl" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.txCtrl</obj_property>
-         <obj_property name="ObjectShortName">r.txCtrl</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData" type="array" db_ref_id="1">
-         <obj_property name="ElementShortName">.rxData</obj_property>
-         <obj_property name="ObjectShortName">r.rxData</obj_property>
-         <obj_property name="Radix">HEXRADIX</obj_property>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.valid" type="logic" db_ref_id="1">
-            <obj_property name="ElementShortName">.valid</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.valid</obj_property>
-         </wvobject>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.size" type="logic" db_ref_id="1">
-            <obj_property name="ElementShortName">.size</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.size</obj_property>
-         </wvobject>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.vc" type="array" db_ref_id="1">
-            <obj_property name="ElementShortName">.vc</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.vc</obj_property>
-            <obj_property name="Radix">HEXRADIX</obj_property>
-         </wvobject>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.sof" type="logic" db_ref_id="1">
-            <obj_property name="ElementShortName">.sof</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.sof</obj_property>
-         </wvobject>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.eof" type="logic" db_ref_id="1">
-            <obj_property name="ElementShortName">.eof</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.eof</obj_property>
-         </wvobject>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.eofe" type="logic" db_ref_id="1">
-            <obj_property name="ElementShortName">.eofe</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.eofe</obj_property>
-         </wvobject>
-         <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.rxData.data" type="array" db_ref_id="1">
-            <obj_property name="ElementShortName">.data</obj_property>
-            <obj_property name="ObjectShortName">r.rxData.data</obj_property>
-            <obj_property name="Radix">HEXRADIX</obj_property>
-         </wvobject>
-      </wvobject>
-      <wvobject fp_name="/Vc64PrbsTb/Vc64PrbsRx_Inst/r.state" type="other" db_ref_id="1">
-         <obj_property name="ElementShortName">.state</obj_property>
-         <obj_property name="ObjectShortName">r.state</obj_property>
-      </wvobject>
    </wvobject>
 </wave_config>
