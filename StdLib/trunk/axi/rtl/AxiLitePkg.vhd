@@ -14,6 +14,7 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+
 use work.StdRtlPkg.all;
 
 package AxiLitePkg is
@@ -207,6 +208,16 @@ package AxiLitePkg is
       variable axiReadSlave : inout AxiLiteReadSlaveType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
 
+   -------------------------------------------------------------------------------------------------
+   -- Slave AXI Processing functions
+   -------------------------------------------------------------------------------------------------
+
+   -- Generate evently distributed address map
+   function genAxiLiteConfig ( num      : positive;
+                               base     : slv(31 downto 0);
+                               baseBits : integer range 0 to 32 ) 
+                               return AxiLiteCrossbarMasterConfigArray;
+
 end AxiLitePkg;
 
 package body AxiLitePkg is
@@ -287,6 +298,37 @@ package body AxiLitePkg is
       axiReadSlave.rvalid  := '1';
       axiReadSlave.rresp   := axiResp;
    end procedure;
+
+   -------------------------------------------------------------------------------------------------
+   -- Slave AXI Processing functions
+   -------------------------------------------------------------------------------------------------
+
+   -- Generate evently distributed address map
+   function genAxiLiteConfig ( num      : positive;
+                               base     : slv(31 downto 0);
+                               baseBits : integer range 0 to 32 ) -- Number of base bits from the left
+                               return AxiLiteCrossbarMasterConfigArray is
+      variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
+      variable addr    : slv(31 downto 0);
+      constant idxBits : integer  := bitSize(num-1);
+      constant baseBot : integer  := 31 - (baseBits-1);
+      constant idxBot  : integer  := 31 - ((baseBits+idxBits)-1);
+   begin
+
+      -- Init
+      addr := base;
+      addr(baseBot-1 downto 0) := (others=>'0');
+
+      -- Generate records
+      for i in 0 to num-1 loop
+         addr(baseBot-1 downto idxBot) := toSlv(i,idxBits);
+         retConf(i).baseAddr     := addr;
+         retConf(i).addrBits     := 32-(baseBits+idxBits);
+         retConf(i).connectivity := x"FFFF";
+      end loop;
+
+      return retConf;
+   end function;
 
 end package body AxiLitePkg;
 
