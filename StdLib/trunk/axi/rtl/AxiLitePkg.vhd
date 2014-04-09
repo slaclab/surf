@@ -212,10 +212,10 @@ package AxiLitePkg is
    -- Slave AXI Processing functions
    -------------------------------------------------------------------------------------------------
 
-   -- Generate evently distributed address map
+   -- Generate evenly distributed address map
    function genAxiLiteConfig ( num      : positive;
                                base     : slv(31 downto 0);
-                               baseBits : integer range 0 to 32 ) 
+                               baseBits : integer range 0 to 32 ) -- Number of base bits from the left
                                return AxiLiteCrossbarMasterConfigArray;
 
 end AxiLitePkg;
@@ -303,7 +303,7 @@ package body AxiLitePkg is
    -- Slave AXI Processing functions
    -------------------------------------------------------------------------------------------------
 
-   -- Generate evently distributed address map
+   -- Generate evenly distributed address map
    function genAxiLiteConfig ( num      : positive;
                                base     : slv(31 downto 0);
                                baseBits : integer range 0 to 32 ) -- Number of base bits from the left
