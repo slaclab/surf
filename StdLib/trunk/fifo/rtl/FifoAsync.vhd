@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-01-07
+-- Last update: 2014-04-08
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ entity FifoAsync is
    port (
       -- Asynchronous Reset
       rst           : in  sl;
-      --Write Ports (wr_clk domain)
+      -- Write Ports (wr_clk domain)
       wr_clk        : in  sl;
       wr_en         : in  sl;
       din           : in  slv(DATA_WIDTH_G-1 downto 0);
@@ -55,7 +55,7 @@ entity FifoAsync is
       almost_full   : out sl;
       full          : out sl;
       not_full      : out sl;
-      --Read Ports (rd_clk domain)
+      -- Read Ports (rd_clk domain)
       rd_clk        : in  sl;
       rd_en         : in  sl;
       dout          : out slv(DATA_WIDTH_G-1 downto 0);
@@ -131,12 +131,12 @@ architecture rtl of FifoAsync is
    signal wrReg_rdy : sl;
 
 
-   constant SYNC_INIT_C  : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
-   constant GRAY_INIT_C  : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
-   signal   rdReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal   rdReg_wrGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal   wrReg_rdGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
-   signal   wrReg_wrGray : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   constant SYNC_INIT_C : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
+   constant GRAY_INIT_C : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
+   signal rdReg_rdGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal rdReg_wrGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal wrReg_rdGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
+   signal wrReg_wrGray  : slv(ADDR_WIDTH_G-1 downto 0)  := GRAY_INIT_C;
 
    type RamPortType is record
       clk  : sl;
@@ -208,7 +208,7 @@ begin
       rd_data_count <= fwftStatus.count;
       process (rd_clk, readRst) is
       begin
-         --asychronous reset
+         -- Asynchronous reset
          if readRst = '1' then
             fwftStatus <= READ_STATUS_INIT_C after TPD_G;
          elsif rising_edge(rd_clk) then
@@ -251,33 +251,34 @@ begin
          rdReg        <= READ_INIT_C after TPD_G;
          rdReg_rdGray <= GRAY_INIT_C after TPD_G;
       elsif rising_edge(rd_clk) then
-         rdReg.done <= '1' after TPD_G;
-         rdReg.Ack  <= '0' after TPD_G;
+         rdReg.done  <= '1' after TPD_G;
+         rdReg.Ack   <= '0' after TPD_G;
+         rdReg.error <= '0' after TPD_G;
          if rdReg_rdy = '1' then
 
-            --Decode the Gray code pointer
+            -- Decode the Gray code pointer
             rdReg.waddr <= grayDecode(rdReg_wrGray) after TPD_G;
 
-            --check for read operation
+            -- Check for read operation
             if readEnable = '1' then
                if fifoStatus.empty = '0' then
-                  --increment the read address pointer
+                  -- Increment the read address pointer
                   rdReg.raddr   <= rdReg.raddr + 1             after TPD_G;
                   rdReg.advance <= rdReg.advance + 1           after TPD_G;
                   rdReg.Ack     <= '1'                         after TPD_G;
-                  --Calculate the count
+                  -- Calculate the count
                   rdReg.cnt     <= rdReg.waddr - rdReg.advance after TPD_G;
                else
-                  --Calculate the count
+                  -- Calculate the count
                   rdReg.cnt   <= rdReg.waddr - rdReg.raddr after TPD_G;
                   rdReg.error <= '1'                       after TPD_G;
                end if;
             else
-               --Calculate the count
+               -- Calculate the count
                rdReg.cnt <= rdReg.waddr - rdReg.raddr after TPD_G;
             end if;
 
-            --Encode the Gray code pointer
+            -- Encode the Gray code pointer
             rdReg_rdGray <= grayEncode(rdReg.raddr) after TPD_G;
             
          end if;
@@ -310,19 +311,19 @@ begin
          almost_full <= '1' after TPD_G;
          fullStatus  <= '1' after TPD_G;
       elsif rising_edge(wr_clk) then
-         --prog_full
+         -- prog_full
          if (wrReg.cnt > FULL_THRES_G) then
             prog_full <= '1' after TPD_G;
          else
             prog_full <= '0' after TPD_G;
          end if;
-         --almost_full
+         -- almost_full
          if (wrReg.cnt = (RAM_DEPTH_C-1)) or (wrReg.cnt = (RAM_DEPTH_C-2)) or (wrReg.cnt = (RAM_DEPTH_C-3)) then
             almost_full <= '1' after TPD_G;
          else
             almost_full <= '0' after TPD_G;
          end if;
-         --fullStatus
+         -- fullStatus
          if (wrReg.cnt = (RAM_DEPTH_C-1)) or (wrReg.cnt = (RAM_DEPTH_C-2)) then
             fullStatus <= '1' after TPD_G;
          else
@@ -362,37 +363,38 @@ begin
          wrReg        <= WRITE_INIT_C after TPD_G;
          wrReg_wrGray <= GRAY_INIT_C  after TPD_G;
       elsif rising_edge(wr_clk) then
-         wrReg.done <= '1' after TPD_G;
-         wrReg.Ack  <= '0' after TPD_G;
+         wrReg.done  <= '1' after TPD_G;
+         wrReg.Ack   <= '0' after TPD_G;
+         wrReg.error <= '0' after TPD_G;
          if wrReg_rdy = '1' then
             if wrReg.rdy = '0' then
                wrReg.rdy <= '1';
                wrReg.cnt <= (others => '0');
             else
 
-               --Decode the Gray code pointer
+               -- Decode the Gray code pointer
                wrReg.raddr <= grayDecode(wrReg_rdGray) after TPD_G;
 
-               --check for write operation
+               -- Check for write operation
                if wr_en = '1' then
                   if fullStatus = '0' then
-                     --increment the read address pointer
+                     -- Increment the read address pointer
                      wrReg.waddr   <= wrReg.waddr + 1             after TPD_G;
                      wrReg.advance <= wrReg.advance + 1           after TPD_G;
                      wrReg.Ack     <= '1'                         after TPD_G;
-                     --Calculate the count
+                     -- Calculate the count
                      wrReg.cnt     <= wrReg.advance - wrReg.raddr after TPD_G;
                   else
                      wrReg.error <= '1'                       after TPD_G;
-                     --Calculate the count
+                     -- Calculate the count
                      wrReg.cnt   <= wrReg.waddr - wrReg.raddr after TPD_G;
                   end if;
                else
-                  --Calculate the count
+                  -- Calculate the count
                   wrReg.cnt <= wrReg.waddr - wrReg.raddr after TPD_G;
                end if;
 
-               --Encode the Gray code pointer
+               -- Encode the Gray code pointer
                wrReg_wrGray <= grayEncode(wrReg.waddr) after TPD_G;
                
             end if;

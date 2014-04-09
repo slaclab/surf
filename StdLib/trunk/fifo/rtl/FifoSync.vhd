@@ -5,15 +5,15 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2013-11-20
--- Platform   : ISE 14.5
+-- Last update: 2014-04-08
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 --
 -- Dependencies:  ^/StdLib/trunk/rtl/SimpleDualPortRam.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -93,13 +93,11 @@ architecture rtl of FifoSync is
 
    type ReadStatusType is
    record
-      --count       : slv(ADDR_WIDTH_G-1 downto 0);
       prog_empty   : sl;
       almost_empty : sl;
       empty        : sl;
    end record;
    constant READ_STATUS_INIT_C : ReadStatusType := (
-      --(others => '0'),
       '1',
       '1',
       '1');   
@@ -126,7 +124,7 @@ architecture rtl of FifoSync is
 begin
    rstStatus <= rst when(RST_POLARITY_G = '1') else not(rst);
 
-   --write ports
+   -- Write ports
    full     <= fullStatus;
    not_full <= not(fullStatus);
    wr_ack   <= writeAck;
@@ -134,14 +132,14 @@ begin
 
    process (clk, rst) is
    begin
-      --asychronous reset
+      -- Asynchronous reset
       if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          data_count  <= (others => '1') after TPD_G;
          prog_full   <= '1'             after TPD_G;
          almost_full <= '1'             after TPD_G;
          fullStatus  <= '1'             after TPD_G;
       elsif rising_edge(clk) then
-         --sychronous reset
+         -- Synchronous reset
          if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
             data_count  <= (others => '1') after TPD_G;
             prog_full   <= '1'             after TPD_G;
@@ -149,19 +147,19 @@ begin
             fullStatus  <= '1'             after TPD_G;
          else
             data_count <= cnt after TPD_G;
-            --prog_full
+            -- prog_full
             if (cnt > FULL_THRES_G) then
                prog_full <= '1' after TPD_G;
             else
                prog_full <= '0' after TPD_G;
             end if;
-            --almost_full
+            -- almost_full
             if (cnt = (RAM_DEPTH_C-1)) or (cnt = (RAM_DEPTH_C-2)) or (cnt = (RAM_DEPTH_C-3)) then
                almost_full <= '1' after TPD_G;
             else
                almost_full <= '0' after TPD_G;
             end if;
-            --fullStatus
+            -- fullStatus
             if (cnt = (RAM_DEPTH_C-1)) or (cnt = (RAM_DEPTH_C-2)) then
                fullStatus <= '1' after TPD_G;
             else
@@ -171,7 +169,7 @@ begin
       end if;
    end process;
 
-   --read ports
+   -- Read ports
    dout      <= portB.dout;
    underflow <= underflowStatus;
 
@@ -195,11 +193,11 @@ begin
       empty        <= fwftStatus.empty;
       process (clk, rst) is
       begin
-         --asychronous reset
+         -- Asynchronous reset
          if (RST_ASYNC_G and rst = RST_POLARITY_G) then
             fwftStatus <= READ_STATUS_INIT_C after TPD_G;
          elsif rising_edge(clk) then
-            --sychronous reset
+            -- Synchronous reset
             if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
                fwftStatus <= READ_STATUS_INIT_C after TPD_G;
             else
@@ -213,7 +211,7 @@ begin
 
    process (clk, rst) is
    begin
-      --asychronous reset
+      -- Asynchronous reset
       if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          writeAck        <= '0'             after TPD_G;
          readAck         <= '0'             after TPD_G;
@@ -223,21 +221,21 @@ begin
          overflowStatus  <= '0'             after TPD_G;
          underflowStatus <= '0'             after TPD_G;
       elsif rising_edge(clk) then
-         writeAck <= '0' after TPD_G;
-         readAck  <= '0' after TPD_G;
-         --sychronous reset
+         writeAck        <= '0' after TPD_G;
+         readAck         <= '0' after TPD_G;
+         overflowStatus  <= '0' after TPD_G;
+         underflowStatus <= '0' after TPD_G;
+         -- Synchronous reset
          if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-            waddr           <= (others => '0') after TPD_G;
-            raddr           <= (others => '0') after TPD_G;
-            cnt             <= (others => '0') after TPD_G;
-            overflowStatus  <= '0'             after TPD_G;
-            underflowStatus <= '0'             after TPD_G;
+            waddr <= (others => '0') after TPD_G;
+            raddr <= (others => '0') after TPD_G;
+            cnt   <= (others => '0') after TPD_G;
          else
 
-            --check for write operation
+            -- Check for write operation
             if wr_en = '1' then
                if fullStatus = '0' then
-                  --increment the write address pointer
+                  -- Increment the write address pointer
                   waddr    <= waddr + 1 after TPD_G;
                   writeAck <= '1'       after TPD_G;
                else
@@ -245,10 +243,10 @@ begin
                end if;
             end if;
 
-            --check for read operation
+            -- Check for read operation
             if readEnable = '1' then
                if fifoStatus.empty = '0' then
-                  --increment the read address pointer
+                  -- Increment the read address pointer
                   raddr   <= raddr + 1 after TPD_G;
                   readAck <= '1'       after TPD_G;
                else
@@ -256,7 +254,7 @@ begin
                end if;
             end if;
 
-            --increment the FIFO counter
+            -- Increment the FIFO counter
             if (readEnable = '1') and (wr_en = '0') and (fifoStatus.empty = '0') then
                cnt <= cnt - 1 after TPD_G;
             elsif (readEnable = '0') and (wr_en = '1') and (fullStatus = '0') then

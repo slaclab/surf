@@ -5,15 +5,15 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2013-08-14
--- Platform   : ISE 14.5
+-- Last update: 2014-04-08
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
 --                ^/StdLib/trunk/rtl/SynchronizerEdge.vhd
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -190,7 +190,7 @@ begin
       generic map (
          DO_REG              => 0,  --DO_REG must be set to 0 for flags and data to follow a standard synchronous FIFO operation
          DEVICE              => XIL_DEVICE_G,  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"
-         ALMOST_FULL_OFFSET  => ALMOST_FULL_OFFSET_C,  -- Sets almost full threshold
+         ALMOST_FULL_OFFSET  => ALMOST_FULL_OFFSET_C,   -- Sets almost full threshold
          ALMOST_EMPTY_OFFSET => ALMOST_EMPTY_OFFSET_C,  -- Sets the almost empty threshold
          DATA_WIDTH          => DATA_WIDTH_G,  -- Valid values are 1-72 (37-72 only valid when FIFO_SIZE="36Kb")
          FIFO_SIZE           => FIFO_SIZE_C)   -- Target BRAM, "18Kb" or "36Kb"
@@ -199,10 +199,10 @@ begin
          CLK         => clk,            -- 1-bit input clock
          WREN        => wrEn,           -- 1-bit input write enable
          RDEN        => readEnable,     -- 1-bit input read enable
-         DI          => din,  -- Input data, width defined by DATA_WIDTH parameter
-         DO          => dout,  -- Output data, width defined by DATA_WIDTH parameter
-         RDCOUNT     => rdAddrPntr,  -- Output read count, width determined by FIFO depth
-         WRCOUNT     => wrAddrPntr,  -- Output write count, width determined by FIFO depth
+         DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
+         DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
+         RDCOUNT     => rdAddrPntr,     -- Output read count, width determined by FIFO depth
+         WRCOUNT     => wrAddrPntr,     -- Output write count, width determined by FIFO depth
          WRERR       => open,           -- 1-bit output write error
          RDERR       => underflow,      -- 1-bit output read error
          ALMOSTFULL  => progFull,       -- 1-bit output almost full
@@ -215,7 +215,7 @@ begin
    data_count <= cnt;
 
    --write signals
-   wrEn        <= wr_en and not(rstFlags);
+   wrEn        <= wr_en and not(rstFlags) and not(buildInFull);
    full        <= buildInFull or rstFlags;
    not_full    <= not(buildInFull or rstFlags);
    prog_full   <= progFull or rstFlags;
@@ -224,10 +224,9 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
+         wr_ack <= '0' after TPD_G;
          if wr_en = '1' then
             wr_ack <= not(buildInFull) after TPD_G;
-         else
-            wr_ack <= '0' after TPD_G;
          end if;
       end if;
    end process;
@@ -235,15 +234,14 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
-         if rstFlags = '1' then
-            overflow <= '0' after TPD_G;
-         elsif (wr_en = '1') and (buildInFull = '1') then
-            overflow <= '1' after TPD_G;  --latch error strobe
+         overflow <= '0' after TPD_G;
+         if (wr_en = '1') and (buildInFull = '1') then
+            overflow <= '1' after TPD_G;  -- Error strobe
          end if;
       end if;
    end process;
 
-   --read signals   
+   -- Read signals   
    fifoStatus.prog_empty   <= progEmpty or rstFlags;
    fifoStatus.almost_empty <= '1' when (cnt = 1) else (buildInEmpty or rstFlags);
    fifoStatus.empty        <= buildInEmpty or rstFlags;
@@ -257,10 +255,9 @@ begin
       process(clk)
       begin
          if rising_edge(clk) then
-            if (rd_en = '1') and (rstFlags = '0') then
+            valid <= '0' after TPD_G;
+            if rd_en = '1' then
                valid <= not(buildInEmpty) after TPD_G;
-            else
-               valid <= '0' after TPD_G;
             end if;
          end if;
       end process;
@@ -275,7 +272,6 @@ begin
       empty        <= fwftStatus.empty;
       process (clk) is
       begin
-         --asychronous reset
          if rising_edge(clk) then
             if rstFlags = '1'then
                fwftStatus <= READ_STATUS_INIT_C after TPD_G;
