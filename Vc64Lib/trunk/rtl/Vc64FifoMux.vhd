@@ -53,6 +53,9 @@ entity Vc64FifoMux is
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
       FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 2**24);   
    port (
+      -- RX Frame Filter Status (vcRxClk domain) 
+      vcRxDropWrite : out sl;
+      vcRxTermFrame : out sl;
       -- Streaming RX Data Interface (vcRxClk domain) 
       vcRxData : in  Vc64DataType;
       vcRxCtrl : out Vc64CtrlType;

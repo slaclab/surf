@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-07
--- Last update: 2014-04-07
+-- Last update: 2014-04-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,27 +33,28 @@ architecture testbed of Vc64PrbsTb is
    constant FIFO_FULL_THRES_C  : integer          := 4;
    constant BIT_ERROR_C        : slv(15 downto 0) := "1000" & "0100" & "0010" & "0001";  -- Generate errWordCnt and errbitCnt errors
    constant ADD_EOFE_C         : sl               := '1';  -- Generate errEofe error
+   constant GEN_BUS_ERROR_C    : boolean          := true;
 
    -- Signals
    signal clk,
-      rst,
-      toggle,
       txBusy,
       rxBusy,
       updatedResults,
       errMissedPacket,
       errLength,
-      errEofe : sl;
+      errDataBus,
+      errEofe : sl := '0';
+   signal rst  : sl               := '1';
+   signal data : slv(15 downto 0) := (others => '0');
    signal errWordCnt,
       errbitCnt,
       packetLength,
-      packetRate : slv(31 downto 0);
+      packetRate : slv(31 downto 0) := (others => '0');
    
-   signal txCtrl,
-      rxCtrl : Vc64CtrlType;
+   signal txCtrl : Vc64CtrlType := VC64_CTRL_INIT_C;
    signal txData,
       rxData,
-      vcTxData : Vc64DataType;
+      vcTxData : Vc64DataType := VC64_DATA_INIT_C;
 
 begin
 
@@ -62,7 +63,7 @@ begin
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 250 ns)   -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 750 ns)   -- Hold reset for this long)
       port map (
          clkP => clk,
          clkN => open,
@@ -89,32 +90,42 @@ begin
          locRst       => rst);
 
    -- Process for mapping the VC buses and injecting bit error
-   process(clk)
+   process(rst, txData)
       variable i : integer;
    begin
-      if rising_edge(clk) then
-         if rst = '1' then
-            -- Reset TX inputs
-            txCtrl <= VC64_CTRL_INIT_C after TPD_C;
-            -- Reset RX inputs
-            toggle <= '0'              after TPD_C;
-            rxData <= VC64_DATA_INIT_C after TPD_C;
-         else
-            -- Pass the signals to the TX module
-            txCtrl.ready <= not(rxCtrl.almostFull)                     after TPD_C;
-            -- Pass the signals to the RX module
-            rxData       <= txData                                     after TPD_C;
-            -- Check if we need to add EOFE
-            rxData.eofe  <= txData.eof and (txData.eofe or ADD_EOFE_C) after TPD_C;
+      if rst = '1' then
+         -- Reset RX inputs
+         rxData <= VC64_DATA_INIT_C;
+         data   <= (others => '0');
+      else
+         -- Pass the signals to the RX module
+         rxData.valid <= txData.valid;
+         rxData.size  <= txData.size;
+         rxData.vc    <= txData.vc;
+         rxData.sof   <= txData.sof;
+         rxData.eof   <= txData.eof;
+         -- Check if we need to add EOFE
+         rxData.eofe  <= txData.eof and (txData.eofe or ADD_EOFE_C);
 
-            if txData.eof = '1' then
-               -- add bit errors to last word
-               for i in 15 downto 0 loop
-                  if BIT_ERROR_C(i) = '1' then
-                     rxData.data(i) <= not(txData.data(i)) after TPD_C;
-                  end if;
-               end loop;
+         if txData.eof = '1' then
+            -- add bit errors to last word
+            for i in 15 downto 0 loop
+               if BIT_ERROR_C(i) = '1' then
+                  data(i) <= not(txData.data(i));
+               end if;
+            end loop;
+            data                      <= txData.data(15 downto 0);
+            rxData.data(31 downto 16) <= data;
+            rxData.data(47 downto 32) <= data;
+            rxData.data(63 downto 48) <= data;
+         else
+            data <= (others => '0');
+            if GEN_BUS_ERROR_C and (txData.sof = '0') then
+               rxData.data(63 downto 48) <= not txData.data(63 downto 48);
+            else
+               rxData.data(63 downto 48) <= txData.data(63 downto 48);
             end if;
+            rxData.data(47 downto 0) <= txData.data;
          end if;
       end if;
    end process;
@@ -127,7 +138,7 @@ begin
       port map (
          -- Streaming RX Data Interface (vcRxClk domain) 
          vcRxData        => rxData,
-         vcRxCtrl        => rxCtrl,
+         vcRxCtrl        => txCtrl,
          vcRxClk         => clk,
          vcRxRst         => rst,
          -- Streaming TX Data Interface (vcTxClk domain) 
@@ -139,6 +150,7 @@ begin
          busy            => rxBusy,
          errMissedPacket => errMissedPacket,
          errLength       => errLength,
+         errDataBus      => errDataBus,
          errEofe         => errEofe,
          errWordCnt      => errWordCnt,
          errbitCnt       => errbitCnt,
