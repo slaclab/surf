@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-04-08
+-- Last update: 2014-04-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,8 +23,11 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-library unimacro;
-use unimacro.vcomponents.all;
+library UNISIM;
+use UNISIM.vcomponents.all;
+
+library UNIMACRO;
+use UNIMACRO.vcomponents.all;
 
 entity FifoSyncBuiltIn is
    generic (
@@ -58,7 +61,7 @@ entity FifoSyncBuiltIn is
       empty        : out sl);      
 
 begin
-   -- check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
+   -- Check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
    assert (((DATA_WIDTH_G >= 37) and (DATA_WIDTH_G    <= 72) and (ADDR_WIDTH_G = 9))
            or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 10))
            or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 9))
@@ -120,13 +123,13 @@ architecture mapping of FifoSyncBuiltIn is
       elsif ((d_width >= 1) and (d_width <= 4) and (a_width = 12)) then
          return "18Kb";
       else
-         return "???Kb";                --generate error in Xilinx marco
+         return "???Kb";                -- Generate error in Xilinx marco
       end if;
    end;
 
    constant FIFO_LENGTH_C         : integer    := ((2**ADDR_WIDTH_G)- 1);
-   constant ALMOST_FULL_OFFSET_C  : bit_vector := to_bitvector(conv_std_logic_vector((FIFO_LENGTH_C-FULL_THRES_G), 16));
-   constant ALMOST_EMPTY_OFFSET_C : bit_vector := to_bitvector(conv_std_logic_vector(EMPTY_THRES_G, 16));
+   constant ALMOST_FULL_OFFSET_C  : bit_vector := to_bitvector(toSlv((FIFO_LENGTH_C-FULL_THRES_G), 16));
+   constant ALMOST_EMPTY_OFFSET_C : bit_vector := to_bitvector(toSlv(EMPTY_THRES_G, 16));
    constant FIFO_SIZE_C           : string     := GetFifoType(DATA_WIDTH_G, ADDR_WIDTH_G);
 
    type ReadStatusType is
@@ -152,6 +155,7 @@ architecture mapping of FifoSyncBuiltIn is
       rstFlags,
       fifoRst,
       wrEn,
+      dummyWRERR,
       rstDet : sl := '0';
 
    -- Attribute for XST
@@ -203,18 +207,18 @@ begin
          DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read count, width determined by FIFO depth
          WRCOUNT     => wrAddrPntr,     -- Output write count, width determined by FIFO depth
-         WRERR       => open,           -- 1-bit output write error
+         WRERR       => dummyWRERR,     -- 1-bit output write error
          RDERR       => underflow,      -- 1-bit output read error
          ALMOSTFULL  => progFull,       -- 1-bit output almost full
          ALMOSTEMPTY => progEmpty,      -- 1-bit output almost empty
          FULL        => buildInFull,    -- 1-bit output full
          EMPTY       => buildInEmpty);  -- 1-bit output empty  
 
-   -- calculate data count
+   -- Calculate data count
    cnt        <= wrAddrPntr - rdAddrPntr;
    data_count <= cnt;
 
-   --write signals
+   -- Write signals
    wrEn        <= wr_en and not(rstFlags) and not(buildInFull);
    full        <= buildInFull or rstFlags;
    not_full    <= not(buildInFull or rstFlags);
