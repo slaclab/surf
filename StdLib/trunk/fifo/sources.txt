@@ -1,3 +1,4 @@
+vhdl work rtl/FifoCascade.vhd
 vhdl work rtl/Fifo.vhd
 vhdl work rtl/FifoAsync.vhd
 vhdl work rtl/FifoAsyncBuiltIn.vhd
