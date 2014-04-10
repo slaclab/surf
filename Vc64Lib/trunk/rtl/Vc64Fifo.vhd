@@ -29,7 +29,10 @@ entity Vc64Fifo is
       -- General Configurations
       TPD_G              : time                       := 1 ns;
       RST_ASYNC_G        : boolean                    := false;
-      RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
+      RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset    
+      -- Cascading FIFO Configurations
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;-- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;-- if set to true, the last stage will be the ASYNC FIFO      
       -- RX Configurations
       EN_FRAME_FILTER_G  : boolean                    := true;
       -- TX Configurations
@@ -37,7 +40,7 @@ entity Vc64Fifo is
       PIPE_STAGES_G      : integer range 0 to 16      := 0;  -- Used to add pipeline stages to the output ports to help with meeting timing
       -- Xilinx Specific Configurations
       XIL_DEVICE_G       : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G     : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
+      USE_BUILT_IN_G     : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
       -- Altera Specific Configurations
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
@@ -116,9 +119,11 @@ begin
    -- Convert the input data into a input SLV bus
    din <= toSlv(rxData);
 
-   Fifo_Inst : entity work.Fifo
+   FifoCascade_Inst : entity work.FifoCascade
       generic map (
          TPD_G           => TPD_G,
+         CASCADE_SIZE_G     => CASCADE_SIZE_G,
+         LAST_STAGE_ASYNC_G => LAST_STAGE_ASYNC_G,
          RST_ASYNC_G     => RST_ASYNC_G,
          RST_POLARITY_G  => RST_POLARITY_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,

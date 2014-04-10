@@ -88,6 +88,7 @@ begin
    Vc64Fifo_Inst : entity work.Vc64Fifo
       generic map (
          TPD_G           => TPD_G,
+         CASCADE_SIZE_G  => 3,
          PIPE_STAGES_G   => PIPE_STAGES_G,
          BRAM_EN_G       => BRAM_EN_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,

@@ -342,16 +342,19 @@ architecture testbed of Vc64FifoTb is
    signal dropWrite,
       termFrame,
       wrDone,
+      wrDoneDly,
       rdDone,
-      rdError : slv(0 to CONFIG_TEST_SIZE_C);
+      rdDoneDly,
+      rdError,
+      rdErrorDly : slv(0 to CONFIG_TEST_SIZE_C) := (others=>'0');
 
    signal simulationPassed,
       simulationFailed : sl := '0';
 
 begin
 
-   simulationPassed <= uAnd(wrDone) and uAnd(rdDone) and not uOr(rdError);
-   simulationFailed <= uAnd(wrDone) and uAnd(rdDone) and uOr(rdError);
+   simulationPassed <= uAnd(wrDoneDly) and uAnd(rdDoneDly);
+   simulationFailed <= uOr(rdErrorDly);
 
    process(simulationFailed, simulationPassed)
    begin
@@ -363,6 +366,15 @@ begin
             report "Simulation Failed!" severity failure;
       end if;
    end process;
+   
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         wrDoneDly  <= wrDone after TPD_C;
+         rdDoneDly  <= rdDone after TPD_C;
+         rdErrorDly <= rdError after TPD_C;
+      end if;
+   end process;   
 
    -- Generate clocks and resets
    ClkRst_Write : entity work.ClkRst

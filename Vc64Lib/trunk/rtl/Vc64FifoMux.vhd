@@ -33,6 +33,9 @@ entity Vc64FifoMux is
       RST_ASYNC_G        : boolean                    := false;
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset   
       LITTLE_ENDIAN_G    : boolean                    := false;
+      -- Cascading FIFO Configurations
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;-- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;-- if set to true, the last stage will be the ASYNC FIFO            
       -- RX Configurations
       RX_LANES_G         : integer range 1 to 4       := 4;  -- 16 bits of data per lane
       EN_FRAME_FILTER_G  : boolean                    := true;
@@ -146,6 +149,8 @@ begin
    FifoMux_Inst : entity work.FifoMux
       generic map (
          TPD_G           => TPD_G,
+         CASCADE_SIZE_G     => CASCADE_SIZE_G,
+         LAST_STAGE_ASYNC_G => LAST_STAGE_ASYNC_G,
          RST_ASYNC_G     => RST_ASYNC_G,
          RST_POLARITY_G  => RST_POLARITY_G,
          WR_DATA_WIDTH_G => WR_DATA_WIDTH_C,
