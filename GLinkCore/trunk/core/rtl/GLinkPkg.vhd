@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-02-26
+-- Last update: 2014-04-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,8 @@ package GLinkPkg is
       (others => '0'));
 
    type GLinkRxType is record
+      locked    : sl;
+      error     : sl;
       isControl : sl;
       isIdle    : sl;
       isData    : sl;
@@ -47,6 +49,8 @@ package GLinkPkg is
    type GLinkRxTypeArray is array (natural range <>) of GLinkRxType;
    type GLinkRxTypeVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
    constant GLINK_RX_INIT_C : GLinkRxType := (
+      '0',
+      '0',
       '0',
       '1',
       '0',
