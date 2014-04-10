@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2014-04-08
+-- Last update: 2014-04-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,25 +24,27 @@ use work.StdRtlPkg.all;
 
 entity FifoMux is
    generic (
-      TPD_G           : time                       := 1 ns;
-      RST_POLARITY_G  : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      RST_ASYNC_G     : boolean                    := false;
-      GEN_SYNC_FIFO_G : boolean                    := false;
-      BRAM_EN_G       : boolean                    := true;
-      FWFT_EN_G       : boolean                    := true;
-      USE_DSP48_G     : string                     := "no";
-      ALTERA_SYN_G    : boolean                    := false;
-      ALTERA_RAM_G    : string                     := "M9K";
-      USE_BUILT_IN_G  : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G    : string                     := "7SERIES";  -- Xilinx only generic parameter    
-      SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
-      WR_DATA_WIDTH_G : integer range 1 to (2**24) := 64;
-      RD_DATA_WIDTH_G : integer range 1 to (2**24) := 16;
-      LITTLE_ENDIAN_G : boolean                    := false;
-      ADDR_WIDTH_G    : integer range 4 to 48      := 10;
-      INIT_G          : slv                        := "0";
-      FULL_THRES_G    : integer range 1 to (2**24) := 1;
-      EMPTY_THRES_G   : integer range 1 to (2**24) := 1);
+      TPD_G              : time                       := 1 ns;
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;  -- if set to true, the last stage will be the ASYNC FIFO
+      RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G        : boolean                    := false;
+      GEN_SYNC_FIFO_G    : boolean                    := false;
+      BRAM_EN_G          : boolean                    := true;
+      FWFT_EN_G          : boolean                    := true;
+      USE_DSP48_G        : string                     := "no";
+      ALTERA_SYN_G       : boolean                    := false;
+      ALTERA_RAM_G       : string                     := "M9K";
+      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
+      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
+      SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
+      WR_DATA_WIDTH_G    : integer range 1 to (2**24) := 64;
+      RD_DATA_WIDTH_G    : integer range 1 to (2**24) := 16;
+      LITTLE_ENDIAN_G    : boolean                    := false;
+      ADDR_WIDTH_G       : integer range 4 to 48      := 10;
+      INIT_G             : slv                        := "0";
+      FULL_THRES_G       : integer range 1 to (2**24) := 1;
+      EMPTY_THRES_G      : integer range 1 to (2**24) := 1);
    port (
       -- Resets
       rst          : in  sl := '0';     --  Reset
@@ -248,25 +250,27 @@ begin
    --------
    -- Fifo
    --------
-   Fifo_1 : entity work.Fifo
+   FifoCascade_Inst : entity work.FifoCascade
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-         BRAM_EN_G       => BRAM_EN_G,
-         FWFT_EN_G       => FWFT_EN_G,
-         USE_DSP48_G     => USE_DSP48_G,
-         ALTERA_SYN_G    => ALTERA_SYN_G,
-         ALTERA_RAM_G    => ALTERA_RAM_G,
-         USE_BUILT_IN_G  => USE_BUILT_IN_G,
-         XIL_DEVICE_G    => XIL_DEVICE_G,
-         SYNC_STAGES_G   => SYNC_STAGES_G,
-         DATA_WIDTH_G    => FIFO_DATA_WIDTH_C,
-         ADDR_WIDTH_G    => ADDR_WIDTH_G,
-         INIT_G          => INIT_G,
-         FULL_THRES_G    => FULL_THRES_G,
-         EMPTY_THRES_G   => EMPTY_THRES_G)
+         TPD_G              => TPD_G,
+         CASCADE_SIZE_G     => CASCADE_SIZE_G,
+         LAST_STAGE_ASYNC_G => LAST_STAGE_ASYNC_G,
+         RST_POLARITY_G     => RST_POLARITY_G,
+         RST_ASYNC_G        => RST_ASYNC_G,
+         GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
+         BRAM_EN_G          => BRAM_EN_G,
+         FWFT_EN_G          => FWFT_EN_G,
+         USE_DSP48_G        => USE_DSP48_G,
+         ALTERA_SYN_G       => ALTERA_SYN_G,
+         ALTERA_RAM_G       => ALTERA_RAM_G,
+         USE_BUILT_IN_G     => USE_BUILT_IN_G,
+         XIL_DEVICE_G       => XIL_DEVICE_G,
+         SYNC_STAGES_G      => SYNC_STAGES_G,
+         DATA_WIDTH_G       => FIFO_DATA_WIDTH_C,
+         ADDR_WIDTH_G       => ADDR_WIDTH_G,
+         INIT_G             => INIT_G,
+         FULL_THRES_G       => FULL_THRES_G,
+         EMPTY_THRES_G      => EMPTY_THRES_G)
       port map (
          rst           => rst,
          wr_clk        => wr_clk,
