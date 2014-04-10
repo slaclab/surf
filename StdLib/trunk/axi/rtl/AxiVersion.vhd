@@ -62,7 +62,7 @@ architecture rtl of AxiVersion is
       for i in BUILD_STAMP_C'range loop
          c                                                      := BUILD_STAMP_C(i);
          ret((i-1)/4)(8*((i-1) mod 4)+7 downto 8*((i-1) mod 4)) :=
-            conv_std_logic_vector(character'pos(c), 8);
+            toSlv(character'pos(c), 8);
       end loop;
       return ret;
    end function makeStringRom;
