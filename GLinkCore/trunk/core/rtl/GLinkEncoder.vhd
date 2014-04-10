@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-04-19
--- Last update: 2014-03-26
+-- Last update: 2014-04-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,8 +24,9 @@ use work.GLinkPkg.all;
 entity GLinkEncoder is
    generic (
       TPD_G          : time    := 1 ns;
-      FLAGSEL_G      : boolean := false;
-      RST_POLARITY_G : sl      := '1');
+      RST_ASYNC_G    : boolean := false;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
+      FLAGSEL_G      : boolean := false);
    port (
       en          : in  sl := '1';
       clk         : in  sl;
@@ -36,46 +37,12 @@ end GLinkEncoder;
 
 architecture rtl of GLinkEncoder is
 
-   function ones (vec : slv) return unsigned is
-      variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
-      variable bottomVar : slv(topVar'low-1 downto vec'low);
-      variable tmpVar    : slv(2 downto 0);
-   begin
-      if (vec'length = 1) then
-         return '0' & unsigned(vec);
-      end if;
-
-      if (vec'length = 2) then
-         return uAnd(vec) & uXor(vec);
-      end if;
-
-      if (vec'length = 3) then
-         tmpVar := vec;
-         case tmpVar is
-            when "000"  => return "00";
-            when "001"  => return "01";
-            when "010"  => return "01";
-            when "011"  => return "10";
-            when "100"  => return "01";
-            when "101"  => return "10";
-            when "110"  => return "10";
-            when "111"  => return "11";
-            when others => return "00";
-         end case;
-      end if;
-
-      topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
-      bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
-
-      return ('0' & ones(topVar)) + ('0' & ones(bottomVar));
-   end function;
-
    function disparity (vec : slv(19 downto 0)) return signed is
-      variable onesVar      : unsigned(4 downto 0);
+      variable onesCountVar : unsigned(4 downto 0);
       variable disparityVar : signed(5 downto 0);
    begin
-      onesVar      := ones(vec);
-      disparityVar := (signed('0' & onesVar) - 10);
+      onesCountVar := onesCount(vec);
+      disparityVar := (signed('0' & onesCountVar) - 10);
       return disparityVar(4 downto 0);
    end function;
 
@@ -85,54 +52,49 @@ architecture rtl of GLinkEncoder is
       runningDisparity : signed(4 downto 0);
    end record;
    
-   constant REG_TYPE_INIT_C : RegType := (
+   constant REG_INIT_C : RegType := (
       '0',
       (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C),
       (others => '0'));    
 
-   signal r, rin : RegType := REG_TYPE_INIT_C;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
    
 begin
 
-   seq : process (clk)
-   begin  -- process seq
-      if rising_edge(clk) then
-         if rst = RST_POLARITY_G then
-            r <= REG_TYPE_INIT_C after TPD_G;
-         elsif en = '1' then
-            r <= rin after TPD_G;
-         end if;
-      end if;
-   end process seq;
-
-   comb : process (r, gLinkTx)
-      variable rVar            : RegType;
+   comb : process (gLinkTx, r, rst)
+      variable v               : RegType;
       variable glinkWordVar    : GLinkWordType;
       variable rawBufferflyVar : slv(0 to 15);
       variable rawDisparityVar : signed(4 downto 0);
    begin
-      rVar            := r;
+      -- Latch the current value
+      v := r;
+
+      -- Reverse the bit order
       rawBufferflyVar := bitReverse(gLinkTx.data);
 
       -- Check for flag select enabled
       if FLAGSEL_G then
+         -- Check for a flag status bit
          if (gLinkTx.flag = '1') then
             glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
          else
             glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
          end if;
-         -- Internally alternate the flag bit
-         -- when transmitting data frames 
-         -- for additional error checking
+      -- Internally alternate the flag bit when transmitting data frames for additional error checking
       elsif (gLinkTx.idle = '0') and (gLinkTx.control = '0') then
-         -- toggle the bit
-         rVar.toggle := not(r.toggle);
+         -- Toggle the bit
+         v.toggle := not(r.toggle);
+         -- Check for a flag status bit
          if r.toggle = '1' then
             glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
          else
             glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
          end if;
       end if;
+
+      -- Latch the reversed word
       glinkWordVar.w := rawBufferflyVar;
 
       -- Control overrides data assignments 
@@ -147,29 +109,51 @@ begin
          glinkWordVar.w := GLINK_IDLE_WORD_FF1L_C;
       end if;
 
-      rVar.encodedData := toSLV(glinkWordVar);
+      -- Encode the G-Link word into an SLV
+      v.encodedData := toSlv(glinkWordVar);
 
       -- Calculate the disparity of the encoded word so far
-      rawDisparityVar := disparity(rVar.encodedData);
+      rawDisparityVar := disparity(v.encodedData);
 
       -- Invert if necessary to reduce disparity
       if (rawDisparityVar(4) = r.runningDisparity(4)) then
          if (gLinkTx.idle = '1') then
-            rVar.encodedData := GLINK_IDLE_WORD_FF1H_C & GLINK_CONTROL_WORD_C;
+            v.encodedData := GLINK_IDLE_WORD_FF1H_C & GLINK_CONTROL_WORD_C;
          else
             -- Normal data or control, invert everything
-            rVar.encodedData := not rVar.encodedData;
+            v.encodedData := not v.encodedData;
          end if;
          -- Calculated raw disparity must be (2's complement) inverted too
          rawDisparityVar := (not rawDisparityVar) + 1;
       end if;
 
-      -- Data now fully encoded. Calculate its disparity and add it to the
-      -- running total
-      rVar.runningDisparity := r.runningDisparity + rawDisparityVar;
+      -- Data now fully encoded. Calculate its disparity and add it to the running total
+      v.runningDisparity := r.runningDisparity + rawDisparityVar;
 
-      rin         <= rVar;
+      -- Synchronous Reset
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs      
       encodedData <= r.encodedData;
+      
    end process comb;
+
+   seq : process (clk, rst) is
+   begin
+      if rising_edge(clk) then
+         if en = '1' then
+            r <= rin after TPD_G;
+         end if;
+      end if;
+      -- Asynchronous Reset
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      end if;
+   end process seq;
 
 end rtl;

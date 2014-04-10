@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-03-26
+-- Last update: 2014-04-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,8 +25,9 @@ use work.GlinkPkg.all;
 entity GLinkDecoder is
    generic (
       TPD_G          : time    := 1 ns;
-      FLAGSEL_G      : boolean := false;
-      RST_POLARITY_G : sl      := '1');
+      RST_ASYNC_G    : boolean := false;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
+      FLAGSEL_G      : boolean := false);
    port (
       en           : in  sl := '1';
       clk          : in  sl;
@@ -39,93 +40,82 @@ end entity GLinkDecoder;
 architecture rtl of GLinkDecoder is
 
    type RegType is record
-      firstDataFrame : sl;
-      toggle         : sl;
-      gLinkRx        : GLinkRxType;
-      err            : sl;
+      toggle  : sl;
+      gLinkRx : GLinkRxType;
    end record;
    
-   constant REG_TYPE_INIT_C : RegType := (
+   constant REG_INIT_C : RegType := (
       '0',
-      '0',
-      GLINK_RX_INIT_C,
-      '0');      
+      GLINK_RX_INIT_C);      
 
-   signal r, rin : RegType := REG_TYPE_INIT_C;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
    
 begin
 
-   seq : process (clk)
-   begin
-      if rising_edge(clk) then
-         if rst = RST_POLARITY_G then
-            r <= REG_TYPE_INIT_C after TPD_G;
-         elsif en = '1' then
-            r <= rin after TPD_G;
-         end if;
-      end if;
-   end process seq;
-
-   comb : process (r, gtRxData) is
-      variable rVar         : RegType;
+   comb : process (gtRxData, r, rst) is
+      variable v            : RegType;
       variable glinkWordVar : GLinkWordType;
    begin
-      rVar := r;
+      v := r;
 
-      -- Default outputs
-      rVar.gLinkRx := GLINK_RX_INIT_C;
-      rVar.err     := '0';
+      -- Reset strobe signals
+      v.gLinkRx.error     := '0';
+      v.gLinkRx.isControl := '0';
+      v.gLinkRx.isIdle    := '1';
+      v.gLinkRx.isData    := '0';
+      v.gLinkRx.flag      := '0';
 
       -- Convert input to GLinkWordType to use GLinkPkg functions for decoding
       glinkWordVar := toGLinkWord(gtRxData);
 
       if (not isValidWord(glinkWordVar)) then
          -- Invalid input, don't decode
-         rVar.err := '1';
+         v.gLinkRx.error := '1';
       else
          -- Valid input, decode the input
          -- Check for control word
          if (isControlWord(glinkWordVar)) then
             -- Check for idle word (subcase of control word)
             if (not isIdleWord(glinkWordVar)) then
-               rVar.gLinkRx.isIdle    := '0';
-               rVar.gLinkRx.isControl := '1';
-               rVar.gLinkRx.data      := getControlPayload(glinkWordVar);
+               v.gLinkRx.isIdle    := '0';
+               v.gLinkRx.isControl := '1';
+               v.gLinkRx.data      := getControlPayload(glinkWordVar);
             end if;
          end if;
 
          -- Check for data word
          if (isDataWord(glinkWordVar)) then
             if FLAGSEL_G then
-               rVar.gLinkRx.isIdle := '0';
-               rVar.gLinkRx.isData := '1';
-               rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);     -- Bit flip done by function
-               rVar.gLinkRx.flag   := getFlag(gLinkWordVar);
+               v.gLinkRx.isIdle := '0';
+               v.gLinkRx.isData := '1';
+               v.gLinkRx.data   := getDataPayload(gLinkWordVar);        -- Bit flip done by function
+               v.gLinkRx.flag   := getFlag(gLinkWordVar);
             else
                -- Check for first data frame
-               if r.firstDataFrame = '0' then
+               if r.gLinkRx.locked = '0' then
                   -- First frame Detected
-                  rVar.firstDataFrame := '1';
+                  v.gLinkRx.locked := '1';
                   -- Set the gLinkRx bus
-                  rVar.gLinkRx.isIdle := '0';
-                  rVar.gLinkRx.isData := '1';
-                  rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
-                  rVar.gLinkRx.flag   := getFlag(gLinkWordVar);
+                  v.gLinkRx.isIdle := '0';
+                  v.gLinkRx.isData := '1';
+                  v.gLinkRx.data   := getDataPayload(gLinkWordVar);     -- Bit flip done by function
+                  v.gLinkRx.flag   := getFlag(gLinkWordVar);
                   -- Latch the flag value
-                  rVar.toggle         := getFlag(gLinkWordVar);
+                  v.toggle         := getFlag(gLinkWordVar);
                else
                   -- Check for flag error
                   if (r.toggle = getFlag(gLinkWordVar)) then
                      -- Invalid flag detected
-                     rVar.err := '1';
+                     v.gLinkRx.error := '1';
                   else
                      -- Set the gLinkRx bus
-                     rVar.gLinkRx.isIdle := '0';
-                     rVar.gLinkRx.isData := '1';
-                     rVar.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
-                     rVar.gLinkRx.flag   := getFlag(gLinkWordVar);
+                     v.gLinkRx.isIdle := '0';
+                     v.gLinkRx.isData := '1';
+                     v.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
+                     v.gLinkRx.flag   := getFlag(gLinkWordVar);
                      -- Latch the flag value
-                     rVar.toggle         := getFlag(gLinkWordVar);
+                     v.toggle         := getFlag(gLinkWordVar);
                   end if;
                end if;
             end if;
@@ -133,15 +123,35 @@ begin
 
          -- Invert if necessary
          if (isInvertedWord(glinkWordVar)) then
-            rVar.gLinkRx.data := not rVar.gLinkRx.data;
+            v.gLinkRx.data := not v.gLinkRx.data;
          end if;
       end if;
 
-      rin <= rVar;
+      -- Synchronous Reset
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
+      end if;
 
-      -- Assign outputs
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs      
       gLinkRx      <= r.gLinkRx;
-      decoderError <= r.err;
+      decoderError <= r.gLinkRx.error;
+      
    end process comb;
+
+   seq : process (clk, rst) is
+   begin
+      if rising_edge(clk) then
+         if en = '1' then
+            r <= rin after TPD_G;
+         end if;
+      end if;
+      -- Asynchronous Reset
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      end if;
+   end process seq;
 
 end architecture rtl;
