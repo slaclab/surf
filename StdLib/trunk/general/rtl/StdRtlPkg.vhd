@@ -92,9 +92,11 @@ package StdRtlPkg is
    function min (left, right : integer) return integer;
 
    -- One line if-then-else functions. Useful for assigning constants based on generics.
+   function ite(i : boolean; t : boolean; e : boolean) return boolean;
    function ite(i : boolean; t : sl; e : sl) return sl;
    function ite(i : boolean; t : slv; e : slv) return slv;
    function ite(i : boolean; t : bit_vector; e : bit_vector) return bit_vector;
+   function ite(i : boolean; t : character; e : character) return character;
    function ite(i : boolean; t : string; e : string) return string;
    function ite(i : boolean; t : integer; e : integer) return integer;
    function ite(i : boolean; t : real; e : real) return real;
@@ -970,6 +972,12 @@ package body StdRtlPkg is
    -------------------------------------------------------------------------------------------------
    -- One line if-then-else functions.
    -------------------------------------------------------------------------------------------------
+  
+   function ite (i : boolean; t : boolean; e : boolean) return boolean is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;    
+   
    function ite (i : boolean; t : sl; e : sl) return sl is
    begin
       if (i) then return t; else return e; end if;
@@ -985,6 +993,11 @@ package body StdRtlPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
+   function ite (i : boolean; t : character; e : character) return character is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+   
    function ite (i : boolean; t : string; e : string) return string is
    begin
       if (i) then return t; else return e; end if;
@@ -993,7 +1006,7 @@ package body StdRtlPkg is
    function ite (i : boolean; t : integer; e : integer) return integer is
    begin
       if (i) then return t; else return e; end if;
-   end function ite;
+   end function ite;  
 
    function ite (i : boolean; t : real; e : real) return real is
    begin
@@ -1003,7 +1016,7 @@ package body StdRtlPkg is
    function ite (i : boolean; t : time; e : time) return time is
    begin
       if (i) then return t; else return e; end if;
-   end function ite;
+   end function ite;  
 
    -----------------------------
    -- Min and Max
