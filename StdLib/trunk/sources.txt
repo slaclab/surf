@@ -16,6 +16,7 @@ vhdl work general/rtl/Encoder8b10b.vhd
 vhdl work general/rtl/Heartbeat.vhd
 vhdl work general/rtl/PwrUpRst.vhd
 
+vhdl work fifo/rtl/FifoCascade.vhd
 vhdl work fifo/rtl/Fifo.vhd
 vhdl work fifo/rtl/FifoAsync.vhd
 vhdl work fifo/rtl/FifoAsyncBuiltIn.vhd
