@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-09
+-- Last update: 2014-04-10
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -89,6 +89,9 @@ begin
 
       vcTxData <= vcRxData;
       vcRxCtrl <= vcTxCtrl;
+
+      vcRxDropWrite <= '0';
+      vcRxTermFrame <= '0';
       
    end generate;
 
