@@ -27,10 +27,10 @@ entity SynchronizerOneShotCntVector is
       RELEASE_DELAY_G : positive              := 3;    -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv                   := "1";  -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G  : slv                   := "1";  -- 0 for active LOW, 1 for active HIGH
-      USE_DSP48_G     : string                := "yes";
+      USE_DSP48_G     : string                := "no";
       CNT_ROLLOVER_G  : boolean               := false;-- Set to true to allow the counter roll over
-      CNT_WIDTH_G     : natural range 1 to 48 := 48;
-      WIDTH_G         : integer               := 2);
+      CNT_WIDTH_G     : natural range 1 to 48 := 16;
+      WIDTH_G         : integer               := 16);
    port (
       clk     : in  sl;                              -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;        -- Optional reset
