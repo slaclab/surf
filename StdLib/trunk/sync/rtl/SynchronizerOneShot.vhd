@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-02-06
--- Last update: 2014-04-04
+-- Last update: 2014-04-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,20 +21,20 @@ use work.StdRtlPkg.all;
 
 entity SynchronizerOneShot is
    generic (
-      TPD_G           : time     := 1 ns;     -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';      -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean  := false;    -- Reset is asynchronous
-      RELEASE_DELAY_G : positive := 3;        -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : sl       := '1';      -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  : sl       := '1');     -- 0 for active LOW, 1 for active HIGH
+      TPD_G           : time     := 1 ns;    -- Simulation FF output delay
+      RST_POLARITY_G  : sl       := '1';     -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean  := false;   -- Reset is asynchronous
+      RELEASE_DELAY_G : positive := 3;       -- Delay between deassertion of async and sync resets
+      IN_POLARITY_G   : sl       := '1';     -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G  : sl       := '1');    -- 0 for active LOW, 1 for active HIGH
    port (
-      clk     : in  sl;                      -- clock to be SYNC'd to
+      clk     : in  sl;                      -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;-- Optional reset
-      dataIn  : in  sl;                      -- trigger to be sync'd
+      dataIn  : in  sl;                      -- Trigger to be sync'd
       dataOut : out sl);                     -- synced one-shot pulse
 end SynchronizerOneShot;
 
-architecture mapping of SynchronizerOneShot is
+architecture rtl of SynchronizerOneShot is
    
    type RegType is record
       syncRstDly : sl;
@@ -91,7 +91,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
       -- Async Reset
@@ -100,4 +100,4 @@ begin
       end if;
    end process seq;
 
-end architecture mapping;
+end architecture rtl;
