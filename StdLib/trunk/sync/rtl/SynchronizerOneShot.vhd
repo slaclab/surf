@@ -21,17 +21,18 @@ use work.StdRtlPkg.all;
 
 entity SynchronizerOneShot is
    generic (
-      TPD_G           : time     := 1 ns;    -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';     -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean  := false;   -- Reset is asynchronous
-      RELEASE_DELAY_G : positive := 3;       -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : sl       := '1';     -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  : sl       := '1');    -- 0 for active LOW, 1 for active HIGH
+      TPD_G             : time     := 1 ns;   -- Simulation FF output delay
+      RST_POLARITY_G    : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean  := false;  -- Reset is asynchronous
+      BYPASS_RST_SYNC_G : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
+      RELEASE_DELAY_G   : positive := 3;      -- Delay between deassertion of async and sync resets
+      IN_POLARITY_G     : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G    : sl       := '1');   -- 0 for active LOW, 1 for active HIGH
    port (
-      clk     : in  sl;                      -- Clock to be SYNC'd to
-      rst     : in  sl := not RST_POLARITY_G;-- Optional reset
-      dataIn  : in  sl;                      -- Trigger to be sync'd
-      dataOut : out sl);                     -- synced one-shot pulse
+      clk     : in  sl;                 -- Clock to be SYNC'd to
+      rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
+      dataIn  : in  sl;                 -- Trigger to be sync'd
+      dataOut : out sl);                -- synced one-shot pulse
 end SynchronizerOneShot;
 
 architecture rtl of SynchronizerOneShot is
@@ -49,15 +50,25 @@ architecture rtl of SynchronizerOneShot is
    
 begin
 
-   RstSync_Inst : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         RELEASE_DELAY_G => RELEASE_DELAY_G,
-         IN_POLARITY_G   => IN_POLARITY_G)   
-      port map (
-         clk      => clk,
-         asyncRst => dataIn,
-         syncRst  => syncRst); 
+   GEN_ASYNC : if (BYPASS_RST_SYNC_G = false) generate
+
+      RstSync_Inst : entity work.RstSync
+         generic map (
+            TPD_G           => TPD_G,
+            RELEASE_DELAY_G => RELEASE_DELAY_G,
+            IN_POLARITY_G   => IN_POLARITY_G)   
+         port map (
+            clk      => clk,
+            asyncRst => dataIn,
+            syncRst  => syncRst); 
+
+   end generate;
+
+   GEN_SYNC : if (BYPASS_RST_SYNC_G = true) generate
+
+      syncRst <= dataIn;
+      
+   end generate;
 
    comb : process (r, rst, syncRst) is
       variable v : RegType;

@@ -5,5 +5,6 @@ vhdl work rtl/SynchronizerOneShot.vhd
 vhdl work rtl/SynchronizerOneShotCnt.vhd
 vhdl work rtl/SynchronizerOneShotVector.vhd
 vhdl work rtl/SynchronizerOneShotCntVector.vhd
+vhdl work rtl/SyncStatusVector.vhd
 vhdl work rtl/SynchronizerVector.vhd
 vhdl work rtl/RstSync.vhd
