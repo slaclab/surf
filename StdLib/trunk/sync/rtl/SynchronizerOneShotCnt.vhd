@@ -23,21 +23,22 @@ use work.StdRtlPkg.all;
 
 entity SynchronizerOneShotCnt is
    generic (
-      TPD_G           : time                  := 1 ns; -- Simulation FF output delay
-      RST_POLARITY_G  : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean               := false;-- Reset is asynchronous
-      RELEASE_DELAY_G : positive              := 3;    -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
-      USE_DSP48_G     : string                := "no";
-      CNT_ROLLOVER_G  : boolean               := false;-- Set to true to allow the counter roll over
-      CNT_WIDTH_G     : natural range 1 to 48 := 16);
+      TPD_G             : time                  := 1 ns;   -- Simulation FF output delay
+      RST_POLARITY_G    : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean               := false;  -- Reset is asynchronous
+      BYPASS_RST_SYNC_G : boolean               := false;  -- Bypass RstSync module for synchronous data configuration
+      RELEASE_DELAY_G   : positive              := 3;  -- Delay between deassertion of async and sync resets
+      IN_POLARITY_G     : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G    : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
+      USE_DSP48_G       : string                := "no";
+      CNT_WIDTH_G       : natural range 1 to 48 := 16);
    port (
-      clk     : in  sl;                            -- clock to be SYNC'd to
-      rst     : in  sl := not RST_POLARITY_G;      -- Optional reset
-      dataIn  : in  sl;                            -- trigger to be sync'd
-      dataOut : out sl;                            -- synced one-shot pulse
-      cntOut  : out slv(CNT_WIDTH_G-1 downto 0));  -- synced counter
+      clk      : in  sl;                -- clock to be SYNC'd to
+      rst      : in  sl := not RST_POLARITY_G;         -- Optional reset
+      dataIn   : in  sl;                -- trigger to be sync'd
+      rollOver : in  sl;                -- '1' allows roll over of the counter
+      dataOut  : out sl;                -- synced one-shot pulse
+      cntOut   : out slv(CNT_WIDTH_G-1 downto 0));     -- synced counter
 begin
    -- USE_DSP48_G check
    assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
@@ -68,19 +69,20 @@ begin
 
    SyncOneShot_Inst : entity work.SynchronizerOneShot
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         RELEASE_DELAY_G => RELEASE_DELAY_G,
-         IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => OUT_POLARITY_G)      
+         TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
+         RST_ASYNC_G       => RST_ASYNC_G,
+         BYPASS_RST_SYNC_G => BYPASS_RST_SYNC_G,
+         RELEASE_DELAY_G   => RELEASE_DELAY_G,
+         IN_POLARITY_G     => IN_POLARITY_G,
+         OUT_POLARITY_G    => OUT_POLARITY_G)      
       port map (
          clk     => clk,
          rst     => rst,
          dataIn  => dataIn,
          dataOut => syncRst); 
 
-   comb : process (r, rst, syncRst) is
+   comb : process (r, rollOver, rst, syncRst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -94,7 +96,7 @@ begin
          -- Propagate the one-shot signal
          v.dataOut := OUT_POLARITY_G;
          -- Check for counter roll over
-         if CNT_ROLLOVER_G or (r.cntOut /= MAX_CNT_C) then
+         if (rollOver = '1') or (r.cntOut /= MAX_CNT_C) then
             -- Increment the counter
             v.cntOut := r.cntOut + 1;
          end if;
