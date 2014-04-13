@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-11
+-- Last update: 2014-04-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ entity SynchronizerOneShotCntVector is
       IN_POLARITY_G     : slv                   := "1";  -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G    : slv                   := "1";  -- 0 for active LOW, 1 for active HIGH
       USE_DSP48_G       : string                := "no";
+      SYNTH_CNT_G       : slv                   := "1";  -- Set to 1 for synthesising counter RTL
       CNT_WIDTH_G       : natural range 1 to 48 := 16;
       WIDTH_G           : integer               := 16);
    port (
@@ -42,11 +43,11 @@ end SynchronizerOneShotCntVector;
 
 architecture mapping of SynchronizerOneShotCntVector is
 
-   type PolarityVectorArray is array (WIDTH_G-1 downto 0) of sl;
+   type MyVectorArray is array (WIDTH_G-1 downto 0) of sl;
 
    function FillVectorArray (INPUT : slv)
-      return PolarityVectorArray is
-      variable retVar : PolarityVectorArray := (others => '1');
+      return MyVectorArray is
+      variable retVar : MyVectorArray := (others => '1');
    begin
       if INPUT = "1" then
          retVar := (others => '1');
@@ -58,8 +59,9 @@ architecture mapping of SynchronizerOneShotCntVector is
       return retVar;
    end function FillVectorArray;
 
-   constant IN_POLARITY_C  : PolarityVectorArray := FillVectorArray(IN_POLARITY_G);
-   constant OUT_POLARITY_C : PolarityVectorArray := FillVectorArray(OUT_POLARITY_G);
+   constant IN_POLARITY_C  : MyVectorArray := FillVectorArray(IN_POLARITY_G);
+   constant OUT_POLARITY_C : MyVectorArray := FillVectorArray(OUT_POLARITY_G);
+   constant SYNTH_CNT_C    : MyVectorArray := FillVectorArray(SYNTH_CNT_G);
 
    type MySlvArray is array (WIDTH_G-1 downto 0) of slv(CNT_WIDTH_G-1 downto 0);
    signal cnt : MySlvArray;
@@ -79,6 +81,7 @@ begin
             IN_POLARITY_G     => IN_POLARITY_C(i),
             OUT_POLARITY_G    => OUT_POLARITY_C(i),
             USE_DSP48_G       => USE_DSP48_G,
+            SYNTH_CNT_G       => SYNTH_CNT_C(i),
             CNT_WIDTH_G       => CNT_WIDTH_G)      
          port map (
             clk      => clk,
