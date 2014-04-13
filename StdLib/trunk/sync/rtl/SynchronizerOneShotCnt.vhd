@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-11
+-- Last update: 2014-04-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ entity SynchronizerOneShotCnt is
       IN_POLARITY_G     : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G    : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
       USE_DSP48_G       : string                := "no";
+      SYNTH_CNT_G       : sl                    := '1';  -- Set to 1 for synthesising counter RTL
       CNT_WIDTH_G       : natural range 1 to 48 := 16);
    port (
       clk      : in  sl;                -- clock to be SYNC'd to
@@ -82,49 +83,60 @@ begin
          dataIn  => dataIn,
          dataOut => syncRst); 
 
-   comb : process (r, rollOver, rst, syncRst) is
-      variable v : RegType;
-   begin
-      -- Latch the current value
-      v := r;
-
-      -- Reset strobe signals
-      v.dataOut := not OUT_POLARITY_G;
-
-      -- Check for a one-shot signal
-      if syncRst = OUT_POLARITY_G then
-         -- Propagate the one-shot signal
-         v.dataOut := OUT_POLARITY_G;
-         -- Check for counter roll over
-         if (rollOver = '1') or (r.cntOut /= MAX_CNT_C) then
-            -- Increment the counter
-            v.cntOut := r.cntOut + 1;
-         end if;
-      end if;
-
-      -- Sync Reset
-      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-      -- Outputs
-      dataOut <= r.dataOut;
-      cntOut  <= r.cntOut;
+   BYPASS_CNT : if (SYNTH_CNT_G = '0') generate
       
-   end process comb;
+      dataOut <= syncRst;
+      cntOut  <= (others => '0');
+      
+   end generate;
 
-   seq : process (clk, rst) is
-   begin
-      if rising_edge(clk) then
-         r <= rin after TPD_G;
-      end if;
-      -- Async Reset
-      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-         r <= REG_INIT_C after TPD_G;
-      end if;
-   end process seq;
+   GEN_CNT : if (SYNTH_CNT_G = '1') generate
+
+      comb : process (r, rollOver, rst, syncRst) is
+         variable v : RegType;
+      begin
+         -- Latch the current value
+         v := r;
+
+         -- Reset strobe signals
+         v.dataOut := not OUT_POLARITY_G;
+
+         -- Check for a one-shot signal
+         if syncRst = OUT_POLARITY_G then
+            -- Propagate the one-shot signal
+            v.dataOut := OUT_POLARITY_G;
+            -- Check for counter roll over
+            if (rollOver = '1') or (r.cntOut /= MAX_CNT_C) then
+               -- Increment the counter
+               v.cntOut := r.cntOut + 1;
+            end if;
+         end if;
+
+         -- Sync Reset
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+            v := REG_INIT_C;
+         end if;
+
+         -- Register the variable for next clock cycle
+         rin <= v;
+
+         -- Outputs
+         dataOut <= r.dataOut;
+         cntOut  <= r.cntOut;
+         
+      end process comb;
+
+      seq : process (clk, rst) is
+      begin
+         if rising_edge(clk) then
+            r <= rin after TPD_G;
+         end if;
+         -- Async Reset
+         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+            r <= REG_INIT_C after TPD_G;
+         end if;
+      end process seq;
+      
+   end generate;
    
 end architecture rtl;

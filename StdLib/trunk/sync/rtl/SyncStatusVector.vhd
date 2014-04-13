@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-11
+-- Last update: 2014-04-12
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ entity SyncStatusVector is
       IN_POLARITY_G   : slv                   := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
       USE_DSP48_G     : string                := "no";
+      SYNTH_CNT_G     : slv                   := "1";  -- Set to 1 for synthesising counter RTL
       CNT_WIDTH_G     : natural range 1 to 48 := 32;
       WIDTH_G         : integer               := 16);
    port (
@@ -38,11 +39,11 @@ entity SyncStatusVector is
       statusOut      : out slv(WIDTH_G-1 downto 0);-- Synced data
       -- Status Bit Counters Signals (rdClk domain)      
       rollOverMaskIn : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default
-      raddrIn        : in  slv(bitSize(WIDTH_G)-1 downto 0):= (others => '0');
+      raddrIn        : in  slv(bitSize(WIDTH_G)-1 downto 0) := (others => '0');
       muxOut         : out slv(CNT_WIDTH_G-1 downto 0);-- mux'd counter data with respect to raddrIn
       cntOut         : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);
       -- Interrupt Signals (rdClk domain)         
-      irqMaskIn      : in  slv(WIDTH_G-1 downto 0) := (others => '0');-- All bits disabled by default
+      irqMaskIn      : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- All bits disabled by default
       irqOut         : out sl;
       -- Clocks and Reset Ports
       wrClk          : in  sl;
