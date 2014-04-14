@@ -865,7 +865,7 @@ package body StdRtlPkg is
    -- New Non-recursive onesCount Function
    function onesCount (vec : slv)
       return unsigned is
-      variable retVar : unsigned(vec'range) := (others => '0');   
+      variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
    begin
       for i in vec'range loop
          if vec(i) = '1' then
@@ -910,11 +910,13 @@ package body StdRtlPkg is
       -- return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
    -- end function;  
 
-   -- SLV variant
+   -- SLV variant   
    function onesCount (vec : slv)
       return slv is
+      variable retVar : slv((bitSize(vec'length)-1) downto 0);      
    begin
-      return slv(onesCount(vec));
+      retVar := slv(onesCount(vec));
+      return retVar;
    end function;   
 
    -----------------------------------------------------------------------------
