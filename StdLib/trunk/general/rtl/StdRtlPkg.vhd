@@ -23,20 +23,22 @@ package StdRtlPkg is
    subtype slv is std_logic_vector;
 
    -- Declare arrays of built in types
-   type SlvArray     is array (natural range <>) of slv;   
-   type IntegerArray is array (natural range <>) of integer;
-   type NaturalArray is array (natural range <>) of natural;
-   type RealArray    is array (natural range <>) of real;
-   type TimeArray    is array (natural range <>) of time;
-   type BooleanArray is array (natural range <>) of boolean;
+   --type SlvArray     is array (natural range <>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
+   type IntegerArray  is array (natural range <>) of integer;
+   type NaturalArray  is array (natural range <>) of natural;
+   type PositiveArray is array (natural range <>) of positive;
+   type RealArray     is array (natural range <>) of real;
+   type TimeArray     is array (natural range <>) of time;
+   type BooleanArray  is array (natural range <>) of boolean;
    
    -- Declare vector arrays of built in types
-   type SlvVectorArray     is array (natural range<>, natural range<>) of slv;   
-   type IntegerVectorArray is array (natural range<>, natural range<>) of integer;
-   type NaturalVectorArray is array (natural range<>, natural range<>) of natural;
-   type RealVectorArray    is array (natural range<>, natural range<>) of real;
-   type TimeVectorArray    is array (natural range<>, natural range<>) of time;
-   type BooleanVectorArray is array (natural range<>, natural range<>) of boolean;   
+   --type SlvVectorArray     is array (natural range<>, natural range<>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
+   type IntegerVectorArray  is array (natural range<>, natural range<>) of integer;
+   type NaturalVectorArray  is array (natural range<>, natural range<>) of natural;
+   type PositiveVectorArray is array (natural range<>, natural range<>) of positive;
+   type RealVectorArray     is array (natural range<>, natural range<>) of real;
+   type TimeVectorArray     is array (natural range<>, natural range<>) of time;
+   type BooleanVectorArray  is array (natural range<>, natural range<>) of boolean;   
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
@@ -860,39 +862,53 @@ package body StdRtlPkg is
    -----------------------------------------------------------------------------
    -- Functions for counting the number of '1' in a slv bus
    -----------------------------------------------------------------------------
-   function onesCount (vec : slv) return unsigned is
-      variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
-      variable bottomVar : slv(topVar'low-1 downto vec'low);
-      variable tmpVar    : slv(2 downto 0);
+   -- New Non-recursive onesCount Function
+   function onesCount (vec : slv)
+      return unsigned is
+      variable retVar : unsigned(vec'range) := (others => '0');   
    begin
-      if (vec'length = 1) then
-         return '0' & unsigned(vec);
-      end if;
+      for i in vec'range loop
+         if vec(i) = '1' then
+            retVar := retVar + 1;
+         end if;
+      end loop;
+      return retVar;
+   end function;     
+   
+   -- -- Old Recursive onesCount Function
+   -- function onesCount (vec : slv) return unsigned is
+      -- variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
+      -- variable bottomVar : slv(topVar'low-1 downto vec'low);
+      -- variable tmpVar    : slv(2 downto 0);
+   -- begin
+      -- if (vec'length = 1) then
+         -- return '0' & unsigned(vec);
+      -- end if;
 
-      if (vec'length = 2) then
-         return uAnd(vec) & uXor(vec);
-      end if;
+      -- if (vec'length = 2) then
+         -- return uAnd(vec) & uXor(vec);
+      -- end if;
 
-      if (vec'length = 3) then
-         tmpVar := vec;
-         case tmpVar is
-            when "000"  => return "00";
-            when "001"  => return "01";
-            when "010"  => return "01";
-            when "011"  => return "10";
-            when "100"  => return "01";
-            when "101"  => return "10";
-            when "110"  => return "10";
-            when "111"  => return "11";
-            when others => return "00";
-         end case;
-      end if;
+      -- if (vec'length = 3) then
+         -- tmpVar := vec;
+         -- case tmpVar is
+            -- when "000"  => return "00";
+            -- when "001"  => return "01";
+            -- when "010"  => return "01";
+            -- when "011"  => return "10";
+            -- when "100"  => return "01";
+            -- when "101"  => return "10";
+            -- when "110"  => return "10";
+            -- when "111"  => return "11";
+            -- when others => return "00";
+         -- end case;
+      -- end if;
 
-      topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
-      bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
+      -- topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
+      -- bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
 
-      return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
-   end function;  
+      -- return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
+   -- end function;  
 
    -- SLV variant
    function onesCount (vec : slv)
