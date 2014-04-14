@@ -914,8 +914,10 @@ package body StdRtlPkg is
    function onesCount (vec : slv)
       return slv is
       variable retVar : slv((bitSize(vec'length)-1) downto 0);      
+      variable cntVar : unsigned((bitSize(vec'length)-1) downto 0);
    begin
-      retVar := slv(onesCount(vec));
+      cntVar := onesCount(vec);
+      retVar := slv(cntVar);
       return retVar;
    end function;   
 
