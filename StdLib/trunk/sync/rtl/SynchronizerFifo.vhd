@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-04-11
+-- Last update: 2014-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,15 +25,15 @@ use work.StdRtlPkg.all;
 
 entity SynchronizerFifo is
    generic (
-      TPD_G               : time                       := 1 ns;
-      BYPASS_FIFO_ASYNC_G : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
-      BRAM_EN_G           : boolean                    := false;
-      ALTERA_SYN_G        : boolean                    := false;
-      ALTERA_RAM_G        : string                     := "M9K";
-      SYNC_STAGES_G       : integer range 3 to (2**24) := 3;
-      DATA_WIDTH_G        : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G        : integer range 2 to 48      := 4;
-      INIT_G              : slv                        := "0");
+      TPD_G         : time                       := 1 ns;
+      COMMON_CLK_G  : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
+      BRAM_EN_G     : boolean                    := false;
+      ALTERA_SYN_G  : boolean                    := false;
+      ALTERA_RAM_G  : string                     := "M9K";
+      SYNC_STAGES_G : integer range 3 to (2**24) := 3;
+      DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G  : integer range 2 to 48      := 4;
+      INIT_G        : slv                        := "0");
    port (
       -- Asynchronous Reset
       rst    : in  sl := '0';
@@ -61,7 +61,7 @@ architecture rtl of SynchronizerFifo is
 
 begin
 
-   GEN_ASYNC : if (BYPASS_FIFO_ASYNC_G = false) generate
+   GEN_ASYNC : if (COMMON_CLK_G = false) generate
 
       FifoAsync_1 : entity work.FifoAsync
          generic map (
@@ -97,7 +97,7 @@ begin
 
    end generate;
 
-   GEN_SYNC : if (BYPASS_FIFO_ASYNC_G = true) generate
+   GEN_SYNC : if (COMMON_CLK_G = true) generate
 
       dout  <= din;
       valid <= '1';

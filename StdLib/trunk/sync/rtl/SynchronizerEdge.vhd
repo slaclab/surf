@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2014-02-06
+-- Last update: 2014-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,9 +22,10 @@ use work.StdRtlPkg.all;
 entity SynchronizerEdge is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
-      RST_ASYNC_G    : boolean  := false;-- Reset is asynchronous
+      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      OUT_POLARITY_G : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
+      RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
+      BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration      
       STAGES_G       : positive := 3;
       INIT_G         : slv      := "0");
    port (
@@ -42,8 +43,22 @@ architecture rtl of SynchronizerEdge is
 
    constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G = "0", slvZero(STAGES_G), INIT_G);
 
-   signal syncData,
-      dataDly : sl;
+   type RegType is record
+      syncData    : sl;
+      syncDataDly : sl;
+      dataOut     : sl;
+      risingEdge  : sl;
+      fallingEdge : sl;
+   end record RegType;
+   constant REG_INIT_C : RegType := (
+      '0',
+      '0',
+      (not OUT_POLARITY_G),
+      (not OUT_POLARITY_G),
+      (not OUT_POLARITY_G));
+   signal r        : RegType := REG_INIT_C;
+   signal rin      : RegType;
+   signal syncData : sl;
    
 begin
 
@@ -51,31 +66,73 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         OUT_POLARITY_G => OUT_POLARITY_G,
+         OUT_POLARITY_G => '1',
          RST_ASYNC_G    => RST_ASYNC_G,
          STAGES_G       => (STAGES_G-1),
+         BYPASS_SYNC_G  => BYPASS_SYNC_G,
          INIT_G         => INIT_C(STAGES_G-2 downto 0))      
-   port map (
-      clk     => clk,
-      rst     => rst,
-      dataIn  => dataIn,
-      dataOut => syncData); 
+      port map (
+         clk     => clk,
+         rst     => rst,
+         dataIn  => dataIn,
+         dataOut => syncData); 
 
-   process(clk, rst)
+   comb : process (r, rst, syncData) is
+      variable v : RegType;
    begin
-      if (RST_ASYNC_G = true) and (rst = RST_POLARITY_G) then
-         dataDly <= INIT_C(STAGES_G-1) after TPD_G;
-      elsif rising_edge(clk) then
-         if (RST_ASYNC_G = false) and (rst = RST_POLARITY_G) then
-            dataDly <= INIT_C(STAGES_G-1) after TPD_G;
-         else
-            dataDly <= syncData after TPD_G;
-         end if;
-      end if;
-   end process;
+      -- Latch the current value
+      v := r;
 
-   dataOut     <= dataDly;
-   risingEdge  <= syncData and not(dataDly);
-   fallingEdge <= not(syncData) and dataDly;
+      -- Reset strobe signals
+      v.risingEdge  := not OUT_POLARITY_G;
+      v.fallingEdge := not OUT_POLARITY_G;
+
+      -- Keep a record of the last syncData
+      v.syncDataDly := syncData;
+
+      -- Set the polarity of the output
+      if (OUT_POLARITY_G = '1') then
+         v.dataOut := syncData;
+      else
+         v.dataOut := not(syncData);
+      end if;
+
+      -- Check for a rising edge of the syncData
+      if (syncData = '1') and (r.syncDataDly = '0') then
+         v.risingEdge := OUT_POLARITY_G;
+      end if;
+
+      -- Check for a rising edge of the syncData
+      if (syncData = '0') and (r.syncDataDly = '1') then
+         v.fallingEdge := OUT_POLARITY_G;
+      end if;
+
+      -- Sync Reset
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v             := REG_INIT_C;
+         v.syncDataDly := syncData;     -- prevent accidental edge detection
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs
+      dataOut     <= r.dataOut;
+      risingEdge  <= r.risingEdge;
+      fallingEdge <= r.fallingEdge;
+      
+   end process comb;
+
+   seq : process (clk, rst, syncData) is
+   begin
+      if rising_edge(clk) then
+         r <= rin after TPD_G;
+      end if;
+      -- Async Reset
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r             <= REG_INIT_C after TPD_G;
+         r.syncDataDly <= syncData   after TPD_G;  -- prevent accidental edge detection
+      end if;
+   end process seq;
    
 end architecture rtl;

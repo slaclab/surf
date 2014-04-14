@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-12
+-- Last update: 2014-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,28 +23,32 @@ use work.StdRtlPkg.all;
 
 entity SynchronizerOneShotCnt is
    generic (
-      TPD_G             : time                  := 1 ns;   -- Simulation FF output delay
-      RST_POLARITY_G    : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G       : boolean               := false;  -- Reset is asynchronous
-      BYPASS_RST_SYNC_G : boolean               := false;  -- Bypass RstSync module for synchronous data configuration
-      RELEASE_DELAY_G   : positive              := 3;  -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G     : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G    : sl                    := '1';  -- 0 for active LOW, 1 for active HIGH
-      USE_DSP48_G       : string                := "no";
-      SYNTH_CNT_G       : sl                    := '1';  -- Set to 1 for synthesising counter RTL
-      CNT_WIDTH_G       : natural range 1 to 48 := 16);
+      TPD_G           : time     := 1 ns; -- Simulation FF output delay
+      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean  := false;-- true if reset is asynchronous, false if reset is synchronous
+      COMMON_CLK_G    : boolean  := false;-- True if wrClk and rdClk are the same clock
+      RELEASE_DELAY_G : positive := 3;    -- Delay between deassertion of async and sync resets
+      IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataIn port)
+      OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataOut port)
+      USE_DSP48_G     : string   := "no"; -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      SYNTH_CNT_G     : sl       := '1';  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      CNT_RST_EDGE_G  : boolean  := true; -- true if counter reset should be edge detected, else level detected
+      CNT_WIDTH_G     : positive := 16);
    port (
-      clk      : in  sl;                -- clock to be SYNC'd to
-      rst      : in  sl := not RST_POLARITY_G;         -- Optional reset
-      dataIn   : in  sl;                -- trigger to be sync'd
-      rollOver : in  sl;                -- '1' allows roll over of the counter
-      dataOut  : out sl;                -- synced one-shot pulse
-      cntOut   : out slv(CNT_WIDTH_G-1 downto 0));     -- synced counter
+      -- Write Ports (wrClk domain)    
+      dataIn     : in  sl;                         -- trigger to be sync'd
+      -- Read Ports (rdClk domain)    
+      rollOverEn : in  sl;                         -- '1' allows roll over of the counter
+      cntRst     : in  sl := not RST_POLARITY_G;   -- Optional counter reset
+      dataOut    : out sl;                         -- synced one-shot pulse
+      cntOut     : out slv(CNT_WIDTH_G-1 downto 0);-- synced counter
+      -- Clocks and Reset Ports
+      wrClk      : in  sl;
+      wrRst      : in  sl := not RST_POLARITY_G;
+      rdClk      : in  sl;                         -- clock to be SYNC'd to
+      rdRst      : in  sl := not RST_POLARITY_G);   
 begin
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
+
 end SynchronizerOneShotCnt;
 
 architecture rtl of SynchronizerOneShotCnt is
@@ -52,15 +56,18 @@ architecture rtl of SynchronizerOneShotCnt is
    constant MAX_CNT_C : slv(CNT_WIDTH_G-1 downto 0) := (others => '1');
 
    type RegType is record
-      dataOut : sl;
-      cntOut  : slv(CNT_WIDTH_G-1 downto 0);
+      dataInDly : sl;
+      cntOut    : slv(CNT_WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      (not OUT_POLARITY_G),
+      not(IN_POLARITY_G),
       (others => '0'));
-   signal r       : RegType := REG_INIT_C;
-   signal rin     : RegType;
-   signal syncRst : sl;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+   signal syncRst,
+      cntRstSync,
+      rollOverEnSync : sl;
+   signal cntOutSync : slv(CNT_WIDTH_G-1 downto 0);
 
    -- Attribute for XST
    attribute use_dsp48      : string;
@@ -68,75 +75,158 @@ architecture rtl of SynchronizerOneShotCnt is
    
 begin
 
-   SyncOneShot_Inst : entity work.SynchronizerOneShot
+   SyncOneShot_0 : entity work.SynchronizerOneShot
       generic map (
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
-         BYPASS_RST_SYNC_G => BYPASS_RST_SYNC_G,
+         BYPASS_SYNC_G     => COMMON_CLK_G,
          RELEASE_DELAY_G   => RELEASE_DELAY_G,
          IN_POLARITY_G     => IN_POLARITY_G,
          OUT_POLARITY_G    => OUT_POLARITY_G)      
       port map (
-         clk     => clk,
-         rst     => rst,
+         clk     => rdClk,
+         rst     => rdRst,
          dataIn  => dataIn,
-         dataOut => syncRst); 
+         dataOut => dataOut);
+
+   CNT_RST_EDGE : if (CNT_RST_EDGE_G = true) generate
+      
+      SyncOneShot_1 : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G             => TPD_G,
+            RST_POLARITY_G    => RST_POLARITY_G,
+            RST_ASYNC_G       => RST_ASYNC_G,
+            BYPASS_SYNC_G     => COMMON_CLK_G,
+            RELEASE_DELAY_G   => RELEASE_DELAY_G,
+            IN_POLARITY_G     => RST_POLARITY_G,
+            OUT_POLARITY_G    => RST_POLARITY_G)      
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => cntRst,
+            dataOut => cntRstSync);
+
+   end generate;
+
+   CNT_RST_LEVEL : if (CNT_RST_EDGE_G = false) generate
+      
+      Synchronizer_0 : entity work.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G,
+            STAGES_G       => (RELEASE_DELAY_G-1))      
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => cntRst,
+            dataOut => cntRstSync);       
+
+   end generate;
+
+   Synchronizer_1 : entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_CLK_G,         
+         STAGES_G       => (RELEASE_DELAY_G-1))      
+      port map (
+         clk     => wrClk,
+         rst     => wrRst,
+         dataIn  => rollOverEn,
+         dataOut => rollOverEnSync);   
 
    BYPASS_CNT : if (SYNTH_CNT_G = '0') generate
       
-      dataOut <= syncRst;
-      cntOut  <= (others => '0');
+      cntOut <= (others => '0');
       
    end generate;
 
    GEN_CNT : if (SYNTH_CNT_G = '1') generate
 
-      comb : process (r, rollOver, rst, syncRst) is
+      comb : process (cntRstSync, dataIn, r, rollOverEnSync, wrRst) is
          variable v : RegType;
       begin
          -- Latch the current value
          v := r;
 
-         -- Reset strobe signals
-         v.dataOut := not OUT_POLARITY_G;
+         -- Keep a record of the last syncData
+         v.dataInDly := dataIn;
 
-         -- Check for a one-shot signal
-         if syncRst = OUT_POLARITY_G then
-            -- Propagate the one-shot signal
-            v.dataOut := OUT_POLARITY_G;
-            -- Check for counter roll over
-            if (rollOver = '1') or (r.cntOut /= MAX_CNT_C) then
-               -- Increment the counter
-               v.cntOut := r.cntOut + 1;
+         -- Active HIGH logic
+         if IN_POLARITY_G = '1' then
+            -- Check for a rising edge
+            if (dataIn = '1') and (r.dataInDly = '0') then
+               -- Check for counter roll over
+               if (rollOverEnSync = '1') or (r.cntOut /= MAX_CNT_C) then
+                  -- Increment the counter
+                  v.cntOut := r.cntOut + 1;
+               end if;
+            end if;
+         -- Active LOW logic
+         else
+            -- Check for a falling edge
+            if (dataIn = '0') and (r.dataInDly = '1') then
+               -- Check for counter roll over
+               if (rollOverEnSync = '1') or (r.cntOut /= MAX_CNT_C) then
+                  -- Increment the counter
+                  v.cntOut := r.cntOut + 1;
+               end if;
             end if;
          end if;
 
+         -- Check for a counter reset
+         if cntRstSync = RST_POLARITY_G then
+            v.cntOut := (others => '0');
+         end if;
+
          -- Sync Reset
-         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-            v := REG_INIT_C;
+         if (RST_ASYNC_G = false and wrRst = RST_POLARITY_G) then
+            v.cntOut      := (others => '0');
+            v.dataInDly   := dataIn;  -- prevent accidental edge detection
          end if;
 
          -- Register the variable for next clock cycle
          rin <= v;
 
          -- Outputs
-         dataOut <= r.dataOut;
-         cntOut  <= r.cntOut;
+         cntOutSync <= r.cntOut;
          
       end process comb;
 
-      seq : process (clk, rst) is
+      seq : process (dataIn, wrClk, wrRst) is
       begin
-         if rising_edge(clk) then
+         if rising_edge(wrClk) then
             r <= rin after TPD_G;
          end if;
          -- Async Reset
-         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-            r <= REG_INIT_C after TPD_G;
+         if (RST_ASYNC_G and wrRst = RST_POLARITY_G) then
+            r           <= REG_INIT_C after TPD_G;
+            r.dataInDly <= dataIn     after TPD_G;  -- prevent accidental edge detection
          end if;
       end process seq;
-      
+
+      SyncFifo_Inst : entity work.SynchronizerFifo
+         generic map (
+            TPD_G         => TPD_G,
+            COMMON_CLK_G  => COMMON_CLK_G,
+            SYNC_STAGES_G => RELEASE_DELAY_G,
+            DATA_WIDTH_G  => CNT_WIDTH_G)
+         port map (
+            -- Asynchronous Reset
+            rst    => wrRst,
+            --Write Ports (wr_clk domain)
+            wr_clk => wrClk,
+            din    => cntOutSync,
+            --Read Ports (rd_clk domain)
+            rd_clk => rdClk,
+            dout   => cntOut);      
+
    end generate;
    
 end architecture rtl;
