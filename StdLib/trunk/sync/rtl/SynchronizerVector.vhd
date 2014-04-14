@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-02-06
+-- Last update: 2014-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,24 +22,25 @@ use work.StdRtlPkg.all;
 entity SynchronizerVector is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
-      RST_ASYNC_G    : boolean  := false;-- Reset is asynchronous
+      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      OUT_POLARITY_G : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
+      RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
       STAGES_G       : positive := 2;
+      BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration            
       WIDTH_G        : integer  := 16;
       INIT_G         : slv      := "0");
    port (
-      clk     : in  sl;                      -- clock to be SYNC'd to
-      rst     : in  sl := not RST_POLARITY_G;-- Optional reset
-      dataIn  : in  slv(WIDTH_G-1 downto 0); -- Data to be 'synced'
-      dataOut : out slv(WIDTH_G-1 downto 0));-- synced data
+      clk     : in  sl;                        -- clock to be SYNC'd to
+      rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
+      dataIn  : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
+      dataOut : out slv(WIDTH_G-1 downto 0));  -- synced data
 end SynchronizerVector;
 
 architecture rtl of SynchronizerVector is
 
    type InitVectorArray is array (WIDTH_G-1 downto 0) of slv(STAGES_G-1 downto 0);
-   
-   function FillVectorArray (INPUT : slv) 
+
+   function FillVectorArray (INPUT : slv)
       return InitVectorArray is
       variable retVar : InitVectorArray := (others => (others => '0'));
    begin
@@ -52,9 +53,9 @@ architecture rtl of SynchronizerVector is
             end loop;
          end loop;
       end if;
-      return retVar;         
+      return retVar;
    end function FillVectorArray;
-   
+
    constant INIT_C : InitVectorArray := FillVectorArray(INIT_G);
 
 begin
@@ -69,6 +70,7 @@ begin
             OUT_POLARITY_G => OUT_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             STAGES_G       => STAGES_G,
+            BYPASS_SYNC_G  => BYPASS_SYNC_G,
             INIT_G         => INIT_C(i))      
          port map (
             clk     => clk,

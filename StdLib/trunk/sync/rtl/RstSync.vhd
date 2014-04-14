@@ -22,6 +22,7 @@ entity RstSync is
       TPD_G           : time     := 1 ns;  -- Simulation FF output delay
       IN_POLARITY_G   : sl       := '1';   -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl       := '1';
+      BYPASS_SYNC_G   : boolean  := false; -- Bypass Synchronizer module for synchronous data configuration   
       RELEASE_DELAY_G : positive := 3);    -- Delay between deassertion of async and sync resets
    port (
       clk      : in  sl;
@@ -44,6 +45,7 @@ begin
          RST_POLARITY_G => IN_POLARITY_G,
          RST_ASYNC_G    => true,
          STAGES_G       => RELEASE_DELAY_G-1,
+         BYPASS_SYNC_G  => BYPASS_SYNC_G,
          INIT_G         => slvAll(RELEASE_DELAY_G-1, OUT_POLARITY_G))
       port map (
          clk     => clk,
