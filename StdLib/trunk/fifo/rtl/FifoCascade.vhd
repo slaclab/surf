@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-10
--- Last update: 2014-04-10
+-- Last update: 2014-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ use work.StdRtlPkg.all;
 entity FifoCascade is
    generic (
       TPD_G              : time                       := 1 ns;
-      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
-      LAST_STAGE_ASYNC_G : boolean                    := true;  -- If set to true, the last stage will be the ASYNC FIFO
-      RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;   -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;-- If set to true, the last stage will be the ASYNC FIFO
+      RST_POLARITY_G     : sl                         := '1'; -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
       BRAM_EN_G          : boolean                    := true;
@@ -33,8 +33,8 @@ entity FifoCascade is
       USE_DSP48_G        : string                     := "no";
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
-      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
+      USE_BUILT_IN_G     : boolean                    := false;    -- If set to true, this module is only Xilinx compatible only!!!
+      XIL_DEVICE_G       : string                     := "7SERIES";-- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G       : integer range 4 to 48      := 4;
@@ -68,18 +68,23 @@ entity FifoCascade is
 end FifoCascade;
 
 architecture mapping of FifoCascade is
-   
-   constant CASCADE_SIZE_C : integer := ite((CASCADE_SIZE_G = 1), 0, (CASCADE_SIZE_G-2));
+
+   constant GEN_SYNC_FIFO_FIRST_C : boolean := ite(LAST_STAGE_ASYNC_G, true, GEN_SYNC_FIFO_G);
+   constant GEN_SYNC_FIFO_LAST_C  : boolean := ite(LAST_STAGE_ASYNC_G, GEN_SYNC_FIFO_G, true);
+   constant CASCADE_SIZE_C        : integer := ite((CASCADE_SIZE_G = 1), 0, (CASCADE_SIZE_G-2));
 
    type FifoDataType is array (CASCADE_SIZE_C downto 0) of slv((DATA_WIDTH_G-1) downto 0);
 
+   signal cascadeClk : sl;
    signal readJump,
       validJump,
       AFullJump : slv(CASCADE_SIZE_C downto 0);
    signal dataJump : FifoDataType;
 
 begin
-   
+
+   cascadeClk <= wr_clk when(LAST_STAGE_ASYNC_G = true) else rd_clk;
+
    ONE_STAGE : if (CASCADE_SIZE_G = 1) generate
       
       Fifo_1xStage : entity work.Fifo
@@ -135,7 +140,7 @@ begin
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
-            GEN_SYNC_FIFO_G => ite(LAST_STAGE_ASYNC_G, true, GEN_SYNC_FIFO_G),
+            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_FIRST_C,
             BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => true,
             USE_DSP48_G     => USE_DSP48_G,
@@ -164,7 +169,7 @@ begin
             full          => full,
             not_full      => not_full,
             --Read Ports (rd_clk domain)
-            rd_clk        => ite(LAST_STAGE_ASYNC_G, wr_clk, rd_clk),
+            rd_clk        => cascadeClk,
             rd_en         => readJump(CASCADE_SIZE_G-2),
             dout          => dataJump(CASCADE_SIZE_G-2),
             valid         => validJump(CASCADE_SIZE_G-2));
@@ -198,12 +203,12 @@ begin
                   -- Resets
                   rst         => rst,
                   --Write Ports (wr_clk domain)
-                  wr_clk      => ite(LAST_STAGE_ASYNC_G, wr_clk, rd_clk),
+                  wr_clk      => cascadeClk,
                   wr_en       => readJump(i),
                   din         => dataJump(i),
                   almost_full => AFullJump(i),
                   --Read Ports (rd_clk domain)
-                  rd_clk      => ite(LAST_STAGE_ASYNC_G, wr_clk, rd_clk),
+                  rd_clk      => cascadeClk,
                   rd_en       => readJump(i-1),
                   dout        => dataJump(i-1),
                   valid       => validJump(i-1)); 
@@ -217,7 +222,7 @@ begin
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
-            GEN_SYNC_FIFO_G => ite(LAST_STAGE_ASYNC_G, GEN_SYNC_FIFO_G, true),
+            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_LAST_C,
             BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => FWFT_EN_G,
             USE_DSP48_G     => USE_DSP48_G,
@@ -235,7 +240,7 @@ begin
             -- Resets
             rst           => rst,
             --Write Ports (wr_clk domain)
-            wr_clk        => ite(LAST_STAGE_ASYNC_G, wr_clk, rd_clk),
+            wr_clk        => cascadeClk,
             wr_en         => readJump(0),
             din           => dataJump(0),
             almost_full   => AFullJump(0),
@@ -251,6 +256,5 @@ begin
             empty         => empty);                
 
    end generate;
-
    
 end architecture mapping;
