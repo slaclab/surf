@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-11-01
--- Last update: 2013-11-01
+-- Last update: 2014-03-10
 -- Platform   : ISE 14.6
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ begin
       generic map (
          -- Specifies the pre-programmed Device ID value to be used for simulation
          -- purposes
-         DEVICE_ID         => x"3651093",
+         DEVICE_ID         => x"03651093",
          -- Specifies the input and output data width to be used with the ICAPE2. 
          -- Possible values: (X8,X16 or X32).
          ICAP_WIDTH        => "X32",
