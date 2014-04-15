@@ -119,7 +119,7 @@ package StdRtlPkg is
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
    function getTimeRatio (T1, T2 : real) return natural;
-
+   
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
    type frequency is range 0 to 2147483647
@@ -649,7 +649,10 @@ package StdRtlPkg is
    type Slv2VectorArray is array (natural range<>, natural range<>) of slv(1 downto 0);
    type Slv1VectorArray is array (natural range<>, natural range<>) of slv(0 downto 0);
    type SlVectorArray is array (natural range<>, natural range<>) of sl;
-
+   
+   -- Demux a SlVectorArray into an SLV
+   function SlVectorArrayMux (vec : SlVectorArray; addr : natural) return slv; 
+   
 end StdRtlPkg;
 
 package body StdRtlPkg is
@@ -1145,5 +1148,23 @@ package body StdRtlPkg is
       return(1.0 sec / (f/Hz));
    end function;
    --pragma translate_on
+   
+   -----------------------------
+   -- Demux a SlVectorArray into an SLV
+   ----------------------------- 
+   function SlVectorArrayMux (vec : SlVectorArray; addr : natural)
+      return slv is
+      variable retVar : slv(vec'range(2)); 
+   begin
+      -- Check the limit of the address
+      if addr < vec'length(1) then
+         for i in vec'range(2) loop
+            retVar(i) := vec(addr, i);
+         end loop;
+      else
+         retVar := (others => '0');
+      end if;
+      return retVar;   
+   end function;       
    
 end package body StdRtlPkg;
