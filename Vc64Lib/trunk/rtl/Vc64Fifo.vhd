@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-09
+-- Last update: 2014-04-15
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ entity Vc64Fifo is
       RST_ASYNC_G        : boolean                    := false;
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset    
       -- Cascading FIFO Configurations
-      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;-- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
-      LAST_STAGE_ASYNC_G : boolean                    := true;-- if set to true, the last stage will be the ASYNC FIFO      
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;  -- if set to true, the last stage will be the ASYNC FIFO      
       -- RX Configurations
       EN_FRAME_FILTER_G  : boolean                    := true;
       -- TX Configurations
@@ -49,11 +49,16 @@ entity Vc64Fifo is
       GEN_SYNC_FIFO_G    : boolean                    := false;
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
+      FIFO_FIXED_THES_G  : boolean                    := true;
       FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 2**24);
+   -- Note: If FIFO_FIXED_THES_G = true, then the fixed FIFO_AFULL_THRES_G is used.
+   --       If FIFO_FIXED_THES_G = false, then the programmable threshold (vcRxThreshold) is used.      
    port (
       -- RX Frame Filter Status (vcRxClk domain) 
       vcRxDropWrite : out sl;
       vcRxTermFrame : out sl;
+      -- Programmable RX Flow Control (vcRxClk domain)
+      vcRxThreshold : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       -- Streaming RX Data Interface (vcRxClk domain) 
       vcRxData      : in  Vc64DataType;
       vcRxCtrl      : out Vc64CtrlType;
@@ -69,14 +74,16 @@ end Vc64Fifo;
 architecture mapping of Vc64Fifo is
 
    -- Set the maximum programmable FIFO almostFull threshold
-   constant MAX_PROG_C : integer := ((2**FIFO_ADDR_WIDTH_G)-6);
+   constant MAX_PROG_C     : integer                           := ((2**FIFO_ADDR_WIDTH_G)-6);
+   constant MAX_PROG_SLV_C : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := toSlv((MAX_PROG_C-1), FIFO_ADDR_WIDTH_G);  -- minus 1 for additional pipeline latency
 
    -- Limit the FIFO_AFULL_THRES_G generic
    constant AFULL_THRES_C : integer := ite((FIFO_AFULL_THRES_G < MAX_PROG_C), FIFO_AFULL_THRES_G, MAX_PROG_C);
 
    signal din  : slv(72 downto 0);
    signal dout : slv(71 downto 0);
-   signal almostFull,
+   signal rxReadyL,
+      almostFull,
       progFull,
       overflow,
       fifoRdEn,
@@ -84,6 +91,9 @@ architecture mapping of Vc64Fifo is
       txValid,
       ready : sl;
    
+   signal wrCnt       : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+   signal wrThreshold : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := MAX_PROG_SLV_C;
+
    signal rxCtrl,
       txCtrl : Vc64CtrlType;
    signal rxData,
@@ -112,46 +122,76 @@ begin
          vcRst         => vcRxRst);
 
    -- Map the RX flow control signals
-   rxCtrl.ready      <= not(almostFull);
-   rxCtrl.almostFull <= progFull;
+   rxCtrl.ready      <= not(rxReadyL);
+   rxCtrl.almostFull <= almostFull;
    rxCtrl.overflow   <= overflow;
+
+   FIXED_THRESHOLD : if (FIFO_FIXED_THES_G = true) generate
+      almostFull <= progFull;
+   end generate;
+
+   PROG_THRESHOLD : if (FIFO_FIXED_THES_G = false) generate
+      process(vcRxClk)
+      begin
+         if rising_edge(vcRxClk) then
+            if vcRxRst = '1' then
+               almostFull  <= '1'            after TPD_G;
+               wrThreshold <= MAX_PROG_SLV_C after TPD_G;
+            else
+               -- Check the threshold
+               if wrCnt < wrThreshold then
+                  almostFull <= rxReadyL after TPD_G;
+               else
+                  almostFull <= '1' after TPD_G;
+               end if;
+               -- Update the programmable threshold value
+               if vcRxThreshold < MAX_PROG_SLV_C then
+                  wrThreshold <= vcRxThreshold after TPD_G;
+               else
+                  wrThreshold <= MAX_PROG_SLV_C after TPD_G;
+               end if;
+            end if;
+         end if;
+      end process;
+   end generate;
 
    -- Convert the input data into a input SLV bus
    din <= toSlv(rxData);
 
    FifoCascade_Inst : entity work.FifoCascade
       generic map (
-         TPD_G           => TPD_G,
+         TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => LAST_STAGE_ASYNC_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-         BRAM_EN_G       => BRAM_EN_G,
-         FWFT_EN_G       => true,
-         ALTERA_SYN_G    => ALTERA_SYN_G,
-         ALTERA_RAM_G    => ALTERA_RAM_G,
-         USE_BUILT_IN_G  => USE_BUILT_IN_G,
-         XIL_DEVICE_G    => XIL_DEVICE_G,
-         SYNC_STAGES_G   => FIFO_SYNC_STAGES_G,
-         DATA_WIDTH_G    => 72,
-         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G,
-         FULL_THRES_G    => AFULL_THRES_C)
+         RST_ASYNC_G        => RST_ASYNC_G,
+         RST_POLARITY_G     => RST_POLARITY_G,
+         GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
+         BRAM_EN_G          => BRAM_EN_G,
+         FWFT_EN_G          => true,
+         ALTERA_SYN_G       => ALTERA_SYN_G,
+         ALTERA_RAM_G       => ALTERA_RAM_G,
+         USE_BUILT_IN_G     => USE_BUILT_IN_G,
+         XIL_DEVICE_G       => XIL_DEVICE_G,
+         SYNC_STAGES_G      => FIFO_SYNC_STAGES_G,
+         DATA_WIDTH_G       => 72,
+         ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
+         FULL_THRES_G       => AFULL_THRES_C)
       port map (
          -- Resets
-         rst         => vcRxRst,
+         rst           => vcRxRst,
          --Write Ports (wr_clk domain)
-         wr_clk      => vcRxClk,
-         wr_en       => din(72),
-         din         => din(71 downto 0),
-         almost_full => almostFull,
-         prog_full   => progFull,
-         overflow    => overflow,
+         wr_clk        => vcRxClk,
+         wr_en         => din(72),
+         din           => din(71 downto 0),
+         almost_full   => rxReadyL,
+         prog_full     => progFull,
+         overflow      => overflow,
+         wr_data_count => wrCnt,
          --Read Ports (rd_clk domain)
-         rd_clk      => vcTxClk,
-         rd_en       => fifoRdEn,
-         dout        => dout,
-         valid       => fifoValid);
+         rd_clk        => vcTxClk,
+         rd_en         => fifoRdEn,
+         dout          => dout,
+         valid         => fifoValid);
 
    -- Generate the ready signal 
    ready <= '1' when(IGNORE_TX_READY_G = true) else txCtrl.ready;
