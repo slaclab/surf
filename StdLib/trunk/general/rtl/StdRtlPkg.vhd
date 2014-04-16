@@ -651,7 +651,7 @@ package StdRtlPkg is
    type SlVectorArray is array (natural range<>, natural range<>) of sl;
    
    -- Demux a SlVectorArray into an SLV
-   function SlVectorArrayMux (vec : SlVectorArray; addr : natural) return slv; 
+   function SlVectorArrayMux (vec : SlVectorArray; addr : natural; checkRange : boolean := false) return slv; 
    
 end StdRtlPkg;
 
@@ -1152,12 +1152,14 @@ package body StdRtlPkg is
    -----------------------------
    -- Demux a SlVectorArray into an SLV
    ----------------------------- 
-   function SlVectorArrayMux (vec : SlVectorArray; addr : natural)
+   function SlVectorArrayMux (vec : SlVectorArray; 
+      addr : natural;
+      checkRange : boolean := false)
       return slv is
       variable retVar : slv(vec'range(2)); 
    begin
       -- Check the limit of the address
-      if addr < vec'length(1) then
+      if (addr < vec'length(1)) or (checkRange = false) then
          for i in vec'range(2) loop
             retVar(i) := vec(addr, i);
          end loop;
