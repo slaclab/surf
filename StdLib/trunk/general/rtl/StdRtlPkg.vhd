@@ -650,8 +650,8 @@ package StdRtlPkg is
    type Slv1VectorArray is array (natural range<>, natural range<>) of slv(0 downto 0);
    type SlVectorArray is array (natural range<>, natural range<>) of sl;
    
-   -- Demux a SlVectorArray into an SLV
-   function SlVectorArrayMux (vec : SlVectorArray; addr : natural; checkRange : boolean := false) return slv; 
+   -- Mux a SlVectorArray into an SLV
+   function muxSlVectorArray (vec : SlVectorArray; addr : natural; checkRange : boolean := false) return slv; 
    
 end StdRtlPkg;
 
@@ -1150,9 +1150,9 @@ package body StdRtlPkg is
    --pragma translate_on
    
    -----------------------------
-   -- Demux a SlVectorArray into an SLV
+   -- Mux a SlVectorArray into an SLV
    ----------------------------- 
-   function SlVectorArrayMux (vec : SlVectorArray; 
+   function muxSlVectorArray (vec : SlVectorArray; 
       addr : natural;
       checkRange : boolean := false)
       return slv is
