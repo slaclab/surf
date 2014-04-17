@@ -47,26 +47,28 @@ entity FifoMux is
       EMPTY_THRES_G      : integer range 1 to (2**24) := 1);
    port (
       -- Resets
-      rst          : in  sl := '0';     --  Reset
+      rst           : in  sl := '0';     --  Reset
       --Write Ports (wr_clk domain)
-      wr_clk       : in  sl;
-      wr_en        : in  sl := '0';
-      din          : in  slv(WR_DATA_WIDTH_G-1 downto 0);
-      wr_ack       : out sl;
-      overflow     : out sl;
-      prog_full    : out sl;
-      almost_full  : out sl;
-      full         : out sl;
-      not_full     : out sl;
+      wr_clk        : in  sl;
+      wr_en         : in  sl := '0';
+      din           : in  slv(WR_DATA_WIDTH_G-1 downto 0);
+      wr_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
+      wr_ack        : out sl;
+      overflow      : out sl;
+      prog_full     : out sl;
+      almost_full   : out sl;
+      full          : out sl;
+      not_full      : out sl;
       --Read Ports (rd_clk domain)
-      rd_clk       : in  sl;            --unused if GEN_SYNC_FIFO_G = true
-      rd_en        : in  sl := '0';
-      dout         : out slv(RD_DATA_WIDTH_G-1 downto 0);
-      valid        : out sl;
-      underflow    : out sl;
-      prog_empty   : out sl;
-      almost_empty : out sl;
-      empty        : out sl);
+      rd_clk        : in  sl;            --unused if GEN_SYNC_FIFO_G = true
+      rd_en         : in  sl := '0';
+      dout          : out slv(RD_DATA_WIDTH_G-1 downto 0);
+      rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
+      valid         : out sl;
+      underflow     : out sl;
+      prog_empty    : out sl;
+      almost_empty  : out sl;
+      empty         : out sl);
 begin
    assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
            (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
@@ -276,7 +278,7 @@ begin
          wr_clk        => wr_clk,
          wr_en         => fifo_wr_en,
          din           => fifo_din,
-         wr_data_count => open,
+         wr_data_count => wr_data_count,
          wr_ack        => wr_ack,
          overflow      => overflow,
          prog_full     => prog_full,
@@ -286,7 +288,7 @@ begin
          rd_clk        => rd_clk,
          rd_en         => fifo_rd_en,
          dout          => fifo_dout,
-         rd_data_count => open,
+         rd_data_count => rd_data_count,
          valid         => fifo_valid,
          underflow     => underflow,
          prog_empty    => prog_empty,
