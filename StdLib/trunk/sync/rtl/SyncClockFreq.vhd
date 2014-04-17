@@ -32,14 +32,14 @@ entity SyncClockFreq is
       CLK_UPPER_LIMIT_G : real     := 161.0E+6;-- Lower Limit for clock lock, units of Hz
       CNT_WIDTH_G       : positive := 32);     -- Counters' width
    port (
-      -- Trigger Rate Output (locClk domain)
+      -- Frequency Measurement and Monitoring Outputs (locClk domain)
       freqOut     : out slv(CNT_WIDTH_G-1 downto 0);-- units of Hz
       freqUpdated : out sl;
       locked      : out sl; -- '1' CLK_LOWER_LIMIT_G < clkIn < CLK_UPPER_LIMIT_G
       tooFast     : out sl; -- '1' when clkIn > CLK_UPPER_LIMIT_G
       tooSlow     : out sl; -- '1' when clkIn < CLK_LOWER_LIMIT_G
       -- Clocks
-      clkIn       : in  sl; -- Clock Frequency to measure
+      clkIn       : in  sl; -- Input clock to measure
       locClk      : in  sl; -- System clock
       refClk      : in  sl);-- Stable Reference Clock
 end SyncClockFreq;
