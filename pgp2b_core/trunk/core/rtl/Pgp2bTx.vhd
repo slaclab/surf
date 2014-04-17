@@ -83,6 +83,7 @@ architecture Pgp2bTx of Pgp2bTx is
    signal crcTxInit         : sl;                               -- Transmit CRC value init
    signal crcTxValid        : sl;                               -- Transmit data for CRC is valid
    signal crcTxOut          : slv(31 downto 0);                 -- Transmit calculated CRC value
+   signal crcTxOutAdjust    : slv(31 downto 0);                 -- Transmit calculated CRC value
    signal crcTxRst          : sl;
    signal crcTxInAdjust     : slv(31 downto 0);
    signal crcTxWidthAdjust  : slv(2 downto 0);
@@ -209,7 +210,7 @@ begin
          crcTxIn           => crcTxIn,
          crcTxInit         => crcTxInit,
          crcTxValid        => crcTxValid,
-         crcTxOut          => crcTxOut
+         crcTxOut          => crcTxOutAdjust
       );
 
 
@@ -217,6 +218,7 @@ begin
    crcTxRst                    <= pgpTxClkRst or crcTxInit;
    crcTxInAdjust(31 downto 24) <= crcTxIn(7 downto 0);
    crcTxInAdjust(23 downto 16) <= crcTxIn(15 downto 8);
+   crcTxOutAdjust              <= not crcTxOut;
 
    CRC_TX_1xLANE : if TX_LANE_CNT_G = 1 generate
       crcTxWidthAdjust           <= "001";
@@ -229,7 +231,6 @@ begin
       crcTxInAdjust(7 downto 0)  <= crcTxIn(31 downto 24);
    end generate CRC_TX_2xLANE;
 
-   -- This may not work for lane widths of 3 and 4
    Tx_CRC : entity work.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")

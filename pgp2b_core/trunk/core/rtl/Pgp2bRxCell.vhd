@@ -29,7 +29,7 @@ use work.Pgp2bPkg.all;
 entity Pgp2bRxCell is 
    generic (
       TPD_G             : time                 := 1 ns;
-      RX_LANE_CNT_G     : integer range 1 to 2 := 4; -- Number of receive lanes, 1-2
+      RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
       EN_SHORT_CELLS_G  : integer              := 1; -- Enable short non-EOF cells
       PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
    );
@@ -312,6 +312,7 @@ begin
          end if;
       end if;
    end process;
+
 
 
    -- CRC Data Output, SOC field overwritten with zeros
@@ -704,25 +705,25 @@ begin
    process ( pgpRxClk, pgpRxClkRst ) begin
       if pgpRxClkRst = '1' then
          vc0RemAlmostFull <= '1' after TPD_G;
-         vc0RemOverflow   <= '1' after TPD_G;
+         vc0RemOverflow   <= '0' after TPD_G;
          vc1RemAlmostFull <= '1' after TPD_G;
-         vc1RemOverflow   <= '1' after TPD_G;
+         vc1RemOverflow   <= '0' after TPD_G;
          vc2RemAlmostFull <= '1' after TPD_G;
-         vc2RemOverflow   <= '1' after TPD_G;
+         vc2RemOverflow   <= '0' after TPD_G;
          vc3RemAlmostFull <= '1' after TPD_G;
-         vc3RemOverflow   <= '1' after TPD_G;
+         vc3RemOverflow   <= '0' after TPD_G;
       elsif rising_edge(pgpRxClk) then
 
          -- Link is not ready, force buffer states to bad
          if pgpRxLinkReady = '0' then
             vc0RemAlmostFull <= '1' after TPD_G;
-            vc0RemOverflow   <= '1' after TPD_G;
+            vc0RemOverflow   <= '0' after TPD_G;
             vc1RemAlmostFull <= '1' after TPD_G;
-            vc1RemOverflow   <= '1' after TPD_G;
+            vc1RemOverflow   <= '0' after TPD_G;
             vc2RemAlmostFull <= '1' after TPD_G;
-            vc2RemOverflow   <= '1' after TPD_G;
+            vc2RemOverflow   <= '0' after TPD_G;
             vc3RemAlmostFull <= '1' after TPD_G;
-            vc3RemOverflow   <= '1' after TPD_G;
+            vc3RemOverflow   <= '0' after TPD_G;
 
          -- Update buffer status 
          elsif cellRxEOC = '1' then
