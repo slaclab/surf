@@ -35,7 +35,7 @@ entity SyncTrigRate is
       trigIn          : in  sl;
       -- Trigger Rate Output (locClk domain)
       trigRateUpdated : out sl;
-      trigRateOut     : out slv(CNT_WIDTH_G-1 downto 0);
+      trigRateOut     : out slv(CNT_WIDTH_G-1 downto 0);-- units of REFRESH_RATE_G
       -- Clocks
       locClkEn        : in  sl := '1';
       locClk          : in  sl;

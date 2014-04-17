@@ -35,7 +35,7 @@ entity SyncTrigRateVector is
       trigIn          : in  slv(WIDTH_G-1 downto 0);
       -- Trigger Rate Output (locClk domain)
       trigRateUpdated : out sl;
-      trigRateOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);
+      trigRateOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);-- units of REFRESH_RATE_G
       -- Clocks
       locClkEn        : in  sl := '1';
       locClk          : in  sl;
