@@ -69,6 +69,18 @@ package Vc64Pkg is
       '0',
       '1');      
 
+   type Vc64CmdSlaveOutType is record
+      valid  : sl;               -- Command Opcode is valid (formerly cmdEn)
+      opCode : slv(7 downto 0);  -- Command OpCode
+      ctxOut : slv(23 downto 0); -- Command Context
+   end record;
+   type Vc64CmdSlaveOutArray is array (natural range <>) of Vc64CmdSlaveOutType;
+   type Vc64CmdSlaveOutVectorArray is array (integer range<>, integer range<>)of Vc64CmdSlaveOutType;
+   constant VC64_CMD_SLAVE_OUT_INIT_C : Vc64CmdSlaveOutType := (
+      '0',
+      (others => '0'),
+      (others => '0'));
+
    -- 64-bit Generic Streaming Data Functions       
    function toSlv (vec      : Vc64DataType) return slv;
    function toVc64Data (vec : slv(72 downto 0)) return Vc64DataType;
