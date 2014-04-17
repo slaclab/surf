@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-04-10
+-- Last update: 2014-04-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,12 +29,15 @@ entity GLinkDecoder is
       RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
       FLAGSEL_G      : boolean := false);
    port (
-      en           : in  sl := '1';
-      clk          : in  sl;
-      rst          : in  sl;
-      gtRxData     : in  slv(19 downto 0);
-      gLinkRx      : out GLinkRxType;
-      decoderError : out sl);  
+      en            : in  sl := '1';
+      clk           : in  sl;
+      rst           : in  sl;
+      gtRxData      : in  slv(19 downto 0);
+      rxReady       : in  sl;
+      txReady       : in  sl;           -- TX Clock domain
+      gLinkRx       : out GLinkRxType;
+      decoderError  : out sl;
+      decoderErrorL : out sl);  
 end entity GLinkDecoder;
 
 architecture rtl of GLinkDecoder is
@@ -50,14 +53,31 @@ architecture rtl of GLinkDecoder is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal txRdy : sl;
    
 begin
 
-   comb : process (gtRxData, r, rst) is
+   Synchronizer_Inst : entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         RST_POLARITY_G => RST_POLARITY_G)
+      port map (
+         clk     => clk,
+         rst     => rst,
+         dataIn  => txReady,
+         dataOut => txRdy);
+
+   comb : process (gtRxData, r, rst, rxReady, txRdy) is
       variable v            : RegType;
       variable glinkWordVar : GLinkWordType;
    begin
       v := r;
+
+      -- Update the TX and RX MGT ready values
+      v.gLinkRx.rxReady := rxReady;
+      v.gLinkRx.txReady := txRdy;
 
       -- Reset strobe signals
       v.gLinkRx.error     := '0';
@@ -93,9 +113,9 @@ begin
                v.gLinkRx.flag   := getFlag(gLinkWordVar);
             else
                -- Check for first data frame
-               if r.gLinkRx.locked = '0' then
+               if r.gLinkRx.linkUp = '0' then
                   -- First frame Detected
-                  v.gLinkRx.locked := '1';
+                  v.gLinkRx.linkUp := '1';
                   -- Set the gLinkRx bus
                   v.gLinkRx.isIdle := '0';
                   v.gLinkRx.isData := '1';
@@ -136,8 +156,9 @@ begin
       rin <= v;
 
       -- Outputs      
-      gLinkRx      <= r.gLinkRx;
-      decoderError <= r.gLinkRx.error;
+      gLinkRx       <= r.gLinkRx;
+      decoderError  <= r.gLinkRx.error;
+      decoderErrorL <= not(r.gLinkRx.error);
       
    end process comb;
 
