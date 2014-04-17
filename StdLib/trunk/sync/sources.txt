@@ -9,4 +9,5 @@ vhdl work rtl/SynchronizerOneShotCntVector.vhd
 vhdl work rtl/SyncStatusVector.vhd
 vhdl work rtl/SyncTrigRate.vhd
 vhdl work rtl/SyncTrigRateVector.vhd
+vhdl work rtl/SyncClockFreq.vhd
 vhdl work rtl/RstSync.vhd

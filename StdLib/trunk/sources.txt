@@ -44,6 +44,7 @@ vhdl work sync/rtl/SynchronizerOneShotCntVector.vhd
 vhdl work sync/rtl/SyncStatusVector.vhd
 vhdl work sync/rtl/SyncTrigRate.vhd
 vhdl work sync/rtl/SyncTrigRateVector.vhd
+vhdl work sync/rtl/SyncClockFreq.vhd
 vhdl work sync/rtl/RstSync.vhd
 
 vhdl work axi/rtl/AxiLitePkg.vhd
