@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-02-26
+-- Last update: 2014-04-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,6 +25,8 @@ entity GLinkGtx7FixedLat is
    generic (
       -- GLink Settings
       FLAGSEL_G             : boolean    := false;
+      SYNTH_TX_G            : boolean    := true;
+      SYNTH_RX_G            : boolean    := true;
       -- Simulation Generics
       TPD_G                 : time       := 1 ns;
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
@@ -48,24 +50,22 @@ entity GLinkGtx7FixedLat is
       TX_PLL_G              : string     := "QPLL";
       RX_PLL_G              : string     := "CPLL");
    port (
-      -- TX Signals
+      -- G-Link TX Interface (gLinkTxClk Domain)
       gLinkTx          : in  GLinkTxType;
-      txClk            : in  sl;
-      txRst            : in  sl;
       txReady          : out sl;
-      -- RX Signals
+      gLinkTxClk       : in  sl;
+      gLinkTxClkEn     : in  sl := '1';
+      -- G-Link TX Interface (gLinkClk Domain)
       gLinkRx          : out GLinkRxType;
-      rxClk            : in  sl;        -- Run recClk through external MMCM and sent to this input
-      rxRecClk         : out sl;        -- recovered clock
-      rxRst            : in  sl;
-      rxMmcmRst        : out sl;
-      rxMmcmLocked     : in  sl := '1';
       rxReady          : out sl;
+      gLinkRxClk       : in  sl;
+      gLinkRxClkEn     : in  sl := '1';
       -- MGT Clocking
-      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl := '0';                             -- Drives CPLL if used
+      gLinkTxRefClk    : in  sl;                                    -- G-Link TX clock reference
+      stableClk        : in  sl;
+      gtCPllRefClk     : in  sl := '0';
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';                             -- Signals from QPLL if used
+      gtQPllRefClk     : in  sl := '0';
       gtQPllClk        : in  sl := '0';
       gtQPllLock       : in  sl := '0';
       gtQPllRefClkLost : in  sl := '0';
@@ -86,61 +86,154 @@ architecture rtl of GLinkGtx7FixedLat is
    constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(1) & GLINK_CONTROL_WORD_C));  -- FF1A
    constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(2) & GLINK_CONTROL_WORD_C));  -- FF1B
 
-   signal gtTxRstDone,
+   signal txFifoValid,
+      rxFifoValid,
+      rxRecClk,
+      rxClk,
+      rxRst,
+      txClk,
+      gtTxRstDone,
       gtRxRstDone,
-      gtTxReset,
-      gtRxReset,
-      decoderError,
+      gtTxRst,
+      gtRxRst,
       dataValid : sl := '0';
-   signal gtTxData,
+   signal txFifoDout,
+      gtTxData,
       gtRxData,
       gtTxDataReversed,
       gtRxDataReversed : slv(19 downto 0) := (others => '0');
-   
-   attribute mark_debug : string;
-   attribute mark_debug of gtTxData,
-      gtRxData,
-      gtTxDataReversed,
-      gtRxDataReversed,
-      gtTxRstDone,
-      gtRxRstDone,
-      gtTxReset,
-      gtRxReset,
-      decoderError,
-      dataValid : signal is "TRUE";
+   signal rxFifoDout  : slv(23 downto 0);
+   signal gLinkTxSync : GLinkTxType;
+   signal gLinkRxSync : GLinkRxType;
 
 begin
+   
+   SYNTH_TX : if (SYNTH_TX_G = true) generate
+      
+      txClk <= gLinkTxRefClk;
 
-   txReady <= gtTxRstDone;
-   rxReady <= gtRxRstDone;
+      Synchronizer_0 : entity work.Synchronizer
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => gLinkTxClk,
+            dataIn  => gtTxRstDone,
+            dataOut => txReady);  
 
-   gtTxReset <= not(gtTxRstDone);
-   gtRxReset <= not(gtRxRstDone);
+      SyncFifo_TX : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 20)
+         port map (
+            -- Asynchronous Reset
+            rst    => gLinkTx.linkRst,
+            --Write Ports (wr_clk domain)
+            wr_clk => gLinkTxClk,
+            wr_en  => gLinkTxClkEn,
+            din    => toSlv(gLinkTx),
+            --Read Ports (rd_clk domain)
+            rd_clk => txClk,
+            valid  => txFifoValid,
+            dout   => txFifoDout); 
 
-   GLinkEncoder_Inst : entity work.GLinkEncoder
-      generic map (
-         TPD_G          => TPD_G,
-         FLAGSEL_G      => FLAGSEL_G,
-         RST_POLARITY_G => '1')  
-      port map (
-         clk         => txClk,
-         rst         => gtTxReset,
-         gLinkTx     => gLinkTx,
-         encodedData => gtTxData);
+      gLinkTxSync <= toGLinkTx(txFifoDout) when(txFifoValid = '1') else GLINK_TX_INIT_C;
 
-   GLinkDecoder_Inst : entity work.GLinkDecoder
-      generic map (
-         TPD_G          => TPD_G,
-         FLAGSEL_G      => FLAGSEL_G,
-         RST_POLARITY_G => '1')  
-      port map (
-         clk          => rxClk,
-         rst          => gtRxReset,
-         gtRxData     => gtRxData,
-         gLinkRx      => gLinkRx,
-         decoderError => decoderError);
+      gtTxRst <= not(gtTxRstDone) or gLinkTxSync.linkRst;
 
-   dataValid <= not(decoderError);
+      GLinkEncoder_Inst : entity work.GLinkEncoder
+         generic map (
+            TPD_G          => TPD_G,
+            FLAGSEL_G      => FLAGSEL_G,
+            RST_POLARITY_G => '1')  
+         port map (
+            clk         => txClk,
+            rst         => gtTxRst,
+            gLinkTx     => gLinkTxSync,
+            encodedData => gtTxData);      
+
+   end generate;
+
+   DISABLE_SYNTH_TX : if (SYNTH_TX_G = false) generate
+      
+      txClk               <= '0';
+      txReady             <= '1';
+      gLinkTxSync.idle    <= '1';
+      gLinkTxSync.control <= '0';
+      gLinkTxSync.flag    <= '0';
+      gLinkTxSync.data    <= (others => '0');
+      gLinkTxSync.linkRst <= '0';
+      gtTxRst             <= '0';
+      gtTxData            <= (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C);
+      
+   end generate;
+
+   SYNTH_RX : if (SYNTH_RX_G = true) generate
+      
+      rxClk <= rxRecClk;
+
+      Synchronizer_1 : entity work.Synchronizer
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => gLinkRxClk,
+            dataIn  => gtRxRstDone,
+            dataOut => rxReady); 
+
+      SyncFifo_RX : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 24)
+         port map (
+            -- Asynchronous Reset
+            rst    => gtRxRst,
+            --Write Ports (wr_clk domain)
+            wr_clk => rxClk,
+            wr_en  => gtRxRstDone,
+            din    => toSlv(gLinkRxSync),
+            --Read Ports (rd_clk domain)
+            rd_clk => gLinkRxClk,
+            rd_en  => gLinkRxClkEn,
+            valid  => rxFifoValid,
+            dout   => rxFifoDout); 
+
+      gLinkRx <= toGLinkRx(rxFifoDout) when(rxFifoValid = '1') else GLINK_RX_INIT_C;
+
+      RstSync_Inst : entity work.RstSync
+         generic map (
+            TPD_G => TPD_G)  
+         port map (
+            clk      => rxClk,
+            asyncRst => gLinkTx.linkRst,
+            syncRst  => rxRst);      
+
+      gtRxRst <= not(gtRxRstDone) or rxRst;
+
+      GLinkDecoder_Inst : entity work.GLinkDecoder
+         generic map (
+            TPD_G          => TPD_G,
+            FLAGSEL_G      => FLAGSEL_G,
+            RST_POLARITY_G => '1')  
+         port map (
+            clk           => rxClk,
+            rst           => gtRxRst,
+            gtRxData      => gtRxData,
+            rxReady       => gtRxRstDone,
+            txReady       => gtTxRstDone,
+            gLinkRx       => gLinkRxSync,
+            decoderErrorL => dataValid);   
+
+   end generate;
+
+   DISABLE_SYNTH_RX : if (SYNTH_RX_G = false) generate
+      
+      rxClk     <= '0';
+      rxReady   <= '1';
+      gLinkRx   <= GLINK_RX_INIT_C;
+      rxRst     <= '0';
+      gtRxRst   <= '0';
+      dataValid <= '1';
+      
+   end generate;
 
    gtTxDataReversed <= bitReverse(gtTxData);
    gtRxData         <= bitReverse(gtRxDataReversed);
@@ -207,8 +300,8 @@ begin
          rxUsrClkIn       => rxClk,
          rxUsrClk2In      => rxClk,
          rxUserRdyOut     => open,
-         rxMmcmResetOut   => rxMmcmRst,
-         rxMmcmLockedIn   => rxMmcmLocked,
+         rxMmcmResetOut   => open,
+         rxMmcmLockedIn   => '1',
          rxUserResetIn    => rxRst,
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
@@ -227,11 +320,12 @@ begin
          txUserRdyOut     => open,             -- Not sure what to do with this
          txMmcmResetOut   => open,             -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => '1',
-         txUserResetIn    => txRst,
+         txUserResetIn    => gLinkTxSync.linkRst,
          txResetDoneOut   => gtTxRstDone,
          txDataIn         => gtTxDataReversed,
          txCharIsKIn      => (others => '0'),  -- Not using gt rx 8b10b
          txBufStatusOut   => open,
-         loopbackIn       => loopback);
-
+         txPowerDown      => ite(SYNTH_TX_G, "00", "11"),
+         rxPowerDown      => ite(SYNTH_RX_G, "00", "11"),
+         loopbackIn       => loopback);         
 end rtl;

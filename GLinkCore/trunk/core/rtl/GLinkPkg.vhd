@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-04-10
+-- Last update: 2014-04-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,38 +24,49 @@ use work.StdRtlPkg.all;
 package GLinkPkg is
 
    type GLinkTxType is record
-      control : sl;
       idle    : sl;
+      control : sl;
       flag    : sl;
       data    : slv(15 downto 0);
+      linkRst : sl;
    end record;
-   type GLinkTxTypeArray is array (natural range <>) of GLinkTxType;
-   type GLinkTxTypeVectorArray is array (natural range<>, natural range<>) of GLinkTxType;
+   type GLinkTxArray is array (natural range <>) of GLinkTxType;
+   type GLinkTxVectorArray is array (natural range<>, natural range<>) of GLinkTxType;
    constant GLINK_TX_INIT_C : GLinkTxType := (
-      '0',
       '1',
       '0',
-      (others => '0'));
+      '0',
+      (others => '0'),
+      '1'); 
+   function toSlv (vec     : GLinkTxType) return slv;
+   function toGLinkTx (vec : slv(19 downto 0)) return GLinkTxType;
 
    type GLinkRxType is record
-      locked    : sl;
-      error     : sl;
-      isControl : sl;
       isIdle    : sl;
       isData    : sl;
+      isControl : sl;
       flag      : sl;
       data      : slv(15 downto 0);
+      -- Link Status Signals
+      error     : sl;
+      rxReady   : sl;
+      txReady   : sl;
+      linkUp    : sl;
    end record;
-   type GLinkRxTypeArray is array (natural range <>) of GLinkRxType;
-   type GLinkRxTypeVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
+   type GLinkRxArray is array (natural range <>) of GLinkRxType;
+   type GLinkRxVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
    constant GLINK_RX_INIT_C : GLinkRxType := (
-      '0',
-      '0',
-      '0',
       '1',
       '0',
       '0',
-      (others => '0'));        
+      '0',
+      (others => '0'),
+      '0',
+      '0',
+      '0',
+      '0');
+   function toSlv (vec     : GLinkRxType) return slv;
+   function toGLinkRx (vec : slv(23 downto 0)) return GLinkRxType;
 
    -- Valid C Field values
    constant GLINK_CONTROL_WORD_C            : slv(3 downto 0) := "0011";
@@ -111,10 +122,62 @@ package GLinkPkg is
    function getControlPayload (word : GLinkWordType) return slv;
    function getDataPayload(word     : GLinkWordType) return slv;
    function getFlag(word            : GLinkWordType) return sl;
-
+   
 end package GLinkPkg;
 
 package body GLinkPkg is
+
+   function toSlv (vec : GLinkTxType) return slv is
+      variable retVar : slv(19 downto 0) := (others => '0');
+   begin
+      retVar(19)          := vec.idle;
+      retVar(18)          := vec.control;
+      retVar(17)          := vec.flag;
+      retVar(16)          := vec.linkRst;
+      retVar(15 downto 0) := vec.data(15 downto 0);
+      return retVar;
+   end function;
+
+   function toGLinkTx (vec : slv(19 downto 0)) return GLinkTxType is
+      variable retVar : GLinkTxType;
+   begin
+      retVar.idle              := vec(19);
+      retVar.control           := vec(18);
+      retVar.flag              := vec(17);
+      retVar.linkRst           := vec(16);
+      retVar.data(15 downto 0) := vec(15 downto 0);
+      return retVar;
+   end function;
+
+   function toSlv (vec : GLinkRxType) return slv is
+      variable retVar : slv(23 downto 0) := (others => '0');
+   begin
+      retVar(23)          := vec.isIdle;
+      retVar(22)          := vec.isData;
+      retVar(21)          := vec.isControl;
+      retVar(20)          := vec.flag;
+      retVar(19)          := vec.error;
+      retVar(18)          := vec.rxReady;
+      retVar(17)          := vec.txReady;
+      retVar(16)          := vec.linkUp;
+      retVar(15 downto 0) := vec.data(15 downto 0);
+      return retVar;
+   end function;
+
+   function toGLinkRx (vec : slv(23 downto 0)) return GLinkRxType is
+      variable retVar : GLinkRxType;
+   begin
+      retVar.isIdle            := vec(23);
+      retVar.isData            := vec(22);
+      retVar.isControl         := vec(21);
+      retVar.flag              := vec(20);
+      retVar.error             := vec(19);
+      retVar.rxReady           := vec(18);
+      retVar.txReady           := vec(17);
+      retVar.linkUp            := vec(16);
+      retVar.data(15 downto 0) := vec(15 downto 0);
+      return retVar;
+   end function;
 
    function toGLinkWord (
       data : slv(19 downto 0))
