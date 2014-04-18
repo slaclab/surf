@@ -30,8 +30,9 @@ use work.Vc64Pkg.all;
 
 entity Vc64Mux is
    generic (
-      TPD_G          : time                  := 1 ns;
-      IB_VC_COUNT_G  : integer range 1 to 16 := 4
+      TPD_G           : time                  := 1 ns;
+      IB_VC_COUNT_G   : integer range 1 to 16 := 4;
+      VC_INTERLEAVE_G : boolean               := true
    ); port (
 
       -- VC clock and reset
@@ -127,8 +128,8 @@ begin
 
             v.ibVcCtrl(conv_integer(r.ackNum)).ready := '1';
 
-            -- Gap in frame or EOF seen
-            if selData.eof = '1' or selData.valid = '0' then
+            -- EOF seen or Gap in frame with interleave enabled
+            if selData.eof = '1' or (selData.valid = '0' and VC_INTERLEAVE_G = true) then
                v.state := S_IDLE;
             end if;
 
