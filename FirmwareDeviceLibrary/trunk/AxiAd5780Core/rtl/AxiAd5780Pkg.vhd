@@ -37,7 +37,7 @@ package AxiAd5780Pkg is
    end record;
    constant AXI_AD5780_STATUS_INIT_C : AxiAd5780StatusType := (
       '0',
-      ("10" & x"0000")); 
+      (others => '0')); 
 
    type AxiAd5780ConfigType is record
       debugMux  : sl;
@@ -45,6 +45,6 @@ package AxiAd5780Pkg is
    end record;
    constant AXI_AD5780_CONFIG_INIT_C : AxiAd5780ConfigType := (
       '0',
-      ("10" & x"0000"));  
+      (others => '0'));  
 
 end package;
