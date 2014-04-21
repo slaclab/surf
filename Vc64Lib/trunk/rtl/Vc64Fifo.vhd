@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-15
+-- Last update: 2014-04-21
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ entity Vc64Fifo is
       TPD_G              : time                       := 1 ns;
       RST_ASYNC_G        : boolean                    := false;
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset    
+      VC_WIDTH_G         : natural range 8 to 64      := 64;
       -- Cascading FIFO Configurations
       CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
       LAST_STAGE_ASYNC_G : boolean                    := true;  -- if set to true, the last stage will be the ASYNC FIFO      
@@ -63,12 +64,17 @@ entity Vc64Fifo is
       vcRxData      : in  Vc64DataType;
       vcRxCtrl      : out Vc64CtrlType;
       vcRxClk       : in  sl;
-      vcRxRst       : in  sl := '0';
+      vcRxRst       : in  sl                                := '0';
       -- Streaming TX Data Interface (vcTxClk domain) 
       vcTxCtrl      : in  Vc64CtrlType;
       vcTxData      : out Vc64DataType;
       vcTxClk       : in  sl;
-      vcTxRst       : in  sl := '0');
+      vcTxRst       : in  sl                                := '0');
+begin
+   -- Check VC_WIDTH_G value
+   assert ((VC_WIDTH_G = 8) or (VC_WIDTH_G = 16) or (VC_WIDTH_G = 32) or (VC_WIDTH_G = 64))
+      report "VC_WIDTH_G must be either: 8, 16, 32, or 64"
+      severity failure;
 end Vc64Fifo;
 
 architecture mapping of Vc64Fifo is
@@ -81,7 +87,7 @@ architecture mapping of Vc64Fifo is
    constant AFULL_THRES_C : integer := ite((FIFO_AFULL_THRES_G < MAX_PROG_C), FIFO_AFULL_THRES_G, MAX_PROG_C);
 
    signal din  : slv(72 downto 0);
-   signal dout : slv(71 downto 0);
+   signal dout : slv(71 downto 0) := (others => '0');
    signal rxReadyL,
       almostFull,
       progFull,
@@ -173,7 +179,7 @@ begin
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
          XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => FIFO_SYNC_STAGES_G,
-         DATA_WIDTH_G       => 72,
+         DATA_WIDTH_G       => (VC_WIDTH_G+8),
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
          FULL_THRES_G       => AFULL_THRES_C)
       port map (
@@ -182,7 +188,7 @@ begin
          --Write Ports (wr_clk domain)
          wr_clk        => vcRxClk,
          wr_en         => din(72),
-         din           => din(71 downto 0),
+         din           => din((VC_WIDTH_G+7) downto 0),
          almost_full   => rxReadyL,
          prog_full     => progFull,
          overflow      => overflow,
@@ -190,7 +196,7 @@ begin
          --Read Ports (rd_clk domain)
          rd_clk        => vcTxClk,
          rd_en         => fifoRdEn,
-         dout          => dout,
+         dout          => dout((VC_WIDTH_G+7) downto 0),
          valid         => fifoValid);
 
    -- Generate the ready signal 
