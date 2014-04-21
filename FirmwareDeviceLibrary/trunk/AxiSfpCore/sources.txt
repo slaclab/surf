@@ -1,4 +1,4 @@
-vhdl work rtl/AxiSpfPkg.vhd
+vhdl work rtl/AxiSfpPkg.vhd
 
-vhdl work rtl/AxiSpfCore.vhd
-vhdl work rtl/AxiSpfReg.vhd
+vhdl work rtl/AxiSfpCore.vhd
+vhdl work rtl/AxiSfpReg.vhd

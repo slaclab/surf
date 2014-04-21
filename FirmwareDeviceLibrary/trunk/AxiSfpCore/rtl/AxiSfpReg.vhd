@@ -53,7 +53,7 @@ architecture rtl of AxiSfpReg is
       0             => (
          i2cAddress => "0001010000",    -- Default to the SFF-8074i standard EEPROM address (0xA0)
          i2cTenbit  => '0',
-         dataSize   => 1,               -- 1 byte at a time
+         dataSize   => 8,               -- in units of bits
          endianness => '1'));           -- Big endian  
 
    constant NUM_WRITE_REG_C : positive := 3;
