@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-04-08
+-- Last update: 2014-04-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ entity FifoSync is
       FULL_THRES_G   : integer range 1 to (2**24) := 1;
       EMPTY_THRES_G  : integer range 1 to (2**24) := 1);
    port (
-      rst          : in  sl := '0';
+      rst          : in  sl := not RST_POLARITY_G;
       clk          : in  sl;
       wr_en        : in  sl;
       rd_en        : in  sl;
@@ -283,7 +283,7 @@ begin
    SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
       generic map(
          TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
+         RST_POLARITY_G => '1',         -- portB.rst already converted to active high
          BRAM_EN_G      => BRAM_EN_G,
          ALTERA_SYN_G   => ALTERA_SYN_G,
          ALTERA_RAM_G   => ALTERA_RAM_G,
