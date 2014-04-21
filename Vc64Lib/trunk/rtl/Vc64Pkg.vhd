@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-04
--- Last update: 2014-04-08
+-- Last update: 2014-04-21
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,9 +70,9 @@ package Vc64Pkg is
       '1');      
 
    type Vc64CmdSlaveOutType is record
-      valid  : sl;               -- Command Opcode is valid (formerly cmdEn)
-      opCode : slv(7 downto 0);  -- Command OpCode
-      ctxOut : slv(23 downto 0); -- Command Context
+      valid  : sl;                      -- Command Opcode is valid (formerly cmdEn)
+      opCode : slv(7 downto 0);         -- Command OpCode
+      ctxOut : slv(23 downto 0);        -- Command Context
    end record;
    type Vc64CmdSlaveOutArray is array (natural range <>) of Vc64CmdSlaveOutType;
    type Vc64CmdSlaveOutVectorArray is array (integer range<>, integer range<>)of Vc64CmdSlaveOutType;
@@ -82,8 +82,8 @@ package Vc64Pkg is
       (others => '0'));
 
    -- 64-bit Generic Streaming Data Functions       
-   function toSlv (vec      : Vc64DataType) return slv;
-   function toVc64Data (vec : slv(72 downto 0)) return Vc64DataType;
+   function toSlv (vec       : Vc64DataType) return slv;
+   function toVc64Data (vec  : slv(72 downto 0)) return Vc64DataType;
    function vc64DeMux (encIn : Vc64DataType; count : integer range 1 to 16) return Vc64DataArray;
    
 end Vc64Pkg;
@@ -96,13 +96,13 @@ package body Vc64Pkg is
    function toSlv (vec : Vc64DataType) return slv is
       variable retVar : slv(72 downto 0);
    begin
-      retVar(72)           := vec.valid;
-      retVar(71)           := vec.size;
-      retVar(70 downto 67) := vec.vc;
-      retVar(66)           := vec.sof;
-      retVar(65)           := vec.eof;
-      retVar(64)           := vec.eofe;
-      retVar(63 downto 0)  := vec.data;
+      retVar(72)          := vec.valid;
+      retVar(71 downto 8) := vec.data;
+      retVar(7 downto 4)  := vec.vc;
+      retVar(3)           := vec.size;
+      retVar(2)           := vec.sof;
+      retVar(1)           := vec.eof;
+      retVar(0)           := vec.eofe;
       return retVar;
    end function;
 
@@ -110,12 +110,12 @@ package body Vc64Pkg is
       variable retVar : Vc64DataType;
    begin
       retVar.valid := vec(72);
-      retVar.size  := vec(71);
-      retVar.vc    := vec(70 downto 67);
-      retVar.sof   := vec(66);
-      retVar.eof   := vec(65);
-      retVar.eofe  := vec(64);
-      retVar.data  := vec(63 downto 0);
+      retVar.data  := vec(71 downto 8);
+      retVar.vc    := vec(7 downto 4);
+      retVar.size  := vec(3);
+      retVar.sof   := vec(2);
+      retVar.eof   := vec(1);
+      retVar.eofe  := vec(0);
       return retVar;
    end function;
 
@@ -125,9 +125,9 @@ package body Vc64Pkg is
 
       -- Init
       for i in 0 to count-1 loop
-         retData(i) := encIn;
+         retData(i)       := encIn;
          retData(i).valid := '0';
-         retData(i).vc    := conv_std_logic_vector(i,4);
+         retData(i).vc    := conv_std_logic_vector(i, 4);
       end loop;
 
       retData(conv_integer(encIn.vc)).valid := encIn.valid;
