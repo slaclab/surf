@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-14
--- Last update: 2014-01-07
+-- Last update: 2014-04-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ entity Fifo is
       EMPTY_THRES_G   : integer range 1 to (2**24) := 1);
    port (
       -- Resets
-      rst           : in  sl := '0';
+      rst           : in  sl := not RST_POLARITY_G;
       --Write Ports (wr_clk domain)
       wr_clk        : in  sl;
       wr_en         : in  sl := '0';
