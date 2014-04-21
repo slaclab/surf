@@ -26,13 +26,13 @@ use work.I2cPkg.all;
 entity I2cRegMasterAxiBridge is
    
    generic (
-      TPD_G               : time                  := 1 ns;
-      I2C_REG_ADDR_SIZE_G : integer               := 8;
+      TPD_G               : time                   := 1 ns;
+      I2C_REG_ADDR_SIZE_G : integer                := 8;
       DEVICE_MAP_G        : I2cAxiLiteDevArray;
-      EN_USER_REG_G       : boolean               := false;
-      NUM_WRITE_REG_G     : integer range 1 to 32 := 1;
-      NUM_READ_REG_G      : integer range 1 to 32 := 1;
-      AXI_ERROR_RESP_G    : slv(1 downto 0)       := AXI_RESP_SLVERR_C);      
+      EN_USER_REG_G       : boolean                := false;
+      NUM_WRITE_REG_G     : integer range 1 to 128 := 1;
+      NUM_READ_REG_G      : integer range 1 to 128 := 1;
+      AXI_ERROR_RESP_G    : slv(1 downto 0)        := AXI_RESP_SLVERR_C);      
 
    port (
       axiClk : in sl;
@@ -58,14 +58,23 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
 
+   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2 + log2(DEVICE_MAP_G'length(1));
+   constant I2C_DEV_AXI_ADDR_LOW_C  : natural := I2C_REG_ADDR_SIZE_G+2;
+
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
-      I2C_REG_ADDR_SIZE_G+2 + log2(DEVICE_MAP_G'length) -1 downto I2C_REG_ADDR_SIZE_G+2;
+      I2C_DEV_AXI_ADDR_HIGH_C downto I2C_DEV_AXI_ADDR_LOW_C;
+   
+   constant I2C_REG_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2-1;
+   constant I2C_REG_AXI_ADDR_LOW_C  : natural := 2;
 
    subtype I2C_REG_AXI_ADDR_RANGE_C is natural range
-      I2C_REG_ADDR_SIZE_G+2-1 downto 2;
+      I2C_REG_AXI_ADDR_HIGH_C downto I2C_REG_AXI_ADDR_LOW_C;
+
+   constant USER_AXI_ADDR_HIGH_C : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
+   constant USER_AXI_ADDR_LOW_C  : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
 
    subtype USER_AXI_ADDR_RANGE_C is natural range
-      I2C_DEV_AXI_ADDR_RANGE_C'high+2 downto I2C_DEV_AXI_ADDR_RANGE_C'high+1;
+      USER_AXI_ADDR_HIGH_C downto USER_AXI_ADDR_LOW_C;
 
    type RegType is record
       writeRegister  : Slv32Array(0 to NUM_WRITE_REG_G);
@@ -143,7 +152,7 @@ begin
       if (axiStatus.writeEnable = '1') then
 
          -- Decode address and perform write
-         if (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "00") then
+         if (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "0") then
             -- I2C Address Space
             -- Decode i2c device address and send command to I2cRegMaster
             devInt := conv_integer(axiWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
@@ -153,9 +162,9 @@ begin
             v.i2cRegMasterIn.regReq := '1';
 
          -- User Configuration Address Space
-         elsif (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "01") and (EN_USER_REG_G = true) then
+         elsif (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "1") and (EN_USER_REG_G = true) then
             -- Check for valid address space range
-            if axiWriteMaster.awaddr(7 downto 2) < NUM_WRITE_REG_G then
+            if (axiWriteMaster.awaddr(8 downto 2) < NUM_WRITE_REG_G) and (axiWriteMaster.awaddr(9) = '1') then
                -- Write the the User Register space
                v.writeRegister(conv_integer(axiWriteMaster.awaddr(7 downto 2))) := axiWriteMaster.wdata;
                -- Send AXI response
@@ -170,7 +179,7 @@ begin
          end if;
       elsif (axiStatus.readEnable = '1') then
          -- Decode address and perform write
-         if (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "00") then
+         if (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "0") then
             -- I2C Address Space
             -- Decode i2c device address and send command to I2cRegMaster
             devInt := conv_integer(axiReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
@@ -181,21 +190,15 @@ begin
             v.i2cRegMasterIn.regReq := '1';
 
          -- User Configuration Address Space
-         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "01") and (EN_USER_REG_G = true) then
+         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "1") and (EN_USER_REG_G = true) then
             -- Check for valid address space range
-            if axiReadMaster.araddr(7 downto 2) < NUM_WRITE_REG_G then
+            if (axiReadMaster.araddr(8 downto 2) < NUM_WRITE_REG_G) and (axiReadMaster.araddr(9) = '0') then
                -- Write the the User Register space
                v.axiReadSlave.rdata := r.writeRegister(conv_integer(axiReadMaster.araddr(7 downto 2)));
                -- Send AXI response
                axiSlaveWriteResponse(v.axiWriteSlave);
-            else
-               -- Send AXI Error response
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
-            end if;
-         -- User Status Address Space
-         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "10") and (EN_USER_REG_G = true) then
             -- Check for valid address space range
-            if axiReadMaster.araddr(7 downto 2) < NUM_READ_REG_G then
+            elsif (axiReadMaster.araddr(8 downto 2) < NUM_READ_REG_G) and (axiReadMaster.araddr(9) = '1') then
                -- Write the the User Register space
                v.axiReadSlave.rdata := readRegister(conv_integer(axiReadMaster.araddr(7 downto 2)));
                -- Send AXI response
