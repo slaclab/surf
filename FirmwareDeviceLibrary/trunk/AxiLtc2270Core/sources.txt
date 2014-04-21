@@ -1,0 +1,6 @@
+vhdl work rtl/AxiLtc2270Pkg.vhd
+
+vhdl work rtl/AxiLtc2270Core.vhd
+vhdl work rtl/AxiLtc2270Deser.vhd
+vhdl work rtl/AxiLtc2270DeserBit.vhd
+vhdl work rtl/AxiLtc2270Reg.vhd
