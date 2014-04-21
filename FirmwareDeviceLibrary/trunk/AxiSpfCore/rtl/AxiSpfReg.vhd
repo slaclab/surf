@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiSpfReg.vhd
+-- File       : AxiSfpReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
@@ -21,10 +21,10 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiSpfPkg.all;
+use work.AxiSfpPkg.all;
 use work.I2cPkg.all;
 
-entity AxiSpfReg is
+entity AxiSfpReg is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
@@ -40,14 +40,14 @@ entity AxiSpfReg is
       axiWriteMaster  : in  AxiLiteWriteMasterType;
       axiWriteSlave   : out AxiLiteWriteSlaveType;
       -- Register Inputs/Outputs
-      status          : in  AxiSpfStatusType;
-      config          : out AxiSpfConfigType;
+      status          : in  AxiSfpStatusType;
+      config          : out AxiSfpConfigType;
       -- Global Signals
       axiClk          : in  sl;
       axiRst          : in  sl);      
-end AxiSpfReg;
+end AxiSfpReg;
 
-architecture rtl of AxiSpfReg is
+architecture rtl of AxiSfpReg is
 
    constant DEVICE_MAP_G : I2cAxiLiteDevArray(0 to 0) := (
       0             => (
@@ -64,7 +64,7 @@ architecture rtl of AxiSpfReg is
    signal rollOverEn : slv(STATUS_SIZE_C-1 downto 0);
    signal cntOut     : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal regIn : AxiSpfStatusType;
+   signal regIn : AxiSfpStatusType;
 
    signal readRegister  : Slv32Array(0 to NUM_READ_REG_C)  := (others => x"00000000");
    signal writeRegister : Slv32Array(0 to NUM_WRITE_REG_C) := (others => x"00000000");
@@ -98,7 +98,7 @@ begin
    -------------------------------            
    -- Synchronization: Outputs
    -------------------------------
-   config.spfTxDisable <= writeRegister(0)(0) when(ALLOW_TX_DISABLE_G = true) else '0';
+   config.sfpTxDisable <= writeRegister(0)(0) when(ALLOW_TX_DISABLE_G = true) else '0';
    rollOverEn          <= writeRegister(1)(STATUS_SIZE_C-1 downto 0);
    cntRst              <= writeRegister(2)(0);
 
@@ -115,17 +115,17 @@ begin
          WIDTH_G        => STATUS_SIZE_C)     
       port map (
          -- Input Status bit Signals (wrClk domain)   
-         statusIn(4)  => status.spftxFault,
-         statusIn(3)  => status.spfAbs,
-         statusIn(2)  => status.spfRxLoss,
-         statusIn(1)  => status.spfRs(1),
-         statusIn(0)  => status.spfRs(0),
+         statusIn(4)  => status.sfptxFault,
+         statusIn(3)  => status.sfpAbs,
+         statusIn(2)  => status.sfpRxLoss,
+         statusIn(1)  => status.sfpRs(1),
+         statusIn(0)  => status.sfpRs(0),
          -- Output Status bit Signals (rdClk domain) 
-         statusOut(4) => regIn.spftxFault,
-         statusOut(3) => regIn.spfAbs,
-         statusOut(2) => regIn.spfRxLoss,
-         statusOut(1) => regIn.spfRs(1),
-         statusOut(0) => regIn.spfRs(0),
+         statusOut(4) => regIn.sfptxFault,
+         statusOut(3) => regIn.sfpAbs,
+         statusOut(2) => regIn.sfpRxLoss,
+         statusOut(1) => regIn.sfpRs(1),
+         statusOut(0) => regIn.sfpRs(0),
          -- Status Bit Counters Signals (rdClk domain) 
          cntRstIn     => cntRst,
          rollOverEnIn => rollOverEn,
@@ -134,16 +134,16 @@ begin
          wrClk        => axiClk,
          rdClk        => axiClk);
 
-   readRegister(5)(4) <= regIn.spftxFault;
-   readRegister(5)(3) <= regIn.spfAbs;
-   readRegister(5)(2) <= regIn.spfRxLoss;
-   readRegister(5)(1) <= regIn.spfRs(1);
-   readRegister(5)(0) <= regIn.spfRs(0);
+   readRegister(5)(4) <= regIn.sfptxFault;
+   readRegister(5)(3) <= regIn.sfpAbs;
+   readRegister(5)(2) <= regIn.sfpRxLoss;
+   readRegister(5)(1) <= regIn.sfpRs(1);
+   readRegister(5)(0) <= regIn.sfpRs(0);
 
-   readRegister(4)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 4);  -- spftxFaultCnt
-   readRegister(3)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 3);  -- spfAbsCnt
-   readRegister(2)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 2);  -- spfAbsCnt
-   readRegister(1)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 1);  -- spfRs1Cnt
-   readRegister(0)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 0);  -- spfRs0Cnt
+   readRegister(4)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 4);  -- sfptxFaultCnt
+   readRegister(3)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 3);  -- sfpAbsCnt
+   readRegister(2)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 2);  -- sfpAbsCnt
+   readRegister(1)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 1);  -- sfpRs1Cnt
+   readRegister(0)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 0);  -- sfpRs0Cnt
    
 end rtl;

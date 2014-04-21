@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiSpfCore.vhd
+-- File       : AxiSfpCore.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
@@ -23,9 +23,9 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
-use work.AxiSpfPkg.all;
+use work.AxiSfpPkg.all;
 
-entity AxiSpfCore is
+entity AxiSfpCore is
    generic (
       TPD_G              : time                  := 1 ns;
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
@@ -36,9 +36,9 @@ entity AxiSpfCore is
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
    port (
       -- DAC Ports
-      sfpIn          : in    AxiSpfInType;
-      sfpInOut       : inout AxiSpfInOutType;
-      sfpOut         : out   AxiSpfOutType;
+      sfpIn          : in    AxiSfpInType;
+      sfpInOut       : inout AxiSfpInOutType;
+      sfpOut         : out   AxiSfpOutType;
       -- AXI-Lite Register Interface
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
@@ -47,9 +47,9 @@ entity AxiSpfCore is
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl);
-end AxiSpfCore;
+end AxiSfpCore;
 
-architecture mapping of AxiSpfCore is
+architecture mapping of AxiSfpCore is
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
    --       FILTER_G = (min_pulse_time / clk_period) + 1
@@ -63,25 +63,25 @@ architecture mapping of AxiSpfCore is
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
 
-   signal status : AxiSpfStatusType;
-   signal config : AxiSpfConfigType;
+   signal status : AxiSfpStatusType;
+   signal config : AxiSfpConfigType;
    
 begin
    
-   sfpInOut.spfScl <= i2co.scl when(i2co.scloen = '0') else 'Z';
-   i2ci.scl        <= sfpInOut.spfScl;
+   sfpInOut.sfpScl <= i2co.scl when(i2co.scloen = '0') else 'Z';
+   i2ci.scl        <= sfpInOut.sfpScl;
 
-   sfpInOut.spfSda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda        <= sfpInOut.spfSda;
+   sfpInOut.sfpSda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
+   i2ci.sda        <= sfpInOut.sfpSda;
 
-   sfpOut.spfTxDisable <= config.spfTxDisable;
+   sfpOut.sfpTxDisable <= config.sfpTxDisable;
 
-   status.spfRs      <= sfpIn.spfRs;
-   status.spfRxLoss  <= sfpIn.spfRxLoss;
-   status.spfAbs     <= sfpIn.spfAbs;
-   status.spfTxFault <= sfpIn.spfTxFault;
+   status.sfpRs      <= sfpIn.sfpRs;
+   status.sfpRxLoss  <= sfpIn.sfpRxLoss;
+   status.sfpAbs     <= sfpIn.sfpAbs;
+   status.sfpTxFault <= sfpIn.sfpTxFault;
 
-   AxiSpfReg_Inst : entity work.AxiSpfReg
+   AxiSfpReg_Inst : entity work.AxiSfpReg
       generic map(
          TPD_G              => TPD_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
