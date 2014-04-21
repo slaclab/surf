@@ -16,10 +16,13 @@
 -- and related app notes
 -- http://www.xilinx.com/support/documentation/application_notes/xapp562.pdf
 -------------------------------------------------------------------------------
--- Copyright (c) 20012 by Leonid Sapozhnikov. All rights reserved.
+-- Copyright (c) 2012 by Leonid Sapozhnikov. All rights reserved.
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 02/08/2012: created.
+-- 04/21/2014: Kurtis Nishimura - modified to register the data valid signal.
+--             Using the raw version would have caused errors for dynamically
+--             changing data widths.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -42,11 +45,12 @@ end CRC32Rtl;
 architecture rtl of CRC32Rtl is
 
    -- Local Signals
-   signal   data             : std_logic_vector(31 downto 0);
-   signal   crc              : std_logic_vector(31 downto 0);
+   signal   data             : std_logic_vector(31 downto 0); 
+   signal   crc              : std_logic_vector(31 downto 0); 
    signal   CRCDATAVALID_d   : std_logic;
+   signal   CRCDATAWIDTH_d   : std_logic_vector(2 downto 0);
    constant Polyval          : std_logic_vector(31 downto 0) := X"04C11DB7";
-   type     fb_array is array (32 downto 0) of std_logic_vector(31 downto 0);
+   type     fb_array is array (32 downto 0) of std_logic_vector(31 downto 0); 
    signal   MSBVect, TempXOR : fb_array;
 
    -- Register delay for simulation
@@ -95,6 +99,7 @@ begin
             data(7 downto 0) <= (others => '0');
          end if;
          CRCDATAVALID_d <= CRCDATAVALID;
+         CRCDATAWIDTH_d <= CRCDATAWIDTH;
       end if;
    end process;
 
@@ -104,13 +109,13 @@ begin
          if (CRCRESET = '1') then
             crc <= To_StdLogicVector(CRC_INIT);
          elsif (CRCDATAVALID_d = '1') then
-            if (CRCDATAWIDTH = "000") then
+            if (CRCDATAWIDTH_d = "000") then
                crc <= TempXOR(8);
-            elsif (CRCDATAWIDTH = "001") then
+            elsif (CRCDATAWIDTH_d = "001") then
                crc <= TempXOR(16);
-            elsif (CRCDATAWIDTH = "010") then
+            elsif (CRCDATAWIDTH_d = "010") then
                crc <= TempXOR(24);
-            elsif (CRCDATAWIDTH = "011") then
+            elsif (CRCDATAWIDTH_d = "011") then
                crc <= TempXOR(32);
             end if;
          end if;
