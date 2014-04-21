@@ -56,8 +56,8 @@ architecture rtl of AxiSfpReg is
          dataSize   => 8,               -- in units of bits
          endianness => '1'));           -- Big endian  
 
-   constant NUM_WRITE_REG_C : positive := 3;
-   constant STATUS_SIZE_C   : positive := 5;
+   constant NUM_WRITE_REG_C : positive := 4;
+   constant STATUS_SIZE_C   : positive := 3;
    constant NUM_READ_REG_C  : positive := (STATUS_SIZE_C+1);
 
    signal cntRst     : sl;
@@ -98,9 +98,10 @@ begin
    -------------------------------            
    -- Synchronization: Outputs
    -------------------------------
-   config.sfpTxDisable <= writeRegister(0)(0) when(ALLOW_TX_DISABLE_G = true) else '0';
-   rollOverEn          <= writeRegister(1)(STATUS_SIZE_C-1 downto 0);
-   cntRst              <= writeRegister(2)(0);
+   config.txDisable <= writeRegister(0)(0) when(ALLOW_TX_DISABLE_G = true) else '0';
+   config.rateSel   <= writeRegister(1)(1 downto 0);
+   rollOverEn       <= writeRegister(2)(STATUS_SIZE_C-1 downto 0);
+   cntRst           <= writeRegister(3)(0);
 
    -------------------------------
    -- Synchronization: Inputs
@@ -115,17 +116,13 @@ begin
          WIDTH_G        => STATUS_SIZE_C)     
       port map (
          -- Input Status bit Signals (wrClk domain)   
-         statusIn(4)  => status.sfptxFault,
-         statusIn(3)  => status.sfpAbs,
-         statusIn(2)  => status.sfpRxLoss,
-         statusIn(1)  => status.sfpRs(1),
-         statusIn(0)  => status.sfpRs(0),
+         statusIn(2)  => status.txFault,
+         statusIn(1)  => status.moduleDetL,
+         statusIn(0)  => status.rxLoss,
          -- Output Status bit Signals (rdClk domain) 
-         statusOut(4) => regIn.sfptxFault,
-         statusOut(3) => regIn.sfpAbs,
-         statusOut(2) => regIn.sfpRxLoss,
-         statusOut(1) => regIn.sfpRs(1),
-         statusOut(0) => regIn.sfpRs(0),
+         statusOut(2) => regIn.txFault,
+         statusOut(1) => regIn.moduleDetL,
+         statusOut(0) => regIn.rxLoss,
          -- Status Bit Counters Signals (rdClk domain) 
          cntRstIn     => cntRst,
          rollOverEnIn => rollOverEn,
@@ -134,16 +131,12 @@ begin
          wrClk        => axiClk,
          rdClk        => axiClk);
 
-   readRegister(5)(4) <= regIn.sfptxFault;
-   readRegister(5)(3) <= regIn.sfpAbs;
-   readRegister(5)(2) <= regIn.sfpRxLoss;
-   readRegister(5)(1) <= regIn.sfpRs(1);
-   readRegister(5)(0) <= regIn.sfpRs(0);
+   readRegister(3)(2) <= regIn.txFault;
+   readRegister(3)(1) <= regIn.moduleDetL;
+   readRegister(3)(0) <= regIn.rxLoss;
 
-   readRegister(4)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 4);  -- sfptxFaultCnt
-   readRegister(3)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 3);  -- sfpAbsCnt
-   readRegister(2)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 2);  -- sfpAbsCnt
-   readRegister(1)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 1);  -- sfpRs1Cnt
-   readRegister(0)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 0);  -- sfpRs0Cnt
+   readRegister(2)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 2);  -- txFaultCnt
+   readRegister(1)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 1);  -- moduleDetCnt
+   readRegister(0)(STATUS_CNT_WIDTH_G-1 downto 0) <= muxSlVectorArray(cntOut, 0);  -- rxLossCnt
    
 end rtl;
