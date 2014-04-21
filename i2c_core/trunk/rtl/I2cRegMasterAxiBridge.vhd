@@ -11,7 +11,7 @@
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -29,6 +29,7 @@ entity I2cRegMasterAxiBridge is
       TPD_G               : time                  := 1 ns;
       I2C_REG_ADDR_SIZE_G : integer               := 8;
       DEVICE_MAP_G        : I2cAxiLiteDevArray;
+      EN_USER_REG_G       : boolean               := false;
       NUM_WRITE_REG_G     : integer range 1 to 32 := 1;
       NUM_READ_REG_G      : integer range 1 to 32 := 1;
       AXI_ERROR_RESP_G    : slv(1 downto 0)       := AXI_RESP_SLVERR_C);      
@@ -43,8 +44,9 @@ entity I2cRegMasterAxiBridge is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Optional User Read/Write Register Interface
-      readRegister  : in  Slv32Array(0 to NUM_READ_REG_G) := (others => x"00000000");
-      writeRegister : out Slv32Array(0 to NUM_WRITE_REG_G);
+      readRegister      : in  Slv32Array(0 to NUM_READ_REG_G)  := (others => x"00000000");
+      writeRegisterInit : in  Slv32Array(0 to NUM_WRITE_REG_G) := (others => x"00000000");
+      writeRegister     : out Slv32Array(0 to NUM_WRITE_REG_G);
 
       i2cRegMasterIn  : out I2cRegMasterInType;
       i2cRegMasterOut : in  I2cRegMasterOutType);
@@ -73,7 +75,7 @@ architecture rtl of I2cRegMasterAxiBridge is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      writeRegister  => (others => x"00000000"),
+      (others        => x"00000000"),
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       i2cRegMasterIn => I2C_REG_MASTER_IN_INIT_C);
@@ -105,7 +107,8 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Main Comb Process
    -------------------------------------------------------------------------------------------------
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r, readRegister) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r, readRegister,
+                   writeRegisterInit) is
       variable v         : RegType;
       variable devInt    : integer;
       variable axiStatus : AxiLiteStatusType;
@@ -150,7 +153,7 @@ begin
             v.i2cRegMasterIn.regReq := '1';
 
          -- User Configuration Address Space
-         elsif (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "01") then
+         elsif (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "01") and (EN_USER_REG_G = true) then
             -- Check for valid address space range
             if axiWriteMaster.awaddr(7 downto 2) < NUM_WRITE_REG_G then
                -- Write the the User Register space
@@ -178,7 +181,7 @@ begin
             v.i2cRegMasterIn.regReq := '1';
 
          -- User Configuration Address Space
-         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "00") then
+         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "01") and (EN_USER_REG_G = true) then
             -- Check for valid address space range
             if axiReadMaster.araddr(7 downto 2) < NUM_WRITE_REG_G then
                -- Write the the User Register space
@@ -190,7 +193,7 @@ begin
                axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
             end if;
          -- User Status Address Space
-         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "00") then
+         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "10") and (EN_USER_REG_G = true) then
             -- Check for valid address space range
             if axiReadMaster.araddr(7 downto 2) < NUM_READ_REG_G then
                -- Write the the User Register space
@@ -227,7 +230,8 @@ begin
       -- Reset
       ----------------------------------------------------------------------------------------------
       if (axiRst = '1') then
-         v := REG_INIT_C;
+         v               := REG_INIT_C;
+         v.writeRegister := writeRegisterInit;
       end if;
 
       rin <= v;
