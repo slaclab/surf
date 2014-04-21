@@ -68,18 +68,20 @@ architecture mapping of AxiSfpCore is
    
 begin
    
-   sfpInOut.sfpScl <= i2co.scl when(i2co.scloen = '0') else 'Z';
-   i2ci.scl        <= sfpInOut.sfpScl;
+   sfpInOut.scl <= i2co.scl when(i2co.scloen = '0') else 'Z';
+   i2ci.scl     <= sfpInOut.scl;
 
-   sfpInOut.sfpSda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda        <= sfpInOut.sfpSda;
+   sfpInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
+   i2ci.sda     <= sfpInOut.sda;
 
-   sfpOut.sfpTxDisable <= config.sfpTxDisable;
+   sfpInOut.rateSel(0) <= config.rateSel(0);
+   sfpInOut.rateSel(1) <= 'Z';          -- reserved for future use
 
-   status.sfpRs      <= sfpIn.sfpRs;
-   status.sfpRxLoss  <= sfpIn.sfpRxLoss;
-   status.sfpAbs     <= sfpIn.sfpAbs;
-   status.sfpTxFault <= sfpIn.sfpTxFault;
+   sfpOut.txDisable <= config.txDisable;
+
+   status.rxLoss     <= sfpIn.rxLoss;
+   status.moduleDetL <= sfpIn.moduleDetL;
+   status.txFault    <= sfpIn.txFault;
 
    AxiSfpReg_Inst : entity work.AxiSfpReg
       generic map(
