@@ -48,21 +48,39 @@ package body CrcPkg is
    function crcLfsrShift (lfsr : slv; constant poly : slv; input : sl) return slv is
       variable retVar : slv(lfsr'range) := (others => '0');
    begin
-      for i in lfsr'range loop
-         if poly(i) = '1' then
-            if (i = 0) then
-               retVar(i) := lfsr(lfsr'left) xor input;  
+      if (lfsr'ascending) then
+         for i in lfsr'range loop
+            if poly(i) = '1' then
+               if (i = 0) then
+                  retVar(i) := lfsr(lfsr'right) xor input;  
+               else
+                  retVar(i) := lfsr(lfsr'right) xor lfsr(i-1);
+               end if;
             else
-               retVar(i) := lfsr(lfsr'left) xor lfsr(i-1);               
+               if (i = 0) then
+                  retVar(i) := input;
+               else
+                  retVar(i) := lfsr(i-1);
+               end if;
             end if;
-         else
-            if (i = 0) then
-               retVar(i) := input;
+         end loop;
+      else
+         for i in lfsr'range loop
+            if poly(i) = '1' then
+               if (i = 0) then
+                  retVar(i) := lfsr(lfsr'left) xor input;  
+               else
+                  retVar(i) := lfsr(lfsr'left) xor lfsr(i-1);               
+               end if;
             else
-               retVar(i) := lfsr(i-1);
+               if (i = 0) then
+                  retVar(i) := input;
+               else
+                  retVar(i) := lfsr(i-1);
+               end if;
             end if;
-         end if;
-      end loop;
+         end loop;
+      end if;
 
       return retVar;
    end function;  
