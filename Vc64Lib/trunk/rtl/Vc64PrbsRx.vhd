@@ -435,8 +435,8 @@ begin
       generic map (
          TPD_G              => TPD_G,
          RST_ASYNC_G        => RST_ASYNC_G,
-         RX_LANES_G         => 2,
-         TX_LANES_G         => 1,
+         RX_WIDTH_G         => 32,
+         TX_WIDTH_G         => 16,
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,
          BRAM_EN_G          => BRAM_EN_G,

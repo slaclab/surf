@@ -1,6 +1,6 @@
 
-#ifndef __SIM_LINK_RX_H__
-#define __SIM_LINK_RX_H__
+#ifndef __VC64_SIM_LINK_OB_H__
+#define __VC64_SIM_LINK_OB_H__
 
 #include <vhpi_user.h>
 #include "SimLinkMemory.h"
@@ -33,17 +33,18 @@ typedef struct {
    int obCount;
    int obSize;
    int obLast;
-   int littleEndian;
-   int vcWidth;
+   int littleEnd;
+   int width;
+   int obActive;
   
-} Vc64SimlLinkObData;
+} Vc64SimLinkObData;
 
 
 // Init function
-void Vc64SimlLinkObInit(vhpiHandleT compInst);
+void Vc64SimLinkObInit(vhpiHandleT compInst);
 
 
 // Callback function for updating
-void Vc64SimlLinkObUpdate ( portDataT *portData );
+void Vc64SimLinkObUpdate ( portDataT *portData );
 
 #endif

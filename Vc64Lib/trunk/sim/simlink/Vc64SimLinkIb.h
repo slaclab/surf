@@ -34,8 +34,8 @@ typedef struct {
    int ibSize;
    int ibVc;
    int ibError;
-   int littleEndian;
-   int vcWidth;
+   int littleEnd;
+   int width;
 
 } Vc64SimLinkIbData;
 

@@ -31,21 +31,17 @@ entity Vc64FifoMux is
       -- General Configurations
       TPD_G              : time                       := 1 ns;
       RST_ASYNC_G        : boolean                    := false;
-      RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset   
-      LITTLE_ENDIAN_G    : boolean                    := false;
+      RST_POLARITY_G     : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset    
       -- Cascading FIFO Configurations
       CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- number of FIFOs to cascade (if set to 1, then no FIFO cascading)
-      LAST_STAGE_ASYNC_G : boolean                    := true;  -- if set to true, the last stage will be the ASYNC FIFO            
+      LAST_STAGE_ASYNC_G : boolean                    := true;  -- if set to true, the last stage will be the ASYNC FIFO      
       -- RX Configurations
-      RX_LANES_G         : integer range 1 to 4       := 4;  -- 16 bits of data per lane
       EN_FRAME_FILTER_G  : boolean                    := true;
       -- TX Configurations
-      TX_LANES_G         : integer range 1 to 4       := 4;  -- 16 bits of data per lane
-      IGNORE_TX_READY_G  : boolean                    := false;
       PIPE_STAGES_G      : integer range 0 to 16      := 0;  -- Used to add pipeline stages to the output ports to help with meeting timing
       -- Xilinx Specific Configurations
       XIL_DEVICE_G       : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G     : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
+      USE_BUILT_IN_G     : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
       -- Altera Specific Configurations
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
@@ -55,220 +51,294 @@ entity Vc64FifoMux is
       FIFO_SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       FIFO_ADDR_WIDTH_G  : integer range 4 to 48      := 9;
       FIFO_FIXED_THES_G  : boolean                    := true;
-      FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 2**24);
-   -- Note: If FIFO_FIXED_THES_G = true, then the fixed FIFO_AFULL_THRES_G is used.
-   --       If FIFO_FIXED_THES_G = false, then the programmable threshold (vcRxThreshold) is used.      
+      FIFO_AFULL_THRES_G : integer range 1 to (2**24) := 2**24;
+      -- Note: If FIFO_FIXED_THES_G = true, then the fixed FIFO_AFULL_THRES_G is used.
+      --       If FIFO_FIXED_THES_G = false, then the programmable threshold (vcRxThreshold) is used.      
+      LITTLE_ENDIAN_G    : boolean                    := true;
+      -- RX Configurations
+      RX_WIDTH_G        : integer range 8  to 64  := 16;   -- Bits: 8, 16, 32 or 64
+      TX_WIDTH_G        : integer range 8  to 64  := 16);  -- Bits: 8, 16, 32 or 64
    port (
+      vcRxAlignError : out sl;
       -- RX Frame Filter Status (vcRxClk domain) 
-      vcRxDropWrite : out sl;
-      vcRxTermFrame : out sl;
+      vcRxDropWrite  : out sl;
+      vcRxTermFrame  : out sl;
       -- Programmable RX Flow Control (vcRxClk domain)
-      vcRxThreshold : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
+      vcRxThreshold  : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       -- Streaming RX Data Interface (vcRxClk domain) 
-      vcRxData      : in  Vc64DataType;
-      vcRxCtrl      : out Vc64CtrlType;
-      vcRxClk       : in  sl;
-      vcRxRst       : in  sl := '0';
+      vcRxData       : in  Vc64DataType;
+      vcRxCtrl       : out Vc64CtrlType;
+      vcRxClk        : in  sl;
+      vcRxRst        : in  sl := '0';
       -- Streaming TX Data Interface (vcTxClk domain) 
-      vcTxCtrl      : in  Vc64CtrlType;
-      vcTxData      : out Vc64DataType;
-      vcTxClk       : in  sl;
-      vcTxRst       : in  sl := '0');
+      vcTxCtrl       : in  Vc64CtrlType;
+      vcTxData       : out Vc64DataType;
+      vcTxClk        : in  sl;
+      vcTxRst        : in  sl := '0');
+begin
+   assert (RX_WIDTH_G = 8 or RX_WIDTH_G = 16 or RX_WIDTH_G = 32 or RX_WIDTH_G = 64 ) 
+      report "RX_WIDTH_G must not be = 8, 16, 32 or 64" severity failure;
+   assert (TX_WIDTH_G = 8 or TX_WIDTH_G = 16 or TX_WIDTH_G = 32 or TX_WIDTH_G = 64 ) 
+      report "TX_WIDTH_G must not be = 8, 16, 32 or 64" severity failure;
+   assert ((RX_WIDTH_G >= TX_WIDTH_G and RX_WIDTH_G mod TX_WIDTH_G = 0) or
+           (TX_WIDTH_G > RX_WIDTH_G and TX_WIDTH_G mod RX_WIDTH_G = 0))
+      report "Data widths must be even number multiples of each other" severity failure;
 end Vc64FifoMux;
 
 architecture mapping of Vc64FifoMux is
 
-   -- Set the maximum programmable FIFO almostFull threshold
-   constant MAX_PROG_C     : integer                           := ((2**FIFO_ADDR_WIDTH_G)-6);
-   constant MAX_PROG_SLV_C : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := toSlv((MAX_PROG_C-1), FIFO_ADDR_WIDTH_G);  -- minus 1 for additional pipeline latency
+   constant FIFO_WIDTH_C : integer := ite(RX_WIDTH_G > TX_WIDTH_G, RX_WIDTH_G, TX_WIDTH_G);
 
-   -- Limit the FIFO_AFULL_THRES_G generic
-   constant AFULL_THRES_C : integer := ite((FIFO_AFULL_THRES_G < MAX_PROG_C), FIFO_AFULL_THRES_G, MAX_PROG_C);
+   ----------------
+   -- Write Signals
+   ----------------
+   constant WR_LOGIC_EN_C : boolean := (RX_WIDTH_G < TX_WIDTH_G);
+   constant WR_SIZE_C     : integer := ite(WR_LOGIC_EN_C, TX_WIDTH_G / RX_WIDTH_G, 1);
 
-   constant WR_DATA_WIDTH_C : integer := 24*RX_LANES_G;
-   constant RD_DATA_WIDTH_C : integer := 24*TX_LANES_G;
+   type WrRegType is record
+      count    : slv(2 downto 0);
+      wrData   : Vc64DataType;
+      alignErr : sl;
+   end record WrRegType;
 
-   signal din  : slv(WR_DATA_WIDTH_C-1 downto 0);
-   signal dout : slv(RD_DATA_WIDTH_C-1 downto 0);
-   signal rxReadyL,
-      almostFull,
-      progFull,
-      overflow,
-      fifoRdEn,
-      fifoValid,
-      txValid,
-      ready : sl;
-   
-   signal wrCnt       : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
-   signal wrThreshold : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := MAX_PROG_SLV_C;
+   constant WR_REG_INIT_C : WrRegType := (
+      count    => (others => '0'),
+      wrData   => VC64_DATA_INIT_C,
+      alignErr => '0');
 
-   signal rxCtrl,
-      txCtrl : Vc64CtrlType;
-   signal rxData,
-      txData : Vc64DataType;
-   
+   signal wrR, wrRin : WrRegType := WR_REG_INIT_C;
+
+   signal fifoRxData : Vc64DataType;
+   signal fifoRxCtrl : Vc64CtrlType;
+
+   ---------------
+   -- Read Signals
+   ---------------
+   constant RD_LOGIC_EN_C : boolean := (TX_WIDTH_G < RX_WIDTH_G);
+   constant RD_SIZE_C     : integer := ite(RD_LOGIC_EN_C, RX_WIDTH_G / TX_WIDTH_G, 1);
+
+   type RdRegType is record
+      count  : slv(2 downto 0);
+      rdData : Vc64DataType;
+      rdCtrl : Vc64CtrlType;
+   end record RdRegType;
+
+   constant RD_REG_INIT_C : RdRegType := (
+      count  => (others => '0'),
+      rdData => VC64_DATA_INIT_C,
+      rdCtrl => VC64_CTRL_INIT_C);
+
+   signal rdR, rdRin   : RdRegType := RD_REG_INIT_C;
+
+   signal fifoTxData : Vc64DataType;
+   signal fifoTxCtrl : Vc64CtrlType;
+
 begin
 
-   Vc64FrameFilter_Inst : entity work.Vc64FrameFilter
-      generic map (
-         TPD_G             => TPD_G,
-         RST_ASYNC_G       => RST_ASYNC_G,
-         RST_POLARITY_G    => RST_POLARITY_G,
-         EN_FRAME_FILTER_G => EN_FRAME_FILTER_G)
-      port map (
-         -- RX Frame Filter Status
-         vcRxDropWrite => vcRxDropWrite,
-         vcRxTermFrame => vcRxTermFrame,
-         -- Streaming RX Data Interface
-         vcRxData      => vcRxData,
-         vcRxCtrl      => vcRxCtrl,
-         -- Streaming TX Data Interface
-         vcTxCtrl      => rxCtrl,
-         vcTxData      => rxData,
-         -- Clock and Reset
-         vcClk         => vcRxClk,
-         vcRst         => vcRxRst);
+   -------------------------
+   -- Write Logic
+   -------------------------
+   wrComb : process (vcRxData, wrR) is
+      variable v     : WrRegType;
+      variable idx   : integer;
+   begin
+      v := wrR;
 
-   -- Map the RX flow control signals
-   rxCtrl.ready      <= not(rxReadyL);
-   rxCtrl.almostFull <= almostFull;
-   rxCtrl.overflow   <= overflow;
+      v.wrData.valid := '0';
+      v.alignErr     := '0';
 
-   FIXED_THRESHOLD : if (FIFO_FIXED_THES_G = true) generate
-      almostFull <= progFull;
-   end generate;
+      if LITTLE_ENDIAN_G then
+         idx := conv_integer(wrR.count);
+      else
+         idx := (WR_SIZE_C-1)-conv_integer(wrR.count);
+      end if;
 
-   PROG_THRESHOLD : if (FIFO_FIXED_THES_G = false) generate
-      process(vcRxClk)
-      begin
-         if rising_edge(vcRxClk) then
-            if vcRxRst = '1' then
-               almostFull  <= '1'            after TPD_G;
-               wrThreshold <= MAX_PROG_SLV_C after TPD_G;
-            else
-               -- Check the threshold
-               if wrCnt < wrThreshold then
-                  almostFull <= rxReadyL after TPD_G;
-               else
-                  almostFull <= '1' after TPD_G;
-               end if;
-               -- Update the programmable threshold value
-               if vcRxThreshold < MAX_PROG_SLV_C then
-                  wrThreshold <= vcRxThreshold after TPD_G;
-               else
-                  wrThreshold <= MAX_PROG_SLV_C after TPD_G;
-               end if;
+      v.wrData.data((RX_WIDTH_G*idx)+(RX_WIDTH_G-1) downto (RX_WIDTH_G*idx)) := vcRxData.data(RX_WIDTH_G-1 downto 0);
+
+      v.wrData.vc   := vcRxData.vc;
+      v.wrData.eof  := vcRxData.eof;
+      v.wrData.eofe := vcRxData.eofe;
+
+      -- SOF only on first word
+      if ( wrR.count = 0 ) then
+         v.wrData.sof := vcRxData.sof;
+      end if;
+
+      if vcRxData.valid = '1' then
+         v.count := wrR.count + 1;
+
+         -- Ready for write
+         if (wrR.count = WR_SIZE_C-1) then
+            v.count        := (others => '0');
+            v.wrData.valid := '1';
+            v.wrData.size  := ite(TX_WIDTH_G=64,'1','0');
+
+         -- Early EOF at unaligned boundary
+         elsif vcRxData.eof = '1' then
+            v.count        := (others => '0');
+            v.wrData.valid := '1';
+            v.wrData.size  := '0';
+
+            -- Early EOF allowed for RX = 32 and TX = 64, otherwise error
+            if RX_WIDTH_G /= 32 or TX_WIDTH_G /= 64 then
+               v.wrData.eofe := '1';
+               v.alignErr    := '1';
             end if;
          end if;
-      end process;
-   end generate;
+      end if;
 
-   -- Assign data based on lane generics
-   STATUS_HDR : process (rxData) is
-      variable i : integer;
+      wrRin          <= v;
+      vcRxAlignError <= wrR.alignErr;
+
+      -- Write logic enabled
+      if WR_LOGIC_EN_C then
+         fifoRxData <= wrR.wrData;
+
+      -- Bypass write logic
+      else
+         fifoRxData <= vcRxData;
+      end if;
+
+   end process wrComb;
+
+   wrSeq : process (vcRxClk, vcRxRst) is
    begin
-      din <= (others => '0');           -- Default everything to zero
-      for i in (RX_LANES_G-1) downto 0 loop
-         -- Map the upper word flags
-         if (i = (RX_LANES_G-1)) then
-            din(i*24+23)                    <= rxData.size;
-            din((i*24+22) downto (i*24+19)) <= rxData.vc;
-            din(i*24+18)                    <= rxData.sof;
+      if (RST_ASYNC_G and vcRxRst = RST_POLARITY_G) then
+         wrR <= WR_REG_INIT_C after TPD_G;
+      elsif (rising_edge(vcRxClk)) then
+         if (RST_ASYNC_G = false and vcRxRst = RST_POLARITY_G) then
+            wrR <= WR_REG_INIT_C after TPD_G;
+         else
+            wrR <= wrRin after TPD_G;
          end if;
-         -- Map the lower word flags
-         if (i = 0) then
-            din(i*24+17) <= rxData.eof;
-            din(i*24+16) <= rxData.eofe;
+      end if;
+   end process wrSeq;
+
+   -- Output control directly
+   vcRxCtrl <= fifoRxCtrl;
+
+   -------------------------
+   -- FIFO
+   -------------------------
+
+   U_Vc64Fifo : entity work.Vc64Fifo
+      generic map (
+         TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
+         VC_WIDTH_G          => FIFO_WIDTH_C,
+         CASCADE_SIZE_G      => CASCADE_SIZE_G,
+         LAST_STAGE_ASYNC_G  => LAST_STAGE_ASYNC_G,
+         EN_FRAME_FILTER_G   => EN_FRAME_FILTER_G,
+         IGNORE_TX_READY_G   => false,
+         PIPE_STAGES_G       => PIPE_STAGES_G,
+         XIL_DEVICE_G        => XIL_DEVICE_G,
+         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         ALTERA_SYN_G        => ALTERA_SYN_G,
+         ALTERA_RAM_G        => ALTERA_RAM_G,
+         BRAM_EN_G           => BRAM_EN_G,
+         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
+         FIFO_SYNC_STAGES_G  => FIFO_SYNC_STAGES_G,
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
+         FIFO_FIXED_THES_G   => FIFO_FIXED_THES_G,
+         FIFO_AFULL_THRES_G  => FIFO_AFULL_THRES_G
+      ) port map (
+         vcRxDropWrite       => vcRxDropWrite,
+         vcRxTermFrame       => vcRxTermFrame,
+         vcRxThreshold       => vcRxThreshold,
+         vcRxData            => fifoRxData,
+         vcRxCtrl            => fifoRxCtrl,
+         vcRxClk             => vcRxClk,
+         vcRxRst             => vcRxRst,
+         vcTxCtrl            => fifoTxCtrl,
+         vcTxData            => fifoTxData,
+         vcTxClk             => vcTxClk,
+         vcTxRst             => vcTxRst
+      );
+
+   -------------------------
+   -- Read Logic
+   -------------------------
+
+   rdComb : process (fifoTxData, rdR, vcTxCtrl) is
+      variable v        : RdRegType;
+      variable idx      : integer;
+      variable fifoRdEn : boolean;
+   begin
+      v   := rdR;
+
+      v.rdCtrl.overflow   := vcTxCtrl.overflow;
+      v.rdCtrl.almostFull := vcTxCtrl.almostFull;
+      v.rdCtrl.ready      := '0';
+
+      if LITTLE_ENDIAN_G then
+         idx := conv_integer(rdR.count);
+      else
+         idx := (RD_SIZE_C-1)-conv_integer(rdR.count);
+      end if;
+
+      v.rdData.data(TX_WIDTH_G-1 downto 0) := fifoTxData.data((TX_WIDTH_G*idx)+(TX_WIDTH_G-1) downto (TX_WIDTH_G*idx));
+
+      v.rdData.vc    := fifoTxData.vc;
+      v.rdData.size  := '0'; -- Always zero since tx size is not 64
+      v.rdData.valid := fifoTxData.valid;
+
+      -- First value
+      if rdR.count = 0 then
+         v.rdData.sof := fifoTxData.sof;
+      else
+         v.rdData.sof := '0';
+      end if;
+
+      -- Last value when RX = 64 and TX = 32 and size = '0' or reached aligned count
+      if (rdR.count = (RD_SIZE_C-1) ) or (RX_WIDTH_G = 64 and TX_WIDTH_G = 32 and fifoTxData.size = '0') then
+         fifoRdEn       := true;
+         v.rdData.eof   := fifoTxData.eof;
+         v.rdData.eofe  := fifoTxData.eofe;
+      else
+         fifoRdEn       := false;
+         v.rdData.eof   := '0';
+         v.rdData.eofe  := '0';
+      end if;
+
+      -- Advance
+      if fifoTxData.valid = '1' and vcTxCtrl.ready = '1' then
+         v.count := rdR.count + 1;
+
+         if fifoRdEn then
+            v.rdCtrl.ready := '1';
+            v.count        := (others => '0');
          end if;
-         -- Map the data bus
-         din(i*24+15 downto i*24) <= rxData.data(i*16+15 downto i*16);
-      end loop;
-   end process STATUS_HDR;
+      end if;
 
-   FifoMux_Inst : entity work.FifoMux
-      generic map (
-         TPD_G              => TPD_G,
-         CASCADE_SIZE_G     => CASCADE_SIZE_G,
-         LAST_STAGE_ASYNC_G => LAST_STAGE_ASYNC_G,
-         RST_ASYNC_G        => RST_ASYNC_G,
-         RST_POLARITY_G     => RST_POLARITY_G,
-         WR_DATA_WIDTH_G    => WR_DATA_WIDTH_C,
-         RD_DATA_WIDTH_G    => RD_DATA_WIDTH_C,
-         LITTLE_ENDIAN_G    => LITTLE_ENDIAN_G,
-         GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => BRAM_EN_G,
-         FWFT_EN_G          => true,
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         SYNC_STAGES_G      => FIFO_SYNC_STAGES_G,
-         ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
-         FULL_THRES_G       => AFULL_THRES_C)
-      port map (
-         -- Resets
-         rst           => vcRxRst,
-         --Write Ports (wr_clk domain)
-         wr_clk        => vcRxClk,
-         wr_en         => vcRxData.valid,
-         din           => din,
-         almost_full   => rxReadyL,
-         prog_full     => progFull,
-         overflow      => overflow,
-         wr_data_count => wrCnt,
-         --Read Ports (rd_clk domain)
-         rd_clk        => vcTxClk,
-         rd_en         => fifoRdEn,
-         dout          => dout,
-         valid         => fifoValid);
+      rdRin <= v;
 
-   -- Generate the ready signal 
-   ready <= '1' when(IGNORE_TX_READY_G = true) else txCtrl.ready;
+      -- Read logic enabled
+      if RD_LOGIC_EN_C then
+         vcTxData   <= v.rdData;
+         fifoTxCtrl <= v.rdCtrl;
 
-   -- Generate the TX valid signal
-   txValid <= fifoValid and not txCtrl.almostFull;
+      -- Bypass read logic
+      else
+         vcTxData   <= fifoTxData;
+         fifoTxCtrl <= vcTxCtrl;
+      end if;
+      
+   end process rdComb;
 
-   -- Check if we are ready to read the FIFO
-   fifoRdEn <= txValid and ready;
-
-   -- Pass the FIFO's valid signal
-   txData.valid <= txValid;
-
-   -- Upper word flags
-   txData.size <= dout((TX_LANES_G-1)*24+23);
-   txData.vc   <= dout(((TX_LANES_G-1)*24+22) downto ((TX_LANES_G-1)*24+19));
-   txData.sof  <= dout((TX_LANES_G-1)*24+18);
-
-   -- Lower word flags
-   txData.eof  <= dout(17);
-   txData.eofe <= dout(16);
-
-   -- Assign data based on lane generics
-   dataLoop : for i in (TX_LANES_G-1) downto 0 generate
-      txData.data(i*16+15 downto i*16) <= dout(i*24+15 downto i*24);
-   end generate dataLoop;
-
-   maxLaneCheck : if (TX_LANES_G /= 4) generate
-      zeroLoop : for i in 3 downto TX_LANES_G generate
-         txData.data(i*16+15 downto i*16) <= (others => '0');
-      end generate zeroLoop;
-   end generate;
-
-   Vc64Sync_Inst : entity work.Vc64Sync
-      generic map (
-         TPD_G             => TPD_G,
-         RST_ASYNC_G       => RST_ASYNC_G,
-         RST_POLARITY_G    => RST_POLARITY_G,
-         IGNORE_TX_READY_G => IGNORE_TX_READY_G,
-         PIPE_STAGES_G     => PIPE_STAGES_G)
-      port map (
-         -- Streaming RX Data Interface
-         vcRxData => txData,
-         vcRxCtrl => txCtrl,
-         -- Streaming TX Data Interface
-         vcTxCtrl => vcTxCtrl,
-         vcTxData => vcTxData,
-         -- Clock and Reset
-         vcClk    => vcTxClk,
-         vcRst    => vcTxRst);   
+   -- If fifo is asynchronous, must use async reset on rd side.
+   rdSeq : process (vcTxClk, vcTxRst) is
+   begin
+      if (GEN_SYNC_FIFO_G = false and vcTxRst = RST_POLARITY_G) then
+         rdR <= RD_REG_INIT_C after TPD_G;
+      elsif (rising_edge(vcTxClk)) then
+         if (GEN_SYNC_FIFO_G and RST_ASYNC_G = false and vcTxRst = RST_POLARITY_G) then
+            rdR <= RD_REG_INIT_C after TPD_G;
+         else
+            rdR <= rdRin after TPD_G;
+         end if;
+      end if;
+   end process rdSeq;
 
 end mapping;
+
