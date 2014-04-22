@@ -58,7 +58,7 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
 
-   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2 + log2(DEVICE_MAP_G'length(1));
+   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2 + bitSize(DEVICE_MAP_G'length(1)) - 1;
    constant I2C_DEV_AXI_ADDR_LOW_C  : natural := I2C_REG_ADDR_SIZE_G+2;
 
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
