@@ -6,3 +6,5 @@ vhdl work rtl/Vc64Mux.vhd
 vhdl work rtl/Vc64PrbsRx.vhd
 vhdl work rtl/Vc64PrbsTx.vhd
 vhdl work rtl/Vc64Sync.vhd
+vhdl work rtl/Vc64CmdSlave.vhd
+vhdl work rtl/Vc64AxiSlave.vhd
