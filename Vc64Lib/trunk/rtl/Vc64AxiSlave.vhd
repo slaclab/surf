@@ -309,7 +309,7 @@ begin
                v.state   := S_WRITE_C;
             end if;
 
-         -- Address Field
+         -- Read size 
          when S_READ_SIZE_C =>
             v.rdCount := (others=>'0');
             v.rdSize  := intRxData.data(8 downto 0);
