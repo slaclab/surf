@@ -59,6 +59,12 @@ architecture rtl of AxiSfpReg is
    constant NUM_WRITE_REG_C : positive := 4;
    constant STATUS_SIZE_C   : positive := 3;
    constant NUM_READ_REG_C  : positive := (STATUS_SIZE_C+1);
+   
+   constant WRITE_REG_INIT_C : Slv32Array(0 to NUM_WRITE_REG_C-1) := (
+      0 => x"00000000",                 -- config.txDisable
+      1 => x"00000003",                 -- config.rateSel
+      2 => x"00000000",                 -- rollOverEn 
+      3 => x"00000000");                -- cntRst 
 
    signal cntRst     : sl;
    signal rollOverEn : slv(STATUS_SIZE_C-1 downto 0);
@@ -66,8 +72,8 @@ architecture rtl of AxiSfpReg is
 
    signal regIn : AxiSfpStatusType;
 
-   signal readRegister  : Slv32Array(0 to NUM_READ_REG_C)  := (others => x"00000000");
-   signal writeRegister : Slv32Array(0 to NUM_WRITE_REG_C) := (others => x"00000000");
+   signal readRegister  : Slv32Array(0 to NUM_READ_REG_C-1)  := (others => x"00000000");
+   signal writeRegister : Slv32Array(0 to NUM_WRITE_REG_C-1) := (others => x"00000000");
 
 begin
 
@@ -76,24 +82,26 @@ begin
          TPD_G               => TPD_G,
          I2C_REG_ADDR_SIZE_G => 8,
          DEVICE_MAP_G        => DEVICE_MAP_G,
-         NUM_WRITE_REG_G     => NUM_WRITE_REG_C,
-         NUM_READ_REG_G      => NUM_READ_REG_C,
+         EN_USER_REG_G       => true,
+         NUM_WRITE_REG_G     => NUM_WRITE_REG_C-1,
+         NUM_READ_REG_G      => NUM_READ_REG_C-1,
          AXI_ERROR_RESP_G    => AXI_ERROR_RESP_G)      
       port map (
          -- I2C Interface
-         i2cRegMasterIn  => i2cRegMasterIn,
-         i2cRegMasterOut => i2cRegMasterOut,
+         i2cRegMasterIn    => i2cRegMasterIn,
+         i2cRegMasterOut   => i2cRegMasterOut,
          -- AXI-Lite Register Interface
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave,
+         axiReadMaster     => axiReadMaster,
+         axiReadSlave      => axiReadSlave,
+         axiWriteMaster    => axiWriteMaster,
+         axiWriteSlave     => axiWriteSlave,
          -- Optional User Read/Write Register Interface
-         readRegister    => readRegister,
-         writeRegister   => writeRegister,
+         readRegister      => readRegister,
+         writeRegisterInit => WRITE_REG_INIT_C,
+         writeRegister     => writeRegister,
          -- Clock and Reset
-         axiClk          => axiClk,
-         axiRst          => axiRst);
+         axiClk            => axiClk,
+         axiRst            => axiRst);
 
    -------------------------------            
    -- Synchronization: Outputs
