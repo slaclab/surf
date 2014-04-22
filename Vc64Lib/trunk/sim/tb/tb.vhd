@@ -32,7 +32,7 @@ architecture tb of tb is
    signal axiReadSlave      : AxiLiteReadSlaveType;
    signal writeRegister     : Slv32Array(1 downto 0);
    signal readRegister      : Slv32Array(1 downto 0);
-   signal cmdSlaveOut       : Vc64CmdSlaveOutType;
+   signal cmdMasterOut      : Vc64CmdMasterOutType;
 
 begin
 
@@ -93,7 +93,7 @@ begin
    pgpTxVcData(3 downto 2) <= (others=>VC64_DATA_INIT_C);
    pgpRxVcCtrl(3 downto 2) <= (others=>VC64_CTRL_FORCE_C);
 
-   U_Vc64AxiSlave : entity work.Vc64AxiSlave 
+   U_Vc64AxiMaster : entity work.Vc64AxiMaster
       generic map (
          TPD_G              => 1 ns,
          XIL_DEVICE_G       => "7SERIES",
@@ -143,7 +143,7 @@ begin
       readRegister(0) <= x"deadbeef";
       readRegister(1) <= x"44444444";
 
-   U_Vc64CmdSlave : entity work.Vc64CmdSlave
+   U_Vc64CmdMaster : entity work.Vc64CmdMaster
       generic map (
          TPD_G              => 1 ns,
          XIL_DEVICE_G       => "7SERIES",
@@ -164,7 +164,7 @@ begin
          vcRxRst         => pgpClkRst,
          cmdClk          => axiClk,
          cmdClkRst       => axiClkRst,
-         cmdSlaveOut     => cmdSlaveOut
+         cmdMasterOut    => cmdMasterOut
       );
 
 end tb;

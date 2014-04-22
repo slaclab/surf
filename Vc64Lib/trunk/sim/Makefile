@@ -46,8 +46,8 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64FifoMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64PrbsRx.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64PrbsTx.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64AxiSlave.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64CmdSlave.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64AxiMaster.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../Vc64Lib/rtl/Vc64CmdMaster.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../pgp2b/core/rtl/Pgp2bPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../ArmRceG3/hdl/ArmRceG3Pkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/Vc64SimLinkIb.vhd

@@ -2,7 +2,7 @@
 -- Title      : Command Slave Block
 -- Project    : General Purpose Core
 -------------------------------------------------------------------------------
--- File       : Vc64CmdSlave.vhd
+-- File       : Vc64CmdMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
 -- Last update: 2014-04-09
@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
--- Slave block for Command protocol over the VC.
+-- Block for Command protocol over the VC.
 -- The receive packet is 4 x 32-bits.
 -- Word 0 Data[1:0]   = VC        (unused, legacy)
 -- Word 0 Data[7:2]   = Dest_ID   (unused, legacy)
@@ -34,7 +34,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Vc64Pkg.all;
 
-entity Vc64CmdSlave is
+entity Vc64CmdMaster is
    generic (
       TPD_G              : time                       := 1 ns;
       XIL_DEVICE_G       : string                     := "7SERIES";  --Xilinx only generic parameter    
@@ -60,11 +60,11 @@ entity Vc64CmdSlave is
       -- Command signals
       cmdClk          : in  sl;
       cmdClkRst       : in  sl;
-      cmdSlaveOut     : out Vc64CmdSlaveOutType
+      cmdMasterOut    : out Vc64CmdMasterOutType
    );
-end Vc64CmdSlave;
+end Vc64CmdMaster;
 
-architecture rtl of Vc64CmdSlave is
+architecture rtl of Vc64CmdMaster is
 
    signal intRxData  : Vc64DataType;
    signal intRxCtrl  : Vc64CtrlType;
@@ -73,12 +73,12 @@ architecture rtl of Vc64CmdSlave is
 
    type RegType is record
       state            : StateType;
-      cmdSlaveOut      : Vc64CmdSlaveOutType;
+      cmdMasterOut     : Vc64CmdMasterOutType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state            => S_IDLE_C,
-      cmdSlaveOut      => VC64_CMD_SLAVE_OUT_INIT_C
+      cmdMasterOut     => VC64_CMD_MASTER_OUT_INIT_C
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -139,7 +139,7 @@ begin
       v := r;
 
       -- Init, always read
-      v.cmdSlaveOut.valid    := '0';
+      v.cmdMasterOut.valid    := '0';
 
       -- State machine
       case r.state is
@@ -147,21 +147,21 @@ begin
          -- IDLE
          when S_IDLE_C =>
             if intRxData.valid = '1' and intRxData.sof = '1' then
-               v.cmdSlaveOut.ctxOut := intRxData.data(31 downto 8);
+               v.cmdMasterOut.ctxOut := intRxData.data(31 downto 8);
                v.state              := S_CMD_C;
             end if;
 
          -- Command Pulse
          when S_CMD_C =>
             if intRxData.valid = '1' then
-               v.cmdSlaveOut.opCode := intRxData.data(7 downto 0);
+               v.cmdMasterOut.opCode := intRxData.data(7 downto 0);
                v.state              := S_DUMP_C;
             end if;
 
          -- Dump
          when S_DUMP_C =>
             if intRxData.valid = '1' and intRxData.eof = '1' then
-               v.cmdSlaveOut.valid := not intRxData.eofe;
+               v.cmdMasterOut.valid := not intRxData.eofe;
                v.state := S_IDLE_C;
             end if;
 
@@ -176,7 +176,7 @@ begin
 
       rin <= v;
 
-      cmdSlaveOut <= r.cmdSlaveOut;
+      cmdMasterOut <= r.cmdMasterOut;
 
    end process comb;
 
