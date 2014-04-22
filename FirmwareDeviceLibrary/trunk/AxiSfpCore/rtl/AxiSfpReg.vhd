@@ -49,7 +49,7 @@ end AxiSfpReg;
 
 architecture rtl of AxiSfpReg is
 
-   constant DEVICE_MAP_G : I2cAxiLiteDevArray(0 to 0) := (
+   constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 0) := (
       0             => (
          i2cAddress => "0001010000",    -- Default to the SFF-8074i standard EEPROM address (0xA0)
          i2cTenbit  => '0',
@@ -81,7 +81,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          I2C_REG_ADDR_SIZE_G => 8,
-         DEVICE_MAP_G        => DEVICE_MAP_G,
+         DEVICE_MAP_G        => DEVICE_MAP_C,
          EN_USER_REG_G       => true,
          NUM_WRITE_REG_G     => NUM_WRITE_REG_C-1,
          NUM_READ_REG_G      => NUM_READ_REG_C-1,
