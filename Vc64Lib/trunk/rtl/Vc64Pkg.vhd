@@ -69,14 +69,14 @@ package Vc64Pkg is
       '0',
       '1');      
 
-   type Vc64CmdSlaveOutType is record
+   type Vc64CmdMasterOutType is record
       valid  : sl;                      -- Command Opcode is valid (formerly cmdEn)
       opCode : slv(7 downto 0);         -- Command OpCode
       ctxOut : slv(23 downto 0);        -- Command Context
    end record;
-   type Vc64CmdSlaveOutArray is array (natural range <>) of Vc64CmdSlaveOutType;
-   type Vc64CmdSlaveOutVectorArray is array (integer range<>, integer range<>)of Vc64CmdSlaveOutType;
-   constant VC64_CMD_SLAVE_OUT_INIT_C : Vc64CmdSlaveOutType := (
+   type Vc64CmdMasterOutArray is array (natural range <>) of Vc64CmdMasterOutType;
+   type Vc64CmdMasterOutVectorArray is array (integer range<>, integer range<>)of Vc64CmdMasterOutType;
+   constant VC64_CMD_MASTER_OUT_INIT_C : Vc64CmdMasterOutType := (
       '0',
       (others => '0'),
       (others => '0'));

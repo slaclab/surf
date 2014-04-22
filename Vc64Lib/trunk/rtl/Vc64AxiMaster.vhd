@@ -2,7 +2,7 @@
 -- Title      : Register Slave Block
 -- Project    : General Purpose Core
 -------------------------------------------------------------------------------
--- File       : Vc64AxiSlave.vhd
+-- File       : Vc64AxiMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
 -- Last update: 2014-04-09
@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
--- Slave block for Register protocol.
+-- Block for Register protocol.
 -- Packet is a minimum of 4 x 32-bits
 --
 -- Incoming Request:
@@ -60,7 +60,7 @@ use work.StdRtlPkg.all;
 use work.Vc64Pkg.all;
 use work.AxiLitePkg.all;
 
-entity Vc64AxiSlave is
+entity Vc64AxiMaster is
    generic (
       TPD_G              : time                       := 1 ns;
       XIL_DEVICE_G       : string                     := "7SERIES";  --Xilinx only generic parameter    
@@ -98,9 +98,9 @@ entity Vc64AxiSlave is
       axiReadSlave     : in  AxiLiteReadSlaveType
    );
 
-end Vc64AxiSlave;
+end Vc64AxiMaster;
 
-architecture rtl of Vc64AxiSlave is
+architecture rtl of Vc64AxiMaster is
 
    signal intRxData  : Vc64DataType;
    signal intRxCtrl  : Vc64CtrlType;
