@@ -20,7 +20,7 @@ void Vc64SimLinkIbInit(vhpiHandleT compInst) {
    Vc64SimLinkIbData *ibData    = (Vc64SimLinkIbData *) malloc(sizeof(Vc64SimLinkIbData));
 
    // Get port count
-   portData->portCount = 13;
+   portData->portCount = 12;
 
    // Set port directions
    portData->portDir[ibClk]            = vhpiIn;
@@ -59,10 +59,12 @@ void Vc64SimLinkIbInit(vhpiHandleT compInst) {
    // Init data structure
    ibData->currClk      = 0;
    ibData->ibActive     = 0;
-   ibData->ibSize      = 0;
+   ibData->ibCount      = 0;
+   ibData->ibSize       = 0;
    ibData->ibVc         = 0;
-   ibData->toCount      = 0;
-   ibData->ibCount     = 0;
+   ibData->ibError      = 0;
+   ibData->littleEnd    = 0;
+   ibData->width        = 0;
 
    // Create shared memory filename
    sprintf(ibData->smemFile,"simlink.%i.%s.%i", getuid(), SHM_NAME, SHM_ID);
@@ -78,10 +80,10 @@ void Vc64SimLinkIbInit(vhpiHandleT compInst) {
       fchmod(ibData->smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
 
       // Set the size of the shared memory segment
-      ftruncate(ibData->smemFd, sizeof(Vc64SimLinkIbMemory));
+      ftruncate(ibData->smemFd, sizeof(SimLinkMemory));
 
       // Map the shared memory
-      if((ibData->smem = (Vc64SimLinkIbMemory *)mmap(0, sizeof(Vc64SimLinkIbMemory),
+      if((ibData->smem = (SimLinkMemory *)mmap(0, sizeof(SimLinkMemory),
                 (PROT_READ | PROT_WRITE), MAP_SHARED, ibData->smemFd, 0)) == MAP_FAILED) {
          ibData->smemFd = -1;
          ibData->smem   = NULL;
@@ -104,7 +106,6 @@ void Vc64SimLinkIbInit(vhpiHandleT compInst) {
 
 // User function to update state based upon a signal change
 void Vc64SimLinkIbUpdate ( portDataT *portData ) {
-   int tpCount;
 
    Vc64SimLinkIbData *ibData = (Vc64SimLinkIbData*)(portData->stateData);
 
@@ -116,10 +117,10 @@ void Vc64SimLinkIbUpdate ( portDataT *portData ) {
       if ( ibData->currClk ) {
 
          // Reset is asserted, sample modes
-         if ( getInt(txReset) ) {
-            ibData->littleEndian      = getInt(littleEndian);
-            obData->smem->usBigEndian = (ibData->littleEndian)?0:1;
-            ibData->vcWidth           = getInt(vcWidth);
+         if ( getInt(ibReset) ) {
+            ibData->littleEnd         = getInt(littleEndian);
+            ibData->smem->usBigEndian = (ibData->littleEnd)?0:1;
+            ibData->width             = getInt(vcWidth);
             ibData->ibActive          = 0;
          }
 
@@ -127,12 +128,12 @@ void Vc64SimLinkIbUpdate ( portDataT *portData ) {
          else if ( getInt(ibDataValid) == 1 ) {
 
             // Receive is idle. check for new frame
-            if ( ibData->ibActive ) {
+            if ( ! ibData->ibActive ) {
                ibData->ibSize   = 0;
                ibData->ibCount  = 0;
                ibData->ibError  = 0;
-               ibVc = getInt(ibDataVc);
-               vhpi_printf("Vc64SimLinkIb: Frame Start. Vc=%i, Time=%lld\n",ibVc,portData->simTime);
+               ibData->ibVc     = getInt(ibDataVc);
+               vhpi_printf("Vc64SimLinkIb: Frame Start. Vc=%i, Time=%lld\n",ibData->ibVc,portData->simTime);
                if ( getInt(ibDataSof) == 0 ) {
                   vhpi_printf("Vc64SimLinkIb: SOF error.\n");
                   ibData->ibError = 1;
@@ -141,15 +142,15 @@ void Vc64SimLinkIbUpdate ( portDataT *portData ) {
             }
 
             // VC mismatch
-            if ( ibVc != getInt(ibDataVc) && ibData->ibError == 0 ) {
+            if ( ibData->ibVc != getInt(ibDataVc) && ibData->ibError == 0 ) {
                vhpi_printf("Vc64SimLinkIb: Vc mismatch error.\n");
                ibData->ibError = 1;
             }
 
             // Pack data, update count
-            switch (ibData->vcWidth) {
+            switch (ibData->width) {
                case 64 :
-                  if ( ibData->littlEndian ) {
+                  if ( ibData->littleEnd ) {
                      ibData->smem->usData[ibData->ibSize++] = getInt(ibDataDataLow);
                      ibData->smem->usData[ibData->ibSize++] = getInt(ibDataDataHigh);
                   }
@@ -165,82 +166,81 @@ void Vc64SimLinkIbUpdate ( portDataT *portData ) {
 
                case 16 :
                   if ( (ibData->ibCount % 2) == 0 ) {
-                     if ( ibData->littlEndian ) ibData->smem->usData[ibData->ibSize] = (getInt(ibDataDataLow) & 0xFFFF);
+                     if ( ibData->littleEnd ) ibData->smem->usData[ibData->ibSize] = (getInt(ibDataDataLow) & 0xFFFF);
                      else ibData->smem->usData[ibData->ibSize] = ((getInt(ibDataDataLow) << 16) & 0xFFFF0000);
                   } else {
-                     if ( ibData->littlEndian ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 16) & 0xFFFF0000);
+                     if ( ibData->littleEnd ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 16) & 0xFFFF0000);
                      else ibData->smem->usData[ibData->ibSize] |= (getInt(ibDataDataLow) & 0xFFFF);
-                     ibdata->ibSize++;
+                     ibData->ibSize++;
                   }
                   break;
 
                case 8 :
                   switch ( ibData->ibCount % 4 ) {
                      case 0:
-                        if ( ibData->littlEndian ) ibData->smem->usData[ibData->ibSize] = (getInt(ibDataDataLow) & 0xFF);
+                        if ( ibData->littleEnd ) ibData->smem->usData[ibData->ibSize] = (getInt(ibDataDataLow) & 0xFF);
                         else ibData->smem->usData[ibData->ibSize] = ((getInt(ibDataDataLow) << 24) & 0xFF000000);
                         break;
 
                      case 1:
-                        if ( ibData->littlEndian ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 8) & 0x0000FF00);
+                        if ( ibData->littleEnd ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 8) & 0x0000FF00);
                         else ibData->smem->usData[ibData->ibSize] |= (getInt(ibDataDataLow << 16) & 0xFF0000);
                         break;
 
                      case 2:
-                        if ( ibData->littlEndian ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 16) & 0x00FF0000);
+                        if ( ibData->littleEnd ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 16) & 0x00FF0000);
                         else ibData->smem->usData[ibData->ibSize] |= (getInt(ibDataDataLow << 8) & 0xFF00);
                         break;
 
                      case 3:
-                        if ( ibData->littlEndian ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 24) & 0xFF000000);
+                        if ( ibData->littleEnd ) ibData->smem->usData[ibData->ibSize] |= ((getInt(ibDataDataLow) << 24) & 0xFF000000);
                         else ibData->smem->usData[ibData->ibSize] |= (getInt(ibDataDataLow) & 0xFF);
-                        ibdata->ibSize++;
+                        ibData->ibSize++;
                         break;
                   }
                   break;
+            }
+            ibData->ibCount++;
+
+            // EOF is asserted
+            if ( getInt(ibDataEof) ) {
+
+               ibData->smem->usEofe = getInt(ibDataEofe);
+
+               // Force EOFE for bad frame size or error
+               if ( (ibData->ibSize * 32) != (ibData->ibCount * ibData->width) ) {
+                  vhpi_printf("Vc64SimLinkIb: Unaligned frame size error.\n");
+                  ibData->smem->usEofe = 1;
                }
-               ibData->ibCount++;
+               if ( ibData->ibError ) ibData->smem->usEofe = 1;
 
-               // EOF is asserted
-               if ( getInt(ibDataEof) ) 
+               // Send data
+               ibData->smem->usVc   = ibData->ibVc;
+               ibData->smem->usSize = ibData->ibSize;
+               ibData->smem->usReqCount++;
 
-                  ibData->smem->usEofe = getInt(ibDataEofe);
+               vhpi_printf("Vc64SimLinkIb: Frame Done. Size=%i, Vc=%i, Time=%lld\n",
+                  ibData->smem->usSize,ibData->smem->usVc,portData->simTime);
 
-                  // Force EOFE for bad frame size or error
-                  if ( (ibData->ibSize * 32) != (ibData->ibCount * ibData->vcWidth) ) {
-                     vhpi_printf("Vc64SimLinkIb: Unaligned frame size error.\n");
-                     ibData->smem->usEofe = 1;
+               // Wait for other end
+               int toCount = 0;
+               while ( ibData->smem->usReqCount != ibData->smem->usAckCount ) {
+                  usleep(100);
+                  if ( ++toCount > 10000 ) {
+                     vhpi_printf("Vc64SimLinkIb: Timeout waiting\n");
+                     break;
                   }
-                  if ( ibData->ibError ) ibData->smem->usEofe = 1;
-
-                  // Send data
-                  ibData->smem->usVc   = ibData->ibVc;
-                  ibData->smem->usSize = ibData->ibSize;
-                  ibData->smem->usReqCount++;
-
-                  vhpi_printf("Vc64SimLinkIb: Frame Done. Size=%i, Vc=%i, Time=%lld\n",
-                     ibData->smem->usSize,ibData->smem->usVc,portData->simTime);
-
-                  // Wait for other end
-                  int toCount = 0;
-                  while ( ibData->smem->usReqCount != ibData->smem->usAckCount ) {
-                     usleep(100);
-                     if ( ++toCount > 10000 ) {
-                        vhpi_printf("Vc64SimLinkIb: Timeout waiting\n");
-                        break;
-                     }
-                  }
-
-                  ibData->ibActive = 0;
                }
 
-               // Show updates for long frames
-               else {
-                  if ( (ibData->ibCount % 100) == 0 ) {
+               ibData->ibActive = 0;
+            }
 
-                     vhpi_printf("Vc64SimLinkIb: Frame In Progress. Size=%i, Vc=%i, Payload=%i, Time=%lld\n",
-                        ibData->ibSize,ibData->ibVc,ibData->ibCount,portData->simTime);
-                  }
+            // Show updates for long frames
+            else {
+               if ( (ibData->ibCount % 100) == 0 ) {
+
+                  vhpi_printf("Vc64SimLinkIb: Frame In Progress. Size=%i, Vc=%i, Payload=%i, Time=%lld\n",
+                     ibData->ibSize,ibData->ibVc,ibData->ibCount,portData->simTime);
                }
             }
          }
