@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiSfpReg.vhd
+-- File       : AxiI2cSfpReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
@@ -21,10 +21,10 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiSfpPkg.all;
+use work.AxiI2cSfpPkg.all;
 use work.I2cPkg.all;
 
-entity AxiSfpReg is
+entity AxiI2cSfpReg is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
@@ -40,14 +40,14 @@ entity AxiSfpReg is
       axiWriteMaster  : in  AxiLiteWriteMasterType;
       axiWriteSlave   : out AxiLiteWriteSlaveType;
       -- Register Inputs/Outputs
-      status          : in  AxiSfpStatusType;
-      config          : out AxiSfpConfigType;
+      status          : in  AxiI2cSfpStatusType;
+      config          : out AxiI2cSfpConfigType;
       -- Global Signals
       axiClk          : in  sl;
       axiRst          : in  sl);      
-end AxiSfpReg;
+end AxiI2cSfpReg;
 
-architecture rtl of AxiSfpReg is
+architecture rtl of AxiI2cSfpReg is
 
    constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 0) := (
       0             => (
@@ -70,7 +70,7 @@ architecture rtl of AxiSfpReg is
    signal rollOverEn : slv(STATUS_SIZE_C-1 downto 0);
    signal cntOut     : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal regIn : AxiSfpStatusType;
+   signal regIn : AxiI2cSfpStatusType;
 
    signal readRegister  : Slv32Array(0 to NUM_READ_REG_C-1)  := (others => x"00000000");
    signal writeRegister : Slv32Array(0 to NUM_WRITE_REG_C-1) := (others => x"00000000");

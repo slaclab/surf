@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiSfpCore.vhd
+-- File       : AxiI2cSfpCore.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
@@ -23,9 +23,9 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
-use work.AxiSfpPkg.all;
+use work.AxiI2cSfpPkg.all;
 
-entity AxiSfpCore is
+entity AxiI2cSfpCore is
    generic (
       TPD_G              : time                  := 1 ns;
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
@@ -35,10 +35,10 @@ entity AxiSfpCore is
       ALLOW_TX_DISABLE_G : boolean               := false;
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
    port (
-      -- DAC Ports
-      sfpIn          : in    AxiSfpInType;
-      sfpInOut       : inout AxiSfpInOutType;
-      sfpOut         : out   AxiSfpOutType;
+      -- SFP Ports
+      sfpIn          : in    AxiI2cSfpInType;
+      sfpInOut       : inout AxiI2cSfpInOutType;
+      sfpOut         : out   AxiI2cSfpOutType;
       -- AXI-Lite Register Interface
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
@@ -47,9 +47,9 @@ entity AxiSfpCore is
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl);
-end AxiSfpCore;
+end AxiI2cSfpCore;
 
-architecture mapping of AxiSfpCore is
+architecture mapping of AxiI2cSfpCore is
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
    --       FILTER_G = (min_pulse_time / clk_period) + 1
@@ -63,8 +63,8 @@ architecture mapping of AxiSfpCore is
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
 
-   signal status : AxiSfpStatusType;
-   signal config : AxiSfpConfigType;
+   signal status : AxiI2cSfpStatusType;
+   signal config : AxiI2cSfpConfigType;
    
 begin
    
@@ -83,7 +83,7 @@ begin
    status.moduleDetL <= sfpIn.moduleDetL;
    status.txFault    <= sfpIn.txFault;
 
-   AxiSfpReg_Inst : entity work.AxiSfpReg
+   AxiI2cSfpReg_Inst : entity work.AxiI2cSfpReg
       generic map(
          TPD_G              => TPD_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
