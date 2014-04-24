@@ -54,7 +54,8 @@ end AxiLtc2270Reg;
 
 architecture rtl of AxiLtc2270Reg is
 
-   constant HALF_SCLK_C : natural := getTimeRatio(AXI_CLK_FREQ_G, 8.0E+06);
+   constant HALF_SCLK_C  : natural := getTimeRatio(AXI_CLK_FREQ_G, 8.0E+06);
+   constant TIMEOUT_1S_C : natural := getTimeRatio(AXI_CLK_FREQ_G, 1.0E+00);
    
    type StateType is (
       IDLE_S,
@@ -70,6 +71,10 @@ architecture rtl of AxiLtc2270Reg is
       serReg        : slv(15 downto 0);
       pntr          : slv(3 downto 0);
       cnt           : natural range 0 to HALF_SCLK_C;
+      timer         : natural range 0 to TIMEOUT_1S_C;
+      smplCnt       : Slv3Array(0 to 1);
+      armed         : slv(1 downto 0);
+      adcSmpl       : Slv16VectorArray(0 to 1, 0 to 7);
       regOut        : AxiLtc2270ConfigType;
       state         : StateType;
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -77,7 +82,7 @@ architecture rtl of AxiLtc2270Reg is
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      '1',
+      '0',
       '0',
       '1',
       '1',
@@ -85,6 +90,10 @@ architecture rtl of AxiLtc2270Reg is
       (others => '0'),
       (others => '0'),
       0,
+      0,
+      (others => (others => '0')),
+      (others => '0'),
+      (others => (others => (others => '0'))),
       AXI_LTC2270_CONFIG_INIT_C,
       IDLE_S,
       AXI_LITE_READ_SLAVE_INIT_C,
@@ -112,6 +121,7 @@ begin
    -- Configuration Register
    -------------------------------  
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, regIn, sdo) is
+      variable i            : integer;      
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -127,6 +137,34 @@ begin
       v.regOut.delayIn.load := '0';
       v.regOut.delayIn.rst  := '0';
       v.cntRst              := '0';
+      
+      -- Increment the counter
+      v.timer := r.timer + 1;
+      -- Check the timer for 1 second timeout
+      if r.timer = TIMEOUT_1S_C then
+         -- Reset the counter
+         v.timer := 0;
+         -- Set the flag
+         v.armed := (others=>'1');
+      end if;
+      
+      -- Process for collecting 8 consecutive samples after each 1 second timeout
+      for i in 0 to 1 loop
+         -- Check the armed and valid flag
+         if (r.armed(i) = '1') and (regIn.adcValid(i) = '1') then      
+            -- Latch the value
+            v.adcSmpl(i,conv_integer(r.smplCnt(i))) := regIn.adcData(i);
+            -- Increment the counter   
+            v.smplCnt(i) := r.smplCnt(i) + 1;
+            -- Check the counter value
+            if r.smplCnt(i) = 7 then
+               -- Reset the counter
+               v.smplCnt(i) := (others=>'0');
+               -- Reset the flag
+               v.armed(i) := '0';      
+            end if;
+         end if;
+      end loop;           
 
       if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
@@ -230,10 +268,38 @@ begin
          else
             -- Decode address and assign read data
             case (axiReadMaster.araddr(9 downto 2)) is
-               when x"70" =>
-                  v.axiReadSlave.rdata(15 downto 0) := regIn.adcData(0);
-               when x"71" =>
-                  v.axiReadSlave.rdata(15 downto 0) := regIn.adcData(1);
+               when x"60" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 0);
+               when x"61" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 1);
+               when x"62" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 2);
+               when x"63" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 3);
+               when x"64" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 4);
+               when x"65" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 5);
+               when x"66" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 6);
+               when x"67" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(0, 7);
+               when x"68" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 0);
+               when x"69" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 1);
+               when x"6A" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 2);
+               when x"6B" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 3);
+               when x"6C" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 4);
+               when x"6D" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 5);
+               when x"6E" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 6);
+               when x"6F" =>
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 7);            
                when x"7F" =>
                   v.axiReadSlave.rdata(0) := regIn.delayOut.rdy;
                when x"80" =>
@@ -395,7 +461,8 @@ begin
    -------------------------------
    -- Synchronization: Inputs
    -------------------------------
-   regIn.adcData <= status.adcData;
+   regIn.adcData  <= status.adcData;
+   regIn.adcValid <= status.adcValid;
 
    SyncIn_delayOut_rdy : entity work.Synchronizer
       generic map (
