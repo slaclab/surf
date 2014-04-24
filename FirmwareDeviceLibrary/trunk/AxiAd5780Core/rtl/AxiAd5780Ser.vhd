@@ -69,6 +69,19 @@ architecture rtl of AxiAd5780Ser is
    signal dacValidSync,
       dacRst : sl;
    signal dacDataSync : slv(17 downto 0);
+
+   -- Use I/O PAD's FD register
+   attribute IOB      : string;
+   attribute IOB of r : signal is "True";     
+   
+   -- Mark the Vivado Debug Signals
+   attribute mark_debug : string;
+   attribute mark_debug of
+      dacRst,
+      dacIn,
+      dacOut,
+      dacValidSync,
+      dacDataSync : signal is "TRUE";
    
 begin
 
@@ -110,7 +123,7 @@ begin
             if r.cnt = 8 then
                -- release the reset
                v.rstL := '1';
-            elsif r.cnt = 16 then
+            elsif r.cnt = 31 then
                -- reset the counter
                v.cnt               := (others => '0');
                -- configure the DAC
@@ -122,7 +135,7 @@ begin
                v.reg(3) := '0';         -- DACTRI: put DAC into normal operating mode
                v.reg(2) := '0';         -- OPGND: put DAC into normal operating mode
                v.reg(1) := '1';         -- RBUF: Unity-Gain Configuration 
-               v.reg(1) := '0';         -- Reserved: reserved should be set to zero
+               v.reg(0) := '0';         -- Reserved: reserved should be set to zero
 
                -- next state
                v.state := SCK_HIGH_S;
@@ -175,7 +188,7 @@ begin
       dacOut.dacSclk <= r.sck;
       dacOut.dacSdi  <= r.sdi;
       dacOut.dacLdac <= '0';
-      dacOut.dacClr  <= r.rstL;
+      dacOut.dacClr  <= '1';
       dacOut.dacRst  <= r.rstL;
       
    end process comb;
