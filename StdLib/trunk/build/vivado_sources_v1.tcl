@@ -54,8 +54,7 @@ if { ${XDC_FILES} != "" } {
 set_property top ${PROJECT} [current_fileset]
 
 # Close and reopen project
-close_project
-open_project -quiet ${VIVADO_PROJECT}
+VivadoRefresh ${VIVADO_PROJECT}
 
 # Generate all IP cores' output files
 generate_target all [get_ips]
