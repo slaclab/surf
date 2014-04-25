@@ -5,6 +5,7 @@ set_msg_config -suppress -id {Synth 8-113}; # SYNTH: binding component instance 
 set_msg_config -suppress -id {Synth 8-226}; # SYNTH: default block is never used
 set_msg_config -suppress -id {Synth 8-312}; # SYNTH: "ignoring unsynthesizable construct" due to assert error checking
 set_msg_config -suppress -id {Synth 8-4472};# SYNTH: Detected and applied attribute shreg_extract = no
+set_msg_config -suppress -id {Synth 8-638}; # SYNTH: synthesizing module .... [required for upgrading {Synth 8-63} to an ERROR]
 
 set_msg_config -suppress -id {HDL 9-1061};  # SIM: Parsing VHDL file 
 set_msg_config -suppress -id {Runs 36-5};   # SIM: Copied auxiliary file
@@ -25,6 +26,7 @@ set_msg_config -suppress -id {Pwropt 34-142};# Post-Place Power Opt: power_opt d
 set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in logic is out of range 
 set_msg_config -id {Synth 8-3919} -new_severity ERROR;# SYNTH: Null Assignment in logic
 set_msg_config -id {Synth 8-153}  -new_severity ERROR;# SYNTH: Case statement has an input that will never be executed
+set_msg_config -id {Synth 8-63}   -new_severity ERROR;# SYNTH: RTL assertion
 
 # Messages: Change from WARNING to CRITICAL_WARNING
 set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pins matched 
@@ -42,7 +44,10 @@ set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net
 
 ##set_msg_config -id {Route 35-39}    -new_severity ERROR;# IMPL: The design did not meet timing requirements. 
 ## NOTE: we don't change this message to ERROR severity because we want to impl_1 to finish 
-## and print CheckTiming procedure's statement. For example:
+## and print CheckTiming procedure's statement. 
+##
+## Here's an example of this terminal print statement:
+##
 ## *******************************************************
 ## ********************************************************
 ## ********************************************************
