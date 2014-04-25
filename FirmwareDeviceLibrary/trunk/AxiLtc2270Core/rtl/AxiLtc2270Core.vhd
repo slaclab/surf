@@ -9,7 +9,9 @@
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: LTC2270 ADC Module
+-- Description: AXI-Lite interface to LTC2270 ADC IC
+--
+--    Note: Set the addrBits on the crossbar for this module to 10 bits wide
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
