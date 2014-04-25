@@ -34,7 +34,7 @@ entity AxiI2cQsfpCore is
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
    port (
-      -- SFP Ports
+      -- QSFP Ports
       qsfpIn         : in    AxiI2cQsfpInType;
       qsfpInOut      : inout AxiI2cQsfpInOutType;
       qsfpOut        : out   AxiI2cQsfpOutType;

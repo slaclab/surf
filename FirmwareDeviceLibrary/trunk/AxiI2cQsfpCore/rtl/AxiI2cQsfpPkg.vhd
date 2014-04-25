@@ -22,7 +22,7 @@ package AxiI2cQsfpPkg is
    end record;
    type AxiI2cQsfpInArray is array (natural range <>) of AxiI2cQsfpInType;
    type AxiI2cQsfpInVectorArray is array (integer range<>, integer range<>)of AxiI2cQsfpInType;
-   constant AXI_SFP_IN_INIT_C : AxiI2cQsfpInType := (
+   constant AXI_QSFP_IN_INIT_C : AxiI2cQsfpInType := (
       '1',
       '1');   
 
@@ -32,7 +32,7 @@ package AxiI2cQsfpPkg is
    end record;
    type AxiI2cQsfpInOutArray is array (natural range <>) of AxiI2cQsfpInOutType;
    type AxiI2cQsfpInOutVectorArray is array (integer range<>, integer range<>)of AxiI2cQsfpInOutType;
-   constant AXI_SFP_IN_OUT_INIT_C : AxiI2cQsfpInOutType := (
+   constant AXI_QSFP_IN_OUT_INIT_C : AxiI2cQsfpInOutType := (
       'Z',
       'Z');       
 
@@ -72,7 +72,7 @@ package AxiI2cQsfpPkg is
    end record;
    type AxiI2cQsfpOutArray is array (natural range <>) of AxiI2cQsfpOutType;
    type AxiI2cQsfpOutVectorArray is array (integer range<>, integer range<>)of AxiI2cQsfpOutType;
-   constant AXI_SFP_OUT_INIT_C : AxiI2cQsfpOutType := (
+   constant AXI_QSFP_OUT_INIT_C : AxiI2cQsfpOutType := (
       '1',
       '1',
       '0');
@@ -81,7 +81,7 @@ package AxiI2cQsfpPkg is
       modPrst   : sl;
       interrupt : sl;
    end record;
-   constant AXI_SFP_STATUS_INIT_C : AxiI2cQsfpStatusType := (
+   constant AXI_QSFP_STATUS_INIT_C : AxiI2cQsfpStatusType := (
       '1',
       '1'); 
 
@@ -90,7 +90,7 @@ package AxiI2cQsfpPkg is
       rst     : sl;
       lpMode  : sl;
    end record;
-   constant AXI_SFP_CONFIG_INIT_C : AxiI2cQsfpConfigType := (
+   constant AXI_QSFP_CONFIG_INIT_C : AxiI2cQsfpConfigType := (
       '1',
       '1',
       '0'); 
