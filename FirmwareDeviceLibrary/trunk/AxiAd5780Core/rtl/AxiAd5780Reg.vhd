@@ -5,11 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-04-18
+-- Last update: 2014-04-25
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: AXI-Lite interface to AD5780 DAC IC
+--
+--    Note: Set the addrBits on the crossbar for this module to 10 bits wide
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -29,6 +31,7 @@ entity AxiAd5780Reg is
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       USE_DSP48_G        : string                := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices      
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
+      SPI_CLK_FREQ_G     : real                  := 25.0E+6;   -- units of Hz      
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
    port (
       -- AXI-Lite Register Interface
@@ -41,16 +44,18 @@ entity AxiAd5780Reg is
       config         : out AxiAd5780ConfigType;
       -- Global Signals
       axiClk         : in  sl;
-      axiRst         : in  sl);      
+      axiRst         : in  sl;
+      dacRst         : out sl);      
 end AxiAd5780Reg;
 
 architecture rtl of AxiAd5780Reg is
 
-   constant STATUS_SIZE_C : positive := 1;
+   constant DOUBLE_SCK_FREQ_C      : real             := getRealMult(SPI_CLK_FREQ_G, 2.0E+0);
+   constant HALF_SCK_PERIOD_C      : natural          := (getTimeRatio(AXI_CLK_FREQ_G, DOUBLE_SCK_FREQ_C))-1;
+   constant HALF_SCK_PERIOD_INIT_C : slv(31 downto 0) := toSlv(HALF_SCK_PERIOD_C, 32);
 
    type RegType is record
-      cntRst        : sl;
-      rollOverEn    : slv(STATUS_SIZE_C-1 downto 0);
+      dacRst        : sl;
       regOut        : AxiAd5780ConfigType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -58,7 +63,6 @@ architecture rtl of AxiAd5780Reg is
    
    constant REG_INIT_C : RegType := (
       '1',
-      (others => '0'),
       AXI_AD5780_CONFIG_INIT_C,
       AXI_LITE_READ_SLAVE_INIT_C,
       AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -69,19 +73,14 @@ architecture rtl of AxiAd5780Reg is
    signal regIn  : AxiAd5780StatusType := AXI_AD5780_STATUS_INIT_C;
    signal regOut : AxiAd5780ConfigType := AXI_AD5780_CONFIG_INIT_C;
 
-   signal cntRst     : sl;
-   signal rollOverEn : slv(STATUS_SIZE_C-1 downto 0);
-   signal cntOut     : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
-
-   signal dacValidCnt  : slv(STATUS_CNT_WIDTH_G-1 downto 0);
-   signal dacValidRate : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal dacRefreshRate : slv(STATUS_CNT_WIDTH_G-1 downto 0);
 
 begin
 
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dacValidCnt, dacValidRate, r, regIn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dacRefreshRate, r, regIn) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -94,7 +93,7 @@ begin
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Reset strobe signals
-      v.cntRst := '0';
+      v.dacRst := '0';
 
       if (axiStatus.writeEnable = '1') then
          -- Check for an out of 32 bit aligned address
@@ -105,10 +104,26 @@ begin
                v.regOut.debugMux := axiWriteMaster.wdata(0);
             when x"90" =>
                v.regOut.debugData := axiWriteMaster.wdata(17 downto 0);
-            when x"F0" =>
-               v.rollOverEn := axiWriteMaster.wdata(STATUS_SIZE_C-1 downto 0);
-            when x"FF" =>
-               v.cntRst := '1';
+            when x"A0" =>
+               v.regOut.sdoDisable := axiWriteMaster.wdata(0);
+               v.dacRst            := '1';
+            when x"A1" =>
+               v.regOut.binaryOffset := axiWriteMaster.wdata(0);
+               v.dacRst              := '1';
+            when x"A2" =>
+               v.regOut.dacTriState := axiWriteMaster.wdata(0);
+               v.dacRst             := '1';
+            when x"A3" =>
+               v.regOut.opGnd := axiWriteMaster.wdata(0);
+               v.dacRst       := '1';
+            when x"A4" =>
+               v.regOut.rbuf := axiWriteMaster.wdata(0);
+               v.dacRst      := '1';
+            when x"A5" =>
+               v.regOut.halfSckPeriod := axiWriteMaster.wdata;
+               v.dacRst               := '1';
+            when x"FE" =>
+               v.dacRst := '1';
             when others =>
                axiWriteResp := AXI_ERROR_RESP_G;
          end case;
@@ -122,20 +137,26 @@ begin
          -- Decode address and assign read data
          v.axiReadSlave.rdata := (others => '0');
          case (axiReadMaster.araddr(9 downto 2)) is
-            when x"00" =>
-               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := dacValidCnt;
             when x"10" =>
-               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := dacValidRate;
-            when x"20" =>
-               v.axiReadSlave.rdata(0) := regIn.dacValid;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := dacRefreshRate;
             when x"30" =>
                v.axiReadSlave.rdata(17 downto 0) := regIn.dacData;
             when x"80" =>
                v.axiReadSlave.rdata(0) := r.regOut.debugMux;
             when x"90" =>
                v.axiReadSlave.rdata(17 downto 0) := r.regOut.debugData;
-            when x"F0" =>
-               v.axiReadSlave.rdata(STATUS_SIZE_C-1 downto 0) := r.rollOverEn;
+            when x"A0" =>
+               v.axiReadSlave.rdata(0) := r.regOut.sdoDisable;
+            when x"A1" =>
+               v.axiReadSlave.rdata(0) := r.regOut.binaryOffset;
+            when x"A2" =>
+               v.axiReadSlave.rdata(0) := r.regOut.dacTriState;
+            when x"A3" =>
+               v.axiReadSlave.rdata(0) := r.regOut.opGnd;
+            when x"A4" =>
+               v.axiReadSlave.rdata(0) := r.regOut.rbuf;
+            when x"A5" =>
+               v.axiReadSlave.rdata := r.regOut.halfSckPeriod;
             when others =>
                axiReadResp := AXI_ERROR_RESP_G;
          end case;
@@ -145,7 +166,8 @@ begin
 
       -- Synchronous Reset
       if axiRst = '1' then
-         v := REG_INIT_C;
+         v                      := REG_INIT_C;
+         v.regOut.halfSckPeriod := HALF_SCK_PERIOD_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
@@ -157,8 +179,7 @@ begin
 
       regOut <= r.regOut;
 
-      cntRst     <= r.cntRst;
-      rollOverEn <= r.rollOverEn;
+      dacRst <= r.dacRst;
       
    end process comb;
 
@@ -179,29 +200,6 @@ begin
    ------------------------------- 
    regIn.dacData <= status.dacData;
 
-   SyncStatusVec_Inst : entity work.SyncStatusVector
-      generic map (
-         TPD_G          => TPD_G,
-         OUT_POLARITY_G => '1',
-         CNT_RST_EDGE_G => true,
-         COMMON_CLK_G   => true,
-         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
-         WIDTH_G        => STATUS_SIZE_C)     
-      port map (
-         -- Input Status bit Signals (wrClk domain)   
-         statusIn(0)  => status.dacValid,
-         -- Output Status bit Signals (rdClk domain) 
-         statusOut(0) => regIn.dacValid,
-         -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn     => cntRst,
-         rollOverEnIn => rollOverEn,
-         cntOut       => cntOut,
-         -- Clocks and Reset Ports
-         wrClk        => axiClk,
-         rdClk        => axiClk);
-
-   dacValidCnt <= muxSlVectorArray(cntOut, 0);
-
    SyncTrigRate_Inst : entity work.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
@@ -213,10 +211,10 @@ begin
          CNT_WIDTH_G    => STATUS_CNT_WIDTH_G)     
       port map (
          -- Trigger Input (locClk domain)
-         trigIn          => status.dacValid,
+         trigIn          => status.dacUpdated,
          -- Trigger Rate Output (locClk domain)
          trigRateUpdated => open,
-         trigRateOut     => dacValidRate,
+         trigRateOut     => dacRefreshRate,
          -- Clocks
          locClkEn        => '1',
          locClk          => axiClk,

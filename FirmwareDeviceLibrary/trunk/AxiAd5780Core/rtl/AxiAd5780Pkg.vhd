@@ -32,18 +32,30 @@ package AxiAd5780Pkg is
       '1');    
 
    type AxiAd5780StatusType is record
-      dacValid : sl;
-      dacData  : slv(17 downto 0);      --2's complement
+      dacUpdated : sl;
+      dacData    : slv(17 downto 0);    -- 2's complement by default
    end record;
    constant AXI_AD5780_STATUS_INIT_C : AxiAd5780StatusType := (
       '0',
       (others => '0')); 
 
    type AxiAd5780ConfigType is record
-      debugMux  : sl;
-      debugData : slv(17 downto 0);     --2's complement      
+      halfSckPeriod : slv(31 downto 0);
+      sdoDisable    : sl;
+      binaryOffset  : sl;
+      dacTriState   : sl;
+      opGnd         : sl;
+      rbuf          : sl;
+      debugMux      : sl;
+      debugData     : slv(17 downto 0);  -- 2's complement by default     
    end record;
    constant AXI_AD5780_CONFIG_INIT_C : AxiAd5780ConfigType := (
+      (others => '1'),
+      '1',
+      '0',
+      '0',
+      '0',
+      '1',
       '0',
       (others => '0'));  
 
