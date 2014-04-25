@@ -44,7 +44,7 @@ end AxiXcf128Reg;
 
 architecture rtl of AxiXcf128Reg is
 
-   constant MAX_CNT_C : natural := natural := (getTimeRatio(AXI_CLK_FREQ_G, 10.0E+6))-1;
+   constant MAX_CNT_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, 10.0E+6))-1;
 
    type stateType is (
       IDLE_S,
@@ -59,7 +59,7 @@ architecture rtl of AxiXcf128Reg is
       wrData        : Slv16Array(0 to 1);
       RnW           : sl;
       cnt           : natural range 0 to MAX_CNT_C;
-      regOut        : AxiXcf128ConfigType;
+      config        : AxiXcf128ConfigType;
       state         : StateType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
