@@ -84,8 +84,7 @@ if { [CheckSynth] != true } {
 ########################################################
 ## Force a refresh of project by close then open project
 ########################################################
-close_project
-open_project -quiet ${VIVADO_PROJECT}
+VivadoRefresh ${VIVADO_PROJECT}
 
 ########################################################
 ## Target post synthesis script

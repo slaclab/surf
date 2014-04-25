@@ -10,6 +10,11 @@ proc pwd { } {
    return $::env(PWD)
 }
 
+proc VivadoRefresh { vivadoProject } {
+   close_project
+   open_project -quiet ${vivadoProject}
+}
+
 # Checking Timing Function
 proc CheckTiming { } {
    # Check for timing and routing errors 

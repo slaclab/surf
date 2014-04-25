@@ -1,6 +1,13 @@
 
 # Project Properties Script
 
+# Get variables
+set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+
+# Load Custom Procedures
+source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
+
 # Set VHDL as preferred language
 set_property target_language VHDL [current_project]
 
@@ -13,8 +20,7 @@ set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 
 # Close and reopen project to force the physical path of ${VIVADO_BUILD_DIR} (bug in Vivado 2014.1)
-close_project
-open_project -quiet ${VIVADO_PROJECT} 
+VivadoRefresh ${VIVADO_PROJECT}
 
 # Setup pre and post scripts for synthesis
 set_property STEPS.SYNTH_DESIGN.TCL.PRE  ${VIVADO_BUILD_DIR}/vivado_pre_synthesis_v1.tcl [get_runs synth_1]
