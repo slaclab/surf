@@ -28,7 +28,6 @@ entity AxiW25Q128Reg is
    generic (
       TPD_G                 : time            := 1 ns;
       FORCE_ADDR_MSB_HIGH_G : boolean         := false;  -- Set true to prevent any operation in the lower half of the address space
-      BRAM_EN_G             : boolean         := false;
       AXI_CLK_FREQ_G        : real            := 200.0E+6;  -- units of Hz
       SPI_CLK_FREQ_G        : real            := 50.0E+6;   -- units of Hz
       AXI_ERROR_RESP_G      : slv(1 downto 0) := AXI_RESP_SLVERR_C);  
@@ -39,14 +38,11 @@ entity AxiW25Q128Reg is
       din            : in  slv(3 downto 0);
       dout           : out slv(3 downto 0);
       oeL            : out slv(3 downto 0);
-      -- AXI-Lite Register Interface (axiClk domain)
+      -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Register Inputs/Outputs (axiClk domain)
-      status         : in  AxiW25Q128StatusType;
-      config         : out AxiW25Q128ConfigType;
       -- Global Signals
       axiClk         : in  sl;
       axiRst         : in  sl);
@@ -65,10 +61,14 @@ architecture rtl of AxiW25Q128Reg is
       CS_HIGH_S);  
 
    type RegType is record
+      csL           : sl;
+      sck           : sl;
+      bufSel        : sl;
       wrWen         : sl;
       rdWen         : sl;
       bytePtnr      : slv(1 downto 0);
       bitPntr       : slv(2 downto 0);
+      rdBtye        : Slv8Array(0 to 3);
       wrAddr        : slv(6 downto 0);
       rdAddr        : slv(6 downto 0);
       shiftReg      : slv(7 downto 0);
@@ -85,10 +85,14 @@ architecture rtl of AxiW25Q128Reg is
    end record RegType;
    
    constant REG_INIT_C : RegType := (
+      '1',
+      '0',
+      '0',
       '0',
       '0',
       (others => '0'),
       (others => '0'),
+      (others => (others => '0')),
       (others => '0'),
       (others => '0'),
       (others => '0'),
@@ -109,9 +113,8 @@ architecture rtl of AxiW25Q128Reg is
    signal sdi,
       sdo : sl;
    signal wrDout,
-      rdDout : slv(31 downto 0) := (others => '0');
-   signal wrBtye,
-      rdBtye : Slv8Array(0 to 3) := (others => (others => '0'));
+      rdDout : slv(31 downto 0);
+   signal wrBtye : Slv8Array(0 to 3);
    
 begin
 
@@ -174,7 +177,7 @@ begin
             -- Latch the SPI transfer size
             v.xferSize := axiWriteMaster.wdata(8 downto 0);  -- transfer size is in units of bytes minus one   
             -- Reset all counters and control signals
-            v.cs       := '0';
+            v.csL      := '0';
             v.sckCnt   := 0;
             v.bitPntr  := (others => '0');
             v.bytePtnr := (others => '0');
@@ -182,7 +185,7 @@ begin
             v.wrAddr   := (others => '0');
             v.rdAddr   := (others => '0');
             -- Next state
-            state      := LATENCY_WAIT_S;
+            v.state    := LATENCY_WAIT_S;
          else
             -- Send AXI response
             axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
@@ -199,7 +202,7 @@ begin
             v.wrAddr := axiReadMaster.araddr(8 downto 2);
             v.rdAddr := axiReadMaster.araddr(8 downto 2);
             -- Next state
-            state    := LATENCY_WAIT_S;
+            v.state  := LATENCY_WAIT_S;
          end if;
       end if;
 
@@ -321,7 +324,7 @@ begin
                -- Send AXI Response
                axiSlaveReadResponse(v.axiReadSlave);
                -- Next State
-               v.state  := HANDSHAKE_S;
+               v.state  := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;
@@ -352,11 +355,6 @@ begin
       end if;
    end process seq;
 
-   rdDin(7 downto 0)   <= r.rdBtye(0);
-   rdDin(15 downto 8)  <= r.rdBtye(1);
-   rdDin(23 downto 16) <= r.rdBtye(2);
-   rdDin(31 downto 24) <= r.rdBtye(3);
-
    wrBtye(0) <= wrDout(7 downto 0);
    wrBtye(1) <= wrDout(15 downto 8);
    wrBtye(2) <= wrDout(23 downto 16);
@@ -365,7 +363,7 @@ begin
    Write_Buffer_Inst : entity work.SimpleDualPortRam
       generic map(
          TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
+         BRAM_EN_G    => false,
          DATA_WIDTH_G => 32,
          ADDR_WIDTH_G => 7)
       port map (
@@ -382,17 +380,20 @@ begin
    Read_Buffer_Inst : entity work.SimpleDualPortRam
       generic map(
          TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
+         BRAM_EN_G    => false,
          DATA_WIDTH_G => 32,
          ADDR_WIDTH_G => 7)
       port map (
          -- Port A
-         clka  => axiClk,
-         wea   => r.rdWen,
-         addra => r.rdAddr,
-         dina  => r.rdDin,
+         clka               => axiClk,
+         wea                => r.rdWen,
+         addra              => r.rdAddr,
+         dina(7 downto 0)   => r.rdBtye(0),
+         dina(15 downto 8)  => r.rdBtye(1),
+         dina(23 downto 16) => r.rdBtye(2),
+         dina(31 downto 24) => r.rdBtye(3),
          -- Port B
-         clkb  => axiClk,
-         addrb => r.rdAddr,
-         doutb => rdDout);     
+         clkb               => axiClk,
+         addrb              => r.rdAddr,
+         doutb              => rdDout);     
 end rtl;

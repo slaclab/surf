@@ -30,7 +30,6 @@ entity AxiW25Q128Core is
    generic (
       TPD_G                 : time            := 1 ns;
       FORCE_ADDR_MSB_HIGH_G : boolean         := false;  -- Set true to prevent any operation in the lower half of the address space
-      BRAM_EN_G             : boolean         := false;
       AXI_CLK_FREQ_G        : real            := 200.0E+6;  -- units of Hz
       SPI_CLK_FREQ_G        : real            := 50.0E+6;   -- units of Hz
       AXI_ERROR_RESP_G      : slv(1 downto 0) := AXI_RESP_SLVERR_C);     
@@ -39,7 +38,7 @@ entity AxiW25Q128Core is
       spiOut         : out   AxiW25Q128OutType;
       spiInOut       : inout AxiW25Q128InOutType;
       spiSck         : out   sl;  -- Copy of serial clock for use with STARTUPE2 when interfacing to FPGA's CCLK
-      -- AXI-Lite Register Interface (axiClk domain)
+      -- AXI-Lite Register Interface
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
       axiWriteMaster : in    AxiLiteWriteMasterType;
@@ -76,14 +75,13 @@ begin
    GEN_SDIO :
    for i in 0 to 3 generate
       spiInOut.sdio(i) <= dout(i) when(oeL(i) = '0') else 'Z';
-      din(i)           <= sfpInOut.sdio(i);
+      din(i)           <= spiInOut.sdio(i);
    end generate GEN_SDIO;
 
    AxiW25Q128Reg_Inst : entity work.AxiW25Q128Reg
       generic map(
          TPD_G                 => TPD_G,
          FORCE_ADDR_MSB_HIGH_G => FORCE_ADDR_MSB_HIGH_G,
-         BRAM_EN_G             => BRAM_EN_G,
          AXI_CLK_FREQ_G        => AXI_CLK_FREQ_G,
          SPI_CLK_FREQ_G        => SPI_CLK_FREQ_G,
          AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G)
