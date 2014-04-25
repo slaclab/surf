@@ -80,29 +80,8 @@ architecture rtl of AxiAd5780Ser is
       RST_S); 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
-   signal dacSyncL,
-      dacSclk,
-      dacSdi,
-      dacLdacL,
-      dacClrL,
-      dacRstL : sl;
-
-   -- -- Use of I/O PAD's FD register
-   -- attribute IOB : string;
-   -- attribute IOB of
-   -- dacSyncL,
-   -- dacSclk,
-   -- dacSdi : signal is "True";
    
 begin
-
-   dacOut.dacSync <= dacSyncL;
-   dacOut.dacSclk <= dacSclk;
-   dacOut.dacSdi  <= dacSdi;
-   dacOut.dacLdac <= dacLdacL;
-   dacOut.dacClr  <= dacClrL;
-   dacOut.dacRst  <= dacRstL;
 
    comb : process (binaryOffset, dacData, dacRst, dacTriState, halfSckPeriod, opGnd, r, rbuf,
                    sdoDisable) is
@@ -246,19 +225,20 @@ begin
 
       -- Outputs
       dacUpdated <= r.dacUpdated;
+
+      dacOut.dacSync <= r.csL;
+      dacOut.dacSclk <= r.sck;
+      dacOut.dacSdi  <= r.sdi;
+      dacOut.dacLdac <= '0';
+      dacOut.dacClr  <= '1';
+      dacOut.dacRst  <= r.rstL;
       
    end process comb;
 
    seq : process (axiClk) is
    begin
       if rising_edge(axiClk) then
-         r        <= rin      after TPD_G;
-         dacSyncL <= rin.csL  after TPD_G;
-         dacSclk  <= rin.sck  after TPD_G;
-         dacSdi   <= rin.sdi  after TPD_G;
-         dacLdacL <= '0'      after TPD_G;
-         dacClrL  <= '1'      after TPD_G;
-         dacRstL  <= rin.rstL after TPD_G;
+         r <= rin after TPD_G;
       end if;
    end process seq;
    
