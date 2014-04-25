@@ -1,0 +1,4 @@
+vhdl work rtl/AxiXcf128Pkg.vhd
+
+vhdl work rtl/AxiXcf128Core.vhd
+vhdl work rtl/AxiXcf128Reg.vhd
