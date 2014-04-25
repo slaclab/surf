@@ -10,7 +10,11 @@ config_webtalk -user off
 # Enable implementation steps by default
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1] 
+set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+
+# Close and reopen project to force the physical path of ${VIVADO_BUILD_DIR} (bug in Vivado 2014.1)
+close_project
+open_project -quiet ${VIVADO_PROJECT} 
 
 # Setup pre and post scripts for synthesis
 set_property STEPS.SYNTH_DESIGN.TCL.PRE  ${VIVADO_BUILD_DIR}/vivado_pre_synthesis_v1.tcl [get_runs synth_1]
