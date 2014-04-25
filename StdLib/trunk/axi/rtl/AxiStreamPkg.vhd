@@ -44,6 +44,8 @@ package AxiStreamPkg is
       tUser  => (others=>'0')
    );
 
+   type AxiStreamMasterArray is array (natural range<>) of AxiStreamMasterType;
+
    type AxiStreamSlaveType is record
       tReady : sl;
    end record AxiStreamSlaveType;
@@ -51,6 +53,8 @@ package AxiStreamPkg is
    constant AXI_STREAM_SLAVE_INIT_C : AxiStreamSlaveType := (
       tReady => '0'
    );
+
+   type AxiStreamSlaveArray is array (natural range<>) of AxiStreamSlaveType;
 
    type AxiStreamConfigType is record
       TKEEP_EN_C            : boolean;

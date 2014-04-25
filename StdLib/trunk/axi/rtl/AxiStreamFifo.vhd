@@ -209,13 +209,11 @@ architecture mapping of AxiStreamFifo is
    type WrRegType is record
       count     : slv(bitSize(WR_SIZE_C)-1 downto 0);
       wrMaster  : AxiStreamMasterType;
-      wrSlave   : AxiStreamSlaveType;
    end record WrRegType;
 
    constant WR_REG_INIT_C : WrRegType := (
       count     => (others => '0'),
-      wrMaster  => AXI_STREAM_MASTER_INIT_C,
-      wrSlave   => AXI_STREAM_SLAVE_INIT_C
+      wrMaster  => AXI_STREAM_MASTER_INIT_C
    );
 
    signal wrR, wrRin : WrRegType := WR_REG_INIT_C;
@@ -262,9 +260,6 @@ begin
       v   := wrR;
       idx := conv_integer(wrR.count);
 
-      v.wrSlave.tReady  := not fifoAFull;
-      v.wrMaster.tValid := '0';
-
       -- Advance pipeline
       if fifoAFull = '0' then
 
@@ -283,9 +278,9 @@ begin
          -- tUser needs to be optmized for some FIFO modes... TBD
          v.wrMaster.tUser((USER_BITS_C*idx)+(USER_BITS_C-1) downto (USER_BITS_C*idx)) := slvAxiStreamMaster.tUser(USER_BITS_C-1 downto 0);
 
-         v.wrMaster.tDest := slvAxiStreamMaster.tDest;
-         v.wrMaster.tId   := slvAxiStreamMaster.tId;
-         v.wrMaster.tLast := slvAxiStreamMaster.tLast;
+         v.wrMaster.tDest  := slvAxiStreamMaster.tDest;
+         v.wrMaster.tId    := slvAxiStreamMaster.tId;
+         v.wrMaster.tLast  := slvAxiStreamMaster.tLast;
 
          -- Determine end mode, valid and ready
          if slvAxiStreamMaster.tValid = '1' then
@@ -293,27 +288,28 @@ begin
                v.wrMaster.tValid := '1';
                v.count           := (others=>'0');
             else
-               v.wrMaster.tvalid := '0';
+               v.wrMaster.tValid := '0';
                v.count           := wrR.count + 1;
             end if;
+         else
+            v.wrMaster.tValid := '0';
          end if;
-
       end if;
 
       wrRin <= v;
 
       -- Write logic enabled
       if WR_LOGIC_EN_C then
-         slvAxiStreamSlave <= v.wrSlave;
-         fifoDin           <= iaxiToSlv(wrR.wrMaster);
-         fifoWrite         <= wrR.wrMaster.tValid;
+         fifoDin   <= iaxiToSlv(wrR.wrMaster);
+         fifoWrite <= wrR.wrMaster.tValid and (not fifoAFull);
 
       -- Bypass write logic
       else
-         slvAxiStreamSlave.tReady <= not fifoAFull;
-         fifoDin                  <= iaxiToSlv(slvAxiStreamMaster);
-         fifoWrite                <= slvAxiStreamMaster.tValid;
+         fifoDin   <= iaxiToSlv(slvAxiStreamMaster);
+         fifoWrite <= slvAxiStreamMaster.tValid and (not fifoAFull);
       end if;
+
+      slvAxiStreamSlave.tReady <= (not fifoAFull);
 
    end process wrComb;
 
@@ -406,7 +402,7 @@ begin
       idx        := conv_integer(rdR.count);
 
       -- Advance pipeline
-      if mstAxiStreamSlave.tReady = '1' then
+      if mstAxiStreamSlave.tReady = '1' or rdR.rdMaster.tValid = '0' then
          v.rdMaster   := AXI_STREAM_MASTER_INIT_C;
 
          v.rdMaster.tData((RD_BYTES_C*8)-1 downto 0) := fifoMaster.tData((RD_BYTES_C*8*idx)+((RD_BYTES_C*8)-1) downto (RD_BYTES_C*8*idx));
@@ -436,7 +432,7 @@ begin
 
       -- Read logic enabled
       if RD_LOGIC_EN_C then
-         mstAxiStreamMaster <= v.rdMaster;
+         mstAxiStreamMaster <= rdR.rdMaster;
          fifoRead           <= v.ready;
 
       -- Bypass read logic
