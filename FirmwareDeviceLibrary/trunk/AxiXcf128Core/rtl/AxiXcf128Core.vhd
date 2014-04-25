@@ -50,7 +50,7 @@ architecture mapping of AxiXcf128Core is
    
 begin
    
-   xcfInOut.data <= config.data when(config.tristate = '0') else 'Z';
+   xcfInOut.data <= config.data when(config.tristate = '0') else (others => 'Z');
    status.data   <= xcfInOut.data;
 
    xcfOut.ce    <= config.ce;
