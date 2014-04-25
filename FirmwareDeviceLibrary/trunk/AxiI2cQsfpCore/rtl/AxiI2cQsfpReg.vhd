@@ -58,12 +58,6 @@ architecture rtl of AxiI2cQsfpReg is
    constant NUM_WRITE_REG_C : positive := 5;
    constant STATUS_SIZE_C   : positive := 2;
    constant NUM_READ_REG_C  : positive := (STATUS_SIZE_C+1);
-   
-   constant WRITE_REG_INIT_C : Slv32Array(0 to NUM_WRITE_REG_C-1) := (
-      0 => x"00000000",                 -- config.txDisable
-      1 => x"00000003",                 -- config.rateSel
-      2 => x"00000000",                 -- rollOverEn 
-      3 => x"00000000");                -- cntRst 
 
    signal cntRst     : sl;
    signal rollOverEn : slv(STATUS_SIZE_C-1 downto 0);
@@ -87,20 +81,19 @@ begin
          AXI_ERROR_RESP_G    => AXI_ERROR_RESP_G)      
       port map (
          -- I2C Interface
-         i2cRegMasterIn    => i2cRegMasterIn,
-         i2cRegMasterOut   => i2cRegMasterOut,
+         i2cRegMasterIn  => i2cRegMasterIn,
+         i2cRegMasterOut => i2cRegMasterOut,
          -- AXI-Lite Register Interface
-         axiReadMaster     => axiReadMaster,
-         axiReadSlave      => axiReadSlave,
-         axiWriteMaster    => axiWriteMaster,
-         axiWriteSlave     => axiWriteSlave,
+         axiReadMaster   => axiReadMaster,
+         axiReadSlave    => axiReadSlave,
+         axiWriteMaster  => axiWriteMaster,
+         axiWriteSlave   => axiWriteSlave,
          -- Optional User Read/Write Register Interface
-         readRegister      => readRegister,
-         writeRegisterInit => WRITE_REG_INIT_C,
-         writeRegister     => writeRegister,
+         readRegister    => readRegister,
+         writeRegister   => writeRegister,
          -- Clock and Reset
-         axiClk            => axiClk,
-         axiRst            => axiRst);
+         axiClk          => axiClk,
+         axiRst          => axiRst);
 
    -------------------------------            
    -- Synchronization: Outputs

@@ -70,9 +70,9 @@ begin
    qsfpInOut.scl <= i2co.scl when(i2co.scloen = '0') else 'Z';
    i2ci.scl      <= qsfpInOut.scl;
 
-   sfpInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda     <= qsfpInOut.sda;
-   
+   qsfpInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
+   i2ci.sda      <= qsfpInOut.sda;
+
    qsfpOut.modSelL <= not(config.modSel);
    qsfpOut.rstL    <= not(config.rst);
    qsfpOut.lpMode  <= config.lpMode;
