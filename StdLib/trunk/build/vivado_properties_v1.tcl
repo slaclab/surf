@@ -23,7 +23,8 @@ set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 VivadoRefresh ${VIVADO_PROJECT}
 
 # Setup pre and post scripts for synthesis
-set_property STEPS.SYNTH_DESIGN.TCL.PRE  ${VIVADO_BUILD_DIR}/vivado_pre_synthesis_v1.tcl [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.TCL.PRE  ${VIVADO_BUILD_DIR}/vivado_pre_synth_run_v1.tcl [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.TCL.POST ${VIVADO_BUILD_DIR}/vivado_post_synth_run_v1.tcl [get_runs synth_1]
 
 # Setup pre and post scripts for implementation
 set_property STEPS.OPT_DESIGN.TCL.PRE                  ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl [get_runs impl_1]
