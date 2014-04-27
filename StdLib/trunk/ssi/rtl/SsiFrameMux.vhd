@@ -29,6 +29,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.ArbiterPkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity SsiFrameMux is
    generic (

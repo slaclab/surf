@@ -40,6 +40,7 @@ entity SsiSimLink is
       obAxiStreamMaster : out AxiStreamMasterType;
       obAxiStreamSlave  : in  AxiStreamSlaveType
    );
+end SsiSimLink;
 
 -- Define architecture
 architecture SsiSimLink of SsiSimLink is
@@ -50,7 +51,7 @@ architecture SsiSimLink of SsiSimLink is
    signal obDest   : slv(3 downto 0);
    signal obEof    : sl;
    signal obData   : slv(31 downto 0);
-   signal obReady  : slv(15 downto 0);
+   signal obReady  : sl;
    signal ibValid  : sl;
    signal ibDest   : slv(3 downto 0);
    signal ibEof    : sl;
@@ -64,7 +65,7 @@ begin
    ------------------------------------
 
    process ( obValid, obData, obEof, obDest ) begin
-      obAxiStreamMaster <= AX_STREAM_MASTER_INIT_C;
+      obAxiStreamMaster <= AXI_STREAM_MASTER_INIT_C;
 
       obAxiStreamMaster.tValid <= obValid;
       obAxiStreamMaster.tData(31 downto 0) <= obData;

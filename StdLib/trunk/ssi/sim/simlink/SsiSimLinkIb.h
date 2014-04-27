@@ -25,7 +25,7 @@ typedef struct {
    // Current state
    int currClk;
    int ibCount;
-   int ibDest;
+   int ibVc;
    int ibError;
 
 } SsiSimLinkIbData;
