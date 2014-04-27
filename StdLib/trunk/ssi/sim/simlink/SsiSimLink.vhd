@@ -73,8 +73,8 @@ begin
       obAxiStreamMaster.tLast              <= obEof;
       obAxiStreamMaster.tDest(3  downto 0) <= obDest;
 
-      obAxiStreamMaster.tUser(SSI_EOF_TUSER_BIT_C)  := obEof;
-      obAxiStreamMaster.tUser(SSI_EOFE_TUSER_BIT_C) := '0';
+      obAxiStreamMaster.tUser(SSI_EOF_TUSER_BIT_C)  <= obEof;
+      obAxiStreamMaster.tUser(SSI_EOFE_TUSER_BIT_C) <= '0';
    end process;
 
    obReady <= obAxiStreamSlave.tReady;
