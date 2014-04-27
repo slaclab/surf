@@ -50,14 +50,14 @@ end AxiStreamMux;
 
 architecture structure of AxiStreamMux is
 
-   constant ACK_NUM_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
+   constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
 
    type StateType is ( S_IDLE_C, S_MOVE_C, S_LAST_C );
 
    type RegType is record
       state  : StateType;
       acks   : slv(NUM_SLAVES_G-1 downto 0);
-      ackNum : slv(ACK_NUM_SIZE_C-1 downto 0);
+      ackNum : slv(DEST_SIZE_C-1 downto 0);
       valid  : sl;
       slaves : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
       master : AxiStreamMasterType;
@@ -91,7 +91,9 @@ begin
 
       -- Select source
       selData       := slvAxiStreamMasters(conv_integer(r.ackNum));
-      selData.tDest := conv_std_logic_vector(conv_integer(r.ackNum),128);
+      selData.tDest := (others=>'0');
+
+      selData.tDest(DEST_SIZE_C-1 downto 0) := r.ackNum;
 
       -- Format requests
       for i in 0 to (NUM_SLAVES_G-1) loop
