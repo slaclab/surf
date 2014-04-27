@@ -65,6 +65,8 @@ package AxiStreamPkg is
       TUSER_BITS_PER_BYTE_C : natural range 0 to 8;
    end record AxiStreamConfigType;
 
+   type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
+
    constant AXI_STREAM_CONFIG_INIT_C : AxiStreamConfigType := (
       TKEEP_EN_C            => false,
       TSTRB_EN_C            => false,
