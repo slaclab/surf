@@ -69,7 +69,9 @@ entity AxiStreamFifo is
       fifoPause          : out sl;
       fifoPauseThresh    : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1')
    );
+
 begin
+
    assert ((SLAVE_AXI_CONFIG_G.TDATA_BYTES_C  >= MASTER_AXI_CONFIG_G.TDATA_BYTES_C and 
             SLAVE_AXI_CONFIG_G.TDATA_BYTES_C mod MASTER_AXI_CONFIG_G.TDATA_BYTES_C = 0) or
            (MASTER_AXI_CONFIG_G.TDATA_BYTES_C >= SLAVE_AXI_CONFIG_G.TDATA_BYTES_C and
