@@ -63,7 +63,7 @@ begin
    -- Outbound
    ------------------------------------
 
-   process ( obValid, obData, obEof ) begin
+   process ( obValid, obData, obEof, obDest ) begin
       obAxiStreamMaster <= AX_STREAM_MASTER_INIT_C;
 
       obAxiStreamMaster.tValid <= obValid;
