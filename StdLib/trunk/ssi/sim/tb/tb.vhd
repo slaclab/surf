@@ -6,10 +6,10 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.ArmRceG3Pkg.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 use work.Pgp2bPkg.all;
 
 entity tb is end tb;
@@ -21,18 +21,17 @@ architecture tb of tb is
    signal pgpClkRst         : sl;
    signal axiClk            : sl;
    signal axiClkRst         : sl;
-   signal pgpTxVcData       : Vc64DataArray(3 downto 0);
-   signal pgpTxVcCtrl       : Vc64CtrlArray(3 downto 0);
-   signal pgpRxVcDataCommon : Vc64DataType;
-   signal pgpRxVcData       : Vc64DataArray(3 downto 0);
-   signal pgpRxVcCtrl       : Vc64CtrlArray(3 downto 0);
+   signal pgpTxMasters      : AxiStreamMasterArray(3 downto 0);
+   signal pgpTxSlaves       : AxiStreamSlaveArray(3 downto 0);
+   signal pgpRxMasters      : AxiStreamMasterArray(3 downto 0);
+   signal pgpRxSlaves       : AxiStreamSlaveArray(3 downto 0);
    signal axiWriteMaster    : AxiLiteWriteMasterType;
    signal axiWriteSlave     : AxiLiteWriteSlaveType;
    signal axiReadMaster     : AxiLiteReadMasterType;
    signal axiReadSlave      : AxiLiteReadSlaveType;
    signal writeRegister     : Slv32Array(1 downto 0);
    signal readRegister      : Slv32Array(1 downto 0);
-   signal cmdMasterOut      : Vc64CmdMasterOutType;
+   --signal cmdMasterOut      : Vc64CmdMasterOutType;
 
 begin
 
@@ -65,64 +64,58 @@ begin
    end process;
 
 
-   U_Vc64SimLinkPgp : entity work.Vc64SimLinkPgp 
+   U_SsiSimLinkPgp : entity work.SsiSimLinkPgp 
       generic map (
-         TPD_G             => 1 ns,
-         LANE_CNT_G        => 1
+         TPD_G             => 1 ns
       ) port map ( 
          pgpTxClk          => pgpClk,
          pgpTxClkRst       => pgpClkRst,
          pgpTxIn           => PGP_TX_IN_INIT_C,
          pgpTxOut          => open,
-         pgpTxVcData       => pgpTxVcData,
-         pgpTxVcCtrl       => pgpTxVcCtrl,
+         pgpTxMasters      => pgpTxMasters,
+         pgpTxSlaves       => pgpTxSlaves,
          pgpRxClk          => pgpClk,
          pgpRxClkRst       => pgpClkRst,
          pgpRxIn           => PGP_RX_IN_INIT_C,
          pgpRxOut          => open,
-         pgpRxVcData       => pgpRxVcDataCommon,
-         pgpRxVcCtrl       => pgpRxVcCtrl
+         pgpRxMasters      => pgpRxMasters,
+         pgpRxSlaves       => pgpRxSlaves
       );
 
+   pgpTxMasters(0)          <= AXI_STREAM_MASTER_INIT_C;
+   pgpTxMasters(3 downto 2) <= (others=>AXI_STREAM_MASTER_INIT_C);
+   pgpRxSlaves(3 downto 2)  <= (others=>AXI_STREAM_SLAVE_INIT_C);
 
-   process ( pgpRxVcDataCommon ) begin
-      pgpRxVcData <= Vc64DeMux(pgpRxVcDataCommon,4);
-   end process;
-
-   pgpTxVcData(0)          <= VC64_DATA_INIT_C;
-   pgpTxVcData(3 downto 2) <= (others=>VC64_DATA_INIT_C);
-   pgpRxVcCtrl(3 downto 2) <= (others=>VC64_CTRL_FORCE_C);
-
-   U_Vc64AxiMaster : entity work.Vc64AxiMaster
-      generic map (
-         TPD_G              => 1 ns,
-         XIL_DEVICE_G       => "7SERIES",
-         USE_BUILT_IN_G     => true,
-         ALTERA_SYN_G       => false,
-         ALTERA_RAM_G       => "M9K",
-         BRAM_EN_G          => true,
-         GEN_SYNC_FIFO_G    => false,
-         FIFO_SYNC_STAGES_G => 3,
-         FIFO_ADDR_WIDTH_G  => 9,
-         FIFO_AFULL_THRES_G => 255,
-         LITTLE_ENDIAN_G    => true,
-         VC_WIDTH_G         => 16
-      ) port map (
-         vcRxData        => pgpRxVcData(1),
-         vcRxCtrl        => pgpRxVcCtrl(1),
-         vcRxClk         => pgpClk,
-         vcRxRst         => pgpClkRst,
-         vcTxData        => pgpTxVcData(1),
-         vcTxCtrl        => pgpTxVcCtrl(1),
-         vcTxClk         => pgpClk,
-         vcTxRst         => pgpClkRst,
-         axiClk          => axiClk,
-         axiClkRst       => axiClkRst,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave,
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave
-      );
+--   U_Vc64AxiMaster : entity work.Vc64AxiMaster
+--      generic map (
+--         TPD_G              => 1 ns,
+--         XIL_DEVICE_G       => "7SERIES",
+--         USE_BUILT_IN_G     => true,
+--         ALTERA_SYN_G       => false,
+--         ALTERA_RAM_G       => "M9K",
+--         BRAM_EN_G          => true,
+--         GEN_SYNC_FIFO_G    => false,
+--         FIFO_SYNC_STAGES_G => 3,
+--         FIFO_ADDR_WIDTH_G  => 9,
+--         FIFO_AFULL_THRES_G => 255,
+--         LITTLE_ENDIAN_G    => true,
+--         VC_WIDTH_G         => 16
+--      ) port map (
+--         vcRxData        => pgpRxVcData(1),
+--         vcRxCtrl        => pgpRxVcCtrl(1),
+--         vcRxClk         => pgpClk,
+--         vcRxRst         => pgpClkRst,
+--         vcTxData        => pgpTxVcData(1),
+--         vcTxCtrl        => pgpTxVcCtrl(1),
+--         vcTxClk         => pgpClk,
+--         vcTxRst         => pgpClkRst,
+--         axiClk          => axiClk,
+--         axiClkRst       => axiClkRst,
+--         axiWriteMaster  => axiWriteMaster,
+--         axiWriteSlave   => axiWriteSlave,
+--         axiReadMaster   => axiReadMaster,
+--         axiReadSlave    => axiReadSlave
+--      );
 
    U_AxiLiteEmpty : entity work.AxiLiteEmpty 
       generic map (
@@ -143,29 +136,29 @@ begin
       readRegister(0) <= x"deadbeef";
       readRegister(1) <= x"44444444";
 
-   U_Vc64CmdMaster : entity work.Vc64CmdMaster
-      generic map (
-         TPD_G              => 1 ns,
-         XIL_DEVICE_G       => "7SERIES",
-         USE_BUILT_IN_G     => true,
-         ALTERA_SYN_G       => false,
-         ALTERA_RAM_G       => "M9K",
-         BRAM_EN_G          => true,
-         GEN_SYNC_FIFO_G    => false,
-         FIFO_SYNC_STAGES_G => 3,
-         FIFO_ADDR_WIDTH_G  => 9,
-         FIFO_AFULL_THRES_G => 255,
-         LITTLE_ENDIAN_G    => true,
-         VC_WIDTH_G         => 16
-      ) port map (
-         vcRxData        => pgpRxVcData(0),
-         vcRxCtrl        => pgpRxVcCtrl(0),
-         vcRxClk         => pgpClk,
-         vcRxRst         => pgpClkRst,
-         cmdClk          => axiClk,
-         cmdClkRst       => axiClkRst,
-         cmdMasterOut    => cmdMasterOut
-      );
+--   U_Vc64CmdMaster : entity work.Vc64CmdMaster
+--      generic map (
+--         TPD_G              => 1 ns,
+--         XIL_DEVICE_G       => "7SERIES",
+--         USE_BUILT_IN_G     => true,
+--         ALTERA_SYN_G       => false,
+--         ALTERA_RAM_G       => "M9K",
+--         BRAM_EN_G          => true,
+--         GEN_SYNC_FIFO_G    => false,
+--         FIFO_SYNC_STAGES_G => 3,
+--         FIFO_ADDR_WIDTH_G  => 9,
+--         FIFO_AFULL_THRES_G => 255,
+--         LITTLE_ENDIAN_G    => true,
+--         VC_WIDTH_G         => 16
+--      ) port map (
+--         vcRxData        => pgpRxVcData(0),
+--         vcRxCtrl        => pgpRxVcCtrl(0),
+--         vcRxClk         => pgpClk,
+--         vcRxRst         => pgpClkRst,
+--         cmdClk          => axiClk,
+--         cmdClkRst       => axiClkRst,
+--         cmdMasterOut    => cmdMasterOut
+--      );
 
 end tb;
 

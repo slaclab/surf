@@ -17,7 +17,7 @@ void SsiSimLinkIbInit(vhpiHandleT compInst) {
 
    // Create new port data structure
    portDataT        *portData  = (portDataT *)        malloc(sizeof(portDataT));
-   SsiSimLinkIbData *ibData    = (SsiSimLinkIbData *) malloc(sizeof(SsiSimLinkIbData));
+   SsiSimLinkIbData *ibPtr     = (SsiSimLinkIbData *) malloc(sizeof(SsiSimLinkIbData));
 
    // Get port count
    portData->portCount = 7;
@@ -41,49 +41,49 @@ void SsiSimLinkIbInit(vhpiHandleT compInst) {
    portData->portWidth[ibData]     = 32; 
 
    // Create data structure to hold state
-   portData->stateData = ibData;
+   portData->stateData = ibPtr;
 
    // State update function
    portData->stateUpdate = *SsiSimLinkIbUpdate;
 
    // Init data structure
-   ibData->currClk      = 0;
-   ibData->ibCount      = 0;
-   ibData->ibDest       = 0;
-   ibData->ibError      = 0;
+   ibPtr->currClk      = 0;
+   ibPtr->ibCount      = 0;
+   ibPtr->ibVc         = 0;
+   ibPtr->ibError      = 0;
 
    // Create shared memory filename
-   sprintf(ibData->smemFile,"simlink.%i.%s.%i", getuid(), SHM_NAME, SHM_ID);
+   sprintf(ibPtr->smemFile,"simlink.%i.%s.%i", getuid(), SHM_NAME, SHM_ID);
 
    // Open shared memory
-   ibData->smemFd = shm_open(ibData->smemFile, (O_CREAT | O_RDWR), (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
-   ibData->smem = NULL;
+   ibPtr->smemFd = shm_open(ibPtr->smemFile, (O_CREAT | O_RDWR), (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
+   ibPtr->smem = NULL;
 
    // Failed to open shred memory
-   if ( ibData->smemFd > 0 ) {
+   if ( ibPtr->smemFd > 0 ) {
 
       // Force permissions regardless of umask
-      fchmod(ibData->smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
+      fchmod(ibPtr->smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
 
       // Set the size of the shared memory segment
-      ftruncate(ibData->smemFd, sizeof(SimLinkMemory));
+      ftruncate(ibPtr->smemFd, sizeof(SimLinkMemory));
 
       // Map the shared memory
-      if((ibData->smem = (SimLinkMemory *)mmap(0, sizeof(SimLinkMemory),
-                (PROT_READ | PROT_WRITE), MAP_SHARED, ibData->smemFd, 0)) == MAP_FAILED) {
-         ibData->smemFd = -1;
-         ibData->smem   = NULL;
+      if((ibPtr->smem = (SimLinkMemory *)mmap(0, sizeof(SimLinkMemory),
+                (PROT_READ | PROT_WRITE), MAP_SHARED, ibPtr->smemFd, 0)) == MAP_FAILED) {
+         ibPtr->smemFd = -1;
+         ibPtr->smem   = NULL;
       }
 
       // Init records
-      if ( ibData->smem != NULL ) {
-         ibData->smem->usReqCount = 0;
-         ibData->smem->usAckCount = 0;
+      if ( ibPtr->smem != NULL ) {
+         ibPtr->smem->usReqCount = 0;
+         ibPtr->smem->usAckCount = 0;
       }
    }
 
-   if ( ibData->smem != NULL ) vhpi_printf("SsiSimLinkIb: Opened shared memory file: %s\n", ibData->smemFile);
-   else vhpi_printf("SsiSimLinkIb: Failed to open shared memory file: %s\n", ibData->smemFile);
+   if ( ibPtr->smem != NULL ) vhpi_printf("SsiSimLinkIb: Opened shared memory file: %s\n", ibPtr->smemFile);
+   else vhpi_printf("SsiSimLinkIb: Failed to open shared memory file: %s\n", ibPtr->smemFile);
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -93,61 +93,61 @@ void SsiSimLinkIbInit(vhpiHandleT compInst) {
 // User function to update state based upon a signal change
 void SsiSimLinkIbUpdate ( portDataT *portData ) {
 
-   SsiSimLinkIbData *ibData = (SsiSimLinkIbData*)(portData->stateData);
+   SsiSimLinkIbData *ibPtr = (SsiSimLinkIbData*)(portData->stateData);
 
    // Detect clock edge
-   if ( ibData->currClk != getInt(ibClk) ) {
-      ibData->currClk = getInt(ibClk);
+   if ( ibPtr->currClk != getInt(ibClk) ) {
+      ibPtr->currClk = getInt(ibClk);
 
       // Rising edge
-      if ( ibData->currClk ) {
+      if ( ibPtr->currClk ) {
 
          // Reset is asserted, sample modes
          if ( getInt(ibReset) ) {
-            ibData->smem->usBigEndian = 0;
-            ibData->ibCount           = 0;
-            ibData->ibDest            = 0;
-            ibData->ibError           = 0;
+            ibPtr->smem->usBigEndian = 0;
+            ibPtr->ibCount           = 0;
+            ibPtr->ibVc              = 0;
+            ibPtr->ibError           = 0;
          }
 
          // Valid is asserted
          else if ( getInt(ibValid) == 1 ) {
 
             // First word
-            if ( ibData->ibCount == 0 ) {
-               ibData->ibError  = 0;
-               ibData->ibDest   = getInt(ibDest);
-               vhpi_printf("SsiSimLinkIb: Frame Start. Dest=%i, Time=%lld\n",ibData->ibDest,portData->simTime);
+            if ( ibPtr->ibCount == 0 ) {
+               ibPtr->ibError  = 0;
+               ibPtr->ibVc     = getInt(ibDest);
+               vhpi_printf("SsiSimLinkIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibVc,portData->simTime);
             }
 
             // VC mismatch
-            if ( ibData->ibDest != getInt(ibDest) && ibData->ibError == 0 ) {
+            if ( ibPtr->ibVc != getInt(ibDest) && ibPtr->ibError == 0 ) {
                vhpi_printf("SsiSimLinkIb: Dest mismatch error.\n");
-               ibData->ibError = 1;
+               ibPtr->ibError = 1;
             }
 
             // Get data
-            ibData->smem->usData[ibData->ibCount++] = getInt(ibData);
+            ibPtr->smem->usData[ibPtr->ibCount++] = getInt(ibData);
 
             // EOF is asserted
-            if ( getInt(ibDataEof) ) {
+            if ( getInt(ibEof) ) {
 
-               ibData->smem->usEofe = getInt(ibDataEofe);
+               ibPtr->smem->usEofe = getInt(ibEofe);
 
                // Force EOFE for error
-               if ( ibData->ibError ) ibData->smem->usEofe = 1;
+               if ( ibPtr->ibError ) ibPtr->smem->usEofe = 1;
 
                // Send data
-               ibData->smem->usVc   = ibData->ibDest;
-               ibData->smem->usSize = ibData->ibCount;
-               ibData->smem->usReqCount++;
+               ibPtr->smem->usVc   = ibPtr->ibVc;
+               ibPtr->smem->usSize = ibPtr->ibCount;
+               ibPtr->smem->usReqCount++;
 
                vhpi_printf("SsiSimLinkIb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
-                  ibData->smem->usSize,ibData->smem->usVc,portData->simTime);
+                  ibPtr->smem->usSize,ibPtr->smem->usVc,portData->simTime);
 
                // Wait for other end
                int toCount = 0;
-               while ( ibData->smem->usReqCount != ibData->smem->usAckCount ) {
+               while ( ibPtr->smem->usReqCount != ibPtr->smem->usAckCount ) {
                   usleep(100);
                   if ( ++toCount > 10000 ) {
                      vhpi_printf("SsiSimLinkIb: Timeout waiting\n");
@@ -155,15 +155,15 @@ void SsiSimLinkIbUpdate ( portDataT *portData ) {
                   }
                }
 
-               ibData->ibCount = 0;
+               ibPtr->ibCount = 0;
             }
 
             // Show updates for long frames
             else {
-               if ( (ibData->ibCount % 100) == 0 ) {
+               if ( (ibPtr->ibCount % 100) == 0 ) {
 
                   vhpi_printf("SsiSimLinkIb: Frame In Progress. Size=%i, Dest=%i, Payload=%i, Time=%lld\n",
-                     ibData->ibSize,ibData->ibDest,ibData->ibCount,portData->simTime);
+                     ibPtr->ibCount,ibPtr->ibVc,ibPtr->ibCount,portData->simTime);
                }
             }
          }

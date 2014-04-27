@@ -20,6 +20,7 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
 
 package SsiPkg is
 
@@ -43,7 +44,7 @@ package SsiPkg is
 
    function toAxiStreamMaster (ssi : SsiMasterType) return AxiStreamMasterType;
 
-   function ssiAxiStreamConfig (dataBytes : natural) return AxiStreamConfigType;
+   function ssiAxiStreamConfig (dataBytes : natural; tKeepEn : boolean) return AxiStreamConfigType;
 
 end package SsiPkg;
 
@@ -74,17 +75,18 @@ package body SsiPkg is
       axi.tUser(SSI_SOF_TUSER_BIT_C)  := ssi.sof;
       axi.tUser(SSI_EOF_TUSER_BIT_C)  := ssi.eof;
       axi.tUser(SSI_EOFE_TUSER_BIT_C) := ssi.eofe;
+      return axi;
    end function toAxiStreamMaster;
 
    function ssiAxiStreamConfig (dataBytes : natural; tKeepEn : boolean) return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
-      ret.TDATA_BYTES_C := dataBytes;   -- Configurable data size
-      ret.TUSER_BITS_C  := 4;           -- 4 TUSER bits for SOF, EOF, EOFE, USER
-      ret.TDEST_BITS_C  := 4;           -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := 0;           -- TID not used
-      ret.TKEEP_EN_C    := tKeepEn;     -- Optional TKEEP support
-      ret.TSTRB_EN_C    := false;       -- No TSTRB support in SSI
+      ret.TDATA_BYTES_C         := dataBytes;   -- Configurable data size
+      ret.TUSER_BITS_PER_BYTE_C := 4;           -- 4 TUSER bits for SOF, EOF, EOFE, USER
+      ret.TDEST_BITS_C          := 4;           -- 4 TDEST bits for VC
+      ret.TID_BITS_C            := 0;           -- TID not used
+      ret.TKEEP_EN_C            := tKeepEn;     -- Optional TKEEP support
+      ret.TSTRB_EN_C            := false;       -- No TSTRB support in SSI
       return ret;
    end function ssiAxiStreamConfig;
 

@@ -20,6 +20,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
+use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
 entity SsiSimLinkPgp is 
@@ -49,8 +50,8 @@ entity SsiSimLinkPgp is
       pgpRxOut          : out PgpRxOutType;
 
       -- Rx Interface
-      pgpRxMasters      : out AxiStreamSlaveArray(3 downto 0);
-      pgpRxSlaves       : in  AxiStreamMasterArray(3 downto 0)
+      pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+      pgpRxSlaves       : in  AxiStreamSlaveArray(3 downto 0)
    );
 
 end SsiSimLinkPgp;

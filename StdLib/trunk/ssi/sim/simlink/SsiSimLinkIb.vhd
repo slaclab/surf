@@ -12,7 +12,7 @@ entity SsiSimLinkIb is port (
       ibDest       : in    std_logic_vector(3 downto 0);
       ibEof        : in    std_logic;
       ibEofe       : in    std_logic;
-      ibData       : in    std_logic_vector(31 downto 0);
+      ibData       : in    std_logic_vector(31 downto 0)
    );
 end SsiSimLinkIb;
 

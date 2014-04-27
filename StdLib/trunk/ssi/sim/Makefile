@@ -34,38 +34,26 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../general/rtl/Arbiter.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../general/rtl/PrbsPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiLitePkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../xilinx7/rtl/DeviceDna.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiLiteCrossbar.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiLiteAsync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiLiteEmpty.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64Pkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64Mux.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64Sync.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64FrameFilter.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64Fifo.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64FifoMux.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64PrbsRx.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64PrbsTx.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64AxiMaster.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../Vc64Lib/rtl/Vc64CmdMaster.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/rtl/Pgp2bPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../ArmRceG3/hdl/ArmRceG3Pkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/Vc64SimLinkIb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/Vc64SimLinkOb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/Vc64SimLink.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/Vc64SimLinkPgp.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../rtl/SsiPkg.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../rtl/SsiFrameMux.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLinkIb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLinkOb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLink.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLinkPgp.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/tb/tb.vhd
 
 # VHPI Library
 vhpi_src:
 	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/VhpiGeneric.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/Vc64SimLinkOb.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/Vc64SimLinkIb.c
-	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o Vc64SimLinkOb.o Vc64SimLinkIb.o
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/SsiSimLinkOb.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/SsiSimLinkIb.c
+	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o SsiSimLinkOb.o SsiSimLinkIb.o
 
 sim_gen:
 	cd $(SIM_DIR); vcs $(EN64) $(TOP) -cpp g++ -cc gcc -debug -lrt -timescale=1ps/1ps -sim_res=1ps
