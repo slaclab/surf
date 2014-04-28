@@ -62,11 +62,12 @@ entity Pgp2bGtx7VarLatWrapper is
       pgpTxIn          : in  PgpTxInType;
       pgpTxOut         : out PgpTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxVcData      : in  Vc64DataArray(3 downto 0);
-      pgpTxVcCtrl      : out Vc64CtrlArray(3 downto 0);
+      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxVcData      : out Vc64DataType;
-      pgpRxVcCtrl      : in  Vc64CtrlArray(3 downto 0);
+      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed : out AxiStreamMasterType;
+      axiFifoStatus    : in  AxiStreamFifoStatusArray(3 downto 0);
       -- GT loopback control
       loopback         : in  slv(2 downto 0);  -- GT Serial Loopback Control      
       -- GT Pins
@@ -260,11 +261,12 @@ begin
          pgpTxIn          => pgpTxIn,
          pgpTxOut         => pgpTxOut,
          -- Frame Transmit Interface - Array of 4 VCs
-         pgpTxVcData      => pgpTxVcData,
-         pgpTxVcCtrl      => pgpTxVcCtrl,
+         pgpTxMasters     => pgpTxMasters,
+         pgpTxSlaves      => pgpTxSlaves,
          -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-         pgpRxVcData      => pgpRxVcData,
-         pgpRxVcCtrl      => pgpRxVcCtrl,
+         pgpRxMasters     => pgpRxMasters,
+         pgpRxMasterMuxed => pgpRxMasterMuxed,
+         axiFifoStatus    => axiFifoStatus,
          -- GT loopback control
          loopback         => loopback);  
 end rtl;
