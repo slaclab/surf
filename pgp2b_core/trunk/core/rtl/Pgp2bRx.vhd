@@ -27,7 +27,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
-use work.ArmStreamPkg.all;
+use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
 entity Pgp2bRx is 
@@ -147,7 +147,7 @@ begin
       generic map ( 
          TPD_G                => TPD_G,
          RX_LANE_CNT_G        => RX_LANE_CNT_G, 
-         EN_SHORT_CELLS_G     => true,
+         EN_SHORT_CELLS_G     => 1,
          PAYLOAD_CNT_TOP_G    => PAYLOAD_CNT_TOP_G
       ) port map (
          pgpRxClk         => pgpRxClk,
@@ -184,7 +184,6 @@ begin
          crcRxOut         => crcRxOutAdjust
       );
 
-      remFifoStatus    : out AxiStreamFifoStatusType;
 
    -- Generate valid/vc
    ValidRx: process (intRxVcReady, intRxEof, intRxEofe, intRxData, pause, overflow ) is
@@ -196,7 +195,7 @@ begin
          remFifoStatus(i).pause    <= pause(i);
       end loop;
 
-      pgpRxMaster <= AX_STREAM_MASTER_INIT_C;
+      pgpRxMaster <= AXI_STREAM_MASTER_INIT_C;
 
       pgpRxMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) <= intRxData;
       pgpRxMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      <= (others=>'1');

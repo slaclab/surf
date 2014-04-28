@@ -6,11 +6,11 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.ArmRceG3Pkg.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.Vc64Pkg.all;
 use work.Pgp2bPkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity tb is end tb;
 
@@ -33,17 +33,15 @@ architecture tb of tb is
    signal txEnable          : slv(3  downto 0);
    signal txBusy            : slv(3  downto 0);
    signal txLength          : Slv32Array(3 downto 0);
-   signal prbsTxCtrl        : Vc64CtrlArray(3 downto 0);
-   signal prbsTxData        : Vc64DataArray(3 downto 0);
-   signal prbsTxMuxCtrl     : Vc64CtrlType;
-   signal prbsTxMuxData     : Vc64DataType;
-   signal prbsRxDataCommon  : Vc64DataType;
-   signal prbsRxCtrl        : Vc64CtrlArray(3 downto 0);
-   signal prbsRxData        : Vc64DataArray(3 downto 0);
+   signal prbsTxMasters     : AxiStreamMasterArray(3 downto 0);
+   signal prbsTxSlaves      : AxiStreamSlaveArray(3 downto 0);
+   signal prbsRxMasters     : AxiStreamMasterArray(3 downto 0);
+   signal prbsRxSlaves      : AxiStreamSlaveArray(3 downto 0);
    signal pgpTxIn           : PgpTxInType;
    signal phyTxLanesOut     : PgpTxPhyLaneOutArray(0 to 0);
    signal pgpRxIn           : PgpRxInType;
    signal phyRxLanesIn      : PgpRxPhyLaneInArray(0 to  0);
+   signal axiFifoStatus     : AxiStreamFifoStatusArray(3 downto 0);
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : 
       AxiLiteCrossbarMasterConfigArray(11 downto 0) := genAxiLiteConfig ( 12, x"F0000000", 4 );
@@ -114,31 +112,31 @@ begin
          end if;
       end process;
 
-      U_Vc64PrbsTx : entity work.Vc64PrbsTx
-         generic map (
-            TPD_G              => 1 ns,
-            RST_ASYNC_G        => false,
-            ALTERA_SYN_G       => false,
-            ALTERA_RAM_G       => "M9K",
-            XIL_DEVICE_G       => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G          => true,
-            USE_BUILT_IN_G     => false,  --if set to true, this module is only Xilinx compatible only!!!
-            GEN_SYNC_FIFO_G    => false,
-            PIPE_STAGES_G      => 0,
-            FIFO_SYNC_STAGES_G => 3,
-            FIFO_ADDR_WIDTH_G  => 9,
-            FIFO_AFULL_THRES_G => 256     -- Almost full at 1/2 capacity
-         ) port map (
-            vcTxCtrl     => prbsTxCtrl(i), -- In
-            vcTxData     => prbsTxData(i), -- Out
-            vcTxClk      => pgpClk,
-            vcTxRst      => pgpClkRst,
-            trig         => txEnable(i),
-            packetLength => txLength(i),
-            busy         => txBusy(i),
-            locClk       => pgpClk,
-            locRst       => pgpClkRst 
-         );
+--      U_Vc64PrbsTx : entity work.Vc64PrbsTx
+--         generic map (
+--            TPD_G              => 1 ns,
+--            RST_ASYNC_G        => false,
+--            ALTERA_SYN_G       => false,
+--            ALTERA_RAM_G       => "M9K",
+--            XIL_DEVICE_G       => "7SERIES",  --Xilinx only generic parameter    
+--            BRAM_EN_G          => true,
+--            USE_BUILT_IN_G     => false,  --if set to true, this module is only Xilinx compatible only!!!
+--            GEN_SYNC_FIFO_G    => false,
+--            PIPE_STAGES_G      => 0,
+--            FIFO_SYNC_STAGES_G => 3,
+--            FIFO_ADDR_WIDTH_G  => 9,
+--            FIFO_AFULL_THRES_G => 256     -- Almost full at 1/2 capacity
+--         ) port map (
+--            vcTxCtrl     => prbsTxCtrl(i), -- In
+--            vcTxData     => prbsTxData(i), -- Out
+--            vcTxClk      => pgpClk,
+--            vcTxRst      => pgpClkRst,
+--            trig         => txEnable(i),
+--            packetLength => txLength(i),
+--            busy         => txBusy(i),
+--            locClk       => pgpClk,
+--            locRst       => pgpClkRst 
+--         );
 
    end generate;
 
@@ -148,7 +146,6 @@ begin
          TPD_G             => 1 ns,
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => 1,
-         EN_SHORT_CELLS_G  => 1,
          PAYLOAD_CNT_TOP_G => 7,
          NUM_VC_EN_G       => 4
       ) port map ( 
@@ -156,16 +153,17 @@ begin
          pgpTxClkRst       => pgpClkRst,
          pgpTxIn           => pgpTxIn,
          pgpTxOut          => open,
-         pgpTxVcData       => prbsTxData,
-         pgpTxVcCtrl       => prbsTxCtrl,
+         pgpTxMasters      => prbsTxMasters,
+         pgpTxSlaves       => prbsTxSlaves,
          phyTxLanesOut     => phyTxLanesOut,
          phyTxReady        => '1',
          pgpRxClk          => pgpClk,
          pgpRxClkRst       => pgpClkRst,
          pgpRxIn           => pgpRxIn,
          pgpRxOut          => open,
-         pgpRxVcData       => prbsRxDataCommon,
-         pgpRxVcCtrl       => prbsRxCtrl,
+         pgpRxMasters      => prbsRxMasters,
+         axiFifoStatus     => axiFifoStatus,
+         pgpRxMasterMuxed  => open,
          phyRxLanesOut     => open,
          phyRxLanesIn      => phyRxLanesIn,
          phyRxReady        => '1',
@@ -179,49 +177,45 @@ begin
    phyRxLanesIn(0).dispErr <= (others=>'0');
    phyRxLanesIn(0).decErr  <= (others=>'0');
 
-   -- Decode common VC
-   process ( prbsRxDataCommon ) begin
-      prbsRxData <= vc64DeMux(prbsRxDataCommon,4);
-   end process;
 
    -- PRBS receiver
-   U_RxGen: for i in 0 to 3 generate 
-      U_Vc64PrbsRx: entity work.Vc64PrbsRx 
-         generic map (
-            TPD_G              => 1 ns,
-            LANE_NUMBER_G      => 0,
-            VC_NUMBER_G        => i,
-            RST_ASYNC_G        => false,
-            ALTERA_SYN_G       => false,
-            ALTERA_RAM_G       => "M9K",
-            XIL_DEVICE_G       => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G          => true,
-            USE_BUILT_IN_G     => false,  --if set to true, this module is only Xilinx compatible only!!!
-            GEN_SYNC_FIFO_G    => false,
-            PIPE_STAGES_G      => 0,
-            FIFO_SYNC_STAGES_G => 3,
-            FIFO_ADDR_WIDTH_G  => 9,
-            FIFO_AFULL_THRES_G => 256     -- Almost full at 1/2 capacity
-         ) port map (
-            vcRxData             => prbsRxData(i),
-            vcRxCtrl             => prbsRxCtrl(i),
-            vcRxClk              => pgpClk,
-            vcRxRst              => pgpClkRst,
-            vcTxCtrl             => VC64_CTRL_FORCE_C,
-            vcTxData             => open,
-            vcTxClk              => pgpClk,
-            vcTxRst              => pgpClkRst,
-            updatedResults       => updatedResults(i),
-            busy                 => open,
-            errMissedPacket      => errMissedPacket(i),
-            errLength            => errLength(i),
-            errEofe              => errEofe(i),
-            errWordCnt           => errWordCnt(i),
-            errbitCnt            => errbitCnt(i),
-            packetRate           => packetRate(i),
-            packetLength         => packetLength(i)
-         ); 
-   end generate;
+--   U_RxGen: for i in 0 to 3 generate 
+--      U_Vc64PrbsRx: entity work.Vc64PrbsRx 
+--         generic map (
+--            TPD_G              => 1 ns,
+--            LANE_NUMBER_G      => 0,
+--            VC_NUMBER_G        => i,
+--            RST_ASYNC_G        => false,
+--            ALTERA_SYN_G       => false,
+--            ALTERA_RAM_G       => "M9K",
+--            XIL_DEVICE_G       => "7SERIES",  --Xilinx only generic parameter    
+--            BRAM_EN_G          => true,
+--            USE_BUILT_IN_G     => false,  --if set to true, this module is only Xilinx compatible only!!!
+--            GEN_SYNC_FIFO_G    => false,
+--            PIPE_STAGES_G      => 0,
+--            FIFO_SYNC_STAGES_G => 3,
+--            FIFO_ADDR_WIDTH_G  => 9,
+--            FIFO_AFULL_THRES_G => 256     -- Almost full at 1/2 capacity
+--         ) port map (
+--            vcRxData             => prbsRxData(i),
+--            vcRxCtrl             => prbsRxCtrl(i),
+--            vcRxClk              => pgpClk,
+--            vcRxRst              => pgpClkRst,
+--            vcTxCtrl             => VC64_CTRL_FORCE_C,
+--            vcTxData             => open,
+--            vcTxClk              => pgpClk,
+--            vcTxRst              => pgpClkRst,
+--            updatedResults       => updatedResults(i),
+--            busy                 => open,
+--            errMissedPacket      => errMissedPacket(i),
+--            errLength            => errLength(i),
+--            errEofe              => errEofe(i),
+--            errWordCnt           => errWordCnt(i),
+--            errbitCnt            => errbitCnt(i),
+--            packetRate           => packetRate(i),
+--            packetLength         => packetLength(i)
+--         ); 
+--   end generate;
 
 end tb;
 
