@@ -3,7 +3,7 @@
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
-#include "SsiSimLinkOb.h"
+#include "AxiStreamSimLinkOb.h"
 #include "SimLinkMemory.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,11 +13,11 @@
 #include <sys/mman.h>
 
 // Init function
-void SsiSimLinkObInit(vhpiHandleT compInst) { 
+void AxiStreamSimLinkObInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
    portDataT        *portData  = (portDataT *)        malloc(sizeof(portDataT));
-   SsiSimLinkObData *obPtr     = (SsiSimLinkObData *) malloc(sizeof(SsiSimLinkObData));
+   AxiStreamSimLinkObData *obPtr     = (AxiStreamSimLinkObData *) malloc(sizeof(AxiStreamSimLinkObData));
 
    // Get port count
    portData->portCount = 7;
@@ -44,7 +44,7 @@ void SsiSimLinkObInit(vhpiHandleT compInst) {
    portData->stateData = obPtr;
 
    // State update function
-   portData->stateUpdate = *SsiSimLinkObUpdate;
+   portData->stateUpdate = *AxiStreamSimLinkObUpdate;
 
    // Init data structure
    obPtr->currClk   = 0;
@@ -80,8 +80,8 @@ void SsiSimLinkObInit(vhpiHandleT compInst) {
       }
    }
 
-   if ( obPtr->smem != NULL ) vhpi_printf("SsiSimLinkOb: Opened shared memory file: %s\n", obPtr->smemFile);
-   else vhpi_printf("SsiSimLinkOb: Failed to open shared memory file: %s\n", obPtr->smemFile);
+   if ( obPtr->smem != NULL ) vhpi_printf("AxiStreamSimLinkOb: Opened shared memory file: %s\n", obPtr->smemFile);
+   else vhpi_printf("AxiStreamSimLinkOb: Failed to open shared memory file: %s\n", obPtr->smemFile);
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -89,9 +89,9 @@ void SsiSimLinkObInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void SsiSimLinkObUpdate ( portDataT *portData ) {
+void AxiStreamSimLinkObUpdate ( portDataT *portData ) {
 
-   SsiSimLinkObData *obPtr = (SsiSimLinkObData*)(portData->stateData);
+   AxiStreamSimLinkObData *obPtr = (AxiStreamSimLinkObData*)(portData->stateData);
 
    // Detect clock edge
    if ( obPtr->currClk != getInt(obClk) ) {
@@ -112,7 +112,7 @@ void SsiSimLinkObUpdate ( portDataT *portData ) {
 
             // Check for available data
             if ( obPtr->smem->dsReqCount != obPtr->smem->dsAckCount ) {
-               vhpi_printf("SsiSimLinkOb: Frame Start. Size=%i, Dest=%i, Time=%lld\n",
+               vhpi_printf("AxiStreamSimLinkOb: Frame Start. Size=%i, Dest=%i, Time=%lld\n",
                   obPtr->smem->dsSize,obPtr->smem->dsVc,portData->simTime);
                obPtr->obCount  = 0;
 
@@ -135,7 +135,7 @@ void SsiSimLinkObUpdate ( portDataT *portData ) {
                obPtr->obCount = 0;
                setInt(obValid,0);
 
-               vhpi_printf("SsiSimLinkOb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
+               vhpi_printf("AxiStreamSimLinkOb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
                   obPtr->smem->dsSize,obPtr->smem->dsVc,portData->simTime);
                obPtr->smem->dsAckCount = obPtr->smem->dsReqCount;
             }

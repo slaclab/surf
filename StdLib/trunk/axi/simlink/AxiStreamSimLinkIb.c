@@ -3,7 +3,7 @@
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
-#include "SsiSimLinkIb.h"
+#include "AxiStreamSimLinkIb.h"
 #include "SimLinkMemory.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,11 +13,11 @@
 #include <stdio.h>
 
 // Init function
-void SsiSimLinkIbInit(vhpiHandleT compInst) { 
+void AxiStreamSimLinkIbInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
    portDataT        *portData  = (portDataT *)        malloc(sizeof(portDataT));
-   SsiSimLinkIbData *ibPtr     = (SsiSimLinkIbData *) malloc(sizeof(SsiSimLinkIbData));
+   AxiStreamSimLinkIbData *ibPtr     = (AxiStreamSimLinkIbData *) malloc(sizeof(AxiStreamSimLinkIbData));
 
    // Get port count
    portData->portCount = 7;
@@ -44,7 +44,7 @@ void SsiSimLinkIbInit(vhpiHandleT compInst) {
    portData->stateData = ibPtr;
 
    // State update function
-   portData->stateUpdate = *SsiSimLinkIbUpdate;
+   portData->stateUpdate = *AxiStreamSimLinkIbUpdate;
 
    // Init data structure
    ibPtr->currClk      = 0;
@@ -82,8 +82,8 @@ void SsiSimLinkIbInit(vhpiHandleT compInst) {
       }
    }
 
-   if ( ibPtr->smem != NULL ) vhpi_printf("SsiSimLinkIb: Opened shared memory file: %s\n", ibPtr->smemFile);
-   else vhpi_printf("SsiSimLinkIb: Failed to open shared memory file: %s\n", ibPtr->smemFile);
+   if ( ibPtr->smem != NULL ) vhpi_printf("AxiStreamSimLinkIb: Opened shared memory file: %s\n", ibPtr->smemFile);
+   else vhpi_printf("AxiStreamSimLinkIb: Failed to open shared memory file: %s\n", ibPtr->smemFile);
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -91,9 +91,9 @@ void SsiSimLinkIbInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void SsiSimLinkIbUpdate ( portDataT *portData ) {
+void AxiStreamSimLinkIbUpdate ( portDataT *portData ) {
 
-   SsiSimLinkIbData *ibPtr = (SsiSimLinkIbData*)(portData->stateData);
+   AxiStreamSimLinkIbData *ibPtr = (AxiStreamSimLinkIbData*)(portData->stateData);
 
    // Detect clock edge
    if ( ibPtr->currClk != getInt(ibClk) ) {
@@ -117,12 +117,12 @@ void SsiSimLinkIbUpdate ( portDataT *portData ) {
             if ( ibPtr->ibCount == 0 ) {
                ibPtr->ibError  = 0;
                ibPtr->ibVc     = getInt(ibDest);
-               vhpi_printf("SsiSimLinkIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibVc,portData->simTime);
+               vhpi_printf("AxiStreamSimLinkIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibVc,portData->simTime);
             }
 
             // VC mismatch
             if ( ibPtr->ibVc != getInt(ibDest) && ibPtr->ibError == 0 ) {
-               vhpi_printf("SsiSimLinkIb: Dest mismatch error.\n");
+               vhpi_printf("AxiStreamSimLinkIb: Dest mismatch error.\n");
                ibPtr->ibError = 1;
             }
 
@@ -142,7 +142,7 @@ void SsiSimLinkIbUpdate ( portDataT *portData ) {
                ibPtr->smem->usSize = ibPtr->ibCount;
                ibPtr->smem->usReqCount++;
 
-               vhpi_printf("SsiSimLinkIb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
+               vhpi_printf("AxiStreamSimLinkIb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
                   ibPtr->smem->usSize,ibPtr->smem->usVc,portData->simTime);
 
                // Wait for other end
@@ -150,7 +150,7 @@ void SsiSimLinkIbUpdate ( portDataT *portData ) {
                while ( ibPtr->smem->usReqCount != ibPtr->smem->usAckCount ) {
                   usleep(100);
                   if ( ++toCount > 10000 ) {
-                     vhpi_printf("SsiSimLinkIb: Timeout waiting\n");
+                     vhpi_printf("AxiStreamSimLinkIb: Timeout waiting\n");
                      break;
                   }
                }
@@ -162,7 +162,7 @@ void SsiSimLinkIbUpdate ( portDataT *portData ) {
             else {
                if ( (ibPtr->ibCount % 100) == 0 ) {
 
-                  vhpi_printf("SsiSimLinkIb: Frame In Progress. Size=%i, Dest=%i, Payload=%i, Time=%lld\n",
+                  vhpi_printf("AxiStreamSimLinkIb: Frame In Progress. Size=%i, Dest=%i, Payload=%i, Time=%lld\n",
                      ibPtr->ibCount,ibPtr->ibVc,ibPtr->ibCount,portData->simTime);
                }
             }
