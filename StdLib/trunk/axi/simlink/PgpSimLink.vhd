@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity PgpSimLink is 
    generic (
@@ -92,7 +93,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          TDATA_BYTES_G    => 2,
-         EOFE_TUSER_BIT_G => SSI_EOFE_TUSER_BIT_C
+         EOFE_TUSER_BIT_G => SSI_EOFE_C
       ) port map ( 
          sAxiClk           => pgpTxClk,
          sAxiRst           => pgpTxClkRst,
@@ -104,7 +105,7 @@ begin
          mAxiStreamSlave   => intRxSlave
       );
 
-   -- override valid and ready when almostFull
+   -- override valid and ready when paused
    process ( axiFifoStatus, intRxMaster ) is
       variable ready : sl;
    begin
@@ -112,7 +113,7 @@ begin
       ready := '1';
 
       for i in 0 to 3 loop
-         if axiFifoStatus(i).almostFull = '1' then
+         if axiFifoStatus(i).pause = '1' then
             ready := '0';
          end if;
       end loop;

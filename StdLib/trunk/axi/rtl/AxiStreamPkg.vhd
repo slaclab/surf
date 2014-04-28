@@ -76,7 +76,7 @@ package AxiStreamPkg is
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
    type AxiStreamFifoStatusType is record
-      almostFull : sl;
+      pause      : sl;
       overflow   : sl;
    end record AxiStreamFifoStatusType;
 
