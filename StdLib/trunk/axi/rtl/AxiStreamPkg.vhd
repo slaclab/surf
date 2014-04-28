@@ -80,6 +80,10 @@ package AxiStreamPkg is
       overflow   : sl;
    end record AxiStreamFifoStatusType;
 
+   constant AXI_STREAM_FIFO_STATUS_INIT_C : AxiStreamFifoStatusType := (
+      pause         => '0',
+      overflow      => '0');
+
    type AxiStreamFifoStatusArray is array (natural range<>) of AxiStreamFifoStatusType;
 
    
