@@ -21,14 +21,14 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity Pgp2bLane is 
    generic (
       TPD_G             : time                             := 1 ns;
       LANE_CNT_G        : integer range 1 to 2             := 1;    -- Number of lanes, 1-2
       VC_INTERLEAVE_G   : integer                          := 1;    -- Interleave Frames
-      EN_SHORT_CELLS_G  : integer                          := 1;    -- Enable short non-EOF cells
       PAYLOAD_CNT_TOP_G : integer                          := 7;    -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4             := 4;
       TX_ENABLE_G       : boolean                          := true; -- Enable TX direction
@@ -140,7 +140,6 @@ begin
          generic map (
             TPD_G              => TPD_G,
             RX_LANE_CNT_G      => LANE_CNT_G,
-            EN_SHORT_CELLS_G   => EN_SHORT_CELLS_G,
             PAYLOAD_CNT_TOP_G  => PAYLOAD_CNT_TOP_G
          ) port map (
             pgpRxClk          => pgpRxClk,
@@ -177,8 +176,7 @@ begin
       intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
       phyRxLanesOut          <= (others=>PGP_RX_PHY_LANE_OUT_INIT_C);
       phyRxInit              <= '0';
-      remFifoStatus.pause    <= '0';
-      remFifoStatus.oferflow <= '0';
+      remFifoStatus          <= (others=>AXI_STREAM_FIFO_STATUS_INIT_C);
    end generate;
 
    -- De-Muxed Version

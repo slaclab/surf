@@ -27,7 +27,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity Pgp2bTx is 
    generic (
@@ -91,9 +92,9 @@ architecture Pgp2bTx of Pgp2bTx is
    signal crcTxWidthAdjust : slv(2 downto 0);
    signal intTxSof         : slv(3 downto 0);
    signal intTxEofe        : slv(3 downto 0);
+   signal intvalid         : slv(3 downto 0);
    signal intReady         : slv(3 downto 0);
    signal rawReady         : slv(3 downto 0);
-   signal schedValid       : slv(3 downto 0);
    signal syncLocPause     : slv(3 downto 0);
    signal syncLocOverFlow  : slv(3 downto 0);
    signal syncRemPause     : slv(3 downto 0);
