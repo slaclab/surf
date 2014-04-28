@@ -18,6 +18,7 @@
 -- 06/25/2010: Added payload size config as generic.
 -- 05/18/2012: Added VC transmit timeout
 -- 04/04/2014: Changed to Pgp2b.
+-- 04/25/2014: Changed interface to AxiStream/SSI
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -47,9 +48,10 @@ entity Pgp2bTx is
       pgpTxOut          : out PgpTxOutType;
 
       -- VC Interface
-      pgpTxVcData       : in  Vc64DataArray(3 downto 0);
-      pgpTxVcCtrl       : out Vc64CtrlArray(3 downto 0);
-      pgpTxLocVcCtrl    : in  Vc64CtrlArray(3 downto 0);
+      pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0);
+      pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
+      locFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
+      remFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
 
       -- Phy interface
       phyTxLanesOut     : out PgpTxPhyLaneOutArray(0 to TX_LANE_CNT_G-1);
@@ -63,41 +65,70 @@ end Pgp2bTx;
 architecture Pgp2bTx of Pgp2bTx is
 
    -- Local Signals
-   signal cellTxSOC         : sl;
-   signal cellTxSOF         : sl;
-   signal cellTxEOC         : sl;
-   signal cellTxEOF         : sl;
-   signal cellTxEOFE        : sl;
-   signal cellTxData        : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal schTxSOF          : sl;
-   signal schTxEOF          : sl;
-   signal schTxIdle         : sl;
-   signal schTxReq          : sl;
-   signal schTxAck          : sl;
-   signal schTxDataVc       : slv(1 downto 0);
-   signal intTxLinkReady    : sl;
-   signal schTxTimeout      : sl;
-   signal intPhyTxData      : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal intPhyTxDataK     : slv(TX_LANE_CNT_G*2-1  downto 0);
-   signal crcTxIn           : slv(TX_LANE_CNT_G*16-1 downto 0); -- Transmit data for CRC
-   signal crcTxInit         : sl;                               -- Transmit CRC value init
-   signal crcTxValid        : sl;                               -- Transmit data for CRC is valid
-   signal crcTxOut          : slv(31 downto 0);                 -- Transmit calculated CRC value
-   signal crcTxOutAdjust    : slv(31 downto 0);                 -- Transmit calculated CRC value
-   signal crcTxRst          : sl;
-   signal crcTxInAdjust     : slv(31 downto 0);
-   signal crcTxWidthAdjust  : slv(2 downto 0);
+   signal cellTxSOC        : sl;
+   signal cellTxSOF        : sl;
+   signal cellTxEOC        : sl;
+   signal cellTxEOF        : sl;
+   signal cellTxEOFE       : sl;
+   signal cellTxData       : slv(TX_LANE_CNT_G*16-1 downto 0);
+   signal schTxSOF         : sl;
+   signal schTxEOF         : sl;
+   signal schTxIdle        : sl;
+   signal schTxReq         : sl;
+   signal schTxAck         : sl;
+   signal schTxDataVc      : slv(1 downto 0);
+   signal intTxLinkReady   : sl;
+   signal schTxTimeout     : sl;
+   signal intPhyTxData     : slv(TX_LANE_CNT_G*16-1 downto 0);
+   signal intPhyTxDataK    : slv(TX_LANE_CNT_G*2-1  downto 0);
+   signal crcTxIn          : slv(TX_LANE_CNT_G*16-1 downto 0); -- Transmit data for CRC
+   signal crcTxInit        : sl;                               -- Transmit CRC value init
+   signal crcTxValid       : sl;                               -- Transmit data for CRC is valid
+   signal crcTxOut         : slv(31 downto 0);                 -- Transmit calculated CRC value
+   signal crcTxOutAdjust   : slv(31 downto 0);                 -- Transmit calculated CRC value
+   signal crcTxRst         : sl;
+   signal crcTxInAdjust    : slv(31 downto 0);
+   signal crcTxWidthAdjust : slv(2 downto 0);
+   signal intTxSof         : slv(3 downto 0);
+   signal intTxEofe        : slv(3 downto 0);
+   signal intReady         : slv(3 downto 0);
+   signal rawReady         : slv(3 downto 0);
+   signal schedValid       : slv(3 downto 0);
+   signal syncLocPause     : slv(3 downto 0);
+   signal syncLocOverFlow  : slv(3 downto 0);
+   signal syncRemPause     : slv(3 downto 0);
+
+   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
 
 begin
 
+   -- Sync flow control & buffer status
+   U_VcFlowGen: for i in 0 to 3 generate
+      U_Sync: entity work.SynchronizerVector
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => false,
+            STAGES_G       => 2,
+            WIDTH_G        => 3,
+            INIT_G         => "0"
+         ) port map (
+            clk        => pgpTxClk,
+            rst        => pgpTxClkRst,
+            dataIn(0)  => locFifoStatus(i).pause,
+            dataIn(1)  => locFifoStatus(i).overflow,
+            dataIn(2)  => remFifoStatus(i).overflow,
+            dataOut(0) => syncLocPause(i),
+            dataOut(1) => syncLocOverFlow(i),
+            dataOut(2) => syncRemPause(i)
+         );
+   end generate;
+
+   -- Set phy lanes
    Lane_Gen: for i in 0 to TX_LANE_CNT_G-1 generate
       phyTxLanesOut(i).data   <= intPhyTxData(16*i+15 downto 16*i);
       phyTxLanesOut(i).dataK  <= intPhyTxDataK(2*i+1 downto 2*i);
-   end generate;
-
-   Flow_Gen: for i in 0 to 3 generate
-      pgpTxVcCtrl(i).almostFull <= '0';
-      pgpTxVcCtrl(i).overflow   <= '0';
    end generate;
 
    -- Link Ready
@@ -146,10 +177,10 @@ begin
          schTxAck          => schTxAck,
          schTxDataVc       => schTxDataVc,
          schTxTimeout      => schTxTimeout,
-         vc0FrameTxValid   => pgpTxVcData(0).valid,
-         vc1FrameTxValid   => pgpTxVcData(1).valid,
-         vc2FrameTxValid   => pgpTxVcData(2).valid,
-         vc3FrameTxValid   => pgpTxVcData(3).valid
+         vc0FrameTxValid   => intValid(0),
+         vc1FrameTxValid   => intValid(1),
+         vc2FrameTxValid   => intValid(2),
+         vc3FrameTxValid   => intValid(3)
       );
 
 
@@ -175,44 +206,72 @@ begin
          schTxAck          => schTxAck,
          schTxTimeout      => schTxTimeout,
          schTxDataVc       => schTxDataVc,
-         vc0FrameTxValid   => pgpTxVcData(0).valid,
-         vc0FrameTxReady   => pgpTxVcCtrl(0).ready,
-         vc0FrameTxSOF     => pgpTxVcData(0).sof,
-         vc0FrameTxEOF     => pgpTxVcData(0).eof,
-         vc0FrameTxEOFE    => pgpTxVcData(0).eofe,
-         vc0FrameTxData    => pgpTxVcData(0).data(TX_LANE_CNT_G*16-1 downto 0),
-         vc0LocAlmostFull  => pgpTxLocVcCtrl(0).almostFull,
-         vc0LocOverflow    => pgpTxLocVcCtrl(0).overflow,
-         vc1FrameTxValid   => pgpTxVcData(1).valid,
-         vc1FrameTxReady   => pgpTxVcCtrl(1).ready,
-         vc1FrameTxSOF     => pgpTxVcData(1).sof,
-         vc1FrameTxEOF     => pgpTxVcData(1).eof,
-         vc1FrameTxEOFE    => pgpTxVcData(1).eofe,
-         vc1FrameTxData    => pgpTxVcData(1).data(TX_LANE_CNT_G*16-1 downto 0),
-         vc1LocAlmostFull  => pgpTxLocVcCtrl(1).almostFull,
-         vc1LocOverflow    => pgpTxLocVcCtrl(1).overflow,
-         vc2FrameTxValid   => pgpTxVcData(2).valid,
-         vc2FrameTxReady   => pgpTxVcCtrl(2).ready,
-         vc2FrameTxSOF     => pgpTxVcData(2).sof,
-         vc2FrameTxEOF     => pgpTxVcData(2).eof,
-         vc2FrameTxEOFE    => pgpTxVcData(2).eofe,
-         vc2FrameTxData    => pgpTxVcData(2).data(TX_LANE_CNT_G*16-1 downto 0),
-         vc2LocAlmostFull  => pgpTxLocVcCtrl(2).almostFull,
-         vc2LocOverflow    => pgpTxLocVcCtrl(2).overflow,
-         vc3FrameTxValid   => pgpTxVcData(3).valid,
-         vc3FrameTxReady   => pgpTxVcCtrl(3).ready,
-         vc3FrameTxSOF     => pgpTxVcData(3).sof,
-         vc3FrameTxEOF     => pgpTxVcData(3).eof,
-         vc3FrameTxEOFE    => pgpTxVcData(3).eofe,
-         vc3FrameTxData    => pgpTxVcData(3).data(TX_LANE_CNT_G*16-1 downto 0),
-         vc3LocAlmostFull  => pgpTxLocVcCtrl(3).almostFull,
-         vc3LocOverflow    => pgpTxLocVcCtrl(3).overflow,
+         vc0FrameTxValid   => intValid(0),
+         vc0FrameTxReady   => rawReady(0),
+         vc0FrameTxSOF     => intTxSof(0),
+         vc0FrameTxEOF     => pgpTxMasters(0).tValid,
+         vc0FrameTxEOFE    => intTxEofe(0),
+         vc0FrameTxData    => pgpTxMasters(0).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc0LocAlmostFull  => syncLocPause(0),
+         vc0LocOverflow    => syncLocOverFlow(0),
+         vc1FrameTxValid   => intValid(1),
+         vc1FrameTxReady   => rawReady(1),
+         vc1FrameTxSOF     => intTxSof(1),
+         vc1FrameTxEOF     => pgpTxMasters(1).tLast,
+         vc1FrameTxEOFE    => intTxEofe(1),
+         vc1FrameTxData    => pgpTxMasters(1).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc1LocAlmostFull  => syncLocPause(1),
+         vc1LocOverflow    => syncLocOverFlow(1),
+         vc2FrameTxValid   => intValid(2),
+         vc2FrameTxReady   => rawReady(2),
+         vc2FrameTxSOF     => intTxSof(2),
+         vc2FrameTxEOF     => pgpTxMasters(2).tLast,
+         vc2FrameTxEOFE    => intTxEofe(2),
+         vc2FrameTxData    => pgpTxMasters(2).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc2LocAlmostFull  => syncLocPause(2),
+         vc2LocOverflow    => syncLocOverFlow(2),
+         vc3FrameTxValid   => intValid(3),
+         vc3FrameTxReady   => rawReady(3),
+         vc3FrameTxSOF     => intTxSof(3),
+         vc3FrameTxEOF     => pgpTxMasters(3).tLast,
+         vc3FrameTxEOFE    => intTxEofe(3),
+         vc3FrameTxData    => pgpTxMasters(3).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc3LocAlmostFull  => syncLocPause(3),
+         vc3LocOverflow    => syncLocOverFlow(3),
          crcTxIn           => crcTxIn,
          crcTxInit         => crcTxInit,
          crcTxValid        => crcTxValid,
          crcTxOut          => crcTxOutAdjust
       );
 
+
+   -- EOFE/Ready/Valid
+   U_Vc_Gen: for i in 0 to 3 generate
+      intReady(i)           <= rawReady(i) and (not syncRemPause(i));
+      intValid(i)           <= pgpTxMasters(i).tValid and (not syncRemPause(i));
+      intTxEofe(i)          <= ssiGetUserEofe (SSI_CONFIG_C, pgpTxMasters(i));
+      pgpTxSlaves(i).tReady <= intReady(i);
+   end generate;
+
+
+   -- Generate SOF
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            intTxSof <= (others=>'1') after TPD_G;
+         else
+            for i in 0 to 3 loop
+               if intReady(i) = '1' and pgpTxMasters(i).tValid = '1' then
+                  if pgpTxMasters(i).tLast = '1' then
+                     intTxSof(i) <= '1' after TPD_G;
+                  else
+                     intTxSof(i) <= '0' after TPD_G;
+                  end if;
+               end if;
+            end loop;
+         end if;
+      end if;
+   end process;
 
    -- TX CRC BLock
    crcTxRst                    <= pgpTxClkRst or crcTxInit;

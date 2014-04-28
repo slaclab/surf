@@ -64,14 +64,15 @@ package Pgp2bPkg is
    );
 
    type PgpRxOutType is record
-      linkReady    : sl;                -- Local side has link
-      cellError    : sl;                -- A cell error has occured
-      linkDown     : sl;                -- A link down event has occured
-      linkError    : sl;                -- A link error has occured
-      opCodeEn     : sl;                -- Opcode receive enable
-      opCode       : slv(7 downto 0);   -- Opcode receive value
-      remLinkReady : sl;                -- Far end side has link
-      remLinkData  : slv(7 downto 0);   -- Far end side User Data
+      linkReady     : sl;                -- Local side has link
+      cellError     : sl;                -- A cell error has occured
+      linkDown      : sl;                -- A link down event has occured
+      linkError     : sl;                -- A link error has occured
+      opCodeEn      : sl;                -- Opcode receive enable
+      opCode        : slv(7 downto 0);   -- Opcode receive value
+      remLinkReady  : sl;                -- Far end side has link
+      remLinkData   : slv(7 downto 0);   -- Far end side User Data
+      remOverFlow   : slv(3 downto 0);   -- Far end overflow status
    end record PgpRxOutType;
 
    type PgpRxOutArray is array (natural range <>) of PgpRxOutType;
@@ -84,6 +85,7 @@ package Pgp2bPkg is
       '0',
       (others => '0'),
       '0',
+      (others => '0'),
       (others => '0')
    );
 
@@ -92,11 +94,11 @@ package Pgp2bPkg is
    -----------------------------------------------------
 
    type PgpTxInType is record
-      flush        : sl;                -- Flush the link
-      opCodeEn     : sl;                -- Opcode receive enable
-      opCode       : slv(7 downto 0);   -- Opcode receive value
-      locLinkReady : sl;                -- Near end side has link
-      locData      : slv(7 downto 0);   -- Near end side User Data
+      flush         : sl;                -- Flush the link
+      opCodeEn      : sl;                -- Opcode receive enable
+      opCode        : slv(7 downto 0);   -- Opcode receive value
+      locLinkReady  : sl;                -- Near end side has link
+      locData       : slv(7 downto 0);   -- Near end side User Data
    end record PgpTxInType;
 
    type PgpTxInArray is array (natural range <>) of PgpTxInType;
