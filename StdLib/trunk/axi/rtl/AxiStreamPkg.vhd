@@ -58,9 +58,7 @@ package AxiStreamPkg is
 
    type TUserModeType is (TUSER_NORMAL_C, TUSER_LAST_C);
 
-
    type AxiStreamConfigType is record
-      TKEEP_EN_C    : boolean;
       TSTRB_EN_C    : boolean;
       TDATA_BYTES_C : natural;
       TDEST_BITS_C  : natural;
@@ -70,7 +68,6 @@ package AxiStreamPkg is
    end record AxiStreamConfigType;
 
    constant AXI_STREAM_CONFIG_INIT_C : AxiStreamConfigType := (
-      TKEEP_EN_C    => false,
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16,
       TDEST_BITS_C  => 4,
@@ -85,7 +82,6 @@ package AxiStreamPkg is
 
    type AxiStreamFifoStatusArray is array (natural range<>) of AxiStreamFifoStatusType;
 
-   constant SSI_EOFE_TUSER_BIT_C : integer := 0;
-
+   
 end package AxiStreamPkg;
 
