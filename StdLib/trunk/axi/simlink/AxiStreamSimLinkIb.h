@@ -28,13 +28,13 @@ typedef struct {
    int ibVc;
    int ibError;
 
-} SsiSimLinkIbData;
+} AxiStreamSimLinkIbData;
 
 // Init function
-void SsiSimLinkIbInit(vhpiHandleT compInst);
+void AxiStreamSimLinkIbInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void SsiSimLinkIbUpdate ( portDataT *portData );
+void AxiStreamSimLinkIbUpdate ( portDataT *portData );
 
 #endif
 

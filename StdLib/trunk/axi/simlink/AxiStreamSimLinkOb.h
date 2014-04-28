@@ -26,15 +26,15 @@ typedef struct {
    int currClk;
    int obCount;
   
-} SsiSimLinkObData;
+} AxiStreamSimLinkObData;
 
 
 // Init function
-void SsiSimLinkObInit(vhpiHandleT compInst);
+void AxiStreamSimLinkObInit(vhpiHandleT compInst);
 
 
 // Callback function for updating
-void SsiSimLinkObUpdate ( portDataT *portData );
+void AxiStreamSimLinkObUpdate ( portDataT *portData );
 
 #endif
 
