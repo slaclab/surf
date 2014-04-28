@@ -17,6 +17,7 @@
 -- 01/13/2010: Added received init line to help linking.
 -- 06/25/2010: Added payload size config as generic.
 -- 04/04/2014: Changed to Pgp2b. Removed debug. Integrated CRC.
+-- 04/25/2014: Changed interface to AxiStream/SSI
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -26,13 +27,13 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
-use work.Vc64Pkg.all;
+use work.ArmStreamPkg.all;
+use work.SsiPkg.all;
 
 entity Pgp2bRx is 
    generic (
       TPD_G             : time                 := 1 ns;
-      RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-4
-      EN_SHORT_CELLS_G  : integer              := 1; -- Enable short non-EOF cells
+      RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
       PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
    );
    port (
@@ -45,9 +46,9 @@ entity Pgp2bRx is
       pgpRxIn          : in  PgpRxInType;
       pgpRxOut         : out PgpRxOutType;
 
-      -- VC Outputs
-      pgpRxVcData      : out Vc64DataType;
-      pgpRxRemVcCtrl   : out Vc64CtrlArray(3 downto 0);
+      -- VC Output
+      pgpRxMaster      : out AxiStreamMasterType;
+      remFifoStatus    : out AxiStreamFifoStatusArray(3 downto 0);
 
       -- PHY interface
       phyRxLanesOut    : out PgpRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
@@ -83,8 +84,13 @@ architecture Pgp2bRx of Pgp2bRx is
    signal intPhyRxDispErr  : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
    signal intPhyRxDecErr   : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data not in table
    signal intRxVcReady     : slv(3 downto 0);
-   signal almostFull       : slv(3 downto 0);
+   signal intRxEof         : sl;
+   signal intRxEofe        : sl;
+   signal intRxData        : slv((RX_LANE_CNT_G*16)-1 downto 0);
+   signal pause            : slv(3 downto 0);
    signal overflow         : slv(3 downto 0);
+
+   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
 
 begin
 
@@ -141,7 +147,7 @@ begin
       generic map ( 
          TPD_G                => TPD_G,
          RX_LANE_CNT_G        => RX_LANE_CNT_G, 
-         EN_SHORT_CELLS_G     => EN_SHORT_CELLS_G,
+         EN_SHORT_CELLS_G     => true,
          PAYLOAD_CNT_TOP_G    => PAYLOAD_CNT_TOP_G
       ) port map (
          pgpRxClk         => pgpRxClk,
@@ -156,21 +162,21 @@ begin
          cellRxEOF        => cellRxEOF,
          cellRxEOFE       => cellRxEOFE,
          cellRxData       => cellRxData,
-         vcFrameRxSOF     => pgpRxVcData.sof,
-         vcFrameRxEOF     => pgpRxVcData.eof,
-         vcFrameRxEOFE    => pgpRxVcData.eofe,
-         vcFrameRxData    => pgpRxVcData.data(RX_LANE_CNT_G*16-1 downto 0),
+         vcFrameRxSOF     => open,
+         vcFrameRxEOF     => intRxEof,
+         vcFrameRxEOFE    => intRxEofe,
+         vcFrameRxData    => intRxData,
          vc0FrameRxValid  => intRxVcReady(0),
-         vc0RemAlmostFull => almostFull(0),
+         vc0RemAlmostFull => pause(0),
          vc0RemOverflow   => overflow(0),
          vc1FrameRxValid  => intRxVcReady(1),
-         vc1RemAlmostFull => almostFull(1),
+         vc1RemAlmostFull => pause(1),
          vc1RemOverflow   => overflow(1),
          vc2FrameRxValid  => intRxVcReady(2),
-         vc2RemAlmostFull => almostFull(2),
+         vc2RemAlmostFull => pause(2),
          vc2RemOverflow   => overflow(2),
          vc3FrameRxValid  => intRxVcReady(3),
-         vc3RemAlmostFull => almostFull(3),
+         vc3RemAlmostFull => pause(3),
          vc3RemOverflow   => overflow(3),
          crcRxIn          => crcRxIn,
          crcRxInit        => crcRxInit,
@@ -178,39 +184,47 @@ begin
          crcRxOut         => crcRxOutAdjust
       );
 
+      remFifoStatus    : out AxiStreamFifoStatusType;
 
    -- Generate valid/vc
-   ValidRx: process (intRxVcReady, almostFull, overflow) is
+   ValidRx: process (intRxVcReady, intRxEof, intRxEofe, intRxData, pause, overflow ) is
    begin
-      case intRxVcReady is 
-         when "0001" =>
-            pgpRxVcData.vc    <= "0000";
-            pgpRxVcData.valid <= '1';
-         when "0010" =>
-            pgpRxVcData.vc    <= "0001";
-            pgpRxVcData.valid <= '1';
-         when "0100" =>
-            pgpRxVcData.vc    <= "0010";
-            pgpRxVcData.valid <= '1';
-         when "1000" =>
-            pgpRxVcData.vc    <= "0011";
-            pgpRxVcData.valid <= '1';
-         when others =>
-            pgpRxVcData.vc    <= "0000";
-            pgpRxVcData.valid <= '0';
-      end case;
 
       for i in 0 to 3 loop
-         pgpRxRemVcCtrl(i).ready      <= '0';
-         pgpRxRemVcCtrl(i).almostFull <= almostFull(i);
-         pgpRxRemVcCtrl(i).overflow   <= overflow(i);
+         pgpRxOut.remOverFlow(i)   <= overflow(i);
+         remFifoStatus(i).overflow <= overflow(i);
+         remFifoStatus(i).pause    <= pause(i);
       end loop;
+
+      pgpRxMaster <= AX_STREAM_MASTER_INIT_C;
+
+      pgpRxMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) <= intRxData;
+      pgpRxMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      <= (others=>'1');
+      pgpRxMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      <= (others=>'1');
+
+      pgpRxMaster.tLast <= intRxEof;
+      pgpRxMaster.tUser <= ssiSetUserBits(SSI_CONFIG_C,intRxEofe);
+
+      -- Generate valid and dest values
+      case intRxVcReady is 
+         when "0001" =>
+            pgpRxMaster.tValid            <= '1';
+            pgpRxMaster.tDest(3 downto 0) <= "0000";
+         when "0010" =>
+            pgpRxMaster.tValid            <= '1';
+            pgpRxMaster.tDest(3 downto 0) <= "0001";
+         when "0100" =>
+            pgpRxMaster.tValid            <= '1';
+            pgpRxMaster.tDest(3 downto 0) <= "0010";
+         when "1000" =>
+            pgpRxMaster.tValid            <= '1';
+            pgpRxMaster.tDest(3 downto 0) <= "0011";
+         when others =>
+            pgpRxMaster.tValid            <= '0';
+            pgpRxMaster.tDest(3 downto 0) <= "0000";
+      end case;
    end process;
 
-
-   -- Upper Bits
-   pgpRxVcData.data(63 downto RX_LANE_CNT_G*16) <= (others=>'0');
-   pgpRxVcData.size                             <= '0';
 
    -- RX CRC BLock
    crcRxRst                    <= pgpRxClkRst or crcRxInit or not phyRxReady;

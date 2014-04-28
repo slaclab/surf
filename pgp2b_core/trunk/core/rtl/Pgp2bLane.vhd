@@ -25,14 +25,14 @@ use work.Vc64Pkg.all;
 
 entity Pgp2bLane is 
    generic (
-      TPD_G             : time                 := 1 ns;
-      LANE_CNT_G        : integer range 1 to 2 := 1; -- Number of lanes, 1-2
-      VC_INTERLEAVE_G   : integer              := 1; -- Interleave Frames
-      EN_SHORT_CELLS_G  : integer              := 1; -- Enable short non-EOF cells
-      PAYLOAD_CNT_TOP_G : integer              := 7; -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4 := 4;
-      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true  -- Enable RX direction
+      TPD_G             : time                             := 1 ns;
+      LANE_CNT_G        : integer range 1 to 2             := 1;    -- Number of lanes, 1-2
+      VC_INTERLEAVE_G   : integer                          := 1;    -- Interleave Frames
+      EN_SHORT_CELLS_G  : integer                          := 1;    -- Enable short non-EOF cells
+      PAYLOAD_CNT_TOP_G : integer                          := 7;    -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4             := 4;
+      TX_ENABLE_G       : boolean                          := true; -- Enable TX direction
+      RX_ENABLE_G       : boolean                          := true  -- Enable RX direction
    );
    port ( 
 
@@ -49,8 +49,8 @@ entity Pgp2bLane is
       pgpTxOut          : out PgpTxOutType;
 
       -- VC Interface
-      pgpTxVcData       : in  Vc64DataArray(3 downto 0) := (others=>VC64_DATA_INIT_C);
-      pgpTxVcCtrl       : out Vc64CtrlArray(3 downto 0);
+      pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
 
       -- Phy interface
       phyTxLanesOut     : out PgpTxPhyLaneOutArray(0 to LANE_CNT_G-1);
@@ -69,8 +69,11 @@ entity Pgp2bLane is
       pgpRxOut          : out PgpRxOutType;
 
       -- VC Outputs
-      pgpRxVcData       : out Vc64DataType;
-      pgpRxVcCtrl       : in  Vc64CtrlArray(3 downto 0) := (others=>VC64_CTRL_FORCE_C);
+      pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed  : out AxiStreamMasterType;
+
+      -- Receive flow control
+      axiFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
 
       -- PHY interface
       phyRxLanesOut     : out PgpRxPhyLaneOutArray(0 to LANE_CNT_G-1);
@@ -86,14 +89,16 @@ end Pgp2bLane;
 architecture Pgp2bLane of Pgp2bLane is
 
    -- Local Signals
-   signal intTxVcCtrl      : Vc64CtrlArray(3 downto 0);
-   signal intTxLocVcCtrl   : Vc64CtrlArray(3 downto 0);
-   signal intRxRemVcCtrl   : Vc64CtrlArray(3 downto 0);
+   signal intRxMaster   : AxiStreamMasterType;
+   signal remFifoStatus : AxiStreamFifoStatusArray(3 downto 0);
 
 begin
 
+   -----------------------------
+   -- Transmit
+   -----------------------------
 
-   U_TxEnGen: if TX_ENABLE_G generate
+   U_TxEnGen: if TX_ENABLE_G = true generate
 
       -- Transmit
       U_Pgp2bTx: entity work.Pgp2bTx 
@@ -108,9 +113,10 @@ begin
             pgpTxClkRst        => pgpTxClkRst,
             pgpTxIn            => pgpTxIn,
             pgpTxOut           => pgpTxOut,
-            pgpTxVcData        => pgpTxVcData,
-            pgpTxVcCtrl        => intTxVcCtrl,
-            pgpTxLocVcCtrl     => intTxLocVcCtrl,
+            pgpTxMasters       => pgpTxMasters,
+            pgpTxSlaves        => pgpTxSlaves,
+            locFifoStatus      => axiFifoStatus,
+            remFifoStatus      => remFifoStatus,
             phyTxLanesOut      => phyTxLanesOut,
             phyTxReady         => phyTxReady
          );
@@ -118,12 +124,16 @@ begin
 
    U_TxDisGen: if TX_ENABLE_G = false generate
       pgpTxOut      <= PGP_TX_OUT_INIT_C;
-      intTxVcCtrl   <= (others=>VC64_CTRL_FORCE_C);
+      pgpTxSlaves   <= (others=>AXI_STREAM_SLAVE_INIT_C);
       phyTxLanesOut <= (others=>PGP_TX_PHY_LANE_OUT_INIT_C);
    end generate;
 
 
-   U_RxEnGen: if RX_ENABLE_G generate
+   -----------------------------
+   -- Receive
+   -----------------------------
+
+   U_RxEnGen: if RX_ENABLE_G = true generate
 
       -- Receive
       U_Pgp2bRx: entity work.Pgp2bRx 
@@ -137,53 +147,43 @@ begin
             pgpRxClkRst       => pgpRxClkRst,
             pgpRxIn           => pgpRxIn,
             pgpRxOut          => pgpRxOut,
-            pgpRxVcData       => pgpRxVcData,
-            pgpRxRemVcCtrl    => intRxRemVcCtrl,
+            pgpRxMaster       => intRxMaster,
+            remFifoStatus     => remFifoStatus,
             phyRxLanesOut     => phyRxLanesOut,
             phyRxLanesIn      => phyRxLanesIn,
             phyRxReady        => phyRxReady,
             phyRxInit         => phyRxInit
          );
+
+      -- Demux
+      U_RxDeMux : entity work.AxiStreamDeMux
+         generic map (
+            TPD_G         => TPD_G,
+            NUM_MASTERS_G => 4
+         ) port map (
+            axiClk            => pgpRxClk,
+            axiRst            => pgpRxClkRst,
+            sAxiStreamMaster  => intRxMaster,
+            sAxiStreamSlave   => open,
+            mAxiStreamMasters => pgpRxMasters,
+            mAxiStreamSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
+         );
+      
    end generate;
 
    U_RxDisGen: if RX_ENABLE_G = false generate
-      pgpRxOut       <= PGP_RX_OUT_INIT_C;
-      pgpRxVcData    <= VC64_DATA_INIT_C;
-      intRxRemVcCtrl <= (others=>VC64_CTRL_FORCE_C);
-      phyRxLanesOut  <= (others=>PGP_RX_PHY_LANE_OUT_INIT_C);
-      phyRxInit      <= '0';
+      pgpRxOut               <= PGP_RX_OUT_INIT_C;
+      pgpRxMasters           <= (others=>AXI_STREAM_MASTER_INIT_C);
+      intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
+      phyRxLanesOut          <= (others=>PGP_RX_PHY_LANE_OUT_INIT_C);
+      phyRxInit              <= '0';
+      remFifoStatus.pause    <= '0';
+      remFifoStatus.oferflow <= '0';
    end generate;
 
+   -- De-Muxed Version
+   pgpRxMasterMuxed <= intRxMaster;
 
-   U_VcCtrlGen: for i in 0 to 3 generate
-
-      -- Sync flow control to tx clock
-      U_Sync: entity work.SynchronizerVector
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => '1',
-            OUT_POLARITY_G => '1',
-            RST_ASYNC_G    => false,
-            STAGES_G       => 2,
-            WIDTH_G        => 4,
-            INIT_G         => "0"
-         ) port map (
-            clk        => pgpTxClk,
-            rst        => pgpTxClkRst,
-            dataIn(0)  => intRxRemVcCtrl(i).almostFull,
-            dataIn(1)  => intRxRemVcCtrl(i).overflow,
-            dataIn(2)  => pgpRxVcCtrl(i).almostFull,
-            dataIn(3)  => pgpRxVcCtrl(i).overflow,
-            dataOut(0) => pgpTxVcCtrl(i).almostFull,
-            dataOut(1) => pgpTxVcCtrl(i).overflow,
-            dataOut(2) => intTxLocVcCtrl(i).almostFull,
-            dataOut(3) => intTxLocVcCtrl(i).overflow
-         );
-
-      intTxLocVcCtrl(i).ready <= '1';
-      pgpTxVcCtrl(i).ready    <= intTxVcCtrl(i).ready;
-
-   end generate;
 
 end Pgp2bLane;
 
