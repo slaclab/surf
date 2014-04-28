@@ -39,12 +39,12 @@ entity AxiStreamMux is
       axiRst        : in sl;
 
       -- Slaves
-      slvAxiStreamMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
-      slvAxiStreamSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      sAxiStreamMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
+      sAxiStreamSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
 
       -- Master
-      mstAxiStreamMaster  : out AxiStreamMasterType;
-      mstAxiStreamSlave   : in  AxiStreamSlaveType
+      mAxiStreamMaster  : out AxiStreamMasterType;
+      mAxiStreamSlave   : in  AxiStreamSlaveType
    );
 end AxiStreamMux;
 
@@ -77,7 +77,7 @@ architecture structure of AxiStreamMux is
 
 begin
 
-   comb : process (axiRst, r, slvAxiStreamMasters, mstAxiStreamSlave ) is
+   comb : process (axiRst, r, sAxiStreamMasters, mAxiStreamSlave ) is
       variable v        : RegType;
       variable requests : slv(NUM_SLAVES_G-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -90,14 +90,14 @@ begin
       end loop;
 
       -- Select source
-      selData       := slvAxiStreamMasters(conv_integer(r.ackNum));
+      selData       := sAxiStreamMasters(conv_integer(r.ackNum));
       selData.tDest := (others=>'0');
 
       selData.tDest(DEST_SIZE_C-1 downto 0) := r.ackNum;
 
       -- Format requests
       for i in 0 to (NUM_SLAVES_G-1) loop
-         requests(i) := slvAxiStreamMasters(i).tValid;
+         requests(i) := sAxiStreamMasters(i).tValid;
       end loop;
 
       -- State machine
@@ -122,10 +122,10 @@ begin
             v.valid := '0';
 
             -- Pass ready
-            v.slaves(conv_integer(r.ackNum)).tReady := mstAxiStreamSlave.tReady;
+            v.slaves(conv_integer(r.ackNum)).tReady := mAxiStreamSlave.tReady;
 
             -- Advance pipeline 
-            if r.master.tValid = '0' or mstAxiStreamSlave.tReady = '1' then
+            if r.master.tValid = '0' or mAxiStreamSlave.tReady = '1' then
                v.master := selData;
 
                -- tLast to be presented
@@ -136,7 +136,7 @@ begin
 
          -- Laster transfer
          when S_LAST_C =>
-            if mstAxiStreamSlave.tReady = '1' then
+            if mAxiStreamSlave.tReady = '1' then
                v.master.tValid := '0';
                v.state         := S_IDLE_C;
             end if;
@@ -149,8 +149,8 @@ begin
 
       rin <= v;
 
-      slvAxiStreamSlaves <= v.slaves;
-      mstAxiStreamMaster <= r.master;
+      sAxiStreamSlaves <= v.slaves;
+      mAxiStreamMaster <= r.master;
 
    end process comb;
 

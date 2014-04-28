@@ -1,4 +1,4 @@
-TOP=tb
+TOP=vcs_tb
 
 # Set Default Output
 SIM_DIR=$(PWD)/out
@@ -14,7 +14,7 @@ SHM_NAME="vc64"
 
 # RTL Files
 rtl_src:
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/tb/glbl.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/glbl.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../general/rtl/StdRtlPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../sync/rtl/Synchronizer.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../sync/rtl/SynchronizerEdge.vhd
@@ -40,20 +40,18 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/rtl/Pgp2bPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../rtl/SsiPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../rtl/SsiFrameMux.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLinkIb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLinkOb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLink.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/simlink/SsiSimLinkPgp.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/tb/tb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimLinkIb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimLinkOb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimLink.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/PgpSimLink.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/vcs_tb.vhd
 
 # VHPI Library
 vhpi_src:
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/VhpiGeneric.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/SsiSimLinkOb.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/simlink/SsiSimLinkIb.c
-	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o SsiSimLinkOb.o SsiSimLinkIb.o
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/../simlink/VhpiGeneric.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimLinkOb.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimLinkIb.c
+	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o AxiStreamSimLinkOb.o AxiStreamSimLinkIb.o
 
 sim_gen:
 	cd $(SIM_DIR); vcs $(EN64) $(TOP) -cpp g++ -cc gcc -debug -lrt -timescale=1ps/1ps -sim_res=1ps

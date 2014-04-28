@@ -39,12 +39,12 @@ entity AxiStreamDeMux is
       axiRst        : in sl;
 
       -- Slave
-      slvAxiStreamMaster  : in  AxiStreamMasterType;
-      slvAxiStreamSlave   : out AxiStreamSlaveType;
+      sAxiStreamMaster  : in  AxiStreamMasterType;
+      sAxiStreamSlave   : out AxiStreamSlaveType;
 
       -- Masters
-      mstAxiStreamMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
-      mstAxiStreamSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0)
+      mAxiStreamMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
+      mAxiStreamSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0)
    );
 end AxiStreamDeMux;
 
@@ -65,7 +65,7 @@ architecture structure of AxiStreamDeMux is
 
 begin
 
-   comb : process (axiRst, r, slvAxiStreamMaster, mstAxiStreamSlaves ) is
+   comb : process (axiRst, r, sAxiStreamMaster, mAxiStreamSlaves ) is
       variable v   : RegType;
       variable idx : integer;
    begin
@@ -73,13 +73,13 @@ begin
 
       -- Update output registers 
       for i in 0 to NUM_MASTERS_G-1 loop
-         if mstAxiStreamSlaves(i).tReady = '1' then
+         if mAxiStreamSlaves(i).tReady = '1' then
             v.masters(i).tValid := '0';
          end if;
       end loop;
 
       -- Decode destination
-      idx := conv_integer(slvAxiStreamMaster.tDest);
+      idx := conv_integer(sAxiStreamMaster.tDest);
 
       -- Invalid destination
       if idx >= NUM_MASTERS_G then
@@ -88,7 +88,7 @@ begin
       -- Target is ready
       elsif v.masters(idx).tValid = '0' then
          v.slave.tReady := '1';
-         v.masters(idx) := slvAxiStreamMaster;
+         v.masters(idx) := sAxiStreamMaster;
 
       -- Not ready
       else
@@ -101,8 +101,8 @@ begin
 
       rin <= v;
 
-      slvAxiStreamSlave   <= v.slave;
-      mstAxiStreamMasters <= r.masters;
+      sAxiStreamSlave   <= v.slave;
+      mAxiStreamMasters <= r.masters;
 
    end process comb;
 
