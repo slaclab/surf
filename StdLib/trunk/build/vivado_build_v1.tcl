@@ -43,21 +43,7 @@ if { [CheckSynth] != true } {
 ########################################################
 ## Check if we re-synthesis any of the IP cores
 ########################################################
-if { [get_ips] != "" } {
-   foreach corePntr [get_ips] {
-      set ipSynthRun ${corePntr}_synth_1
-      if { [CheckIpSynth ${ipSynthRun}] != true } {      
-         # Build the IP Core
-         reset_run         ${ipSynthRun}
-         launch_run -quiet ${ipSynthRun}
-         wait_on_run       ${ipSynthRun}
-         
-         # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
-         set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
-         set_property is_enabled false [get_files ${xdcPntr}]   
-      }      
-   }
-}
+BuildIpCores
 
 ########################################################
 ## Target Pre synthesis script
