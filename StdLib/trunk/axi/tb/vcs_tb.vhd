@@ -9,13 +9,12 @@ use unisim.vcomponents.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 use work.Pgp2bPkg.all;
 
-entity tb is end tb;
+entity vcs_tb is end vcs_tb;
 
 -- Define architecture
-architecture tb of tb is
+architecture vcs_tb of vcs_tb is
 
    signal pgpClk            : sl;
    signal pgpClkRst         : sl;
@@ -64,7 +63,7 @@ begin
    end process;
 
 
-   U_SsiSimLinkPgp : entity work.SsiSimLinkPgp 
+   U_PgpSimLink : entity work.PgpSimLink 
       generic map (
          TPD_G             => 1 ns
       ) port map ( 
@@ -79,7 +78,7 @@ begin
          pgpRxIn           => PGP_RX_IN_INIT_C,
          pgpRxOut          => open,
          pgpRxMasters      => pgpRxMasters,
-         pgpRxSlaves       => pgpRxSlaves
+         pgpRxMasterMuxed  => open
       );
 
    pgpTxMasters(0)          <= AXI_STREAM_MASTER_INIT_C;
@@ -160,5 +159,5 @@ begin
 --         cmdMasterOut    => cmdMasterOut
 --      );
 
-end tb;
+end vcs_tb;
 

@@ -48,6 +48,8 @@ package AxiStreamPkg is
       tReady : sl;
    end record AxiStreamSlaveType;
 
+   type AxiStreamSlaveArray is array (natural range<>) of AxiStreamSlaveType;
+
    constant AXI_STREAM_SLAVE_INIT_C : AxiStreamSlaveType := (
       tReady => '0');
 
@@ -64,7 +66,7 @@ package AxiStreamPkg is
       TDEST_BITS_C  : natural;
       TID_BITS_C    : natural;
       TUSER_BITS_C  : natural;
-      TUSER_MODE_C  : TUserModeType
+      TUSER_MODE_C  : TUserModeType;
    end record AxiStreamConfigType;
 
    constant AXI_STREAM_CONFIG_INIT_C : AxiStreamConfigType := (
@@ -81,6 +83,9 @@ package AxiStreamPkg is
       overflow   : sl;
    end record AxiStreamFifoStatusType;
 
-   
+   type AxiStreamFifoStatusArray is array (natural range<>) of AxiStreamFifoStatusType;
+
+   constant SSI_EOFE_TUSER_BIT_C : integer := 0;
+
 end package AxiStreamPkg;
 

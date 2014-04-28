@@ -87,7 +87,7 @@ begin
    assert (SLAVE_AXI_CONFIG_G.TID_BITS_C = MASTER_AXI_CONFIG_G.TID_BITS_C )
       report "TID_BITS_C of master and slave ports must match" severity failure;
 
-   assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_PER_BYTE_C = MASTER_AXI_CONFIG_G.TUSER_BITS_PER_BYTE_C )
+   assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C = MASTER_AXI_CONFIG_G.TUSER_BITS_C )
       report "TUSER_BITS_PER_BYTE_C of master and slave ports must match" severity failure;
 
    assert (MASTER_AXI_CONFIG_G.TKEEP_EN_C = true or 
@@ -111,7 +111,7 @@ architecture mapping of AxiStreamFifo is
    constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C,DATA_BYTES_C,0);
    constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
    constant ID_BITS_C   : integer := SLAVE_AXI_CONFIG_G.TID_BITS_C;
-   constant USER_BITS_C : integer := (DATA_BYTES_C * SLAVE_AXI_CONFIG_G.TUSER_BITS_PER_BYTE_C);
+   constant USER_BITS_C : integer := (DATA_BYTES_C * SLAVE_AXI_CONFIG_G.TUSER_BITS_C);
 
    constant FIFO_BITS_C : integer := DATA_BITS_C + USER_BITS_C + 1 + STRB_BITS_C + KEEP_BITS_C + DEST_BITS_C + ID_BITS_C;
 
