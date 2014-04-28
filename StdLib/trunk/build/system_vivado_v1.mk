@@ -180,6 +180,14 @@ interactive : $(SOURCE_DEPEND)
 gui : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado GUI")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_gui_v1.tcl
+   
+###############################################################
+#### Vivado VCS ###############################################
+###############################################################
+.PHONY : vcs
+vcs : $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Vivado VCS")
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_vcs_v1.tcl
 
 ###############################################################
 #### Prom #####################################################
