@@ -28,7 +28,7 @@ package SsiPkg is
 
    function ssiAxiStreamConfig (dataBytes : natural) return AxiStreamConfigType;
 
-   function ssiTxnIsComplaint (axiConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType) return boolean;
+   function ssiTxnIsComplaint (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType) return boolean;
 
 end package SsiPkg;
 
@@ -42,18 +42,17 @@ package body SsiPkg is
       ret.TUSER_BITS_C  := 1;           -- 4 TUSER bits for SOF, EOF, EOFE, USER
       ret.TDEST_BITS_C  := 4;           -- 4 TDEST bits for VC
       ret.TID_BITS_C    := 0;           -- TID not used
-      ret.TKEEP_EN_C    := true;        -- Optional TKEEP support
       ret.TSTRB_EN_C    := false;       -- No TSTRB support in SSI
       return ret;
    end function ssiAxiStreamConfig;
 
-   function ssiTxnIsComplaint (axiConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType) return boolean is
+   function ssiTxnIsComplaint (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType) return boolean is
    begin
       return
-         allBits(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
-         noBits(axisMaster.tKeep(axisMaster.tKeep'high downto axisConfig.TDATA_BYTES_C)) and
-         allBits(axisMaster.tStrb(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tstrb
-         noBits(axisMaster.tStrb(axisMaster.tStrb'high downto axisConfig.TDATA_BYTES_C)) 
+         --allBits(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
+         --noBits(axisMaster.tKeep(axisMaster.tKeep'high downto axisConfig.TDATA_BYTES_C)) and
+         allBits(axisMaster.tStrb(axisConfig.TDATA_BYTES_C-1 downto 0),'1') and  -- all expected tstrb
+         noBits(axisMaster.tStrb(axisMaster.tStrb'high downto axisConfig.TDATA_BYTES_C),'1');
    end function ssiTxnIsComplaint;
 
 end package body SsiPkg;

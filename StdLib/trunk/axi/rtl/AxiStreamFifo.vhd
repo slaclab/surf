@@ -65,8 +65,7 @@ entity AxiStreamFifo is
       mstAxiStreamSlave  : in  AxiStreamSlaveType;
 
       -- FIFO status & config , synchronous to slvAxiClk
-      fifoOverflow       : out sl;
-      fifoPause          : out sl;
+      axiFifoStatus      : out AxiStreamFifoStatusType;
       fifoPauseThresh    : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1')
    );
 
@@ -88,12 +87,10 @@ begin
       report "TID_BITS_C of master and slave ports must match" severity failure;
 
    assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C = MASTER_AXI_CONFIG_G.TUSER_BITS_C )
-      report "TUSER_BITS_PER_BYTE_C of master and slave ports must match" severity failure;
+      report "TUSER_BITS_C of master and slave ports must match" severity failure;
 
-   assert (MASTER_AXI_CONFIG_G.TKEEP_EN_C = true or 
-           ( (MASTER_AXI_CONFIG_G.TDATA_BYTES_C <= SLAVE_AXI_CONFIG_G.TDATA_BYTES_C) and
-             (SLAVE_AXI_CONFIG_G.TKEEP_EN_C = false) ) ) 
-      report "TKEEP_EN_C of master must be enabled if master is wider than slave or slave has TKEEP_EN_C set" severity failure;
+   assert (SLAVE_AXI_CONFIG_G.TUSER_MODE_C = MASTER_AXI_CONFIG_G.TUSER_MODE_C )
+      report "TUSER_MODE_C of master and slave ports must match" severity failure;
 
 end AxiStreamFifo;
 
@@ -103,17 +100,19 @@ architecture mapping of AxiStreamFifo is
    constant DATA_BYTES_C  : integer := ite( SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C, 
                                            SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
 
-   constant S_KEEP_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TKEEP_EN_C,bitSize(DATA_BYTES_C),0);
-   constant M_KEEP_BITS_C : integer := ite(MASTER_AXI_CONFIG_G.TKEEP_EN_C,bitSize(DATA_BYTES_C),0);
-   constant KEEP_BITS_C   : integer := ite(S_KEEP_BITS_C > M_KEEP_BITS_C,S_KEEP_BITS_C,M_KEEP_BITS_C);
-
+   constant KEEP_BITS_C : integer := bitSize(DATA_BYTES_C);
    constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
    constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C,DATA_BYTES_C,0);
    constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
    constant ID_BITS_C   : integer := SLAVE_AXI_CONFIG_G.TID_BITS_C;
+
+   --constant USER_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TUSER_MODE_C = TUSER_LAST_C,
+   --                                      SLAVE_AXI_CONFIG_G.TUSER_BITS_C,
+   --                                      (DATA_BYTES_C * SLAVE_AXI_CONFIG_G.TUSER_BITS_C));
+
    constant USER_BITS_C : integer := (DATA_BYTES_C * SLAVE_AXI_CONFIG_G.TUSER_BITS_C);
 
-   constant FIFO_BITS_C : integer := DATA_BITS_C + USER_BITS_C + 1 + STRB_BITS_C + KEEP_BITS_C + DEST_BITS_C + ID_BITS_C;
+   constant FIFO_BITS_C : integer := DATA_BITS_C + KEEP_BITS_C + 1 + USER_BITS_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
 
    constant WR_BYTES_C  : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant RD_BYTES_C  : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
@@ -128,20 +127,18 @@ architecture mapping of AxiStreamFifo is
       retValue(DATA_BITS_C-1 downto 0) := din.tData(DATA_BITS_C-1 downto 0);
       i := i + DATA_BITS_C;
 
-      retValue((USER_BITS_C+i)-1 downto i) := din.tUser(USER_BITS_C-1 downto 0);
-      i := i + USER_BITS_C;
+      retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
+      i := i + KEEP_BITS_C;
 
       retValue(i) := din.tLast;
       i := i + 1;
 
+      retValue((USER_BITS_C+i)-1 downto i) := din.tUser(USER_BITS_C-1 downto 0);
+      i := i + USER_BITS_C;
+
       if STRB_BITS_C > 0 then
          retValue((STRB_BITS_C+i)-1 downto i) := din.tStrb(STRB_BITS_C-1 downto 0);
          i := i + STRB_BITS_C;
-      end if;
-
-      if KEEP_BITS_C > 0 then
-         retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
-         i := i + KEEP_BITS_C;
       end if;
 
       if DEST_BITS_C > 0 then
@@ -169,22 +166,20 @@ architecture mapping of AxiStreamFifo is
       retValue.tData(DATA_BITS_C-1 downto 0) := din(DATA_BITS_C-1 downto 0);
       i := i + DATA_BITS_C;
 
-      retValue.tUser(USER_BITS_C-1 downto 0) := din((USER_BITS_C+i)-1 downto i);
-      i := i + USER_BITS_C;
+      for j in 0 to conv_integer(din((KEEP_BITS_C+i)-1 downto i)) loop
+         retValue.tKeep(j) := '1';
+      end loop;
+      i := i + KEEP_BITS_C;
 
       retValue.tLast := din(i);
       i := i + 1;
 
+      retValue.tUser(USER_BITS_C-1 downto 0) := din((USER_BITS_C+i)-1 downto i);
+      i := i + USER_BITS_C;
+
       if STRB_BITS_C > 0 then
          retValue.tStrb(STRB_BITS_C-1 downto 0) := din((STRB_BITS_C+i)-1 downto i);
          i := i + STRB_BITS_C;
-      end if;
-
-      if KEEP_BITS_C > 0 then
-         for j in 0 to conv_integer(din((KEEP_BITS_C+i)-1 downto i)) loop
-            retValue.tKeep(j) := '1';
-         end loop;
-         i := i + KEEP_BITS_C;
       end if;
 
       if DEST_BITS_C > 0 then
@@ -335,12 +330,12 @@ begin
    process (slvAxiClk, fifoPFull) is
    begin
       if FIFO_FIXED_THRESH_G then
-         fifoPause <= fifoPFull after TPD_G;
+         axiFifoStatus.pause <= fifoPFull after TPD_G;
       elsif (rising_edge(slvAxiClk)) then
          if slvAxiRst = '1' or fifoCount > fifoPauseThresh then
-            fifoPause <= '1' after TPD_G;
+            axiFifoStatus.pause <= '1' after TPD_G;
          else
-            fifoPause <= '0' after TPD_G;
+            axiFifoStatus.pause <= '0' after TPD_G;
          end if;
       end if;
    end process;
@@ -373,7 +368,7 @@ begin
          din           => fifoDin,
          wr_data_count => fifoCount,
          wr_ack        => open,
-         overflow      => fifoOverflow,
+         overflow      => axiFifoStatus.overflow,
          prog_full     => fifoPFull,
          almost_full   => fifoAFull,
          full          => open,
