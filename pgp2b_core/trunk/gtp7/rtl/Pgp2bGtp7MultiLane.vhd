@@ -58,7 +58,6 @@ entity Pgp2bGtp7MultiLane is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PAYLOAD_CNT_TOP_G : integer := 7;  -- Top bit for payload counter
-      EN_SHORT_CELLS_G  : integer := 1;      -- Enable short non-EOF cells
       VC_INTERLEAVE_G   : integer := 1;      -- Interleave Frames
       NUM_VC_EN_G       : integer range 1 to 4 := 4
       );
@@ -93,11 +92,12 @@ entity Pgp2bGtp7MultiLane is
       pgpTxIn          : in  PgpTxInType;
       pgpTxOut         : out PgpTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxVcData      : in  Vc64DataArray(3 downto 0);
-      pgpTxVcCtrl      : out Vc64CtrlArray(3 downto 0);
+      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxVcData      : out Vc64DataType;
-      pgpRxVcCtrl      : in  Vc64CtrlArray(3 downto 0);
+      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed : out AxiStreamMasterType;
+      axiFifoStatus    : in  AxiStreamFifoStatusArray(3 downto 0);
       -- GT loopback control
       loopback         : in  slv(2 downto 0));
 
@@ -155,7 +155,6 @@ begin
       generic map (
          LANE_CNT_G        => LANE_CNT_G,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         EN_SHORT_CELLS_G  => EN_SHORT_CELLS_G,
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G
       ) port map ( 
@@ -163,16 +162,17 @@ begin
          pgpTxClkRst        => pgpTxReset,
          pgpTxIn            => pgpTxIn,
          pgpTxOut           => pgpTxOut,
-         pgpTxVcData        => pgpTxVcData,
-         pgpTxVcCtrl        => pgpTxVcCtrl,
+         pgpTxMasters       => pgpTxMasters,
+         pgpTxSlaves        => pgpTxSlaves,
          phyTxLanesOut      => phyTxLanesOut,
          phyTxReady         => phyTxReady,
          pgpRxClk           => pgpRxClk,
          pgpRxClkRst        => pgpRxReset,
          pgpRxIn            => pgpRxIn,
          pgpRxOut           => pgpRxOut,
-         pgpRxVcData        => pgpRxVcData,
-         pgpRxVcCtrl        => pgpRxVcCtrl,
+         pgpRxMasters       => pgpRxMasters,
+         pgpRxMasterMux     => pgpRxMasterMux,
+         axiFifoStatus      => axiFifoStatus,
          phyRxLanesOut      => phyRxLanesOut,
          phyRxLanesIn       => phyRxLanesIn,
          phyRxReady         => phyRxReady,
