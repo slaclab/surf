@@ -99,7 +99,7 @@ begin
                   ibData  <= sAxiStreamMaster.tData(31 downto 0)                                 after TPD_G;
                   ibDest  <= sAxiStreamMaster.tDest(3 downto 0)                                  after TPD_G;
                   ibEof   <= sAxiStreamMaster.tLast                                              after TPD_G;
-                  ibEofe  <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
+                  ibEofe  <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;  -- Fix this
 
                elsif ibPos = '0' then
                   ibPos               <= '1'                                 after TPD_G;
@@ -115,7 +115,7 @@ begin
                   ibData(31 downto 16) <= sAxiStreamMaster.tData(15 downto 0)                                 after TPD_G;
                   ibDest               <= sAxiStreamMaster.tDest(3 downto 0)                                  after TPD_G;
                   ibEof                <= sAxiStreamMaster.tLast                                              after TPD_G;
-                  ibEofe               <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
+                  ibEofe               <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G; -- Fix this
                end if;
             else
                ibValid <= '1' after TPD_G;
