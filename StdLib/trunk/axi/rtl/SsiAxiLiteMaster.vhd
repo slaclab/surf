@@ -80,21 +80,20 @@ entity SsiAxiLiteMaster is
       AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
 
-      -- Streaming RX Data Interface (vcRxClk domain) 
+      -- Streaming Slave (Rx) Interface (sAxisClk domain) 
       sAxisClk    : in  sl;
       sAxisRst    : in  sl := '0';
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
 
-
-      -- Streaming TX Data Interface (vcRxClk domain)
+      -- Streaming Master (Tx) Data Interface (mAxisClk domain)
       mAxisClk    : in  sl;
       mAxisRst    : in  sl := '0';
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
 
-      -- AXI Lite Bus
+      -- AXI Lite Bus (axiLiteClk domain)
       axiLiteClk          : in  sl;
       axiLiteRst          : in  sl;
       mAxiLiteWriteMaster : out AxiLiteWriteMasterType;
