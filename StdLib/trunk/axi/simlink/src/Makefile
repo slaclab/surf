@@ -1,14 +1,17 @@
+# Note:
+# SIMLINK_PWD gets defined in the vivado_vcs_v1.tcl script
+
 # Variables
 CC     := gcc
 DEF    := 
-OUT    := $(PWD)
-OBJ    := $(PWD)/.obj
+OUT    := $(SIMLINK_PWD)
+OBJ    := $(SIMLINK_PWD)/.obj
 CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include
 LFLAGS := 
 LIB    := $(OUT)/libAxiSim.so
 
 # Generic Sources
-GEN_DIR := $(PWD)
+GEN_DIR := $(SIMLINK_PWD)
 GEN_SRC := $(wildcard $(GEN_DIR)/*.c)
 GEN_HDR := $(wildcard $(GEN_DIR)/*.h)
 GEN_OBJ := $(patsubst $(GEN_DIR)/%.c,$(OBJ)/%.o,$(GEN_SRC))
@@ -29,8 +32,7 @@ clean:
 $(OBJ)/%.o: $(GEN_DIR)/%.c $(GEN_DIR)/%.h
 	$(CC) -c -O $(CFLAGS) $(DEF) -o $@ $<
 
-# Comile Library
+# Compile Library
 $(OUT)/%.so: $(GEN_OBJ)
 	$(CC) -shared $(DEF) $(OBJ)/* -o $@ $(LFLAGS) 
-
-
+   
