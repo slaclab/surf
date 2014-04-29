@@ -63,7 +63,7 @@ begin
    end process;
 
 
-   U_PgpSim : entity work.PgpSim
+   U_PgpSimModel : entity work.PgpSimModel
       generic map (
          TPD_G             => 1 ns
       ) port map ( 
