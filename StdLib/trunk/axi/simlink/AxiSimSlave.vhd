@@ -52,7 +52,7 @@ end AxiSimSlave;
 -- Define architecture
 architecture AxiSimSlave of AxiSimSlave is
    Attribute FOREIGN of AxiSimSlave: architecture is 
-      "vhpi:SimSw_lib:VhpiGenericElab:AxiSimSlaveInit:AxiSimSlave";
+      "vhpi:AxiSim:VhpiGenericElab:AxiSimSlaveInit:AxiSimSlave";
 begin
 end AxiSimSlave;
 

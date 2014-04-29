@@ -52,7 +52,7 @@ end AxiSimMaster;
 -- Define architecture
 architecture AxiSimMaster of AxiSimMaster is
    Attribute FOREIGN of AxiSimMaster: architecture is 
-      "vhpi:SimSw_lib:VhpiGenericElab:AxiSimMasterInit:AxiSimMaster";
+      "vhpi:AxiSim:VhpiGenericElab:AxiSimMasterInit:AxiSimMaster";
 begin
 end AxiSimMaster;
 

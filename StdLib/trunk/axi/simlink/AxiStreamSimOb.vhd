@@ -19,7 +19,7 @@ end AxiStreamSimOb;
 -- Define architecture
 architecture AxiStreamSimOb of AxiStreamSimOb is
    Attribute FOREIGN of AxiStreamSimOb: architecture is 
-      "vhpi:SimSw_lib:VhpiGenericElab:AxiStreamSimObInit:AxiStreamSimOb";
+      "vhpi:AxiSim:VhpiGenericElab:AxiStreamSimObInit:AxiStreamSimOb";
 begin
 end AxiStreamSimOb;
 
