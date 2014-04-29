@@ -54,7 +54,7 @@ entity PgpSim is
       pgpRxMasterMuxed  : out AxiStreamMasterType;
 
       -- AXI buffer status
-      axiFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0)
+      axiFifoStatus     : in  AxiStreamCtrlArray(3 downto 0)
    );
 
 end PgpSim;
