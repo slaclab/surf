@@ -89,3 +89,19 @@ package AxiStreamPkg is
    
 end package AxiStreamPkg;
 
+package body AxiStreamPkg is
+
+--   function checkKeepStrb (
+--      axiConfig : AxiStreamConfigType;
+--      axisMaster : AxiStreamMasterType)
+--      return boolean is
+--   begin
+--      return
+--         allBits(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
+--         noBits(axisMaster.tKeep(axisMaster.tKeep'high downto axisConfig.TDATA_BYTES_C)) and
+--         allBits(axisMaster.tStrb(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tstrb
+--         noBits(axisMaster.tStrb(axisMaster.tStrb'high downto axisConfig.TDATA_BYTES_C))
+--   end function ssiTxnIsComplaint;
+
+end package body AxiStreamPkg;
+
