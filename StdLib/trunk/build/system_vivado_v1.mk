@@ -171,7 +171,7 @@ $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION)_dynamic.bit : $(IMPL_DIR)/$(PROJECT)_dyn
 .PHONY : interactive
 interactive : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Interactive")
-	@cd $(OUT_DIR); vivado -mode tcl
+	@cd $(OUT_DIR); vivado -mode tcl -source $(VIVADO_BUILD_DIR)/vivado_env_var_v1.tcl
 
 ###############################################################
 #### Vivado Gui ###############################################
