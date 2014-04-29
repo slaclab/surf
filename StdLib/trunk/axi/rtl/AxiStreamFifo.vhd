@@ -53,18 +53,18 @@ entity AxiStreamFifo is
    port (
 
       -- Slave Port
-      sAxiClk     : in  sl;
-      sAxiRst     : in  sl;
+      sAxisClk    : in  sl;
+      sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
 
-      -- FIFO status & config , synchronous to sAxiClk
+      -- FIFO status & config , synchronous to sAxisClk
       fifoPauseThresh : in slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
 
       -- Master Port
-      mAxiClk     : in  sl;
-      mAxiRst     : in  sl;
+      mAxisClk    : in  sl;
+      mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
 
@@ -309,10 +309,10 @@ begin
 
    end process wrComb;
 
-   wrSeq : process (sAxiClk) is
+   wrSeq : process (sAxisClk) is
    begin
-      if (rising_edge(sAxiClk)) then
-         if sAxiRst = '1' then
+      if (rising_edge(sAxisClk)) then
+         if sAxisRst = '1' then
             wrR <= WR_REG_INIT_C after TPD_G;
          else
             wrR <= wrRin after TPD_G;
@@ -326,12 +326,12 @@ begin
    -------------------------
 
    -- Pause generation
-   process (sAxiClk, fifoPFull) is
+   process (sAxisClk, fifoPFull) is
    begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFull after TPD_G;
-      elsif (rising_edge(sAxiClk)) then
-         if sAxiRst = '1' or fifoCount > fifoPauseThresh then
+      elsif (rising_edge(sAxisClk)) then
+         if sAxisRst = '1' or fifoCount > fifoPauseThresh then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;
@@ -362,8 +362,8 @@ begin
          EMPTY_THRES_G      => 1
          )
       port map (
-         rst           => sAxiRst,
-         wr_clk        => sAxiClk,
+         rst           => sAxisRst,
+         wr_clk        => sAxisClk,
          wr_en         => fifoWrite,
          din           => fifoDin,
          wr_data_count => fifoCount,
@@ -373,7 +373,7 @@ begin
          almost_full   => fifoAFull,
          full          => open,
          not_full      => open,
-         rd_clk        => mAxiClk,
+         rd_clk        => mAxisClk,
          rd_en         => fifoRead,
          dout          => fifoDout,
          rd_data_count => open,
@@ -441,10 +441,10 @@ begin
    end process rdComb;
 
    -- If fifo is asynchronous, must use async reset on rd side.
-   rdSeq : process (mAxiClk) is
+   rdSeq : process (mAxisClk) is
    begin
-      if (rising_edge(mAxiClk)) then
-         if mAxiRst = '1' then
+      if (rising_edge(mAxisClk)) then
+         if mAxisRst = '1' then
             rdR <= RD_REG_INIT_C after TPD_G;
          else
             rdR <= rdRin after TPD_G;

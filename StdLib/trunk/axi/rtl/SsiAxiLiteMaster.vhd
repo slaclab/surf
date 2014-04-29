@@ -170,15 +170,15 @@ begin
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
-         sAxiClk          => sAxisClk,
-         sAxiRst          => sAxisRst,
-         sAxiStreamMaster => sAxisMaster,
-         sAxiStreamSlave  => sAxisSlave,
-         sAxisCtrl        => sAxisCtrl,
-         mAxiClk          => axiLiteClk,
-         mAxiRst          => axiLiteRst,
-         mAxiStreamMaster => sFifoAxisMaster,
-         mAxiStreamSlave  => sFifoAxisSlave);
+         sAxisClk    => sAxisClk,
+         sAxisRst    => sAxisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         sAxisCtrl   => sAxisCtrl,
+         mAxisClk    => axiLiteClk,
+         mAxisRst    => axiLiteRst,
+         mAxisMaster => sFifoAxisMaster,
+         mAxisSlave  => sFifoAxisSlave);
 
 
 

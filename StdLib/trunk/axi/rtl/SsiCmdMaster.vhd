@@ -58,8 +58,8 @@ entity SsiCmdMaster is
    port (
 
       -- Streaming Data Interface
-      axiClk      : in  sl;
-      axiRst      : in  sl := '0';
+      axisClk     : in  sl;
+      axisRst     : in  sl := '0';
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
@@ -116,8 +116,8 @@ begin
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
-         sAxiClk     => axiClk,
-         sAxiRst     => axiRst,
+         sAxisClk    => axisClk,
+         sAxisRst    => axisRst,
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
          sAxisCtrl   => sAxisCtrl,
