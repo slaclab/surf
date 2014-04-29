@@ -5,11 +5,6 @@
 #### General Functions ########################################
 ###############################################################
 
-# Force "pwd" function to be "pwd -L" and not "pwd -P"
-proc pwd { } {
-   return $::env(PWD)
-}
-
 proc VivadoRefresh { vivadoProject } {
    close_project
    open_project -quiet ${vivadoProject}
