@@ -271,8 +271,8 @@ begin
          v.wrMaster.tStrb((WR_BYTES_C*idx)+(WR_BYTES_C-1) downto (WR_BYTES_C*idx))         := sAxisMaster.tStrb(WR_BYTES_C-1 downto 0);
          v.wrMaster.tKeep((WR_BYTES_C*idx)+(WR_BYTES_C-1) downto (WR_BYTES_C*idx))         := sAxisMaster.tKeep(WR_BYTES_C-1 downto 0);
 
-         -- tUser needs to be optmized for some FIFO modes... TBD
-         v.wrMaster.tUser((USER_BITS_C*idx)+(USER_BITS_C-1) downto (USER_BITS_C*idx)) := sAxisMaster.tUser(USER_BITS_C-1 downto 0);
+         v.wrMaster.tUser((WR_BYTES_C*USER_BITS_C*idx)+((WR_BYTES_C*USER_BITS_C)-1) downto (WR_BYTES_C*USER_BITS_C*idx)) 
+            := sAxisMaster.tUser((WR_BYTES_C*USER_BITS_C)-1 downto 0);
 
          v.wrMaster.tDest := sAxisMaster.tDest;
          v.wrMaster.tId   := sAxisMaster.tId;
@@ -406,8 +406,8 @@ begin
          v.rdMaster.tStrb(RD_BYTES_C-1 downto 0)     := fifoMaster.tStrb((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
          v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)     := fifoMaster.tKeep((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
 
-         -- tUser needs to be optmized for some FIFO modes... TBD
-         v.rdMaster.tUser(USER_BITS_C-1 downto 0) := fifoMaster.tUser((USER_BITS_C*idx)+(USER_BITS_C-1) downto (USER_BITS_C*idx));
+         v.rdMaster.tUser((RD_BYTES*USER_BITS_C)-1 downto 0) 
+            := fifoMaster.tUser((RD_BYTES_C*USER_BITS_C*idx)+((RD_BYTES_C*USER_BITS_C)-1) downto (RD_BYTES_C*USER_BITS_C*idx));
 
          v.rdMaster.tDest  := fifoMaster.tDest;
          v.rdMaster.tId    := fifoMaster.tId;
