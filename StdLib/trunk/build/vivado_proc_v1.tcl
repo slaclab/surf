@@ -102,6 +102,12 @@ proc CheckImpl { } {
       return true
    }
 }
+proc VcsCompleteMessage {dirPath fileName} {
+   puts "\n\n********************************************************"
+   puts "VCS executable located:"
+   puts "\t${dirPath}/./${fileName}_sim_vcs_mx.sh"    
+   puts "********************************************************\n\n" 
+}
 
 ###############################################################
 #### Partial Reconfiguration Functions ########################

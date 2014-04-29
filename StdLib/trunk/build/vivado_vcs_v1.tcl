@@ -12,11 +12,6 @@ set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
 ########################################################
-## Load Custom Procedures
-########################################################
-source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
-
-########################################################
 ## Open the project
 ########################################################
 open_project -quiet ${VIVADO_PROJECT}
@@ -83,35 +78,48 @@ if { [export_simulation -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -
 } 
 
 ########################################################
-## Check for a simlink directory 
+## Build the simlink directory
 ########################################################
-set simTbDirName [file dirname [get_files ${simTbFileName}.vhd]]
-set simLinkDir   ${simTbDirName}/../simlink/
-if { [file isdirectory ${simLinkDir}] == 1 } {
 
-   # Create the setup environment script
-   set envScript [open ${simTbOutDir}/setup_env.csh  w]
-   puts  ${envScript} "limit stacksize 60000"
-   set LD_LIBRARY_PATH "setenv LD_LIBRARY_PATH ${simTbOutDir}:$::env(LD_LIBRARY_PATH)"
-   puts  ${envScript} ${LD_LIBRARY_PATH} 
-   close ${envScript}
+set simTbDirName [file dirname [get_files ${simTbFileName}.vhd]]
+set simLinkDir   ${simTbDirName}/../simlink/src/
+
+# Check if the simlink directory exists
+if { [file isdirectory ${simLinkDir}] == 1 } {
    
-   # Compile the C code
-   #
-   # Note: DSHM_ID and DSHM_NAME are defined in the .h header, not the makefile
-   #
-   set objectList ""
-   foreach simLinkSrcPntr [glob -directory ${simLinkDir} *.c] {
-      set simLinkSrcName  [string trimright [string trimright [file tail ${simLinkSrcPntr}] "c"] "."]
-      exec gcc -Wall -c -fPIC -o ${simTbOutDir}/${simLinkSrcName}.o -I$::env(VCS_HOME)/include/ ${simLinkDir}/${simLinkSrcName}.c
-      append objectList ${simTbOutDir}/${simLinkSrcName}.o " "
-   }
-   exec gcc -Wall -shared -o ${simTbOutDir}/libSimSw_lib.so ${objectList}   
+   # Check if the Makefile exists
+   if { [file exists  ${simLinkDir}/Makefile] == 1 } {
+      
+      # Create the setup environment script
+      set envScript [open ${simTbOutDir}/setup_env.csh  w]
+      puts  ${envScript} "limit stacksize 60000"
+      set LD_LIBRARY_PATH "setenv LD_LIBRARY_PATH ${simTbOutDir}:$::env(LD_LIBRARY_PATH)"
+      puts  ${envScript} ${LD_LIBRARY_PATH} 
+      close ${envScript}
+      
+      # Move the working directory to the simlink directory
+      cd ${simLinkDir}
+      
+      # Set up the 
+      set ::env(SIMLINK_PWD) ${simLinkDir}
+      
+      # Run the Makefile
+      exec make
+      
+      # Copy the library to the binary output directory
+      exec cp -f [glob -directory ${simLinkDir} *.so] ${simTbOutDir}/.
+      
+      # Remove the output binary files from the source tree
+      exec make clean
+   }   
 }
 
 ########################################################
-## Close the project
+## Close the project (required for cd function)
 ########################################################
 close_project
 
-exit 0
+########################################################
+## VCS Complete Message
+########################################################
+VcsCompleteMessage ${simTbOutDir} ${simTbFileName}
