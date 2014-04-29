@@ -5,7 +5,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity AxiStreamSimLinkIb is port (
+entity AxiStreamSimIb is port (
       ibClk        : in    std_logic;
       ibReset      : in    std_logic;
       ibValid      : in    std_logic;
@@ -14,12 +14,12 @@ entity AxiStreamSimLinkIb is port (
       ibEofe       : in    std_logic;
       ibData       : in    std_logic_vector(31 downto 0)
    );
-end AxiStreamSimLinkIb;
+end AxiStreamSimIb;
 
 -- Define architecture
-architecture AxiStreamSimLinkIb of AxiStreamSimLinkIb is
-   Attribute FOREIGN of AxiStreamSimLinkIb: architecture is 
-      "vhpi:SimSw_lib:VhpiGenericElab:AxiStreamSimLinkIbInit:AxiStreamSimLinkIb";
+architecture AxiStreamSimIb of AxiStreamSimIb is
+   Attribute FOREIGN of AxiStreamSimIb: architecture is 
+      "vhpi:SimSw_lib:AxiStreamSimIbElab:AxiStreamSimIbInit:AxiStreamSimIb";
 begin
-end AxiStreamSimLinkIb;
+end AxiStreamSimIb;
 

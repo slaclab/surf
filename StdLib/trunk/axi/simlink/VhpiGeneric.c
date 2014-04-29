@@ -105,7 +105,7 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
    int x;
 
    // Get user data
-   portDataT *portData = cbData->user_data;
+   portDataT *portData = (portDataT *)cbData->user_data;
 
    // Get current state of all ports
    for (x=0; x < portData->portCount; x++) {
@@ -215,8 +215,8 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
          vhpi_put_value(portData->portHandle[x],portData->portValue[x], vhpiForcePropagate);
    }
 
-   // Setup callback function for ports 0 & 1
-   for (x=0; x < 2; x++) {
+   // Setup callback function for port 0& 1
+   for (x=0; x < 1; x++) {
       cbData = (vhpiCbDataT *) malloc(sizeof(vhpiCbDataT));
       cbData->reason    = vhpiCbValueChange;
       cbData->obj       = portData->portHandle[x];
