@@ -70,7 +70,7 @@ architecture PgpSimModel of PgpSimModel is
    signal intRxSlave  : AxiStreamSlaveType;
 
    constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
-   constant EOFE_BIT_C   : SSI_CONFIG_C.TUSER_BITS_C + SSI_EOFE_C;
+   constant EOFE_BIT_C   : SSI_CONFIG_C.TUSER_BITS_C := SSI_EOFE_C;
 
 begin
 
