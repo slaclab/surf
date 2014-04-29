@@ -102,8 +102,8 @@ package body AxiStreamPkg is
       return boolean is
    begin
       return 
-         allBits(axisMaster.tKeep(CONFIG_C.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
-         allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0));  -- all expected tstrb
+         allBits(axisMaster.tKeep(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1') and  -- all expected tkeep
+         allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1');  -- all expected tstrb
    end function;
 
 end package body AxiStreamPkg;
