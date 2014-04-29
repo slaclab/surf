@@ -34,7 +34,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.CmdMasterPkg.all;
+use work.SsiCmdMasterPkg.all;
 
 entity SsiCmdMaster is
    generic (
@@ -82,7 +82,7 @@ architecture rtl of SsiCmdMaster is
 
    type RegType is record
       state     : StateType;
-      txnNumber : slv(1 downto 0);
+      txnNumber : slv(2 downto 0);
       cmdMaster : CmdMasterType;
    end record RegType;
 
@@ -111,9 +111,9 @@ begin
          ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => false,
+         FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
          sAxiClk     => axiClk,
@@ -147,19 +147,30 @@ begin
          v.txnNumber := r.txnNumber + 1;
 
          case r.txnNumber is
-            when "00" =>
+            when "000" =>
                v.cmdMaster.ctxOut := fifoAxisMaster.tData(31 downto 8);
-            when "01" =>
+            when "001" =>
                v.cmdMaster.opCode := fifoAxisMaster.tData(7 downto 0);
-            when "11" =>
+            when "011" =>
                v.cmdMaster.valid := fifoAxisMaster.tLast = '1' and
                                     fifoAxisMaster.tUser(SSI_EOFE_C) = '0';
+            when "100" =>
+               -- Too many txns in frame, freeze counting
+               -- Will auto reset txnNumber to 0 on tLast
+               v.txnNumber := r.txnNumber;
             when others => null;
          end case;
 
-         -- Reset frame on tLast or EOFE
-         if (fifoAxisMaster.tLast = '1' or fifoAxisMaster.tUser(SSI_EOFE_C) = '1') then
-            v.txnNumber := (others => '0');
+
+         if (not axiStreamPacked(AXI_STREAM_CONFIG_G, fifoAxisMaster)) then
+            -- Fail frame if any txn is not packed
+            v.txnNumber       := "100";
+            v.cmdMaster.valid := '0';
+         end if;
+
+         if (fifoAxisMaster.tLast = '1') then
+            -- Reset frame on tLast or EOFE
+            v.txnNumber := "000";
          end if;
          
       end if;
