@@ -35,8 +35,8 @@ entity AxiStreamDeMux is
    ); port (
 
       -- VC clock and reset
-      axiClk        : in sl;
-      axiRst        : in sl;
+      axisClk        : in sl;
+      axisRst        : in sl;
 
       -- Slave
       sAxisMaster  : in  AxiStreamMasterType;
@@ -65,7 +65,7 @@ architecture structure of AxiStreamDeMux is
 
 begin
 
-   comb : process (axiRst, r, sAxisMaster, mAxisSlaves ) is
+   comb : process (axisRst, r, sAxisMaster, mAxisSlaves ) is
       variable v   : RegType;
       variable idx : integer;
    begin
@@ -95,7 +95,7 @@ begin
          v.slave.tReady := '0';
       end if;
 
-      if (axiRst = '1') then
+      if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -106,9 +106,9 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axisClk) is
    begin
-      if (rising_edge(axiClk)) then
+      if (rising_edge(axisClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;

@@ -30,29 +30,30 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G         : time                  := 1 ns;
-      NUM_SLAVES_G  : integer range 1 to 32 := 4
-   ); port (
+      TPD_G        : time                  := 1 ns;
+      NUM_SLAVES_G : integer range 1 to 32 := 4
+      );
+   port (
 
       -- VC clock and reset
-      axiClk        : in sl;
-      axiRst        : in sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
 
       -- Master
-      mAxisMaster  : out AxiStreamMasterType;
-      mAxisSlave   : in  AxiStreamSlaveType
-   );
+      mAxisMaster : out AxiStreamMasterType;
+      mAxisSlave  : in  AxiStreamSlaveType
+      );
 end AxiStreamMux;
 
 architecture structure of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
 
-   type StateType is ( S_IDLE_C, S_MOVE_C, S_LAST_C );
+   type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C);
 
    type RegType is record
       state  : StateType;
@@ -65,19 +66,19 @@ architecture structure of AxiStreamMux is
 
    constant REG_INIT_C : RegType := (
       state  => S_IDLE_C,
-      acks   => (others=>'0'),
-      ackNum => (others=>'0'),
+      acks   => (others => '0'),
+      ackNum => (others => '0'),
       valid  => '0',
-      slaves => (others=>AXI_STREAM_SLAVE_INIT_C),
+      slaves => (others => AXI_STREAM_SLAVE_INIT_C),
       master => AXI_STREAM_MASTER_INIT_C
-   );
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (axiRst, r, sAxisMasters, mAxisSlave ) is
+   comb : process (axisRst, r, sAxisMasters, mAxisSlave) is
       variable v        : RegType;
       variable requests : slv(NUM_SLAVES_G-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -91,7 +92,7 @@ begin
 
       -- Select source
       selData       := sAxisMasters(conv_integer(r.ackNum));
-      selData.tDest := (others=>'0');
+      selData.tDest := (others => '0');
 
       selData.tDest(DEST_SIZE_C-1 downto 0) := r.ackNum;
 
@@ -143,7 +144,7 @@ begin
 
       end case;
 
-      if (axiRst = '1') then
+      if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -154,9 +155,9 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axisClk) is
    begin
-      if (rising_edge(axiClk)) then
+      if (rising_edge(axisClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
