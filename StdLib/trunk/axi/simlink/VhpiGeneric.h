@@ -23,7 +23,7 @@
 #include <vhpi_user.h>
 
 // Port count for interface
-#define MAX_PORT_COUNT 32
+#define MAX_PORT_COUNT 48
 
 // Macros for set/get ints
 #define getInt(idx)     (portData->intValue[idx])

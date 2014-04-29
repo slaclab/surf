@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity AxiStreamSimLink is 
+entity AxiStreamSim is 
    generic (
       TPD_G            : time                   := 1 ns;
       TDATA_BYTES_G    : integer range 2 to 4   := 2; -- 2 or 4
