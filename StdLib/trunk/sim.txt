@@ -1,6 +1,7 @@
 vhdl work general/tb/ClkRst.vhd
 vhdl work general/tb/HeartbeatTb.vhd
 vhdl work general/tb/TextUtilPkg.vhd
+vhdl work general/tb/glbl.vhd
 
 vhdl work fifo/tb/FifoAsyncBuiltInTb.vhd
 vhdl work fifo/tb/FifoAsyncTb.vhd
@@ -9,3 +10,11 @@ vhdl work fifo/tb/FifoSyncTb.vhd
 
 vhdl work sync/tb/SynchronizerFifoTb.vhd
 
+vhdl work axi/tb/vcs_tb.vhd
+vhdl work axi/simlink/rtl/AxiSimMaster.vhd
+vhdl work axi/simlink/rtl/AxiSimMasterWrap.vhd
+vhdl work axi/simlink/rtl/AxiSimSlave.vhd
+vhdl work axi/simlink/rtl/AxiSimSlaveWrap.vhd
+vhdl work axi/simlink/rtl/AxiStreamSim.vhd
+vhdl work axi/simlink/rtl/AxiStreamSimIb.vhd
+vhdl work axi/simlink/rtl/AxiStreamSimOb.vhd
