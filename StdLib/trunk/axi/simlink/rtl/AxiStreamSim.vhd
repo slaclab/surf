@@ -24,7 +24,8 @@ use work.AxiStreamPkg.all;
 entity AxiStreamSim is 
    generic (
       TPD_G            : time                   := 1 ns;
-      TDATA_BYTES_G    : integer range 2 to 4   := 2; -- 2 or 4
+      TDATA_BYTES_G    : integer range 2 to 4;  := 2; -- 2 or 4
+      TUSER_BITS_C     : natural;
       EOFE_TUSER_BIT_G : integer range 0 to 127 := 0
    );
    port ( 
@@ -99,7 +100,7 @@ begin
                   ibData  <= sAxiStreamMaster.tData(31 downto 0)                                 after TPD_G;
                   ibDest  <= sAxiStreamMaster.tDest(3 downto 0)                                  after TPD_G;
                   ibEof   <= sAxiStreamMaster.tLast                                              after TPD_G;
-                  ibEofe  <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;  -- Fix this
+                  ibEofe  <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
 
                elsif ibPos = '0' then
                   ibPos               <= '1'                                 after TPD_G;
@@ -115,7 +116,7 @@ begin
                   ibData(31 downto 16) <= sAxiStreamMaster.tData(15 downto 0)                                 after TPD_G;
                   ibDest               <= sAxiStreamMaster.tDest(3 downto 0)                                  after TPD_G;
                   ibEof                <= sAxiStreamMaster.tLast                                              after TPD_G;
-                  ibEofe               <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G; -- Fix this
+                  ibEofe               <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
                end if;
             else
                ibValid <= '1' after TPD_G;

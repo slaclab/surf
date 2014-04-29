@@ -5,7 +5,7 @@
 -- Created       : 04/02/2013
 -------------------------------------------------------------------------------
 -- Description:
--- Package file for ARM based rce generation 3 processor core.
+-- Package file for AXI Busses
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 by Ryan Herbst. All rights reserved.
 -------------------------------------------------------------------------------
