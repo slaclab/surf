@@ -66,9 +66,6 @@ typedef struct portDataS {
 } portDataT;
 
 
-void VhpiGenericElab(vhpiHandleT compInst);
-
-
 // Function that is called as the module is initialized. 
 // Check ports and setup functions to handle clock changes
 void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData );

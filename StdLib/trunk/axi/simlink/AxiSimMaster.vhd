@@ -6,53 +6,53 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity AxiSimMaster is port (
-      axiClk         : in  sl;
-      masterId       : in  slv(7  downto 0);
-      arvalid        : out sl;
-      arready        : in  sl;
-      araddr         : out slv(31 downto 0);
-      arid           : out slv(11 downto 0);
-      arlen          : out slv(3  downto 0);
-      arsize         : out slv(2  downto 0);
-      arburst        : out slv(1  downto 0);
-      arlock         : out slv(1  downto 0);
-      arprot         : out slv(2  downto 0);
-      arcache        : out slv(3  downto 0);
-      rready         : out sl;
-      rdataH         : in  slv(31 downto 0);
-      rdataL         : in  slv(31 downto 0);
-      rlast          : in  sl;
-      rvalid         : in  sl;
-      rid            : in  slv(11 downto 0);
-      rresp          : in  slv(1  downto 0);
-      awvalid        : out sl;
-      awready        : in  sl;
-      awaddr         : out slv(31 downto 0);
-      awid           : out slv(11 downto 0);
-      awlen          : out slv(3  downto 0);
-      awsize         : out slv(2  downto 0);
-      awburst        : out slv(1  downto 0);
-      awlock         : out slv(1  downto 0);
-      awcache        : out slv(3  downto 0);
-      awprot         : out slv(2  downto 0);
-      wready         : in  sl;
-      wdataH         : out slv(31 downto 0);
-      wdataL         : out slv(31 downto 0);
-      wlast          : out sl;
-      wvalid         : out sl;
-      wid            : out slv(11 downto 0);
-      wstrb          : out slv(7  downto 0);
-      bready         : out sl;
-      bresp          : in  slv(1  downto 0);
-      bvalid         : in  sl;
-      bid            : in  slv(11 downto 0)
+      axiClk         : in  std_logic;
+      masterId       : in  std_logic_vector(7  downto 0);
+      arvalid        : out std_logic;
+      arready        : in  std_logic;
+      araddr         : out std_logic_vector(31 downto 0);
+      arid           : out std_logic_vector(11 downto 0);
+      arlen          : out std_logic_vector(3  downto 0);
+      arsize         : out std_logic_vector(2  downto 0);
+      arburst        : out std_logic_vector(1  downto 0);
+      arlock         : out std_logic_vector(1  downto 0);
+      arprot         : out std_logic_vector(2  downto 0);
+      arcache        : out std_logic_vector(3  downto 0);
+      rready         : out std_logic;
+      rdataH         : in  std_logic_vector(31 downto 0);
+      rdataL         : in  std_logic_vector(31 downto 0);
+      rlast          : in  std_logic;
+      rvalid         : in  std_logic;
+      rid            : in  std_logic_vector(11 downto 0);
+      rresp          : in  std_logic_vector(1  downto 0);
+      awvalid        : out std_logic;
+      awready        : in  std_logic;
+      awaddr         : out std_logic_vector(31 downto 0);
+      awid           : out std_logic_vector(11 downto 0);
+      awlen          : out std_logic_vector(3  downto 0);
+      awsize         : out std_logic_vector(2  downto 0);
+      awburst        : out std_logic_vector(1  downto 0);
+      awlock         : out std_logic_vector(1  downto 0);
+      awcache        : out std_logic_vector(3  downto 0);
+      awprot         : out std_logic_vector(2  downto 0);
+      wready         : in  std_logic;
+      wdataH         : out std_logic_vector(31 downto 0);
+      wdataL         : out std_logic_vector(31 downto 0);
+      wlast          : out std_logic;
+      wvalid         : out std_logic;
+      wid            : out std_logic_vector(11 downto 0);
+      wstrb          : out std_logic_vector(7  downto 0);
+      bready         : out std_logic;
+      bresp          : in  std_logic_vector(1  downto 0);
+      bvalid         : in  std_logic;
+      bid            : in  std_logic_vector(11 downto 0)
    );
 end AxiSimMaster;
 
 -- Define architecture
 architecture AxiSimMaster of AxiSimMaster is
    Attribute FOREIGN of AxiSimMaster: architecture is 
-      "vhpi:SimSw_lib:AxiSimMasterElab:AxiSimMasterInit:AxiSimMaster";
+      "vhpi:SimSw_lib:VhpiGenericElab:AxiSimMasterInit:AxiSimMaster";
 begin
 end AxiSimMaster;
 

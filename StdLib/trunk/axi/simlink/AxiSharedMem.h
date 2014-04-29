@@ -2,165 +2,142 @@
 #define __AXI_SHARED_MEM_H__
 
 #include <sys/types.h>
-#include <string>
 
 // Write address record
-class AxiWriteAddr {
-   public:
-      uint awaddr;
-      uint awid;
-      uint awlen;
-      uint awsize;
-      uint awburst;
-      uint awlock;
-      uint awcache;
-      uint awprot;
-      uint awqos;
-      uint awuser;   
-};
+typedef struct {
+   uint awaddr;
+   uint awid;
+   uint awlen;
+   uint awsize;
+   uint awburst;
+   uint awlock;
+   uint awcache;
+   uint awprot;
+} AxiWriteAddr;
 
 // Write data record
-class AxiWriteData {
-   public:
-      uint wdataH;
-      uint wdataL;
-      uint wlast;
-      uint wid;
-      uint wstrb;
-};
+typedef struct {
+   uint wdataH;
+   uint wdataL;
+   uint wlast;
+   uint wid;
+   uint wstrb;
+} AxiWriteData;
 
 // Write completion record
-class AxiWriteComp {
-   public:
-      uint bresp;
-      uint bid;
-};
+typedef struct {
+   uint bresp;
+   uint bid;
+} AxiWriteComp;
 
 // Read address record
-class AxiReadAddr {
-   public:
-      uint araddr;
-      uint arid;
-      uint arlen;
-      uint arsize;
-      uint arburst;
-      uint arlock;
-      uint arprot;
-      uint arcache;
-      uint arqos;
-      uint aruser;
-};
+typedef struct {
+   uint araddr;
+   uint arid;
+   uint arlen;
+   uint arsize;
+   uint arburst;
+   uint arlock;
+   uint arprot;
+   uint arcache;
+} AxiReadAddr;
 
 // Read data record
-class AxiReadData {
-   public:
-      uint rdataH;
-      uint rdataL;
-      uint rlast;
-      uint rid;
-      uint rresp;
-};
+typedef struct {
+   uint rdataH;
+   uint rdataL;
+   uint rlast;
+   uint rid;
+   uint rresp;
+} AxiReadData;
 
-// Shared memory record
-class AxiSharedMem {
+typedef struct {
 
-   protected:
+   // Tracking objects
+   char _smemPath[200];
+   int  _smemId;
 
-      // Tracking objects
-      char _smemPath[200];
-      int  _smemId;
+   // Clock counter
+   uint _clkCnt;
 
-   private:
+   // Write records
+   AxiWriteAddr _writeAddr;
+   uint         _writeAddrReq;
+   uint         _writeAddrAck;
+   AxiWriteData _writeData;
+   uint         _writeDataReq;
+   uint         _writeDataAck;
+   AxiWriteComp _writeComp;
+   uint         _writeCompReq;
+   uint         _writeCompAck;
 
-      // Clock counter
-      uint _clkCnt;
+   // Read records
+   AxiReadAddr  _readAddr;
+   uint         _readAddrReq;
+   uint         _readAddrAck;
+   AxiReadData  _readData;
+   uint         _readDataReq;
+   uint         _readDataAck;
+} AxiSharedMem;
 
-      // Write records
-      AxiWriteAddr _writeAddr;
-      uint         _writeAddrReq;
-      uint         _writeAddrAck;
-      AxiWriteData _writeData;
-      uint         _writeDataReq;
-      uint         _writeDataAck;
-      AxiWriteComp _writeComp;
-      uint         _writeCompReq;
-      uint         _writeCompAck;
+// Map and create shared memory object
+AxiSharedMem * sim_open ( char *system, uint id, int uid );
 
-      // Read records
-      AxiReadAddr  _readAddr;
-      uint         _readAddrReq;
-      uint         _readAddrAck;
-      AxiReadData  _readData;
-      uint         _readDataReq;
-      uint         _readDataAck;
+// close shared memory object
+void sim_close ( AxiSharedMem *smem );
 
-   public:
+// Init variables
+void init(AxiSharedMem *ptr);
 
-      // Map and create shared memory object
-      static AxiSharedMem * open ( std::string system, uint id, int uid = -1 );
+// Increment clock count
+void incrClkCnt(AxiSharedMem *ptr);
 
-      // close shared memory object
-      static void close ( AxiSharedMem *smem );
+// Read clock count
+uint getClkCnt(AxiSharedMem *ptr);
 
-      // Constructor
-      AxiSharedMem ();
+// Set write addr
+void setWriteAddr (AxiSharedMem *ptr, AxiWriteAddr *writeAddr );
 
-      // Destructor
-      ~AxiSharedMem ();
+// Get write addr
+uint getWriteAddr (AxiSharedMem *ptr, AxiWriteAddr *writeAddr );
 
-      // Init variables
-      void init();
+// Get write addr Ready
+uint readyWriteAddr (AxiSharedMem *ptr);
 
-      // Increment clock count
-      void incrClkCnt();
+// Set write data
+void setWriteData (AxiSharedMem *ptr, AxiWriteData *writeData );
 
-      // Read clock count
-      uint getClkCnt();
+// Get write data
+uint getWriteData (AxiSharedMem *ptr, AxiWriteData *writeData );
 
-      // Set write addr
-      void setWriteAddr ( AxiWriteAddr *writeAddr );
+// Get write data Ready
+uint readyWriteData (AxiSharedMem *ptr);
 
-      // Get write addr
-      bool getWriteAddr ( AxiWriteAddr *writeAddr );
+// Set write comp
+void setWriteComp (AxiSharedMem *ptr, AxiWriteComp *writeComp );
 
-      // Get write addr Ready
-      bool readyWriteAddr ();
+// Get write comp
+uint getWriteComp (AxiSharedMem *ptr, AxiWriteComp *writeComp );
 
-      // Set write data
-      void setWriteData ( AxiWriteData *writeData );
+// Get write comp Ready
+uint readyWriteComp (AxiSharedMem *ptr);
 
-      // Get write data
-      bool getWriteData ( AxiWriteData *writeData );
+// Set read addr
+void setReadAddr (AxiSharedMem *ptr, AxiReadAddr *readAddr );
 
-      // Get write data Ready
-      bool readyWriteData ();
+// Get read addr
+uint getReadAddr (AxiSharedMem *ptr, AxiReadAddr *readAddr );
 
-      // Set write comp
-      void setWriteComp ( AxiWriteComp *writeComp );
+// Get read addr Ready
+uint readyReadAddr (AxiSharedMem *ptr);
 
-      // Get write comp
-      bool getWriteComp ( AxiWriteComp *writeComp );
+// Set read data
+void setReadData (AxiSharedMem *ptr, AxiReadData *readData );
 
-      // Get write comp Ready
-      bool readyWriteComp ();
+// Get read data
+uint getReadData (AxiSharedMem *ptr, AxiReadData *readData );
 
-      // Set read addr
-      void setReadAddr ( AxiReadAddr *readAddr );
-
-      // Get read addr
-      bool getReadAddr ( AxiReadAddr *readAddr );
-
-      // Get read addr Ready
-      bool readyReadAddr ();
-
-      // Set read data
-      void setReadData ( AxiReadData *readData );
-
-      // Get read data
-      bool getReadData ( AxiReadData *readData );
-
-      // Get read data Ready
-      bool readyReadData ();
-   };
+// Get read data Ready
+uint readyReadData (AxiSharedMem *ptr);
 
 #endif
