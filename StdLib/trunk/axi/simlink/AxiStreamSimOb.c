@@ -69,10 +69,10 @@ void AxiStreamSimObInit(vhpiHandleT compInst) {
       fchmod(obPtr->smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
 
       // Set the size of the shared memory segment
-      ftruncate(obPtr->smemFd, sizeof(AxiStreamSimMemory));
+      ftruncate(obPtr->smemFd, sizeof(AxiStreamSharedMem));
 
       // Map the shared memory
-      if((obPtr->smem = (AxiStreamSimMemory *)mmap(0, sizeof(AxiStreamSimMemory),
+      if((obPtr->smem = (AxiStreamSharedMem *)mmap(0, sizeof(AxiStreamSharedMem),
                 (PROT_READ | PROT_WRITE), MAP_SHARED, obPtr->smemFd, 0)) == MAP_FAILED) {
          obPtr->smemFd = -1;
          obPtr->smem   = NULL;

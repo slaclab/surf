@@ -9,8 +9,6 @@ EN64=-full64 -xlrm
 
 # Shared memory id. Changed this if you need to run multiple instances
 # Resulting shared memory file is simlink_username_id
-SHM_ID=1
-SHM_NAME="vc64"
 
 # RTL Files
 rtl_src:
@@ -41,18 +39,18 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/rtl/Pgp2bPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimLinkIb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimLinkOb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimLink.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/PgpSimLink.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimIb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimOb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSim.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/PgpSim.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/vcs_tb.vhd
 
 # VHPI Library
 vhpi_src:
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/../simlink/VhpiGeneric.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimLinkOb.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -DSHM_ID=$(SHM_ID) -DSHM_NAME=\"$(SHM_NAME)\" -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimLinkIb.c
-	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o AxiStreamSimLinkOb.o AxiStreamSimLinkIb.o
+	@cd $(SIM_DIR); g++ -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/VhpiGeneric.c
+	@cd $(SIM_DIR); g++ -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimOb.c
+	@cd $(SIM_DIR); g++ -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimIb.c
+	@cd $(SIM_DIR); g++ -Wall -shared -o libSimSw_lib.so VhpiGeneric.o AxiStreamSimOb.o AxiStreamSimIb.o
 
 sim_gen:
 	cd $(SIM_DIR); vcs $(EN64) $(TOP) -cpp g++ -cc gcc -debug -lrt -timescale=1ps/1ps -sim_res=1ps
