@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-01-29
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ entity Pgp2bGtx7MultiLane is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      axiFifoStatus    : in  AxiStreamFifoStatusArray(3 downto 0);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0);
       -- GT loopback control
       loopback         : in  slv(2 downto 0));
 end Pgp2bGtx7MultiLane;
@@ -176,7 +176,7 @@ begin
          pgpRxOut           => pgpRxOut,
          pgpRxMasters       => pgpRxMasters,
          pgpRxMasterMux     => pgpRxMasterMux,
-         axiFifoStatus      => axiFifoStatus,
+         pgpRxCtrl      => pgpRxCtrl,
          phyRxLanesOut      => phyRxLanesOut,
          phyRxLanesIn       => phyRxLanesIn,
          phyRxReady         => phyRxReady,

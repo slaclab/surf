@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-12-11
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,17 +40,17 @@ entity Pgp2bGtp7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "1.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
       -- TX/RX Settings - Defaults to 2.5 Gbps operation 
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;       -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;       -- Set by wizard
-      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit        := '1';     -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';     -- Set by wizard      
+      RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard      
 
       -- Configure PLL sources
       TX_PLL_G : string := "PLL0";
@@ -59,12 +59,12 @@ entity Pgp2bGtp7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G  : integer := 1;      -- Interleave Frames
-      NUM_VC_EN_G      : integer range 1 to 4 := 4
+      VC_INTERLEAVE_G : integer              := 1;     -- Interleave Frames
+      NUM_VC_EN_G     : integer range 1 to 4 := 4
       );
    port (
       -- GT Clocking
-      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;                       -- GT needs a stable clock to "boot up"
       gtQPllOutRefClk  : in  slv(1 downto 0) := "00";  -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
@@ -85,7 +85,7 @@ entity Pgp2bGtp7Fixedlat is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -98,13 +98,13 @@ entity Pgp2bGtp7Fixedlat is
       pgpTxOut : out PgpTxOutType;
 
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxMasters  : in  AxiStreamMasterArray(3 downto 0);
-      pgpTxSlaves   : out AxiStreamSlaveArray(3 downto 0);
+      pgpTxMasters : in  AxiStreamMasterArray(3 downto 0);
+      pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
 
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
-      pgpRxMasterMuxed  : out AxiStreamMasterType;
-      axiFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
+      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed : out AxiStreamMasterType;
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
 
       -- GT loopback control
       loopback : in slv(2 downto 0));   -- GT Serial Loopback Control
@@ -126,8 +126,8 @@ architecture rtl of Pgpb2Gtp7Fixedlat is
 --   signal gtRxUserReset  : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);  -- Feed to 8B10B decoder
-   signal dataValid     : sl;           -- no decode or disparity errors
+   signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
+   signal dataValid     : sl;                            -- no decode or disparity errors
    signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
 --   signal phyRxReady    : sl;                            -- To RxRst
@@ -152,33 +152,33 @@ begin
    -- PGP Core
    --------------------------------------------------------------------------------------------------
 
-   U_Pgp2bLane: entity work.Pgp2bLane 
+   U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G => 7,
          NUM_VC_EN_G       => NUM_VC_EN_G
-      ) port map ( 
-         pgpTxClk           => pgpTxClk,
-         pgpTxClkRst        => pgpTxReset,
-         pgpTxIn            => pgpTxIn,
-         pgpTxOut           => pgpTxOut,
-         pgpTxMasters       => pgpTxMasters,
-         pgpTxSlaves        => pgpTxSlaves,
-         phyTxLanesOut      => phyTxLanesOut,
-         phyTxReady         => gtTxResetDone,  --phyTxReady,  -- Use txResetDone
-         pgpRxClk           => pgpRxClk,
-         pgpRxClkRst        => gtRxResetDoneL,  -- Hold in reset until gtp rx is up
-         pgpRxIn            => pgpRxIn,
-         pgpRxOut           => pgpRxOut,
-         pgpRxMasters       => pgpRxMasters,
-         pgpRxMasterMuxed   => pgpRxMasterMuxed,
-         axiFifoStatus      => axiFifoStatus,
-         phyRxLanesOut      => phyRxLanesOut,
-         phyRxLanesIn       => phyRxLanesIn,
-         phyRxReady         => gtRxResetDone,
-         phyRxInit          => open   --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
-      );
+         ) port map ( 
+            pgpTxClk         => pgpTxClk,
+            pgpTxClkRst      => pgpTxReset,
+            pgpTxIn          => pgpTxIn,
+            pgpTxOut         => pgpTxOut,
+            pgpTxMasters     => pgpTxMasters,
+            pgpTxSlaves      => pgpTxSlaves,
+            phyTxLanesOut    => phyTxLanesOut,
+            phyTxReady       => gtTxResetDone,  --phyTxReady,  -- Use txResetDone
+            pgpRxClk         => pgpRxClk,
+            pgpRxClkRst      => gtRxResetDoneL,  -- Hold in reset until gtp rx is up
+            pgpRxIn          => pgpRxIn,
+            pgpRxOut         => pgpRxOut,
+            pgpRxMasters     => pgpRxMasters,
+            pgpRxMasterMuxed => pgpRxMasterMuxed,
+            pgpRxCtrl        => pgpRxCtrl,
+            phyRxLanesOut    => phyRxLanesOut,
+            phyRxLanesIn     => phyRxLanesIn,
+            phyRxReady       => gtRxResetDone,
+            phyRxInit        => open  --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
+            );
 
 
    --------------------------------------------------------------------------------------------------
@@ -287,11 +287,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => pgpRxReset,
-         rxResetDoneOut   => gtRxResetDone,  -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,

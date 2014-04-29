@@ -48,7 +48,7 @@ entity Pgp2bRx is
 
       -- VC Output
       pgpRxMaster      : out AxiStreamMasterType;
-      remFifoStatus    : out AxiStreamFifoStatusArray(3 downto 0);
+      remFifoStatus    : out AxiStreamCtrlArray(3 downto 0);
 
       -- PHY interface
       phyRxLanesOut    : out PgpRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
