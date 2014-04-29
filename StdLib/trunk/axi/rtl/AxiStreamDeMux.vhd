@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-04-25
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,12 +39,12 @@ entity AxiStreamDeMux is
       axiRst        : in sl;
 
       -- Slave
-      sAxiStreamMaster  : in  AxiStreamMasterType;
-      sAxiStreamSlave   : out AxiStreamSlaveType;
+      sAxisMaster  : in  AxiStreamMasterType;
+      sAxisSlave   : out AxiStreamSlaveType;
 
       -- Masters
-      mAxiStreamMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
-      mAxiStreamSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0)
+      mAxisMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
+      mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0)
    );
 end AxiStreamDeMux;
 
@@ -65,7 +65,7 @@ architecture structure of AxiStreamDeMux is
 
 begin
 
-   comb : process (axiRst, r, sAxiStreamMaster, mAxiStreamSlaves ) is
+   comb : process (axiRst, r, sAxisMaster, mAxisSlaves ) is
       variable v   : RegType;
       variable idx : integer;
    begin
@@ -73,13 +73,13 @@ begin
 
       -- Update output registers 
       for i in 0 to NUM_MASTERS_G-1 loop
-         if mAxiStreamSlaves(i).tReady = '1' then
+         if mAxisSlaves(i).tReady = '1' then
             v.masters(i).tValid := '0';
          end if;
       end loop;
 
       -- Decode destination
-      idx := conv_integer(sAxiStreamMaster.tDest);
+      idx := conv_integer(sAxisMaster.tDest);
 
       -- Invalid destination
       if idx >= NUM_MASTERS_G then
@@ -88,7 +88,7 @@ begin
       -- Target is ready
       elsif v.masters(idx).tValid = '0' then
          v.slave.tReady := '1';
-         v.masters(idx) := sAxiStreamMaster;
+         v.masters(idx) := sAxisMaster;
 
       -- Not ready
       else
@@ -101,8 +101,8 @@ begin
 
       rin <= v;
 
-      sAxiStreamSlave   <= v.slave;
-      mAxiStreamMasters <= r.masters;
+      sAxisSlave   <= v.slave;
+      mAxisMasters <= r.masters;
 
    end process comb;
 

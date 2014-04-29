@@ -5,7 +5,7 @@
 -- File       : SsiAxiLiteMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-04-28
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -81,11 +81,11 @@ entity SsiAxiLiteMaster is
    port (
 
       -- Streaming RX Data Interface (vcRxClk domain) 
-      sAxisClk        : in  sl;
-      sAxisRst        : in  sl := '0';
-      sAxisMaster     : in  AxiStreamMasterType
-      sAxisSlave      : out AxiStreamSlaveType;
-      sAxisFifoStatus : out AxiStreamFifoStatusType;
+      sAxisClk    : in  sl;
+      sAxisRst    : in  sl := '0';
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType;
+      sAxisCtrl   : out AxiStreamCtrlType;
 
 
       -- Streaming TX Data Interface (vcRxClk domain)
@@ -111,7 +111,7 @@ architecture rtl of SsiAxiLiteMaster is
    signal sFifoAxisSlave  : AxiStreamSlaveType;
    signal mFifoAxisMaster : AxiStreamMasterType;
    signal mFifoAxisSlave  : AxiStreamSlaveType;
-   signal mFifoAxisStatus : AxiStreamFifoStatusType;
+   signal mFifoAxisCtrl   : AxiStreamCtrlType;
 
    type StateType is (S_IDLE_C, S_ADDR_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_SIZE_C,
                       S_READ_C, S_READ_AXI_C, S_STATUS_C, S_DUMP_C);
@@ -171,15 +171,15 @@ begin
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
-         slvAxiClk          => sAxisClk,
-         slvAxiRst          => sAxisRst,
-         slvAxiStreamMaster => sAxisMaster,
-         slvAxiStreamSlave  => sAxisSlave,
-         axiFifoStatus      => sAxisFifoStatus,
-         mstAxiClk          => axiLiteClk,
-         mstAxiRst          => axiLiteRst,
-         mstAxiStreamMaster => sFifoAxisMaster,
-         mstAxiStreamSlave  => sFifoAxisSlave);
+         sAxiClk          => sAxisClk,
+         sAxiRst          => sAxisRst,
+         sAxiStreamMaster => sAxisMaster,
+         sAxiStreamSlave  => sAxisSlave,
+         sAxisCtrl        => sAxisCtrl,
+         mAxiClk          => axiLiteClk,
+         mAxiRst          => axiLiteRst,
+         mAxiStreamMaster => sFifoAxisMaster,
+         mAxiStreamSlave  => sFifoAxisSlave);
 
 
 
@@ -187,7 +187,7 @@ begin
    -- Master State Machine
    -------------------------------------
 
-   comb : process (axiLiteRst, axiReadSlave, axiWriteSlave, mFifoAxisStatus, r, sFifoAxisMaster) is
+   comb : process (axiLiteRst, axiReadSlave, axiWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
       variable v : RegType;
    begin
       v := r;
@@ -214,7 +214,7 @@ begin
             v.sFifoAxisSlave.tReady := '0';
 
             -- Frame is starting
-            if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '0' and mFifoAxisStatus.almostFull = '0' then
+            if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '0' and mFifoAxisCtrl.almostFull = '0' then
                v.mFifoAxisMaster.tValid <= '1';  -- Echo word 0
                v.state                  := S_ADDR_C;
             end if;
@@ -425,15 +425,15 @@ begin
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
-         slvAxiClk          => axiLiteClk,
-         slvAxiRst          => axiLiteRst,
-         slvAxiStreamMaster => mFifoAxisMaster,
-         slvAxiStreamSlave  => mFifoAxisSlave,
-         axiFifoStatus      => mFifoAxisStatus,
-         mstAxiClk          => mAxisClk,
-         mstAxiRst          => mAxisRst,
-         mstAxiStreamMaster => mAxisMaster,
-         mstAxiStreamSlave  => mAxisSlave);
+         sAxiClk     => axiLiteClk,
+         sAxiRst     => axiLiteRst,
+         sAxisMaster => mFifoAxisMaster,
+         sAxisSlave  => mFifoAxisSlave,
+         sAxisCtrl   => mFifoAxisCtrl,
+         mAxiClk     => mAxisClk,
+         mAxiRst     => mAxisRst,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
 end rtl;
 

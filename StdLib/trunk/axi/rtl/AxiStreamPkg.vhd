@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-04-28
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -75,33 +75,36 @@ package AxiStreamPkg is
       TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   type AxiStreamFifoStatusType is record
-      pause      : sl;
-      overflow   : sl;
-   end record AxiStreamFifoStatusType;
+   type AxiStreamCtrlType is record
+      pause    : sl;
+      overflow : sl;
+   end record AxiStreamCtrlType;
 
-   constant AXI_STREAM_FIFO_STATUS_INIT_C : AxiStreamFifoStatusType := (
-      pause         => '0',
-      overflow      => '0');
+   constant AXI_STREAM_CTRL_INIT_C : AxiStreamCtrlType := (
+      pause    => '0',
+      overflow => '0');
 
-   type AxiStreamFifoStatusArray is array (natural range<>) of AxiStreamFifoStatusType;
+   type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
+
+   function axiStreamPacked (
+      constant CONFIG_C : AxiStreamConfigType;
+      axisMaster        : AxiStreamMasterType)
+      return boolean;
 
    
 end package AxiStreamPkg;
 
 package body AxiStreamPkg is
 
---   function checkKeepStrb (
---      axiConfig : AxiStreamConfigType;
---      axisMaster : AxiStreamMasterType)
---      return boolean is
---   begin
---      return
---         allBits(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
---         noBits(axisMaster.tKeep(axisMaster.tKeep'high downto axisConfig.TDATA_BYTES_C)) and
---         allBits(axisMaster.tStrb(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tstrb
---         noBits(axisMaster.tStrb(axisMaster.tStrb'high downto axisConfig.TDATA_BYTES_C))
---   end function ssiTxnIsComplaint;
+   function axiStreamPacked (
+      constant CONFIG_C : AxiStreamConfigType;
+      axisMaster        : AxiStreamMasterType)
+      return boolean is
+   begin
+      return 
+         allBits(axisMaster.tKeep(CONFIG_C.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
+         allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0));  -- all expected tstrb
+   end function;
 
 end package body AxiStreamPkg;
 

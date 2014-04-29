@@ -5,7 +5,7 @@
 -- File       : SsiCmdMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-04-28
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,11 +58,11 @@ entity SsiCmdMaster is
    port (
 
       -- Streaming Data Interface
-      axiClk          : in  sl;
-      axiRst          : in  sl := '0';
-      sAxisMaster     : in  AxiStreamMasterType;
-      sAxisSlave      : out AxiStreamSlaveType;
-      sAxisFifoStatus : out AxiStreamFifoStatusType;
+      axiClk      : in  sl;
+      axiRst      : in  sl := '0';
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType;
+      sAxisCtrl   : out AxiStreamCtrlType;
 
       -- Command signals
       cmdClk    : in  sl;
@@ -100,7 +100,7 @@ begin
    ----------------------------------
    -- Fifo
    ----------------------------------
-    SlaveAxiStreamFifo : entity work.AxiStreamFifo
+   SlaveAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
          BRAM_EN_G           => BRAM_EN_G,
@@ -116,15 +116,15 @@ begin
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
-         slvAxiClk          => axiClk,
-         slvAxiRst          => axiRst,
-         slvAxiStreamMaster => sAxisMaster,
-         slvAxiStreamSlave  => sAxisSlave,
-         axiFifoStatus      => sAxisFifoStatus,
-         mstAxiClk          => cmdClk,
-         mstAxiRst          => cmdRst,
-         mstAxiStreamMaster => fifoAxisMaster,
-         mstAxiStreamSlave  => fifoAxisSlave);
+         sAxiClk     => axiClk,
+         sAxiRst     => axiRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         sAxisCtrl   => sAxisCtrl,
+         mAxiClk     => cmdClk,
+         mAxiRst     => cmdRst,
+         mAxisMaster => fifoAxisMaster,
+         mAxisSlave  => fifoAxisSlave);
 
 
    ----------------------------------
