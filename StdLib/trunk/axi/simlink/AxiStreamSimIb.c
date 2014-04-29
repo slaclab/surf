@@ -3,8 +3,8 @@
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
-#include "AxiStreamSimLinkIb.h"
-#include "SimLinkMemory.h"
+#include "AxiStreamSimIb.h"
+#include "AxiStreamSharedMem.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -12,12 +12,17 @@
 #include <unistd.h>
 #include <stdio.h>
 
+// Elab function
+void AxiStreamSimIbElab(vhpiHandleT compInst) { 
+   VhpiGenericElab(compInst);
+}
+
 // Init function
-void AxiStreamSimLinkIbInit(vhpiHandleT compInst) { 
+void AxiStreamSimIbInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
-   portDataT        *portData  = (portDataT *)        malloc(sizeof(portDataT));
-   AxiStreamSimLinkIbData *ibPtr     = (AxiStreamSimLinkIbData *) malloc(sizeof(AxiStreamSimLinkIbData));
+   portDataT          *portData  = (portDataT *)          malloc(sizeof(portDataT));
+   AxiStreamSimIbData *ibPtr     = (AxiStreamSimIbData *) malloc(sizeof(AxiStreamSimIbData));
 
    // Get port count
    portData->portCount = 7;
@@ -44,7 +49,7 @@ void AxiStreamSimLinkIbInit(vhpiHandleT compInst) {
    portData->stateData = ibPtr;
 
    // State update function
-   portData->stateUpdate = *AxiStreamSimLinkIbUpdate;
+   portData->stateUpdate = *AxiStreamSimIbUpdate;
 
    // Init data structure
    ibPtr->currClk      = 0;
@@ -66,11 +71,11 @@ void AxiStreamSimLinkIbInit(vhpiHandleT compInst) {
       fchmod(ibPtr->smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
 
       // Set the size of the shared memory segment
-      ftruncate(ibPtr->smemFd, sizeof(SimLinkMemory));
+      ftruncate(ibPtr->smemFd, sizeof(AxiStreamSharedMem));
 
       // Map the shared memory
-      if((ibPtr->smem = (SimLinkMemory *)mmap(0, sizeof(SimLinkMemory),
-                (PROT_READ | PROT_WRITE), MAP_SHARED, ibPtr->smemFd, 0)) == MAP_FAILED) {
+      if((ibPtr->smem = (AxiStreamSharedMem *)mmap(0, sizeof(AxiStreamSharedMem),
+         (PROT_READ | PROT_WRITE), MAP_SHARED, ibPtr->smemFd, 0)) == MAP_FAILED) {
          ibPtr->smemFd = -1;
          ibPtr->smem   = NULL;
       }
@@ -82,8 +87,8 @@ void AxiStreamSimLinkIbInit(vhpiHandleT compInst) {
       }
    }
 
-   if ( ibPtr->smem != NULL ) vhpi_printf("AxiStreamSimLinkIb: Opened shared memory file: %s\n", ibPtr->smemFile);
-   else vhpi_printf("AxiStreamSimLinkIb: Failed to open shared memory file: %s\n", ibPtr->smemFile);
+   if ( ibPtr->smem != NULL ) vhpi_printf("AxiStreamSimIb: Opened shared memory file: %s\n", ibPtr->smemFile);
+   else vhpi_printf("AxiStreamSimIb: Failed to open shared memory file: %s\n", ibPtr->smemFile);
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -91,9 +96,10 @@ void AxiStreamSimLinkIbInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void AxiStreamSimLinkIbUpdate ( portDataT *portData ) {
+void AxiStreamSimIbUpdate ( void *userPtr ) {
 
-   AxiStreamSimLinkIbData *ibPtr = (AxiStreamSimLinkIbData*)(portData->stateData);
+   portDataT *portData = (portDataT*) userPtr;
+   AxiStreamSimIbData *ibPtr = (AxiStreamSimIbData*)(portData->stateData);
 
    // Detect clock edge
    if ( ibPtr->currClk != getInt(ibClk) ) {
@@ -117,12 +123,12 @@ void AxiStreamSimLinkIbUpdate ( portDataT *portData ) {
             if ( ibPtr->ibCount == 0 ) {
                ibPtr->ibError  = 0;
                ibPtr->ibVc     = getInt(ibDest);
-               vhpi_printf("AxiStreamSimLinkIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibVc,portData->simTime);
+               vhpi_printf("AxiStreamSimIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibVc,portData->simTime);
             }
 
             // VC mismatch
             if ( ibPtr->ibVc != getInt(ibDest) && ibPtr->ibError == 0 ) {
-               vhpi_printf("AxiStreamSimLinkIb: Dest mismatch error.\n");
+               vhpi_printf("AxiStreamSimIb: Dest mismatch error.\n");
                ibPtr->ibError = 1;
             }
 
@@ -142,7 +148,7 @@ void AxiStreamSimLinkIbUpdate ( portDataT *portData ) {
                ibPtr->smem->usSize = ibPtr->ibCount;
                ibPtr->smem->usReqCount++;
 
-               vhpi_printf("AxiStreamSimLinkIb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
+               vhpi_printf("AxiStreamSimIb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
                   ibPtr->smem->usSize,ibPtr->smem->usVc,portData->simTime);
 
                // Wait for other end
@@ -150,7 +156,7 @@ void AxiStreamSimLinkIbUpdate ( portDataT *portData ) {
                while ( ibPtr->smem->usReqCount != ibPtr->smem->usAckCount ) {
                   usleep(100);
                   if ( ++toCount > 10000 ) {
-                     vhpi_printf("AxiStreamSimLinkIb: Timeout waiting\n");
+                     vhpi_printf("AxiStreamSimIb: Timeout waiting\n");
                      break;
                   }
                }
@@ -162,7 +168,7 @@ void AxiStreamSimLinkIbUpdate ( portDataT *portData ) {
             else {
                if ( (ibPtr->ibCount % 100) == 0 ) {
 
-                  vhpi_printf("AxiStreamSimLinkIb: Frame In Progress. Size=%i, Dest=%i, Payload=%i, Time=%lld\n",
+                  vhpi_printf("AxiStreamSimIb: Frame In Progress. Size=%i, Dest=%i, Payload=%i, Time=%lld\n",
                      ibPtr->ibCount,ibPtr->ibVc,ibPtr->ibCount,portData->simTime);
                }
             }

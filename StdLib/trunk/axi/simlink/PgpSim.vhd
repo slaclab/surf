@@ -2,7 +2,7 @@
 -- Title         : SSI Lib, Simulation Link, PGP Like Interface
 -- Project       : General Purpose Core
 -------------------------------------------------------------------------------
--- File          : PgpSimLink.vhd
+-- File          : PgpSim.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 04/18/2014
 -------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ use work.Pgp2bPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity PgpSimLink is 
+entity PgpSim is 
    generic (
       TPD_G  : time := 1 ns
    );
@@ -57,11 +57,11 @@ entity PgpSimLink is
       axiFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0)
    );
 
-end PgpSimLink;
+end PgpSim;
 
 
 -- Define architecture
-architecture PgpSimLink of PgpSimLink is
+architecture PgpSim of PgpSim is
 
    signal intTxMaster : AxiStreamMasterType;
    signal intTxSlave  : AxiStreamSlaveType;
@@ -89,7 +89,7 @@ begin
       );
 
    -- Simulation link
-   U_SimLink : entity work.AxiStreamSimLink
+   U_Sim : entity work.AxiStreamSim
       generic map (
          TPD_G            => TPD_G,
          TDATA_BYTES_G    => 2,
@@ -152,5 +152,5 @@ begin
    pgpRxOut.remLinkData  <= (others=>'0');
    pgpRxOut.remOverFlow  <= (others=>'0');
 
-end PgpSimLink;
+end PgpSim;
 

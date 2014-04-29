@@ -22,12 +22,11 @@
 
 #include <vhpi_user.h>
 
-
 // Port count for interface
 #define MAX_PORT_COUNT 32
 
 // Macros for set/get ints
-#define getInt(idx) (portData->intValue[idx])
+#define getInt(idx)     (portData->intValue[idx])
 #define setInt(idx,val) (portData->intValue[idx] = val)
 
 // Structure to hold data related to signal interface
@@ -65,6 +64,9 @@ typedef struct portDataS {
    void *stateData;
 
 } portDataT;
+
+
+void VhpiGenericElab(vhpiHandleT compInst);
 
 
 // Function that is called as the module is initialized. 

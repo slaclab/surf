@@ -2,7 +2,7 @@
 -- Title         : SSI Lib, Simulation Link
 -- Project       : General Purpose Core
 -------------------------------------------------------------------------------
--- File          : SimLink.vhd
+-- File          : AxiStreamSim.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 04/18/2014
 -------------------------------------------------------------------------------
@@ -41,10 +41,10 @@ entity AxiStreamSimLink is
       mAxiStreamMaster : out AxiStreamMasterType;
       mAxiStreamSlave  : in  AxiStreamSlaveType
    );
-end AxiStreamSimLink;
+end AxiStreamSim;
 
 -- Define architecture
-architecture AxiStreamSimLink of AxiStreamSimLink is
+architecture AxiStreamSim of AxiStreamSim is
 
    -- Local Signals
    signal ibValid  : sl;
@@ -107,7 +107,7 @@ begin
                   ibData(15 downto 0) <= sAxiStreamMaster.tData(15 downto 0) after TPD_G;
 
                   assert ( sAxiStreamMaster.tLast = '0' )
-                     report "Invalid tLast position in slave simLink" severity failure;
+                     report "Invalid tLast position in AXI stream sim" severity failure;
 
                else
                   ibPos                <= '0'                                                                 after TPD_G;
@@ -124,7 +124,7 @@ begin
       end if;
    end process;
 
-   U_SimLinkIb: entity work.AxiStreamSimLinkIb
+   U_SimIb: entity work.AxiStreamSimIb
       port map (
          ibClk   => sAxiClk,
          ibReset => sAxiRst,
@@ -136,11 +136,11 @@ begin
       );
 
    assert ( sAxiStreamMaster.tDest < 4 )
-      report "Invalid tDest value in slave simLink" severity failure;
+      report "Invalid tDest value in AXI stream sim" severity failure;
 
    assert ( (TDATA_BYTES_G = 2 and sAxiStreamMaster.tKeep(3 downto 0) = "0011") or 
             (TDATA_BYTES_G = 4 and sAxiStreamMaster.tKeep(3 downto 0) = "1111") )
-      report "Invalid tKeep value in slave simLink" severity failure;
+      report "Invalid tKeep value in AXI stream sim" severity failure;
 
 
    ------------------------------------
@@ -207,7 +207,7 @@ begin
       end if;
    end process seq;
 
-   U_SimLinkOb: entity work.AxiStreamSimLinkOb
+   U_SimOb: entity work.AxiStreamSimOb
       port map (
          obClk   => mAxiClk,
          obReset => mAxiRst,
@@ -218,5 +218,5 @@ begin
          obReady => r.ready
       );
 
-end AxiStreamSimLink;
+end AxiStreamSim;
 

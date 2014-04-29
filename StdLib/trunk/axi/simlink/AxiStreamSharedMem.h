@@ -1,10 +1,13 @@
-#ifndef __SIM_LINK_MEMORY_H__
-#define __SIM_LINK_MEMORY_H__
+#ifndef __AXI_STREAM_SHARED_MEM_H__
+#define __AXI_STREAM_SHARED_MEM_H__
 
 // Shared memory structure, matches structure in general DAQ
 // in generic/SimLink.h (redefined here for simplicity)
 
 #define SIM_LINK_BUFF_SIZE 1000000
+
+#define SHM_NAME "axiStream"
+#define SHM_ID   1
 
 typedef struct {
 
@@ -25,6 +28,6 @@ typedef struct {
    uint        dsVc;
    uint        dsBigEndian;
 
-} SimLinkMemory;
+} AxiStreamSharedMem;
 
 #endif
