@@ -35,7 +35,7 @@ begin
 
    masterId <= conv_std_logic_vector(MASTER_ID_G,8);
 
-   U_AxiMaster : AxiSimMaster 
+   U_AxiMaster : entity work.AxiSimMaster 
       port map (
          axiClk          => axiClk,
          masterId        => masterId,

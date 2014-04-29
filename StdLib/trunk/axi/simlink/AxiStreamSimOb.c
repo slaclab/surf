@@ -12,11 +12,6 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
-// Elab function
-void AxiStreamSimObElab(vhpiHandleT compInst) { 
-   VhpiGenericElab(compInst);
-}
-
 // Init function
 void AxiStreamSimObInit(vhpiHandleT compInst) { 
 

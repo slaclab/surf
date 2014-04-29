@@ -12,13 +12,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
-// Elab function
-void AxiStreamSimIbElab(vhpiHandleT compInst) { 
-   VhpiGenericElab(compInst);
-}
-
 // Init function
-void AxiStreamSimIbInit(vhpiHandleT compInst) { 
+void AxiSimMasterInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
    portDataT        *portData  = (portDataT *)        malloc(sizeof(portDataT));
@@ -28,46 +23,46 @@ void AxiStreamSimIbInit(vhpiHandleT compInst) {
    portData->portCount = 40;
 
    // Set port directions
-   portData->portDir[axiClk]     = vhdiIn;
-   portData->portDir[masterId]   = vhdiIn;
-   portData->portDir[arvalid]    = vhdiOut;
-   portData->portDir[arready]    = vhdiIn;
-   portData->portDir[araddr]     = vhdiOut;
-   portData->portDir[arid]       = vhdiOut;
-   portData->portDir[arlen]      = vhdiOut;
-   portData->portDir[arsize]     = vhdiOut;
-   portData->portDir[arburst]    = vhdiOut;
-   portData->portDir[arlock]     = vhdiOut;
-   portData->portDir[arprot]     = vhdiOut;
-   portData->portDir[arcache]    = vhdiOut;
-   portData->portDir[rready]     = vhdiOut;
-   portData->portDir[rdataH]     = vhdiIn;
-   portData->portDir[rdataL]     = vhdiIn;
-   portData->portDir[rlast]      = vhdiIn;
-   portData->portDir[rvalid]     = vhdiIn;
-   portData->portDir[rid]        = vhdiIn;
-   portData->portDir[rresp]      = vhdiIn;
-   portData->portDir[awvalid]    = vhdiOut;
-   portData->portDir[awready]    = vhdiIn;
-   portData->portDir[awaddr]     = vhdiOut;
-   portData->portDir[awid]       = vhdiOut;
-   portData->portDir[awlen]      = vhdiOut;
-   portData->portDir[awsize]     = vhdiOut;
-   portData->portDir[awburst]    = vhdiOut;
-   portData->portDir[awlock]     = vhdiOut;
-   portData->portDir[awcache]    = vhdiOut;
-   portData->portDir[awprot]     = vhdiOut;
-   portData->portDir[wready]     = vhdiIn;
-   portData->portDir[wdataH]     = vhdiOut;
-   portData->portDir[wdataL]     = vhdiOut;
-   portData->portDir[wlast]      = vhdiOut;
-   portData->portDir[wvalid]     = vhdiOut;
-   portData->portDir[wid]        = vhdiOut;
-   portData->portDir[wstrb]      = vhdiOut;
-   portData->portDir[bready]     = vhdiOut;
-   portData->portDir[bresp]      = vhdiIn;
-   portData->portDir[bvalid]     = vhdiIn;
-   portData->portDir[bid]        = vhdiIn;
+   portData->portDir[axiClk]     = vhpiIn;
+   portData->portDir[masterId]   = vhpiIn;
+   portData->portDir[arvalid]    = vhpiOut;
+   portData->portDir[arready]    = vhpiIn;
+   portData->portDir[araddr]     = vhpiOut;
+   portData->portDir[arid]       = vhpiOut;
+   portData->portDir[arlen]      = vhpiOut;
+   portData->portDir[arsize]     = vhpiOut;
+   portData->portDir[arburst]    = vhpiOut;
+   portData->portDir[arlock]     = vhpiOut;
+   portData->portDir[arprot]     = vhpiOut;
+   portData->portDir[arcache]    = vhpiOut;
+   portData->portDir[rready]     = vhpiOut;
+   portData->portDir[rdataH]     = vhpiIn;
+   portData->portDir[rdataL]     = vhpiIn;
+   portData->portDir[rlast]      = vhpiIn;
+   portData->portDir[rvalid]     = vhpiIn;
+   portData->portDir[rid]        = vhpiIn;
+   portData->portDir[rresp]      = vhpiIn;
+   portData->portDir[awvalid]    = vhpiOut;
+   portData->portDir[awready]    = vhpiIn;
+   portData->portDir[awaddr]     = vhpiOut;
+   portData->portDir[awid]       = vhpiOut;
+   portData->portDir[awlen]      = vhpiOut;
+   portData->portDir[awsize]     = vhpiOut;
+   portData->portDir[awburst]    = vhpiOut;
+   portData->portDir[awlock]     = vhpiOut;
+   portData->portDir[awcache]    = vhpiOut;
+   portData->portDir[awprot]     = vhpiOut;
+   portData->portDir[wready]     = vhpiIn;
+   portData->portDir[wdataH]     = vhpiOut;
+   portData->portDir[wdataL]     = vhpiOut;
+   portData->portDir[wlast]      = vhpiOut;
+   portData->portDir[wvalid]     = vhpiOut;
+   portData->portDir[wid]        = vhpiOut;
+   portData->portDir[wstrb]      = vhpiOut;
+   portData->portDir[bready]     = vhpiOut;
+   portData->portDir[bresp]      = vhpiIn;
+   portData->portDir[bvalid]     = vhpiIn;
+   portData->portDir[bid]        = vhpiIn;
 
    // Set port and widths
    portData->portWidth[axiClk]     = 1;
@@ -119,24 +114,30 @@ void AxiStreamSimIbInit(vhpiHandleT compInst) {
 
    // Init data structure
    asPtr->currClk = 0;
+   asPtr->smem = NULL;
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
 
-   // Get ID
-   uint id = getInt(masterId);
-   asPtr->smem = AxiSharedMem::open(SYS,id);
-
-   if ( asPtr->smem != NULL ) vhpi_printf("AxiSimMaster: Opened shared memory. System=%s, Id=%i\n",SYS,id);
-   else vhpi_printf("AxiSimMaster: Failed to open shared memory file. System=%s, Id=%i\n",SYS,id);
 }
 
 
 // User function to update state based upon a signal change
-void AxiStreamSimIbUpdate ( void *userPtr ) {
+void AxiSimMasterUpdate ( void *userPtr ) {
 
-   portDataT *portData = (portDataT*) userPtr;
-   AxiStreamSimIbData *asPtr = (AxiStreamSimIbData*)(portData->stateData);
+   portDataT *portData     = (portDataT*) userPtr;
+   AxiSimMasterData *asPtr = (AxiSimMasterData*)(portData->stateData);
+
+   // Not yet open
+   if ( asPtr->smem == NULL ) {
+
+      // Get ID
+      uint id = getInt(masterId);
+      asPtr->smem = sim_open(SYS,id,-1);
+
+      if ( asPtr->smem != NULL ) vhpi_printf("AxiSimMaster: Opened shared memory. System=%s, Id=%i\n",SYS,id);
+      else vhpi_printf("AxiSimMaster: Failed to open shared memory file. System=%s, Id=%i\n",SYS,id);
+   }
 
    // Detect clock edge
    if ( asPtr->currClk != getInt(axiClk) ) {

@@ -60,9 +60,6 @@ typedef struct {
 
 } AxiSimMasterData;
 
-// Elab function
-void AxiSimMasterElab(vhpiHandleT compInst);
-
 // Init function
 void AxiSimMasterInit(vhpiHandleT compInst);
 

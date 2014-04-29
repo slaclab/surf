@@ -12,13 +12,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
-// Elab function
-void AxiStreamSimIbElab(vhpiHandleT compInst) { 
-   VhpiGenericElab(compInst);
-}
-
 // Init function
-void AxiStreamSimIbInit(vhpiHandleT compInst) { 
+void AxiSimSlaveInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
    portDataT       *portData  = (portDataT *)       malloc(sizeof(portDataT));
@@ -119,24 +114,30 @@ void AxiStreamSimIbInit(vhpiHandleT compInst) {
 
    // Init data structure
    asPtr->currClk = 0;
+   asPtr->smem = NULL;
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
 
-   // Get ID
-   uint id = getInt(masterId);
-   asPtr->smem = AxiSharedMem::open(SYS,id);
-
-   if ( asPtr->smem != NULL ) vhpi_printf("AxiSimSlave: Opened shared memory. System=%s, Id=%i\n",SYS,id);
-   else vhpi_printf("AxiSimSlave: Failed to open shared memory file. System=%s, Id=%i\n",SYS,id);
 }
 
 
 // User function to update state based upon a signal change
-void AxiStreamSimIbUpdate ( void *userPtr ) {
+void AxiSimSlaveUpdate ( void *userPtr ) {
 
    portDataT       *portData = (portDataT*) userPtr;
-   AxiSimSlaveData *asPtr    = (AxiSimSlavemData*)(portData->stateData);
+   AxiSimSlaveData *asPtr    = (AxiSimSlaveData*)(portData->stateData);
+
+   // Not yet open
+   if ( asPtr->smem == NULL ) {
+
+      // Get ID
+      uint id = getInt(slaveId);
+      asPtr->smem = sim_open(SYS,id,-1);
+
+      if ( asPtr->smem != NULL ) vhpi_printf("AxiSimSlave: Opened shared memory. System=%s, Id=%i\n",SYS,id);
+      else vhpi_printf("AxiSimSlave: Failed to open shared memory file. System=%s, Id=%i\n",SYS,id);
+   }
 
    // Detect clock edge
    if ( asPtr->currClk != getInt(axiClk) ) {

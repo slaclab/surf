@@ -6,53 +6,53 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity AxiSimSlave is port (
-      axiClk         : in  sl;
-      slaveId        : in  slv(7  downto 0);
-      arvalid        : in  sl;
-      arready        : out sl;
-      araddr         : in  slv(31 downto 0);
-      arid           : in  slv(11 downto 0);
-      arlen          : in  slv(3  downto 0);
-      arsize         : in  slv(2  downto 0);
-      arburst        : in  slv(1  downto 0);
-      arlock         : in  slv(1  downto 0);
-      arprot         : in  slv(2  downto 0);
-      arcache        : in  slv(3  downto 0);
-      rready         : in  sl;
-      rdataH         : out slv(31 downto 0);
-      rdataL         : out slv(31 downto 0);
-      rlast          : out sl;
-      rvalid         : out sl;
-      rid            : out slv(11 downto 0);
-      rresp          : out slv(1  downto 0);
-      awvalid        : in  sl;
-      awready        : out sl;
-      awaddr         : in  slv(31 downto 0);
-      awid           : in  slv(11 downto 0);
-      awlen          : in  slv(3  downto 0);
-      awsize         : in  slv(2  downto 0);
-      awburst        : in  slv(1  downto 0);
-      awlock         : in  slv(1  downto 0);
-      awcache        : in  slv(3  downto 0);
-      awprot         : in  slv(2  downto 0);
-      wready         : out sl;
-      wdataH         : in  slv(31 downto 0);
-      wdataL         : in  slv(31 downto 0);
-      wlast          : in  sl;
-      wvalid         : in  sl;
-      wid            : in  slv(11 downto 0);
-      wstrb          : in  slv(7  downto 0);
-      bready         : in  sl;
-      bresp          : out slv(1  downto 0);
-      bvalid         : out sl;
-      bid            : out slv(11 downto 0)
+      axiClk         : in  std_logic;
+      slaveId        : in  std_logic_vector(7  downto 0);
+      arvalid        : in  std_logic;
+      arready        : out std_logic;
+      araddr         : in  std_logic_vector(31 downto 0);
+      arid           : in  std_logic_vector(11 downto 0);
+      arlen          : in  std_logic_vector(3  downto 0);
+      arsize         : in  std_logic_vector(2  downto 0);
+      arburst        : in  std_logic_vector(1  downto 0);
+      arlock         : in  std_logic_vector(1  downto 0);
+      arprot         : in  std_logic_vector(2  downto 0);
+      arcache        : in  std_logic_vector(3  downto 0);
+      rready         : in  std_logic;
+      rdataH         : out std_logic_vector(31 downto 0);
+      rdataL         : out std_logic_vector(31 downto 0);
+      rlast          : out std_logic;
+      rvalid         : out std_logic;
+      rid            : out std_logic_vector(11 downto 0);
+      rresp          : out std_logic_vector(1  downto 0);
+      awvalid        : in  std_logic;
+      awready        : out std_logic;
+      awaddr         : in  std_logic_vector(31 downto 0);
+      awid           : in  std_logic_vector(11 downto 0);
+      awlen          : in  std_logic_vector(3  downto 0);
+      awsize         : in  std_logic_vector(2  downto 0);
+      awburst        : in  std_logic_vector(1  downto 0);
+      awlock         : in  std_logic_vector(1  downto 0);
+      awcache        : in  std_logic_vector(3  downto 0);
+      awprot         : in  std_logic_vector(2  downto 0);
+      wready         : out std_logic;
+      wdataH         : in  std_logic_vector(31 downto 0);
+      wdataL         : in  std_logic_vector(31 downto 0);
+      wlast          : in  std_logic;
+      wvalid         : in  std_logic;
+      wid            : in  std_logic_vector(11 downto 0);
+      wstrb          : in  std_logic_vector(7  downto 0);
+      bready         : in  std_logic;
+      bresp          : out std_logic_vector(1  downto 0);
+      bvalid         : out std_logic;
+      bid            : out std_logic_vector(11 downto 0)
    );
 end AxiSimSlave;
 
 -- Define architecture
 architecture AxiSimSlave of AxiSimSlave is
    Attribute FOREIGN of AxiSimSlave: architecture is 
-      "vhpi:SimSw_lib:AxiSimSlaveElab:AxiSimSlaveInit:AxiSimSlave";
+      "vhpi:SimSw_lib:VhpiGenericElab:AxiSimSlaveInit:AxiSimSlave";
 begin
 end AxiSimSlave;
 

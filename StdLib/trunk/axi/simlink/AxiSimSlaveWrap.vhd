@@ -11,7 +11,7 @@ use work.AxiPkg.all;
 
 entity AxiSimSlaveWrap is
    generic (
-      TPD_G      : time                   := 1 ns:
+      TPD_G      : time                   := 1 ns;
       SLAVE_ID_G : integer range 0 to 255 := 0
    );
    port (
@@ -35,7 +35,7 @@ begin
 
    slaveId <= conv_std_logic_vector(SLAVE_ID_G,8);
 
-   U_AxiSlave : AxiSimSlave
+   U_AxiSlave : entity work.AxiSimSlave
       port map (
          axiClk          => axiClk,
          slaveId         => slaveId,

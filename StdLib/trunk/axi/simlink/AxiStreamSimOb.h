@@ -28,9 +28,6 @@ typedef struct {
   
 } AxiStreamSimObData;
 
-// Elab function
-void AxiStreamSimObElab(vhpiHandleT compInst);
-
 // Init function
 void AxiStreamSimObInit(vhpiHandleT compInst);
 

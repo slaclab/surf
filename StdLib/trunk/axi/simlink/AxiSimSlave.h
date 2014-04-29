@@ -60,9 +60,6 @@ typedef struct {
 
 } AxiSimSlaveData;
 
-// Elab function
-void AxiSimSlaveElab(vhpiHandleT compInst);
-
 // Init function
 void AxiSimSlaveInit(vhpiHandleT compInst);
 
