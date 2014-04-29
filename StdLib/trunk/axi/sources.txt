@@ -1,3 +1,4 @@
+vhdl work rtl/AxiPkg.vhd
 vhdl work rtl/AxiLitePkg.vhd
 vhdl work rtl/AxiLiteCrossbar.vhd
 vhdl work rtl/AxiVersion.vhd
