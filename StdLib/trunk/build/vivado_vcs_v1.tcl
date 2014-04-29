@@ -29,7 +29,8 @@ BuildIpCores
 ########################################################
 ## Compile the libraries for VCS
 ########################################################
-compile_simlib -simulator vcs_mx -library unisim -library simprim -library axi_bfm -directory ${OUT_DIR}/vcs_library
+set simLibOutDir ${OUT_DIR}/vcs_library
+compile_simlib -simulator vcs_mx -library unisim -library simprim -library axi_bfm -directory ${simLibOutDir}
 
 ########################################################
 ## Enable the LIBRARY_SCAN parameter 
@@ -62,28 +63,55 @@ file rename -force ${OUT_DIR}/vcs_library/synopsys_sim.temp ${OUT_DIR}/vcs_libra
 
 ########################################################
 ## Generate the VCS simulation scripts for each testbed
+## Note:
+##    This script will automatically build the top level
+##    simulation script.  Make sure to set your desired
+##    testbed as top level either in GUI interface or 
+##    the target's project_setup.tcl script
+##
+## Example:: project_setup.tcl script:
+##    set_property top {HeartbeatTb} [get_filesets sim_1]
 ########################################################
 
 # Save the current top level simulation testbed value
-set orginalTop [get_property top [get_filesets sim_1]]
+set simTbFileName [get_property top [get_filesets sim_1]]
+set simTbOutDir ${OUT_DIR}/vcs_scripts/${simTbFileName}
 
-# Create a VCS script with each testbed
-foreach SimTbPntr [get_files *Tb.vhd] {
-   set simTbFileName [string trimright [file tail ${SimTbPntr}] {.vhd}]
-   set_property top ${simTbFileName} [get_filesets sim_1]
-   set_property top_lib xil_defaultlib [get_filesets sim_1]
-   update_compile_order -fileset sim_1   
-   if { [export_simulation -force -simulator vcs_mx -lib_map_path ${OUT_DIR}/vcs_library/ -directory ${OUT_DIR}/vcs_scripts/${simTbFileName}/] != 0 } {
-      puts "export_simulation ERROR: ${newTop}"
-      exit -1
-   }   
+if { [export_simulation -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/] != 0 } {
+   puts "export_simulation ERROR: ${newTop}"
+   exit -1
+} 
+
+########################################################
+## Check for a simlink directory 
+########################################################
+set simTbDirName [file dirname [get_files ${simTbFileName}.vhd]]
+set simLinkDir   ${simTbDirName}/../simlink/
+if { [file isdirectory ${simLinkDir}] == 1 } {
+
+   # Create the setup environment script
+   set envScript [open ${simTbOutDir}/setup_env.csh  w]
+   puts  ${envScript} "limit stacksize 60000"
+   set LD_LIBRARY_PATH "setenv LD_LIBRARY_PATH ${simTbOutDir}:$::env(LD_LIBRARY_PATH)"
+   puts  ${envScript} ${LD_LIBRARY_PATH} 
+   close ${envScript}
+   
+   # Compile the C code
+   #
+   # Note: DSHM_ID and DSHM_NAME are defined in the .h header, not the makefile
+   #
+   set objectList ""
+   foreach simLinkSrcPntr [glob -directory ${simLinkDir} *.c] {
+      set simLinkSrcName  [string trimright [string trimright [file tail ${simLinkSrcPntr}] "c"] "."]
+      exec gcc -Wall -c -fPIC -o ${simTbOutDir}/${simLinkSrcName}.o -I$::env(VCS_HOME)/include/ ${simLinkDir}/${simLinkSrcName}.c
+      append objectList ${simTbOutDir}/${simLinkSrcName}.o " "
+   }
+   exec gcc -Wall -shared -o ${simTbOutDir}/libSimSw_lib.so ${objectList}   
 }
-
-# Reset the top level simulation testbed for GUI
-set_property top {${orginalTop}} [get_filesets sim_1]
 
 ########################################################
 ## Close the project
 ########################################################
 close_project
+
 exit 0
