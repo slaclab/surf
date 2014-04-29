@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-04-25
+-- Last update: 2014-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,17 +57,16 @@ entity AxiStreamFifo is
       slvAxiRst          : in  sl;
       slvAxiStreamMaster : in  AxiStreamMasterType;
       slvAxiStreamSlave  : out AxiStreamSlaveType;
-
+      
+      -- FIFO status & config , synchronous to slvAxiClk
+      axiFifoStatus      : out AxiStreamFifoStatusType;
+      fifoPauseThresh    : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
+      
       -- Master Port
       mstAxiClk          : in  sl;
       mstAxiRst          : in  sl;
       mstAxiStreamMaster : out AxiStreamMasterType;
-      mstAxiStreamSlave  : in  AxiStreamSlaveType;
-
-      -- FIFO status & config , synchronous to slvAxiClk
-      axiFifoStatus      : out AxiStreamFifoStatusType;
-      fifoPauseThresh    : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1')
-   );
+      mstAxiStreamSlave  : in  AxiStreamSlaveType);
 
 begin
 

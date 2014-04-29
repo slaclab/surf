@@ -34,8 +34,9 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.CmdMasterPkg.all;
 
-entity AxiStreamCmdMaster is
+entity SsiCmdMaster is
    generic (
       TPD_G : time := 1 ns;
 
@@ -52,7 +53,7 @@ entity AxiStreamCmdMaster is
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 8;
 
       -- AXI Stream Configuration
-      SLAVE_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
       );
    port (
 
@@ -68,9 +69,9 @@ entity AxiStreamCmdMaster is
       cmdRst    : in  sl;
       cmdMaster : out CmdMasterType
       );
-end AxiStreamCmdMaster;
+end SsiCmdMaster;
 
-architecture rtl of AxiStreamCmdMaster is
+architecture rtl of SsiCmdMaster is
 
    constant CMD_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
@@ -99,7 +100,7 @@ begin
    ----------------------------------
    -- Fifo
    ----------------------------------
-   AxiStreamFifo_1 : entity work.AxiStreamFifo
+    SlaveAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
          BRAM_EN_G           => BRAM_EN_G,
@@ -110,19 +111,20 @@ begin
          ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
+         FIFO_FIXED_THRESH_G => false,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => CMD_AXI_CONFIG_G)
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
-         slvAxiClk       => axiClk,
-         slvAxiRst       => axiRst,
-         slvAxisMaster   => sAxisMaster,
-         slvAxisSlave    => sAxisSlave,
-         mstAxiClk       => cmdClk,
-         mstAxiRst       => cmdRst,
-         mstAxisMaster   => fifoAxisMaster,
-         mstAxisSlave    => fifoAxisSlave);
+         slvAxiClk          => axiClk,
+         slvAxiRst          => axiRst,
+         slvAxiStreamMaster => sAxisMaster,
+         slvAxiStreamSlave  => sAxisSlave,
+         axiFifoStatus      => sAxisFifoStatus,
+         mstAxiClk          => cmdClk,
+         mstAxiRst          => cmdRst,
+         mstAxiStreamMaster => fifoAxisMaster,
+         mstAxiStreamSlave  => fifoAxisSlave);
 
 
    ----------------------------------
@@ -160,10 +162,6 @@ begin
             v.txnNumber := (others => '0');
          end if;
          
-      end if;
-
-      if (not ssiTxnIsComplaint(SLAVE_AXI_STREAM_CONFIG_G, fifoAxisMaster)) then
-         v := REG_INIT_C;
       end if;
 
       if (cmdRst = '1') then
