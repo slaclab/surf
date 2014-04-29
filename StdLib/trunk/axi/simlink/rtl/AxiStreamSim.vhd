@@ -24,7 +24,7 @@ use work.AxiStreamPkg.all;
 entity AxiStreamSim is 
    generic (
       TPD_G            : time                   := 1 ns;
-      TDATA_BYTES_G    : integer range 2 to 4;  := 2; -- 2 or 4
+      TDATA_BYTES_G    : integer range 2 to 4   := 2; -- 2 or 4
       TUSER_BITS_C     : natural;
       EOFE_TUSER_BIT_G : integer range 0 to 127 := 0
    );
