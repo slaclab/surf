@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-01-31
+-- Last update: 2014-04-29
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,11 +48,11 @@ entity Pgp2bGtx7FixedLatWrapper is
       -- MGT Configurations
       RXOUT_DIV_G          : integer              := 2;
       TXOUT_DIV_G          : integer              := 4;
-      RX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
-      TX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
-      RX_OS_CFG_G          : bit_vector           := "0000010000000";  -- Set by wizard
+      RX_CLK25_DIV_G       : integer              := 5;                      -- Set by wizard
+      TX_CLK25_DIV_G       : integer              := 5;                      -- Set by wizard
+      RX_OS_CFG_G          : bit_vector           := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G          : bit_vector           := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G         : sl                   := '0';  -- Set by wizard
+      RXDFEXYDEN_G         : sl                   := '0';                    -- Set by wizard
       RX_DFE_KL_CFG2_G     : bit_vector           := x"3008E56A";
       TX_PLL_G             : string               := "QPLL";
       RX_PLL_G             : string               := "CPLL");
@@ -77,7 +77,7 @@ entity Pgp2bGtx7FixedLatWrapper is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      axiFifoStatus    : in  AxiStreamFifoStatusArray(3 downto 0);
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
       -- GT loopback control
       loopback         : in  slv(2 downto 0);  -- GT Serial Loopback Control      
       -- GT Pins
@@ -221,11 +221,11 @@ begin
 
    txRst <= stableRst;
 
-   gtCPllRefClk  <= gtClk when((MASTER_SEL_G = true) or (TX_PLL_G = "CPLL")) else stableClock;
-   pllRefClk     <= gtClk when((MASTER_SEL_G = true) or (TX_PLL_G = "QPLL")) else stableClock;
+   gtCPllRefClk  <= gtClk    when((MASTER_SEL_G = true) or (TX_PLL_G = "CPLL")) else stableClock;
+   pllRefClk     <= gtClk    when((MASTER_SEL_G = true) or (TX_PLL_G = "QPLL")) else stableClock;
    pllLockDetClk <= stableClock;
    qPllReset     <= stableRst or gtQPllReset;
-   rxClock       <= rxRecClk when(RX_CLK_SEL_G = true) else txClock;
+   rxClock       <= rxRecClk when(RX_CLK_SEL_G = true)                          else txClock;
 
    QPllCore_1 : entity work.Gtx7QuadPll
       generic map (
@@ -299,7 +299,7 @@ begin
          -- Frame Receive Interface - 1 Lane, Array of 4 VCs
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
-         axiFifoStatus    => axiFifoStatus,
+         pgpRxCtrl        => pgpRxCtrl,
          -- GT loopback control
          loopback         => loopback);  
 end rtl;

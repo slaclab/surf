@@ -73,7 +73,7 @@ entity Pgp2bLane is
       pgpRxMasterMuxed  : out AxiStreamMasterType;
 
       -- Receive flow control
-      axiFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
+      pgpRxCtrl     : in  AxiStreamCtrlArray(3 downto 0);
 
       -- PHY interface
       phyRxLanesOut     : out PgpRxPhyLaneOutArray(0 to LANE_CNT_G-1);
@@ -115,7 +115,7 @@ begin
             pgpTxOut           => pgpTxOut,
             pgpTxMasters       => pgpTxMasters,
             pgpTxSlaves        => pgpTxSlaves,
-            locFifoStatus      => axiFifoStatus,
+            locFifoStatus      => pgpRxCtrl,
             remFifoStatus      => remFifoStatus,
             phyTxLanesOut      => phyTxLanesOut,
             phyTxReady         => phyTxReady
