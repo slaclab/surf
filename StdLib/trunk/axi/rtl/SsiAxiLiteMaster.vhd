@@ -166,7 +166,7 @@ begin
          ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => false,
+         FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
@@ -420,7 +420,7 @@ begin
          ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => false,
+         FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)

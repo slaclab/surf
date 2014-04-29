@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-04-28
+-- Last update: 2014-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,8 +28,6 @@ package SsiPkg is
 
    function ssiAxiStreamConfig (dataBytes : natural) return AxiStreamConfigType;
 
-   function ssiTxnIsComplaint (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType) return boolean;
-
    function ssiSetUserBits (axisConfig : AxiStreamConfigType; eofe : sl ) return slv;
 
    function ssiGetUserEofe (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType ) return sl;
@@ -49,15 +47,6 @@ package body SsiPkg is
       ret.TSTRB_EN_C    := false;       -- No TSTRB support in SSI
       return ret;
    end function ssiAxiStreamConfig;
-
-   function ssiTxnIsComplaint (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType) return boolean is
-   begin
-      return
-         --allBits(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0)) and  -- all expected tkeep
-         --noBits(axisMaster.tKeep(axisMaster.tKeep'high downto axisConfig.TDATA_BYTES_C)) and
-         allBits(axisMaster.tStrb(axisConfig.TDATA_BYTES_C-1 downto 0),'1') and  -- all expected tstrb
-         noBits(axisMaster.tStrb(axisMaster.tStrb'high downto axisConfig.TDATA_BYTES_C),'1');
-   end function ssiTxnIsComplaint;
 
    function ssiSetUserBits (axisConfig : AxiStreamConfigType; eofe : sl ) return slv is
       variable ret : slv(15 downto 0);
