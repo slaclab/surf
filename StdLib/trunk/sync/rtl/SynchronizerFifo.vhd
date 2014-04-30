@@ -46,13 +46,6 @@ entity SynchronizerFifo is
       rd_en  : in  sl := '1';
       valid  : out sl;
       dout   : out slv(DATA_WIDTH_G-1 downto 0));
--------------------------------------------------------------------------
--- Note: rd_clk frequency must be greater than or equal to wr_clk
---       else you will lose information due to buffer overflows
--------------------------------------------------------------------------
-begin
-   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
-      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 end SynchronizerFifo;
 
 architecture rtl of SynchronizerFifo is
@@ -60,6 +53,9 @@ architecture rtl of SynchronizerFifo is
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 
 begin
+
+   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
+      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 
    GEN_ASYNC : if (COMMON_CLK_G = false) generate
 

@@ -12,6 +12,7 @@ vhdl work sync/tb/SynchronizerFifoTb.vhd
 
 vhdl work axi/tb/AxisPrbsTb.vhd
 vhdl work axi/tb/vcs_tb.vhd
+vhdl work axi/tb/fifo_tb.vhd
 vhdl work axi/simlink/rtl/AxiSimMaster.vhd
 vhdl work axi/simlink/rtl/AxiSimMasterWrap.vhd
 vhdl work axi/simlink/rtl/AxiSimSlave.vhd

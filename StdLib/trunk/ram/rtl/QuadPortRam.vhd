@@ -58,14 +58,10 @@ entity QuadPortRam is
       rstd  : in  sl                           := not(RST_POLARITY_G);
       addrd : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutd : out slv(DATA_WIDTH_G-1 downto 0));
-begin
-   -- MODE_G check
-   assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
-      report "MODE_G must be either no-change, read-first, or write-first"
-      severity failure;
 end QuadPortRam;
 
 architecture rtl of QuadPortRam is
+
    -- Initial RAM Values
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 
@@ -88,6 +84,11 @@ architecture rtl of QuadPortRam is
    attribute syn_keep of mem : variable is "TRUE";
    
 begin
+
+   -- MODE_G check
+   assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
+      report "MODE_G must be either no-change, read-first, or write-first"
+      severity failure;
 
    -- Port A
    PORT_A_NOT_REG : if (REG_EN_G = false) generate

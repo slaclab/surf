@@ -68,15 +68,18 @@ entity Fifo is
       prog_empty    : out sl;
       almost_empty  : out sl;
       empty         : out sl);
-begin
-   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
-      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 end Fifo;
 
 architecture rtl of Fifo is
+
    constant INIT_C     : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
    signal   data_count : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+   
 begin
+
+   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
+      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
+
    NON_BUILT_IN_GEN : if (USE_BUILT_IN_G = false) generate
       FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
          FifoAsync_Inst : entity work.FifoAsync

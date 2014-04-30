@@ -34,14 +34,10 @@ entity PwrUpRst is
       arst   : in  sl := not IN_POLARITY_G;
       clk    : in  sl;
       rstOut : out sl);
-begin
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
 end PwrUpRst;
 
 architecture rtl of PwrUpRst is
+
    constant CNT_SIZE_C : natural := ite(SIM_SPEEDUP_G, 127, DURATION_G);
    signal   rstSync,
       rst : sl := OUT_POLARITY_G;
@@ -52,6 +48,11 @@ architecture rtl of PwrUpRst is
    attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
+
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
 
    RstSync_Inst : entity work.RstSync
       generic map (

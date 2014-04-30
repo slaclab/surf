@@ -35,8 +35,6 @@ entity SynchronizerEdge is
       dataOut     : out sl;                        -- synced data
       risingEdge  : out sl;                        -- Rising edge detected
       fallingEdge : out sl);                       -- Falling edge detected
-begin
-   assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
 end SynchronizerEdge;
 
 architecture rtl of SynchronizerEdge is
@@ -61,6 +59,8 @@ architecture rtl of SynchronizerEdge is
    signal syncData : sl;
    
 begin
+
+   assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
 
    Synchronizer_Inst : entity work.Synchronizer
       generic map (
