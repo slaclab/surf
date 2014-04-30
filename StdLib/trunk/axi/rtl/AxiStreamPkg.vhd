@@ -25,19 +25,19 @@ package AxiStreamPkg is
    type AxiStreamMasterType is record
       tValid : sl;
       tData  : slv(127 downto 0);
-      tStrb  : slv(15 downto 0);
-      tKeep  : slv(15 downto 0);
+      tStrb  : slv(15  downto 0);
+      tKeep  : slv(15  downto 0);
       tLast  : sl;
-      tDest  : slv(7 downto 0);
-      tId    : slv(7 downto 0);
-      tUser  : slv(15 downto 0);
+      tDest  : slv(7   downto 0);
+      tId    : slv(7   downto 0);
+      tUser  : slv(127 downto 0);
    end record AxiStreamMasterType;
 
    constant AXI_STREAM_MASTER_INIT_C : AxiStreamMasterType := (
       tValid => '0',
       tData  => (others => '0'),
-      tStrb  => (others => '1'),
-      tKeep  => (others => '1'),
+      tStrb  => (others => '0'),
+      tKeep  => (others => '0'),
       tLast  => '0',
       tDest  => (others => '0'),
       tId    => (others => '0'),
