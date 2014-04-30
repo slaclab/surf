@@ -406,7 +406,7 @@ begin
          v.rdMaster.tStrb(RD_BYTES_C-1 downto 0)     := fifoMaster.tStrb((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
          v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)     := fifoMaster.tKeep((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
 
-         v.rdMaster.tUser((RD_BYTES*USER_BITS_C)-1 downto 0) 
+         v.rdMaster.tUser((RD_BYTES_C*USER_BITS_C)-1 downto 0) 
             := fifoMaster.tUser((RD_BYTES_C*USER_BITS_C*idx)+((RD_BYTES_C*USER_BITS_C)-1) downto (RD_BYTES_C*USER_BITS_C*idx));
 
          v.rdMaster.tDest  := fifoMaster.tDest;
