@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,24 +26,54 @@ package SsiPkg is
 
    constant SSI_EOFE_C : integer := 0;
 
-   function ssiAxiStreamConfig (dataBytes : natural) return AxiStreamConfigType;
+   function ssiAxiStreamConfig (
+      dataBytes : natural) 
+      return AxiStreamConfigType;
+
+   function ssiGetUserEofe (
+      axisConfig : AxiStreamConfigType;
+      axisMaster : AxiStreamMasterType) 
+      return sl;
+   
+   procedure ssiSetUserEofe (
+      axisConfig : in    AxiStreamConfigType;
+      axisMaster : inout AxiStreamMasterType;
+      eofe       : in    sl);
 
 end package SsiPkg;
 
 package body SsiPkg is
 
-
-   function ssiAxiStreamConfig (dataBytes : natural) return AxiStreamConfigType is
+   function ssiAxiStreamConfig (
+      dataBytes : natural) 
+      return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
-      ret.TDATA_BYTES_C := dataBytes;    -- Configurable data size
-      ret.TUSER_BITS_C  := 2;            -- 2 TUSER EOFE, USER
-      ret.TDEST_BITS_C  := 4;            -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := 0;            -- TID not used
-      ret.TSTRB_EN_C    := false;        -- No TSTRB support in SSI
-      ret.TUSER_MODE_C  := TUSER_LAST_C; -- User field valid on last only
+      ret.TDATA_BYTES_C := dataBytes;     -- Configurable data size
+      ret.TUSER_BITS_C  := 2;             -- 2 TUSER EOFE, USER
+      ret.TDEST_BITS_C  := 4;             -- 4 TDEST bits for VC
+      ret.TID_BITS_C    := 0;             -- TID not used
+      ret.TSTRB_EN_C    := false;         -- No TSTRB support in SSI
+      ret.TUSER_MODE_C  := TUSER_LAST_C;  -- User field valid on last only
       return ret;
    end function ssiAxiStreamConfig;
 
-end package body SsiPkg;
+   function ssiGetUserEofe (
+      axisConfig : AxiStreamConfigType;
+      axisMaster : AxiStreamMasterType) 
+      return sl is
+      variable ret : sl;
+   begin
+      ret := axiStreamGetUserBit(axisConfig, axisMaster, SSI_EOFE_C);
+      return ret;
+   end function;
 
+   procedure ssiSetUserEofe (
+      axisConfig : in    AxiStreamConfigType;
+      axisMaster : inout AxiStreamMasterType;
+      eofe       : in    sl) is
+   begin
+      axiStreamSetUserBit(axisConfig, axisMaster, SSI_EOFE_C, eofe);
+   end procedure;
+   
+end package body SsiPkg;

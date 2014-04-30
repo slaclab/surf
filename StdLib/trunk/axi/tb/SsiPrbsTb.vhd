@@ -66,7 +66,7 @@ architecture testbed of SsiPrbsTb is
       sAxisSlave : AxiStreamSlaveType;
 
    signal mAxisCtrl : AxiStreamCtrlType;
-   signal sAxisCtrl : AxiStreamCtrlArray(0 to 1);
+   signal sAxisCtrl : AxiStreamCtrlType;
 
 begin
 
@@ -120,7 +120,7 @@ begin
 
       -- Check if we need to insert EOFE
       if (mAxisMaster.tLast = '1') then
-         master.tUser := ssiSetUserBits(AXI_STREAM_CONFIG_C,ADD_EOFE_C);
+         ssiSetUserEofe(AXI_STREAM_CONFIG_C,master,ADD_EOFE_C);
       else
          master.tUser := (others => '0');
       end if;
