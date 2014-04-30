@@ -21,13 +21,16 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
+use work.SsiPkg.all;
 
 entity AxisPrbsRx is
    generic (
       -- General Configurations
       TPD_G               : time                       := 1 ns;
       EOFE_G              : natural                    := 0;
+      AXI_ERROR_RESP_G    : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -79,8 +82,7 @@ architecture rtl of AxisPrbsRx is
    
    type StateType is (
       IDLE_S,
-      UPPER_S,
-      LOWER_S,
+      LENGTH_S,
       DATA_S,
       BIT_ERR_S,
       SEND_RESULT_S);   
@@ -114,7 +116,7 @@ architecture rtl of AxisPrbsRx is
    
    constant REG_INIT_C : RegType := (
       '1',
-      toSlv(3, 32),
+      toSlv(2, 32),
       '0',
       '0',
       '0',
@@ -123,6 +125,7 @@ architecture rtl of AxisPrbsRx is
       '0',
       '0',
       '0',
+      (others => '0'),
       (others => '0'),
       (others => '0'),
       (others => '0'),
@@ -174,7 +177,11 @@ architecture rtl of AxisPrbsRx is
    signal overflow,
       pause : slv(1 downto 0);
    signal cntOut : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
-   signal pause1Cnt,
+   signal packetLengthSync,
+      packetRateSync,
+      errbitCntSync,
+      errWordCntSync,
+      pause1Cnt,
       overflow1Cnt,
       pause0Cnt,
       overflow0Cnt,
@@ -183,7 +190,7 @@ architecture rtl of AxisPrbsRx is
       errDataBusCnt,
       errEofeCnt,
       errLengthCnt,
-      errMissedPacketCnt : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+      errMissedPacketCnt : slv(31 downto 0);
    
 begin
 
@@ -270,14 +277,14 @@ begin
                v.eof             := '0';
                v.eofe            := '0';
                -- Check if we have missed a packet 
-               if rxAxisMaster.data(31 downto 0) /= r.eventCnt then
+               if rxAxisMaster.tData(31 downto 0) /= r.eventCnt then
                   -- Set the error flag
                   v.errMissedPacket := '1';
                end if;
                -- Align the event counter to the next packet
-               v.eventCnt   := rxAxisMaster.data(31 downto 0) + 1;
+               v.eventCnt   := rxAxisMaster.tData(31 downto 0) + 1;
                -- Latch the SEED for the randomization
-               v.randomData := rxAxisMaster.data(31 downto 0);
+               v.randomData := rxAxisMaster.tData(31 downto 0);
                -- Check for a data bus error
                for i in 0 to (AXI_STREAM_CONFIG_G.TDATA_BYTES_C/4)-1 loop
                   if rxAxisMaster.tData(31 downto 0) /= rxAxisMaster.tData(i*32+31 downto i*32) then
@@ -394,18 +401,17 @@ begin
             -- Check the upstream buffer status
             if txAxisSlave.tReady = '1' then
                -- Sending Data 
-               v.txAxisMaster.valid := '1';
+               v.txAxisMaster.tValid := '1';
                -- Increment the data counter
-               v.txCnt        := r.txCnt + 1;
+               v.txCnt               := r.txCnt + 1;
                -- Send data w.r.t. the counter
                case (r.txCnt) is
                   when x"0" =>
                      -- Update strobe for the results
-                     v.updatedResults            := '1';
+                     v.updatedResults                   := '1';
                      -- Write the data to the TX virtual channel
                      v.txAxisMaster.tData(31 downto 16) := x"FFFF";  -- static pattern for software alignment
-                     v.txAxisMaster.tData(15 downto 8)  := toSlv(LANE_NUMBER_G, 8);  -- pointer to the Virtual Channel
-                     v.txAxisMaster.tData(7 downto 0)   := toSlv(VC_NUMBER_G, 8);  -- pointer to the Virtual Channel
+                     v.txAxisMaster.tData(15 downto 0)  := (others => '0');
                   when x"1" =>
                      v.txAxisMaster.tData(31 downto 0) := r.packetLength;
                   when x"2" =>
@@ -416,20 +422,20 @@ begin
                      v.txAxisMaster.tData(31 downto 0) := r.errbitCnt;
                   when others =>
                      -- Reset the counter
-                     v.txCnt                    := (others => '0');
+                     v.txCnt                           := (others => '0');
                      -- Send the last word
-                     v.txAxisMaster.tLast               := '1';
+                     v.txAxisMaster.tLast              := '1';
                      v.txAxisMaster.tData(31 downto 4) := (others => '0');
                      v.txAxisMaster.tData(3)           := r.errDataBus;
                      v.txAxisMaster.tData(2)           := r.eofe;
                      v.txAxisMaster.tData(1)           := r.errLength;
                      v.txAxisMaster.tData(0)           := r.errMissedPacket;
                      -- Ready to receive data
-                     v.rxAxisSlave.tReady       := '1';
+                     v.rxAxisSlave.tReady              := '1';
                      -- Reset the busy flag
-                     v.busy                     := '0';
+                     v.busy                            := '0';
                      -- Next State
-                     v.state                    := IDLE_S;
+                     v.state                           := IDLE_S;
                end case;
             end if;
       ----------------------------------------------------------------------
@@ -466,7 +472,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_Rx : entity work.AxiStreamFifo
+   AxiStreamFifo_Tx : entity work.AxiStreamFifo
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -502,7 +508,7 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
       port map (
-         wr_en  => updatedResults,
+         wr_en  => r.updatedResults,
          wr_clk => sAxisClk,
          din    => r.packetLength,
          rd_clk => axiClk,
@@ -513,7 +519,7 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
       port map (
-         wr_en  => updatedResults,
+         wr_en  => r.updatedResults,
          wr_clk => sAxisClk,
          din    => r.packetRate,
          rd_clk => axiClk,
@@ -524,7 +530,7 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
       port map (
-         wr_en  => updatedResults,
+         wr_en  => r.updatedResults,
          wr_clk => sAxisClk,
          din    => r.errbitCnt,
          rd_clk => axiClk,
@@ -535,7 +541,7 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
       port map (
-         wr_en  => updatedResults,
+         wr_en  => r.updatedResults,
          wr_clk => sAxisClk,
          din    => r.errWordCnt,
          rd_clk => axiClk,
@@ -558,7 +564,7 @@ begin
          statusIn(5)  => r.errBitStrb,
          statusIn(4)  => r.errWordStrb,
          statusIn(3)  => r.errDataBus,
-         statusIn(2)  => r.errEofe,
+         statusIn(2)  => r.eofe,
          statusIn(1)  => r.errLength,
          statusIn(0)  => r.errMissedPacket,
          -- Output Status bit Signals (rdClk domain) 
@@ -594,11 +600,12 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, errBitStrbCnt, errBitStrbSync,
+   combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errBitStrbCnt, errBitStrbSync,
                    errDataBusCnt, errDataBusSync, errEofeCnt, errEofeSync, errLengthCnt,
-                   errLengthSync, errMissedPacketCnt, errMissedPacketSync, errWordStrbCnt,
-                   errWordStrbSync, overflow, overflow0Cnt, overflow1Cnt, pause, pause0Cnt,
-                   pause1Cnt, rAxiLite) is
+                   errLengthSync, errMissedPacketCnt, errMissedPacketSync, errWordCntSync,
+                   errWordStrbCnt, errWordStrbSync, errbitCntSync, overflow, overflow0Cnt,
+                   overflow1Cnt, packetLengthSync, packetRateSync, pause, pause0Cnt, pause1Cnt,
+                   rAxiLite) is
       variable v            : LocRegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -695,13 +702,13 @@ begin
       axiReadSlave  <= rAxiLite.axiReadSlave;
       axiWriteSlave <= rAxiLite.axiWriteSlave;
       
-   end process comb;
+   end process combAxiLite;
 
-   seq : process (axiClk) is
+   seqAxiLite : process (axiClk) is
    begin
       if rising_edge(axiClk) then
          rAxiLite <= rinAxiLite after TPD_G;
       end if;
-   end process seq;
+   end process seqAxiLite;
 
 end rtl;
