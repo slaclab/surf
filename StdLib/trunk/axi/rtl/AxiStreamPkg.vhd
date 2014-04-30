@@ -202,8 +202,8 @@ package body AxiStreamPkg is
          pos := bytePos;
       end if;
 
-      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos)))(bitPos) := bitValue;
-
+      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos) + bitPos) := bitValue;
+      
    end procedure;
 
 end package body AxiStreamPkg;

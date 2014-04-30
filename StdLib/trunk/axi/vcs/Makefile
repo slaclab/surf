@@ -1,5 +1,5 @@
-#TOP=vcs_tb
-TOP=fifo_tb
+TOP=vcs_tb
+#TOP=fifo_tb
 
 # Set Default Output
 SIM_DIR=$(PWD)/out
@@ -39,13 +39,14 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
-#	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiAxiLiteMaster.vhd
-#	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiCmdMaster.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiAxiLiteMaster.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiCmdMaster.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiStreamSimIb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiStreamSimOb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiStreamSim.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/rtl/Pgp2bPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/simlink/rtl//PgpSimModel.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/vcs_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/fifo_tb.vhd
 
 # VHPI Library

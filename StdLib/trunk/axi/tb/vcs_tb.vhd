@@ -30,7 +30,8 @@ architecture vcs_tb of vcs_tb is
    signal axiReadSlave      : AxiLiteReadSlaveType;
    signal writeRegister     : Slv32Array(1 downto 0);
    signal readRegister      : Slv32Array(1 downto 0);
-   --signal cmdMasterOut      : Vc64CmdMasterOutType;
+   signal cmdMaster         : CmdMasterType;
+   signal pgpRxCtrl         : AxiStreamCtrlArray(3 downto 0);
 
 begin
 
@@ -63,7 +64,7 @@ begin
    end process;
 
 
-   U_PgpSimModel : entity work.PgpSimModel
+   U_PgpSimMode : entity work.PgpSimModel
       generic map (
          TPD_G             => 1 ns
       ) port map ( 
@@ -78,43 +79,46 @@ begin
          pgpRxIn           => PGP_RX_IN_INIT_C,
          pgpRxOut          => open,
          pgpRxMasters      => pgpRxMasters,
-         pgpRxMasterMuxed  => open
+         pgpRxMasterMuxed  => open,
+         pgpRxCtrl         => pgpRxCtrl
       );
 
    pgpTxMasters(0)          <= AXI_STREAM_MASTER_INIT_C;
    pgpTxMasters(3 downto 2) <= (others=>AXI_STREAM_MASTER_INIT_C);
    pgpRxSlaves(3 downto 2)  <= (others=>AXI_STREAM_SLAVE_INIT_C);
+   pgpRxCtrl(3 downto 2)    <= (others=>AXI_STREAM_CTRL_INIT_C);
 
---   U_Vc64AxiMaster : entity work.Vc64AxiMaster
---      generic map (
---         TPD_G              => 1 ns,
---         XIL_DEVICE_G       => "7SERIES",
---         USE_BUILT_IN_G     => true,
---         ALTERA_SYN_G       => false,
---         ALTERA_RAM_G       => "M9K",
---         BRAM_EN_G          => true,
---         GEN_SYNC_FIFO_G    => false,
---         FIFO_SYNC_STAGES_G => 3,
---         FIFO_ADDR_WIDTH_G  => 9,
---         FIFO_AFULL_THRES_G => 255,
---         LITTLE_ENDIAN_G    => true,
---         VC_WIDTH_G         => 16
---      ) port map (
---         vcRxData        => pgpRxVcData(1),
---         vcRxCtrl        => pgpRxVcCtrl(1),
---         vcRxClk         => pgpClk,
---         vcRxRst         => pgpClkRst,
---         vcTxData        => pgpTxVcData(1),
---         vcTxCtrl        => pgpTxVcCtrl(1),
---         vcTxClk         => pgpClk,
---         vcTxRst         => pgpClkRst,
---         axiClk          => axiClk,
---         axiClkRst       => axiClkRst,
---         axiWriteMaster  => axiWriteMaster,
---         axiWriteSlave   => axiWriteSlave,
---         axiReadMaster   => axiReadMaster,
---         axiReadSlave    => axiReadSlave
---      );
+
+   U_AxiLiteMaster : entity work.SsiAxiLiteMaster 
+      generic map (
+         TPD_G               => 1 ns,
+         XIL_DEVICE_G        => "7SERIES",
+         USE_BUILT_IN_G      => true,
+         ALTERA_SYN_G        => false,
+         ALTERA_RAM_G        => "M9K",
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         CASCADE_SIZE_G      => 1,
+         FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_PAUSE_THRES_G  => 255,
+         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_G
+      ) port map (
+         sAxisClk             => pgpClk,
+         sAxisRst             => pgpClkRst,
+         sAxisMaster          => pgpRxMasters(1),
+         sAxisSlave           => open,
+         sAxisCtrl            => pgpRxCtrl(1),
+         mAxisClk             => pgpClk,
+         mAxisRst             => pgpClkRst,
+         mAxisMaster          => pgpTxMasters(1),
+         mAxisSlave           => pgpTxSlaves(1),
+         axiLiteClk           => axiClk,
+         axiLiteRst           => axiClkRst,
+         mAxiLiteWriteMaster  => axiWriteMaster,
+         mAxiLiteWriteSlave   => axiWriteSlave,
+         mAxiLiteReadMaster   => axiReadMaster,
+         mAxiLiteReadSlave    => axiReadSlave
+      );
 
    U_AxiLiteEmpty : entity work.AxiLiteEmpty 
       generic map (
@@ -135,29 +139,29 @@ begin
       readRegister(0) <= x"deadbeef";
       readRegister(1) <= x"44444444";
 
---   U_Vc64CmdMaster : entity work.Vc64CmdMaster
---      generic map (
---         TPD_G              => 1 ns,
---         XIL_DEVICE_G       => "7SERIES",
---         USE_BUILT_IN_G     => true,
---         ALTERA_SYN_G       => false,
---         ALTERA_RAM_G       => "M9K",
---         BRAM_EN_G          => true,
---         GEN_SYNC_FIFO_G    => false,
---         FIFO_SYNC_STAGES_G => 3,
---         FIFO_ADDR_WIDTH_G  => 9,
---         FIFO_AFULL_THRES_G => 255,
---         LITTLE_ENDIAN_G    => true,
---         VC_WIDTH_G         => 16
---      ) port map (
---         vcRxData        => pgpRxVcData(0),
---         vcRxCtrl        => pgpRxVcCtrl(0),
---         vcRxClk         => pgpClk,
---         vcRxRst         => pgpClkRst,
---         cmdClk          => axiClk,
---         cmdClkRst       => axiClkRst,
---         cmdMasterOut    => cmdMasterOut
---      );
+   U_CmdMaster : entity work.SsiCmdMaster 
+      generic map (
+         TPD_G               => 1 ns,
+         XIL_DEVICE_G        => "7SERIES",
+         USE_BUILT_IN_G      => true,
+         ALTERA_SYN_G        => false,
+         ALTERA_RAM_G        => "M9K",
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         CASCADE_SIZE_G      => 1,
+         FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_PAUSE_THRES_G  => 255,
+         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_G
+      ) port map (
+         axisClk       => pgpClk,
+         axisRst       => pgpClkRst,
+         sAxisMaster   => pgpRxMasters(0),
+         sAxisSlave    => open,
+         sAxisCtrl     => pgpRxCtrl(0),
+         cmdClk        => axiClk,
+         cmdClkRst     => axiClkRst,
+         cmdMaster     => cmdMaster
+      );
 
 end vcs_tb;
 
