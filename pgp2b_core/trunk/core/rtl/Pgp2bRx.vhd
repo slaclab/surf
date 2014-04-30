@@ -90,8 +90,6 @@ architecture Pgp2bRx of Pgp2bRx is
    signal pause            : slv(3 downto 0);
    signal overflow         : slv(3 downto 0);
 
-   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
-
 begin
 
    -- Link Ready
@@ -187,6 +185,7 @@ begin
 
    -- Generate valid/vc
    ValidRx: process (intRxVcReady, intRxEof, intRxEofe, intRxData, pause, overflow ) is
+      variable intMaster : AxiStreamMasterType;
    begin
 
       for i in 0 to 3 loop
@@ -195,33 +194,37 @@ begin
          remFifoStatus(i).pause    <= pause(i);
       end loop;
 
-      pgpRxMaster <= AXI_STREAM_MASTER_INIT_C;
+      intMaster := AXI_STREAM_MASTER_INIT_C;
 
-      pgpRxMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) <= intRxData;
-      pgpRxMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      <= (others=>'1');
-      pgpRxMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      <= (others=>'1');
+      intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
+      intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
+      intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
 
-      pgpRxMaster.tLast <= intRxEof;
-      pgpRxMaster.tUser <= ssiSetUserBits(SSI_CONFIG_C,intRxEofe);
+      intMaster.tLast := intRxEof;
+
+      axiStreamSetUserBit(SSI_PGP_CONFIG_G,intMaster,SSI_EOFE_C,intRxEofe);
 
       -- Generate valid and dest values
       case intRxVcReady is 
          when "0001" =>
-            pgpRxMaster.tValid            <= '1';
-            pgpRxMaster.tDest(3 downto 0) <= "0000";
+            intMaster.tValid            := '1';
+            intMaster.tDest(3 downto 0) := "0000";
          when "0010" =>
-            pgpRxMaster.tValid            <= '1';
-            pgpRxMaster.tDest(3 downto 0) <= "0001";
+            intMaster.tValid            := '1';
+            intMaster.tDest(3 downto 0) := "0001";
          when "0100" =>
-            pgpRxMaster.tValid            <= '1';
-            pgpRxMaster.tDest(3 downto 0) <= "0010";
+            intMaster.tValid            := '1';
+            intMaster.tDest(3 downto 0) := "0010";
          when "1000" =>
-            pgpRxMaster.tValid            <= '1';
-            pgpRxMaster.tDest(3 downto 0) <= "0011";
+            intMaster.tValid            := '1';
+            intMaster.tDest(3 downto 0) := "0011";
          when others =>
-            pgpRxMaster.tValid            <= '0';
-            pgpRxMaster.tDest(3 downto 0) <= "0000";
+            intMaster.tValid            := '0';
+            intMaster.tDest(3 downto 0) := "0000";
       end case;
+
+      pgpRxMaster <= intMaster;
+
    end process;
 
 

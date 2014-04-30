@@ -51,8 +51,8 @@ entity Pgp2bTx is
       -- VC Interface
       pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0);
       pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
-      locFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
-      remFifoStatus     : in  AxiStreamFifoStatusArray(3 downto 0);
+      locFifoStatus     : in  AxiStreamCtrlArray(3 downto 0);
+      remFifoStatus     : in  AxiStreamCtrlArray(3 downto 0);
 
       -- Phy interface
       phyTxLanesOut     : out PgpTxPhyLaneOutArray(0 to TX_LANE_CNT_G-1);
@@ -98,8 +98,6 @@ architecture Pgp2bTx of Pgp2bTx is
    signal syncLocPause     : slv(3 downto 0);
    signal syncLocOverFlow  : slv(3 downto 0);
    signal syncRemPause     : slv(3 downto 0);
-
-   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
 
 begin
 
@@ -250,7 +248,7 @@ begin
    U_Vc_Gen: for i in 0 to 3 generate
       intReady(i)           <= rawReady(i) and (not syncRemPause(i));
       intValid(i)           <= pgpTxMasters(i).tValid and (not syncRemPause(i));
-      intTxEofe(i)          <= ssiGetUserEofe (SSI_CONFIG_C, pgpTxMasters(i));
+      intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP_CONFIG_G,pgpTxMasters(i),SSI_EOFE_C);
       pgpTxSlaves(i).tReady <= intReady(i);
    end generate;
 

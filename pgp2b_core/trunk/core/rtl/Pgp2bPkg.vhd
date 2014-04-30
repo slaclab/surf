@@ -24,14 +24,14 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 package Pgp2bPkg is
 
    -----------------------------------------------------
    -- Constants
    -----------------------------------------------------
-   constant SSI_PGP_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(dataByes => 2);
-   
+   constant SSI_PGP_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(2);
 
    -- 8B10B Characters
    constant K_COM_C  : slv(7 downto 0) := "10111100"; -- K28.5, 0xBC
