@@ -49,7 +49,7 @@ entity SsiPrbsRx is
       sAxisRst        : in  sl                     := '0';
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
-      sAxisCtrl       : out AxiStreamCtrlArray(0 to 1);
+      sAxisCtrl       : out AxiStreamCtrlType;
       -- Optional: Streaming TX Data Interface (mAxisClk domain)
       mAxisClk        : in  sl;         -- Note: a clock must always be applied to this port
       mAxisRst        : in  sl                     := '0';
@@ -194,7 +194,7 @@ architecture rtl of SsiPrbsRx is
    
 begin
 
-   sAxisCtrl <= axisCtrl;
+   sAxisCtrl <= axisCtrl(0);
 
    AxiStreamFifo_Rx : entity work.AxiStreamFifo
       generic map(
@@ -504,50 +504,23 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave); 
 
-   SyncIn_0 : entity work.SynchronizerFifo
+   SyncFifo_Inst : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)
+         DATA_WIDTH_G => 128)
       port map (
-         wr_en  => r.updatedResults,
-         wr_clk => sAxisClk,
-         din    => r.packetLength,
-         rd_clk => axiClk,
-         dout   => packetLengthSync); 
-
-   SyncIn_1 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)
-      port map (
-         wr_en  => r.updatedResults,
-         wr_clk => sAxisClk,
-         din    => r.packetRate,
-         rd_clk => axiClk,
-         dout   => packetRateSync);   
-
-   SyncIn_2 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)
-      port map (
-         wr_en  => r.updatedResults,
-         wr_clk => sAxisClk,
-         din    => r.errbitCnt,
-         rd_clk => axiClk,
-         dout   => errbitCntSync);   
-
-   SyncIn_3 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)
-      port map (
-         wr_en  => r.updatedResults,
-         wr_clk => sAxisClk,
-         din    => r.errWordCnt,
-         rd_clk => axiClk,
-         dout   => errWordCntSync);            
-
+         wr_en               => r.updatedResults,
+         wr_clk              => sAxisClk,
+         din(31 downto 0)    => r.packetLength,
+         din(63 downto 32)   => r.packetRate,
+         din(95 downto 64)   => r.errbitCnt,
+         din(127 downto 96)  => r.errWordCnt,
+         rd_clk              => axiClk,
+         dout(31 downto 0)   => packetLengthSync,
+         dout(63 downto 32)  => packetRateSync,
+         dout(95 downto 64)  => errbitCntSync,
+         dout(127 downto 96) => errWordCntSync); 
+   
    SyncStatusVec_Inst : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,

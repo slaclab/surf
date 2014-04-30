@@ -5,7 +5,7 @@
 -- File       : SsiAxiLiteMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
          ALTERA_RAM_G        => ALTERA_RAM_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
+         CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -186,7 +186,7 @@ begin
    -- Master State Machine
    -------------------------------------
 
-   comb : process (axiLiteRst, axiReadSlave, axiWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
+   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
       variable v : RegType;
    begin
       v := r;
@@ -213,8 +213,8 @@ begin
             v.sFifoAxisSlave.tReady := '0';
 
             -- Frame is starting
-            if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '0' and mFifoAxisCtrl.almostFull = '0' then
-               v.mFifoAxisMaster.tValid <= '1';  -- Echo word 0
+            if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '0' and mFifoAxisCtrl.pause = '0' then
+               v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
                v.state                  := S_ADDR_C;
             end if;
 
@@ -272,16 +272,16 @@ begin
             v.timer := r.timer - 1;
 
             -- Clear control signals on ack
-            if axiWriteSlave.awready = '1' then
+            if mAxiLiteWriteSlave.awready = '1' then
                v.mAxiLiteWriteMaster.awvalid := '0';
             end if;
-            if axiWriteSlave.wready = '1' then
+            if mAxiLiteWriteSlave.wready = '1' then
                v.mAxiLiteWriteMaster.wvalid := '0';
             end if;
-            if axiWriteSlave.bvalid = '1' then
+            if mAxiLiteWriteSlave.bvalid = '1' then
                v.mAxiLiteWriteMaster.bready := '0';
 
-               if axiWriteSlave.bresp /= AXI_RESP_OK_C then
+               if mAxiLiteWriteSlave.bresp /= AXI_RESP_OK_C then
                   v.fail := '1';
                end if;
             end if;
@@ -310,7 +310,7 @@ begin
 
             -- Don't read if EOF (need for dump later)
             if sFifoAxisMaster.tValid = '1' then
-               v.mFifoAxisMaster.tReady := not sFifoAxisMaster.tLast;
+               v.sFifoAxisSlave.tReady := not sFifoAxisMaster.tLast;
                v.state                  := S_READ_C;
             end if;
 
@@ -330,14 +330,14 @@ begin
             v.timer := r.timer - 1;
 
             -- Clear control signals on ack
-            if axiReadSlave.arready = '1' then
+            if mAxiLiteReadSlave.arready = '1' then
                v.mAxiLiteReadMaster.arvalid := '0';
             end if;
-            if axiReadSlave.rvalid = '1' then
+            if mAxiLiteReadSlave.rvalid = '1' then
                v.mAxiLiteReadMaster.rready          := '0';
-               v.mFifoAxisMaster.tData(31 downto 0) := axiReadSlave.rdata;
+               v.mFifoAxisMaster.tData(31 downto 0) := mAxiLiteReadSlave.rdata;
 
-               if axiReadSlave.rresp /= AXI_RESP_OK_C then
+               if mAxiLiteReadSlave.rresp /= AXI_RESP_OK_C then
                   v.fail := '1';
                end if;
             end if;
@@ -391,7 +391,7 @@ begin
       rin <= v;
 
       mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
-      mAxiReadMaster      <= r.mAxiLiteReadMaster;
+      mAxiLiteReadMaster      <= r.mAxiLiteReadMaster;
       sFifoAxisSlave      <= r.sFifoAxisSlave;
       mFifoAxisMaster     <= r.mFifoAxisMaster;
 
@@ -417,20 +417,20 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
          ALTERA_RAM_G        => ALTERA_RAM_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
+         CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
-         sAxiClk     => axiLiteClk,
-         sAxiRst     => axiLiteRst,
+         sAxisClk     => axiLiteClk,
+         sAxisRst     => axiLiteRst,
          sAxisMaster => mFifoAxisMaster,
          sAxisSlave  => mFifoAxisSlave,
          sAxisCtrl   => mFifoAxisCtrl,
-         mAxiClk     => mAxisClk,
-         mAxiRst     => mAxisRst,
+         mAxisClk     => mAxisClk,
+         mAxisRst     => mAxisRst,
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 

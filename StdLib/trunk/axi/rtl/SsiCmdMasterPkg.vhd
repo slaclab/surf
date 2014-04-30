@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ package SsiCmdMasterPkg is
 
    type SsiCmdMasterArray is array (natural range <>) of SsiCmdMasterType;
 
-   constant CMD_MASTER_INIT_C : SsiCmdMasterType := (
+   constant SSI_CMD_MASTER_INIT_C : SsiCmdMasterType := (
       valid   => '0',
       opCode  => (others => '0'),
       context => (others => '0'));
