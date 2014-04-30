@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxisPrbsTx.vhd
+-- File       : SsiPrbsTx.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
@@ -22,8 +22,9 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
-entity AxisPrbsTx is
+entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G               : time                       := 1 ns;
@@ -38,7 +39,7 @@ entity AxisPrbsTx is
       FIFO_ADDR_WIDTH_G   : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G : natural range 1 to (2**24) := 2**8;
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C);      
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16));      
    port (
       -- Master Port (mAxisClk)
       mAxisSlave   : in  AxiStreamSlaveType;
@@ -54,9 +55,9 @@ entity AxisPrbsTx is
       sAxisCtrl    : out AxiStreamCtrlType;
       locClk       : in  sl;
       locRst       : in  sl := '0');
-end AxisPrbsTx;
+end SsiPrbsTx;
 
-architecture rtl of AxisPrbsTx is
+architecture rtl of SsiPrbsTx is
 
    constant TAP_C : NaturalArray(0 to 0) := (others => 16);
    

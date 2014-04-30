@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxisPrbsTb.vhd
+-- File       : SsiPrbsTb.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-29
@@ -21,10 +21,11 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
-entity AxisPrbsTb is end AxisPrbsTb;
+entity SsiPrbsTb is end SsiPrbsTb;
 
-architecture testbed of AxisPrbsTb is
+architecture testbed of SsiPrbsTb is
 
    -- Constants
    constant CLK_PERIOD_C       : time             := 10 ns;
@@ -37,8 +38,10 @@ architecture testbed of AxisPrbsTb is
 
    constant USE_BUILT_IN_C  : boolean := false;
    constant GEN_SYNC_FIFO_C : boolean := false;
+   
+   constant NUMBER_WORDS_C : positive range 1 to 4 := 4;
 
-   constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+   constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(NUMBER_WORDS_C*4);
 
    -- Signals
    signal clk,
@@ -82,7 +85,7 @@ begin
          rstL => open); 
 
    -- VcPrbsTx (VHDL module to be tested)
-   AxisPrbsTx_Inst : entity work.AxisPrbsTx
+   SsiPrbsTx_Inst : entity work.SsiPrbsTx
       generic map (
          TPD_G               => TPD_C,
          USE_BUILT_IN_G      => USE_BUILT_IN_C,
@@ -117,9 +120,9 @@ begin
 
       -- Check if we need to insert EOFE
       if (mAxisMaster.tLast = '1') then
-         master.tUser(0) := ADD_EOFE_C;
+         master.tUser := ssiSetUserBits(AXI_STREAM_CONFIG_C,ADD_EOFE_C);
       else
-         master.tUser(0) := '0';
+         master.tUser := (others => '0');
       end if;
 
       -- Check if we need to generate bit errors
@@ -148,7 +151,7 @@ begin
    end process;
 
    -- VcPrbsRx (VHDL module to be tested)
-   AxisPrbsRx_Inst : entity work.AxisPrbsRx
+   SsiPrbsRx_Inst : entity work.SsiPrbsRx
       generic map (
          TPD_G               => TPD_C,
          USE_BUILT_IN_G      => USE_BUILT_IN_C,

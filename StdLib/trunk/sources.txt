@@ -53,8 +53,6 @@ vhdl work axi/rtl/AxiLiteCrossbar.vhd
 vhdl work axi/rtl/AxiLiteEmpty.vhd
 vhdl work axi/rtl/AxiLitePkg.vhd
 vhdl work axi/rtl/AxiPkg.vhd
-vhdl work axi/rtl/AxisPrbsRx.vhd
-vhdl work axi/rtl/AxisPrbsTx.vhd
 vhdl work axi/rtl/AxiStreamDeMux.vhd
 vhdl work axi/rtl/AxiStreamFifo.vhd
 vhdl work axi/rtl/AxiStreamMux.vhd
@@ -64,3 +62,5 @@ vhdl work axi/rtl/SsiAxiLiteMaster.vhd
 vhdl work axi/rtl/SsiCmdMaster.vhd
 vhdl work axi/rtl/SsiCmdMasterPkg.vhd
 vhdl work axi/rtl/SsiPkg.vhd
+vhdl work axi/rtl/SsiPrbsRx.vhd
+vhdl work axi/rtl/SsiPrbsTx.vhd
