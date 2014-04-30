@@ -22,104 +22,106 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 04/21/2014: created.
+-- 04/30/2014: modified to go back to original Crc32Rtl names, so this module
+--             can be used as a drop-in replacement.  Updated to match group 
+--             coding conventions.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.CrcPkg.all;
 
 entity Crc32 is
    generic (
-      BYTE_WIDTH_G  : integer := 8;
-      CRC_INIT_G    : std_logic_vector(31 downto 0) := x"FFFFFFFF";
-      CRC_POLY_G    : std_logic_vector(31 downto 0) := x"04C11DB7");
+      BYTE_WIDTH_G  : integer := 4;
+      CRC_INIT_G    : slv(31 downto 0) := x"FFFFFFFF";
+      CRC_POLY_G    : slv(31 downto 0) := x"04C11DB7";
+      TPD_G         : time := 0.5 ns);
    port (
-      crcOut        :  out std_logic_vector(31 downto 0);                  -- CRC output
-      clk           : in   std_logic;                                      -- system clock
-      dataValid     : in   std_logic;                                      -- indicate that new data arrived and CRC can be computed
-      dataByteWidth : in   std_logic_vector(2 downto 0);                   -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
-      dataIn        : in   std_logic_vector((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
-      crcReset      : in   std_logic);                                     -- initializes CRC logic to CRC_INIT_G
+      crcOut        :  out slv(31 downto 0);                  -- CRC output
+      crcClk        : in   sl;                                -- system clock
+      crcDataValid  : in   sl;                                -- indicate that new data arrived and CRC can be computed
+      crcDataWidth  : in   slv(2 downto 0);                   -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
+      crcIn         : in   slv((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
+      crcReset      : in   sl);                               -- initializes CRC logic to CRC_INIT_G
 end Crc32;
 
 architecture rtl of Crc32 is
 
-   -- Local Signals
-   signal   data               : std_logic_vector((BYTE_WIDTH_G*8-1) downto 0); 
-   signal   crcReg             : std_logic_vector(31 downto 0);
-   signal   nextCrc            : std_logic_vector(31 downto 0); 
-   signal   iDataByteWidth     : integer range 0 to 7;
-   signal   iDataByteWidth_reg : integer range 0 to 7; 
-   signal   dataValid_reg      : std_logic;
+   type RegType is record
+      crc            : slv(31 downto 0);
+      data           : slv((BYTE_WIDTH_G*8-1) downto 0);
+      valid          : sl;
+      byteWidth      : slv(2 downto 0);
+   end record RegType;
+   
+   constant REG_INIT_C : RegType := (
+      crc           => CRC_INIT_G,
+      data          => (others => '0'),
+      valid         => '0',
+      byteWidth     => (others => '0')
+   );
 
-   -- Register delay for simulation
-   constant tpd : time := 0.5 ns;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
 begin
 
-   -- Convert byte width to integer, register this so it aligns with data
-   iDataByteWidth <= to_integer(unsigned(DataByteWidth));
-   process(clk) begin
-      if rising_edge(clk) then
-         iDataByteWidth_reg <= iDataByteWidth;
-      end if;
-   end process; 
-
-   -- Clock the data in.  Transpose the bit order of each byte.
-   -- For bits that are not enabled, clock in zeroes.
-   process(Clk) begin
-      if(rising_edge(Clk)) then
-         for byte in (BYTE_WIDTH_G-1) downto 0 loop
-            for b in 0 to 7 loop
-               if (iDataByteWidth >= BYTE_WIDTH_G-byte-1) then
-                  data((byte+1)*8-1-b) <= dataIn(byte*8+b);
-               else 
-                  data((byte+1)*8-1-b) <= '0';
-               end if;            
-            end loop;
-         end loop;
-         dataValid_reg <= dataValid;
-      end if;
-   end process;
-
-   -- Combinatorial process to calculate next CRC value based on current one
-   process(data,iDataByteWidth_reg,crcReg) 
-      variable crcVar  : std_logic_vector(31 downto 0);
-      variable byteXor : std_logic_vector(7 downto 0);
+   comb : process(crcIn,crcDataWidth,crcReset,r)
+      variable v       : RegType;
+      variable byteXor : slv(7 downto 0);
    begin
-      crcVar := crcReg;
+      v := r;
 
+      v.byteWidth := crcDataWidth;
+      v.valid     := crcDataValid;
+      byteXor     := (others => '0');
+      
+      -- Transpose the input data
+      for byte in (BYTE_WIDTH_G-1) downto 0 loop
+         for b in 0 to 7 loop
+            if (crcDataWidth >= BYTE_WIDTH_G-byte-1) then
+               v.data((byte+1)*8-1-b) := crcIn(byte*8+b);
+            else 
+               v.data((byte+1)*8-1-b) := '0';
+            end if;            
+         end loop;
+      end loop;
+
+      -- Calculate CRC byte-by-byte
       for byte in BYTE_WIDTH_G-1 downto 0 loop  
-         if (iDataByteWidth_reg >= BYTE_WIDTH_G-byte-1) then
-            byteXor := crcVar(31 downto 24) xor data( (byte+1)*8-1 downto byte*8); 
-            crcVar  := (crcVar(23 downto 0) & x"00") xor  crcByteLookup(byteXor,CRC_POLY_G);
+         if (r.valid = '1') then
+            if (r.byteWidth >= BYTE_WIDTH_G-byte-1) then
+               byteXor := v.crc(31 downto 24) xor r.data( (byte+1)*8-1 downto byte*8); 
+               v.crc   := (v.crc(23 downto 0) & x"00") xor crcByteLookup(byteXor,CRC_POLY_G);
+            end if;
          end if;
       end loop;
       
-      nextCrc <= crcVar;         
+      rin <= v;
+
+      -- Transpose each byte in the data out and invert
+      -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF 
+      for byte in 0 to 3 loop
+         for b in 0 to 7 loop
+            crcOut(byte*8+b) <= not(r.crc((byte+1)*8-1-b)); 
+         end loop;
+      end loop;
+     
    end process;
 
-   -- Register the next CRC value from the combinatorial process above
-   CRC_REG : process (Clk)
+   seq : process (crcClk) is
    begin
-      if rising_edge(Clk) then
-         if (crcReset = '1') then
-            crcReg <= CRC_INIT_G;
-         elsif (dataValid_reg = '1') then
-            crcReg <= nextCrc;
+      if (rising_edge(crcClk)) then
+         if crcReset = '1' then
+            r <= REG_INIT_C;
+         else 
+            r <= rin after TPD_G;
          end if;
       end if;
-   end process;
+   end process seq;
 
-   -- Transpose each byte in the data out and invert
-   -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF 
-   GEN_BYTEOUT : for byte in 0 to 3 generate
-      GEN_BITOUT : for b in 0 to 7 generate
-         crcOut(byte*8+b) <= not(crcReg((byte+1)*8-1-b)); 
-      end generate;
-   end generate;
-   
-end rtl;
-
+end rtl;   
