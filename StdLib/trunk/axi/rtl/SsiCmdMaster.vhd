@@ -5,7 +5,7 @@
 -- File       : SsiCmdMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ entity SsiCmdMaster is
       -- Command signals
       cmdClk    : in  sl;
       cmdRst    : in  sl;
-      cmdMaster : out CmdMasterType
+      cmdMaster : out SsiCmdMasterType
       );
 end SsiCmdMaster;
 
@@ -83,13 +83,13 @@ architecture rtl of SsiCmdMaster is
    type RegType is record
       state     : StateType;
       txnNumber : slv(2 downto 0);
-      cmdMaster : CmdMasterType;
+      cmdMaster : SsiCmdMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state     => S_IDLE_C,
+      state     => IDLE_S,
       txnNumber => (others => '0'),
-      cmdMaster => SSI_CMD_MASTER_OUT_INIT_C
+      cmdMaster => SSI_CMD_MASTER_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -121,8 +121,8 @@ begin
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
          sAxisCtrl   => sAxisCtrl,
-         mAxiClk     => cmdClk,
-         mAxiRst     => cmdRst,
+         mAxisClk     => cmdClk,
+         mAxisRst     => cmdRst,
          mAxisMaster => fifoAxisMaster,
          mAxisSlave  => fifoAxisSlave);
 
@@ -140,7 +140,7 @@ begin
       v := r;
 
       -- Init, always read
-      v.cmdMasterOut.valid := '0';
+      v.cmdMaster.valid := '0';
 
 
       if (fifoAxisMaster.tValid = '1') then
@@ -148,12 +148,11 @@ begin
 
          case r.txnNumber is
             when "000" =>
-               v.cmdMaster.ctxOut := fifoAxisMaster.tData(31 downto 8);
+               v.cmdMaster.context := fifoAxisMaster.tData(31 downto 8);
             when "001" =>
                v.cmdMaster.opCode := fifoAxisMaster.tData(7 downto 0);
             when "011" =>
-               v.cmdMaster.valid := fifoAxisMaster.tLast = '1' and
-                                    fifoAxisMaster.tUser(SSI_EOFE_C) = '0';
+               v.cmdMaster.valid := fifoAxisMaster.tLast and not fifoAxisMaster.tUser(SSI_EOFE_C);
             when "100" =>
                -- Too many txns in frame, freeze counting
                -- Will auto reset txnNumber to 0 on tLast
@@ -181,7 +180,7 @@ begin
 
       rin <= v;
 
-      cmdMasterOut <= r.cmdMasterOut;
+      cmdMaster <= r.cmdMaster;
 
    end process comb;
 

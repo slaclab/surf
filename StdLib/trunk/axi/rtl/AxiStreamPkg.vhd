@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,10 +60,10 @@ package AxiStreamPkg is
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
-      TDATA_BYTES_C : natural;
-      TDEST_BITS_C  : natural;
-      TID_BITS_C    : natural;
-      TUSER_BITS_C  : natural;
+      TDATA_BYTES_C : natural range 1 to 16;
+      TDEST_BITS_C  : natural range 0 to 8;
+      TID_BITS_C    : natural range 0 to 8;
+      TUSER_BITS_C  : natural range 2 to 8;
       TUSER_MODE_C  : TUserModeType;
    end record AxiStreamConfigType;
 
