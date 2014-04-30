@@ -9,7 +9,7 @@ EN64=-full64 -xlrm
 
 # RTL Files
 rtl_src:
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/glbl.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/tb/glbl.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/StdRtlPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/Synchronizer.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerEdge.vhd
