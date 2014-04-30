@@ -91,7 +91,32 @@ package AxiStreamPkg is
       axisMaster        : AxiStreamMasterType)
       return boolean;
 
-   
+   function axiStreamGetUserField (
+      axisConfig : AxiStreamConfigType; 
+      axisMaster : AxiStreamMasterType; 
+      bytePos    : integer := -1 ) -- -1 = last
+      return slv;
+
+   function axiStreamGetUserBit (
+      axisConfig : AxiStreamConfigType; 
+      axisMaster : AxiStreamMasterType; 
+      bitPos     : integer; 
+      bytePos    : integer := -1)  -- -1 = last
+      return sl;
+
+   procedure axiStreamSetUserField (
+      axisConfig : in    AxiStreamConfigType; 
+      axisMaster : inout AxiStreamMasterType; 
+      fieldValue : in    slv;
+      bytePos    : in    integer := -1); -- -1 = last
+
+   procedure axiStreamSetUserBit (
+      axisConfig : in    AxiStreamConfigType; 
+      axisMaster : inout AxiStreamMasterType; 
+      bitPos     : in    integer;
+      bitValue   : in    sl;
+      bytePos    : in    integer := -1); -- -1 = last
+
 end package AxiStreamPkg;
 
 package body AxiStreamPkg is
@@ -105,6 +130,81 @@ package body AxiStreamPkg is
          allBits(axisMaster.tKeep(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1') and  -- all expected tkeep
          allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1');  -- all expected tstrb
    end function;
+
+   function axiStreamGetUserField (
+      axisConfig : AxiStreamConfigType; 
+      axisMaster : AxiStreamMasterType; 
+      bytePos    : integer := -1 )
+      return slv is
+
+      variable pos : integer;
+      variable ret : slv(axisConfig.TUSER_BITS_C-1 downto 0);
+   begin
+
+      if bytePos = -1 then
+         pos := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
+      else
+         pos := bytePos;
+      end if;
+
+      ret := axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos)));
+      
+      return(ret); 
+   end function;
+
+   function axiStreamGetUserBit (
+      axisConfig : AxiStreamConfigType; 
+      axisMaster : AxiStreamMasterType; 
+      bitPos     : integer; 
+      bytePos    : integer := -1) -- -1 = last
+      return sl is
+
+      variable user : slv(axisConfig.TUSER_BITS_C-1 downto 0);
+   begin
+
+      user := axiStreamGetuserField(axisConfig,axisMaster,bytePos);
+      return(user(bitPos));
+
+   end function;
+
+   procedure axiStreamSetUserField (
+      axisConfig : in    AxiStreamConfigType; 
+      axisMaster : inout AxiStreamMasterType; 
+      fieldValue : in    slv;
+      bytePos    : in    integer := -1) is
+
+      variable pos : integer;
+   begin
+
+      if bytePos = -1 then
+         pos := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
+      else
+         pos := bytePos;
+      end if;
+
+      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
+
+   end procedure;
+
+   procedure axiStreamSetUserBit (
+      axisConfig : in    AxiStreamConfigType; 
+      axisMaster : inout AxiStreamMasterType; 
+      bitPos     : in    integer;
+      bitValue   : in    sl;
+      bytePos    : in    integer := -1) is
+
+      variable pos : integer;
+   begin
+
+      if bytePos = -1 then
+         pos := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
+      else
+         pos := bytePos;
+      end if;
+
+      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos)))(bitPos) := bitValue;
+
+   end procedure;
 
 end package body AxiStreamPkg;
 

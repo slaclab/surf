@@ -96,26 +96,26 @@ begin
 
             if sAxisMaster.tValid = '1' then
                if TDATA_BYTES_G = 4 then
-                  ibValid <= sAxisMaster.tValid                                             after TPD_G;
-                  ibData  <= sAxisMaster.tData(31 downto 0)                                 after TPD_G;
-                  ibDest  <= sAxisMaster.tDest(3 downto 0)                                  after TPD_G;
-                  ibEof   <= sAxisMaster.tLast                                              after TPD_G;
+                  ibValid <= sAxisMaster.tValid                                        after TPD_G;
+                  ibData  <= sAxisMaster.tData(31 downto 0)                            after TPD_G;
+                  ibDest  <= sAxisMaster.tDest(3 downto 0)                             after TPD_G;
+                  ibEof   <= sAxisMaster.tLast                                         after TPD_G;
                   ibEofe  <= sAxisMaster.tLast and sAxisMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
 
                elsif ibPos = '0' then
-                  ibPos               <= '1'                                 after TPD_G;
-                  ibValid             <= '0'                                 after TPD_G;
+                  ibPos               <= '1'                            after TPD_G;
+                  ibValid             <= '0'                            after TPD_G;
                   ibData(15 downto 0) <= sAxisMaster.tData(15 downto 0) after TPD_G;
 
                   assert ( sAxisMaster.tLast = '0' )
                      report "Invalid tLast position in AXI stream sim" severity failure;
 
                else
-                  ibPos                <= '0'                                                                 after TPD_G;
-                  ibValid              <= '1'                                                                 after TPD_G;
-                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0)                                 after TPD_G;
-                  ibDest               <= sAxisMaster.tDest(3 downto 0)                                  after TPD_G;
-                  ibEof                <= sAxisMaster.tLast                                              after TPD_G;
+                  ibPos                <= '0'                                                       after TPD_G;
+                  ibValid              <= '1'                                                       after TPD_G;
+                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0)                            after TPD_G;
+                  ibDest               <= sAxisMaster.tDest(3 downto 0)                             after TPD_G;
+                  ibEof                <= sAxisMaster.tLast                                         after TPD_G;
                   ibEofe               <= sAxisMaster.tLast and sAxisMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
                end if;
             else
@@ -139,11 +139,10 @@ begin
    assert ( sAxisRst = '1' or sAxisMaster.tDest < 4 )
       report "Invalid tDest value in AXI stream sim" severity failure;
 
-   --assert ( sAxisRst = '1' or
-            --(TDATA_BYTES_G = 2 and sAxisMaster.tKeep(3 downto 0) = "0011") or
-            --(TDATA_BYTES_G = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
-      --report "Invalid tKeep value in AXI stream sim" severity failure;
-
+   assert ( sAxisRst = '1' or
+            (TDATA_BYTES_G = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
+            (TDATA_BYTES_G = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
+      report "Invalid tKeep value in AXI stream sim" severity failure;
 
    ------------------------------------
    -- Outbound
