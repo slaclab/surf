@@ -30,6 +30,7 @@ entity SsiPrbsRx is
       -- General Configurations
       TPD_G               : time                       := 1 ns;
       EOFE_G              : natural                    := 0;
+      STATUS_CNT_WIDTH_G  : natural range 1 to 32      := 32;
       AXI_ERROR_RESP_G    : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
@@ -176,12 +177,12 @@ architecture rtl of SsiPrbsRx is
       errMissedPacketSync : sl;
    signal overflow,
       pause : slv(1 downto 0);
-   signal cntOut : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
+   signal cntOut : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
    signal packetLengthSync,
       packetRateSync,
       errbitCntSync,
-      errWordCntSync,
-      pause1Cnt,
+      errWordCntSync : slv(31 downto 0);
+   signal pause1Cnt,
       overflow1Cnt,
       pause0Cnt,
       overflow0Cnt,
@@ -190,7 +191,7 @@ architecture rtl of SsiPrbsRx is
       errDataBusCnt,
       errEofeCnt,
       errLengthCnt,
-      errMissedPacketCnt : slv(31 downto 0);
+      errMissedPacketCnt : slv(STATUS_CNT_WIDTH_G-1 downto 0);
    
 begin
 
@@ -335,7 +336,7 @@ begin
                   -- Set the local eof flag
                   v.eof  := '1';
                   -- Latch the packets eofe flag
-                  v.eofe := ssiGetUserEofe(AXI_STREAM_CONFIG_G,rxAxisMaster);
+                  v.eofe := ssiGetUserEofe(AXI_STREAM_CONFIG_G, rxAxisMaster);
                   -- Check the data packet length
                   if r.dataCnt /= r.packetLength then
                      -- Wrong length detected
@@ -520,14 +521,14 @@ begin
          dout(63 downto 32)  => packetRateSync,
          dout(95 downto 64)  => errbitCntSync,
          dout(127 downto 96) => errWordCntSync); 
-   
+
    SyncStatusVec_Inst : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => false,
          COMMON_CLK_G   => false,
-         CNT_WIDTH_G    => 32,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
          WIDTH_G        => STATUS_SIZE_C)     
       port map (
          -- Input Status bit Signals (wrClk domain)   
@@ -617,25 +618,25 @@ begin
          v.axiReadSlave.rdata := (others => '0');
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"00" =>
-               v.axiReadSlave.rdata := errMissedPacketCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errMissedPacketCnt;
             when x"01" =>
-               v.axiReadSlave.rdata := errLengthCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errLengthCnt;
             when x"02" =>
-               v.axiReadSlave.rdata := errEofeCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errEofeCnt;
             when x"03" =>
-               v.axiReadSlave.rdata := errDataBusCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errDataBusCnt;
             when x"04" =>
-               v.axiReadSlave.rdata := errWordStrbCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errWordStrbCnt;
             when x"05" =>
-               v.axiReadSlave.rdata := errBitStrbCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errBitStrbCnt;
             when x"06" =>
-               v.axiReadSlave.rdata := overflow0Cnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := overflow0Cnt;
             when x"07" =>
-               v.axiReadSlave.rdata := pause0Cnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := pause0Cnt;
             when x"08" =>
-               v.axiReadSlave.rdata := overflow1Cnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := overflow1Cnt;
             when x"09" =>
-               v.axiReadSlave.rdata := pause1Cnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := pause1Cnt;
             when x"70" =>
                v.axiReadSlave.rdata(0) := errMissedPacketSync;
                v.axiReadSlave.rdata(1) := errLengthSync;
