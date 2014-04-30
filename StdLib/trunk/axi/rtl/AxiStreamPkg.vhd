@@ -81,7 +81,7 @@ package AxiStreamPkg is
    end record AxiStreamCtrlType;
 
    constant AXI_STREAM_CTRL_INIT_C : AxiStreamCtrlType := (
-      pause    => '0',
+      pause    => '1',
       overflow => '0');
 
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
