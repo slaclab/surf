@@ -73,7 +73,7 @@ entity Pgp2bLane is
       pgpRxMasterMuxed  : out AxiStreamMasterType;
 
       -- Receive flow control
-      pgpRxCtrl     : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
 
       -- PHY interface
       phyRxLanesOut     : out PgpRxPhyLaneOutArray(0 to LANE_CNT_G-1);
@@ -90,7 +90,7 @@ architecture Pgp2bLane of Pgp2bLane is
 
    -- Local Signals
    signal intRxMaster   : AxiStreamMasterType;
-   signal remFifoStatus : AxiStreamFifoStatusArray(3 downto 0);
+   signal remFifoStatus : AxiStreamCtrlArray(3 downto 0);
 
 begin
 
@@ -160,12 +160,12 @@ begin
             TPD_G         => TPD_G,
             NUM_MASTERS_G => 4
          ) port map (
-            axiClk            => pgpRxClk,
-            axiRst            => pgpRxClkRst,
-            sAxiStreamMaster  => intRxMaster,
-            sAxiStreamSlave   => open,
-            mAxiStreamMasters => pgpRxMasters,
-            mAxiStreamSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
+            axisClk      => pgpRxClk,
+            axisRst      => pgpRxClkRst,
+            sAxisMaster  => intRxMaster,
+            sAxisSlave   => open,
+            mAxisMasters => pgpRxMasters,
+            mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
          );
       
    end generate;
@@ -176,7 +176,7 @@ begin
       intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
       phyRxLanesOut          <= (others=>PGP_RX_PHY_LANE_OUT_INIT_C);
       phyRxInit              <= '0';
-      remFifoStatus          <= (others=>AXI_STREAM_FIFO_STATUS_INIT_C);
+      remFifoStatus          <= (others=>AXI_STREAM_CTRL_INIT_C);
    end generate;
 
    -- De-Muxed Version

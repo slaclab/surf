@@ -41,7 +41,7 @@ architecture tb of tb is
    signal phyTxLanesOut     : PgpTxPhyLaneOutArray(0 to 0);
    signal pgpRxIn           : PgpRxInType;
    signal phyRxLanesIn      : PgpRxPhyLaneInArray(0 to  0);
-   signal axiFifoStatus     : AxiStreamFifoStatusArray(3 downto 0);
+   signal pgpRxCtrl         : AxiStreamCtrlArray(3 downto 0);
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : 
       AxiLiteCrossbarMasterConfigArray(11 downto 0) := genAxiLiteConfig ( 12, x"F0000000", 4 );
@@ -162,7 +162,7 @@ begin
          pgpRxIn           => pgpRxIn,
          pgpRxOut          => open,
          pgpRxMasters      => prbsRxMasters,
-         axiFifoStatus     => axiFifoStatus,
+         pgpRxCtrl         => pgpRxCtrl,
          pgpRxMasterMuxed  => open,
          phyRxLanesOut     => open,
          phyRxLanesIn      => phyRxLanesIn,
