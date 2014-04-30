@@ -28,10 +28,6 @@ package SsiPkg is
 
    function ssiAxiStreamConfig (dataBytes : natural) return AxiStreamConfigType;
 
-   function ssiSetUserBits (axisConfig : AxiStreamConfigType; eofe : sl ) return slv;
-
-   function ssiGetUserEofe (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType ) return sl;
-
 end package SsiPkg;
 
 package body SsiPkg is
@@ -48,28 +44,5 @@ package body SsiPkg is
       return ret;
    end function ssiAxiStreamConfig;
 
-   function ssiSetUserBits (axisConfig : AxiStreamConfigType; eofe : sl ) return slv is
-      variable ret : slv(15 downto 0);
-   begin
-      ret := (others=>'0');
-
-      for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
-         ret((axisConfig.TUSER_BITS_C*i) + SSI_EOFE_C) := eofe;
-      end loop;
-
-      return ret;
-   end function;
-
-   function ssiGetUserEofe (axisConfig : AxiStreamConfigType; axisMaster : AxiStreamMasterType ) return sl is
-      variable ret       : sl;
-      variable byteCount : integer;
-   begin
-
-      byteCount := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0)));
-      ret := axisMaster.tUser(axisConfig.TUSER_BITS_C*(byteCount-1) + SSI_EOFE_C);
-
-      return ret;
-
-   end function;
-
 end package body SsiPkg;
+
