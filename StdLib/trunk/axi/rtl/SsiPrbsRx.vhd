@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxisPrbsRx.vhd
+-- File       : SsiPrbsRx.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
@@ -21,11 +21,11 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity AxisPrbsRx is
+entity SsiPrbsRx is
    generic (
       -- General Configurations
       TPD_G               : time                       := 1 ns;
@@ -42,7 +42,7 @@ entity AxisPrbsRx is
       FIFO_ADDR_WIDTH_G   : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G : natural range 1 to (2**24) := 2**8;
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C);        
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16));        
    port (
       -- Streaming RX Data Interface (sAxisClk domain) 
       sAxisClk        : in  sl;
@@ -73,9 +73,9 @@ entity AxisPrbsRx is
       errbitCnt       : out slv(31 downto 0);
       packetRate      : out slv(31 downto 0);
       packetLength    : out slv(31 downto 0));
-end AxisPrbsRx;
+end SsiPrbsRx;
 
-architecture rtl of AxisPrbsRx is
+architecture rtl of SsiPrbsRx is
 
    constant TAP_C     : NaturalArray(0 to 0) := (others => 16);
    constant MAX_CNT_C : slv(31 downto 0)     := (others => '1');
@@ -335,7 +335,7 @@ begin
                   -- Set the local eof flag
                   v.eof  := '1';
                   -- Latch the packets eofe flag
-                  v.eofe := rxAxisMaster.tUser(EOFE_G);
+                  v.eofe := ssiGetUserEofe(AXI_STREAM_CONFIG_G,rxAxisMaster);
                   -- Check the data packet length
                   if r.dataCnt /= r.packetLength then
                      -- Wrong length detected
