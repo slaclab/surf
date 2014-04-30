@@ -38,8 +38,6 @@ entity Debouncer is
       rst : in  sl := not RST_POLARITY_G;
       i   : in  sl;
       o   : out sl);
-begin
-   assert (FILTER_INIT_G'length = FILTER_SIZE_G) report "FILTER_INIT_G length must = FILTER_SIZE_G" severity failure;
 end entity Debouncer;
 
 architecture rtl of Debouncer is
@@ -58,6 +56,8 @@ architecture rtl of Debouncer is
    signal iSynced : sl      := INPUT_POLARITY_G;
 
 begin
+
+   assert (FILTER_INIT_G'length = FILTER_SIZE_G) report "FILTER_INIT_G length must = FILTER_SIZE_G" severity failure;
 
    SynchronizerGen : if (SYNCHRONIZE_G) generate
       Synchronizer_1 : entity work.Synchronizer

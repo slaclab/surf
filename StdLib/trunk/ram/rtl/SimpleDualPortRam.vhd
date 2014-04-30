@@ -44,20 +44,10 @@ entity SimpleDualPortRam is
       rstb  : in  sl                           := not(RST_POLARITY_G);
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0));
-begin
-   -- ALTERA_RAM_G check
-   assert ((ALTERA_RAM_G = "M512")
-           or (ALTERA_RAM_G = "M4K")
-           or (ALTERA_RAM_G = "M9K")
-           or (ALTERA_RAM_G = "M10K")
-           or (ALTERA_RAM_G = "M20K")
-           or (ALTERA_RAM_G = "M144K")
-           or (ALTERA_RAM_G = "M-RAM"))
-      report "Invalid ALTERA_RAM_G string"
-      severity failure;
 end SimpleDualPortRam;
 
 architecture rtl of SimpleDualPortRam is
+
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 
    constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
@@ -86,6 +76,18 @@ architecture rtl of SimpleDualPortRam is
    attribute ramstyle of mem : variable is ALTERA_BRAM_STYLE_C;
    
 begin
+
+   -- ALTERA_RAM_G check
+   assert ((ALTERA_RAM_G = "M512")
+           or (ALTERA_RAM_G = "M4K")
+           or (ALTERA_RAM_G = "M9K")
+           or (ALTERA_RAM_G = "M10K")
+           or (ALTERA_RAM_G = "M20K")
+           or (ALTERA_RAM_G = "M144K")
+           or (ALTERA_RAM_G = "M-RAM"))
+      report "Invalid ALTERA_RAM_G string"
+      severity failure;
+      
    -- Port A
    process(clka)
    begin

@@ -59,45 +59,6 @@ entity FifoSyncBuiltIn is
       not_full     : out sl;
       full         : out sl;
       empty        : out sl);      
-
-begin
-   -- Check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
-   assert (((DATA_WIDTH_G >= 37) and (DATA_WIDTH_G    <= 72) and (ADDR_WIDTH_G = 9))
-           or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 10))
-           or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 9))
-           or ((DATA_WIDTH_G >= 10) and (DATA_WIDTH_G <= 18) and (ADDR_WIDTH_G = 11))
-           or ((DATA_WIDTH_G >= 10) and (DATA_WIDTH_G <= 18) and (ADDR_WIDTH_G = 10))
-           or ((DATA_WIDTH_G >= 5) and (DATA_WIDTH_G  <= 9) and (ADDR_WIDTH_G = 12))
-           or ((DATA_WIDTH_G >= 5) and (DATA_WIDTH_G  <= 9) and (ADDR_WIDTH_G = 11))
-           or ((DATA_WIDTH_G >= 1) and (DATA_WIDTH_G  <= 4) and (ADDR_WIDTH_G = 13))
-           or ((DATA_WIDTH_G >= 1) and (DATA_WIDTH_G  <= 4) and (ADDR_WIDTH_G = 12)))
-      report "Invalid DATA_WIDTH_G or ADDR_WIDTH_G for built-in FIFO configuration"
-      severity failure;
-   -----------------------------------------------------------------
-   -- DATA_WIDTH | FIFO_SIZE | FIFO Depth | RDCOUNT/WRCOUNT Width --
-   -- ===========|===========|============|=======================--
-   --    37-72   |   "36Kb"  |     512    |         9-bit         --
-   --    19-36   |   "36Kb"  |     1024   |        10-bit         --
-   --    19-36   |   "18Kb"  |     512    |         9-bit         --
-   --    10-18   |   "36Kb"  |     2048   |        11-bit         --
-   --    10-18   |   "18Kb"  |     1024   |        10-bit         --
-   --     5-9    |   "36Kb"  |     4096   |        12-bit         --
-   --     5-9    |   "18Kb"  |     2048   |        11-bit         --
-   --     1-4    |   "36Kb"  |     8192   |        13-bit         --
-   --     1-4    |   "18Kb"  |     4096   |        12-bit         --
-   -----------------------------------------------------------------       
-   -- FULL_THRES_G upper range check
-   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-2))
-      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- EMPTY_THRES_G upper range check
-   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
-      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
 end FifoSyncBuiltIn;
 
 architecture mapping of FifoSyncBuiltIn is
@@ -163,6 +124,45 @@ architecture mapping of FifoSyncBuiltIn is
    attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
+
+   -- Check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
+   assert (((DATA_WIDTH_G >= 37) and (DATA_WIDTH_G    <= 72) and (ADDR_WIDTH_G = 9))
+           or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 10))
+           or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 9))
+           or ((DATA_WIDTH_G >= 10) and (DATA_WIDTH_G <= 18) and (ADDR_WIDTH_G = 11))
+           or ((DATA_WIDTH_G >= 10) and (DATA_WIDTH_G <= 18) and (ADDR_WIDTH_G = 10))
+           or ((DATA_WIDTH_G >= 5) and (DATA_WIDTH_G  <= 9) and (ADDR_WIDTH_G = 12))
+           or ((DATA_WIDTH_G >= 5) and (DATA_WIDTH_G  <= 9) and (ADDR_WIDTH_G = 11))
+           or ((DATA_WIDTH_G >= 1) and (DATA_WIDTH_G  <= 4) and (ADDR_WIDTH_G = 13))
+           or ((DATA_WIDTH_G >= 1) and (DATA_WIDTH_G  <= 4) and (ADDR_WIDTH_G = 12)))
+      report "Invalid DATA_WIDTH_G or ADDR_WIDTH_G for built-in FIFO configuration"
+      severity failure;
+   -----------------------------------------------------------------
+   -- DATA_WIDTH | FIFO_SIZE | FIFO Depth | RDCOUNT/WRCOUNT Width --
+   -- ===========|===========|============|=======================--
+   --    37-72   |   "36Kb"  |     512    |         9-bit         --
+   --    19-36   |   "36Kb"  |     1024   |        10-bit         --
+   --    19-36   |   "18Kb"  |     512    |         9-bit         --
+   --    10-18   |   "36Kb"  |     2048   |        11-bit         --
+   --    10-18   |   "18Kb"  |     1024   |        10-bit         --
+   --     5-9    |   "36Kb"  |     4096   |        12-bit         --
+   --     5-9    |   "18Kb"  |     2048   |        11-bit         --
+   --     1-4    |   "36Kb"  |     8192   |        13-bit         --
+   --     1-4    |   "18Kb"  |     4096   |        12-bit         --
+   -----------------------------------------------------------------       
+   -- FULL_THRES_G upper range check
+   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-2))
+      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
+      severity failure;
+   -- EMPTY_THRES_G upper range check
+   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
+      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
+      severity failure;
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
+
    RstSync_FULL : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,

@@ -65,25 +65,10 @@ entity FifoAsync is
       prog_empty    : out sl;
       almost_empty  : out sl;
       empty         : out sl);
-begin
-   -- FULL_THRES_G upper range check
-   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
-      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
-      severity failure;
-   -- EMPTY_THRES_G upper range check
-   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
-      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
-   -- INIT_G length check
-   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
-      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 end FifoAsync;
 
 architecture rtl of FifoAsync is
+
    constant INIT_C      : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
    constant RAM_DEPTH_C : integer                      := 2**ADDR_WIDTH_G;
 
@@ -169,6 +154,23 @@ architecture rtl of FifoAsync is
    attribute use_dsp48 of wrReg : signal is USE_DSP48_G;
    
 begin
+
+   -- FULL_THRES_G upper range check
+   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
+      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
+      severity failure;
+   -- EMPTY_THRES_G upper range check
+   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
+      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
+      severity failure;
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
+   -- INIT_G length check
+   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
+      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
+
    -------------------------------
    -- rd_clk domain
    -------------------------------

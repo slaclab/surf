@@ -75,14 +75,6 @@ entity Vc64FifoMux is
       vcTxData       : out Vc64DataType;
       vcTxClk        : in  sl;
       vcTxRst        : in  sl := '0');
-begin
-   assert (RX_WIDTH_G = 8 or RX_WIDTH_G = 16 or RX_WIDTH_G = 32 or RX_WIDTH_G = 64 ) 
-      report "RX_WIDTH_G must not be = 8, 16, 32 or 64" severity failure;
-   assert (TX_WIDTH_G = 8 or TX_WIDTH_G = 16 or TX_WIDTH_G = 32 or TX_WIDTH_G = 64 ) 
-      report "TX_WIDTH_G must not be = 8, 16, 32 or 64" severity failure;
-   assert ((RX_WIDTH_G >= TX_WIDTH_G and RX_WIDTH_G mod TX_WIDTH_G = 0) or
-           (TX_WIDTH_G > RX_WIDTH_G and TX_WIDTH_G mod RX_WIDTH_G = 0))
-      report "Data widths must be even number multiples of each other" severity failure;
 end Vc64FifoMux;
 
 architecture mapping of Vc64FifoMux is
@@ -134,6 +126,14 @@ architecture mapping of Vc64FifoMux is
    signal fifoTxCtrl : Vc64CtrlType;
 
 begin
+
+   assert (RX_WIDTH_G = 8 or RX_WIDTH_G = 16 or RX_WIDTH_G = 32 or RX_WIDTH_G = 64 ) 
+      report "RX_WIDTH_G must not be = 8, 16, 32 or 64" severity failure;
+   assert (TX_WIDTH_G = 8 or TX_WIDTH_G = 16 or TX_WIDTH_G = 32 or TX_WIDTH_G = 64 ) 
+      report "TX_WIDTH_G must not be = 8, 16, 32 or 64" severity failure;
+   assert ((RX_WIDTH_G >= TX_WIDTH_G and RX_WIDTH_G mod TX_WIDTH_G = 0) or
+           (TX_WIDTH_G > RX_WIDTH_G and TX_WIDTH_G mod RX_WIDTH_G = 0))
+      report "Data widths must be even number multiples of each other" severity failure;
 
    -------------------------
    -- Write Logic

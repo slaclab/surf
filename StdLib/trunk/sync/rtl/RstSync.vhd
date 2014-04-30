@@ -28,8 +28,6 @@ entity RstSync is
       clk      : in  sl;
       asyncRst : in  sl;
       syncRst  : out sl);
-begin
-   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
 end RstSync;
 
 architecture rtl of RstSync is
@@ -37,6 +35,8 @@ architecture rtl of RstSync is
    signal syncInt : sl := OUT_POLARITY_G;
 
 begin
+
+   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
 
    -- Reuse synchronizer that turns off shift reg extraction and register balancing for you
    Synchronizer_1 : entity work.Synchronizer

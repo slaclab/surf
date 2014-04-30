@@ -40,26 +40,10 @@ entity DspAddSub is
       a   : in  slv((A_WIDTH_G-1) downto 0) := (others => '0');
       b   : in  slv((B_WIDTH_G-1) downto 0) := (others => '0');
       s   : out slv((S_WIDTH_G-1) downto 0));
-begin
-   -- A_TYPE_G check
-   assert ((A_TYPE_G = "unsigned") or (A_TYPE_G = "signed"))
-      report "A_TYPE_G must be either unsigned or signed"
-      severity failure;
-   -- B_TYPE_G check
-   assert ((B_TYPE_G = "unsigned") or (B_TYPE_G = "signed"))
-      report "B_TYPE_G must be either unsigned or signed"
-      severity failure;
-   -- S_TYPE_G check
-   assert ((S_TYPE_G = "unsigned") or (S_TYPE_G = "signed"))
-      report "S_TYPE_G must be either unsigned or signed"
-      severity failure;
-   -- S_WIDTH_G range check
-   assert ((S_WIDTH_G = A_WIDTH_G) or (S_WIDTH_G = (A_WIDTH_G+1)) or (S_WIDTH_G = B_WIDTH_G) or (S_WIDTH_G = (B_WIDTH_G+1)))
-      report "S_WIDTH_G must be A_WIDTH_G, A_WIDTH_G+1, B_WIDTH_G, or B_WIDTH_G+1"
-      severity failure;
 end DspAddSub;
 
 architecture rtl of DspAddSub is
+
    -- Constants
    constant A_FORMAT_C : sl := ite((A_TYPE_G = "signed"), '1', '0');
    constant B_FORMAT_C : sl := ite((B_TYPE_G = "signed"), '1', '0');
@@ -79,6 +63,24 @@ architecture rtl of DspAddSub is
    attribute use_dsp48 of sOut : signal is "yes";
    
 begin
+
+   -- A_TYPE_G check
+   assert ((A_TYPE_G = "unsigned") or (A_TYPE_G = "signed"))
+      report "A_TYPE_G must be either unsigned or signed"
+      severity failure;
+   -- B_TYPE_G check
+   assert ((B_TYPE_G = "unsigned") or (B_TYPE_G = "signed"))
+      report "B_TYPE_G must be either unsigned or signed"
+      severity failure;
+   -- S_TYPE_G check
+   assert ((S_TYPE_G = "unsigned") or (S_TYPE_G = "signed"))
+      report "S_TYPE_G must be either unsigned or signed"
+      severity failure;
+   -- S_WIDTH_G range check
+   assert ((S_WIDTH_G = A_WIDTH_G) or (S_WIDTH_G = (A_WIDTH_G+1)) or (S_WIDTH_G = B_WIDTH_G) or (S_WIDTH_G = (B_WIDTH_G+1)))
+      report "S_WIDTH_G must be A_WIDTH_G, A_WIDTH_G+1, B_WIDTH_G, or B_WIDTH_G+1"
+      severity failure;
+      
    --force the input A to be unsigned 
    aIn(A_WIDTH_G-1) <= a(A_WIDTH_G-1) xor A_FORMAT_C;
    Input_A_Mapping_Gen :

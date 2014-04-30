@@ -34,8 +34,6 @@ entity Synchronizer is
       rst     : in  sl := not RST_POLARITY_G;-- Optional reset
       dataIn  : in  sl;                      -- Data to be 'synced'
       dataOut : out sl);                     -- synced data
-begin
-   assert (STAGES_G >= 2) report "STAGES_G must be >= 2" severity failure;
 end Synchronizer;
 
 architecture rtl of Synchronizer is
@@ -73,6 +71,8 @@ architecture rtl of Synchronizer is
    attribute altera_attribute of crossDomainSyncReg : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF";
    
 begin
+
+   assert (STAGES_G >= 2) report "STAGES_G must be >= 2" severity failure;
 
    GEN_ASYNC : if (BYPASS_SYNC_G = false) generate
 

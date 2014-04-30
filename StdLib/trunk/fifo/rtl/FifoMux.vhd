@@ -69,10 +69,6 @@ entity FifoMux is
       prog_empty    : out sl;
       almost_empty  : out sl;
       empty         : out sl);
-begin
-   assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
-           (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
-      report "Data widths must be even number multiples of each other" severity failure;
 end FifoMux;
 
 architecture rtl of FifoMux is
@@ -127,6 +123,10 @@ architecture rtl of FifoMux is
 
 begin
 
+   assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
+           (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
+      report "Data widths must be even number multiples of each other" severity failure;
+      
    --------------
    -- Write Logic
    --------------

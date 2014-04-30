@@ -49,24 +49,10 @@ entity TrueDualPortRam is
       addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
       dinb  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       doutb : out slv(DATA_WIDTH_G-1 downto 0));
-begin
-   -- MODE_G check
-   assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
-      report "MODE_G must be either no-change, read-first, or write-first"
-      severity failure;
-   -- ALTERA_RAM_G check
-   assert ((ALTERA_RAM_G = "M512")
-           or (ALTERA_RAM_G = "M4K")
-           or (ALTERA_RAM_G = "M9K")
-           or (ALTERA_RAM_G = "M10K")
-           or (ALTERA_RAM_G = "M20K")
-           or (ALTERA_RAM_G = "M144K")
-           or (ALTERA_RAM_G = "M-RAM"))
-      report "Invalid ALTERA_RAM_G string"
-      severity failure;
 end TrueDualPortRam;
 
 architecture rtl of TrueDualPortRam is
+
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 
    -- Shared memory 
@@ -95,6 +81,22 @@ architecture rtl of TrueDualPortRam is
    attribute ramstyle of mem : variable is ALTERA_RAM_G;
    
 begin
+
+   -- MODE_G check
+   assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
+      report "MODE_G must be either no-change, read-first, or write-first"
+      severity failure;
+   -- ALTERA_RAM_G check
+   assert ((ALTERA_RAM_G = "M512")
+           or (ALTERA_RAM_G = "M4K")
+           or (ALTERA_RAM_G = "M9K")
+           or (ALTERA_RAM_G = "M10K")
+           or (ALTERA_RAM_G = "M20K")
+           or (ALTERA_RAM_G = "M144K")
+           or (ALTERA_RAM_G = "M-RAM"))
+      report "Invalid ALTERA_RAM_G string"
+      severity failure;
+      
    NO_CHANGE_MODE : if MODE_G = "no-change" generate
       -- Port A
       process(clka)

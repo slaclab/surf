@@ -34,7 +34,10 @@ architecture testbed of AxisPrbsTb is
    constant BIT_ERROR_C        : slv(15 downto 0) := "0111" & "1011" & "1101" & "1110";  -- Generate errWordCnt and errbitCnt errors
    constant ADD_EOFE_C         : sl               := '1';  -- Generate errEofe error
    constant GEN_BUS_ERROR_C    : boolean          := true;
-
+   
+   constant USE_BUILT_IN_C  : boolean  := false;
+   constant GEN_SYNC_FIFO_C : boolean  := true;
+   
    -- Signals
    signal clk,
       txBusy,
@@ -77,7 +80,9 @@ begin
    -- VcPrbsTx (VHDL module to be tested)
    AxisPrbsTx_Inst : entity work.AxisPrbsTx
       generic map (
-         TPD_G => TPD_C)
+         TPD_G           => TPD_C,
+         USE_BUILT_IN_G  => USE_BUILT_IN_C,
+         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_C)
       port map (
          -- Master Port (mAxisClk)
          mAxisSlave   => mAxisSlave,
@@ -85,7 +90,7 @@ begin
          mAxisClk     => clk,
          mAxisRst     => rst,
          -- Trigger Signal (locClk domain)
-         trig         => '1',
+         trig         => '0',
          packetLength => toSlv(TX_PACKET_LENGTH_C, 32),
          busy         => txBusy,
          tDest        => (others => '0'),
@@ -120,8 +125,8 @@ begin
       -- Check if we need to generate bit errors
       if (mAxisMaster.tLast = '1') then
          -- Add bit errors to last word
-         for i in 0 to 7 loop
-            master.tData(i*32+31 downto i*32) := BIT_ERROR_C xor mAxisMaster.tData;
+         for i in 0 to 3 loop
+            --master.tData(i*32+31 downto i*32) := BIT_ERROR_C xor mAxisMaster.tData(31 downto 0);
          end loop;
       end if;
 
@@ -140,7 +145,9 @@ begin
    -- VcPrbsRx (VHDL module to be tested)
    AxisPrbsRx_Inst : entity work.AxisPrbsRx
       generic map (
-         TPD_G => TPD_C)
+         TPD_G           => TPD_C,
+         USE_BUILT_IN_G  => USE_BUILT_IN_C,
+         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_C)
       port map (
          -- Streaming RX Data Interface (sAxisClk domain) 
          sAxisClk        => clk,

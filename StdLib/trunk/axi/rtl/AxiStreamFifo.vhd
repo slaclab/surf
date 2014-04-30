@@ -67,30 +67,6 @@ entity AxiStreamFifo is
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
-begin
-
-   assert ((SLAVE_AXI_CONFIG_G.TDATA_BYTES_C >= MASTER_AXI_CONFIG_G.TDATA_BYTES_C and
-            SLAVE_AXI_CONFIG_G.TDATA_BYTES_C mod MASTER_AXI_CONFIG_G.TDATA_BYTES_C = 0) or
-           (MASTER_AXI_CONFIG_G.TDATA_BYTES_C >= SLAVE_AXI_CONFIG_G.TDATA_BYTES_C and
-            MASTER_AXI_CONFIG_G.TDATA_BYTES_C mod SLAVE_AXI_CONFIG_G.TDATA_BYTES_C = 0))
-      report "Data widths must be even number multiples of each other" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TSTRB_EN_C = MASTER_AXI_CONFIG_G.TSTRB_EN_C)
-      report "TSTRB_EN_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TDEST_BITS_C = MASTER_AXI_CONFIG_G.TDEST_BITS_C)
-      report "TDEST_BITS_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TID_BITS_C = MASTER_AXI_CONFIG_G.TID_BITS_C)
-      report "TID_BITS_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C = MASTER_AXI_CONFIG_G.TUSER_BITS_C)
-      report "TUSER_BITS_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TUSER_MODE_C = MASTER_AXI_CONFIG_G.TUSER_MODE_C)
-      report "TUSER_MODE_C of master and slave ports must match" severity failure;
-
 end AxiStreamFifo;
 
 architecture mapping of AxiStreamFifo is
@@ -253,6 +229,27 @@ architecture mapping of AxiStreamFifo is
    signal fifoValid : sl;
 
 begin
+
+   assert ((SLAVE_AXI_CONFIG_G.TDATA_BYTES_C >= MASTER_AXI_CONFIG_G.TDATA_BYTES_C and
+            SLAVE_AXI_CONFIG_G.TDATA_BYTES_C mod MASTER_AXI_CONFIG_G.TDATA_BYTES_C = 0) or
+           (MASTER_AXI_CONFIG_G.TDATA_BYTES_C >= SLAVE_AXI_CONFIG_G.TDATA_BYTES_C and
+            MASTER_AXI_CONFIG_G.TDATA_BYTES_C mod SLAVE_AXI_CONFIG_G.TDATA_BYTES_C = 0))
+      report "Data widths must be even number multiples of each other" severity failure;
+
+   assert (SLAVE_AXI_CONFIG_G.TSTRB_EN_C = MASTER_AXI_CONFIG_G.TSTRB_EN_C)
+      report "TSTRB_EN_C of master and slave ports must match" severity failure;
+
+   assert (SLAVE_AXI_CONFIG_G.TDEST_BITS_C = MASTER_AXI_CONFIG_G.TDEST_BITS_C)
+      report "TDEST_BITS_C of master and slave ports must match" severity failure;
+
+   assert (SLAVE_AXI_CONFIG_G.TID_BITS_C = MASTER_AXI_CONFIG_G.TID_BITS_C)
+      report "TID_BITS_C of master and slave ports must match" severity failure;
+
+   assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C = MASTER_AXI_CONFIG_G.TUSER_BITS_C)
+      report "TUSER_BITS_C of master and slave ports must match" severity failure;
+
+   assert (SLAVE_AXI_CONFIG_G.TUSER_MODE_C = MASTER_AXI_CONFIG_G.TUSER_MODE_C)
+      report "TUSER_MODE_C of master and slave ports must match" severity failure;
 
    -------------------------
    -- Write Logic

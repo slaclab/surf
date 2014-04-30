@@ -70,11 +70,6 @@ entity Vc64Fifo is
       vcTxData      : out Vc64DataType;
       vcTxClk       : in  sl;
       vcTxRst       : in  sl                                := '0');
-begin
-   -- Check VC_WIDTH_G value
-   assert ((VC_WIDTH_G = 8) or (VC_WIDTH_G = 16) or (VC_WIDTH_G = 32) or (VC_WIDTH_G = 64))
-      report "VC_WIDTH_G must be either: 8, 16, 32, or 64"
-      severity failure;
 end Vc64Fifo;
 
 architecture mapping of Vc64Fifo is
@@ -106,6 +101,11 @@ architecture mapping of Vc64Fifo is
       txData : Vc64DataType;
    
 begin
+
+   -- Check VC_WIDTH_G value
+   assert ((VC_WIDTH_G = 8) or (VC_WIDTH_G = 16) or (VC_WIDTH_G = 32) or (VC_WIDTH_G = 64))
+      report "VC_WIDTH_G must be either: 8, 16, 32, or 64"
+      severity failure;
    
    Vc64FrameFilter_Inst : entity work.Vc64FrameFilter
       generic map (

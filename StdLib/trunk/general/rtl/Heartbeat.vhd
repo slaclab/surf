@@ -30,11 +30,6 @@ entity Heartbeat is
    port (
       clk : in  sl;
       o   : out sl);
-begin
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
 end entity Heartbeat;
 
 architecture rtl of Heartbeat is
@@ -50,6 +45,12 @@ architecture rtl of Heartbeat is
    attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
+
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
+
    o <= toggle;
 
    process (clk)

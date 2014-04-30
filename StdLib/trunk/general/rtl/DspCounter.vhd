@@ -33,11 +33,6 @@ entity DspCounter is
       rst : in  sl := '0';
       en  : in  sl := '1';
       cnt : out slv(DATA_WIDTH_G-1 downto 0));
-begin
-   -- INCREMENT_G range check
-   assert (INCREMENT_G <= ((2**DATA_WIDTH_G)-1))
-      report "INCREMENT_G must be <= ((2**DATA_WIDTH_G)-1)"
-      severity failure;
 end DspCounter;
 
 architecture rtl of DspCounter is
@@ -52,6 +47,11 @@ architecture rtl of DspCounter is
    attribute use_dsp48 of counter : signal is "yes";
    
 begin
+
+   -- INCREMENT_G range check
+   assert (INCREMENT_G <= ((2**DATA_WIDTH_G)-1))
+      report "INCREMENT_G must be <= ((2**DATA_WIDTH_G)-1)"
+      severity failure;
 
    cnt <= counter;
 

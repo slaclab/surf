@@ -57,22 +57,6 @@ entity FifoSync is
       full         : out sl;
       not_full     : out sl;
       empty        : out sl);
-begin
-   -- FULL_THRES_G upper range check
-   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
-      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
-      severity failure;
-   -- EMPTY_THRES_G upper range check
-   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
-      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
-   -- INIT_G length check
-   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
-      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 end FifoSync;
 
 architecture rtl of FifoSync is
@@ -122,6 +106,23 @@ architecture rtl of FifoSync is
    attribute use_dsp48 of cnt   : signal is USE_DSP48_G;
    
 begin
+
+   -- FULL_THRES_G upper range check
+   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
+      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
+      severity failure;
+   -- EMPTY_THRES_G upper range check
+   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
+      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
+      severity failure;
+   -- USE_DSP48_G check
+   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
+      report "USE_DSP48_G must be either yes, no, auto, or automax"
+      severity failure;
+   -- INIT_G length check
+   assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
+      "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
+
    rstStatus <= rst when(RST_POLARITY_G = '1') else not(rst);
 
    -- Write ports
