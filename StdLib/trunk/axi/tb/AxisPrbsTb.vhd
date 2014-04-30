@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-29
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,25 +30,27 @@ architecture testbed of AxisPrbsTb is
    constant CLK_PERIOD_C       : time             := 10 ns;
    constant TPD_C              : time             := CLK_PERIOD_C/4;
    constant TX_PACKET_LENGTH_C : integer          := 16;
-   constant FIFO_FULL_THRES_C  : integer          := 4;
-   constant BIT_ERROR_C        : slv(15 downto 0) := "0111" & "1011" & "1101" & "1110";  -- Generate errWordCnt and errbitCnt errors
-   constant ADD_EOFE_C         : sl               := '1';  -- Generate errEofe error
+   constant FIFO_FULL_THRES_C  : integer          := 256;
+   constant BIT_ERROR_C        : slv(31 downto 0) := x"00008421";  -- Generate errWordCnt and errbitCnt errors
+   constant ADD_EOFE_C         : sl               := '1';          -- Generate errEofe error
    constant GEN_BUS_ERROR_C    : boolean          := true;
-   
-   constant USE_BUILT_IN_C  : boolean  := false;
-   constant GEN_SYNC_FIFO_C : boolean  := true;
-   
+
+   constant USE_BUILT_IN_C  : boolean := false;
+   constant GEN_SYNC_FIFO_C : boolean := false;
+
+   constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+
    -- Signals
    signal clk,
       txBusy,
       rxBusy,
+      trig,
       updatedResults,
       errMissedPacket,
       errLength,
       errDataBus,
       errEofe : sl := '0';
-   signal rst  : sl               := '1';
-   signal data : slv(15 downto 0) := (others => '0');
+   signal rst : sl := '1';
    signal errWordCnt,
       errbitCnt,
       packetLength,
@@ -65,6 +67,8 @@ architecture testbed of AxisPrbsTb is
 
 begin
 
+   trig <= not(rxBusy);
+
    -- Generate clocks and resets
    ClkRst_Inst : entity work.ClkRst
       generic map (
@@ -80,9 +84,10 @@ begin
    -- VcPrbsTx (VHDL module to be tested)
    AxisPrbsTx_Inst : entity work.AxisPrbsTx
       generic map (
-         TPD_G           => TPD_C,
-         USE_BUILT_IN_G  => USE_BUILT_IN_C,
-         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_C)
+         TPD_G               => TPD_C,
+         USE_BUILT_IN_G      => USE_BUILT_IN_C,
+         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_C,
+         AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Master Port (mAxisClk)
          mAxisSlave   => mAxisSlave,
@@ -90,7 +95,7 @@ begin
          mAxisClk     => clk,
          mAxisRst     => rst,
          -- Trigger Signal (locClk domain)
-         trig         => '0',
+         trig         => trig,
          packetLength => toSlv(TX_PACKET_LENGTH_C, 32),
          busy         => txBusy,
          tDest        => (others => '0'),
@@ -117,17 +122,17 @@ begin
          master.tUser(0) := '0';
       end if;
 
-      -- Check if we need to generate a bus error
-      if (GEN_BUS_ERROR_C) and (mAxisMaster.tLast = '1') then
-         master.tData(128 downto 96) := (others => '0');
-      end if;
-
       -- Check if we need to generate bit errors
       if (mAxisMaster.tLast = '1') then
          -- Add bit errors to last word
          for i in 0 to 3 loop
-            --master.tData(i*32+31 downto i*32) := BIT_ERROR_C xor mAxisMaster.tData(31 downto 0);
+            master.tData(i*32+31 downto i*32) := BIT_ERROR_C xor mAxisMaster.tData(31 downto 0);
          end loop;
+      end if;
+
+      -- Check if we need to generate a bus error
+      if (GEN_BUS_ERROR_C = true) and (mAxisMaster.tLast = '1') then
+         master.tData(127 downto 96) := (others => '0');
       end if;
 
       -- Reset
@@ -145,11 +150,13 @@ begin
    -- VcPrbsRx (VHDL module to be tested)
    AxisPrbsRx_Inst : entity work.AxisPrbsRx
       generic map (
-         TPD_G           => TPD_C,
-         USE_BUILT_IN_G  => USE_BUILT_IN_C,
-         GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_C)
+         TPD_G               => TPD_C,
+         USE_BUILT_IN_G      => USE_BUILT_IN_C,
+         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_C,
+         AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Streaming RX Data Interface (sAxisClk domain) 
+         mAxisClk        => clk,
          sAxisClk        => clk,
          sAxisRst        => rst,
          sAxisMaster     => sAxisMaster,

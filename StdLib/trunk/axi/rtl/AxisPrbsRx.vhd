@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ entity AxisPrbsRx is
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlArray(0 to 1);
       -- Optional: Streaming TX Data Interface (mAxisClk domain)
-      mAxisClk        : in  sl                     := '0';
+      mAxisClk        : in  sl;         -- Note: a clock must always be applied to this port
       mAxisRst        : in  sl                     := '0';
       mAxisMaster     : out AxiStreamMasterType;
       mAxisSlave      : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
@@ -244,6 +244,7 @@ begin
       end loop;
 
       -- Reset strobe signals
+      v.updatedResults      := '0';
       v.txAxisMaster.tValid := '0';
       v.txAxisMaster.tLast  := '0';
       v.txAxisMaster.tUser  := (others => '0');
@@ -601,11 +602,11 @@ begin
    -- Configuration Register
    -------------------------------  
    combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errBitStrbCnt, errBitStrbSync,
-                   errDataBusCnt, errDataBusSync, errEofeCnt, errEofeSync, errLengthCnt,
-                   errLengthSync, errMissedPacketCnt, errMissedPacketSync, errWordCntSync,
-                   errWordStrbCnt, errWordStrbSync, errbitCntSync, overflow, overflow0Cnt,
-                   overflow1Cnt, packetLengthSync, packetRateSync, pause, pause0Cnt, pause1Cnt,
-                   rAxiLite) is
+                          errDataBusCnt, errDataBusSync, errEofeCnt, errEofeSync, errLengthCnt,
+                          errLengthSync, errMissedPacketCnt, errMissedPacketSync, errWordCntSync,
+                          errWordStrbCnt, errWordStrbSync, errbitCntSync, overflow, overflow0Cnt,
+                          overflow1Cnt, packetLengthSync, packetRateSync, pause, pause0Cnt,
+                          pause1Cnt, rAxiLite) is
       variable v            : LocRegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);

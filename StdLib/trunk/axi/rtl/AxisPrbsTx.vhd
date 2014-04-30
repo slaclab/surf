@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-04-29
+-- Last update: 2014-04-30
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -242,15 +242,15 @@ begin
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          -- Slave Port
-         sAxisClk      => locClk,
-         sAxisRst      => locRst,
+         sAxisClk    => locClk,
+         sAxisRst    => locRst,
          sAxisMaster => txAxisMaster,
          sAxisSlave  => txAxisSlave,
-         sAxisCtrl    => sAxisCtrl,
+         sAxisCtrl   => sAxisCtrl,
          -- Master Port
-         mAxisClk      => mAxisClk,
-         mAxisRst      => mAxisRst,
-         mAxisMaster  => mAxisMaster,
-         mAxisSlave   => mAxisSlave);  
+         mAxisClk    => mAxisClk,
+         mAxisRst    => mAxisRst,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);  
 
 end rtl;
