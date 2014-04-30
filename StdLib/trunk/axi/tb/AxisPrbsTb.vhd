@@ -52,7 +52,7 @@ architecture testbed of AxisPrbsTb is
       packetRate : slv(31 downto 0) := (others => '0');
    
    signal mAxisMaster,
-      mAxisMaster : AxiStreamMasterType;
+      sAxisMaster : AxiStreamMasterType;
 
    signal mAxisSlave,
       sAxisSlave : AxiStreamSlaveType;
@@ -121,7 +121,7 @@ begin
       if (mAxisMaster.tLast = '1') then
          -- Add bit errors to last word
          for i in 0 to 7 loop
-            master.tData(i*32+31 downto i*32) <= BIT_ERROR_C xor mAxisMaster.tData;
+            master.tData(i*32+31 downto i*32) := BIT_ERROR_C xor mAxisMaster.tData;
          end loop;
       end if;
 
