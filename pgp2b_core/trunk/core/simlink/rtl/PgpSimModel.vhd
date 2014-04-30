@@ -70,7 +70,6 @@ architecture PgpSimModel of PgpSimModel is
    signal intRxSlave  : AxiStreamSlaveType;
 
    constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
-   constant EOFE_BIT_C   : SSI_CONFIG_C.TUSER_BITS_C := SSI_EOFE_C;
 
 begin
 
@@ -83,29 +82,29 @@ begin
          TPD_G         => TPD_G,
          NUM_SLAVES_G  => 4
       ) port map (
-         axiClk            => pgpTxClk,
-         axiRst            => pgpTxClkRst,
-         sAxiStreamMasters => pgpTxMasters,
-         sAxiStreamSlaves  => pgpTxSlaves,
-         mAxiStreamMaster  => intTxMaster,
-         mAxiStreamSlave   => intTxSlave
+         axisClk      => pgpTxClk,
+         axisRst      => pgpTxClkRst,
+         sAxisMasters => pgpTxMasters,
+         sAxisSlaves  => pgpTxSlaves,
+         mAxisMaster  => intTxMaster,
+         mAxisSlave   => intTxSlave
       );
 
    -- Simulation link
    U_Sim : entity work.AxiStreamSim
       generic map (
          TPD_G            => TPD_G,
-         TDATA_BYTES_G    => 2,
-         EOFE_TUSER_BIT_G => EOFE_BIT_C
-      ) port map ( 
-         sAxiClk           => pgpTxClk,
-         sAxiRst           => pgpTxClkRst,
-         sAxiStreamMaster  => intTxMaster,
-         sAxiStreamSlave   => intTxSlave,
-         mAxiClk           => pgpRxClk,
-         mAxiRst           => pgpRxClkRst,
-         mAxiStreamMaster  => tmpRxMaster,
-         mAxiStreamSlave   => intRxSlave
+         AXIS_CONFIG_G    => SSI_CONFIG_C,
+         EOFE_TUSER_BIT_G => SSI_EOFE_C
+      ) port map (                          
+         sAxisClk     => pgpTxClk,
+         sAxisRst     => pgpTxClkRst,
+         sAxisMaster  => intTxMaster,
+         sAxisSlave   => intTxSlave,
+         mAxisClk     => pgpRxClk,
+         mAxisRst     => pgpRxClkRst,
+         mAxisMaster  => tmpRxMaster,
+         mAxisSlave   => intRxSlave
       );
 
    -- override valid and ready when paused
@@ -136,12 +135,12 @@ begin
          TPD_G         => TPD_G,
          NUM_MASTERS_G => 4
       ) port map (
-         axiClk            => pgpRxClk,
-         axiRst            => pgpRxClkRst,
-         sAxiStreamMaster  => intRxMaster,
-         sAxiStreamSlave   => intRxSlave,
-         mAxiStreamMasters => pgpRxMasters,
-         mAxiStreamSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
+         axisClk      => pgpRxClk,
+         axisRst      => pgpRxClkRst,
+         sAxisMaster  => intRxMaster,
+         sAxisSlave   => intRxSlave,
+         mAxisMasters => pgpRxMasters,
+         mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
       );
 
    -- Fake receive control signals
