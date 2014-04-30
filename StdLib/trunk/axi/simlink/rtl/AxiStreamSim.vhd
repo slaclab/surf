@@ -24,21 +24,20 @@ use work.AxiStreamPkg.all;
 entity AxiStreamSim is 
    generic (
       TPD_G            : time                   := 1 ns;
-      TDATA_BYTES_G    : integer range 2 to 4   := 2; -- 2 or 4
-      TUSER_BITS_C     : natural;
+      AXIS_CONFIG_G    : AxiStreamConfigTYpe    := AXI_STREAM_CONFIG_INIT_C;
       EOFE_TUSER_BIT_G : integer range 0 to 127 := 0
    );
    port ( 
 
       -- Slave, non-interleaved, 32-bit or 16-bit interface, tkeep not supported
-      sAxisClk          : in  sl;
-      sAxisRst          : in  sl;
+      sAxisClk    : in  sl;
+      sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
 
       -- Master, non-interleaved, 32-bit or 16-bit interface, tkeep not supported
-      mAxisClk          : in  sl;
-      mAxisRst          : in  sl;
+      mAxisClk    : in  sl;
+      mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
    );
@@ -48,17 +47,18 @@ end AxiStreamSim;
 architecture AxiStreamSim of AxiStreamSim is
 
    -- Local Signals
-   signal ibValid  : sl;
-   signal ibDest   : slv(3 downto 0);
-   signal ibEof    : sl;
-   signal ibEofe   : sl;
-   signal ibData   : slv(31 downto 0);
-   signal ibPos    : sl;
-   signal obValid  : sl;
-   signal obSize   : sl;
-   signal obDest   : slv(3 downto 0);
-   signal obEof    : sl;
-   signal obData   : slv(31 downto 0);
+   signal ibValid    : sl;
+   signal ibDest     : slv(3 downto 0);
+   signal ibEof      : sl;
+   signal ibEofe     : sl;
+   signal ibData     : slv(31 downto 0);
+   signal ibPos      : sl;
+   signal obValid    : sl;
+   signal obSize     : sl;
+   signal obDest     : slv(3 downto 0);
+   signal obEof      : sl;
+   signal obData     : slv(31 downto 0);
+   signal iAxisSlave : AxiStreamSlaveType;
 
    type RegType is record
       master : AxiStreamMasterType;
@@ -77,11 +77,14 @@ architecture AxiStreamSim of AxiStreamSim is
 
 begin
 
+   assert 
+
    ------------------------------------
    -- Inbound
    ------------------------------------
 
-   sAxisSlave.tReady <= '1';
+   iAxisSlave.tReady <= '1';
+   sAxisSlave <= iAxisSlave;
 
    process (sAxisClk) begin
       if rising_edge(sAxisClk) then
@@ -95,12 +98,12 @@ begin
          else
 
             if sAxisMaster.tValid = '1' then
-               if TDATA_BYTES_G = 4 then
-                  ibValid <= sAxisMaster.tValid                                        after TPD_G;
-                  ibData  <= sAxisMaster.tData(31 downto 0)                            after TPD_G;
-                  ibDest  <= sAxisMaster.tDest(3 downto 0)                             after TPD_G;
-                  ibEof   <= sAxisMaster.tLast                                         after TPD_G;
-                  ibEofe  <= sAxisMaster.tLast and sAxisMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
+               if AXIS_CONFIG_G.TDATA_BYTES_C = 4 then
+                  ibValid <= sAxisMaster.tValid                                              after TPD_G;
+                  ibData  <= sAxisMaster.tData(31 downto 0)                                  after TPD_G;
+                  ibDest  <= sAxisMaster.tDest(3 downto 0)                                   after TPD_G;
+                  ibEof   <= sAxisMaster.tLast                                               after TPD_G;
+                  ibEofe  <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
 
                elsif ibPos = '0' then
                   ibPos               <= '1'                            after TPD_G;
@@ -111,12 +114,12 @@ begin
                      report "Invalid tLast position in AXI stream sim" severity failure;
 
                else
-                  ibPos                <= '0'                                                       after TPD_G;
-                  ibValid              <= '1'                                                       after TPD_G;
-                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0)                            after TPD_G;
-                  ibDest               <= sAxisMaster.tDest(3 downto 0)                             after TPD_G;
-                  ibEof                <= sAxisMaster.tLast                                         after TPD_G;
-                  ibEofe               <= sAxisMaster.tLast and sAxisMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
+                  ibPos                <= '0'                                                             after TPD_G;
+                  ibValid              <= '1'                                                             after TPD_G;
+                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0)                                  after TPD_G;
+                  ibDest               <= sAxisMaster.tDest(3 downto 0)                                   after TPD_G;
+                  ibEof                <= sAxisMaster.tLast                                               after TPD_G;
+                  ibEofe               <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
                end if;
             else
                ibValid <= '1' after TPD_G;
@@ -140,8 +143,8 @@ begin
       report "Invalid tDest value in AXI stream sim" severity failure;
 
    assert ( sAxisRst = '1' or
-            (TDATA_BYTES_G = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
-            (TDATA_BYTES_G = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
+            (AXIS_CONFIG_G.TDATA_BYTES_C = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
+            (AXIS_CONFIG_G.TDATA_BYTES_C = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
       report "Invalid tKeep value in AXI stream sim" severity failure;
 
    ------------------------------------
@@ -160,7 +163,7 @@ begin
       if mAxisSlave.tReady = '1' or r.master.tValid = '0' then
 
          -- 32-bit interface
-         if TDATA_BYTES_G = 4 then
+         if AXIS_CONFIG_G.TDATA_BYTES_C = 4 then
             v.master.tValid             := obValid;
             v.master.tData(31 downto 0) := obData;
             v.master.tStrb(3  downto 0) := "1111";
