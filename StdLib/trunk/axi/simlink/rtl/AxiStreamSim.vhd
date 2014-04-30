@@ -31,16 +31,16 @@ entity AxiStreamSim is
    port ( 
 
       -- Slave, non-interleaved, 32-bit or 16-bit interface, tkeep not supported
-      sAxiClk          : in  sl;
-      sAxiRst          : in  sl;
-      sAxiStreamMaster : in  AxiStreamMasterType;
-      sAxiStreamSlave  : out AxiStreamSlaveType;
+      sAxisClk          : in  sl;
+      sAxisRst          : in  sl;
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType;
 
       -- Master, non-interleaved, 32-bit or 16-bit interface, tkeep not supported
-      mAxiClk          : in  sl;
-      mAxiRst          : in  sl;
-      mAxiStreamMaster : out AxiStreamMasterType;
-      mAxiStreamSlave  : in  AxiStreamSlaveType
+      mAxisClk          : in  sl;
+      mAxisRst          : in  sl;
+      mAxisMaster : out AxiStreamMasterType;
+      mAxisSlave  : in  AxiStreamSlaveType
    );
 end AxiStreamSim;
 
@@ -81,11 +81,11 @@ begin
    -- Inbound
    ------------------------------------
 
-   sAxiStreamSlave.tReady <= '1';
+   sAxisSlave.tReady <= '1';
 
-   process (sAxiClk) begin
-      if rising_edge(sAxiClk) then
-         if sAxiRst = '1' then
+   process (sAxisClk) begin
+      if rising_edge(sAxisClk) then
+         if sAxisRst = '1' then
             ibValid <= '0'           after TPD_G;
             ibData  <= (others=>'0') after TPD_G;
             ibDest  <= (others=>'0') after TPD_G;
@@ -94,29 +94,29 @@ begin
             ibPos   <= '0'           after TPD_G;
          else
 
-            if sAxiStreamMaster.tValid = '1' then
+            if sAxisMaster.tValid = '1' then
                if TDATA_BYTES_G = 4 then
-                  ibValid <= sAxiStreamMaster.tValid                                             after TPD_G;
-                  ibData  <= sAxiStreamMaster.tData(31 downto 0)                                 after TPD_G;
-                  ibDest  <= sAxiStreamMaster.tDest(3 downto 0)                                  after TPD_G;
-                  ibEof   <= sAxiStreamMaster.tLast                                              after TPD_G;
-                  ibEofe  <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
+                  ibValid <= sAxisMaster.tValid                                             after TPD_G;
+                  ibData  <= sAxisMaster.tData(31 downto 0)                                 after TPD_G;
+                  ibDest  <= sAxisMaster.tDest(3 downto 0)                                  after TPD_G;
+                  ibEof   <= sAxisMaster.tLast                                              after TPD_G;
+                  ibEofe  <= sAxisMaster.tLast and sAxisMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
 
                elsif ibPos = '0' then
                   ibPos               <= '1'                                 after TPD_G;
                   ibValid             <= '0'                                 after TPD_G;
-                  ibData(15 downto 0) <= sAxiStreamMaster.tData(15 downto 0) after TPD_G;
+                  ibData(15 downto 0) <= sAxisMaster.tData(15 downto 0) after TPD_G;
 
-                  assert ( sAxiStreamMaster.tLast = '0' )
+                  assert ( sAxisMaster.tLast = '0' )
                      report "Invalid tLast position in AXI stream sim" severity failure;
 
                else
                   ibPos                <= '0'                                                                 after TPD_G;
                   ibValid              <= '1'                                                                 after TPD_G;
-                  ibData(31 downto 16) <= sAxiStreamMaster.tData(15 downto 0)                                 after TPD_G;
-                  ibDest               <= sAxiStreamMaster.tDest(3 downto 0)                                  after TPD_G;
-                  ibEof                <= sAxiStreamMaster.tLast                                              after TPD_G;
-                  ibEofe               <= sAxiStreamMaster.tLast and sAxiStreamMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
+                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0)                                 after TPD_G;
+                  ibDest               <= sAxisMaster.tDest(3 downto 0)                                  after TPD_G;
+                  ibEof                <= sAxisMaster.tLast                                              after TPD_G;
+                  ibEofe               <= sAxisMaster.tLast and sAxisMaster.tUser(EOFE_TUSER_BIT_G) after TPD_G;
                end if;
             else
                ibValid <= '1' after TPD_G;
@@ -127,8 +127,8 @@ begin
 
    U_SimIb: entity work.AxiStreamSimIb
       port map (
-         ibClk   => sAxiClk,
-         ibReset => sAxiRst,
+         ibClk   => sAxisClk,
+         ibReset => sAxisRst,
          ibValid => ibValid,
          ibDest  => ibDest,
          ibEof   => ibEof,
@@ -136,12 +136,12 @@ begin
          ibData  => ibData
       );
 
-   assert ( sAxiRst = '1' or sAxiStreamMaster.tDest < 4 )
+   assert ( sAxisRst = '1' or sAxisMaster.tDest < 4 )
       report "Invalid tDest value in AXI stream sim" severity failure;
 
-   --assert ( sAxiRst = '1' or
-            --(TDATA_BYTES_G = 2 and sAxiStreamMaster.tKeep(3 downto 0) = "0011") or
-            --(TDATA_BYTES_G = 4 and sAxiStreamMaster.tKeep(3 downto 0) = "1111") )
+   --assert ( sAxisRst = '1' or
+            --(TDATA_BYTES_G = 2 and sAxisMaster.tKeep(3 downto 0) = "0011") or
+            --(TDATA_BYTES_G = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
       --report "Invalid tKeep value in AXI stream sim" severity failure;
 
 
@@ -149,7 +149,7 @@ begin
    -- Outbound
    ------------------------------------
 
-   comb : process (mAxiRst, r, mAxiStreamSlave, obValid, obSize, obDest, obEof, obData ) is
+   comb : process (mAxisRst, r, mAxisSlave, obValid, obSize, obDest, obEof, obData ) is
       variable v        : RegType;
    begin
       v := r;
@@ -158,7 +158,7 @@ begin
       v.ready         := '0';
 
       -- Advance
-      if mAxiStreamSlave.tReady = '1' or r.master.tValid = '0' then
+      if mAxisSlave.tReady = '1' or r.master.tValid = '0' then
 
          -- 32-bit interface
          if TDATA_BYTES_G = 4 then
@@ -192,27 +192,27 @@ begin
          end if;
       end if;
 
-      if (mAxiRst = '1') then
+      if (mAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      mAxiStreamMaster <= r.master;
+      mAxisMaster <= r.master;
 
    end process comb;
 
-   seq : process (mAxiClk) is
+   seq : process (mAxisClk) is
    begin
-      if (rising_edge(mAxiClk)) then
+      if (rising_edge(mAxisClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_SimOb: entity work.AxiStreamSimOb
       port map (
-         obClk   => mAxiClk,
-         obReset => mAxiRst,
+         obClk   => mAxisClk,
+         obReset => mAxisRst,
          obValid => obValid,
          obDest  => obDest,
          obEof   => obEof,

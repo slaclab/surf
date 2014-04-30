@@ -109,45 +109,46 @@ architecture mapping of AxiStreamFifo is
    --                                      SLAVE_AXI_CONFIG_G.TUSER_BITS_C,
    --                                      (DATA_BYTES_C * SLAVE_AXI_CONFIG_G.TUSER_BITS_C));
 
-   constant USER_BITS_C : integer := (DATA_BYTES_C * SLAVE_AXI_CONFIG_G.TUSER_BITS_C);
+   constant USER_BITS_C : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
+   constant USER_TOT_C  : integer := (DATA_BYTES_C * USER_BITS_C);
 
-   constant FIFO_BITS_C : integer := DATA_BITS_C + KEEP_BITS_C + 1 + USER_BITS_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
+   constant FIFO_BITS_C : integer := DATA_BITS_C + KEEP_BITS_C + 1 + USER_TOT_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
 
    constant WR_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant RD_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
 
    -- Convert record to slv
-   function iaxiToSlv (din : AxiStreamMasterType) return slv is
+   function iAxiToSlv (din : AxiStreamMasterType) return slv is
       variable retValue : slv(FIFO_BITS_C-1 downto 0);
       variable i        : integer;
    begin
       i := 0;
 
       retValue(DATA_BITS_C-1 downto 0) := din.tData(DATA_BITS_C-1 downto 0);
-      i                                := i + DATA_BITS_C;
+      i := i + DATA_BITS_C;
 
       retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
-      i                                    := i + KEEP_BITS_C;
+      i := i + KEEP_BITS_C;
 
       retValue(i) := din.tLast;
-      i           := i + 1;
+      i := i + 1;
 
-      retValue((USER_BITS_C+i)-1 downto i) := din.tUser(USER_BITS_C-1 downto 0);
-      i                                    := i + USER_BITS_C;
+      retValue((USER_TOT_C+i)-1 downto i) := din.tUser(USER_TOT_C-1 downto 0);
+      i := i + USER_TOT_C;
 
       if STRB_BITS_C > 0 then
          retValue((STRB_BITS_C+i)-1 downto i) := din.tStrb(STRB_BITS_C-1 downto 0);
-         i                                    := i + STRB_BITS_C;
+         i := i + STRB_BITS_C;
       end if;
 
       if DEST_BITS_C > 0 then
          retValue((DEST_BITS_C+i)-1 downto i) := din.tDest(DEST_BITS_C-1 downto 0);
-         i                                    := i + DEST_BITS_C;
+         i := i + DEST_BITS_C;
       end if;
 
       if ID_BITS_C > 0 then
          retValue((ID_BITS_C+i)-1 downto i) := din.tId(ID_BITS_C-1 downto 0);
-         i                                  := i + ID_BITS_C;
+         i := i + ID_BITS_C;
       end if;
 
       return(retValue);
@@ -155,52 +156,59 @@ architecture mapping of AxiStreamFifo is
    end function;
 
    -- Convert slv to record
-   function islvToAxi (din : slv(FIFO_BITS_C-1 downto 0)) return AxiStreamMasterType is
-      variable retValue : AxiStreamMasterType;
+   procedure iSlvToAxi (din     : in    slv(FIFO_BITS_C-1 downto 0); 
+                        valid   : in    sl;
+                        master  : out   AxiStreamMasterType;
+                        byteCnt : inout integer ) is
       variable i, j     : integer;
    begin
-      i        := 0;
-      retValue := AXI_STREAM_MASTER_INIT_C;
+      i := 0;
 
-      retValue.tData(DATA_BITS_C-1 downto 0) := din(DATA_BITS_C-1 downto 0);
-      i                                      := i + DATA_BITS_C;
+      master := AXI_STREAM_MASTER_INIT_C;
 
-      for j in 0 to conv_integer(din((KEEP_BITS_C+i)-1 downto i)) loop
-         retValue.tKeep(j) := '1';
-      end loop;
+      master.tValid := valid;
+
+      master.tData(DATA_BITS_C-1 downto 0) := din(DATA_BITS_C-1 downto 0);
+      i := i + DATA_BITS_C;
+
+      byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i));
+
+      if byteCnt > DATA_BYTES_C then
+         master.tKeep(DATA_BYTES_C-1 downto 0) := (others=>'1');
+      elsif byteCnt /= 0 then
+         master.tKeep(byteCnt-1 downto 0) := (others=>'1');
+      end if;
       i := i + KEEP_BITS_C;
 
-      retValue.tLast := din(i);
-      i              := i + 1;
+      master.tLast := din(i);
+      i := i + 1;
 
-      retValue.tUser(USER_BITS_C-1 downto 0) := din((USER_BITS_C+i)-1 downto i);
-      i                                      := i + USER_BITS_C;
+      master.tUser(USER_TOT_C-1 downto 0) := din((USER_TOT_C+i)-1 downto i);
+      i := i + USER_TOT_C;
 
       if STRB_BITS_C > 0 then
-         retValue.tStrb(STRB_BITS_C-1 downto 0) := din((STRB_BITS_C+i)-1 downto i);
-         i                                      := i + STRB_BITS_C;
+         master.tStrb(STRB_BITS_C-1 downto 0) := din((STRB_BITS_C+i)-1 downto i);
+         i := i + STRB_BITS_C;
       end if;
 
       if DEST_BITS_C > 0 then
-         retValue.tDest(DEST_BITS_C-1 downto 0) := din((DEST_BITS_C+i)-1 downto i);
-         i                                      := i + DEST_BITS_C;
+         master.tDest(DEST_BITS_C-1 downto 0) := din((DEST_BITS_C+i)-1 downto i);
+         i := i + DEST_BITS_C;
       end if;
 
       if ID_BITS_C > 0 then
-         retValue.tId(ID_BITS_C-1 downto 0) := din((ID_BITS_C+i)-1 downto i);
-         i                                  := i + ID_BITS_C;
+         master.tId(ID_BITS_C-1 downto 0) := din((ID_BITS_C+i)-1 downto i);
+         i := i + ID_BITS_C;
       end if;
 
-      return(retValue);
-
-   end function;
+   end iSlvToAxi;
 
 
    ----------------
    -- Write Signals
    ----------------
    constant WR_LOGIC_EN_C : boolean := (WR_BYTES_C < RD_BYTES_C);
-   constant WR_SIZE_C     : integer := ite(WR_LOGIC_EN_C, WR_BYTES_C / RD_BYTES_C, 1);
+   constant WR_SIZE_C     : integer := ite(WR_LOGIC_EN_C, RD_BYTES_C / WR_BYTES_C, 1);
 
    type WrRegType is record
       count    : slv(bitSize(WR_SIZE_C)-1 downto 0);
@@ -224,7 +232,7 @@ architecture mapping of AxiStreamFifo is
    -- Read Signals
    ---------------
    constant RD_LOGIC_EN_C : boolean := (RD_BYTES_C < WR_BYTES_C);
-   constant RD_SIZE_C     : integer := ite(RD_LOGIC_EN_C, RD_BYTES_C / WR_BYTES_C, 1);
+   constant RD_SIZE_C     : integer := ite(RD_LOGIC_EN_C, WR_BYTES_C / RD_BYTES_C, 1);
 
    type RdRegType is record
       count    : slv(bitSize(RD_SIZE_C)-1 downto 0);
@@ -296,12 +304,12 @@ begin
 
       -- Write logic enabled
       if WR_LOGIC_EN_C then
-         fifoDin   <= iaxiToSlv(wrR.wrMaster);
+         fifoDin   <= iAxiToSlv(wrR.wrMaster);
          fifoWrite <= wrR.wrMaster.tValid and (not fifoAFull);
 
       -- Bypass write logic
       else
-         fifoDin   <= iaxiToSlv(sAxisMaster);
+         fifoDin   <= iAxiToSlv(sAxisMaster);
          fifoWrite <= sAxisMaster.tValid and (not fifoAFull);
       end if;
 
@@ -312,7 +320,7 @@ begin
    wrSeq : process (sAxisClk) is
    begin
       if (rising_edge(sAxisClk)) then
-         if sAxisRst = '1' then
+         if sAxisRst = '1' or WR_LOGIC_EN_C = false then
             wrR <= WR_REG_INIT_C after TPD_G;
          else
             wrR <= wrRin after TPD_G;
@@ -392,11 +400,13 @@ begin
    rdComb : process (rdR, fifoDout, fifoValid, mAxisSlave) is
       variable v          : RdRegType;
       variable idx        : integer;
+      variable byteCnt    : integer;
       variable fifoMaster : AxiStreamMasterType;
    begin
-      v          := rdR;
-      fifoMaster := islvToAxi (fifoDout);
-      idx        := conv_integer(rdR.count);
+      v   := rdR;
+      idx := conv_integer(rdR.count);
+
+      iSlvToAxi (fifoDout,fifoValid, fifoMaster, byteCnt);
 
       -- Advance pipeline
       if mAxisSlave.tReady = '1' or rdR.rdMaster.tValid = '0' then
@@ -411,10 +421,10 @@ begin
 
          v.rdMaster.tDest  := fifoMaster.tDest;
          v.rdMaster.tId    := fifoMaster.tId;
-         v.rdMaster.tValid := fifoValid;
+         v.rdMaster.tValid := fifoMaster.tValid;
 
-         -- Reached end of fifo data or no more valid bits in last word
-         if (rdR.count = (RD_SIZE_C-1)) or (v.rdMaster.tKeep = 0 and fifoMaster.tLast = '1') then
+         -- Reached end of fifo data or no more valid bytes in last word
+         if (rdR.count = (RD_SIZE_C-1)) or (rdR.count = byteCnt and fifoMaster.tLast = '1') then
             v.count          := (others => '0');
             v.ready          := '1';
             v.rdMaster.tLast := fifoMaster.tLast;
@@ -434,7 +444,7 @@ begin
 
       -- Bypass read logic
       else
-         mAxisMaster <= islvToAxi (fifoDout);
+         mAxisMaster <= fifoMaster;
          fifoRead    <= mAxisSlave.tReady;
       end if;
       
@@ -444,7 +454,7 @@ begin
    rdSeq : process (mAxisClk) is
    begin
       if (rising_edge(mAxisClk)) then
-         if mAxisRst = '1' then
+         if mAxisRst = '1' or RD_LOGIC_EN_C = false then
             rdR <= RD_REG_INIT_C after TPD_G;
          else
             rdR <= rdRin after TPD_G;

@@ -1,4 +1,5 @@
-TOP=vcs_tb
+#TOP=vcs_tb
+TOP=fifo_tb
 
 # Set Default Output
 SIM_DIR=$(PWD)/out
@@ -38,19 +39,21 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
+#	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiAxiLiteMaster.vhd
+#	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiCmdMaster.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiStreamSimIb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiStreamSimOb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiStreamSim.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/rtl/Pgp2bPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimIb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSimOb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/AxiStreamSim.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/PgpSim.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/vcs_tb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/simlink/rtl//PgpSimModel.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/fifo_tb.vhd
 
 # VHPI Library
 vhpi_src:
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/VhpiGeneric.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimOb.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/AxiStreamSimIb.c
-	@cd $(SIM_DIR); gcc -Wall -shared -o libSimSw_lib.so VhpiGeneric.o AxiStreamSimOb.o AxiStreamSimIb.o
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/VhpiGeneric.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/AxiStreamSimOb.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/AxiStreamSimIb.c
+	@cd $(SIM_DIR); gcc -Wall -shared -o libAxiSim.so VhpiGeneric.o AxiStreamSimOb.o AxiStreamSimIb.o
 
 sim_gen:
 	cd $(SIM_DIR); vcs $(EN64) $(TOP) -cpp g++ -cc gcc -debug -lrt -timescale=1ps/1ps -sim_res=1ps
