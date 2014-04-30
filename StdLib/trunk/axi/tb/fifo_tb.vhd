@@ -26,7 +26,7 @@ architecture fifo_tb of fifo_tb is
    signal mAxisSlave  : AxiStreamSlaveType;
    signal axiCount    : slv(7 downto 0);
 
-   constant MASTER_AXI_CONFIG_C  : AxiStreamConfigType := (
+   constant SLAVE_AXI_CONFIG_C  : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16,
       TDEST_BITS_C  => 4,
@@ -35,7 +35,7 @@ architecture fifo_tb of fifo_tb is
       TUSER_MODE_C  => TUSER_NORMAL_C
    );
 
-   constant SLAVE_AXI_CONFIG_C : AxiStreamConfigTYpe := ssiAxiStreamConfig (2);
+   constant MASTER_AXI_CONFIG_C : AxiStreamConfigTYpe := ssiAxiStreamConfig (2);
 
 begin
 
@@ -73,15 +73,16 @@ begin
       sAxisMaster.tDest <= x"de";
       sAxisMaster.tId   <= x"ad";
 
-      for i in 0 to 1 loop
+      for i in 0 to 15 loop
          sAxisMaster.tData(i*8+7 downto i*8) <= conv_std_logic_vector((conv_integer(axiCount(7 downto 0)) * i),8);
          sAxisMaster.tStrb(i) <= '1';
          sAxisMaster.tKeep(i) <= '1';
          sAxisMaster.tUser(i*4+3 downto i*4) <= conv_std_logic_vector(i,4);
       end loop;
 
-      if axiCount(3 downto 0) = 14 then
+      if axiCount(3 downto 0) = 15 then
          sAxisMaster.tLast <= '1';
+         sAxisMaster.tKeep(15 downto 15) <= (others=>'0');
       else
          sAxisMaster.tLast <= '0';
       end if;
