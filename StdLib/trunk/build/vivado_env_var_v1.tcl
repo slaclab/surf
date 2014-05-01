@@ -13,8 +13,3 @@ set OUT_DIR          $::env(OUT_DIR)
 set VIVADO_DIR       $::env(VIVADO_DIR)
 set VIVADO_PROJECT   $::env(VIVADO_PROJECT)
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
-
-########################################################
-## Load Custom Procedures
-########################################################
-source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
