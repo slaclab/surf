@@ -194,6 +194,7 @@ begin
       -- Init
       v.mFifoAxisMaster        := sFifoAxisMaster;
       v.mFifoAxisMaster.tValid := '0';
+      v.mFifoAxisMaster.tLast  := '0';
 
       v.sFifoAxisSlave.tReady := '0';
 
@@ -210,12 +211,16 @@ begin
             v.rdCount               := (others => '0');
             v.timeout               := '0';
             v.fail                  := '0';
-            v.sFifoAxisSlave.tReady := '0';
 
             -- Frame is starting
-            if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '0' and mFifoAxisCtrl.pause = '0' then
-               v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
-               v.state                  := S_ADDR_C;
+            if sFifoAxisMaster.tValid = '1' and mFifoAxisCtrl.pause = '0' then
+               v.sFifoAxisSlave.tReady  := '1';
+           
+               -- Bad frame 
+               if sFifoAxisMaster.tLast = '0' then
+                  v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
+                  v.state                  := S_ADDR_C;
+               end if;
             end if;
 
          -- Address Field
@@ -311,7 +316,7 @@ begin
             -- Don't read if EOF (need for dump later)
             if sFifoAxisMaster.tValid = '1' then
                v.sFifoAxisSlave.tReady := not sFifoAxisMaster.tLast;
-               v.state                  := S_READ_C;
+               v.state                 := S_READ_C;
             end if;
 
          -- Read transaction
@@ -391,8 +396,8 @@ begin
       rin <= v;
 
       mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
-      mAxiLiteReadMaster      <= r.mAxiLiteReadMaster;
-      sFifoAxisSlave      <= r.sFifoAxisSlave;
+      mAxiLiteReadMaster  <= r.mAxiLiteReadMaster;
+      sFifoAxisSlave      <= v.sFifoAxisSlave;
       mFifoAxisMaster     <= r.mFifoAxisMaster;
 
    end process comb;

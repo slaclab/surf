@@ -423,16 +423,18 @@ begin
          v.rdMaster.tValid := fifoMaster.tValid;
 
          -- Reached end of fifo data or no more valid bytes in last word
-         if (rdR.count = (RD_SIZE_C-1)) or (rdR.bytes = byteCnt and fifoMaster.tLast = '1') then
-            v.count          := (others => '0');
-            v.bytes          := conv_std_logic_vector(RD_BYTES_C,KEEP_BITS_C);
-            v.ready          := '1';
-            v.rdMaster.tLast := fifoMaster.tLast;
-         else
-            v.count          := rdR.count + 1;
-            v.bytes          := rdR.bytes + RD_BYTES_C;
-            v.ready          := '0';
-            v.rdMaster.tLast := '0';
+         if fifoMaster.tValid = '1' then
+            if (rdR.count = (RD_SIZE_C-1)) or (rdR.bytes = byteCnt and fifoMaster.tLast = '1') then
+               v.count          := (others => '0');
+               v.bytes          := conv_std_logic_vector(RD_BYTES_C,KEEP_BITS_C);
+               v.ready          := '1';
+               v.rdMaster.tLast := fifoMaster.tLast;
+            else
+               v.count          := rdR.count + 1;
+               v.bytes          := rdR.bytes + RD_BYTES_C;
+               v.ready          := '0';
+               v.rdMaster.tLast := '0';
+            end if;
          end if;
       end if;
 

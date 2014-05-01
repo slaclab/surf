@@ -54,11 +54,9 @@ architecture AxiStreamSim of AxiStreamSim is
    signal ibData     : slv(31 downto 0);
    signal ibPos      : sl;
    signal obValid    : sl;
-   signal obSize     : sl;
    signal obDest     : slv(3 downto 0);
    signal obEof      : sl;
    signal obData     : slv(31 downto 0);
-   signal iAxisSlave : AxiStreamSlaveType;
 
    type RegType is record
       master : AxiStreamMasterType;
@@ -77,14 +75,11 @@ architecture AxiStreamSim of AxiStreamSim is
 
 begin
 
-   assert 
-
    ------------------------------------
    -- Inbound
    ------------------------------------
 
-   iAxisSlave.tReady <= '1';
-   sAxisSlave <= iAxisSlave;
+   sAxisSlave.tReady <= '1';
 
    process (sAxisClk) begin
       if rising_edge(sAxisClk) then
@@ -122,7 +117,7 @@ begin
                   ibEofe               <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
                end if;
             else
-               ibValid <= '1' after TPD_G;
+               ibValid <= '0' after TPD_G;
             end if;
          end if;
       end if;
@@ -142,16 +137,16 @@ begin
    assert ( sAxisRst = '1' or sAxisMaster.tDest < 4 )
       report "Invalid tDest value in AXI stream sim" severity failure;
 
-   assert ( sAxisRst = '1' or
-            (AXIS_CONFIG_G.TDATA_BYTES_C = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
-            (AXIS_CONFIG_G.TDATA_BYTES_C = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
-      report "Invalid tKeep value in AXI stream sim" severity failure;
+--   assert ( sAxisRst = '1' or
+--            (AXIS_CONFIG_G.TDATA_BYTES_C = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
+--            (AXIS_CONFIG_G.TDATA_BYTES_C = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
+--      report "Invalid tKeep value in AXI stream sim" severity failure;
 
    ------------------------------------
    -- Outbound
    ------------------------------------
 
-   comb : process (mAxisRst, r, mAxisSlave, obValid, obSize, obDest, obEof, obData ) is
+   comb : process (mAxisRst, r, mAxisSlave, obValid, obDest, obEof, obData ) is
       variable v        : RegType;
    begin
       v := r;
@@ -182,8 +177,13 @@ begin
             v.master.tDest(3 downto 0)  := obDest;
             v.ready                     := '0';
 
+            if ( obValid = '1') then
+               v.pos := '1';
+            end if;
+
          -- 16bit interface, high position
          else 
+            v.pos                       := '0';
             v.master.tValid             := obValid;
             v.master.tData(15 downto 0) := obData(31 downto 16);
             v.master.tStrb(3 downto 0)  := "0011";
@@ -191,6 +191,11 @@ begin
             v.master.tLast              := obEof;
             v.master.tDest(3 downto 0)  := obDest;
             v.ready                     := '1';
+
+            if ( obValid = '1') then
+               v.pos := '0';
+            end if;
+
          end if;
       end if;
 
@@ -219,7 +224,7 @@ begin
          obDest  => obDest,
          obEof   => obEof,
          obData  => obData,
-         obReady => r.ready
+         obReady => rin.ready
       );
 
 end AxiStreamSim;

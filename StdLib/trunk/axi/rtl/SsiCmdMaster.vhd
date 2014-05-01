@@ -73,27 +73,25 @@ end SsiCmdMaster;
 
 architecture rtl of SsiCmdMaster is
 
-   constant CMD_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);
-
    signal fifoAxisMaster : AxiStreamMasterType;
    signal fifoAxisSlave  : AxiStreamSlaveType;
 
    type StateType is (IDLE_S, CMD_S, DUMP_S);
 
    type RegType is record
-      state     : StateType;
       txnNumber : slv(2 downto 0);
       cmdMaster : SsiCmdMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state     => IDLE_S,
       txnNumber => (others => '0'),
       cmdMaster => SSI_CMD_MASTER_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
 begin
 
@@ -114,7 +112,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
+         MASTER_AXI_CONFIG_G => INT_CONFIG_C)
       port map (
          sAxisClk    => axisClk,
          sAxisRst    => axisRst,
@@ -161,11 +159,11 @@ begin
          end case;
 
 
-         if (not axiStreamPacked(AXI_STREAM_CONFIG_G, fifoAxisMaster)) then
-            -- Fail frame if any txn is not packed
-            v.txnNumber       := "100";
-            v.cmdMaster.valid := '0';
-         end if;
+         --if (not axiStreamPacked(INT_CONFIG_C, fifoAxisMaster)) then
+         --   -- Fail frame if any txn is not packed
+         --   v.txnNumber       := "100";
+         --   v.cmdMaster.valid := '0';
+         --end if;
 
          if (fifoAxisMaster.tLast = '1') then
             -- Reset frame on tLast or EOFE
