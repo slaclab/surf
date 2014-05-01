@@ -9,7 +9,10 @@ use unisim.vcomponents.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
+use work.SsiCmdMasterPkg.all;
 use work.Pgp2bPkg.all;
+use work.I2cPkg.all;
 
 entity vcs_tb is end vcs_tb;
 
@@ -30,8 +33,26 @@ architecture vcs_tb of vcs_tb is
    signal axiReadSlave      : AxiLiteReadSlaveType;
    signal writeRegister     : Slv32Array(1 downto 0);
    signal readRegister      : Slv32Array(1 downto 0);
-   signal cmdMaster         : CmdMasterType;
+   signal cmdMaster         : SsiCmdMasterType;
    signal pgpRxCtrl         : AxiStreamCtrlArray(3 downto 0);
+   signal i2cRegMasterIn    : I2cRegMasterInType;
+   signal i2cRegMasterOut   : I2cRegMasterOutType;
+   signal i2ci              : i2c_in_type;
+   signal i2co              : i2c_out_type;
+
+   constant I2C_CONFIG_ENTRY_C : I2cAxiLiteDevType := (
+      i2cAddress => "0000100111",
+      i2cTenbit  => '0',
+      dataSize   => 8,
+      endianness => '0'
+   );
+
+   constant I2C_CONFIG_C : I2cAxiLiteDevArray(0 downto 0) := (
+      0 => I2C_CONFIG_ENTRY_C
+   );
+
+   constant PGP_LANE_CNT_C   : integer := 1;
+   constant SSI_PGP_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (PGP_LANE_CNT_C*2);
 
 begin
 
@@ -66,7 +87,8 @@ begin
 
    U_PgpSimMode : entity work.PgpSimModel
       generic map (
-         TPD_G             => 1 ns
+         TPD_G             => 1 ns,
+         LANE_CNT_G        => PGP_LANE_CNT_C
       ) port map ( 
          pgpTxClk          => pgpClk,
          pgpTxClkRst       => pgpClkRst,
@@ -93,15 +115,14 @@ begin
       generic map (
          TPD_G               => 1 ns,
          XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => true,
+         USE_BUILT_IN_G      => false,
          ALTERA_SYN_G        => false,
          ALTERA_RAM_G        => "M9K",
          BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => false,
-         CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_PAUSE_THRES_G  => 255,
-         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_G
+         FIFO_PAUSE_THRESH_G => 255,
+         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_C
       ) port map (
          sAxisClk             => pgpClk,
          sAxisRst             => pgpClkRst,
@@ -120,38 +141,76 @@ begin
          mAxiLiteReadSlave    => axiReadSlave
       );
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty 
-      generic map (
-         TPD_G           => 1 ns,
-         NUM_WRITE_REG_G => 2,
-         NUM_READ_REG_G  => 2
-      ) port map (
-         axiClk         => axiClk,
-         axiClkRst      => axiClkRst,
-         axiReadMaster  => axiReadMaster,
-         axiReadSlave   => axiReadSlave,
-         axiWriteMaster => axiWriteMaster,
-         axiWriteSlave  => axiWriteSlave,
-         writeRegister  => writeRegister,
-         readRegister   => readRegister
-      );
+--   U_AxiLiteEmpty : entity work.AxiLiteEmpty 
+--      generic map (
+--         TPD_G           => 1 ns,
+--         NUM_WRITE_REG_G => 2,
+--         NUM_READ_REG_G  => 2
+--      ) port map (
+--         axiClk         => axiClk,
+--         axiClkRst      => axiClkRst,
+--         axiReadMaster  => axiReadMaster,
+--         axiReadSlave   => axiReadSlave,
+--         axiWriteMaster => axiWriteMaster,
+--         axiWriteSlave  => axiWriteSlave,
+--         writeRegister  => writeRegister,
+--         readRegister   => readRegister
+--      );
 
       readRegister(0) <= x"deadbeef";
       readRegister(1) <= x"44444444";
+
+
+   U_I2c : entity work.I2cRegMasterAxiBridge
+      generic map (
+         TPD_G               => 1 ns,
+         I2C_REG_ADDR_SIZE_G => 8,
+         DEVICE_MAP_G        => I2C_CONFIG_C,
+         EN_USER_REG_G       => false,
+         NUM_WRITE_REG_G     => 1,
+         NUM_READ_REG_G      => 1,
+         AXI_ERROR_RESP_G    => AXI_RESP_SLVERR_C
+      ) port map (
+         axiClk           => axiClk,
+         axiRst           => axiClkRst,
+         axiReadMaster    => axiReadMaster,
+         axiReadSlave     => axiReadSlave,
+         axiWriteMaster   => axiWriteMaster,
+         axiWriteSlave    => axiWriteSlave,
+         i2cRegMasterIn   => i2cRegMasterIn,
+         i2cRegMasterOut  => i2cRegMasterOut 
+      );
+
+   U_I2cMaster : entity work.I2cRegMaster 
+      generic map (
+         TPD_G                => 1 ns,
+         OUTPUT_EN_POLARITY_G => 1,
+         FILTER_G             => 8,
+         PRESCALE_G           => 62
+      ) port map (
+         clk    => axiClk,
+         srst   => axiClkRst,
+         regIn  => i2cRegMasterIn,
+         regOut => i2cRegMasterOut,
+         i2ci   => i2ci,
+         i2co   => i2co
+   );
+
+   i2ci.scl <= i2co.scl when i2co.scloen = '1' else '1';
+   i2ci.sda <= i2co.sda when i2co.sdaoen = '1' else '1';
 
    U_CmdMaster : entity work.SsiCmdMaster 
       generic map (
          TPD_G               => 1 ns,
          XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => true,
+         USE_BUILT_IN_G      => false,
          ALTERA_SYN_G        => false,
          ALTERA_RAM_G        => "M9K",
          BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => false,
-         CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_PAUSE_THRES_G  => 255,
-         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_G
+         FIFO_PAUSE_THRESH_G => 255,
+         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_C
       ) port map (
          axisClk       => pgpClk,
          axisRst       => pgpClkRst,
@@ -159,7 +218,7 @@ begin
          sAxisSlave    => open,
          sAxisCtrl     => pgpRxCtrl(0),
          cmdClk        => axiClk,
-         cmdClkRst     => axiClkRst,
+         cmdRst        => axiClkRst,
          cmdMaster     => cmdMaster
       );
 
