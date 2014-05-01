@@ -32,7 +32,8 @@ entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G : time := 1 ns;
+      TPD_G         : time                  := 1 ns;
+      PIPE_STAGES_G : natural range 0 to 16 := 0;
 
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
@@ -229,6 +230,9 @@ architecture mapping of AxiStreamFifo is
    signal fifoDout  : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead  : sl;
    signal fifoValid : sl;
+   
+   signal axisMaster : AxiStreamMasterType;
+   signal axisSlave  : AxiStreamSlaveType;   
 
 begin
 
@@ -396,7 +400,7 @@ begin
    -- Read Logic
    -------------------------
 
-   rdComb : process (rdR, fifoDout, fifoValid, mAxisSlave) is
+   rdComb : process (rdR, fifoDout, fifoValid, axisSlave) is
       variable v          : RdRegType;
       variable idx        : integer;
       variable byteCnt    : integer;
@@ -408,7 +412,7 @@ begin
       iSlvToAxi (fifoDout,fifoValid, fifoMaster, byteCnt);
 
       -- Advance pipeline
-      if mAxisSlave.tReady = '1' or rdR.rdMaster.tValid = '0' then
+      if axisSlave.tReady = '1' or rdR.rdMaster.tValid = '0' then
          v.rdMaster := AXI_STREAM_MASTER_INIT_C;
 
          v.rdMaster.tData((RD_BYTES_C*8)-1 downto 0) := fifoMaster.tData((RD_BYTES_C*8*idx)+((RD_BYTES_C*8)-1) downto (RD_BYTES_C*8*idx));
@@ -442,13 +446,13 @@ begin
 
       -- Read logic enabled
       if RD_LOGIC_EN_C then
-         mAxisMaster <= rdR.rdMaster;
+         axisMaster <= rdR.rdMaster;
          fifoRead    <= v.ready;
 
       -- Bypass read logic
       else
-         mAxisMaster <= fifoMaster;
-         fifoRead    <= mAxisSlave.tReady;
+         axisMaster <= fifoMaster;
+         fifoRead    <= axisSlave.tReady;
       end if;
       
    end process rdComb;
@@ -464,6 +468,25 @@ begin
          end if;
       end if;
    end process rdSeq;
+   
+   U_Sync : entity work.AxiStreamSync
+      generic map (
+         TPD_G              => TPD_G,
+         RST_ASYNC_G        => false,
+         RST_POLARITY_G     => '1',
+         PIPE_STAGES_G      => PIPE_STAGES_G
+         )
+      port map (
+         -- Slave Port
+         sAxisMaster => axisMaster,
+         sAxisSlave  => axisSlave,
+         -- Master Port
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave,
+         -- Clock and Reset
+         axisClk     => mAxisClk,
+         axisRst     => mAxisRst
+         );   
 
 end mapping;
 
