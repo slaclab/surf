@@ -25,7 +25,8 @@ use work.SsiPkg.all;
 
 entity PgpSimModel is 
    generic (
-      TPD_G  : time := 1 ns
+      TPD_G       : time := 1 ns;
+      LANE_CNT_G  : integer range 1 to 2 := 1   -- Number of lanes, 1-2
    );
    port ( 
 
@@ -54,7 +55,7 @@ entity PgpSimModel is
       pgpRxMasterMuxed  : out AxiStreamMasterType;
 
       -- AXI buffer status
-      axiFifoStatus     : in  AxiStreamCtrlArray(3 downto 0)
+      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0)
    );
 
 end PgpSimModel;
@@ -63,13 +64,14 @@ end PgpSimModel;
 -- Define architecture
 architecture PgpSimModel of PgpSimModel is
 
-   signal intTxMaster : AxiStreamMasterType;
-   signal intTxSlave  : AxiStreamSlaveType;
-   signal intRxMaster : AxiStreamMasterType;
-   signal tmpRxMaster : AxiStreamMasterType;
-   signal intRxSlave  : AxiStreamSlaveType;
+   signal muxedTxMaster      : AxiStreamMasterType;
+   signal muxedTxSlave       : AxiStreamSlaveType;
+   signal muxedRxMaster      : AxiStreamMasterType;
+   signal muxedRxSlave       : AxiStreamSlaveType;
+   signal deMuxedRxMasters   : AxiStreamMasterArray(3 downto 0);
+   signal deMuxedRxSlaves    : AxiStreamSlaveArray(3 downto 0);
 
-   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
+   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (LANE_CNT_G*2);
 
 begin
 
@@ -86,8 +88,8 @@ begin
          axisRst      => pgpTxClkRst,
          sAxisMasters => pgpTxMasters,
          sAxisSlaves  => pgpTxSlaves,
-         mAxisMaster  => intTxMaster,
-         mAxisSlave   => intTxSlave
+         mAxisMaster  => muxedTxMaster,
+         mAxisSlave   => muxedTxSlave
       );
 
    -- Simulation link
@@ -99,35 +101,28 @@ begin
       ) port map (                          
          sAxisClk     => pgpTxClk,
          sAxisRst     => pgpTxClkRst,
-         sAxisMaster  => intTxMaster,
-         sAxisSlave   => intTxSlave,
+         sAxisMaster  => muxedTxMaster,
+         sAxisSlave   => muxedTxSlave,
          mAxisClk     => pgpRxClk,
          mAxisRst     => pgpRxClkRst,
-         mAxisMaster  => tmpRxMaster,
-         mAxisSlave   => intRxSlave
+         mAxisMaster  => muxedRxMaster,
+         mAxisSlave   => muxedRxSlave
       );
 
-   -- override valid and ready when paused
-   process ( axiFifoStatus, intRxMaster ) is
-      variable ready : sl;
+   process ( pgpRxCtrl, muxedRxMaster, muxedRxSlave, deMuxedRxSlaves, deMuxedRxMasters ) is
    begin
 
-      ready := '1';
+      pgpRxMasterMuxed        <= muxedRxMaster;
+      pgpRxMasterMuxed.tValid <= muxedRxMaster.tValid and muxedRxSlave.tReady;
+
+      pgpRxMasters <= deMuxedRxMasters;
 
       for i in 0 to 3 loop
-         if axiFifoStatus(i).pause = '1' then
-            ready := '0';
-         end if;
+         deMuxedRxSlaves(i).tReady <= not pgpRxCtrl(i).pause;
+         pgpRxMasters(i).tValid    <= deMuxedRxMasters(i).tValid and deMuxedRxSlaves(i).tReady;
       end loop;
 
-      intRxSlave.tReady  <= ready;
-      intRxMaster        <= tmpRxMaster;
-      intRxMaster.tValid <= tmpRxMaster.tValid and ready;
-
    end process;
-
-   -- Muxed output
-   pgpRxMasterMuxed  <= intRxMaster;
 
    -- Receive De-MUX
    U_RxDeMux : entity work.AxiStreamDeMux
@@ -137,10 +132,10 @@ begin
       ) port map (
          axisClk      => pgpRxClk,
          axisRst      => pgpRxClkRst,
-         sAxisMaster  => intRxMaster,
-         sAxisSlave   => intRxSlave,
-         mAxisMasters => pgpRxMasters,
-         mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
+         sAxisMaster  => muxedRxMaster,
+         sAxisSlave   => muxedRxSlave,
+         mAxisMasters => deMuxedRxMasters,
+         mAxisSlaves  => deMuxedRxSlaves
       );
 
    -- Fake receive control signals
