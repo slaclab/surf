@@ -10,22 +10,141 @@ proc VivadoRefresh { vivadoProject } {
    open_project -quiet ${vivadoProject}
 }
 
+# Get the number of CPUs available on the Linux box
+proc GetCpuNumber { } {
+   return [exec cat /proc/cpuinfo | grep processor | wc -l]
+}
+
 proc BuildIpCores { } {
+   # Get variables
+   set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+
+   # Check if the target project has IP cores
    if { [get_ips] != "" } {
+      # Clear the list of IP cores
+      set ipCoreList ""
+      # Loop through each IP core
       foreach corePntr [get_ips] {
+         # Set the IP core synthesis run name
          set ipSynthRun ${corePntr}_synth_1
-         if { [CheckIpSynth ${ipSynthRun}] != true } {      
-            # Build the IP Core
-            reset_run         ${ipSynthRun}
-            launch_run -quiet ${ipSynthRun}
-            wait_on_run       ${ipSynthRun}
-            
-            # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
-            set xdcPntr [get_files -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
-            set_property is_enabled false [get_files ${xdcPntr}]   
-         }      
+         # Check if we need to build the IP core
+         if { [CheckIpSynth ${ipSynthRun}] != true } {
+            reset_run  ${ipSynthRun}
+            append ipSynthRun " "
+            append ipCoreList ${ipSynthRun}
+         }
       }
-   }
+      # Check for IP cores to build
+      if { ${ipCoreList} != "" } {
+         # Build the IP Core
+         launch_runs -quiet ${ipCoreList} -jobs [GetCpuNumber]
+         foreach waitPntr ${ipCoreList} {
+            wait_on_run ${waitPntr} 
+         }
+      }      
+      foreach corePntr [get_ips] {
+         # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
+         set xdcPntr [get_files -quiet -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
+         if { ${xdcPntr} != "" } {
+            set_property is_enabled false [get_files ${xdcPntr}] 
+         }                 
+         # Create a backup copy of the IP Core in the source tree
+         foreach coreFilePntr ${CORE_FILES} {
+            if { [ string match *${corePntr}* ${coreFilePntr} ] } { 
+               # Search for COEFFICIENT_FILE parameter in original .xci file
+               set COEFFICIENT_FILE ""
+               set COE_FILE ""
+               set LOAD_INIT_FILE ""
+               set MEM_FILE ""
+               set C_MEM_INIT_FILE ""
+               set C_LOAD_INIT_FILE ""
+               set C_INIT_FILE ""
+               set C_INIT_FILE_NAME ""
+               set C_COEF_FILE ""
+               set C_COEF_FILE_LINES ""
+               set Coefficient_File ""
+               set Reload_File ""
+               set Gen_MIF_Files ""
+               set original  [open ${coreFilePntr} r]
+               while { [eof ${original}] != 1 } {
+                  gets ${original} line
+                  if { [string match *COEFFICIENT_FILE* ${line}] } {
+                     set COEFFICIENT_FILE ${line}
+                  } elseif { [string match *COE_FILE* ${line}] } {
+                     set COE_FILE ${line}
+                  } elseif { [string match *LOAD_INIT_FILE* ${line}] } {
+                     set LOAD_INIT_FILE ${line}
+                  } elseif { [string match *MEM_FILE* ${line}] } {
+                     set MEM_FILE ${line}
+                  } elseif { [string match *C_MEM_INIT_FILE* ${line}] } {
+                     set C_MEM_INIT_FILE ${line}
+                  } elseif { [string match *C_LOAD_INIT_FILE* ${line}] } {
+                     set C_LOAD_INIT_FILE ${line}
+                  } elseif { [string match *C_INIT_FILE* ${line}] } {
+                     set C_INIT_FILE ${line}
+                  } elseif { [string match *C_INIT_FILE_NAME* ${line}] } {
+                     set C_INIT_FILE_NAME ${line}
+                  } elseif { [string match *C_COEF_FILE* ${line}] } {
+                     set C_COEF_FILE ${line}
+                  } elseif { [string match *C_COEF_FILE_LINES* ${line}] } {
+                     set C_COEF_FILE_LINES ${line}
+                  } elseif { [string match *Coefficient_File* ${line}] } {
+                     set Coefficient_File ${line}
+                  } elseif { [string match *Reload_File* ${line}] } {
+                     set Reload_File ${line}
+                  } elseif { [string match *Gen_MIF_Files* ${line}] } {
+                     set Gen_MIF_Files ${line}                     
+                  }
+               }
+               close ${original} 
+               # Modify the build's IP core with original path(s)
+               set in  [open [get_files ${corePntr}.xci] r]
+               set out [open ${OUT_DIR}/${corePntr}.xci  w]
+               while { [eof ${in}] != 1 } {
+                  gets ${in} line
+                  if { [string match *COEFFICIENT_FILE* ${line}] } {
+                     puts ${out} ${COEFFICIENT_FILE}
+                  } elseif { [string match *COE_FILE* ${line}] } {
+                     puts ${out} ${COE_FILE}    
+                  } elseif { [string match *LOAD_INIT_FILE* ${line}] } {
+                     puts ${out} ${LOAD_INIT_FILE}    
+                  } elseif { [string match *MEM_FILE* ${line}] } {
+                     puts ${out} ${MEM_FILE}    
+                  } elseif { [string match *C_MEM_INIT_FILE* ${line}] } {
+                     puts ${out} ${C_MEM_INIT_FILE}    
+                  } elseif { [string match *C_LOAD_INIT_FILE* ${line}] } {
+                     puts ${out} ${C_LOAD_INIT_FILE}    
+                  } elseif { [string match *C_INIT_FILE* ${line}] } {
+                     puts ${out} ${C_INIT_FILE}    
+                  } elseif { [string match *C_INIT_FILE_NAME* ${line}] } {
+                     puts ${out} ${C_INIT_FILE_NAME}    
+                  } elseif { [string match *C_COEF_FILE* ${line}] } {
+                     puts ${out} ${C_COEF_FILE}    
+                  } elseif { [string match *C_COEF_FILE_LINES* ${line}] } {
+                     puts ${out} ${C_COEF_FILE_LINES}    
+                  } elseif { [string match *Coefficient_File* ${line}] } {
+                     puts ${out} ${Coefficient_File}    
+                  } elseif { [string match *Reload_File* ${line}] } {
+                     puts ${out} ${Reload_File}    
+                  } elseif { [string match *Gen_MIF_Files* ${line}] } {
+                     puts ${out} ${Gen_MIF_Files}    
+                  } else { 
+                     puts ${out} ${line} 
+                  }
+               }
+               close ${in}
+               close ${out}
+               # overwrite the existing .xci file in the source tree
+               file rename -force ${OUT_DIR}/${corePntr}.xci ${coreFilePntr}
+            }
+         }         
+         # Set the IP core synthesis run name
+         set ipSynthRun ${corePntr}_synth_1         
+         # Reset the "needs_refresh" flag
+         set_property needs_refresh false [get_runs ${ipSynthRun}]
+      }
+   }   
 }
 
 # Checking Timing Function
@@ -175,7 +294,7 @@ proc GenPartialReconfigDcp {rtlName} {
    set_property top ${rtlName} [current_fileset]
    
    # Synthesize
-   launch_run  ${rtlName}_1
+   launch_runs ${rtlName}_1
    wait_on_run ${rtlName}_1   
 }
 

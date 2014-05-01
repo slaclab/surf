@@ -2,10 +2,11 @@
 ## Project Batch-Mode Run Script (Partial Reconfiguration: Static)
 
 ########################################################
-## Get variables
+## Get variables and Custom Procedures
 ########################################################
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 ########################################################
 ## Check for a blank RECONFIG_NAME variable
@@ -66,7 +67,7 @@ source ${VIVADO_BUILD_DIR}/vivado_pre_synthesis_v1.tcl
 ## Synthesize
 ########################################################
 if { [CheckSynth] != true } {
-   launch_run  synth_1
+   launch_runs synth_1
    wait_on_run synth_1
 }
 
@@ -98,7 +99,7 @@ InsertStaticReconfigDcp
 ## Implement
 ########################################################
 if { [CheckImpl] != true } {
-   launch_run -to_step write_bitstream impl_1
+   launch_runs -to_step write_bitstream impl_1
    wait_on_run impl_1
 }
 
