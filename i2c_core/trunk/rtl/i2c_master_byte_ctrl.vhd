@@ -343,7 +343,8 @@ begin
 	              when st_ack =>
 	                 if (core_ack = '1') then
 	                   -- check for stop; Should a STOP command be generated ?
-	                   if (stop = '1') then
+                           -- Stop of core did not ack 
+	                   if (stop = '1' or core_rxd = '1') then
 	                     c_state  <= st_stop;
 	                     core_cmd <= I2C_CMD_STOP;
 	                   else
