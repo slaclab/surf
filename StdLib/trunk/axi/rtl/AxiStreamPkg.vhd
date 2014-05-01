@@ -91,6 +91,12 @@ package AxiStreamPkg is
       axisMaster        : AxiStreamMasterType)
       return boolean;
 
+   function axiStreamGetUserPos (
+      axisConfig : AxiStreamConfigType; 
+      axisMaster : AxiStreamMasterType;
+      bytePos    : integer := -1 ) -- -1 = last
+      return integer;
+
    function axiStreamGetUserField (
       axisConfig : AxiStreamConfigType; 
       axisMaster : AxiStreamMasterType; 
@@ -131,6 +137,27 @@ package body AxiStreamPkg is
          allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1');  -- all expected tstrb
    end function;
 
+   function axiStreamGetUserPos (
+      axisConfig : AxiStreamConfigType; 
+      axisMaster : AxiStreamMasterType;
+      bytePos    : integer := -1 )
+      return integer is
+
+      variable ret : integer;
+   begin
+
+      if bytePos = -1 then
+         ret := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
+         if ret < 0 then
+            ret := 0;
+         end if;
+      else
+         ret := bytePos;
+      end if;
+
+      return(ret);
+   end function;
+
    function axiStreamGetUserField (
       axisConfig : AxiStreamConfigType; 
       axisMaster : AxiStreamMasterType; 
@@ -141,11 +168,7 @@ package body AxiStreamPkg is
       variable ret : slv(axisConfig.TUSER_BITS_C-1 downto 0);
    begin
 
-      if bytePos = -1 then
-         pos := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
-      else
-         pos := bytePos;
-      end if;
+      pos := axiStreamGetUserPos( axisConfig, axisMaster, bytePos );
 
       ret := axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos)));
       
@@ -176,12 +199,7 @@ package body AxiStreamPkg is
       variable pos : integer;
    begin
 
-      if bytePos = -1 then
-         pos := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
-      else
-         pos := bytePos;
-      end if;
-
+      pos := axiStreamGetUserPos( axisConfig, axisMaster, bytePos );
       axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
 
    end procedure;
@@ -196,11 +214,7 @@ package body AxiStreamPkg is
       variable pos : integer;
    begin
 
-      if bytePos = -1 then
-         pos := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
-      else
-         pos := bytePos;
-      end if;
+      pos := axiStreamGetUserPos( axisConfig, axisMaster, bytePos );
 
       axisMaster.tUser((axisConfig.TUSER_BITS_C*pos) + bitPos) := bitValue;
       
