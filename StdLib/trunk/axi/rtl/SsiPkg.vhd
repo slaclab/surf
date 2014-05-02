@@ -28,7 +28,8 @@ package SsiPkg is
    constant SSI_SOF_C  : integer := 1;
 
    function ssiAxiStreamConfig (
-      dataBytes : natural) 
+      dataBytes : natural;
+      tKeepMode : TKeepModeType := TKEEP_COMP_C) 
       return AxiStreamConfigType;
 
    function ssiGetUserEofe (
@@ -59,17 +60,18 @@ end package SsiPkg;
 package body SsiPkg is
 
    function ssiAxiStreamConfig (
-      dataBytes : natural) 
+      dataBytes : natural;
+      tKeepMode : TKeepModeType := TKEEP_COMP_C) 
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
-      ret.TDATA_BYTES_C := dataBytes;           -- Configurable data size
-      ret.TUSER_BITS_C  := 2;                   -- 2 TUSER: EOFE, SOF
-      ret.TDEST_BITS_C  := 4;                   -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := 0;                   -- TID not used
-      ret.TKEEP_MODE_C  := TKEEP_COMP_C;        -- Compress TKEEP
-      ret.TSTRB_EN_C    := false;               -- No TSTRB support in SSI
-      ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C;  -- User field valid on last only
+      ret.TDATA_BYTES_C := dataBytes;          -- Configurable data size
+      ret.TUSER_BITS_C  := 2;                  -- 2 TUSER: EOFE, SOF
+      ret.TDEST_BITS_C  := 4;                  -- 4 TDEST bits for VC
+      ret.TID_BITS_C    := 0;                  -- TID not used
+      ret.TKEEP_MODE_C  := tKeepMode;       -- Compress TKEEP
+      ret.TSTRB_EN_C    := false;              -- No TSTRB support in SSI
+      ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C; -- User field valid on last only
       return ret;
    end function ssiAxiStreamConfig;
 
