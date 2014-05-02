@@ -45,8 +45,8 @@ entity Pgp2bTx is
       pgpTxClkRst       : in  sl;    -- Synchronous reset input
 
       -- Non-VC related IO
-      pgpTxIn           : in  PgpTxInType;
-      pgpTxOut          : out PgpTxOutType;
+      pgpTxIn           : in  Pgp2bTxInType;
+      pgpTxOut          : out Pgp2bTxOutType;
 
       -- VC Interface
       pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0);
@@ -55,7 +55,7 @@ entity Pgp2bTx is
       remFifoStatus     : in  AxiStreamCtrlArray(3 downto 0);
 
       -- Phy interface
-      phyTxLanesOut     : out PgpTxPhyLaneOutArray(0 to TX_LANE_CNT_G-1);
+      phyTxLanesOut     : out Pgp2bTxPhyLaneOutArray(0 to TX_LANE_CNT_G-1);
       phyTxReady        : in  sl         
    );
 
@@ -248,7 +248,7 @@ begin
    U_Vc_Gen: for i in 0 to 3 generate
       intReady(i)           <= rawReady(i) and (not syncRemPause(i));
       intValid(i)           <= pgpTxMasters(i).tValid and (not syncRemPause(i));
-      intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP_CONFIG_G,pgpTxMasters(i),SSI_EOFE_C);
+      intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_EOFE_C);
       pgpTxSlaves(i).tReady <= intReady(i);
    end generate;
 

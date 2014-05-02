@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-04-29
+-- Last update: 2014-05-01
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -63,11 +63,11 @@ entity Pgp2bGtp7FixedLatWrapper is
       rxClk            : out sl;
       stableClk        : out sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  PgpRxInType;
-      pgpRxOut         : out PgpRxOutType;
+      pgpRxIn          : in  Pgp2bRxInType;
+      pgpRxOut         : out Pgp2bRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  PgpTxInType;
-      pgpTxOut         : out PgpTxOutType;
+      pgpTxIn          : in  Pgp2bTxInType;
+      pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);

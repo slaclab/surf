@@ -24,7 +24,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
 
 library UNISIM;
@@ -96,11 +96,11 @@ entity Pgp2bGtx7MultiLane is
       pgpRxMmcmReset   : out sl;
       pgpRxMmcmLocked  : in  sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  PgpRxInType;
-      pgpRxOut         : out PgpRxOutType;
+      pgpRxIn          : in  Pgp2bRxInType;
+      pgpRxOut         : out Pgp2bRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  PgpTxInType;
-      pgpTxOut         : out PgpTxOutType;
+      pgpTxIn          : in  Pgp2bTxInType;
+      pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
@@ -125,8 +125,8 @@ architecture rtl of Pgp2bGtx7MultiLane is
    signal gtRxResetDone   : slv((LANE_CNT_G-1) downto 0);
    signal gtRxUserReset   : sl;
    signal gtRxUserResetIn : sl;
-   signal phyRxLanesIn    : PgpRxPhyLaneInArray((LANE_CNT_G-1) downto 0);
-   signal phyRxLanesOut   : PgpRxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
+   signal phyRxLanesIn    : Pgp2bRxPhyLaneInArray((LANE_CNT_G-1) downto 0);
+   signal phyRxLanesOut   : Pgp2bRxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyRxReady      : sl;
    signal phyRxInit       : sl;
 
@@ -139,7 +139,7 @@ architecture rtl of Pgp2bGtx7MultiLane is
    signal pgpTxMmcmResets : slv((LANE_CNT_G-1) downto 0);
    signal gtTxResetDone   : slv((LANE_CNT_G-1) downto 0);
    signal gtTxUserResetIn : sl;
-   signal phyTxLanesOut   : PgpTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
+   signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
 
 begin
@@ -166,7 +166,7 @@ begin
          pgpTxClkRst        => pgpTxReset,
          pgpTxIn            => pgpTxIn,
          pgpTxOut           => pgpTxOut,
-         pgpTxMaseters      => pgpTxMasters,
+         pgpTxMasters      => pgpTxMasters,
          pgpTxSlaves        => pgpTxSlaves,
          phyTxLanesOut      => phyTxLanesOut,
          phyTxReady         => phyTxReady,
@@ -175,7 +175,7 @@ begin
          pgpRxIn            => pgpRxIn,
          pgpRxOut           => pgpRxOut,
          pgpRxMasters       => pgpRxMasters,
-         pgpRxMasterMux     => pgpRxMasterMux,
+         pgpRxMasterMuxed     => pgpRxMasterMuxed,
          pgpRxCtrl      => pgpRxCtrl,
          phyRxLanesOut      => phyRxLanesOut,
          phyRxLanesIn       => phyRxLanesIn,

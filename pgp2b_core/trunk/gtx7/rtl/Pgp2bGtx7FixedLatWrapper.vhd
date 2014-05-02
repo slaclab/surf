@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-04-29
+-- Last update: 2014-05-01
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
 
 library unisim;
@@ -66,11 +66,11 @@ entity Pgp2bGtx7FixedLatWrapper is
       rxClk            : out sl;
       stableClk        : out sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  PgpRxInType;
-      pgpRxOut         : out PgpRxOutType;
+      pgpRxIn          : in  Pgp2bRxInType;
+      pgpRxOut         : out Pgp2bRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  PgpTxInType;
-      pgpTxOut         : out PgpTxOutType;
+      pgpTxIn          : in  Pgp2bTxInType;
+      pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
@@ -96,6 +96,7 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
       stableClock,
       stableRst,
       locked,
+      clkIn1,
       clkOut0,
       clkOut1,
       clkFbIn,
@@ -143,6 +144,8 @@ begin
          clk    => stableClock,
          rstOut => stableRst);
 
+   clkIn1 <= ite(MASTER_SEL_G, stableClock, rxClock);
+
    mmcm_adv_inst : MMCME2_ADV
       generic map(
          BANDWIDTH            => "LOW",
@@ -180,7 +183,7 @@ begin
          CLKOUT6      => open,
          -- Input clock control
          CLKFBIN      => clkFbIn,
-         CLKIN1       => ite(MASTER_SEL_G, stableClock, rxClock),
+         CLKIN1       => clkIn1,
          CLKIN2       => '0',
          -- Tied to always select the primary input clock
          CLKINSEL     => '1',

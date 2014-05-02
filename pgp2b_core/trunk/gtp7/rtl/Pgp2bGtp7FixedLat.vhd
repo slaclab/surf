@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-04-29
+-- Last update: 2014-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -90,12 +90,12 @@ entity Pgp2bGtp7Fixedlat is
       pgpRxMmcmLocked : in  sl := '1';
 
       -- Non VC Rx Signals
-      pgpRxIn  : in  PgpRxInType;
-      pgpRxOut : out PgpRxOutType;
+      pgpRxIn  : in  Pgp2bRxInType;
+      pgpRxOut : out Pgp2bRxOutType;
 
       -- Non VC Tx Signals
-      pgpTxIn  : in  PgpTxInType;
-      pgpTxOut : out PgpTxOutType;
+      pgpTxIn  : in  Pgp2bTxInType;
+      pgpTxOut : out Pgp2bTxOutType;
 
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters : in  AxiStreamMasterArray(3 downto 0);
@@ -128,8 +128,8 @@ architecture rtl of Pgpb2Gtp7Fixedlat is
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
    signal dataValid     : sl;                            -- no decode or disparity errors
-   signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
-   signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
+   signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
+   signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
 --   signal phyRxReady    : sl;                            -- To RxRst
 --   signal phyRxInit     : sl;                            -- To RxRst
 
@@ -142,7 +142,7 @@ architecture rtl of Pgpb2Gtp7Fixedlat is
    signal gtTxResetDone : sl;
 
    -- PgpTx Signals
-   signal phyTxLanesOut : PgpTxPhyLaneOutArray(0 to 0);
+   signal phyTxLanesOut : Pgp2bTxPhyLaneOutArray(0 to 0);
 --   signal phyTxReady    : sl;
 
 begin
