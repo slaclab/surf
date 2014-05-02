@@ -36,8 +36,8 @@ package AxiStreamPkg is
    constant AXI_STREAM_MASTER_INIT_C : AxiStreamMasterType := (
       tValid => '0',
       tData  => (others => '0'),
-      tStrb  => (others => '0'),
-      tKeep  => (others => '0'),
+      tStrb  => (others => '1'),
+      tKeep  => (others => '1'),
       tLast  => '0',
       tDest  => (others => '0'),
       tId    => (others => '0'),
