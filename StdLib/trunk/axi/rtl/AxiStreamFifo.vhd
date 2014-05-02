@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2014-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ entity AxiStreamFifo is
       mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamFifo;
 
-architecture mapping of AxiStreamFifo is
+architecture rtl of AxiStreamFifo is
 
    -- Configure FIFO widths
    constant DATA_BYTES_C : integer := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
@@ -102,30 +102,30 @@ architecture mapping of AxiStreamFifo is
       i := 0;
 
       retValue(DATA_BITS_C-1 downto 0) := din.tData(DATA_BITS_C-1 downto 0);
-      i := i + DATA_BITS_C;
+      i                                := i + DATA_BITS_C;
 
       retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
-      i := i + KEEP_BITS_C;
+      i                                    := i + KEEP_BITS_C;
 
       retValue(i) := din.tLast;
-      i := i + 1;
+      i           := i + 1;
 
       retValue((USER_TOT_C+i)-1 downto i) := din.tUser(USER_TOT_C-1 downto 0);
-      i := i + USER_TOT_C;
+      i                                   := i + USER_TOT_C;
 
       if STRB_BITS_C > 0 then
          retValue((STRB_BITS_C+i)-1 downto i) := din.tStrb(STRB_BITS_C-1 downto 0);
-         i := i + STRB_BITS_C;
+         i                                    := i + STRB_BITS_C;
       end if;
 
       if DEST_BITS_C > 0 then
          retValue((DEST_BITS_C+i)-1 downto i) := din.tDest(DEST_BITS_C-1 downto 0);
-         i := i + DEST_BITS_C;
+         i                                    := i + DEST_BITS_C;
       end if;
 
       if ID_BITS_C > 0 then
          retValue((ID_BITS_C+i)-1 downto i) := din.tId(ID_BITS_C-1 downto 0);
-         i := i + ID_BITS_C;
+         i                                  := i + ID_BITS_C;
       end if;
 
       return(retValue);
@@ -133,11 +133,11 @@ architecture mapping of AxiStreamFifo is
    end function;
 
    -- Convert slv to record
-   procedure iSlvToAxi (din     : in    slv(FIFO_BITS_C-1 downto 0); 
+   procedure iSlvToAxi (din     : in    slv(FIFO_BITS_C-1 downto 0);
                         valid   : in    sl;
                         master  : out   AxiStreamMasterType;
-                        byteCnt : inout integer ) is
-      variable i, j     : integer;
+                        byteCnt : inout integer) is
+      variable i, j : integer;
    begin
       i := 0;
 
@@ -146,36 +146,36 @@ architecture mapping of AxiStreamFifo is
       master.tValid := valid;
 
       master.tData(DATA_BITS_C-1 downto 0) := din(DATA_BITS_C-1 downto 0);
-      i := i + DATA_BITS_C;
+      i                                    := i + DATA_BITS_C;
 
       byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i));
 
       if byteCnt > DATA_BYTES_C then
-         master.tKeep(DATA_BYTES_C-1 downto 0) := (others=>'1');
+         master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '1');
       elsif byteCnt /= 0 then
-         master.tKeep(byteCnt-1 downto 0) := (others=>'1');
+         master.tKeep(byteCnt-1 downto 0) := (others => '1');
       end if;
       i := i + KEEP_BITS_C;
 
       master.tLast := din(i);
-      i := i + 1;
+      i            := i + 1;
 
       master.tUser(USER_TOT_C-1 downto 0) := din((USER_TOT_C+i)-1 downto i);
-      i := i + USER_TOT_C;
+      i                                   := i + USER_TOT_C;
 
       if STRB_BITS_C > 0 then
          master.tStrb(STRB_BITS_C-1 downto 0) := din((STRB_BITS_C+i)-1 downto i);
-         i := i + STRB_BITS_C;
+         i                                    := i + STRB_BITS_C;
       end if;
 
       if DEST_BITS_C > 0 then
          master.tDest(DEST_BITS_C-1 downto 0) := din((DEST_BITS_C+i)-1 downto i);
-         i := i + DEST_BITS_C;
+         i                                    := i + DEST_BITS_C;
       end if;
 
       if ID_BITS_C > 0 then
          master.tId(ID_BITS_C-1 downto 0) := din((ID_BITS_C+i)-1 downto i);
-         i := i + ID_BITS_C;
+         i                                := i + ID_BITS_C;
       end if;
 
    end iSlvToAxi;
@@ -220,7 +220,7 @@ architecture mapping of AxiStreamFifo is
 
    constant RD_REG_INIT_C : RdRegType := (
       count    => (others => '0'),
-      bytes    => conv_std_logic_vector(RD_BYTES_C,KEEP_BITS_C),
+      bytes    => conv_std_logic_vector(RD_BYTES_C, KEEP_BITS_C),
       rdMaster => AXI_STREAM_MASTER_INIT_C,
       ready    => '0'
       );
@@ -230,9 +230,9 @@ architecture mapping of AxiStreamFifo is
    signal fifoDout  : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead  : sl;
    signal fifoValid : sl;
-   
+
    signal axisMaster : AxiStreamMasterType;
-   signal axisSlave  : AxiStreamSlaveType;   
+   signal axisSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -282,7 +282,7 @@ begin
          v.wrMaster.tStrb((WR_BYTES_C*idx)+(WR_BYTES_C-1) downto (WR_BYTES_C*idx))         := sAxisMaster.tStrb(WR_BYTES_C-1 downto 0);
          v.wrMaster.tKeep((WR_BYTES_C*idx)+(WR_BYTES_C-1) downto (WR_BYTES_C*idx))         := sAxisMaster.tKeep(WR_BYTES_C-1 downto 0);
 
-         v.wrMaster.tUser((WR_BYTES_C*USER_BITS_C*idx)+((WR_BYTES_C*USER_BITS_C)-1) downto (WR_BYTES_C*USER_BITS_C*idx)) 
+         v.wrMaster.tUser((WR_BYTES_C*USER_BITS_C*idx)+((WR_BYTES_C*USER_BITS_C)-1) downto (WR_BYTES_C*USER_BITS_C*idx))
             := sAxisMaster.tUser((WR_BYTES_C*USER_BITS_C)-1 downto 0);
 
          v.wrMaster.tDest := sAxisMaster.tDest;
@@ -409,7 +409,7 @@ begin
       v   := rdR;
       idx := conv_integer(rdR.count);
 
-      iSlvToAxi (fifoDout,fifoValid, fifoMaster, byteCnt);
+      iSlvToAxi (fifoDout, fifoValid, fifoMaster, byteCnt);
 
       -- Advance pipeline
       if axisSlave.tReady = '1' or rdR.rdMaster.tValid = '0' then
@@ -419,7 +419,7 @@ begin
          v.rdMaster.tStrb(RD_BYTES_C-1 downto 0)     := fifoMaster.tStrb((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
          v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)     := fifoMaster.tKeep((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
 
-         v.rdMaster.tUser((RD_BYTES_C*USER_BITS_C)-1 downto 0) 
+         v.rdMaster.tUser((RD_BYTES_C*USER_BITS_C)-1 downto 0)
             := fifoMaster.tUser((RD_BYTES_C*USER_BITS_C*idx)+((RD_BYTES_C*USER_BITS_C)-1) downto (RD_BYTES_C*USER_BITS_C*idx));
 
          v.rdMaster.tDest  := fifoMaster.tDest;
@@ -430,7 +430,7 @@ begin
          if fifoMaster.tValid = '1' then
             if (rdR.count = (RD_SIZE_C-1)) or (rdR.bytes = byteCnt and fifoMaster.tLast = '1') then
                v.count          := (others => '0');
-               v.bytes          := conv_std_logic_vector(RD_BYTES_C,KEEP_BITS_C);
+               v.bytes          := conv_std_logic_vector(RD_BYTES_C, KEEP_BITS_C);
                v.ready          := '1';
                v.rdMaster.tLast := fifoMaster.tLast;
             else
@@ -447,12 +447,12 @@ begin
       -- Read logic enabled
       if RD_LOGIC_EN_C then
          axisMaster <= rdR.rdMaster;
-         fifoRead    <= v.ready;
+         fifoRead   <= v.ready;
 
       -- Bypass read logic
       else
          axisMaster <= fifoMaster;
-         fifoRead    <= axisSlave.tReady;
+         fifoRead   <= axisSlave.tReady;
       end if;
       
    end process rdComb;
@@ -471,22 +471,19 @@ begin
    
    U_Pipe : entity work.AxiStreamPipeline
       generic map (
-         TPD_G              => TPD_G,
-         RST_ASYNC_G        => false,
-         RST_POLARITY_G     => '1',
-         PIPE_STAGES_G      => PIPE_STAGES_G
+         TPD_G          => TPD_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G
          )
       port map (
+         -- Clock and Reset
+         axisClk     => mAxisClk,
+         axisRst     => mAxisRst,
          -- Slave Port
          sAxisMaster => axisMaster,
          sAxisSlave  => axisSlave,
          -- Master Port
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave,
-         -- Clock and Reset
-         axisClk     => mAxisClk,
-         axisRst     => mAxisRst
-         );   
+         mAxisSlave  => mAxisSlave);   
 
-end mapping;
+end rtl;
 

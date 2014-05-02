@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-04-30
+-- Last update: 2014-05-02
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,39 +27,46 @@ use work.SsiPkg.all;
 entity SsiPrbsTx is
    generic (
       -- General Configurations
-      TPD_G               : time                       := 1 ns;
+      TPD_G                      : time                       := 1 ns;
       -- FIFO configurations
-      BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";
-      USE_BUILT_IN_G      : boolean                    := false;
-      GEN_SYNC_FIFO_G     : boolean                    := false;
-      ALTERA_SYN_G        : boolean                    := false;
-      ALTERA_RAM_G        : string                     := "M9K";
-      CASCADE_SIZE_G      : natural range 1 to (2**24) := 1;
-      FIFO_ADDR_WIDTH_G   : natural range 4 to 48      := 9;
-      FIFO_PAUSE_THRESH_G : natural range 1 to (2**24) := 2**8;
+      BRAM_EN_G                  : boolean                    := true;
+      XIL_DEVICE_G               : string                     := "7SERIES";
+      USE_BUILT_IN_G             : boolean                    := false;
+      GEN_SYNC_FIFO_G            : boolean                    := false;
+      ALTERA_SYN_G               : boolean                    := false;
+      ALTERA_RAM_G               : string                     := "M9K";
+      CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
+      FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
+      FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
+      -- PRBS Config
+      PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
+      PRBS_TAPS_G                : NaturalArray               := (0 => 16);
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16));      
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16);
+      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
    port (
       -- Master Port (mAxisClk)
-      mAxisSlave   : in  AxiStreamSlaveType;
-      mAxisMaster  : out AxiStreamMasterType;
-      mAxisClk     : in  sl;
-      mAxisRst     : in  sl;
+      mAxisClk    : in  sl;
+      mAxisRst    : in  sl;
+      mAxisSlave  : in  AxiStreamSlaveType;
+      mAxisMaster : out AxiStreamMasterType;
+
       -- Trigger Signal (locClk domain)
-      trig         : in  sl;
+      locClk       : in  sl;
+      locRst       : in  sl              := '0';
+      trig         : in  sl              := '1';
       packetLength : in  slv(31 downto 0);
       busy         : out sl;
-      tDest        : in  slv(7 downto 0);
-      tId          : in  slv(7 downto 0);
-      sAxisCtrl    : out AxiStreamCtrlType;
-      locClk       : in  sl;
-      locRst       : in  sl := '0');
+      tDest        : in  slv(7 downto 0) := X"00";
+      tId          : in  slv(7 downto 0) := X"00");
+
+
 end SsiPrbsTx;
 
 architecture rtl of SsiPrbsTx is
 
-   constant TAP_C : NaturalArray(0 to 0) := (others => 16);
+   constant PRBS_BYTES_C      : natural             := PRBS_SEED_SIZE_G / 8;
+   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C);
    
    type StateType is (
       IDLE_S,
@@ -70,9 +77,9 @@ architecture rtl of SsiPrbsTx is
    type RegType is record
       busy         : sl;
       packetLength : slv(31 downto 0);
-      eventCnt     : slv(31 downto 0);
-      randomData   : slv(31 downto 0);
       dataCnt      : slv(31 downto 0);
+      eventCnt     : slv(PRBS_SEED_SIZE_G-1 downto 0);
+      randomData   : slv(PRBS_SEED_SIZE_G-1 downto 0);
       txAxisMaster : AxiStreamMasterType;
       state        : StateType;
    end record;
@@ -83,16 +90,18 @@ architecture rtl of SsiPrbsTx is
       (others => '0'),
       (others => '0'),
       (others => '0'),
-      AXI_STREAM_MASTER_INIT_C,
+      MASTER_AXI_STREAM_MASTER_INIT_C,
       IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal txAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal txAxisMaster : AxiStreamMasterType;
+   signal txAxisSlave  : AxiStreamSlaveType;
    
 begin
+
+   assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
 
    comb : process (locRst, packetLength, r, tDest, tId, trig, txAxisSlave) is
       variable i : integer;
@@ -104,7 +113,7 @@ begin
       -- Set the AXIS configurations
       v.txAxisMaster.tKeep := (others => '0');
       v.txAxisMaster.tStrb := (others => '0');
-      for i in 0 to AXI_STREAM_CONFIG_G.TDATA_BYTES_C-1 loop
+      for i in 0 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
          v.txAxisMaster.tKeep(i) := '1';
          v.txAxisMaster.tStrb(i) := '1';
       end loop;
@@ -113,6 +122,7 @@ begin
       v.txAxisMaster.tValid := '0';
       v.txAxisMaster.tLast  := '0';
       v.txAxisMaster.tUser  := (others => '0');
+      v.txAxisMaster.tData  := (others => '0');
 
       case (r.state) is
          ----------------------------------------------------------------------
@@ -147,44 +157,39 @@ begin
             -- Check the status
             if txAxisSlave.tReady = '1' then
                -- Send the random seed word
-               v.txAxisMaster.tvalid := '1';
-               for i in 0 to 3 loop
-                  v.txAxisMaster.tData(i*32+31 downto i*32) := r.eventCnt;
-               end loop;
+               v.txAxisMaster.tvalid                             := '1';
+               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
                -- Generate the next random data word
-               v.randomData := lfsrShift(r.randomData, TAP_C);
+               v.randomData                                      := lfsrShift(r.randomData, PRBS_TAPS_G);
                -- Increment the counter
-               v.eventCnt   := r.eventCnt + 1;
+               v.eventCnt                                        := r.eventCnt + 1;
                -- Increment the counter
-               v.dataCnt    := r.dataCnt + 1;
+               v.dataCnt                                         := r.dataCnt + 1;
                -- Next State
-               v.state      := LENGTH_S;
+               v.state                                           := LENGTH_S;
             end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
             -- Check the status
             if txAxisSlave.tReady = '1' then
                -- Send the upper packetLength value
-               v.txAxisMaster.tvalid := '1';
-               for i in 0 to 3 loop
-                  v.txAxisMaster.tData(i*32+31 downto i*32) := r.packetLength;
-               end loop;
+               v.txAxisMaster.tvalid             := '1';
+               v.txAxisMaster.tData(31 downto 0) := r.packetLength;
                -- Increment the counter
-               v.dataCnt := r.dataCnt + 1;
+               v.dataCnt                         := r.dataCnt + 1;
                -- Next State
-               v.state   := DATA_S;
+               v.state                           := DATA_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check the status
             if txAxisSlave.tReady = '1' then
                -- Send the random data word
-               v.txAxisMaster.tValid := '1';
-               for i in 0 to 3 loop
-                  v.txAxisMaster.tData(i*32+31 downto i*32) := r.randomData;
-               end loop;
+               v.txAxisMaster.tValid                             := '1';
+               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
+
                -- Generate the next random data word
-               v.randomData := lfsrShift(r.randomData, TAP_C);
+               v.randomData := lfsrShift(r.randomData, PRBS_TAPS_G);
                -- Increment the counter
                v.dataCnt    := r.dataCnt + 1;
                -- Check the counter
@@ -227,6 +232,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
@@ -239,15 +245,15 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
+         SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
+         MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => locClk,
          sAxisRst    => locRst,
          sAxisMaster => txAxisMaster,
          sAxisSlave  => txAxisSlave,
-         sAxisCtrl   => sAxisCtrl,
+         sAxisCtrl   => open,
          -- Master Port
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,

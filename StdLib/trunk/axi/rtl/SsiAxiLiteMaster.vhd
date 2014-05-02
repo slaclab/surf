@@ -5,7 +5,7 @@
 -- File       : SsiAxiLiteMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-04-30
+-- Last update: 2014-05-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ architecture rtl of SsiAxiLiteMaster is
       address             => (others => '0'),
       rdSize              => (others => '0'),
       rdCount             => (others => '0'),
-      timer               => (others => '0'),
+      timer               => (others => '1'),
       state               => S_IDLE_C,
       timeout             => '0',
       fail                => '0',
@@ -157,6 +157,7 @@ begin
    SlaveAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
+         PIPE_STAGES_G       => 1,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
@@ -204,18 +205,18 @@ begin
 
          -- Idle
          when S_IDLE_C =>
-            v.mAxiLiteWriteMaster   := AXI_LITE_WRITE_MASTER_INIT_C;
-            v.mAxiLiteReadMaster    := AXI_LITE_READ_MASTER_INIT_C;
-            v.address               := (others => '0');
-            v.rdSize                := (others => '0');
-            v.rdCount               := (others => '0');
-            v.timeout               := '0';
-            v.fail                  := '0';
+            v.mAxiLiteWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
+            v.mAxiLiteReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
+            v.address             := (others => '0');
+            v.rdSize              := (others => '0');
+            v.rdCount             := (others => '0');
+            v.timeout             := '0';
+            v.fail                := '0';
 
             -- Frame is starting
             if sFifoAxisMaster.tValid = '1' and mFifoAxisCtrl.pause = '0' then
-               v.sFifoAxisSlave.tReady  := '1';
-           
+               v.sFifoAxisSlave.tReady := '1';
+
                -- Bad frame 
                if sFifoAxisMaster.tLast = '0' then
                   v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
@@ -416,6 +417,7 @@ begin
    MasterAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
+         PIPE_STAGES_G       => 1,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
@@ -429,13 +431,13 @@ begin
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
-         sAxisClk     => axiLiteClk,
-         sAxisRst     => axiLiteRst,
+         sAxisClk    => axiLiteClk,
+         sAxisRst    => axiLiteRst,
          sAxisMaster => mFifoAxisMaster,
          sAxisSlave  => mFifoAxisSlave,
          sAxisCtrl   => mFifoAxisCtrl,
-         mAxisClk     => mAxisClk,
-         mAxisRst     => mAxisRst,
+         mAxisClk    => mAxisClk,
+         mAxisRst    => mAxisRst,
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 

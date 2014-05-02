@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-04-30
+-- Last update: 2014-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -132,9 +132,14 @@ package body AxiStreamPkg is
       axisMaster        : AxiStreamMasterType)
       return boolean is
    begin
-      return 
-         allBits(axisMaster.tKeep(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1') and  -- all expected tkeep
-         allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1');  -- all expected tstrb
+      if (not allBits(axisMaster.tKeep(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1')) then
+         return false;
+      end if;
+      if (CONFIG_C.TSTRB_EN_C and
+          not allBits(axisMaster.tStrb(CONFIG_C.TDATA_BYTES_C-1 downto 0), '1')) then
+         return false;
+      end if;
+      return true;
    end function;
 
    function axiStreamGetUserPos (
