@@ -30,6 +30,10 @@ package SsiPkg is
    function ssiAxiStreamConfig (
       dataBytes : natural) 
       return AxiStreamConfigType;
+   
+   function ssiAxiStreamInit (
+      dataBytes : natural) 
+      return AxiStreamMasterType;
 
    function ssiGetUserEofe (
       axisConfig : AxiStreamConfigType;
@@ -60,15 +64,38 @@ package body SsiPkg is
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
-      ret.TDATA_BYTES_C := dataBytes;          -- Configurable data size
-      ret.TUSER_BITS_C  := 2;                  -- 2 TUSER: EOFE, SOF
-      ret.TDEST_BITS_C  := 4;                  -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := 0;                  -- TID not used
-      ret.TKEEP_MODE_C  := TKEEP_COMP_C;       -- Compress TKEEP
-      ret.TSTRB_EN_C    := false;              -- No TSTRB support in SSI
-      ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C; -- User field valid on last only
+      ret.TDATA_BYTES_C := dataBytes;           -- Configurable data size
+      ret.TUSER_BITS_C  := 2;                   -- 2 TUSER: EOFE, SOF
+      ret.TDEST_BITS_C  := 4;                   -- 4 TDEST bits for VC
+      ret.TID_BITS_C    := 0;                   -- TID not used
+      ret.TKEEP_MODE_C  := TKEEP_COMP_C;        -- Compress TKEEP
+      ret.TSTRB_EN_C    := false;               -- No TSTRB support in SSI
+      ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C;  -- User field valid on last only
       return ret;
    end function ssiAxiStreamConfig;
+   
+   function ssiAxiStreamInit (
+      dataBytes : natural) 
+      return AxiStreamMasterType is
+      variable ret : AxiStreamMasterType;
+   begin
+      ret.tValid := '0';
+      ret.tData  := (others => '0');
+      for i in ret.tKeep'range loop
+         if i < dataBytes then
+            ret.tKeep(i) := '1';
+            ret.tStrb(i) := '1';
+         else
+            ret.tKeep(i) := '0';
+            ret.tStrb(i) := '0';
+         end if;
+      end loop;
+      ret.tLast := '0';
+      ret.tDest := (others => '0');
+      ret.tId   := (others => '0');
+      ret.tUser := (others => '0');
+      return ret;
+   end function ssiAxiStreamInit;
 
    function ssiGetUserEofe (
       axisConfig : AxiStreamConfigType;
