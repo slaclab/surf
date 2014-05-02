@@ -80,12 +80,10 @@ architecture rtl of AxiStreamFifo is
    constant DATA_BYTES_C : integer := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
                                           SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
 
-   --constant KEEP_BITS_C : integer := bitSize(DATA_BYTES_C);
-   constant KEEP_BITS_C : integer := DATA_BYTES_C;
    constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
-   constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C, DATA_BYTES_C, 0);
-   constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
-   constant ID_BITS_C   : integer := SLAVE_AXI_CONFIG_G.TID_BITS_C;
+
+   constant KEEP_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
+                                     ite(SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
    --constant USER_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TUSER_MODE_C = TUSER_LAST_C,
    --                                      SLAVE_AXI_CONFIG_G.TUSER_BITS_C,
@@ -94,7 +92,11 @@ architecture rtl of AxiStreamFifo is
    constant USER_BITS_C : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
    constant USER_TOT_C  : integer := (DATA_BYTES_C * USER_BITS_C);
 
-   constant FIFO_BITS_C : integer := DATA_BITS_C + KEEP_BITS_C + 1 + USER_TOT_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
+   constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C, DATA_BYTES_C, 0);
+   constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
+   constant ID_BITS_C   : integer := SLAVE_AXI_CONFIG_G.TID_BITS_C;
+
+   constant FIFO_BITS_C : integer := 1 + DATA_BITS_C + KEEP_BITS_C + USER_TOT_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
 
    constant WR_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant RD_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
@@ -104,19 +106,19 @@ architecture rtl of AxiStreamFifo is
       variable retValue : slv(FIFO_BITS_C-1 downto 0);
       variable i        : integer;
    begin
-      i := 0;
 
-      retValue(DATA_BITS_C-1 downto 0) := din.tData(DATA_BITS_C-1 downto 0);
-      i                                := i + DATA_BITS_C;
+      retValue(0) := din.tLast;
+      i := 1;
 
-      --retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
-      --i                                    := i + KEEP_BITS_C;
+      retValue((DATA_BITS_C+i)-1 downto i) := din.tData(DATA_BITS_C-1 downto 0);
+      i                                    := i + DATA_BITS_C;
 
-      retValue((KEEP_BITS_C+i)-1 downto i) := din.tKeep(KEEP_BITS_C-1 downto 0);
-      i                                    := i + KEEP_BITS_C;
-
-      retValue(i) := din.tLast;
-      i           := i + 1;
+      if SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_NORMAL_C then
+         retValue((KEEP_BITS_C+i)-1 downto i) := din.tKeep(KEEP_BITS_C-1 downto 0);
+      elsif SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COMP_C then
+         retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 1)); -- Assume lsb is present
+      end if;
+      i := i + KEEP_BITS_C;
 
       retValue((USER_TOT_C+i)-1 downto i) := din.tUser(USER_TOT_C-1 downto 0);
       i                                   := i + USER_TOT_C;
@@ -147,28 +149,27 @@ architecture rtl of AxiStreamFifo is
                         byteCnt : inout integer) is
       variable i, j : integer;
    begin
-      i := 0;
 
-      master := AXI_STREAM_MASTER_INIT_C;
+      master  := AXI_STREAM_MASTER_INIT_C;
 
       master.tValid := valid;
+      master.tLast  := din(0);
+      i := 1;
 
-      master.tData(DATA_BITS_C-1 downto 0) := din(DATA_BITS_C-1 downto 0);
+      master.tData(DATA_BITS_C-1 downto 0) := din((DATA_BITS_C+i)-1 downto i);
       i                                    := i + DATA_BITS_C;
 
-      --byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i));
-
-      --if byteCnt > DATA_BYTES_C then
-         --master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '1');
-      --elsif byteCnt /= 0 then
-         --master.tKeep(byteCnt-1 downto 0) := (others => '1');
-      --end if;
-
-      master.tKeep(KEEP_BITS_C-1 downto 0) := din((KEEP_BITS_C+i)-1 downto i);
+      if SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_NORMAL_C then
+         byteCnt := DATA_BYTES_C;
+         master.tKeep(KEEP_BITS_C-1 downto 0) := din((KEEP_BITS_C+i)-1 downto i);
+      elsif SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COMP_C then
+         byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
+         master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '0');
+         master.tKeep(byteCnt-1 downto 0)      := (others => '1');
+      else
+         byteCnt := DATA_BYTES_C;
+      end if;
       i := i + KEEP_BITS_C;
-
-      master.tLast := din(i);
-      i            := i + 1;
 
       master.tUser(USER_TOT_C-1 downto 0) := din((USER_TOT_C+i)-1 downto i);
       i                                   := i + USER_TOT_C;
@@ -276,6 +277,14 @@ begin
 
    assert (SLAVE_AXI_CONFIG_G.TUSER_MODE_C = MASTER_AXI_CONFIG_G.TUSER_MODE_C)
       report "TUSER_MODE_C of master and slave ports must match" severity failure;
+
+   --assert (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C < MASTER_AXI_CONFIG_G.TDATA_BYTES_C) and
+   --       (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = MASTER_AXI_CONFIG_G.TKEEP_MODE_C) 
+   --   report "TKEEP_MODE_C of ports must match or when slave is the same width or wider than master" severity failure;
+
+   --assert (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C >= MASTER_AXI_CONFIG_G.TDATA_BYTES_C) and    -- Output wider than input, output enabled
+   --       (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_UNUSED_C) 
+   --   report "TKEEP_MODE_C of master port must not be TKEEP_UNUSED_C when master is wider than slave" severity failure;
 
    -------------------------
    -- Write Logic
@@ -409,8 +418,8 @@ begin
          rd_clk        => mAxisClk,
          rd_en         => fifoRead,
          dout          => fifoDout,
-         rd_data_count => open,
-         valid         => fifoValid,
+         rd_data_count => fifoRdCount,
+         valid         => fifoValidInt,
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,

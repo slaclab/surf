@@ -25,7 +25,10 @@ entity AxiStreamSim is
    generic (
       TPD_G            : time                   := 1 ns;
       AXIS_CONFIG_G    : AxiStreamConfigTYpe    := AXI_STREAM_CONFIG_INIT_C;
-      EOFE_TUSER_BIT_G : integer range 0 to 127 := 0
+      EOFE_TUSER_EN_G  : boolean                := false;
+      EOFE_TUSER_BIT_G : integer range 0 to 127 := 0;
+      SOF_TUSER_EN_G   : boolean                := false;
+      SOF_TUSER_BIT_G  : integer range 0 to 127 := 0
    );
    port ( 
 
@@ -94,11 +97,14 @@ begin
 
             if sAxisMaster.tValid = '1' then
                if AXIS_CONFIG_G.TDATA_BYTES_C = 4 then
-                  ibValid <= sAxisMaster.tValid                                              after TPD_G;
-                  ibData  <= sAxisMaster.tData(31 downto 0)                                  after TPD_G;
-                  ibDest  <= sAxisMaster.tDest(3 downto 0)                                   after TPD_G;
-                  ibEof   <= sAxisMaster.tLast                                               after TPD_G;
-                  ibEofe  <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
+                  ibValid <= sAxisMaster.tValid             after TPD_G;
+                  ibData  <= sAxisMaster.tData(31 downto 0) after TPD_G;
+                  ibDest  <= sAxisMaster.tDest(3 downto 0)  after TPD_G;
+                  ibEof   <= sAxisMaster.tLast              after TPD_G;
+
+                  if EOFE_TUSER_EN_G then
+                     ibEofe  <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
+                  end if;
 
                elsif ibPos = '0' then
                   ibPos               <= '1'                            after TPD_G;
@@ -109,12 +115,15 @@ begin
                      report "Invalid tLast position in AXI stream sim" severity failure;
 
                else
-                  ibPos                <= '0'                                                             after TPD_G;
-                  ibValid              <= '1'                                                             after TPD_G;
-                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0)                                  after TPD_G;
-                  ibDest               <= sAxisMaster.tDest(3 downto 0)                                   after TPD_G;
-                  ibEof                <= sAxisMaster.tLast                                               after TPD_G;
-                  ibEofe               <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
+                  ibPos                <= '0'                            after TPD_G;
+                  ibValid              <= '1'                            after TPD_G;
+                  ibData(31 downto 16) <= sAxisMaster.tData(15 downto 0) after TPD_G;
+                  ibDest               <= sAxisMaster.tDest(3 downto 0)  after TPD_G;
+                  ibEof                <= sAxisMaster.tLast              after TPD_G;
+
+                  if EOFE_TUSER_EN_G then
+                     ibEofe  <= axiStreamGetUserBit(AXIS_CONFIG_G,sAxisMaster,EOFE_TUSER_BIT_G) after TPD_G;
+                  end if;
                end if;
             else
                ibValid <= '0' after TPD_G;
@@ -137,10 +146,10 @@ begin
    assert ( sAxisRst = '1' or sAxisMaster.tDest < 4 )
       report "Invalid tDest value in AXI stream sim" severity failure;
 
---   assert ( sAxisRst = '1' or
---            (AXIS_CONFIG_G.TDATA_BYTES_C = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
---            (AXIS_CONFIG_G.TDATA_BYTES_C = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
---      report "Invalid tKeep value in AXI stream sim" severity failure;
+   --assert ( sAxisRst = '1' or sAxisMaster.tValid = '0' or 
+   --         (AXIS_CONFIG_G.TDATA_BYTES_C = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
+   --         (AXIS_CONFIG_G.TDATA_BYTES_C = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )
+   --   report "Invalid tKeep value in AXI stream sim" severity failure;
 
    ------------------------------------
    -- Outbound
@@ -161,8 +170,6 @@ begin
          if AXIS_CONFIG_G.TDATA_BYTES_C = 4 then
             v.master.tValid             := obValid;
             v.master.tData(31 downto 0) := obData;
-            v.master.tStrb(3  downto 0) := "1111";
-            v.master.tKeep(3  downto 0) := "1111";
             v.master.tLast              := obEof;
             v.master.tDest(3  downto 0) := obDest;
             v.ready                     := '1';
@@ -171,8 +178,6 @@ begin
          elsif r.pos = '0' then
             v.master.tValid             := obValid;
             v.master.tData(15 downto 0) := obData(15 downto 0);
-            v.master.tStrb(3 downto 0)  := "0011";
-            v.master.tKeep(3 downto 0)  := "0011";
             v.master.tLast              := '0';
             v.master.tDest(3 downto 0)  := obDest;
             v.ready                     := '0';
@@ -186,16 +191,16 @@ begin
             v.pos                       := '0';
             v.master.tValid             := obValid;
             v.master.tData(15 downto 0) := obData(31 downto 16);
-            v.master.tStrb(3 downto 0)  := "0011";
-            v.master.tKeep(3 downto 0)  := "0011";
             v.master.tLast              := obEof;
             v.master.tDest(3 downto 0)  := obDest;
             v.ready                     := '1';
 
-            if ( obValid = '1') then
-               v.pos := '0';
-            end if;
+         end if;
+      end if;
 
+      if SOF_TUSER_EN_G then
+         if r.master.tValid = '1' and mAxisSlave.tReady = '1' then
+            axiStreamSetUserBit(AXIS_CONFIG_G,v.master,SOF_TUSER_BIT_G,r.master.tLast);
          end if;
       end if;
 

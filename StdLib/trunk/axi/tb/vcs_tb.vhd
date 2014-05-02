@@ -141,60 +141,60 @@ begin
          mAxiLiteReadSlave    => axiReadSlave
       );
 
---   U_AxiLiteEmpty : entity work.AxiLiteEmpty 
---      generic map (
---         TPD_G           => 1 ns,
---         NUM_WRITE_REG_G => 2,
---         NUM_READ_REG_G  => 2
---      ) port map (
---         axiClk         => axiClk,
---         axiClkRst      => axiClkRst,
---         axiReadMaster  => axiReadMaster,
---         axiReadSlave   => axiReadSlave,
---         axiWriteMaster => axiWriteMaster,
---         axiWriteSlave  => axiWriteSlave,
---         writeRegister  => writeRegister,
---         readRegister   => readRegister
---      );
+   U_AxiLiteEmpty : entity work.AxiLiteEmpty 
+      generic map (
+         TPD_G           => 1 ns,
+         NUM_WRITE_REG_G => 2,
+         NUM_READ_REG_G  => 2
+      ) port map (
+         axiClk         => axiClk,
+         axiClkRst      => axiClkRst,
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave,
+         writeRegister  => writeRegister,
+         readRegister   => readRegister
+      );
 
       readRegister(0) <= x"deadbeef";
       readRegister(1) <= x"44444444";
 
 
-   U_I2c : entity work.I2cRegMasterAxiBridge
-      generic map (
-         TPD_G               => 1 ns,
-         I2C_REG_ADDR_SIZE_G => 8,
-         DEVICE_MAP_G        => I2C_CONFIG_C,
-         EN_USER_REG_G       => false,
-         NUM_WRITE_REG_G     => 1,
-         NUM_READ_REG_G      => 1,
-         AXI_ERROR_RESP_G    => AXI_RESP_SLVERR_C
-      ) port map (
-         axiClk           => axiClk,
-         axiRst           => axiClkRst,
-         axiReadMaster    => axiReadMaster,
-         axiReadSlave     => axiReadSlave,
-         axiWriteMaster   => axiWriteMaster,
-         axiWriteSlave    => axiWriteSlave,
-         i2cRegMasterIn   => i2cRegMasterIn,
-         i2cRegMasterOut  => i2cRegMasterOut 
-      );
-
-   U_I2cMaster : entity work.I2cRegMaster 
-      generic map (
-         TPD_G                => 1 ns,
-         OUTPUT_EN_POLARITY_G => 1,
-         FILTER_G             => 8,
-         PRESCALE_G           => 62
-      ) port map (
-         clk    => axiClk,
-         srst   => axiClkRst,
-         regIn  => i2cRegMasterIn,
-         regOut => i2cRegMasterOut,
-         i2ci   => i2ci,
-         i2co   => i2co
-   );
+--   U_I2c : entity work.I2cRegMasterAxiBridge
+--      generic map (
+--         TPD_G               => 1 ns,
+--         I2C_REG_ADDR_SIZE_G => 8,
+--         DEVICE_MAP_G        => I2C_CONFIG_C,
+--         EN_USER_REG_G       => false,
+--         NUM_WRITE_REG_G     => 1,
+--         NUM_READ_REG_G      => 1,
+--         AXI_ERROR_RESP_G    => AXI_RESP_SLVERR_C
+--      ) port map (
+--         axiClk           => axiClk,
+--         axiRst           => axiClkRst,
+--         axiReadMaster    => axiReadMaster,
+--         axiReadSlave     => axiReadSlave,
+--         axiWriteMaster   => axiWriteMaster,
+--         axiWriteSlave    => axiWriteSlave,
+--         i2cRegMasterIn   => i2cRegMasterIn,
+--         i2cRegMasterOut  => i2cRegMasterOut 
+--      );
+--
+--   U_I2cMaster : entity work.I2cRegMaster 
+--      generic map (
+--         TPD_G                => 1 ns,
+--         OUTPUT_EN_POLARITY_G => 1,
+--         FILTER_G             => 8,
+--         PRESCALE_G           => 62
+--      ) port map (
+--         clk    => axiClk,
+--         srst   => axiClkRst,
+--         regIn  => i2cRegMasterIn,
+--         regOut => i2cRegMasterOut,
+--         i2ci   => i2ci,
+--         i2co   => i2co
+--   );
 
    i2ci.scl <= i2co.scl when i2co.scloen = '1' else '1';
    i2ci.sda <= i2co.sda when i2co.sdaoen = '1' else '1';
