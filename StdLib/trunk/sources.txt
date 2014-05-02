@@ -62,6 +62,8 @@ vhdl work axi/rtl/AxiVersion.vhd
 vhdl work axi/rtl/SsiAxiLiteMaster.vhd
 vhdl work axi/rtl/SsiCmdMaster.vhd
 vhdl work axi/rtl/SsiCmdMasterPkg.vhd
+vhdl work axi/rtl/SsiFifo.vhd
+vhdl work axi/rtl/SsiFrameFilter.vhd
 vhdl work axi/rtl/SsiPkg.vhd
 vhdl work axi/rtl/SsiPrbsRx.vhd
 vhdl work axi/rtl/SsiPrbsTx.vhd

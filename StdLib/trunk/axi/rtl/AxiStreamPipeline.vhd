@@ -28,7 +28,7 @@ entity AxiStreamPipeline is
    port (
       -- Clock and Reset
       axisClk     : in  sl;
-      axisRst     : in  sl := '0';
+      axisRst     : in  sl;
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -142,7 +142,7 @@ begin
          end if;
 
          -- Synchronous Reset
-         if (axisRst = '1') then
+         if axisRst = '1' then
             v := REG_INIT_C;
          end if;
 
@@ -156,7 +156,7 @@ begin
       end process comb;
 
 
-      seq : process (axisClk, axisRst) is
+      seq : process (axisClk) is
       begin
          if rising_edge(axisClk) then
             r <= rin after TPD_G;
