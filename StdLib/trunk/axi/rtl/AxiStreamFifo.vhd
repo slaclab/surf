@@ -32,8 +32,10 @@ entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G         : time                  := 1 ns;
-      PIPE_STAGES_G : natural range 0 to 16 := 0;
+      TPD_G          : time                  := 1 ns;
+      PIPE_STAGES_G  : natural range 0 to 16 := 0;
+      RST_ASYNC_G    : boolean               := false;
+      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset        
 
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
@@ -355,8 +357,8 @@ begin
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => true,
-         RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => false,
+         RST_POLARITY_G     => RST_POLARITY_G,
+         RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => BRAM_EN_G,
          FWFT_EN_G          => true,
