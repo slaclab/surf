@@ -31,6 +31,7 @@ architecture fifo_tb of fifo_tb is
       TDATA_BYTES_C => 16,
       TDEST_BITS_C  => 4,
       TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_NORMAL_C
    );
