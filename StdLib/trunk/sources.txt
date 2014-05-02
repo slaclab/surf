@@ -56,8 +56,8 @@ vhdl work axi/rtl/AxiPkg.vhd
 vhdl work axi/rtl/AxiStreamDeMux.vhd
 vhdl work axi/rtl/AxiStreamFifo.vhd
 vhdl work axi/rtl/AxiStreamMux.vhd
+vhdl work axi/rtl/AxiStreamPipeline.vhd
 vhdl work axi/rtl/AxiStreamPkg.vhd
-vhdl work axi/rtl/AxiStreamSync.vhd
 vhdl work axi/rtl/AxiVersion.vhd
 vhdl work axi/rtl/SsiAxiLiteMaster.vhd
 vhdl work axi/rtl/SsiCmdMaster.vhd

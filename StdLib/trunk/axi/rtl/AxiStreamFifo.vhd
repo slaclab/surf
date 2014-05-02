@@ -469,7 +469,7 @@ begin
       end if;
    end process rdSeq;
    
-   U_Sync : entity work.AxiStreamSync
+   U_Pipe : entity work.AxiStreamPipeline
       generic map (
          TPD_G              => TPD_G,
          RST_ASYNC_G        => false,
