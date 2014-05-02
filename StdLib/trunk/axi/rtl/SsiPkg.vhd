@@ -53,7 +53,10 @@ package SsiPkg is
    procedure ssiSetUserSof (
       axisConfig : in    AxiStreamConfigType;
       axisMaster : inout AxiStreamMasterType;
-      sof        : in    sl);      
+      sof        : in    sl); 
+
+   procedure ssiResetFlags (
+      axisMaster : inout AxiStreamMasterType);       
 
 end package SsiPkg;
 
@@ -131,6 +134,14 @@ package body SsiPkg is
       sof        : in    sl) is
    begin
       axiStreamSetUserBit(axisConfig, axisMaster, SSI_SOF_C, sof);
+   end procedure;
+   
+   procedure ssiResetFlags (
+      axisMaster : inout AxiStreamMasterType) is
+   begin
+      axisMaster.tValid := '0';
+      axisMaster.tLast  := '0';
+      axisMaster.tUser  := (others => '0');
    end procedure;
    
 end package body SsiPkg;

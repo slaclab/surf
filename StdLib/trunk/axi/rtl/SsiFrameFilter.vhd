@@ -98,11 +98,9 @@ begin
          v.sAxisSlave := mAxisSlave;
 
          -- Reset strobe Signals
-         v.mAxisMaster.tValid := '0';
-         v.mAxisMaster.tLast  := '0';
-         v.mAxisMaster.tUser  := (others => '0');
-         v.sAxisDropWrite     := '0';
-         v.sAxisTermFrame     := '0';
+         ssiResetFlags(v.mAxisMaster);
+         v.sAxisDropWrite := '0';
+         v.sAxisTermFrame := '0';
 
          -- State Machine
          case (r.state) is
