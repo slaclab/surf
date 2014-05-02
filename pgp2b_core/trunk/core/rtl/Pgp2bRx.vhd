@@ -21,7 +21,6 @@
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.Pgp2bPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -43,16 +42,16 @@ entity Pgp2bRx is
       pgpRxClkRst      : in  sl;        -- Synchronous reset input
 
       -- Non-VC related IO
-      pgpRxIn          : in  PgpRxInType;
-      pgpRxOut         : out PgpRxOutType;
+      pgpRxIn          : in  Pgp2bRxInType;
+      pgpRxOut         : out Pgp2bRxOutType;
 
       -- VC Output
       pgpRxMaster      : out AxiStreamMasterType;
       remFifoStatus    : out AxiStreamCtrlArray(3 downto 0);
 
       -- PHY interface
-      phyRxLanesOut    : out PgpRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
-      phyRxLanesIn     : in  PgpRxPhyLaneInArray(0 to RX_LANE_CNT_G-1);
+      phyRxLanesOut    : out Pgp2bRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
+      phyRxLanesIn     : in  Pgp2bRxPhyLaneInArray(0 to RX_LANE_CNT_G-1);
       phyRxReady       : in  sl;
       phyRxInit        : out sl
    );
@@ -202,7 +201,7 @@ begin
 
       intMaster.tLast := intRxEof;
 
-      axiStreamSetUserBit(SSI_PGP_CONFIG_G,intMaster,SSI_EOFE_C,intRxEofe);
+      axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
 
       -- Generate valid and dest values
       case intRxVcReady is 

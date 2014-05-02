@@ -19,7 +19,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
-use work.Vc64Pkg.all;
+use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
 
 library unisim;

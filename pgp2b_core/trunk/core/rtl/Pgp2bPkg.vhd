@@ -31,7 +31,7 @@ package Pgp2bPkg is
    -----------------------------------------------------
    -- Constants
    -----------------------------------------------------
-   constant SSI_PGP_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(2);
+   constant SSI_PGP2B_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2);
 
    -- 8B10B Characters
    constant K_COM_C  : slv(7 downto 0) := "10111100"; -- K28.5, 0xBC
@@ -54,19 +54,19 @@ package Pgp2bPkg is
    -- PGP RX non-data types
    -----------------------------------------------------
 
-   type PgpRxInType is record
+   type Pgp2bRxInType is record
       flush   : sl;                     -- Flush the link
       resetRx : sl;
-   end record PgpRxInType;
+   end record Pgp2bRxInType;
 
-   type PgpRxInArray is array (natural range <>) of PgpRxInType;
+   type Pgp2bRxInArray is array (natural range <>) of Pgp2bRxInType;
 
-   constant PGP_RX_IN_INIT_C : PgpRxInType := (
+   constant PGP2B_RX_IN_INIT_C : Pgp2bRxInType := (
       '0',
       '0'
    );
 
-   type PgpRxOutType is record
+   type Pgp2bRxOutType is record
       linkReady     : sl;                -- Local side has link
       cellError     : sl;                -- A cell error has occured
       linkDown      : sl;                -- A link down event has occured
@@ -76,11 +76,11 @@ package Pgp2bPkg is
       remLinkReady  : sl;                -- Far end side has link
       remLinkData   : slv(7 downto 0);   -- Far end side User Data
       remOverFlow   : slv(3 downto 0);   -- Far end overflow status
-   end record PgpRxOutType;
+   end record Pgp2bRxOutType;
 
-   type PgpRxOutArray is array (natural range <>) of PgpRxOutType;
+   type Pgp2bRxOutArray is array (natural range <>) of Pgp2bRxOutType;
 
-   constant PGP_RX_OUT_INIT_C : PgpRxOutType := (
+   constant PGP2B_RX_OUT_INIT_C : Pgp2bRxOutType := (
       '0',
       '0',
       '0',
@@ -93,20 +93,20 @@ package Pgp2bPkg is
    );
 
    -----------------------------------------------------
-   -- PGP TX non-data types
+   -- PGP2B TX non-data types
    -----------------------------------------------------
 
-   type PgpTxInType is record
+   type Pgp2bTxInType is record
       flush         : sl;                -- Flush the link
       opCodeEn      : sl;                -- Opcode receive enable
       opCode        : slv(7 downto 0);   -- Opcode receive value
       locLinkReady  : sl;                -- Near end side has link
       locData       : slv(7 downto 0);   -- Near end side User Data
-   end record PgpTxInType;
+   end record Pgp2bTxInType;
 
-   type PgpTxInArray is array (natural range <>) of PgpTxInType;
+   type Pgp2bTxInArray is array (natural range <>) of Pgp2bTxInType;
 
-   constant PGP_TX_IN_INIT_C : PgpTxInType := (
+   constant PGP2B_TX_IN_INIT_C : Pgp2bTxInType := (
       '0',
       '0',
       (others => '0'),
@@ -114,40 +114,40 @@ package Pgp2bPkg is
       (others => '0')
    );               
 
-   type PgpTxOutType is record
+   type Pgp2bTxOutType is record
       linkReady : sl;                   -- Local side has link
-   end record PgpTxOutType;
+   end record Pgp2bTxOutType;
 
-   type PgpTxOutArray is array (natural range <>) of PgpTxOutType;
+   type Pgp2bTxOutArray is array (natural range <>) of Pgp2bTxOutType;
 
-   constant PGP_TX_OUT_INIT_C : PgpTxOutType := (
+   constant PGP2B_TX_OUT_INIT_C : Pgp2bTxOutType := (
       (others => '0')
    );                
 
    -----------------------------------------------------
-   -- PGP RX Phy types
+   -- PGP2B RX Phy types
    -----------------------------------------------------
 
-   type PgpRxPhyLaneOutType is record
+   type Pgp2bRxPhyLaneOutType is record
       polarity : sl;                    -- PHY receive signal polarity
-   end record PgpRxPhyLaneOutType;
+   end record Pgp2bRxPhyLaneOutType;
 
-   type PgpRxPhyLaneOutArray is array (natural range <>) of PgpRxPhyLaneOutType;
+   type Pgp2bRxPhyLaneOutArray is array (natural range <>) of Pgp2bRxPhyLaneOutType;
 
-   constant PGP_RX_PHY_LANE_OUT_INIT_C : PgpRxPhyLaneOutType := (
+   constant PGP2B_RX_PHY_LANE_OUT_INIT_C : Pgp2bRxPhyLaneOutType := (
       (others => '0')
    );   
 
-   type PgpRxPhyLaneInType is record
+   type Pgp2bRxPhyLaneInType is record
       data    : slv(15 downto 0);       -- PHY receive data
       dataK   : slv(1 downto 0);        -- PHY receive data is K character
       dispErr : slv(1 downto 0);        -- PHY receive data has disparity error
       decErr  : slv(1 downto 0);        -- PHY receive data not in table
-   end record PgpRxPhyLaneInType;
+   end record Pgp2bRxPhyLaneInType;
 
-   type PgpRxPhyLaneInArray is array (natural range <>) of PgpRxPhyLaneInType;
+   type Pgp2bRxPhyLaneInArray is array (natural range <>) of Pgp2bRxPhyLaneInType;
 
-   constant PGP_RX_PHY_LANE_IN_INIT_C : PgpRxPhyLaneInType := (
+   constant PGP2B_RX_PHY_LANE_IN_INIT_C : Pgp2bRxPhyLaneInType := (
       (others => '0'),
       (others => '0'),
       (others => '0'),
@@ -155,17 +155,17 @@ package Pgp2bPkg is
    );    
 
    -----------------------------------------------------
-   -- PGP TX Phy types
+   -- PGP2B TX Phy types
    -----------------------------------------------------
 
-   type PgpTxPhyLaneOutType is record
+   type Pgp2bTxPhyLaneOutType is record
       data  : slv(15 downto 0);         -- PHY transmit data
       dataK : slv(1 downto 0);          -- PHY transmit data is K character
-   end record PgpTxPhyLaneOutType;
+   end record Pgp2bTxPhyLaneOutType;
 
-   type PgpTxPhyLaneOutArray is array (natural range <>) of PgpTxPhyLaneOutType;
+   type Pgp2bTxPhyLaneOutArray is array (natural range <>) of Pgp2bTxPhyLaneOutType;
 
-   constant PGP_TX_PHY_LANE_OUT_INIT_C : PgpTxPhyLaneOutType := (
+   constant PGP2B_TX_PHY_LANE_OUT_INIT_C : Pgp2bTxPhyLaneOutType := (
       (others => '0'),
       (others => '0')
    );    

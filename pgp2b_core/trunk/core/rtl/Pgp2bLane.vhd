@@ -45,15 +45,15 @@ entity Pgp2bLane is
       pgpTxClkRst       : in  sl := '0';
 
       -- Non-VC related IO
-      pgpTxIn           : in  PgpTxInType := PGP_TX_IN_INIT_C;
-      pgpTxOut          : out PgpTxOutType;
+      pgpTxIn           : in  Pgp2bTxInType := PGP2B_TX_IN_INIT_C;
+      pgpTxOut          : out Pgp2bTxOutType;
 
       -- VC Interface
       pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
 
       -- Phy interface
-      phyTxLanesOut     : out PgpTxPhyLaneOutArray(0 to LANE_CNT_G-1);
+      phyTxLanesOut     : out Pgp2bTxPhyLaneOutArray(0 to LANE_CNT_G-1);
       phyTxReady        : in  sl := '0';
 
       ---------------------------------
@@ -65,8 +65,8 @@ entity Pgp2bLane is
       pgpRxClkRst       : in  sl := '0';
 
       -- Non-VC related IO
-      pgpRxIn           : in  PgpRxInType := PGP_RX_IN_INIT_C;
-      pgpRxOut          : out PgpRxOutType;
+      pgpRxIn           : in  Pgp2bRxInType := PGP2B_RX_IN_INIT_C;
+      pgpRxOut          : out Pgp2bRxOutType;
 
       -- VC Outputs
       pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
@@ -76,8 +76,8 @@ entity Pgp2bLane is
       pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
 
       -- PHY interface
-      phyRxLanesOut     : out PgpRxPhyLaneOutArray(0 to LANE_CNT_G-1);
-      phyRxLanesIn      : in  PgpRxPhyLaneInArray(0 to LANE_CNT_G-1) := (others=>PGP_RX_PHY_LANE_IN_INIT_C);
+      phyRxLanesOut     : out Pgp2bRxPhyLaneOutArray(0 to LANE_CNT_G-1);
+      phyRxLanesIn      : in  Pgp2bRxPhyLaneInArray(0 to LANE_CNT_G-1) := (others=>PGP2B_RX_PHY_LANE_IN_INIT_C);
       phyRxReady        : in  sl := '0';
       phyRxInit         : out sl
    );
@@ -123,9 +123,9 @@ begin
    end generate;
 
    U_TxDisGen: if TX_ENABLE_G = false generate
-      pgpTxOut      <= PGP_TX_OUT_INIT_C;
+      pgpTxOut      <= PGP2B_TX_OUT_INIT_C;
       pgpTxSlaves   <= (others=>AXI_STREAM_SLAVE_INIT_C);
-      phyTxLanesOut <= (others=>PGP_TX_PHY_LANE_OUT_INIT_C);
+      phyTxLanesOut <= (others=>PGP2B_TX_PHY_LANE_OUT_INIT_C);
    end generate;
 
 
@@ -171,10 +171,10 @@ begin
    end generate;
 
    U_RxDisGen: if RX_ENABLE_G = false generate
-      pgpRxOut               <= PGP_RX_OUT_INIT_C;
+      pgpRxOut               <= PGP2B_RX_OUT_INIT_C;
       pgpRxMasters           <= (others=>AXI_STREAM_MASTER_INIT_C);
       intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
-      phyRxLanesOut          <= (others=>PGP_RX_PHY_LANE_OUT_INIT_C);
+      phyRxLanesOut          <= (others=>PGP2B_RX_PHY_LANE_OUT_INIT_C);
       phyRxInit              <= '0';
       remFifoStatus          <= (others=>AXI_STREAM_CTRL_INIT_C);
    end generate;
