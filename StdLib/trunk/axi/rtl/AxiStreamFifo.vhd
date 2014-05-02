@@ -32,12 +32,14 @@ entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G          : time                  := 1 ns;
-      PIPE_STAGES_G  : natural range 0 to 16 := 0;
-      RST_ASYNC_G    : boolean               := false;
-      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset        
+      TPD_G          : time                       := 1 ns;
+      PIPE_STAGES_G  : natural range 0 to 16      := 0;
+      VALID_THOLD_G  : integer range 1 to (2**24) := 1; -- 1 = normal operation
+                                                        -- 0 = only when frame ready
 
       -- FIFO configurations
+      RST_ASYNC_G         : boolean                    := false;
+      RST_POLARITY_G      : sl                         := '1';
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
       USE_BUILT_IN_G      : boolean                    := false;
@@ -188,7 +190,6 @@ architecture rtl of AxiStreamFifo is
 
    end iSlvToAxi;
 
-
    ----------------
    -- Write Signals
    ----------------
@@ -207,11 +208,23 @@ architecture rtl of AxiStreamFifo is
 
    signal wrR, wrRin : WrRegType := WR_REG_INIT_C;
 
-   signal fifoDin   : slv(FIFO_BITS_C-1 downto 0);
-   signal fifoWrite : sl;
-   signal fifoCount : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
-   signal fifoAFull : sl;
-   signal fifoPFull : sl;
+   ----------------
+   -- FIFO Signals
+   ----------------
+   signal fifoDin       : slv(FIFO_BITS_C-1 downto 0);
+   signal fifoWrite     : sl;
+   signal fifoWriteLast : sl;
+   signal fifoWrCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+   signal fifoRdCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+   signal fifoAFull     : sl;
+   signal fifoPFull     : sl;
+   signal fifoDout      : slv(FIFO_BITS_C-1 downto 0);
+   signal fifoRead      : sl;
+   signal fifoReadLast  : sl;
+   signal fifoValidInt  : sl;
+   signal fifoValid     : sl;
+   signal fifoValidLast : sl;
+   signal fifoInFrame   : sl;
 
    ---------------
    -- Read Signals
@@ -235,10 +248,9 @@ architecture rtl of AxiStreamFifo is
 
    signal rdR, rdRin : RdRegType := RD_REG_INIT_C;
 
-   signal fifoDout  : slv(FIFO_BITS_C-1 downto 0);
-   signal fifoRead  : sl;
-   signal fifoValid : sl;
-
+   ---------------
+   -- Sync Signals
+   ---------------
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;
 
@@ -315,13 +327,15 @@ begin
 
       -- Write logic enabled
       if WR_LOGIC_EN_C then
-         fifoDin   <= iAxiToSlv(wrR.wrMaster);
-         fifoWrite <= wrR.wrMaster.tValid and (not fifoAFull);
+         fifoDin       <= iAxiToSlv(wrR.wrMaster);
+         fifoWrite     <= wrR.wrMaster.tValid and (not fifoAFull);
+         fifoWriteLast <= wrR.wrMaster.tValid and (not fifoAFull) and wrR.wrMaster.tLast;
 
       -- Bypass write logic
       else
-         fifoDin   <= iAxiToSlv(sAxisMaster);
-         fifoWrite <= sAxisMaster.tValid and (not fifoAFull);
+         fifoDin       <= iAxiToSlv(sAxisMaster);
+         fifoWrite     <= sAxisMaster.tValid and (not fifoAFull);
+         fifoWriteLast <= sAxisMaster.tValid and (not fifoAFull) and sAxisMaster.tLast;
       end if;
 
       sAxisSlave.tReady <= (not fifoAFull);
@@ -350,7 +364,7 @@ begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFull after TPD_G;
       elsif (rising_edge(sAxisClk)) then
-         if sAxisRst = '1' or fifoCount > fifoPauseThresh then
+         if sAxisRst = '1' or fifoWrCount > fifoPauseThresh then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;
@@ -385,7 +399,7 @@ begin
          wr_clk        => sAxisClk,
          wr_en         => fifoWrite,
          din           => fifoDin,
-         wr_data_count => fifoCount,
+         wr_data_count => fifoWrCount,
          wr_ack        => open,
          overflow      => sAxisCtrl.overflow,
          prog_full     => fifoPFull,
@@ -402,6 +416,74 @@ begin
          almost_empty  => open,
          empty         => open
          );
+
+   U_LastFifoEnGen : if VALID_THOLD_G /= 1 generate
+
+      U_LastFifo : entity work.FifoCascade
+         generic map (
+            TPD_G              => TPD_G,
+            CASCADE_SIZE_G     => CASCADE_SIZE_G,
+            LAST_STAGE_ASYNC_G => true,
+            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
+            BRAM_EN_G          => false,
+            FWFT_EN_G          => true,
+            USE_DSP48_G        => "no",
+            ALTERA_SYN_G       => ALTERA_SYN_G,
+            ALTERA_RAM_G       => ALTERA_RAM_G,
+            USE_BUILT_IN_G     => false,
+            XIL_DEVICE_G       => XIL_DEVICE_G,
+            SYNC_STAGES_G      => 3,
+            DATA_WIDTH_G       => 1,
+            ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
+            INIT_G             => "0",
+            FULL_THRES_G       => 1,
+            EMPTY_THRES_G      => 1
+            )
+         port map (
+            rst           => sAxisRst,
+            wr_clk        => sAxisClk,
+            wr_en         => fifoWriteLast,
+            din           => (others=>'0'),
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => open,
+            not_full      => open,
+            rd_clk        => mAxisClk,
+            rd_en         => fifoReadLast,
+            dout          => open,
+            rd_data_count => open,
+            valid         => fifoValidLast,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
+
+      process (sAxisClk) is
+      begin
+         if (rising_edge(sAxisClk)) then
+            if sAxisRst = '1' or fifoReadLast = '1' then
+               fifoInFrame <= '0' after TPD_G;
+            elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
+               fifoInFrame <= '1' after TPD_G;
+            end if;
+         end if;
+      end process;
+
+      fifoValid <= fifoValidInt and fifoInFrame;
+
+   end generate;
+
+   U_LastFifoDisGen : if VALID_THOLD_G = 1 generate
+      fifoValidLast <= '0';
+      fifoValid     <= fifoValidInt;
+      fifoInFrame   <= '0';
+   end generate;
 
 
    -------------------------
@@ -454,13 +536,15 @@ begin
 
       -- Read logic enabled
       if RD_LOGIC_EN_C then
-         axisMaster <= rdR.rdMaster;
-         fifoRead   <= v.ready;
+         axisMaster   <= rdR.rdMaster;
+         fifoRead     <= v.ready and fifoValid;
+         fifoReadLast <= v.ready and fifoValid and fifoMaster.tLast;
 
       -- Bypass read logic
       else
-         axisMaster <= fifoMaster;
-         fifoRead   <= axisSlave.tReady;
+         axisMaster   <= fifoMaster;
+         fifoRead     <= axisSlave.tReady and fifoValid;
+         fifoReadLast <= axisSlave.tReady and fifoValid and fifoMaster.tLast;
       end if;
       
    end process rdComb;
@@ -476,7 +560,12 @@ begin
          end if;
       end if;
    end process rdSeq;
-   
+
+
+   -------------------------
+   -- Pipeline Logic
+   -------------------------
+
    U_Pipe : entity work.AxiStreamPipeline
       generic map (
          TPD_G          => TPD_G,
