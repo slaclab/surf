@@ -56,13 +56,16 @@ package AxiStreamPkg is
    constant AXI_STREAM_SLAVE_FORCE_C : AxiStreamSlaveType := (
       tReady => '1');
 
-   type TUserModeType is (TUSER_NORMAL_C, TUSER_LAST_C);
+   type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C );
+
+   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_UNUSED_C, TKEEP_COMP_C);
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
       TDATA_BYTES_C : natural range 1 to 16;
       TDEST_BITS_C  : natural range 0 to 8;
       TID_BITS_C    : natural range 0 to 8;
+      TKEEP_MODE_C  : TkeepModeType;
       TUSER_BITS_C  : natural range 2 to 8;
       TUSER_MODE_C  : TUserModeType;
    end record AxiStreamConfigType;
@@ -72,6 +75,7 @@ package AxiStreamPkg is
       TDATA_BYTES_C => 16,
       TDEST_BITS_C  => 4,
       TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
       TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 

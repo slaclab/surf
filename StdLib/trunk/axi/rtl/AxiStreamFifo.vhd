@@ -78,7 +78,8 @@ architecture rtl of AxiStreamFifo is
    constant DATA_BYTES_C : integer := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
                                           SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
 
-   constant KEEP_BITS_C : integer := bitSize(DATA_BYTES_C);
+   --constant KEEP_BITS_C : integer := bitSize(DATA_BYTES_C);
+   constant KEEP_BITS_C : integer := DATA_BYTES_C;
    constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
    constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C, DATA_BYTES_C, 0);
    constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
@@ -106,7 +107,10 @@ architecture rtl of AxiStreamFifo is
       retValue(DATA_BITS_C-1 downto 0) := din.tData(DATA_BITS_C-1 downto 0);
       i                                := i + DATA_BITS_C;
 
-      retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
+      --retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 0));
+      --i                                    := i + KEEP_BITS_C;
+
+      retValue((KEEP_BITS_C+i)-1 downto i) := din.tKeep(KEEP_BITS_C-1 downto 0);
       i                                    := i + KEEP_BITS_C;
 
       retValue(i) := din.tLast;
@@ -150,13 +154,15 @@ architecture rtl of AxiStreamFifo is
       master.tData(DATA_BITS_C-1 downto 0) := din(DATA_BITS_C-1 downto 0);
       i                                    := i + DATA_BITS_C;
 
-      byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i));
+      --byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i));
 
-      if byteCnt > DATA_BYTES_C then
-         master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '1');
-      elsif byteCnt /= 0 then
-         master.tKeep(byteCnt-1 downto 0) := (others => '1');
-      end if;
+      --if byteCnt > DATA_BYTES_C then
+         --master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '1');
+      --elsif byteCnt /= 0 then
+         --master.tKeep(byteCnt-1 downto 0) := (others => '1');
+      --end if;
+
+      master.tKeep(KEEP_BITS_C-1 downto 0) := din((KEEP_BITS_C+i)-1 downto i);
       i := i + KEEP_BITS_C;
 
       master.tLast := din(i);
