@@ -28,6 +28,7 @@ set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in
 set_msg_config -id {Synth 8-3919} -new_severity ERROR;# SYNTH: Null Assignment in logic
 set_msg_config -id {Synth 8-153}  -new_severity ERROR;# SYNTH: Case statement has an input that will never be executed
 set_msg_config -id {Synth 8-63}   -new_severity ERROR;# SYNTH: RTL assertion
+set_msg_config -id {VRFC 10-664}  -new_severity ERROR;# SIM:   expression has XXX elements ; expected XXX
 
 # Messages: Change from WARNING to CRITICAL_WARNING
 set_msg_config -id {Vivado 12-508} -new_severity "CRITICAL WARNING";# XDC: No pins matched 
