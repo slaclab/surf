@@ -249,28 +249,9 @@ begin
       intReady(i)           <= rawReady(i) and (not syncRemPause(i));
       intValid(i)           <= pgpTxMasters(i).tValid and (not syncRemPause(i));
       intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_EOFE_C);
+      intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_SOF_C);
       pgpTxSlaves(i).tReady <= intReady(i);
    end generate;
-
-
-   -- Generate SOF
-   process ( pgpTxClk ) begin
-      if rising_edge(pgpTxClk) then
-         if pgpTxClkRst = '1' then
-            intTxSof <= (others=>'1') after TPD_G;
-         else
-            for i in 0 to 3 loop
-               if intReady(i) = '1' and pgpTxMasters(i).tValid = '1' then
-                  if pgpTxMasters(i).tLast = '1' then
-                     intTxSof(i) <= '1' after TPD_G;
-                  else
-                     intTxSof(i) <= '0' after TPD_G;
-                  end if;
-               end if;
-            end loop;
-         end if;
-      end if;
-   end process;
 
    -- TX CRC BLock
    crcTxRst                    <= pgpTxClkRst or crcTxInit;

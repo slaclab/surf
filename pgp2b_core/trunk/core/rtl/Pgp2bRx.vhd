@@ -83,6 +83,7 @@ architecture Pgp2bRx of Pgp2bRx is
    signal intPhyRxDispErr  : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
    signal intPhyRxDecErr   : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data not in table
    signal intRxVcReady     : slv(3 downto 0);
+   signal intRxSof         : sl;
    signal intRxEof         : sl;
    signal intRxEofe        : sl;
    signal intRxData        : slv((RX_LANE_CNT_G*16)-1 downto 0);
@@ -159,7 +160,7 @@ begin
          cellRxEOF        => cellRxEOF,
          cellRxEOFE       => cellRxEOFE,
          cellRxData       => cellRxData,
-         vcFrameRxSOF     => open,
+         vcFrameRxSOF     => intRxSof,
          vcFrameRxEOF     => intRxEof,
          vcFrameRxEOFE    => intRxEofe,
          vcFrameRxData    => intRxData,
@@ -202,6 +203,7 @@ begin
       intMaster.tLast := intRxEof;
 
       axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
+      axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof);
 
       -- Generate valid and dest values
       case intRxVcReady is 
