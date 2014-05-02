@@ -235,14 +235,14 @@ architecture rtl of AxiStreamFifo is
 
    type RdRegType is record
       count    : slv(bitSize(RD_SIZE_C)-1 downto 0);
-      bytes    : slv(KEEP_BITS_C-1 downto 0);
+      bytes    : slv(bitSize(DATA_BYTES_C)-1 downto 0);
       rdMaster : AxiStreamMasterType;
       ready    : sl;
    end record RdRegType;
 
    constant RD_REG_INIT_C : RdRegType := (
       count    => (others => '0'),
-      bytes    => conv_std_logic_vector(RD_BYTES_C, KEEP_BITS_C),
+      bytes    => conv_std_logic_vector(RD_BYTES_C, bitSize(DATA_BYTES_C)),
       rdMaster => AXI_STREAM_MASTER_INIT_C,
       ready    => '0'
       );
@@ -527,9 +527,9 @@ begin
 
          -- Reached end of fifo data or no more valid bytes in last word
          if fifoMaster.tValid = '1' then
-            if (rdR.count = (RD_SIZE_C-1)) or (rdR.bytes = byteCnt and fifoMaster.tLast = '1') then
+            if (rdR.count = (RD_SIZE_C-1)) or ((rdR.bytes = byteCnt) and (fifoMaster.tLast = '1')) then
                v.count          := (others => '0');
-               v.bytes          := conv_std_logic_vector(RD_BYTES_C, KEEP_BITS_C);
+               v.bytes          := conv_std_logic_vector(RD_BYTES_C, bitSize(DATA_BYTES_C));
                v.ready          := '1';
                v.rdMaster.tLast := fifoMaster.tLast;
             else

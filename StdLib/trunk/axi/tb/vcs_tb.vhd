@@ -52,7 +52,6 @@ architecture vcs_tb of vcs_tb is
    );
 
    constant PGP_LANE_CNT_C   : integer := 1;
-   constant SSI_PGP_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (PGP_LANE_CNT_C*2);
 
 begin
 
@@ -122,7 +121,7 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 255,
-         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_C
+         AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C
       ) port map (
          sAxisClk             => pgpClk,
          sAxisRst             => pgpClkRst,
@@ -210,7 +209,7 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 255,
-         AXI_STREAM_CONFIG_G => SSI_PGP_CONFIG_C
+         AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C
       ) port map (
          axisClk       => pgpClk,
          axisRst       => pgpClkRst,
