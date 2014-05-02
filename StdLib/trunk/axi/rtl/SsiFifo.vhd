@@ -30,6 +30,8 @@ entity SsiFifo is
       TPD_G               : time                       := 1 ns;
       PIPE_STAGES_G       : natural range 0 to 16      := 0;
       EN_FRAME_FILTER_G   : boolean                    := true;
+      VALID_THOLD_G       : integer range 1 to (2**24) := 1;
+
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -94,6 +96,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
+         VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
