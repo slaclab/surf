@@ -33,7 +33,7 @@ entity SsiPrbsTx is
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
       GEN_SYNC_FIFO_G            : boolean                    := false;
-      ALTERA_SYN_G               : boolean                    := false;
+      ALTERA_SYN_G               : boolean                    := true;
       ALTERA_RAM_G               : string                     := "M9K";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
@@ -42,7 +42,7 @@ entity SsiPrbsTx is
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 16);
       -- AXI Stream IO Config
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_UNUSED_C);
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
    port (
       -- Master Port (mAxisClk)
@@ -55,7 +55,7 @@ entity SsiPrbsTx is
       locClk       : in  sl;
       locRst       : in  sl              := '0';
       trig         : in  sl              := '1';
-      packetLength : in  slv(31 downto 0);
+      packetLength : in  slv(31 downto 0) := X"FFFFFFFF";
       busy         : out sl;
       tDest        : in  slv(7 downto 0) := X"00";
       tId          : in  slv(7 downto 0) := X"00");
@@ -66,7 +66,7 @@ end SsiPrbsTx;
 architecture rtl of SsiPrbsTx is
 
    constant PRBS_BYTES_C      : natural             := PRBS_SEED_SIZE_G / 8;
-   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C);
+   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_UNUSED_C);
    
    type StateType is (
       IDLE_S,
@@ -90,7 +90,7 @@ architecture rtl of SsiPrbsTx is
       (others => '0'),
       (others => '0'),
       (others => '0'),
-      MASTER_AXI_STREAM_MASTER_INIT_C,
+      AXI_STREAM_MASTER_INIT_C,
       IDLE_S);
 
    signal r   : RegType := REG_INIT_C;

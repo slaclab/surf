@@ -194,6 +194,7 @@ begin
 
       -- Init
       v.mFifoAxisMaster        := sFifoAxisMaster;
+      v.mFifoAxisMaster.tKeep  := (others => '1');
       v.mFifoAxisMaster.tValid := '0';
       v.mFifoAxisMaster.tLast  := '0';
 
@@ -263,6 +264,7 @@ begin
 
             if sFifoAxisMaster.tValid = '1' then
                if sFifoAxisMaster.tLast = '1' then
+                  -- check tkeep here
                   v.state := S_STATUS_C;
                else
                   v.mFifoAxisMaster.tValid      := '1';  -- Echo write data
@@ -373,6 +375,7 @@ begin
             v.sFifoAxisSlave.tReady := '1';
 
             if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '1' then
+               -- Check tKeep here
                v.state := S_STATUS_C;
             end if;
 
@@ -428,7 +431,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4, TKEEP_UNUSED_C),
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          sAxisClk    => axiLiteClk,
