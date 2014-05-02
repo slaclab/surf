@@ -23,20 +23,18 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamPipeline is
    generic (
-      TPD_G          : time                  := 1 ns;
-      RST_ASYNC_G    : boolean               := false;
-      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
-      PIPE_STAGES_G  : natural range 0 to 16 := 0);
+      TPD_G         : time                  := 1 ns;
+      PIPE_STAGES_G : natural range 0 to 16 := 0);
    port (
+      -- Clock and Reset
+      axisClk     : in  sl;
+      axisRst     : in  sl := '0';
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       -- Master Port
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType;
-      -- Clock and Reset
-      axisClk     : in  sl;
-      axisRst     : in  sl := not RST_POLARITY_G);
+      mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamPipeline;
 
 architecture rtl of AxiStreamPipeline is
@@ -46,10 +44,12 @@ architecture rtl of AxiStreamPipeline is
       readBuffer  : AxiStreamMasterType;
       mAxisMaster : AxiStreamMasterArray(0 to PIPE_STAGES_G);
    end record RegType;
+   
    constant REG_INIT_C : RegType := (
       AXI_STREAM_SLAVE_INIT_C,
       AXI_STREAM_MASTER_INIT_C,
       (others => AXI_STREAM_MASTER_INIT_C));
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
@@ -142,7 +142,7 @@ begin
          end if;
 
          -- Synchronous Reset
-         if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
+         if (axisRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -160,10 +160,6 @@ begin
       begin
          if rising_edge(axisClk) then
             r <= rin after TPD_G;
-         end if;
-         -- Asynchronous Reset
-         if (RST_ASYNC_G and axisRst = RST_POLARITY_G) then
-            r <= REG_INIT_C after TPD_G;
          end if;
       end process seq;
       
