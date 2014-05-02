@@ -38,10 +38,10 @@ architecture tb of tb is
    signal prbsTxSlaves      : AxiStreamSlaveArray(3 downto 0);
    signal prbsRxMasters     : AxiStreamMasterArray(3 downto 0);
    signal prbsRxSlaves      : AxiStreamSlaveArray(3 downto 0);
-   signal pgpTxIn           : PgpTxInType;
-   signal phyTxLanesOut     : PgpTxPhyLaneOutArray(0 to 0);
-   signal pgpRxIn           : PgpRxInType;
-   signal phyRxLanesIn      : PgpRxPhyLaneInArray(0 to  0);
+   signal pgpTxIn           : Pgp2bTxInType;
+   signal phyTxLanesOut     : Pgp2bTxPhyLaneOutArray(0 to 0);
+   signal pgpRxIn           : Pgp2bRxInType;
+   signal phyRxLanesIn      : Pgp2bRxPhyLaneInArray(0 to  0);
    signal pgpRxCtrl         : AxiStreamCtrlArray(3 downto 0);
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : 
@@ -175,8 +175,8 @@ begin
 --         phyRxInit         => open
 --      );
 
-   pgpTxIn                 <= PGP_TX_IN_INIT_C;
-   pgpRxIn                 <= PGP_RX_IN_INIT_C;
+   pgpTxIn                 <= PGP2B_TX_IN_INIT_C;
+   pgpRxIn                 <= PGP2B_RX_IN_INIT_C;
    phyRxLanesIn(0).data    <= phyTxLanesOut(0).data;
    phyRxLanesIn(0).dataK   <= phyTxLanesOut(0).dataK;
    phyRxLanesIn(0).dispErr <= (others=>'0');

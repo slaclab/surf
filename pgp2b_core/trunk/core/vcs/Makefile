@@ -10,6 +10,7 @@ EN64=-full64 -xlrm
 # RTL Files
 rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/tb/glbl.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/RstSync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/StdRtlPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/Synchronizer.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerEdge.vhd
@@ -18,7 +19,6 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCnt.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCntVector.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SyncStatusVector.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/RstSync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/ram/rtl/SimpleDualPortRam.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoAsyncBuiltIn.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoSyncBuiltIn.vhd
@@ -27,6 +27,7 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/Fifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoCascade.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoMux.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/ArbiterPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/Arbiter.vhd
@@ -38,10 +39,11 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiLiteAsync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiStreamPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiStreamDeMux.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiStreamPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiStreamFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsTx.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsRx.vhd
+	#cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsTx.vhd
+	#cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsRx.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bRxPhy.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bRxCell.vhd

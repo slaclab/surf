@@ -35,8 +35,8 @@ entity PgpSimModel is
       pgpTxClkRst       : in  sl;
 
       -- Non-VC related IO
-      pgpTxIn           : in  PgpTxInType;
-      pgpTxOut          : out PgpTxOutType;
+      pgpTxIn           : in  Pgp2bTxInType;
+      pgpTxOut          : out Pgp2bTxOutType;
 
       -- Tx Interface, 16-bits
       pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0);
@@ -47,8 +47,8 @@ entity PgpSimModel is
       pgpRxClkRst       : in  sl;
 
       -- Non-VC related IO
-      pgpRxIn           : in  PgpRxInType;
-      pgpRxOut          : out PgpRxOutType;
+      pgpRxIn           : in  Pgp2bRxInType;
+      pgpRxOut          : out Pgp2bRxOutType;
 
       -- Rx Interface, 16-bits, muxed and de-muxed copies
       pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
