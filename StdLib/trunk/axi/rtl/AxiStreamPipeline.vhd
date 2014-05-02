@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiStreamSync.vhd
+-- File       : AxiStreamPipeline.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-01
--- Last update: 2014-05-01
+-- Last update: 2014-05-02
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity AxiStreamSync is
+entity AxiStreamPipeline is
    generic (
       TPD_G          : time                  := 1 ns;
       RST_ASYNC_G    : boolean               := false;
@@ -37,9 +37,9 @@ entity AxiStreamSync is
       -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl := not RST_POLARITY_G);
-end AxiStreamSync;
+end AxiStreamPipeline;
 
-architecture rtl of AxiStreamSync is
+architecture rtl of AxiStreamPipeline is
    
    type RegType is record
       sAxisSlave  : AxiStreamSlaveType;
