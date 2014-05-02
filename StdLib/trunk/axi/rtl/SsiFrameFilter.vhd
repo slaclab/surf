@@ -99,6 +99,8 @@ begin
 
          -- Reset strobe Signals
          v.mAxisMaster.tValid := '0';
+         v.mAxisMaster.tLast  := '0';
+         v.mAxisMaster.tUser  := (others => '0');
          v.sAxisDropWrite     := '0';
          v.sAxisTermFrame     := '0';
 
