@@ -78,15 +78,22 @@ begin
             for i in PIPE_STAGES_C downto 2 loop
                v.mAxisMaster(i) := r.mAxisMaster(i-1);
             end loop;
+
             -- Check if the lowest cell is empty
             if r.mAxisMaster(0).tValid = '0' then
                -- Set the ready bit
                v.sAxisSlave.tReady := '1';
-               -- Shift the FIFO data
-               v.mAxisMaster(1)    := sAxisMaster;
+               -- Check if we were pulling the FIFO last clock cycle
+               if r.sAxisSlave.tReady = '1' then
+                  -- Shift the FIFO data
+                  v.mAxisMaster(1) := sAxisMaster;
+               else
+                  -- Clear valid in stage 1
+                  v.mAxisMaster(1).tValid := '0';
+               end if;
             else
                -- Shift the lowest cell
-               v.mAxisMaster(1)    := r.mAxisMaster(0);
+               v.mAxisMaster(1) := r.mAxisMaster(0);
                -- Check if we were pulling the FIFO last clock cycle
                if r.sAxisSlave.tReady = '1' then
                   -- Reset the ready bit
