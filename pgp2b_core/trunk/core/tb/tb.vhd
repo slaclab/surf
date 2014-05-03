@@ -17,8 +17,8 @@ entity tb is end tb;
 -- Define architecture
 architecture tb of tb is
 
-   signal ppiClk            : sl;
-   signal ppiClkRst         : sl;
+   signal locClk            : sl;
+   signal locClkRst         : sl;
    signal pgpClk            : sl;
    signal pgpClkRst         : sl;
    signal updatedResults    : slv(3 downto 0);
@@ -47,21 +47,29 @@ architecture tb of tb is
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : 
       AxiLiteCrossbarMasterConfigArray(11 downto 0) := genAxiLiteConfig ( 12, x"F0000000", 4 );
 
-   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (2);
+   --constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (4);
+   constant INT_CONFIG_C : AxiStreamConfigType := SSI_PGP2B_CONFIG_C;
 
 begin
 
    process begin
-      ppiClk <= '1';
+      locClk <= '1';
       wait for 2.5 ns;
-      ppiClk <= '0';
+      locClk <= '0';
       wait for 2.5 ns;
    end process;
 
+--   process begin
+--      locClk <= '1';
+--      wait for 5.0 ns;
+--      locClk <= '0';
+--      wait for 5.0 ns;
+--   end process;
+
    process begin
-      ppiClkRst <= '1';
+      locClkRst <= '1';
       wait for (50 ns);
-      ppiClkRst <= '0';
+      locClkRst <= '0';
       wait;
    end process;
 
@@ -117,63 +125,65 @@ begin
 
       U_SsiPrbsTx : entity work.SsiPrbsTx
          generic map (
-            TPD_G               => 1 ns,
-            ALTERA_SYN_G        => false,
-            ALTERA_RAM_G        => "M9K",
-            XIL_DEVICE_G        => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G           => true,
-            USE_BUILT_IN_G      => false,  --if set to true, this module is only Xilinx compatible only!!!
-            GEN_SYNC_FIFO_G     => false,
-            CASCADE_SIZE_G      => 1,
-            FIFO_ADDR_WIDTH_G   => 9,
-            FIFO_PAUSE_THRESH_G => 256,    -- Almost full at 1/2 capacity
-            AXI_STREAM_CONFIG_G => SSI_CONFIG_C
+            TPD_G                      => 1 ns,
+            ALTERA_SYN_G               => false,
+            ALTERA_RAM_G               => "M9K",
+            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
+            BRAM_EN_G                  => true,
+            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
+            GEN_SYNC_FIFO_G            => false,
+            CASCADE_SIZE_G             => 1,
+            PRBS_SEED_SIZE_G           => 32,
+            PRBS_TAPS_G                => (0 => 16),
+            FIFO_ADDR_WIDTH_G          => 9,
+            FIFO_PAUSE_THRESH_G        => 256,    -- Almost full at 1/2 capacity
+            MASTER_AXI_STREAM_CONFIG_G => INT_CONFIG_C,
+            MASTER_AXI_PIPE_STAGES_G   => 0
          ) port map (
 
-            mAxisSlave   => prbsTxSlaves(i),
-            mAxisMaster  => prbsTxMasters(i),
             mAxisClk     => pgpClk,
             mAxisRst     => pgpClkRst,
+            mAxisSlave   => prbsTxSlaves(i),
+            mAxisMaster  => prbsTxMasters(i),
+            locClk       => locClk,
+            locRst       => locClkRst,
             trig         => txEnable(i),
             packetLength => txLength(i),
             busy         => txBusy(i),
             tDest        => conv_std_logic_vector(i,8),
-            tId          => (others=>'0'),
-            sAxisCtrl    => open,
-            locClk       => pgpClk,
-            locRst       => pgpClkRst
+            tId          => (others=>'0')
          );
    end generate;
 
 
---   U_PgpSim : entity work.Pgp2bLane 
---      generic map (
---         TPD_G             => 1 ns,
---         LANE_CNT_G        => 1,
---         VC_INTERLEAVE_G   => 1,
---         PAYLOAD_CNT_TOP_G => 7,
---         NUM_VC_EN_G       => 4
---      ) port map ( 
---         pgpTxClk          => pgpClk,
---         pgpTxClkRst       => pgpClkRst,
---         pgpTxIn           => pgpTxIn,
---         pgpTxOut          => open,
---         pgpTxMasters      => prbsTxMasters,
---         pgpTxSlaves       => prbsTxSlaves,
---         phyTxLanesOut     => phyTxLanesOut,
---         phyTxReady        => '1',
---         pgpRxClk          => pgpClk,
---         pgpRxClkRst       => pgpClkRst,
---         pgpRxIn           => pgpRxIn,
---         pgpRxOut          => open,
---         pgpRxMasters      => prbsRxMasters,
---         pgpRxCtrl         => pgpRxCtrl,
---         pgpRxMasterMuxed  => open,
---         phyRxLanesOut     => open,
---         phyRxLanesIn      => phyRxLanesIn,
---         phyRxReady        => '1',
---         phyRxInit         => open
---      );
+   U_PgpSim : entity work.Pgp2bLane 
+      generic map (
+         TPD_G             => 1 ns,
+         LANE_CNT_G        => 1,
+         VC_INTERLEAVE_G   => 1,
+         PAYLOAD_CNT_TOP_G => 7,
+         NUM_VC_EN_G       => 4
+      ) port map ( 
+         pgpTxClk          => pgpClk,
+         pgpTxClkRst       => pgpClkRst,
+         pgpTxIn           => pgpTxIn,
+         pgpTxOut          => open,
+         pgpTxMasters      => prbsTxMasters,
+         pgpTxSlaves       => prbsTxSlaves,
+         phyTxLanesOut     => phyTxLanesOut,
+         phyTxReady        => '1',
+         pgpRxClk          => pgpClk,
+         pgpRxClkRst       => pgpClkRst,
+         pgpRxIn           => pgpRxIn,
+         pgpRxOut          => open,
+         pgpRxMasters      => prbsRxMasters,
+         pgpRxCtrl         => pgpRxCtrl,
+         pgpRxMasterMuxed  => open,
+         phyRxLanesOut     => open,
+         phyRxLanesIn      => phyRxLanesIn,
+         phyRxReady        => '1',
+         phyRxInit         => open
+      );
 
    pgpTxIn                 <= PGP2B_TX_IN_INIT_C;
    pgpRxIn                 <= PGP2B_RX_IN_INIT_C;
@@ -187,27 +197,31 @@ begin
    U_RxGen: for i in 0 to 3 generate 
       U_SsiPrbsRx: entity work.SsiPrbsRx 
          generic map (
-            TPD_G               => 1 ns,
-            EOFE_G              => SSI_EOFE_C,
-            STATUS_CNT_WIDTH_G  => 32,
-            AXI_ERROR_RESP_G    => AXI_RESP_SLVERR_C,
-            ALTERA_SYN_G        => false,
-            ALTERA_RAM_G        => "M9K",
-            CASCADE_SIZE_G      => 1,
-            XIL_DEVICE_G        => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G           => true,
-            USE_BUILT_IN_G      => false,  --if set to true, this module is only Xilinx compatible only!!!
-            GEN_SYNC_FIFO_G     => false,
-            FIFO_ADDR_WIDTH_G   => 9,
-            FIFO_PAUSE_THRESH_G => 256,    -- Almost full at 1/2 capacity
-            AXI_STREAM_CONFIG_G => SSI_CONFIG_C
+            TPD_G                      => 1 ns,
+            STATUS_CNT_WIDTH_G         => 32,
+            AXI_ERROR_RESP_G           => AXI_RESP_SLVERR_C,
+            ALTERA_SYN_G               => false,
+            ALTERA_RAM_G               => "M9K",
+            CASCADE_SIZE_G             => 1,
+            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
+            BRAM_EN_G                  => true,
+            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
+            GEN_SYNC_FIFO_G            => false,
+            PRBS_SEED_SIZE_G           => 32,
+            PRBS_TAPS_G                => (0 => 16),
+            FIFO_ADDR_WIDTH_G          => 9,
+            FIFO_PAUSE_THRESH_G        => 256,    -- Almost full at 1/2 capacity
+            SLAVE_AXI_STREAM_CONFIG_G  => INT_CONFIG_C,
+            SLAVE_AXI_PIPE_STAGES_G    => 0,
+            MASTER_AXI_STREAM_CONFIG_G => INT_CONFIG_C,
+            MASTER_AXI_PIPE_STAGES_G   => 0
          ) port map (
             sAxisClk        => pgpClk,
             sAxisRst        => pgpClkRst,
-            --sAxisMaster     => prbsRxMasters(i),
-            --sAxisSlave      => open,
-            sAxisMaster     => prbsTxMasters(i),
-            sAxisSlave      => prbsTxSlaves(i),
+            sAxisMaster     => prbsRxMasters(i),
+            sAxisSlave      => open,
+            --sAxisMaster     => prbsTxMasters(i),
+            --sAxisSlave      => prbsTxSlaves(i),
             sAxisCtrl       => pgpRxCtrl(i),
             mAxisClk        => pgpClk,
             mAxisRst        => pgpClkRst,

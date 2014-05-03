@@ -72,7 +72,8 @@ architecture rtl of SsiPrbsTx is
       IDLE_S,
       SEED_RAND_S,
       LENGTH_S,
-      DATA_S);  
+      DATA_S,
+      LAST_S);  
 
    type RegType is record
       busy         : sl;
@@ -119,14 +120,17 @@ begin
       end loop;
 
       -- Reset strobe signals
-      v.txAxisMaster.tValid := '0';
-      v.txAxisMaster.tLast  := '0';
-      v.txAxisMaster.tUser  := (others => '0');
-      v.txAxisMaster.tData  := (others => '0');
+      --v.txAxisMaster.tValid := '0';
+      --v.txAxisMaster.tLast  := '0';
+      --v.txAxisMaster.tUser  := (others => '0');
+      --v.txAxisMaster.tData  := (others => '0');
 
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
+
+            v.txAxisMaster.tValid := '0';
+
             -- Reset the busy flag
             v.busy := '0';
             -- Check for a trigger
@@ -155,7 +159,7 @@ begin
          ----------------------------------------------------------------------
          when SEED_RAND_S =>
             -- Check the status
-            if txAxisSlave.tReady = '1' then
+            --if txAxisSlave.tReady = '1' then
                -- Send the random seed word
                v.txAxisMaster.tvalid                             := '1';
                v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
@@ -165,13 +169,19 @@ begin
                v.eventCnt                                        := r.eventCnt + 1;
                -- Increment the counter
                v.dataCnt                                         := r.dataCnt + 1;
+
+               axiStreamSetUserBit(PRBS_SSI_CONFIG_C,v.txAxisMaster,SSI_SOF_C,'1',0);
+
                -- Next State
                v.state                                           := LENGTH_S;
-            end if;
+            --end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
             -- Check the status
             if txAxisSlave.tReady = '1' then
+
+               axiStreamSetUserBit(PRBS_SSI_CONFIG_C,v.txAxisMaster,SSI_SOF_C,'0',0);
+
                -- Send the upper packetLength value
                v.txAxisMaster.tvalid             := '1';
                v.txAxisMaster.tData(31 downto 0) := r.packetLength;
@@ -201,9 +211,18 @@ begin
                   -- Reset the busy flag
                   v.busy               := '0';
                   -- Next State
-                  v.state              := IDLE_S;
+                  v.state              := LAST_S;
                end if;
             end if;
+
+         ----------------------------------------------------------------------
+         when LAST_S =>
+            if txAxisSlave.tReady = '1' then
+               v.txAxisMaster.tValid := '0';
+               v.txAxisMaster.tLast  := '0';
+               v.state               := IDLE_S;
+            end if;
+
       ----------------------------------------------------------------------
       end case;
 

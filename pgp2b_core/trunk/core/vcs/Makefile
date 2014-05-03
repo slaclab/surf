@@ -42,8 +42,8 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiStreamPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/AxiStreamFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPkg.vhd
-	#cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsTx.vhd
-	#cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsRx.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsTx.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/axi/rtl/SsiPrbsRx.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bRxPhy.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bRxCell.vhd

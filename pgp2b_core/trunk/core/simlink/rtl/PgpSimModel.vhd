@@ -71,8 +71,6 @@ architecture PgpSimModel of PgpSimModel is
    signal deMuxedRxMasters   : AxiStreamMasterArray(3 downto 0);
    signal deMuxedRxSlaves    : AxiStreamSlaveArray(3 downto 0);
 
-   constant SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (LANE_CNT_G*2);
-
 begin
 
    -- Fake transmit control signals
@@ -96,8 +94,11 @@ begin
    U_Sim : entity work.AxiStreamSim
       generic map (
          TPD_G            => TPD_G,
-         AXIS_CONFIG_G    => SSI_CONFIG_C,
-         EOFE_TUSER_BIT_G => SSI_EOFE_C
+         AXIS_CONFIG_G    => SSI_PGP2B_CONFIG_C,
+         EOFE_TUSER_EN_G  => true,
+         EOFE_TUSER_BIT_G => SSI_EOFE_C,
+         SOF_TUSER_EN_G   => true,
+         SOF_TUSER_BIT_G  => SSI_SOF_C
       ) port map (                          
          sAxisClk     => pgpTxClk,
          sAxisRst     => pgpTxClkRst,
