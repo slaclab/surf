@@ -82,7 +82,7 @@ architecture Pgp2bRx of Pgp2bRx is
    signal intPhyRxDataK    : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data is K character
    signal intPhyRxDispErr  : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
    signal intPhyRxDecErr   : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data not in table
-   signal intRxVcReady     : slv(3 downto 0);
+   signal intRxVcValid     : slv(3 downto 0);
    signal intRxSof         : sl;
    signal intRxEof         : sl;
    signal intRxEofe        : sl;
@@ -164,16 +164,16 @@ begin
          vcFrameRxEOF     => intRxEof,
          vcFrameRxEOFE    => intRxEofe,
          vcFrameRxData    => intRxData,
-         vc0FrameRxValid  => intRxVcReady(0),
+         vc0FrameRxValid  => intRxVcValid(0),
          vc0RemAlmostFull => pause(0),
          vc0RemOverflow   => overflow(0),
-         vc1FrameRxValid  => intRxVcReady(1),
+         vc1FrameRxValid  => intRxVcValid(1),
          vc1RemAlmostFull => pause(1),
          vc1RemOverflow   => overflow(1),
-         vc2FrameRxValid  => intRxVcReady(2),
+         vc2FrameRxValid  => intRxVcValid(2),
          vc2RemAlmostFull => pause(2),
          vc2RemOverflow   => overflow(2),
-         vc3FrameRxValid  => intRxVcReady(3),
+         vc3FrameRxValid  => intRxVcValid(3),
          vc3RemAlmostFull => pause(3),
          vc3RemOverflow   => overflow(3),
          crcRxIn          => crcRxIn,
@@ -183,49 +183,57 @@ begin
       );
 
 
-   -- Generate valid/vc
-   ValidRx: process (intRxVcReady, intRxEof, intRxEofe, intRxData, pause, overflow ) is
-      variable intMaster : AxiStreamMasterType;
-   begin
-
+   -- Pass FIFO status
+   process ( overflow, pause ) begin
       for i in 0 to 3 loop
          pgpRxOut.remOverFlow(i)   <= overflow(i);
          remFifoStatus(i).overflow <= overflow(i);
          remFifoStatus(i).pause    <= pause(i);
       end loop;
+   end process;
 
-      intMaster := AXI_STREAM_MASTER_INIT_C;
+   -- Generate valid/vc
+   process ( pgpRxClk ) is
+      variable intMaster : AxiStreamMasterType;
+   begin
+      if rising_edge (pgpRxClk ) then
+         intMaster := AXI_STREAM_MASTER_INIT_C;
 
-      intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
-      intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
-      intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
+         intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
+         intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
+         intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
 
-      intMaster.tLast := intRxEof;
+         intMaster.tLast := intRxEof;
 
-      axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
-      axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof);
+         axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
+         axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
 
-      -- Generate valid and dest values
-      case intRxVcReady is 
-         when "0001" =>
-            intMaster.tValid            := '1';
-            intMaster.tDest(3 downto 0) := "0000";
-         when "0010" =>
-            intMaster.tValid            := '1';
-            intMaster.tDest(3 downto 0) := "0001";
-         when "0100" =>
-            intMaster.tValid            := '1';
-            intMaster.tDest(3 downto 0) := "0010";
-         when "1000" =>
-            intMaster.tValid            := '1';
-            intMaster.tDest(3 downto 0) := "0011";
-         when others =>
-            intMaster.tValid            := '0';
-            intMaster.tDest(3 downto 0) := "0000";
-      end case;
+         -- Generate valid and dest values
+         case intRxVcValid is 
+            when "0001" =>
+               intMaster.tValid            := '1';
+               intMaster.tDest(3 downto 0) := "0000";
+            when "0010" =>
+               intMaster.tValid            := '1';
+               intMaster.tDest(3 downto 0) := "0001";
+            when "0100" =>
+               intMaster.tValid            := '1';
+               intMaster.tDest(3 downto 0) := "0010";
+            when "1000" =>
+               intMaster.tValid            := '1';
+               intMaster.tDest(3 downto 0) := "0011";
+            when others =>
+               intMaster.tValid            := '0';
+         end case;
 
-      pgpRxMaster <= intMaster;
+         if pgpRxClkRst = '1' then
+            intMaster := AXI_STREAM_MASTER_INIT_C;
+         else
 
+         pgpRxMaster <= intMaster;
+
+         end if;
+      end if;
    end process;
 
 

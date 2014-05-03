@@ -117,7 +117,7 @@ begin
             rst        => pgpTxClkRst,
             dataIn(0)  => locFifoStatus(i).pause,
             dataIn(1)  => locFifoStatus(i).overflow,
-            dataIn(2)  => remFifoStatus(i).overflow,
+            dataIn(2)  => remFifoStatus(i).pause,
             dataOut(0) => syncLocPause(i),
             dataOut(1) => syncLocOverFlow(i),
             dataOut(2) => syncRemPause(i)
@@ -208,7 +208,7 @@ begin
          vc0FrameTxValid   => intValid(0),
          vc0FrameTxReady   => rawReady(0),
          vc0FrameTxSOF     => intTxSof(0),
-         vc0FrameTxEOF     => pgpTxMasters(0).tValid,
+         vc0FrameTxEOF     => pgpTxMasters(0).tLast,
          vc0FrameTxEOFE    => intTxEofe(0),
          vc0FrameTxData    => pgpTxMasters(0).tData((TX_LANE_CNT_G*16)-1 downto 0),
          vc0LocAlmostFull  => syncLocPause(0),
@@ -249,7 +249,7 @@ begin
       intReady(i)           <= rawReady(i) and (not syncRemPause(i));
       intValid(i)           <= pgpTxMasters(i).tValid and (not syncRemPause(i));
       intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_EOFE_C);
-      intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_SOF_C);
+      intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_SOF_C,0);
       pgpTxSlaves(i).tReady <= intReady(i);
    end generate;
 
