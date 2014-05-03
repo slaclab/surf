@@ -343,8 +343,7 @@ begin
 	              when st_ack =>
 	                 if (core_ack = '1') then
 	                   -- check for stop; Should a STOP command be generated ?
-                           -- Stop of core did not ack 
-	                   if (stop = '1' or core_rxd = '1') then
+	                   if (stop = '1') then
 	                     c_state  <= st_stop;
 	                     core_cmd <= I2C_CMD_STOP;
 	                   else
@@ -375,7 +374,7 @@ begin
 	              when others => -- illegal states
 	                 c_state  <= st_idle;
 	                 core_cmd <= I2C_CMD_NOP;
-	                 --report ("Byte controller entered illegal state.");
+	                 report ("Byte controller entered illegal state.");
 
 	            end case;
 
