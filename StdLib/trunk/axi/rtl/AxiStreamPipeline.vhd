@@ -38,21 +38,21 @@ entity AxiStreamPipeline is
 end AxiStreamPipeline;
 
 architecture rtl of AxiStreamPipeline is
-   
+
+   constant PIPE_STAGES_C : natural := PIPE_STAGES_G+1;
+
    type RegType is record
       sAxisSlave  : AxiStreamSlaveType;
-      readBuffer  : AxiStreamMasterType;
-      mAxisMaster : AxiStreamMasterArray(0 to PIPE_STAGES_G);
+      mAxisMaster : AxiStreamMasterArray(0 to PIPE_STAGES_C);
    end record RegType;
    
    constant REG_INIT_C : RegType := (
       AXI_STREAM_SLAVE_INIT_C,
-      AXI_STREAM_MASTER_INIT_C,
       (others => AXI_STREAM_MASTER_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    ZERO_LATENCY : if (PIPE_STAGES_G = 0) generate
@@ -63,7 +63,7 @@ begin
    end generate;
 
    PIPE_REG : if (PIPE_STAGES_G > 0) generate
-
+      
       comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
          variable i : integer;
          variable j : integer;
@@ -72,72 +72,41 @@ begin
          -- Latch the current value
          v := r;
 
-         -- Check if the master is ready for more data
-         if mAxisSlave.tReady = '1' then
-            -- Check that we have cleared out the readBuffer
-            if r.readBuffer.tValid = '1' then
-               -- Reset the ready flag
-               v.sAxisSlave.tReady := '0';
-               -- Pipeline the readout records
-               v.mAxisMaster(0)    := r.readBuffer;
-               for i in 1 to PIPE_STAGES_G loop
-                  v.mAxisMaster(i) := r.mAxisMaster(i-1);
-               end loop;
-               -- Check for a FIFO read
-               if (r.sAxisSlave.tReady = '1') and (sAxisMaster.tValid = '1') then
-                  -- Latch the data value
-                  v.readBuffer := sAxisMaster;
-               else
-                  -- Clear the buffer
-                  v.readBuffer.tValid := '0';
-               end if;
+         -- Check if we need to shift register
+         if (r.mAxisMaster(PIPE_STAGES_C).tValid = '0') or (mAxisSlave.tReady = '1') then
+            -- Shift the data up the pipeline
+            for i in PIPE_STAGES_C downto 2 loop
+               v.mAxisMaster(i) := r.mAxisMaster(i-1);
+            end loop;
+            -- Check if the lowest cell is empty
+            if r.mAxisMaster(0).tValid = '0' then
+               -- Set the ready bit
+               v.sAxisSlave.tReady := '1';
+               -- Shift the FIFO data
+               v.mAxisMaster(1)    := sAxisMaster;
             else
-               -- Set the ready flag
-               v.sAxisSlave.tReady := mAxisSlave.tReady;
-               -- Pipeline the readout records
-               v.mAxisMaster(0)    := sAxisMaster;
-               for i in 1 to PIPE_STAGES_G loop
-                  v.mAxisMaster(i) := r.mAxisMaster(i-1);
-               end loop;
+               -- Shift the lowest cell
+               v.mAxisMaster(1)    := r.mAxisMaster(0);
+               -- Check if we were pulling the FIFO last clock cycle
+               if r.sAxisSlave.tReady = '1' then
+                  -- Reset the ready bit
+                  v.sAxisSlave.tReady := '0';
+                  -- Fill the lowest cell
+                  v.mAxisMaster(0) := sAxisMaster;
+               else
+                  -- Reset the ready bit
+                  v.sAxisSlave.tReady := '1';               
+                  -- Reset the lowest cell tValid
+                  v.mAxisMaster(0).tValid := '0';
+               end if;
             end if;
          else
-            -- Check if we need to advance the pipeline
-            for i in PIPE_STAGES_G downto 1 loop
-               if r.mAxisMaster(i).tValid = '0' then
-                  -- Shift the data up the pipeline
-                  v.mAxisMaster(i)          := r.mAxisMaster(i-1);
-                  -- Clear the cell that the data was shifted from
-                  v.mAxisMaster(i-1).tValid := '0';
-               end if;
-            end loop;
-            -- Check if we need to advance the lowest stage
-            if r.mAxisMaster(0).tValid = '0' then
-               -- Shift the data up the pipeline
-               v.mAxisMaster(0)    := r.readBuffer;
-               -- Clear the buffer
-               v.readBuffer.tValid := '0';
-            end if;
-            -- Check if last cycle was pulling the FIFO
+            -- Reset the ready bit
+            v.sAxisSlave.tReady := '0';
+            -- Check if we were pulling the FIFO last clock cycle
             if r.sAxisSlave.tReady = '1' then
-               -- Reset the ready flag
-               v.sAxisSlave.tReady := '0';
-               -- Check for a FIFO read
-               if sAxisMaster.tValid = '1' then
-                  -- Check where we need to write the data
-                  if r.mAxisMaster(0).tValid = '0' then
-                     -- Shift the data up the pipeline
-                     v.mAxisMaster(0) := sAxisMaster;
-                  else
-                     -- Save the value in the buffer
-                     v.readBuffer := sAxisMaster;
-                  end if;
-               end if;
-            else
-               -- Check that we cleared the buffers
-               if (r.mAxisMaster(0).tValid = '0') and (r.readBuffer.tValid = '0') then
-                  -- Set the ready flag
-                  v.sAxisSlave.tReady := mAxisSlave.tReady;
-               end if;
+               -- Fill the lowest cell
+               v.mAxisMaster(0) := sAxisMaster;
             end if;
          end if;
 
@@ -151,10 +120,9 @@ begin
 
          -- Outputs
          sAxisSlave  <= r.sAxisSlave;
-         mAxisMaster <= r.mAxisMaster(PIPE_STAGES_G);
+         mAxisMaster <= r.mAxisMaster(PIPE_STAGES_C);
          
       end process comb;
-
 
       seq : process (axisClk) is
       begin
