@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-10
--- Last update: 2014-04-14
+-- Last update: 2014-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ use work.StdRtlPkg.all;
 entity FifoCascade is
    generic (
       TPD_G              : time                       := 1 ns;
-      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;   -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
-      LAST_STAGE_ASYNC_G : boolean                    := true;-- If set to true, the last stage will be the ASYNC FIFO
-      RST_POLARITY_G     : sl                         := '1'; -- '1' for active high rst, '0' for active low
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;  -- If set to true, the last stage will be the ASYNC FIFO
+      RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
       BRAM_EN_G          : boolean                    := true;
@@ -33,9 +33,10 @@ entity FifoCascade is
       USE_DSP48_G        : string                     := "no";
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
-      USE_BUILT_IN_G     : boolean                    := false;    -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";-- Xilinx only generic parameter    
+      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
+      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G      : natural range 0 to 16      := 0;
       DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G       : integer range 4 to 48      := 4;
       INIT_G             : slv                        := "0";
@@ -101,6 +102,7 @@ begin
             USE_BUILT_IN_G  => USE_BUILT_IN_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
+            PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
             ADDR_WIDTH_G    => ADDR_WIDTH_G,
             INIT_G          => INIT_G,
@@ -149,6 +151,7 @@ begin
             USE_BUILT_IN_G  => USE_BUILT_IN_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
+            PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
             ADDR_WIDTH_G    => ADDR_WIDTH_G,
             INIT_G          => INIT_G,
@@ -194,6 +197,7 @@ begin
                   USE_BUILT_IN_G  => USE_BUILT_IN_G,
                   XIL_DEVICE_G    => XIL_DEVICE_G,
                   SYNC_STAGES_G   => SYNC_STAGES_G,
+                  PIPE_STAGES_G   => PIPE_STAGES_G,
                   DATA_WIDTH_G    => DATA_WIDTH_G,
                   ADDR_WIDTH_G    => ADDR_WIDTH_G,
                   INIT_G          => INIT_G,
@@ -231,6 +235,7 @@ begin
             USE_BUILT_IN_G  => USE_BUILT_IN_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
+            PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
             ADDR_WIDTH_G    => ADDR_WIDTH_G,
             INIT_G          => INIT_G,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-04-09
+-- Last update: 2014-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity FifoAsyncBuiltIn is
       USE_DSP48_G    : string                     := "no";
       XIL_DEVICE_G   : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
       SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G  : natural range 0 to 16      := 0;
       DATA_WIDTH_G   : integer range 1 to 72      := 18;
       ADDR_WIDTH_G   : integer range 9 to 13      := 10;
       FULL_THRES_G   : integer range 1 to 8190    := 1;
@@ -114,10 +115,14 @@ architecture mapping of FifoAsyncBuiltIn is
       rstEmpty,
       rstFull,
       wrEn,
+      sValid,
+      sRdEn,
       dummyWRERR,
       dummyALMOSTFULL,
       dummyALMOSTEMPTY,
       rstDet : sl := '0';
+   
+   signal dataOut : slv(DATA_WIDTH_G-1 downto 0);
 
    -- Attribute for XST
    attribute use_dsp48         : string;
@@ -232,8 +237,8 @@ begin
          ALMOSTFULL  => dummyALMOSTFULL,           -- 1-bit output almost full
          FULL        => buildInFull,    -- 1-bit output full
          RDCLK       => rd_clk,         -- 1-bit input read clock
-         RDEN        => rd_en,          -- 1-bit input read enable
-         DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
+         RDEN        => sRdEn,          -- 1-bit input read enable
+         DO          => dataOut,        -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read address pointer
          RDERR       => underflow,      -- 1-bit output read error
          ALMOSTEMPTY => dummyALMOSTEMPTY,          -- 1-bit output almost empty
@@ -311,6 +316,9 @@ begin
    rd_data_count <= rcnt when(rstEmpty = '0')        else (others => '0');
 
    FIFO_Gen : if (FWFT_EN_G = false) generate
+      
+      dout <= dataOut;
+
       process(rd_clk)
       begin
          if rising_edge(rd_clk) then
@@ -323,7 +331,29 @@ begin
    end generate;
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
-      valid <= not(buildInEmpty);
+      
+      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            RST_ASYNC_G    => true,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
+         port map (
+            -- Slave Port
+            sData  => dataOut,
+            sValid => sValid,
+            sRdEn  => sRdEn,
+            -- Master Port
+            mData  => dout,
+            mValid => valid,
+            mRdEn  => rd_en,
+            -- Clock and Reset
+            clk    => rd_clk,
+            rst    => fifoRdRst);     
+
+      sValid <= not(buildInEmpty);
+      
    end generate;
    
 end architecture mapping;

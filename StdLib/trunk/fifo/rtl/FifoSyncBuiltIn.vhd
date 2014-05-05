@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-04-09
+-- Last update: 2014-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,7 +35,8 @@ entity FifoSyncBuiltIn is
       RST_POLARITY_G : sl                      := '1';  -- '1' for active high rst, '0' for active low
       FWFT_EN_G      : boolean                 := false;
       USE_DSP48_G    : string                  := "no";
-      XIL_DEVICE_G   : string                  := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
+      XIL_DEVICE_G   : string                  := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"  
+      PIPE_STAGES_G  : natural range 0 to 16   := 0;
       DATA_WIDTH_G   : integer range 1 to 72   := 18;
       ADDR_WIDTH_G   : integer range 9 to 13   := 10;
       FULL_THRES_G   : integer range 1 to 8190 := 1;
@@ -117,7 +118,11 @@ architecture mapping of FifoSyncBuiltIn is
       fifoRst,
       wrEn,
       dummyWRERR,
+      sValid,
+      sRdEn,
       rstDet : sl := '0';
+
+   signal dataOut : slv(DATA_WIDTH_G-1 downto 0);
 
    -- Attribute for XST
    attribute use_dsp48        : string;
@@ -204,7 +209,7 @@ begin
          WREN        => wrEn,           -- 1-bit input write enable
          RDEN        => readEnable,     -- 1-bit input read enable
          DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
-         DO          => dout,           -- Output data, width defined by DATA_WIDTH parameter
+         DO          => dataOut,        -- Output data, width defined by DATA_WIDTH parameter
          RDCOUNT     => rdAddrPntr,     -- Output read count, width determined by FIFO depth
          WRCOUNT     => wrAddrPntr,     -- Output write count, width determined by FIFO depth
          WRERR       => dummyWRERR,     -- 1-bit output write error
@@ -255,6 +260,7 @@ begin
       prog_empty   <= fifoStatus.prog_empty;
       almost_empty <= fifoStatus.almost_empty;
       empty        <= fifoStatus.empty;
+      dout         <= dataOut;
 
       process(clk)
       begin
@@ -269,8 +275,29 @@ begin
    end generate;
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
-      readEnable   <= (rd_en or fwftStatus.empty) and not(fifoStatus.empty);
-      valid        <= not(fwftStatus.empty);
+      
+      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
+         port map (
+            -- Slave Port
+            sData  => dataOut,
+            sValid => sValid,
+            sRdEn  => sRdEn,
+            -- Master Port
+            mData  => dout,
+            mValid => valid,
+            mRdEn  => rd_en,
+            -- Clock and Reset
+            clk    => clk,
+            rst    => rst);   
+
+      readEnable <= (sRdEn or fwftStatus.empty) and not(fifoStatus.empty);
+      sValid     <= not(fwftStatus.empty);
+
       prog_empty   <= fwftStatus.prog_empty;
       almost_empty <= fwftStatus.almost_empty;
       empty        <= fwftStatus.empty;
@@ -282,7 +309,7 @@ begin
             else
                fwftStatus.prog_empty   <= fifoStatus.prog_empty                            after TPD_G;
                fwftStatus.almost_empty <= fifoStatus.almost_empty                          after TPD_G;
-               fwftStatus.empty        <= (rd_en or fwftStatus.empty) and fifoStatus.empty after TPD_G;
+               fwftStatus.empty        <= (sRdEn or fwftStatus.empty) and fifoStatus.empty after TPD_G;
             end if;
          end if;
       end process;

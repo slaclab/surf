@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-04-08
+-- Last update: 2014-05-05
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ entity FifoAsync is
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
       SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G  : natural range 0 to 16      := 0;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G   : integer range 2 to 48      := 4;
       INIT_G         : slv                        := "0";
@@ -115,6 +116,8 @@ architecture rtl of FifoAsync is
    signal rdReg_rdy : sl;
    signal wrReg_rdy : sl;
 
+   signal sValid,
+      sRdEn : sl;
 
    constant SYNC_INIT_C : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
    constant GRAY_INIT_C : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
@@ -184,7 +187,6 @@ begin
          asyncRst => rst,
          syncRst  => readRst); 
 
-   dout      <= portB.dout;
    underflow <= rdReg.error;
 
    fifoStatus.count        <= rdReg.cnt;
@@ -199,11 +201,34 @@ begin
       almost_empty  <= fifoStatus.almost_empty;
       empty         <= fifoStatus.empty;
       rd_data_count <= fifoStatus.count;
+      dout          <= portB.dout;
    end generate;
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
-      readEnable    <= (rd_en or fwftStatus.empty) and not(fifoStatus.empty);
-      valid         <= not(fwftStatus.empty);
+      
+      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            RST_ASYNC_G    => true,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
+         port map (
+            -- Slave Port
+            sData  => portB.dout,
+            sValid => sValid,
+            sRdEn  => sRdEn,
+            -- Master Port
+            mData  => dout,
+            mValid => valid,
+            mRdEn  => rd_en,
+            -- Clock and Reset
+            clk    => rd_clk,
+            rst    => readRst);   
+
+      readEnable <= (sRdEn or fwftStatus.empty) and not(fifoStatus.empty);
+      sValid     <= not(fwftStatus.empty);
+
       prog_empty    <= fwftStatus.prog_empty;
       almost_empty  <= fwftStatus.almost_empty;
       empty         <= fwftStatus.empty;
@@ -216,7 +241,7 @@ begin
          elsif rising_edge(rd_clk) then
             fwftStatus.prog_empty   <= fifoStatus.prog_empty                            after TPD_G;
             fwftStatus.almost_empty <= fifoStatus.almost_empty                          after TPD_G;
-            fwftStatus.empty        <= (rd_en or fwftStatus.empty) and fifoStatus.empty after TPD_G;
+            fwftStatus.empty        <= (sRdEn or fwftStatus.empty) and fifoStatus.empty after TPD_G;
             fwftStatus.count        <= fifoStatus.count                                 after TPD_G;
          end if;
       end process;
