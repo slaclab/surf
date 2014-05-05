@@ -5,13 +5,13 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2014-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
--- outbound stream. The destination field is upated accordingly.
+-- outbound stream. The destination field is updated accordingly.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 by Ryan Herbst. All rights reserved.
 -------------------------------------------------------------------------------
@@ -42,6 +42,10 @@ entity AxiStreamMux is
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+
+      -- MUX Address
+      sAxisAuto : in sl                                    := '1';  -- 1 for AUTO MUX, '0' for manual MUX
+      sAxisAddr : in slv(bitSize(NUM_SLAVES_G)-1 downto 0) := (others => '0');  -- manual MUX address
 
       -- Master
       mAxisMaster : out AxiStreamMasterType;
@@ -78,7 +82,7 @@ architecture structure of AxiStreamMux is
 
 begin
 
-   comb : process (axisRst, r, sAxisMasters, mAxisSlave) is
+   comb : process (axisRst, mAxisSlave, r, sAxisAddr, sAxisAuto, sAxisMasters) is
       variable v        : RegType;
       variable requests : slv(NUM_SLAVES_G-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -98,7 +102,18 @@ begin
 
       -- Format requests
       for i in 0 to (NUM_SLAVES_G-1) loop
-         requests(i) := sAxisMasters(i).tValid;
+         -- Check for automatic MUX'ing
+         if sAxisAuto = '1' then
+            requests(i) := sAxisMasters(i).tValid;
+         else
+            -- While in manual MUX'ing mode,
+            -- only pass requests from respective address pointer
+            if i = conv_integer(sAxisAddr) then
+               requests(i) := sAxisMasters(i).tValid;
+            else
+               requests(i) := '0';
+            end if;
+         end if;
       end loop;
 
       -- State machine
@@ -163,4 +178,3 @@ begin
    end process seq;
 
 end structure;
-
