@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-01
--- Last update: 2014-05-02
+-- Last update: 2014-05-05
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,7 +66,6 @@ begin
       
       comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
          variable i : integer;
-         variable j : integer;
          variable v : RegType;
       begin
          -- Latch the current value
@@ -99,10 +98,10 @@ begin
                   -- Reset the ready bit
                   v.sAxisSlave.tReady := '0';
                   -- Fill the lowest cell
-                  v.mAxisMaster(0) := sAxisMaster;
+                  v.mAxisMaster(0)    := sAxisMaster;
                else
                   -- Reset the ready bit
-                  v.sAxisSlave.tReady := '1';               
+                  v.sAxisSlave.tReady     := '1';
                   -- Reset the lowest cell tValid
                   v.mAxisMaster(0).tValid := '0';
                end if;
