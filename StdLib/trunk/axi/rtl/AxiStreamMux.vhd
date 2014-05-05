@@ -44,7 +44,7 @@ entity AxiStreamMux is
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
 
       -- MUX Address
-      sAxisAuto : in sl                                    := '1';  -- 1 for AUTO MUX, '0' for manual MUX
+      sAxisAuto : in sl                                    := '1';  -- '1' for AUTO MUX, '0' for manual MUX
       sAxisAddr : in slv(bitSize(NUM_SLAVES_G)-1 downto 0) := (others => '0');  -- manual MUX address
 
       -- Master
