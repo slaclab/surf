@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title         : AXI Lite FIFO Write Module
--- File          : AxiLiteFifoWrite.vhd
+-- File          : AxiLiteFifoPush.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 09/03/2013
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ use unisim.vcomponents.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity AxiLiteFifoWrite is
+entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
       WRITE_FIFO_COUNT_G : positive              := 1;
@@ -53,9 +53,9 @@ entity AxiLiteFifoWrite is
       fifoDout           : out Slv36Array(WRITE_FIFO_COUNT_G-1 downto 0);
       fifoRead           : in  slv(WRITE_FIFO_COUNT_G-1 downto 0)
    );
-end AxiLiteFifoWrite;
+end AxiLiteFifoPush;
 
-architecture structure of AxiLiteFifoWrite is
+architecture structure of AxiLiteFifoPush is
 
    constant FIFO_SIZE_C  : integer := bitSize(WRITE_FIFO_COUNT_G-1);
    constant FIFO_COUNT_C : integer := 2**FIFO_SIZE_C;

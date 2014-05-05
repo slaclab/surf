@@ -1,12 +1,13 @@
 vhdl work rtl/AxiPkg.vhd
+vhdl work rtl/AxiWritePathFifo.vhd
 vhdl work rtl/AxiLitePkg.vhd
 vhdl work rtl/AxiLiteCrossbar.vhd
 vhdl work rtl/AxiVersion.vhd
 vhdl work rtl/AxiDualPortRam.vhd
 vhdl work rtl/AxiLiteEmpty.vhd
 vhdl work rtl/AxiLiteAsync.vhd
-vhdl work rtl/AxiLiteFifoRead.vhd
-vhdl work rtl/AxiLiteFifoWrite.vhd
+vhdl work rtl/AxiLiteFifoPush.vhd
+vhdl work rtl/AxiLiteFifoPop.vhd
 vhdl work rtl/AxiStreamPkg.vhd
 vhdl work rtl/AxiStreamFifo.vhd
 vhdl work rtl/AxiStreamPipeline.vhd

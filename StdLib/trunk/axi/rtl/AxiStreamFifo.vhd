@@ -32,11 +32,11 @@ entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G          : time                       := 1 ns;
-      PIPE_STAGES_G  : natural range 0 to 16      := 0;
-      VALID_THOLD_G  : integer range 1 to (2**24) := 1; -- 1 = normal operation
-                                                        -- 0 = only when frame ready
-
+      TPD_G            : time                       := 1 ns;
+      PIPE_STAGES_G    : natural range 0 to 16      := 0;
+      SLAVE_READY_EN_G : boolean                    := true;
+      VALID_THOLD_G    : integer range 1 to (2**24) := 1; -- 1 = normal operation
+                                                          -- 0 = only when frame ready
       -- FIFO configurations
       RST_ASYNC_G         : boolean                    := false;
       RST_POLARITY_G      : sl                         := '1';
@@ -249,6 +249,7 @@ architecture rtl of AxiStreamFifo is
    signal fifoWrCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull     : sl;
+   signal fifoReady     : sl;
    signal fifoPFull     : sl;
    signal fifoDout      : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead      : sl;
@@ -320,7 +321,7 @@ begin
    -------------------------
    -- Write Logic
    -------------------------
-   wrComb : process (wrR, sAxisMaster, fifoAFull) is
+   wrComb : process (wrR, sAxisMaster, fifoReady) is
       variable v   : WrRegType;
       variable idx : integer;
    begin
@@ -328,7 +329,7 @@ begin
       idx := conv_integer(wrR.count);
 
       -- Advance pipeline
-      if fifoAFull = '0' then
+      if fifoReady = '1' then
 
          -- init when count = 0
          if (wrR.count = 0) then
@@ -368,17 +369,17 @@ begin
       -- Write logic enabled
       if WR_LOGIC_EN_C then
          fifoDin       <= iAxiToSlv(wrR.wrMaster);
-         fifoWrite     <= wrR.wrMaster.tValid and (not fifoAFull);
-         fifoWriteLast <= wrR.wrMaster.tValid and (not fifoAFull) and wrR.wrMaster.tLast;
+         fifoWrite     <= wrR.wrMaster.tValid and fifoReady;
+         fifoWriteLast <= wrR.wrMaster.tValid and fifoReady and wrR.wrMaster.tLast;
 
       -- Bypass write logic
       else
          fifoDin       <= iAxiToSlv(sAxisMaster);
-         fifoWrite     <= sAxisMaster.tValid and (not fifoAFull);
-         fifoWriteLast <= sAxisMaster.tValid and (not fifoAFull) and sAxisMaster.tLast;
+         fifoWrite     <= sAxisMaster.tValid and fifoReady;
+         fifoWriteLast <= sAxisMaster.tValid and fifoReady and sAxisMaster.tLast;
       end if;
 
-      sAxisSlave.tReady <= (not fifoAFull);
+      sAxisSlave.tReady <= fifoReady;
 
    end process wrComb;
 
@@ -456,6 +457,9 @@ begin
          almost_empty  => open,
          empty         => open
          );
+
+   -- Is ready enabled?
+   fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
 
    U_LastFifoEnGen : if VALID_THOLD_G /= 1 generate
 
