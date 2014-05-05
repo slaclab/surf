@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2014-04-10
+-- Last update: 2014-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity FifoMux is
       USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
       XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G      : natural range 0 to 16      := 0;
       WR_DATA_WIDTH_G    : integer range 1 to (2**24) := 64;
       RD_DATA_WIDTH_G    : integer range 1 to (2**24) := 16;
       LITTLE_ENDIAN_G    : boolean                    := false;
@@ -47,7 +48,7 @@ entity FifoMux is
       EMPTY_THRES_G      : integer range 1 to (2**24) := 1);
    port (
       -- Resets
-      rst           : in  sl := '0';     --  Reset
+      rst           : in  sl := '0';    --  Reset
       --Write Ports (wr_clk domain)
       wr_clk        : in  sl;
       wr_en         : in  sl := '0';
@@ -60,7 +61,7 @@ entity FifoMux is
       full          : out sl;
       not_full      : out sl;
       --Read Ports (rd_clk domain)
-      rd_clk        : in  sl;            --unused if GEN_SYNC_FIFO_G = true
+      rd_clk        : in  sl;           --unused if GEN_SYNC_FIFO_G = true
       rd_en         : in  sl := '0';
       dout          : out slv(RD_DATA_WIDTH_G-1 downto 0);
       rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
@@ -126,7 +127,7 @@ begin
    assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
            (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
       report "Data widths must be even number multiples of each other" severity failure;
-      
+
    --------------
    -- Write Logic
    --------------
@@ -268,6 +269,7 @@ begin
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
          XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => SYNC_STAGES_G,
+         PIPE_STAGES_G      => PIPE_STAGES_G,
          DATA_WIDTH_G       => FIFO_DATA_WIDTH_C,
          ADDR_WIDTH_G       => ADDR_WIDTH_G,
          INIT_G             => INIT_G,

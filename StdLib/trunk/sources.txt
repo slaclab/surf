@@ -23,6 +23,7 @@ vhdl work fifo/rtl/FifoAsyncBuiltIn.vhd
 vhdl work fifo/rtl/FifoMux.vhd
 vhdl work fifo/rtl/FifoSync.vhd
 vhdl work fifo/rtl/FifoSyncBuiltIn.vhd
+vhdl work fifo/rtl/FifoOutputPipeline.vhd
 
 vhdl work ram/rtl/DualPortRam.vhd
 vhdl work ram/rtl/QuadPortRam.vhd

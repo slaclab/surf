@@ -3,10 +3,8 @@ vhdl work general/tb/HeartbeatTb.vhd
 vhdl work general/tb/TextUtilPkg.vhd
 vhdl work general/tb/glbl.vhd
 
-vhdl work fifo/tb/FifoAsyncBuiltInTb.vhd
-vhdl work fifo/tb/FifoAsyncTb.vhd
-vhdl work fifo/tb/FifoSyncBuiltInTb.vhd
-vhdl work fifo/tb/FifoSyncTb.vhd
+vhdl work fifo/tb/FifoFwftTb.vhd
+vhdl work fifo/tb/FifoFwftTbSubModule.vhd
 
 vhdl work sync/tb/SynchronizerFifoTb.vhd
 
