@@ -374,7 +374,7 @@ begin
 	              when others => -- illegal states
 	                 c_state  <= st_idle;
 	                 core_cmd <= I2C_CMD_NOP;
-	                 report ("Byte controller entered illegal state.");
+	                 --report ("Byte controller entered illegal state.");
 
 	            end case;
 
