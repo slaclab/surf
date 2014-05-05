@@ -239,5 +239,49 @@ package AxiPkg is
    -- Array
    type AxiWriteSlaveArray is array (natural range<>) of AxiWriteSlaveType;
 
+
+   --------------------------------------------------------
+   -- AXI bus, fifo control
+   --------------------------------------------------------
+
+   type AxiCtrlType is record
+      pause    : sl;
+   end record AxiCtrlType;
+
+   constant AXI_CTRL_INIT_C : AxiCtrlType := (
+      pause    => '1');
+
+   type AxiCtrlArray is array (natural range<>) of AxiCtrlType;
+
+
+   --------------------------------------------------------
+   -- AXI bus configuration
+   --------------------------------------------------------
+
+   type AxiConfigType is record
+      ADDR_LSB_C        : natural range 0 to 31;
+      DATA_BYTES_C      : natural range 1 to 8;
+      ID_BITS_C         : natural range 0 to 12;
+      ID_FIXED_EN_C     : boolean;
+      SIZE_FIXED_EN_C   : boolean;
+      BURST_FIXED_EN_C  : boolean;
+      LEN_FIXED_EN_C    : boolean;
+      LOCK_FIXED_EN_C   : boolean;
+      PROT_FIXED_EN_C   : boolean;
+      CACHE_FIXED_EN_C  : boolean;
+   end record AxiConfigType;
+
+   constant AXI_CONFIG_INIT_C : AxiConfigType := (
+      ADDR_LSB_C        => 0,
+      DATA_BYTES_C      => 4,
+      ID_BITS_C         => 12,
+      ID_FIXED_EN_C     => false,
+      SIZE_FIXED_EN_C   => false,
+      BURST_FIXED_EN_C  => false,
+      LEN_FIXED_EN_C    => false,
+      LOCK_FIXED_EN_C   => false,
+      PROT_FIXED_EN_C   => false,
+      CACHE_FIXED_EN_C  => false );
+
 end AxiPkg;
 

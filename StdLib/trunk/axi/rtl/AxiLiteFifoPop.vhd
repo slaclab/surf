@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title         : AXI Lite FIFO Read Module
--- File          : AxiLiteFifoRead.vhd
+-- File          : AxiLiteFifoPop.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 09/03/2013
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ use unisim.vcomponents.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity AxiLiteFifoRead is
+entity AxiLiteFifoPop is
    generic (
       TPD_G              : time                  := 1 ns;
       READ_FIFO_COUNT_G  : positive              := 1;
@@ -60,9 +60,9 @@ entity AxiLiteFifoRead is
       fifoFull           : out slv(READ_FIFO_COUNT_G-1 downto 0);
       fifoAFull          : out slv(READ_FIFO_COUNT_G-1 downto 0)
    );
-end AxiLiteFifoRead;
+end AxiLiteFifoPop;
 
-architecture structure of AxiLiteFifoRead is
+architecture structure of AxiLiteFifoPop is
 
    constant READ_SIZE_C  : integer := bitSize(READ_FIFO_COUNT_G-1);
    constant READ_COUNT_C : integer := 2**READ_SIZE_C;
