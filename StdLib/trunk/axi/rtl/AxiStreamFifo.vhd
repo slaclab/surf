@@ -39,7 +39,6 @@ entity AxiStreamFifo is
                                                           -- 0 = only when frame ready
       -- FIFO configurations
       RST_ASYNC_G         : boolean                    := false;
-      RST_POLARITY_G      : sl                         := '1';
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
       USE_BUILT_IN_G      : boolean                    := false;
@@ -418,7 +417,7 @@ begin
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => true,
-         RST_POLARITY_G     => RST_POLARITY_G,
+         RST_POLARITY_G     => '1',
          RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => BRAM_EN_G,
@@ -468,7 +467,7 @@ begin
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => CASCADE_SIZE_G,
             LAST_STAGE_ASYNC_G => true,
-            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_POLARITY_G     => '1',
             RST_ASYNC_G        => RST_ASYNC_G,
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             BRAM_EN_G          => false,
