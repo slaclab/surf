@@ -153,13 +153,6 @@ begin
    -- Read: Master To Slave
    ------------------------------------
 
-
-
-
-
-
-
-
    -- Read Master To Slave FIFO
    U_ReadMastToSlaveFifo : entity work.FifoASync
       generic map (
@@ -214,14 +207,6 @@ begin
    -- Read control and valid
    sAxiReadSlave.rvalid <= readMastToSlaveValid;
    readMastToSlaveRead  <= sAxiReadMaster.rready;
-
-
-
-
-
-
-
-
 
 
    ------------------------------------
