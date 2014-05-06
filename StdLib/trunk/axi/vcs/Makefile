@@ -47,7 +47,9 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamFifo.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamShift.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiDmaPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDmaWrite.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDmaRead.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiAxiLiteMaster.vhd

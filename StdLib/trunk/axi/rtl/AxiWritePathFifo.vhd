@@ -54,7 +54,6 @@ entity AxiWritePathFifo is
       ADDR_BRAM_EN_G           : boolean                    := true;
       ADDR_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       ADDR_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
-      ADDR_FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 500;
 
       -- Data FIFO Config
       DATA_BRAM_EN_G           : boolean                    := true;
@@ -330,14 +329,12 @@ architecture rtl of AxiWritePathFifo is
    signal addrFifoDout     : slv(ADDR_BITS_C-1 downto 0);
    signal addrFifoValid    : sl;
    signal addrFifoAFull    : sl;
-   signal addrFifoPFull    : sl;
    signal addrFifoRead     : sl;
    signal dataFifoWrite    : sl;
    signal dataFifoDin      : slv(ADDR_BITS_C-1 downto 0);
    signal dataFifoDout     : slv(ADDR_BITS_C-1 downto 0);
    signal dataFifoValid    : sl;
    signal dataFifoAFull    : sl;
-   signal dataFifoPFull    : sl;
    signal dataFifoRead     : sl;
    signal respFifoWrite    : sl;
    signal respFifoDin      : slv(ADDR_BITS_C-1 downto 0);
@@ -371,7 +368,7 @@ begin
          DATA_WIDTH_G       => ADDR_FIFO_SIZE_C,
          ADDR_WIDTH_G       => ADDR_FIFO_ADDR_WIDTH_G,
          INIT_G             => "0",
-         FULL_THRES_G       => ADDR_FIFO_PAUSE_THRESH_G,
+         FULL_THRES_G       => 1,
          EMPTY_THRES_G      => 1
          )
       port map (
@@ -382,7 +379,7 @@ begin
          wr_data_count => open,
          wr_ack        => open,
          overflow      => open,
-         prog_full     => addrFifoPFull,
+         prog_full     => open,
          almost_full   => addrFifoAFull,
          full          => open,
          not_full      => open,
@@ -427,7 +424,7 @@ begin
          wr_data_count => open,
          wr_ack        => open,
          overflow      => open,
-         prog_full     => dataFifoPFull,
+         prog_full     => sAxiCtrl.pause,
          almost_full   => dataFifoAFull,
          full          => open,
          not_full      => open,
@@ -530,19 +527,6 @@ begin
       sAxiWriteSlave  <= isAxiWriteSlave;
       mAxiWriteMaster <= imAxiWriteMaster;
 
-   end process;
-
-   -------------------------
-   -- Flow Control
-   -------------------------
-   process ( sAxiClk ) begin
-      if rising_edge (sAxiClk) then
-         if sAxiRst = '1' then
-            sAxiCtrl <= AXI_CTRL_INIT_C after TPD_G;
-         else
-            sAxiCtrl.pause <= addrFifoPFull or dataFifoPFull after TPD_G;
-         end if;
-      end if;
    end process;
 
 end rtl;
