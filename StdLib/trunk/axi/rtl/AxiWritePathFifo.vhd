@@ -33,12 +33,22 @@ entity AxiWritePathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      RST_ASYNC_G              : boolean                    := false;
-      XIL_DEVICE_G             : string                     := "7SERIES";
-      USE_BUILT_IN_G           : boolean                    := false;
-      GEN_SYNC_FIFO_G          : boolean                    := false;
-      ALTERA_SYN_G             : boolean                    := false;
-      ALTERA_RAM_G             : string                     := "M9K";
+      RST_ASYNC_G              : boolean := false;
+      XIL_DEVICE_G             : string  := "7SERIES";
+      USE_BUILT_IN_G           : boolean := false;
+      GEN_SYNC_FIFO_G          : boolean := false;
+      ALTERA_SYN_G             : boolean := false;
+      ALTERA_RAM_G             : string  := "M9K";
+
+      -- Bit Optimizations
+      ADDR_LSB_G               : natural range 0 to 31 := 0;
+      ID_FIXED_EN_G            : boolean := false;
+      SIZE_FIXED_EN_G          : boolean := false;
+      BURST_FIXED_EN_G         : boolean := false;
+      LEN_FIXED_EN_G           : boolean := false;
+      LOCK_FIXED_EN_G          : boolean := false;
+      PROT_FIXED_EN_G          : boolean := false;
+      CACHE_FIXED_EN_G         : boolean := false;
 
       -- Address FIFO Config
       ADDR_BRAM_EN_G           : boolean                    := true;
@@ -58,7 +68,7 @@ entity AxiWritePathFifo is
       RESP_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- BUS Config
-      ARM_CONFIG_G             : AxiConfigType              := AXI_CONFIG_INIT_C
+      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C
       );
    port (
 
@@ -78,16 +88,16 @@ end AxiWritePathFifo;
 
 architecture rtl of AxiWritePathFifo is
 
-   constant ADDR_BITS_C  : integer := 32 - ARM_CONFIG_G.ADDR_LSB_C;
-   constant ID_BITS_C    : integer := ite(ARM_CONFIG_G.ID_FIXED_EN_C,0,ARM_CONFIG_G.ID_BITS_C);
-   constant LEN_BITS_C   : integer := ite(ARM_CONFIG_G.LEN_FIXED_EN_C,0,4);
-   constant SIZE_BITS_C  : integer := ite(ARM_CONFIG_G.SIZE_FIXED_EN_C,0,3);
-   constant BURST_BITS_C : integer := ite(ARM_CONFIG_G.BURST_FIXED_EN_C,0,2);
-   constant LOCK_BITS_C  : integer := ite(ARM_CONFIG_G.LOCK_FIXED_EN_C,0,2);
-   constant PROT_BITS_C  : integer := ite(ARM_CONFIG_G.PROT_FIXED_EN_C,0,3);
-   constant CACHE_BITS_C : integer := ite(ARM_CONFIG_G.CACHE_FIXED_EN_C,0,4);
-   constant DATA_BITS_C  : integer := ARM_CONFIG_G.DATA_BYTES_C*8;
-   constant STRB_BITS_C  : integer := ARM_CONFIG_G.DATA_BYTES_C;
+   constant ADDR_BITS_C  : integer := 32 - ADDR_LSB_G;
+   constant ID_BITS_C    : integer := ite(ID_FIXED_EN_G,0,AXI_CONFIG_G.ID_BITS_C);
+   constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G,0,4);
+   constant SIZE_BITS_C  : integer := ite(SIZE_FIXED_EN_G,0,3);
+   constant BURST_BITS_C : integer := ite(BURST_FIXED_EN_G,0,2);
+   constant LOCK_BITS_C  : integer := ite(LOCK_FIXED_EN_G,0,2);
+   constant PROT_BITS_C  : integer := ite(PROT_FIXED_EN_G,0,3);
+   constant CACHE_BITS_C : integer := ite(CACHE_FIXED_EN_G,0,4);
+   constant DATA_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C*8;
+   constant STRB_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C;
    constant RESP_BITS_C  : integer := 2;
 
    constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C + 
@@ -103,40 +113,40 @@ architecture rtl of AxiWritePathFifo is
       variable i        : integer;
    begin
 
-      retValue(ADDR_BITS_C-1 downto 0) := din.awaddr(31 downto ARM_CONFIG_G.ADDR_LSB_C);
+      retValue(ADDR_BITS_C-1 downto 0) := din.awaddr(31 downto ADDR_LSB_G);
       i := ADDR_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C = false then
+      if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.awid(ID_BITS_C-1 downto 0);
          i := i + ID_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LEN_FIXED_EN_C = false then
+      if LEN_FIXED_EN_G = false then
          retValue((LEN_BITS_C+i)-1 downto i) := din.awlen(LEN_BITS_C-1 downto 0);
          i := i + LEN_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.SIZE_FIXED_EN_C = false then
+      if SIZE_FIXED_EN_G = false then
          retValue((SIZE_BITS_C+i)-1 downto i) := din.awsize(SIZE_BITS_C-1 downto 0);
          i := i + SIZE_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.BURST_FIXED_EN_C = false then
+      if BURST_FIXED_EN_G = false then
          retValue((BURST_BITS_C+i)-1 downto i) := din.awburst(BURST_BITS_C-1 downto 0);
          i := i + BURST_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LOCK_FIXED_EN_C = false then
+      if LOCK_FIXED_EN_G = false then
          retValue((LOCK_BITS_C+i)-1 downto i) := din.awlock(LOCK_BITS_C-1 downto 0);
          i := i + LOCK_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.PROT_FIXED_EN_C = false then
+      if PROT_FIXED_EN_G = false then
          retValue((PROT_BITS_C+i)-1 downto i) := din.awprot(PROT_BITS_C-1 downto 0);
          i := i + PROT_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.CACHE_FIXED_EN_C = false then
+      if CACHE_FIXED_EN_G = false then
          retValue((CACHE_BITS_C+i)-1 downto i) := din.awcache(CACHE_BITS_C-1 downto 0);
          i := i + CACHE_BITS_C;
       end if;
@@ -157,10 +167,10 @@ architecture rtl of AxiWritePathFifo is
       master.awvalid := valid;
 
       master.awaddr := (others=>'0');
-      master.awaddr(31 downto ARM_CONFIG_G.ADDR_LSB_C) := din(ADDR_BITS_C-1 downto 0);
+      master.awaddr(31 downto ADDR_LSB_G) := din(ADDR_BITS_C-1 downto 0);
       i := ADDR_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C then
+      if ID_FIXED_EN_G then
          master.awid := slave.awid;
       else
          master.awid := (others=>'0');
@@ -168,7 +178,7 @@ architecture rtl of AxiWritePathFifo is
          i := i + ID_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LEN_FIXED_EN_C then
+      if LEN_FIXED_EN_G then
          master.awlen := slave.awlen;
       else
          master.awlen := (others=>'0');
@@ -176,7 +186,7 @@ architecture rtl of AxiWritePathFifo is
          i := i + LEN_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.SIZE_FIXED_EN_C then
+      if SIZE_FIXED_EN_G then
          master.awsize := slave.awsize;
       else
          master.awsize := (others=>'0');
@@ -184,7 +194,7 @@ architecture rtl of AxiWritePathFifo is
          i := i + SIZE_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.BURST_FIXED_EN_C then
+      if BURST_FIXED_EN_G then
          master.awburst := slave.awburst;
       else
          master.awburst := (others=>'0');
@@ -192,7 +202,7 @@ architecture rtl of AxiWritePathFifo is
          i := i + BURST_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LOCK_FIXED_EN_C then
+      if LOCK_FIXED_EN_G then
          master.awlock := slave.awlock;
       else
          master.awlock := (others=>'0');
@@ -200,7 +210,7 @@ architecture rtl of AxiWritePathFifo is
          i := i + LOCK_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.PROT_FIXED_EN_C then
+      if PROT_FIXED_EN_G then
          master.awprot := (others=>'0');
          master.awprot := slave.awprot;
       else
@@ -208,7 +218,7 @@ architecture rtl of AxiWritePathFifo is
          i := i + PROT_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.CACHE_FIXED_EN_C then
+      if CACHE_FIXED_EN_G then
          master.awcache := (others=>'0');
          master.awcache := slave.awcache;
       else
@@ -233,7 +243,7 @@ architecture rtl of AxiWritePathFifo is
       retValue((STRB_BITS_C+i)-1 downto i) := din.wstrb(STRB_BITS_C-1 downto 0);
       i := i + STRB_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C = false then
+      if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.wid(ID_BITS_C-1 downto 0);
          i := i + ID_BITS_C;
       end if;
@@ -263,7 +273,7 @@ architecture rtl of AxiWritePathFifo is
       master.wstrb(STRB_BITS_C-1 downto 0) := din((STRB_BITS_C+i)-1 downto i);
       i := i + STRB_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C then
+      if ID_FIXED_EN_G then
          master.wid := slave.wid;
       else
          master.wid := (others=>'0');
@@ -282,7 +292,7 @@ architecture rtl of AxiWritePathFifo is
       retValue(RESP_BITS_C-1 downto 0) := din.bresp;
       i := RESP_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C = false then
+      if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.bid(ID_BITS_C-1 downto 0);
          i := i + ID_BITS_C;
       end if;
@@ -305,7 +315,7 @@ architecture rtl of AxiWritePathFifo is
       slave.bresp := din(RESP_BITS_C-1 downto 0);
       i := RESP_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C then
+      if ID_FIXED_EN_G then
          slave.bid := master.wid;
       else
          slave.bid := (others=>'0');

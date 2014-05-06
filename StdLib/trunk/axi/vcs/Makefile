@@ -21,6 +21,7 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../sync/rtl/RstSync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../sync/rtl/SynchronizerOneShot.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../ram/rtl/SimpleDualPortRam.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../fifo/rtl/FifoOutputPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../fifo/rtl/FifoAsyncBuiltIn.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../fifo/rtl/FifoSyncBuiltIn.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../fifo/rtl/FifoAsync.vhd
@@ -45,6 +46,8 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamFifo.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamShift.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDmaWrite.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/AxiStreamDeMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../axi/rtl/SsiAxiLiteMaster.vhd

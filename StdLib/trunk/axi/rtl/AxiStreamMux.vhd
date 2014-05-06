@@ -35,7 +35,7 @@ entity AxiStreamMux is
       );
    port (
 
-      -- VC clock and reset
+      -- Clock and reset
       axisClk : in sl;
       axisRst : in sl;
 
