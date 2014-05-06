@@ -16,9 +16,10 @@ vhdl work rtl/AxiStreamFifo.vhd
 vhdl work rtl/AxiStreamPipeline.vhd
 vhdl work rtl/AxiStreamMux.vhd
 vhdl work rtl/AxiStreamDeMux.vhd
+vhdl work rtl/AxiStreamDmaWrite.vhd
 vhdl work rtl/SsiPkg.vhd
 vhdl work rtl/SsiCmdMasterPkg.vhd
 vhdl work rtl/SsiCmdMaster.vhd
 vhdl work rtl/SsiAxiLiteMaster.vhd
 vhdl work rtl/SsiPrbsRx.vhd
-vhdl work rtl/SsiPrbsTx.vhd
+hdl work rtl/SsiPrbsTx.vhd

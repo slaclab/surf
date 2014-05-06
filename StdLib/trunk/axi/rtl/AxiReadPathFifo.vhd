@@ -40,6 +40,16 @@ entity AxiReadPathFifo is
       ALTERA_SYN_G             : boolean                    := false;
       ALTERA_RAM_G             : string                     := "M9K";
 
+      -- Bit Optimizations
+      ADDR_LSB_G               : natural range 0 to 31 := 0;
+      ID_FIXED_EN_G            : boolean := false;
+      SIZE_FIXED_EN_G          : boolean := false;
+      BURST_FIXED_EN_G         : boolean := false;
+      LEN_FIXED_EN_G           : boolean := false;
+      LOCK_FIXED_EN_G          : boolean := false;
+      PROT_FIXED_EN_G          : boolean := false;
+      CACHE_FIXED_EN_G         : boolean := false;
+
       -- Address FIFO Config
       ADDR_BRAM_EN_G           : boolean                    := true;
       ADDR_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
@@ -52,37 +62,36 @@ entity AxiReadPathFifo is
       DATA_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- BUS Config
-      ARM_CONFIG_G             : AxiConfigType              := AXI_CONFIG_INIT_C
-      )
-;
+      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C
+      );
    port (
 
       -- Slave Port
-      sAxiClk         : in  sl;
-      sAxiRst         : in  sl;
+      sAxiClk        : in  sl;
+      sAxiRst        : in  sl;
       sAxiReadMaster : in  AxiReadMasterType;
       sAxiReadSlave  : out AxiReadSlaveType;
-      sAxiCtrl        : out AxiCtrlType;
+      sAxiCtrl       : out AxiCtrlType;
 
       -- Master Port
-      mAxiClk         : in  sl;
-      mAxiRst         : in  sl;
+      mAxiClk        : in  sl;
+      mAxiRst        : in  sl;
       mAxiReadMaster : out AxiReadMasterType;
       mAxiReadSlave  : in  AxiReadSlaveType);
 end AxiReadPathFifo;
 
 architecture rtl of AxiReadPathFifo is
 
-   constant ADDR_BITS_C  : integer := 32 - ARM_CONFIG_G.ADDR_LSB_C;
-   constant ID_BITS_C    : integer := ite(ARM_CONFIG_G.ID_FIXED_EN_C,0,ARM_CONFIG_G.ID_BITS_C);
-   constant LEN_BITS_C   : integer := ite(ARM_CONFIG_G.LEN_FIXED_EN_C,0,4);
-   constant SIZE_BITS_C  : integer := ite(ARM_CONFIG_G.SIZE_FIXED_EN_C,0,3);
-   constant BURST_BITS_C : integer := ite(ARM_CONFIG_G.BURST_FIXED_EN_C,0,2);
-   constant LOCK_BITS_C  : integer := ite(ARM_CONFIG_G.LOCK_FIXED_EN_C,0,2);
-   constant PROT_BITS_C  : integer := ite(ARM_CONFIG_G.PROT_FIXED_EN_C,0,3);
-   constant CACHE_BITS_C : integer := ite(ARM_CONFIG_G.CACHE_FIXED_EN_C,0,4);
-   constant DATA_BITS_C  : integer := ARM_CONFIG_G.DATA_BYTES_C*8;
-   constant STRB_BITS_C  : integer := ARM_CONFIG_G.DATA_BYTES_C;
+   constant ADDR_BITS_C  : integer := 32 - ADDR_LSB_G;
+   constant ID_BITS_C    : integer := ite(ID_FIXED_EN_G,0,AXI_CONFIG_G.ID_BITS_C);
+   constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G,0,4);
+   constant SIZE_BITS_C  : integer := ite(SIZE_FIXED_EN_G,0,3);
+   constant BURST_BITS_C : integer := ite(BURST_FIXED_EN_G,0,2);
+   constant LOCK_BITS_C  : integer := ite(LOCK_FIXED_EN_G,0,2);
+   constant PROT_BITS_C  : integer := ite(PROT_FIXED_EN_G,0,3);
+   constant CACHE_BITS_C : integer := ite(CACHE_FIXED_EN_G,0,4);
+   constant DATA_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C*8;
+   constant STRB_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C;
    constant RESP_BITS_C  : integer := 2;
 
    constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C + 
@@ -96,40 +105,40 @@ architecture rtl of AxiReadPathFifo is
       variable i        : integer;
    begin
 
-      retValue(ADDR_BITS_C-1 downto 0) := din.araddr(31 downto ARM_CONFIG_G.ADDR_LSB_C);
+      retValue(ADDR_BITS_C-1 downto 0) := din.araddr(31 downto ADDR_LSB_G);
       i := ADDR_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C = false then
+      if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.arid(ID_BITS_C-1 downto 0);
          i := i + ID_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LEN_FIXED_EN_C = false then
+      if LEN_FIXED_EN_G = false then
          retValue((LEN_BITS_C+i)-1 downto i) := din.arlen(LEN_BITS_C-1 downto 0);
          i := i + LEN_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.SIZE_FIXED_EN_C = false then
+      if SIZE_FIXED_EN_G = false then
          retValue((SIZE_BITS_C+i)-1 downto i) := din.arsize(SIZE_BITS_C-1 downto 0);
          i := i + SIZE_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.BURST_FIXED_EN_C = false then
+      if BURST_FIXED_EN_G = false then
          retValue((BURST_BITS_C+i)-1 downto i) := din.arburst(BURST_BITS_C-1 downto 0);
          i := i + BURST_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LOCK_FIXED_EN_C = false then
+      if LOCK_FIXED_EN_G = false then
          retValue((LOCK_BITS_C+i)-1 downto i) := din.arlock(LOCK_BITS_C-1 downto 0);
          i := i + LOCK_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.PROT_FIXED_EN_C = false then
+      if PROT_FIXED_EN_G = false then
          retValue((PROT_BITS_C+i)-1 downto i) := din.arprot(PROT_BITS_C-1 downto 0);
          i := i + PROT_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.CACHE_FIXED_EN_C = false then
+      if CACHE_FIXED_EN_G = false then
          retValue((CACHE_BITS_C+i)-1 downto i) := din.arcache(CACHE_BITS_C-1 downto 0);
          i := i + CACHE_BITS_C;
       end if;
@@ -150,10 +159,10 @@ architecture rtl of AxiReadPathFifo is
       master.arvalid := valid;
 
       master.araddr := (others=>'0');
-      master.araddr(31 downto ARM_CONFIG_G.ADDR_LSB_C) := din(ADDR_BITS_C-1 downto 0);
+      master.araddr(31 downto ADDR_LSB_G) := din(ADDR_BITS_C-1 downto 0);
       i := ADDR_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C then
+      if ID_FIXED_EN_G then
          master.arid := slave.arid;
       else
          master.arid := (others=>'0');
@@ -161,7 +170,7 @@ architecture rtl of AxiReadPathFifo is
          i := i + ID_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LEN_FIXED_EN_C then
+      if LEN_FIXED_EN_G then
          master.arlen := slave.arlen;
       else
          master.arlen := (others=>'0');
@@ -169,7 +178,7 @@ architecture rtl of AxiReadPathFifo is
          i := i + LEN_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.SIZE_FIXED_EN_C then
+      if SIZE_FIXED_EN_G then
          master.arsize := slave.arsize;
       else
          master.arsize := (others=>'0');
@@ -177,7 +186,7 @@ architecture rtl of AxiReadPathFifo is
          i := i + SIZE_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.BURST_FIXED_EN_C then
+      if BURST_FIXED_EN_G then
          master.arburst := slave.arburst;
       else
          master.arburst := (others=>'0');
@@ -185,7 +194,7 @@ architecture rtl of AxiReadPathFifo is
          i := i + BURST_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.LOCK_FIXED_EN_C then
+      if LOCK_FIXED_EN_G then
          master.arlock := slave.arlock;
       else
          master.arlock := (others=>'0');
@@ -193,7 +202,7 @@ architecture rtl of AxiReadPathFifo is
          i := i + LOCK_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.PROT_FIXED_EN_C then
+      if PROT_FIXED_EN_G then
          master.arprot := (others=>'0');
          master.arprot := slave.arprot;
       else
@@ -201,7 +210,7 @@ architecture rtl of AxiReadPathFifo is
          i := i + PROT_BITS_C;
       end if;
 
-      if ARM_CONFIG_G.CACHE_FIXED_EN_C then
+      if CACHE_FIXED_EN_G then
          master.arcache := (others=>'0');
          master.arcache := slave.arcache;
       else
@@ -223,7 +232,7 @@ architecture rtl of AxiReadPathFifo is
       retValue((DATA_BITS_C+i)-1 downto i) := din.rdata(DATA_BITS_C-1 downto 0);
       i := i + DATA_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C = false then
+      if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.rid(ID_BITS_C-1 downto 0);
          i := i + ID_BITS_C;
       end if;
@@ -252,7 +261,7 @@ architecture rtl of AxiReadPathFifo is
       slave.rdata(DATA_BITS_C-1 downto 0) := din((DATA_BITS_C+i)-1 downto i);
       i := i + DATA_BITS_C;
 
-      if ARM_CONFIG_G.ID_FIXED_EN_C then
+      if ID_FIXED_EN_G then
          slave.rid := master.arid;
       else
          slave.rid := (others=>'0');

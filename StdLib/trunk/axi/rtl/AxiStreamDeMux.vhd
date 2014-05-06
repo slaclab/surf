@@ -34,7 +34,7 @@ entity AxiStreamDeMux is
       NUM_MASTERS_G : integer range 1 to 32 := 4
    ); port (
 
-      -- VC clock and reset
+      -- Clock and reset
       axisClk        : in sl;
       axisRst        : in sl;
 
