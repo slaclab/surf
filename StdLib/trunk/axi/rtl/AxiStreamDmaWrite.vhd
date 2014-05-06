@@ -28,6 +28,7 @@ use work.StdRtlPkg.all;
 use work.ArbiterPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiPkg.all;
+use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaWrite is
    generic (
@@ -36,7 +37,8 @@ entity AxiStreamDmaWrite is
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G      : slv(1 downto 0)     := "01";
-      AXI_CACHE_G      : slv(3 downto 0)     := "1111"
+      AXI_CACHE_G      : slv(3 downto 0)     := "1111";
+      AXI_ALIGN_G      : boolean             := true
    );
    port (
 
@@ -45,22 +47,17 @@ entity AxiStreamDmaWrite is
       axiRst          : in  sl;
 
       -- DMA Control Interface (dmaClk)
-      dmaReq          : in  sl;
-      dmaAddr         : in  slv(31 downto 0);
-      dmaMaxSize      : in  slv(31 downto 0);
-      dmaAck          : out sl;
-      dmaSize         : out slv(31 downto 0);
-      dmaOverflow     : out sl;
-      dmaWriteErr     : out sl;
+      dmaReq          : in  AxiWriteDmaReqType;
+      dmaAck          : out AxiWriteDmaAckType;
 
-      -- Streaming Interface (dmaClk) (assume external FIFO)
-      axisMaster     : in  AxiStreamMasterType;
-      axisSlave      : out AxiStreamSlaveType;
+      -- Streaming Interface (dmaClk)
+      axisMaster      : in  AxiStreamMasterType;
+      axisSlave       : out AxiStreamSlaveType;
 
       -- AXI Interface
-      axiWriteMaster : out AxiWriteMasterType;
-      axiWriteSlave  : in  AxiWriteSlaveType;
-      axiWriteCtrl   : in  AxiCtrlType
+      axiWriteMaster  : out AxiWriteMasterType;
+      axiWriteSlave   : in  AxiWriteSlaveType;
+      axiWriteCtrl    : in  AxiCtrlType
    );
 end AxiStreamDmaWrite;
 
@@ -74,35 +71,27 @@ architecture structure of AxiStreamDmaWrite is
 
    type RegType is record
       state    : StateType;
-      address  : slv(31 downto 0);
-      maxSize  : slv(31 downto 0);
+      dmaReq   : AxiWriteDmaReqType;
+      dmaAck   : AxiWriteDmaAckType;
       shift    : slv(3  downto 0);
       shiftEn  : sl;
-      overflow : sl;
-      respErr  : sl;
+      last     : sl;
       reqCount : slv(31 downto 0);
       ackCount : slv(31 downto 0);
-      done     : sl;
-      ack      : sl;
-      size     : slv(31 downto 0);
-      master   : AxiWriteMasterType;
+      wMaster  : AxiWriteMasterType;
       slave    : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state    => S_IDLE_C,
-      address  => (others=>'0'),
-      maxSize  => (others=>'0'),
+      dmaReq   => AXI_WRITE_DMA_REQ_INIT_C,
+      dmaAck   => AXI_WRITE_DMA_ACK_INIT_C,
       shift    => (others=>'0'),
       shiftEn  => '0',
-      overflow => '0',
-      respErr  => '0',
+      last     => '0',
       reqCount => (others=>'0'),
       ackCount => (others=>'0'),
-      done     => '0',
-      ack      => '0',
-      size     => (others=>'0'),
-      master   => AXI_WRITE_MASTER_INIT_C,
+      wMaster  => AXI_WRITE_MASTER_INIT_C,
       slave    => AXI_STREAM_SLAVE_INIT_C
       );
 
@@ -132,21 +121,21 @@ begin
          mAxisSlave  => intAxisSlave
       );
 
-   -- Determine handshaking mode, needs to be generic
+   -- Determine handshaking mode
    selReady <= axiWriteSlave.wready when SLAVE_READY_EN_G else '1';
    selPause <= '0'                  when SLAVE_READY_EN_G else axiWriteCtrl.pause;
 
-   comb : process (axiRst, r, intAxisMaster, axiWriteSlave, dmaReq, dmaAddr, dmaMaxSize, selReady, selPause ) is
+   comb : process (axiRst, r, intAxisMaster, axiWriteSlave, dmaReq, selReady, selPause ) is
       variable v     : RegType;
       variable bytes : slv(3 downto 0);
    begin
       v := r;
 
       -- Init
-      v.slave.tReady   := '0';
-      v.master.awvalid := '0';
-      v.master.bready  := '1';
-      v.shiftEn        := '0';
+      v.slave.tReady    := '0';
+      v.wMaster.awvalid := '0';
+      v.wMaster.bready  := '1';
+      v.shiftEn         := '0';
 
       -- Count number of bytes in return data
       bytes := onesCount(intAxisMaster.tKeep);
@@ -156,7 +145,7 @@ begin
          v.ackCount := r.ackCount + 1;
 
          if axiWriteSlave.bresp /= "00" then
-            v.respErr := '1';
+            v.dmaAck.writeError := '1';
          end if;
       end if;
 
@@ -165,21 +154,25 @@ begin
 
          -- IDLE
          when S_IDLE_C =>
-            v.maxSize  := dmaMaxSize;
-            v.address  := dmaAddr(31 downto 3) & "000";
-            v.shift    := '0' & dmaAddr(2 downto 0);
+            v.wMaster  := AXI_WRITE_MASTER_INIT_C;
+            v.slave    := AXI_STREAM_SLAVE_INIT_C;
             v.reqCount := (others=>'0');
             v.ackCount := (others=>'0');
-            v.done     := '0';
-            v.ack      := '0';
-            v.size     := (others=>'0');
-            v.overflow := '0';
-            v.respErr  := '0';
+            v.shift    := (others=>'0');
+            v.last     := '0';
+
+            v.dmaAck                     := AXI_WRITE_DMA_ACK_INIT_C;
+            v.dmaReq                     := dmaReq;
+            v.dmaReq.address(2 downto 0) := "000";
+
+            if AXI_ALIGN_G then
+               v.shift := '0' & dmaReq.address(2 downto 0);
+            end if;
 
             -- Start 
-            if dmaReq = '1' then
-               v.shiftEn  := '1';
-               v.state    := S_FIRST_C;
+            if dmaReq.request = '1' then
+               v.shiftEn := '1';
+               v.state   := S_FIRST_C;
             end if;
 
          -- First
@@ -187,86 +180,95 @@ begin
 
             -- Determine transfer size to align all transfers to 128 byte boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.master.awaddr   := r.address;
-            v.master.awlen    := x"F" - r.address(6 downto 3);
+            v.wMaster.awaddr := r.dmaReq.address;
+            v.wMaster.awlen  := x"F" - r.dmaReq.address(6 downto 3);
 
             -- There is enough room in the FIFO for a burst and address is ready
             if selPause = '0' and axiWriteSlave.awready = '1' then
-               v.master.awvalid := '1';
-               v.reqCount       := r.reqCount + 1;
-               v.state          := S_DATA_C;
+               v.wMaster.awvalid := '1';
+               v.reqCount        := r.reqCount + 1;
+               v.state           := S_DATA_C;
             end if;
 
          -- Next Write
          when S_NEXT_C =>
-            v.master.awaddr := r.address;
-            v.master.awlen  := x"F";
+            v.wMaster.awaddr := r.dmaReq.address;
+            v.wMaster.awlen  := x"F";
 
             -- There is enough room in the FIFO for a burst and address is ready
             if selPause = '0' and axiWriteSlave.awready = '1' then
-               v.master.awvalid := '1';
-               v.reqCount       := r.reqCount + 1;
-               v.state          := S_DATA_C;
+               v.wMaster.awvalid := '1';
+               v.reqCount        := r.reqCount + 1;
+               v.state           := S_DATA_C;
             end if;
              
          -- Move Data
          when S_DATA_C =>
 
             -- Assert ready when incoming is ready and we are not done
-            v.slave.tReady := selReady and (not r.done);
+            v.slave.tReady := selReady and (not r.last);
 
             -- Advance pipeline when incoming data is valid and outbound is ready
             -- or we have not yet asserted valid
-            if intAxisMaster.tValid = '1' and (selReady = '1' or r.master.wvalid = '0') then
-               v.master.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
-               v.master.wvalid := intAxisMaster.tValid;
+            if intAxisMaster.tValid = '1' and (selReady = '1' or r.wMaster.wvalid = '0') then
+               v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
+               v.wMaster.wvalid := intAxisMaster.tValid;
 
                -- Address and size increment
-               v.address := r.address + 8;
-               v.size    := r.size + bytes;
+               v.dmaReq.address := r.dmaReq.address + 8;
+               v.dmaAck.size    := r.dmaAck.size + bytes;
+
+               -- First in packet
+               if r.dmaAck.size = 0 then
+                  v.dmaAck.dest := intAxisMaster.tDest;
+                  v.dmaAck.id   := intAxisMaster.tId;
+                  v.dmaAck.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := 
+                     axiStreamGetUserField(AXIS_CONFIG_G,intAxisMaster,conv_integer(r.shift));
+               end if;
 
                -- Last in packet
                if intAxisMaster.tLast = '1' then
-                  v.done := '1';
+                  v.dmaAck.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G,intAxisMaster);
+                  v.last := '1';
                end if;
 
                -- Last in transfer
-               if r.master.awlen = 0 then
-                  v.master.wlast := '1';
-                  v.state        := S_LAST_C;
+               if r.wMaster.awlen = 0 then
+                  v.wMaster.wlast := '1';
+                  v.state         := S_LAST_C;
                else
-                  v.master.wlast := '0';
-                  v.master.awlen := r.master.awlen - 1;
+                  v.wMaster.wlast := '0';
+                  v.wMaster.awlen := r.wMaster.awlen - 1;
                end if;
 
-               -- Init strobe
-               v.master.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
+               -- Write strobe
+               v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
 
                -- Detect overflow
-               if r.overFlow = '1' or bytes > r.maxSize then
-                  v.overFlow     := '1';
-                  v.master.wstrb := (others=>'0');
+               if r.dmaAck.overflow = '1' or bytes > r.dmaReq.maxSize then
+                  v.dmaAck.overflow := '1';
+                  v.wMaster.wstrb   := (others=>'0');
                else
-                  v.maxSize := r.maxSize - bytes;
+                  v.dmaReq.maxSize := r.dmaReq.maxSize - bytes;
                end if;
 
                -- Done
-               if r.done = '1' then
-                  v.master.wstrb := (others=>'0');
+               if r.last = '1' then
+                  v.wMaster.wstrb := (others=>'0');
                end if;
             end if;
 
          -- Last Trasfer Of A Burst Data
          when S_LAST_C =>
             if selReady = '1' then
-               if r.done = '1' then
+               if r.last = '1' then
                   v.state := S_WAIT_C;
-               elsif r.overFlow = '1' or r.respErr = '1' then
+               elsif r.dmaAck.overflow = '1' or r.dmaAck.writeError = '1' then
                   v.state := S_DUMP_C;
                else
                   v.state := S_NEXT_C;
                end if;
-               v.master.wvalid := '0';
+               v.wMaster.wvalid := '0';
             end if;
 
          -- Dump remaining data
@@ -280,15 +282,15 @@ begin
          -- Wait for acks
          when S_WAIT_C =>
             if r.ackCount >= r.reqCount then
-               v.state := S_DONE_C;
-               v.ack   := '1';
+               v.state       := S_DONE_C;
+               v.dmaAck.done := '1';
             end if;
 
          -- Done
          when S_DONE_C =>
-            if dmaReq = '0' then
-               v.ack   := '0';
-               v.state := S_IDLE_C;
+            if dmaReq.request = '0' then
+               v.dmaAck.done := '0';
+               v.state       := S_IDLE_C;
             end if;
 
          when others =>
@@ -300,22 +302,19 @@ begin
       end if;
 
       -- Constants
-      v.master.awsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
-      v.master.awburst := AXI_BURST_G;
-      v.master.awcache := AXI_CACHE_G;
-      v.master.awlock  := "00";   -- Unused
-      v.master.awprot  := "000";  -- Unused
-      v.master.awid    := (others=>'0');
-      v.master.wid     := (others=>'0');
+      v.wMaster.awsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
+      v.wMaster.awburst := AXI_BURST_G;
+      v.wMaster.awcache := AXI_CACHE_G;
+      v.wMaster.awlock  := "00";   -- Unused
+      v.wMaster.awprot  := "000";  -- Unused
+      v.wMaster.awid    := (others=>'0');
+      v.wMaster.wid     := (others=>'0');
 
       rin <= v;
 
-      dmaAck         <= r.ack;
-      dmaSize        <= r.size;
-      dmaOverflow    <= r.overFlow;
-      dmaWriteErr    <= r.respErr;
+      dmaAck         <= r.dmaAck;
       intAxisSlave   <= v.slave;
-      axiWriteMaster <= r.master;
+      axiWriteMaster <= r.wMaster;
 
    end process comb;
 
