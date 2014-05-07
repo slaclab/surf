@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
--- Block to transfer a single AXI Stream frame into memory using an AXI
+-- Block to transfer a single AXI Stream frame from memory using an AXI
 -- interface.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 by Ryan Herbst. All rights reserved.
@@ -25,7 +25,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiPkg.all;
 use work.AxiDmaPkg.all;
@@ -33,7 +32,7 @@ use work.AxiDmaPkg.all;
 entity AxiStreamDmaRead is
    generic (
       TPD_G            : time                := 1 ns;
-      SLAVE_READY_EN_G : boolean             := false;
+      AXIS_READY_EN_G  : boolean             := false;
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G      : slv(1 downto 0)     := "01";
@@ -46,11 +45,11 @@ entity AxiStreamDmaRead is
       axiClk          : in  sl;
       axiRst          : in  sl;
 
-      -- DMA Control Interface (dmaClk)
+      -- DMA Control Interface 
       dmaReq          : in  AxiReadDmaReqType;
       dmaAck          : out AxiReadDmaAckType;
 
-      -- Streaming Interface (dmaClk)
+      -- Streaming Interface 
       axisMaster      : out AxiStreamMasterType;
       axisSlave       : in  AxiStreamSlaveType;
       axisCtrl        : in  AxiStreamCtrlType;
@@ -103,8 +102,8 @@ architecture structure of AxiStreamDmaRead is
 begin
 
    -- Determine handshaking mode
-   selReady <= axisSlave.tReady when SLAVE_READY_EN_G else '1';
-   selPause <= '0'              when SLAVE_READY_EN_G else axisCtrl.pause;
+   selReady <= axisSlave.tReady when AXIS_READY_EN_G else '1';
+   selPause <= '0'              when AXIS_READY_EN_G else axisCtrl.pause;
 
    comb : process (axiRst, r, intAxisSlave, axiReadSlave, dmaReq, selReady, selPause ) is
       variable v     : RegType;
@@ -210,7 +209,7 @@ begin
                v.first := '0';
 
                -- Last transfer
-               if r.dmaAck.size < 8  then
+               if r.dmaReq.size < 8  then
                   v.last          := '1';
                   v.sMaster.tLast := '1';
 
@@ -223,7 +222,7 @@ begin
                   axiStreamSetUserField (AXIS_CONFIG_G,v.sMaster,r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
 
                else
-                  v.dmaAck.size := r.dmaAck.size - ite(r.first='1',(x"8"-r.shift),x"8");
+                  v.dmaReq.size := r.dmaReq.size - ite(r.first='1',(x"8"-r.shift),x"8");
                end if;
 
                -- Last in transfer

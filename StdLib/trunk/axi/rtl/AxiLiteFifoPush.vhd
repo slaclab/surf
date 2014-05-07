@@ -28,14 +28,14 @@ use work.AxiLitePkg.all;
 entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
-      WRITE_FIFO_COUNT_G : positive              := 1;
-      GEN_SYNC_FIFO_G    : boolean               := false;
-      BRAM_EN_G          : boolean               := true;
+      PUSH_FIFO_COUNT_G  : positive              := 1;
+      PUSH_SYNC_FIFO_G   : boolean               := false;
+      PUSH_BRAM_EN_G     : boolean               := false;
+      PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4;
       ALTERA_SYN_G       : boolean               := false;
       ALTERA_RAM_G       : string                := "M9K";
       USE_BUILT_IN_G     : boolean               := false;
-      XIL_DEVICE_G       : string                := "7SERIES";
-      ADDR_WIDTH_G       : integer range 4 to 48 := 4
+      XIL_DEVICE_G       : string                := "7SERIES"
    );
    port (
 
@@ -47,37 +47,38 @@ entity AxiLiteFifoPush is
       axiWriteMaster     : in  AxiLiteWriteMasterType;
       axiWriteSlave      : out AxiLiteWriteSlaveType;
 
-      -- FIFO Write Interface
-      fifoClk            : in  slv(WRITE_FIFO_COUNT_G-1 downto 0);
-      fifoValid          : out slv(WRITE_FIFO_COUNT_G-1 downto 0);
-      fifoDout           : out Slv36Array(WRITE_FIFO_COUNT_G-1 downto 0);
-      fifoRead           : in  slv(WRITE_FIFO_COUNT_G-1 downto 0)
+      -- Push FIFO Read Interface
+      pushFifoClk        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
+      pushFifoRst        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
+      pushFifoValid      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
+      pushFifoDout       : out Slv36Array(PUSH_FIFO_COUNT_G-1 downto 0);
+      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0)
    );
 end AxiLiteFifoPush;
 
 architecture structure of AxiLiteFifoPush is
 
-   constant FIFO_SIZE_C  : integer := bitSize(WRITE_FIFO_COUNT_G-1);
-   constant FIFO_COUNT_C : integer := 2**FIFO_SIZE_C;
+   constant PUSH_SIZE_C  : integer := bitSize(PUSH_FIFO_COUNT_G-1);
+   constant PUSH_COUNT_C : integer := 2**PUSH_SIZE_C;
 
    -- Local Signals
-   signal fifoFull   : slv(FIFO_COUNT_C-1 downto 0);
-   signal fifoAFull  : slv(FIFO_COUNT_C-1 downto 0);
-   signal fifoDin    : Slv(35 downto 0);
-   signal fifoWrite  : slv(FIFO_COUNT_C-1 downto 0);
+   signal pushFifoFull   : slv(PUSH_COUNT_C-1 downto 0);
+   signal pushFifoAFull  : slv(PUSH_COUNT_C-1 downto 0);
+   signal pushFifoDin    : Slv(35 downto 0);
+   signal pushFifoWrite  : slv(PUSH_COUNT_C-1 downto 0);
 
    type RegType is record
-      fifoWrite     : slv(FIFO_COUNT_C-1 downto 0);
-      fifoDin       : slv(35 downto 0);
-      axiReadSlave  : AxiLiteReadSlaveType;
-      axiWriteSlave : AxiLiteWriteSlaveType;
+      pushFifoWrite     : slv(PUSH_COUNT_C-1 downto 0);
+      pushFifoDin       : slv(35 downto 0);
+      axiReadSlave      : AxiLiteReadSlaveType;
+      axiWriteSlave     : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      fifoWrite     => (others => '0'),
-      fifoDin       => (others => '0'),
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C
+      pushFifoWrite     => (others => '0'),
+      pushFifoDin       => (others => '0'),
+      axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -89,7 +90,7 @@ begin
    -----------------------------------------
    -- FIFOs
    -----------------------------------------
-   U_GenFifo : for i in 0 to WRITE_FIFO_COUNT_G generate
+   U_GenFifo : for i in 0 to PUSH_FIFO_COUNT_G generate
       U_FIfo : entity work.FifoCascade 
          generic map (
             TPD_G              => TPD_G,
@@ -97,8 +98,8 @@ begin
             LAST_STAGE_ASYNC_G => true,
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => true,
-            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-            BRAM_EN_G          => BRAM_EN_G,
+            GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
+            BRAM_EN_G          => PUSH_BRAM_EN_G,
             FWFT_EN_G          => true,
             USE_DSP48_G        => "no",
             ALTERA_SYN_G       => ALTERA_SYN_G,
@@ -107,27 +108,27 @@ begin
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 32,
-            ADDR_WIDTH_G       => ADDR_WIDTH_G,
+            ADDR_WIDTH_G       => PUSH_ADDR_WIDTH_G,
             INIT_G             => "0",
             FULL_THRES_G       => 1,
             EMPTY_THRES_G      => 1
          ) port map (
-            rst           => axiClkRst,
+            rst           => pushFifoRst(i),
             wr_clk        => axiClk,
-            wr_en         => fifoWrite(i),
-            din           => fifoDin,
+            wr_en         => pushFifoWrite(i),
+            din           => pushFifoDin,
             wr_data_count => open,
             wr_ack        => open,
             overflow      => open,
             prog_full     => open,
-            almost_full   => fifoAFull(i),
-            full          => fifoFull(i),
+            almost_full   => pushFifoAFull(i),
+            full          => pushFifoFull(i),
             not_full      => open,
-            rd_clk        => fifoClk(i),
-            rd_en         => fifoRead(i),
-            dout          => fifoDout(i),
+            rd_clk        => pushFifoClk(i),
+            rd_en         => pushFifoRead(i),
+            dout          => pushFifoDout(i),
             rd_data_count => open,
-            valid         => fifoValid(i),
+            valid         => pushFifoValid(i),
             underflow     => open,
             prog_empty    => open,
             almost_empty  => open,
@@ -135,9 +136,9 @@ begin
       );
    end generate;
 
-   U_AlignGen : if WRITE_FIFO_COUNT_G /= FIFO_COUNT_C generate
-      fifoAFull(FIFO_COUNT_C-1 downto WRITE_FIFO_COUNT_G) <= (others=>'0');
-      fifoFull(FIFO_COUNT_C-1 downto WRITE_FIFO_COUNT_G)  <= (others=>'0');
+   U_AlignGen : if PUSH_FIFO_COUNT_G /= PUSH_COUNT_C generate
+      pushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G) <= (others=>'0');
+      pushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
    end generate;
 
 
@@ -154,22 +155,22 @@ begin
    end process;
 
    -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, fifoFull, fifoAFull ) is
+   process (r, axiClkRst, axiReadMaster, axiWriteMaster, pushFifoFull, pushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
       v := r;
 
-      v.fifoWrite := (others=>'0');
+      v.pushFifoWrite := (others=>'0');
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Write
       if (axiStatus.writeEnable = '1') then
-         v.fifoDin(31 downto  0) := axiWriteMaster.wdata;
-         v.fifoDin(35 downto 32) := axiWriteMaster.awaddr(5 downto 2);
+         v.pushFifoDin(31 downto  0) := axiWriteMaster.wdata;
+         v.pushFifoDin(35 downto 32) := axiWriteMaster.awaddr(5 downto 2);
 
-         v.fifoWrite(conv_integer(axiReadMaster.araddr(FIFO_SIZE_C+4 downto 5))) := '1';
+         v.pushFifoWrite(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+4 downto 5))) := '1';
 
          axiSlaveWriteResponse(v.axiWriteSlave);
       end if;
@@ -178,8 +179,8 @@ begin
       if (axiStatus.readEnable = '1') then
 
          v.axiReadSlave.rdata    := (others=>'0');
-         v.axiReadSlave.rdata(0) := fifoFull(conv_integer(axiReadMaster.araddr(FIFO_SIZE_C+4 downto 5)));
-         v.axiReadSlave.rdata(1) := fifoAFull(conv_integer(axiReadMaster.araddr(FIFO_SIZE_C+4 downto 5)));
+         v.axiReadSlave.rdata(0) := pushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+4 downto 5)));
+         v.axiReadSlave.rdata(1) := pushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+4 downto 5)));
 
          -- Send Axi Response
          axiSlaveReadResponse(v.axiReadSlave);
@@ -197,8 +198,8 @@ begin
       -- Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      fifoDin       <= r.fifoDin;
-      fifoWrite     <= r.fifoWrite;
+      pushFifoDin   <= r.pushFifoDin;
+      pushFifoWrite <= r.pushFifoWrite;
       
    end process;
 

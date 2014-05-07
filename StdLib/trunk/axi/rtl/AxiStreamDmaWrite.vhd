@@ -25,7 +25,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiPkg.all;
 use work.AxiDmaPkg.all;
@@ -33,7 +32,7 @@ use work.AxiDmaPkg.all;
 entity AxiStreamDmaWrite is
    generic (
       TPD_G            : time                := 1 ns;
-      SLAVE_READY_EN_G : boolean             := false;
+      AXI_READY_EN_G   : boolean             := false;
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G      : slv(1 downto 0)     := "01";
@@ -46,11 +45,11 @@ entity AxiStreamDmaWrite is
       axiClk          : in  sl;
       axiRst          : in  sl;
 
-      -- DMA Control Interface (dmaClk)
+      -- DMA Control Interface
       dmaReq          : in  AxiWriteDmaReqType;
       dmaAck          : out AxiWriteDmaAckType;
 
-      -- Streaming Interface (dmaClk)
+      -- Streaming Interface 
       axisMaster      : in  AxiStreamMasterType;
       axisSlave       : out AxiStreamSlaveType;
 
@@ -122,8 +121,8 @@ begin
       );
 
    -- Determine handshaking mode
-   selReady <= axiWriteSlave.wready when SLAVE_READY_EN_G else '1';
-   selPause <= '0'                  when SLAVE_READY_EN_G else axiWriteCtrl.pause;
+   selReady <= axiWriteSlave.wready when AXI_READY_EN_G else '1';
+   selPause <= '0'                  when AXI_READY_EN_G else axiWriteCtrl.pause;
 
    comb : process (axiRst, r, intAxisMaster, axiWriteSlave, dmaReq, selReady, selPause ) is
       variable v     : RegType;
