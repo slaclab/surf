@@ -20,6 +20,7 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCntVector.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SyncStatusVector.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/ram/rtl/SimpleDualPortRam.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoOutputPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoAsyncBuiltIn.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoSyncBuiltIn.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoAsync.vhd
