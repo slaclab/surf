@@ -34,7 +34,9 @@ architecture tb of tb is
    signal txEnable          : slv(3  downto 0);
    signal txBusy            : slv(3  downto 0);
    signal txLength          : Slv32Array(3 downto 0);
+   signal iprbsTxMasters    : AxiStreamMasterArray(3 downto 0);
    signal prbsTxMasters     : AxiStreamMasterArray(3 downto 0);
+   signal iprbsTxSlaves     : AxiStreamSlaveArray(3 downto 0);
    signal prbsTxSlaves      : AxiStreamSlaveArray(3 downto 0);
    signal prbsRxMasters     : AxiStreamMasterArray(3 downto 0);
    signal prbsRxSlaves      : AxiStreamSlaveArray(3 downto 0);
@@ -43,6 +45,7 @@ architecture tb of tb is
    signal pgpRxIn           : Pgp2bRxInType;
    signal phyRxLanesIn      : Pgp2bRxPhyLaneInArray(0 to  0);
    signal pgpRxCtrl         : AxiStreamCtrlArray(3 downto 0);
+   signal ipgpRxCtrl        : AxiStreamCtrlArray(3 downto 0);
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : 
       AxiLiteCrossbarMasterConfigArray(11 downto 0) := genAxiLiteConfig ( 12, x"F0000000", 4 );
@@ -143,8 +146,8 @@ begin
 
             mAxisClk     => pgpClk,
             mAxisRst     => pgpClkRst,
-            mAxisSlave   => prbsTxSlaves(i),
-            mAxisMaster  => prbsTxMasters(i),
+            mAxisSlave   => iprbsTxSlaves(i),
+            mAxisMaster  => iprbsTxMasters(i),
             locClk       => locClk,
             locRst       => locClkRst,
             trig         => txEnable(i),
@@ -155,6 +158,13 @@ begin
          );
    end generate;
 
+   iprbsTxSlaves(0)          <= prbsTxSlaves(0);
+   iprbsTxSlaves(3 downto 1) <= (others=>AXI_STREAM_SLAVE_INIT_C);
+   --iprbsTxSlaves(3 downto 1) <= prbsTxSlaves(3 downto 1);
+
+   prbsTxMasters(0)          <= iprbsTxMasters(0);
+   prbsTxMasters(3 downto 1) <= (others=>AXI_STREAM_MASTER_INIT_C);
+   --prbsTxMasters(3 downto 1) <= iprbsTxMasters(3 downto 1);
 
    U_PgpSim : entity work.Pgp2bLane 
       generic map (
@@ -192,6 +202,11 @@ begin
    phyRxLanesIn(0).dispErr <= (others=>'0');
    phyRxLanesIn(0).decErr  <= (others=>'0');
 
+   pgpRxCtrl(0)          <= ipgpRxCtrl(0);
+   pgpRxCtrl(3 downto 1) <= (others=>AXI_STREAM_CTRL_UNUSED_C);
+   --pgpRxCtrl(3 downto 1) <= (others=>AXI_STREAM_CTRL_INIT_C);
+   --pgpRxCtrl(3 downto 1) <= ipgpRxCtrl(3 downto 1);
+
 
    -- PRBS receiver
    U_RxGen: for i in 0 to 3 generate 
@@ -220,9 +235,7 @@ begin
             sAxisRst        => pgpClkRst,
             sAxisMaster     => prbsRxMasters(i),
             sAxisSlave      => open,
-            --sAxisMaster     => prbsTxMasters(i),
-            --sAxisSlave      => prbsTxSlaves(i),
-            sAxisCtrl       => pgpRxCtrl(i),
+            sAxisCtrl       => ipgpRxCtrl(i),
             mAxisClk        => pgpClk,
             mAxisRst        => pgpClkRst,
             mAxisMaster     => open,
