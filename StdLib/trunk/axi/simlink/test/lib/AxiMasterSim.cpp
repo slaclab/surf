@@ -20,6 +20,7 @@ AxiMasterSim::AxiMasterSim () {
    _writeAck   = 0;
    _writeAddr  = 0;
    _writeData  = 0;
+   _verbose    = false;
    _smem       = NULL;
 }
 
@@ -28,7 +29,7 @@ AxiMasterSim::~AxiMasterSim () {
 }
 
 // Open the port
-bool AxiMasterSim::open (char *system, uint id, int uid) {
+bool AxiMasterSim::open (const char *system, uint id, int uid) {
 
    // Open shared memory
    _smem = sim_open(system,id,uid);
@@ -74,13 +75,16 @@ void AxiMasterSim::write ( uint addr, uint value ) {
 }
 
 // Read config register
-uint AxiMasterSim::read ( uint addr, uint quiet ) {
+uint AxiMasterSim::read ( uint addr ) {
    _readAddr  = addr;
-   _readQuiet = quiet;
    _readReq++;
 
    while ( _readReq != _readAck ) usleep(100);
    return(_readData);
+}
+
+void AxiMasterSim::setVerbose(bool v) {
+   _verbose = v;
 }
 
 void AxiMasterSim::run() {
@@ -101,11 +105,13 @@ void AxiMasterSim::run() {
       // New write request
       if ( _writeReq != _writeAck ) {
 
-         cout << "Master write," 
-              << " System=" << _smem->_smemPath
-              << " Addr=0x" << hex << setw(8) << setfill('0') << _writeAddr
-              << " Data=0x" << hex << setw(8) << setfill('0') << _writeData
-              << endl;
+         if ( _verbose ) {
+            cout << "Master write," 
+                 << " System=" << _smem->_smemPath
+                 << " Addr=0x" << hex << setw(8) << setfill('0') << _writeAddr
+                 << " Data=0x" << hex << setw(8) << setfill('0') << _writeData
+                 << endl;
+         }
 
          // Generate write address
          writeAddr.awaddr  = _writeAddr;
@@ -145,7 +151,7 @@ void AxiMasterSim::run() {
       // New read request
       else if ( _readReq != _readAck ) {
 
-         if ( !_readQuiet ) {
+         if ( _verbose ) {
             cout << "Master read," 
                  << " System=" << _smem->_smemPath
                  << " Addr=0x" << hex << setw(8) << setfill('0') << _readAddr
@@ -175,7 +181,7 @@ void AxiMasterSim::run() {
 
          _readData = readData.rdataL;
 
-         if ( !_readQuiet ) {
+         if ( _verbose ) {
             cout << "Master read done," 
                  << " System=" << _smem->_smemPath
                  << " Addr=0x" << hex << setw(8) << setfill('0') << _readAddr

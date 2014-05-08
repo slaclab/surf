@@ -15,6 +15,7 @@ AxiSlaveSim::AxiSlaveSim (unsigned char *memSpace, uint memSize) {
    _memorySize  = memSize/4;
    _memorySpace = (uint *)memSpace;
    _smem        = NULL;
+   _verbose     = false;
 }
 
 AxiSlaveSim::~AxiSlaveSim () {
@@ -22,7 +23,7 @@ AxiSlaveSim::~AxiSlaveSim () {
 }
 
 // Open the port
-bool AxiSlaveSim::open (char *system, uint id, int uid) {
+bool AxiSlaveSim::open (const char *system, uint id, int uid) {
 
    // Open shared memory
    _smem = sim_open(system,id,uid);
@@ -53,6 +54,10 @@ void AxiSlaveSim::close () {
    sim_close(_smem);
 }
 
+void AxiSlaveSim::setVerbose(bool v) {
+   _verbose = v;
+}
+
 void * AxiSlaveSim::staticReadRun(void *t) {
    AxiSlaveSim *ti;
    ti = (AxiSlaveSim *)t;
@@ -74,19 +79,17 @@ void AxiSlaveSim::readRun() {
    nextAddr = (AxiReadAddr *)malloc(sizeof(AxiReadAddr));
    memset(nextAddr,0,sizeof(AxiReadAddr));
 
-   cout << "Slave Read Thread Start, " 
-        << " System=" << _smem->_smemPath
-        << endl;
-
    while (_runEnable) {
 
       // Wait for read address
       if ( getReadAddr(_smem,nextAddr) ) {
 
-         cout << "Read Start,  " 
-              << " System=" << _smem->_smemPath
-              << " Addr=0x" << hex << setw(8) << setfill('0') << nextAddr->araddr
-              << endl;
+         if ( _verbose ) {
+            cout << "Read Start,  " 
+                 << " System=" << _smem->_smemPath
+                 << " Addr=0x" << hex << setw(8) << setfill('0') << nextAddr->araddr
+                 << endl;
+         }
 
          readQueue.push(nextAddr);
          nextAddr = (AxiReadAddr *)malloc(sizeof(AxiReadAddr));
@@ -121,22 +124,26 @@ void AxiSlaveSim::readRun() {
             // Format and output data
             readData.rdataL = _memorySpace[addr/4];
 
-            cout << "Memory read, " 
-                 << " System=" << _smem->_smemPath
-                 << " Addr=0x" << hex << setw(8) << setfill('0') << addr
-                 << " Data=0x" << hex << setw(8) << setfill('0') << readData.rdataL
-                 << endl;
+            if (_verbose) {
+               cout << "Memory read, " 
+                    << " System=" << _smem->_smemPath
+                    << " Addr=0x" << hex << setw(8) << setfill('0') << addr
+                    << " Data=0x" << hex << setw(8) << setfill('0') << readData.rdataL
+                    << endl;
+            }
 
             addr += 4;
             x++;
 
             readData.rdataH = _memorySpace[addr/4];
 
-            cout << "Memory read, " 
-                 << " System=" << _smem->_smemPath
-                 << " Addr=0x" << hex << setw(8) << setfill('0') << addr
-                 << " Data=0x" << hex << setw(8) << setfill('0') << readData.rdataH
-                 << endl;
+            if (_verbose) {
+               cout << "Memory read, " 
+                    << " System=" << _smem->_smemPath
+                    << " Addr=0x" << hex << setw(8) << setfill('0') << addr
+                    << " Data=0x" << hex << setw(8) << setfill('0') << readData.rdataH
+                    << endl;
+            }
 
             addr += 4;
             x++;
@@ -199,11 +206,13 @@ void AxiSlaveSim::writeRun() {
       while ( getWriteAddr(_smem,nextAddr) ) {
          aid = nextAddr->awid;
 
-         cout << "Write Start, " 
-              << " System=" << _smem->_smemPath
-              << " Id=" << aid
-              << " Addr=0x" << hex << setw(8) << setfill('0') << nextAddr->awaddr
-              << endl;
+         if (_verbose) {
+            cout << "Write Start, " 
+                 << " System=" << _smem->_smemPath
+                 << " Id=" << aid
+                 << " Addr=0x" << hex << setw(8) << setfill('0') << nextAddr->awaddr
+                 << endl;
+         }
 
          writeQueue[aid].push(nextAddr);
          nextAddr = (AxiWriteAddr *)malloc(sizeof(AxiWriteAddr));
@@ -258,12 +267,14 @@ void AxiSlaveSim::writeRun() {
          temp = _memorySpace[addr[id]/4] & tempMask;
          _memorySpace[addr[id]/4] = temp | (writeData.wdataL & writeMask);
 
-         cout << "Memory write," 
-              << " System=" << _smem->_smemPath
-              << " Addr=0x" << hex << setw(8) << setfill('0') << addr[id]
-              << " Data=0x" << hex << setw(8) << setfill('0') << writeData.wdataL
-              << " Mask=0x" << hex << setw(1) << setfill('0') << (writeData.wstrb & 0xF)
-              << endl;
+         if (_verbose) {
+            cout << "Memory write," 
+                 << " System=" << _smem->_smemPath
+                 << " Addr=0x" << hex << setw(8) << setfill('0') << addr[id]
+                 << " Data=0x" << hex << setw(8) << setfill('0') << writeData.wdataL
+                 << " Mask=0x" << hex << setw(1) << setfill('0') << (writeData.wstrb & 0xF)
+                 << endl;
+         }
 
          addr[id] += 4;
 
@@ -277,12 +288,14 @@ void AxiSlaveSim::writeRun() {
          temp = _memorySpace[addr[id]/4] & tempMask;
          _memorySpace[addr[id]/4] = temp | (writeData.wdataH & writeMask); 
 
-         cout << "Memory write," 
-              << " System=" << _smem->_smemPath
-              << " Addr=0x" << hex << setw(8) << setfill('0') << addr[id]
-              << " Data=0x" << hex << setw(8) << setfill('0') << writeData.wdataH
-              << " Mask=0x" << hex << setw(1) << setfill('0') << ((writeData.wstrb >> 4) & 0xF)
-              << endl;
+         if (_verbose) {
+            cout << "Memory write," 
+                 << " System=" << _smem->_smemPath
+                 << " Addr=0x" << hex << setw(8) << setfill('0') << addr[id]
+                 << " Data=0x" << hex << setw(8) << setfill('0') << writeData.wdataH
+                 << " Mask=0x" << hex << setw(1) << setfill('0') << ((writeData.wstrb >> 4) & 0xF)
+                 << endl;
+         }
 
          addr[id] += 4;
 

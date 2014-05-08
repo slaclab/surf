@@ -188,9 +188,9 @@ begin
 
          -- IDLE
          when S_IDLE_C =>
-            v.slave     := AXI_STREAM_SLAVE_INIT_C;
-            v.master    := AXI_STREAM_MASTER_INIT_C;
-            v.delay := AXI_STREAM_MASTER_INIT_C;
+            v.slave  := AXI_STREAM_SLAVE_INIT_C;
+            v.master := AXI_STREAM_MASTER_INIT_C;
+            v.delay  := AXI_STREAM_MASTER_INIT_C;
 
             -- Shift start request
             if axiStart = '1' then

@@ -103,7 +103,7 @@ static inline void init(AxiSharedMem *ptr) {
 }
 
 // Map and create shared memory object
-static inline AxiSharedMem * sim_open ( char *system, uint id, int uid ) {
+static inline AxiSharedMem * sim_open ( const char *system, uint id, int uid ) {
    AxiSharedMem * ptr;
    int            smemFd;
    char           shmName[200];

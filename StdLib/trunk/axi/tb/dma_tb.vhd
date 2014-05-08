@@ -30,6 +30,11 @@ architecture dma_tb of dma_tb is
    signal slvAxiReadSlave   : AxiReadSlaveType;
    signal slvAxiWriteMaster : AxiWriteMasterType;
    signal slvAxiWriteSlave  : AxiWriteSlaveType;
+   signal slvAxiWriteCtrl   : AxiCtrlType;
+   signal simAxiReadMaster  : AxiReadMasterType;
+   signal simAxiReadSlave   : AxiReadSlaveType;
+   signal simAxiWriteMaster : AxiWriteMasterType;
+   signal simAxiWriteSlave  : AxiWriteSlaveType;
    signal sAxisMaster       : AxiStreamMasterType;
    signal sAxisSlave        : AxiStreamSlaveType;
    signal sAxisCtrl         : AxiStreamCtrlType;
@@ -123,7 +128,7 @@ begin
          axiReadSlave        => slvAxiReadSlave,
          axiWriteMaster      => slvAxiWriteMaster,
          axiWriteSlave       => slvAxiWriteSlave,
-         axiWriteCtrl        => AXI_CTRL_UNUSED_C
+         axiWriteCtrl        => slvAxiWriteCtrl
       );
 
    U_Fifo : entity work.AxiStreamFifo 
@@ -154,16 +159,98 @@ begin
          mAxisSlave      => mAxisSlave
       );
 
+
+   U_AxiWritePathFifo: entity work.AxiWritePathFifo 
+      generic map (
+         TPD_G                    => 1 ns,
+         RST_ASYNC_G              => false,
+         XIL_DEVICE_G             => "7SERIES",
+         USE_BUILT_IN_G           => false,
+         GEN_SYNC_FIFO_G          => false,
+         ALTERA_SYN_G             => false,
+         ALTERA_RAM_G             => "M9K",
+         ADDR_LSB_G               => 0,
+         ID_FIXED_EN_G            => false,
+         SIZE_FIXED_EN_G          => false,
+         BURST_FIXED_EN_G         => false,
+         LEN_FIXED_EN_G           => false,
+         LOCK_FIXED_EN_G          => false,
+         PROT_FIXED_EN_G          => false,
+         CACHE_FIXED_EN_G         => false,
+         ADDR_BRAM_EN_G           => true,
+         ADDR_CASCADE_SIZE_G      => 1,
+         ADDR_FIFO_ADDR_WIDTH_G   => 9,
+         DATA_BRAM_EN_G           => true,
+         DATA_CASCADE_SIZE_G      => 1,
+         DATA_FIFO_ADDR_WIDTH_G   => 9,
+         DATA_FIFO_PAUSE_THRESH_G => 400,
+         RESP_BRAM_EN_G           =>true,
+         RESP_CASCADE_SIZE_G      => 1,
+         RESP_FIFO_ADDR_WIDTH_G   => 9,
+         AXI_CONFIG_G             => AXI_CONFIG_C
+      ) port map (
+         sAxiClk         => axiClk,
+         sAxiRst         => axiClkRst,
+         sAxiWriteMaster => slvAxiWriteMaster,
+         sAxiWriteSlave  => slvAxiWriteSlave,
+         sAxiCtrl        => slvAxiWriteCtrl,
+         mAxiClk         => axiClk,
+         mAxiRst         => axiClkRst,
+         mAxiWriteMaster => simAxiWriteMaster,
+         mAxiWriteSlave  => simAxiWriteSlave
+      );
+
+   --simAxiWriteMaster <= slvAxiWriteMaster;
+   --slvAxiWriteSlave  <= simAxiWriteSlave;
+   --slvAxiWriteCtrl   <= AXI_CTRL_UNUSED_C;
+
+
+
+   U_AxiReadPathFifo: entity work.AxiReadPathFifo 
+      generic map (
+         TPD_G                    => 1 ns,
+         RST_ASYNC_G              => false,
+         XIL_DEVICE_G             => "7SERIES",
+         USE_BUILT_IN_G           => false,
+         GEN_SYNC_FIFO_G          => false,
+         ALTERA_SYN_G             => false,
+         ALTERA_RAM_G             => "M9K",
+         ADDR_LSB_G               => 0,
+         ID_FIXED_EN_G            => false,
+         SIZE_FIXED_EN_G          => false,
+         BURST_FIXED_EN_G         => false,
+         LEN_FIXED_EN_G           => false,
+         LOCK_FIXED_EN_G          => false,
+         PROT_FIXED_EN_G          => false,
+         CACHE_FIXED_EN_G         => false,
+         ADDR_BRAM_EN_G           => true,
+         ADDR_CASCADE_SIZE_G      => 1,
+         ADDR_FIFO_ADDR_WIDTH_G   => 9,
+         DATA_BRAM_EN_G           => true,
+         DATA_CASCADE_SIZE_G      => 1,
+         DATA_FIFO_ADDR_WIDTH_G   => 9,
+         AXI_CONFIG_G             => AXI_CONFIG_C
+      ) port map (
+         sAxiClk        => axiClk,
+         sAxiRst        => axiClkRst,
+         sAxiReadMaster => slvAxiReadMaster,
+         sAxiReadSlave  => slvAxiReadSlave,
+         mAxiClk        => axiClk,
+         mAxiRst        => axiClkRst,
+         mAxiReadMaster => simAxiReadMaster,
+         mAxiReadSlave  => simAxiReadSlave
+      );
+
    U_AxiSlaveSim: entity work.AxiSimSlaveWrap 
       generic map (
          TPD_G      => 1 ns,
          SLAVE_ID_G => 2
       ) port map (
          axiClk             => axiClk,
-         slvAxiReadMaster   => slvAxiReadMaster,
-         slvAxiReadSlave    => slvAxiReadSlave,
-         slvAxiWriteMaster  => slvAxiWriteMaster,
-         slvAxiWriteSlave   => slvAxiWriteSlave
+         slvAxiReadMaster   => simAxiReadMaster,
+         slvAxiReadSlave    => simAxiReadSlave,
+         slvAxiWriteMaster  => simAxiWriteMaster,
+         slvAxiWriteSlave   => simAxiWriteSlave
       );
 
 end dma_tb;
