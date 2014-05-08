@@ -23,88 +23,88 @@ void AxiSimMasterInit(vhpiHandleT compInst) {
    portData->portCount = 40;
 
    // Set port directions
-   portData->portDir[axiClk]     = vhpiIn;
-   portData->portDir[masterId]   = vhpiIn;
-   portData->portDir[arvalid]    = vhpiOut;
-   portData->portDir[arready]    = vhpiIn;
-   portData->portDir[araddr]     = vhpiOut;
-   portData->portDir[arid]       = vhpiOut;
-   portData->portDir[arlen]      = vhpiOut;
-   portData->portDir[arsize]     = vhpiOut;
-   portData->portDir[arburst]    = vhpiOut;
-   portData->portDir[arlock]     = vhpiOut;
-   portData->portDir[arprot]     = vhpiOut;
-   portData->portDir[arcache]    = vhpiOut;
-   portData->portDir[rready]     = vhpiOut;
-   portData->portDir[rdataH]     = vhpiIn;
-   portData->portDir[rdataL]     = vhpiIn;
-   portData->portDir[rlast]      = vhpiIn;
-   portData->portDir[rvalid]     = vhpiIn;
-   portData->portDir[rid]        = vhpiIn;
-   portData->portDir[rresp]      = vhpiIn;
-   portData->portDir[awvalid]    = vhpiOut;
-   portData->portDir[awready]    = vhpiIn;
-   portData->portDir[awaddr]     = vhpiOut;
-   portData->portDir[awid]       = vhpiOut;
-   portData->portDir[awlen]      = vhpiOut;
-   portData->portDir[awsize]     = vhpiOut;
-   portData->portDir[awburst]    = vhpiOut;
-   portData->portDir[awlock]     = vhpiOut;
-   portData->portDir[awcache]    = vhpiOut;
-   portData->portDir[awprot]     = vhpiOut;
-   portData->portDir[wready]     = vhpiIn;
-   portData->portDir[wdataH]     = vhpiOut;
-   portData->portDir[wdataL]     = vhpiOut;
-   portData->portDir[wlast]      = vhpiOut;
-   portData->portDir[wvalid]     = vhpiOut;
-   portData->portDir[wid]        = vhpiOut;
-   portData->portDir[wstrb]      = vhpiOut;
-   portData->portDir[bready]     = vhpiOut;
-   portData->portDir[bresp]      = vhpiIn;
-   portData->portDir[bvalid]     = vhpiIn;
-   portData->portDir[bid]        = vhpiIn;
+   portData->portDir[s_axiClk]     = vhpiIn;
+   portData->portDir[s_masterId]   = vhpiIn;
+   portData->portDir[s_arvalid]    = vhpiOut;
+   portData->portDir[s_arready]    = vhpiIn;
+   portData->portDir[s_araddr]     = vhpiOut;
+   portData->portDir[s_arid]       = vhpiOut;
+   portData->portDir[s_arlen]      = vhpiOut;
+   portData->portDir[s_arsize]     = vhpiOut;
+   portData->portDir[s_arburst]    = vhpiOut;
+   portData->portDir[s_arlock]     = vhpiOut;
+   portData->portDir[s_arprot]     = vhpiOut;
+   portData->portDir[s_arcache]    = vhpiOut;
+   portData->portDir[s_rready]     = vhpiOut;
+   portData->portDir[s_rdataH]     = vhpiIn;
+   portData->portDir[s_rdataL]     = vhpiIn;
+   portData->portDir[s_rlast]      = vhpiIn;
+   portData->portDir[s_rvalid]     = vhpiIn;
+   portData->portDir[s_rid]        = vhpiIn;
+   portData->portDir[s_rresp]      = vhpiIn;
+   portData->portDir[s_awvalid]    = vhpiOut;
+   portData->portDir[s_awready]    = vhpiIn;
+   portData->portDir[s_awaddr]     = vhpiOut;
+   portData->portDir[s_awid]       = vhpiOut;
+   portData->portDir[s_awlen]      = vhpiOut;
+   portData->portDir[s_awsize]     = vhpiOut;
+   portData->portDir[s_awburst]    = vhpiOut;
+   portData->portDir[s_awlock]     = vhpiOut;
+   portData->portDir[s_awcache]    = vhpiOut;
+   portData->portDir[s_awprot]     = vhpiOut;
+   portData->portDir[s_wready]     = vhpiIn;
+   portData->portDir[s_wdataH]     = vhpiOut;
+   portData->portDir[s_wdataL]     = vhpiOut;
+   portData->portDir[s_wlast]      = vhpiOut;
+   portData->portDir[s_wvalid]     = vhpiOut;
+   portData->portDir[s_wid]        = vhpiOut;
+   portData->portDir[s_wstrb]      = vhpiOut;
+   portData->portDir[s_bready]     = vhpiOut;
+   portData->portDir[s_bresp]      = vhpiIn;
+   portData->portDir[s_bvalid]     = vhpiIn;
+   portData->portDir[s_bid]        = vhpiIn;
 
    // Set port and widths
-   portData->portWidth[axiClk]     = 1;
-   portData->portWidth[masterId]   = 8;
-   portData->portWidth[arvalid]    = 1;
-   portData->portWidth[arready]    = 1;
-   portData->portWidth[araddr]     = 32;
-   portData->portWidth[arid]       = 12;
-   portData->portWidth[arlen]      = 4;
-   portData->portWidth[arsize]     = 3;
-   portData->portWidth[arburst]    = 2;
-   portData->portWidth[arlock]     = 2;
-   portData->portWidth[arprot]     = 3;
-   portData->portWidth[arcache]    = 4;
-   portData->portWidth[rready]     = 1;
-   portData->portWidth[rdataH]     = 32;
-   portData->portWidth[rdataL]     = 32;
-   portData->portWidth[rlast]      = 1;
-   portData->portWidth[rvalid]     = 1;
-   portData->portWidth[rid]        = 12;
-   portData->portWidth[rresp]      = 2;
-   portData->portWidth[awvalid]    = 1;
-   portData->portWidth[awready]    = 1;
-   portData->portWidth[awaddr]     = 32;
-   portData->portWidth[awid]       = 12;
-   portData->portWidth[awlen]      = 4;
-   portData->portWidth[awsize]     = 3;
-   portData->portWidth[awburst]    = 2;
-   portData->portWidth[awlock]     = 2;
-   portData->portWidth[awcache]    = 4;
-   portData->portWidth[awprot]     = 3;
-   portData->portWidth[wready]     = 1;
-   portData->portWidth[wdataH]     = 32;
-   portData->portWidth[wdataL]     = 32;
-   portData->portWidth[wlast]      = 1;
-   portData->portWidth[wvalid]     = 1;
-   portData->portWidth[wid]        = 12;
-   portData->portWidth[wstrb]      = 8;
-   portData->portWidth[bready]     = 1;
-   portData->portWidth[bresp]      = 2;
-   portData->portWidth[bvalid]     = 1;
-   portData->portWidth[bid]        = 12;
+   portData->portWidth[s_axiClk]     = 1;
+   portData->portWidth[s_masterId]   = 8;
+   portData->portWidth[s_arvalid]    = 1;
+   portData->portWidth[s_arready]    = 1;
+   portData->portWidth[s_araddr]     = 32;
+   portData->portWidth[s_arid]       = 12;
+   portData->portWidth[s_arlen]      = 4;
+   portData->portWidth[s_arsize]     = 3;
+   portData->portWidth[s_arburst]    = 2;
+   portData->portWidth[s_arlock]     = 2;
+   portData->portWidth[s_arprot]     = 3;
+   portData->portWidth[s_arcache]    = 4;
+   portData->portWidth[s_rready]     = 1;
+   portData->portWidth[s_rdataH]     = 32;
+   portData->portWidth[s_rdataL]     = 32;
+   portData->portWidth[s_rlast]      = 1;
+   portData->portWidth[s_rvalid]     = 1;
+   portData->portWidth[s_rid]        = 12;
+   portData->portWidth[s_rresp]      = 2;
+   portData->portWidth[s_awvalid]    = 1;
+   portData->portWidth[s_awready]    = 1;
+   portData->portWidth[s_awaddr]     = 32;
+   portData->portWidth[s_awid]       = 12;
+   portData->portWidth[s_awlen]      = 4;
+   portData->portWidth[s_awsize]     = 3;
+   portData->portWidth[s_awburst]    = 2;
+   portData->portWidth[s_awlock]     = 2;
+   portData->portWidth[s_awcache]    = 4;
+   portData->portWidth[s_awprot]     = 3;
+   portData->portWidth[s_wready]     = 1;
+   portData->portWidth[s_wdataH]     = 32;
+   portData->portWidth[s_wdataL]     = 32;
+   portData->portWidth[s_wlast]      = 1;
+   portData->portWidth[s_wvalid]     = 1;
+   portData->portWidth[s_wid]        = 12;
+   portData->portWidth[s_wstrb]      = 8;
+   portData->portWidth[s_bready]     = 1;
+   portData->portWidth[s_bresp]      = 2;
+   portData->portWidth[s_bvalid]     = 1;
+   portData->portWidth[s_bid]        = 12;
 
    // Create data structure to hold state
    portData->stateData = asPtr;
@@ -113,8 +113,13 @@ void AxiSimMasterInit(vhpiHandleT compInst) {
    portData->stateUpdate = *AxiSimMasterUpdate;
 
    // Init data structure
-   asPtr->currClk = 0;
-   asPtr->smem = NULL;
+   asPtr->currClk       = 0;
+   asPtr->smem          = NULL;
+   asPtr->writeAddrBusy = 0;
+   asPtr->writeDataBusy = 0;
+   asPtr->writeCompBusy = 0;
+   asPtr->readAddrBusy  = 0;
+   asPtr->readDataBusy  = 0;
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -124,6 +129,11 @@ void AxiSimMasterInit(vhpiHandleT compInst) {
 
 // User function to update state based upon a signal change
 void AxiSimMasterUpdate ( void *userPtr ) {
+   AxiWriteAddr writeAddr;
+   AxiWriteData writeData;
+   AxiWriteComp writeComp;
+   AxiReadAddr  readAddr;
+   AxiReadData  readData;
 
    portDataT *portData     = (portDataT*) userPtr;
    AxiSimMasterData *asPtr = (AxiSimMasterData*)(portData->stateData);
@@ -132,7 +142,7 @@ void AxiSimMasterUpdate ( void *userPtr ) {
    if ( asPtr->smem == NULL ) {
 
       // Get ID
-      uint id = getInt(masterId);
+      uint id = getInt(s_masterId);
       asPtr->smem = sim_open(SYS,id,-1);
 
       if ( asPtr->smem != NULL ) vhpi_printf("AxiSimMaster: Opened shared memory. System=%s, Id=%i\n",SYS,id);
@@ -140,15 +150,149 @@ void AxiSimMasterUpdate ( void *userPtr ) {
    }
 
    // Detect clock edge
-   if ( asPtr->currClk != getInt(axiClk) ) {
-      asPtr->currClk = getInt(axiClk);
+   if ( asPtr->currClk != getInt(s_axiClk) ) {
+      asPtr->currClk = getInt(s_axiClk);
 
       // Rising edge
       if ( asPtr->currClk ) {
+         incrClkCnt(asPtr->smem);
 
+         //---------------------------------
+         // Write Address
+         //---------------------------------
 
+         // Wait for ready
+         if ( asPtr->writeAddrBusy ) {
 
+            // ready is asserted
+            if ( getInt(s_awready) == 1 ) {
+               asPtr->writeAddrBusy = 0;
+               setInt(s_awvalid,0);
+            }
+         }
 
+         // Ready for next transaction
+         else {
+
+            // Software has posted a transaction
+            if ( getWriteAddr(asPtr->smem,&writeAddr) ) {
+               setInt(s_awvalid,1);
+               setInt(s_awaddr,writeAddr.awaddr);
+               setInt(s_awid,writeAddr.awid);
+               setInt(s_awlen,writeAddr.awlen);
+               setInt(s_awsize,writeAddr.awsize);
+               setInt(s_awburst,writeAddr.awburst);
+               setInt(s_awlock,writeAddr.awlock);
+               setInt(s_awcache,writeAddr.awcache);
+               setInt(s_awprot,writeAddr.awprot);
+               asPtr->writeAddrBusy = 1;
+            }
+         }
+
+         //---------------------------------
+         // Write Data
+         //---------------------------------
+
+         // Wait for ready
+         if ( asPtr->writeDataBusy ) {
+
+            // ready is asserted
+            if ( getInt(s_wready) == 1 ) {
+               asPtr->writeDataBusy = 0;
+               setInt(s_wvalid,0);
+            }
+         }
+
+         // Ready for next transaction
+         else {
+
+            // Software has posted a transaction
+            if ( getWriteData(asPtr->smem,&writeData) ) {
+               setInt(s_wvalid,1);
+               setInt(s_wdataH,writeData.wdataH);
+               setInt(s_wdataL,writeData.wdataL);
+               setInt(s_wlast,writeData.wlast);
+               setInt(s_wid,writeData.wid);
+               setInt(s_wstrb,writeData.wstrb);
+               asPtr->writeDataBusy = 1;
+            }
+         }
+
+         //---------------------------------
+         // Write Completion
+         //---------------------------------
+
+         // Valid is asserted
+         if ( !asPtr->writeCompBusy && getInt(s_bvalid) == 1 ) {
+            writeComp.bresp = getInt(s_bresp);
+            writeComp.bid   = getInt(s_bid);
+            setWriteComp(asPtr->smem,&writeComp);
+            asPtr->writeCompBusy = 1;
+         }
+
+         //---------------------------------
+         // Read Address
+         //---------------------------------
+
+         // Wait for ready
+         if ( asPtr->readAddrBusy ) {
+
+            // ready is asserted
+            if ( getInt(s_arready) == 1 ) {
+               asPtr->readAddrBusy = 0;
+               setInt(s_arvalid,0);
+            }
+         }
+
+         // Ready for next transaction
+         else {
+
+            // Software has posted a transaction
+            if ( getReadAddr(asPtr->smem,&readAddr) ) {
+               setInt(s_arvalid,1);
+               setInt(s_araddr,readAddr.araddr);
+               setInt(s_arid,readAddr.arid);
+               setInt(s_arlen,readAddr.arlen);
+               setInt(s_arsize,readAddr.arsize);
+               setInt(s_arburst,readAddr.arburst);
+               setInt(s_arlock,readAddr.arlock);
+               setInt(s_arprot,readAddr.arprot);
+               setInt(s_arcache,readAddr.arcache);
+               asPtr->readAddrBusy = 1;
+            }
+         }
+
+         //---------------------------------
+         // Read Data
+         //---------------------------------
+
+         // Valid is asserted
+         if ( !asPtr->readDataBusy && getInt(s_rvalid) == 1 ) {
+            readData.rdataH = getInt(s_rdataH);
+            readData.rdataL = getInt(s_rdataL);
+            readData.rlast  = getInt(s_rlast);
+            readData.rid    = getInt(s_rid);
+            readData.rresp  = getInt(s_rresp);
+            setReadData(asPtr->smem,&readData);
+            asPtr->readDataBusy = 1;
+         }
+
+         //---------------------------------
+         // Handshaking
+         //---------------------------------
+         usleep(1000);
+
+         if ( readyWriteComp(asPtr->smem) ) {
+            setInt(s_bready,1);
+            asPtr->writeCompBusy = 0;
+         }
+         else setInt(s_bready,0);
+
+         if ( readyReadData(asPtr->smem)  ) {
+            setInt(s_rready,1);
+            asPtr->readDataBusy = 0;
+         }
+         else setInt(s_rready,0);
       }
    }
 }

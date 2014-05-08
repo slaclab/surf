@@ -36,8 +36,7 @@ entity AxiStreamDmaRead is
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G      : slv(1 downto 0)     := "01";
-      AXI_CACHE_G      : slv(3 downto 0)     := "1111";
-      AXI_ALIGN_G      : boolean             := true
+      AXI_CACHE_G      : slv(3 downto 0)     := "1111"
    );
    port (
 
@@ -62,9 +61,8 @@ end AxiStreamDmaRead;
 
 architecture structure of AxiStreamDmaRead is
 
-   constant DATA_BYTES_C : integer := ite(AXIS_CONFIG_G.TDATA_BYTES_C < AXI_CONFIG_G.DATA_BYTES_C,
-                                          AXIS_CONFIG_G.TDATA_BYTES_C,
-                                          AXI_CONFIG_G.DATA_BYTES_C);
+   constant DATA_BYTES_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant ADDR_LSB_C   : integer := bitSize(DATA_BYTES_C-1);
 
    type StateType is (S_IDLE_C, S_SHIFT_C, S_FIRST_C, S_NEXT_C, S_DATA_C, S_LAST_C, S_DONE_C);
 
@@ -101,9 +99,12 @@ architecture structure of AxiStreamDmaRead is
 
 begin
 
+   assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
+      report "AXIS and AXI must have equal data widths" severity failure;
+
    -- Determine handshaking mode
-   selReady <= axisSlave.tReady when AXIS_READY_EN_G else '1';
-   selPause <= '0'              when AXIS_READY_EN_G else axisCtrl.pause;
+   selReady <= intAxisSlave.tReady when AXIS_READY_EN_G else '1';
+   selPause <= '0'                 when AXIS_READY_EN_G else axisCtrl.pause;
 
    comb : process (axiRst, r, intAxisSlave, axiReadSlave, dmaReq, selReady, selPause ) is
       variable v     : RegType;
@@ -127,15 +128,15 @@ begin
          when S_IDLE_C =>
             v.rMaster  := AXI_READ_MASTER_INIT_C;
             v.sMaster  := AXI_STREAM_MASTER_INIT_C;
-            v.shift    := (others=>'0');
             v.last     := '0';
-
-            v.dmaAck                     := AXI_READ_DMA_ACK_INIT_C;
-            v.dmaReq                     := dmaReq;
-            v.dmaReq.address(2 downto 0) := "000";
-
-            if AXI_ALIGN_G then
-               v.shift := '0' & dmaReq.address(2 downto 0);
+            v.dmaAck   := AXI_READ_DMA_ACK_INIT_C;
+            v.dmaReq   := dmaReq;
+            v.shift    := (others=>'0');
+   
+            -- Align shift and address to transfer size
+            if DATA_BYTES_C /= 1 then
+               v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others=>'0');
+               v.shift(ADDR_LSB_C-1 downto 0)          := dmaReq.address(ADDR_LSB_C-1 downto 0);
             end if;
 
             -- Start 
@@ -146,12 +147,12 @@ begin
 
          -- First
          when S_FIRST_C =>
-            v.first := '1';
-
-            -- Determine transfer size to align all transfers to 128 byte boundaries
-            -- This initial alignment will ensure that we never cross a 4k boundary
+            v.first          := '1';
             v.rMaster.araddr := r.dmaReq.address;
-            v.rMaster.arlen  := x"F" - r.dmaReq.address(6 downto 3);
+
+            -- Determine transfer size to align address to 16-transfer boundaries
+            -- This initial alignment will ensure that we never cross a 4k boundary
+            v.rMaster.arlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
             -- There is enough room in the FIFO for a burst and address is ready
             if selPause = '0' and axiReadSlave.arready = '1' then
@@ -173,33 +174,27 @@ begin
          -- Move Data
          when S_DATA_C =>
 
-            -- Assert ready when incoming is ready or we are done
-            v.rMaster.rready := intAxisSlave.tReady or r.last;
+            -- Ready and valid
+            if selReady = '1' or r.sMaster.tValid = '0' then
+               v.sMaster.tValid := axiReadSlave.rvalid and (not r.last);
+               v.rMaster.rready := '1';
+            else
+               v.rMaster.rready := '0';
+            end if;
 
-            -- Advance pipeline when incoming data is valid and outbound is ready
-            -- or we have not yet asserted valid. Always shift after we have read full frame
-            if r.last = '1' or (axiReadSlave.rvalid = '1' and (selReady = '1' or r.sMaster.tValid = '0')) then
+            -- Advance pipeline
+            if (selReady = '1' or r.last = '1' or r.sMaster.tValid = '0') and axiReadSlave.rvalid = '1' then
                v.sMaster.tUser  := (others=>'0');
                v.sMaster.tStrb  := (others=>'1');
                v.sMaster.tKeep  := (others=>'1');
-               v.sMaster.tLast  := '0';
                v.sMaster.tDest  := r.dmaReq.dest;
                v.sMaster.tId    := r.dmareq.id;
-
-               -- If we have already sent out last value, clear valid when ready is asserted
-               if r.last = '1' then
-                  if selReady = '1' then
-                     v.sMaster.tValid := '0';
-                  end if;
-               else
-                  v.sMaster.tValid := axiReadSlave.rvalid;
-               end if;
 
                -- Setup data
                v.sMaster.tData((DATA_BYTES_C*8)-1 downto 0) := axiReadSlave.rdata((DATA_BYTES_C*8)-1 downto 0);
 
                -- Address
-               v.dmaReq.address := r.dmaReq.address + 8;
+               v.dmaReq.address := r.dmaReq.address + DATA_BYTES_C;
 
                -- First transfer, set user field
                if r.first = '1' then
@@ -209,20 +204,22 @@ begin
                v.first := '0';
 
                -- Last transfer
-               if r.dmaReq.size < 8  then
+               if r.dmaReq.size <= DATA_BYTES_C then
                   v.last          := '1';
                   v.sMaster.tLast := '1';
 
-                  -- Clear unused keep bits
-                  if r.shift /= 0 then
-                     v.sMaster.tKeep(conv_integer(r.shift)-1 downto 0) := (others=>'0');
+                  -- Adjust keep and strobe
+                  if r.dmaReq.size /= DATA_BYTES_C then
+                     v.sMaster.tKeep(DATA_BYTES_C downto conv_integer(r.dmaReq.size)) := (others=>'0');
+                     v.sMaster.tStrb(DATA_BYTES_C downto conv_integer(r.dmaReq.size)) := (others=>'0');
                   end if;
 
                   -- Set user field, last position
                   axiStreamSetUserField (AXIS_CONFIG_G,v.sMaster,r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
 
                else
-                  v.dmaReq.size := r.dmaReq.size - ite(r.first='1',(x"8"-r.shift),x"8");
+                  v.dmaReq.size := r.dmaReq.size - ite(r.first='1',(conv_std_logic_vector(DATA_BYTES_C,4)-r.shift),
+                                                                    conv_std_logic_vector(DATA_BYTES_C,4));
                end if;
 
                -- Last in transfer
@@ -237,11 +234,13 @@ begin
          when S_LAST_C =>
             if selReady = '1' or r.sMaster.tValid = '0' then
                if r.last = '1' then
-                  v.state := S_DONE_C;
+                  v.state       := S_DONE_C;
+                  v.dmaAck.done := '1';
                else
                   v.state := S_NEXT_C;
                end if;
                v.sMaster.tValid := '0';
+               v.sMaster.tLast  := '0';
             end if;
 
          -- Done
@@ -269,9 +268,10 @@ begin
 
       rin <= v;
 
-      dmaAck        <= r.dmaAck;
-      intAxisMaster <= v.sMaster;
-      axiReadMaster <= r.rMaster;
+      dmaAck               <= r.dmaAck;
+      intAxisMaster        <= r.sMaster;
+      axiReadMaster        <= r.rMaster;
+      axiReadMaster.rready <= v.rMaster.rready;
 
    end process comb;
 

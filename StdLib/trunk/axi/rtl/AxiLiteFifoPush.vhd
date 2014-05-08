@@ -90,7 +90,7 @@ begin
    -----------------------------------------
    -- FIFOs
    -----------------------------------------
-   U_GenFifo : for i in 0 to PUSH_FIFO_COUNT_G generate
+   U_GenFifo : for i in 0 to PUSH_FIFO_COUNT_G-1 generate
       U_FIfo : entity work.FifoCascade 
          generic map (
             TPD_G              => TPD_G,
@@ -107,7 +107,7 @@ begin
             USE_BUILT_IN_G     => USE_BUILT_IN_G,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
-            DATA_WIDTH_G       => 32,
+            DATA_WIDTH_G       => 36,
             ADDR_WIDTH_G       => PUSH_ADDR_WIDTH_G,
             INIT_G             => "0",
             FULL_THRES_G       => 1,
@@ -170,7 +170,7 @@ begin
          v.pushFifoDin(31 downto  0) := axiWriteMaster.wdata;
          v.pushFifoDin(35 downto 32) := axiWriteMaster.awaddr(5 downto 2);
 
-         v.pushFifoWrite(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+4 downto 5))) := '1';
+         v.pushFifoWrite(conv_integer(axiWriteMaster.awaddr(PUSH_SIZE_C+5 downto 6))) := '1';
 
          axiSlaveWriteResponse(v.axiWriteSlave);
       end if;
@@ -179,8 +179,8 @@ begin
       if (axiStatus.readEnable = '1') then
 
          v.axiReadSlave.rdata    := (others=>'0');
-         v.axiReadSlave.rdata(0) := pushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+4 downto 5)));
-         v.axiReadSlave.rdata(1) := pushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+4 downto 5)));
+         v.axiReadSlave.rdata(0) := pushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
+         v.axiReadSlave.rdata(1) := pushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
 
          -- Send Axi Response
          axiSlaveReadResponse(v.axiReadSlave);

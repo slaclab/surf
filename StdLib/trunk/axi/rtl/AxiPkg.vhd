@@ -251,8 +251,10 @@ package AxiPkg is
    constant AXI_CTRL_INIT_C : AxiCtrlType := (
       pause    => '1');
 
-   type AxiCtrlArray is array (natural range<>) of AxiCtrlType;
+   constant AXI_CTRL_UNUSED_C : AxiCtrlType := (
+      pause    => '0');
 
+   type AxiCtrlArray is array (natural range<>) of AxiCtrlType;
 
    --------------------------------------------------------
    -- AXI bus configuration

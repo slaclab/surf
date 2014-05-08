@@ -36,8 +36,7 @@ entity AxiStreamDmaWrite is
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G      : slv(1 downto 0)     := "01";
-      AXI_CACHE_G      : slv(3 downto 0)     := "1111";
-      AXI_ALIGN_G      : boolean             := true
+      AXI_CACHE_G      : slv(3 downto 0)     := "1111"
    );
    port (
 
@@ -62,9 +61,8 @@ end AxiStreamDmaWrite;
 
 architecture structure of AxiStreamDmaWrite is
 
-   constant DATA_BYTES_C : integer := ite(AXIS_CONFIG_G.TDATA_BYTES_C < AXI_CONFIG_G.DATA_BYTES_C,
-                                          AXIS_CONFIG_G.TDATA_BYTES_C,
-                                          AXI_CONFIG_G.DATA_BYTES_C);
+   constant DATA_BYTES_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant ADDR_LSB_C   : integer := bitSize(DATA_BYTES_C-1);
 
    type StateType is (S_IDLE_C, S_FIRST_C, S_NEXT_C, S_DATA_C, S_LAST_C, S_DUMP_C, S_WAIT_C, S_DONE_C);
 
@@ -103,6 +101,9 @@ architecture structure of AxiStreamDmaWrite is
 
 begin
 
+   assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
+      report "AXIS and AXI must have equal data widths" severity failure;
+
    -- Stream Shifter
    U_AxiStreamShift : entity work.AxiStreamShift
       generic map (
@@ -137,7 +138,7 @@ begin
       v.shiftEn         := '0';
 
       -- Count number of bytes in return data
-      bytes := onesCount(intAxisMaster.tKeep);
+      bytes := onesCount(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
 
       -- Count acks
       if axiWriteSlave.bvalid = '1' then
@@ -159,13 +160,13 @@ begin
             v.ackCount := (others=>'0');
             v.shift    := (others=>'0');
             v.last     := '0';
-
-            v.dmaAck                     := AXI_WRITE_DMA_ACK_INIT_C;
-            v.dmaReq                     := dmaReq;
-            v.dmaReq.address(2 downto 0) := "000";
-
-            if AXI_ALIGN_G then
-               v.shift := '0' & dmaReq.address(2 downto 0);
+            v.dmaAck   := AXI_WRITE_DMA_ACK_INIT_C;
+            v.dmaReq   := dmaReq;
+   
+            -- Align shift and address to transfer size
+            if DATA_BYTES_C /= 1 then
+               v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others=>'0');
+               v.shift(ADDR_LSB_C-1 downto 0)          := dmaReq.address(ADDR_LSB_C-1 downto 0);
             end if;
 
             -- Start 
@@ -176,14 +177,14 @@ begin
 
          -- First
          when S_FIRST_C =>
-
-            -- Determine transfer size to align all transfers to 128 byte boundaries
-            -- This initial alignment will ensure that we never cross a 4k boundary
             v.wMaster.awaddr := r.dmaReq.address;
-            v.wMaster.awlen  := x"F" - r.dmaReq.address(6 downto 3);
+
+            -- Determine transfer size to align address to 16-transfer boundaries
+            -- This initial alignment will ensure that we never cross a 4k boundary
+            v.wMaster.awlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
             -- There is enough room in the FIFO for a burst and address is ready
-            if selPause = '0' and axiWriteSlave.awready = '1' then
+            if selPause = '0' and axiWriteSlave.awready = '1' and intAxisMaster.tValid = '1' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
@@ -204,18 +205,24 @@ begin
          -- Move Data
          when S_DATA_C =>
 
-            -- Assert ready when incoming is ready and we are not done
-            v.slave.tReady := selReady and (not r.last);
+            -- Ready and valid
+            if selReady = '1' or r.wMaster.wvalid = '0' then
+               v.wMaster.wvalid := intAxisMaster.tValid or r.last;
+               v.slave.tReady   := (not r.last);
+            else
+               v.slave.tReady := '0';
+            end if;
 
             -- Advance pipeline when incoming data is valid and outbound is ready
             -- or we have not yet asserted valid
-            if intAxisMaster.tValid = '1' and (selReady = '1' or r.wMaster.wvalid = '0') then
+            if (intAxisMaster.tValid = '1' or r.last = '1') and (selReady = '1' or r.wMaster.wvalid = '0') then
                v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
-               v.wMaster.wvalid := intAxisMaster.tValid;
 
                -- Address and size increment
-               v.dmaReq.address := r.dmaReq.address + 8;
-               v.dmaAck.size    := r.dmaAck.size + bytes;
+               v.dmaReq.address := r.dmaReq.address + DATA_BYTES_C;
+               if r.last = '0' then
+                  v.dmaAck.size := r.dmaAck.size + bytes;
+               end if;
 
                -- First in packet
                if r.dmaAck.size = 0 then
@@ -247,7 +254,7 @@ begin
                if r.dmaAck.overflow = '1' or bytes > r.dmaReq.maxSize then
                   v.dmaAck.overflow := '1';
                   v.wMaster.wstrb   := (others=>'0');
-               else
+               elsif r.last = '0' then
                   v.dmaReq.maxSize := r.dmaReq.maxSize - bytes;
                end if;
 
