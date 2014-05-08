@@ -325,20 +325,20 @@ architecture rtl of AxiWritePathFifo is
    end procedure;
 
    signal addrFifoWrite    : sl;
-   signal addrFifoDin      : slv(ADDR_BITS_C-1 downto 0);
-   signal addrFifoDout     : slv(ADDR_BITS_C-1 downto 0);
+   signal addrFifoDin      : slv(ADDR_FIFO_SIZE_C-1 downto 0);
+   signal addrFifoDout     : slv(ADDR_FIFO_SIZE_C-1 downto 0);
    signal addrFifoValid    : sl;
    signal addrFifoAFull    : sl;
    signal addrFifoRead     : sl;
    signal dataFifoWrite    : sl;
-   signal dataFifoDin      : slv(ADDR_BITS_C-1 downto 0);
-   signal dataFifoDout     : slv(ADDR_BITS_C-1 downto 0);
+   signal dataFifoDin      : slv(DATA_FIFO_SIZE_C-1 downto 0);
+   signal dataFifoDout     : slv(DATA_FIFO_SIZE_C-1 downto 0);
    signal dataFifoValid    : sl;
    signal dataFifoAFull    : sl;
    signal dataFifoRead     : sl;
    signal respFifoWrite    : sl;
-   signal respFifoDin      : slv(ADDR_BITS_C-1 downto 0);
-   signal respFifoDout     : slv(ADDR_BITS_C-1 downto 0);
+   signal respFifoDin      : slv(RESP_FIFO_SIZE_C-1 downto 0);
+   signal respFifoDout     : slv(RESP_FIFO_SIZE_C-1 downto 0);
    signal respFifoValid    : sl;
    signal respFifoAFull    : sl;
    signal respFifoRead     : sl;
@@ -498,6 +498,12 @@ begin
    respFifoDin   <= respToSlv(mAxiWriteSlave);
    respFifoWrite <= mAxiWriteSlave.bvalid and (not respFifoAFull);
 
+   -------------------------
+   -- Fifo Reads
+   -------------------------
+   addrFifoRead <= mAxiWriteSlave.awready and addrFifoValid;
+   dataFifoRead <= mAxiWriteSlave.wready and dataFifoValid;
+   respFifoRead <= sAxiWriteMaster.bready and respFifoValid;
 
    -------------------------
    -- Fifo Outputs

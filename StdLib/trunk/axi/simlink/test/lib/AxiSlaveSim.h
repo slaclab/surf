@@ -28,14 +28,20 @@ class AxiSlaveSim  {
       // Run Enable
       bool _runEnable;
 
+      // Verbose
+      bool _verbose;
+
    public:
 
       AxiSlaveSim (unsigned char *memSpace, uint memSize);
 
       ~AxiSlaveSim ();
 
+      // set verbose
+      void setVerbose(bool v);
+
       // Open the port
-      bool open (char *system, uint id, int uid);
+      bool open (const char *system, uint id, int uid);
 
       // Close the port
       void close ();

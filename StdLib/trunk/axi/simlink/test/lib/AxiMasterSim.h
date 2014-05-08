@@ -22,13 +22,15 @@ class AxiMasterSim  {
       uint _readAck;
       uint _readAddr;
       uint _readData;
-      uint _readQuiet;
 
       // Write tracking
       uint _writeReq;
       uint _writeAck;
       uint _writeAddr;
       uint _writeData;
+
+      // Verbose
+      bool _verbose;
 
       // Static Thread routines
       void run();
@@ -41,8 +43,11 @@ class AxiMasterSim  {
       AxiMasterSim ();
       ~AxiMasterSim ();
 
+      // set verbose
+      void setVerbose(bool v);
+
       // Open the port
-      bool open (char *system, uint id, int uid);
+      bool open (const char *system, uint id, int uid);
 
       // Close the port
       void close ();
@@ -51,7 +56,7 @@ class AxiMasterSim  {
       void write(uint address, uint value);
 
       // Read a value
-      uint read(uint address, uint quiet=0);
+      uint read(uint address);
 
 };
 

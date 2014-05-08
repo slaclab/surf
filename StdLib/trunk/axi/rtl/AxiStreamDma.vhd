@@ -483,7 +483,6 @@ begin
                if pushFifoDout(OB_FIFO_C)(35 downto 32) = 3 then
                   v.popFifoDin    := "1" & pushFifoDout(OB_FIFO_C)(30 downto 0);
                   v.popFifoWrite  := '1';
-                  v.state         := S_IDLE_C;
 
                elsif pushFifoDout(OB_FIFO_C)(35 downto 32) = 0 then
                   v.state := S_FIFO_0_C;
@@ -523,7 +522,7 @@ begin
          when S_WAIT_C =>
             if obAck.done = '1' then
                v.obReq.request := '0';
-               v.popFifoDin    := ob.obReq.address(30 downto 0) & "0";
+               v.popFifoDin    := "1" & ob.obReq.address(30 downto 0);
                v.popFifoWrite  := '1';
                v.state         := S_IDLE_C;
             end if;

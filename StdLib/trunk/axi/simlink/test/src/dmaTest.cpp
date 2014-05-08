@@ -63,6 +63,9 @@ int main(int argc, char **argv) {
       return 1;
    }
 
+   master->setVerbose(0);
+   slave->setVerbose(0);
+
    usleep(100);
    master->write(fifoClearAddr,0);
    master->write(maxRxSizeAddr,buffSize);
@@ -73,12 +76,15 @@ int main(int argc, char **argv) {
    for (x=0; x < loopCount; x++) {
       addr = (x * buffSize) + x;
       master->write(txPassAddr,addr);
-      printf("Post Tx Addr %x\n",addr);
+      printf("Create Tx Addr %x\n",addr);
 
       addr = (buffSize*(loopCount+1)) + (x * buffSize) + (loopCount-x);
       master->write(rxFreeAddr,addr);
-      printf("Post Rx Addr %x\n",addr);
+      printf("Create Rx Addr %x\n",addr);
    }
+
+   master->setVerbose(0);
+   slave->setVerbose(0);
 
    printf("Posting done. Start transmit\n");
 
@@ -86,17 +92,19 @@ int main(int argc, char **argv) {
    fUser = 0x73;
    dest  = 0x11;
 
-   for (size=128; size < 256; size++) {
+   for (size=120; size < 260; size++) {
       lUser++; lUser &= 0xFF;
       fUser++; fUser &= 0xFF;
       dest++;  dest  &= 0xFF;
 
       memset(mem,0,buffSize*buffCount);
 
+      printf("Transmit Size %i\n",size);
+
       // transmit frames
       for (x=0; x < loopCount; x++) {
          addr = master->read(txFreeAddr) & 0x7FFFFFFF;
-         for (y=0; y < size; y++) data[y]  = y;
+         for (y=0; y < size; y++) data[y] = y;
          memcpy(&(mem[addr]),data,size);
 
          master->write(txPostAddrA,addr);
@@ -106,72 +114,68 @@ int main(int argc, char **argv) {
          desc |= dest;
          master->write(txPostAddrC,desc);
       }
+      printf("Done\n");
 
-      printf("Transmit done. Start receive\n");
+      printf("Receive Size %i\n",size);
 
       // receive 4 frames
       for (x=0; x < loopCount; x++) {
 
          do {
-            desc = master->read(rxPendAddr,1);
+            desc = master->read(rxPendAddr);
          } while ( (desc & 0x80000000) == 0 );
 
          addr = desc & 0x7FFFFFFF;
 
          do {
-            desc = master->read(rxPendAddr,1);
+            desc = master->read(rxPendAddr);
          } while ( (desc & 0x80000000) == 0 );
 
          if ( size != (desc & 0x00FFFFFF) ) {
-            printf("Rx Size mismatch. Addr=%x, Got %i, Exp %i\n",addr,(desc&0x00FFFFFF),size);
+            printf("Rx Size mismatch. Size=%i, Loop=%i, Addr=%x, Got %i, Exp %i\n",size,x,addr,(desc&0x00FFFFFF),size);
             return 1;
          }
 
          do {
-            desc = master->read(rxPendAddr,1);
+            desc = master->read(rxPendAddr);
          } while ( (desc & 0x80000000) == 0 );
 
          if ( dest != (desc & 0xFF) ) {
-            printf("Rx dest mismatch. Addr=%x, Got %i, Exp %i\n",addr,(desc&0xFF),dest);
+            printf("Rx dest mismatch. Size=%i, Loop=%i, Addr=%x, Got %i, Exp %i\n",size,x,addr,(desc&0xFF),dest);
             return 1;
          }
 
          if ( fUser != ((desc >> 8) & 0xFF) ) {
-            printf("Rx fUser mismatch. Addr=%x, Got %i, Exp %i\n",addr,((desc>>8)&0xFF),fUser);
+            printf("Rx fUser mismatch. Size=%i, Loop=%i, Addr=%x, Got %i, Exp %i\n",size,x,addr,((desc>>8)&0xFF),fUser);
             return 1;
          }
 
          if ( lUser != ((desc >> 16) & 0xFF) ) {
-            printf("Rx lUser mismatch. Addr=%x, Got %i, Exp %i\n",addr,((desc>>16)&0xFF),lUser);
+            printf("Rx lUser mismatch. Size=%i, Loop=%i, Addr=%x, Got %i, Exp %i\n",size,x,addr,((desc>>16)&0xFF),lUser);
             return 1;
          }
 
          if ( desc & 0x02000000 ) {
-            printf("Rx overflow error. Addr=%x\n",addr);
+            printf("Rx overflow error. Size=%i, Loop=%i, Addr=%x\n",size,x,addr);
             return 1;
          }
 
          if ( desc & 0x01000000 ) {
-            printf("Rx write error. Addr=%x\n",addr);
+            printf("Rx write error. Size=%i, Loop=%i, Addr=%x\n",size,x,addr);
             return 1;
          }
 
          for (y=0; y < size; y++) {
             if ((uint)data[y] != (uint)mem[addr+y]) {
-               printf("Rx data mismatch. Addr=%x, Pos %i, Got %i, Exp %i Got+1 %i, Exp+1 %i\n",
-                  addr,y,(uint)mem[addr+y],(uint)data[y],(uint)mem[addr+y+1],(uint)data[y+1]);
-               printf("Raw 0 %x\n",(uint)mem[addr]);
-               printf("Raw 1 %x\n",(uint)mem[addr+1]);
-               printf("Raw 2 %x\n",(uint)mem[addr+2]);
-               printf("Raw 3 %x\n",((uint *)mem)[addr/4]);
-               printf("Raw 4 %x\n",((uint *)mem)[(addr/4)+1]);
-               printf("Raw 5 %x\n",((uint *)mem)[(addr/4)-1]);
+               printf("Rx data mismatch. Size=%i, Loop=%i, Addr=%x, Pos %i, Got %i, Exp %i Got+1 %i, Exp+1 %i\n",
+                  size,x,addr,y,(uint)mem[addr+y],(uint)data[y],(uint)mem[addr+y+1],(uint)data[y+1]);
                return 1;
             }
          }
 
          master->write(rxFreeAddr,addr);
       }
+      printf("Done\n");
    }
 
    cout << "Simulation Pass." << endl;
