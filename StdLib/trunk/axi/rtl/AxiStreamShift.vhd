@@ -65,7 +65,7 @@ architecture structure of AxiStreamShift is
       shiftBytes : slv(3 downto 0);
       slave      : AxiStreamSlaveType;
       master     : AxiStreamMasterType;
-      masterDly  : AxiStreamMasterType;
+      delay      : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -74,7 +74,7 @@ architecture structure of AxiStreamShift is
       shiftBytes => (others=>'0'),
       slave      => AXI_STREAM_SLAVE_INIT_C,
       master     => AXI_STREAM_MASTER_INIT_C,
-      masterDly  => AXI_STREAM_MASTER_INIT_C
+      delay      => AXI_STREAM_MASTER_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -107,16 +107,16 @@ begin
 
          -- Data / Control / User
          sMaster.tData((data*8)-1 downto (shift*8)) := sAxisMaster.tData(((data-shift)*8)-1 downto 0);
-         sMaster.tData((shift*8)-1 downto 0)        := r.masterDly.tData((data*8)-1 downto (data-shift)*8);
+         sMaster.tData((shift*8)-1 downto 0)        := r.delay.tData((data*8)-1 downto (data-shift)*8);
 
          sMaster.tStrb(data-1 downto shift) := sAxisMaster.tStrb(data-shift-1 downto 0);
-         sMaster.tStrb(shift-1 downto 0)    := r.masterDly.tStrb(data-1 downto data-shift);
+         sMaster.tStrb(shift-1 downto 0)    := r.delay.tStrb(data-1 downto data-shift);
 
          sMaster.tKeep(data-1 downto shift) := sAxisMaster.tKeep(data-shift-1 downto 0);
-         sMaster.tKeep(shift-1 downto 0)    := r.masterDly.tKeep(data-1 downto data-shift);
+         sMaster.tKeep(shift-1 downto 0)    := r.delay.tKeep(data-1 downto data-shift);
 
          sMaster.tUser((data*user)-1 downto (shift*user)) := sAxisMaster.tUser(((data-shift)*user)-1 downto 0);
-         sMaster.tUser((shift*user)-1 downto 0)           := r.masterDly.tUser((data*user)-1 downto (data-shift)*user);
+         sMaster.tUser((shift*user)-1 downto 0)           := r.delay.tUser((data*user)-1 downto (data-shift)*user);
 
          -- First shift is special
          if r.state = S_FIRST_C then
@@ -125,54 +125,60 @@ begin
             sMaster.tStrb(shift-1 downto 0) := (others=>'0');
             sMaster.tKeep(shift-1 downto 0) := (others=>'0');
          else
-            sMaster.tId   := r.masterDly.tId;
-            sMaster.tDest := r.masterDly.tDest;
+            sMaster.tId    := r.delay.tId;
+            sMaster.tDest  := r.delay.tDest;
          end if;
 
          -- Ending on bytes from input stream, input stream must be valid
          if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' and sAxisMaster.tKeep(data-1 downto data-shift) = 0 then
-            sMaster.tLast := '1';
+            sMaster.tLast  := '1';
+            sMaster.tValid := '1';
 
          -- Ending on bytes from delayed stream, delayed stream must be valid
-         elsif r.masterDly.tValid = '1' and r.masterDly.tLast = '1' and r.masterDly.tKeep(data-1 downto data-shift) /= 0 then
+         elsif r.delay.tValid = '1' and r.delay.tLast = '1' and r.delay.tKeep(data-1 downto data-shift) /= 0 then
             sMaster.tStrb(data-1 downto shift) := (others=>'0');
             sMaster.tKeep(data-1 downto shift) := (others=>'0');
-            sMaster.tLast := '1';
+            sMaster.tLast  := '1';
+            sMaster.tValid := '1';
          else
-            sMaster.tLast := '0';
+            sMaster.tLast  := '0';
+            sMaster.tValid := sAxisMaster.tValid;
          end if;
 
       -- Right shift
       else
 
          -- ID/Dest
-         sMaster.tId   := r.masterDly.tId;
-         sMaster.tDest := r.masterDly.tDest;
+         sMaster.tId   := r.delay.tId;
+         sMaster.tDest := r.delay.tDest;
 
          -- Data / Control / User
          sMaster.tData((data*8)-1 downto (data-shift)*8) := sAxisMaster.tData((shift*8)-1 downto 0);
-         sMaster.tData((data-shift*8)-1 downto 0)        := r.masterDly.tData((data*8)-1 downto (shift*8));
+         sMaster.tData(((data-shift)*8)-1 downto 0)      := r.delay.tData((data*8)-1 downto (shift*8));
 
          sMaster.tStrb(data-1 downto data-shift):= sAxisMaster.tStrb(shift-1 downto 0);
-         sMaster.tStrb(data-shift-1 downto 0)   := r.masterDly.tStrb(data-1 downto shift);
+         sMaster.tStrb(data-shift-1 downto 0)   := r.delay.tStrb(data-1 downto shift);
 
          sMaster.tKeep(data-1 downto data-shift):= sAxisMaster.tKeep(shift-1 downto 0);
-         sMaster.tKeep(data-shift-1 downto 0)   := r.masterDly.tKeep(data-1 downto shift);
+         sMaster.tKeep(data-shift-1 downto 0)   := r.delay.tKeep(data-1 downto shift);
 
-         sMaster.tData((data*user)-1 downto (data-shift)*user) := sAxisMaster.tData((shift*user)-1 downto 0);
-         sMaster.tData((data-shift*user)-1 downto 0)           := r.masterDly.tData((data*user)-1 downto (shift*user));
+         sMaster.tUser((data*user)-1 downto (data-shift)*user) := sAxisMaster.tUser((shift*user)-1 downto 0);
+         sMaster.tUser(((data-shift)*user)-1 downto 0)         := r.delay.tUser((data*user)-1 downto (shift*user));
 
          -- Ending on bytes from input stream, input stream must be valid
          if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' and sAxisMaster.tKeep(data-1 downto shift) = 0 then
-            sMaster.tLast := '1';
+            sMaster.tLast  := '1';
+            sMaster.tValid := '1';
 
          -- Ending on bytes from delayed stream, delayed stream must be valid
-         elsif r.masterDly.tValid = '1' and r.masterDly.tLast = '1' and r.masterDly.tKeep(data-1 downto shift) /= 0 then
+         elsif r.delay.tValid = '1' and r.delay.tLast = '1' and r.delay.tKeep(data-1 downto shift) /= 0 then
             sMaster.tStrb(data-1 downto data-shift) := (others=>'0');
             sMaster.tKeep(data-1 downto data-shift) := (others=>'0');
-            sMaster.tLast := '1';
+            sMaster.tLast  := '1';
+            sMaster.tValid := '1';
          else
-            sMaster.tLast := '0';
+            sMaster.tLast  := '0';
+            sMaster.tValid := sAxisMaster.tValid;
          end if;
 
       end if;
@@ -184,7 +190,7 @@ begin
          when S_IDLE_C =>
             v.slave     := AXI_STREAM_SLAVE_INIT_C;
             v.master    := AXI_STREAM_MASTER_INIT_C;
-            v.masterDly := AXI_STREAM_MASTER_INIT_C;
+            v.delay := AXI_STREAM_MASTER_INIT_C;
 
             -- Shift start request
             if axiStart = '1' then
@@ -198,8 +204,8 @@ begin
             v.slave.tReady := '1';
 
             if sAxisMaster.tValid = '1' then
-               v.masterDly := sAxisMaster;
-               v.state     := S_SHIFT_C;
+               v.delay := sAxisMaster;
+               v.state := S_SHIFT_C;
 
                -- Left or no shift
                if r.shiftDir = '0' or r.shiftBytes = 0 then
@@ -220,8 +226,8 @@ begin
                v.slave.tReady := '1';
 
                if sAxisMaster.tValid = '1' then
-                  v.masterDly := sAxisMaster;
-                  v.master    := sMaster;
+                  v.delay  := sAxisMaster;
+                  v.master := sMaster;
                else
                   v.master.tValid := '0';
                end if;
@@ -231,7 +237,7 @@ begin
                   v.master := sMaster;
 
                   -- Last is is delayed block
-                  if r.masterDly.tLast = '1' then
+                  if r.delay.tLast = '1' then
                      v.slave.tReady := '0';
                   end if;
 

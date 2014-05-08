@@ -38,8 +38,7 @@ entity AxiStreamDma is
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G      : slv(1 downto 0)     := "01";
-      AXI_CACHE_G      : slv(3 downto 0)     := "1111";
-      AXI_ALIGN_G      : boolean             := true
+      AXI_CACHE_G      : slv(3 downto 0)     := "1111"
    );
    port (
 
@@ -222,7 +221,7 @@ begin
          PUSH_BRAM_EN_G     => true,
          PUSH_ADDR_WIDTH_G  => 9,
          RANGE_LSB_G        => 8,
-         VALID_POSITION_G   => 0,
+         VALID_POSITION_G   => 31,
          VALID_POLARITY_G   => '1',
          ALTERA_SYN_G       => false,
          ALTERA_RAM_G       => "M9K",
@@ -352,8 +351,7 @@ begin
          AXIS_CONFIG_G    => AXIS_CONFIG_G,
          AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_BURST_G      => AXI_BURST_G,
-         AXI_CACHE_G      => AXI_CACHE_G,
-         AXI_ALIGN_G      => AXI_ALIGN_G
+         AXI_CACHE_G      => AXI_CACHE_G
       ) port map (
          axiClk          => axiClk,
          axiRst          => axiRst,
@@ -386,16 +384,17 @@ begin
       case ib.state is
 
          when S_IDLE_C =>
-            v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 2) & "00";
+            v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 0);
             v.ibReq.maxSize := x"00" & r.maxRxSize;
 
-            if pushFifoValid(IB_FIFO_C) = '1' then
+            if r.rxEnable = '1' and pushFifoValid(IB_FIFO_C) = '1' then
                v.ibReq.request := '1';
                v.pushFifoRead  := '1';
+               v.state         := S_WAIT_C;
             end if;
 
          when S_WAIT_C =>
-            v.popFifoDin := ib.ibReq.address(31 downto 2) & "11";
+            v.popFifoDin := "1" & ib.ibReq.address(30 downto 0);
 
             if ibAck.done = '1' then
                v.popFifoWrite := '1';
@@ -403,18 +402,18 @@ begin
             end if;
 
          when S_FIFO_0_C =>
-            v.popFifoDin(31 downto 8) := ibAck.size(23 downto 0);
-            v.popFifoDin(7  downto 0) := x"01";
-            v.popFifoWrite            := '1';
-            v.state                   := S_FIFO_1_C;
+            v.popFifoDin(31 downto 24) := x"E0";
+            v.popFifoDin(23 downto  0) := ibAck.size(23 downto 0);
+            v.popFifoWrite             := '1';
+            v.state                    := S_FIFO_1_C;
 
          when S_FIFO_1_C =>
-            v.popFifoDin(31 downto 24) := ibAck.lastUser;
-            v.popFifoDin(23 downto 16) := ibAck.firstUser;
-            v.popFifoDin(15 downto  8) := ibAck.dest;
-            v.popFifoDin(7)            := ibAck.overflow;
-            v.popFifoDin(6)            := ibAck.writeError;
-            v.popFifoDin(5 downto   0) := "000001";
+            v.popFifoDin(31 downto 26) := x"F" & "00";
+            v.popFifoDin(25)           := ibAck.overflow;
+            v.popFifoDin(24)           := ibAck.writeError;
+            v.popFifoDin(23 downto 16) := ibAck.lastUser;
+            v.popFifoDin(15 downto  8) := ibAck.firstUser;
+            v.popFifoDin(7  downto  0) := ibAck.dest;
             v.popFifoWrite             := '1';
             v.ibReq.request            := '0';
             v.state                    := S_IDLE_C;
@@ -443,8 +442,7 @@ begin
          AXIS_CONFIG_G    => AXIS_CONFIG_G,
          AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_BURST_G      => AXI_BURST_G,
-         AXI_CACHE_G      => AXI_CACHE_G,
-         AXI_ALIGN_G      => AXI_ALIGN_G
+         AXI_CACHE_G      => AXI_CACHE_G
       ) port map (
          axiClk          => axiClk,
          axiRst          => axiRst,
@@ -461,7 +459,7 @@ begin
    process (axiClk) is
    begin
       if (rising_edge(axiClk)) then
-         ib <= ibin after TPD_G;
+         ob <= obin after TPD_G;
       end if;
    end process;
 
@@ -477,23 +475,28 @@ begin
       case ob.state is
 
          when S_IDLE_C =>
-            v.obReq.address := pushFifoDout(OB_FIFO_C)(31 downto 2) & "00";
+            v.obReq.address := pushFifoDout(OB_FIFO_C)(31 downto 0);
 
-            if pushFifoValid(OB_FIFO_C) = '1' then
+            if r.txEnable = '1' and pushFifoValid(OB_FIFO_C) = '1' then
                v.pushFifoRead  := '1';
 
-               if pushFifoDout(OB_FIFO_C)(0) = '1' then
+               if pushFifoDout(OB_FIFO_C)(35 downto 32) = 3 then
+                  v.popFifoDin    := "1" & pushFifoDout(OB_FIFO_C)(30 downto 0);
+                  v.popFifoWrite  := '1';
+                  v.state         := S_IDLE_C;
+
+               elsif pushFifoDout(OB_FIFO_C)(35 downto 32) = 0 then
                   v.state := S_FIFO_0_C;
                end if;
             end if;
 
          when S_FIFO_0_C =>
-            v.obReq.size := x"00" & pushFifoDout(OB_FIFO_C)(31 downto 8);
+            v.obReq.size := x"00" & pushFifoDout(OB_FIFO_C)(23 downto 0);
 
             if pushFifoValid(OB_FIFO_C) = '1' then
                v.pushFifoRead  := '1';
                
-               if pushFifoDout(OB_FIFO_C)(0) = '1' then
+               if pushFifoDout(OB_FIFO_C)(35 downto 32) /= 1 then
                   v.state := S_IDLE_C;
                else
                   v.state := S_FIFO_1_C;
@@ -501,15 +504,15 @@ begin
             end if;
 
          when S_FIFO_1_C =>
-            v.obReq.lastUser  := pushFifoDout(OB_FIFO_C)(31 downto 24);
-            v.obReq.firstUser := pushFifoDout(OB_FIFO_C)(23 downto 16);
-            v.obReq.dest      := pushFifoDout(OB_FIFO_C)(15 downto  8);
+            v.obReq.lastUser  := pushFifoDout(OB_FIFO_C)(23 downto 16);
+            v.obReq.firstUser := pushFifoDout(OB_FIFO_C)(15 downto  8);
+            v.obReq.dest      := pushFifoDout(OB_FIFO_C)(7  downto  0);
             v.obReq.id        := (others=>'0');
 
             if pushFifoValid(OB_FIFO_C) = '1' then
                v.pushFifoRead  := '1';
 
-               if pushFifoDout(OB_FIFO_C)(0) = '1' then
+               if pushFifoDout(OB_FIFO_C)(35 downto 32) /= 2 then
                   v.state := S_IDLE_C;
                else
                   v.obReq.request := '1';
@@ -520,7 +523,7 @@ begin
          when S_WAIT_C =>
             if obAck.done = '1' then
                v.obReq.request := '0';
-               v.popFifoDin    := ob.obReq.address(31 downto 2) & "11";
+               v.popFifoDin    := ob.obReq.address(30 downto 0) & "0";
                v.popFifoWrite  := '1';
                v.state         := S_IDLE_C;
             end if;
