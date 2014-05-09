@@ -79,6 +79,8 @@ void AxiStreamSimIbInit(vhpiHandleT compInst) {
       if ( ibPtr->smem != NULL ) {
          ibPtr->smem->usReqCount = 0;
          ibPtr->smem->usAckCount = 0;
+         ibPtr->smem->dsReqCount = 0;
+         ibPtr->smem->dsAckCount = 0;
       }
    }
 

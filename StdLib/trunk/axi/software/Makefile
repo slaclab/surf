@@ -1,5 +1,5 @@
 # Variables
-CFLAGS  := -Wall -I../src/
+CFLAGS  := -Wall -I../simlink/src/
 LFLAGS  := -lrt -pthread 
 CC      := g++ -fpermissive 
 BIN     := $(PWD)/bin

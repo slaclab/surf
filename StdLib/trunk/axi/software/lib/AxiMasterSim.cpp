@@ -29,10 +29,10 @@ AxiMasterSim::~AxiMasterSim () {
 }
 
 // Open the port
-bool AxiMasterSim::open (const char *system, uint id, int uid) {
+bool AxiMasterSim::open (const char *system, uint id) {
 
    // Open shared memory
-   _smem = sim_open(system,id,uid);
+   _smem = sim_open(system,id,-1);
 
    if (_smem == NULL ) {
       cout << "AxiMasterSim::open -> Failed to open shared memory" << endl;

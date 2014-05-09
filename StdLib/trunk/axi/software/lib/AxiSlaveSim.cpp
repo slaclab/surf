@@ -23,10 +23,10 @@ AxiSlaveSim::~AxiSlaveSim () {
 }
 
 // Open the port
-bool AxiSlaveSim::open (const char *system, uint id, int uid) {
+bool AxiSlaveSim::open (const char *system, uint id) {
 
    // Open shared memory
-   _smem = sim_open(system,id,uid);
+   _smem = sim_open(system,id,-1);
 
    if (_smem == NULL ) {
       cout << "AxiSlaveSim::open -> Failed to open shared memory" << endl;
