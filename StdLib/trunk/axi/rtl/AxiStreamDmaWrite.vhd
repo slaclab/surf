@@ -175,7 +175,7 @@ begin
                v.state   := S_FIRST_C;
             end if;
 
-         -- First
+         -- First -- FIX THIS. SET VALID AND WAIT FOR READY
          when S_FIRST_C =>
             v.wMaster.awaddr := r.dmaReq.address;
 
