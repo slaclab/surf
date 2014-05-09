@@ -143,9 +143,6 @@ begin
          ibData  => ibData
       );
 
-   assert ( sAxisRst = '1' or sAxisMaster.tDest < 4 )
-      report "Invalid tDest value in AXI stream sim" severity failure;
-
    --assert ( sAxisRst = '1' or sAxisMaster.tValid = '0' or 
    --         (AXIS_CONFIG_G.TDATA_BYTES_C = 2 and sAxisMaster.tKeep(1 downto 0) = "11") or
    --         (AXIS_CONFIG_G.TDATA_BYTES_C = 4 and sAxisMaster.tKeep(3 downto 0) = "1111") )

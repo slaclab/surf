@@ -41,7 +41,7 @@ class AxiSlaveSim  {
       void setVerbose(bool v);
 
       // Open the port
-      bool open (const char *system, uint id, int uid);
+      bool open (const char *system, uint id);
 
       // Close the port
       void close ();
