@@ -223,8 +223,10 @@ proc CheckImpl { } {
 }
 proc VcsCompleteMessage {dirPath fileName} {
    puts "\n\n********************************************************"
-   puts "VCS executable located:"
-   puts "\t${dirPath}/./${fileName}_sim_vcs_mx.sh"    
+   puts "The VCS simulation script has been generated."
+   puts "To complie the simulation:"
+   puts "\t\$ cd ${dirPath}/"    
+   puts "\t\$ ./${fileName}_sim_vcs_mx.sh"    
    puts "********************************************************\n\n" 
 }
 
