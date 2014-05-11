@@ -16,6 +16,7 @@ vhdl work axi/simlink/rtl/AxiSimMaster.vhd
 vhdl work axi/simlink/rtl/AxiSimMasterWrap.vhd
 vhdl work axi/simlink/rtl/AxiSimSlave.vhd
 vhdl work axi/simlink/rtl/AxiSimSlaveWrap.vhd
+vhdl work axi/simlink/rtl/AxiStreamSimWrap.vhd
 vhdl work axi/simlink/rtl/AxiStreamSim.vhd
 vhdl work axi/simlink/rtl/AxiStreamSimIb.vhd
 vhdl work axi/simlink/rtl/AxiStreamSimOb.vhd
