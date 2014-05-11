@@ -7,7 +7,7 @@ DEF    :=
 OUT    := $(SIMLINK_PWD)
 OBJ    := $(SIMLINK_PWD)/.obj
 CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include
-LFLAGS := 
+LFLAGS := -lrt -pthread 
 LIB    := $(OUT)/libAxiSim.so
 
 # Generic Sources
