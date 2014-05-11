@@ -95,6 +95,13 @@ if { [file isdirectory ${simLinkDir}] == 1 } {
       # Set the flag true
       set sharedMem true
       
+      # # Create the setup environment script
+      # set envScript [open ${simTbOutDir}/setup_env.csh  w]
+      # puts  ${envScript} "limit stacksize 60000"
+      # set LD_LIBRARY_PATH "setenv LD_LIBRARY_PATH ${simTbOutDir}:$::env(LD_LIBRARY_PATH)"
+      # puts  ${envScript} ${LD_LIBRARY_PATH} 
+      # close ${envScript}      
+      
       # Move the working directory to the simlink directory
       cd ${simLinkDir}
       
