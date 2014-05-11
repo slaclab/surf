@@ -93,14 +93,7 @@ if { [file isdirectory ${simLinkDir}] == 1 } {
    if { [file exists  ${simLinkDir}/Makefile] == 1 } {
       
       # Set the flag true
-      set sharedMem true
-      
-      # Create the setup environment script
-      set envScript [open ${simTbOutDir}/setup_env.csh  w]
-      puts  ${envScript} "limit stacksize 60000"
-      set LD_LIBRARY_PATH "setenv LD_LIBRARY_PATH ${simTbOutDir}:$::env(LD_LIBRARY_PATH)"
-      puts  ${envScript} ${LD_LIBRARY_PATH} 
-      close ${envScript}      
+      set sharedMem true   
       
       # Move the working directory to the simlink directory
       cd ${simLinkDir}
@@ -149,8 +142,7 @@ while { [eof ${in}] != 1 } {
       # Check for shared memory interface
       if { ${sharedMem} != false } {
          puts  ${out} "  ulimit -S -s 60000"
-         #set LD_LIBRARY_PATH "  export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${simTbOutDir}"      
-         set LD_LIBRARY_PATH "  export LD_LIBRARY_PATH=$::env(LD_LIBRARY_PATH):${simTbOutDir}"      
+         set LD_LIBRARY_PATH "  export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${simTbOutDir}"      
          puts  ${out} ${LD_LIBRARY_PATH}       
       }
    # Change VHDL sourcing from relative path to the absolute path
