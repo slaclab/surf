@@ -52,13 +52,13 @@ int main(int argc, char **argv) {
    }
 
    master = new AxiMasterSim;
-   if ( ! master->open("SimAxiMaster",1) ) {
+   if ( ! master->open(1) ) {
       printf("Failed to open sim master\n");
       return 1;
    }
 
    slave = new AxiSlaveSim(mem,buffSize*buffCount);
-   if ( ! slave->open("SimAxiSlave",2) ) {
+   if ( ! slave->open(2) ) {
       printf("Failed to open sim slave\n");
       return 1;
    }
