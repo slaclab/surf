@@ -95,6 +95,13 @@ if { [file isdirectory ${simLinkDir}] == 1 } {
       # Set the flag true
       set sharedMem true   
       
+      # Create the setup environment script
+      set envScript [open ${simTbOutDir}/setup_env.csh  w]
+      puts  ${envScript} "limit stacksize 60000"
+      set LD_LIBRARY_PATH "setenv LD_LIBRARY_PATH ${simTbOutDir}:$::env(LD_LIBRARY_PATH)"
+      puts  ${envScript} ${LD_LIBRARY_PATH} 
+      close ${envScript}      
+      
       # Move the working directory to the simlink directory
       cd ${simLinkDir}
       
@@ -142,12 +149,18 @@ while { [eof ${in}] != 1 } {
       # Check for shared memory interface
       if { ${sharedMem} != false } {
          puts  ${out} "  ulimit -S -s 60000"
-         set LD_LIBRARY_PATH "  export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${simTbOutDir}"      
+         set LD_LIBRARY_PATH "  export LD_LIBRARY_PATH=$::env(LD_LIBRARY_PATH):${simTbOutDir}"      
+         # Write to file
          puts  ${out} ${LD_LIBRARY_PATH}       
       }
-   # Change VHDL sourcing from relative path to the absolute path
    } else { 
-      puts ${out} [string map {$reference_dir/../../../../../../afs /afs} ${line}]     
+      # Replace relative path with the absolute path
+      set newLine [string map {$reference_dir/../../../../../../afs /afs} ${line}] 
+      # Replace ${simTbFileName}_simv with the simv
+      set mapString "${simTbFileName}_simv simv"
+      set newLine [string map ${mapString} ${newLine}] 
+      # Write to file
+      puts ${out} ${newLine}     
    }
 }
 
@@ -158,8 +171,36 @@ close ${out}
 # over-write the existing file
 file rename -force ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.temp ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.sh
 
+# Rename the File
+exec mv ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.sh ${simTbOutDir}/sim_vcs_mx.sh
+
 # Update the permissions
-exec chmod 0755 ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.sh
+exec chmod 0755 ${simTbOutDir}/sim_vcs_mx.sh
+
+########################################################
+## Modify the default .do file 
+########################################################
+if { ${sharedMem} != false } {
+
+   # open the files
+   set in  [open ${simTbOutDir}/${simTbFileName}.do r]
+   set out [open ${simTbOutDir}/${simTbFileName}.temp  w]
+
+   # Find and replace the LIBRARY_SCAN parameter
+   while { [eof ${in}] != 1 } {
+      gets ${in} line
+      if { ${line} != "quit" } {
+         puts ${out} ${line} 
+      }
+   }
+
+   # Close the files
+   close ${in}
+   close ${out}
+
+   # over-write the existing file
+   file rename -force ${simTbOutDir}/${simTbFileName}.temp ${simTbOutDir}/${simTbFileName}.do
+}
 
 ########################################################
 ## Close the project (required for cd function)
@@ -169,4 +210,4 @@ close_project
 ########################################################
 ## VCS Complete Message
 ########################################################
-VcsCompleteMessage ${simTbOutDir} ${simTbFileName}
+VcsCompleteMessage ${simTbOutDir}

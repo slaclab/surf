@@ -221,12 +221,12 @@ proc CheckImpl { } {
       return true
    }
 }
-proc VcsCompleteMessage {dirPath fileName} {
+proc VcsCompleteMessage {dirPath} {
    puts "\n\n********************************************************"
    puts "The VCS simulation script has been generated."
    puts "To complie the simulation:"
    puts "\t\$ cd ${dirPath}/"    
-   puts "\t\$ ./${fileName}_sim_vcs_mx.sh"    
+   puts "\t\$ ./sim_vcs_mx.sh"    
    puts "********************************************************\n\n" 
 }
 
