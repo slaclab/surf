@@ -177,22 +177,28 @@ begin
          v.master.rready := '0';
       end if;
    
-      if (axiRst = '1') then
+      if (axiRst = '1' ) or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      -- Output data
-      sAxiReadSlaves <= r.slaves;
-      mAxiReadMaster <= r.master;
+      -- Bypass if single slave
+      if NUM_SLAVES_G = 1 then
+         sAxiReadSlaves(0) <= mAxiReadSlave;
+         mAxiReadMaster    <= sAxiReadmasters(0);
+      else
 
-      -- Readies are direct
-      for i in 0 to (NUM_SLAVES_G-1) loop
-         sAxiReadSlaves(i).arready <= v.slaves(i).arready;
-      end loop;
-      mAxiReadMaster.rready <= v.master.rready;
+         -- Output data
+         sAxiReadSlaves <= r.slaves;
+         mAxiReadMaster <= r.master;
 
+         -- Readies are direct
+         for i in 0 to (NUM_SLAVES_G-1) loop
+            sAxiReadSlaves(i).arready <= v.slaves(i).arready;
+         end loop;
+         mAxiReadMaster.rready <= v.master.rready;
+      end if;
    end process comb;
 
    seq : process (axiClk) is

@@ -1,5 +1,5 @@
-TOP=stream_tb
-#TOP=dma_tb
+#TOP=stream_tb
+TOP=dma_tb
 #TOP=vcs_tb
 #TOP=fifo_tb
 

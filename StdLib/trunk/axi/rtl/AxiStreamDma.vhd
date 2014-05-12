@@ -32,7 +32,7 @@ use work.AxiDmaPkg.all;
 entity AxiStreamDma is
    generic (
       TPD_G            : time                := 1 ns;
-      AXI_BASE_ADDR_G  : slv(31 downto 12)   := x"00000";
+      AXIL_BASE_ADDR_G : slv(31 downto 0)    := x"00000000";
       AXI_READY_EN_G   : boolean             := false;
       AXIS_READY_EN_G  : boolean             := false;
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -80,11 +80,11 @@ architecture structure of AxiStreamDma is
    constant CROSSBAR_CONN_C : slv(15 downto 0) := x"FFFF";
 
    constant LOC_INDEX_C       : natural          := 0;
-   constant LOC_BASE_ADDR_C   : slv(31 downto 0) := AXI_BASE_ADDR_G & x"000";
+   constant LOC_BASE_ADDR_C   : slv(31 downto 0) := AXI_BASE_ADDR_G(31 downto 12) & x"000";
    constant LOC_NUM_BITS_C    : natural          := 10;
 
    constant FIFO_INDEX_C     : natural          := 1;
-   constant FIFO_BASE_ADDR_C : slv(31 downto 0) := AXI_BASE_ADDR_G & x"400";
+   constant FIFO_BASE_ADDR_C : slv(31 downto 0) := AXI_BASE_ADDR_G(31 downto 12) & x"400";
    constant FIFO_NUM_BITS_C  : natural          := 10;
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (

@@ -12,7 +12,6 @@
 class AxiStreamSim  {
 
       AxiStreamSharedMem * _smem;
-      uint                 _smemFd;
 
       // Verbose
       bool _verbose;
@@ -26,7 +25,7 @@ class AxiStreamSim  {
       void setVerbose(bool v);
 
       // Open the port
-      bool open (const char *system, uint id);
+      bool open (uint id);
 
       // Close the port
       void close ();

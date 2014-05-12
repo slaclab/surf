@@ -5,7 +5,7 @@
 #include <vhpi_user.h>
 #include "AxiSharedMem.h"
 
-#define SYS "SimAxiSlave"
+#define SHM_TYPE "slave"
 
 // Signals
 #define s_axiClk   0

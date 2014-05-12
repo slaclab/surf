@@ -20,25 +20,27 @@ void AxiStreamSimIbInit(vhpiHandleT compInst) {
    AxiStreamSimIbData *ibPtr     = (AxiStreamSimIbData *) malloc(sizeof(AxiStreamSimIbData));
 
    // Get port count
-   portData->portCount = 7;
+   portData->portCount = 8;
 
    // Set port directions
-   portData->portDir[ibClk]        = vhpiIn;
-   portData->portDir[ibReset]      = vhpiIn;
-   portData->portDir[ibValid]      = vhpiIn;
-   portData->portDir[ibDest]       = vhpiIn;
-   portData->portDir[ibEof]        = vhpiIn;
-   portData->portDir[ibEofe]       = vhpiIn;
-   portData->portDir[ibData]       = vhpiIn;
+   portData->portDir[s_ibClk]        = vhpiIn;
+   portData->portDir[s_ibReset]      = vhpiIn;
+   portData->portDir[s_ibValid]      = vhpiIn;
+   portData->portDir[s_ibDest]       = vhpiIn;
+   portData->portDir[s_ibEof]        = vhpiIn;
+   portData->portDir[s_ibEofe]       = vhpiIn;
+   portData->portDir[s_ibData]       = vhpiIn;
+   portData->portDir[s_streamId]     = vhpiIn;
 
    // Set port and widths
-   portData->portWidth[ibClk]      = 1; 
-   portData->portWidth[ibReset]    = 1; 
-   portData->portWidth[ibValid]    = 1; 
-   portData->portWidth[ibDest]     = 4; 
-   portData->portWidth[ibEof]      = 1; 
-   portData->portWidth[ibEofe]     = 1; 
-   portData->portWidth[ibData]     = 32; 
+   portData->portWidth[s_ibClk]      = 1; 
+   portData->portWidth[s_ibReset]    = 1; 
+   portData->portWidth[s_ibValid]    = 1; 
+   portData->portWidth[s_ibDest]     = 4; 
+   portData->portWidth[s_ibEof]      = 1; 
+   portData->portWidth[s_ibEofe]     = 1; 
+   portData->portWidth[s_ibData]     = 32; 
+   portData->portWidth[s_streamId]   = 8;
 
    // Create data structure to hold state
    portData->stateData = ibPtr;
@@ -49,43 +51,9 @@ void AxiStreamSimIbInit(vhpiHandleT compInst) {
    // Init data structure
    ibPtr->currClk      = 0;
    ibPtr->ibCount      = 0;
-   ibPtr->ibVc         = 0;
+   ibPtr->ibDest       = 0;
    ibPtr->ibError      = 0;
-
-   // Create shared memory filename
-   sprintf(ibPtr->smemFile,"simlink.%i.%s.%i", getuid(), SHM_NAME, SHM_ID);
-
-   // Open shared memory
-   ibPtr->smemFd = shm_open(ibPtr->smemFile, (O_CREAT | O_RDWR), (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
-   ibPtr->smem = NULL;
-
-   // Failed to open shred memory
-   if ( ibPtr->smemFd > 0 ) {
-
-      // Force permissions regardless of umask
-      fchmod(ibPtr->smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
-
-      // Set the size of the shared memory segment
-      ftruncate(ibPtr->smemFd, sizeof(AxiStreamSharedMem));
-
-      // Map the shared memory
-      if((ibPtr->smem = (AxiStreamSharedMem *)mmap(0, sizeof(AxiStreamSharedMem),
-         (PROT_READ | PROT_WRITE), MAP_SHARED, ibPtr->smemFd, 0)) == MAP_FAILED) {
-         ibPtr->smemFd = -1;
-         ibPtr->smem   = NULL;
-      }
-
-      // Init records
-      if ( ibPtr->smem != NULL ) {
-         ibPtr->smem->usReqCount = 0;
-         ibPtr->smem->usAckCount = 0;
-         ibPtr->smem->dsReqCount = 0;
-         ibPtr->smem->dsAckCount = 0;
-      }
-   }
-
-   if ( ibPtr->smem != NULL ) vhpi_printf("AxiStreamSimIb: Opened shared memory file: %s\n", ibPtr->smemFile);
-   else vhpi_printf("AxiStreamSimIb: Failed to open shared memory file: %s\n", ibPtr->smemFile);
+   ibPtr->smem         = NULL;
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -98,55 +66,65 @@ void AxiStreamSimIbUpdate ( void *userPtr ) {
    portDataT *portData = (portDataT*) userPtr;
    AxiStreamSimIbData *ibPtr = (AxiStreamSimIbData*)(portData->stateData);
 
+   // Not yet open
+   if ( ibPtr->smem == NULL ) {
+
+      // Get ID
+      uint id = getInt(s_streamId);
+      ibPtr->smem = sim_open(id);
+
+      if ( ibPtr->smem != NULL ) vhpi_printf("AxiStreamSimIb: Opened shared memory: %s\n", ibPtr->smem->path);
+      else vhpi_printf("AxiStreamSimIb: Failed to open shared memory id: %i\n", id);
+   }
+
    // Detect clock edge
-   if ( ibPtr->currClk != getInt(ibClk) ) {
-      ibPtr->currClk = getInt(ibClk);
+   if ( ibPtr->currClk != getInt(s_ibClk) ) {
+      ibPtr->currClk = getInt(s_ibClk);
 
       // Rising edge
       if ( ibPtr->currClk ) {
 
          // Reset is asserted, sample modes
-         if ( getInt(ibReset) ) {
-            ibPtr->smem->usBigEndian = 0;
+         if ( getInt(s_ibReset) ) {
             ibPtr->ibCount           = 0;
-            ibPtr->ibVc              = 0;
+            ibPtr->ibDest            = 0;
             ibPtr->ibError           = 0;
          }
 
          // Valid is asserted
-         else if ( getInt(ibValid) == 1 ) {
+         else if ( getInt(s_ibValid) == 1 ) {
 
             // First word
             if ( ibPtr->ibCount == 0 ) {
                ibPtr->ibError  = 0;
-               ibPtr->ibVc     = getInt(ibDest);
-               vhpi_printf("AxiStreamSimIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibVc,portData->simTime);
+               ibPtr->ibDest   = getInt(s_ibDest);
+               vhpi_printf("AxiStreamSimIb: Frame Start. Dest=%i, Time=%lld\n",ibPtr->ibDest,portData->simTime);
             }
 
             // VC mismatch
-            if ( ibPtr->ibVc != getInt(ibDest) && ibPtr->ibError == 0 ) {
+            if ( ibPtr->ibDest != getInt(s_ibDest) && ibPtr->ibError == 0 ) {
                vhpi_printf("AxiStreamSimIb: Dest mismatch error.\n");
                ibPtr->ibError = 1;
             }
 
             // Get data
-            ibPtr->smem->usData[ibPtr->ibCount++] = getInt(ibData);
+            ibPtr->smem->usData[ibPtr->ibCount++] = getInt(s_ibData);
 
             // EOF is asserted
-            if ( getInt(ibEof) ) {
+            if ( getInt(s_ibEof) ) {
 
-               ibPtr->smem->usEofe = getInt(ibEofe);
+               ibPtr->smem->usEofe = getInt(s_ibEofe);
 
                // Force EOFE for error
                if ( ibPtr->ibError ) ibPtr->smem->usEofe = 1;
 
                // Send data
-               ibPtr->smem->usVc   = ibPtr->ibVc;
+               ibPtr->smem->usDest = ibPtr->ibDest;
                ibPtr->smem->usSize = ibPtr->ibCount;
                ibPtr->smem->usReqCount++;
 
                vhpi_printf("AxiStreamSimIb: Frame Done. Size=%i, Dest=%i, Time=%lld\n",
-                  ibPtr->smem->usSize,ibPtr->smem->usVc,portData->simTime);
+                  ibPtr->smem->usSize,ibPtr->smem->usDest,portData->simTime);
 
                // Wait for other end
                int toCount = 0;
@@ -166,7 +144,7 @@ void AxiStreamSimIbUpdate ( void *userPtr ) {
                if ( (ibPtr->ibCount % 100) == 0 ) {
 
                   vhpi_printf("AxiStreamSimIb: Frame In Progress. Size=%i, Dest=%i, Payload=%i, Time=%lld\n",
-                     ibPtr->ibCount,ibPtr->ibVc,ibPtr->ibCount,portData->simTime);
+                     ibPtr->ibCount,ibPtr->ibDest,ibPtr->ibCount,portData->simTime);
                }
             }
          }

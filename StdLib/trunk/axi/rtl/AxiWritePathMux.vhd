@@ -251,22 +251,29 @@ begin
          v.master.bready := '0';
       end if;
    
-      if (axiRst = '1') then
+      if (axiRst = '1') or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      -- Output data
-      sAxiWriteSlaves <= r.slaves;
-      mAxiWriteMaster <= r.master;
+      -- Bypass if single slave
+      if NUM_SLAVES_G = 1 then
+         sAxiWriteSlaves(0) <= mAxiWriteSlave;
+         mAxiWriteMaster    <= sAxiWritemasters(0);
+      else
 
-      -- Readies are direct
-      for i in 0 to (NUM_SLAVES_G-1) loop
-         sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
-         sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
-      end loop;
-      mAxiWriteMaster.bready <= v.master.bready;
+         -- Output data
+         sAxiWriteSlaves <= r.slaves;
+         mAxiWriteMaster <= r.master;
+
+         -- Readies are direct
+         for i in 0 to (NUM_SLAVES_G-1) loop
+            sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
+            sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
+         end loop;
+         mAxiWriteMaster.bready <= v.master.bready;
+      end if;
 
    end process comb;
 

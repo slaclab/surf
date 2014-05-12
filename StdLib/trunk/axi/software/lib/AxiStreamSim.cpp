@@ -24,56 +24,23 @@ AxiStreamSim::~AxiStreamSim () {
 }
 
 // Open the port
-bool AxiStreamSim::open (const char *system, uint id) {
-   char smemFile[100];
-
-   // Create shared memory filename
-   sprintf(smemFile,"simlink.%i.%s.%i", getuid(), system, id);
-
-   // Open shared memory
-   _smemFd = shm_open(smemFile, (O_CREAT | O_RDWR), (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
-   _smem = NULL;
-
-   // Failed to open shred memory
-   if ( _smemFd > 0 ) {
-
-      // Force permissions regardless of umask
-      fchmod(_smemFd, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH));
-
-      // Set the size of the shared memory segment
-      ftruncate(_smemFd, sizeof(AxiStreamSharedMem));
-
-      // Map the shared memory
-      if((_smem = (AxiStreamSharedMem *)mmap(0, sizeof(AxiStreamSharedMem),
-         (PROT_READ | PROT_WRITE), MAP_SHARED, _smemFd, 0)) == MAP_FAILED) {
-         _smemFd = -1;
-         _smem   = NULL;
-      }
-
-      // Init records
-      if ( _smem != NULL ) {
-         _smem->usReqCount = 0;
-         _smem->usAckCount = 0;
-         _smem->dsReqCount = 0;
-         _smem->dsAckCount = 0;
-      }
-   }
+bool AxiStreamSim::open (uint id) {
+   _smem = sim_open(id);
 
    if ( _smem != NULL ) {
-      printf("AxiStreamSim: Opened shared memory file: %s\n", smemFile);
+      printf("AxiStreamSim: Opened shared memory : %s\n", _smem->path);
       return(true);
    }
    else {
-      printf("AxiStreamSimIb: Failed to open shared memory file: %s\n", smemFile);
+      printf("AxiStreamSimIb: Failed to open shared memory id: %i\n", id);
       return(false);
    }
 }
 
 // Close the port
 void AxiStreamSim::close () {
-   ::close(_smemFd);
-   _smemFd = -1;
-   _smem   = NULL;
+   sim_close(_smem);
+   _smem = NULL;
 }
 
 void AxiStreamSim::setVerbose(bool v) {
@@ -84,7 +51,7 @@ void AxiStreamSim::setVerbose(bool v) {
 void AxiStreamSim::write(uint *data, uint size, uint dest) {
 
    _smem->dsSize = size;
-   _smem->dsVc   = dest;
+   _smem->dsDest = dest;
    memcpy(_smem->dsData,data,(_smem->dsSize)*4);
    _smem->dsReqCount++;
    while (_smem->dsReqCount != _smem->dsAckCount) usleep(100);
@@ -108,7 +75,7 @@ int AxiStreamSim::read(uint *data, uint maxSize, uint *dest, uint *eofe) {
       else {
          memcpy(data,_smem->usData,(_smem->usSize)*4);
          *eofe = _smem->usEofe;
-         *dest = _smem->usVc;
+         *dest = _smem->usDest;
          ret = _smem->usSize;
          _smem->usAckCount = _smem->usReqCount;
          if ( _verbose ) printf("AxiStreamSim::read -> Read %i dual words\n",ret);
