@@ -9,6 +9,8 @@
 #include <iostream>
 #include <AxiSharedMem.h>
 
+#define MAST_TYPE "master"
+
 class AxiMasterSim  {
 
       AxiSharedMem * _smem;
@@ -47,7 +49,7 @@ class AxiMasterSim  {
       void setVerbose(bool v);
 
       // Open the port
-      bool open (const char *system, uint id);
+      bool open (uint id);
 
       // Close the port
       void close ();

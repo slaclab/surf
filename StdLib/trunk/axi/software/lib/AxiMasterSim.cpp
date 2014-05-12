@@ -29,15 +29,17 @@ AxiMasterSim::~AxiMasterSim () {
 }
 
 // Open the port
-bool AxiMasterSim::open (const char *system, uint id) {
+bool AxiMasterSim::open (uint id) {
 
    // Open shared memory
-   _smem = sim_open(system,id,-1);
+   _smem = sim_open(MAST_TYPE,id);
 
    if (_smem == NULL ) {
       cout << "AxiMasterSim::open -> Failed to open shared memory" << endl;
       return(false);
    }
+
+   printf("Opened shared memory %s\n",_smem->_path);
 
    _runEnable = true;
 
@@ -97,7 +99,7 @@ void AxiMasterSim::run() {
    if (_smem == NULL ) return;
 
    cout << "Master Thread Start, " 
-        << " System=" << _smem->_smemPath
+        << " System=" << _smem->_path
         << endl;
 
    while (_runEnable) {
@@ -107,7 +109,7 @@ void AxiMasterSim::run() {
 
          if ( _verbose ) {
             cout << "Master write," 
-                 << " System=" << _smem->_smemPath
+                 << " System=" << _smem->_path
                  << " Addr=0x" << hex << setw(8) << setfill('0') << _writeAddr
                  << " Data=0x" << hex << setw(8) << setfill('0') << _writeData
                  << endl;
@@ -153,7 +155,7 @@ void AxiMasterSim::run() {
 
          if ( _verbose ) {
             cout << "Master read," 
-                 << " System=" << _smem->_smemPath
+                 << " System=" << _smem->_path
                  << " Addr=0x" << hex << setw(8) << setfill('0') << _readAddr
                  << endl;
          }
@@ -183,7 +185,7 @@ void AxiMasterSim::run() {
 
          if ( _verbose ) {
             cout << "Master read done," 
-                 << " System=" << _smem->_smemPath
+                 << " System=" << _smem->_path
                  << " Addr=0x" << hex << setw(8) << setfill('0') << _readAddr
                  << " Data=0x" << hex << setw(8) << setfill('0') << _readData
                  << endl;

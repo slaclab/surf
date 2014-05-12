@@ -143,10 +143,10 @@ void AxiSimMasterUpdate ( void *userPtr ) {
 
       // Get ID
       uint id = getInt(s_masterId);
-      asPtr->smem = sim_open(SYS,id,-1);
+      asPtr->smem = sim_open(SHM_TYPE,id);
 
-      if ( asPtr->smem != NULL ) vhpi_printf("AxiSimMaster: Opened shared memory. System=%s, Id=%i\n",SYS,id);
-      else vhpi_printf("AxiSimMaster: Failed to open shared memory file. System=%s, Id=%i\n",SYS,id);
+      if ( asPtr->smem != NULL ) vhpi_printf("AxiSimMaster: Opened shared memory: %s\n",asPtr->smem->_path);
+      else vhpi_printf("AxiSimMaster: Failed to open shared memory file. Id=%i\n",id);
    }
 
    // Detect clock edge

@@ -24,6 +24,7 @@ use work.AxiStreamPkg.all;
 entity AxiStreamSim is 
    generic (
       TPD_G            : time                   := 1 ns;
+      STREAM_ID_G      : integer range 0 to 255 := 1;
       AXIS_CONFIG_G    : AxiStreamConfigTYpe    := AXI_STREAM_CONFIG_INIT_C;
       EOFE_TUSER_EN_G  : boolean                := false;
       EOFE_TUSER_BIT_G : integer range 0 to 127 := 0;
@@ -60,6 +61,7 @@ architecture AxiStreamSim of AxiStreamSim is
    signal obDest     : slv(3 downto 0);
    signal obEof      : sl;
    signal obData     : slv(31 downto 0);
+   signal streamId   : slv(7 downto 0);
 
    type RegType is record
       master : AxiStreamMasterType;
@@ -77,6 +79,9 @@ architecture AxiStreamSim of AxiStreamSim is
    signal rin : RegType;
 
 begin
+
+   streamId <= conv_std_logic_vector(STREAM_ID_G,8);
+
 
    ------------------------------------
    -- Inbound
@@ -134,13 +139,14 @@ begin
 
    U_SimIb: entity work.AxiStreamSimIb
       port map (
-         ibClk   => sAxisClk,
-         ibReset => sAxisRst,
-         ibValid => ibValid,
-         ibDest  => ibDest,
-         ibEof   => ibEof,
-         ibEofe  => ibEofe,
-         ibData  => ibData
+         ibClk    => sAxisClk,
+         ibReset  => sAxisRst,
+         ibValid  => ibValid,
+         ibDest   => ibDest,
+         ibEof    => ibEof,
+         ibEofe   => ibEofe,
+         ibData   => ibData,
+         streamId => streamId
       );
 
    --assert ( sAxisRst = '1' or sAxisMaster.tValid = '0' or 
@@ -220,13 +226,14 @@ begin
 
    U_SimOb: entity work.AxiStreamSimOb
       port map (
-         obClk   => mAxisClk,
-         obReset => mAxisRst,
-         obValid => obValid,
-         obDest  => obDest,
-         obEof   => obEof,
-         obData  => obData,
-         obReady => rin.ready
+         obClk    => mAxisClk,
+         obReset  => mAxisRst,
+         obValid  => obValid,
+         obDest   => obDest,
+         obEof    => obEof,
+         obData   => obData,
+         obReady  => rin.ready,
+         streamId => streamId
       );
 
 end AxiStreamSim;

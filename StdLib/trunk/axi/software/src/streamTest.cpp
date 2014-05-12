@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
    AxiStreamSim  *stream;
 
    stream = new AxiStreamSim;
-   if ( ! stream->open("axiStream",1) ) {
+   if ( ! stream->open(1) ) {
       printf("Failed to open stream sim\n");
       return 1;
    }

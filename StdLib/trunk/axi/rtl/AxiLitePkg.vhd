@@ -215,7 +215,8 @@ package AxiLitePkg is
    -- Generate evenly distributed address map
    function genAxiLiteConfig ( num      : positive;
                                base     : slv(31 downto 0);
-                               baseBits : integer range 0 to 32 ) -- Number of base bits from the left
+                               baseBot  : integer range 0 to 32;
+                               addrBits : integer range 0 to 32 ) 
                                return AxiLiteCrossbarMasterConfigArray;
 
 end AxiLitePkg;
@@ -306,13 +307,11 @@ package body AxiLitePkg is
    -- Generate evenly distributed address map
    function genAxiLiteConfig ( num      : positive;
                                base     : slv(31 downto 0);
-                               baseBits : integer range 0 to 32 ) -- Number of base bits from the left
+                               baseBot  : integer range 0 to 32;
+                               addrBits : integer range 0 to 32 )
                                return AxiLiteCrossbarMasterConfigArray is
       variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
       variable addr    : slv(31 downto 0);
-      constant idxBits : integer  := bitSize(num-1);
-      constant baseBot : integer  := 31 - (baseBits-1);
-      constant idxBot  : integer  := 31 - ((baseBits+idxBits)-1);
    begin
 
       -- Init
@@ -321,10 +320,10 @@ package body AxiLitePkg is
 
       -- Generate records
       for i in 0 to num-1 loop
-         addr(baseBot-1 downto idxBot) := toSlv(i,idxBits);
-         retConf(i).baseAddr     := addr;
-         retConf(i).addrBits     := 32-(baseBits+idxBits);
-         retConf(i).connectivity := x"FFFF";
+         addr(baseBot-1 downto addrBits) := toSlv(i,baseBot-addrBits);
+         retConf(i).baseAddr             := addr;
+         retConf(i).addrBits             := addrBits;
+         retConf(i).connectivity         := x"FFFF";
       end loop;
 
       return retConf;

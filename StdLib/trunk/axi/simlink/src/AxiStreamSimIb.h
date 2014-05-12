@@ -6,13 +6,14 @@
 #include "AxiStreamSharedMem.h"
 
 // Signals
-#define ibClk        0
-#define ibReset      1
-#define ibValid      2
-#define ibDest       3
-#define ibEof        4
-#define ibEofe       5
-#define ibData       6
+#define s_ibClk        0
+#define s_ibReset      1
+#define s_ibValid      2
+#define s_ibDest       3
+#define s_ibEof        4
+#define s_ibEofe       5
+#define s_ibData       6
+#define s_streamId     7
 
 // Structure to track state
 typedef struct {
@@ -25,7 +26,7 @@ typedef struct {
    // Current state
    uint currClk;
    uint ibCount;
-   uint ibVc;
+   uint ibDest;
    uint ibError;
 
 } AxiStreamSimIbData;

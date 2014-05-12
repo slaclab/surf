@@ -10,6 +10,8 @@
 #include <fcntl.h>   
 #include <unistd.h>
 
+#define SHM_BASE "axi_shared"
+
 // Write address record
 typedef struct {
    uint awaddr;
@@ -60,10 +62,6 @@ typedef struct {
 
 typedef struct {
 
-   // Tracking objects
-   char _smemPath[200];
-   int  _smemId;
-
    // Clock counter
    uint _clkCnt;
 
@@ -85,6 +83,10 @@ typedef struct {
    AxiReadData  _readData;
    uint         _readDataReq;
    uint         _readDataAck;
+
+   // Shard path
+   char _path[200];
+
 } AxiSharedMem;
 
 // Init variables
@@ -103,18 +105,13 @@ static inline void init(AxiSharedMem *ptr) {
 }
 
 // Map and create shared memory object
-static inline AxiSharedMem * sim_open ( const char *system, uint id, int uid ) {
+static inline AxiSharedMem * sim_open ( const char *type, uint id ) {
    AxiSharedMem * ptr;
    int            smemFd;
    char           shmName[200];
-   int            lid;
-
-   // ID to use?
-   if ( uid == -1 ) lid = getuid();
-   else lid = uid;
 
    // Generate shared memory
-   sprintf(shmName,"axi_shared.%i.%s.%i",lid,system,id);
+   sprintf(shmName,"%s.%i.%s.%i",SHM_BASE,getuid(),type,id);
 
    // Attempt to open existing shared memory
    if ( (smemFd = shm_open(shmName, O_RDWR, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) ) < 0 ) {
@@ -133,9 +130,8 @@ static inline AxiSharedMem * sim_open ( const char *system, uint id, int uid ) {
    if((ptr = (AxiSharedMem *)mmap(0, sizeof(AxiSharedMem),
              (PROT_READ | PROT_WRITE), MAP_SHARED, smemFd, 0)) == MAP_FAILED) return(NULL);
 
-   // Store variables
-   strcpy(ptr->_smemPath,shmName);
-   ptr->_smemId = smemFd;
+   // Store path
+   strcpy(ptr->_path,shmName);
 
    init(ptr);
 
@@ -147,7 +143,7 @@ static inline void sim_close ( AxiSharedMem *smem ) {
    char shmName[200];
 
    // Get shared name
-   strcpy(shmName,smem->_smemPath);
+   strcpy(shmName,smem->_path);
 
    // Unlink
    shm_unlink(shmName);

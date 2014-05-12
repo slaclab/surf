@@ -12,7 +12,8 @@ entity AxiStreamSimOb is port (
       obDest       : out   std_logic_vector(3 downto 0);
       obEof        : out   std_logic;
       obData       : out   std_logic_vector(31 downto 0);
-      obReady      : in    std_logic
+      obReady      : in    std_logic;
+      streamId     : in    std_logic_vector(7  downto 0)
    );
 end AxiStreamSimOb;
 
