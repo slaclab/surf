@@ -15,7 +15,7 @@
 
 #define SIM_LINK_BUFF_SIZE 1000000
 
-#define SHM_BASE "axi_stream"
+#define SHM_STREAM_BASE "axi_stream"
 
 typedef struct {
 
@@ -54,7 +54,7 @@ static inline AxiStreamSharedMem * sim_open ( uint id ) {
    char                 shmName[200];
 
    // Generate shared memory
-   sprintf(shmName,"%s.%i.%i",SHM_BASE,getuid(),id);
+   sprintf(shmName,"%s.%i.%i",SHM_STREAM_BASE,getuid(),id);
 
    // Attempt to open existing shared memory
    if ( (smemFd = shm_open(shmName, O_RDWR, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) ) < 0 ) {
