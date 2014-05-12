@@ -10,7 +10,7 @@
 #include <fcntl.h>   
 #include <unistd.h>
 
-#define SHM_BASE "axi_shared"
+#define SHM_AXI_BASE "axi_shared"
 
 // Write address record
 typedef struct {
@@ -111,7 +111,7 @@ static inline AxiSharedMem * sim_open ( const char *type, uint id ) {
    char           shmName[200];
 
    // Generate shared memory
-   sprintf(shmName,"%s.%i.%s.%i",SHM_BASE,getuid(),type,id);
+   sprintf(shmName,"%s.%i.%s.%i",SHM_AXI_BASE,getuid(),type,id);
 
    // Attempt to open existing shared memory
    if ( (smemFd = shm_open(shmName, O_RDWR, (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) ) < 0 ) {
