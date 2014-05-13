@@ -10,15 +10,11 @@ EN64=-full64 -xlrm
 # RTL Files
 rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/tb/glbl.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/RstSync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/StdRtlPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/Synchronizer.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/RstSync.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerEdge.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerVector.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShot.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCnt.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCntVector.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SyncStatusVector.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/ram/rtl/SimpleDualPortRam.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoOutputPipeline.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoAsyncBuiltIn.vhd
@@ -29,7 +25,12 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoCascade.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/fifo/rtl/FifoMux.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerFifo.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShot.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCnt.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerOneShotCntVector.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerFifo.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SynchronizerFifo.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/sync/rtl/SyncStatusVector.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/ArbiterPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/Arbiter.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../StdLib/general/rtl/PrbsPkg.vhd

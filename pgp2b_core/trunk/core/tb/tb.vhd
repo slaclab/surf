@@ -48,7 +48,7 @@ architecture tb of tb is
    signal ipgpRxCtrl        : AxiStreamCtrlArray(3 downto 0);
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : 
-      AxiLiteCrossbarMasterConfigArray(11 downto 0) := genAxiLiteConfig ( 12, x"F0000000", 4 );
+      AxiLiteCrossbarMasterConfigArray(11 downto 0) := genAxiLiteConfig ( 12, x"F0000000", 28, 16 );
 
    --constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig (4);
    constant INT_CONFIG_C : AxiStreamConfigType := SSI_PGP2B_CONFIG_C;
