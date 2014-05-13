@@ -246,13 +246,16 @@ package AxiPkg is
 
    type AxiCtrlType is record
       pause    : sl;
+      overflow : sl;
    end record AxiCtrlType;
 
    constant AXI_CTRL_INIT_C : AxiCtrlType := (
-      pause    => '1');
+      pause    => '1',
+      overflow => '0');
 
    constant AXI_CTRL_UNUSED_C : AxiCtrlType := (
-      pause    => '0');
+      pause    => '0',
+      overflow => '0');
 
    type AxiCtrlArray is array (natural range<>) of AxiCtrlType;
 
