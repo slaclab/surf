@@ -65,12 +65,14 @@ architecture AxiStreamSim of AxiStreamSim is
 
    type RegType is record
       master : AxiStreamMasterType;
+      sof    : sl;
       ready  : sl;
       pos    : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       master => AXI_STREAM_MASTER_INIT_C,
+      sof    => '1',
       ready  => '0',
       pos    => '0'
    );
@@ -89,7 +91,8 @@ begin
 
    sAxisSlave.tReady <= '1';
 
-   process (sAxisClk) begin
+   process (sAxisClk) 
+   begin
       if rising_edge(sAxisClk) then
          if sAxisRst = '1' then
             ibValid <= '0'           after TPD_G;
@@ -203,12 +206,15 @@ begin
 
       if SOF_TUSER_EN_G then
          if r.master.tValid = '1' and mAxisSlave.tReady = '1' then
-            axiStreamSetUserBit(AXIS_CONFIG_G,v.master,SOF_TUSER_BIT_G,r.master.tLast);
+            -- Set the SOF bit on the master
+            axiStreamSetUserBit(AXIS_CONFIG_G,v.master,SOF_TUSER_BIT_G,r.sof);
+            -- Update the SOF bit
+             v.sof := obEof;
          end if;
       end if;
 
       if (mAxisRst = '1') then
-         v := REG_INIT_C;
+         v              := REG_INIT_C;
       end if;
 
       rin <= v;
