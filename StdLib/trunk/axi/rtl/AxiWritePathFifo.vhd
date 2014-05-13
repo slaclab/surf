@@ -423,7 +423,7 @@ begin
          din           => dataFifoDin,
          wr_data_count => open,
          wr_ack        => open,
-         overflow      => open,
+         overflow      => sAxiCtrl.overflow,
          prog_full     => sAxiCtrl.pause,
          almost_full   => dataFifoAFull,
          full          => open,

@@ -79,6 +79,8 @@ package AxiStreamPkg is
       TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
+   type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
+
    type AxiStreamCtrlType is record
       pause    : sl;
       overflow : sl;

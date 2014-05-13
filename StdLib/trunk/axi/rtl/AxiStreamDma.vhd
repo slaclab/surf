@@ -80,11 +80,11 @@ architecture structure of AxiStreamDma is
    constant CROSSBAR_CONN_C : slv(15 downto 0) := x"FFFF";
 
    constant LOC_INDEX_C       : natural          := 0;
-   constant LOC_BASE_ADDR_C   : slv(31 downto 0) := AXI_BASE_ADDR_G(31 downto 12) & x"000";
+   constant LOC_BASE_ADDR_C   : slv(31 downto 0) := AXIL_BASE_ADDR_G(31 downto 12) & x"000";
    constant LOC_NUM_BITS_C    : natural          := 10;
 
    constant FIFO_INDEX_C     : natural          := 1;
-   constant FIFO_BASE_ADDR_C : slv(31 downto 0) := AXI_BASE_ADDR_G(31 downto 12) & x"400";
+   constant FIFO_BASE_ADDR_C : slv(31 downto 0) := AXIL_BASE_ADDR_G(31 downto 12) & x"400";
    constant FIFO_NUM_BITS_C  : natural          := 10;
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
@@ -206,7 +206,7 @@ begin
       );
 
 
-   U_Fifos : entity work.AxiLiteFifoPushPop 
+   U_SwFifos : entity work.AxiLiteFifoPushPop 
       generic map (
          TPD_G              => TPD_G,
          POP_FIFO_COUNT_G   => 2,
