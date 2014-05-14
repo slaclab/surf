@@ -137,15 +137,18 @@ if { [file isdirectory ${simLinkDir}] == 1 } {
 # open the files
 set in  [open ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.sh r]
 set out [open ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.temp  w]
+set lastLine " "
 
 # Find and replace the AFS path 
 while { [eof ${in}] != 1 } {
+   
    gets ${in} line
    
    # Insert the sourcing of the local VCS setup_env.sh script
    set setupString {  # Add any setup/initialization commands here:-}
    if { ${line} == ${setupString} } {
       puts ${out} ${line}
+      
       # Check for shared memory interface
       if { ${sharedMem} != false } {
          puts  ${out} "  ulimit -S -s 60000"
@@ -153,14 +156,31 @@ while { [eof ${in}] != 1 } {
          # Write to file
          puts  ${out} ${LD_LIBRARY_PATH}       
       }
+      
+   } elseif { ${line} == "  vhdlan_opts=\"-full64 -l vhdlan.log\"" } {
+      puts  ${out} "  vhdlan_opts=\"-full64 -nc -l vhdlan.log\"" 
+   } elseif { ${line} == "  vlogan_opts=\"-full64 -l vlogan.log\"" } {
+      puts  ${out} "  vlogan_opts=\"-full64 -nc -l vlogan.log\"" 
+   } elseif { ${line} == "  vhdlan_opts=\"-full32 -l vhdlan.log\"" } {
+      puts  ${out} "  vhdlan_opts=\"-full32 -nc -l vhdlan.log\"" 
+   } elseif { ${line} == "  vlogan_opts=\"-full32 -l vlogan.log\"" } {
+      puts  ${out} "  vlogan_opts=\"-full32 -nc -l vlogan.log\""       
    } else { 
+   
       # Replace relative path with the absolute path
-      set newLine [string map {$reference_dir/../../../../../../afs /afs} ${line}] 
+      set newLine [string map {$reference_dir/../../../../../../afs /afs} ${line}]      
+      # Replace simulate with the #simulate   
       # Replace ${simTbFileName}_simv with the simv
-      set mapString "${simTbFileName}_simv simv"
+      set mapString "${simTbFileName}_simv simv"   
       set newLine [string map ${mapString} ${newLine}] 
-      # Write to file
-      puts ${out} ${newLine}     
+      
+      # Mask off the simulate function call in run() 
+      if { ${lastLine} != "  elaborate" } {
+         # Write to file
+         puts ${out} ${newLine}   
+      }
+      # Save the last line value
+      set lastLine ${newLine}  
    }
 }
 
@@ -210,4 +230,4 @@ close_project
 ########################################################
 ## VCS Complete Message
 ########################################################
-VcsCompleteMessage ${simTbOutDir}
+VcsCompleteMessage ${simTbOutDir} ${sharedMem}
