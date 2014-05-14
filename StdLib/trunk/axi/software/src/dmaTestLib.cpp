@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
       return 1;
    }
 
-   dma = new AxiStreamDmaSim(master,0,mem,buffSize*buffCount,buffSize);
+   dma = new AxiStreamDmaSim(master,0,0x400,mem,buffSize*buffCount,buffSize);
 
    txDest = 1;
    for (txSize=120; txSize < 260; txSize++) {
