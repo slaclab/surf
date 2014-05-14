@@ -221,12 +221,16 @@ proc CheckImpl { } {
       return true
    }
 }
-proc VcsCompleteMessage {dirPath} {
+proc VcsCompleteMessage {dirPath sharedMem} {
    puts "\n\n********************************************************"
    puts "The VCS simulation script has been generated."
    puts "To complie the simulation:"
    puts "\t\$ cd ${dirPath}/"    
-   puts "\t\$ ./sim_vcs_mx.sh"    
+   puts "\t\$ ./sim_vcs_mx.sh"
+   if { ${sharedMem} != false } {
+      puts "\t\$ source setup_env.csh"
+   }
+   puts "\t\$ ./simv"   
    puts "********************************************************\n\n" 
 }
 
