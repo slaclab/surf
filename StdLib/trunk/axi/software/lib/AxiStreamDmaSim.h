@@ -13,11 +13,13 @@
 class AxiStreamDmaSim  {
 
       AxiMasterSim  * _mastMem;
-      uint            _mastOffset;
+      uint            _regOffset;
+      uint            _fifoOffset;
       unsigned char * _slaveMem;
       uint            _slaveSize;
       uint            _maxSize;
 
+      // Reg offset applied, normally 0x000
       static const uint _rxEnableAddr  = 0x00000000;
       static const uint _txEnableAddr  = 0x00000004;
       static const uint _fifoClearAddr = 0x00000008;
@@ -25,21 +27,22 @@ class AxiStreamDmaSim  {
       static const uint _intStatusAddr = 0x00000010;
       static const uint _maxRxSizeAddr = 0x00000014;
 
-      static const uint _rxFreeAddr    = 0x00000600;
-      static const uint _txPostAddrA   = 0x00000640;
-      static const uint _txPostAddrB   = 0x00000644;
-      static const uint _txPostAddrC   = 0x00000648;
-      static const uint _txPassAddr    = 0x0000064C;
-
-      static const uint _rxPendAddr    = 0x00000400;
-      static const uint _txFreeAddr    = 0x00000404;
+      // Fifo offset applied, normally 0x400
+      static const uint _rxFreeAddr    = 0x00000200;
+      static const uint _txPostAddrA   = 0x00000240;
+      static const uint _txPostAddrB   = 0x00000244;
+      static const uint _txPostAddrC   = 0x00000248;
+      static const uint _txPassAddr    = 0x0000024C;
+      static const uint _rxPendAddr    = 0x00000000;
+      static const uint _txFreeAddr    = 0x00000004;
 
       static const uint _rxBuffCount   = 4;
       static const uint _txBuffCount   = 4;
 
    public:
 
-      AxiStreamDmaSim (AxiMasterSim *mast, uint offset, unsigned char *mem, uint memSize, uint maxSize );
+      AxiStreamDmaSim (AxiMasterSim *mast, uint regOffset, uint fifoOffset, 
+                       unsigned char *mem, uint memSize, uint maxSize );
       ~AxiStreamDmaSim ();
 
       // Write a block of data

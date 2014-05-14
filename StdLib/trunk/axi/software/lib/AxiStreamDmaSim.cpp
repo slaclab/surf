@@ -14,27 +14,29 @@
 #include "AxiStreamDmaSim.h"
 using namespace std;
 
-AxiStreamDmaSim::AxiStreamDmaSim (AxiMasterSim *mast, uint offset, unsigned char *mem, uint memSize, uint maxSize ) {
+AxiStreamDmaSim::AxiStreamDmaSim (AxiMasterSim *mast, uint regOffset, uint fifoOffset, 
+                                  unsigned char *mem, uint memSize, uint maxSize ) {
    uint x;
    uint addr;
 
    _mastMem    = mast;
-   _mastOffset = offset;
+   _regOffset  = regOffset;
+   _fifoOffset = fifoOffset;
    _slaveMem   = mem;
    _slaveSize  = memSize;
    _maxSize    = maxSize;
 
    // Set max frame size
-   _mastMem->write(_mastOffset+_maxRxSizeAddr,maxSize);
+   _mastMem->write(_regOffset+_maxRxSizeAddr,maxSize);
 
    // Clear FIFOs
-   _mastMem->write(_mastOffset+_fifoClearAddr,1);
-   _mastMem->write(_mastOffset+_fifoClearAddr,0);
+   _mastMem->write(_regOffset+_fifoClearAddr,1);
+   _mastMem->write(_regOffset+_fifoClearAddr,0);
 
    // Enable rx and tx
-   _mastMem->write(_mastOffset+_rxEnableAddr,1);
-   _mastMem->write(_mastOffset+_txEnableAddr,1);
-   _mastMem->write(_mastOffset+_intEnableAddr,1);
+   _mastMem->write(_regOffset+_rxEnableAddr,1);
+   _mastMem->write(_regOffset+_txEnableAddr,1);
+   _mastMem->write(_regOffset+_intEnableAddr,1);
 
    // Create tx and rx descriptors, 4 each
    addr = 0;
@@ -44,7 +46,7 @@ AxiStreamDmaSim::AxiStreamDmaSim (AxiMasterSim *mast, uint offset, unsigned char
          return;
       }
 
-      _mastMem->write(_mastOffset+_txPassAddr,addr);
+      _mastMem->write(_fifoOffset+_txPassAddr,addr);
       addr += maxSize + 16;
       printf("AxiStreamDmaSim:AxiStreamDmaSim -> Created tx buffer addr %X\n",addr);
    }
@@ -54,17 +56,17 @@ AxiStreamDmaSim::AxiStreamDmaSim (AxiMasterSim *mast, uint offset, unsigned char
          return;
       }
 
-      _mastMem->write(_mastOffset+_rxFreeAddr,addr);
+      _mastMem->write(_fifoOffset+_rxFreeAddr,addr);
       addr += maxSize + 16;
       printf("AxiStreamDmaSim:AxiStreamDmaSim -> Created rx buffer addr %X\n",addr);
    }
 }
 
 AxiStreamDmaSim::~AxiStreamDmaSim () {
-   _mastMem->write(_mastOffset+_fifoClearAddr,1);
-   _mastMem->write(_mastOffset+_rxEnableAddr,0);
-   _mastMem->write(_mastOffset+_txEnableAddr,0);
-   _mastMem->write(_mastOffset+_intEnableAddr,0);
+   _mastMem->write(_regOffset+_fifoClearAddr,1);
+   _mastMem->write(_regOffset+_rxEnableAddr,0);
+   _mastMem->write(_regOffset+_txEnableAddr,0);
+   _mastMem->write(_regOffset+_intEnableAddr,0);
 }
 
 // Write a block of data
@@ -78,17 +80,17 @@ void AxiStreamDmaSim::write(unsigned char *data, uint size, uint dest) {
    }
 
    do {
-      addr = _mastMem->read(_mastOffset+_txFreeAddr);
+      addr = _mastMem->read(_fifoOffset+_txFreeAddr);
    } while ( (addr & 0x80000000) == 0);
    addr = addr & 0x7FFFFFFF;
    memcpy(&(_slaveMem[addr]),data,size);
 
-   _mastMem->write(_mastOffset+_txPostAddrA,addr);
-   _mastMem->write(_mastOffset+_txPostAddrB,size);
+   _mastMem->write(_fifoOffset+_txPostAddrA,addr);
+   _mastMem->write(_fifoOffset+_txPostAddrB,size);
 
    desc  = 0x100; // SOF
    desc |= (dest & 0xFF); // SOF
-   _mastMem->write(_mastOffset+_txPostAddrC,desc);
+   _mastMem->write(_fifoOffset+_txPostAddrC,desc);
    printf("AxiStreamDmaSim:write -> Transmit frame size= %i\n",size);
 }
 
@@ -98,13 +100,13 @@ int AxiStreamDmaSim::read(unsigned char *data, uint maxSize, uint *dest, uint *e
    uint addr;
    uint size;
 
-   desc = _mastMem->read(_mastOffset+_rxPendAddr);
+   desc = _mastMem->read(_fifoOffset+_rxPendAddr);
    if ( (desc & 0x80000000) == 0 ) return(0);
 
    addr = desc & 0x7FFFFFFF;
 
    do {
-      desc = _mastMem->read(_mastOffset+_rxPendAddr);
+      desc = _mastMem->read(_fifoOffset+_rxPendAddr);
       usleep(100);
    } while ( (desc & 0x80000000) == 0 );
 
@@ -113,14 +115,14 @@ int AxiStreamDmaSim::read(unsigned char *data, uint maxSize, uint *dest, uint *e
    memcpy(data,&(_slaveMem[addr]),size);
 
    do {
-      desc = _mastMem->read(_mastOffset+_rxPendAddr);
+      desc = _mastMem->read(_fifoOffset+_rxPendAddr);
       usleep(100);
    } while ( (desc & 0x80000000) == 0 );
 
    *dest = desc & 0xFF;
    *eofe = (desc >> 16) & 0x1;
 
-   _mastMem->write(_mastOffset+_rxFreeAddr,addr);
+   _mastMem->write(_fifoOffset+_rxFreeAddr,addr);
 
    if ( desc & 0x02000000 ) {
       printf("AxiStreamDmaSim:write -> Rx overflow error.\n");
