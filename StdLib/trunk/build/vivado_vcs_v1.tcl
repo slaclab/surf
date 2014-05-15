@@ -137,7 +137,6 @@ if { [file isdirectory ${simLinkDir}] == 1 } {
 # open the files
 set in  [open ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.sh r]
 set out [open ${simTbOutDir}/${simTbFileName}_sim_vcs_mx.temp  w]
-set lastLine " "
 
 # Find and replace the AFS path 
 while { [eof ${in}] != 1 } {
@@ -154,33 +153,26 @@ while { [eof ${in}] != 1 } {
          puts  ${out} "  ulimit -S -s 60000"
          set LD_LIBRARY_PATH "  export LD_LIBRARY_PATH=$::env(LD_LIBRARY_PATH):${simTbOutDir}"      
          # Write to file
-         puts  ${out} ${LD_LIBRARY_PATH}       
+         puts ${out} ${LD_LIBRARY_PATH}       
       }
-      
-   } elseif { ${line} == "  vhdlan_opts=\"-full64 -l vhdlan.log\"" } {
-      puts  ${out} "  vhdlan_opts=\"-full64 -nc -l vhdlan.log\"" 
-   } elseif { ${line} == "  vlogan_opts=\"-full64 -l vlogan.log\"" } {
-      puts  ${out} "  vlogan_opts=\"-full64 -nc -l vlogan.log\"" 
-   } elseif { ${line} == "  vhdlan_opts=\"-full32 -l vhdlan.log\"" } {
-      puts  ${out} "  vhdlan_opts=\"-full32 -nc -l vhdlan.log\"" 
-   } elseif { ${line} == "  vlogan_opts=\"-full32 -l vlogan.log\"" } {
-      puts  ${out} "  vlogan_opts=\"-full32 -nc -l vlogan.log\""       
+  
    } else { 
-   
+		# Insert -nc flags into the vhdlan_opts and vlogan_opts options
+		set line [string map {" -l v" " -nc -l v"} ${line}]
+
       # Replace relative path with the absolute path
-      set newLine [string map {$reference_dir/../../../../../../afs /afs} ${line}]      
-      # Replace simulate with the #simulate   
+      set line [string map {"../" ""} ${line}]
+      set line [string map {"$reference_dir" ""} ${line}]
+      
       # Replace ${simTbFileName}_simv with the simv
-      set mapString "${simTbFileName}_simv simv"   
-      set newLine [string map ${mapString} ${newLine}] 
+		set replaceString "${simTbFileName}_simv simv"
+      set line [string map ${replaceString}  ${line}] 
       
       # Mask off the simulate function call in run() 
-      if { ${lastLine} != "  elaborate" } {
-         # Write to file
-         puts ${out} ${newLine}   
-      }
-      # Save the last line value
-      set lastLine ${newLine}  
+      set line [string map {"  simulate" ""} ${line}]
+
+		# Write to file
+		 puts ${out} ${line}  
    }
 }
 
