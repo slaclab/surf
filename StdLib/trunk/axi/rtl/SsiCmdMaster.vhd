@@ -43,7 +43,7 @@ entity SsiCmdMaster is
       -- AXI Stream FIFO Config
       BRAM_EN_G           : boolean                    := false;
       XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G      : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
+      USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G     : boolean                    := false;
       ALTERA_SYN_G        : boolean                    := false;
       ALTERA_RAM_G        : string                     := "M9K";
