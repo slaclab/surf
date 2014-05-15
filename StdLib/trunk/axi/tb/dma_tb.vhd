@@ -104,7 +104,8 @@ begin
    U_AxiStremDma : entity work.AxiStreamDma
       generic map (
          TPD_G            => 1 ns,
-         AXI_BASE_ADDR_G  => x"00000",
+         AXIL_COUNT_G     => 1,
+         AXIL_BASE_ADDR_G => x"00000000",
          AXI_READY_EN_G   => true,
          AXIS_READY_EN_G  => false,
          AXIS_CONFIG_G    => AXIS_CONFIG_C,   
@@ -114,10 +115,10 @@ begin
       ) port map (
          axiClk              => axiClk,
          axiRst              => axiClkRst,
-         axilReadMaster      => axilReadMaster,
-         axilReadSlave       => axilReadSlave,
-         axilWriteMaster     => axilWriteMaster,
-         axilWriteSlave      => axilWriteSlave,
+         axilReadMaster(0)   => axilReadMaster,
+         axilReadSlave(0)    => axilReadSlave,
+         axilWriteMaster(0)  => axilWriteMaster,
+         axilWriteSlave(0)   => axilWriteSlave,
          interrupt           => interrupt,
          sAxisMaster         => mAxisMaster,
          sAxisSlave          => mAxisSlave,
