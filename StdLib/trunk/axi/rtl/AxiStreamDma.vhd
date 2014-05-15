@@ -31,14 +31,15 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDma is
    generic (
-      TPD_G            : time                := 1 ns;
-      AXIL_BASE_ADDR_G : slv(31 downto 0)    := x"00000000";
-      AXI_READY_EN_G   : boolean             := false;
-      AXIS_READY_EN_G  : boolean             := false;
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G     : AxiConfigType       := AXI_CONFIG_INIT_C;
-      AXI_BURST_G      : slv(1 downto 0)     := "01";
-      AXI_CACHE_G      : slv(3 downto 0)     := "1111"
+      TPD_G            : time                 := 1 ns;
+      AXIL_COUNT_G     : integer range 1 to 2 := 1;
+      AXIL_BASE_ADDR_G : slv(31 downto 0)     := x"00000000";
+      AXI_READY_EN_G   : boolean              := false;
+      AXIS_READY_EN_G  : boolean              := false;
+      AXIS_CONFIG_G    : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G     : AxiConfigType        := AXI_CONFIG_INIT_C;
+      AXI_BURST_G      : slv(1 downto 0)      := "01";
+      AXI_CACHE_G      : slv(3 downto 0)      := "1111"
    );
    port (
 
@@ -47,10 +48,10 @@ entity AxiStreamDma is
       axiRst          : in  sl;
 
       -- Register Access & Interrupt
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilReadMaster  : in  AxiLiteReadMasterArray(AXIL_COUNT_G-1 downto 0);
+      axilReadSlave   : out AxiLiteReadSlaveArray(AXIL_COUNT_G-1 downto 0);
+      axilWriteMaster : in  AxiLiteWriteMasterArray(AXIL_COUNT_G-1 downto 0);
+      axilWriteSlave  : out AxiLiteWriteSlaveArray(AXIL_COUNT_G-1 downto 0);
       interrupt       : out sl;
 
       -- SSI 
@@ -185,26 +186,34 @@ architecture structure of AxiStreamDma is
 
 begin
 
-   U_AxiCrossbar : entity work.AxiLiteCrossbar 
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => 2,
-         DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
-         MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C 
-      ) port map (
-         axiClk              => axiClk,
-         axiClkRst           => axiRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => intWriteMasters,
-         mAxiWriteSlaves     => intWriteSlaves,
-         mAxiReadMasters     => intReadMasters,
-         mAxiReadSlaves      => intReadSlaves
-      );
+   U_CrossEnGen: if AXIL_COUNT_G = 1 generate
+      U_AxiCrossbar : entity work.AxiLiteCrossbar 
+         generic map (
+            TPD_G              => TPD_G,
+            NUM_SLAVE_SLOTS_G  => 1,
+            NUM_MASTER_SLOTS_G => 2,
+            DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
+            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C 
+         ) port map (
+            axiClk              => axiClk,
+            axiClkRst           => axiRst,
+            sAxiWriteMasters    => axilWriteMaster,
+            sAxiWriteSlaves     => axilWriteSlave,
+            sAxiReadMasters     => axilReadMaster,
+            sAxiReadSlaves      => axilReadSlave,
+            mAxiWriteMasters    => intWriteMasters,
+            mAxiWriteSlaves     => intWriteSlaves,
+            mAxiReadMasters     => intReadMasters,
+            mAxiReadSlaves      => intReadSlaves
+         );
+   end generate;
 
+   U_CrossDisGen: if AXIL_COUNT_G = 2 generate
+      intWriteMasters <= axilWriteMaster;
+      axilWriteSlave  <= intWriteSlaves;
+      intReadMasters  <= axilReadMaster;
+      axilReadSlave   <= intReadSlaves;
+   end generate;
 
    U_SwFifos : entity work.AxiLiteFifoPushPop 
       generic map (
