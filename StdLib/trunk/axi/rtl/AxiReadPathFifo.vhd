@@ -33,7 +33,6 @@ entity AxiReadPathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      RST_ASYNC_G              : boolean                    := false;
       XIL_DEVICE_G             : string                     := "7SERIES";
       USE_BUILT_IN_G           : boolean                    := false;
       GEN_SYNC_FIFO_G          : boolean                    := false;
@@ -297,7 +296,7 @@ begin
          CASCADE_SIZE_G     => ADDR_CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => true,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => RST_ASYNC_G,
+         RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => ADDR_BRAM_EN_G,
          FWFT_EN_G          => true,
@@ -342,7 +341,7 @@ begin
          CASCADE_SIZE_G     => DATA_CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => true,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => RST_ASYNC_G,
+         RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => DATA_BRAM_EN_G,
          FWFT_EN_G          => true,

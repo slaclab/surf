@@ -272,7 +272,8 @@ begin
             v.axiReadSlave.rdata(VALID_POSITION_G) := 
                VALID_POLARITY_G xor (not intFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
-            v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) := '1';
+            v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
+               intFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
          else
 
@@ -281,7 +282,8 @@ begin
             v.axiReadSlave.rdata(VALID_POSITION_G) := 
                VALID_POLARITY_G xor (not loopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
-            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := '1';
+            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
+               loopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          end if;
 
@@ -301,7 +303,7 @@ begin
       -- Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      popFifoRead   <= v.popFifoRead;
+      popFifoRead   <= r.popFifoRead;
       popFifoValid  <= r.popFifoValid;
       loopFifoDin   <= r.loopFifoDin;
       loopFifoWrite <= r.loopFifoWrite;
