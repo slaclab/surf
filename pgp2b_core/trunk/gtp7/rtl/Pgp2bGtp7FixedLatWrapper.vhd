@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-05-01
+-- Last update: 2014-05-14
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,6 +90,7 @@ architecture rtl of Pgp2bGtp7FixedLatWrapper is
 
    signal gtClk,
       gtClkDiv2,
+      clkin1,
       stableClock,
       stableRst,
       locked,
@@ -138,6 +139,7 @@ begin
          clk    => stableClock,
          rstOut => stableRst);
 
+   clkin1 <= ite(MASTER_SEL_G, stableClock, rxClock);
    mmcm_adv_inst : MMCME2_ADV
       generic map(
          BANDWIDTH            => "LOW",
@@ -175,7 +177,7 @@ begin
          CLKOUT6      => open,
          -- Input clock control
          CLKFBIN      => clkFbIn,
-         CLKIN1       => ite(MASTER_SEL_G, stableClock, rxClock),
+         CLKIN1       => clkin1,
          CLKIN2       => '0',
          -- Tied to always select the primary input clock
          CLKINSEL     => '1',
@@ -246,7 +248,7 @@ begin
          qPllRefClkLost => qPllRefClkLost,
          qPllReset      => qPllReset);                
 
-   Pgp2bGtp7Fixedlat_Inst : entity work.Pgp2bGtp7Fixedlat
+   Pgp2bGtp7Fixedlat_Inst : entity work.Pgp2bGtp7FixedLat
       generic map (
          NUM_VC_EN_G           => NUM_VC_EN_G,
          STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout 
@@ -292,8 +294,8 @@ begin
          pgpTxMasters     => pgpTxMasters,
          pgpTxSlaves      => pgpTxSlaves,
          -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-         pgpRxMasters     => pgpRxMaseters,
-         pgpRxMasterMux   => pgpRxMaseterMux,
+         pgpRxMasters     => pgpRxMasters,
+         pgpRxMasterMuxed => pgpRxMasterMuxed,
          pgpRxCtrl        => pgpRxCtrl,
          -- GT loopback control
          loopback         => loopback);      

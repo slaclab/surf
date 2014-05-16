@@ -176,7 +176,7 @@ begin
       intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
       phyRxLanesOut          <= (others=>PGP2B_RX_PHY_LANE_OUT_INIT_C);
       phyRxInit              <= '0';
-      remFifoStatus          <= (others=>AXI_STREAM_CTRL_INIT_C);
+      remFifoStatus          <= (others=>AXI_STREAM_CTRL_UNUSED_C);
    end generate;
 
    -- De-Muxed Version

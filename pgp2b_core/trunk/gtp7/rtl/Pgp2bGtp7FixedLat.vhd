@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtp7Fixedlat.vhd
+-- File       : Pgp2bGtp7FixedLat.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-05-01
+-- Last update: 2014-05-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ use work.AxiStreamPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity Pgp2bGtp7Fixedlat is
+entity Pgp2bGtp7FixedLat is
    generic (
       TPD_G : time := 1 ns;
 
@@ -109,11 +109,11 @@ entity Pgp2bGtp7Fixedlat is
       -- GT loopback control
       loopback : in slv(2 downto 0));   -- GT Serial Loopback Control
 
-end Pgp2bGtp7Fixedlat;
+end Pgp2bGtp7FixedLat;
 
 
 -- Define architecture
-architecture rtl of Pgpb2Gtp7Fixedlat is
+architecture rtl of Pgp2bGtp7FixedLat is
 
    --------------------------------------------------------------------------------------------------
    -- Rx Signals
