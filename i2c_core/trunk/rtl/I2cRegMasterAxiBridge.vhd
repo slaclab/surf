@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2014-04-21
+-- Last update: 2014-05-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
 
-   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2 + bitSize(DEVICE_MAP_G'length(1)) - 1;
+   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2 + log2(DEVICE_MAP_G'length) - 1;
    constant I2C_DEV_AXI_ADDR_LOW_C  : natural := I2C_REG_ADDR_SIZE_G+2;
 
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
@@ -152,7 +152,7 @@ begin
       if (axiStatus.writeEnable = '1') then
 
          -- Decode address and perform write
-         if (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "0") then
+         if (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "0" or not EN_USER_REG_G) then
             -- I2C Address Space
             -- Decode i2c device address and send command to I2cRegMaster
             devInt := conv_integer(axiWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
@@ -179,7 +179,7 @@ begin
          end if;
       elsif (axiStatus.readEnable = '1') then
          -- Decode address and perform write
-         if (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "0") then
+         if (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "0" or not EN_USER_REG_G) then
             -- I2C Address Space
             -- Decode i2c device address and send command to I2cRegMaster
             devInt := conv_integer(axiReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
