@@ -357,7 +357,8 @@ begin
             v.axiReadSlave.rdata(VALID_POSITION_G) := 
                VALID_POLARITY_G xor (not intFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
-            v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) := '1';
+            v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
+               intFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
          -- Loop Fifo Space
          elsif axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 1 then
@@ -366,7 +367,8 @@ begin
             v.axiReadSlave.rdata(VALID_POSITION_G) := 
                VALID_POLARITY_G xor (not loopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
-            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := '1';
+            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
+               loopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          -- Write FIFO Space
          elsif axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 2 then
@@ -392,9 +394,9 @@ begin
       -- Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      popFifoRead   <= v.popFifoRead;
+      popFifoRead   <= r.popFifoRead;
       popFifoValid  <= r.popFifoValid;
-      loopFifoRead  <= v.loopFifoRead;
+      loopFifoRead  <= r.loopFifoRead;
       loopFifoDin   <= r.loopFifoDin;
       loopFifoWrite <= r.loopFifoWrite;
       pushFifoDin   <= r.pushFifoDin;
