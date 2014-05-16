@@ -152,6 +152,7 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    signal int2FrameTxReady   : sl;
    signal int3FrameTxReady   : sl;
    signal intTimeout         : sl;
+   signal intOverflow        : slv(3 downto 0);
 
    -- Transmit Data Marker
    constant TX_DATA_C   : slv(2 downto 0) := "000";
@@ -225,7 +226,7 @@ begin
       socWord(i*16+7  downto i*16)    <= (others=>'0');
 
       -- EOF, buffer status
-      eocWord(i*16+15 downto i*16+12) <= vc3LocOverflow  & vc2LocOverflow  & vc1LocOverflow  & vc0LocOverflow;
+      eocWord(i*16+15 downto i*16+12) <= intOverflow;
       eocWord(i*16+11 downto i*16+8)  <= vc3LocAlmostFull & vc2LocAlmostFull & vc1LocAlmostFull & vc0LocAlmostFull;
       eocWord(i*16+7  downto i*16)    <= (others=>'0');
    end generate;
@@ -249,6 +250,7 @@ begin
          vc2Serial        <= (others=>'0') after TPD_G;
          vc3Serial        <= (others=>'0') after TPD_G;
          curTypeLast      <= (others=>'0') after TPD_G;
+         intOverflow      <= (others=>'0') after TPD_G;
       elsif rising_edge(pgpTxClk) then
 
          -- State control
@@ -317,6 +319,30 @@ begin
          schTxEOF <= nxtTxEOF after TPD_G;
          schTxAck <= nxtTxAck after TPD_G;
 
+         -- Overflow Latch Until Send
+         if vc0LocOverflow = '1' then
+            intOverflow(0) <= '1' after TPD_G;
+         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+            intOverflow(0) <= '0' after TPD_G;
+         end if;
+
+         if vc1LocOverflow = '1' then
+            intOverflow(1) <= '1' after TPD_G;
+         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+            intOverflow(1) <= '0' after TPD_G;
+         end if;
+
+         if vc2LocOverflow = '1' then
+            intOverflow(2) <= '1' after TPD_G;
+         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+            intOverflow(2) <= '0' after TPD_G;
+         end if;
+
+         if vc3LocOverflow = '1' then
+            intOverflow(3) <= '1' after TPD_G;
+         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+            intOverflow(3) <= '0' after TPD_G;
+         end if;
       end if;
    end process;
 

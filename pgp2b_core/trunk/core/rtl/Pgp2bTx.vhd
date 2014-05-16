@@ -133,6 +133,18 @@ begin
    -- Link Ready
    pgpTxOut.linkReady <= intTxLinkReady;
 
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxCLkRst = '1' then
+            pgpTxOut.frameTx    <= '0' after TPD_G;
+            pgpTxOut.frameTxErr <= '0' after TPD_G;
+         else
+            pgpTxOut.frameTx    <= cellTxEOF  after TPD_G;
+            pgpTxOut.frameTxErr <= cellTxEOFE after TPD_G;
+         end if;
+      end if;
+   end process;
+
    -- Physical Interface
    U_Pgp2bTxPhy: entity work.Pgp2bTxPhy 
       generic map (
