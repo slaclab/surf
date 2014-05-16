@@ -73,7 +73,7 @@ file rename -force ${OUT_DIR}/vcs_library/synopsys_sim.temp ${OUT_DIR}/vcs_libra
 set simTbFileName [get_property top [get_filesets sim_1]]
 set simTbOutDir ${OUT_DIR}/vcs_scripts/${simTbFileName}
 
-if { [export_simulation -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/] != 0 } {
+if { [export_simulation -absolute_path -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/] != 0 } {
    puts "export_simulation ERROR: ${newTop}"
    exit -1
 } 
@@ -157,12 +157,14 @@ while { [eof ${in}] != 1 } {
       }
   
    } else { 
-		# Insert -nc flags into the vhdlan_opts and vlogan_opts options
-		set line [string map {" -l v" " -nc -l v"} ${line}]
+#       set line [string map {"reference_dir=\".\"" "reference_dir=${pwd()}"} ${line}]
+ 
+       # Insert -nc flags into the vhdlan_opts and vlogan_opts options
+       set line [string map {" -l v" " -nc -l v"} ${line}]
 
       # Replace relative path with the absolute path
-      set line [string map {"../" ""} ${line}]
-      set line [string map {"$reference_dir" ""} ${line}]
+      #set line [string map {"../" ""} ${line}]
+      #set line [string map {"$reference_dir" ""} ${line}]
       
       # Replace ${simTbFileName}_simv with the simv
 		set replaceString "${simTbFileName}_simv simv"

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-05-13
+-- Last update: 2014-05-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ package body SsiPkg is
       return sl is
       variable ret : sl;
    begin
-      ret := axiStreamGetUserBit(axisConfig, axisMaster, SSI_SOF_C);
+      ret := axiStreamGetUserBit(axisConfig, axisMaster, SSI_SOF_C, 0);
       return ret;
    end function;
 
@@ -265,7 +265,7 @@ package body SsiPkg is
       axisMaster : inout AxiStreamMasterType;
       sof        : in    sl) is
    begin
-      axiStreamSetUserBit(axisConfig, axisMaster, SSI_SOF_C, sof);
+      axiStreamSetUserBit(axisConfig, axisMaster, SSI_SOF_C, sof, 0);
    end procedure;
    
    procedure ssiResetFlags (
