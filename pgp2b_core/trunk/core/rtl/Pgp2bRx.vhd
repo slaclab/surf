@@ -93,7 +93,8 @@ architecture Pgp2bRx of Pgp2bRx is
 begin
 
    -- Link Ready
-   pgpRxOut.linkReady <= intRxLinkReady;
+   pgpRxOut.linkReady    <= intRxLinkReady;
+   pgpRxOut.linkPolarity <= intPhyRxPolarity;
 
    -- Interface connection
    wrap : process ( intPhyRxPolarity, phyRxLanesIn) is
@@ -208,6 +209,9 @@ begin
          axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
          axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
 
+         pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
+         pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G; 
+
          -- Generate valid and dest values
          case intRxVcValid is 
             when "0001" =>
@@ -228,9 +232,11 @@ begin
 
          if pgpRxClkRst = '1' then
             intMaster := AXI_STREAM_MASTER_INIT_C;
+            pgpRxOut.frameRx    <= '0' after TPD_G;
+            pgpRxOut.frameRxErr <= '0' after TPD_G;
          else
 
-         pgpRxMaster <= intMaster;
+         pgpRxMaster <= intMaster after TPD_G;
 
          end if;
       end if;

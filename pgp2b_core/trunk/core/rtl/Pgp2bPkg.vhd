@@ -68,6 +68,9 @@ package Pgp2bPkg is
 
    type Pgp2bRxOutType is record
       linkReady     : sl;                -- Local side has link
+      linkPolarity  : slv(1 downto 0);   -- Receive link polarity
+      frameRx       : sl;                -- A good frame was received
+      frameRxErr    : sl;                -- An errored frame was received
       cellError     : sl;                -- A cell error has occured
       linkDown      : sl;                -- A link down event has occured
       linkError     : sl;                -- A link error has occured
@@ -81,6 +84,9 @@ package Pgp2bPkg is
    type Pgp2bRxOutArray is array (natural range <>) of Pgp2bRxOutType;
 
    constant PGP2B_RX_OUT_INIT_C : Pgp2bRxOutType := (
+      '0',
+      "00",
+      '0',
       '0',
       '0',
       '0',
@@ -115,7 +121,9 @@ package Pgp2bPkg is
    );               
 
    type Pgp2bTxOutType is record
-      linkReady : sl;                   -- Local side has link
+      linkReady  : sl;                -- Local side has link
+      frameTx    : sl;                -- A good frame was transmitted
+      frameTxErr : sl;                -- An errored frame was transmitted
    end record Pgp2bTxOutType;
 
    type Pgp2bTxOutArray is array (natural range <>) of Pgp2bTxOutType;
