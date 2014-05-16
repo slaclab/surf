@@ -1,8 +1,6 @@
 vhdl work rtl/AxiPkg.vhd
 vhdl work rtl/AxiWritePathFifo.vhd
-vhdl work rtl/AxiWritePathMux.vhd
 vhdl work rtl/AxiReadPathFifo.vhd
-vhdl work rtl/AxiReadPathMux.vhd
 vhdl work rtl/AxiLitePkg.vhd
 vhdl work rtl/AxiLiteCrossbar.vhd
 vhdl work rtl/AxiVersion.vhd

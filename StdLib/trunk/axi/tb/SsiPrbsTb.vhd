@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-29
--- Last update: 2014-04-30
+-- Last update: 2014-05-14
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,22 +90,23 @@ begin
          TPD_G               => TPD_C,
          USE_BUILT_IN_G      => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_C,
-         AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
+         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Master Port (mAxisClk)
-         mAxisSlave   => mAxisSlave,
-         mAxisMaster  => mAxisMaster,
          mAxisClk     => clk,
          mAxisRst     => rst,
+         mAxisSlave   => mAxisSlave,
+         mAxisMaster  => mAxisMaster,
+         
          -- Trigger Signal (locClk domain)
+         locClk       => clk,
+         locRst       => rst,
          trig         => trig,
          packetLength => toSlv(TX_PACKET_LENGTH_C, 32),
          busy         => txBusy,
          tDest        => (others => '0'),
-         tId          => (others => '0'),
-         sAxisCtrl    => mAxisCtrl,
-         locClk       => clk,
-         locRst       => rst);
+         tId          => (others => '0'));
+                  
 
    -- Process for mapping the VC buses and injecting bit error
    process(mAxisMaster, rst, sAxisSlave)
@@ -156,7 +157,7 @@ begin
          TPD_G               => TPD_C,
          USE_BUILT_IN_G      => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_C,
-         AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
+         SLAVE_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Streaming RX Data Interface (sAxisClk domain) 
          mAxisClk        => clk,

@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-01
+-- Last update: 2014-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,10 +35,9 @@ entity AxiStreamFifo is
       TPD_G            : time                       := 1 ns;
       PIPE_STAGES_G    : natural range 0 to 16      := 0;
       SLAVE_READY_EN_G : boolean                    := true;
-      VALID_THOLD_G    : integer range 1 to (2**24) := 1; -- 1 = normal operation
-                                                          -- 0 = only when frame ready
+      VALID_THOLD_G    : integer range 1 to (2**24) := 1; -- =1 = normal operation
+                                                          -- >1 = only when frame ready
       -- FIFO configurations
-      RST_ASYNC_G         : boolean                    := false;
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
       USE_BUILT_IN_G      : boolean                    := false;
@@ -419,7 +418,7 @@ begin
          LAST_STAGE_ASYNC_G => true,
          PIPE_STAGES_G      => 1,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => RST_ASYNC_G,
+         RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => BRAM_EN_G,
          FWFT_EN_G          => true,
@@ -470,7 +469,7 @@ begin
             LAST_STAGE_ASYNC_G => true,
             PIPE_STAGES_G      => 1,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => RST_ASYNC_G,
+            RST_ASYNC_G        => false,
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             BRAM_EN_G          => false,
             FWFT_EN_G          => true,

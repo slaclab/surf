@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-05-02
+-- Last update: 2014-05-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ entity SsiPrbsRx is
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
       -- PRBS Config
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
-      PRBS_TAPS_G                : NaturalArray               := (0 => 16);
+      PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType        := ssiAxiStreamConfig(4);
       SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16      := 0;
@@ -82,10 +82,11 @@ entity SsiPrbsRx is
 end SsiPrbsRx;
 
 architecture rtl of SsiPrbsRx is
-   
-   constant MAX_CNT_C         : slv(31 downto 0)    := (others => '1');
-   constant PRBS_BYTES_C      : natural             := PRBS_SEED_SIZE_G / 8;
-   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C);
+
+   constant MAX_CNT_C                : slv(31 downto 0)    := (others => '1');
+   constant PRBS_BYTES_C             : natural             := PRBS_SEED_SIZE_G / 8;
+   constant SLAVE_PRBS_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
+   constant MASTER_PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_UNUSED_C);
    
    type StateType is (
       IDLE_S,
@@ -162,6 +163,7 @@ architecture rtl of SsiPrbsRx is
 
    type LocRegType is record
       cntRst        : sl;
+      dummy         : slv(31 downto 0);
       rollOverEn    : slv(STATUS_SIZE_C-1 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -170,24 +172,30 @@ architecture rtl of SsiPrbsRx is
    constant LOC_REG_INIT_C : LocRegType := (
       '1',
       (others => '0'),
+      (others => '0'),
       AXI_LITE_READ_SLAVE_INIT_C,
       AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal rAxiLite   : LocRegType := LOC_REG_INIT_C;
    signal rinAxiLite : LocRegType;
+
    signal errBitStrbSync,
       errWordStrbSync,
       errDataBusSync,
       errEofeSync,
       errLengthSync,
       errMissedPacketSync : sl;
+
    signal overflow,
       pause : slv(1 downto 0);
+
    signal cntOut : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+
    signal packetLengthSync,
       packetRateSync,
       errbitCntSync,
       errWordCntSync : slv(31 downto 0);
+
    signal pause1Cnt,
       overflow1Cnt,
       pause0Cnt,
@@ -223,7 +231,7 @@ begin
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => PRBS_SSI_CONFIG_C)
+         MASTER_AXI_CONFIG_G => SLAVE_PRBS_SSI_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
@@ -246,12 +254,12 @@ begin
       v := r;
 
       -- Set the AXIS configurations
-      v.txAxisMaster.tKeep := (others => '0');
-      v.txAxisMaster.tStrb := (others => '0');
-      for i in 0 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
-         v.txAxisMaster.tKeep(i) := '1';
-         v.txAxisMaster.tStrb(i) := '1';
-      end loop;
+--      v.txAxisMaster.tKeep := (others => '0');
+--      v.txAxisMaster.tStrb := (others => '0');
+--      for i in 0 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
+--         v.txAxisMaster.tKeep(i) := '1';
+--         v.txAxisMaster.tStrb(i) := '1';
+--      end loop;
 
       -- Reset strobe signals
       v.updatedResults      := '0';
@@ -318,7 +326,7 @@ begin
                -- Latch the packetLength value
                v.packetLength := rxAxisMaster.tData(31 downto 0);
                -- Check for a data bus error
-               for i in 4 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
+               for i in 4 to SLAVE_PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
                   if not allBits(rxAxisMaster.tData(i*8+7 downto i*8), '0') then
                      v.errDataBus := '1';
                   end if;
@@ -345,7 +353,7 @@ begin
                   -- Set the local eof flag
                   v.eof  := '1';
                   -- Latch the packets eofe flag
-                  v.eofe := ssiGetUserEofe(PRBS_SSI_CONFIG_C, rxAxisMaster);
+                  v.eofe := ssiGetUserEofe(SLAVE_PRBS_SSI_CONFIG_C, rxAxisMaster);
                   -- Check the data packet length
                   if r.dataCnt /= r.packetLength then
                      -- Wrong length detected
@@ -500,7 +508,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => MASTER_PRBS_SSI_CONFIG_C,
          MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
       port map (
          -- Slave Port
@@ -610,6 +618,8 @@ begin
          axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          -- Decode address and perform write
          case (axiWriteMaster.awaddr(9 downto 2)) is
+            when X"0A" =>
+               v.dummy := axiWriteMaster.wdata;
             when x"F0" =>
                v.rollOverEn := axiWriteMaster.wdata(STATUS_SIZE_C-1 downto 0);
             when x"FF" =>
@@ -647,6 +657,8 @@ begin
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := overflow1Cnt;
             when x"09" =>
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := pause1Cnt;
+            when X"0A" =>
+               v.axiReadSlave.rdata := rAxiLite.dummy;
             when x"70" =>
                v.axiReadSlave.rdata(0) := errMissedPacketSync;
                v.axiReadSlave.rdata(1) := errLengthSync;

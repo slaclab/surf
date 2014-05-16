@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-05-02
+-- Last update: 2014-05-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ entity SsiPrbsTx is
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
       -- PRBS Config
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
-      PRBS_TAPS_G                : NaturalArray               := (0 => 16);
+      PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_UNUSED_C);
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
@@ -112,12 +112,12 @@ begin
       v := r;
 
       -- Set the AXIS configurations
-      v.txAxisMaster.tKeep := (others => '0');
-      v.txAxisMaster.tStrb := (others => '0');
-      for i in 0 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
-         v.txAxisMaster.tKeep(i) := '1';
-         v.txAxisMaster.tStrb(i) := '1';
-      end loop;
+--      v.txAxisMaster.tKeep := (others => '0');
+--      v.txAxisMaster.tStrb := (others => '0');
+--      for i in 0 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
+--         v.txAxisMaster.tKeep(i) := '1';
+--         v.txAxisMaster.tStrb(i) := '1';
+--      end loop;
 
       -- Reset strobe signals
       --v.txAxisMaster.tValid := '0';

@@ -5,3 +5,4 @@ vhdl work rtl/FifoAsyncBuiltIn.vhd
 vhdl work rtl/FifoMux.vhd
 vhdl work rtl/FifoSync.vhd
 vhdl work rtl/FifoSyncBuiltIn.vhd
+vhdl work rtl/FifoOutputPipeline.vhd

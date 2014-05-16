@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-05-01
+-- Last update: 2014-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -89,11 +89,11 @@ package AxiStreamPkg is
    constant AXI_STREAM_CTRL_INIT_C : AxiStreamCtrlType := (
       pause    => '1',
       overflow => '0');
-
+   
    constant AXI_STREAM_CTRL_UNUSED_C : AxiStreamCtrlType := (
       pause    => '0',
       overflow => '0');
-
+   
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
 
    function axiStreamPacked (
