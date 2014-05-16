@@ -11,7 +11,7 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 # Setup build string
 set DATE [exec date]
 set USER [exec whoami]
-set BSTR "Built $DATE by $USER"
+set BSTR "${PROJECT}: Built ${DATE} by ${USER}"
 set SEDS "s|\\(constant BUILD_STAMP_C : string := \\).*|\\1\"${BSTR}\";|"
 
 # Update the timestamp in Version.vhd
