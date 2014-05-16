@@ -5,7 +5,7 @@
 -- File       : SsiAxiLiteMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-05-02
+-- Last update: 2014-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -106,6 +106,9 @@ end SsiAxiLiteMaster;
 
 architecture rtl of SsiAxiLiteMaster is
 
+   constant SLAVE_FIFO_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   constant MASTER_FIFO_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_UNUSED_C);
+
    signal sFifoAxisMaster : AxiStreamMasterType;
    signal sFifoAxisSlave  : AxiStreamSlaveType;
    signal mFifoAxisMaster : AxiStreamMasterType;
@@ -149,6 +152,7 @@ architecture rtl of SsiAxiLiteMaster is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+
 begin
 
    ----------------------------------
@@ -157,7 +161,7 @@ begin
    SlaveAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 1,
+         PIPE_STAGES_G       => 0,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
@@ -169,7 +173,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
+         MASTER_AXI_CONFIG_G => SLAVE_FIFO_SSI_CONFIG_C)
       port map (
          sAxisClk    => sAxisClk,
          sAxisRst    => sAxisRst,
@@ -265,6 +269,9 @@ begin
             if sFifoAxisMaster.tValid = '1' then
                if sFifoAxisMaster.tLast = '1' then
                   -- check tkeep here
+                  if (not axiStreamPacked(SLAVE_FIFO_SSI_CONFIG_C, sFifoAxisMaster)) then
+                     v.fail := '1';
+                  end if;
                   v.state := S_STATUS_C;
                else
                   v.mFifoAxisMaster.tValid      := '1';  -- Echo write data
@@ -376,6 +383,9 @@ begin
 
             if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '1' then
                -- Check tKeep here
+               if (not axiStreamPacked(SLAVE_FIFO_SSI_CONFIG_C, sFifoAxisMaster)) then
+                  v.fail := '1';
+               end if;
                v.state := S_STATUS_C;
             end if;
 
@@ -420,7 +430,7 @@ begin
    MasterAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 1,
+         PIPE_STAGES_G       => 0,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,

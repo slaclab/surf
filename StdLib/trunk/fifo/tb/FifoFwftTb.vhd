@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-05
--- Last update: 2014-05-05
+-- Last update: 2014-05-14
 -- Platform   : Vivado 2014.1
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -124,8 +124,10 @@ architecture testbed of FifoFwftTb is
    signal wrClk,
       rst,
       rdClk : sl;
+   
    signal failed,
-      passed : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+      passed,
+      subRdClk : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
 
 begin
 
@@ -163,9 +165,11 @@ begin
          rst  => open,
          rstL => open); 
 
+
+   
    GEN_TEST_MODULES :
    for i in 0 to CONFIG_TEST_SIZE_C generate
-      
+      subRdClk(i) <= ite(SIM_CONFIG_C(i).GEN_SYNC_FIFO_G, wrClk, rdClk);
       FifoTbSubModule_Inst : entity work.FifoTbSubModule
          generic map (
             TPD_G           => TPD_C,
@@ -176,7 +180,7 @@ begin
          port map (
             rst    => rst,
             wrClk  => wrClk,
-            rdClk  => ite(SIM_CONFIG_C(i).GEN_SYNC_FIFO_G, wrClk, rdClk),
+            rdClk  => subRdClk(i),
             passed => passed(i),
             failed => failed(i));               
 
