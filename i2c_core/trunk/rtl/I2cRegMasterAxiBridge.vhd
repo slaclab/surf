@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2014-05-14
+-- Last update: 2014-05-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,8 +58,12 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
 
-   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2 + log2(DEVICE_MAP_G'length) - 1;
-   constant I2C_DEV_AXI_ADDR_LOW_C  : natural := I2C_REG_ADDR_SIZE_G+2;
+   constant DEVICE_MAP_LENGTH_C    : natural := DEVICE_MAP_G'length;
+   constant I2C_DEV_AXI_ADDR_LOW_C : natural := I2C_REG_ADDR_SIZE_G+2;
+   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := ite(
+      (DEVICE_MAP_LENGTH_C = 1),
+      I2C_DEV_AXI_ADDR_LOW_C,
+      (I2C_DEV_AXI_ADDR_LOW_C + log2(DEVICE_MAP_LENGTH_C) - 1));
 
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
       I2C_DEV_AXI_ADDR_HIGH_C downto I2C_DEV_AXI_ADDR_LOW_C;
