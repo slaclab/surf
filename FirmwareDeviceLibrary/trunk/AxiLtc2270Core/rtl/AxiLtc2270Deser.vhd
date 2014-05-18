@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2014-04-21
+-- Last update: 2014-05-18
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -150,11 +150,11 @@ begin
             adcDataN(ch)  <= adcDataNs(ch) after TPD_G;
             adcDataNd(ch) <= adcDataN(ch)  after TPD_G;
             if dmux(ch) = '0' then
-               adcDmuxA(ch) <= adcDataN(ch) after TPD_G;
-               adcDmuxB(ch) <= adcDataP(ch) after TPD_G;
+               adcDmuxA(ch) <= adcDataNd(ch) after TPD_G;
+               adcDmuxB(ch) <= adcDataP(ch)  after TPD_G;
             else
-               adcDmuxA(ch) <= adcDataP(ch)  after TPD_G;
-               adcDmuxB(ch) <= adcDataNd(ch) after TPD_G;
+               adcDmuxA(ch) <= adcDataP(ch) after TPD_G;
+               adcDmuxB(ch) <= adcDataN(ch) after TPD_G;
             end if;
             for i in 7 downto 0 loop
                data(ch)(2*i+1) <= adcDmuxB(ch)(i) after TPD_G;
