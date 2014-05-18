@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-04-25
+-- Last update: 2014-05-18
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,9 +50,8 @@ architecture rtl of AxiAd5780Core is
    signal status : AxiAd5780StatusType;
    signal config : AxiAd5780ConfigType;
 
-   signal dacRst      : sl;
-   signal dacValidMux : sl;
-   signal dacDataMux  : slv(17 downto 0);
+   signal dacRst     : sl;
+   signal dacDataMux : slv(17 downto 0);
 
    -- Mark the Vivado Debug Signals
    attribute mark_debug : string;
@@ -60,7 +59,6 @@ architecture rtl of AxiAd5780Core is
       status,
       config,
       dacRst,
-      dacValidMux,
       dacDataMux : signal is "TRUE";
    
 begin
