@@ -113,6 +113,11 @@ package StdRtlPkg is
    function getRealMult (A, B : real) return real;
    function getRealMult (A    : integer; B : real) return real;
    function getRealMult (A    : real; B : integer) return real;
+   
+   -- gets real division
+   function getRealDiv (A, B : real) return real;
+   function getRealDiv (A    : integer; B : real) return real;
+   function getRealDiv (A    : real; B : integer) return real;
 
    function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
 
@@ -1088,6 +1093,24 @@ package body StdRtlPkg is
    begin
       return real(A*real(B));
    end function;
+   
+   -----------------------------
+   -- gets real division
+   -----------------------------      
+   function getRealDiv (A, B : real) return real is
+   begin
+      return real(A/B);
+   end function;
+
+   function getRealDiv (A : integer; B : real) return real is
+   begin
+      return real(real(A)/B);
+   end function;
+
+   function getRealDiv (A : real; B : integer) return real is
+   begin
+      return real(A/real(B));
+   end function;   
 
    -------------------------------------------------------------------------------------------------
    -- Simulates an ADC conversion
