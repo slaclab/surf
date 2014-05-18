@@ -177,6 +177,24 @@ package Pgp2bPkg is
       (others => '0'),
       (others => '0')
    );    
+   
+   function UnusedPgpTxIn (pgpRxOut : Pgp2bRxOutType) return Pgp2bTxInType;
 
 end Pgp2bPkg;
 
+package body Pgp2bPkg is
+   
+   function UnusedPgpTxIn (
+      pgpRxOut : Pgp2bRxOutType) 
+      return Pgp2bTxInType is
+      variable retVar : Pgp2bTxInType;
+   begin
+      retVar.flush        := '0';
+      retVar.opCodeEn     := '0';
+      retVar.opCode       := (others => '0');
+      retVar.locLinkReady := pgpRxOut.linkReady;
+      retVar.locData      := (others => '0');   
+      return retVar;
+   end function;
+   
+end package body Pgp2bPkg;
