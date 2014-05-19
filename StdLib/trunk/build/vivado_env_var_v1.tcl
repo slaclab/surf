@@ -3,6 +3,7 @@
 ## Set Common Environmental variables
 ########################################################
 set XDC_FILES        $::env(XDC_FILES)
+set TCL_FILES        $::env(TCL_FILES)
 set RTL_FILES        $::env(RTL_FILES)
 set SIM_FILES        $::env(SIM_FILES)
 set CORE_FILES       $::env(CORE_FILES)

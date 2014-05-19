@@ -33,9 +33,10 @@ export CORE_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell g
 export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sources.txt))
 export RTL_FILES   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(shell grep -v "\#" $(ARG)/sources.txt | sed 's|\(\S\+\)\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|$(ARG)/\5|')))
 
-# XDC Files
+# XDC and TCL Files
 export XDC_LIST    = $(PROJ_DIR)/constraints.txt))
 export XDC_FILES   = $(realpath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
+export TCL_FILES   = $(realpath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.tcl"), $(PROJ_DIR)/$(ARG)))
 
 # Simulation Files
 export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sim.txt))
@@ -78,6 +79,9 @@ test:
 	@echo XDC_LISTS: $(XDC_LISTS)
 	@echo XDC_FILES: 
 	@echo -e "$(foreach ARG,$(XDC_FILES),  $(ARG)\n)"
+	@echo TCL_FILES: 
+	@echo -e "$(foreach ARG,$(TCL_FILES),  $(ARG)\n)"
+	@echo SRC_LISTS: $(SRC_LISTS)
 	@echo SRC_LISTS: $(SRC_LISTS)
 	@echo RTL_FILES: 
 	@echo -e "$(foreach ARG,$(RTL_FILES),  $(ARG)\n)"
@@ -144,15 +148,15 @@ $(SOURCE_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(VIVADO
 ###############################################################
 #### Vivado Batch #############################################
 ###############################################################
-$(IMPL_DIR)/$(PROJECT).bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
+$(IMPL_DIR)/$(PROJECT).bit : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_v1.tcl
 #### Vivado Batch (Partial Reconfiguration: Static) ###########
-$(IMPL_DIR)/$(PROJECT)_static.bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
+$(IMPL_DIR)/$(PROJECT)_static.bit : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build (Partial Reconfiguration: Static)")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_static_v1.tcl
 #### Vivado Batch (Partial Reconfiguration: Dynamic) ##########
-$(IMPL_DIR)/$(PROJECT)_dynamic.bit : $(RTL_FILES) $(XDC_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
+$(IMPL_DIR)/$(PROJECT)_dynamic.bit : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado Build (Partial Reconfiguration: Dynamic)")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_dynamic_v1.tcl
 

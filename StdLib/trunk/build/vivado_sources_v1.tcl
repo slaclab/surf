@@ -48,7 +48,17 @@ if { ${XDC_FILES} != "" } {
       # Force Absolute Path (not relative to project)
       set_property PATH_MODE AbsoluteFirst [get_files ${xdcPntr}]
    }   
-}   
+}  
+
+# Add TCL files 
+if { ${TCL_FILES} != "" } {
+   foreach tclPntr ${TCL_FILES} {
+      # Add the Constraint Files
+      add_files -quiet -fileset constrs_1 ${tclPntr}
+      # Force Absolute Path (not relative to project)
+      set_property PATH_MODE AbsoluteFirst [get_files ${tclPntr}]
+   }   
+}
 
 # Set the Top Level 
 set_property top ${PROJECT} [current_fileset]
