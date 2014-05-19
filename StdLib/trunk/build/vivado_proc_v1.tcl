@@ -50,7 +50,7 @@ proc BuildIpCores { } {
             set_property is_enabled false [get_files ${xdcPntr}] 
          }         
          # Check if the $::env(IP_CORE_BACKUP) exists
-         if { [info exists env(IP_CORE_BACKUP)] != false } {         
+         if { [info exists env(IP_CORE_BACKUP)] } { 
             # Create a backup copy of the IP Core in the source tree
             foreach coreFilePntr ${CORE_FILES} {
                if { [ string match *${corePntr}* ${coreFilePntr} ] } { 
