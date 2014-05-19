@@ -119,6 +119,11 @@ architecture RTL of Gtx7AutoPhaseAligner is
   signal phaligndone_sync      : std_logic := '0';
   signal dlysresetdone_sync    : std_logic := '0';
 
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      sync_PHALIGNDONE,
+      sync_DLYSRESETDONE : label is "TRUE";
+   
 begin
 
  sync_PHALIGNDONE : entity work.Synchronizer

@@ -90,7 +90,13 @@ architecture Pgp2bRx of Pgp2bRx is
    signal pause            : slv(3 downto 0);
    signal overflow         : slv(3 downto 0);
 
-begin
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      U_Pgp2bRxPhy,
+      U_Pgp2bRxCell,
+      Rx_CRC : label is "TRUE";
+   
+begin 
 
    -- Link Ready
    pgpRxOut.linkReady    <= intRxLinkReady;

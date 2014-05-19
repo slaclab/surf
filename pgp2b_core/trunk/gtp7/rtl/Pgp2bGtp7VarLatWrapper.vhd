@@ -104,7 +104,15 @@ architecture rtl of Pgp2bGtp7VarLatWrapper is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : slv(1 downto 0);
-begin
+      
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      PwrUpRst_Inst,
+      Quad_Pll_Inst,
+      Pgp2bGtp7MultiLane_Inst : label is "TRUE";
+   
+begin  
+ 
    -- Set the status outputs
    txPllLock <= ite((TX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
    rxPllLock <= ite((RX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));

@@ -361,6 +361,18 @@ architecture rtl of Gtx7Core is
       txCharDispMode,
       txCharDispVal  : slv(7 downto 0) := (others=>'0');
    
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      Gtx7RxRst_Inst,
+      RstSync_RxResetDone,
+      Gtx7RecClkMonitor_Inst,
+      Gtx7AutoPhaseAligner_Rx,
+      Gtx7RxFixedLatPhaseAligner_Inst,
+      Gtx7TxRst_Inst,
+      RstSync_Tx,
+      PhaseAlign_Tx,
+      Gtx7TxManualPhaseAligner_1 : label is "TRUE";
+   
 begin
 
    rxRefClkOut <= rxGtRefClkBufg;

@@ -115,7 +115,15 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : sl := '0';
+      
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      PwrUpRst_Inst,
+      QPllCore_1,
+      Pgp2bGtx7Fixedlat_Inst : label is "TRUE";
+   
 begin
+
    -- Set the status outputs
    txPllLock <= ite((TX_PLL_G = "QPLL"), qPllLock, gtCPllLock);
    rxPllLock <= ite((RX_PLL_G = "QPLL"), qPllLock, gtCPllLock);

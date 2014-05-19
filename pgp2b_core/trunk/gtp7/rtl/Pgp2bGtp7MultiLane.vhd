@@ -140,7 +140,12 @@ architecture rtl of Pgp2bGtp7MultiLane is
    signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
 
-begin
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      U_Pgp2bLane,
+      Gtp7Core_Inst : label is "TRUE";
+   
+begin 
 
    gtQPllReset    <= gtQPllResets(0);
    pgpTxMmcmReset <= pgpTxMmcmResets(0);
