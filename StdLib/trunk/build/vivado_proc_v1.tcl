@@ -147,7 +147,9 @@ proc BuildIpCores { } {
          # Reset the "needs_refresh" flag
          set_property needs_refresh false [get_runs ${ipSynthRun}]
       }
-   }   
+   }
+   # Refresh the project
+   VivadoRefresh ${VIVADO_PROJECT}   
 }
 
 # Checking Timing Function
