@@ -192,18 +192,9 @@ vcs : $(SOURCE_DEPEND)
 ###############################################################
 #### Prom #####################################################
 ###############################################################
-PROM_OPTIONS_FILE = $(ISE_DIR)/promgen_options.txt
-$(IMPL_DIR)/$(PROJECT).mcs: $(PROM_OPTIONS_FILE) $(IMPL_DIR)/$(PROJECT).bit
+$(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).mcs: $(IMPL_DIR)/$(PROJECT).bit
 	$(call ACTION_HEADER,"PROM Generate")
-	@cd $(OUT_DIR); promgen \
-	  -f $(PROM_OPTIONS_FILE) \
-	  -u 0 $(IMPL_DIR)/$(PROJECT).bit
-
-###############################################################
-#### Prom Copy ################################################
-###############################################################
-$(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).mcs : $(IMPL_DIR)/$(PROJECT).mcs
-	@cp $< $@
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_promgen_v1.tcl
 	@echo ""
 	@echo "Prom file copied to $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"
