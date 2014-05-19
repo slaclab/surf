@@ -75,6 +75,12 @@ architecture rtl of Gtx7TxManualPhaseAligner is
    signal gtTxPhAlignDoneSync   : sl;
    signal gtTxPhAlignDoneEdge   : sl;
 
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      TX_DLY_S_RESET_DONE_SYNC,
+      TX_PH_INIT_DONE_SYNC,
+      TX_PH_ALIGN_DONE_SYNC : label is "TRUE";
+   
 begin
 
    TX_DLY_S_RESET_DONE_SYNC : entity work.Synchronizer

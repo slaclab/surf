@@ -145,8 +145,13 @@ architecture rtl of Pgp2bGtp7FixedLat is
    signal phyTxLanesOut : Pgp2bTxPhyLaneOutArray(0 to 0);
 --   signal phyTxReady    : sl;
 
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      U_Pgp2bLane,
+      Decoder8b10b_1,
+      Gtp7Core_1 : label is "TRUE";
+   
 begin
-
 
    --------------------------------------------------------------------------------------------------
    -- PGP Core

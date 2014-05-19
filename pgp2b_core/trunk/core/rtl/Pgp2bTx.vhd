@@ -99,7 +99,14 @@ architecture Pgp2bTx of Pgp2bTx is
    signal syncLocOverFlow  : slv(3 downto 0);
    signal syncRemPause     : slv(3 downto 0);
 
-begin
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      U_Pgp2bTxPhy,
+      U_Pgp2bTxSched,
+      U_Pgp2bTxCell,
+      Tx_CRC : label is "TRUE";
+   
+begin 
 
    -- Sync flow control & buffer status
    U_VcFlowGen: for i in 0 to 3 generate

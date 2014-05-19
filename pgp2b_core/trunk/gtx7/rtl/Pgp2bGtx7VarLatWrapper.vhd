@@ -96,7 +96,14 @@ architecture rtl of Pgp2bGtx7VarLatWrapper is
       qPllOutRefClk,
       qPllLock,
       qPllRefClkLost : sl := '0';
+      
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      PwrUpRst_Inst,
+      Pgp2bGtx7MultiLane_Inst : label is "TRUE";
+   
 begin
+
    -- Set the status outputs
    pllLock   <= gtCPllLock;
    locClk    <= txClock;

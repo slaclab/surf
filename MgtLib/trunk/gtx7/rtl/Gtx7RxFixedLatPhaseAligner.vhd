@@ -85,6 +85,10 @@ architecture rtl of Gtx7RxFixedLatPhaseAligner is
    attribute mark_debug      : string;
    attribute mark_debug of r : signal is "TRUE";
    
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      RstSync_1 : label is "TRUE";
+   
 begin
 
    -- Must use async resets since rxUsrClk can drop out

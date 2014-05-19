@@ -166,7 +166,18 @@ architecture RTL of Gtx7TxRst is
 
    signal plllock_sync : std_logic := '0';
    
+   attribute KEEP_HIERARCHY : string;
+   attribute KEEP_HIERARCHY of 
+      Synchronizer_run_phase_alignment,
+      Synchronizer_fsm_reset_done,
+      Synchronizer_SOFT_RESET,
+      Synchronizer_TXRESETDONE,
+      Synchronizer_time_out_wait_bypass,
+      Synchronizer_mmcm_lock_reclocked,
+      Synchronizer_PLLLOCK : label is "TRUE";
+   
 begin
+
    --Alias section, signals used within this module mapped to output ports:
    RETRY_COUNTER     <= std_logic_vector(TO_UNSIGNED(retry_counter_int, RETRY_COUNTER_BITWIDTH));
    RUN_PHALIGNMENT   <= run_phase_alignment_int;
