@@ -95,8 +95,23 @@ dir:
 #### Check Source Files #######################################
 ###############################################################
 
-% : 
-	@test -d $* || echo "$* does not exist"; false;
+%.vhd : 
+	@test -d $*.vhd || echo "$*.vhd does not exist"; false;
+
+%.v : 
+	@test -d $*.v || echo "$*.v does not exist"; false;
+
+%.xdc : 
+	@test -d $*.xdc || echo "$*.xdc does not exist"; false;
+
+%.tcl : 
+	@test -d $*.tcl || echo "$*.tcl does not exist"; false;
+
+%.xci : 
+	@test -d $*.xci || echo "$*.xci does not exist"; false;
+
+%.ngc : 
+	@test -d $*.ngc || echo "$*.ngc does not exist"; false;
 
 ###############################################################
 #### Vivado Project ###########################################
