@@ -207,12 +207,10 @@ begin
                if r.dmaReq.size <= DATA_BYTES_C then
                   v.last          := '1';
                   v.sMaster.tLast := '1';
-
-                  -- Adjust keep and strobe
-                  if r.dmaReq.size /= DATA_BYTES_C then
-                     v.sMaster.tKeep(DATA_BYTES_C downto conv_integer(r.dmaReq.size)) := (others=>'0');
-                     v.sMaster.tStrb(DATA_BYTES_C downto conv_integer(r.dmaReq.size)) := (others=>'0');
-                  end if;
+                  v.sMaster.tKeep(DATA_BYTES_C-1 downto 0)                := (others=>'0');
+                  v.sMaster.tStrb(DATA_BYTES_C-1 downto 0)                := (others=>'0');
+                  v.sMaster.tKeep(conv_integer(r.dmaReq.size)-1 downto 0) := (others=>'1');
+                  v.sMaster.tStrb(conv_integer(r.dmaReq.size)-1 downto 0) := (others=>'1');
 
                   -- Set user field, last position
                   axiStreamSetUserField (AXIS_CONFIG_G,v.sMaster,r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
