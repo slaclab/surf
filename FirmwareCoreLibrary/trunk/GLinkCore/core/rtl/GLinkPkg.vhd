@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-04-17
+-- Last update: 2014-05-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,13 @@ package GLinkPkg is
       '0',
       '0',
       (others => '0'),
-      '1'); 
+      '1');
+   constant GLINK_TX_UNUSED_C : GLinkTxType := (
+      '1',
+      '0',
+      '0',
+      (others => '0'),
+      '0');
    function toSlv (vec     : GLinkTxType) return slv;
    function toGLinkTx (vec : slv(19 downto 0)) return GLinkTxType;
 
