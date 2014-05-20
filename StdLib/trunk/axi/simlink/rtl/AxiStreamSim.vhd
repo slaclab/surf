@@ -207,7 +207,7 @@ begin
       if SOF_TUSER_EN_G then
          if r.master.tValid = '1' and mAxisSlave.tReady = '1' then
             -- Set the SOF bit on the master
-            axiStreamSetUserBit(AXIS_CONFIG_G,v.master,SOF_TUSER_BIT_G,r.sof);
+            axiStreamSetUserBit(AXIS_CONFIG_G,v.master,SOF_TUSER_BIT_G,r.sof,0);
             -- Update the SOF bit
              v.sof := obEof;
          end if;
@@ -215,6 +215,7 @@ begin
 
       if (mAxisRst = '1') then
          v              := REG_INIT_C;
+         axiStreamSetUserBit(AXIS_CONFIG_G,v.master,SOF_TUSER_BIT_G,'1',0);         
       end if;
 
       rin <= v;
