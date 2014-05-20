@@ -46,10 +46,10 @@ class AxiStreamDmaSim  {
       ~AxiStreamDmaSim ();
 
       // Write a block of data
-      void write(unsigned char *data, uint size, uint dest);
+      int write(unsigned char *data, uint size);
 
       // Read a block of data, return -1 on error, 0 if no data, size if data
-      int read(unsigned char *data, uint maxSize, uint *dest, uint *eofe);
+      int read(unsigned char *data, uint maxSize);
 
 };
 

@@ -70,32 +70,33 @@ AxiStreamDmaSim::~AxiStreamDmaSim () {
 }
 
 // Write a block of data
-void AxiStreamDmaSim::write(unsigned char *data, uint size, uint dest) {
+int AxiStreamDmaSim::write(unsigned char *data, uint size) {
    uint addr;
    uint desc;
 
    if ( size > _maxSize ) {
       printf("AxiStreamDmaSim:write -> Bad write size: %i\n",size);
-      return;
+      return -1;
    }
 
-   do {
-      addr = _mastMem->read(_fifoOffset+_txFreeAddr);
-   } while ( (addr & 0x80000000) == 0);
+   addr = _mastMem->read(_fifoOffset+_txFreeAddr);
+   if ( (addr&0x80000000) == 0 ) return(0);
+
    addr = addr & 0x7FFFFFFF;
-   memcpy(&(_slaveMem[addr]),data,size);
+   desc = *((uint *)data);
+   data += 4;
+
+   memcpy(&(_slaveMem[addr]),data,size-4);
 
    _mastMem->write(_fifoOffset+_txPostAddrA,addr);
-   _mastMem->write(_fifoOffset+_txPostAddrB,size);
-
-   desc  = 0x100; // SOF
-   desc |= (dest & 0xFF); // SOF
+   _mastMem->write(_fifoOffset+_txPostAddrB,size-4);
    _mastMem->write(_fifoOffset+_txPostAddrC,desc);
-   printf("AxiStreamDmaSim:write -> Transmit frame size= %i\n",size);
+   printf("AxiStreamDmaSim:write -> Transmit frame size= %i\n",size-4);
+   return(size);
 }
 
 // Read a block of data, return -1 on error, 0 if no data, size if data
-int AxiStreamDmaSim::read(unsigned char *data, uint maxSize, uint *dest, uint *eofe) {
+int AxiStreamDmaSim::read(unsigned char *data, uint maxSize) {
    uint desc;
    uint addr;
    uint size;
@@ -112,29 +113,20 @@ int AxiStreamDmaSim::read(unsigned char *data, uint maxSize, uint *dest, uint *e
 
    size = desc & 0xFFFFFF;
 
-   memcpy(data,&(_slaveMem[addr]),size);
-
    do {
       desc = _mastMem->read(_fifoOffset+_rxPendAddr);
       usleep(100);
    } while ( (desc & 0x80000000) == 0 );
 
-   *dest = desc & 0xFF;
-   *eofe = (desc >> 16) & 0x1;
+   *((uint *)data) = desc & 0x3FFFFFF;
+   data += 4;
+
+   memcpy(data,&(_slaveMem[addr]),size);
+   size += 4;
 
    _mastMem->write(_fifoOffset+_rxFreeAddr,addr);
 
-   if ( desc & 0x02000000 ) {
-      printf("AxiStreamDmaSim:write -> Rx overflow error.\n");
-      return -1;
-   }
-
-   if ( desc & 0x01000000 ) {
-      printf("AxiStreamDmaSim:write -> Rx write error.\n");
-      return -1;
-   }
-
-   printf("AxiStreamDmaSim:read -> Receive frame size= %i\n",size);
+   printf("AxiStreamDmaSim:read -> Receive frame size= %i\n",size-4);
 
    return(size);
 }
