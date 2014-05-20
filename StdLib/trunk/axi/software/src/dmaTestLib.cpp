@@ -22,9 +22,6 @@ int main(int argc, char **argv) {
    uint              y;
    uint              txSize;
    uint              rxSize;
-   uint              txDest;
-   uint              rxDest;
-   uint              rxEofe;
    AxiSlaveSim     * slave;
    AxiMasterSim    * master;
    AxiStreamDmaSim * dma;
@@ -50,14 +47,17 @@ int main(int argc, char **argv) {
 
    dma = new AxiStreamDmaSim(master,0,0x400,mem,buffSize*buffCount,buffSize);
 
-   txDest = 1;
    for (txSize=120; txSize < 260; txSize++) {
       printf("Transmit Size %i\n",txSize);
 
       for (x=0; x < txSize; x++) txData[x] = x;
+      txData[0] = 0;
+      txData[1] = 0;
+      txData[2] = 0;
+      txData[3] = 0;
 
       // transmit 4 frames
-      for (x=0; x < 4; x++) dma->write(txData,txSize,txDest);
+      for (x=0; x < 4; x++) dma->write(txData,txSize);
 
       printf("Done\n");
 
@@ -66,22 +66,12 @@ int main(int argc, char **argv) {
       // receive 4 frames
       for (x=0; x < 4; x++) {
          do {
-            rxSize = dma->read(rxData,buffSize,&rxDest,&rxEofe);
+            rxSize = dma->read(rxData,buffSize);
             usleep(100);
          } while (rxSize == 0);
 
          if ( rxSize != txSize ) {
             printf("Rx Size mismatch. Got %i, Exp %i\n",rxSize,txSize);
-            return 1;
-         }
-
-         if ( rxDest != txDest ) {
-            printf("Rx Dest mismatch. Got %i, Exp %i\n",rxDest,txDest);
-            return 1;
-         }
-
-         if ( rxEofe != 0 ) {
-            printf("Rx EOFE\n");
             return 1;
          }
 
