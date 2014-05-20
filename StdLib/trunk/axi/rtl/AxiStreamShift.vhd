@@ -83,70 +83,78 @@ architecture structure of AxiStreamShift is
    -- Set shift ranges
    procedure shiftData ( shiftBytes : in    slv(3 downto 0); 
                          shiftDir   : in    sl;
+                         shiftFirst : in    boolean;
                          mInput     : in    AxiStreamMasterType;
                          mDelay     : in    AxiStreamMasterType;
                          mOut       : inout AxiStreamMasterType ) is
-      variable shiftInt : positive;
-      variable top      : positive;
-      variable lDiv     : positive;
-      variable rDiv     : positive;
-      constant user     : integer := AXIS_CONFIG_G.TUSER_BITS_C;
+      variable shiftInt  : positive;
+      variable lDiv      : positive;
+      variable rDiv      : positive;
+      variable nextEmpty : boolean;
+      constant user      : integer := AXIS_CONFIG_G.TUSER_BITS_C;
    begin
 
---      if shiftBytes = 0 then
+      mOut := AXI_STREAM_MASTER_INIT_C;
+
+      if shiftBytes = 0 then
          mOut := mInput;
---      else
---
---         shiftInt := conv_integer(shiftBytes);
---         top      := AXIS_CONFIG_G.TDATA_BYTES_C - 1;
---
---         if shiftDir = '0' then
---            leftDiv  := shiftInt;
---            rightDiv := AXIS_CONFIG_G.TDATA_BYTES_C - shiftInt;
---         else
---            leftDiv  := AXIS_CONFIG_G.TDATA_BYTES_C - shiftInt;
---            rightDiv := shiftInt;
---         end if;
---
---         mOut.tData((top*8)-1 downto (lDiv*8)) := mInput.tData((rDiv*8)-1 downto 0);
---         mOut.tData((lDiv*8)-1 downto 0)       := mDelay.tData((top*8)-1 downto rDiv*8);
---
---         mOut.tStrb(top-1 downto lDiv) := mInput.tStrb(rDiv-1 downto 0);
---         mOut.tStrb(lDiv-1 downto 0)   := mDelay.tStrb(top-1 downto rDiv);
---
---         mOut.tKeep(top-1 downto lDiv) := mInput.tKeep(rDiv-1 downto 0);
---         mOut.tKeep(lDiv-1 downto 0)   := mDelay.tKeep(top-1 downto rDiv);
---
---         mOut.tUser((top*user)-1 downto (lDiv*user)) := mInput.tUser((rDiv*user)-1 downto 0);
---         mOut.tUser((lDiv*user)-1 downto 0)          := mDelay.tUser((top*user)-1 downto rDiv*user);
---
---         -- First shift is special
---         if r.state = S_FIRST_C then
---            mOut.tId                    := mInput.tId;
---            mOut.tDest                  := mInput.tDest;
---            mOut.tStrb(lDiv-1 downto 0) := (others=>'0');
---            mOut.tKeep(lDiv-1 downto 0) := (others=>'0');
---         else
---            mOut.tId   := mDelay.tId;
---            mOut.tDest := mDelay.tDest;
---         end if;
---
---         -- Ending on bytes from input stream, input stream must be valid
---         if mInput.tValid = '1' and mInput.tLast = '1' and mInput.tKeep(top-1 downto rDiv) = 0 then
---            mOut.tLast  := '1';
---            mOut.tValid := '1';
---
---         -- Ending on bytes from delayed stream, delayed stream must be valid
---         elsif mDelay.tValid = '1' and mDelay.tLast = '1' and mDelay.tKeep(top-1 downto rDiv) /= 0 then
---            mOut.tStrb(top-1 downto lDiv) := (others=>'0');
---            mOut.tKeep(top-1 downto lDiv) := (others=>'0');
---            mOut.tLast  := '1';
---            mOut.tValid := '1';
---         else
---            mOut.tLast  := '0';
---            mOut.tValid := mInput.tValid;
---         end if;
---      end if;
+      else
+
+         shiftInt := conv_integer(shiftBytes);
+
+         if shiftDir = '0' then
+            lDiv := shiftInt;
+            rDiv := AXIS_CONFIG_G.TDATA_BYTES_C - shiftInt;
+         else
+            lDiv := AXIS_CONFIG_G.TDATA_BYTES_C - shiftInt;
+            rDiv := shiftInt;
+         end if;
+
+         nextEmpty := true;
+
+         for i in 0 to AXIS_CONFIG_G.TDATA_BYTES_C-1 loop
+            if i < lDiv then
+               mOut.tData((i*8)+7 downto (i*8))              := mDelay.tData(((i+rDiv)*8)+7 downto (i+rDiv)*8);
+               mOut.tUser((i*user)+(user-1) downto (i*user)) := mDelay.tUser(((i+rDiv)*user)+(user-1) downto (i+rDiv)*user);
+
+               if shiftFirst then
+                  mOut.tStrb(i) := '0';
+                  mOut.tKeep(i) := '0';
+               else
+                  mOut.tStrb(i) := mDelay.tStrb(i+rDiv);
+                  mOut.tKeep(i) := mDelay.tKeep(i+rDiv);
+               end if;
+
+               -- There are valid values which will be taken from the delayed register.
+               if mInput.tValid = '1' and mInput.tKeep(i+rDiv) = '1' then
+                  nextEmpty := false;
+               end if;
+            else
+               mOut.tData((i*8)+7 downto (i*8))              := mInput.tData(((i-lDiv)*8)+7 downto (i-lDiv)*8);
+               mOut.tUser((i*user)+(user-1) downto (i*user)) := mInput.tUser(((i-lDiv)*user)+(user-1) downto (i-lDiv)*user);
+               mOut.tStrb(i) := mInput.tStrb(i-lDiv) and (not mDelay.tLast);
+               mOut.tKeep(i) := mInput.tKeep(i-lDiv) and (not mDelay.tLast);
+            end if;
+         end loop;
+
+         -- Choose ID and Dest values
+         if shiftFirst then
+            mOut.tId   := mInput.tId;
+            mOut.tDest := mInput.tDest;
+         else
+            mOut.tId   := mDelay.tId;
+            mOut.tDest := mDelay.tDest;
+         end if;
+
+         -- Detect frame end from next register or current register
+         if (mDelay.tValid = '1' and mDelay.tLast = '1') or (mInput.tValid = '1' and mInput.tLast = '1' and nextEmpty) then
+            mOut.tLast  := '1';
+            mOut.tValid := '1';
+         else
+            mOut.tLast  := '0';
+            mOut.tValid := mInput.tValid;
+         end if;
+      end if;
    end procedure;
 
 begin
@@ -161,7 +169,7 @@ begin
       v.slave.tReady := '0';
 
       -- Data shift
-      shiftData ( r.shiftBytes, r.shiftDir, sAxisMaster, r.delay, sMaster);
+      shiftData ( r.shiftBytes, r.shiftDir, (r.state = S_FIRST_C), sAxisMaster, r.delay, sMaster);
 
       -- State machine
       case r.state is

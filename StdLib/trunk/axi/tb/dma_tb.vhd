@@ -164,7 +164,6 @@ begin
    U_AxiWritePathFifo: entity work.AxiWritePathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         RST_ASYNC_G              => false,
          XIL_DEVICE_G             => "7SERIES",
          USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
@@ -210,7 +209,6 @@ begin
    U_AxiReadPathFifo: entity work.AxiReadPathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         RST_ASYNC_G              => false,
          XIL_DEVICE_G             => "7SERIES",
          USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
