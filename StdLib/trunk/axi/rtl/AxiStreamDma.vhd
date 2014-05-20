@@ -309,6 +309,7 @@ begin
 
       -- Read
       if (axiStatus.readEnable = '1') then
+         v.axiReadSlave.rdata := (others=>'0');
 
          case intReadMasters(0).araddr(4 downto 2) is
             when "000" =>
@@ -323,6 +324,8 @@ begin
                v.axiReadSlave.rdata(0) := popFifoValid(IB_FIFO_C);
             when "101" =>
                v.axiReadSlave.rdata(23 downto 0) := r.maxRxSize;
+            when "111" =>
+               v.axiReadSlave.rdata := x"5a5a5a5a";
             when others =>
                null;
          end case;
