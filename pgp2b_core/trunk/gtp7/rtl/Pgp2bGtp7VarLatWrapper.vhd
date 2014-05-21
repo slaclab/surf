@@ -72,8 +72,6 @@ entity Pgp2bGtp7VarLatWrapper is
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
-      -- GT loopback control
-      loopback         : in  slv(2 downto 0);  -- GT Serial Loopback Control      
       -- GT Pins
       gtClkP           : in  sl;
       gtClkN           : in  sl;
@@ -301,5 +299,5 @@ begin
          pgpRxMasterMuxed   => pgpRxMasterMuxed,
          pgpRxCtrl        => pgpRxCtrl,
          -- GT loopback control
-         loopback         => loopback);      
+         loopback         => pgpRxIn.loopback);      
 end rtl;
