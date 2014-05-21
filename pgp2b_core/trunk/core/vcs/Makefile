@@ -55,6 +55,7 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bTxSched.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bTx.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bLane.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/..//rtl/Pgp2bReg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/tb.vhd
 
 sim_gen:

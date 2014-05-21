@@ -47,6 +47,7 @@ entity Pgp2bTx is
       -- Non-VC related IO
       pgpTxIn           : in  Pgp2bTxInType;
       pgpTxOut          : out Pgp2bTxOutType;
+      locLinkReady      : in  sl;
 
       -- VC Interface
       pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0);
@@ -98,6 +99,7 @@ architecture Pgp2bTx of Pgp2bTx is
    signal syncLocPause     : slv(3 downto 0);
    signal syncLocOverFlow  : slv(3 downto 0);
    signal syncRemPause     : slv(3 downto 0);
+   signal syncLocLinkReady : sl;
 
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of 
@@ -117,7 +119,7 @@ begin
             OUT_POLARITY_G => '1',
             RST_ASYNC_G    => false,
             STAGES_G       => 2,
-            WIDTH_G        => 3,
+            WIDTH_G        => 4,
             INIT_G         => "0"
          ) port map (
             clk        => pgpTxClk,
@@ -125,9 +127,11 @@ begin
             dataIn(0)  => locFifoStatus(i).pause,
             dataIn(1)  => locFifoStatus(i).overflow,
             dataIn(2)  => remFifoStatus(i).pause,
+            dataIn(3)  => locLinkReady,
             dataOut(0) => syncLocPause(i),
             dataOut(1) => syncLocOverFlow(i),
-            dataOut(2) => syncRemPause(i)
+            dataOut(2) => syncRemPause(i),
+            dataOut(3) => syncLocLinkReady
          );
    end generate;
 
@@ -138,7 +142,10 @@ begin
    end generate;
 
    -- Link Ready
-   pgpTxOut.linkReady <= intTxLinkReady;
+   pgpTxOut.linkReady   <= intTxLinkReady;
+   pgpTxOut.phyTxReady  <= phyTxReady;
+   pgpTxOut.locOverflow <= syncLocOverFlow;
+   pgpTxOut.locPause    <= syncLocPause;
 
    process ( pgpTxClk ) begin
       if rising_edge(pgpTxClk) then
@@ -163,7 +170,7 @@ begin
          pgpTxLinkReady    => intTxLinkReady,
          pgpTxOpCodeEn     => pgpTxIn.opCodeEn,
          pgpTxOpCode       => pgpTxIn.opCode,
-         pgpLocLinkReady   => pgpTxIn.locLinkReady,
+         pgpLocLinkReady   => syncLocLinkReady,
          pgpLocData        => pgpTxIn.locData,
          cellTxSOC         => cellTxSOC,
          cellTxSOF         => cellTxSOF,

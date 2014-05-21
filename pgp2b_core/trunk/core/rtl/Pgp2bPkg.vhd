@@ -55,18 +55,21 @@ package Pgp2bPkg is
    -----------------------------------------------------
 
    type Pgp2bRxInType is record
-      flush   : sl;                     -- Flush the link
-      resetRx : sl;
+      flush    : sl;  -- Flush the link
+      resetRx  : sl;
+      loopback : slv(2 downto 0);
    end record Pgp2bRxInType;
 
    type Pgp2bRxInArray is array (natural range <>) of Pgp2bRxInType;
 
    constant PGP2B_RX_IN_INIT_C : Pgp2bRxInType := (
       '0',
-      '0'
+      '0',
+      "000"
    );
 
    type Pgp2bRxOutType is record
+      phyRxReady    : sl;                -- RX Phy is ready
       linkReady     : sl;                -- Local side has link
       linkPolarity  : slv(1 downto 0);   -- Receive link polarity
       frameRx       : sl;                -- A good frame was received
@@ -78,12 +81,14 @@ package Pgp2bPkg is
       opCode        : slv(7 downto 0);   -- Opcode receive value
       remLinkReady  : sl;                -- Far end side has link
       remLinkData   : slv(7 downto 0);   -- Far end side User Data
-      remOverFlow   : slv(3 downto 0);   -- Far end overflow status
+      remOverflow   : slv(3 downto 0);   -- Far end overflow status
+      remPause      : slv(3 downto 0);   -- Far end pause status
    end record Pgp2bRxOutType;
 
    type Pgp2bRxOutArray is array (natural range <>) of Pgp2bRxOutType;
 
    constant PGP2B_RX_OUT_INIT_C : Pgp2bRxOutType := (
+      '0',
       '0',
       "00",
       '0',
@@ -94,6 +99,7 @@ package Pgp2bPkg is
       '0',
       (others => '0'),
       '0',
+      (others => '0'),
       (others => '0'),
       (others => '0')
    );
@@ -106,7 +112,6 @@ package Pgp2bPkg is
       flush         : sl;                -- Flush the link
       opCodeEn      : sl;                -- Opcode receive enable
       opCode        : slv(7 downto 0);   -- Opcode receive value
-      locLinkReady  : sl;                -- Near end side has link
       locData       : slv(7 downto 0);   -- Near end side User Data
    end record Pgp2bTxInType;
 
@@ -116,20 +121,27 @@ package Pgp2bPkg is
       '0',
       '0',
       (others => '0'),
-      '0',
       (others => '0')
    );               
 
    type Pgp2bTxOutType is record
-      linkReady  : sl;                -- Local side has link
-      frameTx    : sl;                -- A good frame was transmitted
-      frameTxErr : sl;                -- An errored frame was transmitted
+      locOverflow : slv(3 downto 0);   -- Local overflow status
+      locPause    : slv(3 downto 0);   -- Local pause status
+      phyTxReady  : sl;                -- TX Phy is ready
+      linkReady   : sl;                -- Local side has link
+      frameTx     : sl;                -- A good frame was transmitted
+      frameTxErr  : sl;                -- An errored frame was transmitted
    end record Pgp2bTxOutType;
 
    type Pgp2bTxOutArray is array (natural range <>) of Pgp2bTxOutType;
 
    constant PGP2B_TX_OUT_INIT_C : Pgp2bTxOutType := (
-      (others => '0')
+      (others => '0'),
+      (others => '0'),
+      '0',
+      '0',
+      '0',
+      '0'
    );                
 
    -----------------------------------------------------
