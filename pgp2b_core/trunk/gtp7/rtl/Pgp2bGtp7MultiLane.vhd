@@ -99,9 +99,7 @@ entity Pgp2bGtp7MultiLane is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
-      -- GT loopback control
-      loopback         : in  slv(2 downto 0));
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0));
 
 end Pgp2bGtp7MultiLane;
 
@@ -333,6 +331,6 @@ begin
             txDataIn         => phyTxLanesOut(i).data,
             txCharIsKIn      => phyTxLanesOut(i).dataK,
             txBufStatusOut   => open,
-            loopbackIn       => loopback);
+            loopbackIn       => pgpRxIn.loopback);
    end generate GTP7_CORE_GEN;
 end rtl;

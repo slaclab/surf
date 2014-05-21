@@ -104,10 +104,7 @@ entity Pgp2bGtp7FixedLat is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
-
-      -- GT loopback control
-      loopback : in slv(2 downto 0));   -- GT Serial Loopback Control
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0));
 
 end Pgp2bGtp7FixedLat;
 
@@ -318,7 +315,7 @@ begin
          txDataIn         => phyTxLanesOut(0).data,
          txCharIsKIn      => phyTxLanesOut(0).dataK,
          txBufStatusOut   => open,      -- Not using tx buff
-         loopbackIn       => loopback);
+         loopbackIn       => pgpRxIn.loopback);
 
 end rtl;
 

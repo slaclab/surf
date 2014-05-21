@@ -112,9 +112,6 @@ entity Pgp2bGtx7Fixedlat is
          pgpRxMasterMuxed : out AxiStreamMasterType;
          pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
 
-         -- GT loopback control
-         loopback : in slv(2 downto 0);  -- GT Serial Loopback Control
-
          -- Debug
          debug : out slv(63 downto 0)
          );
@@ -343,7 +340,7 @@ begin
          txDataIn         => phyTxLanesOut(0).data,
          txCharIsKIn      => phyTxLanesOut(0).dataK,
          txBufStatusOut   => open,      -- Not using tx buff
-         loopbackIn       => loopback);
+         loopbackIn       => pgpRxIn.loopback);
 
 end rtl;
 
