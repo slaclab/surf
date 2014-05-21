@@ -98,9 +98,12 @@ architecture Pgp2bRx of Pgp2bRx is
    
 begin 
 
-   -- Link Ready
+   -- Status
    pgpRxOut.linkReady    <= intRxLinkReady;
    pgpRxOut.linkPolarity <= intPhyRxPolarity;
+   pgpRxOut.phyRxReady   <= phyRxReady;
+   pgpRxOut.remOverflow  <= overflow;
+   pgpRxOut.remPause     <= pause;
 
    -- Interface connection
    wrap : process ( intPhyRxPolarity, phyRxLanesIn) is

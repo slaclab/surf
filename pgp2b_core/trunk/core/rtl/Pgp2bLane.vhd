@@ -91,6 +91,7 @@ architecture Pgp2bLane of Pgp2bLane is
    -- Local Signals
    signal intRxMaster   : AxiStreamMasterType;
    signal remFifoStatus : AxiStreamCtrlArray(3 downto 0);
+   signal intRxOut      : Pgp2bRxOutType;
 
 begin
 
@@ -113,6 +114,7 @@ begin
             pgpTxClkRst        => pgpTxClkRst,
             pgpTxIn            => pgpTxIn,
             pgpTxOut           => pgpTxOut,
+            locLinkReady       => intRxOut.linkReady,
             pgpTxMasters       => pgpTxMasters,
             pgpTxSlaves        => pgpTxSlaves,
             locFifoStatus      => pgpRxCtrl,
@@ -145,7 +147,7 @@ begin
             pgpRxClk          => pgpRxClk,
             pgpRxClkRst       => pgpRxClkRst,
             pgpRxIn           => pgpRxIn,
-            pgpRxOut          => pgpRxOut,
+            pgpRxOut          => intRxOut,
             pgpRxMaster       => intRxMaster,
             remFifoStatus     => remFifoStatus,
             phyRxLanesOut     => phyRxLanesOut,
@@ -167,11 +169,11 @@ begin
             mAxisMasters => pgpRxMasters,
             mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
          );
-      
+     
    end generate;
 
    U_RxDisGen: if RX_ENABLE_G = false generate
-      pgpRxOut               <= PGP2B_RX_OUT_INIT_C;
+      intRxOut               <= PGP2B_RX_OUT_INIT_C;
       pgpRxMasters           <= (others=>AXI_STREAM_MASTER_INIT_C);
       intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
       phyRxLanesOut          <= (others=>PGP2B_RX_PHY_LANE_OUT_INIT_C);
@@ -181,7 +183,7 @@ begin
 
    -- De-Muxed Version
    pgpRxMasterMuxed <= intRxMaster;
-
+   pgpRxOut         <= intRxOut;
 
 end Pgp2bLane;
 
