@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-04-19
--- Last update: 2014-04-10
+-- Last update: 2014-05-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -74,38 +74,41 @@ begin
       -- Reverse the bit order
       rawBufferflyVar := bitReverse(gLinkTx.data);
 
-      -- Check for flag select enabled
-      if FLAGSEL_G then
-         -- Check for a flag status bit
-         if (gLinkTx.flag = '1') then
-            glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
+      -- Check for idle or control
+      if (gLinkTx.idle = '1') or (gLinkTx.control = '1') then
+         glinkWordVar.c := GLINK_CONTROL_WORD_C; 
+      else
+         -- Check for flag select enabled
+         if (FLAGSEL_G = true) then
+            if (gLinkTx.flag = '1') then
+               glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
+            else
+               glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
+            end if;
          else
-            glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
-         end if;
-      -- Internally alternate the flag bit when transmitting data frames for additional error checking
-      elsif (gLinkTx.idle = '0') and (gLinkTx.control = '0') then
-         -- Toggle the bit
-         v.toggle := not(r.toggle);
-         -- Check for a flag status bit
-         if r.toggle = '1' then
-            glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
-         else
-            glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
+            -- Check the toggle bit
+            if r.toggle = '1' then
+               glinkWordVar.c := GLINK_DATA_WORD_FLAG_HIGH_C;
+               -- Toggle the bit
+               v.toggle       := '0';
+            else
+               glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
+               -- Toggle the bit
+               v.toggle       := '1';
+            end if;         
          end if;
       end if;
-
+      
       -- Latch the reversed word
       glinkWordVar.w := rawBufferflyVar;
 
       -- Control overrides data assignments 
       if (gLinkTx.control = '1') then
-         glinkWordVar.c := GLINK_CONTROL_WORD_C;
          glinkWordVar.w := rawBufferflyVar(0 to 6) & "01" & rawBufferflyVar(7 to 13);
       end if;
 
       -- Idle overrides control
       if (gLinkTx.idle = '1') then
-         glinkWordVar.c := GLINK_CONTROL_WORD_C;
          glinkWordVar.w := GLINK_IDLE_WORD_FF1L_C;
       end if;
 
