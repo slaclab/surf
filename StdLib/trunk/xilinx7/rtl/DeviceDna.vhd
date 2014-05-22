@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-25
--- Last update: 2014-01-13
+-- Last update: 2014-05-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,27 +38,25 @@ entity DeviceDna is
 end DeviceDna;
 
 architecture rtl of DeviceDna is
+   
+   constant DNA_SHIFT_LENGTH_C : natural := 64;
 
    type StateType is (READ_S, SHIFT_S, DONE_S);
 
    type RegType is record
       state    : StateType;
-      divCnt   : slv(3 downto 0);
-      bitCount : slv(bitSize(64)-1 downto 0);
+      bitCount : natural range 0 to DNA_SHIFT_LENGTH_C-1;
       dnaValue : slv(63 downto 0);
       dnaValid : sl;
-      dnaClk   : sl;
       dnaRead  : sl;
       dnaShift : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state    => READ_S,
-      divCnt   => (others => '0'),
-      bitCount => (others => '0'),
+      bitCount => 0,
       dnaValue => (others => '0'),
       dnaValid => '0',
-      dnaClk   => '0',
       dnaRead  => '0',
       dnaShift => '0');
 
@@ -66,69 +64,110 @@ architecture rtl of DeviceDna is
    signal rin : RegType;
 
    signal dnaDout : sl;
+   signal locClk  : sl;
+   signal locRst  : sl;
 
 begin
 
-   comb : process (r, rst, dnaDout) is
+   BUFR_Inst : BUFR
+      generic map (
+         BUFR_DIVIDE => "8",
+         SIM_DEVICE  => "7SERIES")
+      port map (
+         I   => clk,
+         CE  => '1',
+         CLR => '0',
+         O   => locClk);
+
+   RstSync_Inst : entity work.RstSync
+      generic map (
+         IN_POLARITY_G => IN_POLARITY_G,
+         TPD_G         => TPD_G)   
+      port map (
+         clk      => locClk,
+         asyncRst => rst,
+         syncRst  => locRst); 
+
+   comb : process (dnaDout, locRst, r) is
       variable v : RegType;
    begin
+      -- Latch the current value   
       v := r;
 
-      v.dnaClk := not r.dnaClk;
+      -- Reset the strobing signals
+      v.dnaRead  := '0';
+      v.dnaShift := '0';
 
+      -- State Machine      
       case (r.state) is
+         ----------------------------------------------------------------------
          when READ_S =>
-            if (r.dnaClk = '1') then    -- Falling edge of dnaClk next
+            -- Check the read strobe status
+            if r.dnaRead = '0' then
+               -- Strobe the read of the DNA port
                v.dnaRead := '1';
+               -- Next State
                v.state   := SHIFT_S;
             end if;
-
+         ----------------------------------------------------------------------
          when SHIFT_S =>
-            if (r.dnaClk = '1') then    -- Falling edge of dnaClk next
-               v.dnaRead  := '0';
-               v.dnaShift := '1';
-               if (r.dnaShift = '1') then
-                  v.dnaValue := r.dnaValue(62 downto 0) & dnaDout;  -- Shift in right
-                  v.bitCount := r.bitCount + 1;
-                  if (r.bitCount = 63) then
-                     v.state := DONE_S;
-                  end if;
+            -- Shift the data out
+            v.dnaShift := '1';         
+            -- Check the shift strobe status
+            if r.dnaShift = '1' then
+               -- Shift register
+               v.dnaValue := r.dnaValue(62 downto 0) & dnaDout;
+               -- Increment the counter
+               v.bitCount := r.bitCount + 1;
+               -- Check the counter value
+               if (r.bitCount = DNA_SHIFT_LENGTH_C-1) then
+                  -- Next State
+                  v.state := DONE_S;
                end if;
             end if;
-
+         ----------------------------------------------------------------------
          when DONE_S =>
-            v.dnaClk   := '0';
-            v.dnaShift := '0';
-            v.dnaRead  := '0';
+            -- Set the valid bit
             v.dnaValid := '1';
-            
-         when others => null;
+      ----------------------------------------------------------------------
       end case;
 
-      if (rst = IN_POLARITY_G) then
+      -- Synchronous Reset
+      if locRst = '1' then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
-
-      dnaValue <= r.dnaValue;
-      dnaValid <= r.dnaValid;
       
    end process comb;
 
-   sync : process (clk) is
+   sync : process (locClk) is
    begin
-      if (rising_edge(clk)) then
+      if (falling_edge(locClk)) then
          r <= rin after TPD_G;
       end if;
    end process sync;
 
    DNA_PORT_I : DNA_PORT
       port map (
-         CLK   => r.dnaClk,
+         CLK   => locClk,
          READ  => r.dnaRead,
          SHIFT => r.dnaShift,
          DIN   => '0',
          DOUT  => dnaDout);
+
+   SyncFifo : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 65)
+      port map (
+         rst               => locRst,
+         wr_clk            => locClk,
+         din(64)           => r.dnaValid,
+         din(63 downto 0)  => r.dnaValue,
+         rd_clk            => clk,
+         dout(64)          => dnaValid,
+         dout(63 downto 0) => dnaValue);                
 
 end rtl;
