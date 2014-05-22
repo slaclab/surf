@@ -434,6 +434,7 @@ begin
    -- Mux proper PLL RefClkLost signal on rxPllRefClkLost
    rxPllRefClkLost <= cPllRefClkLost when (RX_PLL_G = "CPLL") else qPllRefClkLostIn when (RX_PLL_G = "QPLL") else '0';
 
+   rxAlignReset <= '0';-- Unused?!?
    rxUserResetInt <= rxUserResetIn or rxAlignReset;
    rxRstTxUserRdy <= txUserRdyInt when RX_USRCLK_SRC_G = "TXOUTCLK" else '1';
 
