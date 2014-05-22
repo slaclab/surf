@@ -188,7 +188,7 @@ begin
          pgpRxLinkDown  <= (not intRxLinkReady) and (not dlyRxLinkDown) after TPD_G;
 
          -- Link error generation
-         if (phyRxDispErr /= 0 or phyRxDecErr /= 0) and intRxLinkReady = '1' then 
+         if (dly1RxDispErr /= 0 or dly1RxDecErr /= 0) and intRxLinkReady = '1' then 
             intRxLinkError <= '1' after TPD_G;
          else
             intRxLinkError <= '0' after TPD_G;
@@ -226,7 +226,7 @@ begin
 
    -- Link control state machine
    process ( curState, stateCnt, ltsCnt, rxDetectLts, rxDetectLtsOk, 
-             rxDetectInvert, intRxPolarity, phyRxReady, phyRxDecErr, phyRxDispErr ) begin
+             rxDetectInvert, intRxPolarity, phyRxReady, dly1RxDecErr, dly1RxDispErr ) begin
       case curState is 
 
          -- Hold in rx reset for 8 clocks
@@ -282,7 +282,7 @@ begin
                nxtState      <= ST_RESET_C;
 
             -- Decode or disparity error, clear lts count
-            elsif phyRxReady = '0' or phyRxDispErr /= 0 or phyRxDecErr /= 0 then
+            elsif phyRxReady = '0' or dly1RxDispErr /= 0 or dly1RxDecErr /= 0 then
                stateCntRst   <= '0';
                ltsCntEn      <= '0';
                ltsCntRst     <= '1';
@@ -543,11 +543,13 @@ begin
    GEN_LANES: for i in 0 to (RX_LANE_CNT_G-1) generate
 
       -- Ordered Set Detection
-      process ( dly1RxDataK, dly1RxData, dly0RxDataK, dly0RxData, phyRxDispErr, phyRxDecErr ) begin
+      process ( dly1RxDataK, dly1RxData, dly0RxDataK, dly0RxData, dly0RxDispErr, dly0RxDecErr, dly1RxDispErr, dly1RxDecErr ) begin
 
          -- Skip errored decodes
-         if phyRxDispErr(i*2) = '0' and phyRxDispErr(i*2+1) = '0' and 
-            phyRxDecErr(i*2)  = '0' and phyRxDecErr(i*2+1)  = '0' then
+         if dly0RxDispErr(i*2) = '0' and dly0RxDispErr(i*2+1) = '0' and 
+            dly0RxDecErr(i*2)  = '0' and dly0RxDecErr(i*2+1)  = '0' and
+            dly1RxDispErr(i*2) = '0' and dly1RxDispErr(i*2+1) = '0' and 
+            dly1RxDecErr(i*2)  = '0' and dly1RxDecErr(i*2+1)  = '0' then
 
             -- Link init ordered set
             if ( dly1RxDataK(i*2) = '1' and dly1RxDataK(i*2+1) = '0' and
