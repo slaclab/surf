@@ -119,7 +119,7 @@ begin
             OUT_POLARITY_G => '1',
             RST_ASYNC_G    => false,
             STAGES_G       => 2,
-            WIDTH_G        => 4,
+            WIDTH_G        => 3,
             INIT_G         => "0"
          ) port map (
             clk        => pgpTxClk,
@@ -127,13 +127,26 @@ begin
             dataIn(0)  => locFifoStatus(i).pause,
             dataIn(1)  => locFifoStatus(i).overflow,
             dataIn(2)  => remFifoStatus(i).pause,
-            dataIn(3)  => locLinkReady,
             dataOut(0) => syncLocPause(i),
             dataOut(1) => syncLocOverFlow(i),
-            dataOut(2) => syncRemPause(i),
-            dataOut(3) => syncLocLinkReady
+            dataOut(2) => syncRemPause(i)
          );
    end generate;
+
+   U_LinkReady: entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => false,
+         STAGES_G       => 2,
+         INIT_G         => "0"
+      ) port map (
+         clk        => pgpTxClk,
+         rst        => pgpTxClkRst,
+         dataIn     => locLinkReady,
+         dataOut    => syncLocLinkReady
+      );
 
    -- Set phy lanes
    Lane_Gen: for i in 0 to TX_LANE_CNT_G-1 generate

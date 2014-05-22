@@ -64,6 +64,10 @@
 --       Bits ?:0 = Transmit Frame Error Count
 --    0x60 = Read Only
 --       Bits ?:0 = Transmit Frame Count
+--    0x64 = Read Only
+--       Bits 31:0 = Receive Clock Frequency
+--    0x68 = Read Only
+--       Bits 31:0 = Transmit Clock Frequency
 --
 -- Status vector:
 --       Bits 31:24 = Rx Link Down Count
@@ -99,6 +103,7 @@ entity Pgp2bReg is
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
+      AXI_CLK_FREQ_G     : real                  := 125.0E+6;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4
    );
@@ -139,9 +144,11 @@ architecture structure of Pgp2bReg is
    -- Local signals
    signal rxStatusSend : sl;
 
+   signal rxErrorOut     : slv(16 downto 0);
    signal rxErrorCntOut  : SlVectorArray(16 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal rxStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
+   signal txErrorOut     : slv(10 downto 0);
    signal txErrorCntOut  : SlVectorArray(10 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal txStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
@@ -196,6 +203,7 @@ architecture structure of Pgp2bReg is
       frameErrCount    : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       frameCount       : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       remPause         : slv(3 downto 0);
+      rxClkFreq        : slv(31 downto 0);
    end record RxStatusType;
 
    signal rxstatusSync : RxStatusType;
@@ -211,6 +219,7 @@ architecture structure of Pgp2bReg is
       locPause        : slv(3 downto 0);
       frameErrCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       frameCount      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+      txClkFreq       : slv(31 downto 0);
    end record TxStatusType;
 
    signal txstatusSync : TxStatusType;
@@ -260,7 +269,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1110000111100000",
+         SYNTH_CNT_G     => "11110000111100000",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => 17
@@ -275,16 +284,7 @@ begin
          statusIn(14)            => pgpRxOut.linkDown,
          statusIn(15)            => pgpRxOut.linkError,
          statusIn(16)            => pgpRxOut.frameRxErr,
-         statusOut(0)            => rxStatusSync.phyRxReady,
-         statusOut(1)            => rxStatusSync.locLinkReady,
-         statusOut(3  downto 2)  => rxStatusSync.linkPolarity,
-         statusOut(4)            => rxStatusSync.remLinkReady,
-         statusOut(8  downto 5)  => rxStatusSync.remOverflow,
-         statusOut(12 downto 9)  => rxStatusSync.remPause,
-         statusOut(13)           => open,
-         statusOut(14)           => open,
-         statusOut(15)           => open,
-         statusOut(16)           => open,
+         statusOut               => rxErrorOut,
          cntRstIn                => r.countReset,
          rollOverEnIn            => (others=>'0'),
          cntOut                  => rxErrorCntOut,
@@ -308,6 +308,14 @@ begin
       rxErrorIrqEn(14) <= r.autoStatus;
       rxErrorIrqEn(16) <= r.autoStatus;
    end process;
+
+   -- map status
+   rxStatusSync.phyRxReady    <= rxErrorOut(0);
+   rxStatusSync.locLinkReady  <= rxErrorOut(1);
+   rxStatusSync.linkPolarity  <= rxErrorOut(3 downto 2);
+   rxStatusSync.remLinkReady  <= rxErrorOut(4);
+   rxStatusSync.remOverflow   <= rxErrorOut(8 downto 5);
+   rxStatusSync.remPause      <= rxErrorOut(12 downto 9);
 
    -- Map counters
    rxStatusSync.remOverflow0Cnt <= muxSlVectorArray(rxErrorCntOut,5);
@@ -349,6 +357,26 @@ begin
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut,0);
 
+   U_RxClkFreq: entity work.SyncClockFreq 
+      generic map (
+         TPD_G             => TPD_G,
+         USE_DSP48_G       => "no",
+         REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
+         REFRESH_RATE_G    => 100.0,
+         CLK_LOWER_LIMIT_G => 159.0E+6,
+         CLK_UPPER_LIMIT_G => 161.0E+6,
+         CNT_WIDTH_G       => 32
+      ) port map (
+         freqOut     => rxStatusSync.rxClkFreq,
+         freqUpdated => open,
+         locked      => open,
+         tooFast     => open,
+         tooSlow     => open,
+         clkIn       => pgpRxClk,
+         locClk      => axilClk,
+         refClk      => axilClk
+      );
+
 
    ---------------------------------------
    -- Transmit Status
@@ -364,7 +392,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1110000111100000",
+         SYNTH_CNT_G     => "10000111100",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => 11
@@ -374,11 +402,7 @@ begin
          statusIn(5 downto 2)   => pgpTxOut.locOverflow,
          statusIn(9 downto 6)   => pgpTxOut.locPause,
          statusIn(10)           => pgpTxOut.frameTxErr,
-         statusOut(0)           => txStatusSync.phyTxReady,
-         statusOut(1)           => txStatusSync.txLinkReady,
-         statusOut(5 downto 2)  => txStatusSync.locOverFlow,
-         statusOut(9 downto 6)  => txStatusSync.locPause,
-         statusOut(10)          => open,
+         statusOut              => txErrorOut,
          cntRstIn               => r.countReset,
          rollOverEnIn           => (others=>'0'),
          cntOut                 => txErrorCntOut,
@@ -389,6 +413,12 @@ begin
          rdClk                  => axilClk,
          rdRst                  => axilRst
       );
+
+   -- Map Status
+   txStatusSync.phyTxReady  <= txErrorOut(0);
+   txStatusSync.txLinkReady <= txErrorOut(1);
+   txStatusSync.locOverFlow <= txErrorOut(5 downto 2);
+   txStatusSync.locPause    <= txErrorOut(9 downto 6);
 
    -- Map counters
    txStatusSync.locOverflow0Cnt <= muxSlVectorArray(txErrorCntOut,2);
@@ -427,6 +457,25 @@ begin
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut,0);
 
+   U_TxClkFreq: entity work.SyncClockFreq 
+      generic map (
+         TPD_G             => TPD_G,
+         USE_DSP48_G       => "no",
+         REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
+         REFRESH_RATE_G    => 100.0,
+         CLK_LOWER_LIMIT_G => 159.0E+6,
+         CLK_UPPER_LIMIT_G => 161.0E+6,
+         CNT_WIDTH_G       => 32
+      ) port map (
+         freqOut     => txStatusSync.txClkFreq,
+         freqUpdated => open,
+         locked      => open,
+         tooFast     => open,
+         tooSlow     => open,
+         clkIn       => pgpTxClk,
+         locClk      => axilClk,
+         refClk      => axilClk
+      );
 
    -------------------------------------
    -- Tx Control Sync
@@ -441,7 +490,7 @@ begin
             ALTERA_SYN_G  => false,
             ALTERA_RAM_G  => "M9K",
             SYNC_STAGES_G => 3,
-            DATA_WIDTH_G  => 10,
+            DATA_WIDTH_G  => 9,
             ADDR_WIDTH_G  => 2,
             INIT_G        => "0"
          ) port map (
@@ -627,6 +676,10 @@ begin
                v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0)  := txStatusSync.frameErrCount;
             when X"60" =>
                v.axilReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := txStatusSync.frameCount;
+            when X"64" =>
+               v.axilReadSlave.rdata := rxStatusSync.rxClkFreq;
+            when X"68" =>
+               v.axilReadSlave.rdata := txStatusSync.txClkFreq;
             when others => null;
          end case;
 
