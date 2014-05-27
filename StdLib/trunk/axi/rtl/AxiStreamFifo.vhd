@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-13
+-- Last update: 2014-05-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -558,7 +558,6 @@ begin
 
          v.rdMaster.tDest  := fifoMaster.tDest;
          v.rdMaster.tId    := fifoMaster.tId;
-         v.rdMaster.tValid := fifoMaster.tValid;
 
          -- Reached end of fifo data or no more valid bytes in last word
          if fifoMaster.tValid = '1' then
@@ -574,6 +573,12 @@ begin
                v.rdMaster.tLast := '0';
             end if;
          end if;
+
+         -- Drop transfers with no tKeep bits set, except on tLast
+         v.rdMaster.tValid := fifoMaster.tValid and
+                              (uOr(v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)) or
+                              v.rdMaster.tLast);
+         
       else
          v.ready := '0';
       end if;
