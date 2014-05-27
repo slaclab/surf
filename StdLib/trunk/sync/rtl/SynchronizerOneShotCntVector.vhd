@@ -52,7 +52,9 @@ architecture mapping of SynchronizerOneShotCntVector is
 
    function fillVectorArray (INPUT : slv) return slv is
    begin
-      return ite(INPUT'size = 1, slvAll(WIDTH_G, INPUT(0)), INPUT);
+      return ite(INPUT = "1", slvOne(WIDTH_G),
+                 ite(INPUT = "0", slvZero(WIDTH_G),
+                     INPUT));
    end function fillVectorArray;
 
    constant IN_POLARITY_C  : slv(WIDTH_G-1 downto 0) := fillVectorArray(IN_POLARITY_G);
