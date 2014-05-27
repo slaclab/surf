@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-14
+-- Last update: 2014-05-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,25 +50,20 @@ end SynchronizerOneShotCntVector;
 
 architecture mapping of SynchronizerOneShotCntVector is
 
-   type MyVectorArray is array (WIDTH_G-1 downto 0) of sl;
+--   type MyVectorArray is array (WIDTH_G-1 downto 0) of sl;
 
-   function FillVectorArray (INPUT : slv)
-      return MyVectorArray is
-      variable retVar : MyVectorArray := (others => '1');
+   function fillVectorArray (INPUT : slv)
+      return slv is
+      variable retVar : slv(WIDTH_G-1 downto 0);
    begin
-      if INPUT = "1" then
-         retVar := (others => '1');
-      else
-         for i in WIDTH_G-1 downto 0 loop
-            retVar(i) := INPUT(i);
-         end loop;
-      end if;
-      return retVar;
-   end function FillVectorArray;
+      return ite(INPUT = "1", slvOne(WIDTH_G),
+             ite(INPUT = "0", slvZero(WIDTH_G),
+                              INPUT));
+   end function fillVectorArray;
 
-   constant IN_POLARITY_C  : MyVectorArray := FillVectorArray(IN_POLARITY_G);
-   constant OUT_POLARITY_C : MyVectorArray := FillVectorArray(OUT_POLARITY_G);
-   constant SYNTH_CNT_C    : MyVectorArray := FillVectorArray(SYNTH_CNT_G);
+   constant IN_POLARITY_C  : slv(WIDTH_G-1 downto 0) := fillVectorArray(IN_POLARITY_G);
+   constant OUT_POLARITY_C : slv(WIDTH_G-1 downto 0) := fillVectorArray(OUT_POLARITY_G);
+   constant SYNTH_CNT_C    : slv(WIDTH_G-1 downto 0) := fillVectorArray(SYNTH_CNT_G);
 
    type MySlvArray is array (WIDTH_G-1 downto 0) of slv(CNT_WIDTH_G-1 downto 0);
    signal cnt : MySlvArray;
