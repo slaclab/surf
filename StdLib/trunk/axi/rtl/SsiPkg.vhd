@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-05-16
+-- Last update: 2014-05-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,6 +50,7 @@ package SsiPkg is
       valid  : sl;
       data   : slv(127 downto 0);
       strb   : slv(15 downto 0);
+      keep   : slv(15 downto 0);
       dest   : slv(SSI_TDEST_BITS_C-1 downto 0);
       packed : sl;
       sof    : sl;
@@ -139,7 +140,7 @@ package body SsiPkg is
       ret.TUSER_BITS_C  := SSI_TUSER_BITS_C;    -- 2 TUSER: EOFE, SOF
       ret.TDEST_BITS_C  := SSI_TDEST_BITS_C;    -- 4 TDEST bits for VC
       ret.TID_BITS_C    := SSI_TID_BITS_C;      -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;           -- Compress TKEEP
+      ret.TKEEP_MODE_C  := tKeepMode;           -- 
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;      -- No TSTRB support in SSI
       ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C;  -- User field valid on last only
       return ret;
@@ -168,6 +169,8 @@ package body SsiPkg is
       ret.tData  := ssiMaster.data;
       ret.tLast  := ssiMaster.eof;
       ret.tStrb  := ssiMaster.strb;
+      ret.tKeep  := ssiMaster.keep;
+      ret.tDest  := ssiMaster.dest;
       ssiSetUserSof(axisConfig, ret, ssiMaster.sof);
       ssiSetUserEofe(axisConfig, ret, ssiMaster.eofe);
       return ret;
@@ -204,6 +207,8 @@ package body SsiPkg is
       ret.valid  := axisMaster.tValid;
       ret.data   := axisMaster.tData;
       ret.strb   := axisMaster.tStrb;
+      ret.keep   := axisMaster.tKeep;
+      ret.dest   := axisMaster.tDest;
       ret.packed := toSl(axiStreamPacked(axisConfig, axisMaster));
       ret.dest   := axisMaster.tDest(axisConfig.TDEST_BITS_C-1 downto 0);
       ret.sof    := ssiGetUserSof(axisConfig, axisMaster);
@@ -240,7 +245,7 @@ package body SsiPkg is
       return axis2ssiSlave(axisConfig, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
    end function ssiSlaveInit;
 
- 
+
    -------------------------------------------------------------------------------------------------
    procedure ssiSetUserEofe (
       axisConfig : in    AxiStreamConfigType;
