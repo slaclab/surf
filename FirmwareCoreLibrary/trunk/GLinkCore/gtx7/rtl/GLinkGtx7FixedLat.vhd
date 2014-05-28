@@ -125,8 +125,6 @@ begin
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 20)
          port map (
-            -- Asynchronous Reset
-            rst    => gLinkTx.linkRst,
             --Write Ports (wr_clk domain)
             wr_clk => gLinkTxClk,
             wr_en  => gLinkTxClkEn,
@@ -136,7 +134,7 @@ begin
             valid  => txFifoValid,
             dout   => txFifoDout); 
 
-      gLinkTxSync <= toGLinkTx(txFifoDout) when(txFifoValid = '1') else GLINK_TX_INIT_C;
+      gLinkTxSync <= toGLinkTx(txFifoDout) when(txFifoValid = '1') else GLINK_TX_UNUSED_C;
 
       gtTxRst <= not(gtTxRstDone) or gLinkTxSync.linkRst;
 
@@ -155,15 +153,11 @@ begin
 
    DISABLE_SYNTH_TX : if (SYNTH_TX_G = false) generate
       
-      txClk               <= '0';
-      txReady             <= '1';
-      gLinkTxSync.idle    <= '1';
-      gLinkTxSync.control <= '0';
-      gLinkTxSync.flag    <= '0';
-      gLinkTxSync.data    <= (others => '0');
-      gLinkTxSync.linkRst <= '0';
-      gtTxRst             <= '0';
-      gtTxData            <= (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C);
+      txClk       <= '0';
+      txReady     <= '1';
+      gLinkTxSync <= GLINK_TX_UNUSED_C;
+      gtTxRst     <= '0';
+      gtTxData    <= (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C);
       
    end generate;
 
@@ -198,14 +192,7 @@ begin
 
       gLinkRx <= toGLinkRx(rxFifoDout) when(rxFifoValid = '1') else GLINK_RX_INIT_C;
 
-      RstSync_Inst : entity work.RstSync
-         generic map (
-            TPD_G => TPD_G)  
-         port map (
-            clk      => rxClk,
-            asyncRst => gLinkTx.linkRst,
-            syncRst  => rxRst);      
-
+      rxRst     <= '0';    
       gtRxRst <= not(gtRxRstDone) or rxRst;
 
       GLinkDecoder_Inst : entity work.GLinkDecoder
@@ -302,7 +289,7 @@ begin
          rxUserRdyOut     => open,
          rxMmcmResetOut   => open,
          rxMmcmLockedIn   => '1',
-         rxUserResetIn    => rxRst,
+         rxUserResetIn    => gLinkTx.linkRst,-- Sync'd in Gtx7RxRst.vhd
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
          rxSlideIn        => '0',              -- Slide is controlled internally
