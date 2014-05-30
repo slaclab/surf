@@ -18,7 +18,8 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 source ${VIVADO_BUILD_DIR}/vivado_properties_v1.tcl
 
 # Target specific project setup script
-source ${VIVADO_DIR}/project_setup.tcl
+VivadoRefresh ${VIVADO_PROJECT}
+SourceTclFile ${VIVADO_DIR}/project_setup.tcl
 
 # Close the project
 close_project
