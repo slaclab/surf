@@ -54,7 +54,9 @@ proc BuildIpCores { } {
          # Build the IP Core
          launch_runs -quiet ${ipCoreList} -jobs [GetCpuNumber]
          foreach waitPntr ${ipCoreList} {
-            wait_on_run ${waitPntr} 
+            set src_rc [catch { 
+               wait_on_run ${waitPntr} 
+            } _RESULT]   
          }
       }      
       foreach corePntr [get_ips] {
