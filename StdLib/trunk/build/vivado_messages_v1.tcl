@@ -1,4 +1,11 @@
 
+########################################################
+## Get variables and Custom Procedures
+########################################################
+set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
+
 # Messages Suppression: INFO
 set_msg_config -suppress -id {Synth 8-256}; # SYNTH: done synthesizing module
 set_msg_config -suppress -id {Synth 8-113}; # SYNTH: binding component instance 'RTL_Inst' to cell 'PRIMITIVE'
