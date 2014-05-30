@@ -69,3 +69,6 @@ set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
+
+# Target specific messages script
+SourceTclFile ${VIVADO_DIR}/messages.tcl

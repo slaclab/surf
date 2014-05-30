@@ -16,7 +16,6 @@ export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado)
 export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
 export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
-export PROJECT_SETUP    = $(abspath $(PROJ_DIR)/vivado/project_setup.tcl)
 export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 
 # Images Directory
@@ -71,7 +70,6 @@ test:
 	@echo VIVADO_DIR: $(VIVADO_DIR)
 	@echo VIVADO_BUILD_DIR: $(VIVADO_BUILD_DIR)
 	@echo VIVADO_PROJECT: $(VIVADO_PROJECT)
-	@echo PROJECT_SETUP: $(PROJECT_SETUP)
 	@echo MODULE_DIRS: $(MODULE_DIRS)
 	@echo CORE_LISTS: $(CORE_LISTS)
 	@echo CORE_FILES:
@@ -120,7 +118,7 @@ dir:
 ###############################################################
 #### Vivado Project ###########################################
 ###############################################################
-$(VIVADO_DEPEND) : $(PROJECT_SETUP)
+$(VIVADO_DEPEND) :
 	$(call ACTION_HEADER,"Vivado Project Creation")
 	@test -d $(TOP_DIR)/build/ || { \
 			 echo ""; \

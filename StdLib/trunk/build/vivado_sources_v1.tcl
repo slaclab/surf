@@ -85,6 +85,10 @@ if { [get_ips] != "" } {
    }
 }
 
+# Target specific source setup script
+VivadoRefresh ${VIVADO_PROJECT}
+SourceTclFile ${VIVADO_DIR}/sources.tcl
+
 # Touch dependency file
 exec touch ${PROJECT}_sources.txt
 

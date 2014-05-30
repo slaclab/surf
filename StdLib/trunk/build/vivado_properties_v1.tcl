@@ -14,6 +14,9 @@ set_property target_language VHDL [current_project]
 # Disable Xilinx's WebTalk
 config_webtalk -user off
 
+# Default to no flattening of the hierarchy
+set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY none [get_runs synth_1]
+
 # Enable implementation steps by default
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
@@ -49,3 +52,6 @@ set_property xelab.sdf_delay sdfmin [get_filesets sim_1]
 set_property xelab.rangecheck false [get_filesets sim_1]
 set_property xelab.unifast false [get_filesets sim_1]
 set_property simulator_language Mixed [current_project]
+
+# Target specific properties script
+SourceTclFile ${VIVADO_DIR}/properties.tcl

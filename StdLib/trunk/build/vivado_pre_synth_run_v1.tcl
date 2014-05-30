@@ -22,3 +22,6 @@ exec mv ${PROJ_DIR}/Version.new ${PROJ_DIR}/Version.vhd
 
 # Message Filtering Script
 source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+
+# Target specific pre_synth_run script
+SourceTclFile ${VIVADO_DIR}/pre_synth_run.tcl
