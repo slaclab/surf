@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-04-17
+-- Last update: 2014-06-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -123,6 +123,7 @@ begin
       SyncFifo_TX : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            INIT_G       => toSlv(GLINK_TX_UNUSED_C),
             DATA_WIDTH_G => 20)
          port map (
             --Write Ports (wr_clk domain)
@@ -176,6 +177,7 @@ begin
       SyncFifo_RX : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            INIT_G       => toSlv(GLINK_RX_INIT_C),
             DATA_WIDTH_G => 24)
          port map (
             -- Asynchronous Reset
@@ -190,9 +192,9 @@ begin
             valid  => rxFifoValid,
             dout   => rxFifoDout); 
 
-      gLinkRx <= toGLinkRx(rxFifoDout) when(rxFifoValid = '1') else GLINK_RX_INIT_C;
+      gLinkRx <= toGLinkRx(rxFifoDout);
 
-      rxRst     <= '0';    
+      rxRst   <= '0';
       gtRxRst <= not(gtRxRstDone) or rxRst;
 
       GLinkDecoder_Inst : entity work.GLinkDecoder
@@ -289,7 +291,7 @@ begin
          rxUserRdyOut     => open,
          rxMmcmResetOut   => open,
          rxMmcmLockedIn   => '1',
-         rxUserResetIn    => gLinkTx.linkRst,-- Sync'd in Gtx7RxRst.vhd
+         rxUserResetIn    => gLinkTx.linkRst,  -- Sync'd in Gtx7RxRst.vhd
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
          rxSlideIn        => '0',              -- Slide is controlled internally
