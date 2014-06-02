@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-14
+-- Last update: 2014-06-02
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -110,21 +110,15 @@ architecture rtl of SyncStatusVector is
    
 begin
 
-   SyncFifo_Inst : entity work.SynchronizerFifo
+   SyncVec_Inst : entity work.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         COMMON_CLK_G  => COMMON_CLK_G,
-         SYNC_STAGES_G => RELEASE_DELAY_G,
-         DATA_WIDTH_G  => WIDTH_G)
+         TPD_G    => TPD_G,
+         STAGES_G => RELEASE_DELAY_G,
+         WIDTH_G  => WIDTH_G)
       port map (
-         -- Asynchronous Reset
-         rst    => wrRst,
-         --Write Ports (wr_clk domain)
-         wr_clk => wrClk,
-         din    => statusIn,
-         --Read Ports (rd_clk domain)
-         rd_clk => rdClk,
-         dout   => statusOut);
+         clk     => rdClk,
+         dataIn  => statusIn,
+         dataOut => statusOut);
 
    SyncOneShotCntVec_Inst : entity work.SynchronizerOneShotCntVector
       generic map (
