@@ -27,6 +27,7 @@ package AxiDmaPkg is
    -- Base Record
    type AxiWriteDmaReqType is record
       request : sl;
+      drop    : sl;
       address : slv(31 downto 0);
       maxSize : slv(31 downto 0);
    end record;
@@ -34,6 +35,7 @@ package AxiDmaPkg is
    -- Initialization constants
    constant AXI_WRITE_DMA_REQ_INIT_C : AxiWriteDmaReqType := ( 
       request => '0',
+      drop    => '0',
       address => (others=>'0'),
       maxSize => (others=>'0')
    );
@@ -102,7 +104,7 @@ package AxiDmaPkg is
    type AxiReadDmaReqArray is array (natural range<>) of AxiReadDmaReqType;
 
    -------------------------------------
-   -- Write DMA Acknowledge
+   -- Read DMA Acknowledge
    -------------------------------------
 
    -- Base Record

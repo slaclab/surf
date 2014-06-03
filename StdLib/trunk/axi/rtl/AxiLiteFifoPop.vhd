@@ -53,6 +53,7 @@ entity AxiLiteFifoPop is
       axiWriteMaster     : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axiWriteSlave      : out AxiLiteWriteSlaveType;
       popFifoValid       : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoAEmpty      : out slv(POP_FIFO_COUNT_G-1 downto 0);
 
       -- POP FIFO Write Interface
       popFifoClk         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
@@ -66,10 +67,11 @@ end AxiLiteFifoPop;
 
 architecture structure of AxiLiteFifoPop is
 
-   constant POP_SIZE_C   : integer := bitSize(POP_FIFO_COUNT_G-1);
-   constant POP_COUNT_C  : integer := 2**POP_SIZE_C;
-   constant LOOP_SIZE_C  : integer := bitSize(LOOP_FIFO_COUNT_G-1);
-   constant LOOP_COUNT_C : integer := 2**LOOP_SIZE_C;
+   constant POP_SIZE_C    : integer := bitSize(POP_FIFO_COUNT_G-1);
+   constant POP_COUNT_C   : integer := 2**POP_SIZE_C;
+   constant LOOP_TCOUNT_C : integer := ite(LOOP_FIFO_COUNT_G=0,1,LOOP_FIFO_COUNT_G);
+   constant LOOP_SIZE_C   : integer := bitSize(LOOP_TCOUNT_C-1);
+   constant LOOP_COUNT_C  : integer := 2**LOOP_SIZE_C;
 
    -- Local Signals
    signal intFifoValid  : slv(POP_COUNT_C-1 downto 0);
@@ -156,7 +158,7 @@ begin
             valid         => intFifoValid(i),
             underflow     => open,
             prog_empty    => open,
-            almost_empty  => open,
+            almost_empty  => popFifoAEmpty(i),
             empty         => open
       );
    end generate;

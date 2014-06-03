@@ -134,7 +134,6 @@ begin
       -- Init
       v.slave.tReady    := '0';
       v.wMaster.awvalid := '0';
-      v.wMaster.bready  := '1';
       v.shiftEn         := '0';
 
       -- Count number of bytes in return data
@@ -172,10 +171,15 @@ begin
             -- Start 
             if dmaReq.request = '1' then
                v.shiftEn := '1';
-               v.state   := S_FIRST_C;
+
+               if dmaReq.drop = '1' then
+                  v.state := S_DUMP_C;
+               else
+                  v.state := S_FIRST_C;
+               end if;
             end if;
 
-         -- First -- FIX THIS. SET VALID AND WAIT FOR READY
+         -- First
          when S_FIRST_C =>
             v.wMaster.awaddr := r.dmaReq.address;
 
@@ -184,7 +188,7 @@ begin
             v.wMaster.awlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
             -- There is enough room in the FIFO for a burst and address is ready
-            if selPause = '0' and axiWriteSlave.awready = '1' and intAxisMaster.tValid = '1' then
+            if selPause = '0' and intAxisMaster.tValid = '1' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
@@ -195,8 +199,8 @@ begin
             v.wMaster.awaddr := r.dmaReq.address;
             v.wMaster.awlen  := x"F";
 
-            -- There is enough room in the FIFO for a burst and address is ready
-            if selPause = '0' and axiWriteSlave.awready = '1' then
+            -- There is enough room in the FIFO for a burst
+            if selPause = '0' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
@@ -204,6 +208,10 @@ begin
              
          -- Move Data
          when S_DATA_C =>
+
+            if axiWriteSlave.awready = '1' then
+               v.wMaster.awvalid := '0';
+            end if;
 
             -- Ready and valid
             if selReady = '1' or r.wMaster.wvalid = '0' then
@@ -234,7 +242,8 @@ begin
 
                -- Last in packet
                if intAxisMaster.tLast = '1' then
-                  v.dmaAck.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G,intAxisMaster);
+                  v.dmaAck.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := 
+                     axiStreamGetUserField(AXIS_CONFIG_G,intAxisMaster);
                   v.last := '1';
                end if;
 
@@ -315,6 +324,7 @@ begin
       v.wMaster.awprot  := "000";  -- Unused
       v.wMaster.awid    := (others=>'0');
       v.wMaster.wid     := (others=>'0');
+      v.wMaster.bready  := '1';
 
       rin <= v;
 

@@ -57,6 +57,8 @@ entity AxiLiteFifoPushPop is
       axiWriteMaster     : in  AxiLiteWriteMasterType;
       axiWriteSlave      : out AxiLiteWriteSlaveType;
       popFifoValid       : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoAEmpty      : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      pushFifoAFull      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
 
       -- POP FIFO Write Interface
       popFifoClk         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
@@ -77,27 +79,27 @@ end AxiLiteFifoPushPop;
 
 architecture structure of AxiLiteFifoPushPop is
 
-   constant POP_SIZE_C   : integer := bitSize(POP_FIFO_COUNT_G-1);
-   constant POP_COUNT_C  : integer := 2**POP_SIZE_C;
-   constant PUSH_SIZE_C  : integer := bitSize(PUSH_FIFO_COUNT_G-1);
-   constant PUSH_COUNT_C : integer := 2**PUSH_SIZE_C;
-   constant TEMP_COUNT_C : integer := ite(LOOP_FIFO_COUNT_G = 0,1,LOOP_FIFO_COUNT_G);
-   constant LOOP_SIZE_C  : integer := bitSize(TEMP_COUNT_C-1);
-   constant LOOP_COUNT_C : integer := 2**LOOP_SIZE_C;
+   constant POP_SIZE_C    : integer := bitSize(POP_FIFO_COUNT_G-1);
+   constant POP_COUNT_C   : integer := 2**POP_SIZE_C;
+   constant PUSH_SIZE_C   : integer := bitSize(PUSH_FIFO_COUNT_G-1);
+   constant PUSH_COUNT_C  : integer := 2**PUSH_SIZE_C;
+   constant LOOP_TCOUNT_C : integer := ite(LOOP_FIFO_COUNT_G=0,1,LOOP_FIFO_COUNT_G);
+   constant LOOP_SIZE_C   : integer := bitSize(LOOP_TCOUNT_C-1);
+   constant LOOP_COUNT_C  : integer := 2**LOOP_SIZE_C;
 
    -- Local Signals
-   signal intFifoValid  : slv(POP_COUNT_C-1 downto 0);
-   signal popFifoDout   : Slv32Array(POP_COUNT_C-1 downto 0);
-   signal popFifoRead   : slv(POP_COUNT_C-1 downto 0);
-   signal loopFifoDin   : slv(31 downto 0);
-   signal loopFifoWrite : Slv(LOOP_COUNT_C-1 downto 0);
-   signal loopFifoValid : slv(LOOP_COUNT_C-1 downto 0);
-   signal loopFifoDout  : Slv32Array(LOOP_COUNT_C-1 downto 0);
-   signal loopFifoRead  : slv(LOOP_COUNT_C-1 downto 0);
-   signal pushFifoFull  : slv(PUSH_COUNT_C-1 downto 0);
-   signal pushFifoAFull : slv(PUSH_COUNT_C-1 downto 0);
-   signal pushFifoDin   : Slv(35 downto 0);
-   signal pushFifoWrite : slv(PUSH_COUNT_C-1 downto 0);
+   signal intFifoValid   : slv(POP_COUNT_C-1 downto 0);
+   signal popFifoDout    : Slv32Array(POP_COUNT_C-1 downto 0);
+   signal popFifoRead    : slv(POP_COUNT_C-1 downto 0);
+   signal loopFifoDin    : slv(31 downto 0);
+   signal loopFifoWrite  : Slv(LOOP_COUNT_C-1 downto 0);
+   signal loopFifoValid  : slv(LOOP_COUNT_C-1 downto 0);
+   signal loopFifoDout   : Slv32Array(LOOP_COUNT_C-1 downto 0);
+   signal loopFifoRead   : slv(LOOP_COUNT_C-1 downto 0);
+   signal pushFifoFull   : slv(PUSH_COUNT_C-1 downto 0);
+   signal ipushFifoAFull : slv(PUSH_COUNT_C-1 downto 0);
+   signal pushFifoDin    : Slv(35 downto 0);
+   signal pushFifoWrite  : slv(PUSH_COUNT_C-1 downto 0);
 
    type RegType is record
       loopFifoDin   : slv(31 downto 0);
@@ -137,7 +139,9 @@ begin
    assert RANGE_LSB_G > (PUSH_SIZE_C +2)
       report "RANGE_LSB_G is too small for PUSH_FIFO_COUNT_G" severity failure;
 
-   -----------------------------------------
+   -----------------------------------------(
+
+
    -- pop FIFOs
    -----------------------------------------
    U_PopFifo : for i in 0 to POP_FIFO_COUNT_G-1 generate
@@ -181,7 +185,7 @@ begin
             valid         => intFifoValid(i),
             underflow     => open,
             prog_empty    => open,
-            almost_empty  => open,
+            almost_empty  => popFifoAEmpty(i),
             empty         => open
       );
    end generate;
@@ -280,7 +284,7 @@ begin
             wr_ack        => open,
             overflow      => open,
             prog_full     => open,
-            almost_full   => pushFifoAFull(i),
+            almost_full   => ipushFifoAFull(i),
             full          => pushFifoFull(i),
             not_full      => open,
             rd_clk        => pushFifoClk(i),
@@ -293,11 +297,14 @@ begin
             almost_empty  => open,
             empty         => open
       );
+
+      pushFifoAFull(i) <= ipushFifoAFull(i);
    end generate;
 
    U_PushUnused : if PUSH_FIFO_COUNT_G /= PUSH_COUNT_C generate
-      pushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G) <= (others=>'0');
-      pushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
+      ipushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G) <= (others=>'0');
+      pushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
+      pushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)   <= (others=>'0');
    end generate;
 
 
@@ -315,7 +322,7 @@ begin
 
    -- Async
    process (r, axiClkRst, axiReadMaster, axiWriteMaster, popFifoDout, intFifoValid, 
-            loopFifoDout, loopFifoValid, pushFifoFull, pushFifoAFull ) is
+            loopFifoDout, loopFifoValid, pushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -374,7 +381,7 @@ begin
          elsif axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 2 then
             v.axiReadSlave.rdata    := (others=>'0');
             v.axiReadSlave.rdata(0) := pushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
-            v.axiReadSlave.rdata(1) := pushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
+            v.axiReadSlave.rdata(1) := ipushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
 
          end if;
 
