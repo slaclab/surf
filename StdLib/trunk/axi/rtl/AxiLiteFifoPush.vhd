@@ -46,6 +46,7 @@ entity AxiLiteFifoPush is
       axiReadSlave       : out AxiLiteReadSlaveType;
       axiWriteMaster     : in  AxiLiteWriteMasterType;
       axiWriteSlave      : out AxiLiteWriteSlaveType;
+      pushFifoAFull      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
 
       -- Push FIFO Read Interface
       pushFifoClk        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
@@ -63,7 +64,7 @@ architecture structure of AxiLiteFifoPush is
 
    -- Local Signals
    signal pushFifoFull   : slv(PUSH_COUNT_C-1 downto 0);
-   signal pushFifoAFull  : slv(PUSH_COUNT_C-1 downto 0);
+   signal ipushFifoAFull : slv(PUSH_COUNT_C-1 downto 0);
    signal pushFifoDin    : Slv(35 downto 0);
    signal pushFifoWrite  : slv(PUSH_COUNT_C-1 downto 0);
 
@@ -121,7 +122,7 @@ begin
             wr_ack        => open,
             overflow      => open,
             prog_full     => open,
-            almost_full   => pushFifoAFull(i),
+            almost_full   => ipushFifoAFull(i),
             full          => pushFifoFull(i),
             not_full      => open,
             rd_clk        => pushFifoClk(i),
@@ -134,11 +135,14 @@ begin
             almost_empty  => open,
             empty         => open
       );
+
+      pushFifoAFull(i) <= ipushFifoAFull(i);
    end generate;
 
    U_AlignGen : if PUSH_FIFO_COUNT_G /= PUSH_COUNT_C generate
-      pushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G) <= (others=>'0');
-      pushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
+      ipushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G) <= (others=>'0');
+      pushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
+      pushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)   <= (others=>'0');
    end generate;
 
 
@@ -155,7 +159,7 @@ begin
    end process;
 
    -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, pushFifoFull, pushFifoAFull ) is
+   process (r, axiClkRst, axiReadMaster, axiWriteMaster, pushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -180,7 +184,7 @@ begin
 
          v.axiReadSlave.rdata    := (others=>'0');
          v.axiReadSlave.rdata(0) := pushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
-         v.axiReadSlave.rdata(1) := pushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
+         v.axiReadSlave.rdata(1) := ipushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
 
          -- Send Axi Response
          axiSlaveReadResponse(v.axiReadSlave);

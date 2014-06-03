@@ -117,7 +117,7 @@ begin
       v.shiftEn         := '0';
 
       -- Track read status
-      if axiReadSlave.rvalid = '1' and axiReadSlave.rresp /= 0 then
+      if axiReadSlave.rvalid = '1' and axiReadSlave.rresp /= 0 and axiReadSlave.rlast = '1' then
          v.dmaAck.readError := '1';
       end if;
 
@@ -154,8 +154,13 @@ begin
             -- This initial alignment will ensure that we never cross a 4k boundary
             v.rMaster.arlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
-            -- There is enough room in the FIFO for a burst and address is ready
-            if selPause = '0' and axiReadSlave.arready = '1' then
+            -- Limit read burst size
+            if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen then
+               v.rMaster.arlen := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            end if;
+
+            -- There is enough room in the FIFO for a burst
+            if selPause = '0' then
                v.rMaster.arvalid := '1';
                v.state           := S_DATA_C;
             end if;
@@ -163,16 +168,26 @@ begin
          -- Next Write
          when S_NEXT_C =>
             v.rMaster.araddr := r.dmaReq.address;
-            v.rMaster.arlen  := x"F";
+
+            -- Limit read burst size
+            if r.dmaReq.size(31 downto ADDR_LSB_C) >= 16 then
+               v.rMaster.arlen := x"F";
+            else
+               v.rMaster.arlen := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            end if;
 
             -- There is enough room in the FIFO for a burst and address is ready
-            if selPause = '0' and axiReadSlave.arready = '1' then
+            if selPause = '0' then
                v.rMaster.arvalid := '1';
                v.state           := S_DATA_C;
             end if;
              
          -- Move Data
          when S_DATA_C =>
+
+            if axiReadSlave.arready = '1' then
+               v.rMaster.arvalid := '0';
+            end if;
 
             -- Ready and valid
             if selReady = '1' or r.sMaster.tValid = '0' then
@@ -189,6 +204,7 @@ begin
                v.sMaster.tKeep  := (others=>'1');
                v.sMaster.tDest  := r.dmaReq.dest;
                v.sMaster.tId    := r.dmareq.id;
+               v.first          := '0';
 
                -- Setup data
                v.sMaster.tData((DATA_BYTES_C*8)-1 downto 0) := axiReadSlave.rdata((DATA_BYTES_C*8)-1 downto 0);
@@ -198,10 +214,11 @@ begin
 
                -- First transfer, set user field
                if r.first = '1' then
-                  axiStreamSetUserField (AXIS_CONFIG_G,v.sMaster,r.dmaReq.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0),
+                  axiStreamSetUserField (AXIS_CONFIG_G,
+                                         v.sMaster,
+                                         r.dmaReq.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0),
                                          conv_integer(r.shift));
                end if;
-               v.first := '0';
 
                -- Last transfer
                if r.dmaReq.size <= DATA_BYTES_C then
@@ -213,18 +230,19 @@ begin
                   v.sMaster.tStrb(conv_integer(r.dmaReq.size)-1 downto 0) := (others=>'1');
 
                   -- Set user field, last position
-                  axiStreamSetUserField (AXIS_CONFIG_G,v.sMaster,r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+                  axiStreamSetUserField (AXIS_CONFIG_G,
+                                         v.sMaster,
+                                         r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
 
                else
-                  v.dmaReq.size := r.dmaReq.size - ite(r.first='1',(conv_std_logic_vector(DATA_BYTES_C,4)-r.shift),
-                                                                    conv_std_logic_vector(DATA_BYTES_C,4));
+                  v.dmaReq.size := r.dmaReq.size - ite(r.first='1',
+                                                       (conv_std_logic_vector(DATA_BYTES_C,4)-r.shift),
+                                                        conv_std_logic_vector(DATA_BYTES_C,4));
                end if;
 
                -- Last in transfer
-               if r.rMaster.arlen = 0 then
+               if axiReadSlave.rlast = '1' then
                   v.state := S_LAST_C;
-               else
-                  v.rMaster.arlen := r.rMaster.arlen - 1;
                end if;
             end if;
 
@@ -263,6 +281,11 @@ begin
       v.rMaster.arlock  := "00";   -- Unused
       v.rMaster.arprot  := "000";  -- Unused
       v.rMaster.arid    := (others=>'0');
+
+      -- Always accept data when outbound ready is ignored
+      if AXIS_READY_EN_G = false then
+         v.rMaster.rready := '1';
+      end if;
 
       rin <= v;
 

@@ -56,7 +56,7 @@ package AxiStreamPkg is
    constant AXI_STREAM_SLAVE_FORCE_C : AxiStreamSlaveType := (
       tReady => '1');
 
-   type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C );
+   type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C, TUSER_LAST_C );
 
    type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_UNUSED_C, TKEEP_COMP_C);
 

@@ -385,7 +385,7 @@ begin
    end process;
 
    -- Async
-   process (ib, ibAck, pushFifoValid, pushFifoDout ) is
+   process (ib, r, axiRst, ibAck, pushFifoValid, pushFifoDout ) is
       variable v : IbType;
    begin
       v := ib;
@@ -432,6 +432,11 @@ begin
 
       end case;
 
+      -- Reset
+      if (axiRst = '1') then
+         v := IB_INIT_C;
+      end if;
+
       -- Next register assignment
       ibin <= v;
 
@@ -476,7 +481,7 @@ begin
    end process;
 
    -- Async
-   process (ob, obAck, pushFifoValid, pushFifoDout ) is
+   process (ob, r, axiRst, obAck, pushFifoValid, pushFifoDout ) is
       variable v : ObType;
    begin
       v := ob;
@@ -540,6 +545,11 @@ begin
             end if;
 
       end case;
+
+      -- Reset
+      if (axiRst = '1') then
+         v := OB_INIT_C;
+      end if;
 
       -- Next register assignment
       obin <= v;
