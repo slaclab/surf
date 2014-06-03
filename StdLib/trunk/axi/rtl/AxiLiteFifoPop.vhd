@@ -32,7 +32,8 @@ entity AxiLiteFifoPop is
       POP_SYNC_FIFO_G    : boolean               := false;
       POP_BRAM_EN_G      : boolean               := true;
       POP_ADDR_WIDTH_G   : integer range 4 to 48 := 4;
-      LOOP_FIFO_COUNT_G  : integer               := 0;
+      LOOP_FIFO_EN_G     : boolean               := false;
+      LOOP_FIFO_COUNT_G  : positive              := 1;
       LOOP_BRAM_EN_G     : boolean               := true;
       LOOP_ADDR_WIDTH_G  : integer range 4 to 48 := 4;
       RANGE_LSB_G        : integer range 0 to 31 := 8;
@@ -45,7 +46,7 @@ entity AxiLiteFifoPop is
    );
    port (
 
-      -- AXI Interface
+      -- AXI Interface (axiClk)
       axiClk             : in  sl;
       axiClkRst          : in  sl;
       axiReadMaster      : in  AxiLiteReadMasterType;
@@ -54,8 +55,11 @@ entity AxiLiteFifoPop is
       axiWriteSlave      : out AxiLiteWriteSlaveType;
       popFifoValid       : out slv(POP_FIFO_COUNT_G-1 downto 0);
       popFifoAEmpty      : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      loopFifoValid      : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
+      loopFifoAEmpty     : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
+      loopFifoAFull      : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
 
-      -- POP FIFO Write Interface
+      -- POP FIFO Write Interface (popFifoClk)
       popFifoClk         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
       popFifoRst         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
       popFifoWrite       : in  slv(POP_FIFO_COUNT_G-1 downto 0);
@@ -69,26 +73,24 @@ architecture structure of AxiLiteFifoPop is
 
    constant POP_SIZE_C    : integer := bitSize(POP_FIFO_COUNT_G-1);
    constant POP_COUNT_C   : integer := 2**POP_SIZE_C;
-   constant LOOP_TCOUNT_C : integer := ite(LOOP_FIFO_COUNT_G=0,1,LOOP_FIFO_COUNT_G);
-   constant LOOP_SIZE_C   : integer := bitSize(LOOP_TCOUNT_C-1);
+   constant LOOP_SIZE_C   : integer := bitSize(LOOP_FIFO_COUNT_G-1);
    constant LOOP_COUNT_C  : integer := 2**LOOP_SIZE_C;
 
    -- Local Signals
-   signal intFifoValid  : slv(POP_COUNT_C-1 downto 0);
-   signal popFifoDout   : Slv32Array(POP_COUNT_C-1 downto 0);
-   signal popFifoRead   : slv(POP_COUNT_C-1 downto 0);
-   signal loopFifoDin   : slv(31 downto 0);
-   signal loopFifoWrite : Slv(LOOP_COUNT_C-1 downto 0);
-   signal loopFifoValid : slv(LOOP_COUNT_C-1 downto 0);
-   signal loopFifoDout  : Slv32Array(LOOP_COUNT_C-1 downto 0);
-   signal loopFifoRead  : slv(LOOP_COUNT_C-1 downto 0);
+   signal ipopFifoValid  : slv(POP_COUNT_C-1 downto 0);
+   signal ipopFifoDout   : Slv32Array(POP_COUNT_C-1 downto 0);
+   signal ipopFifoRead   : slv(POP_COUNT_C-1 downto 0);
+   signal iloopFifoDin   : slv(31 downto 0);
+   signal iloopFifoWrite : Slv(LOOP_COUNT_C-1 downto 0);
+   signal iloopFifoValid : slv(LOOP_COUNT_C-1 downto 0);
+   signal iloopFifoDout  : Slv32Array(LOOP_COUNT_C-1 downto 0);
+   signal iloopFifoRead  : slv(LOOP_COUNT_C-1 downto 0);
 
    type RegType is record
       loopFifoDin   : slv(31 downto 0);
       loopFifoWrite : Slv(LOOP_COUNT_C-1 downto 0);
       loopFifoRead  : slv(LOOP_COUNT_C-1 downto 0);
       popFifoRead   : slv(POP_COUNT_C-1 downto 0);
-      popFifoValid  : slv(POP_COUNT_C-1 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -98,7 +100,6 @@ architecture structure of AxiLiteFifoPop is
       loopFifoWrite => (others => '0'),
       loopFifoRead  => (others => '0'),
       popFifoRead   => (others => '0'),
-      popFifoValid  => (others => '0'),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C
    );
@@ -152,75 +153,89 @@ begin
             full          => popFifoFull(i),
             not_full      => open,
             rd_clk        => axiClk,
-            rd_en         => popFifoRead(i),
-            dout          => popFifoDout(i),
+            rd_en         => ipopFifoRead(i),
+            dout          => ipopFifoDout(i),
             rd_data_count => open,
-            valid         => intFifoValid(i),
+            valid         => ipopFifoValid(i),
             underflow     => open,
             prog_empty    => open,
             almost_empty  => popFifoAEmpty(i),
             empty         => open
       );
+
+      popFifoValid(i) <= ipopFifoValid(i);
    end generate;
 
    U_ReadUnused : if POP_FIFO_COUNT_G /= POP_COUNT_C generate
-      intFifoValid(POP_COUNT_C-1 downto POP_FIFO_COUNT_G) <= (others=>'0');
-      popFifoDout(POP_COUNT_C-1 downto POP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
+      ipopFifoValid(POP_COUNT_C-1 downto POP_FIFO_COUNT_G) <= (others=>'0');
+      ipopFifoDout(POP_COUNT_C-1 downto POP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
    end generate;
 
 
    -----------------------------------------
    -- Loop FIFOs
    -----------------------------------------
-   U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
-      U_FIfo : entity work.FifoCascade 
-         generic map (
-            TPD_G              => TPD_G,
-            CASCADE_SIZE_G     => 1,
-            LAST_STAGE_ASYNC_G => true,
-            RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => true,
-            GEN_SYNC_FIFO_G    => true,
-            BRAM_EN_G          => LOOP_BRAM_EN_G,
-            FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
-            USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
-            SYNC_STAGES_G      => 3,
-            DATA_WIDTH_G       => 32,
-            ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,
-            INIT_G             => "0",
-            FULL_THRES_G       => 1,
-            EMPTY_THRES_G      => 1
-         ) port map (
-            rst           => axiClkRst,
-            wr_clk        => axiClk,
-            wr_en         => loopFifoWrite(i),
-            din           => loopFifoDin,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => open,
-            not_full      => open,
-            rd_clk        => axiClk,
-            rd_en         => loopFifoRead(i),
-            dout          => loopFifoDout(i),
-            rd_data_count => open,
-            valid         => loopFifoValid(i),
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-      );
+   U_LoopFifoEn : if LOOP_FIFO_EN_G generate
+      U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
+         U_FIfo : entity work.FifoCascade 
+            generic map (
+               TPD_G              => TPD_G,
+               CASCADE_SIZE_G     => 1,
+               LAST_STAGE_ASYNC_G => true,
+               RST_POLARITY_G     => '1',
+               RST_ASYNC_G        => true,
+               GEN_SYNC_FIFO_G    => true,
+               BRAM_EN_G          => LOOP_BRAM_EN_G,
+               FWFT_EN_G          => true,
+               USE_DSP48_G        => "no",
+               ALTERA_SYN_G       => ALTERA_SYN_G,
+               ALTERA_RAM_G       => ALTERA_RAM_G,
+               USE_BUILT_IN_G     => USE_BUILT_IN_G,
+               XIL_DEVICE_G       => XIL_DEVICE_G,
+               SYNC_STAGES_G      => 3,
+               DATA_WIDTH_G       => 32,
+               ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,
+               INIT_G             => "0",
+               FULL_THRES_G       => 1,
+               EMPTY_THRES_G      => 1
+            ) port map (
+               rst           => axiClkRst,
+               wr_clk        => axiClk,
+               wr_en         => iloopFifoWrite(i),
+               din           => iloopFifoDin,
+               wr_data_count => open,
+               wr_ack        => open,
+               overflow      => open,
+               prog_full     => open,
+               almost_full   => loopFifoAFull(i),
+               full          => open,
+               not_full      => open,
+               rd_clk        => axiClk,
+               rd_en         => iloopFifoRead(i),
+               dout          => iloopFifoDout(i),
+               rd_data_count => open,
+               valid         => iloopFifoValid(i),
+               underflow     => open,
+               prog_empty    => open,
+               almost_empty  => loopFifoAEmpty(i),
+               empty         => open
+         );
+         loopFifoValid(i) <= iloopFifoValid(i);
+
+      end generate;
+   end generate;
+
+   U_LoopDis : if LOOP_FIFO_EN_G = false generate
+      loopFifoAFull(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others=>'0');
+      iloopFifoDout(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others=>(others=>'0'));
+      iloopFifoValid(LOOP_FIFO_COUNT_G-1 downto 0) <= (others=>'0');
+      loopFifoValid(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others=>'0');
+      loopFifoAEmpty(LOOP_FIFO_COUNT_G-1 downto 0) <= (others=>'0');
    end generate;
 
    U_LoopUnused : if LOOP_FIFO_COUNT_G /= LOOP_COUNT_C generate
-      loopFifoValid(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G) <= (others=>'0');
-      loopFifoDout(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
+      iloopFifoValid(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G) <= (others=>'0');
+      iloopFifoDout(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
    end generate;
 
 
@@ -237,7 +252,7 @@ begin
    end process;
 
    -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, popFifoDout, intFifoValid, loopFifoDout, loopFifoValid ) is
+   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, iloopFifoDout, iloopFifoValid ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -246,7 +261,6 @@ begin
       v.popFifoRead   := (others=>'0');
       v.loopFifoRead  := (others=>'0');
       v.loopFifoWrite := (others=>'0');
-      v.popFifoValid  := intFifoValid;
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
@@ -269,23 +283,23 @@ begin
 
          if axiReadMaster.araddr(RANGE_LSB_G) = '0' then 
 
-            v.axiReadSlave.rdata := popFifoDout(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
+            v.axiReadSlave.rdata := ipopFifoDout(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
             v.axiReadSlave.rdata(VALID_POSITION_G) := 
-               VALID_POLARITY_G xor (not intFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
+               VALID_POLARITY_G xor (not ipopFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
             v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
-               intFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
+               ipopFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
          else
 
-            v.axiReadSlave.rdata := loopFifoDout(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
+            v.axiReadSlave.rdata := iloopFifoDout(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
             v.axiReadSlave.rdata(VALID_POSITION_G) := 
-               VALID_POLARITY_G xor (not loopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
+               VALID_POLARITY_G xor (not iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
             v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
-               loopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
+               iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          end if;
 
@@ -303,13 +317,12 @@ begin
       rin <= v;
 
       -- Outputs
-      axiReadSlave  <= r.axiReadSlave;
-      axiWriteSlave <= r.axiWriteSlave;
-      popFifoRead   <= r.popFifoRead;
-      popFifoValid  <= r.popFifoValid;
-      loopFifoDin   <= r.loopFifoDin;
-      loopFifoWrite <= r.loopFifoWrite;
-      loopFifoRead  <= r.loopFifoRead;
+      axiReadSlave   <= r.axiReadSlave;
+      axiWriteSlave  <= r.axiWriteSlave;
+      ipopFifoRead   <= r.popFifoRead;
+      iloopFifoDin   <= r.loopFifoDin;
+      iloopFifoWrite <= r.loopFifoWrite;
+      iloopFifoRead  <= r.loopFifoRead;
       
    end process;
 
