@@ -39,7 +39,7 @@ entity AxiLiteFifoPush is
    );
    port (
 
-      -- AXI Interface
+      -- AXI Interface (axiClk)
       axiClk             : in  sl;
       axiClkRst          : in  sl;
       axiReadMaster      : in  AxiLiteReadMasterType := AXI_LITE_READ_MASTER_INIT_C;
@@ -48,7 +48,7 @@ entity AxiLiteFifoPush is
       axiWriteSlave      : out AxiLiteWriteSlaveType;
       pushFifoAFull      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
 
-      -- Push FIFO Read Interface
+      -- Push FIFO Read Interface (pushFifoClk)
       pushFifoClk        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoRst        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoValid      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
@@ -63,10 +63,10 @@ architecture structure of AxiLiteFifoPush is
    constant PUSH_COUNT_C : integer := 2**PUSH_SIZE_C;
 
    -- Local Signals
-   signal pushFifoFull   : slv(PUSH_COUNT_C-1 downto 0);
+   signal ipushFifoFull  : slv(PUSH_COUNT_C-1 downto 0);
    signal ipushFifoAFull : slv(PUSH_COUNT_C-1 downto 0);
-   signal pushFifoDin    : Slv(35 downto 0);
-   signal pushFifoWrite  : slv(PUSH_COUNT_C-1 downto 0);
+   signal ipushFifoDin   : Slv(35 downto 0);
+   signal ipushFifoWrite : slv(PUSH_COUNT_C-1 downto 0);
 
    type RegType is record
       pushFifoWrite     : slv(PUSH_COUNT_C-1 downto 0);
@@ -116,14 +116,14 @@ begin
          ) port map (
             rst           => pushFifoRst(i),
             wr_clk        => axiClk,
-            wr_en         => pushFifoWrite(i),
-            din           => pushFifoDin,
+            wr_en         => ipushFifoWrite(i),
+            din           => ipushFifoDin,
             wr_data_count => open,
             wr_ack        => open,
             overflow      => open,
             prog_full     => open,
             almost_full   => ipushFifoAFull(i),
-            full          => pushFifoFull(i),
+            full          => ipushFifoFull(i),
             not_full      => open,
             rd_clk        => pushFifoClk(i),
             rd_en         => pushFifoRead(i),
@@ -141,8 +141,7 @@ begin
 
    U_AlignGen : if PUSH_FIFO_COUNT_G /= PUSH_COUNT_C generate
       ipushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G) <= (others=>'0');
-      pushFifoAFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
-      pushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)   <= (others=>'0');
+      ipushFifoFull(PUSH_COUNT_C-1 downto PUSH_FIFO_COUNT_G)  <= (others=>'0');
    end generate;
 
 
@@ -159,7 +158,7 @@ begin
    end process;
 
    -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, pushFifoFull, ipushFifoAFull ) is
+   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -183,7 +182,7 @@ begin
       if (axiStatus.readEnable = '1') then
 
          v.axiReadSlave.rdata    := (others=>'0');
-         v.axiReadSlave.rdata(0) := pushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
+         v.axiReadSlave.rdata(0) := ipushFifoFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
          v.axiReadSlave.rdata(1) := ipushFifoAFull(conv_integer(axiReadMaster.araddr(PUSH_SIZE_C+5 downto 6)));
 
          -- Send Axi Response
@@ -200,10 +199,10 @@ begin
       rin <= v;
 
       -- Outputs
-      axiReadSlave  <= r.axiReadSlave;
-      axiWriteSlave <= r.axiWriteSlave;
-      pushFifoDin   <= r.pushFifoDin;
-      pushFifoWrite <= r.pushFifoWrite;
+      axiReadSlave   <= r.axiReadSlave;
+      axiWriteSlave  <= r.axiWriteSlave;
+      ipushFifoDin   <= r.pushFifoDin;
+      ipushFifoWrite <= r.pushFifoWrite;
       
    end process;
 
