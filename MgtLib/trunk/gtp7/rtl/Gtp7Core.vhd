@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2014-05-20
+-- Last update: 2014-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -149,6 +149,8 @@ entity Gtp7Core is
       qPllLockIn       : in  slv(1 downto 0);
       qPllRefClkLostIn : in  slv(1 downto 0);
       qPllResetOut     : out slv(1 downto 0);
+      gtRxRefClkBufg   : in  sl := '0';  -- In fixed latency mode, need BUF'd version of gt rx
+                                         -- reference clock to check if recovered clock is stable
 
       -- Serial IO
       gtTxP : out sl;
@@ -157,7 +159,6 @@ entity Gtp7Core is
       gtRxN : in  sl;
 
       -- Rx Clock related signals
-      rxRefClkOut    : out sl;          -- For Debugging
       rxOutClkOut    : out sl;
       rxUsrClkIn     : in  sl;
       rxUsrClk2In    : in  sl;
@@ -187,9 +188,7 @@ entity Gtp7Core is
       rxChBondOut     : out slv(3 downto 0);
 
       -- Tx Clock Related Signals
-      txRefClkOut    : out sl;          -- For Debugging
       txOutClkOut    : out sl;
-      txOutClkPcsOut : out sl;
       txUsrClkIn     : in  sl;
       txUsrClk2In    : in  sl;
       txUserRdyOut   : out sl;          -- txOutClk is valid
@@ -261,10 +260,8 @@ architecture rtl of Gtp7Core is
 
    ----------------------------
    -- Rx Signals
-   signal rxGtRefClk     : sl;
-   signal rxGtRefClkBufg : sl;
-   signal rxOutClk       : sl;
-   signal rxOutClkBufg   : sl;
+   signal rxOutClk     : sl;
+   signal rxOutClkBufg : sl;
 
    signal rxPllResets     : slv(1 downto 0);
    signal rxPllReset      : sl;
@@ -284,7 +281,7 @@ architecture rtl of Gtp7Core is
    signal rxRecClkMonitorRestart : sl;
    signal rxCdrLockCnt           : integer range 0 to WAIT_TIME_CDRLOCK_C := 0;
 
-   signal rxRunPhaseAlignment     : sl;
+   signal rxRunPhaseAlignment  : sl;
    signal rxPhaseAlignmentDone : sl;
    signal rxAlignReset         : sl;
    signal rxDlySReset          : sl;    -- GT RXDLYSRESET
@@ -305,30 +302,9 @@ architecture rtl of Gtp7Core is
    signal rxDispErrFull : slv(3 downto 0);   -- GT RXDISPERR
    signal rxDecErrFull  : slv(3 downto 0);
 
---   attribute mark_debug : string;
---   attribute mark_debug of
---      rxPllResets,
---      rxPllReset,
---      rxPllRefClkLost,
---      rxPllLock,
---      gtRxReset,
---      rxResetDone,
---      rxUserRdyInt,
---      rxUserResetInt,
---      rxFsmResetDone,
---      rxRstTxUserRdy,
---      rxPmaResetDone,
---      rxCdrLockCnt,
---      rxCdrLock,
---      rxDataOut,
---      rxCharIsKOut,
---      rxDecErrOut,
---      rxDispErrOut: signal is "TRUE";
-   
    ----------------------------
    -- Tx Signals
-   signal txGtRefClk : sl;
-   signal txOutClk   : sl;
+   signal txOutClk : sl;
 
    signal txPllResets     : slv(1 downto 0);
    signal txPllReset      : sl;
@@ -363,9 +339,7 @@ architecture rtl of Gtp7Core is
    
 begin
 
-   rxRefClkOut     <= rxGtRefClkBufg;
    rxOutClkOut     <= rxOutClkBufg;
-   txRefClkOut     <= txGtRefClk;
    qPllResetOut(0) <= rxPllResets(0) or txPllResets(0);
    qPllResetOut(1) <= rxPllResets(1) or txPllResets(1);
 
@@ -446,7 +420,7 @@ begin
          PLL1_RESET             => rxPllResets(1),
          RX_FSM_RESET_DONE      => rxFsmResetDone,
          RXUSERRDY              => rxUserRdyInt,          -- To GT
-         RUN_PHALIGNMENT        => rxRunPhaseAlignment,      -- To Phase Alignment module
+         RUN_PHALIGNMENT        => rxRunPhaseAlignment,   -- To Phase Alignment module
          PHALIGNMENT_DONE       => rxPhaseAlignmentDone,  -- From Phase Alignment module
          RESET_PHALIGNMENT      => open,                  -- For manual phase align
          RXDFEAGCHOLD           => rxDfeAgcHold,          -- Explore using these later
@@ -509,11 +483,6 @@ begin
          I => rxOutClk,
          O => rxOutClkBufg);
 
-   BUFG_RX_REF_CLK : BUFG
-      port map (
-         I => rxGtRefClk,
-         O => rxGtRefClkBufg);
-
    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
       Gtp7RecClkMonitor_Inst : entity work.Gtp7RecClkMonitor
          generic map (
@@ -523,7 +492,7 @@ begin
             EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
          port map (
             GT_RST        => gtRxReset,
-            REF_CLK       => rxGtRefClkBufg,
+            REF_CLK       => gtRxRefClkBufg,
             RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
             SYSTEM_CLK    => stableClkIn,
             PLL_LK_DET    => rxPllLock,
@@ -562,7 +531,7 @@ begin
             GT_TYPE => GT_TYPE_C)
          port map (
             STABLE_CLOCK         => stableClkIn,
-            RUN_PHALIGNMENT      => rxRunPhaseAlignment,      -- From RxRst
+            RUN_PHALIGNMENT      => rxRunPhaseAlignment,   -- From RxRst
             PHASE_ALIGNMENT_DONE => rxPhaseAlignmentDone,  -- To RxRst
             PHALIGNDONE          => rxPhAlignDone,         -- From gt
             DLYSRESET            => rxDlySReset,           -- To gt
@@ -647,7 +616,7 @@ begin
          PLL1REFCLKLOST    => qPllRefClkLostIn(1),
          PLL0LOCK          => qPllLockIn(0),
          PLL1LOCK          => qPllLockIn(1),
-         TXRESETDONE       => txResetDone,         -- From GT
+         TXRESETDONE       => txResetDone,            -- From GT
          MMCM_LOCK         => txMmcmLockedIn,
          GTTXRESET         => gtTxReset,
          MMCM_RESET        => txMmcmResetOut,
@@ -658,7 +627,7 @@ begin
          RUN_PHALIGNMENT   => txRunPhaseAlignment,
          RESET_PHALIGNMENT => txResetPhaseAlignment,  -- Used for manual alignment
          PHALIGNMENT_DONE  => txPhaseAlignmentDone,
-         RETRY_COUNTER     => open);    -- Might be interesting to look at
+         RETRY_COUNTER     => open);                  -- Might be interesting to look at
 
 --   txPllRefClkLost <= qPllRefClkLostIn(0) when TX_PLL0_USED_C     else qPllRefClkLostIn(1);
 --   txPllLock       <= qPllLockIn(0)       when TX_PLL0_USED_C     else qPllLockIn(1);
@@ -1187,7 +1156,7 @@ begin
          RXRATEMODE           => '0',
          --------------- Receive Ports - RX Fabric Output Control Ports -------------
          RXOUTCLK             => rxOutClk,
-         RXOUTCLKFABRIC       => rxGtRefClk,
+         RXOUTCLKFABRIC       => open,  --rxGtRefClk,
          RXOUTCLKPCS          => open,
          RXOUTCLKSEL          => to_stdlogicvector(RX_OUTCLK_SEL_C),  -- Selects rx recovered clk for rxoutclk
          ---------------------- Receive Ports - RX Gearbox Ports --------------------
@@ -1295,8 +1264,8 @@ begin
          TXPISOPD             => '0',
          ----------- Transmit Ports - TX Fabric Clock Output Control Ports ----------
          TXOUTCLK             => txOutClk,
-         TXOUTCLKFABRIC       => txGtRefClk,
-         TXOUTCLKPCS          => txOutClkPcsOut,
+         TXOUTCLKFABRIC       => open,  --txGtRefClk,
+         TXOUTCLKPCS          => open,  --txOutClkPcsOut,
          TXOUTCLKSEL          => to_stdlogicvector(TX_OUTCLK_SEL_C),
          TXRATEDONE           => open,
          --------------------- Transmit Ports - TX Gearbox Ports --------------------

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2014-02-02
+-- Last update: 2014-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -162,6 +162,8 @@ entity Gtx7Core is
       qPllLockIn       : in  sl := '0';
       qPllRefClkLostIn : in  sl := '0';
       qPllResetOut     : out sl;
+      gtRxRefClkBufg   : in sl := '0';  -- In fixed latency mode, need BUF'd version of gt rx
+                                        -- reference clock to check if recovered clock is stable
 
       -- Serial IO
       gtTxP : out sl;
@@ -170,7 +172,6 @@ entity Gtx7Core is
       gtRxN : in  sl;
 
       -- Rx Clock related signals
-      rxRefClkOut    : out sl;          -- For Debugging
       rxOutClkOut    : out sl;
       rxUsrClkIn     : in  sl;
       rxUsrClk2In    : in  sl;
@@ -200,9 +201,7 @@ entity Gtx7Core is
       rxChBondOut     : out slv(4 downto 0);
 
       -- Tx Clock Related Signals
-      txRefClkOut    : out sl;          -- For Debugging
       txOutClkOut    : out sl;
-      txOutClkPcsOut : out sl;
       txUsrClkIn     : in  sl;
       txUsrClk2In    : in  sl;
       txUserRdyOut   : out sl;          -- txOutClk is valid
@@ -286,8 +285,6 @@ architecture rtl of Gtx7Core is
 
    ----------------------------
    -- Rx Signals
-   signal rxGtRefClk     : sl;
-   signal rxGtRefClkBufg : sl;
    signal rxOutClk       : sl;
    signal rxOutClkBufg   : sl;
 
@@ -331,8 +328,6 @@ architecture rtl of Gtx7Core is
 
    ----------------------------
    -- Tx Signals
-   signal txGtRefClk : sl;
-
    signal txPllLock       : sl;
    signal txPllReset      : sl;
    signal txPllRefClkLost : sl;
@@ -375,10 +370,7 @@ architecture rtl of Gtx7Core is
    
 begin
 
-   rxRefClkOut <= rxGtRefClkBufg;
    rxOutClkOut <= rxOutClkBufg;
-
-   txRefClkOut <= txGtRefClk;
 
    cPllLockOut <= cPllLock;
 
@@ -390,6 +382,7 @@ begin
 
    --------------------------------------------------------------------------------------------------
    -- CPLL clock select. Only ever use 1 clock to drive cpll. Never switch clocks.
+   -- This may be unnecessary. Vivado does this for you now.
    --------------------------------------------------------------------------------------------------
    gtRefClk0      <= cPllRefClkIn when CPLL_REFCLK_SEL_G = "001" else '0';
    gtRefClk1      <= cPllRefClkIn when CPLL_REFCLK_SEL_G = "010" else '0';
@@ -509,11 +502,6 @@ begin
          I => rxOutClk,
          O => rxOutClkBufg);
 
-   BUFG_RX_REF_CLK : BUFG
-      port map (
-         I => rxGtRefClk,
-         O => rxGtRefClkBufg);
-
    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
       Gtx7RecClkMonitor_Inst : entity work.Gtx7RecClkMonitor
          generic map (
@@ -523,7 +511,7 @@ begin
             EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
          port map (
             GT_RST        => gtRxReset,
-            REF_CLK       => rxGtRefClkBufg,
+            REF_CLK       => gtRxRefClkBufg,
             RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
             SYSTEM_CLK    => stableClkIn,
             PLL_LK_DET    => rxPllLock,
@@ -1103,7 +1091,7 @@ begin
          GTRXRESET        => gtRxReset,
          RXDATA           => rxDataFull,
          RXOUTCLK         => rxOutClk,
-         RXOUTCLKFABRIC   => rxGtRefClk,
+         RXOUTCLKFABRIC   => open, rxGtRefClk,
          RXOUTCLKPCS      => open,
          RXOUTCLKSEL      => to_stdlogicvector(RX_OUTCLK_SEL_C),  -- Selects rx recovered clk for rxoutclk
          RXPCSRESET       => '0',  -- Don't bother with component level resets
@@ -1233,8 +1221,8 @@ begin
          GTTXRESET        => gtTxReset,
          TXDATA           => txDataFull,
          TXOUTCLK         => txOutClkOut,
-         TXOUTCLKFABRIC   => txGtRefClk,
-         TXOUTCLKPCS      => txOutClkPcsOut,
+         TXOUTCLKFABRIC   => open, --txGtRefClk,
+         TXOUTCLKPCS      => open, --txOutClkPcsOut,
          TXOUTCLKSEL      => to_stdlogicvector(TX_OUTCLK_SEL_C),
          TXPCSRESET       => '0',       -- Don't bother with individual resets
          TXPMARESET       => '0',
