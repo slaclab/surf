@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-05-27
+-- Last update: 2014-06-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -170,7 +170,7 @@ package body SsiPkg is
       ret.tLast  := ssiMaster.eof;
       ret.tStrb  := ssiMaster.strb;
       ret.tKeep  := ssiMaster.keep;
-      ret.tDest  := ssiMaster.dest;
+      ret.tDest(SSI_TDEST_BITS_C-1 downto 0)  := ssiMaster.dest;
       ssiSetUserSof(axisConfig, ret, ssiMaster.sof);
       ssiSetUserEofe(axisConfig, ret, ssiMaster.eofe);
       return ret;
@@ -208,9 +208,8 @@ package body SsiPkg is
       ret.data   := axisMaster.tData;
       ret.strb   := axisMaster.tStrb;
       ret.keep   := axisMaster.tKeep;
-      ret.dest   := axisMaster.tDest;
       ret.packed := toSl(axiStreamPacked(axisConfig, axisMaster));
-      ret.dest   := axisMaster.tDest(axisConfig.TDEST_BITS_C-1 downto 0);
+      ret.dest   := axisMaster.tDest(SSI_TDEST_BITS_C-1 downto 0);
       ret.sof    := ssiGetUserSof(axisConfig, axisMaster);
       ret.eof    := axisMaster.tLast;
       ret.eofe   := ssiGetUserEofe(axisConfig, axisMaster);
