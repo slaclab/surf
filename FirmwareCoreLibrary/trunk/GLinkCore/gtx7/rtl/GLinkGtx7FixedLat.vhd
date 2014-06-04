@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-06-02
+-- Last update: 2014-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -284,7 +284,7 @@ begin
          gtTxN            => gtTxN,
          gtRxP            => gtRxP,
          gtRxN            => gtRxN,
-         rxRefClkOut      => open,
+         gtRxRefClkBufg   => gLinkTxRefClk,
          rxOutClkOut      => rxRecClk,
          rxUsrClkIn       => rxClk,
          rxUsrClk2In      => rxClk,
@@ -301,9 +301,7 @@ begin
          rxDispErrOut     => open,             -- Not using gt rx 8b10b
          rxPolarityIn     => '0',
          rxBufStatusOut   => open,
-         txRefClkOut      => open,
          txOutClkOut      => open,
-         txOutClkPcsOut   => open,
          txUsrClkIn       => txClk,
          txUsrClk2In      => txClk,
          txUserRdyOut     => open,             -- Not sure what to do with this
