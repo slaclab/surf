@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-01-31
+-- Last update: 2014-06-04
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,13 +44,13 @@ entity Pgp2Gtp7FixedLatWrapper is
       -- MGT Configurations
       RXOUT_DIV_G          : integer              := 2;
       TXOUT_DIV_G          : integer              := 2;
-      RX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
-      TX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
-      PMA_RSV_G            : bit_vector           := x"00000333";  -- Set by wizard
-      RX_OS_CFG_G          : bit_vector           := "0001111110000";  -- Set by wizard
+      RX_CLK25_DIV_G       : integer              := 5;                         -- Set by wizard
+      TX_CLK25_DIV_G       : integer              := 5;                         -- Set by wizard
+      PMA_RSV_G            : bit_vector           := x"00000333";               -- Set by wizard
+      RX_OS_CFG_G          : bit_vector           := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G          : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G     : bit                  := '1';  -- Set by wizard
-      RXLPM_IPCM_CFG_G     : bit                  := '0';  -- Set by wizard
+      RXLPM_INCM_CFG_G     : bit                  := '1';                       -- Set by wizard
+      RXLPM_IPCM_CFG_G     : bit                  := '0';                       -- Set by wizard
       TX_PLL_G             : string               := "PLL0";
       RX_PLL_G             : string               := "PLL1");
    port (
@@ -221,10 +221,10 @@ begin
    qPllReset(0)     <= stableRst or gtQPllReset(0);
 
    -- PLL1 Port Mapping
-   pllRefClk(1)     <= gtClk when((MASTER_SEL_G = true) or (TX_PLL_G = "PLL1")) else stableClock;
+   pllRefClk(1)     <= gtClk    when((MASTER_SEL_G = true) or (TX_PLL_G = "PLL1")) else stableClock;
    pllLockDetClk(1) <= stableClock;
    qPllReset(1)     <= stableRst or gtQPllReset(1);
-   rxClock       <= rxRecClk when(RX_CLK_SEL_G = true) else txClock;
+   rxClock          <= rxRecClk when(RX_CLK_SEL_G = true)                          else txClock;
 
    Quad_Pll_Inst : entity work.Gtp7QuadPll
       generic map (
@@ -267,6 +267,7 @@ begin
          gtQPllLock       => qPllLock,
          gtQPllRefClkLost => qPllRefClkLost,
          gtQPllReset      => gtQPllReset,
+         gtRxRefClkBufg   => stableClock,
          -- Gt Serial IO
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,

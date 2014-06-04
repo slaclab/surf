@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-01-29
+-- Last update: 2014-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -403,7 +403,6 @@ begin
             gtTxN            => gtTxN(i),
             gtRxP            => gtRxP(i),
             gtRxN            => gtRxN(i),
-            rxRefClkOut      => open,
             rxOutClkOut      => pgpRxRecClock(i),
             rxUsrClkIn       => pgpRxClk,
             rxUsrClk2In      => pgpRxClk,
@@ -423,9 +422,7 @@ begin
             rxChBondLevelIn  => slv(to_unsigned((LANE_CNT_G-1-i), 3)),
             rxChBondIn       => rxChBondIn(i),
             rxChBondOut      => rxChBondOut(i),
-            txRefClkOut      => open,
             txOutClkOut      => open,
-            txOutClkPcsOut   => open,
             txUsrClkIn       => pgpTxClk,
             txUsrClk2In      => pgpTxClk,
             txUserRdyOut     => open,

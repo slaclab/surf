@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2013-12-11
+-- Last update: 2014-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,17 +40,17 @@ entity Pgp2Gtp7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "1.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
       -- TX/RX Settings - Defaults to 2.5 Gbps operation 
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;       -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;       -- Set by wizard
-      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit        := '1';     -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';     -- Set by wizard      
+      RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard      
 
       -- Configure PLL sources
       TX_PLL_G : string := "PLL0";
@@ -59,9 +59,9 @@ entity Pgp2Gtp7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      EnShortCells : integer := 1;      -- Enable short non-EOF cells
-      VcInterleave : integer := 1;       -- Interleave Frames
-      NUM_VC_EN_G : integer range 1 to 4 := 4
+      EnShortCells : integer              := 1;        -- Enable short non-EOF cells
+      VcInterleave : integer              := 1;        -- Interleave Frames
+      NUM_VC_EN_G  : integer range 1 to 4 := 4
       );
    port (
       -- GT Clocking
@@ -71,6 +71,7 @@ entity Pgp2Gtp7Fixedlat is
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
       gtQPllReset      : out slv(1 downto 0);
+      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
 
       -- Gt Serial IO
       gtRxN : in  sl;                   -- GT Serial Receive Negative
@@ -86,7 +87,7 @@ entity Pgp2Gtp7Fixedlat is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -126,8 +127,8 @@ architecture rtl of Pgp2Gtp7Fixedlat is
 --   signal gtRxUserReset  : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);  -- Feed to 8B10B decoder
-   signal dataValid     : sl;           -- no decode or disparity errors
+   signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
+   signal dataValid     : sl;                            -- no decode or disparity errors
    signal phyRxLanesIn  : PgpRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : PgpRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
 --   signal phyRxReady    : sl;                            -- To RxRst
@@ -236,7 +237,7 @@ begin
       generic map (
          TxLaneCnt    => 1,
          VcInterleave => VcInterleave,
-         NUM_VC_EN_G => NUM_VC_EN_G)
+         NUM_VC_EN_G  => NUM_VC_EN_G)
       port map (
          pgpTxClk       => pgpTxClk,
          pgpTxReset     => pgpTxReset,
@@ -343,6 +344,7 @@ begin
          qPllLockIn       => gtQPllLock,
          qPllRefClkLostIn => gtQPllRefClkLost,
          qPllResetOut     => gtQPllReset,
+         gtRxRefClkBufg   => gtRxRefClkBufg,
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,
          gtRxP            => gtRxP,
@@ -351,11 +353,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => pgpRxReset,
-         rxResetDoneOut   => gtRxResetDone,  -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
