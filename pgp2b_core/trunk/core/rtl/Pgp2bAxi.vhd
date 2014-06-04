@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title         : PGP Register Block
--- File          : Pgp2bReg.vhd
+-- File          : Pgp2bAxi.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 05/20/2014
 -------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.Pgp2bPkg.all;
 
-entity Pgp2bReg is
+entity Pgp2bAxi is
    generic (
       TPD_G              : time                  := 1 ns;
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
@@ -135,11 +135,11 @@ entity Pgp2bReg is
       axilWriteMaster  : in  AxiLiteWriteMasterType;
       axilWriteSlave   : out AxiLiteWriteSlaveType
    );
-end Pgp2bReg;
+end Pgp2bAxi;
 
-architecture structure of Pgp2bReg is
+architecture structure of Pgp2bAxi is
 
-   constant STATUS_OUT_TOP_G : integer := ite(STATUS_CNT_WIDTH_G > 7, 7,STATUS_CNT_WIDTH_G-1);
+   constant STATUS_OUT_TOP_C : integer := ite(STATUS_CNT_WIDTH_G > 7, 7,STATUS_CNT_WIDTH_G-1);
 
    -- Local signals
    signal rxStatusSend : sl;
@@ -710,9 +710,9 @@ begin
    U_StatusWord : process ( rxStatusSync ) begin
       statusWord <= (others=>'0');
 
-      statusWord(STATUS_OUT_TOP_G+24 downto 24) <= rxStatusSync.linkDownCount;
-      statusWord(STATUS_OUT_TOP_G+16 downto 16) <= rxStatusSync.frameErrCount;
-      statusWord(STATUS_OUT_TOP_G+8  downto  8) <= rxStatusSync.cellErrorCount;
+      statusWord(ERROR_CNT_WIDTH_G-1+24 downto 24) <= rxStatusSync.linkDownCount;
+      statusWord(ERROR_CNT_WIDTH_G-1+16 downto 16) <= rxStatusSync.frameErrCount;
+      statusWord(ERROR_CNT_WIDTH_G-1+8  downto  8) <= rxStatusSync.cellErrorCount;
 
       statusWord(7 downto 6) <= (others=>'0');
       statusWord(5)          <= rxStatusSync.remLinkReady;

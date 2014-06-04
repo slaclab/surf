@@ -7,4 +7,4 @@ vhdl work rtl/Pgp2bTxCell.vhd
 vhdl work rtl/Pgp2bTxSched.vhd
 vhdl work rtl/Pgp2bTx.vhd
 vhdl work rtl/Pgp2bLane.vhd
-vhdl work rtl/Pgp2bReg.vhd
+vhdl work rtl/Pgp2bAxi.vhd

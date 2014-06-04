@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-05-01
+-- Last update: 2014-06-04
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -113,9 +113,9 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : sl := '0';
-      
+   
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       PwrUpRst_Inst,
       QPllCore_1,
       Pgp2bGtx7Fixedlat_Inst : label is "TRUE";
@@ -282,6 +282,7 @@ begin
          gtQPllLock       => qPllLock,
          gtQPllRefClkLost => qPllRefClkLost,
          gtQPllReset      => gtQPllReset,
+         gtRxRefClkBufg   => stableClock,
          -- Gt Serial IO
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-05-14
+-- Last update: 2014-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,6 +70,7 @@ entity Pgp2bGtp7FixedLat is
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
       gtQPllReset      : out slv(1 downto 0);
+      gtRxRefClkBufg   : in sl;         -- gtrefclk driving rx side, fed through clock buffer
 
       -- Gt Serial IO
       gtRxN : in  sl;                   -- GT Serial Receive Negative
@@ -285,7 +286,6 @@ begin
          gtTxN            => gtTxN,
          gtRxP            => gtRxP,
          gtRxN            => gtRxN,
-         rxRefClkOut      => open,      -- Used for debugging only
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
@@ -302,9 +302,7 @@ begin
          rxDispErrOut     => open,      -- Not using gt rx 8b10b
          rxPolarityIn     => phyRxLanesOut(0).polarity,
          rxBufStatusOut   => open,      -- Not using rx buff
-         txRefClkOut      => open,      -- Used for debugging only
          txOutClkOut      => gtTxOutClk,  -- Maybe drive PGP TX with this and output it
-         txOutClkPcsOut   => open,      -- For debugging only
          txUsrClkIn       => gtTxUsrClk,
          txUsrClk2In      => gtTxUsrClk,
          txUserRdyOut     => open,      -- Not sure what to do with this
