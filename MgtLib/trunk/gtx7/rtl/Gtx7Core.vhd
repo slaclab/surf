@@ -1091,7 +1091,7 @@ begin
          GTRXRESET        => gtRxReset,
          RXDATA           => rxDataFull,
          RXOUTCLK         => rxOutClk,
-         RXOUTCLKFABRIC   => open, rxGtRefClk,
+         RXOUTCLKFABRIC   => open,
          RXOUTCLKPCS      => open,
          RXOUTCLKSEL      => to_stdlogicvector(RX_OUTCLK_SEL_C),  -- Selects rx recovered clk for rxoutclk
          RXPCSRESET       => '0',  -- Don't bother with component level resets
