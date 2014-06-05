@@ -18,6 +18,7 @@ class AxiSlaveSim  {
       pthread_t      _readThread;
       uint           _memorySize;
       uint         * _memorySpace;
+      uint           _addrMask;
 
       // Static Thread routines
       static void * staticWriteRun(void *t);
@@ -35,7 +36,7 @@ class AxiSlaveSim  {
 
    public:
 
-      AxiSlaveSim (unsigned char *memSpace, uint memSize);
+      AxiSlaveSim (unsigned char *memSpace, uint memSize, uint addrMask=0xFFFFFFFF);
 
       ~AxiSlaveSim ();
 
