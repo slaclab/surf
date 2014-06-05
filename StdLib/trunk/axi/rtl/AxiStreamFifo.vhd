@@ -84,10 +84,11 @@ architecture rtl of AxiStreamFifo is
    constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
                                            ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
-   constant USER_MODE_C : TUserModeType := TUSER_NORMAL_C;
-   --constant USER_MODE_C : TUserModeType := SLAVE_AXI_CONFIG_G.TUSER_MODE_C;
+   constant USER_MODE_C : TUserModeType := SLAVE_AXI_CONFIG_G.TUSER_MODE_C;
    constant USER_BITS_C : integer       := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
-   constant USER_TOT_C  : integer       := ite(USER_MODE_C = TUSER_FIRST_LAST_C, USER_BITS_C*2, DATA_BYTES_C * USER_BITS_C);
+   constant USER_TOT_C  : integer       := ite(USER_MODE_C = TUSER_FIRST_LAST_C, USER_BITS_C*2, 
+                                           ite(USER_MODE_C = TUSER_LAST_C, USER_BITS_C,
+                                           DATA_BYTES_C * USER_BITS_C));
 
    constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C, DATA_BYTES_C, 0);
    constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
@@ -125,6 +126,10 @@ architecture rtl of AxiStreamFifo is
          retValue((USER_BITS_C+i)-1 downto i) := axiStreamGetUserField ( SLAVE_AXI_CONFIG_G,din,0); -- First byte
          i := i + USER_BITS_C;
 
+         retValue((USER_BITS_C+i)-1 downto i) := axiStreamGetUserField ( SLAVE_AXI_CONFIG_G,din,-1); -- Last valid
+         i := i + USER_BITS_C;
+
+      elsif USER_MODE_C = TUSER_LAST_C then
          retValue((USER_BITS_C+i)-1 downto i) := axiStreamGetUserField ( SLAVE_AXI_CONFIG_G,din,-1); -- Last valid
          i := i + USER_BITS_C;
 
@@ -191,7 +196,11 @@ architecture rtl of AxiStreamFifo is
       if USER_MODE_C = TUSER_FIRST_LAST_C then
          axiStreamSetUserField ( SLAVE_AXI_CONFIG_G, master, din((USER_BITS_C+i)-1 downto i),0); -- First byte
          i := i + USER_BITS_C;
-        
+
+         axiStreamSetUserField ( SLAVE_AXI_CONFIG_G, master, din((USER_BITS_C+i)-1 downto i),-1); -- Last valid byte
+         i := i + USER_BITS_C;
+
+      elsif USER_MODE_C = TUSER_LAST_C then
          axiStreamSetUserField ( SLAVE_AXI_CONFIG_G, master, din((USER_BITS_C+i)-1 downto i),-1); -- Last valid byte
          i := i + USER_BITS_C;
 
