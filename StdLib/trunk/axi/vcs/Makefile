@@ -87,11 +87,11 @@ rtl_src:
 
 # VHPI Library
 vhpi_src:
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/VhpiGeneric.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/AxiStreamSimOb.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/AxiStreamSimIb.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/AxiSimMaster.c
-	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ $(PWD)/../simlink/src/AxiSimSlave.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ -I$(PWD)/../../general/simlink/src $(PWD)/../../general/simlink/src/VhpiGeneric.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ -I$(PWD)/../../general/simlink/src $(PWD)/../simlink/src/AxiStreamSimOb.c 
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ -I$(PWD)/../../general/simlink/src $(PWD)/../simlink/src/AxiStreamSimIb.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ -I$(PWD)/../../general/simlink/src $(PWD)/../simlink/src/AxiSimMaster.c
+	@cd $(SIM_DIR); gcc -Wall -c -fPIC -O -I$(VCS_HOME)/include/ -I$(PWD)/../../general/simlink/src $(PWD)/../simlink/src/AxiSimSlave.c
 	@cd $(SIM_DIR); gcc -Wall -shared -o libAxiSim.so VhpiGeneric.o AxiStreamSimOb.o AxiStreamSimIb.o AxiSimMaster.o AxiSimSlave.o
 
 sim_gen:
