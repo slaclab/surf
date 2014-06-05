@@ -11,11 +11,12 @@
 #include "AxiSlaveSim.h"
 using namespace std;
  
-AxiSlaveSim::AxiSlaveSim (unsigned char *memSpace, uint memSize) {
+AxiSlaveSim::AxiSlaveSim (unsigned char *memSpace, uint memSize, uint addrMask) {
    _memorySize  = memSize/4;
    _memorySpace = (uint *)memSpace;
    _smem        = NULL;
    _verbose     = false;
+   _addrMask    = addrMask;
 }
 
 AxiSlaveSim::~AxiSlaveSim () {
@@ -124,7 +125,7 @@ void AxiSlaveSim::readRun() {
             while ( !readyReadData(_smem) ) usleep(1);
 
             // Format and output data
-            readData.rdataL = _memorySpace[addr/4];
+            readData.rdataL = _memorySpace[(addr&_addrMask)/4];
 
             if (_verbose) {
                cout << "Memory read, " 
@@ -137,7 +138,7 @@ void AxiSlaveSim::readRun() {
             addr += 4;
             x++;
 
-            readData.rdataH = _memorySpace[addr/4];
+            readData.rdataH = _memorySpace[(addr&_addrMask)/4];
 
             if (_verbose) {
                cout << "Memory read, " 
@@ -266,8 +267,8 @@ void AxiSlaveSim::writeRun() {
          if ( writeData.wstrb & 0x4 ) { tempMask &= 0xFF00FFFF; writeMask |= 0x00FF0000; }
          if ( writeData.wstrb & 0x8 ) { tempMask &= 0x00FFFFFF; writeMask |= 0xFF000000; }
 
-         temp = _memorySpace[addr[id]/4] & tempMask;
-         _memorySpace[addr[id]/4] = temp | (writeData.wdataL & writeMask);
+         temp = _memorySpace[(addr[id]&_addrMask)/4] & tempMask;
+         _memorySpace[(addr[id]&_addrMask)/4] = temp | (writeData.wdataL & writeMask);
 
          if (_verbose) {
             cout << "Memory write," 
@@ -287,8 +288,8 @@ void AxiSlaveSim::writeRun() {
          if ( writeData.wstrb & 0x40 ) { tempMask &= 0xFF00FFFF; writeMask |= 0x00FF0000; }
          if ( writeData.wstrb & 0x80 ) { tempMask &= 0x00FFFFFF; writeMask |= 0xFF000000; }
 
-         temp = _memorySpace[addr[id]/4] & tempMask;
-         _memorySpace[addr[id]/4] = temp | (writeData.wdataH & writeMask); 
+         temp = _memorySpace[(addr[id]&_addrMask)/4] & tempMask;
+         _memorySpace[(addr[id]&_addrMask)/4] = temp | (writeData.wdataH & writeMask); 
 
          if (_verbose) {
             cout << "Memory write," 
