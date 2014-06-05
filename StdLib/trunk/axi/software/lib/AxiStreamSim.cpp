@@ -84,3 +84,26 @@ int AxiStreamSim::read(uint *data, uint maxSize, uint *dest, uint *eofe) {
    return(ret);
 }
 
+// Read a block of data, return -1 on error, 0 if no data, size if data
+int AxiStreamSim::read(uint *data, uint maxSize) {
+   int ret = 0;
+
+   // Data is available
+   if ( _smem->usReqCount != _smem->usAckCount ) {
+
+      // Too large
+      if ( _smem->usSize > maxSize ) {
+         printf("AxiStreamSim::read -> Received data is too large!\n");
+         _smem->usAckCount = _smem->usReqCount;
+         ret = -1;
+      }
+      else {
+         memcpy(data,_smem->usData,(_smem->usSize)*4);
+         ret = _smem->usSize;
+         _smem->usAckCount = _smem->usReqCount;
+         if ( _verbose ) printf("AxiStreamSim::read -> Read %i dual words\n",ret);
+      }
+   }
+   return(ret);
+}
+
