@@ -35,6 +35,7 @@ class AxiStreamSim  {
 
       // Read a block of data, return -1 on error, 0 if no data, size if data
       int read(uint *data, uint maxSize, uint *dest, uint *eofe);
+      int read(uint *data, uint maxSize);
 
 };
 
