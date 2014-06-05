@@ -47,9 +47,9 @@ architecture dma_tb of dma_tb is
       TDATA_BYTES_C => 8,
       TDEST_BITS_C  => 8,
       TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 8,
-      TUSER_MODE_C  => TUSER_NORMAL_C
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C
    );
 
    constant AXI_CONFIG_C : AxiConfigType := (
