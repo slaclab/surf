@@ -12,7 +12,7 @@
 using namespace std;
  
 AxiSlaveSim::AxiSlaveSim (unsigned char *memSpace, uint memSize, uint addrMask) {
-   _memorySize  = memSize/4;
+   _memorySize  = memSize;
    _memorySpace = (uint *)memSpace;
    _smem        = NULL;
    _verbose     = false;
@@ -107,13 +107,15 @@ void AxiSlaveSim::readRun() {
 
          // Extract address and length
          length = (currAddr->arlen + 1) * 2;
-         addr   = currAddr->araddr & 0xFFFFFFFC;
+         addr   = currAddr->araddr & _addrMask;
 
-         if ( (addr/4) + length >= (_memorySize-1) ) {
+         if ( (addr + (length*4)) >= (_memorySize-1) ) {
             cout << "!!!!!!!!!!! Error Memory read space overrun, "
                  << " System=" << _smem->_path
                  << " Addr=0x" << hex << setw(8) << setfill('0') << addr
-                 << " Size=" << dec << length
+                 << " Size=" << dec << (length*8)
+                 << " MemSize=0x" << hex << setw(8) << setfill('0') << _memorySize
+                 << " Mask=0x" << hex << setw(8) << setfill('0') << _addrMask
                  << endl;
             return;
          }
@@ -125,7 +127,7 @@ void AxiSlaveSim::readRun() {
             while ( !readyReadData(_smem) ) usleep(1);
 
             // Format and output data
-            readData.rdataL = _memorySpace[(addr&_addrMask)/4];
+            readData.rdataL = _memorySpace[addr/4];
 
             if (_verbose) {
                cout << "Memory read, " 
@@ -138,7 +140,7 @@ void AxiSlaveSim::readRun() {
             addr += 4;
             x++;
 
-            readData.rdataH = _memorySpace[(addr&_addrMask)/4];
+            readData.rdataH = _memorySpace[addr/4];
 
             if (_verbose) {
                cout << "Memory read, " 
@@ -243,14 +245,16 @@ void AxiSlaveSim::writeRun() {
                // Extract values
                id        = currAddr->awid;
                length    = (currAddr->awlen + 1) * 2;
-               addr[id]  = currAddr->awaddr;
+               addr[id]  = currAddr->awaddr & _addrMask;
                valid[id] = true;
 
-               if ( (addr[id]/4) + length >= (_memorySize-1) ) {
+               if ( (addr[id] + (length*4)) >= (_memorySize-1) ) {
                   cout << "!!!!!!!!!!! Error Memory write space overrun, "
                        << " System=" << _smem->_path
                        << " Addr=0x" << hex << setw(8) << setfill('0') << addr[id]
-                       << " Size=" << dec << length
+                       << " Size=" << dec << (length*4)
+                       << " MemSize=0x" << hex << setw(8) << setfill('0') << _memorySize
+                       << " Mask=0x" << hex << setw(8) << setfill('0') << _addrMask
                        << endl;
                   return;
                }
@@ -267,8 +271,8 @@ void AxiSlaveSim::writeRun() {
          if ( writeData.wstrb & 0x4 ) { tempMask &= 0xFF00FFFF; writeMask |= 0x00FF0000; }
          if ( writeData.wstrb & 0x8 ) { tempMask &= 0x00FFFFFF; writeMask |= 0xFF000000; }
 
-         temp = _memorySpace[(addr[id]&_addrMask)/4] & tempMask;
-         _memorySpace[(addr[id]&_addrMask)/4] = temp | (writeData.wdataL & writeMask);
+         temp = _memorySpace[addr[id]/4] & tempMask;
+         _memorySpace[addr[id]/4] = temp | (writeData.wdataL & writeMask);
 
          if (_verbose) {
             cout << "Memory write," 
@@ -288,8 +292,8 @@ void AxiSlaveSim::writeRun() {
          if ( writeData.wstrb & 0x40 ) { tempMask &= 0xFF00FFFF; writeMask |= 0x00FF0000; }
          if ( writeData.wstrb & 0x80 ) { tempMask &= 0x00FFFFFF; writeMask |= 0xFF000000; }
 
-         temp = _memorySpace[(addr[id]&_addrMask)/4] & tempMask;
-         _memorySpace[(addr[id]&_addrMask)/4] = temp | (writeData.wdataH & writeMask); 
+         temp = _memorySpace[addr[id]/4] & tempMask;
+         _memorySpace[addr[id]/4] = temp | (writeData.wdataH & writeMask); 
 
          if (_verbose) {
             cout << "Memory write," 
