@@ -222,7 +222,7 @@ if { ${sharedMem} != false } {
 close_project
 
 ########################################################
-## Target specific messages script
+## Target specific VCS script
 ########################################################
 SourceTclFile ${VIVADO_DIR}/vcs.tcl
 
