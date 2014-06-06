@@ -6,15 +6,9 @@ CC     := gcc
 DEF    := 
 OUT    := $(SIMLINK_PWD)
 OBJ    := $(SIMLINK_PWD)/.obj
-CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include -I$(SIMLINK_PWD)/../../../general/simlink/src
+CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include
 LFLAGS := -lrt -pthread 
 LIB    := $(OUT)/libAxiSim.so
-
-# Generic Sources
-GEN_DIR := $(SIMLINK_PWD)/../../../general/simlink/src/
-GEN_SRC := $(wildcard $(GEN_DIR)/*.c)
-GEN_HDR := $(wildcard $(GEN_DIR)/*.h)
-GEN_OBJ := $(patsubst $(GEN_DIR)/%.c,$(OBJ)/%.o,$(GEN_SRC))
 
 # Local Sources
 LOC_DIR := $(SIMLINK_PWD)
@@ -33,10 +27,6 @@ dir:
 clean:
 	rm -rf $(OBJ)
 	rm -f $(LIB)
-
-# Compile Generic Sources
-$(OBJ)/%.o: $(GEN_DIR)/%.c $(GEN_DIR)/%.h
-	$(CC) -c -O $(CFLAGS) $(DEF) -o $@ $<
 
 # Compile Local Sources
 $(OBJ)/%.o: $(LOC_DIR)/%.c $(LOC_DIR)/%.h
