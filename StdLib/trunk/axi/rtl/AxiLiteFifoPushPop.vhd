@@ -189,6 +189,8 @@ begin
             almost_empty  => popFifoAEmpty(i),
             empty         => open
       );
+
+      popFifoValid(i) <= ipopFifoValid(i);
    end generate;
 
    U_PopUnused : if POP_FIFO_COUNT_G /= POP_COUNT_C generate

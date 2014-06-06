@@ -256,20 +256,17 @@ begin
                   v.wMaster.awlen := r.wMaster.awlen - 1;
                end if;
 
-               -- Write strobe
-               v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
-
-               -- Detect overflow
-               if r.dmaAck.overflow = '1' or bytes > r.dmaReq.maxSize then
-                  v.dmaAck.overflow := '1';
-                  v.wMaster.wstrb   := (others=>'0');
-               elsif r.last = '0' then
-                  v.dmaReq.maxSize := r.dmaReq.maxSize - bytes;
-               end if;
-
                -- Done
                if r.last = '1' then
                   v.wMaster.wstrb := (others=>'0');
+
+               -- Detect overflow
+               elsif r.dmaAck.overflow = '1' or bytes > r.dmaReq.maxSize then
+                  v.dmaAck.overflow := '1';
+                  v.wMaster.wstrb   := (others=>'0');
+               else
+                  v.dmaReq.maxSize := r.dmaReq.maxSize - bytes;
+                  v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
                end if;
             end if;
 
