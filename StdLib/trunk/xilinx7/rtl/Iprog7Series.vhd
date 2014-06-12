@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-11-01
--- Last update: 2014-03-10
+-- Last update: 2014-05-30
 -- Platform   : ISE 14.6
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,14 +29,20 @@ entity Iprog7Series is
    generic (
       TPD_G : time := 1 ns);
    port (
-      start       : in sl;
-      bootAddress : in slv(31 downto 0);
       clk         : in sl;
-      rst         : in sl);
+      rst         : in sl;
+      start       : in sl;
+      bootAddress : in slv(31 downto 0) := X"00000000");
+
+
 end Iprog7Series;
 
 architecture rtl of Iprog7Series is
-   function SelectMapBitSwapping (input : slv) return slv is
+
+   signal icape2Clk : sl;
+   signal icape2Rst : sl;
+   
+   function selectMapBitSwapping (input : slv) return slv is
       variable i      : integer;
       variable j      : integer;
       variable output : slv(0 to 31);
@@ -47,24 +53,60 @@ architecture rtl of Iprog7Series is
          end loop;
       end loop;
       return output;
-   end function SelectMapBitSwapping;
+   end function selectMapBitSwapping;
 
-   type StateType is (
-      IDLE_S,
-      PHASE_UP_S,
-      LO_PHASE_S,
-      HI_PHASE_S);
-   signal state : StateType := IDLE_S;
+   type StateType is (IDLE_S, PROG_S);
 
-   signal configStrb : sl := '0';
-   signal configRnW,
-      configCsL : sl := '1';
-   signal cnt,
-      dataPtnr : slv(3 downto 0) := (others => '0');
-   signal address,
-      configIn,
-      configOut : slv(31 downto 0) := (others => '0');
+   type RegType is record
+      state       : StateType;
+      csl         : sl;
+      rnw         : sl;
+      cnt         : slv(3 downto 0);
+      configData  : slv(31 downto 0);
+      bootAddress : slv(31 downto 0);
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      state       => IDLE_S,
+      csl         => '1',
+      rnw         => '1',
+      cnt         => (others => '0'),
+      configData  => (others => '0'),
+      bootAddress => (others => '0'));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal startEdge : sl;
+
 begin
+
+   BUFR_ICPAPE2 : BUFR
+      generic map (
+         BUFR_DIVIDE => "8")
+      port map (
+         CE  => '1',
+         CLR => '0',
+         I   => clk,
+         O   => icape2Clk);
+
+   RstSync_Inst : entity work.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => icape2Clk, 
+         asyncRst => rst,
+         syncRst  => icape2Rst);
+
+   SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => icape2Clk,
+         rst     => icape2Rst,
+         dataIn  => start,
+         dataOut => startEdge);
+
    ICAPE2_inst : ICAPE2
       generic map (
          -- Specifies the pre-programmed Device ID value to be used for simulation
@@ -77,92 +119,73 @@ begin
          -- model
          SIM_CFG_FILE_NAME => "NONE")
       port map (
-         O     => open,      -- 32-bit output: Configuration data output bus
-         CLK   => configStrb,-- 1-bit input: Clock Input
-         CSIB  => configCsL, -- 1-bit input: Active-Low ICAP Enable
-         I     => configIn,  -- 32-bit input: Configuration data input bus
-         RDWRB => configRnW);-- 1-bit input: Read/Write Select input
+         O     => open,                 -- 32-bit output: Configuration data output bus
+         CLK   => icape2Clk,            -- 1-bit input: Clock Input
+         CSIB  => r.csl,                -- 1-bit input: Active-Low ICAP Enable
+         I     => r.configData,         -- 32-bit input: Configuration data input bus
+         RDWRB => r.rnw);               -- 1-bit input: Read/Write Select input
 
-   process(clk)
+
+   comb : process (bootAddress, icape2Rst, r, startEdge) is
+      variable v : RegType;
    begin
-      if rising_edge(clk) then
-         if rst = '1' then
-            configRnW  <= '1'             after TPD_G;
-            configCsL  <= '1'             after TPD_G;
-            configStrb <= '0'             after TPD_G;
-            configIn   <= (others => '0') after TPD_G;
-            address    <= (others => '0') after TPD_G;
-            cnt        <= (others => '0') after TPD_G;
-            dataPtnr   <= (others => '0') after TPD_G;
-            state      <= IDLE_S          after TPD_G;
-         else
-            cnt <= cnt + 1 after TPD_G;
-            if cnt = x"F" then
-               cnt <= (others => '0') after TPD_G;
-               if configStrb = '1' then
-                  configStrb <= '0' after TPD_G;
-               else
-                  configStrb <= '1' after TPD_G;
-               end if;
+      v := r;
+
+      case (r.state) is
+         when IDLE_S =>
+            v.csl         := '1';
+            v.rnw         := '1';
+            v.cnt         := (others => '0');
+            v.bootAddress := bootAddress;
+            if (startEdge = '1') then
+               v.state := PROG_S;
             end if;
-            case (state) is
-               ----------------------------------------------------------------------
-               when IDLE_S =>
-                  configCsL <= '1' after TPD_G;
-                  configRnW <= '1' after TPD_G;
-                  if start = '1' then
-                     address  <= bootAddress     after TPD_G;
-                     configIn <= (others => '1') after TPD_G;  --Dummy Word
-                     state    <= PHASE_UP_S      after TPD_G;
-                  end if;
-                  ----------------------------------------------------------------------
-               when PHASE_UP_S =>
-                  if (cnt = x"F") and (configStrb = '1') then
-                     configCsL <= '0'        after TPD_G;
-                     configRnW <= '0'        after TPD_G;
-                     state     <= LO_PHASE_S after TPD_G;
-                  end if;
-                  ----------------------------------------------------------------------
-               when LO_PHASE_S =>
-                  if cnt = x"F" then
-                     state <= HI_PHASE_S after TPD_G;
-                  end if;
-                  ----------------------------------------------------------------------
-               when HI_PHASE_S =>
-                  if cnt = x"F" then
-                     dataPtnr <= dataPtnr + 1 after TPD_G;
-                     if dataPtnr = x"7" then
-                        dataPtnr <= (others => '0') after TPD_G;
-                        state    <= IDLE_S          after TPD_G;
-                     else
-                        if dataPtnr = x"0" then
-                           --Sync Word
-                           configIn <= SelectMapBitSwapping(x"AA995566") after TPD_G;
-                        elsif dataPtnr = x"1" then
-                           --Type 1 NO OP
-                           configIn <= SelectMapBitSwapping(x"20000000") after TPD_G;
-                        elsif dataPtnr = x"2" then
-                           --Type 1 Write 1 Words to WBSTAR
-                           configIn <= SelectMapBitSwapping(x"30020001") after TPD_G;
-                        elsif dataPtnr = x"3" then
-                           --Warm Boot Start Address (Load the Desired Address)
-                           configIn <= SelectMapBitSwapping(bitReverse(address)) after TPD_G;
-                        elsif dataPtnr = x"4" then
-                           --Type 1 Write 1 Words to CMD
-                           configIn <= SelectMapBitSwapping(x"30008001") after TPD_G;
-                        elsif dataPtnr = x"5" then
-                           --IPROG Command
-                           configIn <= SelectMapBitSwapping(x"0000000F") after TPD_G;
-                        elsif dataPtnr = x"6" then
-                           --Type 1 NO OP
-                           configIn <= SelectMapBitSwapping(x"20000000") after TPD_G;
-                        end if;
-                        state <= LO_PHASE_S after TPD_G;
-                     end if;
-                  end if;
-                  ----------------------------------------------------------------------
+
+         when PROG_S =>
+            v.csl := '0';
+            v.rnw := '0';
+            v.cnt := r.cnt + 1;
+            case (r.cnt) is
+               when X"0" =>
+                  --Sync Word
+                  v.configData := selectMapBitSwapping(X"AA995566");
+               when X"1" =>
+                  --Type 1 NO OP
+                  v.configData := selectMapBitSwapping(X"20000000");
+               when X"2" =>
+                  --Type 1 Write 1 Words to WBSTAR
+                  v.configData := selectMapBitSwapping(X"30020001");
+               when X"3" =>
+                  --Warm Boot Start Address (Load the Desired Address)
+                  v.configData := selectMapBitSwapping(bitReverse(r.bootAddress));
+               when X"4" =>
+                  --Type 1 Write 1 Words to CMD
+                  v.configData := selectMapBitSwapping(X"30008001");
+               when X"5" =>
+                  --IPROG Command
+                  v.configData := selectMapBitSwapping(X"0000000F");
+               when X"6" =>
+                  --Type 1 NO OP
+                  v.configData := selectMapBitSwapping(X"20000000");
+                  v.state      := IDLE_S;
+               when others => null;
             end case;
-         end if;
+            
+         when others => null;
+      end case;
+
+      if (icape2Rst = '1') then
+         v := REG_INIT_C;
       end if;
-   end process;
+
+      rin <= v;
+      
+   end process comb;
+
+   seq : process (icape2Clk) is
+   begin
+      if (rising_edge(icape2Clk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 end rtl;
