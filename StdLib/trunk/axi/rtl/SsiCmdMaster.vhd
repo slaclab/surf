@@ -5,7 +5,7 @@
 -- File       : SsiCmdMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-04-30
+-- Last update: 2014-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ begin
             when "001" =>
                v.cmdMaster.opCode := fifoAxisMaster.tData(7 downto 0);
             when "011" =>
-               v.cmdMaster.valid := fifoAxisMaster.tLast and not fifoAxisMaster.tUser(SSI_EOFE_C);
+               v.cmdMaster.valid := fifoAxisMaster.tLast and not ssiGetUserEofe(INT_CONFIG_C, fifoAxisMaster);
             when "100" =>
                -- Too many txns in frame, freeze counting
                -- Will auto reset txnNumber to 0 on tLast
