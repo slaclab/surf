@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-05-14
+-- Last update: 2014-06-13
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -102,15 +102,15 @@ architecture rtl of Pgp2bGtp7VarLatWrapper is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : slv(1 downto 0);
-      
+   
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       PwrUpRst_Inst,
       Quad_Pll_Inst,
       Pgp2bGtp7MultiLane_Inst : label is "TRUE";
    
-begin  
- 
+begin
+
    -- Set the status outputs
    txPllLock <= ite((TX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
    rxPllLock <= ite((RX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
@@ -295,9 +295,7 @@ begin
          pgpTxMasters     => pgpTxMasters,
          pgpTxSlaves      => pgpTxSlaves,
          -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-         pgpRxMasters    => pgpRxMasters,
-         pgpRxMasterMuxed   => pgpRxMasterMuxed,
-         pgpRxCtrl        => pgpRxCtrl,
-         -- GT loopback control
-         loopback         => pgpRxIn.loopback);      
+         pgpRxMasters     => pgpRxMasters,
+         pgpRxMasterMuxed => pgpRxMasterMuxed,
+         pgpRxCtrl        => pgpRxCtrl);      
 end rtl;
