@@ -90,9 +90,6 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.Pgp2bPkg.all;
