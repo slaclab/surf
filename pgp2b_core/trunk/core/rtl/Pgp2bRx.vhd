@@ -77,7 +77,7 @@ architecture Pgp2bRx of Pgp2bRx is
    signal crcRxRst         : sl;
    signal crcRxInAdjust    : slv(31 downto 0);
    signal crcRxWidthAdjust : slv(2 downto 0);
-   signal intPhyRxPolarity : slv(RX_LANE_CNT_G-1 downto 0);    -- PHY receive signal polarity
+   signal intPhyRxPolarity : slv(1 downto 0) := (others=>'0');    -- PHY receive signal polarity
    signal intPhyRxData     : slv(RX_LANE_CNT_G*16-1 downto 0); -- PHY receive data
    signal intPhyRxDataK    : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data is K character
    signal intPhyRxDispErr  : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
@@ -140,7 +140,7 @@ begin
          cellRxEOF        => cellRxEOF,
          cellRxEOFE       => cellRxEOFE,
          cellRxData       => cellRxData,
-         phyRxPolarity    => intPhyRxPolarity,
+         phyRxPolarity    => intPhyRxPolarity(RX_LANE_CNT_G-1 downto 0),
          phyRxData        => intPhyRxData,
          phyRxDataK       => intPhyRxDataK,
          phyRxDispErr     => intPhyRxDispErr,
