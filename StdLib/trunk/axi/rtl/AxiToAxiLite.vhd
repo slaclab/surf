@@ -19,9 +19,6 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use ieee.std_logic_arith.all;
 use IEEE.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiPkg.all;
