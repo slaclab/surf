@@ -15,6 +15,7 @@ vhdl work general/rtl/DspCounter.vhd
 vhdl work general/rtl/Encoder8b10b.vhd
 vhdl work general/rtl/Heartbeat.vhd
 vhdl work general/rtl/PwrUpRst.vhd
+vhdl work general/rtl/WatchDogRst.vhd
 
 vhdl work fifo/rtl/FifoCascade.vhd
 vhdl work fifo/rtl/Fifo.vhd
