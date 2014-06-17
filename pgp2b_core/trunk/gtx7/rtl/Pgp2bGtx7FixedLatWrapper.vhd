@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-06-04
+-- Last update: 2014-06-17
 -- Platform   : Vivado2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -309,7 +309,5 @@ begin
          -- Frame Receive Interface - 1 Lane, Array of 4 VCs
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
-         pgpRxCtrl        => pgpRxCtrl,
-         -- GT loopback control
-         loopback         => pgpRxIn.loopback);  
+         pgpRxCtrl        => pgpRxCtrl);  
 end rtl;
