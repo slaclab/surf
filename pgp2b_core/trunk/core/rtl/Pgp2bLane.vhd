@@ -73,7 +73,7 @@ entity Pgp2bLane is
       pgpRxMasterMuxed  : out AxiStreamMasterType;
 
       -- Receive flow control
-      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0) := (others=>AXI_STREAM_CTRL_UNUSED_C);
 
       -- PHY interface
       phyRxLanesOut     : out Pgp2bRxPhyLaneOutArray(0 to LANE_CNT_G-1);
