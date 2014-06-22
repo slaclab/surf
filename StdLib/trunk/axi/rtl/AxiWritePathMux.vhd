@@ -224,7 +224,7 @@ begin
          when S_LAST_C =>
             if mAxiWriteSlave.wready = '1' then
                v.master.wvalid := '0';
-               v.addrState     := S_IDLE_C;
+               v.dataState     := S_IDLE_C;
             end if;
       end case;
 
