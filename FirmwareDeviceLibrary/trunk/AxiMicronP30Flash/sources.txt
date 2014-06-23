@@ -1,0 +1,2 @@
+vhdl work rtl/AxiMicronP30FlashPkg.vhd
+vhdl work rtl/AxiMicronP30FlashCore.vhd
