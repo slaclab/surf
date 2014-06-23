@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-06-04
+-- Last update: 2014-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,6 +52,12 @@ entity Pgp2bGtp7MultiLane is
       RXLPM_IPCM_CFG_G      : bit                  := '0';  -- Set by wizard      
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
+      -- Configure Buffer usage
+      TX_BUF_EN_G           : boolean              := true;
+      TX_OUTCLK_SRC_G       : string               := "OUTCLKPMA";
+      TX_DLY_BYPASS_G       : sl                   := '1';
+      TX_PHASE_ALIGN_G      : string               := "NONE";
+      TX_BUF_ADDR_MODE_G    : string               := "FULL";
       -- Configure Number of Lanes
       LANE_CNT_G            : integer range 1 to 2 := 1;
       ----------------------------------------------------------------------------------------------
@@ -138,7 +144,7 @@ architecture rtl of Pgp2bGtp7MultiLane is
    signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
 
-begin 
+begin
 
    gtQPllReset    <= gtQPllResets(0);
    pgpTxMmcmReset <= pgpTxMmcmResets(0);
@@ -217,11 +223,11 @@ begin
             RX_EXT_DATA_WIDTH_G      => 16,
             RX_INT_DATA_WIDTH_G      => 20,
             RX_8B10B_EN_G            => true,
-            TX_BUF_EN_G              => true,
-            TX_OUTCLK_SRC_G          => "OUTCLKPMA",
-            TX_DLY_BYPASS_G          => '1',
-            TX_PHASE_ALIGN_G         => "NONE",
-            TX_BUF_ADDR_MODE_G       => "FULL",
+            TX_BUF_EN_G              => TX_BUF_EN_G,
+            TX_OUTCLK_SRC_G          => TX_OUTCLK_SRC_G,
+            TX_DLY_BYPASS_G          => TX_DLY_BYPASS_G,
+            TX_PHASE_ALIGN_G         => TX_PHASE_ALIGN_G,
+            TX_BUF_ADDR_MODE_G       => TX_BUF_ADDR_MODE_G,
             RX_BUF_EN_G              => true,
             RX_OUTCLK_SRC_G          => "OUTCLKPMA",
             RX_USRCLK_SRC_G          => "RXOUTCLK",    -- Not 100% sure, doesn't really matter
