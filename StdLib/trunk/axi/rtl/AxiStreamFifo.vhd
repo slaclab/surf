@@ -35,8 +35,9 @@ entity AxiStreamFifo is
       TPD_G            : time                       := 1 ns;
       PIPE_STAGES_G    : natural range 0 to 16      := 0;
       SLAVE_READY_EN_G : boolean                    := true;
-      VALID_THOLD_G    : integer range 1 to (2**24) := 1; -- =1 = normal operation
-                                                          -- >1 = only when frame ready
+      VALID_THOLD_G    : integer range 0 to (2**24) := 1; -- =1 = normal operation
+                                                          -- =0 = only when frame ready
+                                                          -- >1 = only when frame ready or # entries
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
