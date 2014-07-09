@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-05-09
+-- Last update: 2014-06-23
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -110,20 +110,6 @@ begin
    begin
       -- Latch the current value
       v := r;
-
-      -- Set the AXIS configurations
---      v.txAxisMaster.tKeep := (others => '0');
---      v.txAxisMaster.tStrb := (others => '0');
---      for i in 0 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
---         v.txAxisMaster.tKeep(i) := '1';
---         v.txAxisMaster.tStrb(i) := '1';
---      end loop;
-
-      -- Reset strobe signals
-      --v.txAxisMaster.tValid := '0';
-      --v.txAxisMaster.tLast  := '0';
-      --v.txAxisMaster.tUser  := (others => '0');
-      --v.txAxisMaster.tData  := (others => '0');
 
       case (r.state) is
          ----------------------------------------------------------------------

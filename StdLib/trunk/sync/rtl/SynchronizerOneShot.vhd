@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-02-06
--- Last update: 2014-04-14
+-- Last update: 2014-07-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ entity SynchronizerOneShot is
       IN_POLARITY_G   : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G  : sl       := '1');   -- 0 for active LOW, 1 for active HIGH
    port (
-      clk     : in  sl;                      -- Clock to be SYNC'd to
-      rst     : in  sl := not RST_POLARITY_G;-- Optional reset
-      dataIn  : in  sl;                      -- Trigger to be sync'd
-      dataOut : out sl);                     -- synced one-shot pulse
+      clk     : in  sl;                        -- Clock to be SYNC'd to
+      rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
+      dataIn  : in  sl;                        -- Trigger to be sync'd
+      dataOut : out sl);                       -- synced one-shot pulse
 end SynchronizerOneShot;
 
 architecture rtl of SynchronizerOneShot is
