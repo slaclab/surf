@@ -18,7 +18,8 @@
 --             fixed bug in dealing with an inverted receive link.
 -- 02/01/2011: Rem data and rem link not updated if EOF fields don't match.
 -- 04/04/2014: Changed to Pgp2b. Removed debug.
----------------------------------------------------------------------------------
+-- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-------------------------------------------------------------------------------
 
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
@@ -157,69 +158,70 @@ begin
    end generate;
 
    -- State transition sync logic. 
-   process ( pgpRxClk, pgpRxClkRst ) begin
-      if pgpRxClkRst = '1' then
-         curState        <= ST_RESET_C      after TPD_G;
-         stateCnt        <= (others=>'0') after TPD_G;
-         ltsCnt          <= (others=>'0') after TPD_G;
-         intRxLinkReady  <= '0'           after TPD_G;
-         intRxPolarity   <= (others=>'0') after TPD_G;
-         dlyRxLinkDown   <= '0'           after TPD_G;
-         pgpRxLinkDown   <= '0'           after TPD_G;
-         intRxLinkError  <= '0'           after TPD_G;
-         dlyRxLinkError  <= '0'           after TPD_G;
-         pgpRxLinkError  <= '0'           after TPD_G;
-         intRxInit       <= '0'           after TPD_G;
-         pgpRemLinkReady <= '0'           after TPD_G;
-         pgpRemData      <= (others=>'0') after TPD_G;
-      elsif rising_edge(pgpRxClk) then
-
-         -- Sideband data
-         if intRxLinkReady = '1' then
-            pgpRemLinkReady <= rxDetectRemLink;
-            pgpRemData      <= rxDetectRemData;
-         else
+   process ( pgpRxClk ) begin
+      if rising_edge(pgpRxClk) then
+         if pgpRxClkRst = '1' then
+            curState        <= ST_RESET_C      after TPD_G;
+            stateCnt        <= (others=>'0') after TPD_G;
+            ltsCnt          <= (others=>'0') after TPD_G;
+            intRxLinkReady  <= '0'           after TPD_G;
+            intRxPolarity   <= (others=>'0') after TPD_G;
+            dlyRxLinkDown   <= '0'           after TPD_G;
+            pgpRxLinkDown   <= '0'           after TPD_G;
+            intRxLinkError  <= '0'           after TPD_G;
+            dlyRxLinkError  <= '0'           after TPD_G;
+            pgpRxLinkError  <= '0'           after TPD_G;
+            intRxInit       <= '0'           after TPD_G;
             pgpRemLinkReady <= '0'           after TPD_G;
             pgpRemData      <= (others=>'0') after TPD_G;
-         end if;
-
-         -- Link down edge detection
-         dlyRxLinkDown  <= (not intRxLinkReady) after TPD_G;
-         pgpRxLinkDown  <= (not intRxLinkReady) and (not dlyRxLinkDown) after TPD_G;
-
-         -- Link error generation
-         if (dly1RxDispErr /= 0 or dly1RxDecErr /= 0) and intRxLinkReady = '1' then 
-            intRxLinkError <= '1' after TPD_G;
          else
-            intRxLinkError <= '0' after TPD_G;
+            -- Sideband data
+            if intRxLinkReady = '1' then
+               pgpRemLinkReady <= rxDetectRemLink;
+               pgpRemData      <= rxDetectRemData;
+            else
+               pgpRemLinkReady <= '0'           after TPD_G;
+               pgpRemData      <= (others=>'0') after TPD_G;
+            end if;
+
+            -- Link down edge detection
+            dlyRxLinkDown  <= (not intRxLinkReady) after TPD_G;
+            pgpRxLinkDown  <= (not intRxLinkReady) and (not dlyRxLinkDown) after TPD_G;
+
+            -- Link error generation
+            if (dly1RxDispErr /= 0 or dly1RxDecErr /= 0) and intRxLinkReady = '1' then 
+               intRxLinkError <= '1' after TPD_G;
+            else
+               intRxLinkError <= '0' after TPD_G;
+            end if;
+
+            -- Link error edge detection
+            dlyRxLinkError <= intRxLinkError after TPD_G;
+            pgpRxLinkError <= intRxLinkError and not dlyRxLinkError after TPD_G;
+
+            -- Status signals
+            intRxLinkReady  <= nxtRxLinkReady after TPD_G;
+            intRxPolarity   <= nxtRxPolarity  after TPD_G;
+            intRxInit       <= nxtRxInit      after TPD_G;
+
+            -- State transition
+            curState <= nxtState after TPD_G;
+
+            -- In state counter
+            if stateCntRst = '1' then
+               stateCnt <= (others=>'0') after TPD_G;
+            else
+               stateCnt <= stateCnt + 1 after TPD_G;
+            end if;
+
+            -- LTS Counter
+            if ltsCntRst = '1' then
+               ltsCnt <= (others=>'0') after TPD_G;
+            elsif ltsCntEn = '1' and ltsCnt /= 255 then
+               ltsCnt <= ltsCnt + 1 after TPD_G;
+            end if;
+
          end if;
-
-         -- Link error edge detection
-         dlyRxLinkError <= intRxLinkError after TPD_G;
-         pgpRxLinkError <= intRxLinkError and not dlyRxLinkError after TPD_G;
-
-         -- Status signals
-         intRxLinkReady  <= nxtRxLinkReady after TPD_G;
-         intRxPolarity   <= nxtRxPolarity  after TPD_G;
-         intRxInit       <= nxtRxInit      after TPD_G;
-
-         -- State transition
-         curState <= nxtState after TPD_G;
-
-         -- In state counter
-         if stateCntRst = '1' then
-            stateCnt <= (others=>'0') after TPD_G;
-         else
-            stateCnt <= stateCnt + 1 after TPD_G;
-         end if;
-
-         -- LTS Counter
-         if ltsCntRst = '1' then
-            ltsCnt <= (others=>'0') after TPD_G;
-         elsif ltsCntEn = '1' and ltsCnt /= 255 then
-            ltsCnt <= ltsCnt + 1 after TPD_G;
-         end if;
-
       end if;
    end process;
 
@@ -412,129 +414,132 @@ begin
 
 
    -- Receive data pipeline
-   process ( pgpRxClk, pgpRxClkRst ) begin
-      if pgpRxClkRst = '1' then
-         dly0RxData    <= (others=>'0') after TPD_G;
-         dly0RxDataK   <= (others=>'0') after TPD_G;
-         dly0RxDispErr <= (others=>'0') after TPD_G;
-         dly0RxDecErr  <= (others=>'0') after TPD_G;
-         dly1RxData    <= (others=>'0') after TPD_G;
-         dly1RxDataK   <= (others=>'0') after TPD_G;
-         dly1RxDispErr <= (others=>'0') after TPD_G;
-         dly1RxDecErr  <= (others=>'0') after TPD_G;
-      elsif rising_edge(pgpRxClk) then
-         dly0RxData    <= phyRxData     after TPD_G;
-         dly0RxDataK   <= phyRxDataK    after TPD_G;
-         dly0RxDispErr <= phyRxDispErr  after TPD_G;
-         dly0RxDecErr  <= phyRxDecErr   after TPD_G;
-         dly1RxData    <= dly0RxData    after TPD_G;
-         dly1RxDataK   <= dly0RxDataK   after TPD_G;
-         dly1RxDispErr <= dly0RxDispErr after TPD_G;
-         dly1RxDecErr  <= dly0RxDecErr  after TPD_G;
+   process ( pgpRxClk ) begin
+      if rising_edge(pgpRxClk) then
+         if pgpRxClkRst = '1' then
+            dly0RxData    <= (others=>'0') after TPD_G;
+            dly0RxDataK   <= (others=>'0') after TPD_G;
+            dly0RxDispErr <= (others=>'0') after TPD_G;
+            dly0RxDecErr  <= (others=>'0') after TPD_G;
+            dly1RxData    <= (others=>'0') after TPD_G;
+            dly1RxDataK   <= (others=>'0') after TPD_G;
+            dly1RxDispErr <= (others=>'0') after TPD_G;
+            dly1RxDecErr  <= (others=>'0') after TPD_G;
+         else
+            dly0RxData    <= phyRxData     after TPD_G;
+            dly0RxDataK   <= phyRxDataK    after TPD_G;
+            dly0RxDispErr <= phyRxDispErr  after TPD_G;
+            dly0RxDecErr  <= phyRxDecErr   after TPD_G;
+            dly1RxData    <= dly0RxData    after TPD_G;
+            dly1RxDataK   <= dly0RxDataK   after TPD_G;
+            dly1RxDispErr <= dly0RxDispErr after TPD_G;
+            dly1RxDecErr  <= dly0RxDecErr  after TPD_G;
+         end if;
       end if;
    end process;
 
 
    -- Link init ordered set detect
-   process ( pgpRxClk, pgpRxClkRst ) begin
-      if pgpRxClkRst = '1' then
-         rxDetectLts       <= '0'           after TPD_G;
-         rxDetectLtsOk     <= '0'           after TPD_G;
-         rxDetectInvert    <= (others=>'0') after TPD_G;
-         rxDetectRemLink   <= '0'           after TPD_G;
-         rxDetectRemData   <= (others=>'0') after TPD_G;
-         rxDetectOpCodeEn  <= '0'           after TPD_G;
-         rxDetectSOC       <= '0'           after TPD_G;
-         rxDetectSOF       <= '0'           after TPD_G;
-         rxDetectEOC       <= '0'           after TPD_G;
-         rxDetectEOF       <= '0'           after TPD_G;
-         rxDetectEOFE      <= '0'           after TPD_G;
-      elsif rising_edge(pgpRxClk) then
-
-         -- LTS is detected when phy is ready
-         if phyRxReady = '1' then
-
-            -- Detect link init ordered sets
-            if rxDetectLtsRaw(0) = '1' and 
-               ( rxDetectLtsRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectInvert  <= rxDetectInvertRaw after TPD_G;
-               rxDetectLts     <= '1'               after TPD_G;
-
-               -- Lane count and ID must match
-               if dly0RxData(13 downto 12) = conv_std_logic_vector(RX_LANE_CNT_G-1,2) and
-                  dly0RxData(11 downto  8) = PGP2B_ID_C then
-                  rxDetectLtsOk   <= '1'                      after TPD_G;
-                  rxDetectRemLink <= dly0RxData(15)           after TPD_G;
-                  rxDetectRemData <= dly0RxData(7  downto  0) after TPD_G;
-               else
-                  rxDetectLtsOk <= '0' after TPD_G;
-               end if;
-            else
-               rxDetectLts     <= '0' after TPD_G;
-               rxDetectLtsOk   <= '0' after TPD_G;
-            end if;
-         else
+   process ( pgpRxClk ) begin
+      if rising_edge(pgpRxClk) then
+         if pgpRxClkRst = '1' then
             rxDetectLts       <= '0'           after TPD_G;
             rxDetectLtsOk     <= '0'           after TPD_G;
             rxDetectInvert    <= (others=>'0') after TPD_G;
             rxDetectRemLink   <= '0'           after TPD_G;
             rxDetectRemData   <= (others=>'0') after TPD_G;
-         end if;
-
-         -- The remaining opcodes are only detected when the link is up
-         if intRxLinkReady = '1' then
-
-            -- Detect opCode ordered set
-            if rxDetectOpCodeEnRaw(0) = '1' and 
-               ( rxDetectOpCodeEnRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectOpCodeEn <= '1' after TPD_G;
-            else
-               rxDetectOpCodeEn <= '0' after TPD_G;
-            end if;
-
-            -- Detect SOC ordered set
-            if rxDetectSOCRaw(0) = '1' and ( rxDetectSOCRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectSOC <= '1' after TPD_G;
-               rxDetectSOF <= '0' after TPD_G;
-
-            -- Detect SOF ordered set
-            elsif rxDetectSOFRaw(0) = '1' and ( rxDetectSOFRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectSOC <= '1' after TPD_G;
-               rxDetectSOF <= '1' after TPD_G;
-            else
-               rxDetectSOC <= '0' after TPD_G;
-               rxDetectSOF <= '0' after TPD_G;
-            end if;
-
-            -- Detect EOC ordered set
-            if rxDetectEOCRaw(0) = '1' and ( rxDetectEOCRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectEOC  <= '1' after TPD_G;
-               rxDetectEOF  <= '0' after TPD_G;
-               rxDetectEOFE <= '0' after TPD_G;
-
-            -- Detect EOF ordered set
-            elsif rxDetectEOFRaw(0) = '1' and ( rxDetectEOFRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectEOC  <= '1' after TPD_G;
-               rxDetectEOF  <= '1' after TPD_G;
-               rxDetectEOFE <= '0' after TPD_G;
-
-            -- Detect EOFE ordered set
-            elsif rxDetectEOFERaw(0) = '1' and ( rxDetectEOFERaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
-               rxDetectEOC  <= '1' after TPD_G;
-               rxDetectEOF  <= '1' after TPD_G;
-               rxDetectEOFE <= '1' after TPD_G;
-            else
-               rxDetectEOC  <= '0' after TPD_G;
-               rxDetectEOF  <= '0' after TPD_G;
-               rxDetectEOFE <= '0' after TPD_G;
-            end if;
-         else
             rxDetectOpCodeEn  <= '0'           after TPD_G;
             rxDetectSOC       <= '0'           after TPD_G;
             rxDetectSOF       <= '0'           after TPD_G;
             rxDetectEOC       <= '0'           after TPD_G;
             rxDetectEOF       <= '0'           after TPD_G;
             rxDetectEOFE      <= '0'           after TPD_G;
+         else
+            -- LTS is detected when phy is ready
+            if phyRxReady = '1' then
+
+               -- Detect link init ordered sets
+               if rxDetectLtsRaw(0) = '1' and 
+                  ( rxDetectLtsRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectInvert  <= rxDetectInvertRaw after TPD_G;
+                  rxDetectLts     <= '1'               after TPD_G;
+
+                  -- Lane count and ID must match
+                  if dly0RxData(13 downto 12) = conv_std_logic_vector(RX_LANE_CNT_G-1,2) and
+                     dly0RxData(11 downto  8) = PGP2B_ID_C then
+                     rxDetectLtsOk   <= '1'                      after TPD_G;
+                     rxDetectRemLink <= dly0RxData(15)           after TPD_G;
+                     rxDetectRemData <= dly0RxData(7  downto  0) after TPD_G;
+                  else
+                     rxDetectLtsOk <= '0' after TPD_G;
+                  end if;
+               else
+                  rxDetectLts     <= '0' after TPD_G;
+                  rxDetectLtsOk   <= '0' after TPD_G;
+               end if;
+            else
+               rxDetectLts       <= '0'           after TPD_G;
+               rxDetectLtsOk     <= '0'           after TPD_G;
+               rxDetectInvert    <= (others=>'0') after TPD_G;
+               rxDetectRemLink   <= '0'           after TPD_G;
+               rxDetectRemData   <= (others=>'0') after TPD_G;
+            end if;
+
+            -- The remaining opcodes are only detected when the link is up
+            if intRxLinkReady = '1' then
+
+               -- Detect opCode ordered set
+               if rxDetectOpCodeEnRaw(0) = '1' and 
+                  ( rxDetectOpCodeEnRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectOpCodeEn <= '1' after TPD_G;
+               else
+                  rxDetectOpCodeEn <= '0' after TPD_G;
+               end if;
+
+               -- Detect SOC ordered set
+               if rxDetectSOCRaw(0) = '1' and ( rxDetectSOCRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectSOC <= '1' after TPD_G;
+                  rxDetectSOF <= '0' after TPD_G;
+
+               -- Detect SOF ordered set
+               elsif rxDetectSOFRaw(0) = '1' and ( rxDetectSOFRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectSOC <= '1' after TPD_G;
+                  rxDetectSOF <= '1' after TPD_G;
+               else
+                  rxDetectSOC <= '0' after TPD_G;
+                  rxDetectSOF <= '0' after TPD_G;
+               end if;
+
+               -- Detect EOC ordered set
+               if rxDetectEOCRaw(0) = '1' and ( rxDetectEOCRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectEOC  <= '1' after TPD_G;
+                  rxDetectEOF  <= '0' after TPD_G;
+                  rxDetectEOFE <= '0' after TPD_G;
+
+               -- Detect EOF ordered set
+               elsif rxDetectEOFRaw(0) = '1' and ( rxDetectEOFRaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectEOC  <= '1' after TPD_G;
+                  rxDetectEOF  <= '1' after TPD_G;
+                  rxDetectEOFE <= '0' after TPD_G;
+
+               -- Detect EOFE ordered set
+               elsif rxDetectEOFERaw(0) = '1' and ( rxDetectEOFERaw(1) = '1' or RX_LANE_CNT_G < 2 ) then
+                  rxDetectEOC  <= '1' after TPD_G;
+                  rxDetectEOF  <= '1' after TPD_G;
+                  rxDetectEOFE <= '1' after TPD_G;
+               else
+                  rxDetectEOC  <= '0' after TPD_G;
+                  rxDetectEOF  <= '0' after TPD_G;
+                  rxDetectEOFE <= '0' after TPD_G;
+               end if;
+            else
+               rxDetectOpCodeEn  <= '0'           after TPD_G;
+               rxDetectSOC       <= '0'           after TPD_G;
+               rxDetectSOF       <= '0'           after TPD_G;
+               rxDetectEOC       <= '0'           after TPD_G;
+               rxDetectEOF       <= '0'           after TPD_G;
+               rxDetectEOFE      <= '0'           after TPD_G;
+            end if;
          end if;
       end if;
    end process;

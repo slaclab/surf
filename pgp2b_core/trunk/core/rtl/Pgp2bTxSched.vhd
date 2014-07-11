@@ -14,6 +14,7 @@
 -- Modification history:
 -- 05/18/2009: created.
 -- 05/18/2012: Added VC transmit timeout
+-- 07/10/2014: Change all ASYNC resets to SYNC resets.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -102,29 +103,30 @@ begin
 
 
    -- State transition logic
-   process (pgpTxClk, pgpTxClkRst)
+   process (pgpTxClk)
    begin
-      if pgpTxClkRst = '1' then
-         curState     <= ST_ARB_C after TPD_G;
-         currVc       <= "00"     after TPD_G;
-         intTxReq     <= '0'      after TPD_G;
-         intTxIdle    <= '0'      after TPD_G;
-         intTxTimeout <= '0'      after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         -- Force state to select state when link goes down
-         if pgpTxLinkReady = '0' then
-            curState <= ST_RST_C after TPD_G;
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            curState     <= ST_ARB_C after TPD_G;
+            currVc       <= "00"     after TPD_G;
+            intTxReq     <= '0'      after TPD_G;
+            intTxIdle    <= '0'      after TPD_G;
+            intTxTimeout <= '0'      after TPD_G;
          else
-            curState <= nxtState after TPD_G;
+            -- Force state to select state when link goes down
+            if pgpTxLinkReady = '0' then
+               curState <= ST_RST_C after TPD_G;
+            else
+               curState <= nxtState after TPD_G;
+            end if;
+
+            -- Control signals
+            currVc       <= nextVc       after TPD_G;
+            intTxReq     <= nxtTxReq     after TPD_G;
+            intTxIdle    <= nxtTxIdle    after TPD_G;
+            intTxTimeout <= nxtTxTimeout after TPD_G;
+
          end if;
-
-         -- Control signals
-         currVc       <= nextVc       after TPD_G;
-         intTxReq     <= nxtTxReq     after TPD_G;
-         intTxIdle    <= nxtTxIdle    after TPD_G;
-         intTxTimeout <= nxtTxTimeout after TPD_G;
-
       end if;
    end process;
 
@@ -281,84 +283,86 @@ begin
 
 
    -- Lock in the status of the last cell transmitted
-   process (pgpTxClk, pgpTxClkRst)
+   process (pgpTxClk)
    begin
-      if pgpTxClkRst = '1' then
-         vcInFrame <= "0000" after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         -- Link is down or flush requested, reset status
-         if pgpTxLinkReady = '0' or pgpTxFlush = '1' then
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
             vcInFrame <= "0000" after TPD_G;
          else
+            -- Link is down or flush requested, reset status
+            if pgpTxLinkReady = '0' or pgpTxFlush = '1' then
+               vcInFrame <= "0000" after TPD_G;
+            else
 
-            -- Update state of VC, track if VC is currently in frame or not
-            -- SOF transmitted
-            if schTxSOF = '1' then
-               vcInFrame(conv_integer(currVc)) <= '1' after TPD_G;
+               -- Update state of VC, track if VC is currently in frame or not
+               -- SOF transmitted
+               if schTxSOF = '1' then
+                  vcInFrame(conv_integer(currVc)) <= '1' after TPD_G;
 
-            -- EOF transmitted
-            elsif schTxEOF = '1' then
-               vcInFrame(conv_integer(currVc)) <= '0' after TPD_G;
+               -- EOF transmitted
+               elsif schTxEOF = '1' then
+                  vcInFrame(conv_integer(currVc)) <= '0' after TPD_G;
+               end if;
             end if;
          end if;
       end if;
    end process;
 
    -- Detect frame transmit timeout
-   process (pgpTxClk, pgpTxClkRst)
+   process (pgpTxClk)
    begin
-      if pgpTxClkRst = '1' then
-         vcTimerA  <= (others => '0') after TPD_G;
-         vcTimerB  <= (others => '0') after TPD_G;
-         vcTimerC  <= (others => '0') after TPD_G;
-         vcTimerD  <= (others => '0') after TPD_G;
-         vcTimeout <= (others => '0') after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         if vcInFrame(0) = '0' or (currVc = 0 and intTxReq = '1') then
-            vcTimerA     <= (others => '0') after TPD_G;
-            vcTimeout(0) <= '0'             after TPD_G;
-         elsif vcTimerA /= x"FFFFFF" then
-            vcTimerA     <= vcTimerA + 1 after TPD_G;
-            vcTimeout(0) <= '0'          after TPD_G;
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            vcTimerA  <= (others => '0') after TPD_G;
+            vcTimerB  <= (others => '0') after TPD_G;
+            vcTimerC  <= (others => '0') after TPD_G;
+            vcTimerD  <= (others => '0') after TPD_G;
+            vcTimeout <= (others => '0') after TPD_G;
          else
-            vcTimeout(0) <= '1' after TPD_G;
-         end if;
-
-         if NUM_VC_EN_G > 1 then
-            if vcInFrame(1) = '0' or (currVc = 1 and intTxReq = '1') then
-               vcTimerB     <= (others => '0') after TPD_G;
-               vcTimeout(1) <= '0'             after TPD_G;
-            elsif vcTimerB /= x"FFFFFF" then
-               vcTimerB     <= vcTimerB + 1 after TPD_G;
-               vcTimeout(1) <= '0'          after TPD_G;
+            if vcInFrame(0) = '0' or (currVc = 0 and intTxReq = '1') then
+               vcTimerA     <= (others => '0') after TPD_G;
+               vcTimeout(0) <= '0'             after TPD_G;
+            elsif vcTimerA /= x"FFFFFF" then
+               vcTimerA     <= vcTimerA + 1 after TPD_G;
+               vcTimeout(0) <= '0'          after TPD_G;
             else
-               vcTimeout(1) <= '1' after TPD_G;
+               vcTimeout(0) <= '1' after TPD_G;
             end if;
-         end if;
 
-         if NUM_VC_EN_G > 2 then
-            if vcInFrame(2) = '0' or (currVc = 2 and intTxReq = '1') then
-               vcTimerC     <= (others => '0') after TPD_G;
-               vcTimeout(2) <= '0'             after TPD_G;
-            elsif vcTimerC /= x"FFFFFF" then
-               vcTimerC     <= vcTimerC + 1 after TPD_G;
-               vcTimeout(2) <= '0'          after TPD_G;
-            else
-               vcTimeout(2) <= '1' after TPD_G;
+            if NUM_VC_EN_G > 1 then
+               if vcInFrame(1) = '0' or (currVc = 1 and intTxReq = '1') then
+                  vcTimerB     <= (others => '0') after TPD_G;
+                  vcTimeout(1) <= '0'             after TPD_G;
+               elsif vcTimerB /= x"FFFFFF" then
+                  vcTimerB     <= vcTimerB + 1 after TPD_G;
+                  vcTimeout(1) <= '0'          after TPD_G;
+               else
+                  vcTimeout(1) <= '1' after TPD_G;
+               end if;
             end if;
-         end if;
 
-         if NUM_VC_EN_G > 3 then
-            if vcInFrame(3) = '0' or (currVc = 3 and intTxReq = '1') then
-               vcTimerD     <= (others => '0') after TPD_G;
-               vcTimeout(3) <= '0'             after TPD_G;
-            elsif vcTimerD /= x"FFFFFF" then
-               vcTimerD     <= vcTimerD + 1 after TPD_G;
-               vcTimeout(3) <= '0'          after TPD_G;
-            else
-               vcTimeout(3) <= '1' after TPD_G;
+            if NUM_VC_EN_G > 2 then
+               if vcInFrame(2) = '0' or (currVc = 2 and intTxReq = '1') then
+                  vcTimerC     <= (others => '0') after TPD_G;
+                  vcTimeout(2) <= '0'             after TPD_G;
+               elsif vcTimerC /= x"FFFFFF" then
+                  vcTimerC     <= vcTimerC + 1 after TPD_G;
+                  vcTimeout(2) <= '0'          after TPD_G;
+               else
+                  vcTimeout(2) <= '1' after TPD_G;
+               end if;
+            end if;
+
+            if NUM_VC_EN_G > 3 then
+               if vcInFrame(3) = '0' or (currVc = 3 and intTxReq = '1') then
+                  vcTimerD     <= (others => '0') after TPD_G;
+                  vcTimeout(3) <= '0'             after TPD_G;
+               elsif vcTimerD /= x"FFFFFF" then
+                  vcTimerD     <= vcTimerD + 1 after TPD_G;
+                  vcTimeout(3) <= '0'          after TPD_G;
+               else
+                  vcTimeout(3) <= '1' after TPD_G;
+               end if;
             end if;
          end if;
       end if;

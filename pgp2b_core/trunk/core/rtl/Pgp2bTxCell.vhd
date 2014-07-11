@@ -17,6 +17,7 @@
 -- 06/25/2010: Added payload size config as generic.
 -- 05/18/2012: Added VC transmit timeout
 -- 04/04/2014: Changed to Pgp2b.
+-- 07/10/2014: Change all ASYNC resets to SYNC resets.
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -233,115 +234,116 @@ begin
 
 
    -- Simple state machine to control transmission of data frames
-   process ( pgpTxClk, pgpTxClkRst ) begin
-      if pgpTxClkRst = '1' then
-         curState         <= ST_IDLE_C     after TPD_G;
-         cellCnt          <= (others=>'0') after TPD_G;
-         int0FrameTxReady <= '0'           after TPD_G;
-         int1FrameTxReady <= '0'           after TPD_G;
-         int2FrameTxReady <= '0'           after TPD_G;
-         int3FrameTxReady <= '0'           after TPD_G;
-         intTimeout       <= '0'           after TPD_G;
-         schTxSOF         <= '0'           after TPD_G;
-         schTxEOF         <= '0'           after TPD_G;
-         schTxAck         <= '0'           after TPD_G;
-         vc0Serial        <= (others=>'0') after TPD_G;
-         vc1Serial        <= (others=>'0') after TPD_G;
-         vc2Serial        <= (others=>'0') after TPD_G;
-         vc3Serial        <= (others=>'0') after TPD_G;
-         curTypeLast      <= (others=>'0') after TPD_G;
-         intOverflow      <= (others=>'0') after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         -- State control
-         if pgpTxLinkReady = '0' then
-            curState <= ST_IDLE_C after TPD_G;
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            curState         <= ST_IDLE_C     after TPD_G;
+            cellCnt          <= (others=>'0') after TPD_G;
+            int0FrameTxReady <= '0'           after TPD_G;
+            int1FrameTxReady <= '0'           after TPD_G;
+            int2FrameTxReady <= '0'           after TPD_G;
+            int3FrameTxReady <= '0'           after TPD_G;
+            intTimeout       <= '0'           after TPD_G;
+            schTxSOF         <= '0'           after TPD_G;
+            schTxEOF         <= '0'           after TPD_G;
+            schTxAck         <= '0'           after TPD_G;
+            vc0Serial        <= (others=>'0') after TPD_G;
+            vc1Serial        <= (others=>'0') after TPD_G;
+            vc2Serial        <= (others=>'0') after TPD_G;
+            vc3Serial        <= (others=>'0') after TPD_G;
+            curTypeLast      <= (others=>'0') after TPD_G;
+            intOverflow      <= (others=>'0') after TPD_G;
          else
-            curState <= nxtState after TPD_G;
-         end if;
+            -- State control
+            if pgpTxLinkReady = '0' then
+               curState <= ST_IDLE_C after TPD_G;
+            else
+               curState <= nxtState after TPD_G;
+            end if;
 
-         -- Payload Counter
-         if cellCntRst = '1' then
-            cellCnt <= (others=>'1') after TPD_G;
-         elsif cellCnt /= 0 then
-            cellCnt <= cellCnt - 1 after TPD_G;
-         end if;
+            -- Payload Counter
+            if cellCntRst = '1' then
+               cellCnt <= (others=>'1') after TPD_G;
+            elsif cellCnt /= 0 then
+               cellCnt <= cellCnt - 1 after TPD_G;
+            end if;
 
-         -- Outgoing ready signal
-         case schTxDataVc is
-            when "00" =>
-               int0FrameTxReady <= nxtFrameTxReady after TPD_G;
-               int1FrameTxReady <= '0'             after TPD_G;
-               int2FrameTxReady <= '0'             after TPD_G;
-               int3FrameTxReady <= '0'             after TPD_G;
-            when "01" =>
-               int0FrameTxReady <= '0'             after TPD_G;
-               int1FrameTxReady <= nxtFrameTxReady after TPD_G;
-               int2FrameTxReady <= '0'             after TPD_G;
-               int3FrameTxReady <= '0'             after TPD_G;
-            when "10" =>
-               int0FrameTxReady <= '0'             after TPD_G;
-               int1FrameTxReady <= '0'             after TPD_G;
-               int2FrameTxReady <= nxtFrameTxReady after TPD_G;
-               int3FrameTxReady <= '0'             after TPD_G;
-            when others =>
-               int0FrameTxReady <= '0'             after TPD_G;
-               int1FrameTxReady <= '0'             after TPD_G;
-               int2FrameTxReady <= '0'             after TPD_G;
-               int3FrameTxReady <= nxtFrameTxReady after TPD_G;
-         end case;
-
-         -- Register timeout request
-         if schTxReq = '1' then
-            intTimeout <= schTxTimeout after TPD_G;
-         end if;
-
-         -- Update Last Type
-         curTypeLast <= nxtTypeLast after TPD_G;
-
-         -- VC Serial Numbers
-         if pgpTxLinkReady = '0' then
-            vc0Serial <= (others=>'0') after TPD_G;
-            vc1Serial <= (others=>'0') after TPD_G;
-            vc2Serial <= (others=>'0') after TPD_G;
-            vc3Serial <= (others=>'0') after TPD_G;
-         elsif serialCntEn = '1' then
+            -- Outgoing ready signal
             case schTxDataVc is
-               when "00"   => vc0Serial <= vc0Serial + 1 after TPD_G;
-               when "01"   => vc1Serial <= vc1Serial + 1 after TPD_G;
-               when "10"   => vc2Serial <= vc2Serial + 1 after TPD_G;
-               when others => vc3Serial <= vc3Serial + 1 after TPD_G;
+               when "00" =>
+                  int0FrameTxReady <= nxtFrameTxReady after TPD_G;
+                  int1FrameTxReady <= '0'             after TPD_G;
+                  int2FrameTxReady <= '0'             after TPD_G;
+                  int3FrameTxReady <= '0'             after TPD_G;
+               when "01" =>
+                  int0FrameTxReady <= '0'             after TPD_G;
+                  int1FrameTxReady <= nxtFrameTxReady after TPD_G;
+                  int2FrameTxReady <= '0'             after TPD_G;
+                  int3FrameTxReady <= '0'             after TPD_G;
+               when "10" =>
+                  int0FrameTxReady <= '0'             after TPD_G;
+                  int1FrameTxReady <= '0'             after TPD_G;
+                  int2FrameTxReady <= nxtFrameTxReady after TPD_G;
+                  int3FrameTxReady <= '0'             after TPD_G;
+               when others =>
+                  int0FrameTxReady <= '0'             after TPD_G;
+                  int1FrameTxReady <= '0'             after TPD_G;
+                  int2FrameTxReady <= '0'             after TPD_G;
+                  int3FrameTxReady <= nxtFrameTxReady after TPD_G;
             end case;
-         end if;
 
-         -- Scheduler Signals
-         schTxSOF <= nxtTxSOF after TPD_G;
-         schTxEOF <= nxtTxEOF after TPD_G;
-         schTxAck <= nxtTxAck after TPD_G;
+            -- Register timeout request
+            if schTxReq = '1' then
+               intTimeout <= schTxTimeout after TPD_G;
+            end if;
 
-         -- Overflow Latch Until Send
-         if vc0LocOverflow = '1' then
-            intOverflow(0) <= '1' after TPD_G;
-         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
-            intOverflow(0) <= '0' after TPD_G;
-         end if;
+            -- Update Last Type
+            curTypeLast <= nxtTypeLast after TPD_G;
 
-         if vc1LocOverflow = '1' then
-            intOverflow(1) <= '1' after TPD_G;
-         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
-            intOverflow(1) <= '0' after TPD_G;
-         end if;
+            -- VC Serial Numbers
+            if pgpTxLinkReady = '0' then
+               vc0Serial <= (others=>'0') after TPD_G;
+               vc1Serial <= (others=>'0') after TPD_G;
+               vc2Serial <= (others=>'0') after TPD_G;
+               vc3Serial <= (others=>'0') after TPD_G;
+            elsif serialCntEn = '1' then
+               case schTxDataVc is
+                  when "00"   => vc0Serial <= vc0Serial + 1 after TPD_G;
+                  when "01"   => vc1Serial <= vc1Serial + 1 after TPD_G;
+                  when "10"   => vc2Serial <= vc2Serial + 1 after TPD_G;
+                  when others => vc3Serial <= vc3Serial + 1 after TPD_G;
+               end case;
+            end if;
 
-         if vc2LocOverflow = '1' then
-            intOverflow(2) <= '1' after TPD_G;
-         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
-            intOverflow(2) <= '0' after TPD_G;
-         end if;
+            -- Scheduler Signals
+            schTxSOF <= nxtTxSOF after TPD_G;
+            schTxEOF <= nxtTxEOF after TPD_G;
+            schTxAck <= nxtTxAck after TPD_G;
 
-         if vc3LocOverflow = '1' then
-            intOverflow(3) <= '1' after TPD_G;
-         elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
-            intOverflow(3) <= '0' after TPD_G;
+            -- Overflow Latch Until Send
+            if vc0LocOverflow = '1' then
+               intOverflow(0) <= '1' after TPD_G;
+            elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               intOverflow(0) <= '0' after TPD_G;
+            end if;
+
+            if vc1LocOverflow = '1' then
+               intOverflow(1) <= '1' after TPD_G;
+            elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               intOverflow(1) <= '0' after TPD_G;
+            end if;
+
+            if vc2LocOverflow = '1' then
+               intOverflow(2) <= '1' after TPD_G;
+            elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               intOverflow(2) <= '0' after TPD_G;
+            end if;
+
+            if vc3LocOverflow = '1' then
+               intOverflow(3) <= '1' after TPD_G;
+            elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               intOverflow(3) <= '0' after TPD_G;
+            end if;
          end if;
       end if;
    end process;
@@ -548,39 +550,40 @@ begin
 
 
    -- Delay chain to allow CRC data to catch up.
-   process ( pgpTxClk, pgpTxClkRst ) begin
-      if pgpTxClkRst = '1' then
-         dly0Data         <= (others=>'0');
-         dly0Type         <= (others=>'0');
-         dly1Data         <= (others=>'0');
-         dly1Type         <= (others=>'0');
-         dly2Data         <= (others=>'0');
-         dly2Type         <= (others=>'0');
-         dly3Data         <= (others=>'0');
-         dly3Type         <= (others=>'0');
-         dly4Data         <= (others=>'0');
-         dly4Type         <= (others=>'0');
-      elsif rising_edge(pgpTxClk) then
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            dly0Data         <= (others=>'0');
+            dly0Type         <= (others=>'0');
+            dly1Data         <= (others=>'0');
+            dly1Type         <= (others=>'0');
+            dly2Data         <= (others=>'0');
+            dly2Type         <= (others=>'0');
+            dly3Data         <= (others=>'0');
+            dly3Type         <= (others=>'0');
+            dly4Data         <= (others=>'0');
+            dly4Type         <= (others=>'0');
+         else
+            -- Delay stage 1
+            dly0Data  <= nxtData after TPD_G;
+            dly0Type  <= nxtType after TPD_G;
 
-         -- Delay stage 1
-         dly0Data  <= nxtData after TPD_G;
-         dly0Type  <= nxtType after TPD_G;
+            -- Delay stage 2
+            dly1Data  <= dly0Data after TPD_G;
+            dly1Type  <= dly0Type after TPD_G;
 
-         -- Delay stage 2
-         dly1Data  <= dly0Data after TPD_G;
-         dly1Type  <= dly0Type after TPD_G;
+            -- Delay stage 3
+            dly2Data  <= dly1Data after TPD_G;
+            dly2Type  <= dly1Type after TPD_G;
 
-         -- Delay stage 3
-         dly2Data  <= dly1Data after TPD_G;
-         dly2Type  <= dly1Type after TPD_G;
+            -- Delay stage 3
+            dly3Data  <= dly2Data after TPD_G;
+            dly3Type  <= dly2Type after TPD_G;
 
-         -- Delay stage 3
-         dly3Data  <= dly2Data after TPD_G;
-         dly3Type  <= dly2Type after TPD_G;
-
-         -- Delay stage 3
-         dly4Data  <= dly3Data after TPD_G;
-         dly4Type  <= dly3Type after TPD_G;
+            -- Delay stage 3
+            dly4Data  <= dly3Data after TPD_G;
+            dly4Type  <= dly3Type after TPD_G;
+         end if;
       end if;
    end process;
 
@@ -609,82 +612,83 @@ begin
    end generate;
 
    -- Output stage
-   process ( pgpTxClk, pgpTxClkRst ) begin
-      if pgpTxClkRst = '1' then
-         cellTxSOC    <= '0'           after TPD_G;
-         cellTxSOF    <= '0'           after TPD_G;
-         cellTxEOC    <= '0'           after TPD_G;
-         cellTxEOF    <= '0'           after TPD_G;
-         cellTxEOFE   <= '0'           after TPD_G;
-         cellTxData   <= (others=>'0') after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         -- Which data type
-         case dly2Type is 
-            when TX_DATA_C =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '0'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= dly2Data      after TPD_G;
-            when TX_SOC_C =>
-               cellTxSOC    <= '1'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '0'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= dly2Data      after TPD_G;
-            when TX_SOF_C =>
-               cellTxSOC    <= '1'           after TPD_G;
-               cellTxSOF    <= '1'           after TPD_G;
-               cellTxEOC    <= '0'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= dly2Data      after TPD_G;
-            when TX_CRCA_C =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '0'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= crcWordA      after TPD_G;
-            when TX_CRCB_C =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '0'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= crcWordB      after TPD_G;
-            when TX_EOC_C =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '1'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= dly2Data      after TPD_G;
-            when TX_EOF_C =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '1'           after TPD_G;
-               cellTxEOF    <= '1'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= dly2Data      after TPD_G;
-            when TX_EOFE_C =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '1'           after TPD_G;
-               cellTxEOF    <= '1'           after TPD_G;
-               cellTxEOFE   <= '1'           after TPD_G;
-               cellTxData   <= dly2Data      after TPD_G;
-            when others =>
-               cellTxSOC    <= '0'           after TPD_G;
-               cellTxSOF    <= '0'           after TPD_G;
-               cellTxEOC    <= '0'           after TPD_G;
-               cellTxEOF    <= '0'           after TPD_G;
-               cellTxEOFE   <= '0'           after TPD_G;
-               cellTxData   <= (others=>'0') after TPD_G;
-         end case;
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            cellTxSOC    <= '0'           after TPD_G;
+            cellTxSOF    <= '0'           after TPD_G;
+            cellTxEOC    <= '0'           after TPD_G;
+            cellTxEOF    <= '0'           after TPD_G;
+            cellTxEOFE   <= '0'           after TPD_G;
+            cellTxData   <= (others=>'0') after TPD_G;
+         else
+            -- Which data type
+            case dly2Type is 
+               when TX_DATA_C =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '0'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= dly2Data      after TPD_G;
+               when TX_SOC_C =>
+                  cellTxSOC    <= '1'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '0'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= dly2Data      after TPD_G;
+               when TX_SOF_C =>
+                  cellTxSOC    <= '1'           after TPD_G;
+                  cellTxSOF    <= '1'           after TPD_G;
+                  cellTxEOC    <= '0'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= dly2Data      after TPD_G;
+               when TX_CRCA_C =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '0'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= crcWordA      after TPD_G;
+               when TX_CRCB_C =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '0'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= crcWordB      after TPD_G;
+               when TX_EOC_C =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '1'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= dly2Data      after TPD_G;
+               when TX_EOF_C =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '1'           after TPD_G;
+                  cellTxEOF    <= '1'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= dly2Data      after TPD_G;
+               when TX_EOFE_C =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '1'           after TPD_G;
+                  cellTxEOF    <= '1'           after TPD_G;
+                  cellTxEOFE   <= '1'           after TPD_G;
+                  cellTxData   <= dly2Data      after TPD_G;
+               when others =>
+                  cellTxSOC    <= '0'           after TPD_G;
+                  cellTxSOF    <= '0'           after TPD_G;
+                  cellTxEOC    <= '0'           after TPD_G;
+                  cellTxEOF    <= '0'           after TPD_G;
+                  cellTxEOFE   <= '0'           after TPD_G;
+                  cellTxData   <= (others=>'0') after TPD_G;
+            end case;
+         end if;
       end if;
    end process;
 
