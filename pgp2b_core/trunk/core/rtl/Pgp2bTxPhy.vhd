@@ -15,7 +15,8 @@
 -- 05/18/2009: created.
 -- 11/23/2009: Renamed package.
 -- 04/04/2014: Changed to Pgp2b.
----------------------------------------------------------------------------------
+-- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-------------------------------------------------------------------------------
 
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
@@ -115,36 +116,37 @@ begin
    pgpTxLinkReady <= intTxLinkReady;
 
    -- State transition sync logic. 
-   process ( pgpTxClk, pgpTxClkRst ) begin
-      if pgpTxClkRst = '1' then
-         curState         <= ST_LOCK_C     after TPD_G;
-         algnCnt          <= (others=>'0') after TPD_G;
-         intTxLinkReady   <= '0'           after TPD_G;
-         intTxOpCode      <= (others=>'0') after TPD_G;
-         intTxOpCodeEn    <= '0'           after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         -- Opcode Transmit
-         if pgpTxOpCodeEn = '1' then
-            intTxOpCode <= pgpTxOpCode after TPD_G;
-         end if;
-         intTxOpCodeEn <= pgpTxOpCodeEn after TPD_G;
-
-         -- Status signal
-         intTxLinkReady <= nxtTxLinkReady after TPD_G;
-
-         -- PLL Lock is lost
-         if phyTxReady = '0' then
-            curState   <= ST_LOCK_C after TPD_G;
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
+            curState         <= ST_LOCK_C     after TPD_G;
+            algnCnt          <= (others=>'0') after TPD_G;
+            intTxLinkReady   <= '0'           after TPD_G;
+            intTxOpCode      <= (others=>'0') after TPD_G;
+            intTxOpCodeEn    <= '0'           after TPD_G;
          else
-            curState <= nxtState after TPD_G;
-         end if;
+            -- Opcode Transmit
+            if pgpTxOpCodeEn = '1' then
+               intTxOpCode <= pgpTxOpCode after TPD_G;
+            end if;
+            intTxOpCodeEn <= pgpTxOpCodeEn after TPD_G;
 
-         -- Cell Counter
-         if algnCntRst = '1' then
-            algnCnt <= (others=>'1') after TPD_G;
-         elsif algnCnt /= 0 and cellTxEOC = '1' then
-            algnCnt <= algnCnt - 1 after TPD_G;
+            -- Status signal
+            intTxLinkReady <= nxtTxLinkReady after TPD_G;
+
+            -- PLL Lock is lost
+            if phyTxReady = '0' then
+               curState   <= ST_LOCK_C after TPD_G;
+            else
+               curState <= nxtState after TPD_G;
+            end if;
+
+            -- Cell Counter
+            if algnCntRst = '1' then
+               algnCnt <= (others=>'1') after TPD_G;
+            elsif algnCnt /= 0 and cellTxEOC = '1' then
+               algnCnt <= algnCnt - 1 after TPD_G;
+            end if;
          end if;
       end if;
    end process;
@@ -319,64 +321,66 @@ begin
    -- be selected until an EOC is transmitted. At that time the
    -- non-delayed chain will be select. An empty position is inserted
    -- after EOC so that valid opcodes are not lost.
-   process ( pgpTxClk, pgpTxClkRst ) begin
-      if pgpTxClkRst = '1' then
-         dlySelect <= '0' after TPD_G;
-         dlyTxEOC  <= '0' after TPD_G;
-      elsif rising_edge(pgpTxClk) then
-
-         -- Choose delay chain when opcode is transmitted
-         if intTxOpCodeEn = '1' then
-            dlySelect <= '1' after TPD_G;
-        
-         -- Reset delay chain when delayed EOC is transmitted
-         elsif dlyTxEOC = '1' then
+   process ( pgpTxClk ) begin
+      if rising_edge(pgpTxClk) then
+         if pgpTxClkRst = '1' then
             dlySelect <= '0' after TPD_G;
+            dlyTxEOC  <= '0' after TPD_G;
+         else
+            -- Choose delay chain when opcode is transmitted
+            if intTxOpCodeEn = '1' then
+               dlySelect <= '1' after TPD_G;
+           
+            -- Reset delay chain when delayed EOC is transmitted
+            elsif dlyTxEOC = '1' then
+               dlySelect <= '0' after TPD_G;
+            end if;
+
+            -- Delayed copy of EOC
+            dlyTxEOC <= cellTxEOC after TPD_G;
+
          end if;
-
-         -- Delayed copy of EOC
-         dlyTxEOC <= cellTxEOC after TPD_G;
-
       end if;
    end process;
 
 
    -- Outgoing data
    GEN_OUT: for i in 0 to (TX_LANE_CNT_G-1) generate
-      process ( pgpTxClk, pgpTxClkRst ) begin
-         if pgpTxClkRst = '1' then
-            intTxData(i*16+15 downto i*16) <= (others=>'0') after TPD_G;
-            intTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
-            dlyTxData(i*16+15 downto i*16) <= (others=>'0') after TPD_G;
-            dlyTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
-         elsif rising_edge(pgpTxClk) then
-
-            -- Delayed copy of data
-            dlyTxData(i*16+15 downto i*16) <= nxtTxData(i*16+15 downto i*16) after TPD_G;
-            dlyTxDataK(i*2+1  downto i*2)  <= nxtTxDataK(i*2+1  downto i*2)  after TPD_G;
-
-            -- PLL Lock is lost
-            if phyTxReady = '0' then
+      process ( pgpTxClk ) begin
+         if rising_edge(pgpTxClk) then
+            if pgpTxClkRst = '1' then
                intTxData(i*16+15 downto i*16) <= (others=>'0') after TPD_G;
                intTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
+               dlyTxData(i*16+15 downto i*16) <= (others=>'0') after TPD_G;
+               dlyTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
             else
+               -- Delayed copy of data
+               dlyTxData(i*16+15 downto i*16) <= nxtTxData(i*16+15 downto i*16) after TPD_G;
+               dlyTxDataK(i*2+1  downto i*2)  <= nxtTxDataK(i*2+1  downto i*2)  after TPD_G;
 
-               -- Delayed data, opcode transmission is not allowed until delay line resets
-               if dlySelect = '1' then
-                  intTxData(i*16+15 downto i*16) <= dlyTxData(i*16+15 downto i*16) after TPD_G;
-                  intTxDataK(i*2+1  downto i*2)  <= dlyTxDataK(i*2+1  downto i*2)  after TPD_G;
+               -- PLL Lock is lost
+               if phyTxReady = '0' then
+                  intTxData(i*16+15 downto i*16) <= (others=>'0') after TPD_G;
+                  intTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
+               else
 
-               -- Transmit opcode
-               elsif intTxOpCodeEn = '1' then
-                  intTxData(i*16+7  downto i*16)   <= K_OTS_C     after TPD_G;
-                  intTxDataK(i*2)                  <= '1'         after TPD_G;
-                  intTxData(i*16+15 downto i*16+8) <= intTxOpCode after TPD_G;
-                  intTxDataK(i*2+1)                <= '0'         after TPD_G;
+                  -- Delayed data, opcode transmission is not allowed until delay line resets
+                  if dlySelect = '1' then
+                     intTxData(i*16+15 downto i*16) <= dlyTxData(i*16+15 downto i*16) after TPD_G;
+                     intTxDataK(i*2+1  downto i*2)  <= dlyTxDataK(i*2+1  downto i*2)  after TPD_G;
 
-               -- Nornal Data
-               else 
-                  intTxData(i*16+15 downto i*16) <= nxtTxData(i*16+15 downto i*16) after TPD_G;
-                  intTxDataK(i*2+1  downto i*2)  <= nxtTxDataK(i*2+1  downto i*2)  after TPD_G;
+                  -- Transmit opcode
+                  elsif intTxOpCodeEn = '1' then
+                     intTxData(i*16+7  downto i*16)   <= K_OTS_C     after TPD_G;
+                     intTxDataK(i*2)                  <= '1'         after TPD_G;
+                     intTxData(i*16+15 downto i*16+8) <= intTxOpCode after TPD_G;
+                     intTxDataK(i*2+1)                <= '0'         after TPD_G;
+
+                  -- Nornal Data
+                  else 
+                     intTxData(i*16+15 downto i*16) <= nxtTxData(i*16+15 downto i*16) after TPD_G;
+                     intTxDataK(i*2+1  downto i*2)  <= nxtTxDataK(i*2+1  downto i*2)  after TPD_G;
+                  end if;
                end if;
             end if;
          end if;
