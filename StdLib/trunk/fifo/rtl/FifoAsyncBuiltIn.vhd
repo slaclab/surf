@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-05-05
+-- Last update: 2014-07-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ begin
    SynchronizerVector_0 : entity work.SynchronizerVector
       generic map (
          TPD_G       => TPD_G,
-         RST_ASYNC_G => true,
+         RST_ASYNC_G => false,
          STAGES_G    => SYNC_STAGES_G,
          WIDTH_G     => ADDR_WIDTH_G)
       port map (
@@ -297,7 +297,7 @@ begin
    SynchronizerVector_1 : entity work.SynchronizerVector
       generic map (
          TPD_G       => TPD_G,
-         RST_ASYNC_G => true,
+         RST_ASYNC_G => false,
          STAGES_G    => SYNC_STAGES_G,
          WIDTH_G     => ADDR_WIDTH_G)
       port map (
@@ -336,7 +336,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
-            RST_ASYNC_G    => true,
+            RST_ASYNC_G    => false,
             DATA_WIDTH_G   => DATA_WIDTH_G,
             PIPE_STAGES_G  => PIPE_STAGES_G)
          port map (
