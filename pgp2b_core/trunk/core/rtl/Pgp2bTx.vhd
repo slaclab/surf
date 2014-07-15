@@ -99,6 +99,7 @@ architecture Pgp2bTx of Pgp2bTx is
    signal syncLocPause     : slv(3 downto 0);
    signal syncLocOverFlow  : slv(3 downto 0);
    signal syncRemPause     : slv(3 downto 0);
+   signal gateRemPause     : slv(3 downto 0);
    signal syncLocLinkReady : sl;
 
    attribute KEEP_HIERARCHY : string;
@@ -133,6 +134,7 @@ begin
          );
    end generate;
 
+
    U_LinkReady: entity work.Synchronizer
       generic map (
          TPD_G          => TPD_G,
@@ -163,11 +165,18 @@ begin
    process ( pgpTxClk ) begin
       if rising_edge(pgpTxClk) then
          if pgpTxCLkRst = '1' then
-            pgpTxOut.frameTx    <= '0' after TPD_G;
-            pgpTxOut.frameTxErr <= '0' after TPD_G;
+            pgpTxOut.frameTx    <= '0'           after TPD_G;
+            pgpTxOut.frameTxErr <= '0'           after TPD_G;
+            gateRemPause        <= (others=>'0') after TPD_G;
          else
             pgpTxOut.frameTx    <= cellTxEOF  after TPD_G;
             pgpTxOut.frameTxErr <= cellTxEOFE after TPD_G;
+
+            if pgpTxIn.flowCntlDis = '1' then
+               gateRemPause <= (others=>'0') after TPD_G;
+            else
+               gateRemPause <= syncRemPause after TPD_G;
+            end if;
          end if;
       end if;
    end process;
@@ -285,8 +294,8 @@ begin
 
    -- EOFE/Ready/Valid
    U_Vc_Gen: for i in 0 to 3 generate
-      intReady(i)           <= rawReady(i) and (not syncRemPause(i));
-      intValid(i)           <= pgpTxMasters(i).tValid and (not syncRemPause(i));
+      intReady(i)           <= rawReady(i) and (not gateRemPause(i));
+      intValid(i)           <= pgpTxMasters(i).tValid and (not gateRemPause(i));
       intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_EOFE_C);
       intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_SOF_C,0);
       pgpTxSlaves(i).tReady <= intReady(i);

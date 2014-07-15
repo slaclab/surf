@@ -109,10 +109,11 @@ package Pgp2bPkg is
    -----------------------------------------------------
 
    type Pgp2bTxInType is record
-      flush         : sl;                -- Flush the link
-      opCodeEn      : sl;                -- Opcode receive enable
-      opCode        : slv(7 downto 0);   -- Opcode receive value
-      locData       : slv(7 downto 0);   -- Near end side User Data
+      flush           : sl;                -- Flush the link
+      opCodeEn        : sl;                -- Opcode receive enable
+      opCode          : slv(7 downto 0);   -- Opcode receive value
+      locData         : slv(7 downto 0);   -- Near end side User Data
+      flowCntlDis     : sl;                -- Ignore flow control 
    end record Pgp2bTxInType;
 
    type Pgp2bTxInArray is array (natural range <>) of Pgp2bTxInType;
@@ -121,7 +122,8 @@ package Pgp2bPkg is
       '0',
       '0',
       (others => '0'),
-      (others => '0')
+      (others => '0'),
+      '0'
    );               
 
    type Pgp2bTxOutType is record

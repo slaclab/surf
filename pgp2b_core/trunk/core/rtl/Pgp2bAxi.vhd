@@ -21,6 +21,8 @@
 --       Bits 8   = Sideband data enable
 --    0x14 = Read/Write
 --       Bits 0 = Auto Status Send Enable (PPI)
+--    0x18 = Read/Write
+--       Bits 0 = Disable Flow Control
 --    0x20 = Read Only
 --       Bits 0     = Rx Phy Ready
 --       Bits 1     = Tx Phy Ready
@@ -161,11 +163,12 @@ architecture structure of Pgp2bAxi is
       resetRx        : sl;
       countReset     : sl;
       loopBack       : slv(2 downto 0);
+      flowCntlDis    : sl;
       autoStatus     : sl;
       locData        : slv(7 downto 0);
       locDataEn      : sl;
-      axilWriteSlave  : AxiLiteWriteSlaveType;
-      axilReadSlave   : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+      axilReadSlave  : AxiLiteReadSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -173,6 +176,7 @@ architecture structure of Pgp2bAxi is
       resetRx        => '0',
       countReset     => '0',
       loopBack       => (others=>'0'),
+      flowCntlDis    => '0',
       autoStatus     => '0',
       locData        => (others=>'0'),
       locDataEn      => '0',
@@ -560,9 +564,10 @@ begin
       );
 
    -- Set rx input
-   pgpRxIn.flush    <= locRxIn.flush    or rxFlush;
-   pgpRxIn.resetRx  <= locRxIn.resetRx  or rxReset;
-   pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
+   pgpRxIn.flush       <= locRxIn.flush       or rxFlush;
+   pgpRxIn.resetRx     <= locRxIn.resetRx     or rxReset;
+   pgpRxIn.loopback    <= locRxIn.loopback    or r.loopBack;
+   pgpRxIn.flowCntlDis <= locRxIn.flowCntlDis or r.flowCntlDis;
 
 
    ------------------------------------
@@ -604,6 +609,8 @@ begin
                v.locData    := axilWriteMaster.wdata(7 downto 0);
             when X"14" =>
                v.autoStatus := axilWriteMaster.wdata(0);
+            when X"18" =>
+               v.flowCntlDis := ite(WRITE_EN_G,axilWriteMaster.wdata(0),'0');
             when others => null;
          end case;
 
@@ -630,6 +637,8 @@ begin
                v.axilReadSlave.rdata(7 downto 0) := r.locData;
             when X"14" =>
                v.axilReadSlave.rdata(0) := r.autoStatus;
+            when X"18" =>
+               v.axilReadSlave.rdata(0) := r.flowCntlDis;
             when X"20" =>
                v.axilReadSlave.rdata(0)            := rxStatusSync.phyRxReady;
                v.axilReadSlave.rdata(1)            := txStatusSync.phyTxReady;
