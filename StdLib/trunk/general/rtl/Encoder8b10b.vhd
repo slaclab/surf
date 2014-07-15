@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2013-08-02
+-- Last update: 2014-07-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ architecture rtl of Encoder8b10b is
 
 begin
 
-   comb : process (r, dataIn, rst) is
+   comb : process (dataIn, dataKIn, r, rst) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
