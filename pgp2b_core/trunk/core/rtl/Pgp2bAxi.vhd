@@ -151,12 +151,13 @@ architecture structure of Pgp2bAxi is
    signal txErrorCntOut  : SlVectorArray(10 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal txStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal rxErrorIrqEn : slv(16 downto 0);
-   signal locTxDataEn  : sl;
-   signal locTxData    : slv(7 downto 0);
-   signal txFlush      : sl;
-   signal rxFlush      : sl;
-   signal rxReset      : sl;
+   signal rxErrorIrqEn    : slv(16 downto 0);
+   signal locTxDataEn     : sl;
+   signal locTxData       : slv(7 downto 0);
+   signal txFlush         : sl;
+   signal rxFlush         : sl;
+   signal rxReset         : sl;
+   signal syncFlowCntlDis : sl;
 
    type RegType is record
       flush          : sl;
@@ -508,6 +509,23 @@ begin
          );
    end generate;
 
+   -- Sync flow cntl disable
+   U_FlowCntlDis: entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => false,
+         STAGES_G       => 2,
+         INIT_G         => "0"
+      ) port map (
+         clk        => pgpTxClk,
+         rst        => pgpTxClkRst,
+         dataIn     => r.flowCntlDis,
+         dataOut    => syncFlowCntlDis
+      );
+
+
    U_TxDataSyncDis : if COMMON_RX_CLK_G generate
       locTxDataEn <= r.locDataEn;
       locTxData   <= r.locData;
@@ -527,10 +545,11 @@ begin
       );
 
    -- Set tx input
-   pgpTxIn.flush    <= locTxIn.flush or txFlush;
-   pgpTxIn.opCodeEn <= locTxIn.opCodeEn;
-   pgpTxIn.opCode   <= locTxIn.opCode;
-   pgpTxIn.locData  <= locTxData when locTxDataEn = '1' else locTxIn.locData;
+   pgpTxIn.flush       <= locTxIn.flush or txFlush;
+   pgpTxIn.opCodeEn    <= locTxIn.opCodeEn;
+   pgpTxIn.opCode      <= locTxIn.opCode;
+   pgpTxIn.locData     <= locTxData when locTxDataEn = '1' else locTxIn.locData;
+   pgpTxIn.flowCntlDis <= locTxIn.flowCntlDis or syncFlowCntlDis;
 
 
    -------------------------------------
@@ -567,7 +586,6 @@ begin
    pgpRxIn.flush       <= locRxIn.flush       or rxFlush;
    pgpRxIn.resetRx     <= locRxIn.resetRx     or rxReset;
    pgpRxIn.loopback    <= locRxIn.loopback    or r.loopBack;
-   pgpRxIn.flowCntlDis <= locRxIn.flowCntlDis or r.flowCntlDis;
 
 
    ------------------------------------
