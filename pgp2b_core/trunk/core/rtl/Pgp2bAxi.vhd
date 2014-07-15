@@ -123,7 +123,7 @@ entity Pgp2bAxi is
       locRxIn          : in  Pgp2bRxInType := PGP2B_RX_IN_INIT_C;
 
       -- Status Bus (axilClk domain)
-      statusWord       : out slv(31 downto 0);
+      statusWord       : out slv(63 downto 0);
       statusSend       : out sl;
 
       -- AXI-Lite Register Interface (axilClk domain)
