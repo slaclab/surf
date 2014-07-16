@@ -81,7 +81,7 @@ architecture rtl of AxiStreamFifo is
 
    constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
 
-   constant KEEP_MODE_C : TKeepModeType := SLAVE_AXI_CONFIG_G.TKEEP_MODE_C;
+   constant KEEP_MODE_C : TKeepModeType := MASTER_AXI_CONFIG_G.TKEEP_MODE_C;
    constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
                                            ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
