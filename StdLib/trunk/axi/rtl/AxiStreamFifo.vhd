@@ -81,7 +81,7 @@ architecture rtl of AxiStreamFifo is
 
    constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
 
-   constant KEEP_MODE_C : TKeepModeType := MASTER_AXI_CONFIG_G.TKEEP_MODE_C;
+   constant KEEP_MODE_C : TKeepModeType := SLAVE_AXI_CONFIG_G.TKEEP_MODE_C;
    constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
                                            ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
@@ -317,14 +317,6 @@ begin
 
    assert (SLAVE_AXI_CONFIG_G.TUSER_MODE_C = MASTER_AXI_CONFIG_G.TUSER_MODE_C)
       report "TUSER_MODE_C of master and slave ports must match" severity failure;
-
-   --assert (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C < MASTER_AXI_CONFIG_G.TDATA_BYTES_C) and
-   --       (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = MASTER_AXI_CONFIG_G.TKEEP_MODE_C) 
-   --   report "TKEEP_MODE_C of ports must match or when slave is the same width or wider than master" severity failure;
-
-   --assert (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C >= MASTER_AXI_CONFIG_G.TDATA_BYTES_C) and    -- Output wider than input, output enabled
-   --       (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_UNUSED_C) 
-   --   report "TKEEP_MODE_C of master port must not be TKEEP_UNUSED_C when master is wider than slave" severity failure;
 
    -------------------------
    -- Write Logic
