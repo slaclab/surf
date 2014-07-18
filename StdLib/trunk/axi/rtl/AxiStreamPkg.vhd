@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-06-30
+-- Last update: 2014-07-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ package AxiStreamPkg is
 
    type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C, TUSER_LAST_C);
 
-   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_UNUSED_C, TKEEP_COMP_C);
+   type TKeepModeType is (TKEEP_NORMAL_C,  TKEEP_COMP_C);
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
