@@ -31,7 +31,7 @@ package Pgp2bPkg is
    -----------------------------------------------------
    -- Constants
    -----------------------------------------------------
-   constant SSI_PGP2B_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_UNUSED_C);
+   constant SSI_PGP2B_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
    -- 8B10B Characters
    constant K_COM_C  : slv(7 downto 0) := "10111100"; -- K28.5, 0xBC
