@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-06-23
+-- Last update: 2014-07-18
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ entity SsiPrbsTx is
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_UNUSED_C);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
    port (
       -- Master Port (mAxisClk)
@@ -66,7 +66,7 @@ end SsiPrbsTx;
 architecture rtl of SsiPrbsTx is
 
    constant PRBS_BYTES_C      : natural             := PRBS_SEED_SIZE_G / 8;
-   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_UNUSED_C);
+   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_NORMAL_C);
    
    type StateType is (
       IDLE_S,
