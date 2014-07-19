@@ -5,7 +5,7 @@
 -- File       : SsiAxiLiteMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-05-13
+-- Last update: 2014-07-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ end SsiAxiLiteMaster;
 architecture rtl of SsiAxiLiteMaster is
 
    constant SLAVE_FIFO_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-   constant MASTER_FIFO_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_UNUSED_C);
+   constant MASTER_FIFO_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
 
    signal sFifoAxisMaster : AxiStreamMasterType;
    signal sFifoAxisSlave  : AxiStreamSlaveType;
@@ -441,7 +441,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4, TKEEP_UNUSED_C),
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4, TKEEP_COMP_C),
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          sAxisClk    => axiLiteClk,
