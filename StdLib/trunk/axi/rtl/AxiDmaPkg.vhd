@@ -53,6 +53,7 @@ package AxiDmaPkg is
       size       : slv(31 downto 0);
       overflow   : sl;
       writeError : sl;
+      errorValue : slv(1 downto 0);
       firstUser  : slv(7 downto 0);
       lastUser   : slv(7 downto 0);
       dest       : slv(7 downto 0);
@@ -65,6 +66,7 @@ package AxiDmaPkg is
       size       => (others=>'0'),
       overflow   => '0',
       writeError => '0',
+      errorValue => "00",
       firstUser  => (others=>'0'),
       lastUser   => (others=>'0'),
       dest       => (others=>'0'),
@@ -109,14 +111,16 @@ package AxiDmaPkg is
 
    -- Base Record
    type AxiReadDmaAckType is record
-      done      : sl;
-      readError : sl;
+      done       : sl;
+      readError  : sl;
+      errorValue : slv(1 downto 0);
    end record;
 
    -- Initialization constants
    constant AXI_READ_DMA_ACK_INIT_C : AxiReadDmaAckType := ( 
       done       => '0',
-      readError  => '0'
+      readError  => '0',
+      errorValue => "00"
    );
 
    -- Array
