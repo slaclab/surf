@@ -145,6 +145,7 @@ begin
 
          if axiWriteSlave.bresp /= "00" then
             v.dmaAck.writeError := '1';
+            v.dmaAck.errorValue := axiWriteSlave.bresp;
          end if;
       end if;
 

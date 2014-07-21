@@ -118,7 +118,8 @@ begin
 
       -- Track read status
       if axiReadSlave.rvalid = '1' and axiReadSlave.rresp /= 0 and axiReadSlave.rlast = '1' then
-         v.dmaAck.readError := '1';
+         v.dmaAck.readError  := '1';
+         v.dmaAck.errorValue := axiReadSlave.rresp;
       end if;
 
       -- State machine
