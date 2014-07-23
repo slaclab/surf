@@ -124,7 +124,15 @@ package Pgp2bPkg is
       (others => '0'),
       (others => '0'),
       '0'
-   );               
+   ); 
+
+   constant PGP2B_TX_IN_HALF_DUPLEX_C : Pgp2bTxInType := (
+      '0',
+      '0',
+      (others => '0'),
+      (others => '0'),
+      '1'
+   );    
 
    type Pgp2bTxOutType is record
       locOverflow : slv(3 downto 0);   -- Local overflow status
