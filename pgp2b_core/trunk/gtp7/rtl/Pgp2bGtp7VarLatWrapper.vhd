@@ -127,7 +127,7 @@ begin
          ODIV2 => gtClkDiv2,
          O     => open);
 
-   BUFH_0 : BUFH
+   BUFH_0 : BUFG
       port map (
          I => gtClkDiv2,
          O => stableClock);
@@ -200,7 +200,7 @@ begin
          PWRDWN       => '0',
          RST          => stableRst);         
 
-   BUFH_1 : BUFH
+   BUFH_1 : BUFG
       port map (
          I => clkFbOut,
          O => clkFbIn); 
