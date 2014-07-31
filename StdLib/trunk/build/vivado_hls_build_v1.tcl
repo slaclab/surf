@@ -30,9 +30,11 @@ close_solution
 ## Close the project
 close_project
 
-## Copy the IP directory to module source tree
+# ## Copy the IP directory to module source tree
 exec rm -rf ${PROJ_DIR}/ip/
 exec cp -rf ${OUT_DIR}/${PROJECT}_project/solution1/impl/ip ${PROJ_DIR}/.
+exec rm -f [exec ls [glob "${PROJ_DIR}/ip/*.veo"]]
+exec cp -f [exec ls [glob "${OUT_DIR}/${PROJECT}_project/solution1/impl/report/vhdl//*.rpt"]] ${PROJ_DIR}/ip/.
 
 ## Get the file name and path of the new .dcp file
 set filename [exec ls [glob "${PROJ_DIR}/ip/*.dcp"]]
