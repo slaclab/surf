@@ -23,7 +23,7 @@ if { ${SIM_FILES} != "" } {
 }
 
 ## Target specific project setup script
-SourceTclFile ${VIVADO_DIR}/project.tcl
+SourceTclFile ${PROJ_DIR}/project.tcl
 
 ## Create a solution
 open_solution "solution1"
@@ -38,7 +38,7 @@ create_clock -period 8 -name clk
 set_clock_uncertainty 0.1
 
 ## Target specific solution setup script
-SourceTclFile ${VIVADO_DIR}/solution.tcl
+SourceTclFile ${PROJ_DIR}/solution.tcl
 
 ## Close the solution
 close_solution
