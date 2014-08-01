@@ -405,7 +405,7 @@ begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFull after TPD_G;
       elsif (rising_edge(sAxisClk)) then
-         if sAxisRst = '1' or fifoWrCount > fifoPauseThresh then
+         if sAxisRst = '1' or fifoWrCount >= fifoPauseThresh then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;
