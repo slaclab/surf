@@ -10,17 +10,8 @@ open_project ${PROJECT}_project
 ## Set the top level module
 set_top ${PROJECT}
 
-## Add C/C++ Source Files
-foreach srcPntr ${SRC_FILES} {
-   add_files ${srcPntr}
-}
-
-## Add Simulation Source Files
-if { ${SIM_FILES} != "" } {
-   foreach simPntr ${SIM_FILES} {
-      add_files -tb ${simPntr} 
-   }
-}
+## Add sources 
+source ${PROJ_DIR}/sources.tcl
 
 ## Target specific project setup script
 SourceTclFile ${PROJ_DIR}/project.tcl
@@ -32,7 +23,7 @@ open_solution "solution1"
 set_part {XC7Z045FFG900-2}
 
 ## Set default clock (units of ns)
-create_clock -period 8 -name clk
+create_clock -period 10 -name clk
 
 ## Set default clock uncertainty (units of ns)
 set_clock_uncertainty 0.1

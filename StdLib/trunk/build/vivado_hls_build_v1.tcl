@@ -10,15 +10,13 @@ open_project ${PROJECT}_project
 ## Create a solution
 open_solution "solution1"
 
-## Run Simulation
-if { ${SIM_FILES} != "" } {
-   csim_design
-}
+## Run C/C++ simulation testbed
+csim_design
 
-## Run C/C++ synth
+## Synthesis C/C++ code into RTL
 csynth_design
 
-## Run co-simulation
+## Run co-simulation (compares the C/C++ code to the RTL)
 cosim_design -trace_level none -rtl vhdl -tool auto
 
 ## Export the Design
