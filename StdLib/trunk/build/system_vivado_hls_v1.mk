@@ -1,6 +1,6 @@
 
 # Detect project name
-export PROJECT = $(notdir $(PWD))
+export PROJECT = $(notdir $(BASE_DIR))
 
 # Project Build Directory
 export OUT_DIR  = $(abspath $(TOP_DIR)/build/$(PROJECT))
@@ -8,7 +8,7 @@ export OUT_DIR  = $(abspath $(TOP_DIR)/build/$(PROJECT))
 # Synthesis Variables
 export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado_hls)
 export VIVADO_PROJECT   = $(PROJECT)_project
-export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.app
+export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project/$(VIVADO_PROJECT).app
 export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
 export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 
@@ -16,12 +16,7 @@ export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 export RTL_DIR = $(abspath $(PROJ_DIR)/rtl)
 
 # Source Files
-export SRC_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sources.txt))
-export SRC_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/sources.txt),$(A1)/$(A2))))
-
-# Simulation Files
-export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sim.txt))
-export SIM_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/sim.txt),$(A1)/$(A2))))
+export SRC_FILE = $(PROJ_DIR)/sources.tcl
 
 define ACTION_HEADER
 @echo 
@@ -44,15 +39,9 @@ test:
 	@echo TOP_DIR: $(TOP_DIR)
 	@echo OUT_DIR: $(OUT_DIR)
 	@echo RTL_DIR: $(RTL_DIR)
-	@echo VIVADO_DIR: $(VIVADO_DIR)
 	@echo VIVADO_BUILD_DIR: $(VIVADO_BUILD_DIR)
 	@echo VIVADO_PROJECT: $(VIVADO_PROJECT)
-	@echo SRC_LISTS: $(SRC_LISTS)
-	@echo SRC_FILES: 
-	@echo -e "$(foreach ARG,$(SRC_FILES),  $(ARG)\n)"
-	@echo SIM_LISTS: $(SIM_LISTS)
-	@echo SIM_FILES: 
-	@echo -e "$(foreach ARG,$(SIM_FILES),  $(ARG)\n)"
+	@echo SRC_FILE: $(SRC_FILE)
 
 ###############################################################
 #### Build Location ###########################################
@@ -81,7 +70,7 @@ $(VIVADO_DEPEND) :
 ###############################################################
 #### Vivado Sources ###########################################
 ###############################################################
-$(SOURCE_DEPEND) : $(SRC_LISTS) $(SIM_LISTS) $(VIVADO_DEPEND)
+$(SOURCE_DEPEND) : $(SRC_FILE) $(VIVADO_DEPEND)
 	$(call ACTION_HEADER,"Vivado HLS Project Creation and Source Setup")
 	@cd $(OUT_DIR); vivado_hls -f $(VIVADO_BUILD_DIR)/vivado_hls_sources_v1.tcl
 
@@ -89,7 +78,7 @@ $(SOURCE_DEPEND) : $(SRC_LISTS) $(SIM_LISTS) $(VIVADO_DEPEND)
 #### Vivado Batch #############################################
 ###############################################################
 .PHONY : dcp
-dcp : $(SRC_FILES) $(SIM_FILES) $(SOURCE_DEPEND)
+dcp : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado HLS Build")
 	@cd $(OUT_DIR); vivado_hls -f $(VIVADO_BUILD_DIR)/vivado_hls_build_v1.tcl
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_hls_dcp_v1.tcl
