@@ -92,6 +92,7 @@ $(SOURCE_DEPEND) : $(SRC_LISTS) $(SIM_LISTS) $(VIVADO_DEPEND)
 dcp : $(SRC_FILES) $(SIM_FILES) $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado HLS Build")
 	@cd $(OUT_DIR); vivado_hls -f $(VIVADO_BUILD_DIR)/vivado_hls_build_v1.tcl
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_hls_dcp_v1.tcl
 
 ###############################################################
 #### Vivado Interactive #######################################

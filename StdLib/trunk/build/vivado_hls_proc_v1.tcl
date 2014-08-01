@@ -27,3 +27,11 @@ proc SourceTclFile { filePath } {
 proc GetCpuNumber { } {
    return [exec cat /proc/cpuinfo | grep processor | wc -l]
 }
+
+# Check if the Synthesize is completed
+proc PrintBuildComplete { filename } {
+   puts "\n\n********************************************************"
+   puts "The new .dcp file is located here:"
+   puts ${filename}
+   puts "********************************************************\n\n" 
+}
