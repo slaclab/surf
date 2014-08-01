@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-02
--- Last update: 2013-05-03
+-- Last update: 2014-07-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,6 +20,25 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
 package Code8b10bPkg is
+
+   -------------------------------------------------------------------------------------------------
+   -- Control Code Constants
+   -------------------------------------------------------------------------------------------------
+   constant K_28_0_C : slv(7 downto 0) := "00011100";  -- K28.0, 0x1C
+   constant K_28_1_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C (Comma)
+   constant K_28_2_C : slv(7 downto 0) := "01011100";  -- K28.2, 0x5C
+   constant K_28_3_C : slv(7 downto 0) := "01111100";  -- K28.3, 0x7C
+   constant K_28_4_C : slv(7 downto 0) := "10011100";  -- K28.4, 0x9C
+   constant K_28_5_C : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC (Comma)
+   constant K_28_6_C : slv(7 downto 0) := "11011100";  -- K28.6, 0xDC
+   constant K_28_7_C : slv(7 downto 0) := "11111100";  -- K28.7, 0xFC (Comma)
+   constant K_23_7_C : slv(7 downto 0) := "11110111";  -- K23.7, 0xF7
+   constant K_27_7_C : slv(7 downto 0) := "11111011";  -- K27.7, 0xFB
+   constant K_29_7_C : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
+   constant K_30_7_C : slv(7 downto 0) := "11111110";  -- K30.7, 0xFE
+
+   constant D_10_2_C : slv(7 downto 0) := "01001010";  -- D10.2, 0x4A
+   constant D_21_5_C : slv(7 downto 0) := "10110101";  -- D21.5, 0xB5
 
    procedure encode8b10b (
       dataIn  : in  slv(7 downto 0);
@@ -89,7 +108,7 @@ package body Code8b10bPkg is
       do := di and not (ai and bi and ci);
       eo := (ei or l13) and not (ei and di and not ci and not bi and not ai);
       io := (l22 and not ei) or
-            (ei and not di and not ci and not (ai and bi)) or     -- D16, D17, D18
+            (ei and not di and not ci and not (ai and bi)) or   -- D16, D17, D18
             (ei and l40) or
             (ki and ei and di and ci and not bi and not ai) or  -- K.28
             (ei and not di and ci and not bi and not ai);
@@ -114,7 +133,7 @@ package body Code8b10bPkg is
          alt6 := (ei and not di and l13);
       end if;
       alt7 := fi and gi and hi and (ki or alt6);
-      
+
       fo := fi and not alt7;
       go := gi or (not fi and not gi and not hi);
       ho := hi;
