@@ -17,7 +17,7 @@ csim_design
 csynth_design
 
 ## Run co-simulation (compares the C/C++ code to the RTL)
-cosim_design -trace_level none -rtl vhdl -tool auto
+cosim_design -trace_level all -rtl vhdl -tool vcs
 
 ## Export the Design
 export_design -evaluate vhdl -format syn_dcp
