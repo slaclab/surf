@@ -28,6 +28,12 @@ create_clock -period 10 -name clk
 ## Set default clock uncertainty (units of ns)
 set_clock_uncertainty 0.1
 
+## Configure the RTL to be one-shot encode and reset all logic on reset
+config_rtl -encoding onehot -reset all
+
+## Set the data flow to be FIFO (not ping-pong) and default of 512 deep
+config_dataflow -default_channel fifo -fifo_depth 512
+
 ## Target specific solution setup script
 SourceTclFile ${PROJ_DIR}/solution.tcl
 
