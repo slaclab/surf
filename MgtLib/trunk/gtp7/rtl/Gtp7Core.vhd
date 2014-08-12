@@ -808,7 +808,7 @@ begin
          PMA_RSV4                   => ("0000"),
          RX_BIAS_CFG                => ("0000111100110011"),
          DMONITOR_CFG               => (x"000A00"),
-         RX_CM_SEL                  => ("10"),
+         RX_CM_SEL                  => ("11"),
          RX_CM_TRIM                 => ("1010"),
          RX_DEBUG_CFG               => ("00000000000000"),
          RX_OS_CFG                  => RX_OS_CFG_G,                   -- From wizard
