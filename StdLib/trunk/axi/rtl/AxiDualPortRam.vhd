@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2014-04-02
+-- Last update: 2014-08-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ entity AxiDualPortRam is
       REG_EN_G     : boolean                    := true;
       MODE_G       : string                     := "write-first";
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
+      DATA_WIDTH_G : integer range 1 to 32      := 32;
       INIT_G       : slv                        := "0");
 
    port (
@@ -47,7 +48,7 @@ entity AxiDualPortRam is
       en   : in  sl                           := '1';
       rst  : in  sl                           := '0';
       addr : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      dout : out slv(31 downto 0));
+      dout : out slv(DATA_WIDTH_G-1 downto 0));
 
 end entity AxiDualPortRam;
 
@@ -57,7 +58,7 @@ architecture rtl of AxiDualPortRam is
       axiWriteSlave : AxiLiteWriteSlaveType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiAddr       : slv(ADDR_WIDTH_G-1 downto 0);
-      axiWrData     : slv(31 downto 0);
+      axiWrData     : slv(DATA_WIDTH_G-1 downto 0);
       axiWrEn       : sl;
       axiRdEn       : slv(1 downto 0);
    end record;
@@ -73,7 +74,7 @@ architecture rtl of AxiDualPortRam is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal douta : slv(31 downto 0);
+   signal douta : slv(DATA_WIDTH_G-1 downto 0);
    
 begin
 
@@ -83,7 +84,7 @@ begin
          BRAM_EN_G    => BRAM_EN_G,
          REG_EN_G     => REG_EN_G,
          MODE_G       => MODE_G,
-         DATA_WIDTH_G => 32,
+         DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G,
          INIT_G       => INIT_G)
       port map (
@@ -107,10 +108,10 @@ begin
    begin
       v := r;
 
-      v.axiWrEn            := '0';
-      v.axiRdEn            := r.axiRdEn(0) & '0';
-      v.axiReadSlave.rdata := douta;
-      v.axiWrData          := axiWriteMaster.wdata;
+      v.axiWrEn                                     := '0';
+      v.axiRdEn                                     := r.axiRdEn(0) & '0';
+      v.axiReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := douta;
+      v.axiWrData                                   := axiWriteMaster.wdata(DATA_WIDTH_G-1 downto 0);
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
