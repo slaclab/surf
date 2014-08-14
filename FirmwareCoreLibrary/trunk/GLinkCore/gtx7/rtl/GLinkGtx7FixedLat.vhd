@@ -70,8 +70,10 @@ entity GLinkGtx7FixedLat is
       gtQPllLock       : in  sl := '0';
       gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
-      -- MGT loopback control
-      loopback         : in  slv(2 downto 0);
+      -- Misc. MGT control
+      loopback         : in slv(2 downto 0);
+      txPowerDown      : in sl;
+      rxPowerDown      : in sl;      
       -- MGT Serial IO
       gtTxP            : out sl;
       gtTxN            : out sl;
@@ -312,7 +314,9 @@ begin
          txDataIn         => gtTxDataReversed,
          txCharIsKIn      => (others => '0'),  -- Not using gt rx 8b10b
          txBufStatusOut   => open,
-         txPowerDown      => ite(SYNTH_TX_G, "00", "11"),
-         rxPowerDown      => ite(SYNTH_RX_G, "00", "11"),
+         txPowerDown(0)   => txPowerDown,
+         txPowerDown(1)   => txPowerDown,
+         rxPowerDown(0)   => rxPowerDown,
+         rxPowerDown(1)   => rxPowerDown,
          loopbackIn       => loopback);         
 end rtl;
