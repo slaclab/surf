@@ -20,4 +20,5 @@ vhdl work rtl/SsiCmdMasterPkg.vhd
 vhdl work rtl/SsiCmdMaster.vhd
 vhdl work rtl/SsiAxiLiteMaster.vhd
 vhdl work rtl/SsiPrbsRx.vhd
-hdl work rtl/SsiPrbsTx.vhd
+vhdl work rtl/SsiPrbsTx.vhd
+vhdl work rtl/SsiIncrementingTx.vhd
