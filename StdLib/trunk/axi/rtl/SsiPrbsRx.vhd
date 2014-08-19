@@ -86,7 +86,7 @@ architecture rtl of SsiPrbsRx is
    constant MAX_CNT_C                : slv(31 downto 0)    := (others => '1');
    constant PRBS_BYTES_C             : natural             := PRBS_SEED_SIZE_G / 8;
    constant SLAVE_PRBS_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
-   constant MASTER_PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_UNUSED_C);
+   constant MASTER_PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
    
    type StateType is (
       IDLE_S,
