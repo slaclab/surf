@@ -70,7 +70,7 @@ architecture rtl of Crc32 is
 
 begin
 
-   comb : process(crcIn,crcDataWidth,crcReset,r)
+   comb : process(crcIn,crcDataWidth,crcDataValid,crcReset,r)
       variable v       : RegType;
       variable byteXor : slv(7 downto 0);
    begin
