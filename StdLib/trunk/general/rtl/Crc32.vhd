@@ -70,7 +70,7 @@ architecture rtl of Crc32 is
 
 begin
 
-   comb : process(crcIn,crcDataWidth,crcDataValid,crcReset,r)
+   comb : process(crcIn,crcDataWidth,crcReset,crcDataValid,r)
       variable v       : RegType;
       variable byteXor : slv(7 downto 0);
    begin
@@ -100,6 +100,12 @@ begin
             end if;
          end if;
       end loop;
+
+      -- Reset
+      if (crcReset = '1') then
+         v := REG_INIT_C;
+      end if;
+      
       
       rin <= v;
 
@@ -116,11 +122,7 @@ begin
    seq : process (crcClk) is
    begin
       if (rising_edge(crcClk)) then
-         if crcReset = '1' then
-            r <= REG_INIT_C;
-         else 
-            r <= rin after TPD_G;
-         end if;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
