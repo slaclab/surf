@@ -53,6 +53,8 @@ entity AxiStreamDma is
       axilWriteMaster : in  AxiLiteWriteMasterArray(AXIL_COUNT_G-1 downto 0);
       axilWriteSlave  : out AxiLiteWriteSlaveArray(AXIL_COUNT_G-1 downto 0);
       interrupt       : out sl;
+      enabled         : out sl;
+      online          : out sl;
 
       -- SSI 
       sAxisMaster     : in  AxiStreamMasterType;
@@ -104,6 +106,8 @@ architecture structure of AxiStreamDma is
       maxRxSize     : slv(23 downto 0);
       interrupt     : sl;
       intEnable     : sl;
+      enabled       : sl;
+      online        : sl;
       rxEnable      : sl;
       txEnable      : sl;
       fifoClear     : sl;
@@ -115,6 +119,8 @@ architecture structure of AxiStreamDma is
       maxRxSize     => (others=>'0'),
       interrupt     => '0',
       intEnable     => '0',
+      enabled       => '0',
+      online        => '0',
       rxEnable      => '0',
       txEnable      => '0',
       fifoClear     => '1',
@@ -301,6 +307,9 @@ begin
                v.intEnable := intWriteMasters(0).wdata(0);
             when "101" =>
                v.maxRxSize := intWriteMasters(0).wdata(23 downto 0);
+            when "110" =>
+               v.online  := intWriteMasters(0).wdata(0);
+               v.enabled := intWriteMasters(0).wdata(1);
             when others =>
                null;
          end case;
@@ -325,6 +334,9 @@ begin
                v.axiReadSlave.rdata(0) := popFifoValid(IB_FIFO_C);
             when "101" =>
                v.axiReadSlave.rdata(23 downto 0) := r.maxRxSize;
+            when "110" =>
+               v.axiReadSlave.rdata(0) := r.online;
+               v.axiReadSlave.rdata(1) := r.enabled;
             when "111" =>
                v.axiReadSlave.rdata := x"5a5a5a5a";
             when others =>
