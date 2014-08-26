@@ -6,6 +6,9 @@ vhdl work general/rtl/Code8b10bPkg.vhd
 vhdl work general/rtl/Arbiter.vhd
 vhdl work general/rtl/ClkOutBufDiff.vhd
 vhdl work general/rtl/ClkOutBufSingle.vhd
+vhdl work general/rtl/CrcPkg.vhd
+vhdl work general/rtl/Crc32Parallel.vhd
+vhdl work general/rtl/Crc32.vhd
 vhdl work general/rtl/CRC32Rtl.vhd
 vhdl work general/rtl/Debouncer.vhd
 vhdl work general/rtl/Decoder8b10b.vhd
