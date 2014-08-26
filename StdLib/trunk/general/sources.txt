@@ -7,6 +7,9 @@ vhdl work rtl/Arbiter.vhd
 vhdl work rtl/ClkOutBufDiff.vhd
 vhdl work rtl/ClkOutBufSingle.vhd
 vhdl work rtl/CRC32Rtl.vhd
+vhdl work rtl/Crc32.vhd
+vhdl work rtl/Crc32Parallel.vhd
+vhdl work rtl/CrcPkg.vhd
 vhdl work rtl/Debouncer.vhd
 vhdl work rtl/Decoder8b10b.vhd
 vhdl work rtl/DS2411Core.vhd
