@@ -360,6 +360,8 @@ begin
 
       -- Outputs
       interrupt         <= r.interrupt;
+      enabled           <= r.enabled;
+      online            <= r.online;
       intReadSlaves(0)  <= r.axiReadSlave;
       intWriteSlaves(0) <= r.axiWriteSlave;
       
