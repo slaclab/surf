@@ -28,6 +28,8 @@
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 08/25/2014: created.
+-- 08/26/2014: Modified to accommodate a reset and valid simultaneously.  This
+--             should match the behavior of the original CRC32Rtl.vhd.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -78,13 +80,12 @@ begin
 
    comb : process(crcIn,crcDataWidth,crcReset,crcDataValid,r)
       variable v       : RegType;
-      variable byteXor : slv(7 downto 0);
+      variable prevCrc : slv(31 downto 0);
    begin
       v := r;
 
       v.byteWidth := crcDataWidth;
       v.valid     := crcDataValid;
-      byteXor     := (others => '0');
       
       -- Transpose the input data
       for byte in (BYTE_WIDTH_G-1) downto 0 loop
@@ -97,47 +98,50 @@ begin
          end if;            
       end loop;
 
+      if (crcReset = '0') then
+         prevCrc := r.crc;
+      else
+         prevCrc := CRC_INIT_G;
+      end if;      
+      
       -- Calculate CRC in parallel - implementation used depends on the 
       -- byte width in use.      
       if (r.valid = '1') then
          case(r.byteWidth) is
             when "000" => 
-               v.crc := crc32Parallel1Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-1)*8));
+               v.crc := crc32Parallel1Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-1)*8));
             when "001" => 
                if (BYTE_WIDTH_G >= 2) then
-                  v.crc := crc32Parallel2Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-2)*8));
+                  v.crc := crc32Parallel2Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-2)*8));
                end if;
             when "010" => 
                if (BYTE_WIDTH_G >= 3) then
-                  v.crc := crc32Parallel3Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-3)*8));
+                  v.crc := crc32Parallel3Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-3)*8));
                end if; 
             when "011" => 
                if (BYTE_WIDTH_G >= 4) then
-                  v.crc := crc32Parallel4Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-4)*8));
+                  v.crc := crc32Parallel4Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-4)*8));
                end if;
             when "100" => 
                if (BYTE_WIDTH_G >= 5) then
-                  v.crc := crc32Parallel5Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-5)*8));
+                  v.crc := crc32Parallel5Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-5)*8));
                end if;
             when "101" =>
                if (BYTE_WIDTH_G >= 6) then
-                  v.crc := crc32Parallel6Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-6)*8));
+                  v.crc := crc32Parallel6Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-6)*8));
                end if;
             when "110" => 
                if (BYTE_WIDTH_G >= 7) then            
-                  v.crc := crc32Parallel7Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-7)*8));
+                  v.crc := crc32Parallel7Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-7)*8));
                end if;
             when "111" => 
                if (BYTE_WIDTH_G = 8) then
-                  v.crc := crc32Parallel8Byte(r.crc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-8)*8));
+                  v.crc := crc32Parallel8Byte(prevCrc, r.data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-8)*8));
                end if;
             when others => v.crc := (others => '0');
          end case;
-      end if;
-      
-      -- Reset
-      if (crcReset = '1') then
-         v := REG_INIT_C;
+      else
+         v.crc := prevCrc;
       end if;
       
       rin <= v;
