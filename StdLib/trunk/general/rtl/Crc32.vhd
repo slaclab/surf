@@ -25,6 +25,8 @@
 -- 04/30/2014: modified to go back to original Crc32Rtl names, so this module
 --             can be used as a drop-in replacement.  Updated to match group 
 --             coding conventions.
+-- 08/26/2014: Modified to accommodate a reset and valid simultaneously.  This
+--             should match the behavior of the original CRC32Rtl.vhd.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -91,21 +93,22 @@ begin
          end loop;
       end loop;
 
-      -- Calculate CRC byte-by-byte
-      for byte in BYTE_WIDTH_G-1 downto 0 loop  
-         if (r.valid = '1') then
+      -- Reset handling
+      if (crcReset = '0') then
+         v.crc := r.crc;
+      else
+         v.crc := CRC_INIT_G;
+      end if;
+      
+      -- Calculate CRC byte-by-byte 
+      if (r.valid = '1') then
+         for byte in BYTE_WIDTH_G-1 downto 0 loop
             if (r.byteWidth >= BYTE_WIDTH_G-byte-1) then
                byteXor := v.crc(31 downto 24) xor r.data( (byte+1)*8-1 downto byte*8); 
                v.crc   := (v.crc(23 downto 0) & x"00") xor crcByteLookup(byteXor,CRC_POLY_G);
             end if;
-         end if;
-      end loop;
-
-      -- Reset
-      if (crcReset = '1') then
-         v := REG_INIT_C;
+         end loop;
       end if;
-      
       
       rin <= v;
 
