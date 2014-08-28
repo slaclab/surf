@@ -513,7 +513,7 @@ begin
       process (mAxisClk) is
       begin
          if (rising_edge(mAxisClk)) then
-            if sAxisRst = '1' or fifoReadLast = '1' then
+            if mAxisRst = '1' or fifoReadLast = '1' then
                fifoInFrame <= '0' after TPD_G;
             elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
                fifoInFrame <= '1' after TPD_G;
