@@ -413,6 +413,9 @@ begin
       end if;
    end process;
 
+   -- Is ready enabled?
+   fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
+
    U_Fifo : entity work.FifoCascade
       generic map (
          TPD_G              => TPD_G,
@@ -458,9 +461,6 @@ begin
          almost_empty  => open,
          empty         => open
          );
-
-   -- Is ready enabled?
-   fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
 
    U_LastFifoEnGen : if VALID_THOLD_G /= 1 generate
 
@@ -510,9 +510,9 @@ begin
             empty         => open
             );
 
-      process (sAxisClk) is
+      process (mAxisClk) is
       begin
-         if (rising_edge(sAxisClk)) then
+         if (rising_edge(mAxisClk)) then
             if sAxisRst = '1' or fifoReadLast = '1' then
                fifoInFrame <= '0' after TPD_G;
             elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
