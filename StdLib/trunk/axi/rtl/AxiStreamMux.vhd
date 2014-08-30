@@ -56,25 +56,26 @@ end AxiStreamMux;
 architecture structure of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
+   constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
 
    type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C);
 
    type RegType is record
-      state  : StateType;
-      acks   : slv(NUM_SLAVES_G-1 downto 0);
-      ackNum : slv(DEST_SIZE_C-1 downto 0);
-      valid  : sl;
-      slaves : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
-      master : AxiStreamMasterType;
+      state    : StateType;
+      acks     : slv(ARB_BITS_C-1 downto 0);
+      ackNum   : slv(DEST_SIZE_C-1 downto 0);
+      valid    : sl;
+      slaves   : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      master   : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state  => S_IDLE_C,
-      acks   => (others => '0'),
-      ackNum => (others => '0'),
-      valid  => '0',
-      slaves => (others => AXI_STREAM_SLAVE_INIT_C),
-      master => AXI_STREAM_MASTER_INIT_C
+      state    => S_IDLE_C,
+      acks     => (others => '0'),
+      ackNum   => (others => '0'),
+      valid    => '0',
+      slaves   => (others => AXI_STREAM_SLAVE_INIT_C),
+      master   => AXI_STREAM_MASTER_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -84,7 +85,7 @@ begin
 
    comb : process (axisRst, mAxisSlave, r, sAxisAddr, sAxisAuto, sAxisMasters) is
       variable v        : RegType;
-      variable requests : slv(NUM_SLAVES_G-1 downto 0);
+      variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
    begin
       v := r;
@@ -101,6 +102,7 @@ begin
       selData.tDest(DEST_SIZE_C-1 downto 0) := r.ackNum;
 
       -- Format requests
+      requests := (others=>'0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          -- Check for automatic MUX'ing
          if sAxisAuto = '1' then
@@ -109,7 +111,7 @@ begin
             -- While in manual MUX'ing mode,
             -- only pass requests from respective address pointer
             if i = conv_integer(sAxisAddr) then
-               requests(i) := sAxisMasters(i).tValid;
+               v.requests(i) := sAxisMasters(i).tValid;
             else
                requests(i) := '0';
             end if;
@@ -125,7 +127,7 @@ begin
 
             -- Aribrate between requesters
             if r.valid = '0' then
-               arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
+               arbitrate(v.requests, r.ackNum, v.ackNum, v.valid, v.acks);
             end if;
 
             -- Valid request

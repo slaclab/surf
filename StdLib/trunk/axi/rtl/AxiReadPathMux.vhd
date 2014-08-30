@@ -51,6 +51,7 @@ end AxiReadPathMux;
 architecture structure of AxiReadPathMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
+   constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
 
    --------------------------
    -- Address Path
@@ -60,7 +61,7 @@ architecture structure of AxiReadPathMux is
 
    type RegType is record
       addrState  : StateType;
-      addrAcks   : slv(NUM_SLAVES_G-1 downto 0);
+      addrAcks   : slv(ARB_BITS_C-1 downto 0);
       addrAckNum : slv(DEST_SIZE_C-1 downto 0);
       addrValid  : sl;
       slaves     : AxiReadSlaveArray(NUM_SLAVES_G-1 downto 0);
@@ -83,7 +84,7 @@ begin
 
    comb : process (axiRst, r, sAxiReadMasters, mAxiReadSlave) is
       variable v            : RegType;
-      variable addrRequests : slv(NUM_SLAVES_G-1 downto 0);
+      variable addrRequests : slv(ARB_BITS_C-1 downto 0);
       variable selAddr      : AxiReadMasterType;
    begin
       v := r;
@@ -104,6 +105,7 @@ begin
       selAddr.arid(DEST_SIZE_C-1 downto 0) := r.addrAckNum;
 
       -- Format requests
+      addrRequests := (others=>'0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          addrRequests(i) := sAxiReadMasters(i).arvalid;
       end loop;
