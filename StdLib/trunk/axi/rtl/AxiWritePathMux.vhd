@@ -51,6 +51,7 @@ end AxiWritePathMux;
 architecture structure of AxiWritePathMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
+   constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
 
    --------------------------
    -- Address Path
@@ -60,11 +61,11 @@ architecture structure of AxiWritePathMux is
 
    type RegType is record
       addrState  : StateType;
-      addrAcks   : slv(NUM_SLAVES_G-1 downto 0);
+      addrAcks   : slv(ARB_BITS_C-1 downto 0);
       addrAckNum : slv(DEST_SIZE_C-1 downto 0);
       addrValid  : sl;
       dataState  : StateType;
-      dataAcks   : slv(NUM_SLAVES_G-1 downto 0);
+      dataAcks   : slv(ARB_BITS_C-1 downto 0);
       dataAckNum : slv(DEST_SIZE_C-1 downto 0);
       dataValid  : sl;
       slaves     : AxiWriteSlaveArray(NUM_SLAVES_G-1 downto 0);
@@ -91,8 +92,8 @@ begin
 
    comb : process (axiRst, r, sAxiWriteMasters, mAxiWriteSlave) is
       variable v            : RegType;
-      variable addrRequests : slv(NUM_SLAVES_G-1 downto 0);
-      variable dataRequests : slv(NUM_SLAVES_G-1 downto 0);
+      variable addrRequests : slv(ARB_BITS_C-1 downto 0);
+      variable dataRequests : slv(ARB_BITS_C-1 downto 0);
       variable selAddr      : AxiWriteMasterType;
       variable selData      : AxiWriteMasterType;
    begin
@@ -114,6 +115,7 @@ begin
       selAddr.awid(DEST_SIZE_C-1 downto 0) := r.addrAckNum;
 
       -- Format requests
+      addrRequests := (others=>'0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          addrRequests(i) := sAxiWriteMasters(i).awvalid;
       end loop;
@@ -178,6 +180,7 @@ begin
       selData.wid(DEST_SIZE_C-1 downto 0) := r.dataAckNum;
 
       -- Format requests
+      dataRequests := (others=>'0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          dataRequests(i) := sAxiWriteMasters(i).wvalid;
       end loop;
