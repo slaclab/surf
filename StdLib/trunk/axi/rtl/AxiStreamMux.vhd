@@ -111,7 +111,7 @@ begin
             -- While in manual MUX'ing mode,
             -- only pass requests from respective address pointer
             if i = conv_integer(sAxisAddr) then
-               v.requests(i) := sAxisMasters(i).tValid;
+               requests(i) := sAxisMasters(i).tValid;
             else
                requests(i) := '0';
             end if;
@@ -127,7 +127,7 @@ begin
 
             -- Aribrate between requesters
             if r.valid = '0' then
-               arbitrate(v.requests, r.ackNum, v.ackNum, v.valid, v.acks);
+               arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
             end if;
 
             -- Valid request
