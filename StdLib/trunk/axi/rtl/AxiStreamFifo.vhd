@@ -75,22 +75,25 @@ end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
 
-   -- Configure FIFO widths
+   -- Use wider of two interfaces
    constant DATA_BYTES_C : integer := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
                                           SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
 
    constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
 
+   -- Use SLAVE TKEEP Mode
    constant KEEP_MODE_C : TKeepModeType := SLAVE_AXI_CONFIG_G.TKEEP_MODE_C;
    constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
                                            ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
+   -- Use SLAVE USER Mode and USER BIT COUNT
    constant USER_MODE_C : TUserModeType := SLAVE_AXI_CONFIG_G.TUSER_MODE_C;
    constant USER_BITS_C : integer       := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
    constant USER_TOT_C  : integer       := ite(USER_MODE_C = TUSER_FIRST_LAST_C, USER_BITS_C*2, 
                                            ite(USER_MODE_C = TUSER_LAST_C, USER_BITS_C,
                                            DATA_BYTES_C * USER_BITS_C));
 
+   -- Use SLAVE settings for strobe, dest and ID bit values
    constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C, DATA_BYTES_C, 0);
    constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
    constant ID_BITS_C   : integer := SLAVE_AXI_CONFIG_G.TID_BITS_C;
@@ -302,21 +305,6 @@ begin
            (MASTER_AXI_CONFIG_G.TDATA_BYTES_C >= SLAVE_AXI_CONFIG_G.TDATA_BYTES_C and
             MASTER_AXI_CONFIG_G.TDATA_BYTES_C mod SLAVE_AXI_CONFIG_G.TDATA_BYTES_C = 0))
       report "Data widths must be even number multiples of each other" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TSTRB_EN_C = MASTER_AXI_CONFIG_G.TSTRB_EN_C)
-      report "TSTRB_EN_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TDEST_BITS_C = MASTER_AXI_CONFIG_G.TDEST_BITS_C)
-      report "TDEST_BITS_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TID_BITS_C = MASTER_AXI_CONFIG_G.TID_BITS_C)
-      report "TID_BITS_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C = MASTER_AXI_CONFIG_G.TUSER_BITS_C)
-      report "TUSER_BITS_C of master and slave ports must match" severity failure;
-
-   assert (SLAVE_AXI_CONFIG_G.TUSER_MODE_C = MASTER_AXI_CONFIG_G.TUSER_MODE_C)
-      report "TUSER_MODE_C of master and slave ports must match" severity failure;
 
    -------------------------
    -- Write Logic
