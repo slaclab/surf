@@ -106,6 +106,7 @@ architecture structure of AxiStreamDma is
       maxRxSize     : slv(23 downto 0);
       interrupt     : sl;
       intEnable     : sl;
+      intAck        : sl;
       enabled       : sl;
       online        : sl;
       rxEnable      : sl;
@@ -119,6 +120,7 @@ architecture structure of AxiStreamDma is
       maxRxSize     => (others=>'0'),
       interrupt     => '0',
       intEnable     => '0',
+      intAck        => '0',
       enabled       => '0',
       online        => '0',
       rxEnable      => '0',
@@ -133,6 +135,7 @@ architecture structure of AxiStreamDma is
 
    type IbType is record
       state        : StateType;
+      intPending   : sl;
       ibReq        : AxiWriteDmaReqType;
       popFifoWrite : sl;
       popFifoDin   : slv(31 downto 0);
@@ -141,6 +144,7 @@ architecture structure of AxiStreamDma is
 
    constant IB_INIT_C : IbType := (
       state        => S_IDLE_C,
+      intPending   => '0',
       ibReq        => AXI_WRITE_DMA_REQ_INIT_C,
       popFifoWrite => '0',
       popFifoDin   => (others=>'0'),
@@ -152,6 +156,7 @@ architecture structure of AxiStreamDma is
 
    type ObType is record
       state        : StateType;
+      intPending   : sl;
       obReq        : AxiReadDmaReqType;
       popFifoWrite : sl;
       popFifoDin   : slv(31 downto 0);
@@ -160,6 +165,7 @@ architecture structure of AxiStreamDma is
 
    constant OB_INIT_C : ObType := (
       state        => S_IDLE_C,
+      intPending   => '0',
       obReq        => AXI_READ_DMA_REQ_INIT_C,
       popFifoWrite => '0',
       popFifoDin   => (others=>'0'),
@@ -285,11 +291,13 @@ begin
    end process;
 
    -- Async
-   process (r, axiRst, intReadMasters, intWriteMasters, popFifoValid ) is
+   process (r, axiRst, intReadMasters, intWriteMasters, popFifoValid, ib, ob ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
       v := r;
+
+      v.intAck := '0';
 
       axiSlaveWaitTxn(intWriteMasters(0), intReadMasters(0), v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
@@ -310,6 +318,8 @@ begin
             when "110" =>
                v.online  := intWriteMasters(0).wdata(0);
                v.enabled := intWriteMasters(0).wdata(1);
+            when "111" =>
+               v.intAck := intWriteMasters(0).wdata(0);
             when others =>
                null;
          end case;
@@ -332,13 +342,15 @@ begin
                v.axiReadSlave.rdata(0) := r.intEnable;
             when "100" =>
                v.axiReadSlave.rdata(0) := popFifoValid(IB_FIFO_C);
+               v.axiReadSlave.rdata(1) := popFifoValid(OB_FIFO_C);
             when "101" =>
                v.axiReadSlave.rdata(23 downto 0) := r.maxRxSize;
             when "110" =>
                v.axiReadSlave.rdata(0) := r.online;
                v.axiReadSlave.rdata(1) := r.enabled;
             when "111" =>
-               v.axiReadSlave.rdata := x"5a5a5a5a";
+               v.axiReadSlave.rdata(0) := ib.intPending;
+               v.axiReadSlave.rdata(1) := ob.intPending;
             when others =>
                null;
          end case;
@@ -348,7 +360,7 @@ begin
 
       end if;
 
-      v.interrupt := popFifoValid(IB_FIFO_C) and r.intEnable;
+      v.interrupt := (ib.intPending or ob.intPending) and r.intEnable;
 
       -- Reset
       if (axiRst = '1') then
@@ -443,9 +455,15 @@ begin
             v.popFifoDin(7  downto  0) := ibAck.dest;
             v.popFifoWrite             := '1';
             v.ibReq.request            := '0';
+            v.intPending               := '1';
             v.state                    := S_IDLE_C;
 
       end case;
+
+      -- Interrupt Ack
+      if r.intAck = '1' then
+         v.intPending := '0';
+      end if;
 
       -- Reset
       if (axiRst = '1') then
@@ -556,10 +574,16 @@ begin
                v.obReq.request := '0';
                v.popFifoDin    := "1" & ob.obReq.address(30 downto 0);
                v.popFifoWrite  := '1';
+               v.intPending    := '1';
                v.state         := S_IDLE_C;
             end if;
 
       end case;
+
+      -- Interrupt Ack
+      if r.intAck = '1' then
+         v.intPending := '0';
+      end if;
 
       -- Reset
       if (axiRst = '1') then
