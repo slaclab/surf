@@ -1,7 +1,8 @@
 #TOP=stream_tb
-TOP=dma_tb
+#TOP=dma_tb
 #TOP=vcs_tb
 #TOP=fifo_tb
+TOP=fifo_128_tb
 
 # Set Default Output
 SIM_DIR=$(PWD)/out
@@ -83,6 +84,7 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/dma_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/vcs_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/fifo_tb.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/fifo_128_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/stream_tb.vhd
 
 # VHPI Library

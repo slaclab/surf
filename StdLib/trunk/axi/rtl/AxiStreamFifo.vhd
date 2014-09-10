@@ -185,8 +185,8 @@ architecture rtl of AxiStreamFifo is
 
       -- Get keep bits
       if KEEP_MODE_C = TKEEP_NORMAL_C then
-         byteCnt := DATA_BYTES_C;
          master.tKeep(KEEP_BITS_C-1 downto 0) := din((KEEP_BITS_C+i)-1 downto i);
+         byteCnt := conv_integer(onesCount(master.tKeep(KEEP_BITS_C-1 downto 0)));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
          byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
          master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '0');
@@ -297,6 +297,10 @@ architecture rtl of AxiStreamFifo is
    ---------------
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;
+
+   ---------------
+   -- Debug Signals
+   ---------------
 
 begin
 
@@ -587,7 +591,7 @@ begin
          fifoRead     <= axisSlave.tReady and fifoValid;
          fifoReadLast <= axisSlave.tReady and fifoValid and fifoMaster.tLast;
       end if;
-      
+     
    end process rdComb;
 
    -- If fifo is asynchronous, must use async reset on rd side.
