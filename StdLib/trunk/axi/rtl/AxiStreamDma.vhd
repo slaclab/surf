@@ -430,7 +430,7 @@ begin
             v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 0);
             v.ibReq.maxSize := x"00" & r.maxRxSize;
 
-            if r.rxEnable = '1' and pushFifoValid(IB_FIFO_C) = '1' and popFifoAFull(IB_FIFO_C) = '0' then
+            if pushFifoValid(IB_FIFO_C) = '1' and popFifoAFull(IB_FIFO_C) = '0' then
                v.ibReq.request := '1';
                v.pushFifoRead  := '1';
                v.state         := S_WAIT_C;
@@ -470,7 +470,7 @@ begin
       end if;
 
       -- Reset
-      if (axiRst = '1') then
+      if axiRst = '1' or r.rxEnable = '0' then
          v := IB_INIT_C;
       end if;
 
@@ -531,7 +531,7 @@ begin
          when S_IDLE_C =>
             v.obReq.address := pushFifoDout(OB_FIFO_C)(31 downto 0);
 
-            if r.txEnable = '1' and pushFifoValid(OB_FIFO_C) = '1' then
+            if pushFifoValid(OB_FIFO_C) = '1' then
                v.pushFifoRead  := '1';
 
                if pushFifoDout(OB_FIFO_C)(35 downto 32) = 3 then
@@ -590,7 +590,7 @@ begin
       end if;
 
       -- Reset
-      if (axiRst = '1') then
+      if axiRst = '1' or r.txEnable = '0' then
          v := OB_INIT_C;
       end if;
 

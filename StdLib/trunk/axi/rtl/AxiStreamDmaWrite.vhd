@@ -188,8 +188,13 @@ begin
             -- This initial alignment will ensure that we never cross a 4k boundary
             v.wMaster.awlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
+            -- DMA request has dropped. Abort. This is needed to disable engine while it
+            -- is still waiting for an inbound frame.
+            if dmaReq.request = '0' then
+               v.state := S_IDLE_C;
+
             -- There is enough room in the FIFO for a burst and address is ready
-            if selPause = '0' and intAxisMaster.tValid = '1' then
+            elsif selPause = '0' and intAxisMaster.tValid = '1' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
