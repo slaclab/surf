@@ -75,8 +75,8 @@ end AxiStreamDma;
 
 architecture structure of AxiStreamDma is
 
-   constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH;
-   constant POP_ADDR_WIDTH_C  : integer := FREE_ADDR_WIDTH;
+   constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH_G;
+   constant POP_ADDR_WIDTH_C  : integer := FREE_ADDR_WIDTH_G;
 
    constant POP_FIFO_COUNT_C  : integer := 2;
    constant PUSH_FIFO_COUNT_C : integer := 2;
@@ -188,6 +188,7 @@ architecture structure of AxiStreamDma is
    signal popFifoRst         : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal popFifoValid       : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal popFifoWrite       : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoAFull       : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal popFifoDin         : Slv32Array(POP_FIFO_COUNT_C-1 downto 0);
    signal pushFifoClk        : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal pushFifoRst        : slv(POP_FIFO_COUNT_C-1 downto 0);
@@ -266,7 +267,7 @@ begin
          popFifoWrite       => popFifoWrite,
          popFifoDin         => popFifoDin,
          popFifoFull        => open,
-         popFifoAFull       => open,
+         popFifoAFull       => popFifoAFull,
          pushFifoClk        => pushFifoClk,
          pushFifoRst        => pushFifoRst,
          pushFifoValid      => pushFifoValid,
