@@ -31,15 +31,16 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDma is
    generic (
-      TPD_G            : time                 := 1 ns;
-      AXIL_COUNT_G     : integer range 1 to 2 := 1;
-      AXIL_BASE_ADDR_G : slv(31 downto 0)     := x"00000000";
-      AXI_READY_EN_G   : boolean              := false;
-      AXIS_READY_EN_G  : boolean              := false;
-      AXIS_CONFIG_G    : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G     : AxiConfigType        := AXI_CONFIG_INIT_C;
-      AXI_BURST_G      : slv(1 downto 0)      := "01";
-      AXI_CACHE_G      : slv(3 downto 0)      := "1111"
+      TPD_G             : time                 := 1 ns;
+      FREE_ADDR_WIDTH_G : integer              := 9;
+      AXIL_COUNT_G      : integer range 1 to 2 := 1;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)     := x"00000000";
+      AXI_READY_EN_G    : boolean              := false;
+      AXIS_READY_EN_G   : boolean              := false;
+      AXIS_CONFIG_G     : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType        := AXI_CONFIG_INIT_C;
+      AXI_BURST_G       : slv(1 downto 0)      := "01";
+      AXI_CACHE_G       : slv(3 downto 0)      := "1111"
    );
    port (
 
@@ -73,6 +74,9 @@ entity AxiStreamDma is
 end AxiStreamDma;
 
 architecture structure of AxiStreamDma is
+
+   constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH;
+   constant POP_ADDR_WIDTH_C  : integer := FREE_ADDR_WIDTH;
 
    constant POP_FIFO_COUNT_C  : integer := 2;
    constant PUSH_FIFO_COUNT_C : integer := 2;
@@ -233,7 +237,7 @@ begin
          POP_FIFO_COUNT_G   => 2,
          POP_SYNC_FIFO_G    => true,
          POP_BRAM_EN_G      => true,
-         POP_ADDR_WIDTH_G   => 9,
+         POP_ADDR_WIDTH_G   => POP_ADDR_WIDTH_C,
          LOOP_FIFO_EN_G     => false,
          LOOP_FIFO_COUNT_G  => 1,
          LOOP_BRAM_EN_G     => false,
@@ -241,7 +245,7 @@ begin
          PUSH_FIFO_COUNT_G  => 2,
          PUSH_SYNC_FIFO_G   => true,
          PUSH_BRAM_EN_G     => true,
-         PUSH_ADDR_WIDTH_G  => 9,
+         PUSH_ADDR_WIDTH_G  => PUSH_ADDR_WIDTH_C,
          RANGE_LSB_G        => 8,
          VALID_POSITION_G   => 31,
          VALID_POLARITY_G   => '1',
@@ -412,7 +416,7 @@ begin
    end process;
 
    -- Async
-   process (ib, r, axiRst, ibAck, pushFifoValid, pushFifoDout ) is
+   process (ib, r, axiRst, ibAck, pushFifoValid, pushFifoDout, popFifoAFull ) is
       variable v : IbType;
    begin
       v := ib;
@@ -426,7 +430,7 @@ begin
             v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 0);
             v.ibReq.maxSize := x"00" & r.maxRxSize;
 
-            if r.rxEnable = '1' and pushFifoValid(IB_FIFO_C) = '1' then
+            if r.rxEnable = '1' and pushFifoValid(IB_FIFO_C) = '1' and popFifoAFull(IB_FIFO_C) = '0' then
                v.ibReq.request := '1';
                v.pushFifoRead  := '1';
                v.state         := S_WAIT_C;
