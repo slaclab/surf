@@ -1,0 +1,2 @@
+vhdl work rtl/SpiMaster.vhd
+vhdl work rtl/SpiSlave.vhd
