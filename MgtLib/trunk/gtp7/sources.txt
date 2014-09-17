@@ -6,3 +6,4 @@ vhdl work rtl/Gtp7RxFixedLatPhaseAligner.vhd
 vhdl work rtl/Gtp7RxRst.vhd
 vhdl work rtl/Gtp7TxManualPhaseAligner.vhd
 vhdl work rtl/Gtp7TxRst.vhd
+vhdl work rtl/Gtp7CfgPkg.vhd
