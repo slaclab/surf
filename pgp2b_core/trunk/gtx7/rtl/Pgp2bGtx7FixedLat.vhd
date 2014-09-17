@@ -65,7 +65,7 @@ entity Pgp2bGtx7Fixedlat is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       VC_INTERLEAVE_G   : integer              := 1;  -- Interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7   -- Top bit for payload counter
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4
       );
    port (
