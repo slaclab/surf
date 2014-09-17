@@ -1,3 +1,4 @@
+vhdl work rtl/Gtx7CfgPkg.vhd
 vhdl work rtl/Gtx7AutoPhaseAligner.vhd
 vhdl work rtl/Gtx7Core.vhd
 vhdl work rtl/Gtx7QuadPll.vhd
