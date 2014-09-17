@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-06-04
+-- Last update: 2014-09-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,58 +64,58 @@ entity Pgp2bGtx7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G : integer              := 1;  -- Interleave Frames
-      NUM_VC_EN_G     : integer range 1 to 4 := 4
-      ); port (
-         -- GT Clocking
-         stableClk        : in  sl;                 -- GT needs a stable clock to "boot up"
-         gtCPllRefClk     : in  sl := '0';          -- Drives CPLL if used
-         gtCPllLock       : out sl;
-         gtQPllRefClk     : in  sl := '0';          -- Signals from QPLL if used
-         gtQPllClk        : in  sl := '0';
-         gtQPllLock       : in  sl := '0';
-         gtQPllRefClkLost : in  sl := '0';
-         gtQPllReset      : out sl;
-         gtRxRefClkBufg   : in sl;      -- gtrefclk driving rx side, fed through clock buffer
+      VC_INTERLEAVE_G   : integer              := 1;  -- Interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7   -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4
+      );
+   port (
+      -- GT Clocking
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      gtCPllRefClk     : in  sl := '0';               -- Drives CPLL if used
+      gtCPllLock       : out sl;
+      gtQPllRefClk     : in  sl := '0';               -- Signals from QPLL if used
+      gtQPllClk        : in  sl := '0';
+      gtQPllLock       : in  sl := '0';
+      gtQPllRefClkLost : in  sl := '0';
+      gtQPllReset      : out sl;
+      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
 
-         -- Gt Serial IO
-         gtRxN : in  sl;                -- GT Serial Receive Negative
-         gtRxP : in  sl;                -- GT Serial Receive Positive
-         gtTxN : out sl;                -- GT Serial Transmit Negative
-         gtTxP : out sl;                -- GT Serial Transmit Positive
+      -- Gt Serial IO
+      gtRxN : in  sl;                   -- GT Serial Receive Negative
+      gtRxP : in  sl;                   -- GT Serial Receive Positive
+      gtTxN : out sl;                   -- GT Serial Transmit Negative
+      gtTxP : out sl;                   -- GT Serial Transmit Positive
 
-         -- Tx Clocking
-         pgpTxReset : in sl;
-         pgpTxClk   : in sl;            -- ????
+      -- Tx Clocking
+      pgpTxReset : in sl;
+      pgpTxClk   : in sl;               -- ????
 
-         -- Rx clocking
-         pgpRxReset      : in  sl;
-         pgpRxRecClk     : out sl;      -- rxrecclk basically
-         pgpRxRecClkRst  : out sl;      -- Reset for recovered clock
-         pgpRxClk        : in  sl;      -- Run recClk through external MMCM and sent to this input
-         pgpRxMmcmReset  : out sl;
-         pgpRxMmcmLocked : in  sl := '1';
+      -- Rx clocking
+      pgpRxReset      : in  sl;
+      pgpRxRecClk     : out sl;         -- rxrecclk basically
+      pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
+      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxMmcmReset  : out sl;
+      pgpRxMmcmLocked : in  sl := '1';
 
-         -- Non VC Rx Signals
-         pgpRxIn  : in  Pgp2bRxInType;
-         pgpRxOut : out Pgp2bRxOutType;
+      -- Non VC Rx Signals
+      pgpRxIn  : in  Pgp2bRxInType;
+      pgpRxOut : out Pgp2bRxOutType;
 
-         -- Non VC Tx Signals
-         pgpTxIn  : in  Pgp2bTxInType;
-         pgpTxOut : out Pgp2bTxOutType;
+      -- Non VC Tx Signals
+      pgpTxIn  : in  Pgp2bTxInType;
+      pgpTxOut : out Pgp2bTxOutType;
 
-         -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-         pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-         pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
+      -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
+      pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
 
-         -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-         pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
-         pgpRxMasterMuxed : out AxiStreamMasterType;
-         pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
+      -- Frame Receive Interface - 1 Lane, Array of 4 VCs
+      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed : out AxiStreamMasterType;
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0)
 
-         -- Debug
-         debug : out slv(63 downto 0)
-         );
+      );
 
 end Pgp2bGtx7Fixedlat;
 
@@ -141,12 +141,12 @@ architecture rtl of Pgp2bGtx7Fixedlat is
 --   signal pgpRxReset1    : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
-   signal dataValid     : sl;                            -- no decode or disparity errors
+   signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
+   signal dataValid     : sl;                              -- no decode or disparity errors
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
-   signal phyRxReady    : sl;                            -- To RxRst
-   signal phyRxInit     : sl;                            -- To RxRst
+   signal phyRxReady    : sl;                              -- To RxRst
+   signal phyRxInit     : sl;                              -- To RxRst
 
    --------------------------------------------------------------------------------------------------
    -- Tx Signals
@@ -160,11 +160,6 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    signal phyTxLanesOut : Pgp2bTxPhyLaneOutArray(0 to 0);
    signal phyTxReady    : sl;
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
-      U_Pgp2bLane,
-      Decoder8b10b_1,
-      Gtx7Core_1 : label is "TRUE";
    
 begin
 
@@ -176,7 +171,7 @@ begin
       generic map (
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         PAYLOAD_CNT_TOP_G => 7,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G
          )
       port map (
@@ -307,7 +302,7 @@ begin
          qPllLockIn       => gtQPllLock,
          qPllRefClkLostIn => gtQPllRefClkLost,
          qPllResetOut     => gtQPllReset,
-         gtRxRefClkBufg => gtRxRefClkBufg,
+         gtRxRefClkBufg   => gtRxRefClkBufg,
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,
          gtRxP            => gtRxP,

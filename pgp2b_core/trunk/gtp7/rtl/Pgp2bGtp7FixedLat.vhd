@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-06-04
+-- Last update: 2014-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,18 +59,19 @@ entity Pgp2bGtp7FixedLat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G : integer              := 1;     -- Interleave Frames
-      NUM_VC_EN_G     : integer range 1 to 4 := 4
+      VC_INTERLEAVE_G   : integer              := 1;   -- Interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;   -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4
       );
    port (
       -- GT Clocking
-      stableClk        : in  sl;                       -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       gtQPllOutRefClk  : in  slv(1 downto 0) := "00";  -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
       gtQPllReset      : out slv(1 downto 0);
-      gtRxRefClkBufg   : in sl;         -- gtrefclk driving rx side, fed through clock buffer
+      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
 
       -- Gt Serial IO
       gtRxN : in  sl;                   -- GT Serial Receive Negative
@@ -124,8 +125,8 @@ architecture rtl of Pgp2bGtp7FixedLat is
 --   signal gtRxUserReset  : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);              -- Feed to 8B10B decoder
-   signal dataValid     : sl;                            -- no decode or disparity errors
+   signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
+   signal dataValid     : sl;                              -- no decode or disparity errors
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
 --   signal phyRxReady    : sl;                            -- To RxRst
@@ -144,7 +145,7 @@ architecture rtl of Pgp2bGtp7FixedLat is
 --   signal phyTxReady    : sl;
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       U_Pgp2bLane,
       Decoder8b10b_1,
       Gtp7Core_1 : label is "TRUE";
@@ -159,7 +160,7 @@ begin
       generic map (
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         PAYLOAD_CNT_TOP_G => 7,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G
          ) port map ( 
             pgpTxClk         => pgpTxClk,
@@ -282,6 +283,7 @@ begin
          qPllLockIn       => gtQPllLock,
          qPllRefClkLostIn => gtQPllRefClkLost,
          qPllResetOut     => gtQPllReset,
+         gtRxRefClkBufg => gtRxRefClkBufg,
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,
          gtRxP            => gtRxP,
