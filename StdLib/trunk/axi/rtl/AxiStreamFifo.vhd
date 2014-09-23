@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-27
+-- Last update: 2014-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ entity AxiStreamFifo is
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
-      FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 500;
+      FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
