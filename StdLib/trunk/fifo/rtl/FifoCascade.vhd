@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-10
--- Last update: 2014-05-05
+-- Last update: 2014-09-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -56,6 +56,7 @@ entity FifoCascade is
       almost_full   : out sl;
       full          : out sl;
       not_full      : out sl;
+      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0);
       --Read Ports (rd_clk domain)
       rd_clk        : in  sl;           --unused if GEN_SYNC_FIFO_G = true
       rd_en         : in  sl := '0';
@@ -76,7 +77,8 @@ architecture mapping of FifoCascade is
 
    type FifoDataType is array (CASCADE_SIZE_C downto 0) of slv((DATA_WIDTH_G-1) downto 0);
 
-   signal cascadeClk : sl;
+   signal progFull,
+      cascadeClk : sl;
    signal readJump,
       validJump,
       AFullJump : slv(CASCADE_SIZE_C downto 0);
@@ -86,8 +88,15 @@ begin
 
    cascadeClk <= wr_clk when(LAST_STAGE_ASYNC_G = true) else rd_clk;
 
+   -----------------------------------------------------------------
+   -----------------------------------------------------------------
+   -----------------------------------------------------------------
+
    ONE_STAGE : if (CASCADE_SIZE_G = 1) generate
       
+      prog_full      <= progFull;
+      progFullVec(0) <= progFull;
+
       Fifo_1xStage : entity work.Fifo
          generic map (
             TPD_G           => TPD_G,
@@ -118,7 +127,7 @@ begin
             wr_data_count => wr_data_count,
             wr_ack        => wr_ack,
             overflow      => overflow,
-            prog_full     => prog_full,
+            prog_full     => progFull,
             almost_full   => almost_full,
             full          => full,
             not_full      => not_full,
@@ -135,8 +144,15 @@ begin
 
    end generate;
 
+   -----------------------------------------------------------------
+   -----------------------------------------------------------------
+   -----------------------------------------------------------------   
+
    TWO_STAGE : if (CASCADE_SIZE_G >= 2) generate
       
+      prog_full                     <= progFull;
+      progFullVec(CASCADE_SIZE_G-1) <= progFull;
+
       Fifo_First_Stage : entity work.Fifo
          generic map (
             TPD_G           => TPD_G,
@@ -167,7 +183,7 @@ begin
             wr_data_count => wr_data_count,
             wr_ack        => wr_ack,
             overflow      => overflow,
-            prog_full     => prog_full,
+            prog_full     => progFull,
             almost_full   => almost_full,
             full          => full,
             not_full      => not_full,
@@ -211,6 +227,7 @@ begin
                   wr_en       => readJump(i),
                   din         => dataJump(i),
                   almost_full => AFullJump(i),
+                  prog_full   => progFullVec(i),
                   --Read Ports (rd_clk domain)
                   rd_clk      => cascadeClk,
                   rd_en       => readJump(i-1),
@@ -249,6 +266,7 @@ begin
             wr_en         => readJump(0),
             din           => dataJump(0),
             almost_full   => AFullJump(0),
+            prog_full     => progFullVec(0),
             --Read Ports (rd_clk domain)
             rd_clk        => rd_clk,
             rd_en         => rd_en,
