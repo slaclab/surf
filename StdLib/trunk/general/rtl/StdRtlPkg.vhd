@@ -124,6 +124,11 @@ package StdRtlPkg is
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
    function getTimeRatio (T1, T2 : real) return natural;
+
+   procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    slv);
+   procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    sl);
+   procedure assignRecord (i : inout integer; vector : in    slv; value  : inout slv);
+   procedure assignRecord (i : inout integer; vector : in    slv; value  : inout sl);   
    
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -1190,6 +1195,52 @@ package body StdRtlPkg is
          retVar := (others => '0');
       end if;
       return retVar;   
-   end function;       
+   end function;
+
+   procedure assignSlv (
+      i      : inout integer;
+      vector : inout slv;
+      value  : in    slv)
+   is
+      variable low : integer;
+   begin
+      low := i;
+      i   := i+value'length;
+      vector(i-1 downto low) := value;
+   end procedure assignSlv;
+   
+   procedure assignSlv (
+      i      : inout integer;
+      vector : inout slv;
+      value  : in    sl)
+   is
+      variable low : integer;
+   begin
+      vector(i) := value;
+      i := i+1;
+   end procedure assignSlv;
+   
+   procedure assignRecord (
+      i      : inout integer;
+      vector : in    slv;
+      value  : inout slv)
+   is
+      variable low : integer;
+   begin
+      low := i;
+      i   := i+value'length;
+      value := vector(i-1 downto low);
+   end procedure assignRecord;
+   
+   procedure assignRecord (
+      i      : inout integer;
+      vector : in    slv;
+      value  : inout sl)
+   is
+      variable low : integer;
+   begin
+      value := vector(i);
+      i   := i+1;
+   end procedure assignRecord;
    
 end package body StdRtlPkg;
