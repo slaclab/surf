@@ -49,6 +49,7 @@ entity AxiStreamFifo is
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
+      CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -262,6 +263,7 @@ architecture rtl of AxiStreamFifo is
    signal fifoAFull     : sl;
    signal fifoReady     : sl;
    signal fifoPFull     : sl;
+   signal fifoPFullVec  : slv(CASCADE_SIZE_G-1 downto 0);
    signal fifoDout      : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead      : sl;
    signal fifoReadLast  : sl;
@@ -392,10 +394,10 @@ begin
    -------------------------
 
    -- Pause generation
-   process (sAxisClk, fifoPFull) is
+   process (sAxisClk, fifoPFull, fifoPFullVec) is
    begin
       if FIFO_FIXED_THRESH_G then
-         sAxisCtrl.pause <= fifoPFull after TPD_G;
+         sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
       elsif (rising_edge(sAxisClk)) then
          if sAxisRst = '1' or fifoWrCount >= fifoPauseThresh then
             sAxisCtrl.pause <= '1' after TPD_G;
@@ -440,6 +442,7 @@ begin
          wr_ack        => open,
          overflow      => sAxisCtrl.overflow,
          prog_full     => fifoPFull,
+         progFullVec   => fifoPFullVec,
          almost_full   => fifoAFull,
          full          => open,
          not_full      => open,
