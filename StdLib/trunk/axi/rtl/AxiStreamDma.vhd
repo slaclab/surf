@@ -54,8 +54,8 @@ entity AxiStreamDma is
       axilWriteMaster : in  AxiLiteWriteMasterArray(AXIL_COUNT_G-1 downto 0);
       axilWriteSlave  : out AxiLiteWriteSlaveArray(AXIL_COUNT_G-1 downto 0);
       interrupt       : out sl;
-      enabled         : out sl;
       online          : out sl;
+      acknowledge     : out sl;
 
       -- SSI 
       sAxisMaster     : in  AxiStreamMasterType;
@@ -111,7 +111,7 @@ architecture structure of AxiStreamDma is
       interrupt     : sl;
       intEnable     : sl;
       intAck        : sl;
-      enabled       : sl;
+      acknowledge   : sl;
       online        : sl;
       rxEnable      : sl;
       txEnable      : sl;
@@ -125,7 +125,7 @@ architecture structure of AxiStreamDma is
       interrupt     => '0',
       intEnable     => '0',
       intAck        => '0',
-      enabled       => '0',
+      acknowledge   => '0',
       online        => '0',
       rxEnable      => '0',
       txEnable      => '0',
@@ -321,8 +321,8 @@ begin
             when "101" =>
                v.maxRxSize := intWriteMasters(0).wdata(23 downto 0);
             when "110" =>
-               v.online  := intWriteMasters(0).wdata(0);
-               v.enabled := intWriteMasters(0).wdata(1);
+               v.online      := intWriteMasters(0).wdata(0);
+               v.acknowledge := intWriteMasters(0).wdata(1);
             when "111" =>
                v.intAck := intWriteMasters(0).wdata(0);
             when others =>
@@ -352,7 +352,7 @@ begin
                v.axiReadSlave.rdata(23 downto 0) := r.maxRxSize;
             when "110" =>
                v.axiReadSlave.rdata(0) := r.online;
-               v.axiReadSlave.rdata(1) := r.enabled;
+               v.axiReadSlave.rdata(1) := r.acknowledge;
             when "111" =>
                v.axiReadSlave.rdata(0) := ib.intPending;
                v.axiReadSlave.rdata(1) := ob.intPending;
@@ -377,7 +377,7 @@ begin
 
       -- Outputs
       interrupt         <= r.interrupt;
-      enabled           <= r.enabled;
+      acknowledge       <= r.acknowledge;
       online            <= r.online;
       intReadSlaves(0)  <= r.axiReadSlave;
       intWriteSlaves(0) <= r.axiWriteSlave;
