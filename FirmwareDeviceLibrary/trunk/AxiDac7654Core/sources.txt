@@ -1,0 +1,4 @@
+vhdl work rtl/AxiDac7654Core.vhd
+vhdl work rtl/AxiDac7654Reg.vhd
+vhdl work rtl/AxiDac7654Pkg.vhd
+vhdl work rtl/AxiDac7654Spi.vhd
