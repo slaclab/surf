@@ -129,6 +129,7 @@ begin
                         cs    <= '1'             after TPD_G;
                         pntr  <= (others => '0') after TPD_G;
                         inEn  <= '0'             after TPD_G;
+                        r.ack <= '1'             after TPD_G;
                         state <= HANDSHAKE_S     after TPD_G;
                      else
                         state <= SCK_LOW_S after TPD_G;

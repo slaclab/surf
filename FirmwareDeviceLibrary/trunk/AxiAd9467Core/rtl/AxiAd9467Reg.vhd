@@ -299,6 +299,7 @@ begin
                if v.config.spi.RnW = '0' then
                   axiSlaveWriteResponse(v.axiWriteSlave);
                else
+                  v.axiReadSlave.rdata(7 downto 0) := syncIn.spi.dout;
                   axiSlaveReadResponse(v.axiReadSlave);
                end if;
                -- Next State
