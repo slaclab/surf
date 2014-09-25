@@ -293,7 +293,7 @@ begin
          when S_DUMP_C =>
             v.slave.tReady := '1';
 
-            if intAxisMaster.tLast = '1' then
+            if intAxisMaster.tLast = '1' and intAxisMaster.tValid = '1' then
                v.state := S_WAIT_C;
             end if;
 
