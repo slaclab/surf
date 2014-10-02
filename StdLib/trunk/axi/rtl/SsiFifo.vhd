@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2014-05-02
+-- Last update: 2014-10-02
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ entity SsiFifo is
       PIPE_STAGES_G       : natural range 0 to 16      := 0;
       EN_FRAME_FILTER_G   : boolean                    := true;
       VALID_THOLD_G       : integer range 1 to (2**24) := 1;
-
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -96,6 +95,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
+         SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
@@ -108,6 +108,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         CASCADE_PAUSE_SEL_G => (CASCADE_SIZE_G-1),
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)      
