@@ -342,6 +342,8 @@ begin
    rxOutClkOut     <= rxOutClkBufg;
    qPllResetOut(0) <= rxPllResets(0) or txPllResets(0);
    qPllResetOut(1) <= rxPllResets(1) or txPllResets(1);
+   
+   rxPllLock       <= qPllLockIn(0) when RX_PLL0_USED_C else qPllLockIn(1);   
 
    --------------------------------------------------------------------------------------------------
    -- Rx Logic
@@ -428,39 +430,6 @@ begin
          RXLPMLFHOLD            => rxLpmLfHold,
          RXLPMHFHOLD            => rxLpmHfHold,
          RETRY_COUNTER          => open);
-
---   rxPllRefClkLost <= qPllRefClkLostIn(0) when RX_PLL0_USED_C     else qPllRefClkLostIn(1);
---   rxPllLock       <= qPllLockIn(0)       when RX_PLL0_USED_C     else qPllLockIn(1);
---   rxPllResets(0)  <= rxPllReset          when RX_PLL0_USED_C     else '0';
---   rxPllResets(1)  <= rxPllReset          when not RX_PLL0_USED_C else '0';
-
---   Gtp7RxRst2_1 : entity work.Gtp7RxRst2
---      generic map (
---         TPD_G                 => TPD_G,
---         STABLE_CLOCK_PERIOD_G => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
---         PLL_MASTER_G          => (RX_PLL_G /= TX_PLL_G))
---      port map (
---         stableClock         => stableClkIn,
---         rxUserClk           => rxUsrClkIn,
---         rxOutClk            => rxOutClkBufg,
---         softReset           => rxUserResetInt,
---         gtRxReset           => gtRxReset,
---         rxResetDone         => rxResetDone,
---         pllReset            => rxPllReset,
---         pllRefClkLost       => rxPllRefClkLost,
---         pllLock             => rxPllLock,
---         recClkStable        => rxRecClkStable,
---         recClkMonRestart    => rxRecClkMonitorRestart,
---         dataValid           => rxDataValidIn,
---         rxPmaResetDone      => rxPmaResetDone,
---         mmcmReset           => rxMmcmResetOut,
---         mmcmLocked          => rxMmcmLockedIn,
---         rxFsmResetDone      => rxFsmResetDone,
---         txUserRdy           => rxRstTxUserRdy,
---         runPhaseAlignment   => rxRunPhaseAlignment,
---         resetPhaseAlignment => open,   --rxResetPhaseAlignment,
---         phaseAlignmentDone  => rxPhaseAlignmentDone,
---         retryCount          => open);
 
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
