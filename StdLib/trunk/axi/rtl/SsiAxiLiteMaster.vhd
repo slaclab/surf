@@ -14,12 +14,9 @@
 -- Packet is a minimum of 4 x 32-bits
 --
 -- Incoming Request:
--- Word 0   Data[1:0]   = VC (legacy, echoed)
--- Word 0   Data[7:2]   = Dest_ID (legacy, echoed)
--- Word 0   Data[31:8]  = TID[31:0] (legacy, echoed)
+-- Word 0   Data[31:0]  = TID[31:0] (echoed)
 --
--- Word 1   Data[23:0]  = Address[23:0]
--- Word 1   Data[29:24] = Don't Care
+-- Word 1   Data[29:0]  = Address[31:2] (only 26-bits if EN_32BIT_G = false)
 -- Word 1   Data[31:30] = Opcode, 0x0=Read, 0x1=Write, 0x2=Set, 0x3=Clear 
 --                        (bit set and bit clear not supported)
 -- Word 2   Data[31:0]  = WriteData[31:0] or ReadCount[8:0]
@@ -33,8 +30,7 @@
 -- Word 0   Data[7:2]   = Dest_ID (legacy, echoed)
 -- Word 0   Data[31:8]  = TID[31:0] (legacy, echoed)
 --
--- Word 1   Data[23:0]  = Address[23:0]
--- Word 1   Data[29:24] = Don't Care
+-- Word 1   Data[29:0]  = Address[31:2]
 -- Word 1   Data[31:30] = OpCode, 0x0=Read, 0x1=Write, 0x2=Set, 0x3=Clear
 --
 -- Word 2   Data[31:0]  = ReadData[31:0]/WriteData[31:0]
@@ -67,6 +63,7 @@ entity SsiAxiLiteMaster is
       TPD_G : time := 1 ns;
 
       -- FIFO Config
+      EN_32BIT_ADDR_G     : boolean                    := false;
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
       USE_BUILT_IN_G      : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
@@ -234,7 +231,12 @@ begin
             v.sFifoAxisSlave.tReady := '1';
 
             if sFifoAxisMaster.tValid = '1' then
-               v.address                := "000000" & sFifoAxisMaster.tData(23 downto 0) & "00";
+
+               if EN_32BIT_ADDR_G = true 
+                  v.address(31 downto 26) := sFifoAxisMaster.tData(29 downto 24);
+               end if;
+
+               v.address(25 downto 2)   := sFifoAxisMaster.tData(23 downto 0);
                v.mFifoAxisMaster.tValid := '1';  -- Echo word 1
 
                -- Short frame, return error
