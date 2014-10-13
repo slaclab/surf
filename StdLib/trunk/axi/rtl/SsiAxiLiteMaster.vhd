@@ -232,7 +232,7 @@ begin
 
             if sFifoAxisMaster.tValid = '1' then
 
-               if EN_32BIT_ADDR_G = true 
+               if EN_32BIT_ADDR_G = true then
                   v.address(31 downto 26) := sFifoAxisMaster.tData(29 downto 24);
                end if;
 
