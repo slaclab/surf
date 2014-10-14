@@ -24,22 +24,23 @@ use work.AxiLitePkg.all;
 
 entity AxiLiteFifoPop is
    generic (
-      TPD_G              : time                  := 1 ns;
-      POP_FIFO_COUNT_G   : positive              := 1;
-      POP_SYNC_FIFO_G    : boolean               := false;
-      POP_BRAM_EN_G      : boolean               := true;
-      POP_ADDR_WIDTH_G   : integer range 4 to 48 := 4;
-      LOOP_FIFO_EN_G     : boolean               := false;
-      LOOP_FIFO_COUNT_G  : positive              := 1;
-      LOOP_BRAM_EN_G     : boolean               := true;
-      LOOP_ADDR_WIDTH_G  : integer range 4 to 48 := 4;
-      RANGE_LSB_G        : integer range 0 to 31 := 8;
-      VALID_POSITION_G   : integer range 0 to 31 := 0;
-      VALID_POLARITY_G   : sl                    := '0';
-      ALTERA_SYN_G       : boolean               := false;
-      ALTERA_RAM_G       : string                := "M9K";
-      USE_BUILT_IN_G     : boolean               := false;
-      XIL_DEVICE_G       : string                := "7SERIES"
+      TPD_G              : time                       := 1 ns;
+      POP_FIFO_COUNT_G   : positive                   := 1;
+      POP_SYNC_FIFO_G    : boolean                    := false;
+      POP_BRAM_EN_G      : boolean                    := true;
+      POP_ADDR_WIDTH_G   : integer range 4 to 48      := 4;
+      POP_FULL_THRES_G   : integer range 1 to (2**24) := 1;
+      LOOP_FIFO_EN_G     : boolean                    := false;
+      LOOP_FIFO_COUNT_G  : positive                   := 1;
+      LOOP_BRAM_EN_G     : boolean                    := true;
+      LOOP_ADDR_WIDTH_G  : integer range 4 to 48      := 4;
+      RANGE_LSB_G        : integer range 0 to 31      := 8;
+      VALID_POSITION_G   : integer range 0 to 31      := 0;
+      VALID_POLARITY_G   : sl                         := '0';
+      ALTERA_SYN_G       : boolean                    := false;
+      ALTERA_RAM_G       : string                     := "M9K";
+      USE_BUILT_IN_G     : boolean                    := false;
+      XIL_DEVICE_G       : string                     := "7SERIES"
    );
    port (
 
@@ -62,7 +63,8 @@ entity AxiLiteFifoPop is
       popFifoWrite       : in  slv(POP_FIFO_COUNT_G-1 downto 0);
       popFifoDin         : in  Slv32Array(POP_FIFO_COUNT_G-1 downto 0);
       popFifoFull        : out slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoAFull       : out slv(POP_FIFO_COUNT_G-1 downto 0)
+      popFifoAFull       : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoPFull       : out slv(POP_FIFO_COUNT_G-1 downto 0)
    );
 end AxiLiteFifoPop;
 
@@ -135,7 +137,7 @@ begin
             DATA_WIDTH_G       => 32,
             ADDR_WIDTH_G       => POP_ADDR_WIDTH_G,
             INIT_G             => "0",
-            FULL_THRES_G       => 1,
+            FULL_THRES_G       => POP_FULL_THRES_G,
             EMPTY_THRES_G      => 1
          ) port map (
             rst           => popFifoRst(i),
@@ -145,7 +147,7 @@ begin
             wr_data_count => open,
             wr_ack        => open,
             overflow      => open,
-            prog_full     => open,
+            prog_full     => popFifoPFull(i),
             almost_full   => popFifoAFull(i),
             full          => popFifoFull(i),
             not_full      => open,

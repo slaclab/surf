@@ -78,6 +78,8 @@ architecture structure of AxiStreamDma is
    constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH_G;
    constant POP_ADDR_WIDTH_C  : integer := FREE_ADDR_WIDTH_G;
 
+   constant POP_FIFO_PFULL_C  : integer := (2**POP_ADDR_WIDTH_C) - 4;
+
    constant POP_FIFO_COUNT_C  : integer := 2;
    constant PUSH_FIFO_COUNT_C : integer := 2;
 
@@ -188,7 +190,7 @@ architecture structure of AxiStreamDma is
    signal popFifoRst         : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal popFifoValid       : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal popFifoWrite       : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal popFifoAFull       : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoPFull       : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal popFifoDin         : Slv32Array(POP_FIFO_COUNT_C-1 downto 0);
    signal pushFifoClk        : slv(POP_FIFO_COUNT_C-1 downto 0);
    signal pushFifoRst        : slv(POP_FIFO_COUNT_C-1 downto 0);
@@ -239,6 +241,7 @@ begin
          POP_SYNC_FIFO_G    => true,
          POP_BRAM_EN_G      => true,
          POP_ADDR_WIDTH_G   => POP_ADDR_WIDTH_C,
+         POP_FULL_THRES_G   => POP_FIFO_PFULL_C,
          LOOP_FIFO_EN_G     => false,
          LOOP_FIFO_COUNT_G  => 1,
          LOOP_BRAM_EN_G     => false,
@@ -267,7 +270,8 @@ begin
          popFifoWrite       => popFifoWrite,
          popFifoDin         => popFifoDin,
          popFifoFull        => open,
-         popFifoAFull       => popFifoAFull,
+         popFifoAFull       => open,
+         popFifoPFull       => popFifoPFull,
          pushFifoClk        => pushFifoClk,
          pushFifoRst        => pushFifoRst,
          pushFifoValid      => pushFifoValid,
@@ -417,7 +421,7 @@ begin
    end process;
 
    -- Async
-   process (ib, r, axiRst, ibAck, pushFifoValid, pushFifoDout, popFifoAFull ) is
+   process (ib, r, axiRst, ibAck, pushFifoValid, pushFifoDout, popFifoPFull ) is
       variable v : IbType;
    begin
       v := ib;
@@ -431,7 +435,7 @@ begin
             v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 0);
             v.ibReq.maxSize := x"00" & r.maxRxSize;
 
-            if pushFifoValid(IB_FIFO_C) = '1' and popFifoAFull(IB_FIFO_C) = '0' then
+            if pushFifoValid(IB_FIFO_C) = '1' and popFifoPFull(IB_FIFO_C) = '0' then
                v.ibReq.request := '1';
                v.pushFifoRead  := '1';
                v.state         := S_WAIT_C;
