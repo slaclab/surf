@@ -78,7 +78,7 @@ architecture structure of AxiStreamDma is
    constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH_G;
    constant POP_ADDR_WIDTH_C  : integer := FREE_ADDR_WIDTH_G;
 
-   constant POP_FIFO_PFULL_C  : integer := (2**POP_ADDR_WIDTH_C) - 4;
+   constant POP_FIFO_PFULL_C  : integer := (2**POP_ADDR_WIDTH_C) - 10;
 
    constant POP_FIFO_COUNT_C  : integer := 2;
    constant PUSH_FIFO_COUNT_C : integer := 2;
