@@ -143,6 +143,10 @@ architecture RTL of Gtp7RxRst is
    constant WAIT_TIMEOUT_100us : integer := 100000 / STABLE_CLOCK_PERIOD;         --100 us time-out
    constant WAIT_TIME_ADAPT    : integer := (37000000 /integer(3.125))/STABLE_CLOCK_PERIOD;
 
+   signal soft_reset_sync : std_logic;
+   signal soft_reset_rise : std_logic;
+   signal soft_reset_fall : std_logic;
+
    signal init_wait_count          : integer range 0 to WAIT_MAX := 0;
    signal init_wait_done           : std_logic                   := '0';
    signal pll_reset_asserted       : std_logic                   := '0';
@@ -198,6 +202,7 @@ architecture RTL of Gtp7RxRst is
    signal pll1lock_prev     : std_logic := '0';
    signal pll0lock_ris_edge : std_logic := '0';
    signal pll1lock_ris_edge : std_logic := '0';
+   signal phalignment_done_sync : std_logic := '0';
 
    signal fsmCnt : std_logic_vector(15 downto 0);
 
@@ -338,45 +343,60 @@ begin
    -- Clock Domain Crossing
 
    sync_run_phase_alignment_int : entity work.Synchronizer
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 3)
       port map (
          clk     => RXUSERCLK,
          dataIn  => run_phase_alignment_int,
-         dataOut => run_phase_alignment_int_s2);
+         dataOut => run_phase_alignment_int_s3);
 
    sync_rx_fsm_reset_done_int : entity work.Synchronizer
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 3)
       port map (
          clk     => RXUSERCLK,
          dataIn  => rx_fsm_reset_done_int,
-         dataOut => rx_fsm_reset_done_int_s2);
+         dataOut => rx_fsm_reset_done_int_s3);
 
-   process(RXUSERCLK)
-   begin
-      if rising_edge(RXUSERCLK) then
-         run_phase_alignment_int_s3 <= run_phase_alignment_int_s2;
-
-         rx_fsm_reset_done_int_s3 <= rx_fsm_reset_done_int_s2;
-      end if;
-   end process;
+   Synchronizer_SOFT_RESET : entity work.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk         => STABLE_CLOCK,
+         dataIn      => SOFT_RESET,
+         dataOut     => soft_reset_sync,
+         risingEdge  => soft_reset_rise,
+         fallingEdge => soft_reset_fall);
 
    sync_RXRESETDONE : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => RXRESETDONE,
          dataOut => rxresetdone_s2);
 
    sync_time_out_wait_bypass : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => time_out_wait_bypass,
          dataOut => time_out_wait_bypass_s2);
 
    sync_mmcm_lock_reclocked : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => MMCM_LOCK,
          dataOut => mmcm_lock_i);
 
    sync_data_valid : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => DATA_VALID,
@@ -396,12 +416,16 @@ begin
 
 
    sync_PLL0LOCK : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => PLL0LOCK,
          dataOut => pll0lock_sync);
 
    sync_PLL1LOCK : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => PLL1LOCK,
@@ -412,7 +436,7 @@ begin
    process (STABLE_CLOCK)
    begin
       if rising_edge(STABLE_CLOCK) then
-         if(SOFT_RESET = '1') then
+         if(soft_reset_sync = '1') then
             pll0lock_ris_edge <= '0';
          elsif((pll0lock_prev = '0') and (pll0lock_sync = '1')) then
             pll0lock_ris_edge <= '1';
@@ -427,7 +451,7 @@ begin
    process (STABLE_CLOCK)
    begin
       if rising_edge(STABLE_CLOCK) then
-         if(SOFT_RESET = '1') then
+         if(soft_reset_sync = '1') then
             pll1lock_ris_edge <= '0';
          elsif((pll1lock_prev = '0') and (pll1lock_sync = '1')) then
             pll1lock_ris_edge <= '1';
@@ -439,6 +463,17 @@ begin
       end if;
    end process;
 
+   -- Phase aligner might run on rxusrclk in some cases
+   -- Synchronize it just in case
+   Synchronizer_PHALIGNMENT_DONE : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => STABLE_CLOCK,
+         dataIn  => PHALIGNMENT_DONE,
+         dataOut => phalignment_done_sync);
+
+   
    timeout_buffer_bypass : process(RXUSERCLK)
    begin
       if rising_edge(RXUSERCLK) then
@@ -479,7 +514,7 @@ begin
    reset_fsm : process(STABLE_CLOCK)
    begin
       if rising_edge(STABLE_CLOCK) then
-         if (SOFT_RESET = '1' or (not(rx_state = INIT) and not(rx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
+         if (soft_reset_sync = '1' or (not(rx_state = INIT) and not(rx_state = ASSERT_ALL_RESETS) and refclk_lost = '1')) then
             rx_state                <= INIT;
             RXUSERRDY               <= '0';
             gtrxreset_i             <= '0';
@@ -657,7 +692,7 @@ begin
                   run_phase_alignment_int <= '1';
                   reset_time_out          <= '0';
 
-                  if PHALIGNMENT_DONE = '1' then
+                  if phalignment_done_sync = '1' then
                      rx_state       <= MONITOR_DATA_VALID;
                      reset_time_out <= '1';
                   end if;

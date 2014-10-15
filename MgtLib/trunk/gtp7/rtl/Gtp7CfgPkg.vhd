@@ -66,21 +66,21 @@ package body Gtp7CfgPkg is
    begin
       found := false;
       -- Walk through all possible configs and look for one that works
-      dloop : for d in CPLL_OUT_DIV_VALIDS_C'range loop
-         mloop : for m in CPLL_REFCLK_DIV_VALIDS_C'range loop
-            n2loop : for n2 in CPLL_FBDIV_VALIDS_C'range loop
-               n1loop : for n1 in CPLL_FBDIV_45_VALIDS_C'range loop
+      dloop : for d in QPLL_OUT_DIV_VALIDS_C'range loop
+         mloop : for m in QPLL_REFCLK_DIV_VALIDS_C'range loop
+            n2loop : for n2 in QPLL_FBDIV_VALIDS_C'range loop
+               n1loop : for n1 in QPLL_FBDIV_45_VALIDS_C'range loop
                   
-                  pllClk := refClkFreq * real(CPLL_FBDIV_VALIDS_C(n2) * CPLL_FBDIV_45_VALIDS_C(n1)) /
-                            real(CPLL_REFCLK_DIV_VALIDS_C(m));
-                  rate := pllClk * 2.0 / real(CPLL_OUT_DIV_VALIDS_C(d));
+                  pllClk := refClkFreq * real(QPLL_FBDIV_VALIDS_C(n2) * QPLL_FBDIV_45_VALIDS_C(n1)) /
+                            real(QPLL_REFCLK_DIV_VALIDS_C(m));
+                  rate := pllClk * 2.0 / real(QPLL_OUT_DIV_VALIDS_C(d));
 
-                  if (pllClk > CPLL_LOW_C and pllClk < CPLL_HIGH_C and rate = lineRate) then
+                  if (pllClk > QPLL_LOW_C and pllClk < QPLL_HIGH_C and rate = lineRate) then
 
-                     ret.CPLL_REFCLK_DIV_G := CPLL_REFCLK_DIV_VALIDS_C(m);
-                     ret.CPLL_FBDIV_G      := CPLL_FBDIV_VALIDS_C(n2);
-                     ret.CPLL_FBDIV_45_G   := CPLL_FBDIV_45_VALIDS_C(n1);
-                     ret.OUT_DIV_G         := CPLL_OUT_DIV_VALIDS_C(d);
+                     ret.QPLL_REFCLK_DIV_G := QPLL_REFCLK_DIV_VALIDS_C(m);
+                     ret.QPLL_FBDIV_G      := QPLL_FBDIV_VALIDS_C(n2);
+                     ret.QPLL_FBDIV_45_G   := QPLL_FBDIV_45_VALIDS_C(n1);
+                     ret.OUT_DIV_G         := QPLL_OUT_DIV_VALIDS_C(d);
                      ret.CLK25_DIV_G       := integer(refClkFreq / 25.0E6);
 
                      found := true;
@@ -88,9 +88,9 @@ package body Gtp7CfgPkg is
 --                     report "Found GTX config: " & lf &
 --                        "refClkFreq:        " & real'image(refClkFreq) & lf &
 --                        "lineRate:          " & real'image(lineRate) & lf &
---                        "CPLL_REFCLK_DIV_G: " & integer'image(ret.CPLL_REFCLK_DIV_G) & lf &
---                        "CPLL_FBDIV_G:      " & integer'image(ret.CPLL_FBDIV_G) & lf &
---                        "CPLL_FBDIV_45_G:   " & integer'image(ret.CPLL_FBDIV_45_G) & lf &
+--                        "QPLL_REFCLK_DIV_G: " & integer'image(ret.QPLL_REFCLK_DIV_G) & lf &
+--                        "QPLL_FBDIV_G:      " & integer'image(ret.QPLL_FBDIV_G) & lf &
+--                        "QPLL_FBDIV_45_G:   " & integer'image(ret.QPLL_FBDIV_45_G) & lf &
 --                        "OUT_DIV_G:         " & integer'image(ret.RXOUT_DIV_G) & lf
 --                        severity note;
 
@@ -101,7 +101,7 @@ package body Gtp7CfgPkg is
          end loop;
       end loop;
 
-      assert (found) report "getGtp7CPllCfg: no feasible configuration found for refClkFreq: " &
+      assert (found) report "getGtp7QPllCfg: no feasible configuration found for refClkFreq: " &
          real'image(refClkFreq) & " and lineRate: " & real'image(lineRate) severity failure;
       return ret;
 
