@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-07-18
--- Platform   : Vivado 2013.3
+-- Last update: 2014-10-20
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
@@ -46,47 +46,45 @@ entity SsiPrbsTx is
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
    port (
       -- Master Port (mAxisClk)
-      mAxisClk    : in  sl;
-      mAxisRst    : in  sl;
-      mAxisSlave  : in  AxiStreamSlaveType;
-      mAxisMaster : out AxiStreamMasterType;
-
+      mAxisClk     : in  sl;
+      mAxisRst     : in  sl;
+      mAxisSlave   : in  AxiStreamSlaveType;
+      mAxisMaster  : out AxiStreamMasterType;
       -- Trigger Signal (locClk domain)
       locClk       : in  sl;
-      locRst       : in  sl              := '0';
-      trig         : in  sl              := '1';
+      locRst       : in  sl               := '0';
+      trig         : in  sl               := '1';
       packetLength : in  slv(31 downto 0) := X"FFFFFFFF";
       busy         : out sl;
-      tDest        : in  slv(7 downto 0) := X"00";
-      tId          : in  slv(7 downto 0) := X"00");
-
-
+      tDest        : in  slv(7 downto 0)  := X"00";
+      tId          : in  slv(7 downto 0)  := X"00");
 end SsiPrbsTx;
 
 architecture rtl of SsiPrbsTx is
 
-   constant PRBS_BYTES_C      : natural             := PRBS_SEED_SIZE_G / 8;
-   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_NORMAL_C);
+   constant PRBS_BYTES_C      : natural             := (PRBS_SEED_SIZE_G/8);
+   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
    
    type StateType is (
       IDLE_S,
       SEED_RAND_S,
       LENGTH_S,
-      DATA_S,
-      LAST_S);  
+      DATA_S);  
 
    type RegType is record
       busy         : sl;
+      overflow     : sl;
       packetLength : slv(31 downto 0);
       dataCnt      : slv(31 downto 0);
       eventCnt     : slv(PRBS_SEED_SIZE_G-1 downto 0);
       randomData   : slv(PRBS_SEED_SIZE_G-1 downto 0);
-      txAxisMaster : AxiStreamMasterType;
+      txMaster     : AxiStreamMasterType;
       state        : StateType;
    end record;
    
    constant REG_INIT_C : RegType := (
       '1',
+      '0',
       (others => '0'),
       (others => '0'),
       (others => '0'),
@@ -97,37 +95,45 @@ architecture rtl of SsiPrbsTx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txAxisMaster : AxiStreamMasterType;
-   signal txAxisSlave  : AxiStreamSlaveType;
+   signal txCtrl : AxiStreamCtrlType;
    
 begin
 
    assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
 
-   comb : process (locRst, packetLength, r, tDest, tId, trig, txAxisSlave) is
-      variable i : integer;
+   comb : process (locRst, packetLength, r, tDest, tId, trig, txCtrl) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
+      -- Reset strobing signals
+      ssiResetFlags(v.txMaster);
+      v.txMaster.tData := (others => '0');
+
+      -- Check for overflow condition
+      if txCtrl.overflow = '1' then
+         -- Latch the overflow error bit for the data packet
+         v.overflow := '1';
+      end if;
+
+      -- State Machine
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-
-            v.txAxisMaster.tValid := '0';
-
             -- Reset the busy flag
             v.busy := '0';
             -- Check for a trigger
             if trig = '1' then
                -- Latch the generator seed
-               v.randomData         := r.eventCnt;
+               v.randomData     := r.eventCnt;
                -- Set the busy flag
-               v.busy               := '1';
+               v.busy           := '1';
+               -- Reset the overflow flag
+               v.overflow       := '0';
                -- Latch the configuration
-               v.txAxisMaster.tDest := tDest;
-               v.txAxisMaster.tId   := tId;
+               v.txMaster.tDest := tDest;
+               v.txMaster.tId   := tId;
                -- Check the packet length request value
                if packetLength = 0 then
                   -- Force minimum packet length of 2 (+1)
@@ -144,71 +150,59 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SEED_RAND_S =>
-            -- Check the status
-            --if txAxisSlave.tReady = '1' then
+            -- Check if the FIFO is ready
+            if txCtrl.pause = '0' then
                -- Send the random seed word
-               v.txAxisMaster.tvalid                             := '1';
-               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
+               v.txMaster.tvalid                             := '1';
+               v.txMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
                -- Generate the next random data word
-               v.randomData                                      := lfsrShift(r.randomData, PRBS_TAPS_G);
+               v.randomData                                  := lfsrShift(r.randomData, PRBS_TAPS_G);
                -- Increment the counter
-               v.eventCnt                                        := r.eventCnt + 1;
+               v.eventCnt                                    := r.eventCnt + 1;
                -- Increment the counter
-               v.dataCnt                                         := r.dataCnt + 1;
-
-               axiStreamSetUserBit(PRBS_SSI_CONFIG_C,v.txAxisMaster,SSI_SOF_C,'1',0);
-
+               v.dataCnt                                     := r.dataCnt + 1;
+               -- Set the SOF bit
+               ssiSetUserSof(PRBS_SSI_CONFIG_C, v.txMaster, '1');
                -- Next State
-               v.state                                           := LENGTH_S;
-            --end if;
+               v.state                                       := LENGTH_S;
+            end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
-            -- Check the status
-            if txAxisSlave.tReady = '1' then
-
-               axiStreamSetUserBit(PRBS_SSI_CONFIG_C,v.txAxisMaster,SSI_SOF_C,'0',0);
-
+            -- Check if the FIFO is ready
+            if txCtrl.pause = '0' then
                -- Send the upper packetLength value
-               v.txAxisMaster.tvalid             := '1';
-               v.txAxisMaster.tData(31 downto 0) := r.packetLength;
+               v.txMaster.tvalid             := '1';
+               v.txMaster.tData(31 downto 0) := r.packetLength;
                -- Increment the counter
-               v.dataCnt                         := r.dataCnt + 1;
+               v.dataCnt                     := r.dataCnt + 1;
                -- Next State
-               v.state                           := DATA_S;
+               v.state                       := DATA_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
-            -- Check the status
-            if txAxisSlave.tReady = '1' then
+            -- Check if the FIFO is ready
+            if txCtrl.pause = '0' then
                -- Send the random data word
-               v.txAxisMaster.tValid                             := '1';
-               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
-
+               v.txMaster.tValid                             := '1';
+               v.txMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
                -- Generate the next random data word
-               v.randomData := lfsrShift(r.randomData, PRBS_TAPS_G);
+               v.randomData                                  := lfsrShift(r.randomData, PRBS_TAPS_G);
                -- Increment the counter
-               v.dataCnt    := r.dataCnt + 1;
+               v.dataCnt                                     := r.dataCnt + 1;
                -- Check the counter
                if r.dataCnt = r.packetLength then
                   -- Reset the counter
-                  v.dataCnt            := (others => '0');
-                  -- Set the end of frame flag                 
-                  v.txAxisMaster.tLast := '1';
+                  v.dataCnt        := (others => '0');
+                  -- Set the EOF bit                
+                  v.txMaster.tLast := '1';
+                  -- Set the EOFE bit
+                  ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txMaster, r.overflow);
                   -- Reset the busy flag
-                  v.busy               := '0';
+                  v.busy           := '0';
                   -- Next State
-                  v.state              := LAST_S;
+                  v.state          := IDLE_S;
                end if;
             end if;
-
-         ----------------------------------------------------------------------
-         when LAST_S =>
-            if txAxisSlave.tReady = '1' then
-               v.txAxisMaster.tValid := '0';
-               v.txAxisMaster.tLast  := '0';
-               v.state               := IDLE_S;
-            end if;
-
       ----------------------------------------------------------------------
       end case;
 
@@ -221,8 +215,7 @@ begin
       rin <= v;
 
       -- Outputs
-      txAxisMaster <= r.txAxisMaster;
-      busy         <= r.busy;
+      busy <= r.busy;
       
    end process comb;
 
@@ -238,6 +231,8 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
+         SLAVE_READY_EN_G    => false,
+         VALID_THOLD_G       => 1,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
@@ -249,6 +244,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         CASCADE_PAUSE_SEL_G => (CASCADE_SIZE_G-1),
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
          MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
@@ -256,9 +252,9 @@ begin
          -- Slave Port
          sAxisClk    => locClk,
          sAxisRst    => locRst,
-         sAxisMaster => txAxisMaster,
-         sAxisSlave  => txAxisSlave,
-         sAxisCtrl   => open,
+         sAxisMaster => r.txMaster,
+         sAxisSlave  => open,
+         sAxisCtrl   => txCtrl,
          -- Master Port
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,
