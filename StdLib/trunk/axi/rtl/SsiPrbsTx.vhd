@@ -33,7 +33,7 @@ entity SsiPrbsTx is
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
       GEN_SYNC_FIFO_G            : boolean                    := false;
-      ALTERA_SYN_G               : boolean                    := true;
+      ALTERA_SYN_G               : boolean                    := false;
       ALTERA_RAM_G               : string                     := "M9K";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
