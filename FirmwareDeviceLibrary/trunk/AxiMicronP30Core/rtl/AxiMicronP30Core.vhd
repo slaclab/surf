@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiMicronP30FlashCore.vhd
+-- File       : AxiMicronP30Core.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2014-06-23
+-- Last update: 2014-10-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -18,22 +18,21 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.I2cPkg.all;
-use work.AxiI2cQsfpPkg.all;
+use work.AxiMicronP30Pkg.all;
 
-entity AxiMicronP30FlashCore is
+entity AxiMicronP30Core is
    generic (
-      TPD_G              : time                  := 1 ns;
-      AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      TPD_G            : time            := 1 ns;
+      AXI_CLK_FREQ_G   : real            := 200.0E+6;  -- units of Hz
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Interface 
-      flashInOut     : inout AxiMicronP30FlashInOutType;
-      flashOut       : out   AxiMicronP30FlashOutType;
+      flashIn        : in    AxiMicronP30InType;
+      flashInOut     : inout AxiMicronP30InOutType;
+      flashOut       : out   AxiMicronP30OutType;
       -- AXI-Lite Register Interface
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
@@ -42,44 +41,35 @@ entity AxiMicronP30FlashCore is
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl);
-end AxiMicronP30FlashCore;
+end AxiMicronP30Core;
 
-architecture rtl of AxiMicronP30FlashCore is
-   
-   signal tristate : sl;
-   signal din,
-      dout : slv(15 downto 0);
-   
+architecture mapping of AxiMicronP30Core is
+
 begin
 
-   -- Place holder for future module
-   AxiLiteEmpty_Inst : entity work.AxiLiteEmpty
+   AxiMicronP30Reg_Inst : entity work.AxiMicronP30Reg
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G) 
       port map (
+         -- FLASH Interface 
+         flashAddr      => flashOut.addr,
+         flashData      => flashInOut.data,
+         flashCe        => flashOut.ce,
+         flashOe        => flashOut.oe,
+         flashWe        => flashOut.we,
+         -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,
          axiWriteSlave  => axiWriteSlave,
+         -- Clocks and Resets
          axiClk         => axiClk,
-         axiClkRst      => axiRst); 
+         axiRst         => axiRst); 
 
-   GEN_IOBUF :
-   for i in 15 downto 0 generate
-      IOBUF_inst : IOBUF
-         port map (
-            O  => dout(i),              -- Buffer output
-            IO => flashInOut.data(i),   -- Buffer inout port (connect directly to top-level port)
-            I  => din(i),               -- Buffer input
-            T  => tristate);            -- 3-state enable input, high=input, low=output     
-   end generate GEN_IOBUF;
+   flashOut.adv <= '0';
+   flashOut.clk <= '1';
+   flashOut.rst <= not(axiRst);
    
-   tristate <= '1';
-   
-   din           <= (others=>'0');
-   flashOut.Addr <= (others=>'0');
-   flashOut.Adv  <= '0';
-   flashOut.Ce   <= '1';
-   flashOut.Oe   <= '1';
-   flashOut.We   <= '1';   
-
-       
-end rtl;
+end mapping;
