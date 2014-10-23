@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-02
--- Last update: 2014-09-15
+-- Last update: 2014-10-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,6 +24,9 @@ use IEEE.math_real.all;
 use work.StdRtlPkg.all;
 
 package Gtx7CfgPkg is
+
+   constant GTX7CFG_0_C : sl := '0';
+   constant GTX7CFG_1_C : sl := '1';
 
    -------------------------------------------------------------------------------------------------
    -- CPLL Config Types, Constants and Function declarations
@@ -51,8 +54,8 @@ package Gtx7CfgPkg is
    -------------------------------------------------------------------------------------------------
    type Gtx7QPllCfgType is record
       QPLL_REFCLK_DIV_G  : integer;
-      QPLL_FBDIV_RATIO_G : integer;
-      QPLL_FBDIV_G       : slv(9 downto 0);
+      QPLL_FBDIV_RATIO_G : bit;
+      QPLL_FBDIV_G       : bit_vector(9 downto 0);
       OUT_DIV_G          : integer;
       CLK25_DIV_G        : integer;
    end record Gtx7QPllCfgType;
@@ -66,9 +69,29 @@ package Gtx7CfgPkg is
    constant QPLL_UPPER_BAND_LOW_C  : real := 9.8E9;
    constant QPLL_UPPER_BAND_HIGH_C : real := 12.5E9;
 
-   impure function getQPllFbdiv (fbdivInt : integer) return slv;
+   impure function getQPllFbdiv (fbdivInt : integer) return bit_vector;
 
    impure function getGtx7QPllCfg (refClkFreq : real; lineRate : real) return Gtx7QPllCfgType;
+
+   -------------------------------------------------------------------------------------------------
+   -- GT config
+   -------------------------------------------------------------------------------------------------
+   type Gtx7CfgType is record
+      CPLL_REFCLK_DIV_G : integer;
+      CPLL_FBDIV_G      : integer;
+      CPLL_FBDIV_45_G   : integer;
+      RXOUT_DIV_G       : integer;
+      TXOUT_DIV_G       : integer;
+      RX_CLK25_DIV_G    : integer;
+      TX_CLK25_DIV_G    : integer;
+   end record Gtx7CfgType;
+
+   function getGtx7Cfg (
+      txPll   : string;
+      rxPll   : string;
+      cPllCfg : Gtx7CPllCfgType;
+      qPllCfg : Gtx7QPllCfgType)
+      return Gtx7CfgType;
 
 end package Gtx7CfgPkg;
 
@@ -93,7 +116,7 @@ package body Gtx7CfgPkg is
          mloop : for m in CPLL_REFCLK_DIV_VALIDS_C'range loop
             n2loop : for n2 in CPLL_FBDIV_VALIDS_C'range loop
                n1loop : for n1 in CPLL_FBDIV_45_VALIDS_C'range loop
-                  
+
                   pllClk := refClkFreq * real(CPLL_FBDIV_VALIDS_C(n2) * CPLL_FBDIV_45_VALIDS_C(n1)) /
                             real(CPLL_REFCLK_DIV_VALIDS_C(m));
                   rate := pllClk * 2.0 / real(CPLL_OUT_DIV_VALIDS_C(d));
@@ -133,8 +156,8 @@ package body Gtx7CfgPkg is
    -------------------------------------------------------------------------------------------------
    -- QPLL
    -------------------------------------------------------------------------------------------------
-   impure function getQPllFbdiv (fbdivInt : integer) return slv is
-      variable ret : slv(9 downto 0) := (others => '0');
+   impure function getQPllFbdiv (fbdivInt : integer) return bit_vector is
+      variable ret : bit_vector(9 downto 0) := (others => '0');
    begin
       case (fbdivInt) is
          when 16  => ret := "0000100000";
@@ -155,6 +178,7 @@ package body Gtx7CfgPkg is
       return Gtx7QPllCfgType
    is
       variable ret    : Gtx7QPllCfgType;
+      variable vcoClk : real;
       variable pllClk : real;
       variable rate   : real;
       variable found  : boolean;
@@ -165,21 +189,37 @@ package body Gtx7CfgPkg is
          mloop : for m in QPLL_REFCLK_DIV_VALIDS_C'range loop
             nloop : for n in QPLL_FBDIV_INT_VALIDS_C'range loop
                
-               pllClk := refClkFreq * real(QPLL_FBDIV_INT_VALIDS_C(n)) /
-                         (2.0 * real(QPLL_REFCLK_DIV_VALIDS_C(m)));
+               vcoClk := refClkFreq * real(QPLL_FBDIV_INT_VALIDS_C(n)) /
+                         (real(QPLL_REFCLK_DIV_VALIDS_C(m)));
+               pllClk := vcoClk / 2.0;
                rate := pllClk * 2.0 / real(QPLL_OUT_DIV_VALIDS_C(d));
 
-               if (((pllClk > QPLL_LOWER_BAND_LOW_C and pllClk < QPLL_LOWER_BAND_HIGH_C) or
-                    (pllClk > QPLL_UPPER_BAND_LOW_C and pllClk < QPLL_UPPER_BAND_HIGH_C))
+--               report
+--                  "--------" & lf &
+--                  "M: " & integer'image(QPLL_REFCLK_DIV_VALIDS_C(m)) & lf &
+--                  "N: " & integer'image(QPLL_FBDIV_INT_VALIDS_C(n)) & lf &
+--                  "D: " & integer'image(QPLL_OUT_DIV_VALIDS_C(d)) & lf &
+--                  "vcoClk: " & real'image(vcoClk) & lf &
+--                  "pllClk: " & real'image(pllClk) & lf &
+--                  "rate: " &   real'image(rate) & lf                  
+--                  severity note;
+
+               if (((vcoClk >= QPLL_LOWER_BAND_LOW_C and vcoClk <= QPLL_LOWER_BAND_HIGH_C) or
+                    (vcoClk >= QPLL_UPPER_BAND_LOW_C and vcoClk <= QPLL_UPPER_BAND_HIGH_C))
                    and rate = lineRate) then
 
-                  ret.QPLL_REFCLK_DIV_G  := QPLL_REFCLK_DIV_VALIDS_C(m);
-                  ret.QPLL_FBDIV_G       := getQPllFbdiv(QPLL_FBDIV_INT_VALIDS_C(n));
-                  ret.QPLL_FBDIV_RATIO_G := ite(QPLL_FBDIV_INT_VALIDS_C(n) = 66, 0, 1);
-                  ret.OUT_DIV_G          := QPLL_OUT_DIV_VALIDS_C(d);
-                  ret.CLK25_DIV_G        := integer(refClkFreq / 25.0E6);
+                  ret.QPLL_REFCLK_DIV_G := QPLL_REFCLK_DIV_VALIDS_C(m);
+                  ret.QPLL_FBDIV_G      := getQPllFbdiv(QPLL_FBDIV_INT_VALIDS_C(n));
+                  if (QPLL_FBDIV_INT_VALIDS_C(n) = 66) then
+                     ret.QPLL_FBDIV_RATIO_G := '0';
+                  else
+                     ret.QPLL_FBDIV_RATIO_G := '1';
+                  end if;
+                  ret.OUT_DIV_G   := QPLL_OUT_DIV_VALIDS_C(d);
+                  ret.CLK25_DIV_G := integer(refClkFreq / 25.0E6);
 
                   found := true;
+--                  report "FOUND!!!" severity note;
 
                   exit dloop;
                end if;
@@ -192,6 +232,46 @@ package body Gtx7CfgPkg is
       return ret;
 
    end function;
+
+   -------------------------------------------------------------------------------------------------
+   -- GT Config
+   -------------------------------------------------------------------------------------------------
+   function getGtx7Cfg (
+      txPll   : string;
+      rxPll   : string;
+      cPllCfg : Gtx7CPllCfgType;
+      qPllCfg : Gtx7QPllCfgType)
+      return Gtx7CfgType is
+      variable ret : Gtx7CfgType;
+   begin
+      ret.CPLL_REFCLK_DIV_G := cPllCfg.CPLL_REFCLK_DIV_G;
+      ret.CPLL_FBDIV_G      := cPllCfg.CPLL_FBDIV_G;
+      ret.CPLL_FBDIV_45_G   := cPllCfg.CPLL_FBDIV_45_G;
+
+      if (txPll = "CPLL") then
+         ret.TXOUT_DIV_G    := cPllCfg.OUT_DIV_G;
+         ret.TX_CLK25_DIV_G := cPllCfg.CLK25_DIV_G;
+      elsif (txPll = "QPLL") then
+         ret.TXOUT_DIV_G    := qPllCfg.OUT_DIV_G;
+         ret.TX_CLK25_DIV_G := qPllCfg.CLK25_DIV_G;
+      else
+         ret.TXOUT_DIV_G    := 0;
+         ret.TX_CLK25_DIV_G := 0;
+      end if;
+
+      if (rxPll = "CPLL") then
+         ret.RXOUT_DIV_G    := cPllCfg.OUT_DIV_G;
+         ret.RX_CLK25_DIV_G := cPllCfg.CLK25_DIV_G;
+      elsif (rxPll = "QPLL") then
+         ret.RXOUT_DIV_G    := qPllCfg.OUT_DIV_G;
+         ret.RX_CLK25_DIV_G := qPllCfg.CLK25_DIV_G;
+      else
+         ret.RXOUT_DIV_G    := 0;
+         ret.RX_CLK25_DIV_G := 0;
+      end if;
+
+      return ret;
+   end function getGtx7Cfg;
 
 
 end package body Gtx7CfgPkg;
