@@ -34,7 +34,7 @@ package Gtp7CfgPkg is
       QPLL_FBDIV_45_G   : integer;
       OUT_DIV_G         : integer;
       CLK25_DIV_G       : integer;
-   end record Gtp7CfgType;
+   end record;
 
    constant QPLL_REFCLK_DIV_VALIDS_C : IntegerArray := (1, 2);
    constant QPLL_FBDIV_VALIDS_C      : IntegerArray := (1, 2, 3, 4, 5);
