@@ -73,7 +73,8 @@ entity GLinkGtx7FixedLat is
       -- Misc. MGT control
       loopback         : in slv(2 downto 0);
       txPowerDown      : in sl;
-      rxPowerDown      : in sl;      
+      rxPowerDown      : in sl;     
+      rxClkDebug       : out sl;-- debug only
       -- MGT Serial IO
       gtTxP            : out sl;
       gtTxN            : out sl;
@@ -109,6 +110,8 @@ architecture rtl of GLinkGtx7FixedLat is
    signal gLinkRxSync : GLinkRxType;
 
 begin
+
+   rxClkDebug <= rxClk;
    
    SYNTH_TX : if (SYNTH_TX_G = true) generate
       
