@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-05-20
+-- Last update: 2014-10-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,17 +33,17 @@ package GLinkPkg is
    type GLinkTxArray is array (natural range <>) of GLinkTxType;
    type GLinkTxVectorArray is array (natural range<>, natural range<>) of GLinkTxType;
    constant GLINK_TX_INIT_C : GLinkTxType := (
-      '1',
-      '0',
-      '0',
-      (others => '0'),
-      '1');
+      idle    => '1',
+      control => '0',
+      flag    => '0',
+      data    => (others => '0'),
+      linkRst => '1');
    constant GLINK_TX_UNUSED_C : GLinkTxType := (
-      '1',
-      '0',
-      '0',
-      (others => '0'),
-      '0');
+      idle    => '1',
+      control => '0',
+      flag    => '0',
+      data    => (others => '0'),
+      linkRst => '0');
    function toSlv (vec     : GLinkTxType) return slv;
    function toGLinkTx (vec : slv(19 downto 0)) return GLinkTxType;
 
@@ -62,15 +62,16 @@ package GLinkPkg is
    type GLinkRxArray is array (natural range <>) of GLinkRxType;
    type GLinkRxVectorArray is array (natural range<>, natural range<>) of GLinkRxType;
    constant GLINK_RX_INIT_C : GLinkRxType := (
-      '1',
-      '0',
-      '0',
-      '0',
-      (others => '0'),
-      '0',
-      '0',
-      '0',
-      '0');
+      isIdle    => '1',
+      isData    => '0',
+      isControl => '0',
+      flag      => '0',
+      data      => (others => '0'),
+      -- Link Status Signals
+      error     => '0',
+      rxReady   => '0',
+      txReady   => '0',
+      linkUp    => '0');
    function toSlv (vec     : GLinkRxType) return slv;
    function toGLinkRx (vec : slv(23 downto 0)) return GLinkRxType;
 
