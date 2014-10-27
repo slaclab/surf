@@ -55,11 +55,13 @@ entity GLinkGtx7FixedLat is
       txReady          : out sl;
       gLinkTxClk       : in  sl;
       gLinkTxClkEn     : in  sl := '1';
+      gLinkTxRst       : in  sl := '0';
       -- G-Link TX Interface (gLinkClk Domain)
       gLinkRx          : out GLinkRxType;
       rxReady          : out sl;
       gLinkRxClk       : in  sl;
       gLinkRxClkEn     : in  sl := '1';
+      gLinkRxRst       : in  sl := '0';
       -- MGT Clocking
       gLinkTxRefClk    : in  sl;                                    -- G-Link TX clock reference
       stableClk        : in  sl;
@@ -95,6 +97,8 @@ architecture rtl of GLinkGtx7FixedLat is
       rxClk,
       rxRst,
       txClk,
+      txUserReset,
+      rxUserReset,
       gtTxRstDone,
       gtRxRstDone,
       gtTxRst,
@@ -231,6 +235,9 @@ begin
 
    gtTxDataReversed <= bitReverse(gtTxData);
    gtRxData         <= bitReverse(gtRxDataReversed);
+   
+   rxUserReset <= gLinkTx.linkRst or gLinkRxRst;
+   txUserReset <= gLinkTx.linkRst or gLinkTxRst;
 
    -- GTX 7 Core in Fixed Latency mode
    Gtx7Core_Inst : entity work.Gtx7Core
@@ -300,7 +307,7 @@ begin
          rxUserRdyOut     => open,
          rxMmcmResetOut   => open,
          rxMmcmLockedIn   => '1',
-         rxUserResetIn    => gLinkTx.linkRst,  -- Sync'd in Gtx7RxRst.vhd
+         rxUserResetIn    => rxUserReset,  -- Sync'd in Gtx7RxRst.vhd
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
          rxSlideIn        => '0',              -- Slide is controlled internally
@@ -316,7 +323,7 @@ begin
          txUserRdyOut     => open,             -- Not sure what to do with this
          txMmcmResetOut   => open,             -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => '1',
-         txUserResetIn    => gLinkTxSync.linkRst,
+         txUserResetIn    => txUserReset,
          txResetDoneOut   => gtTxRstDone,
          txDataIn         => gtTxDataReversed,
          txCharIsKIn      => (others => '0'),  -- Not using gt rx 8b10b
