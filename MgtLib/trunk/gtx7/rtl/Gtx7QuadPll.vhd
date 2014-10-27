@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-06
--- Last update: 2014-03-30
+-- Last update: 2014-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ entity Gtx7QuadPll is
    generic (
       SIM_RESET_SPEEDUP_G : string     := "TRUE";
       SIM_VERSION_G       : string     := "4.0";
+      QPLL_CFG_G          : bit_vector := x"0680181";  -- QPLL_CFG_G[6] selects the QPLL frequency band: 0 = upper band, 1 = lower band
       QPLL_REFCLK_SEL_G   : bit_vector := "001";
       QPLL_FBDIV_G        : bit_vector := "0100100000";
       QPLL_FBDIV_RATIO_G  : bit        := '1';
@@ -77,7 +78,7 @@ begin
          ------------------COMMON BLOCK Attributes---------------
          BIAS_CFG                 => (x"0000040000001000"),
          COMMON_CFG               => (x"00000000"),
-         QPLL_CFG                 => (x"0680181"),
+         QPLL_CFG                 => QPLL_CFG_G,
          QPLL_CLKOUT_CFG          => ("0000"),
          QPLL_COARSE_FREQ_OVRD    => ("010000"),
          QPLL_COARSE_FREQ_OVRD_EN => ('0'),
