@@ -3,3 +3,4 @@ vhdl work rtl/ClockDivider.vhd
 vhdl work rtl/Iprog7Series.vhd
 vhdl work rtl/XadcSimpleCore.vhd
 vhdl work rtl/Dsp48Comparator4x12b.vhd
+vhdl work rtl/ClockManager7.vhd
