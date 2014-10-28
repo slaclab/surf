@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2013-11-22
+-- Last update: 2014-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,20 +29,30 @@ entity Heartbeat is
       PERIOD_OUT_G : real   := 1.0E-0);  --units of seconds
    port (
       clk : in  sl;
+      rst : in  sl := '0';
       o   : out sl);
 end entity Heartbeat;
 
 architecture rtl of Heartbeat is
    
-   constant CNT_SIZE_C : natural                             := getTimeRatio(PERIOD_OUT_G, getRealMult(2, PERIOD_IN_G));
-   constant CNT_MAX_C  : slv(bitSize(CNT_SIZE_C)-1 downto 0) := conv_std_logic_vector((CNT_SIZE_C-1), bitSize(CNT_SIZE_C));
+   constant CNT_MAX_C  : natural := getTimeRatio(PERIOD_OUT_G, (2.0 * PERIOD_IN_G));
+   constant CNT_SIZE_C : natural := bitSize(CNT_MAX_C);
 
-   signal cnt    : slv(bitSize(CNT_SIZE_C)-1 downto 0) := (others => '0');
-   signal toggle : sl                                  := '0';
+   type RegType is record
+      cnt : slv(CNT_SIZE_C-1 downto 0);
+      o   : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      cnt => (others => '0'),
+      o   => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    -- Attribute for XST
-   attribute use_dsp48        : string;
-   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
+   attribute use_dsp48      : string;
+   attribute use_dsp48 of r : signal is USE_DSP48_G;
    
 begin
 
@@ -51,22 +61,36 @@ begin
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
 
-   o <= toggle;
 
-   process (clk)
+   comb : process (r) is
+      variable v : RegType;
    begin
-      if rising_edge(clk) then
-         --check for max value
-         if cnt = CNT_MAX_C then
-            --reset the counter
-            cnt    <= (others => '0') after TPD_G;
-            --toggle the output bit
-            toggle <= not(toggle);
+      v := r;
+
+      v.cnt := r.cnt + 1;
+      if (r.cnt = CNT_MAX_C) then
+         v.cnt := (others => '0');
+         if (r.o = '1') then
+            v.o := '0';
          else
-            --increment the counter
-            cnt <= cnt + 1 after TPD_G;
+            v.o := '1';
          end if;
       end if;
-   end process;
+
+      if (rst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      rin <= v;
+      o   <= r.o;
+      
+   end process comb;
+
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture rtl;
