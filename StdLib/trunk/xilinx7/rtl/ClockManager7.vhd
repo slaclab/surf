@@ -233,6 +233,8 @@ begin
             O => clkOutLoc(i));
    end generate;
 
+   clkOut <= clkOutLoc;
+
    locked <= lockedLoc;
 
    RstOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
