@@ -231,9 +231,8 @@ begin
          port map (
             I => clkOutMmcm(i),
             O => clkOutLoc(i));
+      clkOut(i) <= clkOutLoc(i);
    end generate;
-
-   clkOut <= clkOutLoc;
 
    locked <= lockedLoc;
 
