@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-28
--- Last update: 2014-10-28
+-- Last update: 2014-10-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ begin
    assert(TYPE_G = "MMCM" or TYPE_G = "PLL")
       report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;
    
-   rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G;
+   rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
 
    MmcmGen : if (TYPE_G = "MMCM") generate
       U_Mmcm : MMCME2_BASE
@@ -166,10 +166,10 @@ begin
    end generate MmcmGen;
 
    PllGen : if (TYPE_G = "PLL") generate
-      U_Pll : PLL_BASE
+      U_Pll : PLLE2_BASE
          generic map (
             BANDWIDTH          => BANDWIDTH_G,
-            CLKIN_PERIOD       => CLKIN_PERIOD_G,
+            CLKIN1_PERIOD      => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE      => DIVCLK_DIVIDE_G,
             CLKFBOUT_MULT      => CLKFBOUT_MULT_G,
             CLKOUT0_DIVIDE     => CLKOUT0_DIVIDE_G,
@@ -191,8 +191,9 @@ begin
             CLKOUT4_DUTY_CYCLE => CLKOUT4_DUTY_CYCLE_G,
             CLKOUT5_DUTY_CYCLE => CLKOUT5_DUTY_CYCLE_G)
          port map (
+            PWRDWN   => '0',
             RST      => rstInLoc,
-            CLKIN    => clkInLoc,
+            CLKIN1   => clkInLoc,
             CLKFBOUT => clkFbOut,
             CLKFBIN  => clkFbIn,
             LOCKED   => lockedLoc,
