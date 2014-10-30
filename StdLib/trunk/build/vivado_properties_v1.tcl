@@ -56,7 +56,6 @@ set_property simulator_language Mixed [current_project]
 # Prevent Vivado from doing power optimization
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
-set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE NoBramPowerOpt [get_runs impl_1]
 
 # Target specific properties script
 SourceTclFile ${VIVADO_DIR}/properties.tcl
