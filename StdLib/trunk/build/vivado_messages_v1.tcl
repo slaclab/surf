@@ -30,6 +30,9 @@ set_msg_config -suppress -id {Pwropt 34-142};# Post-Place Power Opt: power_opt d
 # Messages Suppression: CRITICAL_WARNING
 # TBD Place holder
 
+# Messages Suppression: ERROR
+set_msg_config -suppress -id {Common 17-39};# DESIGN_INIT: 'wait_on_run' failed due to earlier errors (Work around for a Vivado 2014.2 or later bug)
+
 # Messages: Change from WARNING to ERROR
 set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in logic is out of range 
 set_msg_config -id {Synth 8-3919} -new_severity ERROR;# SYNTH: Null Assignment in logic
@@ -72,7 +75,7 @@ set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net
 ## ********************************************************
 
 # Messages: Change from ERROR to WARNING
-# TBD Place holder
+set_property SEVERITY {Warning} [get_drc_checks {REQP-52}]; # DRC: using the GTGREFCLK port on a MGT
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
