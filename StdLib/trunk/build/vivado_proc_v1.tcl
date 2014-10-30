@@ -33,6 +33,7 @@ proc BuildIpCores { } {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 
    # Check if the target project has IP cores
    if { [get_ips] != "" } {
@@ -289,6 +290,7 @@ proc GenPartialReconfigDcp {rtlName} {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
   
    # Get a list of all runs  
    set LIST_RUNS [get_runs]   
@@ -314,9 +316,6 @@ proc GenPartialReconfigDcp {rtlName} {
    # Prevents I/O insertion for synthesis and downstream tools
    set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-mode out_of_context} -objects [get_runs ${rtlName}_1]   
    
-   # Message Filtering Script
-   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl   
-   
    # Set the top level RTL
    set_property top ${rtlName} [current_fileset]
    
@@ -332,6 +331,7 @@ proc InsertStaticReconfigDcp { } {
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    set RECONFIG_NAME    $::env(RECONFIG_NAME)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
    
    # Set common variables
    set SYNTH_DIR ${OUT_DIR}/${PROJECT}_project.runs/synth_1
@@ -408,6 +408,7 @@ proc ExportStaticReconfigDcp { } {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
    
    # Set common variables
    set IMPL_DIR ${OUT_DIR}/${PROJECT}_project.runs/impl_1
@@ -428,6 +429,7 @@ proc ImportStaticReconfigDcp { } {
    set VIVADO_BUILD_DIR    $::env(VIVADO_BUILD_DIR)
    set RECONFIG_CHECKPOINT $::env(RECONFIG_CHECKPOINT)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
    
    # Set common variables
    set SYNTH_DIR ${OUT_DIR}/${PROJECT}_project.runs/synth_1
@@ -469,6 +471,7 @@ proc ExportPartialReconfigBit { } {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
    
    # Set common variables
    set IMPL_DIR ${OUT_DIR}/${PROJECT}_project.runs/impl_1

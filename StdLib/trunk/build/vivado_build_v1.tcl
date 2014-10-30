@@ -16,6 +16,9 @@ open_project -quiet ${VIVADO_PROJECT}
 # Setup project properties
 source ${VIVADO_BUILD_DIR}/vivado_properties_v1.tcl
 
+# Setup project messaging
+source ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+
 ########################################################
 ## Update the complie order
 ########################################################
