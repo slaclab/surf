@@ -73,11 +73,13 @@ file rename -force ${OUT_DIR}/vcs_library/synopsys_sim.temp ${OUT_DIR}/vcs_libra
 set simTbFileName [get_property top [get_filesets sim_1]]
 set simTbOutDir ${OUT_DIR}/vcs_scripts/${simTbFileName}
 
-if { [export_simulation -absolute_path -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/] != 0 } {
-   puts "export_simulation ERROR: ${newTop}"
-   exit -1
-} 
-
+if { [version -short] <= 2014.2 } {
+   export_simulation -absolute_path -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/
+} else {
+   set_property target_simulator "VCS" [current_project]
+   launch_simulation -scripts_only -absolute_path ${simLibOutDir} -install_path ${simTbOutDir}
+}   
+ 
 ########################################################
 ## Build the simlink directory
 ########################################################
