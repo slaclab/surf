@@ -31,7 +31,7 @@ set_msg_config -suppress -id {Pwropt 34-142};# Post-Place Power Opt: power_opt d
 # TBD Place holder
 
 # Messages Suppression: ERROR
-set_msg_config -suppress -id {Common 17-39};# DESIGN_INIT: 'wait_on_run' failed due to earlier errors (Work around for a Vivado 2014.2 or later bug)
+# TBD Place holder
 
 # Messages: Change from WARNING to ERROR
 set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in logic is out of range 
