@@ -231,6 +231,8 @@ architecture rtl of Gtx7Core is
          return "011";
       elsif (OUT_CLK_SRC = "OUTCLKPMA") then
          return "010";
+      elsif (OUT_CLK_SRC = "PLLDV2CLK") then
+         return "100";
       else
          return "000";
       end if;
