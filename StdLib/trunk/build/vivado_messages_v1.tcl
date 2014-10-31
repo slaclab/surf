@@ -76,6 +76,7 @@ set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net
 
 # Messages: Change from ERROR to WARNING
 set_property SEVERITY {Warning} [get_drc_checks {REQP-52}]; # DRC: using the GTGREFCLK port on a MGT
+set_property SEVERITY {Warning} [get_drc_checks {REQP-56}]; # DRC: using the GTGREFCLK port on a QPLL
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
