@@ -42,17 +42,27 @@ set_property STEPS.WRITE_BITSTREAM.TCL.PRE             ${VIVADO_BUILD_DIR}/vivad
 set_param messaging.defaultLimit 10000
 
 # Vivado simulation properties
-set_property runtime {} [get_filesets sim_1]
-set_property nl.process_corner slow [get_filesets sim_1]
-set_property nl.sdf_anno true [get_filesets sim_1]
-set_property SOURCE_SET sources_1 [get_filesets sim_1]
-set_property xelab.debug_level all [get_filesets sim_1]
-set_property xelab.mt_level auto [get_filesets sim_1]
-set_property xelab.sdf_delay sdfmin [get_filesets sim_1]
-set_property xelab.rangecheck false [get_filesets sim_1]
-set_property xelab.unifast false [get_filesets sim_1]
 set_property simulator_language Mixed [current_project]
+set_property nl.process_corner slow   [get_filesets sim_1]
+set_property nl.sdf_anno true         [get_filesets sim_1]
+set_property SOURCE_SET sources_1     [get_filesets sim_1]
 
+if { [version -short] <= 2014.2 } {
+   set_property runtime {}             [get_filesets sim_1]
+   set_property xelab.debug_level all  [get_filesets sim_1]
+   set_property xelab.mt_level auto    [get_filesets sim_1]
+   set_property xelab.sdf_delay sdfmin [get_filesets sim_1]
+   set_property xelab.rangecheck false [get_filesets sim_1]
+   set_property xelab.unifast false    [get_filesets sim_1]
+} else {
+   set_property xsim.simulate.runtime {}  [get_filesets sim_1]
+   set_property xsim.debug_level all      [get_filesets sim_1]
+   set_property xsim.mt_level auto        [get_filesets sim_1]
+   set_property xsim.sdf_delay sdfmin     [get_filesets sim_1]
+   set_property xsim.rangecheck false     [get_filesets sim_1]
+   set_property xsim.unifast false        [get_filesets sim_1]
+}   
+   
 # Prevent Vivado from doing power optimization
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]

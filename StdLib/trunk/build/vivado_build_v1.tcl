@@ -14,10 +14,10 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 open_project -quiet ${VIVADO_PROJECT}
 
 # Setup project properties
-source ${VIVADO_BUILD_DIR}/vivado_properties_v1.tcl
+source -quiet ${VIVADO_BUILD_DIR}/vivado_properties_v1.tcl
 
 # Setup project messaging
-source ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 
 ########################################################
 ## Update the complie order
@@ -54,7 +54,9 @@ source ${VIVADO_BUILD_DIR}/vivado_pre_synthesis_v1.tcl
 ########################################################
 if { [CheckSynth] != true } {
    launch_runs synth_1
-   wait_on_run synth_1
+   set src_rc [catch { 
+      wait_on_run synth_1 
+   } _RESULT]     
 }
 
 ########################################################
@@ -80,7 +82,9 @@ if { [CheckSynth] != true } {
 ########################################################
 if { [CheckImpl] != true } {
    launch_runs -to_step write_bitstream impl_1
-   wait_on_run impl_1
+   set src_rc [catch { 
+      wait_on_run impl_1 
+   } _RESULT]     
 }
 
 ########################################################

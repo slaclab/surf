@@ -29,6 +29,11 @@ proc GetCpuNumber { } {
    return [exec cat /proc/cpuinfo | grep processor | wc -l]
 }
 
+# Function for putting the TCL script into a wait (in units of seconds)
+proc sleep {N} {
+   after [expr {int($N * 1000)}]
+}
+
 proc BuildIpCores { } {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
@@ -321,7 +326,9 @@ proc GenPartialReconfigDcp {rtlName} {
    
    # Synthesize
    launch_runs ${rtlName}_1
-   wait_on_run ${rtlName}_1   
+   set src_rc [catch { 
+      wait_on_run ${rtlName}_1
+   } _RESULT]    
 }
 
 # Insert the Partial Reconfiguration RTL Block(s) into top level checkpoint checkpoint
