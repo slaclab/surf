@@ -22,3 +22,4 @@ vhdl work rtl/SsiAxiLiteMaster.vhd
 vhdl work rtl/SsiPrbsRx.vhd
 vhdl work rtl/SsiPrbsTx.vhd
 vhdl work rtl/SsiIncrementingTx.vhd
+vhdl work rtl/AxiTdc.vhd
