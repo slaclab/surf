@@ -22,3 +22,5 @@ vhdl work rtl/PwrUpRst.vhd
 vhdl work rtl/CrcPkg.vhd
 vhdl work rtl/Crc32.vhd
 
+vhdl work rtl/TdcCoarse.vhd
+
