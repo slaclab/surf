@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-10-20
+-- Last update: 2014-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
-      -- FIFO configurations
+      -- FIFO Configurations
       BRAM_EN_G                  : boolean                    := true;
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
@@ -38,23 +38,24 @@ entity SsiPrbsTx is
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
-      -- PRBS Config
+      -- PRBS Configurations
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-      -- AXI Stream IO Config
+      -- AXI Stream Configurations
       MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_COMP_C);
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
    port (
       -- Master Port (mAxisClk)
       mAxisClk     : in  sl;
       mAxisRst     : in  sl;
-      mAxisSlave   : in  AxiStreamSlaveType;
       mAxisMaster  : out AxiStreamMasterType;
+      mAxisSlave   : in  AxiStreamSlaveType;
       -- Trigger Signal (locClk domain)
       locClk       : in  sl;
       locRst       : in  sl               := '0';
       trig         : in  sl               := '1';
       packetLength : in  slv(31 downto 0) := X"FFFFFFFF";
+      forceEofe    : in  sl               := '0';
       busy         : out sl;
       tDest        : in  slv(7 downto 0)  := X"00";
       tId          : in  slv(7 downto 0)  := X"00");
@@ -101,7 +102,7 @@ begin
 
    assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
 
-   comb : process (locRst, packetLength, r, tDest, tId, trig, txCtrl) is
+   comb : process (forceEofe, locRst, packetLength, r, tDest, tId, trig, txCtrl) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -111,8 +112,8 @@ begin
       ssiResetFlags(v.txMaster);
       v.txMaster.tData := (others => '0');
 
-      -- Check for overflow condition
-      if txCtrl.overflow = '1' then
+      -- Check for overflow condition or forced EOFE
+      if (txCtrl.overflow = '1') or (forceEofe = '1') then
          -- Latch the overflow error bit for the data packet
          v.overflow := '1';
       end if;
