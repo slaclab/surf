@@ -22,6 +22,8 @@ set_msg_config -suppress -id {VRFC 10-165}; # SIM: Analyzing VERILOG file
 set_msg_config -suppress -id {Simtcl 6-16}; # SIM: Simulation closed 
 set_msg_config -suppress -id {Simtcl 6-17}; # SIM: Simulation restarted 
 
+set_msg_config -suppress -id {Drc 23-20}; # DRC: writefirst - Synchronous clocking for BRAM
+
 # Messages Suppression: WARNING
 set_msg_config -suppress -id {Designutils 20-1318};# DESIGN_UTILS: Multiple VHDL modules with the same architecture name
 set_msg_config -suppress -id {Common 17-301};# DESIGN_INIT: Failed to get a license: Internal_bitstream
