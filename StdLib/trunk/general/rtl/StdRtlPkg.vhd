@@ -129,6 +129,9 @@ package StdRtlPkg is
    procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    sl);
    procedure assignRecord (i : inout integer; vector : in    slv; value  : inout slv);
    procedure assignRecord (i : inout integer; vector : in    slv; value  : inout sl);   
+
+   -- Resize an SLV, either by trimming or padding upper bits
+   function resizeSlv ( vector : slv; newSize : integer) return slv;
    
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -1242,5 +1245,19 @@ package body StdRtlPkg is
       value := vector(i);
       i   := i+1;
    end procedure assignRecord;
-   
+
+   -- Resize an SLV, either by trimming or padding upper bits
+   function resizeSlv ( vector : slv; newSize : integer) return slv is
+      variable retVar : slv(newSize-1 downto 0);
+      variable top    : integer;
+   begin
+      retVar := (others=>'0');
+
+      top := min( newSize, vector'length) - 1;
+
+      retVar(top downto 0) := vector(top downto 0);
+
+      return retVar;   
+   end function;
+
 end package body StdRtlPkg;
