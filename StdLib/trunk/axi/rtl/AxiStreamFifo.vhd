@@ -77,88 +77,82 @@ end AxiStreamFifo;
 architecture rtl of AxiStreamFifo is
 
    -- Use wider of two interfaces
-   constant DATA_BYTES_C : integer := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
-                                          SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
-
-   constant DATA_BITS_C : integer := (DATA_BYTES_C * 8);
+   constant DATA_BYTES_C : integer := max (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
+   constant DATA_BITS_C  : integer := (DATA_BYTES_C * 8);
 
    -- Use SLAVE TKEEP Mode
    constant KEEP_MODE_C : TKeepModeType := SLAVE_AXI_CONFIG_G.TKEEP_MODE_C;
    constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
                                            ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
-   -- Use SLAVE USER Mode and USER BIT COUNT
+   -- User user bit mode of slave
    constant USER_MODE_C : TUserModeType := SLAVE_AXI_CONFIG_G.TUSER_MODE_C;
-   constant USER_BITS_C : integer       := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
-   constant USER_TOT_C  : integer       := ite(USER_MODE_C = TUSER_FIRST_LAST_C, USER_BITS_C*2, 
-                                           ite(USER_MODE_C = TUSER_LAST_C, USER_BITS_C,
-                                           DATA_BYTES_C * USER_BITS_C));
+
+   -- Use whichever interface has the least number of user bits
+   constant SLAVE_USER_BITS_C  : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
+   constant MASTER_USER_BITS_C : integer := MASTER_AXI_CONFIG_G.TUSER_BITS_C;
+   constant FIFO_USER_BITS_C   : integer := min(SLAVE_USER_BITS_C,MASTER_USER_BITS_C);
+
+   constant FIFO_USER_TOT_C : integer := ite(USER_MODE_C = TUSER_FIRST_LAST_C, FIFO_USER_BITS_C*2, 
+                                             ite(USER_MODE_C = TUSER_LAST_C, FIFO_USER_BITS_C,
+                                                 DATA_BYTES_C * FIFO_USER_BITS_C));
 
    -- Use SLAVE settings for strobe, dest and ID bit values
    constant STRB_BITS_C : integer := ite(SLAVE_AXI_CONFIG_G.TSTRB_EN_C, DATA_BYTES_C, 0);
    constant DEST_BITS_C : integer := SLAVE_AXI_CONFIG_G.TDEST_BITS_C;
    constant ID_BITS_C   : integer := SLAVE_AXI_CONFIG_G.TID_BITS_C;
 
-   constant FIFO_BITS_C : integer := 1 + DATA_BITS_C + KEEP_BITS_C + USER_TOT_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
+   constant FIFO_BITS_C : integer := 1 + DATA_BITS_C + KEEP_BITS_C + FIFO_USER_TOT_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
 
    constant WR_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant RD_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
 
    -- Convert record to slv
    function iAxiToSlv (din : AxiStreamMasterType) return slv is
-      variable retValue : slv(FIFO_BITS_C-1 downto 0);
-      variable i        : integer;
+      variable retValue : slv(FIFO_BITS_C-1 downto 0) := (others=>'0');
+      variable i        : integer                     := 0;
    begin
 
       -- init, pass last
-      retValue(0) := din.tLast;
-      i := 1;
+      assignSlv(i, retValue, din.tLast);
 
       -- Pack data
-      retValue((DATA_BITS_C+i)-1 downto i) := din.tData(DATA_BITS_C-1 downto 0);
-      i                                    := i + DATA_BITS_C;
+      assignSlv(i, retValue, din.tData(DATA_BITS_C-1 downto 0));
 
       -- Pack keep
       if KEEP_MODE_C = TKEEP_NORMAL_C then
-         retValue((KEEP_BITS_C+i)-1 downto i) := din.tKeep(KEEP_BITS_C-1 downto 0);
+         assignSlv(i, retValue, din.tKeep(KEEP_BITS_C-1 downto 0));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         retValue((KEEP_BITS_C+i)-1 downto i) := onesCount(din.tKeep(DATA_BYTES_C-1 downto 1)); -- Assume lsb is present
+         assignSlv(i, retValue, onesCount(din.tKeep(DATA_BYTES_C-1 downto 1))); -- Assume lsb is present
       end if;
-      i := i + KEEP_BITS_C;
 
       -- Pack user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
-         retValue((USER_BITS_C+i)-1 downto i) := axiStreamGetUserField ( SLAVE_AXI_CONFIG_G,din,0); -- First byte
-         i := i + USER_BITS_C;
-
-         retValue((USER_BITS_C+i)-1 downto i) := axiStreamGetUserField ( SLAVE_AXI_CONFIG_G,din,-1); -- Last valid
-         i := i + USER_BITS_C;
+         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,0),FIFO_USER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
-         retValue((USER_BITS_C+i)-1 downto i) := axiStreamGetUserField ( SLAVE_AXI_CONFIG_G,din,-1); -- Last valid
-         i := i + USER_BITS_C;
+         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
 
       else
-         retValue((USER_TOT_C+i)-1 downto i) := din.tUser(USER_TOT_C-1 downto 0);
-         i := i + USER_TOT_C;
+         for j in 0 to DATA_BYTES_C-1 loop
+            assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,j),FIFO_USER_BITS_C));
+         end loop;
       end if;
 
       -- Strobe is optional
       if STRB_BITS_C > 0 then
-         retValue((STRB_BITS_C+i)-1 downto i) := din.tStrb(STRB_BITS_C-1 downto 0);
-         i                                    := i + STRB_BITS_C;
+         assignSlv(i, retValue, din.tStrb(STRB_BITS_C-1 downto 0));
       end if;
 
       -- Dest is optional
       if DEST_BITS_C > 0 then
-         retValue((DEST_BITS_C+i)-1 downto i) := din.tDest(DEST_BITS_C-1 downto 0);
-         i                                    := i + DEST_BITS_C;
+         assignSlv(i, retValue, din.tDest(DEST_BITS_C-1 downto 0));
       end if;
 
       -- Id is optional
       if ID_BITS_C > 0 then
-         retValue((ID_BITS_C+i)-1 downto i) := din.tId(ID_BITS_C-1 downto 0);
-         i                                  := i + ID_BITS_C;
+         assignSlv(i, retValue, din.tId(ID_BITS_C-1 downto 0));
       end if;
 
       return(retValue);
@@ -170,66 +164,67 @@ architecture rtl of AxiStreamFifo is
                         valid   : in    sl;
                         master  : inout AxiStreamMasterType;
                         byteCnt : inout integer) is
-      variable i, j : integer;
+      variable i    : integer := 0;
+      variable user : slv(FIFO_USER_BITS_C-1 downto 0);
    begin
 
-      master  := AXI_STREAM_MASTER_INIT_C;
+      master := AXI_STREAM_MASTER_INIT_C;
 
       -- Set valid, 
       master.tValid := valid;
-      master.tLast  := din(0);
-      i := 1;
+
+      -- Set last
+      assignRecord(i, din, master.tLast);
 
       -- Get data
-      master.tData(DATA_BITS_C-1 downto 0) := din((DATA_BITS_C+i)-1 downto i);
-      i                                    := i + DATA_BITS_C;
+      assignRecord(i, din, master.tData(DATA_BITS_C-1 downto 0));
 
       -- Get keep bits
       if KEEP_MODE_C = TKEEP_NORMAL_C then
-         master.tKeep(KEEP_BITS_C-1 downto 0) := din((KEEP_BITS_C+i)-1 downto i);
+         assignRecord(i, din, master.tKeep(KEEP_BITS_C-1 downto 0));
          byteCnt := conv_integer(onesCount(master.tKeep(KEEP_BITS_C-1 downto 0)));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
          byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
          master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '0');
          master.tKeep(byteCnt-1 downto 0)      := (others => '1');
+         i := i + KEEP_BITS_C;
       else
          byteCnt := DATA_BYTES_C;
+         i := i + KEEP_BITS_C;
       end if;
-      i := i + KEEP_BITS_C;
 
       -- get user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
-         axiStreamSetUserField ( SLAVE_AXI_CONFIG_G, master, din((USER_BITS_C+i)-1 downto i),0); -- First byte
-         i := i + USER_BITS_C;
+         assignRecord(i, din, user);
+         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), 0); -- First byte
 
-         axiStreamSetUserField ( SLAVE_AXI_CONFIG_G, master, din((USER_BITS_C+i)-1 downto i),-1); -- Last valid byte
-         i := i + USER_BITS_C;
+         assignRecord(i, din, user);
+         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), -1); -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
-         axiStreamSetUserField ( SLAVE_AXI_CONFIG_G, master, din((USER_BITS_C+i)-1 downto i),-1); -- Last valid byte
-         i := i + USER_BITS_C;
+         assignRecord(i, din, user);
+         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), -1); -- Last valid byte
 
       else
-         master.tUser(USER_TOT_C-1 downto 0) := din((USER_TOT_C+i)-1 downto i);
-         i := i + USER_TOT_C;
+         for j in 0 to DATA_BYTES_C-1 loop
+            assignRecord(i, din, user);
+            axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), j);
+         end loop;
       end if;
 
       -- Strobe is optional
       if STRB_BITS_C > 0 then
-         master.tStrb(STRB_BITS_C-1 downto 0) := din((STRB_BITS_C+i)-1 downto i);
-         i                                    := i + STRB_BITS_C;
+         assignRecord(i, din, master.tStrb(STRB_BITS_C-1 downto 0));
       end if;
 
       -- Dest is optional
       if DEST_BITS_C > 0 then
-         master.tDest(DEST_BITS_C-1 downto 0) := din((DEST_BITS_C+i)-1 downto i);
-         i                                    := i + DEST_BITS_C;
+         assignRecord(i, din, master.tDest(DEST_BITS_C-1 downto 0));
       end if;
 
       -- ID is optional
       if ID_BITS_C > 0 then
-         master.tId(ID_BITS_C-1 downto 0) := din((ID_BITS_C+i)-1 downto i);
-         i                                := i + ID_BITS_C;
+         assignRecord(i, din, master.tId(ID_BITS_C-1 downto 0));
       end if;
 
    end iSlvToAxi;
@@ -337,8 +332,8 @@ begin
          v.wrMaster.tStrb((WR_BYTES_C*idx)+(WR_BYTES_C-1) downto (WR_BYTES_C*idx))         := sAxisMaster.tStrb(WR_BYTES_C-1 downto 0);
          v.wrMaster.tKeep((WR_BYTES_C*idx)+(WR_BYTES_C-1) downto (WR_BYTES_C*idx))         := sAxisMaster.tKeep(WR_BYTES_C-1 downto 0);
 
-         v.wrMaster.tUser((WR_BYTES_C*USER_BITS_C*idx)+((WR_BYTES_C*USER_BITS_C)-1) downto (WR_BYTES_C*USER_BITS_C*idx))
-            := sAxisMaster.tUser((WR_BYTES_C*USER_BITS_C)-1 downto 0);
+         v.wrMaster.tUser((WR_BYTES_C*SLAVE_USER_BITS_C*idx)+((WR_BYTES_C*SLAVE_USER_BITS_C)-1) downto (WR_BYTES_C*SLAVE_USER_BITS_C*idx))
+            := sAxisMaster.tUser((WR_BYTES_C*SLAVE_USER_BITS_C)-1 downto 0);
 
          v.wrMaster.tDest := sAxisMaster.tDest;
          v.wrMaster.tId   := sAxisMaster.tId;
@@ -550,8 +545,8 @@ begin
          v.rdMaster.tStrb(RD_BYTES_C-1 downto 0)     := fifoMaster.tStrb((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
          v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)     := fifoMaster.tKeep((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));
 
-         v.rdMaster.tUser((RD_BYTES_C*USER_BITS_C)-1 downto 0)
-            := fifoMaster.tUser((RD_BYTES_C*USER_BITS_C*idx)+((RD_BYTES_C*USER_BITS_C)-1) downto (RD_BYTES_C*USER_BITS_C*idx));
+         v.rdMaster.tUser((RD_BYTES_C*MASTER_USER_BITS_C)-1 downto 0)
+            := fifoMaster.tUser((RD_BYTES_C*MASTER_USER_BITS_C*idx)+((RD_BYTES_C*MASTER_USER_BITS_C)-1) downto (RD_BYTES_C*MASTER_USER_BITS_C*idx));
 
          v.rdMaster.tDest  := fifoMaster.tDest;
          v.rdMaster.tId    := fifoMaster.tId;
@@ -631,4 +626,5 @@ begin
          mAxisSlave  => mAxisSlave);   
 
 end rtl;
+
 
