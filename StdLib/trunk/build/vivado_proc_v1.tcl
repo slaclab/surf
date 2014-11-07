@@ -254,6 +254,7 @@ proc VcsCompleteMessage {dirPath sharedMem} {
    puts "To compile and run the simulation:"
    puts "\t\$ cd ${dirPath}/"    
    puts "\t\$ ./sim_vcs_mx.sh"
+   puts "\t\$ source setup_env.csh"
    puts "\t\$ ./simv"   
    puts "********************************************************\n\n" 
 }
