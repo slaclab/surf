@@ -201,7 +201,15 @@ proc CheckTiming { } {
       puts "********************************************************"
       puts "********************************************************"
       puts "********************************************************\n\n\n\n\n"  
-      return false
+
+      # Check the TIG variable
+      set retVar [expr {[info exists ::env(TIG)] && [string is true -strict $::env(TIG)]}]  
+      if { ${retVar} == 1 } {
+         return true
+      } else {
+         return false
+      }    
+      
    } else {
       return true
    }
