@@ -6,6 +6,8 @@ set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
+set AllowMultiDriven [expr {[info exists ::env(ALLOW_MULTI_DRIVEN)] && [string is true -strict $::env(ALLOW_MULTI_DRIVEN)]}]  
+
 # Messages Suppression: INFO
 set_msg_config -suppress -id {Synth 8-256}; # SYNTH: done synthesizing module
 set_msg_config -suppress -id {Synth 8-113}; # SYNTH: binding component instance 'RTL_Inst' to cell 'PRIMITIVE'
@@ -50,11 +52,15 @@ set_msg_config -id {Synth 8-3330}  -new_severity "CRITICAL WARNING";# SYNTH: an 
 # TBD Place holder
 
 # Messages: Change from CRITICAL_WARNING to ERROR
-set_msg_config -id {Synth 8-3352}   -new_severity ERROR;# SYNTH: multi-driven net
 set_msg_config -id {Vivado 12-1411} -new_severity ERROR;# SYNTH: Cannot set LOC property of differential pair ports
 set_msg_config -id {HDL 9-806}      -new_severity ERROR;# SYNTH: Syntax error near *** (example: missing semicolon)
 set_msg_config -id {Opt 31-80}      -new_severity ERROR;# IMPL: Multi-driver net found in the design
 set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net found in the design
+
+# Check if Multi-Driven Nets are allowed
+if { ${AllowMultiDriven} != 1 } {
+   set_msg_config -id {Synth 8-3352} -new_severity ERROR;# SYNTH: multi-driven net
+}
 
 ##set_msg_config -id {Route 35-39}    -new_severity ERROR;# IMPL: The design did not meet timing requirements. 
 ## NOTE: we don't change this message to ERROR severity because we want to impl_1 to finish 
