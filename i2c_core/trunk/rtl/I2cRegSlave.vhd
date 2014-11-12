@@ -55,7 +55,7 @@ architecture rtl of I2cRegSlave is
 
    type RegType is record
       state   : StateType;
-      byteCnt : unsigned(bitSize(max(ADDR_SIZE_G, DATA_SIZE_G))-1 downto 0);
+      byteCnt : unsigned(bitSize(maximum(ADDR_SIZE_G, DATA_SIZE_G))-1 downto 0);
 
       addr       : unsigned((8*ADDR_SIZE_G)-1 downto 0);
       wrEn       : sl;
