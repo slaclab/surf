@@ -77,7 +77,7 @@ end AxiStreamFifo;
 architecture rtl of AxiStreamFifo is
 
    -- Use wider of two interfaces
-   constant DATA_BYTES_C : integer := max (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
+   constant DATA_BYTES_C : integer := maximum(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
    constant DATA_BITS_C  : integer := (DATA_BYTES_C * 8);
 
    -- Use SLAVE TKEEP Mode
@@ -91,7 +91,7 @@ architecture rtl of AxiStreamFifo is
    -- Use whichever interface has the least number of user bits
    constant SLAVE_USER_BITS_C  : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
    constant MASTER_USER_BITS_C : integer := MASTER_AXI_CONFIG_G.TUSER_BITS_C;
-   constant FIFO_USER_BITS_C   : integer := min(SLAVE_USER_BITS_C,MASTER_USER_BITS_C);
+   constant FIFO_USER_BITS_C   : integer := minimum(SLAVE_USER_BITS_C,MASTER_USER_BITS_C);
 
    constant FIFO_USER_TOT_C : integer := ite(USER_MODE_C = TUSER_FIRST_LAST_C, FIFO_USER_BITS_C*2, 
                                              ite(USER_MODE_C = TUSER_LAST_C, FIFO_USER_BITS_C,
