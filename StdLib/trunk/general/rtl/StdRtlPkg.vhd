@@ -92,8 +92,8 @@ package StdRtlPkg is
    -- Linear Feedback Shift Register function
    function lfsrShift (lfsr : slv; constant taps : NaturalArray; input : sl := '0') return slv;
 
-   function max (left, right : integer) return integer;
-   function min (left, right : integer) return integer;
+   function maximum (left, right : integer) return integer;
+   function minimum (left, right : integer) return integer;
 
    -- One line if-then-else functions. Useful for assigning constants based on generics.
    function ite(i : boolean; t : boolean; e : boolean) return boolean;
@@ -1059,19 +1059,19 @@ package body StdRtlPkg is
    -----------------------------
    -- Min and Max
    -----------------------------
-   function max (left, right : integer) return integer is
+   function maximum (left, right : integer) return integer is
    begin
       if left > right then return left;
       else return right;
       end if;
-   end max;
+   end maximum;
 
-   function min (left, right : integer) return integer is
+   function minimum (left, right : integer) return integer is
    begin
       if left < right then return left;
       else return right;
       end if;
-   end min;
+   end minimum;
 
    -----------------------------
    -- conv_std_logic_vector functions
@@ -1253,7 +1253,7 @@ package body StdRtlPkg is
    begin
       retVar := (others=>'0');
 
-      top := min( newSize, vector'length) - 1;
+      top := minimum( newSize, vector'length) - 1;
 
       retVar(top downto 0) := vector(top downto 0);
 
