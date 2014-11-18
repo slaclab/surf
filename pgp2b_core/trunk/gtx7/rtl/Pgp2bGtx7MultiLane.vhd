@@ -164,7 +164,7 @@ begin
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
 
-   gtRxUserResetIn <= gtRxUserReset or pgpRxReset;
+   gtRxUserResetIn <= gtRxUserReset or pgpRxReset or pgpRxIn.resetRx;
    gtTxUserResetIn <= pgpTxReset;
 
    U_Pgp2bLane : entity work.Pgp2bLane
