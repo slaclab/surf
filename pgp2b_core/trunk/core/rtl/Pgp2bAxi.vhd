@@ -575,7 +575,7 @@ begin
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '1',
          OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 3
+         RELEASE_DELAY_G => 16
       ) port map (
          clk      => pgpRxClk,
          asyncRst => r.resetRx,
