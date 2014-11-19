@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2014-10-21
+-- Last update: 2014-11-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,10 +51,10 @@ entity AxiMicronP30Reg is
    port (
       -- FLASH Interface 
       flashAddr      : out   slv(30 downto 0);
-      flashData      : inout slv(15 downto 0);
-      flashCe        : out   sl;
-      flashOe        : out   sl;
-      flashWe        : out   sl;
+      flashDq        : inout slv(15 downto 0);
+      flashCeL       : out   sl;
+      flashOeL       : out   sl;
+      flashWeL       : out   sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
@@ -83,32 +83,34 @@ architecture rtl of AxiMicronP30Reg is
 
    type RegType is record
       tristate      : sl;
-      ce            : sl;
-      oe            : sl;
+      ceL           : sl;
+      oeL           : sl;
       RnW           : sl;
-      we            : sl;
+      weL           : sl;
       cnt           : natural range 0 to MAX_CNT_C;
       din           : slv(15 downto 0);
       dataReg       : slv(15 downto 0);
       addr          : slv(30 downto 0);
       wrData        : Slv16Array(0 to 1);
       state         : StateType;
+      test          : slv(31 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
       tristate      => '1',
-      ce            => '1',
-      oe            => '1',
+      ceL           => '1',
+      oeL           => '1',
       RnW           => '1',
-      we            => '1',
+      weL           => '1',
       cnt           => 0,
       din           => x"0000",
       dataReg       => x"0000",
       addr          => (others => '0'),
       wrData        => (others => x"0000"),
       state         => IDLE_S,
+      test          => (others => '0'),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -133,21 +135,23 @@ begin
 
       if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiWriteResp := AXI_RESP_OK_C;
          -- Decode address and perform write
-         case (axiWriteMaster.awaddr(9 downto 2)) is
+         case (axiWriteMaster.awaddr(7 downto 0)) is
             when x"00" =>
                -- Set the opCode bus
                v.wrData(1) := axiWriteMaster.wdata(31 downto 16);
                -- Set the input data bus
                v.wrData(0) := axiWriteMaster.wdata(15 downto 0);
-            when x"01" =>
+            when x"04" =>
                -- Set the RnW
                v.RnW   := axiWriteMaster.wdata(31);
                -- Set the address bus
                v.addr  := axiWriteMaster.wdata(30 downto 0);
                -- Next state
                v.state := CMD_LOW_S;
+            when x"0c" =>
+               v.test := axiWriteMaster.wdata;
             when others =>
                axiWriteResp := AXI_ERROR_RESP_G;
          end case;
@@ -155,24 +159,26 @@ begin
          axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiReadResp          := AXI_RESP_OK_C;
          -- Reset the register
          v.axiReadSlave.rdata := (others => '0');
          -- Decode address and assign read data
-         case (axiReadMaster.araddr(9 downto 2)) is
+         case (axiReadMaster.araddr(7 downto 0)) is
             when x"00" =>
                -- Get the opCode bus
                v.axiReadSlave.rdata(31 downto 16) := r.wrData(1);
                -- Get the input data bus
                v.axiReadSlave.rdata(15 downto 0)  := r.wrData(0);
-            when x"01" =>
+            when x"04" =>
                -- Get the RnW
                v.axiReadSlave.rdata(31)          := r.RnW;
                -- Get the address bus
                v.axiReadSlave.rdata(30 downto 0) := r.addr;
-            when x"02" =>
+            when x"08" =>
                -- Get the output data bus
                v.axiReadSlave.rdata(15 downto 0) := r.dataReg;
+            when x"0C" =>
+               v.axiReadSlave.rdata := r.test;
             when others =>
                axiReadResp := AXI_ERROR_RESP_G;
          end case;
@@ -184,15 +190,15 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            v.ce       := '1';
-            v.oe       := '1';
-            v.we       := '1';
+            v.ceL      := '1';
+            v.oeL      := '1';
+            v.weL      := '1';
             v.tristate := '1';
          ----------------------------------------------------------------------
          when CMD_LOW_S =>
-            v.ce       := '0';
-            v.oe       := '1';
-            v.we       := '0';
+            v.ceL      := '0';
+            v.oeL      := '1';
+            v.weL      := '0';
             v.tristate := '0';
             v.din      := r.wrData(1);
             -- Increment the counter
@@ -206,9 +212,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CMD_HIGH_S =>
-            v.ce       := '1';
-            v.oe       := '1';
-            v.we       := '1';
+            v.ceL      := '1';
+            v.oeL      := '1';
+            v.weL      := '1';
             v.tristate := '0';
             v.din      := r.wrData(1);
             -- Increment the counter
@@ -222,9 +228,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
-            v.ce       := '1';
-            v.oe       := '1';
-            v.we       := '1';
+            v.ceL      := '1';
+            v.oeL      := '1';
+            v.weL      := '1';
             v.tristate := '1';
             v.din      := r.wrData(0);
             -- Increment the counter
@@ -238,9 +244,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_LOW_S =>
-            v.ce       := '0';
-            v.oe       := not(r.RnW);
-            v.we       := r.RnW;
+            v.ceL      := '0';
+            v.oeL      := not(r.RnW);
+            v.weL      := r.RnW;
             v.tristate := r.RnW;
             v.din      := r.wrData(0);
             -- Increment the counter
@@ -256,9 +262,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_HIGH_S =>
-            v.ce       := '1';
-            v.oe       := '1';
-            v.we       := '1';
+            v.ceL      := '1';
+            v.oeL      := '1';
+            v.weL      := '1';
             v.tristate := r.RnW;
             v.din      := r.wrData(0);
             -- Increment the counter
@@ -282,10 +288,12 @@ begin
       rin <= v;
 
       -- Outputs
-      flashAddr <= r.addr;
-      flashCe   <= r.ce;
-      flashOe   <= r.oe;
-      flashWe   <= r.we;
+      flashAddr     <= r.addr;
+      flashCeL      <= r.ceL;
+      flashOeL      <= r.oeL;
+      flashWeL      <= r.weL;
+      axiReadSlave  <= r.axiReadSlave;
+      axiWriteSlave <= r.axiWriteSlave;
       
    end process comb;
 
@@ -301,7 +309,7 @@ begin
       IOBUF_inst : IOBUF
          port map (
             O  => dout(i),              -- Buffer output
-            IO => flashData(i),         -- Buffer inout port (connect directly to top-level port)
+            IO => flashDq(i),           -- Buffer inout port (connect directly to top-level port)
             I  => r.din(i),             -- Buffer input
             T  => r.tristate);          -- 3-state enable input, high=input, low=output     
    end generate GEN_IOBUF;
