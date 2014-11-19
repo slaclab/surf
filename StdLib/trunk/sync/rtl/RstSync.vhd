@@ -19,11 +19,11 @@ use work.StdRtlPkg.all;
 
 entity RstSync is
    generic (
-      TPD_G           : time     := 1 ns;  -- Simulation FF output delay
-      IN_POLARITY_G   : sl       := '1';   -- 0 for active low rst, 1 for high
-      OUT_POLARITY_G  : sl       := '1';
-      BYPASS_SYNC_G   : boolean  := false; -- Bypass Synchronizer module for synchronous data configuration   
-      RELEASE_DELAY_G : positive := 3);    -- Delay between deassertion of async and sync resets
+      TPD_G           : time                             := 1 ns;   -- Simulation FF output delay
+      IN_POLARITY_G   : sl                               := '1';    -- 0 for active low rst, 1 for high
+      OUT_POLARITY_G  : sl                               := '1';
+      BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration   
+      RELEASE_DELAY_G : integer range 3 to positive'high := 3);     -- Delay between deassertion of async and sync resets
    port (
       clk      : in  sl;
       asyncRst : in  sl;
@@ -36,7 +36,7 @@ architecture rtl of RstSync is
 
 begin
 
-   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
+--   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
 
    -- Reuse synchronizer that turns off shift reg extraction and register balancing for you
    Synchronizer_1 : entity work.Synchronizer
@@ -54,7 +54,7 @@ begin
          dataOut => syncInt);
 
    -- Final stage does not have async constraints applied, can be duplicated to ease timing
-   OUT_REG: process (clk, asyncRst) is
+   OUT_REG : process (clk, asyncRst) is
    begin
       if (asyncRst = IN_POLARITY_G) then
          syncRst <= OUT_POLARITY_G after TPD_G;
