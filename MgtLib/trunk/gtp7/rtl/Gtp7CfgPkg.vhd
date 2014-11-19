@@ -91,7 +91,7 @@ package body Gtp7CfgPkg is
 --                        "QPLL_REFCLK_DIV_G: " & integer'image(ret.QPLL_REFCLK_DIV_G) & lf &
 --                        "QPLL_FBDIV_G:      " & integer'image(ret.QPLL_FBDIV_G) & lf &
 --                        "QPLL_FBDIV_45_G:   " & integer'image(ret.QPLL_FBDIV_45_G) & lf &
---                        "OUT_DIV_G:         " & integer'image(ret.RXOUT_DIV_G) & lf
+--                        "OUT_DIV_G:         " & integer'image(ret.OUT_DIV_G) & lf
 --                        severity note;
 
                      exit dloop;

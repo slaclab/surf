@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-02
--- Last update: 2014-10-16
+-- Last update: 2014-11-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,9 +69,9 @@ package Gtx7CfgPkg is
    constant QPLL_UPPER_BAND_LOW_C  : real := 9.8E9;
    constant QPLL_UPPER_BAND_HIGH_C : real := 12.5E9;
 
-   impure function getQPllFbdiv (fbdivInt : integer) return bit_vector;
+   function getQPllFbdiv (fbdivInt : integer) return bit_vector;
 
-   impure function getGtx7QPllCfg (refClkFreq : real; lineRate : real) return Gtx7QPllCfgType;
+   function getGtx7QPllCfg (refClkFreq : real; lineRate : real) return Gtx7QPllCfgType;
 
    -------------------------------------------------------------------------------------------------
    -- GT config
@@ -100,17 +100,17 @@ package body Gtx7CfgPkg is
    -------------------------------------------------------------------------------------------------
    -- CPLL Config
    -------------------------------------------------------------------------------------------------
-   impure function getGtx7CPllCfg (
+   function getGtx7CPllCfg (
       refClkFreq : real;
       lineRate   : real)
       return Gtx7CPllCfgType
    is
-      variable ret    : Gtx7CPllCfgType;
       variable pllClk : real;
       variable rate   : real;
       variable found  : boolean;
+      variable ret    : Gtx7CPllCfgType;
    begin
-      found := false;
+      found              := false;
       -- Walk through all possible configs and look for one that works
       dloop : for d in CPLL_OUT_DIV_VALIDS_C'range loop
          mloop : for m in CPLL_REFCLK_DIV_VALIDS_C'range loop
@@ -129,7 +129,7 @@ package body Gtx7CfgPkg is
                      ret.OUT_DIV_G         := CPLL_OUT_DIV_VALIDS_C(d);
                      ret.CLK25_DIV_G       := integer(refClkFreq / 25.0E6);
 
-                     found := true;
+                     found                 := true;
 
 --                     report "Found GTX config: " & lf &
 --                        "refClkFreq:        " & real'image(refClkFreq) & lf &
@@ -156,7 +156,7 @@ package body Gtx7CfgPkg is
    -------------------------------------------------------------------------------------------------
    -- QPLL
    -------------------------------------------------------------------------------------------------
-   impure function getQPllFbdiv (fbdivInt : integer) return bit_vector is
+   function getQPllFbdiv (fbdivInt : integer) return bit_vector is
       variable ret : bit_vector(9 downto 0) := (others => '0');
    begin
       case (fbdivInt) is
@@ -172,7 +172,7 @@ package body Gtx7CfgPkg is
       return ret;
    end function getQPllFbdiv;
 
-   impure function getGtx7QPllCfg (
+   function getGtx7QPllCfg (
       refClkFreq : real;
       lineRate   : real)
       return Gtx7QPllCfgType
@@ -183,7 +183,7 @@ package body Gtx7CfgPkg is
       variable rate   : real;
       variable found  : boolean;
    begin
-      found := false;
+      found              := false;
       -- Walk through all possible configs and look for one that works
       dloop : for d in QPLL_OUT_DIV_VALIDS_C'range loop
          mloop : for m in QPLL_REFCLK_DIV_VALIDS_C'range loop
@@ -192,7 +192,7 @@ package body Gtx7CfgPkg is
                vcoClk := refClkFreq * real(QPLL_FBDIV_INT_VALIDS_C(n)) /
                          (real(QPLL_REFCLK_DIV_VALIDS_C(m)));
                pllClk := vcoClk / 2.0;
-               rate := pllClk * 2.0 / real(QPLL_OUT_DIV_VALIDS_C(d));
+               rate   := pllClk * 2.0 / real(QPLL_OUT_DIV_VALIDS_C(d));
 
 --               report
 --                  "--------" & lf &
@@ -218,7 +218,7 @@ package body Gtx7CfgPkg is
                   ret.OUT_DIV_G   := QPLL_OUT_DIV_VALIDS_C(d);
                   ret.CLK25_DIV_G := integer(refClkFreq / 25.0E6);
 
-                  found := true;
+                  found           := true;
 --                  report "FOUND!!!" severity note;
 
                   exit dloop;
@@ -255,8 +255,7 @@ package body Gtx7CfgPkg is
          ret.TXOUT_DIV_G    := qPllCfg.OUT_DIV_G;
          ret.TX_CLK25_DIV_G := qPllCfg.CLK25_DIV_G;
       else
-         ret.TXOUT_DIV_G    := 0;
-         ret.TX_CLK25_DIV_G := 0;
+         assert (true) report "Gtx7CfgPkg: getGtx7Cfg: Illegal TX PLL type: " & txPll severity failure;
       end if;
 
       if (rxPll = "CPLL") then
@@ -266,8 +265,7 @@ package body Gtx7CfgPkg is
          ret.RXOUT_DIV_G    := qPllCfg.OUT_DIV_G;
          ret.RX_CLK25_DIV_G := qPllCfg.CLK25_DIV_G;
       else
-         ret.RXOUT_DIV_G    := 0;
-         ret.RX_CLK25_DIV_G := 0;
+         assert (true) report "Gtx7CfgPkg: getGtx7Cfg: Illegal RX PLL type: " & rxPll severity failure;
       end if;
 
       return ret;
