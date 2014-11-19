@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-06-23
+-- Last update: 2014-11-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,6 +50,7 @@ entity Pgp2bGtx7MultiLane is
       RX_CLK25_DIV_G        : integer    := 7;
       TX_CLK25_DIV_G        : integer    := 7;
 
+      PMA_RSV_G    : bit_vector := x"00018480";
       RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
@@ -224,7 +225,7 @@ begin
             TXOUT_DIV_G              => TXOUT_DIV_G,
             RX_CLK25_DIV_G           => RX_CLK25_DIV_G,
             TX_CLK25_DIV_G           => TX_CLK25_DIV_G,
-            PMA_RSV_G                => x"00018480",
+            PMA_RSV_G                => PMA_RSV_G,
             TX_PLL_G                 => TX_PLL_G,
             RX_PLL_G                 => RX_PLL_G,
             TX_EXT_DATA_WIDTH_G      => 16,
@@ -300,6 +301,7 @@ begin
             FTS_LANE_DESKEW_EN_G     => "FALSE",       -- Default
             RX_OS_CFG_G              => RX_OS_CFG_G,
             RXCDR_CFG_G              => RXCDR_CFG_G,
+            RX_EQUALIZER_G           => "DFE",         -- Xilinx recommends this for 8b10b
             RXDFEXYDEN_G             => RXDFEXYDEN_G,
             RX_DFE_KL_CFG2_G         => RX_DFE_KL_CFG2_G)
          port map (
