@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-22
--- Last update: 2014-09-09
+-- Last update: 2014-11-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -128,7 +128,6 @@ begin
          when WAIT_REQ_S =>
             v.byteCount := (others => '0');
             if (regIn.regReq = '1') then
-               v.regOut.regRdData := (others => '0');
                v.i2cMasterIn.txnReq := '1';
                v.i2cMasterIn.op     := '1';  -- Write address bytes       
                v.i2cMasterIn.stop   := '1';  --regIn.regOp;  -- no i2c stop after addr when reg read
