@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-30
--- Last update: 2014-10-27
+-- Last update: 2014-10-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ begin
       severity failure;
 
 
-   comb : process (r) is
+   comb : process (r, rst) is
       variable v : RegType;
    begin
       v := r;
