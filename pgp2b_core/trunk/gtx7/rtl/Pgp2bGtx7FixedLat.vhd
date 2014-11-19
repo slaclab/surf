@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-09-17
+-- Last update: 2014-11-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ entity Pgp2bGtx7Fixedlat is
       RX_CLK25_DIV_G        : integer    := 5;
       TX_CLK25_DIV_G        : integer    := 5;
 
+      PMA_RSV_G    : bit_vector := x"00018480";
       RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
@@ -273,6 +274,7 @@ begin
          RX_OS_CFG_G           => RX_OS_CFG_G,
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
+         RX_EQUALIZER_G        => "DFE",
 --         ALIGN_COMMA_DOUBLE_G   => ALIGN_COMMA_DOUBLE_G,
 --         ALIGN_COMMA_ENABLE_G   => ALIGN_COMMA_ENABLE_G,
 --         ALIGN_COMMA_WORD_G     => ALIGN_COMMA_WORD_G,
