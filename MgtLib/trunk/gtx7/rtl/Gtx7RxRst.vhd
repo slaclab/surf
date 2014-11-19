@@ -136,12 +136,12 @@ architecture RTL of Gtx7RxRst is
    constant WAIT_CYCLES       : integer := STARTUP_DELAY / STABLE_CLOCK_PERIOD;  -- Number of Clock-Cycles to wait after configuration
    constant WAIT_MAX          : integer := WAIT_CYCLES + 10;  -- 500 ns plus some additional margin
 
-   constant WAIT_TIMEOUT_2ms   : integer := 2000000 / STABLE_CLOCK_PERIOD;  --  2 ms time-out
+   constant WAIT_TIMEOUT_2ms   : integer := 3000000 / STABLE_CLOCK_PERIOD;  --  2 ms time-out
    constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;   --100 us time-out
    constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;   --500 us time-out
    constant WAIT_TIMEOUT_1us   : integer := 1000 / STABLE_CLOCK_PERIOD;     --1 us time-out
    constant WAIT_TIMEOUT_100us : integer := 100000 / STABLE_CLOCK_PERIOD;   --100 us time-out
-   constant WAIT_TIME_ADAPT    : integer := (37000000 /integer(2.5))/STABLE_CLOCK_PERIOD;
+   constant WAIT_TIME_ADAPT    : integer := (37000000 /integer(3.125))/STABLE_CLOCK_PERIOD;
 
    signal soft_reset_sync : std_logic;
    signal soft_reset_rise : std_logic;
@@ -585,7 +585,7 @@ begin
                      reset_time_out <= '1';
                   end if;
 
-                  if time_tlock_max = '1' then
+                  if time_tlock_max = '1' and reset_time_out = '0' then
                      if retry_counter_int = MAX_RETRIES then
                         -- If too many retries are performed compared to what is specified in 
                         -- the generic, the counter simply wraps around.
@@ -608,7 +608,7 @@ begin
                      reset_time_out <= '1';
                   end if;
 
-                  if time_out_2ms = '1' then
+                  if time_out_2ms = '1' and reset_time_out = '0' then
                      if retry_counter_int = MAX_RETRIES then
                         -- If too many retries are performed compared to what is specified in 
                         -- the generic, the counter simply wraps around.
@@ -645,7 +645,7 @@ begin
                when MONITOR_DATA_VALID =>
                   reset_time_out <= '0';
 
-                  if (time_out_100us = '1' and (data_valid_sync = '0')) then
+                  if (time_out_100us = '1' and (data_valid_sync = '0') and reset_time_out = '0') then
                      fsmCnt                <= (others=>'0');
                      rx_state              <= ASSERT_ALL_RESETS;
                      rx_fsm_reset_done_int <= '0';
@@ -665,18 +665,20 @@ begin
                   if (data_valid_sync = '0') then
                      rx_fsm_reset_done_int <= '0';
                      reset_time_out        <= '1';
-                     rx_state              <= ASSERT_ALL_RESETS;
+                     rx_state              <= MONITOR_DATA_VALID;
                   elsif (time_out_1us = '1') then
                      rx_fsm_reset_done_int <= '1';
                   end if;
 
                   if(time_out_adapt = '1') then
-                     if((GT_TYPE = "GTX" or GT_TYPE = "GTH") and EQ_MODE = "DFE") then
+                     if(EQ_MODE = "DFE") then
                         RXDFEAGCHOLD <= '1';
                         RXDFELFHOLD  <= '1';
-                     elsif(GT_TYPE = "GTH" and EQ_MODE = "LPM") then
-                        RXLPMHFHOLD <= '1';
-                        RXLPMLFHOLD <= '1';
+                     else
+                        RXDFEAGCHOLD <= '0';
+                        RXDFELFHOLD <= '0';
+                        RXLPMHFHOLD <= '0';
+                        RXLPMLFHOLD <= '0';
                      end if;
                   end if;
                   
