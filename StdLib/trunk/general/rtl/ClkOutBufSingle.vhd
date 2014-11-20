@@ -23,8 +23,10 @@ use UNISIM.VCOMPONENTS.all;
 
 entity ClkOutBufSingle is
    generic (
-      INVERT_G : boolean := false);
+      RST_POLARITY_G : sl      := '1';
+      INVERT_G       : boolean := false);
    port (
+      rstIn  : in  sl := not RST_POLARITY_G;-- Optional reset
       clkIn  : in  sl;
       clkOut : out sl);                 -- Single ended output buffer
 end ClkOutBufSingle;
@@ -32,8 +34,11 @@ end ClkOutBufSingle;
 architecture rtl of ClkOutBufSingle is
 
    signal clkDdr : sl;
+   signal rst    : sl;
 
 begin
+
+   rst <= rstIn when(RST_POLARITY_G='1') else not(rstIn);
 
    ODDR_I : ODDR
       port map (
@@ -42,7 +47,7 @@ begin
          CE => '1',
          D1 => toSl(not INVERT_G),
          D2 => toSl(INVERT_G),
-         R  => '0',
+         R  => rst,
          S  => '0');
 
    -- Single ended output buffer

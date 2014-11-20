@@ -23,8 +23,10 @@ use UNISIM.VCOMPONENTS.all;
 
 entity ClkOutBufDiff is
    generic (
-      INVERT_G : boolean := false);
+      RST_POLARITY_G : sl      := '1';
+      INVERT_G       : boolean := false);
    port (
+      rstIn   : in  sl := not RST_POLARITY_G;-- Optional reset
       clkIn   : in  sl;
       clkOutP : out sl;                 -- differential output buffer
       clkOutN : out sl);                -- differential output buffer
@@ -33,8 +35,11 @@ end ClkOutBufDiff;
 architecture rtl of ClkOutBufDiff is
 
    signal clkDdr : sl;
+   signal rst    : sl;
 
 begin
+
+   rst <= rstIn when(RST_POLARITY_G='1') else not(rstIn);
 
    ODDR_I : ODDR
       port map (
