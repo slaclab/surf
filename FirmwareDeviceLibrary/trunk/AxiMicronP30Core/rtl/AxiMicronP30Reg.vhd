@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2014-11-13
+-- Last update: 2014-11-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -133,63 +133,67 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
-      if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
-         -- Check for an out of 32 bit aligned address
-         axiWriteResp := AXI_RESP_OK_C;
-         -- Decode address and perform write
-         case (axiWriteMaster.awaddr(7 downto 0)) is
-            when x"00" =>
-               -- Set the opCode bus
-               v.wrData(1) := axiWriteMaster.wdata(31 downto 16);
-               -- Set the input data bus
-               v.wrData(0) := axiWriteMaster.wdata(15 downto 0);
-            when x"04" =>
-               -- Set the RnW
-               v.RnW   := axiWriteMaster.wdata(31);
-               -- Set the address bus
-               v.addr  := axiWriteMaster.wdata(30 downto 0);
-               -- Next state
-               v.state := CMD_LOW_S;
-            when x"0c" =>
-               v.test := axiWriteMaster.wdata;
-            when others =>
-               axiWriteResp := AXI_ERROR_RESP_G;
-         end case;
-         -- Send AXI response
-         axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
-      elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
-         -- Check for an out of 32 bit aligned address
-         axiReadResp          := AXI_RESP_OK_C;
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
-         -- Decode address and assign read data
-         case (axiReadMaster.araddr(7 downto 0)) is
-            when x"00" =>
-               -- Get the opCode bus
-               v.axiReadSlave.rdata(31 downto 16) := r.wrData(1);
-               -- Get the input data bus
-               v.axiReadSlave.rdata(15 downto 0)  := r.wrData(0);
-            when x"04" =>
-               -- Get the RnW
-               v.axiReadSlave.rdata(31)          := r.RnW;
-               -- Get the address bus
-               v.axiReadSlave.rdata(30 downto 0) := r.addr;
-            when x"08" =>
-               -- Get the output data bus
-               v.axiReadSlave.rdata(15 downto 0) := r.dataReg;
-            when x"0C" =>
-               v.axiReadSlave.rdata := r.test;
-            when others =>
-               axiReadResp := AXI_ERROR_RESP_G;
-         end case;
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
-      end if;
-
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            
+            if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
+               -- Check for an out of 32 bit aligned address
+               axiWriteResp := AXI_RESP_OK_C;
+               -- Decode address and perform write
+               case (axiWriteMaster.awaddr(7 downto 0)) is
+                  when x"00" =>
+                     -- Set the opCode bus
+                     v.wrData(1) := axiWriteMaster.wdata(31 downto 16);
+                     -- Set the input data bus
+                     v.wrData(0) := axiWriteMaster.wdata(15 downto 0);
+                     axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);                     
+                  when x"04" =>
+                     -- Set the RnW
+                     v.RnW   := axiWriteMaster.wdata(31);
+                     -- Set the address bus
+                     v.addr  := axiWriteMaster.wdata(30 downto 0);
+                     -- Next state
+                     v.state := CMD_LOW_S;
+                  when x"0c" =>
+                     v.test := axiWriteMaster.wdata;
+                     axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);                     
+                  when others =>
+                     axiWriteResp := AXI_ERROR_RESP_G;
+                     axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);                     
+               end case;
+               -- Send AXI response
+
+            elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
+               -- Check for an out of 32 bit aligned address
+               axiReadResp          := AXI_RESP_OK_C;
+               -- Reset the register
+               v.axiReadSlave.rdata := (others => '0');
+               -- Decode address and assign read data
+               case (axiReadMaster.araddr(7 downto 0)) is
+                  when x"00" =>
+                     -- Get the opCode bus
+                     v.axiReadSlave.rdata(31 downto 16) := r.wrData(1);
+                     -- Get the input data bus
+                     v.axiReadSlave.rdata(15 downto 0)  := r.wrData(0);
+                  when x"04" =>
+                     -- Get the RnW
+                     v.axiReadSlave.rdata(31)          := r.RnW;
+                     -- Get the address bus
+                     v.axiReadSlave.rdata(30 downto 0) := r.addr;
+                  when x"08" =>
+                     -- Get the output data bus
+                     v.axiReadSlave.rdata(15 downto 0) := r.dataReg;
+                  when x"0C" =>
+                     v.axiReadSlave.rdata := r.test;
+                  when others =>
+                     axiReadResp := AXI_ERROR_RESP_G;
+               end case;
+               -- Send Axi Response
+               axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
+            end if;
+
             v.ceL      := '1';
             v.oeL      := '1';
             v.weL      := '1';
@@ -275,6 +279,7 @@ begin
                v.cnt   := 0;
                -- Next state
                v.state := IDLE_S;
+               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_OK_C);
             end if;
       ----------------------------------------------------------------------
       end case;
