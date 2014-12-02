@@ -70,6 +70,12 @@
 --       Bits 31:0 = Receive Clock Frequency
 --    0x68 = Read Only
 --       Bits 31:0 = Transmit Clock Frequency
+--    0x70 = Read Only
+--       Bits 7:0 = Last OpCode Transmitted
+--       Bits ?:8 = OpCode Transmit count
+--    0x74 = Read Only
+--       Bits 7:0 = Last OpCode Received
+--       Bits ?:8 = OpCode Received count
 --
 -- Status vector:
 --       Bits 31:24 = Rx Link Down Count
@@ -144,11 +150,11 @@ architecture structure of Pgp2bAxi is
    signal rxStatusSend : sl;
 
    signal rxErrorOut     : slv(16 downto 0);
-   signal rxErrorCntOut  : SlVectorArray(16 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
+   signal rxErrorCntOut  : SlVectorArray(17 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal rxStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
    signal txErrorOut     : slv(10 downto 0);
-   signal txErrorCntOut  : SlVectorArray(10 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
+   signal txErrorCntOut  : SlVectorArray(11 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal txStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
    signal rxErrorIrqEn    : slv(16 downto 0);
@@ -206,6 +212,8 @@ architecture structure of Pgp2bAxi is
       frameCount       : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       remPause         : slv(3 downto 0);
       rxClkFreq        : slv(31 downto 0);
+      rxOpCodeCount    : slv(ERROR_CNT_WIDTH_G-1 downto 0);
+      rxOpCodeLast     : slv(7 downto 0);
    end record RxStatusType;
 
    signal rxstatusSync : RxStatusType;
@@ -222,6 +230,8 @@ architecture structure of Pgp2bAxi is
       frameErrCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       frameCount      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       txClkFreq       : slv(31 downto 0);
+      txOpCodeCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
+      txOpCodeLast    : slv(7 downto 0);
    end record TxStatusType;
 
    signal txstatusSync : TxStatusType;
@@ -232,6 +242,28 @@ begin
    ---------------------------------------
    -- Receive Status
    ---------------------------------------
+
+   -- OpCode Capture
+   U_RxOpCodeSync : entity work.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         BRAM_EN_G     => false,
+         ALTERA_SYN_G  => false,
+         ALTERA_RAM_G  => "M9K",
+         SYNC_STAGES_G => 3,
+         DATA_WIDTH_G  => 8,
+         ADDR_WIDTH_G  => 2,
+         INIT_G        => "0"
+      ) port map (
+         rst           => r.countReset,
+         wr_clk        => pgpRxClk,
+         wr_en         => pgpRxOut.opCodeEn,
+         din           => pgpRxOut.opCode,
+         rd_clk        => axilClk,
+         rd_en         => '1',
+         valid         => open,
+         dout          => rxStatusSync.rxOpCodeLast
+      );
 
    -- Sync remote data
    U_RxDataSyncEn : if COMMON_RX_CLK_G = false generate
@@ -274,7 +306,7 @@ begin
          SYNTH_CNT_G     => "11110000111100000",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => 17
+         WIDTH_G         => 18
       ) port map (
          statusIn(0)             => pgpRxOut.phyRxReady,
          statusIn(1)             => pgpRxOut.linkReady,
@@ -286,6 +318,7 @@ begin
          statusIn(14)            => pgpRxOut.linkDown,
          statusIn(15)            => pgpRxOut.linkError,
          statusIn(16)            => pgpRxOut.frameRxErr,
+         statusIn(17)            => pgpRxOut.opCodeEn,
          statusOut               => rxErrorOut,
          cntRstIn                => r.countReset,
          rollOverEnIn            => (others=>'0'),
@@ -328,6 +361,7 @@ begin
    rxStatusSync.linkDownCount   <= muxSlVectorArray(rxErrorCntOut,14);
    rxStatusSync.linkErrorCount  <= muxSlVectorArray(rxErrorCntOut,15);
    rxStatusSync.frameErrCount   <= muxSlVectorArray(rxErrorCntOut,16);
+   rxStatusSync.rxOpCodeCount   <= muxSlVectorArray(rxErrorCntOut,17);
 
    -- Status counters
    U_RxStatus : entity work.SyncStatusVector 
@@ -384,6 +418,28 @@ begin
    -- Transmit Status
    ---------------------------------------
 
+   -- OpCode Capture
+   U_TxOpCodeSync : entity work.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         BRAM_EN_G     => false,
+         ALTERA_SYN_G  => false,
+         ALTERA_RAM_G  => "M9K",
+         SYNC_STAGES_G => 3,
+         DATA_WIDTH_G  => 8,
+         ADDR_WIDTH_G  => 2,
+         INIT_G        => "0"
+      ) port map (
+         rst           => r.countReset,
+         wr_clk        => pgpTxClk,
+         wr_en         => locTxIn.opCodeEn,
+         din           => locTxIn.opCode,
+         rd_clk        => axilClk,
+         rd_en         => '1',
+         valid         => open,
+         dout          => txStatusSync.txOpCodeLast
+      );
+
    -- Errror counters and non counted values
    U_TxError : entity work.SyncStatusVector 
       generic map (
@@ -397,13 +453,14 @@ begin
          SYNTH_CNT_G     => "10000111100",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => 11
+         WIDTH_G         => 12
       ) port map (
          statusIn(0)            => pgpTxOut.phyTxReady,
          statusIn(1)            => pgpTxOut.linkReady,
          statusIn(5 downto 2)   => pgpTxOut.locOverflow,
          statusIn(9 downto 6)   => pgpTxOut.locPause,
          statusIn(10)           => pgpTxOut.frameTxErr,
+         statusIn(11)           => locTxIn.opCodeEn,
          statusOut              => txErrorOut,
          cntRstIn               => r.countReset,
          rollOverEnIn           => (others=>'0'),
@@ -428,6 +485,7 @@ begin
    txStatusSync.locOverflow2Cnt <= muxSlVectorArray(txErrorCntOut,4);
    txStatusSync.locOverflow3Cnt <= muxSlVectorArray(txErrorCntOut,5);
    txStatusSync.frameErrCount   <= muxSlVectorArray(txErrorCntOut,10);
+   txStatusSync.txOpCodeCount   <= muxSlVectorArray(txErrorCntOut,11);
 
    -- Status counters
    U_TxStatus : entity work.SyncStatusVector 
@@ -704,6 +762,13 @@ begin
                v.axilReadSlave.rdata := rxStatusSync.rxClkFreq;
             when X"68" =>
                v.axilReadSlave.rdata := txStatusSync.txClkFreq;
+            when X"70" =>
+               v.axilReadSlave.rdata(7 downto 0) := txStatusSync.txOpCodeLast;
+               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G+7 downto 8) := txStatusSync.txOpCodeCount;
+            when X"71" =>
+               v.axilReadSlave.rdata(7 downto 0) := rxStatusSync.rxOpCodeLast;
+               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G+7 downto 8) := rxStatusSync.rxOpCodeCount;
+
             when others => null;
          end case;
 
