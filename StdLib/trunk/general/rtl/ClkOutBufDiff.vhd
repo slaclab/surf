@@ -48,7 +48,7 @@ begin
          CE => '1',
          D1 => toSl(not INVERT_G),
          D2 => toSl(INVERT_G),
-         R  => '0',
+         R  => rst,
          S  => '0');
 
    OBUFDS_I : OBUFDS
