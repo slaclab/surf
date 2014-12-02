@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-08-19
+-- Last update: 2014-11-07
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -285,6 +285,9 @@ begin
             -- Check for a FIFO read
             if (rxAxisMaster.tvalid = '1') and (r.rxAxisSlave.tReady = '1') then
                -- Calculate the time between this packet and the previous one
+               if (r.stopTime = r.startTime) then
+                  v.stopTime := r.stopTime + 1;
+               end if;
                v.packetRate      := r.stopTime - r.startTime;
                v.startTime       := r.stopTime;
                -- Reset the error counters

@@ -92,6 +92,7 @@ vhdl work axi/rtl/SsiFrameFilter.vhd
 vhdl work axi/rtl/SsiPkg.vhd
 vhdl work axi/rtl/SsiPrbsRx.vhd
 vhdl work axi/rtl/SsiPrbsTx.vhd
+vhdl work axi/rtl/SsiPrbsTxOld.vhd
 
 vhdl work spi/rtl/SpiMaster.vhd
 vhdl work spi/rtl/SpiSlave.vhd

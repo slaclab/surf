@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2014-04-02
+-- Last update: 2014-11-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ use work.ArbiterPkg.all;
 entity AxiLiteCrossbar is
 
    generic (
-      TPD_G              : time                             := 1 ns;
-      NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
-      NUM_MASTER_SLOTS_G : natural range 1 to 16            := 4;
-      DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
+      TPD_G              : time                  := 1 ns;
+      NUM_SLAVE_SLOTS_G  : natural range 1 to 16 := 4;
+      NUM_MASTER_SLOTS_G : natural range 1 to 16 := 4;
+      DEC_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C;
       MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray);
    port (
       axiClk    : in sl;
@@ -123,6 +123,20 @@ architecture rtl of AxiLiteCrossbar is
    type AxiStatusArray is array (natural range <>) of AxiLiteStatusType;
 
 begin
+
+--   assert (false) report "Created new AxiLiteCrossbar:" & LF &
+--      "NUM_SLAVE_SLOTS_G: " & integer'image(NUM_SLAVE_SLOTS_G) & LF &
+--      "NUM_MASTER_SLOTS_G: " & integer'image(NUM_MASTER_SLOTS_G) & LF &
+--      "DEC_ERROR_RESP_G: " & str(DEC_ERROR_RESP_G) & LF &
+--      "MASTERS_CONFIG_G:" & LF severity note;
+
+--   printCfg : for i in MASTERS_CONFIG_G'range generate
+--      assert (false) report
+--         "  baseAddr: " & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+--         "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
+--         "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity) & LF
+--         severity note;
+--   end generate printCfg;
 
    comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is
       variable v            : RegType;
@@ -243,7 +257,7 @@ begin
             when S_DEC_ERR_S =>
                if (sAxiReadMasters(s).rready = '1') then
                   v.sAxiReadSlaves(s).rresp  := DEC_ERROR_RESP_G;
-                  v.sAxiReadSlaves(s).rdata  := (others=>'0');
+                  v.sAxiReadSlaves(s).rdata  := (others => '0');
                   v.sAxiReadSlaves(s).rvalid := '1';
                   v.slave(s).rdState         := S_WAIT_AXI_TXN_S;
                end if;
@@ -269,9 +283,9 @@ begin
 
                      -- rvalid indicates txn concluding
                      if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
-                        v.sAxiReadSlaves(s)  := AXI_LITE_READ_SLAVE_INIT_C;
-                        v.slave(s).rdReqs    := (others => '0');
-                        v.slave(s).rdState   := S_WAIT_AXI_TXN_S;  --S_WAIT_DONE_S;
+                        v.sAxiReadSlaves(s) := AXI_LITE_READ_SLAVE_INIT_C;
+                        v.slave(s).rdReqs   := (others => '0');
+                        v.slave(s).rdState  := S_WAIT_AXI_TXN_S;  --S_WAIT_DONE_S;
                      end if;
                   end if;
                end loop;
@@ -323,7 +337,7 @@ begin
                end if;
 
                -- When all *valid signals cleared, wait for slave side to clear request
-               if (v.mAxiWriteMasters(m).awvalid = '0' and v.mAxiWriteMasters(m).wvalid = '0' ) then
+               if (v.mAxiWriteMasters(m).awvalid = '0' and v.mAxiWriteMasters(m).wvalid = '0') then
                   v.master(m).wrState := M_WAIT_REQ_FALL_S;
                end if;
                
@@ -345,8 +359,8 @@ begin
             when M_WAIT_REQ_S =>
 
                -- Keep these in reset state while waiting for requests
-               v.master(m).rdAcks    := (others => '0');
-               v.mAxiReadMasters(m)  := AXI_LITE_READ_MASTER_INIT_C;
+               v.master(m).rdAcks   := (others => '0');
+               v.mAxiReadMasters(m) := AXI_LITE_READ_MASTER_INIT_C;
 
                -- Wait for a request, arbitrate between simultaneous requests
                if (r.master(m).rdValid = '0') then
