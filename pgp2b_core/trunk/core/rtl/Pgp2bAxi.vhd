@@ -149,15 +149,15 @@ architecture structure of Pgp2bAxi is
    -- Local signals
    signal rxStatusSend : sl;
 
-   signal rxErrorOut     : slv(16 downto 0);
+   signal rxErrorOut     : slv(17 downto 0);
    signal rxErrorCntOut  : SlVectorArray(17 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal rxStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal txErrorOut     : slv(10 downto 0);
+   signal txErrorOut     : slv(11 downto 0);
    signal txErrorCntOut  : SlVectorArray(11 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal txStatusCntOut : SlVectorArray(0 downto 0,  STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal rxErrorIrqEn    : slv(16 downto 0);
+   signal rxErrorIrqEn    : slv(17 downto 0);
    signal locTxDataEn     : sl;
    signal locTxData       : slv(7 downto 0);
    signal txFlush         : sl;
@@ -303,7 +303,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "11110000111100000",
+         SYNTH_CNT_G     => "111110000111100000",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => 18
@@ -450,7 +450,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "10000111100",
+         SYNTH_CNT_G     => "110000111100",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => 12
