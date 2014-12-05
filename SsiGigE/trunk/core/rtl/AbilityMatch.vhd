@@ -79,9 +79,9 @@ architecture rtl of AbilityMatch is
    
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
-   -- attribute mark_debug : string;
-   -- attribute mark_debug of r : signal is "true";
+
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
