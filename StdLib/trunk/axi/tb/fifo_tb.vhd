@@ -17,8 +17,10 @@ entity fifo_tb is end fifo_tb;
 -- Define architecture
 architecture fifo_tb of fifo_tb is
 
-   signal axiClk      : sl;
-   signal axiClkRst   : sl;
+   signal saxiClk     : sl;
+   signal saxiClkRst  : sl;
+   signal maxiClk     : sl;
+   signal maxiClkRst  : sl;
    signal sAxisMaster : AxiStreamMasterType;
    signal sAxisSlave  : AxiStreamSlaveType;
    signal sAxisCtrl   : AxiStreamCtrlType;
@@ -26,38 +28,59 @@ architecture fifo_tb of fifo_tb is
    signal mAxisSlave  : AxiStreamSlaveType;
    signal axiCount    : slv(7 downto 0);
 
+   constant MASTER_AXI_CONFIG_C  : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 4,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C
+   );
+
    constant SLAVE_AXI_CONFIG_C  : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16,
       TDEST_BITS_C  => 4,
       TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
       TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_NORMAL_C
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C
    );
-
-   constant MASTER_AXI_CONFIG_C : AxiStreamConfigTYpe := ssiAxiStreamConfig (2);
 
 begin
 
    process begin
-      axiClk <= '1';
-      wait for 8 ns;
-      axiClk <= '0';
-      wait for 8 ns;
+      maxiClk <= '1';
+      wait for 2.5 ns;
+      maxiClk <= '0';
+      wait for 2.5 ns;
    end process;
 
    process begin
-      axiClkRst <= '1';
+      maxiClkRst <= '1';
       wait for (80 ns);
-      axiClkRst <= '0';
+      maxiClkRst <= '0';
       wait;
    end process;
 
+   process begin
+      saxiClk <= '1';
+      wait for 4 ns;
+      saxiClk <= '0';
+      wait for 4 ns;
+   end process;
 
-   process (axiClk ) begin
-      if rising_edge (axiClk ) then
-         if axiClkRst = '1' then
+   process begin
+      saxiClkRst <= '1';
+      wait for (80 ns);
+      saxiClkRst <= '0';
+      wait;
+   end process;
+
+   process (saxiClk ) begin
+      if rising_edge (saxiClk ) then
+         if saxiClkRst = '1' then
             axiCount <= (others=>'0') after 1 ns;
          elsif sAxisSlave.tReady = '1' then
             axiCount <= axiCount + 1 after 1 ns;
@@ -66,26 +89,25 @@ begin
    end process;
 
 
-   process ( sAxisSlave, axiCount, axiClkRst ) begin
+   process ( sAxisSlave, axiCount, saxiClkRst ) begin
       sAxisMaster <= AXI_STREAM_MASTER_INIT_C;
-
-      sAxisMaster.tValid <= not axiClkRst;
 
       sAxisMaster.tDest <= x"de";
       sAxisMaster.tId   <= x"ad";
 
-      for i in 0 to 15 loop
-         sAxisMaster.tData(i*8+7 downto i*8) <= conv_std_logic_vector((conv_integer(axiCount(7 downto 0)) * i),8);
-         sAxisMaster.tStrb(i) <= '1';
-         sAxisMaster.tKeep(i) <= '1';
-         sAxisMaster.tUser(i*4+3 downto i*4) <= conv_std_logic_vector(i,4);
-      end loop;
-
-      if axiCount(3 downto 0) = 15 then
+      if axiCount(4 downto 0) = 8 then
+         sAxisMaster.tValid <= '1';
+         sAxisMaster.tLast <= '0';
+         sAxisMaster.tKeep(15 downto 0) <= x"00FF";
+         sAxisMaster.tData <= x"16151413121110090807060504030201";
+      elsif axiCount(4 downto 0) = 15 then
+         sAxisMaster.tValid <= '1';
          sAxisMaster.tLast <= '1';
-         sAxisMaster.tKeep(15 downto 15) <= (others=>'0');
+         sAxisMaster.tData <= x"36353433323130292827262524232221";
+         sAxisMaster.tKeep(15 downto 0) <= x"000F";
       else
          sAxisMaster.tLast <= '0';
+         sAxisMaster.tValid <= '0';
       end if;
    end process;
 
@@ -96,26 +118,20 @@ begin
       generic map (
          TPD_G               => 1 ns,
          BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
-         ALTERA_SYN_G        => false,
-         ALTERA_RAM_G        => "M9K",
-         CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 500,
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_C,
          MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_C
       ) port map (
-         sAxisClk        => axiClk,
-         sAxisRst        => axiClkRst,
+         sAxisClk        => saxiClk,
+         sAxisRst        => saxiClkRst,
          sAxisMaster     => sAxisMaster,
          sAxisSlave      => sAxisSlave,
          sAxisCtrl       => sAxisCtrl,
          fifoPauseThresh => (others => '1'),
-         mAxisClk        => axiClk,
-         mAxisRst        => axiClkRst,
+         mAxisClk        => maxiClk,
+         mAxisRst        => maxiClkRst,
          mAxisMaster     => mAxisMaster,
          mAxisSlave      => mAxisSlave
       );
