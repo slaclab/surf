@@ -1,8 +1,9 @@
 #TOP=stream_tb
 #TOP=dma_tb
 #TOP=vcs_tb
-#TOP=fifo_tb
-TOP=fifo_128_tb
+TOP=fifo_tb
+#TOP=fifo_128_tb
+#TOP=mytb
 
 # Set Default Output
 SIM_DIR=$(PWD)/out
@@ -69,8 +70,8 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiSimMasterWrap.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiSimSlave.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../simlink/rtl/AxiSimSlaveWrap.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/rtl/Pgp2bPkg.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b/core/simlink/rtl//PgpSimModel.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b_core/core/rtl/Pgp2bPkg.vhd
+	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../pgp2b_core/core/simlink/rtl//PgpSimModel.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../i2c_core/rtl/stdlib.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../i2c_core/rtl/I2cPkg.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../../../i2c_core/rtl/I2cSlave.vhd
@@ -84,7 +85,6 @@ rtl_src:
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/dma_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/vcs_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/fifo_tb.vhd
-	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/fifo_128_tb.vhd
 	cd $(SIM_DIR); vhdlan $(EN64) $(PWD)/../tb/stream_tb.vhd
 
 # VHPI Library

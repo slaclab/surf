@@ -553,7 +553,7 @@ begin
 
          -- Reached end of fifo data or no more valid bytes in last word
          if fifoMaster.tValid = '1' then
-            if (rdR.count = (RD_SIZE_C-1)) or ((rdR.bytes = byteCnt) and (fifoMaster.tLast = '1')) then
+            if (rdR.count = (RD_SIZE_C-1)) or ((rdR.bytes >= byteCnt) and (fifoMaster.tLast = '1')) then
                v.count          := (others => '0');
                v.bytes          := conv_std_logic_vector(RD_BYTES_C, bitSize(DATA_BYTES_C));
                v.ready          := '1';
