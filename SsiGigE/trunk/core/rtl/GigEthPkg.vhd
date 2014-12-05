@@ -55,7 +55,7 @@ package GigEthPkg is
    -- Pause frames supported (this version of autonegotiation is not implemented yet)
    -- constant OS_CN_C  : slv(15 downto 0) := x"01a0";           --Config reg, no ack
    -- constant OS_CA_C  : slv(15 downto 0) := x"41a0";           --Config reg, with ack
-
+   
    -- Ethernet constants
    constant ETH_PRE_C : slv(7 downto 0) := x"55";
    constant ETH_SOF_C : slv(7 downto 0) := x"D5";
@@ -70,8 +70,9 @@ package GigEthPkg is
    constant CRC_CHECK_C : slv(31 downto 0) := x"1CDF4421";
    
    -- Link timer, assuming 62.5 MHz (16 bit data interface used by the GTX, Sync block, and autonegotiation)
-   constant LINK_TIMER_C : natural := 625000; -- 625000 (0x98968) cycles @ 62.5 MHz, ~10 ms 
-
+   -- constant LINK_TIMER_C : natural := 625000; -- 625000 (0x98968) cycles @ 62.5 MHz, ~10 ms 
+   constant LINK_TIMER_C : natural := 937500; -- 937500 (0xE4E1C) cycles @ 62.5 MHz, ~15 ms 
+   
    -- Other types
    type EthRxPhyLaneOutType is record
       polarity : sl;             -- PHY receive signal polarity

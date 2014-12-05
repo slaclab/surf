@@ -54,7 +54,8 @@ end GigEthAutoNeg;
 architecture rtl of GigEthAutoNeg is
 
    type AutoNegStateType is (S_IDLE, S_AUTONEG_RESTART, S_ABILITY_DETECT,
-                          S_ACK_DETECT, S_COMPLETE_ACK, S_IDLE_DETECT, S_LINK_UP);
+                          S_ACK_DETECT, S_COMPLETE_ACK, S_FIRST_IDLE,
+                          S_IDLE_DETECT, S_LINK_UP);
 
    type slv16array is array (PIPE_STAGES_G-1 downto 0) of slv(15 downto 0);
    type slv2array is array (PIPE_STAGES_G-1 downto 0) of slv(1 downto 0);
@@ -68,6 +69,7 @@ architecture rtl of GigEthAutoNeg is
       toggleWord    : sl;
       timerCnt      : slv(19 downto 0);
       sendIdle      : sl;
+      useI1         : sl;
       linkUp        : sl;
       newState      : sl;
    end record RegType;
@@ -81,6 +83,7 @@ architecture rtl of GigEthAutoNeg is
       toggleWord    => '0',
       timerCnt      => (others => '0'),
       sendIdle      => '0',
+      useI1         => '0',
       linkUp        => '0',
       newState      => '0'
    );
@@ -97,8 +100,8 @@ architecture rtl of GigEthAutoNeg is
 
    constant THIS_LINK_TIMER_C : natural := ite(SIM_SPEEDUP_G, 127, LINK_TIMER_C);
    
-   -- attribute mark_debug : string;
-   -- attribute mark_debug of r : signal is "true";
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -157,8 +160,12 @@ begin
             phyTxDataK <= "00";
          end if;
       else
-         phyTxData  <= OS_I2_C;
          phyTxDataK <= "01";
+         if (r.useI1 = '1') then
+            phyTxData  <= OS_I1_C;
+         else
+            phyTxData  <= OS_I2_C;
+         end if;
       end if;
       
       -- Combinatorial state logic
@@ -213,11 +220,17 @@ begin
                v.timerCnt     := r.timerCnt + 1;
             elsif (abilityMatch = '0' or ability /= 0) then
                v.timerCnt     := (others => '0');
-               v.autoNegState := S_IDLE_DETECT;
+               v.autoNegState := S_FIRST_IDLE;
             end if;
+         -- Send one I1 to flip disparity
+         when S_FIRST_IDLE =>
+            v.sendIdle := '1';
+            v.useI1    := '1';
+            v.autoNegState := S_IDLE_DETECT;
          -- Send idles
          when S_IDLE_DETECT =>
             v.sendIdle := '1';
+            v.useI1    := '0';
             if (abilityMatch = '1' and ability = 0) then
                v.autoNegState := S_IDLE;
             end if;
