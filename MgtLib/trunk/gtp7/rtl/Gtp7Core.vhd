@@ -218,6 +218,8 @@ architecture rtl of Gtp7Core is
          return "011";
       elsif (OUT_CLK_SRC = "OUTCLKPMA") then
          return "010";
+      elsif (OUT_CLK_SRC = "PLLREFDV2") then
+         return "100";
       else
          return "000";
       end if;
@@ -338,6 +340,8 @@ architecture rtl of Gtp7Core is
    signal txCharDispVal  : slv(3 downto 0)  := (others => '0');
    
 begin
+
+   txOutClkOut     <= txOutClk;
 
    rxOutClkOut     <= rxOutClkBufg;
    qPllResetOut(0) <= rxPllResets(0) or txPllResets(0);
