@@ -115,6 +115,9 @@ dir:
 %.ngc : 
 	@test -d $*.ngc || echo "$*.ngc does not exist"; false;
 
+%.dcp : 
+	@test -d $*.dcp || echo "$*.dcp does not exist"; false;
+
 ###############################################################
 #### Vivado Project ###########################################
 ###############################################################
@@ -205,6 +208,14 @@ gui : $(SOURCE_DEPEND)
 vcs : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado VCS")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_vcs_v1.tcl
+
+###############################################################
+#### Vivado Sythnesis Only ####################################
+###############################################################
+.PHONY : syn
+syn : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Vivado Synthesis Only")
+	@cd $(OUT_DIR); export SYNTH_ONLY=1; vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_v1.tcl
 
 ###############################################################
 #### Prom #####################################################
