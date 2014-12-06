@@ -483,6 +483,7 @@ begin
                      else
                         retry_counter_int <= retry_counter_int + 1;
                      end if;
+                     reset_time_out <= '1'; -- Need to reset time outs again or we'll always end up back here
                      tx_state <= ASSERT_ALL_RESETS;
                   end if;
 
