@@ -4,11 +4,14 @@ set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source  -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 source  -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl 
 
+## Get the top level name
+set topName [get_property top [current_fileset]]
+
 ## Get the file name and path of the new .dcp file
 set filename [exec ls [glob "${OUT_DIR}/${PROJECT}_project.runs/synth_1/*.dcp"]]
 
 ## Get the ouput file path and name
-set outputFile "${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.dcp"
+set outputFile "${IMAGES_DIR}/${topName}_${PRJ_VERSION}.dcp"
 
 ## Open the check point
 open_checkpoint ${filename}
