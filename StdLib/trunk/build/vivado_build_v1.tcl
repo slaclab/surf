@@ -53,6 +53,11 @@ source ${VIVADO_BUILD_DIR}/vivado_pre_synthesis_v1.tcl
 ## Synthesize
 ########################################################
 if { [CheckSynth] != true } {
+   ## Check for DCP only synthesis run
+   if { [info exists ::env(SYNTH_DCP)] } {
+      set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-mode out_of_context} -objects [get_runs synth_1]
+   }
+   ## Launch the run
    launch_runs synth_1
    set src_rc [catch { 
       wait_on_run synth_1 
@@ -81,6 +86,15 @@ if { [CheckSynth] != true } {
 ## Check if only doing Synthesize
 ########################################################
 if { [info exists ::env(SYNTH_ONLY)] } {
+   close_project
+   exit 0
+}
+
+########################################################
+## Check if Synthesizen DCP Output
+########################################################
+if { [info exists ::env(SYNTH_DCP)] } {
+   source ${VIVADO_BUILD_DIR}/vivado_dcp_v1.tcl
    close_project
    exit 0
 }
