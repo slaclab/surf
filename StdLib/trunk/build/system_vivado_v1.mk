@@ -218,6 +218,14 @@ syn : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
 	@cd $(OUT_DIR); export SYNTH_ONLY=1; vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_v1.tcl
 
 ###############################################################
+#### Vivado Sythnesis DCP  ####################################
+###############################################################
+.PHONY : dcp
+dcp : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CORE_FILES) $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Vivado Synthesis DCP")
+	@cd $(OUT_DIR); export SYNTH_DCP=1; vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_build_v1.tcl
+
+###############################################################
 #### Prom #####################################################
 ###############################################################
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).mcs: $(IMPL_DIR)/$(PROJECT).bit

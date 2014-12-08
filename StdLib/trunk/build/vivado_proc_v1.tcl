@@ -267,6 +267,13 @@ proc VcsCompleteMessage {dirPath sharedMem} {
    puts "********************************************************\n\n" 
 }
 
+proc DcpCompleteMessage { filename } {
+   puts "\n\n********************************************************"
+   puts "The new .dcp file is located here:"
+   puts ${filename}
+   puts "********************************************************\n\n" 
+}
+
 proc HlsVersionCheck { } {
    set VersionNumber [version -short]
    if { ${VersionNumber} == 2014.2 } {
