@@ -84,7 +84,8 @@ if { ${AllowMultiDriven} != 1 } {
 
 # Messages: Change from ERROR to WARNING
 set_property SEVERITY {Warning} [get_drc_checks {REQP-52}]; # DRC: using the GTGREFCLK port on a MGT
-set_property SEVERITY {Warning} [get_drc_checks {REQP-56}]; # DRC: using the GTGREFCLK port on a QPLL
+set_property SEVERITY {Warning} [get_drc_checks {REQP-56}]; # DRC: using the GTGREFCLK port on a QPLL (GTX7)
+set_property SEVERITY {Warning} [get_drc_checks {REQP-49}]; # DRC: using the GTGREFCLK port on a QPLL (GTP7)
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
