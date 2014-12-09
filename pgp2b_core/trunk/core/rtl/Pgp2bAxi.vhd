@@ -72,10 +72,12 @@
 --       Bits 31:0 = Transmit Clock Frequency
 --    0x70 = Read Only
 --       Bits 7:0 = Last OpCode Transmitted
---       Bits ?:8 = OpCode Transmit count
 --    0x74 = Read Only
 --       Bits 7:0 = Last OpCode Received
---       Bits ?:8 = OpCode Received count
+--    0x78 = Read Only
+--       Bits ?:0 = OpCode Transmit count
+--    0x7C = Read Only
+--       Bits ?:0 = OpCode Received count
 --
 -- Status vector:
 --       Bits 31:24 = Rx Link Down Count
@@ -764,10 +766,12 @@ begin
                v.axilReadSlave.rdata := txStatusSync.txClkFreq;
             when X"70" =>
                v.axilReadSlave.rdata(7 downto 0) := txStatusSync.txOpCodeLast;
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G+7 downto 8) := txStatusSync.txOpCodeCount;
-            when X"71" =>
+            when X"74" =>
                v.axilReadSlave.rdata(7 downto 0) := rxStatusSync.rxOpCodeLast;
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G+7 downto 8) := rxStatusSync.rxOpCodeCount;
+            when X"78" =>
+               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.txOpCodeCount;
+            when X"7C" =>
+               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.rxOpCodeCount;               
 
             when others => null;
          end case;
