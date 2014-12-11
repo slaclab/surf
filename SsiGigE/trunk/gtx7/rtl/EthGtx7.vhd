@@ -251,7 +251,7 @@ begin
       PWRDWN       => '0',
       RST          => ethClk62MHzRst);
 
-   BUFH_1 : BUFH
+   BUFH_1 : BUFG
       port map (
          I => clkFbOut,
          O => clkFbIn);       
