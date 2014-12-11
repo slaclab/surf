@@ -56,7 +56,7 @@ entity FifoCascade is
       almost_full   : out sl;
       full          : out sl;
       not_full      : out sl;
-      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0);
+      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0); -- Output stage = 0
       --Read Ports (rd_clk domain)
       rd_clk        : in  sl;           --unused if GEN_SYNC_FIFO_G = true
       rd_en         : in  sl := '0';
