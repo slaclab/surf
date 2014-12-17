@@ -339,6 +339,15 @@ architecture rtl of Gtp7Core is
    signal txCharDispMode : slv(3 downto 0)  := (others => '0');
    signal txCharDispVal  : slv(3 downto 0)  := (others => '0');
    
+   -- DRP Signals
+   signal drpAddr : slv(8 downto 0);
+   signal drpDo   : slv(15 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpRdy  : sl;
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal gtRxRst : sl;
+
 begin
 
    txOutClkOut     <= txOutClk;
@@ -978,13 +987,13 @@ begin
          PCSRSVDIN            => "0000000000000000",
          TSTIN                => "11111111111111111111",
          ---------------------------- Channel - DRP Ports  --------------------------
-         DRPADDR              => (others => '0'),
-         DRPCLK               => '0',
-         DRPDI                => X"0000",
-         DRPDO                => open,
-         DRPEN                => '0',
-         DRPRDY               => open,
-         DRPWE                => '0',
+         DRPADDR              => drpAddr,
+         DRPCLK               => stableClkIn,
+         DRPDI                => drpDi,
+         DRPDO                => drpDo,
+         DRPEN                => drpEn,
+         DRPRDY               => drpRdy,
+         DRPWE                => drpWe,
          ----------------- FPGA TX Interface Datapath Configuration  ----------------
          TX8B10BEN            => toSl(TX_8B10B_EN_G),
          ------------------------ GTPE2_CHANNEL Clocking Ports ----------------------
@@ -1140,7 +1149,7 @@ begin
          --------------------- Receive Ports - RX Gearbox Ports  --------------------
          RXGEARBOXSLIP        => '0',
          ------------- Receive Ports - RX Initialization and Reset Ports ------------
-         GTRXRESET            => gtRxReset,
+         GTRXRESET            => gtRxRst,
          RXLPMRESET           => '0',
          RXOOBRESET           => '0',
          RXPCSRESET           => '0',
@@ -1261,5 +1270,23 @@ begin
          --------------- Transmit Ports - TX Receiver Detection Ports  --------------
          TXDETECTRX           => '0',
          ------------------ Transmit Ports - pattern Generator Ports ----------------
-         TXPRBSSEL            => "000");         
+         TXPRBSSEL            => "000");  
+
+
+    ------------------------- Soft Fix for Production Silicon----------------------
+    Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
+       port map(
+        RST_IN         => rxUserResetIn,
+        GTRXRESET_IN   => gtRxReset,
+        RXPMARESETDONE => rxPmaResetDone,
+        GTRXRESET_OUT  => gtRxRst,
+        DRP_OP_DONE    => open,
+        DRPCLK         => stableClkIn,
+        DRPEN          => drpEn,
+        DRPADDR        => drpAddr,
+        DRPWE          => drpWe,
+        DRPDO          => drpDo,
+        DRPDI          => drpDi,
+        DRPRDY         => drpRdy); 
+        
 end architecture rtl;
