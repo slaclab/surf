@@ -84,7 +84,7 @@ architecture rtl of FifoMux is
 
    type WrDataArray is array (0 to WR_SIZE_C-1) of slv(WR_DATA_WIDTH_G-1 downto 0);
    type WrRegType is record
-      count  : unsigned(log2(WR_SIZE_C)-1 downto 0);
+      count  : unsigned(bitSize(WR_SIZE_C)-1 downto 0);
       wrData : WrDataArray;
       wrEn   : sl;
    end record WrRegType;
