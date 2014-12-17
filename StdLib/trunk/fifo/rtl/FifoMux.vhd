@@ -106,7 +106,7 @@ architecture rtl of FifoMux is
    constant RD_SIZE_C     : integer := ite(RD_LOGIC_EN_C, WR_DATA_WIDTH_G / RD_DATA_WIDTH_G, 1);
 
    type RdRegType is record
-      count : unsigned(log2(RD_SIZE_C)-1 downto 0);
+      count : unsigned(bitSize(RD_SIZE_C)-1 downto 0);
    end record RdRegType;
 
    constant RD_REG_INIT_C : RdRegType := (
