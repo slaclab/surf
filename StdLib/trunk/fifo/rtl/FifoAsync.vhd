@@ -113,8 +113,8 @@ architecture rtl of FifoAsync is
    signal readRst  : sl;
    signal writeRst : sl;
 
-   signal rdReg_rdy : sl;
-   signal wrReg_rdy : sl;
+   signal rdReg_ready : sl;
+   signal wrReg_ready : sl;
 
    signal sValid,
       sRdEn : sl;
@@ -271,7 +271,7 @@ begin
          clk     => rd_clk,
          rst     => readRst,
          dataIn  => wrReg.done,
-         dataOut => rdReg_rdy);         
+         dataOut => rdReg_ready);         
 
    READ_SEQUENCE : process (rd_clk) is
    begin
@@ -283,7 +283,7 @@ begin
             rdReg.done  <= '1' after TPD_G;
             rdReg.Ack   <= '0' after TPD_G;
             rdReg.error <= '0' after TPD_G;
-            if rdReg_rdy = '1' then
+            if rdReg_ready = '1' then
 
                -- Decode the Gray code pointer
                rdReg.waddr <= grayDecode(rdReg_wrGray) after TPD_G;
@@ -387,7 +387,7 @@ begin
          clk     => wr_clk,
          rst     => writeRst,
          dataIn  => rdReg.done,
-         dataOut => wrReg_rdy);           
+         dataOut => wrReg_ready);           
 
    WRITE_SEQUENCE : process (wr_clk) is
    begin
@@ -399,7 +399,7 @@ begin
             wrReg.done  <= '1' after TPD_G;
             wrReg.Ack   <= '0' after TPD_G;
             wrReg.error <= '0' after TPD_G;
-            if wrReg_rdy = '1' then
+            if wrReg_ready = '1' then
                if wrReg.rdy = '0' then
                   wrReg.rdy <= '1';
                   wrReg.cnt <= (others => '0');
