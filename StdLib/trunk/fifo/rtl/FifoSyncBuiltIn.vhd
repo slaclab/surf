@@ -101,9 +101,9 @@ architecture mapping of FifoSyncBuiltIn is
       empty        : sl;
    end record;
    constant READ_STATUS_INIT_C : ReadStatusType := (
-      '1',
-      '1',
-      '1');   
+      prog_empty   => '1',
+      almost_empty => '1',
+      empty        => '1');   
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    signal wrAddrPntr,

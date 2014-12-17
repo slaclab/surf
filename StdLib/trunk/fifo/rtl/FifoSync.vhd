@@ -83,9 +83,9 @@ architecture rtl of FifoSync is
       empty        : sl;
    end record;
    constant READ_STATUS_INIT_C : ReadStatusType := (
-      '1',
-      '1',
-      '1');   
+      prog_empty   => '1',
+      almost_empty => '1',
+      empty        => '1');   
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    signal raddr : slv (ADDR_WIDTH_G-1 downto 0);
