@@ -85,24 +85,24 @@ architecture rtl of FifoAsync is
    end record;
    
    constant READ_INIT_C : RegType := (
-      (others => '0'),
-      (others => '0'),
-      conv_std_logic_vector(1, ADDR_WIDTH_G),
-      (others => '0'),                  --empty during reset
-      '0',
-      '0',
-      '0',
-      '0');       
+      waddr   => (others => '0'),
+      raddr   => (others => '0'),
+      advance => toSlv(1, ADDR_WIDTH_G),
+      cnt     => (others => '0'),-- empty during reset
+      Ack     => '0',
+      error   => '0',
+      rdy     => '0',
+      done    => '0');       
 
    constant WRITE_INIT_C : RegType := (
-      (others => '0'),
-      (others => '0'),
-      conv_std_logic_vector(1, ADDR_WIDTH_G),
-      (others => '1'),                  --full during reset
-      '0',
-      '0',
-      '0',
-      '0');       
+      waddr   => (others => '0'),
+      raddr   => (others => '0'),
+      advance => toSlv(1, ADDR_WIDTH_G),
+      cnt     => (others => '1'),-- full during reset
+      Ack     => '0',
+      error   => '0',
+      rdy     => '0',
+      done    => '0'); 	    
 
    signal rdReg : RegType := READ_INIT_C;
    signal wrReg : RegType := WRITE_INIT_C;
@@ -145,10 +145,10 @@ architecture rtl of FifoAsync is
       empty        : sl;
    end record;
    constant READ_STATUS_INIT_C : ReadStatusType := (
-      (others => '0'),
-      '1',
-      '1',
-      '1');   
+      count        => (others => '0'),
+      prog_empty   => '1',
+      almost_empty => '1',
+      empty        => '1');   
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    -- Attribute for XST

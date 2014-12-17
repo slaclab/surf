@@ -54,9 +54,9 @@ architecture rtl of FifoOutputPipeline is
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      '0',
-      (others => '0'),
-      (others => (others => '0')));
+      sRdEn  => '0',
+      mValid => (others => '0'),
+      mData  => (others => (others => '0')));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
