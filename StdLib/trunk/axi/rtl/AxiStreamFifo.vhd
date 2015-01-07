@@ -32,12 +32,13 @@ entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G            : time                       := 1 ns;
-      PIPE_STAGES_G    : natural range 0 to 16      := 0;
-      SLAVE_READY_EN_G : boolean                    := true;
-      VALID_THOLD_G    : integer range 0 to (2**24) := 1; -- =1 = normal operation
-                                                          -- =0 = only when frame ready
-                                                          -- >1 = only when frame ready or # entries
+      TPD_G            : time                        := 1 ns;
+      INT_PIPE_STAGES_G : natural range 0 to 16      := 1;  -- Internal FIFO setting
+      PIPE_STAGES_G    : natural range 0 to 16       := 0;
+      SLAVE_READY_EN_G : boolean                     := true;
+      VALID_THOLD_G    : integer range 0 to (2**24)  := 1; -- =1 = normal operation
+                                                           -- =0 = only when frame ready
+                                                           -- >1 = only when frame ready or # entries
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -412,7 +413,7 @@ begin
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => true,
-         PIPE_STAGES_G      => 1,
+         PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
@@ -461,7 +462,7 @@ begin
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => CASCADE_SIZE_G,
             LAST_STAGE_ASYNC_G => true,
-            PIPE_STAGES_G      => 1,
+            PIPE_STAGES_G      => INT_PIPE_STAGES_G,
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => false,
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
