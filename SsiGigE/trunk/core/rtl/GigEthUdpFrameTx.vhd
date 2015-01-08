@@ -106,13 +106,19 @@ architecture GigEthUdpFrameTx of GigEthUdpFrameTx is
    signal tcountFifoDout    : std_logic_vector(12 downto 0);
    signal tcountFifoEmpty   : std_logic;
    
-   -- Jumbo frame cutoff sizes
-   constant TX_REG_SIZE_C   : std_logic_vector(11 downto 0) := x"2BB";
-   constant TX_JUMBO_SIZE_C : std_logic_vector(11 downto 0) := x"F9F";
+   -- Jumbo frame cutoff sizes (in 32-bit words)
+   --------------------------------------------------
+   -- Officially 1500 bytes, 1440 to be conservative, divided by 4 = 360 (0x168)
+   constant TX_REG_SIZE_C   : std_logic_vector(11 downto 0) := x"168"; --Was 2BB
+   -- Officially 9k bytes, but hardware dependent, let's go with 5k / 4 = 1250 (0x4E2)
+   constant TX_JUMBO_SIZE_C : std_logic_vector(11 downto 0) := x"4E2"; --Was F9F
+   -- Decide between regular and jumbo
    constant TX_BREAK_SIZE_C : std_logic_vector(11 downto 0) := ite(EN_JUMBO_G, TX_JUMBO_SIZE_C, TX_REG_SIZE_C);   
    
    attribute dont_touch : string;
    attribute dont_touch of r : signal is "true";
+   attribute dont_touch of tdataFifoFull : signal is "true";
+   attribute dont_touch of tdataFifoAFull : signal is "true";
    
 begin
 
