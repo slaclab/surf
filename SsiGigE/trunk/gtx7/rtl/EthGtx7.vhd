@@ -37,6 +37,7 @@ entity EthGtx7 is
       SIM_VERSION_G         : string     := "4.0";
       STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;  --units of seconds
       -- CPLL Settings
+      USE_BUFDS_G           : boolean    := true;
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       --      CPLL_REFCLK_SEL_G     : bit_vector := "010";
       CPLL_FBDIV_G          : integer    := 4;
@@ -75,9 +76,11 @@ entity EthGtx7 is
       gtTxN            : out slv((LANE_CNT_G-1) downto 0);  -- GT Serial Transmit Negative
       gtRxP            : in  slv((LANE_CNT_G-1) downto 0);  -- GT Serial Receive Positive
       gtRxN            : in  slv((LANE_CNT_G-1) downto 0);  -- GT Serial Receive Negative
-      -- Gt clocking
-      gtClkP           : in  sl;
-      gtClkN           : in  sl;
+      -- Gt clocking (differential version)
+      gtClkP           : in  sl := '0';
+      gtClkN           : in  sl := '0';
+      -- Gt clocking (single ended version)
+      gtClkSE          : in  sl := '0';
       -- (Not recommended) fabric clock to GTX
       gtFabricClk      : in  sl := '0';
       -- Input clocking
@@ -155,14 +158,20 @@ begin
    ethClk <= ethClk125MHzBufG;
    ethClk62 <= ethClk62MHz;
    
-   -- GT Reference Clock
-   IBUFDS_GTE2_Inst : IBUFDS_GTE2
-      port map (
-         I     => gtClkP,
-         IB    => gtClkN,
-         CEB   => '0',
-         ODIV2 => open,
-         O     => gtCPllClk);
+   -- GT Reference Clock from differential pair
+   G_IBUFDS_GTE2 : if USE_BUFDS_G = true and CPLL_REFCLK_SEL_G /= "111" generate
+      IBUFDS_GTE2_Inst : IBUFDS_GTE2
+         port map (
+            I     => gtClkP,
+            IB    => gtClkN,
+            CEB   => '0',
+            ODIV2 => open,
+            O     => gtCPllClk);
+   end generate;
+   -- GT Reference clock from single ended signal
+   G_SE_CPLL_REF_CLk : if USE_BUFDS_G = false and CPLL_REFCLK_SEL_G /= "111" generate
+      gtCPllClk <= gtClkSE;
+   end generate;
 
    G_gtCpllRefClkFabric : if CPLL_REFCLK_SEL_G = "111" generate
       gtCpllRefClk <= gtFabricClk;
