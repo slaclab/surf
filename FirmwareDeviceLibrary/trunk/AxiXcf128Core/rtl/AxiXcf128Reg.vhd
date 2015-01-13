@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-04-24
--- Platform   : Vivado 2013.3
+-- Last update: 2015-01-13
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
@@ -149,15 +149,15 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            v.config.ce       := '1';
-            v.config.oe       := '1';
-            v.config.we       := '1';
+            v.config.ceL      := '1';
+            v.config.oeL      := '1';
+            v.config.weL      := '1';
             v.config.tristate := '1';
          ----------------------------------------------------------------------
          when CMD_LOW_S =>
-            v.config.ce       := '0';
-            v.config.oe       := '1';
-            v.config.we       := '0';
+            v.config.ceL      := '0';
+            v.config.oeL      := '1';
+            v.config.weL      := '0';
             v.config.tristate := '0';
             v.config.data     := r.wrData(1);
             -- Increment the counter
@@ -171,9 +171,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CMD_HIGH_S =>
-            v.config.ce       := '1';
-            v.config.oe       := '1';
-            v.config.we       := '1';
+            v.config.ceL      := '1';
+            v.config.oeL      := '1';
+            v.config.weL      := '1';
             v.config.tristate := '0';
             v.config.data     := r.wrData(1);
             -- Increment the counter
@@ -187,9 +187,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
-            v.config.ce       := '1';
-            v.config.oe       := '1';
-            v.config.we       := '1';
+            v.config.ceL      := '1';
+            v.config.oeL      := '1';
+            v.config.weL      := '1';
             v.config.tristate := '1';
             v.config.data     := r.wrData(0);
             -- Increment the counter
@@ -203,9 +203,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_LOW_S =>
-            v.config.ce       := '0';
-            v.config.oe       := not(r.RnW);
-            v.config.we       := r.RnW;
+            v.config.ceL      := '0';
+            v.config.oeL      := not(r.RnW);
+            v.config.weL      := r.RnW;
             v.config.tristate := r.RnW;
             v.config.data     := r.wrData(0);
             -- Increment the counter
@@ -221,9 +221,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_HIGH_S =>
-            v.config.ce       := '1';
-            v.config.oe       := '1';
-            v.config.we       := '1';
+            v.config.ceL      := '1';
+            v.config.oeL      := '1';
+            v.config.weL      := '1';
             v.config.tristate := r.RnW;
             v.config.data     := r.wrData(0);
             -- Increment the counter

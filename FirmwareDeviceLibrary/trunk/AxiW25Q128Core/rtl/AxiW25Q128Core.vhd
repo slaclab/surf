@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-04-25
--- Platform   : Vivado 2013.3
+-- Last update: 2015-01-13
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to W25Q128 FLASH Memory IC
@@ -25,6 +25,9 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiW25Q128Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiW25Q128Core is
    generic (
@@ -74,8 +77,12 @@ begin
 
    GEN_SDIO :
    for i in 0 to 3 generate
-      spiInOut.sdio(i) <= dout(i) when(oeL(i) = '0') else 'Z';
-      din(i)           <= spiInOut.sdio(i);
+      IOBUF_inst : IOBUF
+         port map (
+            O  => din(i),               -- Buffer output
+            IO => spiInOut.sdio(i),     -- Buffer inout port (connect directly to top-level port)
+            I  => dout(i),              -- Buffer input
+            T  => oeL(i));              -- 3-state enable input, high=input, low=output        
    end generate GEN_SDIO;
 
    AxiW25Q128Reg_Inst : entity work.AxiW25Q128Reg
