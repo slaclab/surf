@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2014-11-12
+-- Last update: 2015-01-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,10 +55,10 @@ begin
       port map (
          -- FLASH Interface 
          flashAddr      => flashOut.addr,
-         flashDq      => flashInOut.dq,
-         flashCeL        => flashOut.ceL,
-         flashOeL        => flashOut.oeL,
-         flashWeL        => flashOut.weL,
+         flashDq        => flashInOut.dq,
+         flashCeL       => flashOut.ceL,
+         flashOeL       => flashOut.oeL,
+         flashWeL       => flashOut.weL,
          -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
@@ -68,8 +68,8 @@ begin
          axiClk         => axiClk,
          axiRst         => axiRst); 
 
-   flashOut.adv <= '0';
-   flashOut.clk <= '1';
+   flashOut.adv  <= '0';
+   flashOut.clk  <= '1';
    flashOut.rstL <= not(axiRst);
    
 end mapping;
