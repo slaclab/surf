@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-04-21
+-- Last update: 2015-01-13
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,6 +24,9 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 use work.AxiI2cSfpPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiI2cSfpCore is
    generic (
@@ -67,15 +70,34 @@ architecture mapping of AxiI2cSfpCore is
    signal config : AxiI2cSfpConfigType;
    
 begin
-   
-   sfpInOut.scl <= i2co.scl when(i2co.scloen = '0') else 'Z';
-   i2ci.scl     <= sfpInOut.scl;
 
-   sfpInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda     <= sfpInOut.sda;
+   IOBUF_SCL : IOBUF
+      port map (
+         O  => i2ci.scl,                -- Buffer output
+         IO => sfpInOut.scl,            -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.scl,                -- Buffer input
+         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
 
-   sfpInOut.rateSel(0) <= config.rateSel(0);
-   sfpInOut.rateSel(1) <= 'Z';          -- reserved for future use
+   IOBUF_SDA : IOBUF
+      port map (
+         O  => i2ci.sda,                -- Buffer output
+         IO => sfpInOut.sda,            -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.sda,                -- Buffer input
+         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output  
+
+   IOBUF_RATE0 : IOBUF
+      port map (
+         O  => open,                    -- Buffer output
+         IO => sfpInOut.rateSel(0),     -- Buffer inout port (connect directly to top-level port)
+         I  => config.rateSel(0),       -- Buffer input
+         T  => '0');                    -- 3-state enable input, high=input, low=output    
+
+   IOBUF_RATE1 : IOBUF                  -- Reserved for future use
+      port map (
+         O  => open,                    -- Buffer output
+         IO => sfpInOut.rateSel(1),     -- Buffer inout port (connect directly to top-level port)
+         I  => '0',                     -- Buffer input
+         T  => '1');                    -- 3-state enable input, high=input, low=output           
 
    sfpOut.txDisable <= config.txDisable;
 
