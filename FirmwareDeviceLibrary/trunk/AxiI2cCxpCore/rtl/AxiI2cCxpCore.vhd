@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2014-10-21
+-- Last update: 2015-01-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,6 +24,9 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 use work.AxiI2cCxpPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiI2cCxpCore is
    generic (
@@ -65,17 +68,32 @@ architecture mapping of AxiI2cCxpCore is
    signal config : AxiI2cCxpConfigType;
 
    signal irqRstL : sl;
+   signal oeL     : sl;
    
 begin
-   
-   cxpInOut.scl <= i2co.scl when(i2co.scloen = '0') else 'Z';
-   i2ci.scl     <= cxpInOut.scl;
 
-   cxpInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda     <= cxpInOut.sda;
+   IOBUF_SCL : IOBUF
+      port map (
+         O  => i2ci.scl,                -- Buffer output
+         IO => cxpInOut.scl,            -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.scl,                -- Buffer input
+         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
 
-   cxpInOut.irqRstL <= '0' when(config.rst = '1') else 'Z';  -- Open drain output
-   irqRstL          <= cxpInOut.irqRstL;
+   IOBUF_SDA : IOBUF
+      port map (
+         O  => i2ci.sda,                -- Buffer output
+         IO => cxpInOut.sda,            -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.sda,                -- Buffer input
+         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output  
+
+   IOBUF_RST : IOBUF
+      port map (
+         O  => irqRstL,                 -- Buffer output
+         IO => cxpInOut.irqRstL,        -- Buffer inout port (connect directly to top-level port)
+         I  => '0',                     -- Buffer input
+         T  => oeL);                    -- 3-state enable input, high=input, low=output      
+
+   oeL <= not(config.rst);
 
    status.irq       <= not(irqRstL);
    status.moduleDet <= not(cxpIn.moduleDetL);

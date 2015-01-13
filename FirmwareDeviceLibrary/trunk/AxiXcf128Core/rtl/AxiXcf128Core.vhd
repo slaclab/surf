@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-04-24
--- Platform   : Vivado 2013.3
+-- Last update: 2015-01-13
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to XCF128 FLASH IC
@@ -23,6 +23,9 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiXcf128Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiXcf128Core is
    generic (
@@ -49,13 +52,20 @@ architecture mapping of AxiXcf128Core is
    signal config : AxiXcf128ConfigType;
    
 begin
-   
-   xcfInOut.data <= config.data when(config.tristate = '0') else (others => 'Z');
-   status.data   <= xcfInOut.data;
 
-   xcfOut.ce    <= config.ce;
-   xcfOut.oe    <= config.oe;
-   xcfOut.we    <= config.we;
+   GEN_IOBUF :
+   for i in 15 downto 0 generate
+      IOBUF_inst : IOBUF
+         port map (
+            O  => status.data(i),       -- Buffer output
+            IO => xcfInOut.data(i),     -- Buffer inout port (connect directly to top-level port)
+            I  => config.data(i),       -- Buffer input
+            T  => config.tristate);     -- 3-state enable input, high=input, low=output     
+   end generate GEN_IOBUF;
+
+   xcfOut.ceL   <= config.ceL;
+   xcfOut.oeL   <= config.oeL;
+   xcfOut.weL   <= config.weL;
    xcfOut.latch <= config.latch;
    xcfOut.addr  <= config.addr;
 

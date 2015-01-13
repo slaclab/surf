@@ -14,9 +14,9 @@ package AxiXcf128Pkg is
       data => (others => 'Z'));     
 
    type AxiXcf128OutType is record
-      ce    : sl;
-      oe    : sl;
-      we    : sl;
+      ceL   : sl;
+      oeL   : sl;
+      weL   : sl;
       latch : sl;
       addr  : slv(22 downto 0);
    end record;
@@ -36,9 +36,9 @@ package AxiXcf128Pkg is
       data => (others => '1'));    
 
    type AxiXcf128ConfigType is record
-      ce       : sl;
-      oe       : sl;
-      we       : sl;
+      ceL      : sl;
+      oeL      : sl;
+      weL      : sl;
       latch    : sl;
       addr     : slv(22 downto 0);
       tristate : sl;

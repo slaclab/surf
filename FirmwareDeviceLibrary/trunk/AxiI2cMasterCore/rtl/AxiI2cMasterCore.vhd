@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-22
--- Last update: 2014-04-22
+-- Last update: 2015-01-13
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,9 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 use work.AxiI2cMasterPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiI2cMasterCore is
    generic (
@@ -60,11 +63,19 @@ architecture mapping of AxiI2cMasterCore is
    
 begin
    
-   i2cInOut.scl <= i2co.scl when(i2co.scloen = '0') else 'Z';
-   i2ci.scl     <= i2cInOut.scl;
+   IOBUF_SCL : IOBUF
+      port map (
+         O  => i2ci.scl,                -- Buffer output
+         IO => i2cInOut.scl,            -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.scl,                -- Buffer input
+         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
 
-   i2cInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda     <= i2cInOut.sda;
+   IOBUF_SDA : IOBUF
+      port map (
+         O  => i2ci.sda,                -- Buffer output
+         IO => i2cInOut.sda,            -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.sda,                -- Buffer input
+         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output     
 
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (

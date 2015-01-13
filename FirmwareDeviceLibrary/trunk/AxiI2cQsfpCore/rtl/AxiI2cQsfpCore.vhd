@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-04-24
+-- Last update: 2015-01-13
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,6 +24,9 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 use work.AxiI2cQsfpPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiI2cQsfpCore is
    generic (
@@ -66,12 +69,20 @@ architecture mapping of AxiI2cQsfpCore is
    signal config : AxiI2cQsfpConfigType;
    
 begin
-   
-   qsfpInOut.scl <= i2co.scl when(i2co.scloen = '0') else 'Z';
-   i2ci.scl      <= qsfpInOut.scl;
 
-   qsfpInOut.sda <= i2co.sda when(i2co.sdaoen = '0') else 'Z';
-   i2ci.sda      <= qsfpInOut.sda;
+   IOBUF_SCL : IOBUF
+      port map (
+         O  => i2ci.scl,                -- Buffer output
+         IO => qsfpInOut.scl,           -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.scl,                -- Buffer input
+         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
+
+   IOBUF_SDA : IOBUF
+      port map (
+         O  => i2ci.sda,                -- Buffer output
+         IO => qsfpInOut.sda,           -- Buffer inout port (connect directly to top-level port)
+         I  => i2co.sda,                -- Buffer input
+         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output  
 
    qsfpOut.modSelL <= not(config.modSel);
    qsfpOut.rstL    <= not(config.rst);
