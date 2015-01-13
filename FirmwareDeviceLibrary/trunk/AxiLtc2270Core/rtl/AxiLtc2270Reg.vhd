@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2014-04-21
+-- Last update: 2015-01-13
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,6 +22,9 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiLtc2270Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiLtc2270Reg is
    generic (
@@ -114,14 +117,19 @@ begin
    adcCs  <= '0' when (r.debug = '0') else r.csL;  -- '0' = Clock Duty Cycle Stabilizer Off
    adcSck <= '1' when (r.debug = '0') else r.sck;  -- '1' = Double Data Rate LVDS Output Mode
    adcSdi <= '0' when (r.debug = '0') else r.sdi;  -- '0' = Normal Operation
-   adcSdo <= '0' when (r.debug = '0') else 'Z';
-   sdo    <= adcSdo;
+
+   IOBUF_INST : IOBUF
+      port map (
+         O  => sdo,                     -- Buffer output
+         IO => adcSdo,                  -- Buffer inout port (connect directly to top-level port)
+         I  => '0',                     -- Buffer input
+         T  => r.debug);                -- 3-state enable input, high=input, low=output    
 
    -------------------------------
    -- Configuration Register
    -------------------------------  
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, regIn, sdo) is
-      variable i            : integer;      
+      variable i            : integer;
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -137,7 +145,7 @@ begin
       v.regOut.delayIn.load := '0';
       v.regOut.delayIn.rst  := '0';
       v.cntRst              := '0';
-      
+
       -- Increment the counter
       v.timer := r.timer + 1;
       -- Check the timer for 1 second timeout
@@ -145,26 +153,26 @@ begin
          -- Reset the counter
          v.timer := 0;
          -- Set the flag
-         v.armed := (others=>'1');
+         v.armed := (others => '1');
       end if;
-      
+
       -- Process for collecting 8 consecutive samples after each 1 second timeout
       for i in 0 to 1 loop
          -- Check the armed and valid flag
-         if (r.armed(i) = '1') and (regIn.adcValid(i) = '1') then      
+         if (r.armed(i) = '1') and (regIn.adcValid(i) = '1') then
             -- Latch the value
-            v.adcSmpl(i,conv_integer(r.smplCnt(i))) := regIn.adcData(i);
+            v.adcSmpl(i, conv_integer(r.smplCnt(i))) := regIn.adcData(i);
             -- Increment the counter   
-            v.smplCnt(i) := r.smplCnt(i) + 1;
+            v.smplCnt(i)                             := r.smplCnt(i) + 1;
             -- Check the counter value
             if r.smplCnt(i) = 7 then
                -- Reset the counter
-               v.smplCnt(i) := (others=>'0');
+               v.smplCnt(i) := (others => '0');
                -- Reset the flag
-               v.armed(i) := '0';      
+               v.armed(i)   := '0';
             end if;
          end if;
-      end loop;           
+      end loop;
 
       if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
@@ -299,7 +307,7 @@ begin
                when x"6E" =>
                   v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 6);
                when x"6F" =>
-                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 7);            
+                  v.axiReadSlave.rdata(15 downto 0) := r.adcSmpl(1, 7);
                when x"7F" =>
                   v.axiReadSlave.rdata(0) := regIn.delayOut.rdy;
                when x"80" =>
