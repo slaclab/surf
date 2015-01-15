@@ -136,6 +136,8 @@ package AxiStreamPkg is
       bitPos     : in    integer;
       bitValue   : in    sl;
       bytePos    : in    integer := -1);  -- -1 = last
+      
+   function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;      
 
 end package AxiStreamPkg;
 
@@ -238,6 +240,10 @@ package body AxiStreamPkg is
       axisMaster.tUser((axisConfig.TUSER_BITS_C*pos) + bitPos) := bitValue;
       
    end procedure;
+   
+   function ite (i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;     
 
 end package body AxiStreamPkg;
-
