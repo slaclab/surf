@@ -35,6 +35,8 @@ use UNISIM.VCOMPONENTS.all;
 entity GigEthLane is
    generic (
       TPD_G               : time       := 1 ns;
+      -- Ethernet Configurations
+      EN_AUTO_NEG_G       : boolean    := true;
       -- Sim Generics
       SIM_RESET_SPEEDUP_G : boolean    := false;
       SIM_VERSION_G       : string     := "4.0"
@@ -79,6 +81,7 @@ architecture rtl of GigEthLane is
 
    signal iEthRxLinkSync  : sl;
    signal iEthLinkReady   : sl;
+   signal linkReady       : sl;
    
    signal macRxDataOut    : slv(7 downto 0);
    signal macRxDataValid  : sl;
@@ -120,6 +123,10 @@ begin
    ethRxLinkSync  <= iEthRxLinkSync;
    ethAutoNegDone <= iEthLinkReady;
    
+   -- Check if auto-negotiation is selected
+   iEthLinkReady <= linkReady when(EN_AUTO_NEG_G=true) else iEthRxLinkSync;
+   
+   
    -- No polarity detection at the moment
    phyRxLaneOut.polarity  <= '0';
    
@@ -150,7 +157,7 @@ begin
          ethRxClk          => ethClk62MHz,
          ethRxClkRst       => ethClk62MHzRst,
          -- Link is ready
-         ethRxLinkReady    => iEthLinkReady,
+         ethRxLinkReady    => linkReady,
          -- Link is stable
          ethRxLinkSync     => iEthRxLinkSync,
          -- Physical Interface Signals
