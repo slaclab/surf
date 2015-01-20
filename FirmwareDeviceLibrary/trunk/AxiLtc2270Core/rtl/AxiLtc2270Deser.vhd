@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2014-05-18
--- Platform   : Vivado 2013.3
+-- Last update: 2015-01-20
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
@@ -57,8 +57,7 @@ end AxiLtc2270Deser;
 
 architecture rtl of AxiLtc2270Deser is
 
-   signal adcOr,
-      adcInClk,
+   signal adcInClk,
       adcClock : sl;
    signal dmux : slv(1 downto 0);
    signal adcDataPs,
@@ -72,10 +71,6 @@ architecture rtl of AxiLtc2270Deser is
 
    attribute IODELAY_GROUP                    : string;
    attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
-
-   --keeping this because we want to terminate the signal
-   attribute KEEP          : string;
-   attribute KEEP of adcOr : signal is "True";
    
 begin
 
@@ -86,10 +81,12 @@ begin
          clkOutN => clkOutN);
 
    IBUFDS_OR : IBUFDS
+      generic map (
+         DIFF_TERM => true)
       port map (
          I  => orP,
          IB => orN,
-         O  => adcOr);
+         O  => open);
 
    IBUFGDS_0 : IBUFGDS
       port map (
