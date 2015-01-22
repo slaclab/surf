@@ -31,7 +31,7 @@ entity EthGtx7 is
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
       SIM_VERSION_G         : string               := "4.0";
-      STABLE_CLOCK_PERIOD_G : real                 := 8.0E-9;          --units of seconds
+      STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;          --units of seconds
       -- CPLL Settings
       CPLL_REFCLK_SEL_G     : bit_vector           := "001";
       CPLL_FBDIV_G          : integer              := 4;
