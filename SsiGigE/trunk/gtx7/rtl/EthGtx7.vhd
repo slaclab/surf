@@ -5,7 +5,7 @@
 -- Author     : Kurtis Nishimura <kurtisn@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-03
--- Last update: 2015-01-16
+-- Last update: 2015-01-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,8 +25,6 @@ use work.AxiStreamPkg.all;
 entity EthGtx7 is
    generic (
       TPD_G                 : time                 := 1 ns;
-      -- Ethernet Configurations
-      EN_AUTO_NEG_G         : boolean              := true;
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -114,7 +112,6 @@ begin
    U_GigEthLane : entity work.GigEthLane
       generic map (
          TPD_G               => TPD_G,
-         EN_AUTO_NEG_G       => EN_AUTO_NEG_G,
          SIM_RESET_SPEEDUP_G => toBoolean(SIM_GTRESET_SPEEDUP_G),
          SIM_VERSION_G       => SIM_VERSION_G)
       port map (

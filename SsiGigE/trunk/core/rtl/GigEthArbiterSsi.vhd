@@ -27,7 +27,9 @@ use work.SsiPkg.all;
 use work.StdRtlPkg.all;
 
 entity GigEthArbiterSsi is 
-   port ( 
+   generic ( 
+      TPD_G   : time    := 1 ns);
+   port (
 
       -- Ethernet clock & reset
       gtpClk         : in  std_logic;                        -- 125Mhz master clock
