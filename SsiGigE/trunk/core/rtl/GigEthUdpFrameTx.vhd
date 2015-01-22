@@ -33,8 +33,7 @@ use work.EthClientPackage.all;
 entity GigEthUdpFrameTx is 
    generic (
       TPD_G      : time := 1 ns;
-      EN_JUMBO_G : boolean := false
-   );
+      EN_JUMBO_G : boolean := false);
    port ( 
       -- Ethernet clock & reset
       gtpClk         : in  sl;               -- 125Mhz master clock
@@ -53,9 +52,7 @@ entity GigEthUdpFrameTx is
       udpTxFast      : out sl;
       udpTxReady     : in  sl;
       udpTxData      : out slv(7  downto 0);
-      udpTxLength    : out slv(15 downto 0)
-
-   );
+      udpTxLength    : out slv(15 downto 0));
 end GigEthUdpFrameTx;
 
 architecture GigEthUdpFrameTx of GigEthUdpFrameTx is 
@@ -91,8 +88,7 @@ architecture GigEthUdpFrameTx of GigEthUdpFrameTx is
       byteCount     => (others => '0'),
       txCount       => (others => '0'),
       continueBit   => '0',
-      state         => IDLE_S
-   );
+      state         => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -115,10 +111,10 @@ architecture GigEthUdpFrameTx of GigEthUdpFrameTx is
    -- Decide between regular and jumbo
    constant TX_BREAK_SIZE_C : std_logic_vector(11 downto 0) := ite(EN_JUMBO_G, TX_JUMBO_SIZE_C, TX_REG_SIZE_C);   
    
-   attribute dont_touch : string;
-   attribute dont_touch of r : signal is "true";
-   attribute dont_touch of tdataFifoFull : signal is "true";
-   attribute dont_touch of tdataFifoAFull : signal is "true";
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   -- attribute dont_touch of tdataFifoFull : signal is "true";
+   -- attribute dont_touch of tdataFifoAFull : signal is "true";
    
 begin
 
@@ -129,7 +125,7 @@ begin
    -- Transmitter data fifo (19x8k)
    U_TxDataFifo : entity work.FifoMux
       generic map (
-         TPD_G              => tpd,
+         TPD_G              => TPD_G,
          LAST_STAGE_ASYNC_G => false,
          RST_POLARITY_G     => '1',
          GEN_SYNC_FIFO_G    => true,
@@ -137,8 +133,7 @@ begin
          WR_DATA_WIDTH_G    => 35,
          RD_DATA_WIDTH_G    => 35,
          ADDR_WIDTH_G       => 13,
-         FULL_THRES_G       => 7000
-      )
+         FULL_THRES_G       => 7000)
       port map (
          -- Resets
          rst           => gtpClkRst,
@@ -152,13 +147,12 @@ begin
          rd_clk        => gtpClk,
          rd_en         => r.tdataFifoRd,
          dout          => tdataFifoDout,
-         empty         => open
-      );            
+         empty         => open);            
    
    -- Transmitter Data Count Fifo (13x1k)
    U_TxCntFifo : entity work.FifoMux
       generic map (
-         TPD_G              => tpd,
+         TPD_G              => TPD_G,
          LAST_STAGE_ASYNC_G => false,
          RST_POLARITY_G     => '1',
          GEN_SYNC_FIFO_G    => true,
@@ -166,8 +160,7 @@ begin
          WR_DATA_WIDTH_G    => 13,
          RD_DATA_WIDTH_G    => 13,
          ADDR_WIDTH_G       => 10,
-         FULL_THRES_G       => 900
-      )
+         FULL_THRES_G       => 900)
       port map (
          -- Resets
          rst           => gtpClkRst,
@@ -181,8 +174,7 @@ begin
          rd_clk        => gtpClk,
          rd_en         => r.tcountFifoRd,
          dout          => tcountFifoDout,
-         empty         => tcountFifoEmpty
-      );           
+         empty         => tcountFifoEmpty);           
 
    ------------------------------
    -- Transmit state machine   

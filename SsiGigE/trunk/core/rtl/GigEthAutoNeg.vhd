@@ -44,13 +44,9 @@ entity GigEthAutoNeg is
       phyRxData         : in  slv(15 downto 0); -- PHY receive data
       phyRxDataK        : in  slv( 1 downto 0); -- PHY receive data is K character
       phyTxData         : out slv(15 downto 0); -- PHY transmit data
-      phyTxDataK        : out slv( 1 downto 0)
-   ); 
-
+      phyTxDataK        : out slv( 1 downto 0));
 end GigEthAutoNeg;
 
-
--- Define architecture
 architecture rtl of GigEthAutoNeg is
 
    type AutoNegStateType is (S_IDLE, S_AUTONEG_RESTART, S_ABILITY_DETECT,
@@ -107,6 +103,8 @@ begin
 
    -- Match unit
    U_AbMatch : entity work.AbilityMatch
+      generic map (
+         TPD_G => TPD_G)
       port map (
          ethRxClk          => ethRxClk,
          ethRxClkRst       => ethRxClkRst,
@@ -118,8 +116,7 @@ begin
          consistencyMatch  => consistencyMatch,
          idleMatch         => idleMatch,
          phyRxData         => r.rxDataPipe(PIPE_STAGES_G-1),
-         phyRxDataK        => r.rxDataKPipe(PIPE_STAGES_G-1)
-      );
+         phyRxDataK        => r.rxDataKPipe(PIPE_STAGES_G-1));
 
 
    comb : process(r,phyRxData,phyRxDataK,ethRxClkRst,ethRxLinkSync,abilityMatch,acknowledgeMatch,consistencyMatch,idleMatch,ability) is
@@ -280,4 +277,3 @@ begin
    end process seq;   
 
 end rtl;
-

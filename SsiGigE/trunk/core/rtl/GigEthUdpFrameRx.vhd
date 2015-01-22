@@ -32,8 +32,7 @@ use work.EthClientPackage.all;
 
 entity GigEthUdpFrameRx is 
    generic (
-      TPD_G : time := 1 ns
-   );
+      TPD_G : time := 1 ns);
    port ( 
       -- Ethernet clock & reset
       gtpClk         : in  sl;                -- 125Mhz master clock
@@ -52,9 +51,7 @@ entity GigEthUdpFrameRx is
       udpRxData      : in  slv(7  downto 0);
       udpRxGood      : in  sl;
       udpRxError     : in  sl;
-      udpRxCount     : in  slv(15 downto 0)
-
-   );
+      udpRxCount     : in  slv(15 downto 0));
 end GigEthUdpFrameRx;
 
 architecture GigEthUdpFrameRx of GigEthUdpFrameRx is 
@@ -92,8 +89,7 @@ architecture GigEthUdpFrameRx of GigEthUdpFrameRx is
       rxLast       => '0',
       rxCount      => (others => '0'),
       byteCount    => (others => '0'),
-      state        => IDLE_S
-   );
+      state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -106,8 +102,8 @@ architecture GigEthUdpFrameRx of GigEthUdpFrameRx is
    signal rcountFifoGood  : sl;
    signal rcountFifoDout  : slv(15 downto 0);
 
-   attribute dont_touch : string;
-   attribute dont_touch of r : signal is "true";
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
    
 begin
 
@@ -125,8 +121,7 @@ begin
          FWFT_EN_G          => true,
          WR_DATA_WIDTH_G    => 8,
          RD_DATA_WIDTH_G    => 8,
-         ADDR_WIDTH_G       => 14
-      )
+         ADDR_WIDTH_G       => 14)
       port map (
          -- Resets
          rst           => gtpClkRst,
@@ -140,8 +135,7 @@ begin
          rd_en         => r.rdataFifoRd,
          dout          => rdataFifoDout,
          rd_data_count => open,
-         empty         => open
-      );           
+         empty         => open);           
    
    -- Receiver Data Count Fifo (18x1k)
    U_RxCntFifo : entity work.FifoMux
@@ -153,8 +147,7 @@ begin
          FWFT_EN_G          => true,
          WR_DATA_WIDTH_G    => 18,
          RD_DATA_WIDTH_G    => 18,
-         ADDR_WIDTH_G       => 14
-      )
+         ADDR_WIDTH_G       => 14)
       port map (
          -- Resets
          rst               => gtpClkRst,
@@ -172,8 +165,8 @@ begin
          dout(16)          => rcountFifoGood,
          dout(15 downto 0) => rcountFifoDout,
          rd_data_count     => open,
-         empty             => rcountFifoEmpty
-      );
+         empty             => rcountFifoEmpty);
+         
    udpRxGoodError <= udpRxError or udpRxGood;
 
    

@@ -23,10 +23,8 @@ use work.StdRtlPkg.all;
 
 entity AbilityMatch is 
    generic (
-      TPD_G         : time                 := 1 ns
-   );
+      TPD_G : time := 1 ns);
    port ( 
-
       -- System clock, reset & control
       ethRxClk          : in  sl;               -- Master clock (62.5 MHz)
       ethRxClkRst       : in  sl;               -- Synchronous reset input
@@ -39,13 +37,9 @@ entity AbilityMatch is
       ability           : out slv(15 downto 0); -- Current ability register
       -- Physical Interface Signals
       phyRxData         : in  slv(15 downto 0); -- PHY receive data
-      phyRxDataK        : in  slv( 1 downto 0)  -- PHY receive data is K character
-   ); 
-
+      phyRxDataK        : in  slv( 1 downto 0));-- PHY receive data is K character
 end AbilityMatch;
 
-
--- Define architecture
 architecture rtl of GigEthAutoNeg is
 
    -- 8B10B Characters and code pairs
@@ -87,8 +81,8 @@ architecture rtl of GigEthAutoNeg is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
-   attribute mark_debug : string;
-   attribute mark_debug of r : signal is "true";
+   -- attribute mark_debug : string;
+   -- attribute mark_debug of r : signal is "true";
 
 begin
 
@@ -147,4 +141,3 @@ begin
    end process seq;   
 
 end rtl;
-

@@ -24,6 +24,8 @@ use ieee.std_logic_unsigned.all;
 use work.EthClientPackage.all;
 
 entity EthArbiter is 
+   generic (
+      TPD_G : time := 1 ns);
    port ( 
 
       -- Ethernet clock & reset
@@ -64,13 +66,9 @@ entity EthArbiter is
       user3TxReady   : out std_logic;
       user3TxData    : in  std_logic_vector(31 downto 0);    -- Ethernet TX Data
       user3TxSOF     : in  std_logic;                        -- Ethernet TX Start of Frame
-      user3TxEOF     : in  std_logic                         -- Ethernet TX End of Frame
-
-   );
+      user3TxEOF     : in  std_logic);                       -- Ethernet TX End of Frame
 end EthArbiter;
 
-
--- Define architecture for Interface module
 architecture EthArbiter of EthArbiter is 
 
    -- Local signals
@@ -87,7 +85,8 @@ begin
    process ( curState, userTxReady, user0TxValid, user0TxData, user0TxSOF, user0TxEOF,
             user1TxValid, user1TxData, user1TxSOF, user1TxEOF,
             user2TxValid, user2TxData, user2TxSOF, user2TxEOF,
-            user3TxValid, user3TxData, user3TxSOF, user3TxEOF) begin
+            user3TxValid, user3TxData, user3TxSOF, user3TxEOF) 
+   begin
 
       case curState is
          when ST_IDLE =>
@@ -226,11 +225,14 @@ begin
       end case;
    end process;
 
-   process ( gtpClkRst, gtpClk ) begin
-      if gtpClkRst = '1' then
-         curState <= ST_IDLE;
-      elsif rising_edge(gtpClk) then
-         curState <= nxtState;
+   process ( gtpClk ) 
+   begin
+      if rising_edge(gtpClk) then
+         if gtpClkRst = '1' then
+            curState <= ST_IDLE after TPD_G;     
+         else
+            curState <= nxtState after TPD_G;
+         end if;
       end if;
    end process;
 

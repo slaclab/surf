@@ -34,6 +34,7 @@ use UNISIM.VCOMPONENTS.all;
 entity GigEthLane is
    generic (
       TPD_G               : time    := 1 ns;
+      UDP_PORT_G          : natural := 8192;
       -- Sim Generics
       SIM_RESET_SPEEDUP_G : boolean := false;
       SIM_VERSION_G       : string  := "4.0");
@@ -66,7 +67,6 @@ entity GigEthLane is
       macAddr          : in  MacAddrType                      := MAC_ADDR_INIT_C);
 end GigEthLane;
 
--- Define architecture
 architecture rtl of GigEthLane is
 
    signal macRxLaneIn : EthMacDataType;
@@ -258,8 +258,8 @@ begin
    -- ARP and UDP data
    U_EthClient : entity work.EthClient
       generic map (
-         TPD_G   => TPD_G,
-         UdpPort => 8192)
+         TPD_G      => TPD_G,
+         UDP_PORT_G => UDP_PORT_G)
       port map (
          -- Ethernet clock & reset
          emacClk         => ethClk125MHz,

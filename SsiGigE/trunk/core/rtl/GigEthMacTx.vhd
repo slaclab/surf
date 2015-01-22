@@ -26,8 +26,7 @@ use work.GigEthPkg.all;
 
 entity GigEthMacTx is 
    generic (
-      TPD_G         : time                 := 1 ns
-   );
+      TPD_G : time := 1 ns);
    port ( 
       -- 125 MHz ethernet clock in
       ethTxClk          : in sl;
@@ -38,12 +37,9 @@ entity GigEthMacTx is
       userDataFirstByte : in sl;
       userDataAck       : out sl;
       -- Data out to the GTX
-      ethMacDataOut     : out EthMacDataType
-   ); 
-
+      ethMacDataOut     : out EthMacDataType); 
 end GigEthMacTx;
 
--- Define architecture
 architecture rtl of GigEthMacTx is
 
    type StateType is (S_IDLE, S_SPD, S_PREAMBLE, S_SOF, S_FRAME_DATA, S_PAD, 
@@ -80,8 +76,7 @@ architecture rtl of GigEthMacTx is
       preambleCount => (others => '0'),
       userDataAck   => '0',
       fifoDataRdEn  => '0',
-      fifoDataWrEn  => '0'
-   );
+      fifoDataWrEn  => '0');
    
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -91,9 +86,9 @@ architecture rtl of GigEthMacTx is
    signal fifoDataValid   : sl;
    signal fifoAlmostEmpty : sl;
    
-   attribute dont_touch : string;
+   -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
-   attribute dont_touch of crcOut : signal is "true";
+   -- attribute dont_touch of crcOut : signal is "true";
    
 begin
 
@@ -102,16 +97,14 @@ begin
       generic map (
          BYTE_WIDTH_G => 1,
          CRC_INIT_G   => x"FFFFFFFF",
-         TPD_G        => TPD_G
-      )
+         TPD_G        => TPD_G)
       port map (
          crcOut        => crcOut,
          crcClk        => ethTxClk,
          crcDataValid  => r.crcDataValid,
          crcDataWidth  => (others => '0'),
          crcIn         => r.crcDataIn,
-         crcReset      => r.crcReset
-      );
+         crcReset      => r.crcReset);
 
    -- Short buffer to allow for queuing up a few data words
    -- while we send preambles, etc.  Also allows calculation of the CRC in time
@@ -125,8 +118,7 @@ begin
          FWFT_EN_G          => true,
          WR_DATA_WIDTH_G    => 8,
          RD_DATA_WIDTH_G    => 8,
-         ADDR_WIDTH_G       => 12
-      )
+         ADDR_WIDTH_G       => 12)
       port map (
          rst          => ethTxRst,
          wr_clk       => ethTxClk,
@@ -136,8 +128,7 @@ begin
          rd_en        => r.fifoDataRdEn,
          dout         => fifoDataOut,
          valid        => fifoDataValid,
-         almost_empty => fifoAlmostEmpty
-      );
+         almost_empty => fifoAlmostEmpty);
       
    comb : process(r,userDataIn,userDataValid,ethTxRst,fifoDataOut,fifoDataValid,fifoAlmostEmpty,crcOut) is
       variable v : RegType;
@@ -320,4 +311,3 @@ begin
    end process seq;   
 
 end rtl;
-

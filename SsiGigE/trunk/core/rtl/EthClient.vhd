@@ -25,8 +25,8 @@ use ieee.std_logic_unsigned.all;
 
 entity EthClient is 
    generic ( 
-      TPD_G   : time    := 1 ns;
-      UdpPort : integer := 8192);
+      TPD_G      : time    := 1 ns;
+      UDP_PORT_G : natural := 8192);
    port (
 
       -- Ethernet clock & reset
@@ -61,11 +61,9 @@ entity EthClient is
       udpRxData       : out std_logic_vector(7 downto 0);
       udpRxGood       : out std_logic;
       udpRxError      : out std_logic;
-      udpRxCount      : out std_logic_vector(15 downto 0)
-   );
+      udpRxCount      : out std_logic_vector(15 downto 0));
 end EthClient;
 
--- Define architecture
 architecture EthClient of EthClient is
 
    -- Local Signals
@@ -131,192 +129,197 @@ begin
    --------------------------------
 
    -- Register EMAC Data
-   process ( emacClk, emacClkRst ) begin
-      if emacClkRst = '1' then
-         intRxData      <= (others=>'0') after TPD_G;
-         intRxValid     <= '0'           after TPD_G;
-         intRxGoodFrame <= '0'           after TPD_G;
-         intRxBadFrame  <= '0'           after TPD_G;
-      elsif rising_edge(emacClk) then
-         intRxData      <= emacRxData      after TPD_G;
-         intRxValid     <= emacRxValid     after TPD_G;
-         intRxGoodFrame <= emacRxGoodFrame after TPD_G;
-         intRxBadFrame  <= emacRxBadFrame  after TPD_G;
+   process ( emacClk ) 
+   begin
+      if rising_edge(emacClk) then
+         if emacClkRst = '1' then
+            intRxData      <= (others=>'0') after TPD_G;
+            intRxValid     <= '0'           after TPD_G;
+            intRxGoodFrame <= '0'           after TPD_G;
+            intRxBadFrame  <= '0'           after TPD_G;
+         else
+            intRxData      <= emacRxData      after TPD_G;
+            intRxValid     <= emacRxValid     after TPD_G;
+            intRxGoodFrame <= emacRxGoodFrame after TPD_G;
+            intRxBadFrame  <= emacRxBadFrame  after TPD_G;
+         end if;
       end if;
    end process;
 
    -- Sync state logic
-   process ( emacClk, emacClkRst ) begin
-      if emacClkRst = '1' then
-         selRxData      <= (others=>'0')   after TPD_G;
-         selRxError     <= '0'             after TPD_G;
-         selRxGood      <= '0'             after TPD_G;
-         selRxArpValid  <= '0'             after TPD_G;
-         selRxUdpValid  <= '0'             after TPD_G;
-         rxSrcAddr      <= (others=>x"00") after TPD_G;
-         rxDstAddr      <= (others=>x"00") after TPD_G;
-         rxCount        <= (others=>'0')   after TPD_G;
-         rxEthType      <= (others=>'0')   after TPD_G;
-         pauseCountRx   <= (others=>'0')   after TPD_G;
-         pauseCountSet  <= '0'             after TPD_G;
-         curRxState     <= ST_RX_IDLE      after TPD_G;
-      elsif rising_edge(emacClk) then
-
-         -- Outgoing data
-         selRxData <= intRxData after TPD_G;
-
-         -- RX Counter
-         if curRxState = ST_RX_IDLE then
-            rxCount <= "001" after TPD_G;
-         elsif rxCount = 5 then
-            rxCount <= "000" after TPD_G;
+   process ( emacClk ) 
+   begin
+      if rising_edge(emacClk) then
+         if emacClkRst = '1' then
+            selRxData      <= (others=>'0')   after TPD_G;
+            selRxError     <= '0'             after TPD_G;
+            selRxGood      <= '0'             after TPD_G;
+            selRxArpValid  <= '0'             after TPD_G;
+            selRxUdpValid  <= '0'             after TPD_G;
+            rxSrcAddr      <= (others=>x"00") after TPD_G;
+            rxDstAddr      <= (others=>x"00") after TPD_G;
+            rxCount        <= (others=>'0')   after TPD_G;
+            rxEthType      <= (others=>'0')   after TPD_G;
+            pauseCountRx   <= (others=>'0')   after TPD_G;
+            pauseCountSet  <= '0'             after TPD_G;
+            curRxState     <= ST_RX_IDLE      after TPD_G;
          else
-            rxCount <= rxCount + 1 after TPD_G;
+            -- Outgoing data
+            selRxData <= intRxData after TPD_G;
+
+            -- RX Counter
+            if curRxState = ST_RX_IDLE then
+               rxCount <= "001" after TPD_G;
+            elsif rxCount = 5 then
+               rxCount <= "000" after TPD_G;
+            else
+               rxCount <= rxCount + 1 after TPD_G;
+            end if;
+
+            -- State machine
+            case curRxState is
+
+               -- IDLE
+               when ST_RX_IDLE =>
+                  selRxError    <= '0' after TPD_G;
+                  selRxGood     <= '0' after TPD_G;
+                  selRxArpValid <= '0' after TPD_G;
+                  selRxUdpValid <= '0' after TPD_G;
+                  pauseCountSet <= '0' after TPD_G;
+                     
+                  -- New frame
+                  if intRxValid = '1' then
+                     rxDstAddr(0) <= intRxData after TPD_G;
+                     curRxState   <= ST_RX_DST after TPD_G;
+                  end if;
+
+               -- Dest address
+               when ST_RX_DST =>
+                  selRxError                       <= '0'       after TPD_G;
+                  selRxGood                        <= '0'       after TPD_G;
+                  selRxArpValid                    <= '0'       after TPD_G;
+                  selRxUdpValid                    <= '0'       after TPD_G;
+                  rxDstAddr(conv_integer(rxCount)) <= intRxData after TPD_G;
+
+                  if intRxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  elsif rxCount = 5 then
+                     curRxState <= ST_RX_SRC after TPD_G;
+                  end if;
+
+               -- Source address
+               when ST_RX_SRC =>
+                  selRxError                       <= '0'       after TPD_G;
+                  selRxGood                        <= '0'       after TPD_G;
+                  selRxArpValid                    <= '0'       after TPD_G;
+                  selRxUdpValid                    <= '0'       after TPD_G;
+                  rxSrcAddr(conv_integer(rxCount)) <= intRxData after TPD_G;
+
+                  if intRxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  elsif rxCount = 5 then
+                     curRxState <= ST_RX_TYPE after TPD_G;
+                  end if;
+
+               -- Ethernet Type
+               when ST_RX_TYPE =>
+                  selRxError    <= '0' after TPD_G;
+                  selRxGood     <= '0' after TPD_G;
+                  selRxArpValid <= '0' after TPD_G;
+                  selRxUdpValid <= '0' after TPD_G;
+
+                  if intRxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  elsif rxCount = 0 then
+                     rxEthType(15 downto 8) <= intRxData after TPD_G;
+                  else
+                     rxEthType(7  downto 0) <= intRxData after TPD_G;
+                     curRxState             <= ST_RX_SEL after TPD_G;
+                  end if;
+
+               -- Select destination
+               when ST_RX_SEL =>
+                  selRxError <= '0' after TPD_G;
+                  selRxGood  <= '0' after TPD_G;
+
+                  if intRxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+
+                  -- Pause frame
+                  --elsif rxEthType = EthTypeMac and intRxData = x"00" then
+                     --selRxArpValid <= '0'          after TPD_G;
+                     --selRxUdpValid <= '0'          after TPD_G;
+                     --curRxState    <= ST_RX_PAUSEA after TPD_G;
+
+                  -- ARP Request, dest mac is broadcast or our address
+                  elsif rxEthType = EthTypeARP and 
+                        ((rxDstAddr(0) = x"FF" and rxDstAddr(1) = x"FF" and
+                          rxDstAddr(2) = x"FF" and rxDstAddr(3) = x"FF" and
+                          rxDstAddr(4) = x"FF" and rxDstAddr(5) = x"FF") or
+                         rxDstAddr = MacAddr) then
+                     selRxArpValid <= '1'        after TPD_G;
+                     selRxUdpValid <= '0'        after TPD_G;
+                     curRxState    <= ST_RX_DATA after TPD_G;
+
+                  -- IPV4 Packet
+                  elsif rxEthType = EthTypeIPV4 and rxDstAddr = MacAddr then
+                     selRxArpValid <= '0'        after TPD_G;
+                     selRxUdpValid <= '1'        after TPD_G;
+                     curRxState    <= ST_RX_DATA after TPD_G;
+                  else
+                     selRxArpValid <= '0'        after TPD_G;
+                     selRxUdpValid <= '0'        after TPD_G;
+                     curRxState    <= ST_RX_DATA after TPD_G;
+                  end if;
+
+               -- Pause A
+               when ST_RX_PAUSEA =>
+                  selRxError    <= '0' after TPD_G;
+                  selRxGood     <= '0' after TPD_G;
+
+                  if intRxData = x"01" then
+                     curRxState <= ST_RX_PAUSEB after TPD_G;
+                  else
+                     curRxState <= ST_RX_DATA   after TPD_G;
+                  end if;
+
+               when ST_RX_PAUSEC =>
+                  selRxError                <= '0'          after TPD_G;
+                  selRxGood                 <= '0'          after TPD_G;
+                  pauseCountRx(15 downto 8) <= intRxData    after TPD_G;
+                  curRxState                <= ST_RX_PAUSEB after TPD_G;
+
+               when ST_RX_PAUSED =>
+                  selRxError                <= '0'          after TPD_G;
+                  selRxGood                 <= '0'          after TPD_G;
+                  pauseCountRx(7  downto 0) <= intRxData    after TPD_G;
+                  pauseCountSet             <= '1'          after TPD_G;
+                  curRxState                <= ST_RX_DATA   after TPD_G;
+
+               -- Move Data
+               when ST_RX_DATA =>
+                  selRxError    <= '0' after TPD_G;
+                  selRxGood     <= '0' after TPD_G;
+                  pauseCountSet <= '0' after TPD_G;
+
+                  if intRxValid = '0' then
+                     curRxState <= ST_RX_DONE after TPD_G;
+                  end if;
+
+               -- Done
+               when ST_RX_DONE =>
+                  selRxArpValid <= '0' after TPD_G;
+                  selRxUdpValid <= '0' after TPD_G;
+
+                  if intRxGoodFrame = '1' or intRxBadFrame  = '1' then
+                     curRxState <= ST_RX_IDLE     after TPD_G;
+                     selRxError <= intRxBadFrame  after TPD_G;
+                     selRxGood  <= intRxGoodFrame after TPD_G;
+                  end if;
+
+               when others => curRxState <= ST_RX_IDLE after TPD_G;
+            end case;
          end if;
-
-         -- State machine
-         case curRxState is
-
-            -- IDLE
-            when ST_RX_IDLE =>
-               selRxError    <= '0' after TPD_G;
-               selRxGood     <= '0' after TPD_G;
-               selRxArpValid <= '0' after TPD_G;
-               selRxUdpValid <= '0' after TPD_G;
-               pauseCountSet <= '0' after TPD_G;
-                  
-               -- New frame
-               if intRxValid = '1' then
-                  rxDstAddr(0) <= intRxData after TPD_G;
-                  curRxState   <= ST_RX_DST after TPD_G;
-               end if;
-
-            -- Dest address
-            when ST_RX_DST =>
-               selRxError                       <= '0'       after TPD_G;
-               selRxGood                        <= '0'       after TPD_G;
-               selRxArpValid                    <= '0'       after TPD_G;
-               selRxUdpValid                    <= '0'       after TPD_G;
-               rxDstAddr(conv_integer(rxCount)) <= intRxData after TPD_G;
-
-               if intRxValid = '0' then
-                  curRxState <= ST_RX_IDLE after TPD_G;
-               elsif rxCount = 5 then
-                  curRxState <= ST_RX_SRC after TPD_G;
-               end if;
-
-            -- Source address
-            when ST_RX_SRC =>
-               selRxError                       <= '0'       after TPD_G;
-               selRxGood                        <= '0'       after TPD_G;
-               selRxArpValid                    <= '0'       after TPD_G;
-               selRxUdpValid                    <= '0'       after TPD_G;
-               rxSrcAddr(conv_integer(rxCount)) <= intRxData after TPD_G;
-
-               if intRxValid = '0' then
-                  curRxState <= ST_RX_IDLE after TPD_G;
-               elsif rxCount = 5 then
-                  curRxState <= ST_RX_TYPE after TPD_G;
-               end if;
-
-            -- Ethernet Type
-            when ST_RX_TYPE =>
-               selRxError    <= '0' after TPD_G;
-               selRxGood     <= '0' after TPD_G;
-               selRxArpValid <= '0' after TPD_G;
-               selRxUdpValid <= '0' after TPD_G;
-
-               if intRxValid = '0' then
-                  curRxState <= ST_RX_IDLE after TPD_G;
-               elsif rxCount = 0 then
-                  rxEthType(15 downto 8) <= intRxData after TPD_G;
-               else
-                  rxEthType(7  downto 0) <= intRxData after TPD_G;
-                  curRxState             <= ST_RX_SEL after TPD_G;
-               end if;
-
-            -- Select destination
-            when ST_RX_SEL =>
-               selRxError <= '0' after TPD_G;
-               selRxGood  <= '0' after TPD_G;
-
-               if intRxValid = '0' then
-                  curRxState <= ST_RX_IDLE after TPD_G;
-
-               -- Pause frame
-               --elsif rxEthType = EthTypeMac and intRxData = x"00" then
-                  --selRxArpValid <= '0'          after TPD_G;
-                  --selRxUdpValid <= '0'          after TPD_G;
-                  --curRxState    <= ST_RX_PAUSEA after TPD_G;
-
-               -- ARP Request, dest mac is broadcast or our address
-               elsif rxEthType = EthTypeARP and 
-                     ((rxDstAddr(0) = x"FF" and rxDstAddr(1) = x"FF" and
-                       rxDstAddr(2) = x"FF" and rxDstAddr(3) = x"FF" and
-                       rxDstAddr(4) = x"FF" and rxDstAddr(5) = x"FF") or
-                      rxDstAddr = MacAddr) then
-                  selRxArpValid <= '1'        after TPD_G;
-                  selRxUdpValid <= '0'        after TPD_G;
-                  curRxState    <= ST_RX_DATA after TPD_G;
-
-               -- IPV4 Packet
-               elsif rxEthType = EthTypeIPV4 and rxDstAddr = MacAddr then
-                  selRxArpValid <= '0'        after TPD_G;
-                  selRxUdpValid <= '1'        after TPD_G;
-                  curRxState    <= ST_RX_DATA after TPD_G;
-               else
-                  selRxArpValid <= '0'        after TPD_G;
-                  selRxUdpValid <= '0'        after TPD_G;
-                  curRxState    <= ST_RX_DATA after TPD_G;
-               end if;
-
-            -- Pause A
-            when ST_RX_PAUSEA =>
-               selRxError    <= '0' after TPD_G;
-               selRxGood     <= '0' after TPD_G;
-
-               if intRxData = x"01" then
-                  curRxState <= ST_RX_PAUSEB after TPD_G;
-               else
-                  curRxState <= ST_RX_DATA   after TPD_G;
-               end if;
-
-            when ST_RX_PAUSEC =>
-               selRxError                <= '0'          after TPD_G;
-               selRxGood                 <= '0'          after TPD_G;
-               pauseCountRx(15 downto 8) <= intRxData    after TPD_G;
-               curRxState                <= ST_RX_PAUSEB after TPD_G;
-
-            when ST_RX_PAUSED =>
-               selRxError                <= '0'          after TPD_G;
-               selRxGood                 <= '0'          after TPD_G;
-               pauseCountRx(7  downto 0) <= intRxData    after TPD_G;
-               pauseCountSet             <= '1'          after TPD_G;
-               curRxState                <= ST_RX_DATA   after TPD_G;
-
-            -- Move Data
-            when ST_RX_DATA =>
-               selRxError    <= '0' after TPD_G;
-               selRxGood     <= '0' after TPD_G;
-               pauseCountSet <= '0' after TPD_G;
-
-               if intRxValid = '0' then
-                  curRxState <= ST_RX_DONE after TPD_G;
-               end if;
-
-            -- Done
-            when ST_RX_DONE =>
-               selRxArpValid <= '0' after TPD_G;
-               selRxUdpValid <= '0' after TPD_G;
-
-               if intRxGoodFrame = '1' or intRxBadFrame  = '1' then
-                  curRxState <= ST_RX_IDLE     after TPD_G;
-                  selRxError <= intRxBadFrame  after TPD_G;
-                  selRxGood  <= intRxGoodFrame after TPD_G;
-               end if;
-
-            when others => curRxState <= ST_RX_IDLE after TPD_G;
-         end case;
       end if;
    end process;
 
@@ -329,165 +332,167 @@ begin
    
    emacTxData <= locEmacTxData;
    
-   process ( emacClk, emacClkRst ) begin
-      if emacClkRst = '1' then
-         locEmacTxData     <= (others=>'0') after TPD_G;
-         emacTxValid    <= '0'           after TPD_G;
-         emacTxFirst    <= '0'           after TPD_G;
-         selTxArpReady  <= '0'           after TPD_G;
-         selTxUdpReady  <= '0'           after TPD_G;
-         selTxArp       <= '0'           after TPD_G;
-         txCount        <= (others=>'0') after TPD_G;
-         pauseCount     <= (others=>'0') after TPD_G;
-         pauseCountPre  <= (others=>'0') after TPD_G;
-         curTxState     <= ST_TX_IDLE    after TPD_G;
-      elsif rising_edge(emacClk) then
-
-         -- Pause counter
-         if pauseCountSet = '1' then
-            pauseCount    <= pauseCountRx  after TPD_G;
-            pauseCountPre <= (others=>'0') after TPD_G;
-
-         elsif curTxState = ST_TX_IDLE then
-
-            -- Prescale, 512 bit times at 1gbs = 51.2 clocks @ 125Mhz
-            if pauseCountPre = 52 then
-               pauseCountPre <= (others=>'0') after TPD_G;
-               if pauseCount /= 0 then
-                  pauseCount <= pauseCount - 1 after TPD_G;
-               end if;
-            else
-               pauseCountPre <= pauseCountPre + 1 after TPD_G;
-            end if;
-         end if; 
-
-         -- TX Counter
-         if curTxState = ST_TX_IDLE or txCount = 5 then
-            txCount <= "000" after TPD_G;
-         elsif curTxState = ST_TX_ACK then
-            txCount <= "010" after TPD_G;
+   process ( emacClk ) 
+   begin
+      if rising_edge(emacClk) then
+         if emacClkRst = '1' then
+            locEmacTxData     <= (others=>'0') after TPD_G;
+            emacTxValid    <= '0'           after TPD_G;
+            emacTxFirst    <= '0'           after TPD_G;
+            selTxArpReady  <= '0'           after TPD_G;
+            selTxUdpReady  <= '0'           after TPD_G;
+            selTxArp       <= '0'           after TPD_G;
+            txCount        <= (others=>'0') after TPD_G;
+            pauseCount     <= (others=>'0') after TPD_G;
+            pauseCountPre  <= (others=>'0') after TPD_G;
+            curTxState     <= ST_TX_IDLE    after TPD_G;
          else
-            txCount <= txCount + 1 after TPD_G;
-         end if;
+            -- Pause counter
+            if pauseCountSet = '1' then
+               pauseCount    <= pauseCountRx  after TPD_G;
+               pauseCountPre <= (others=>'0') after TPD_G;
 
-         -- State machine
-         case curTxState is
+            elsif curTxState = ST_TX_IDLE then
 
-            -- IDLE
-            when ST_TX_IDLE =>
-               locEmacTxData    <= (others=>'0') after TPD_G;
-               emacTxValid   <= '0'           after TPD_G;
-               emacTxFirst   <= '0'           after TPD_G;
-               selTxArpReady <= '0'           after TPD_G;
-               selTxUdpReady <= '0'           after TPD_G;
-
-               -- Don't transmit is pause counter is non zero
-               --if pauseCount = 0 then
-                  if selTxArpValid = '1' then
-                     selTxArp      <= '1'            after TPD_G;
-                     curTxState    <= ST_TX_ACK      after TPD_G;
-                     locEmacTxData <= selTxArpDst(0) after TPD_G;
-                  elsif selTxUdpValid = '1' then
-                     selTxArp      <= '0'            after TPD_G;
-                     curTxState    <= ST_TX_ACK      after TPD_G;
-                     locEmacTxData <= selTxUdpDst(0) after TPD_G;
+               -- Prescale, 512 bit times at 1gbs = 51.2 clocks @ 125Mhz
+               if pauseCountPre = 52 then
+                  pauseCountPre <= (others=>'0') after TPD_G;
+                  if pauseCount /= 0 then
+                     pauseCount <= pauseCount - 1 after TPD_G;
                   end if;
-               --end if;
-               
-            -- Wait on ack
-            when ST_TX_ACK =>
-               emacTxValid   <= '1'       after TPD_G;
-               selTxArpReady <= '0'       after TPD_G;
-               selTxUdpReady <= '0'       after TPD_G;
-               emacTxFirst   <= emacTxAck after TPD_G;
+               else
+                  pauseCountPre <= pauseCountPre + 1 after TPD_G;
+               end if;
+            end if; 
 
-               if emacTxAck = '1' then
+            -- TX Counter
+            if curTxState = ST_TX_IDLE or txCount = 5 then
+               txCount <= "000" after TPD_G;
+            elsif curTxState = ST_TX_ACK then
+               txCount <= "010" after TPD_G;
+            else
+               txCount <= txCount + 1 after TPD_G;
+            end if;
+
+            -- State machine
+            case curTxState is
+
+               -- IDLE
+               when ST_TX_IDLE =>
+                  locEmacTxData    <= (others=>'0') after TPD_G;
+                  emacTxValid   <= '0'           after TPD_G;
+                  emacTxFirst   <= '0'           after TPD_G;
+                  selTxArpReady <= '0'           after TPD_G;
+                  selTxUdpReady <= '0'           after TPD_G;
+
+                  -- Don't transmit is pause counter is non zero
+                  --if pauseCount = 0 then
+                     if selTxArpValid = '1' then
+                        selTxArp      <= '1'            after TPD_G;
+                        curTxState    <= ST_TX_ACK      after TPD_G;
+                        locEmacTxData <= selTxArpDst(0) after TPD_G;
+                     elsif selTxUdpValid = '1' then
+                        selTxArp      <= '0'            after TPD_G;
+                        curTxState    <= ST_TX_ACK      after TPD_G;
+                        locEmacTxData <= selTxUdpDst(0) after TPD_G;
+                     end if;
+                  --end if;
+                  
+               -- Wait on ack
+               when ST_TX_ACK =>
+                  emacTxValid   <= '1'       after TPD_G;
+                  selTxArpReady <= '0'       after TPD_G;
+                  selTxUdpReady <= '0'       after TPD_G;
+                  emacTxFirst   <= emacTxAck after TPD_G;
+
+                  if emacTxAck = '1' then
+                     if selTxArp = '1' then
+                        locEmacTxData <= selTxArpDst(1) after TPD_G;
+                     else
+                        locEmacTxData <= selTxUdpDst(1) after TPD_G;
+                     end if;
+                     curTxState <= ST_TX_DST after TPD_G;
+                  end if;
+
+               -- Dest address
+               when ST_TX_DST =>
+                  emacTxValid   <= '1' after TPD_G;
+                  selTxArpReady <= '0' after TPD_G;
+                  selTxUdpReady <= '0' after TPD_G;
+                  emacTxFirst   <= '0' after TPD_G;
+
                   if selTxArp = '1' then
-                     locEmacTxData <= selTxArpDst(1) after TPD_G;
+                     locEmacTxData <= selTxArpDst(conv_integer(txCount)) after TPD_G;
                   else
-                     locEmacTxData <= selTxUdpDst(1) after TPD_G;
+                     locEmacTxData <= selTxUdpDst(conv_integer(txCount)) after TPD_G;
                   end if;
-                  curTxState <= ST_TX_DST after TPD_G;
-               end if;
 
-            -- Dest address
-            when ST_TX_DST =>
-               emacTxValid   <= '1' after TPD_G;
-               selTxArpReady <= '0' after TPD_G;
-               selTxUdpReady <= '0' after TPD_G;
-               emacTxFirst   <= '0' after TPD_G;
+                  if txCount = 5 then
+                     curTxState <= ST_TX_SRC after TPD_G;
+                  end if;
 
-               if selTxArp = '1' then
-                  locEmacTxData <= selTxArpDst(conv_integer(txCount)) after TPD_G;
-               else
-                  locEmacTxData <= selTxUdpDst(conv_integer(txCount)) after TPD_G;
-               end if;
+               -- Source address
+               when ST_TX_SRC =>
+                  emacTxValid   <= '1' after TPD_G;
+                  selTxArpReady <= '0' after TPD_G;
+                  selTxUdpReady <= '0' after TPD_G;
+                  emacTxFirst   <= '0' after TPD_G;
 
-               if txCount = 5 then
-                  curTxState <= ST_TX_SRC after TPD_G;
-               end if;
+                  locEmacTxData <= MacAddr(conv_integer(txCount)) after TPD_G;
 
-            -- Source address
-            when ST_TX_SRC =>
-               emacTxValid   <= '1' after TPD_G;
-               selTxArpReady <= '0' after TPD_G;
-               selTxUdpReady <= '0' after TPD_G;
-               emacTxFirst   <= '0' after TPD_G;
+                  if txCount = 5 then
+                     curTxState <= ST_TX_TYPE after TPD_G;
+                  end if;
 
-               locEmacTxData <= MacAddr(conv_integer(txCount)) after TPD_G;
+               -- Ethernet Type
+               when ST_TX_TYPE =>
+                  emacTxValid   <= '1' after TPD_G;
+                  emacTxFirst   <= '0' after TPD_G;
 
-               if txCount = 5 then
-                  curTxState <= ST_TX_TYPE after TPD_G;
-               end if;
-
-            -- Ethernet Type
-            when ST_TX_TYPE =>
-               emacTxValid   <= '1' after TPD_G;
-               emacTxFirst   <= '0' after TPD_G;
-
-               if selTxArp = '1' then
-                  if txCount = 0 then
-                     locEmacTxData <= EthTypeARP(15 downto 8) after TPD_G;
+                  if selTxArp = '1' then
+                     if txCount = 0 then
+                        locEmacTxData <= EthTypeARP(15 downto 8) after TPD_G;
+                     else
+                        locEmacTxData <= EthTypeARP(7  downto 0) after TPD_G;
+                     end if;
                   else
-                     locEmacTxData <= EthTypeARP(7  downto 0) after TPD_G;
+                     if txCount = 0 then
+                        locEmacTxData <= EthTypeIPV4(15 downto 8) after TPD_G;
+                     else
+                        locEmacTxData <= EthTypeIPV4(7  downto 0) after TPD_G;
+                     end if;
                   end if;
-               else
-                  if txCount = 0 then
-                     locEmacTxData <= EthTypeIPV4(15 downto 8) after TPD_G;
-                  else
-                     locEmacTxData <= EthTypeIPV4(7  downto 0) after TPD_G;
-                  end if;
-               end if;
 
-               if txCount = 1 then
-                  curTxState    <= ST_TX_DATA   after TPD_G;
+                  if txCount = 1 then
+                     curTxState    <= ST_TX_DATA   after TPD_G;
+                     selTxArpReady <= selTxArp     after TPD_G;
+                     selTxUdpReady <= not selTxArp after TPD_G;
+                  end if;
+
+               -- Payload Data
+               when ST_TX_DATA =>
+                  emacTxValid   <= '1'          after TPD_G;
+                  emacTxFirst   <= '0'          after TPD_G;
                   selTxArpReady <= selTxArp     after TPD_G;
                   selTxUdpReady <= not selTxArp after TPD_G;
-               end if;
 
-            -- Payload Data
-            when ST_TX_DATA =>
-               emacTxValid   <= '1'          after TPD_G;
-               emacTxFirst   <= '0'          after TPD_G;
-               selTxArpReady <= selTxArp     after TPD_G;
-               selTxUdpReady <= not selTxArp after TPD_G;
-
-               if selTxArp = '1' then
-                  emacTxValid    <= selTxArpValid after TPD_G;
-                  locEmacTxData  <= selTxArpData  after TPD_G;
-                  if selTxArpValid = '0' then
-                     curTxState <= ST_TX_IDLE;
+                  if selTxArp = '1' then
+                     emacTxValid    <= selTxArpValid after TPD_G;
+                     locEmacTxData  <= selTxArpData  after TPD_G;
+                     if selTxArpValid = '0' then
+                        curTxState <= ST_TX_IDLE;
+                     end if;
+                  else
+                     emacTxValid    <= selTxUdpValid after TPD_G;
+                     locEmacTxData  <= selTxUdpData  after TPD_G;
+                     if selTxUdpValid = '0' then
+                        curTxState <= ST_TX_IDLE;
+                     end if;
                   end if;
-               else
-                  emacTxValid    <= selTxUdpValid after TPD_G;
-                  locEmacTxData  <= selTxUdpData  after TPD_G;
-                  if selTxUdpValid = '0' then
-                     curTxState <= ST_TX_IDLE;
-                  end if;
-               end if;
 
-            when others => curTxState <= ST_TX_IDLE after TPD_G;
-         end case;
+               when others => curTxState <= ST_TX_IDLE after TPD_G;
+            end case;
+         end if;
       end if;
    end process;
 
@@ -496,6 +501,8 @@ begin
    -- ARP Engine
    --------------------------------
    U_EthClientArp : entity work.EthClientArp 
+      generic map (
+         TPD_G => TPD_G)
       port map (
          emacClk    => emacClk,
          emacClkRst => emacClkRst,
@@ -510,14 +517,14 @@ begin
          txReady    => selTxArpReady,
          txData     => selTxArpData,
          txDst      => selTxArpDst);
-
-
+         
    --------------------------------
    -- UDP Engine
    --------------------------------
    U_EthClientUdp: entity work.EthClientUdp 
-      generic map ( 
-         UdpPort => UdpPort ) 
+      generic map (
+         TPD_G      => TPD_G,
+         UDP_PORT_G => UDP_PORT_G ) 
       port map (
          emacClk     => emacClk,
          emacClkRst  => emacClkRst,
