@@ -20,9 +20,6 @@ use ieee.std_logic_1164.all;
 
 package EthClientPackage is
 
-   -- Register delay for simulation
-   constant tpd : time := 0.5 ns;
-
    -- Type for IP address
    type IPAddrType is array(3 downto 0) of std_logic_vector(7 downto 0);
    constant IP_ADDR_INIT_C : IPAddrType := (3 => x"C0", 2 => x"A8", 1 => x"01", 0 => x"14");
@@ -46,4 +43,3 @@ package EthClientPackage is
    type UDPMsgType is array(27 downto 0) of std_logic_vector(7 downto 0);
 
 end EthClientPackage;
-

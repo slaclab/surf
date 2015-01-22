@@ -23,8 +23,10 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.EthClientPackage.all;
 
-entity GigEthUdpFrame is port ( 
-
+entity GigEthUdpFrame is 
+   generic (
+      TPD_G : time := 1 ns);
+   port ( 
       -- Ethernet clock & reset
       gtpClk         : in  std_logic;                        -- 125Mhz master clock
       gtpClkRst      : in  std_logic;                        -- Synchronous reset input
@@ -58,13 +60,9 @@ entity GigEthUdpFrame is port (
       udpRxData      : in  std_logic_vector(7  downto 0);
       udpRxGood      : in  std_logic;
       udpRxError     : in  std_logic;
-      udpRxCount     : in  std_logic_vector(15 downto 0)
-
-   );
+      udpRxCount     : in  std_logic_vector(15 downto 0));
 end GigEthUdpFrame;
 
-
--- Define architecture for Interface module
 architecture GigEthUdpFrame of GigEthUdpFrame is 
 
    constant FWFT_EN_G       : boolean := false;
@@ -148,69 +146,70 @@ begin
  
    userTxReady  <= userTxValid and (not tdataFifoAFull);
 
-   process (gtpClk, gtpClkRst ) begin
-      if gtpClkRst = '1' then
-         tdataFifoDin   <= (others=>'0') after tpd;
-         tdataFifoWr    <= '0'           after tpd;
-         tcountFifoDin  <= (others=>'0') after tpd;
-         tcountFifoWr   <= '0'           after tpd;
-         tdataCount     <= x"002"        after tpd;
-         tdataFifoAFull <= '0'           after tpd;
-         txBreakSize    <= (others=>'0') after tpd;
-      elsif rising_edge(gtpClk) then
-
-         -- Set frame break size
-         if udpTxJumbo = '1' then
-            txBreakSize <= x"F9F" after tpd; -- 3999 (8000 bytes)
+   process (gtpClk ) 
+   begin
+      if rising_edge(gtpClk) then
+         if gtpClkRst = '1' then
+            tdataFifoDin   <= (others=>'0') after TPD_G;
+            tdataFifoWr    <= '0'           after TPD_G;
+            tcountFifoDin  <= (others=>'0') after TPD_G;
+            tcountFifoWr   <= '0'           after TPD_G;
+            tdataCount     <= x"002"        after TPD_G;
+            tdataFifoAFull <= '0'           after TPD_G;
+            txBreakSize    <= (others=>'0') after TPD_G;
          else
-            txBreakSize <= x"2bb" after tpd; -- 699 (1400 bytes)
-         end if;
-
-         -- Data fifo
-         tdataFifoDin(18)           <= userTxSOF;
-         tdataFifoDin(17 downto 16) <= userTxVc;
-         tdataFifoDin(15 downto  0) <= userTxData;
-         tdataFifoWr                <= userTxValid and (not tdataFifoAFull);
-
-         -- Count FIFO
-         if userTxValid = '1' and tdataFifoAFull = '0' and (userTxEOF = '1' or tdataCount = txBreakSize) then
-            tcountFifoWr <= '1' after tpd;
-         else
-            tcountFifoWr <= '0' after tpd;
-         end if;
-         tcountFifoDin(12)          <= userTxEOF  after tpd;
-         tcountFifoDin(11 downto 0) <= tdataCount after tpd;
-
-         -- Counter
-         if userTxValid = '1' and tdataFifoAFull = '0' then
-            if userTxEOF = '1' or tdataCount = txBreakSize then
-               tdataCount <= x"002"        after tpd;
+            -- Set frame break size
+            if udpTxJumbo = '1' then
+               txBreakSize <= x"F9F" after TPD_G; -- 3999 (8000 bytes)
             else
-               tdataCount <= tdataCount + 1 after tpd;
+               txBreakSize <= x"2bb" after TPD_G; -- 699 (1400 bytes)
             end if;
-         end if;
 
-         if tcountFifoCount > 900 or tdataFifoCount > 7000 then
-            tdataFifoAFull <= '1' after tpd;
-         else
-            tdataFifoAFull <= '0' after tpd;
-         end if;
+            -- Data fifo
+            tdataFifoDin(18)           <= userTxSOF;
+            tdataFifoDin(17 downto 16) <= userTxVc;
+            tdataFifoDin(15 downto  0) <= userTxData;
+            tdataFifoWr                <= userTxValid and (not tdataFifoAFull);
 
+            -- Count FIFO
+            if userTxValid = '1' and tdataFifoAFull = '0' and (userTxEOF = '1' or tdataCount = txBreakSize) then
+               tcountFifoWr <= '1' after TPD_G;
+            else
+               tcountFifoWr <= '0' after TPD_G;
+            end if;
+            tcountFifoDin(12)          <= userTxEOF  after TPD_G;
+            tcountFifoDin(11 downto 0) <= tdataCount after TPD_G;
+
+            -- Counter
+            if userTxValid = '1' and tdataFifoAFull = '0' then
+               if userTxEOF = '1' or tdataCount = txBreakSize then
+                  tdataCount <= x"002"        after TPD_G;
+               else
+                  tdataCount <= tdataCount + 1 after TPD_G;
+               end if;
+            end if;
+
+            if tcountFifoCount > 900 or tdataFifoCount > 7000 then
+               tdataFifoAFull <= '1' after TPD_G;
+            else
+               tdataFifoAFull <= '0' after TPD_G;
+            end if;
+
+         end if;
       end if;
    end process;
 
    -- Transmitter data fifo (19x8k)
    U_TxDataFifo : entity work.FifoMux
       generic map (
-         TPD_G              => tpd,
+         TPD_G              => TPD_G,
          LAST_STAGE_ASYNC_G => false,
          RST_POLARITY_G     => '1',
          GEN_SYNC_FIFO_G    => true,
          FWFT_EN_G          => FWFT_EN_G,
          WR_DATA_WIDTH_G    => 19,
          RD_DATA_WIDTH_G    => 19,
-         ADDR_WIDTH_G       => 13
-      )
+         ADDR_WIDTH_G       => 13)
       port map (
          -- Resets
          rst           => gtpClkRst,
@@ -224,21 +223,19 @@ begin
          rd_en         => tdataFifoRd,
          dout          => tdataFifoDout,
          rd_data_count => tdataFifoCount,
-         empty         => open
-      );            
+         empty         => open);            
    
    -- Transmitter Data Count Fifo (13x1k)
    U_TxCntFifo : entity work.FifoMux
       generic map (
-         TPD_G              => tpd,
+         TPD_G              => TPD_G,
          LAST_STAGE_ASYNC_G => false,
          RST_POLARITY_G     => '1',
          GEN_SYNC_FIFO_G    => true,
          FWFT_EN_G          => FWFT_EN_G,
          WR_DATA_WIDTH_G    => 13,
          RD_DATA_WIDTH_G    => 13,
-         ADDR_WIDTH_G       => 10
-      )
+         ADDR_WIDTH_G       => 10)
       port map (
          -- Resets
          rst           => gtpClkRst,
@@ -252,36 +249,38 @@ begin
          rd_en         => tcountFifoRd,
          dout          => tcountFifoDout,
          rd_data_count => tcountFifoCount,
-         empty         => tcountFifoEmpty
-      );           
+         empty         => tcountFifoEmpty);           
 
-   process (gtpClk, gtpClkRst ) begin
-      if gtpClkRst = '1' then
-         treadCount   <= x"001"        after tpd;
-         txSerial     <= (others=>'0') after tpd;
-         curTxState   <= ST_TX_IDLE    after tpd;
-      elsif rising_edge(gtpClk) then
+   process (gtpClk) 
+   begin
+      if rising_edge(gtpClk) then
+         if gtpClkRst = '1' then
+            treadCount   <= x"001"        after TPD_G;
+            txSerial     <= (others=>'0') after TPD_G;
+            curTxState   <= ST_TX_IDLE    after TPD_G;
+         else
+            if treadCountRst = '1' then
+               treadCount <= x"001"         after TPD_G;
+            elsif tdataFifoRd = '1' then
+               treadCount <= treadCount + 1 after TPD_G;
+            end if;
 
-         if treadCountRst = '1' then
-            treadCount <= x"001"         after tpd;
-         elsif tdataFifoRd = '1' then
-            treadCount <= treadCount + 1 after tpd;
+            if txSerialRst = '1' then
+               txSerial <= "0001" after TPD_G;
+            elsif txSerialEn = '1' then
+               txSerial <= txSerial + 1  after TPD_G;
+            end if;
+
+            curTxState  <= nxtTxState after TPD_G;
          end if;
-
-         if txSerialRst = '1' then
-            txSerial <= "0001" after tpd;
-         elsif txSerialEn = '1' then
-            txSerial <= txSerial + 1  after tpd;
-         end if;
-
-         curTxState  <= nxtTxState after tpd;
       end if;
    end process;
 
    -- Data output
    udpTxLength <= "000" & tcountFifoDout(11 downto 0) & "0";
 
-   process (curTxState, tcountFifoEmpty, udpTxReady, tcountFifoDout, tdataFifoDout, treadCount, txSerial ) begin
+   process (curTxState, tcountFifoEmpty, udpTxReady, tcountFifoDout, tdataFifoDout, treadCount, txSerial ) 
+   begin
                                                                                                    
       case curTxState is
 
@@ -402,15 +401,14 @@ begin
    -- Receiver Data Fifo (8 x 16k)
    U_RxDataFifo : entity work.FifoMux
       generic map (
-         TPD_G              => tpd,
+         TPD_G              => TPD_G,
          LAST_STAGE_ASYNC_G => false,
          RST_POLARITY_G     => '1',
          GEN_SYNC_FIFO_G    => true,
          FWFT_EN_G          => FWFT_EN_G,
          WR_DATA_WIDTH_G    => 8,
          RD_DATA_WIDTH_G    => 8,
-         ADDR_WIDTH_G       => 14
-      )
+         ADDR_WIDTH_G       => 14)
       port map (
          -- Resets
          rst           => gtpClkRst,
@@ -424,21 +422,19 @@ begin
          rd_en         => rdataFifoRd,
          dout          => rdataFifoDout,
          rd_data_count => open,
-         empty         => open
-      );           
+         empty         => open);           
    
    -- Receiver Data Count Fifo (18x1k)
    U_RxCntFifo : entity work.FifoMux
       generic map (
-         TPD_G              => tpd,
+         TPD_G              => TPD_G,
          LAST_STAGE_ASYNC_G => false,
          RST_POLARITY_G     => '1',
          GEN_SYNC_FIFO_G    => true,
          FWFT_EN_G          => FWFT_EN_G,
          WR_DATA_WIDTH_G    => 18,
          RD_DATA_WIDTH_G    => 18,
-         ADDR_WIDTH_G       => 14
-      )
+         ADDR_WIDTH_G       => 14)
       port map (
          -- Resets
          rst               => gtpClkRst,
@@ -456,8 +452,8 @@ begin
          dout(16)          => rcountFifoGood,
          dout(15 downto 0) => rcountFifoDout,
          rd_data_count     => open,
-         empty             => rcountFifoEmpty
-      );           
+         empty             => rcountFifoEmpty);     
+         
    udpRxGoodError <= udpRxError or udpRxGood;
 
    -- Data output
@@ -470,52 +466,55 @@ begin
 
 
    -- Convert byte data into 16-bit words
-   process (gtpClk, gtpClkRst ) begin
-      if gtpClkRst = '1' then
-         intRxFifoData <= (others=>'0') after tpd;
-         intRxFifoSOF  <= '0'           after tpd;
-         intRxFifoEOF  <= '0'           after tpd;
-         intRxFifoEOFE <= '0'           after tpd;
-         intRxFifoType <= (others=>'0') after tpd;
-         intRxFifoWr   <= '0'           after tpd;
-         intRxFirst    <= '0'           after tpd;
-         intRxLast     <= '0'           after tpd;
-         intRxInFrame  <= '0'           after tpd;
-         rxCount       <= (others=>'0') after tpd;
-         curRxState    <= ST_RX_IDLE    after tpd;
-      elsif rising_edge(gtpClk) then
+   process (gtpClk) 
+   begin
+      if rising_edge(gtpClk) then
+         if gtpClkRst = '1' then
+            intRxFifoData <= (others=>'0') after TPD_G;
+            intRxFifoSOF  <= '0'           after TPD_G;
+            intRxFifoEOF  <= '0'           after TPD_G;
+            intRxFifoEOFE <= '0'           after TPD_G;
+            intRxFifoType <= (others=>'0') after TPD_G;
+            intRxFifoWr   <= '0'           after TPD_G;
+            intRxFirst    <= '0'           after TPD_G;
+            intRxLast     <= '0'           after TPD_G;
+            intRxInFrame  <= '0'           after TPD_G;
+            rxCount       <= (others=>'0') after TPD_G;
+            curRxState    <= ST_RX_IDLE    after TPD_G;
+         else
+            -- Read counter
+            if rxCntRst = '1' then
+               rxCount <= (others=>'0') after TPD_G;
+            elsif rdataFifoRd = '1' then
+               rxCount <= rxCount + 1 after TPD_G;
+            end if;
 
-         -- Read counter
-         if rxCntRst = '1' then
-            rxCount <= (others=>'0') after tpd;
-         elsif rdataFifoRd = '1' then
-            rxCount <= rxCount + 1 after tpd;
+            -- Track in frame status
+            intRxInFrame <= nxtRxInFrame after TPD_G;
+
+            -- Track first and last
+            intRxFirst <= nxtRxFirst after TPD_G;
+            intRxLast  <= nxtRxLast  after TPD_G;
+
+            -- Output
+            intRxFifoData <= nxtRxFifoData   after TPD_G;
+            intRxFifoSOF  <= nxtRxFifoSOF    after TPD_G;
+            intRxFifoEOF  <= nxtRxFifoEOF    after TPD_G;
+            intRxFifoEOFE <= nxtRxFifoEOFE   after TPD_G;
+            intRxFifoType <= nxtRxFifoType   after TPD_G;
+            intRxFifoWr   <= nxtRxFifoWr     after TPD_G;
+            
+            -- State
+            curRxState <= nxtRxState after TPD_G;
          end if;
-
-         -- Track in frame status
-         intRxInFrame <= nxtRxInFrame after tpd;
-
-         -- Track first and last
-         intRxFirst <= nxtRxFirst after tpd;
-         intRxLast  <= nxtRxLast  after tpd;
-
-         -- Output
-         intRxFifoData <= nxtRxFifoData   after tpd;
-         intRxFifoSOF  <= nxtRxFifoSOF    after tpd;
-         intRxFifoEOF  <= nxtRxFifoEOF    after tpd;
-         intRxFifoEOFE <= nxtRxFifoEOFE   after tpd;
-         intRxFifoType <= nxtRxFifoType   after tpd;
-         intRxFifoWr   <= nxtRxFifoWr     after tpd;
-         
-         -- State
-         curRxState <= nxtRxState after tpd;
       end if;
    end process;
 
 
    process ( rdataFifoDout, rcountFifoEmpty, rcountFifoDout, intRxInFrame, intRxFifoEOFE, 
              intRxLast, intRxFifoType, rcountFifoError, intRxFifoData, intRxFifoType , 
-             intRxFirst, intRxFifoSOF, curRxState, rxCount ) begin
+             intRxFirst, intRxFifoSOF, curRxState, rxCount ) 
+   begin
       case curRxState is
 
          when ST_RX_IDLE =>
@@ -713,4 +712,3 @@ begin
    end process;
 
 end GigEthUdpFrame;
-

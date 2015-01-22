@@ -24,8 +24,8 @@ use ieee.std_logic_unsigned.all;
 
 entity EthClientUdp is 
    generic ( 
-      UdpPort : integer := 8192
-   );
+      TPD_G      : time    := 1 ns;
+      UDP_PORT_G : natural := 8192);
    port (
 
       -- Ethernet clock & reset
@@ -60,13 +60,9 @@ entity EthClientUdp is
       udpRxData   : out std_logic_vector(7 downto 0);
       udpRxCount  : out std_logic_vector(15 downto 0);
       udpRxError  : out std_logic;
-      udpRxGood   : out std_logic
-   );
-
+      udpRxGood   : out std_logic);
 end EthClientUdp;
 
-
--- Define architecture
 architecture EthClientUdp of EthClientUdp is
 
    -- Local Signals
@@ -117,14 +113,11 @@ architecture EthClientUdp of EthClientUdp is
    signal   locTxData    : std_logic_vector(7 downto 0);
    signal   locUdpRxValid: std_logic;
    signal   locTxValid   : std_logic;
-   
-   -- Register delay for simulation
-   constant tpd:time := 0.5 ns;
 
 begin
 
    -- Convert port address
-   myPortAddr <= conv_std_logic_vector(UdpPort,16);
+   myPortAddr <= conv_std_logic_vector(UDP_PORT_G,16);
 
    -- Mac address for fast transfers
    fastMacAddr(0) <= x"16";
@@ -144,138 +137,140 @@ begin
    udpRxCount <= intPayCount;
 
    -- Sync state logic
-   process ( emacClk, emacClkRst ) begin
-      if emacClkRst = '1' then
-         rxCount     <= (others=>'0')   after tpd;
-         rxUdpHead   <= (others=>x"00") after tpd;
-         intRxValid  <= '0'             after tpd;
-         locUdpRxValid  <= '0'          after tpd;
-         udpRxData   <= (others=>'0')   after tpd;
-         intRxError  <= '0'             after tpd;
-         intRxGood   <= '0'             after tpd;
-         lastIpAddr  <= (others=>x"00") after tpd;
-         lastMacAddr <= (others=>x"00") after tpd;
-         lastPort    <= (others=>'0')   after tpd;
-         intPayCount <= (others=>'0')   after tpd;
-         curRxState  <= ST_RX_IDLE      after tpd;
-      elsif rising_edge(emacClk) then
+   process ( emacClk ) 
+   begin
+      if rising_edge(emacClk) then
+         if emacClkRst = '1' then
+            rxCount     <= (others=>'0')   after TPD_G;
+            rxUdpHead   <= (others=>x"00") after TPD_G;
+            intRxValid  <= '0'             after TPD_G;
+            locUdpRxValid  <= '0'          after TPD_G;
+            udpRxData   <= (others=>'0')   after TPD_G;
+            intRxError  <= '0'             after TPD_G;
+            intRxGood   <= '0'             after TPD_G;
+            lastIpAddr  <= (others=>x"00") after TPD_G;
+            lastMacAddr <= (others=>x"00") after TPD_G;
+            lastPort    <= (others=>'0')   after TPD_G;
+            intPayCount <= (others=>'0')   after TPD_G;
+            curRxState  <= ST_RX_IDLE      after TPD_G;
+         else
+            -- Payload counter
+            if intRxError = '1' or intRxGood = '1' then
+               intPayCount <= (others=>'0') after TPD_G;
+            elsif intRxValid = '1' then
+               intPayCount <= intPayCount + 1 after TPD_G;
+            end if;
 
-         -- Payload counter
-         if intRxError = '1' or intRxGood = '1' then
-            intPayCount <= (others=>'0') after tpd;
-         elsif intRxValid = '1' then
-            intPayCount <= intPayCount + 1 after tpd;
+            -- RX Data
+            if curRxState = ST_RX_IDLE then
+               rxUdpHead(0) <= rxData after TPD_G; 
+            elsif curRxState = ST_RX_HEAD then
+              rxUdpHead(conv_integer(rxCount)) <= rxData after TPD_G; 
+            end if;
+
+            -- RX Counter
+            if rxValid = '0' then
+               rxCount <= x"0000" after TPD_G;
+            elsif curRxState = ST_RX_CHECK then
+               rxCount <= x"0008" after TPD_G;
+            elsif rxCount /= x"FFFF" then
+               rxCount <= rxCount + 1 after TPD_G;
+            end if;
+
+            -- Data RX
+            udpRxData <= rxData after TPD_G;
+
+            -- State machine
+            case curRxState is
+
+               -- IDLE
+               when ST_RX_IDLE =>
+                  if rxValid = '1' then
+                     curRxState <= ST_RX_HEAD after TPD_G;
+                  end if;
+                  intRxValid <= '0' after TPD_G;
+                  locUdpRxValid <= '0' after TPD_G;
+                  intRxError <= '0' after TPD_G;
+                  intRxGood  <= '0' after TPD_G;
+
+               -- IPV4 Header
+               when ST_RX_HEAD =>
+                  if rxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  elsif rxCount = 26 then
+                     curRxState <= ST_RX_CHECK after TPD_G;
+                  end if;
+                  intRxValid <= '0' after TPD_G;
+                  locUdpRxValid <= '0' after TPD_G;
+                  intRxError <= '0' after TPD_G;
+                  intRxGood  <= '0' after TPD_G;
+
+               -- Check header
+               when ST_RX_CHECK =>
+                  if rxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  elsif rxUdpHead(9) = UDPProtocol              and  -- Protocol
+                        rxUdpHead(16) = ipAddr(3)               and  -- My IP Address
+                        rxUdpHead(17) = ipAddr(2)               and  -- My IP Address
+                        rxUdpHead(18) = ipAddr(1)               and  -- My IP Address
+                        rxUdpHead(19) = ipAddr(0)               and  -- My IP Address
+                        rxUdpHead(22) = myPortAddr(15 downto 8) and  -- My UDP Port
+                        rxUdpHead(23) = myPortAddr(7  downto 0) then -- My UDP Port
+
+                     -- Store some fields for transmittion
+                     lastIpAddr(3)         <= rxUdpHead(12) after TPD_G;
+                     lastIpAddr(2)         <= rxUdpHead(13) after TPD_G;
+                     lastIpAddr(1)         <= rxUdpHead(14) after TPD_G;
+                     lastIpAddr(0)         <= rxUdpHead(15) after TPD_G;
+                     lastMacAddr           <= rxSrc         after TPD_G;
+                     lastPort(15 downto 8) <= rxUdpHead(20) after TPD_G;
+                     lastPort(7  downto 0) <= rxUdpHead(21) after TPD_G;
+                     curRxState            <= ST_RX_DATA    after TPD_G;
+                  else
+                     curRxState <= ST_RX_DUMP after TPD_G;
+                  end if;
+                  intRxValid <= '0' after TPD_G;
+                  locUdpRxValid <= '0' after TPD_G;
+                  intRxError <= '0' after TPD_G;
+                  intRxGood  <= '0' after TPD_G;
+
+               -- Output Data
+               when ST_RX_DATA =>
+                  if rxValid = '0' or (rxCount(15 downto 8) = rxUdpHead(24) and 
+                                       rxCount(7  downto 0) = rxUdpHead(25)) then 
+                     intRxValid <= '0'        after TPD_G;
+                     locUdpRxValid <= '0'     after TPD_G;
+                     curRxState <= ST_RX_WAIT after TPD_G;
+                  else
+                     intRxValid <= '1';
+                     locUdpRxValid <= '1';
+                  end if;
+                  intRxError <= '0' after TPD_G;
+                  intRxGood  <= '0' after TPD_G;
+
+               -- Dump Data
+               when ST_RX_DUMP =>
+                  if rxValid = '0' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  end if;
+                  intRxValid <= '0' after TPD_G;
+                  locUdpRxValid <= '0' after TPD_G;
+                  intRxError <= '0' after TPD_G;
+                  intRxGood  <= '0' after TPD_G;
+
+               -- Wait
+               when ST_RX_WAIT =>
+                  if rxError = '1' or rxGood = '1' then
+                     curRxState <= ST_RX_IDLE after TPD_G;
+                  end if;
+                  intRxValid <= '0'     after TPD_G;
+                  locUdpRxValid <= '0'     after TPD_G;
+                  intRxError <= rxError after TPD_G;
+                  intRxGood  <= rxGood  after TPD_G;
+
+               when others => curRxState <= ST_RX_IDLE after TPD_G;
+            end case;
          end if;
-
-         -- RX Data
-         if curRxState = ST_RX_IDLE then
-            rxUdpHead(0) <= rxData after tpd; 
-         elsif curRxState = ST_RX_HEAD then
-           rxUdpHead(conv_integer(rxCount)) <= rxData after tpd; 
-         end if;
-
-         -- RX Counter
-         if rxValid = '0' then
-            rxCount <= x"0000" after tpd;
-         elsif curRxState = ST_RX_CHECK then
-            rxCount <= x"0008" after tpd;
-         elsif rxCount /= x"FFFF" then
-            rxCount <= rxCount + 1 after tpd;
-         end if;
-
-         -- Data RX
-         udpRxData <= rxData after tpd;
-
-         -- State machine
-         case curRxState is
-
-            -- IDLE
-            when ST_RX_IDLE =>
-               if rxValid = '1' then
-                  curRxState <= ST_RX_HEAD after tpd;
-               end if;
-               intRxValid <= '0' after tpd;
-               locUdpRxValid <= '0' after tpd;
-               intRxError <= '0' after tpd;
-               intRxGood  <= '0' after tpd;
-
-            -- IPV4 Header
-            when ST_RX_HEAD =>
-               if rxValid = '0' then
-                  curRxState <= ST_RX_IDLE after tpd;
-               elsif rxCount = 26 then
-                  curRxState <= ST_RX_CHECK after tpd;
-               end if;
-               intRxValid <= '0' after tpd;
-               locUdpRxValid <= '0' after tpd;
-               intRxError <= '0' after tpd;
-               intRxGood  <= '0' after tpd;
-
-            -- Check header
-            when ST_RX_CHECK =>
-               if rxValid = '0' then
-                  curRxState <= ST_RX_IDLE after tpd;
-               elsif rxUdpHead(9) = UDPProtocol              and  -- Protocol
-                     rxUdpHead(16) = ipAddr(3)               and  -- My IP Address
-                     rxUdpHead(17) = ipAddr(2)               and  -- My IP Address
-                     rxUdpHead(18) = ipAddr(1)               and  -- My IP Address
-                     rxUdpHead(19) = ipAddr(0)               and  -- My IP Address
-                     rxUdpHead(22) = myPortAddr(15 downto 8) and  -- My UDP Port
-                     rxUdpHead(23) = myPortAddr(7  downto 0) then -- My UDP Port
-
-                  -- Store some fields for transmittion
-                  lastIpAddr(3)         <= rxUdpHead(12) after tpd;
-                  lastIpAddr(2)         <= rxUdpHead(13) after tpd;
-                  lastIpAddr(1)         <= rxUdpHead(14) after tpd;
-                  lastIpAddr(0)         <= rxUdpHead(15) after tpd;
-                  lastMacAddr           <= rxSrc         after tpd;
-                  lastPort(15 downto 8) <= rxUdpHead(20) after tpd;
-                  lastPort(7  downto 0) <= rxUdpHead(21) after tpd;
-                  curRxState            <= ST_RX_DATA    after tpd;
-               else
-                  curRxState <= ST_RX_DUMP after tpd;
-               end if;
-               intRxValid <= '0' after tpd;
-               locUdpRxValid <= '0' after tpd;
-               intRxError <= '0' after tpd;
-               intRxGood  <= '0' after tpd;
-
-            -- Output Data
-            when ST_RX_DATA =>
-               if rxValid = '0' or (rxCount(15 downto 8) = rxUdpHead(24) and 
-                                    rxCount(7  downto 0) = rxUdpHead(25)) then 
-                  intRxValid <= '0'        after tpd;
-                  locUdpRxValid <= '0'     after tpd;
-                  curRxState <= ST_RX_WAIT after tpd;
-               else
-                  intRxValid <= '1';
-                  locUdpRxValid <= '1';
-               end if;
-               intRxError <= '0' after tpd;
-               intRxGood  <= '0' after tpd;
-
-            -- Dump Data
-            when ST_RX_DUMP =>
-               if rxValid = '0' then
-                  curRxState <= ST_RX_IDLE after tpd;
-               end if;
-               intRxValid <= '0' after tpd;
-               locUdpRxValid <= '0' after tpd;
-               intRxError <= '0' after tpd;
-               intRxGood  <= '0' after tpd;
-
-            -- Wait
-            when ST_RX_WAIT =>
-               if rxError = '1' or rxGood = '1' then
-                  curRxState <= ST_RX_IDLE after tpd;
-               end if;
-               intRxValid <= '0'     after tpd;
-               locUdpRxValid <= '0'     after tpd;
-               intRxError <= rxError after tpd;
-               intRxGood  <= rxGood  after tpd;
-
-            when others => curRxState <= ST_RX_IDLE after tpd;
-         end case;
       end if;
    end process;
 
@@ -285,38 +280,40 @@ begin
    --------------------------------
 
    -- Checksum and length adder
-   process ( emacClk, emacClkRst ) begin
-      if emacClkRst = '1' then
-         compCSumAA   <= (others=>'0') after tpd;
-         compCSumAB   <= (others=>'0') after tpd;
-         compCSumAC   <= (others=>'0') after tpd;
-         compCSumAD   <= (others=>'0') after tpd;
-         compCSumBA   <= (others=>'0') after tpd;
-         compCSumBB   <= (others=>'0') after tpd;
-         compCSumC    <= (others=>'0') after tpd;
-         compCSumD    <= (others=>'0') after tpd;
-         compCheckSum <= (others=>'0') after tpd;
-      elsif rising_edge(emacClk) then
+   process ( emacClk ) 
+   begin
+      if rising_edge(emacClk) then
+         if emacClkRst = '1' then
+            compCSumAA   <= (others=>'0') after TPD_G;
+            compCSumAB   <= (others=>'0') after TPD_G;
+            compCSumAC   <= (others=>'0') after TPD_G;
+            compCSumAD   <= (others=>'0') after TPD_G;
+            compCSumBA   <= (others=>'0') after TPD_G;
+            compCSumBB   <= (others=>'0') after TPD_G;
+            compCSumC    <= (others=>'0') after TPD_G;
+            compCSumD    <= (others=>'0') after TPD_G;
+            compCheckSum <= (others=>'0') after TPD_G;
+         else
+            -- Level 0
+            compCSumAA   <= ('0' & txUdpHead(0)  & txUdpHead(1))  + ('0' & txUdpHead(2)  & txUdpHead(3))  after TPD_G;
+            compCSumAB   <= ('0' & txUdpHead(4)  & txUdpHead(5))  + ('0' & txUdpHead(6)  & txUdpHead(7))  after TPD_G;
+            compCSumAC   <= ('0' & txUdpHead(8)  & txUdpHead(9))  + ('0' & txUdpHead(12) & txUdpHead(13)) after TPD_G;
+            compCSumAD   <= ('0' & txUdpHead(14) & txUdpHead(15)) + ('0' & txUdpHead(16) & txUdpHead(17)) after TPD_G;
 
-         -- Level 0
-         compCSumAA   <= ('0' & txUdpHead(0)  & txUdpHead(1))  + ('0' & txUdpHead(2)  & txUdpHead(3))  after tpd;
-         compCSumAB   <= ('0' & txUdpHead(4)  & txUdpHead(5))  + ('0' & txUdpHead(6)  & txUdpHead(7))  after tpd;
-         compCSumAC   <= ('0' & txUdpHead(8)  & txUdpHead(9))  + ('0' & txUdpHead(12) & txUdpHead(13)) after tpd;
-         compCSumAD   <= ('0' & txUdpHead(14) & txUdpHead(15)) + ('0' & txUdpHead(16) & txUdpHead(17)) after tpd;
+            -- Level 1
+            compCSumBA   <= ('0' & compCSumAA) + ('0' & compCSumAB) after TPD_G;
+            compCSumBB   <= ('0' & compCSumAC) + ('0' & compCSumAD) after TPD_G;
 
-         -- Level 1
-         compCSumBA   <= ('0' & compCSumAA) + ('0' & compCSumAB) after tpd;
-         compCSumBB   <= ('0' & compCSumAC) + ('0' & compCSumAD) after tpd;
+            -- Level 2
+            compCSumC    <= ('0' & compCSumBA) + ('0' & compCSumBB) after TPD_G;
 
-         -- Level 2
-         compCSumC    <= ('0' & compCSumBA) + ('0' & compCSumBB) after tpd;
+            -- Level 3
+            compCSumD    <= ('0' & compCSumC) + ("000" & txUdpHead(18) & txUdpHead(19)) after TPD_G;
 
-         -- Level 3
-         compCSumD    <= ('0' & compCSumC) + ("000" & txUdpHead(18) & txUdpHead(19)) after tpd;
-
-         -- Level 4
-         compCheckSum <= ('0' & x"0000" & compCSumD(19 downto 16)) + ("00000" & compCSumD(15 downto 0));
-                        
+            -- Level 4
+            compCheckSum <= ('0' & x"0000" & compCSumD(19 downto 16)) + ("00000" & compCSumD(15 downto 0));
+                           
+         end if;
       end if;
    end process;
 
@@ -353,104 +350,105 @@ begin
    -- Transmit
    txData  <= locTxData;
    txValid <= locTxValid;
-   process ( emacClk, emacClkRst ) begin
-      if emacClkRst = '1' then
-         IPV4Length        <= (others=>'0') after tpd;
-         UDPLength         <= (others=>'0') after tpd;
-         locTxValid        <= '0'             after tpd;
-         locTxData         <= (others=>'0')   after tpd;
-         txCount           <= (others=>'0')   after tpd;
-         pktNum            <= (others=>'0')   after tpd;
-         txDst             <= (others=>x"00") after tpd;
-         udpTxReady        <= '0'             after tpd;
-         intTxLength       <= (others=>'0')   after tpd;
-         curTxState        <= ST_TX_IDLE      after tpd;
-      elsif rising_edge(emacClk) then
-
-         if (udpTxValid = '1') then
-            -- UDP Length, 8 Byte + length + SOF/EOF frames
-            UDPLength  <= udpTxLength + x"0008"; --+ "10";
-            -- IPV4 Length, 20 Byte IPV4 + UDP Length + SOF/EOF frames
-            IPV4Length <= udpTxLength + x"001C"; --+ "10";
-         end if;
-         
-         -- TX Data
-         if txReady = '0' then
-            locTxData <= txUdpHead(0) after tpd;
-         elsif curTxState = ST_TX_HEAD then
-            locTxData <= txUdpHead(conv_integer(txCount)) after tpd;
-         elsif curTxState = ST_TX_PAD then
-            locTxData <= (others=>'0') after tpd;
+   process ( emacClk ) 
+   begin
+      if rising_edge(emacClk) then
+         if emacClkRst = '1' then
+            IPV4Length        <= (others=>'0') after TPD_G;
+            UDPLength         <= (others=>'0') after TPD_G;
+            locTxValid        <= '0'             after TPD_G;
+            locTxData         <= (others=>'0')   after TPD_G;
+            txCount           <= (others=>'0')   after TPD_G;
+            pktNum            <= (others=>'0')   after TPD_G;
+            txDst             <= (others=>x"00") after TPD_G;
+            udpTxReady        <= '0'             after TPD_G;
+            intTxLength       <= (others=>'0')   after TPD_G;
+            curTxState        <= ST_TX_IDLE      after TPD_G;
          else
-            locTxData <= udpTxData after tpd;
-         end if;
+            if (udpTxValid = '1') then
+               -- UDP Length, 8 Byte + length + SOF/EOF frames
+               UDPLength  <= udpTxLength + x"0008"; --+ "10";
+               -- IPV4 Length, 20 Byte IPV4 + UDP Length + SOF/EOF frames
+               IPV4Length <= udpTxLength + x"001C"; --+ "10";
+            end if;
+            
+            -- TX Data
+            if txReady = '0' then
+               locTxData <= txUdpHead(0) after TPD_G;
+            elsif curTxState = ST_TX_HEAD then
+               locTxData <= txUdpHead(conv_integer(txCount)) after TPD_G;
+            elsif curTxState = ST_TX_PAD then
+               locTxData <= (others=>'0') after TPD_G;
+            else
+               locTxData <= udpTxData after TPD_G;
+            end if;
 
-         -- TX Counter
-         if curTxState = ST_TX_HEAD and txCount = 27 then
-            txCount <= (others=>'0') after tpd;
-         elsif txReady = '0' or curTxState = ST_TX_IDLE then
-            txCount <= x"0001" after tpd;
-         elsif txCount /= x"FFFF" then
-            txCount <= txCount + 1 after tpd;
-         end if;
+            -- TX Counter
+            if curTxState = ST_TX_HEAD and txCount = 27 then
+               txCount <= (others=>'0') after TPD_G;
+            elsif txReady = '0' or curTxState = ST_TX_IDLE then
+               txCount <= x"0001" after TPD_G;
+            elsif txCount /= x"FFFF" then
+               txCount <= txCount + 1 after TPD_G;
+            end if;
 
-         -- State machine
-         case curTxState is
+            -- State machine
+            case curTxState is
 
-            -- IDLE
-            when ST_TX_IDLE =>
-               if udpTxValid = '1' then
-                  curTxState       <= ST_TX_HEAD  after tpd;
-                  locTxValid       <= '1'         after tpd;
-                  if udpTxFast = '1' then
-                     txDst         <= fastMacAddr after tpd; 
-                  else
-                  txDst            <= lastMacAddr after tpd; 
+               -- IDLE
+               when ST_TX_IDLE =>
+                  if udpTxValid = '1' then
+                     curTxState       <= ST_TX_HEAD  after TPD_G;
+                     locTxValid       <= '1'         after TPD_G;
+                     if udpTxFast = '1' then
+                        txDst         <= fastMacAddr after TPD_G; 
+                     else
+                     txDst            <= lastMacAddr after TPD_G; 
+                     end if;
+                     intTxLength      <= udpTxLength after TPD_G;
+   --                   pktNum           <= pktNum + 1  after TPD_G;
                   end if;
-                  intTxLength      <= udpTxLength after tpd;
---                   pktNum           <= pktNum + 1  after tpd;
-               end if;
-               udpTxReady          <= '0'         after tpd;
-         
-            -- Header
-            when ST_TX_HEAD =>
---                   curTxState <= ST_TX_DATA after tpd; -- One clk delay for udpTxData to arrive
---                   
---                els
-               if txReady = '1' and txCount = 26 then
-                  udpTxReady <= '1'        after tpd; -- Asserting one clk early for
-               end if;
-               if txReady = '1' and txCount = 27 then --26
-                  --udpTxReady <= '1'        after tpd; -- Asserting one clk early for
-                  curTxState <= ST_TX_DATA after tpd;
-               elsif locTxValid = '0' then
-                  curTxState <= ST_TX_IDLE after tpd;
-               end if;
-
-            -- Data  
-            when ST_TX_DATA =>
-               if txCount = intTxLength then
-                  if txCount < 18 then
-                     curTxState <= ST_TX_PAD after tpd;
-                  else
-                     curTxState <= ST_TX_IDLE after tpd;
-                     locTxValid <= '0'       after tpd;
+                  udpTxReady          <= '0'         after TPD_G;
+            
+               -- Header
+               when ST_TX_HEAD =>
+   --                   curTxState <= ST_TX_DATA after TPD_G; -- One clk delay for udpTxData to arrive
+   --                   
+   --                els
+                  if txReady = '1' and txCount = 26 then
+                     udpTxReady <= '1'        after TPD_G; -- Asserting one clk early for
                   end if;
-                  
-                  udpTxReady    <= '0'       after tpd;
-               end if;
+                  if txReady = '1' and txCount = 27 then --26
+                     --udpTxReady <= '1'        after TPD_G; -- Asserting one clk early for
+                     curTxState <= ST_TX_DATA after TPD_G;
+                  elsif locTxValid = '0' then
+                     curTxState <= ST_TX_IDLE after TPD_G;
+                  end if;
 
-            -- PAD to 46 bytes
-            when ST_TX_PAD =>
-               if txCount >= 18 then
-                  curTxState    <= ST_TX_IDLE after tpd;
-                  locTxValid    <= '0'       after tpd;
-               end if;
+               -- Data  
+               when ST_TX_DATA =>
+                  if txCount = intTxLength then
+                     if txCount < 18 then
+                        curTxState <= ST_TX_PAD after TPD_G;
+                     else
+                        curTxState <= ST_TX_IDLE after TPD_G;
+                        locTxValid <= '0'       after TPD_G;
+                     end if;
+                     
+                     udpTxReady    <= '0'       after TPD_G;
+                  end if;
 
-            when others => curTxState <= ST_TX_IDLE after tpd;
-         end case;
+               -- PAD to 46 bytes
+               when ST_TX_PAD =>
+                  if txCount >= 18 then
+                     curTxState    <= ST_TX_IDLE after TPD_G;
+                     locTxValid    <= '0'       after TPD_G;
+                  end if;
+
+               when others => curTxState <= ST_TX_IDLE after TPD_G;
+            end case;
+         end if;
       end if;
    end process;
 
 end EthClientUdp;
-

@@ -45,13 +45,9 @@ entity GigEthArbiterSsi is
 
       -- User transmit interfaces (data from virtual channels)
       userTxMasters  : in  AxiStreamMasterArray(3 downto 0);
-      userTxSlaves   : out AxiStreamSlaveArray(3 downto 0) 
-      
-   );
+      userTxSlaves   : out AxiStreamSlaveArray(3 downto 0));
 end GigEthArbiterSsi;
 
-
--- Define architecture for Interface module
 architecture GigEthArbiterSsi of GigEthArbiterSsi is 
 
    signal iTxMasters  : AxiStreamMasterArray(3 downto 0);
@@ -74,6 +70,8 @@ begin
    
    -- Map into the ethernet arbiter
    U_EthArbiter : entity work.EthArbiter
+      generic map (
+         TPD_G => TPD_G)
       port map (
          -- Ethernet clock & reset
          gtpClk         => gtpClk,
@@ -108,7 +106,6 @@ begin
          user3TxReady   => iTxSlaves(3).tReady,
          user3TxData    => iTxMasters(3).tData(31 downto 0),
          user3TxSOF     => userSOF(3),
-         user3TxEOF     => iTxMasters(3).tLast         
-      );
+         user3TxEOF     => iTxMasters(3).tLast);
 
 end GigEthArbiterSsi;

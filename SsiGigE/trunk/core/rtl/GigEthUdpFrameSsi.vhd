@@ -26,9 +26,8 @@ use work.SsiPkg.all;
 use work.GigEthPkg.all;
 
 entity GigEthUdpFrameSsi is 
-    generic (
-      TPD_G             : time       := 1 ns
-    );
+   generic ( 
+      TPD_G : time := 1 ns);
     port ( 
 
       -- Ethernet clock & reset
@@ -60,9 +59,7 @@ entity GigEthUdpFrameSsi is
       udpRxData        : in  std_logic_vector(7  downto 0);
       udpRxGood        : in  std_logic;
       udpRxError       : in  std_logic;
-      udpRxCount       : in  std_logic_vector(15 downto 0)
-
-   );
+      udpRxCount       : in  std_logic_vector(15 downto 0));
 end GigEthUdpFrameSsi;
 
 -- Define architecture for Interface module
@@ -139,19 +136,20 @@ begin
    U_RxDeMux : entity work.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
-         NUM_MASTERS_G => 4
-      ) port map (
+         NUM_MASTERS_G => 4) 
+      port map (
          axisClk      => gtpClk,
          axisRst      => gtpClkRst,
          sAxisMaster  => intRxMaster,
          sAxisSlave   => open,
          mAxisMasters => ethRxMasters,
-         mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
-      );   
+         mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C));   
 
       
    -- U_GigEthUdpFrame : entity work.GigEthUdpFrame
-      -- port map (
+      -- generic map (
+         -- TPD_G => TPD_G)
+      -- port map (   
          -- -- Ethernet clock & reset
          -- gtpClk         => gtpClk,
          -- gtpClkRst      => gtpClkRst,
@@ -181,13 +179,12 @@ begin
          -- udpRxData      => udpRxData,
          -- udpRxGood      => udpRxGood,
          -- udpRxError     => udpRxError,
-         -- udpRxCount     => udpRxCount
-      -- );      
+         -- udpRxCount     => udpRxCount);      
 
    U_GigEthUdpFrameTx : entity work.GigEthUdpFrameTx
       generic map (
-         EN_JUMBO_G => false
-      )
+         TPD_G      => TPD_G,
+         EN_JUMBO_G => false)
       port map (
          -- Ethernet clock & reset
          gtpClk         => gtpClk,
@@ -204,10 +201,11 @@ begin
          udpTxFast      => udpTxFast,
          udpTxReady     => udpTxReady,
          udpTxData      => udpTxData,
-         udpTxLength    => udpTxLength
-      );      
+         udpTxLength    => udpTxLength);      
 
    U_GigEthUdpFrameRx : entity work.GigEthUdpFrameRx
+      generic map (
+         TPD_G => TPD_G)
       port map (
          -- Ethernet clock & reset
          gtpClk         => gtpClk,
@@ -224,9 +222,6 @@ begin
          udpRxData      => udpRxData,
          udpRxGood      => udpRxGood,
          udpRxError     => udpRxError,
-         udpRxCount     => udpRxCount
-      );      
-
+         udpRxCount     => udpRxCount);      
       
 end GigEthUdpFrameSsi;
-
