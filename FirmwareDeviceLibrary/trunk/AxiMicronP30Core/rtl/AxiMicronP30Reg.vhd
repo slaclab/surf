@@ -5,31 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2014-11-21
+-- Last update: 2015-01-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.
---
--- Write Only Registers:
--- Addr (0x00 << 2): Bits[31:16] = wr_data(1) // opCode
---                   Bits[15:00] = wr_data(0) // data
---
--- Addr (0x01 << 2): Bits[31]    = RnW bit
---                   Bits[30:00] = address bus
---
--- Read Only Registers:
--- Addr (0x00 << 2): Bits[31:16] = wr_data(1) // opCode
---                   Bits[15:00] = wr_data(0) // data
---
--- Addr (0x01 << 2): Bits[31]    = RnW bit
---                   Bits[30:00] = address bus
---
--- Addr (0x02 << 2): Bits[31:16] = zeros
---                   Bits[15:00] = rd_data
---
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -75,6 +57,7 @@ architecture rtl of AxiMicronP30Reg is
    
    type stateType is (
       IDLE_S,
+      FAST_MODE_S,
       CMD_LOW_S,
       CMD_HIGH_S,
       WAIT_S,
@@ -91,11 +74,15 @@ architecture rtl of AxiMicronP30Reg is
       din           : slv(15 downto 0);
       dataReg       : slv(15 downto 0);
       addr          : slv(30 downto 0);
-      wrData        : Slv16Array(0 to 1);
-      state         : StateType;
+      wrCmd         : slv(15 downto 0);
+      wrData        : slv(15 downto 0);
       test          : slv(31 downto 0);
+      fastProgEn    : sl;
+      fastData      : slv(15 downto 0);
+      fastCnt       : slv(3 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
+      state         : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
@@ -108,11 +95,15 @@ architecture rtl of AxiMicronP30Reg is
       din           => x"0000",
       dataReg       => x"0000",
       addr          => (others => '0'),
-      wrData        => (others => x"0000"),
-      state         => IDLE_S,
+      wrCmd         => (others => '0'),
+      wrData        => (others => '0'),
       test          => (others => '0'),
+      fastProgEn    => '0',
+      fastData      => (others => '0'),
+      fastCnt       => (others => '0'),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      state         => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -130,6 +121,14 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset the strobing signals
+      v.ceL        := '1';
+      v.oeL        := '1';
+      v.weL        := '1';
+      v.tristate   := '1';
+      axiWriteResp := AXI_RESP_OK_C;
+      axiReadResp  := AXI_RESP_OK_C;
+
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
@@ -137,46 +136,17 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            
-            if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
-               -- Check for an out of 32 bit aligned address
-               axiWriteResp := AXI_RESP_OK_C;
-               -- Decode address and perform write
-               case (axiWriteMaster.awaddr(7 downto 0)) is
-                  when x"00" =>
-                     -- Set the opCode bus
-                     v.wrData(1) := axiWriteMaster.wdata(31 downto 16);
-                     -- Set the input data bus
-                     v.wrData(0) := axiWriteMaster.wdata(15 downto 0);
-                     axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);                     
-                  when x"04" =>
-                     -- Set the RnW
-                     v.RnW   := axiWriteMaster.wdata(31);
-                     -- Set the address bus
-                     v.addr  := axiWriteMaster.wdata(30 downto 0);
-                     -- Next state
-                     v.state := CMD_LOW_S;
-                  when x"0c" =>
-                     v.test := axiWriteMaster.wdata;
-                     axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);                     
-                  when others =>
-                     axiWriteResp := AXI_ERROR_RESP_G;
-                     axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);                     
-               end case;
-               -- Send AXI response
-
-            elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
-               -- Check for an out of 32 bit aligned address
-               axiReadResp          := AXI_RESP_OK_C;
+            -- Check for a read request            
+            if (axiStatus.readEnable = '1') then
                -- Reset the register
                v.axiReadSlave.rdata := (others => '0');
                -- Decode address and assign read data
                case (axiReadMaster.araddr(7 downto 0)) is
                   when x"00" =>
                      -- Get the opCode bus
-                     v.axiReadSlave.rdata(31 downto 16) := r.wrData(1);
+                     v.axiReadSlave.rdata(31 downto 16) := r.wrCmd;
                      -- Get the input data bus
-                     v.axiReadSlave.rdata(15 downto 0)  := r.wrData(0);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.wrData;
                   when x"04" =>
                      -- Get the RnW
                      v.axiReadSlave.rdata(31)          := r.RnW;
@@ -187,24 +157,110 @@ begin
                      v.axiReadSlave.rdata(15 downto 0) := r.dataReg;
                   when x"0C" =>
                      v.axiReadSlave.rdata := r.test;
+                  when x"10" =>
+                     -- Get the address bus
+                     v.axiReadSlave.rdata(30 downto 0) := r.addr;
                   when others =>
                      axiReadResp := AXI_ERROR_RESP_G;
                end case;
-               -- Send Axi Response
+               -- Send AXI-Lite Response
                axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
             end if;
-
-            v.ceL      := '1';
-            v.oeL      := '1';
-            v.weL      := '1';
-            v.tristate := '1';
+            -- Check for a write request
+            if (axiStatus.writeEnable = '1') then
+               -- Decode address and perform write
+               case (axiWriteMaster.awaddr(7 downto 0)) is
+                  when x"00" =>
+                     -- Set the opCode bus
+                     v.wrCmd  := axiWriteMaster.wdata(31 downto 16);
+                     -- Set the input data bus
+                     v.wrData := axiWriteMaster.wdata(15 downto 0);
+                  when x"04" =>
+                     -- Set the RnW
+                     v.RnW   := axiWriteMaster.wdata(31);
+                     -- Set the address bus
+                     v.addr  := axiWriteMaster.wdata(30 downto 0);
+                     -- Next state
+                     v.state := CMD_LOW_S;
+                  when x"0C" =>
+                     v.test := axiWriteMaster.wdata;
+                  when x"10" =>
+                     -- Set the address bus
+                     v.addr := axiWriteMaster.wdata(30 downto 0);
+                  when x"14" =>
+                     -- Set the flag
+                     v.fastProgEn := '1';
+                     -- Set the data bus
+                     v.fastData   := axiWriteMaster.wdata(15 downto 0);
+                     -- Next state
+                     v.state      := FAST_MODE_S;
+                  when others =>
+                     axiWriteResp := AXI_ERROR_RESP_G;
+               end case;
+               -- Send AXI-Lite response
+               axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
+            end if;
+         ----------------------------------------------------------------------
+         when FAST_MODE_S =>
+            -- Increment the counter
+            v.fastCnt := r.fastCnt + 1;
+            -- Check the counter
+            case r.fastCnt is
+               when x"0" =>
+                  -- Send the "unlock the block" command
+                  v.RnW    := '0';
+                  v.wrCmd  := x"0060";
+                  v.wrData := x"00D0";
+               when x"1" =>
+                  -- Send the "reset the status register" command
+                  v.RnW    := '0';
+                  v.wrCmd  := x"0050";
+                  v.wrData := x"0050";
+               when x"2" =>
+                  -- Send the "program" command
+                  v.RnW    := '0';
+                  v.wrCmd  := x"0040";
+                  v.wrData := r.fastData;
+               -- Get the status register
+               when x"3" =>
+                  v.RnW   := '1';
+                  v.wrCmd := x"0070";
+               when others =>
+                  -- Check if FLASH is still busy
+                  if r.dataReg(7) = '0' then
+                     -- Set the counter
+                     v.fastCnt := x"4";
+                     -- Get the status register
+                     v.RnW     := '1';
+                     v.wrCmd   := x"0070";
+                  -- Check for programming failure
+                  elsif r.dataReg(4) = '1' then
+                     -- Set the counter
+                     v.fastCnt := x"1";
+                     -- Send the "unlock the block" command
+                     v.RnW     := '0';
+                     v.wrCmd   := x"0060";
+                     v.wrData  := x"00D0";
+                  else
+                     -- Send the "lock the block" command
+                     v.RnW        := '0';
+                     v.wrCmd      := x"0060";
+                     v.wrData     := x"0001";
+                     -- Reset the flag
+                     v.fastProgEn := '0';
+                     -- Reset the counter
+                     v.fastCnt    := x"0";
+                  end if;
+            end case;
+            -- Next state
+            v.state := CMD_LOW_S;
          ----------------------------------------------------------------------
          when CMD_LOW_S =>
             v.ceL      := '0';
             v.oeL      := '1';
             v.weL      := '0';
             v.tristate := '0';
-            v.din      := r.wrData(1);
+            v.din      := r.wrCmd;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
             -- Check the counter 
@@ -220,7 +276,7 @@ begin
             v.oeL      := '1';
             v.weL      := '1';
             v.tristate := '0';
-            v.din      := r.wrData(1);
+            v.din      := r.wrCmd;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
             -- Check the counter 
@@ -236,7 +292,7 @@ begin
             v.oeL      := '1';
             v.weL      := '1';
             v.tristate := '1';
-            v.din      := r.wrData(0);
+            v.din      := r.wrData;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
             -- Check the counter 
@@ -252,7 +308,7 @@ begin
             v.oeL      := not(r.RnW);
             v.weL      := r.RnW;
             v.tristate := r.RnW;
-            v.din      := r.wrData(0);
+            v.din      := r.wrData;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
             -- Check the counter 
@@ -270,16 +326,21 @@ begin
             v.oeL      := '1';
             v.weL      := '1';
             v.tristate := r.RnW;
-            v.din      := r.wrData(0);
+            v.din      := r.wrData;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
             -- Check the counter 
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
-               v.cnt   := 0;
-               -- Next state
-               v.state := IDLE_S;
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_OK_C);
+               v.cnt := 0;
+               -- Check for fast program command mode
+               if r.fastProgEn = '1' then
+                  -- Next state
+                  v.state := FAST_MODE_S;
+               else
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
             end if;
       ----------------------------------------------------------------------
       end case;
@@ -318,5 +379,5 @@ begin
             I  => r.din(i),             -- Buffer input
             T  => r.tristate);          -- 3-state enable input, high=input, low=output     
    end generate GEN_IOBUF;
-   
+
 end rtl;
