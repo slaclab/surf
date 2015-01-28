@@ -25,6 +25,8 @@ use work.AxiStreamPkg.all;
 entity EthGtx7 is
    generic (
       TPD_G                 : time                 := 1 ns;
+      EN_JUMBO_G            : boolean              := false;
+      EN_AUTONEG_G          : boolean              := true;
       UDP_PORT_G            : natural              := 8192;
       ----------------------------------------------------------------------------------------------
       -- GT Settings
@@ -113,6 +115,8 @@ begin
    U_GigEthLane : entity work.GigEthLane
       generic map (
          TPD_G               => TPD_G,
+         EN_JUMBO_G          => EN_JUMBO_G,
+         EN_AUTONEG_G        => EN_AUTONEG_G,
          UDP_PORT_G          => UDP_PORT_G,
          SIM_RESET_SPEEDUP_G => toBoolean(SIM_GTRESET_SPEEDUP_G),
          SIM_VERSION_G       => SIM_VERSION_G)

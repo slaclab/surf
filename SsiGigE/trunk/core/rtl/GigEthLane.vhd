@@ -34,6 +34,8 @@ use UNISIM.VCOMPONENTS.all;
 entity GigEthLane is
    generic (
       TPD_G               : time    := 1 ns;
+      EN_JUMBO_G          : boolean := false;
+      EN_AUTONEG_G        : boolean := true;
       UDP_PORT_G          : natural := 8192;
       -- Sim Generics
       SIM_RESET_SPEEDUP_G : boolean := false;
@@ -115,7 +117,7 @@ begin
 
    -- Connections to top level ports
    ethRxLinkSync  <= iEthRxLinkSync;
-   ethAutoNegDone <= iEthLinkReady;
+   ethAutoNegDone <= iEthLinkReady when EN_AUTONEG_G = true else '1';
 
    -- No polarity detection at the moment
    phyRxLaneOut.polarity <= '0';
@@ -246,7 +248,7 @@ begin
    process(ethClk62MHz)
    begin
       if rising_edge(ethClk62MHz) then
-         if (iEthLinkReady = '1' and macTxPhyData.valid = '1') then
+         if (iEthLinkReady = '1' and macTxPhyData.valid = '1') or (EN_AUTONEG_G = false) then
             phyTxLaneOut <= macTxPhyData after TPD_G;
          else
             phyTxLaneOut <= anTxPhyData after TPD_G;
@@ -294,7 +296,9 @@ begin
    -- UDP framer
    U_GigEthUdpFrameSsi : entity work.GigEthUdpFrameSsi
       generic map (
-         TPD_G => TPD_G)
+         EN_JUMBO_G => EN_JUMBO_G,
+         TPD_G      => TPD_G
+      )
       port map (
          -- Ethernet clock & reset
          gtpClk           => ethClk125MHz,
