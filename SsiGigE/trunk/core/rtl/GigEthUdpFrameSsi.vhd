@@ -27,8 +27,10 @@ use work.GigEthPkg.all;
 
 entity GigEthUdpFrameSsi is 
    generic ( 
-      TPD_G : time := 1 ns);
-    port ( 
+      EN_JUMBO_G : boolean := false;
+      TPD_G      : time := 1 ns
+   );
+   port ( 
 
       -- Ethernet clock & reset
       gtpClk           : in  std_logic;                        -- 125Mhz master clock
@@ -184,7 +186,8 @@ begin
    U_GigEthUdpFrameTx : entity work.GigEthUdpFrameTx
       generic map (
          TPD_G      => TPD_G,
-         EN_JUMBO_G => false)
+         EN_JUMBO_G => EN_JUMBO_G
+      )
       port map (
          -- Ethernet clock & reset
          gtpClk         => gtpClk,

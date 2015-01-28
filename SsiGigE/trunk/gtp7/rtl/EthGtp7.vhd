@@ -29,6 +29,9 @@ use UNISIM.VCOMPONENTS.all;
 entity EthGtp7 is
    generic (
       TPD_G             : time       := 1 ns;
+      -- Ethernet Configurations
+      EN_AUTONEG_G      : boolean    := true;
+      EN_JUMBO_G        : boolean    := false;
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -293,6 +296,9 @@ begin
    U_GigEthLane : entity work.GigEthLane
       generic map (
          TPD_G                 => TPD_G,
+         -- Ethernet Configurations
+         EN_JUMBO_G            => EN_JUMBO_G,
+         EN_AUTONEG_G          => EN_AUTONEG_G,
          -- Sim Generics
          SIM_RESET_SPEEDUP_G   => toBoolean(SIM_GTRESET_SPEEDUP_G),
          SIM_VERSION_G         => SIM_VERSION_G
