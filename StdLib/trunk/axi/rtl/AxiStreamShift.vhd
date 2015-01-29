@@ -31,8 +31,9 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamShift is
    generic (
-      TPD_G         : time := 1 ns;
-      AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
+      TPD_G          : time := 1 ns;
+      AXIS_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      ADD_VALID_EN_G : boolean := false
    );
    port (
 
@@ -118,8 +119,8 @@ architecture structure of AxiStreamShift is
                mOut.tUser((i*user)+(user-1) downto (i*user)) := mDelay.tUser(((i+rDiv)*user)+(user-1) downto (i+rDiv)*user);
 
                if shiftFirst then
-                  mOut.tStrb(i) := '0';
-                  mOut.tKeep(i) := '0';
+                  mOut.tStrb(i) := ite(ADD_VALID_EN_G = true,'1','0');
+                  mOut.tKeep(i) := ite(ADD_VALID_EN_G = true,'1','0');
                else
                   mOut.tStrb(i) := mDelay.tStrb(i+rDiv);
                   mOut.tKeep(i) := mDelay.tKeep(i+rDiv);
