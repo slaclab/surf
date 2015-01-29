@@ -15,9 +15,9 @@
 -- 2/16/2011: created.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-Library Unisim;
-USE ieee.std_logic_1164.ALL;
+library ieee;
+library Unisim;
+use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
@@ -25,47 +25,49 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.GigEthPkg.all;
 
-entity GigEthUdpFrameSsi is 
-   generic ( 
-      EN_JUMBO_G : boolean := false;
-      TPD_G      : time := 1 ns
-   );
-   port ( 
+entity GigEthUdpFrameSsi is
+   generic (
+      TPD_G           : time             := 1 ns;
+      -- Officially 1.5kB (hardware dependent)
+      TX_REG_SIZE_G   : slv(11 downto 0) := x"168";   -- Default: 360 x 32-bit words = 1.44kB
+      -- Officially 9kB (hardware dependent)
+      EN_JUMBO_G      : boolean          := false;
+      TX_JUMBO_SIZE_G : slv(11 downto 0) := x"4E2");  -- Default: 1250 x 32-bit words = 5kB    
+   port (
 
       -- Ethernet clock & reset
-      gtpClk           : in  std_logic;                        -- 125Mhz master clock
-      gtpClkRst        : in  std_logic;                        -- Synchronous reset input
+      gtpClk    : in std_logic;         -- 125Mhz master clock
+      gtpClkRst : in std_logic;         -- Synchronous reset input
 
       -- User Transmit Interface
-      userTxValid      : in  std_logic;
-      userTxReady      : out std_logic;
-      userTxData       : in  std_logic_vector(31 downto 0);    -- Ethernet TX Data
-      userTxSOF        : in  std_logic;                        -- Ethernet TX Start of Frame
-      userTxEOF        : in  std_logic;                        -- Ethernet TX End of Frame
-      userTxVc         : in  std_logic_vector(1  downto 0);    -- Ethernet TX Virtual Channel
+      userTxValid : in  std_logic;
+      userTxReady : out std_logic;
+      userTxData  : in  std_logic_vector(31 downto 0);  -- Ethernet TX Data
+      userTxSOF   : in  std_logic;                      -- Ethernet TX Start of Frame
+      userTxEOF   : in  std_logic;                      -- Ethernet TX End of Frame
+      userTxVc    : in  std_logic_vector(1 downto 0);   -- Ethernet TX Virtual Channel
 
       -- User Receive Interface
       ethRxMasters     : out AxiStreamMasterArray(3 downto 0);
       ethRxMasterMuxed : out AxiStreamMasterType;
 
       -- UDP Block Transmit Interface (connection to MAC)
-      udpTxValid       : out std_logic;
-      udpTxFast        : out std_logic;
-      udpTxReady       : in  std_logic;
-      udpTxData        : out std_logic_vector(7  downto 0);
-      udpTxLength      : out std_logic_vector(15 downto 0);
-      udpTxJumbo       : in  std_logic;
+      udpTxValid  : out std_logic;
+      udpTxFast   : out std_logic;
+      udpTxReady  : in  std_logic;
+      udpTxData   : out std_logic_vector(7 downto 0);
+      udpTxLength : out std_logic_vector(15 downto 0);
 
       -- UDP Block Receive Interface (connection from MAC)
-      udpRxValid       : in  std_logic;
-      udpRxData        : in  std_logic_vector(7  downto 0);
-      udpRxGood        : in  std_logic;
-      udpRxError       : in  std_logic;
-      udpRxCount       : in  std_logic_vector(15 downto 0));
+      udpRxValid : in std_logic;
+      udpRxData  : in std_logic_vector(7 downto 0);
+      udpRxGood  : in std_logic;
+      udpRxError : in std_logic;
+      udpRxCount : in std_logic_vector(15 downto 0));
 end GigEthUdpFrameSsi;
 
 -- Define architecture for Interface module
-architecture GigEthUdpFrameSsi of GigEthUdpFrameSsi is 
+architecture GigEthUdpFrameSsi of GigEthUdpFrameSsi is
    
    signal userRxValid  : sl;
    signal userRxData   : slv(31 downto 0);
@@ -74,27 +76,27 @@ architecture GigEthUdpFrameSsi of GigEthUdpFrameSsi is
    signal userRxEOFE   : sl;
    signal userRxVc     : slv(1 downto 0);
    signal intRxVcValid : slv(3 downto 0);
-   
+
    signal intRxMaster   : AxiStreamMasterType;
    signal remFifoStatus : AxiStreamCtrlArray(3 downto 0);
-                 
+   
 begin
 
    -- Demuxed output port
-   ethRxMasterMuxed  <= intRxMaster;   
+   ethRxMasterMuxed <= intRxMaster;
 
    -- Generate one-hot encoding for intRxValid for valid/vc logic
-   intRxVcValid <= "0001" when userRxValid = '1' and userRxVc = 0 else 
-                   "0010" when userRxValid = '1' and userRxVc = 1 else 
-                   "0100" when userRxValid = '1' and userRxVc = 2 else 
-                   "1000" when userRxValid = '1' and userRxVc = 3 else 
+   intRxVcValid <= "0001" when userRxValid = '1' and userRxVc = 0 else
+                   "0010" when userRxValid = '1' and userRxVc = 1 else
+                   "0100" when userRxValid = '1' and userRxVc = 2 else
+                   "1000" when userRxValid = '1' and userRxVc = 3 else
                    "0000";
-   
+
    -- Generate valid/vc
-   process ( gtpClk ) is
+   process (gtpClk) is
       variable intMaster : AxiStreamMasterType;
    begin
-      if rising_edge ( gtpClk ) then
+      if rising_edge (gtpClk) then
          intMaster := AXI_STREAM_MASTER_INIT_C;
 
          intMaster.tData(31 downto 0) := userRxData;
@@ -103,11 +105,11 @@ begin
 
          intMaster.tLast := userRxEOF;
 
-         axiStreamSetUserBit(SSI_GIGETH_CONFIG_C,intMaster,SSI_EOFE_C,userRxEOFE);
-         axiStreamSetUserBit(SSI_GIGETH_CONFIG_C,intMaster,SSI_SOF_C,userRxSOF,0);
+         axiStreamSetUserBit(SSI_GIGETH_CONFIG_C, intMaster, SSI_EOFE_C, userRxEOFE);
+         axiStreamSetUserBit(SSI_GIGETH_CONFIG_C, intMaster, SSI_SOF_C, userRxSOF, 0);
 
          -- Generate valid and dest values
-         case intRxVcValid is 
+         case intRxVcValid is
             when "0001" =>
                intMaster.tValid            := '1';
                intMaster.tDest(3 downto 0) := "0000";
@@ -121,20 +123,19 @@ begin
                intMaster.tValid            := '1';
                intMaster.tDest(3 downto 0) := "0011";
             when others =>
-               intMaster.tValid            := '0';
+               intMaster.tValid := '0';
          end case;
 
          if gtpClkRst = '1' then
             intMaster := AXI_STREAM_MASTER_INIT_C;
          else
 
-         intRxMaster <= intMaster after TPD_G;
+            intRxMaster <= intMaster after TPD_G;
 
          end if;
       end if;
    end process;
 
-   
    U_RxDeMux : entity work.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
@@ -145,86 +146,51 @@ begin
          sAxisMaster  => intRxMaster,
          sAxisSlave   => open,
          mAxisMasters => ethRxMasters,
-         mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C));   
-
-      
-   -- U_GigEthUdpFrame : entity work.GigEthUdpFrame
-      -- generic map (
-         -- TPD_G => TPD_G)
-      -- port map (   
-         -- -- Ethernet clock & reset
-         -- gtpClk         => gtpClk,
-         -- gtpClkRst      => gtpClkRst,
-         -- -- User Transmit Interface
-         -- userTxValid    => userTxValid,
-         -- userTxReady    => userTxReady,
-         -- userTxData     => userTxData,
-         -- userTxSOF      => userTxSOF,
-         -- userTxEOF      => userTxEOF,
-         -- userTxVc       => userTxVc,
-         -- -- User Receive Interface
-         -- userRxValid    => userRxValid,
-         -- userRxData     => userRxData,
-         -- userRxSOF      => userRxSOF,
-         -- userRxEOF      => userRxEOF,
-         -- userRxEOFE     => userRxEOFE,
-         -- userRxVc       => userRxVc,
-         -- -- UDP Block Transmit Interface (connection to MAC)
-         -- udpTxValid     => udpTxValid,
-         -- udpTxFast      => udpTxFast,
-         -- udpTxReady     => udpTxReady,
-         -- udpTxData      => udpTxData,
-         -- udpTxLength    => udpTxLength,
-         -- udpTxJumbo     => udpTxJumbo,
-         -- -- UDP Block Receive Interface (connection from MAC)
-         -- udpRxValid     => udpRxValid,
-         -- udpRxData      => udpRxData,
-         -- udpRxGood      => udpRxGood,
-         -- udpRxError     => udpRxError,
-         -- udpRxCount     => udpRxCount);      
+         mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));   
 
    U_GigEthUdpFrameTx : entity work.GigEthUdpFrameTx
       generic map (
-         TPD_G      => TPD_G,
-         EN_JUMBO_G => EN_JUMBO_G
-      )
+         TPD_G           => TPD_G,
+         TX_REG_SIZE_G   => TX_REG_SIZE_G,
+         EN_JUMBO_G      => EN_JUMBO_G,
+         TX_JUMBO_SIZE_G => TX_JUMBO_SIZE_G)
       port map (
          -- Ethernet clock & reset
-         gtpClk         => gtpClk,
-         gtpClkRst      => gtpClkRst,
+         gtpClk      => gtpClk,
+         gtpClkRst   => gtpClkRst,
          -- User Transmit Interface
-         userTxValid    => userTxValid,
-         userTxReady    => userTxReady,
-         userTxData     => userTxData,
-         userTxSOF      => userTxSOF,
-         userTxEOF      => userTxEOF,
-         userTxVc       => userTxVc,
+         userTxValid => userTxValid,
+         userTxReady => userTxReady,
+         userTxData  => userTxData,
+         userTxSOF   => userTxSOF,
+         userTxEOF   => userTxEOF,
+         userTxVc    => userTxVc,
          -- UDP Block Transmit Interface (connection to MAC)
-         udpTxValid     => udpTxValid,
-         udpTxFast      => udpTxFast,
-         udpTxReady     => udpTxReady,
-         udpTxData      => udpTxData,
-         udpTxLength    => udpTxLength);      
+         udpTxValid  => udpTxValid,
+         udpTxFast   => udpTxFast,
+         udpTxReady  => udpTxReady,
+         udpTxData   => udpTxData,
+         udpTxLength => udpTxLength);      
 
    U_GigEthUdpFrameRx : entity work.GigEthUdpFrameRx
       generic map (
          TPD_G => TPD_G)
       port map (
          -- Ethernet clock & reset
-         gtpClk         => gtpClk,
-         gtpClkRst      => gtpClkRst,
+         gtpClk      => gtpClk,
+         gtpClkRst   => gtpClkRst,
          -- User Receive Interface
-         userRxValid    => userRxValid,
-         userRxData     => userRxData,
-         userRxSOF      => userRxSOF,
-         userRxEOF      => userRxEOF,
-         userRxEOFE     => userRxEOFE,
-         userRxVc       => userRxVc,
+         userRxValid => userRxValid,
+         userRxData  => userRxData,
+         userRxSOF   => userRxSOF,
+         userRxEOF   => userRxEOF,
+         userRxEOFE  => userRxEOFE,
+         userRxVc    => userRxVc,
          -- UDP Block Receive Interface (connection from MAC)
-         udpRxValid     => udpRxValid,
-         udpRxData      => udpRxData,
-         udpRxGood      => udpRxGood,
-         udpRxError     => udpRxError,
-         udpRxCount     => udpRxCount);      
-      
+         udpRxValid  => udpRxValid,
+         udpRxData   => udpRxData,
+         udpRxGood   => udpRxGood,
+         udpRxError  => udpRxError,
+         udpRxCount  => udpRxCount);      
+
 end GigEthUdpFrameSsi;

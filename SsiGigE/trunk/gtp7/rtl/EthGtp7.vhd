@@ -30,8 +30,11 @@ entity EthGtp7 is
    generic (
       TPD_G             : time       := 1 ns;
       -- Ethernet Configurations
-      EN_AUTONEG_G      : boolean    := true;
-      EN_JUMBO_G        : boolean    := false;
+      EN_AUTONEG_G        : boolean          := true;
+      UDP_PORT_G          : natural          := 8192;
+      TX_REG_SIZE_G       : slv(11 downto 0) := x"168";  -- Default: 360 x 32-bit words = 1.44kB
+      EN_JUMBO_G          : boolean          := false;
+      TX_JUMBO_SIZE_G     : slv(11 downto 0) := x"4E2";  -- Default: 1250 x 32-bit words = 5kB       
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -296,9 +299,11 @@ begin
    U_GigEthLane : entity work.GigEthLane
       generic map (
          TPD_G                 => TPD_G,
-         -- Ethernet Configurations
-         EN_JUMBO_G            => EN_JUMBO_G,
          EN_AUTONEG_G          => EN_AUTONEG_G,
+         UDP_PORT_G            => UDP_PORT_G,
+         TX_REG_SIZE_G         => TX_REG_SIZE_G,
+         EN_JUMBO_G            => EN_JUMBO_G,
+         TX_JUMBO_SIZE_G       => TX_JUMBO_SIZE_G,
          -- Sim Generics
          SIM_RESET_SPEEDUP_G   => toBoolean(SIM_GTRESET_SPEEDUP_G),
          SIM_VERSION_G         => SIM_VERSION_G

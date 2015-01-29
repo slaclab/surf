@@ -5,7 +5,7 @@
 -- Author     : Kurtis Nishimura <kurtisn@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-03
--- Last update: 2015-01-22
+-- Last update: 2015-01-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,13 +33,17 @@ use UNISIM.VCOMPONENTS.all;
 
 entity GigEthLane is
    generic (
-      TPD_G               : time    := 1 ns;
-      EN_JUMBO_G          : boolean := false;
-      EN_AUTONEG_G        : boolean := true;
-      UDP_PORT_G          : natural := 8192;
+      TPD_G               : time             := 1 ns;
+      EN_AUTONEG_G        : boolean          := true;
+      UDP_PORT_G          : natural          := 8192;
+      -- Officially 1.5kB (hardware dependent)
+      TX_REG_SIZE_G       : slv(11 downto 0) := x"168";  -- Default: 360 x 32-bit words = 1.44kB
+      -- Officially 9kB (hardware dependent)
+      EN_JUMBO_G          : boolean          := false;
+      TX_JUMBO_SIZE_G     : slv(11 downto 0) := x"4E2";  -- Default: 1250 x 32-bit words = 5kB    
       -- Sim Generics
-      SIM_RESET_SPEEDUP_G : boolean := false;
-      SIM_VERSION_G       : string  := "4.0");
+      SIM_RESET_SPEEDUP_G : boolean          := false;
+      SIM_VERSION_G       : string           := "4.0");
    port (
       -- Clocking
       ethClk125MHz     : in  sl;
@@ -109,9 +113,6 @@ architecture rtl of GigEthLane is
    signal userTxSOF   : sl;
    signal userTxEOF   : sl;
    signal userTxVc    : slv(1 downto 0);
-
-   constant JUMBO_EN_C : sl := '0';
-   
    
 begin
 
@@ -296,9 +297,10 @@ begin
    -- UDP framer
    U_GigEthUdpFrameSsi : entity work.GigEthUdpFrameSsi
       generic map (
-         EN_JUMBO_G => EN_JUMBO_G,
-         TPD_G      => TPD_G
-      )
+         TPD_G           => TPD_G,
+         TX_REG_SIZE_G   => TX_REG_SIZE_G,
+         EN_JUMBO_G      => EN_JUMBO_G,
+         TX_JUMBO_SIZE_G => TX_JUMBO_SIZE_G)
       port map (
          -- Ethernet clock & reset
          gtpClk           => ethClk125MHz,
@@ -319,7 +321,6 @@ begin
          udpTxReady       => udpTxReady,
          udpTxData        => udpTxData,
          udpTxLength      => udpTxLength,
-         udpTxJumbo       => JUMBO_EN_C,
          -- UDP Block Receive Interface (connection from MAC)
          udpRxValid       => udpRxValid,
          udpRxData        => udpRxData,
