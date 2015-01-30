@@ -96,6 +96,7 @@ entity Pgp2bGtx7MultiLane is
       gtRxN            : in  slv((LANE_CNT_G-1) downto 0);  -- GT Serial Receive Negative
       -- Tx Clocking
       pgpTxReset       : in  sl;
+      pgpTxRecClk      : out sl;                            -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmReset   : out sl;
       pgpTxMmcmLocked  : in  sl;
@@ -145,6 +146,7 @@ architecture rtl of Pgp2bGtx7MultiLane is
 
    -- PgpTx Signals
    signal pgpTxMmcmResets : slv((LANE_CNT_G-1) downto 0);
+   signal pgpTxRecClock   : slv((LANE_CNT_G-1) downto 0);
    signal gtTxResetDone   : slv((LANE_CNT_G-1) downto 0);
    signal gtTxUserResetIn : sl;
    signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
@@ -161,6 +163,7 @@ begin
    pgpTxMmcmReset <= pgpTxMmcmResets(0);
    pgpRxMmcmReset <= pgpRxMmcmResets(0);
    pgpRxRecClk    <= pgpRxRecClock(0);
+   pgpTxRecClk    <= pgpTxRecClock(0);
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
@@ -336,7 +339,7 @@ begin
             rxChBondLevelIn  => slv(to_unsigned((LANE_CNT_G-1-i), 3)),
             rxChBondIn       => rxChBondIn(i),
             rxChBondOut      => rxChBondOut(i),
-            txOutClkOut      => open,
+            txOutClkOut      => pgpTxRecClock(i),
             txUsrClkIn       => pgpTxClk,
             txUsrClk2In      => pgpTxClk,
             txUserRdyOut     => open,

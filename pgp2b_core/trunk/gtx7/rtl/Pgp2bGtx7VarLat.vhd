@@ -35,7 +35,7 @@ entity Pgp2bGtx7VarLat is
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "4.0";
-      STABLE_CLOCK_PERIOD_G : real       := 6.4E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds (default to longest timeout)
       -- CPLL Settings
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       CPLL_FBDIV_G          : integer    := 4;
@@ -90,6 +90,7 @@ entity Pgp2bGtx7VarLat is
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxClk         : in  sl;
+      pgpTxRecClk      : out sl;                      -- recovered clock
       pgpTxMmcmReset   : out sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
@@ -173,6 +174,7 @@ begin
          gtRxN(0)         => gtRxN,
          -- Tx Clocking
          pgpTxReset       => pgpTxReset,
+         pgpTxRecClk      => pgpTxRecClk,
          pgpTxClk         => pgpTxClk,
          pgpTxMmcmReset   => pgpTxMmcmReset,
          pgpTxMmcmLocked  => pgpTxMmcmLocked,
