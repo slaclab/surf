@@ -60,7 +60,7 @@ entity GigEthUdpFrameTx is
 end GigEthUdpFrameTx;
 
 architecture GigEthUdpFrameTx of GigEthUdpFrameTx is
-   type StateType is (IDLE_S, WAIT_S, HEAD_S, BYTE_S);
+   type StateType is (IDLE_S, WAIT_S, HEAD_S, BYTE_S, PAUSE_S);
 
    type RegType is record
       udpTxValid    : sl;
@@ -131,7 +131,8 @@ begin
          FWFT_EN_G          => true,
          WR_DATA_WIDTH_G    => 35,
          RD_DATA_WIDTH_G    => 35,
-         ADDR_WIDTH_G       => 13,
+         --ADDR_WIDTH_G       => 13,
+         ADDR_WIDTH_G       => 16,
          FULL_THRES_G       => 7000)
       port map (
          -- Resets
@@ -276,10 +277,15 @@ begin
                when "11" =>
                   v.udpTxData := tdataFifoDout(7 downto 0);
                   if (r.txCount = 0) then
-                     v.state := IDLE_S;
+                     v.state := PAUSE_S;
                   end if;
                when others =>
             end case;
+         -- Pause for next frame
+         when PAUSE_S =>
+            v.udpTxValid  := '0';
+            v.tdataFifoRd := '0';
+            v.state       := IDLE_S;
          -- Return to IDLE in unexpected state
          when others =>
             v.state := IDLE_S;

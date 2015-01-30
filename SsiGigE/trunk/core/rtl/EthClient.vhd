@@ -43,6 +43,7 @@ entity EthClient is
       emacTxData      : out std_logic_vector(7 downto 0);
       emacTxValid     : out std_logic;
       emacTxAck       : in  std_logic;
+      emacTxIdle      : in  std_logic;
       emacTxFirst     : out std_logic;
 
       -- Ethernet Constants
@@ -96,28 +97,15 @@ architecture EthClient of EthClient is
    signal pauseCountPre  : std_logic_vector(2  downto 0);
 
    -- Ethernet RX States
-   constant ST_RX_IDLE   : std_logic_vector(3 downto 0) := "0001";
-   constant ST_RX_DST    : std_logic_vector(3 downto 0) := "0010";
-   constant ST_RX_SRC    : std_logic_vector(3 downto 0) := "0011";
-   constant ST_RX_TYPE   : std_logic_vector(3 downto 0) := "0100";
-   constant ST_RX_SEL    : std_logic_vector(3 downto 0) := "0101";
-   constant ST_RX_PAUSEA : std_logic_vector(3 downto 0) := "0110";
-   constant ST_RX_PAUSEB : std_logic_vector(3 downto 0) := "0111";
-   constant ST_RX_PAUSEC : std_logic_vector(3 downto 0) := "1000";
-   constant ST_RX_PAUSED : std_logic_vector(3 downto 0) := "1001";
-   constant ST_RX_DATA   : std_logic_vector(3 downto 0) := "1010";
-   constant ST_RX_DONE   : std_logic_vector(3 downto 0) := "1011";
-   signal   curRXState   : std_logic_vector(3 downto 0);
+   type RxStateType is (ST_RX_IDLE, ST_RX_DST, ST_RX_SRC, ST_RX_TYPE,
+                        ST_RX_SEL, ST_RX_PAUSEA, ST_RX_PAUSEB,
+                        ST_RX_PAUSEC, ST_RX_PAUSED, ST_RX_DATA, ST_RX_DONE);
+   signal   curRXState   : RxStateType;
 
    -- Ethernet TX States
-   constant ST_TX_IDLE   : std_logic_vector(2 downto 0) := "001";
-   constant ST_TX_ACK    : std_logic_vector(2 downto 0) := "010";  
-   constant ST_TX_DST    : std_logic_vector(2 downto 0) := "011";
-   constant ST_TX_SRC    : std_logic_vector(2 downto 0) := "100";
-   constant ST_TX_TYPE   : std_logic_vector(2 downto 0) := "101";
-   constant ST_TX_DATA   : std_logic_vector(2 downto 0) := "110";
-   constant ST_TX_PAUSE  : std_logic_vector(2 downto 0) := "111";
-   signal   curTXState   : std_logic_vector(2 downto 0);
+   type TxStateType is (ST_TX_IDLE, ST_TX_ACK, ST_TX_DST, ST_TX_SRC,
+                        ST_TX_TYPE, ST_TX_DATA, ST_TX_NACK, ST_TX_PAUSE);
+   signal curTXState : TxStateType;
 
    -- Debug
    signal locEmacTxData  : std_logic_vector(7 downto 0);
@@ -385,6 +373,8 @@ begin
                   selTxArpReady <= '0'           after TPD_G;
                   selTxUdpReady <= '0'           after TPD_G;
 
+                  -- Don't transmit unless MAC layer is idle
+                  if emacTxIdle = '1' then
                   -- Don't transmit is pause counter is non zero
                   --if pauseCount = 0 then
                      if selTxArpValid = '1' then
@@ -397,6 +387,7 @@ begin
                         locEmacTxData <= selTxUdpDst(0) after TPD_G;
                      end if;
                   --end if;
+                  end if;
                   
                -- Wait on ack
                when ST_TX_ACK =>
@@ -480,16 +471,25 @@ begin
                      emacTxValid    <= selTxArpValid after TPD_G;
                      locEmacTxData  <= selTxArpData  after TPD_G;
                      if selTxArpValid = '0' then
-                        curTxState <= ST_TX_IDLE;
+                        --curTxState <= ST_TX_IDLE;
+                        curTxState <= ST_TX_NACK;
                      end if;
                   else
                      emacTxValid    <= selTxUdpValid after TPD_G;
                      locEmacTxData  <= selTxUdpData  after TPD_G;
                      if selTxUdpValid = '0' then
-                        curTxState <= ST_TX_IDLE;
+                        --curTxState <= ST_TX_IDLE;
+                        curTxState <= ST_TX_NACK;
                      end if;
                   end if;
-
+               -- Wait for ACK to drop
+               when ST_TX_NACK =>
+                  emacTxValid   <= '0'          after TPD_G;
+                  emacTxFirst   <= '0'          after TPD_G;
+                  if emacTxAck = '0' then
+                     curTxState <= ST_TX_IDLE;
+                  end if;
+                  
                when others => curTxState <= ST_TX_IDLE after TPD_G;
             end case;
          end if;
