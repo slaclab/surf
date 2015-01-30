@@ -36,6 +36,8 @@ entity GigEthMacTx is
       userDataValid     : in sl;
       userDataFirstByte : in sl;
       userDataAck       : out sl;
+      -- Ready for next packet
+      emacTxIdle        : out sl;
       -- Data out to the GTX
       ethMacDataOut     : out EthMacDataType); 
 end GigEthMacTx;
@@ -43,7 +45,7 @@ end GigEthMacTx;
 architecture rtl of GigEthMacTx is
 
    type StateType is (S_IDLE, S_SPD, S_PREAMBLE, S_SOF, S_FRAME_DATA, S_PAD, 
-                      S_FCS_0, S_FCS_1, S_FCS_2, S_FCS_3, S_EPD, S_CAR);
+                      S_FCS_0, S_FCS_1, S_FCS_2, S_FCS_3, S_EPD, S_CAR, S_INTERPACKET_GAP);
    
    type RegType is record
       state         : StateType;
@@ -57,9 +59,9 @@ architecture rtl of GigEthMacTx is
       crcByteCount  : slv(15 downto 0);
       userByteCount : slv(15 downto 0);
       preambleCount : slv(7 downto 0);
-      userDataAck   : sl;
       fifoDataRdEn  : sl;
-      fifoDataWrEn  : sl;
+      gapWaitCnt    : slv(7 downto 0);
+      emacTxIdle    : sl;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
@@ -74,9 +76,10 @@ architecture rtl of GigEthMacTx is
       crcByteCount  => (others => '0'),
       userByteCount => (others => '0'),
       preambleCount => (others => '0'),
-      userDataAck   => '0',
       fifoDataRdEn  => '0',
-      fifoDataWrEn  => '0');
+      gapWaitCnt    => (others => '0'),
+      emacTxIdle    => '0'
+   );
    
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -85,6 +88,9 @@ architecture rtl of GigEthMacTx is
    signal fifoDataOut     : slv(7 downto 0);
    signal fifoDataValid   : sl;
    signal fifoAlmostEmpty : sl;
+
+   -- Gigabit ethernet should have a minimum 12 cycle gap between packets
+   constant INTERPACKET_GAP_WAIT_C : slv(7 downto 0) := x"0C";
    
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
@@ -166,19 +172,13 @@ begin
             v.crcDataValid := '0';
          end if;
       end if;
-
-      -- There is a peculiarity in the way the valid signal was previously
-      -- required to be asserted for the TEMAC cores.  Due to handshaking with the 
-      -- ack the first byte is repeated twice, so we want to throw away one of those
-      -- here.
-      v.fifoDataWrEn := userDataValid;
       
       -- The rest of the state machine just sends data 
       -- following the 1000-BASEX and Ethernet standards.
       case(r.state) is 
          -- In idle, transmit commas forever
          when S_IDLE =>
-            v.fifoDataWrEn := '0';
+            v.emacTxIdle := '1';
             -- Current frame is odd, next frame will be even
             if (r.oddEven = '1') then
                v.dataOut   := (K_COM_C);
@@ -194,14 +194,12 @@ begin
             v.userByteCount := (others => '0');
             v.preambleCount := (others => '0');
             v.fifoDataRdEn  := '0';
-            v.userDataAck   := '0';
             if (userDataValid = '1') then
                v.state        := S_SPD;
+               v.emacTxIdle   := '0';
             end if;
          -- Once we see good data, send /S/ in next even position
          when S_SPD =>
-            -- Send acknowledge
-            v.userDataAck   := '0';
             -- If next frame is even, transmit /S/ and move on to next state
             if (r.oddEven = '1') then
                v.dataOut   := (K_SOP_C);
@@ -214,7 +212,6 @@ begin
             end if;
          -- Then send the preamble
          when S_PREAMBLE =>
-            v.userDataAck  := '1';
             v.dataOut       := ETH_PRE_C;
             v.dataKOut      := '0';
             v.preambleCount := r.preambleCount + 1;
@@ -223,7 +220,6 @@ begin
             end if;
          -- Then send the ethernet SOF
          when S_SOF =>
-            v.userDataAck  := '1';
             v.dataOut      := ETH_SOF_C;
             v.dataKOut     := '0';
             v.state        := S_FRAME_DATA;
@@ -280,8 +276,29 @@ begin
             v.dataOut   := K_CAR_C;
             -- Make sure we put IDLE back on an even boundary
             if (r.oddEven = '0') then
-               v.state     := S_IDLE;
+               v.state      := S_INTERPACKET_GAP;
+               v.gapWaitCnt := INTERPACKET_GAP_WAIT_C;
             end if;
+         -- Force an interpacket gap filled with comma chars
+         when S_INTERPACKET_GAP =>
+            -- Current frame is odd, next frame will be even
+            if (r.oddEven = '1') then
+               v.dataOut   := (K_COM_C);
+               v.dataKOut  := '1';
+            -- Current frame is even, next frame will be odd
+            else
+               v.dataOut   := (D_162_C);
+               v.dataKOut  := '0';
+            end if;
+            v.userByteCount := (others => '0');
+            v.preambleCount := (others => '0');
+            v.fifoDataRdEn  := '0';
+            if (r.gapWaitCnt = 0) then
+               v.state        := S_IDLE;
+            else
+               v.gapWaitCnt := r.gapWaitCnt - 1;
+            end if;
+            
          when others =>
             v.state := S_IDLE;
       end case;
@@ -295,9 +312,13 @@ begin
       ethMacDataOut.data      <= r.dataOut;
       ethMacDataOut.dataK     <= r.dataKOut;
       ethMacDataOut.dataValid <= r.dataValidOut;
---      userDataAck             <= r.userDataAck;
---      userDataAck             <= r.fifoDataWrEn;
-      userDataAck <= userDataValid;
+      emacTxIdle              <= r.emacTxIdle;
+      
+      if (r.state = S_INTERPACKET_GAP) then
+         userDataAck <= '1';
+      else
+         userDataAck <= userDataValid;
+      end if;
       
       rin <= v;
 

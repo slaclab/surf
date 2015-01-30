@@ -93,6 +93,7 @@ architecture rtl of GigEthLane is
    signal emacTxData  : slv(7 downto 0);
    signal emacTxValid : sl;
    signal emacTxAck   : sl;
+   signal emacTxIdle  : sl;
    signal emacTxFirst : sl;
 
    signal udpTxValid  : sl;
@@ -242,6 +243,8 @@ begin
          userDataValid     => emacTxValid,
          userDataFirstByte => emacTxFirst,
          userDataAck       => emacTxAck,
+         -- Ready for next packet
+         emacTxIdle        => emacTxIdle,
          -- Data out to the GTX
          ethMacDataOut     => macTxDataOut);
 
@@ -276,6 +279,7 @@ begin
          emacTxData      => emacTxData,
          emacTxValid     => emacTxValid,
          emacTxAck       => emacTxAck,
+         emacTxIdle      => emacTxIdle,
          emacTxFirst     => emacTxFirst,
          -- Ethernet Constants
          ipAddr          => ipAddr,

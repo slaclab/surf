@@ -53,7 +53,7 @@ architecture testbed of GigEthUdpFrameSsiTb is
 
    signal userTxValid      : sl;
    signal userTxReady      : sl;
-   signal userTxData       : slv(15 downto 0);
+   signal userTxData       : slv(31 downto 0);
    signal userTxSOF        : sl;
    signal userTxEOF        : sl;
    signal userTxVc         : slv(1 downto 0);
