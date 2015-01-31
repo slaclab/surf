@@ -24,6 +24,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Gtx7QuadPll is
    
    generic (
+      TPD_G               : time       := 1 ns
       SIM_RESET_SPEEDUP_G : string     := "TRUE";
       SIM_VERSION_G       : string     := "4.0";
       QPLL_CFG_G          : bit_vector := x"0680181";  -- QPLL_CFG_G[6] selects the QPLL frequency band: 0 = upper band, 1 = lower band
