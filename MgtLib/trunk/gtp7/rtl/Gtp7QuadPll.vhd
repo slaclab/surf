@@ -24,6 +24,7 @@ use UNISIM.VCOMPONENTS.all;
 
 entity Gtp7QuadPll is
    generic (
+      TPD_G                : time                 := 1 ns
       SIM_RESET_SPEEDUP_G  : string               := "TRUE";
       SIM_VERSION_G        : string               := "1.0";
       PLL0_REFCLK_SEL_G    : bit_vector           := "001";
