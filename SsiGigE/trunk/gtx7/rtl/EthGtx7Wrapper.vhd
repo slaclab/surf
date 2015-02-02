@@ -9,7 +9,8 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Example 1GigE-UDP front end wrapper
+-- Note: Default generic configurations are for the KC705 development board
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -134,7 +135,7 @@ begin
          DIVCLK_DIVIDE_G    => DIVCLK_DIVIDE_G,
          CLKFBOUT_MULT_F_G  => CLKFBOUT_MULT_F_G,
          CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G,
-         CLKOUT1_DIVIDE_G   => getTimeRatio(CLKOUT0_DIVIDE_F_G, 2.0))
+         CLKOUT1_DIVIDE_G   => getTimeRatio(CLKOUT0_DIVIDE_F_G, 0.5))
       port map(
          clkIn     => stableClock,
          rstIn     => extRstSync,
