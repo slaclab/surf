@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-02
--- Last update: 2014-09-15
+-- Last update: 2015-02-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ package Gtp7CfgPkg is
    constant QPLL_LOW_C  : real := 1.6E9;
    constant QPLL_HIGH_C : real := 3.3E9;
 
-   impure function getGtp7QPllCfg (refClkFreq : real; lineRate : real) return Gtp7QPllCfgType;
+   function getGtp7QPllCfg (refClkFreq : real; lineRate : real) return Gtp7QPllCfgType;
 
 
 end package Gtp7CfgPkg;
@@ -54,7 +54,7 @@ package body Gtp7CfgPkg is
    -------------------------------------------------------------------------------------------------
    -- QPLL Config
    -------------------------------------------------------------------------------------------------
-   impure function getGtp7QPllCfg (
+   function getGtp7QPllCfg (
       refClkFreq : real;
       lineRate   : real)
       return Gtp7QPllCfgType
