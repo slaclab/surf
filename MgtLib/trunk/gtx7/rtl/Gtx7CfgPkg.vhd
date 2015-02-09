@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-02
--- Last update: 2014-11-10
+-- Last update: 2015-01-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ package Gtx7CfgPkg is
    constant CPLL_LOW_C  : real := 1.6E9;
    constant CPLL_HIGH_C : real := 3.3E9;
 
-   impure function getGtx7CPllCfg (refClkFreq : real; lineRate : real) return Gtx7CPllCfgType;
+   function getGtx7CPllCfg (refClkFreq : real; lineRate : real) return Gtx7CPllCfgType;
 
    -------------------------------------------------------------------------------------------------
    -- QPLL
