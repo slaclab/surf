@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-07-18
+-- Last update: 2014-12-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,6 +44,8 @@ package AxiStreamPkg is
       tUser  => (others => '0'));
    type AxiStreamMasterArray is array (natural range<>) of AxiStreamMasterType;
    type AxiStreamMasterVectorArray is array (natural range<>, natural range<>) of AxiStreamMasterType;
+   subtype AxiStreamQuadMasterType is AxiStreamMasterArray(3 downto 0);
+   type AxiStreamQuadMasterArray is array (natural range <>) of AxiStreamMasterArray(3 downto 0);
 
    type AxiStreamSlaveType is record
       tReady : sl;
@@ -51,7 +53,9 @@ package AxiStreamPkg is
 
    type AxiStreamSlaveArray is array (natural range<>) of AxiStreamSlaveType;
    type AxiStreamSlaveVectorArray is array (natural range<>, natural range<>) of AxiStreamSlaveType;
-
+   subtype AxiStreamQuadSlaveType is AxiStreamSlaveArray(3 downto 0);
+   type AxiStreamQuadSlaveArray is array (natural range <>) of AxiStreamSlaveArray(3 downto 0);
+   
    constant AXI_STREAM_SLAVE_INIT_C : AxiStreamSlaveType := (
       tReady => '0');
 
@@ -99,7 +103,12 @@ package AxiStreamPkg is
 
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
    type AxiStreamCtrlVectorArray is array (natural range<>, natural range<>) of AxiStreamCtrlType;
+   subtype AxiStreamQuadCtrlType is AxiStreamCtrlArray(3 downto 0);
+   type AxiStreamQuadCtrlArray is array (natural range <>) of AxiStreamCtrlArray(3 downto 0);
 
+   -------------------------------------------------------------------------------------------------
+   -- Helper function prototypes
+   -------------------------------------------------------------------------------------------------
    function axiStreamPacked (
       constant CONFIG_C : AxiStreamConfigType;
       axisMaster        : AxiStreamMasterType)
