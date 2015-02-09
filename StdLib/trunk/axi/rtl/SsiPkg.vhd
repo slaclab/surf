@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-06-02
+-- Last update: 2015-01-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ package SsiPkg is
    -------------------------------------------------------------------------------------------------
    function ssiAxiStreamConfig (
       dataBytes : natural;
-      tKeepMode : TKeepModeType := TKEEP_COMP_C) 
+      tKeepMode : TKeepModeType := TKEEP_COMP_C;
+      tUserMode : TUserModeType := TUSER_FIRST_LAST_C) 
       return AxiStreamConfigType;
 
    -- A default SSI config is useful to have
@@ -121,7 +122,7 @@ package SsiPkg is
    procedure ssiSetUserSof (
       axisConfig : in    AxiStreamConfigType;
       axisMaster : inout AxiStreamMasterType;
-      sof        : in    sl); 
+      sof        : in    sl);
 
    procedure ssiResetFlags (
       axisMaster : inout AxiStreamMasterType);       
@@ -132,7 +133,8 @@ package body SsiPkg is
 
    function ssiAxiStreamConfig (
       dataBytes : natural;
-      tKeepMode : TKeepModeType := TKEEP_COMP_C) 
+      tKeepMode : TKeepModeType := TKEEP_COMP_C;
+      tUserMode : TUserModeType := TUSER_FIRST_LAST_C) 
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
@@ -142,7 +144,7 @@ package body SsiPkg is
       ret.TID_BITS_C    := SSI_TID_BITS_C;      -- TID not used
       ret.TKEEP_MODE_C  := tKeepMode;           -- 
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;      -- No TSTRB support in SSI
-      ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C;  -- User field valid on last only
+      ret.TUSER_MODE_C  := tUserMode;  -- User field valid on last only
       return ret;
    end function ssiAxiStreamConfig;
 
@@ -164,13 +166,13 @@ package body SsiPkg is
    is
       variable ret : AxiStreamMasterType;
    begin
-      ret        := AXI_STREAM_MASTER_INIT_C;
-      ret.tValid := ssiMaster.valid;
-      ret.tData  := ssiMaster.data;
-      ret.tLast  := ssiMaster.eof;
-      ret.tStrb  := ssiMaster.strb;
-      ret.tKeep  := ssiMaster.keep;
-      ret.tDest(SSI_TDEST_BITS_C-1 downto 0)  := ssiMaster.dest;
+      ret                                    := AXI_STREAM_MASTER_INIT_C;
+      ret.tValid                             := ssiMaster.valid;
+      ret.tData                              := ssiMaster.data;
+      ret.tLast                              := ssiMaster.eof;
+      ret.tStrb                              := ssiMaster.strb;
+      ret.tKeep                              := ssiMaster.keep;
+      ret.tDest(SSI_TDEST_BITS_C-1 downto 0) := ssiMaster.dest;
       ssiSetUserSof(axisConfig, ret, ssiMaster.sof);
       ssiSetUserEofe(axisConfig, ret, ssiMaster.eofe);
       return ret;
@@ -233,8 +235,14 @@ package body SsiPkg is
    function ssiMasterInit (
       axisConfig : AxiStreamConfigType)
       return SsiMasterType is
+      variable ret : SsiMasterType;
    begin
-      return axis2ssiMaster(axisConfig, AXI_STREAM_MASTER_INIT_C);
+      ret      := axis2ssiMaster(axisConfig, AXI_STREAM_MASTER_INIT_C);
+--      ret.keep := (others => '0');
+--      for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
+--         ret.keep(i) := '1';
+--      end loop;
+      return ret;
    end function ssiMasterInit;
 
    function ssiSlaveInit (
