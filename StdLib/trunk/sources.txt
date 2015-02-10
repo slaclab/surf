@@ -41,6 +41,7 @@ vhdl work xilinx7/rtl/DeviceDna.vhd
 vhdl work xilinx7/rtl/Iprog7Series.vhd
 vhdl work xilinx7/rtl/XadcSimpleCore.vhd
 vhdl work xilinx7/rtl/Dsp48Comparator4x12b.vhd
+vhdl work xilinx7/rtl/ClockManager7Pkg.vhd
 vhdl work xilinx7/rtl/ClockManager7.vhd
 
 vhdl work sync/rtl/Synchronizer.vhd
