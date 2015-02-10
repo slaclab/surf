@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2007-12-19
--- Last update: 2013-12-05
+-- Last update: 2015-01-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -18,6 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
+library UNISIM;
+use UNISIM.VCOMPONENTS.all;
 
 use work.StdRtlPkg.all;
 
@@ -57,8 +60,9 @@ architecture rtl of DS2411Core is
       bitCntEn : sl := '0';
    signal bitCntRst,
       timeCntRst : sl := '1';
-   signal timeCnt : slv(31 downto 0) := (others => '0');
-   signal bitCnt  : slv(5 downto 0)  := (others => '0');
+   signal timeCnt      : slv(31 downto 0) := (others => '0');
+   signal bitCnt       : slv(5 downto 0)  := (others => '0');
+   signal setOutLowInv : sl;
 
 begin
 
@@ -69,9 +73,17 @@ begin
    end generate;
 
    NORMAL_GEN : if (SIMULATION_G = false) generate
-      
-      fdSerSdio <= '0' when(setOutLow = '1') else 'Z';
-      fdSerDin  <= fdSerSdio;
+
+      setOutLowInv <= not setOutLow;
+      FD_SER_SDIO_BUFT : IOBUF
+         port map (
+            I  => '0',
+            O  => fdSerDin,
+            IO => fdSerSdio,
+            T  => setOutLowInv);
+
+--      fdSerSdio <= '0' when(setOutLow = '1') else 'Z';
+--      fdSerDin  <= fdSerSdio;
 
       -- Sync state logic
       process (clk, rst)
@@ -139,7 +151,7 @@ begin
                   timeCntRst <= '0';
                end if;
 
-               -- Reset Link
+            -- Reset Link
             when ST_RESET =>
                setOutLow  <= '1';
                fdValidSet <= '0';
@@ -156,7 +168,7 @@ begin
                   timeCntRst <= '0';
                end if;
 
-               -- Wait after reset
+            -- Wait after reset
             when ST_WAIT =>
                setOutLow  <= '0';
                fdValidSet <= '0';
@@ -173,7 +185,7 @@ begin
                   timeCntRst <= '0';
                end if;
 
-               -- Write Command Bits To PROM (0x33)
+            -- Write Command Bits To PROM (0x33)
             when ST_WRITE =>
                fdValidSet <= '0';
                bitSet     <= '0';
@@ -187,7 +199,7 @@ begin
                   bitCntEn   <= '0';
                   nxtState   <= curState;
 
-                  -- Output write value for 52uS
+               -- Output write value for 52uS
                elsif timeCnt < toSlv(getTimeRatio(52.0E-6, CLK_PERIOD_G), 32) then
                   if bitCnt = 2 or bitCnt = 3 or bitCnt = 6 or bitCnt = 7 then
                      setOutLow <= '1';
@@ -199,7 +211,7 @@ begin
                   bitCntRst  <= '0';
                   bitCntEn   <= '0';
 
-                  -- Recovery Time of 62.4us
+               -- Recovery Time of 62.4us
                elsif timeCnt < toSlv(getTimeRatio(62.4E-6, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   nxtState   <= curState;
@@ -207,7 +219,7 @@ begin
                   bitCntRst  <= '0';
                   bitCntEn   <= '0';
 
-                  -- Done with bit
+               -- Done with bit
                else
                   timeCntRst <= '1';
                   bitCntEn   <= '1';
@@ -223,7 +235,7 @@ begin
                   end if;
                end if;
 
-               -- Delay after write
+            -- Delay after write
             when ST_PAUSE =>
                setOutLow  <= '0';
                fdValidSet <= '0';
@@ -240,7 +252,7 @@ begin
                   timeCntRst <= '0';
                end if;
 
-               -- Read Data Bits From Prom
+            -- Read Data Bits From Prom
             when ST_READ =>
                fdValidSet <= '0';
 
@@ -253,7 +265,7 @@ begin
                   bitSet     <= '0';
                   nxtState   <= curState;
 
-                  -- Sample data at 13.1uS
+               -- Sample data at 13.1uS
                elsif timeCnt = toSlv(getTimeRatio(13.1E-6, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   bitCntEn   <= '0';
@@ -262,7 +274,7 @@ begin
                   bitSet     <= '1';
                   nxtState   <= curState;
 
-                  -- Recovery Time of 62.4us
+               -- Recovery Time of 62.4us
                elsif timeCnt < toSlv(getTimeRatio(62.4E-6, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   timeCntRst <= '0';
@@ -271,7 +283,7 @@ begin
                   bitCntRst  <= '0';
                   nxtState   <= curState;
 
-                  -- Done with bit
+               -- Done with bit
                else
                   setOutLow  <= '0';
                   timeCntRst <= '1';
@@ -288,7 +300,7 @@ begin
                   end if;
                end if;
 
-               -- Done with read
+            -- Done with read
             when ST_DONE =>
                fdValidSet <= '1';
                timeCntRst <= '1';
