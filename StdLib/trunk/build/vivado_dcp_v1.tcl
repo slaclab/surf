@@ -13,14 +13,19 @@ set filename [exec ls [glob "${OUT_DIR}/${PROJECT}_project.runs/synth_1/*.dcp"]]
 ## Get the ouput file path and name
 set outputFile "${IMAGES_DIR}/${topName}_${PRJ_VERSION}.dcp"
 
-## Open the check point
-open_checkpoint ${filename}
+## Check if we need to remove the timing cosntraints
+set RemoveTimingConstraints [expr {[info exists ::env(DCP_REMOVE_TIMING_CONSTRAINT)] && [string is true -strict $::env(DCP_REMOVE_TIMING_CONSTRAINT)]}]  
+puts "RemoveTimingConstraints = ${RemoveTimingConstraints}"
+if { ${RemoveTimingConstraints} == 1 } {
+   ## Open the check point
+   open_checkpoint ${filename}
 
-## Delete all timing constraint for importing into a target vivado project
-reset_timing
+   ## Delete all timing constraint for importing into a target vivado project
+   reset_timing
 
-## Overwrite the checkpoint   
-write_checkpoint -force ${filename}
+   ## Overwrite the checkpoint   
+   write_checkpoint -force ${filename}
+}
 
 ## Copy the .dcp file from the run directory to images directory in the source tree
 file copy -force ${filename} ${outputFile}
