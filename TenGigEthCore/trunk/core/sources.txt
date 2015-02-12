@@ -1,0 +1,4 @@
+vhdl work coregen/TenGigEthMacCore.vhd
+vhdl work coregen/TenGigEthPkg.vhd
+vhdl work coregen/XMacExport.vhd
+vhdl work coregen/XMacImport.vhd 
