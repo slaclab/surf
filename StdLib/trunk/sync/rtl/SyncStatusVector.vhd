@@ -112,9 +112,10 @@ begin
 
    SyncVec_Inst : entity work.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => RELEASE_DELAY_G,
-         WIDTH_G  => WIDTH_G)
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => COMMON_CLK_G,
+         STAGES_G      => RELEASE_DELAY_G,
+         WIDTH_G       => WIDTH_G)
       port map (
          clk     => rdClk,
          dataIn  => statusIn,
