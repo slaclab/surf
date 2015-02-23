@@ -152,6 +152,8 @@ entity Gtx7Core is
       RX_EQUALIZER_G   : string     := "DFE";        -- Or "LPM"
       RX_DFE_KL_CFG2_G : bit_vector := x"3008E56A";  -- Set by wizard
       RX_CM_TRIM_G     : bit_vector := "010";
+      RX_DFE_LPM_CFG_G : bit_vector := x"0954";
+      RXDFELFOVRDEN_G  : sl         := '1';
       RXDFEXYDEN_G     : sl         := '1'           -- This should always be 1
       );
 
@@ -970,7 +972,7 @@ begin
          RX_DFE_H4_CFG                => ("00011110000"),
          RX_DFE_H5_CFG                => ("00011100000"),
          RX_DFE_KL_CFG                => ("0000011111110"),
-         RX_DFE_LPM_CFG               => (x"0954"),
+         RX_DFE_LPM_CFG               => RX_DFE_LPM_CFG_G,
          RX_DFE_LPM_HOLD_DURING_EIDLE => ('0'),
          RX_DFE_UT_CFG                => ("10001111000000000"),
          RX_DFE_VP_CFG                => ("00011111100000011"),
@@ -1109,7 +1111,7 @@ begin
          RXDFEAGCOVRDEN   => '0',
          RXDFECM1EN       => '0',
          RXDFELFHOLD      => rxDfeLfHold,
-         RXDFELFOVRDEN    => '1',
+         RXDFELFOVRDEN    => RXDFELFOVRDEN_G,
          RXDFELPMRESET    => '0',
          RXDFETAP2HOLD    => '0',
          RXDFETAP2OVRDEN  => '0',
