@@ -151,6 +151,7 @@ entity Gtx7Core is
       -- RX Equalizer Attributes--------------------------
       RX_EQUALIZER_G   : string     := "DFE";        -- Or "LPM"
       RX_DFE_KL_CFG2_G : bit_vector := x"3008E56A";  -- Set by wizard
+      RX_CM_TRIM_G     : bit_vector := "010";
       RXDFEXYDEN_G     : sl         := '1'           -- This should always be 1
       );
 
@@ -817,7 +818,7 @@ begin
          RX_BIAS_CFG       => ("000000000100"),
          DMONITOR_CFG      => (x"000A00"),
          RX_CM_SEL         => ("11"),
-         RX_CM_TRIM        => ("010"),
+         RX_CM_TRIM        => RX_CM_TRIM_G,
          RX_DEBUG_CFG      => ("000000000000"),
          RX_OS_CFG         => RX_OS_CFG_G,
          TERM_RCAL_CFG     => ("10000"),
