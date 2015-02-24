@@ -1,2 +1,5 @@
 vhdl work coregen/TenGigEthGtx7Core.dcp
-vhdl work coregen/TenGigEthGtx7.vhd
+vhdl work rtl/TenGigEthGtx7.vhd
+vhdl work rtl/TenGigEthGtx7Pkg.vhd
+vhdl work rtl/TenGigEthGtx7ClkAndRst.vhd
+vhdl work rtl/TenGigEthGtx7Reg.vhd

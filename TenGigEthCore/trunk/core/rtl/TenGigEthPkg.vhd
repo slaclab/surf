@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-02-12
+-- Last update: 2015-02-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ package TenGigEthPkg is
       -- Outbound Status
       txCountEn      : sl;
       txUnderRun     : sl;
-      txLinkNotReady : sl);
+      txLinkNotReady : sl;
    end record;
    
 end TenGigEthPkg;
