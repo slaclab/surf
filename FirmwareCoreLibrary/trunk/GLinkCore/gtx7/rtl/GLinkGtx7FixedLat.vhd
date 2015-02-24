@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-06-04
+-- Last update: 2015-02-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,9 +43,14 @@ entity GLinkGtx7FixedLat is
       RX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
       TX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
       RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G          : sl         := '0';                    -- Set by wizard
+      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard      
+      -- RX Equalizer Attributes
+      RX_EQUALIZER_G        : string     := "DFE";                  -- Or "LPM"
       RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
+      RX_CM_TRIM_G          : bit_vector := "010";
+      RX_DFE_LPM_CFG_G      : bit_vector := x"0954";
+      RXDFELFOVRDEN_G       : sl         := '1';
+      RXDFEXYDEN_G          : sl         := '1';                     -- This should always be 1      
       -- Configure PLL sources
       TX_PLL_G              : string     := "QPLL";
       RX_PLL_G              : string     := "CPLL");
@@ -73,10 +78,10 @@ entity GLinkGtx7FixedLat is
       gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
       -- Misc. MGT control
-      loopback         : in slv(2 downto 0);
-      txPowerDown      : in sl;
-      rxPowerDown      : in sl;     
-      rxClkDebug       : out sl;-- debug only
+      loopback         : in  slv(2 downto 0);
+      txPowerDown      : in  sl;
+      rxPowerDown      : in  sl;
+      rxClkDebug       : out sl;                                    -- debug only
       -- MGT Serial IO
       gtTxP            : out sl;
       gtTxN            : out sl;
@@ -116,7 +121,7 @@ architecture rtl of GLinkGtx7FixedLat is
 begin
 
    rxClkDebug <= rxClk;
-   
+
    SYNTH_TX : if (SYNTH_TX_G = true) generate
       
       txClk <= gLinkTxRefClk;
@@ -235,7 +240,7 @@ begin
 
    gtTxDataReversed <= bitReverse(gtTxData);
    gtRxData         <= bitReverse(gtRxDataReversed);
-   
+
    rxUserReset <= gLinkTx.linkRst or gLinkRxRst;
    txUserReset <= gLinkTx.linkRst or gLinkTxRst;
 
@@ -276,11 +281,16 @@ begin
          RX_DLY_BYPASS_G       => '1',
          RX_DDIEN_G            => '0',
          RX_ALIGN_MODE_G       => "FIXED_LAT",
-         RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          RX_OS_CFG_G           => RX_OS_CFG_G,
          RXCDR_CFG_G           => RXCDR_CFG_G,
-         RXDFEXYDEN_G          => RXDFEXYDEN_G,
          RXSLIDE_MODE_G        => "PMA",
+         -- RX Equalizer Attributes
+         RX_EQUALIZER_G        => RX_EQUALIZER_G,
+         RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
+         RX_CM_TRIM_G          => RX_CM_TRIM_G,
+         RX_DFE_LPM_CFG_G      => RX_DFE_LPM_CFG_G,
+         RXDFELFOVRDEN_G       => RXDFELFOVRDEN_G,
+         RXDFEXYDEN_G          => RXDFEXYDEN_G,
          -- Fixed Latency comma alignment (If RX_ALIGN_MODE_G = "FIXED_LAT")
          FIXED_COMMA_EN_G      => "0111",
          FIXED_ALIGN_COMMA_0_G => FIXED_ALIGN_COMMA_0_C,
@@ -307,7 +317,7 @@ begin
          rxUserRdyOut     => open,
          rxMmcmResetOut   => open,
          rxMmcmLockedIn   => '1',
-         rxUserResetIn    => rxUserReset,  -- Sync'd in Gtx7RxRst.vhd
+         rxUserResetIn    => rxUserReset,      -- Sync'd in Gtx7RxRst.vhd
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
          rxSlideIn        => '0',              -- Slide is controlled internally
