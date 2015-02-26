@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2015-01-23
+-- Last update: 2015-02-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,8 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -29,6 +31,7 @@ entity AxiMicronP30Reg is
    generic (
       TPD_G            : time            := 1 ns;
       AXI_CLK_FREQ_G   : real            := 200.0E+6;  -- units of Hz
+      AXI_CONFIG_G     : AxiStreamConfigType;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Interface 
@@ -42,6 +45,11 @@ entity AxiMicronP30Reg is
       axiReadSlave   : out   AxiLiteReadSlaveType;
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
+      -- AXI Streaming Interface (Optional)
+      mAxisMaster    : out   AxiStreamMasterType;
+      mAxisSlave     : in    AxiStreamSlaveType;
+      sAxisMaster    : in    AxiStreamMasterType;
+      sAxisSlave     : out   AxiStreamSlaveType;
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl);
@@ -54,9 +62,15 @@ architecture rtl of AxiMicronP30Reg is
    constant HALF_CYCLE_FREQ_C : real := getRealDiv(1, HALF_CYCLE_PERIOD_C);  -- units of Hz
 
    constant MAX_CNT_C : natural := getTimeRatio(AXI_CLK_FREQ_G, HALF_CYCLE_FREQ_C);
+
+   constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit interface
    
    type stateType is (
       IDLE_S,
+      RX_ADDR_S,
+      RX_SIZE_S,
+      RX_DATA_S,
+      BUF_MODE_S,
       FAST_MODE_S,
       CMD_LOW_S,
       CMD_HIGH_S,
@@ -65,6 +79,7 @@ architecture rtl of AxiMicronP30Reg is
       DATA_HIGH_S);
 
    type RegType is record
+      -- PROM Control Signals
       tristate      : sl;
       ceL           : sl;
       oeL           : sl;
@@ -77,15 +92,31 @@ architecture rtl of AxiMicronP30Reg is
       wrCmd         : slv(15 downto 0);
       wrData        : slv(15 downto 0);
       test          : slv(31 downto 0);
+      -- Fast Register Program Signals
       fastProgEn    : sl;
       fastData      : slv(15 downto 0);
       fastCnt       : slv(3 downto 0);
+      -- RAM Buffer Signals
+      ramWe         : sl;
+      ramAddr       : slv(7 downto 0);
+      ramDin        : slv(15 downto 0);
+      -- Buffered Program Signals
+      bufProgEn     : sl;
+      baseAddr      : slv(30 downto 0);
+      size          : slv(7 downto 0);
+      axisCnt       : slv(7 downto 0);
+      -- AXI Stream Signals
+      rxSlave       : AxiStreamSlaveType;
+      txMaster      : AxiStreamMasterType;
+      -- AXI-Lite Signals
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
+      -- Status Machine
       state         : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
+      -- PROM Control Signals
       tristate      => '1',
       ceL           => '1',
       oeL           => '1',
@@ -98,21 +129,45 @@ architecture rtl of AxiMicronP30Reg is
       wrCmd         => (others => '0'),
       wrData        => (others => '0'),
       test          => (others => '0'),
+      -- Fast Register Program Signals
       fastProgEn    => '0',
       fastData      => (others => '0'),
       fastCnt       => (others => '0'),
+      -- RAM Buffer Signals
+      ramWe         => '0',
+      ramAddr       => (others => '0'),
+      ramDin        => (others => '0'),
+      -- Buffered Program Signals
+      bufProgEn     => '0',
+      baseAddr      => (others => '0'),
+      size          => (others => '0'),
+      axisCnt       => (others => '0'),
+      -- AXI Stream Signals
+      rxSlave       => AXI_STREAM_SLAVE_INIT_C,
+      txMaster      => AXI_STREAM_MASTER_INIT_C,
+      -- AXI-Lite Signals
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      -- Status Machine
       state         => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dout : slv(15 downto 0);
-   
+   signal dout    : slv(15 downto 0);
+   signal ramDout : slv(15 downto 0);
+
+   signal rxMaster : AxiStreamMasterType;
+   signal txCtrl   : AxiStreamCtrlType;
+
+   attribute dont_touch             : string;
+   attribute dont_touch of r        : signal is "true";
+   attribute dont_touch of rxMaster : signal is "true";
+   attribute dont_touch of ramDout  : signal is "true";
+
 begin
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dout, r) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dout, r, ramDout, rxMaster) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -122,12 +177,15 @@ begin
       v := r;
 
       -- Reset the strobing signals
-      v.ceL        := '1';
-      v.oeL        := '1';
-      v.weL        := '1';
-      v.tristate   := '1';
-      axiWriteResp := AXI_RESP_OK_C;
-      axiReadResp  := AXI_RESP_OK_C;
+      v.ceL            := '1';
+      v.oeL            := '1';
+      v.weL            := '1';
+      v.tristate       := '1';
+      axiWriteResp     := AXI_RESP_OK_C;
+      axiReadResp      := AXI_RESP_OK_C;
+      v.rxSlave.tReady := '0';
+      v.ramWe          := '0';
+      ssiResetFlags(v.txMaster);
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
@@ -165,9 +223,8 @@ begin
                end case;
                -- Send AXI-Lite Response
                axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
-            end if;
             -- Check for a write request
-            if (axiStatus.writeEnable = '1') then
+            elsif (axiStatus.writeEnable = '1') then
                -- Decode address and perform write
                case (axiWriteMaster.awaddr(7 downto 0)) is
                   when x"00" =>
@@ -199,7 +256,192 @@ begin
                end case;
                -- Send AXI-Lite response
                axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
+            else
+               -- Check for valid data 
+               if (r.rxSlave.tReady = '0') and (rxMaster.tValid = '1') then
+                  -- Check for start of frame bit
+                  if (ssiGetUserSof(AXI_CONFIG_C, rxMaster) = '1') and (rxMaster.tLast = '0') then
+                     -- Ready to readout the FIFO
+                     v.rxSlave.tReady := '1';
+                     -- Next state
+                     v.state          := RX_ADDR_S;
+                  else
+                     -- Blow off the data
+                     v.rxSlave.tReady := '1';
+                  end if;
+               end if;
             end if;
+         ----------------------------------------------------------------------
+         when RX_ADDR_S =>
+            -- Ready to readout the FIFO
+            v.rxSlave.tReady := '1';
+            -- Check for FIFO data
+            if rxMaster.tValid = '1' then
+               -- Set the base address
+               v.baseAddr := rxMaster.tData(30 downto 0);
+               -- Next state
+               v.state    := RX_SIZE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when RX_SIZE_S =>
+            -- Ready to readout the FIFO
+            v.rxSlave.tReady := '1';
+            -- Check for FIFO data
+            if rxMaster.tValid = '1' then
+               -- Set the burst size
+               v.size := rxMaster.tData(7 downto 0);
+               -- Check for packet length error detected
+               if rxMaster.tLast = '1' then
+                  -- Done reading out the FIFO
+                  v.rxSlave.tReady := '0';
+                  -- Next state
+                  v.state          := IDLE_S;
+               else
+                  -- Next state
+                  v.state := RX_DATA_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when RX_DATA_S =>
+            -- Ready to readout the FIFO
+            v.rxSlave.tReady := '1';
+            -- Check for FIFO data
+            if rxMaster.tValid = '1' then
+               -- Write the stream data to RAM
+               v.ramWe   := '1';
+               v.ramAddr := r.axisCnt;
+               v.ramDin  := rxMaster.tData(15 downto 0);
+               -- Increment the counter
+               v.axisCnt := r.axisCnt + 1;
+               -- Check for valid completion
+               if (rxMaster.tLast = '1') then
+                  -- Reset the counter
+                  v.axisCnt        := (others => '0');
+                  -- Done reading out the FIFO
+                  v.rxSlave.tReady := '0';
+                  -- Check for EOFE
+                  if ssiGetUserEofe(AXI_CONFIG_C, rxMaster) = '1' then
+                     -- Next state
+                     v.state := IDLE_S;
+                  elsif r.axisCnt /= r.size then
+                     -- Next state
+                     v.state := IDLE_S;
+                  else
+                     -- Set the flag
+                     v.bufProgEn := '1';
+                     -- Next state
+                     v.state     := BUF_MODE_S;
+                  end if;
+               -- No EOF but reached counter size
+               elsif r.axisCnt = r.size then
+                  -- Reset the counter
+                  v.axisCnt        := (others => '0');
+                  -- Done reading out the FIFO
+                  v.rxSlave.tReady := '0';
+                  -- Next state
+                  v.state          := IDLE_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when BUF_MODE_S =>
+            -- Check the counter
+            case r.fastCnt is
+               when x"0" =>
+                  -- Increment the counter
+                  v.fastCnt := x"1";
+                  -- Reset the RAM address 
+                  v.ramAddr := (others => '0');
+                  -- Set the address bus
+                  v.addr    := r.baseAddr;
+                  -- Send the "unlock the block" command
+                  v.RnW     := '0';
+                  v.wrCmd   := x"0060";
+                  v.wrData  := x"00D0";
+               when x"1" =>
+                  -- Increment the counter
+                  v.fastCnt := x"2";
+                  -- Send the "reset the status register" command
+                  v.RnW     := '0';
+                  v.wrCmd   := x"0050";
+                  v.wrData  := x"0050";
+               when x"2" =>
+                  -- Increment the counter
+                  v.fastCnt             := x"3";
+                  -- Send the "buffer program command and size" command
+                  v.RnW                 := '0';
+                  v.wrCmd               := x"00E8";
+                  v.wrData(15 downto 8) := (others => '0');
+                  v.wrData(7 downto 0)  := r.size;
+               when x"3" =>
+                  -- Load the buffer 
+                  v.RnW     := '1';
+                  v.wrCmd   := ramDout;  -- Load information via the command word                   
+                  -- Increment the counter
+                  v.ramAddr := r.ramAddr + 1;
+                  -- Check if first sample
+                  if r.ramAddr = 0 then
+                     -- Set the address bus
+                     v.addr := r.baseAddr;
+                  else
+                     -- Increment the address
+                     v.addr := r.addr + 1;
+                  end if;
+                  -- Check the counter size
+                  if r.ramAddr = r.size then
+                     -- Reset the RAM address 
+                     v.ramAddr := (others => '0');
+                     -- Increment the counter
+                     v.fastCnt := x"4";
+                  end if;
+               -- Get the status register
+               when x"4" =>
+                  -- Increment the counter
+                  v.fastCnt := x"5";
+                  -- Set the address bus
+                  v.addr    := r.baseAddr;
+                  -- Send the "Confirm buffer programming" command
+                  v.RnW     := '1';
+                  v.wrCmd   := x"00D0"; -- Load information via the command word   
+               -- Get the status register
+               when x"5" =>
+                  -- Increment the counter
+                  v.fastCnt := x"6";
+                  -- Set the address bus
+                  v.addr    := r.baseAddr;
+                  -- Get the status register
+                  v.RnW     := '1';
+                  v.wrCmd   := x"0070";
+               when others =>
+                  -- Set the address bus
+                  v.addr    := r.baseAddr;
+                  -- Check if FLASH is still busy
+                  if r.dataReg(7) = '0' then
+                     -- Set the counter
+                     v.fastCnt := x"6";
+                     -- Get the status register
+                     v.RnW     := '1';
+                     v.wrCmd   := x"0070";
+                  -- Check for programming failure
+                  elsif r.dataReg(4) = '1' then
+                     -- Set the counter
+                     v.fastCnt := x"1";
+                     -- Send the "unlock the block" command
+                     v.RnW     := '0';
+                     v.wrCmd   := x"0060";
+                     v.wrData  := x"00D0";
+                  else
+                     -- Send the "lock the block" command
+                     v.RnW       := '0';
+                     v.wrCmd     := x"0060";
+                     v.wrData    := x"0001";
+                     -- Reset the flag
+                     v.bufProgEn := '0';
+                     -- Reset the counter
+                     v.fastCnt   := x"0";
+                  end if;
+            end case;
+            -- Next state
+            v.state := CMD_LOW_S;
          ----------------------------------------------------------------------
          when FAST_MODE_S =>
             -- Increment the counter
@@ -334,7 +576,11 @@ begin
                -- Reset the counter
                v.cnt := 0;
                -- Check for fast program command mode
-               if r.fastProgEn = '1' then
+               if r.bufProgEn = '1' then
+                  -- Next state
+                  v.state := BUF_MODE_S;
+               -- Check for fast program command mode
+               elsif r.fastProgEn = '1' then
                   -- Next state
                   v.state := FAST_MODE_S;
                else
@@ -379,5 +625,81 @@ begin
             I  => r.din(i),             -- Buffer input
             T  => r.tristate);          -- 3-state enable input, high=input, low=output     
    end generate GEN_IOBUF;
+
+   RX_FIFO : entity work.AxiStreamFifo
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         PIPE_STAGES_G       => 0,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         CASCADE_SIZE_G      => 1,
+         BRAM_EN_G           => false,
+         XIL_DEVICE_G        => "7SERIES",
+         USE_BUILT_IN_G      => false,
+         GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_FIXED_THRESH_G => true,
+         FIFO_PAUSE_THRESH_G => 8,
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_G,
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)     
+      port map (
+         -- Slave Port
+         sAxisClk    => axiClk,
+         sAxisRst    => axiRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         -- Master Port
+         mAxisClk    => axiClk,
+         mAxisRst    => axiRst,
+         mAxisMaster => rxMaster,
+         mAxisSlave  => r.rxSlave);      
+
+   TX_FIFO : entity work.AxiStreamFifo
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         PIPE_STAGES_G       => 0,
+         SLAVE_READY_EN_G    => false,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         CASCADE_SIZE_G      => 1,
+         BRAM_EN_G           => false,
+         XIL_DEVICE_G        => "7SERIES",
+         USE_BUILT_IN_G      => false,
+         GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_FIXED_THRESH_G => true,
+         FIFO_PAUSE_THRESH_G => 8,
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_G)     
+      port map (
+         -- Slave Port
+         sAxisClk    => axiClk,
+         sAxisRst    => axiRst,
+         sAxisMaster => r.txMaster,
+         sAxisCtrl   => txCtrl,
+         -- Master Port
+         mAxisClk    => axiClk,
+         mAxisRst    => axiRst,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);     
+
+   SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
+      generic map(
+         BRAM_EN_G    => true,
+         DATA_WIDTH_G => 16,
+         ADDR_WIDTH_G => 8)
+      port map (
+         -- Port A
+         clka  => axiClk,
+         wea   => r.ramWe,
+         addra => r.ramAddr,
+         dina  => r.ramDin,
+         -- Port B
+         clkb  => axiClk,
+         addrb => r.ramAddr,
+         doutb => ramDout);             
 
 end rtl;

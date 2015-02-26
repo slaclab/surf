@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2015-01-13
+-- Last update: 2015-02-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,13 +21,16 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 use work.AxiMicronP30Pkg.all;
 
 entity AxiMicronP30Core is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      TPD_G            : time                := 1 ns;
+      AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
+      AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
+      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Interface 
       flashIn        : in    AxiMicronP30InType;
@@ -38,6 +41,11 @@ entity AxiMicronP30Core is
       axiReadSlave   : out   AxiLiteReadSlaveType;
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
+      -- AXI Streaming Interface (Optional)
+      mAxisMaster    : out   AxiStreamMasterType;
+      mAxisSlave     : in    AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+      sAxisMaster    : in    AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      sAxisSlave     : out   AxiStreamSlaveType;
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl);
@@ -51,6 +59,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
+         AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G) 
       port map (
          -- FLASH Interface 
@@ -64,6 +73,11 @@ begin
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,
          axiWriteSlave  => axiWriteSlave,
+         -- AXI Streaming Interface (Optional)
+         mAxisMaster    => mAxisMaster,
+         mAxisSlave     => mAxisSlave,
+         sAxisMaster    => sAxisMaster,
+         sAxisSlave     => sAxisSlave,
          -- Clocks and Resets
          axiClk         => axiClk,
          axiRst         => axiRst); 
