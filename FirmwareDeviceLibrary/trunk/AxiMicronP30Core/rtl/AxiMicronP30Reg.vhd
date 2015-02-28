@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2015-02-26
+-- Last update: 2015-02-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,7 +70,8 @@ architecture rtl of AxiMicronP30Reg is
       RX_ADDR_S,
       RX_SIZE_S,
       RX_DATA_S,
-      BUF_MODE_S,
+      BUF_WRITE_MODE_S,
+      BUF_READ_MODE_S,
       FAST_MODE_S,
       CMD_LOW_S,
       CMD_HIGH_S,
@@ -105,6 +106,9 @@ architecture rtl of AxiMicronP30Reg is
       baseAddr      : slv(30 downto 0);
       size          : slv(7 downto 0);
       axisCnt       : slv(7 downto 0);
+      -- Buffered Read Signals
+      bufReadEn     : sl;
+      bufReadCnt    : slv(7 downto 0);
       -- AXI Stream Signals
       rxSlave       : AxiStreamSlaveType;
       txMaster      : AxiStreamMasterType;
@@ -142,6 +146,9 @@ architecture rtl of AxiMicronP30Reg is
       baseAddr      => (others => '0'),
       size          => (others => '0'),
       axisCnt       => (others => '0'),
+      -- Buffered Read Signals      
+      bufReadEn     => '0',
+      bufReadCnt    => (others => '0'),
       -- AXI Stream Signals
       rxSlave       => AXI_STREAM_SLAVE_INIT_C,
       txMaster      => AXI_STREAM_MASTER_INIT_C,
@@ -160,14 +167,14 @@ architecture rtl of AxiMicronP30Reg is
    signal rxMaster : AxiStreamMasterType;
    signal txCtrl   : AxiStreamCtrlType;
 
-   attribute dont_touch             : string;
-   attribute dont_touch of r        : signal is "true";
-   attribute dont_touch of rxMaster : signal is "true";
-   attribute dont_touch of ramDout  : signal is "true";
+   -- attribute dont_touch             : string;
+   -- attribute dont_touch of r        : signal is "true";
+   -- attribute dont_touch of rxMaster : signal is "true";
+   -- attribute dont_touch of ramDout  : signal is "true";
 
 begin
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dout, r, ramDout, rxMaster) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dout, r, ramDout, rxMaster, txCtrl) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -186,6 +193,9 @@ begin
       v.rxSlave.tReady := '0';
       v.ramWe          := '0';
       ssiResetFlags(v.txMaster);
+
+      -- Set the tKeep = 32-bit transfers
+      v.txMaster.tKeep := x"00FF";
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
@@ -251,6 +261,15 @@ begin
                      v.fastData   := axiWriteMaster.wdata(15 downto 0);
                      -- Next state
                      v.state      := FAST_MODE_S;
+                  when x"18" =>
+                     -- Set the flag
+                     v.bufReadEn := '1';
+                     -- Set the read mode
+                     v.RnW       := '1';
+                     -- Set the address buses
+                     v.addr      := axiWriteMaster.wdata(30 downto 0);
+                     -- Next state
+                     v.state     := CMD_LOW_S;
                   when others =>
                      axiWriteResp := AXI_ERROR_RESP_G;
                end case;
@@ -330,7 +349,7 @@ begin
                      -- Set the flag
                      v.bufProgEn := '1';
                      -- Next state
-                     v.state     := BUF_MODE_S;
+                     v.state     := BUF_WRITE_MODE_S;
                   end if;
                -- No EOF but reached counter size
                elsif r.axisCnt = r.size then
@@ -343,7 +362,7 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when BUF_MODE_S =>
+         when BUF_WRITE_MODE_S =>
             -- Check the counter
             case r.fastCnt is
                when x"0" =>
@@ -401,7 +420,7 @@ begin
                   v.addr    := r.baseAddr;
                   -- Send the "Confirm buffer programming" command
                   v.RnW     := '1';
-                  v.wrCmd   := x"00D0"; -- Load information via the command word   
+                  v.wrCmd   := x"00D0";  -- Load information via the command word   
                -- Get the status register
                when x"5" =>
                   -- Increment the counter
@@ -413,7 +432,7 @@ begin
                   v.wrCmd   := x"0070";
                when others =>
                   -- Set the address bus
-                  v.addr    := r.baseAddr;
+                  v.addr := r.baseAddr;
                   -- Check if FLASH is still busy
                   if r.dataReg(7) = '0' then
                      -- Set the counter
@@ -497,6 +516,37 @@ begin
             -- Next state
             v.state := CMD_LOW_S;
          ----------------------------------------------------------------------
+         when BUF_READ_MODE_S =>
+            -- Check the TX FIFO status 
+            if txCtrl.pause = '0' then
+               -- Write to the FIFO
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(31 downto 16) := x"0000";
+               v.txMaster.tData(15 downto 0)  := r.dataReg;
+               -- Check for SOF flag
+               if (r.bufReadCnt = 0)then
+                  ssiSetUserSof(AXI_CONFIG_C, v.txMaster, '1');
+               end if;
+               -- Increment the counter
+               v.bufReadCnt := r.bufReadCnt + 1;
+               -- Check the counter
+               if r.bufReadCnt = x"FF" then
+                  -- Reset the counter
+                  v.bufReadCnt     := (others => '0');
+                  -- Set the EOF flag
+                  v.txMaster.tLast := '1';
+                  -- Reset the flag
+                  v.bufReadEn      := '0';
+                  -- Next state
+                  v.state          := IDLE_S;
+               else
+                  -- Increment the address
+                  v.addr  := r.addr + 1;
+                  -- Next state
+                  v.state := CMD_LOW_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
          when CMD_LOW_S =>
             v.ceL      := '0';
             v.oeL      := '1';
@@ -575,14 +625,18 @@ begin
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt := 0;
-               -- Check for fast program command mode
+               -- Check for buffered program command mode
                if r.bufProgEn = '1' then
                   -- Next state
-                  v.state := BUF_MODE_S;
+                  v.state := BUF_WRITE_MODE_S;
                -- Check for fast program command mode
                elsif r.fastProgEn = '1' then
                   -- Next state
                   v.state := FAST_MODE_S;
+               -- Check for buffered read command mode
+               elsif r.bufReadEn = '1' then
+                  -- Next state
+                  v.state := BUF_READ_MODE_S;
                else
                   -- Next state
                   v.state := IDLE_S;
