@@ -167,7 +167,7 @@ begin
 
       -- Pass response to destination
       if r.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rvalid = '0' or
-         sAxiReadMasters(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rready = '0' then
+         sAxiReadMasters(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rready = '1' then
 
          v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rvalid := mAxiReadSlave.rvalid;
          v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rdata  := mAxiReadSlave.rdata;
