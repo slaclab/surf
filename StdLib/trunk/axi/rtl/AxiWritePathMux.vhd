@@ -244,7 +244,7 @@ begin
 
       -- Pass response to destination
       if r.slaves(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bvalid = '0' or
-         sAxiWriteMasters(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bready = '0' then
+         sAxiWriteMasters(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bready = '1' then
 
          v.slaves(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bresp  := mAxiWriteSlave.bresp;
          v.slaves(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bvalid := mAxiWriteSlave.bvalid;
