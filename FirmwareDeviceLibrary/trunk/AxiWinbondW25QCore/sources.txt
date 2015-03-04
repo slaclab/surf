@@ -1,4 +1,4 @@
-vhdl work rtl/AxiW25Q128Pkg.vhd
+vhdl work rtl/AxiWinbondW25QPkg.vhd
 
-vhdl work rtl/AxiW25Q128Core.vhd
-vhdl work rtl/AxiW25Q128Reg.vhd
+vhdl work rtl/AxiWinbondW25QCore.vhd
+vhdl work rtl/AxiWinbondW25QReg.vhd
