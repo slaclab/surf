@@ -165,13 +165,13 @@ begin
    pgpRxMmcmReset <= pgpRxMmcmResets(0);
    pgpRxRecClk    <= pgpRxRecClock(0);
    pgpTxRecClk    <= pgpTxRecClock(0);
-   gtCPllLock     <= pgpTxRecClock(0);
+   gtCPllLock     <= cPllLock(0);
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
 
    gtRxUserResetIn <= gtRxUserReset or pgpRxReset or pgpRxIn.resetRx;
-   gtTxUserResetIn <= cPllLock(0);
+   gtTxUserResetIn <= pgpTxReset;
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
