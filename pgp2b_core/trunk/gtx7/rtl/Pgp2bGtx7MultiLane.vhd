@@ -127,6 +127,7 @@ architecture rtl of Pgp2bGtx7MultiLane is
    -- Constants
    --------------------------------------------------------------------------------------------------
    signal gtQPllResets : slv((LANE_CNT_G-1) downto 0);
+   signal cPllLock     : slv((LANE_CNT_G-1) downto 0);
 
    -- PgpRx Signals
    signal pgpRxMmcmResets : slv((LANE_CNT_G-1) downto 0);
@@ -164,12 +165,13 @@ begin
    pgpRxMmcmReset <= pgpRxMmcmResets(0);
    pgpRxRecClk    <= pgpRxRecClock(0);
    pgpTxRecClk    <= pgpTxRecClock(0);
+   gtCPllLock     <= pgpTxRecClock(0);
 
    phyTxReady <= uAnd(gtTxResetDone);
    phyRxReady <= uAnd(gtRxResetDone);
 
    gtRxUserResetIn <= gtRxUserReset or pgpRxReset or pgpRxIn.resetRx;
-   gtTxUserResetIn <= pgpTxReset;
+   gtTxUserResetIn <= cPllLock(0);
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
@@ -310,7 +312,7 @@ begin
          port map (
             stableClkIn      => stableClk,
             cPllRefClkIn     => gtCPllRefClk,
-            cPllLockOut      => gtCPllLock,
+            cPllLockOut      => cPllLock(i),
             qPllRefClkIn     => gtQPllRefClk,
             qPllClkIn        => gtQPllClk,
             qPllLockIn       => gtQPllLock,
