@@ -61,6 +61,9 @@ architecture rtl of AxiMicronN25QReg is
    constant MAX_SCK_CNT_C     : natural := ite((SCK_HALF_PERIOD_C > MIN_CS_WIDTH_C), SCK_HALF_PERIOD_C, MIN_CS_WIDTH_C);
 
    constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit interface   
+
+   constant PRESET_32BIT_ADDR_C : slv(8 downto 0) := "111111011";
+   constant PRESET_24BIT_ADDR_C : slv(8 downto 0) := "111111100";
    
    type StateType is (
       IDLE_S,
@@ -76,12 +79,15 @@ architecture rtl of AxiMicronN25QReg is
    type RegType is record
       test          : slv(31 downto 0);
       wrData        : slv(31 downto 0);
+      addr          : slv(31 downto 0);
       addr32BitMode : sl;
+      cmd           : slv(7 downto 0);
+      status        : slv(7 downto 0);
       -- RAM Signals
-      lock          : sl;
+      RnW           : sl;
       we            : sl;
-      rd            : sl;
-      cnt           : slv(3 downto 0);
+      rd            : slv(1 downto 0);
+      cnt           : slv(8 downto 0);
       waddr         : slv(8 downto 0);
       raddr         : slv(8 downto 0);
       xferSize      : slv(8 downto 0);
@@ -105,11 +111,14 @@ architecture rtl of AxiMicronN25QReg is
    constant REG_INIT_C : RegType := (
       test          => (others => '0'),
       wrData        => (others => '0'),
+      addr          => (others => '0'),
       addr32BitMode => '0',
+      cmd           => (others => '0'),
+      status        => (others => '0'),
       -- RAM Signals      
-      lock          => '1',
+      RnW           => '1',
       we            => '0',
-      rd            => '0',
+      rd            => "00",
       cnt           => (others => '0'),
       waddr         => (others => '0'),
       raddr         => (others => '0'),
@@ -159,10 +168,13 @@ begin
       axiWriteResp     := AXI_RESP_OK_C;
       axiReadResp      := AXI_RESP_OK_C;
       v.rxSlave.tReady := '0';
-      v.rd             := '0';
       v.we             := '0';
       ssiResetFlags(v.txMaster);
 
+      -- Shift register
+      v.rd(1) := r.rd(0);
+      v.rd(0) := '0';
+      
       -- Set the tKeep = 32-bit transfers
       v.txMaster.tKeep := x"00FF";
 
@@ -174,12 +186,11 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the signals in IDLE state
-            v.csL  := '1';
-            v.sck  := '0';
-            v.lock := '1';
+            v.csL   := '1';
+            v.sck   := '0';
             v.cnt   := (others => '0');
             v.waddr := (others => '0');
-            v.raddr := (others => '0');            
+            v.raddr := (others => '0');
             -- Check for a write request
             if (axiStatus.writeEnable = '1') then
                if axiWriteMaster.awaddr(9) = '1' then
@@ -187,8 +198,6 @@ begin
                   v.waddr  := axiWriteMaster.awaddr(8 downto 0);
                   v.raddr  := axiWriteMaster.awaddr(8 downto 0);
                   v.wrData := axiWriteMaster.wdata;
-                  -- Reset the counter
-                  v.cnt    := (others => '0');
                   -- Next state
                   v.state  := WORD_WRITE_S;
                else
@@ -199,10 +208,21 @@ begin
                      when x"04" =>
                         v.addr32BitMode := axiWriteMaster.wdata(0);
                      when x"08" =>
-                        v.lock     := axiWriteMaster.wdata(31);
+                        v.addr := axiWriteMaster.wdata;
+                     when x"0C" =>
+                        v.RnW      := axiWriteMaster.wdata(31);
+                        v.cmd      := axiWriteMaster.wdata(23 downto 16);
                         v.xferSize := axiWriteMaster.wdata(8 downto 0);
+                        -- Check address mode
+                        if r.addr32BitMode = '1' then
+                           -- 32-bit Address Mode
+                           v.raddr := PRESET_32BIT_ADDR_C;
+                        else
+                           -- 24-bit Address Mode
+                           v.raddr := PRESET_24BIT_ADDR_C;
+                        end if;
                         -- Next state
-                        v.state    := SCK_LOW_S;
+                        v.state := SCK_LOW_S;
                      when others =>
                         axiWriteResp := AXI_ERROR_RESP_G;
                   end case;
@@ -215,7 +235,7 @@ begin
                   -- Set the read address
                   v.raddr := axiReadMaster.araddr(8 downto 0);
                   -- Set the flag
-                  v.rd    := '1';
+                  v.rd(0) := '1';
                   -- Next state
                   v.state := WORD_READ_S;
                else
@@ -228,7 +248,9 @@ begin
                      when x"04" =>
                         v.axiReadSlave.rdata(0) := r.addr32BitMode;
                      when x"08" =>
-                        v.axiReadSlave.rdata(8 downto 0) := r.xferSize;
+                        v.axiReadSlave.rdata := r.addr;
+                     when x"0C" =>
+                        v.axiReadSlave.rdata(7 downto 0) := r.status;
                      when others =>
                         axiReadResp := AXI_ERROR_RESP_G;
                   end case;
@@ -272,9 +294,9 @@ begin
          ----------------------------------------------------------------------
          when WORD_READ_S =>
             -- Check if the RAM data is updated
-            if r.rd = '0' then
+            if r.rd = "00" then
                -- Set the flag
-               v.rd    := '1';
+               v.rd(0)                            := '1';
                -- Shift the data
                v.axiReadSlave.rdata(31 downto 8) := v.axiReadSlave.rdata(23 downto 0);
                v.axiReadSlave.rdata(7 downto 0)  := ramDout;
@@ -366,28 +388,32 @@ begin
             -- Serial Clock low phase
             v.sck := '0';
             -- Check if the RAM data is updated
-            if r.rd = '0' then
+            if r.rd = "00" then
                -- 32-bit Address Mode
-               if r.addr32BitMode = '0' then
-                  if (r.raddr = 1) and (MEM_ADDR_MASK_G(31-r.bitPntr) = '1') then
-                     v.mosi := '1';
-                  elsif (r.raddr = 2) and (MEM_ADDR_MASK_G(23-r.bitPntr) = '1') then
-                     v.mosi := '1';
-                  elsif r.raddr = 3 and (MEM_ADDR_MASK_G(15-r.bitPntr) = '1') then
-                     v.mosi := '1';
-                  elsif r.raddr = 4 and (MEM_ADDR_MASK_G(7-r.bitPntr) = '1') then
-                     v.mosi := '1';
+               if r.addr32BitMode = '1' then
+                  if r.cnt = 0 then
+                     v.mosi := r.cmd(7-r.bitPntr);
+                  elsif r.cnt = 1 then
+                     v.mosi := MEM_ADDR_MASK_G(31-r.bitPntr) or r.addr(31-r.bitPntr);
+                  elsif r.cnt = 2 then
+                     v.mosi := MEM_ADDR_MASK_G(23-r.bitPntr) or r.addr(23-r.bitPntr);
+                  elsif r.cnt = 3 then
+                     v.mosi := MEM_ADDR_MASK_G(15-r.bitPntr) or r.addr(15-r.bitPntr);
+                  elsif r.cnt = 4 then
+                     v.mosi := MEM_ADDR_MASK_G(7-r.bitPntr) or r.addr(7-r.bitPntr);
                   else
                      v.mosi := ramDout(7-r.bitPntr);
                   end if;
                -- 24-bit Address Mode
                else
-                  if (r.raddr = 1) and (MEM_ADDR_MASK_G(23-r.bitPntr) = '1') then
-                     v.mosi := '1';
-                  elsif r.raddr = 2 and (MEM_ADDR_MASK_G(15-r.bitPntr) = '1') then
-                     v.mosi := '1';
-                  elsif r.raddr = 3 and (MEM_ADDR_MASK_G(7-r.bitPntr) = '1') then
-                     v.mosi := '1';
+                  if r.cnt = 0 then
+                     v.mosi := r.cmd(7-r.bitPntr);
+                  elsif r.cnt = 1 then
+                     v.mosi := MEM_ADDR_MASK_G(23-r.bitPntr) or r.addr(23-r.bitPntr);
+                  elsif r.cnt = 2 then
+                     v.mosi := MEM_ADDR_MASK_G(15-r.bitPntr) or r.addr(15-r.bitPntr);
+                  elsif r.cnt = 3 then
+                     v.mosi := MEM_ADDR_MASK_G(7-r.bitPntr) or r.addr(7-r.bitPntr);
                   else
                      v.mosi := ramDout(7-r.bitPntr);
                   end if;
@@ -422,29 +448,16 @@ begin
                if r.bitPntr = 7 then
                   -- Reset the counter
                   v.bitPntr := 0;
-                  -- Update the write address pointer
+                  -- Write to RAM
+                  v.we      := not(r.RnW);
                   v.waddr   := r.raddr;
-                  -- 32-bit Address Mode
-                  if r.addr32BitMode = '0' then
-                     -- Check if not a CMD or ADDR byte (1st five bytes) and unlocked
-                     if (r.raddr > 4) and (r.lock = '0') then
-                        -- Write to RAM
-                        v.we := '1';
-                     end if;
-                  -- 24-bit Address Mode
-                  else
-                     -- Check if not a CMD or ADDR byte (1st four bytes) and unlocked
-                     if (r.raddr > 3) and (r.lock = '0') then
-                        -- Write to RAM
-                        v.we := '1';
-                     end if;
-                  end if;
-                  -- Increment the read address
-                  v.raddr := r.raddr + 1;
+                  -- Increment the counters
+                  v.raddr   := r.raddr + 1;
+                  v.cnt     := r.cnt + 1;
                   -- Set the flag
-                  v.rd    := '1';
+                  v.rd(0)   := '1';
                   -- Check the xfer size
-                  if r.raddr = r.xferSize then
+                  if r.cnt = r.xferSize then
                      -- Next state
                      v.state := MIN_CS_WIDTH_S;
                   end if;
@@ -460,6 +473,8 @@ begin
             v.sckCnt := r.sckCnt + 1;
             -- Check counter
             if r.sckCnt = MIN_CS_WIDTH_C then
+               -- Latch the last write value
+               v.status := r.ramDin;
                -- Reset the counter
                v.sckCnt := 0;
                -- Next State
