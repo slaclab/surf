@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiWinbondW25QReg.vhd
+-- File       : AxiMicronN25QReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2015-03-03
+-- Last update: 2015-03-05
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,21 +24,20 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity AxiWinbondW25QReg is
+entity AxiMicronN25QReg is
    generic (
-      TPD_G            : time             := 1 ns;
-      MEM_ADDR_MASK_G  : slv(23 downto 0) := x"000000";
-      AXI_CLK_FREQ_G   : real             := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G   : real             := 50.0E+6;   -- units of Hz
-      AXI_CONFIG_G     : AxiStreamConfigType;
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);    
+      TPD_G            : time                := 1 ns;
+      MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
+      AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
+      SPI_CLK_FREQ_G   : real                := 50.0E+6;   -- units of Hz
+      AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
+      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);       
    port (
       -- FLASH Memory Ports
       csL            : out sl;
       sck            : out sl;
-      din            : in  slv(3 downto 0);
-      dout           : out slv(3 downto 0);
-      oeL            : out slv(3 downto 0);
+      mosi           : out sl;
+      miso           : in  sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -52,14 +51,14 @@ entity AxiWinbondW25QReg is
       -- Global Signals
       axiClk         : in  sl;
       axiRst         : in  sl);
-end AxiWinbondW25QReg;
+end AxiMicronN25QReg;
 
-architecture rtl of AxiWinbondW25QReg is
+architecture rtl of AxiMicronN25QReg is
 
    constant DOUBLE_SCK_FREQ_C : real    := getRealMult(SPI_CLK_FREQ_G, 2.0);
    constant SCK_HALF_PERIOD_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, DOUBLE_SCK_FREQ_C))-1;
    constant MIN_CS_WIDTH_C    : natural := (getTimeRatio(AXI_CLK_FREQ_G, 2.0E+7));
-   constant MAX_SCK_CNT_C     : natural := ite((SCK_HALF_PERIOD_C>MIN_CS_WIDTH_C),SCK_HALF_PERIOD_C,MIN_CS_WIDTH_C);
+   constant MAX_SCK_CNT_C     : natural := ite((SCK_HALF_PERIOD_C > MIN_CS_WIDTH_C), SCK_HALF_PERIOD_C, MIN_CS_WIDTH_C);
 
    constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit interface   
    
@@ -72,11 +71,12 @@ architecture rtl of AxiWinbondW25QReg is
       RX_LOAD_S,
       SCK_LOW_S,
       SCK_HIGH_S,
-      MIN_CS_WIDTH_S);  
+      MIN_CS_WIDTH_S); 
 
    type RegType is record
       test          : slv(31 downto 0);
       wrData        : slv(31 downto 0);
+      addr32BitMode : sl;
       -- RAM Signals
       lock          : sl;
       we            : sl;
@@ -89,9 +89,8 @@ architecture rtl of AxiWinbondW25QReg is
       -- SPI Signals
       csL           : sl;
       sck           : sl;
+      mosi          : sl;
       sckCnt        : natural range 0 to MAX_SCK_CNT_C;
-      dout          : slv(3 downto 0);
-      oeL           : slv(3 downto 0);
       bitPntr       : natural range 0 to 7;
       -- AXI Stream Signals
       rxSlave       : AxiStreamSlaveType;
@@ -106,6 +105,7 @@ architecture rtl of AxiWinbondW25QReg is
    constant REG_INIT_C : RegType := (
       test          => (others => '0'),
       wrData        => (others => '0'),
+      addr32BitMode => '0',
       -- RAM Signals      
       lock          => '1',
       we            => '0',
@@ -118,9 +118,8 @@ architecture rtl of AxiWinbondW25QReg is
       -- SPI Signals
       csL           => '1',
       sck           => '0',
+      mosi          => '0',
       sckCnt        => 0,
-      dout          => x"F",
-      oeL           => x"2",
       bitPntr       => 0,
       -- AXI Stream Signals
       rxSlave       => AXI_STREAM_SLAVE_INIT_C,
@@ -135,10 +134,10 @@ architecture rtl of AxiWinbondW25QReg is
    signal rin : RegType;
 
    signal ramDout : slv(7 downto 0);
-   
+
    signal rxMaster : AxiStreamMasterType;
-   signal txCtrl   : AxiStreamCtrlType;   
-   
+   signal txCtrl   : AxiStreamCtrlType;
+
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "true";
 
@@ -147,7 +146,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, din, r, ramDout) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, miso, r, ramDout, rxMaster) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -160,8 +159,8 @@ begin
       axiWriteResp     := AXI_RESP_OK_C;
       axiReadResp      := AXI_RESP_OK_C;
       v.rxSlave.tReady := '0';
-      v.we             := '0';
       v.rd             := '0';
+      v.we             := '0';
       ssiResetFlags(v.txMaster);
 
       -- Set the tKeep = 32-bit transfers
@@ -174,11 +173,13 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Reset the signals in IDLE state
             v.csL  := '1';
             v.sck  := '0';
-            v.dout := x"F";
-            v.oeL  := x"2";
             v.lock := '1';
+            v.cnt   := (others => '0');
+            v.waddr := (others => '0');
+            v.raddr := (others => '0');            
             -- Check for a write request
             if (axiStatus.writeEnable = '1') then
                if axiWriteMaster.awaddr(9) = '1' then
@@ -187,7 +188,7 @@ begin
                   v.raddr  := axiWriteMaster.awaddr(8 downto 0);
                   v.wrData := axiWriteMaster.wdata;
                   -- Reset the counter
-                  v.cnt   := (others => '0');                  
+                  v.cnt    := (others => '0');
                   -- Next state
                   v.state  := WORD_WRITE_S;
                else
@@ -196,10 +197,10 @@ begin
                      when x"00" =>
                         v.test := axiWriteMaster.wdata;
                      when x"04" =>
+                        v.addr32BitMode := axiWriteMaster.wdata(0);
+                     when x"08" =>
                         v.lock     := axiWriteMaster.wdata(31);
                         v.xferSize := axiWriteMaster.wdata(8 downto 0);
-                        -- Reset the counter
-                        v.raddr    := (others => '0');
                         -- Next state
                         v.state    := SCK_LOW_S;
                      when others =>
@@ -211,10 +212,10 @@ begin
             -- Check for a read request            
             elsif (axiStatus.readEnable = '1') then
                if axiReadMaster.araddr(9) = '1' then
-                  v.waddr := (others => '0');
+                  -- Set the read address
                   v.raddr := axiReadMaster.araddr(8 downto 0);
-                  -- Reset the counter
-                  v.cnt   := (others => '0');                  
+                  -- Set the flag
+                  v.rd    := '1';
                   -- Next state
                   v.state := WORD_READ_S;
                else
@@ -225,6 +226,8 @@ begin
                      when x"00" =>
                         v.axiReadSlave.rdata := r.test;
                      when x"04" =>
+                        v.axiReadSlave.rdata(0) := r.addr32BitMode;
+                     when x"08" =>
                         v.axiReadSlave.rdata(8 downto 0) := r.xferSize;
                      when others =>
                         axiReadResp := AXI_ERROR_RESP_G;
@@ -268,12 +271,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WORD_READ_S =>
-            -- Increment the counter
-            v.waddr := r.waddr + 1;
-            -- Check the counter size
-            if r.waddr = 2 then
-               -- Reset the counter
-               v.waddr                           := (others => '0');
+            -- Check if the RAM data is updated
+            if r.rd = '0' then
+               -- Set the flag
+               v.rd    := '1';
                -- Shift the data
                v.axiReadSlave.rdata(31 downto 8) := v.axiReadSlave.rdata(23 downto 0);
                v.axiReadSlave.rdata(7 downto 0)  := ramDout;
@@ -366,14 +367,30 @@ begin
             v.sck := '0';
             -- Check if the RAM data is updated
             if r.rd = '0' then
-               if (r.raddr = 1) and (MEM_ADDR_MASK_G(23-r.bitPntr) = '1') then
-                  v.dout(0) := '1';
-               elsif r.raddr = 2 and (MEM_ADDR_MASK_G(15-r.bitPntr) = '1') then
-                  v.dout(0) := '1';
-               elsif r.raddr = 3 and (MEM_ADDR_MASK_G(7-r.bitPntr) = '1') then
-                  v.dout(0) := '1';
+               -- 32-bit Address Mode
+               if r.addr32BitMode = '0' then
+                  if (r.raddr = 1) and (MEM_ADDR_MASK_G(31-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  elsif (r.raddr = 2) and (MEM_ADDR_MASK_G(23-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  elsif r.raddr = 3 and (MEM_ADDR_MASK_G(15-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  elsif r.raddr = 4 and (MEM_ADDR_MASK_G(7-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  else
+                     v.mosi := ramDout(7-r.bitPntr);
+                  end if;
+               -- 24-bit Address Mode
                else
-                  v.dout(0) := ramDout(7-r.bitPntr);
+                  if (r.raddr = 1) and (MEM_ADDR_MASK_G(23-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  elsif r.raddr = 2 and (MEM_ADDR_MASK_G(15-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  elsif r.raddr = 3 and (MEM_ADDR_MASK_G(7-r.bitPntr) = '1') then
+                     v.mosi := '1';
+                  else
+                     v.mosi := ramDout(7-r.bitPntr);
+                  end if;
                end if;
                -- Increment the counter
                v.sckCnt := r.sckCnt + 1;
@@ -398,7 +415,7 @@ begin
                -- Reset the counter
                v.sckCnt              := 0;
                -- Update the data bus
-               v.ramDin(7-r.bitPntr) := din(1);
+               v.ramDin(7-r.bitPntr) := miso;
                -- Increment the counter
                v.bitPntr             := r.bitPntr + 1;
                -- Check the counter value
@@ -407,10 +424,20 @@ begin
                   v.bitPntr := 0;
                   -- Update the write address pointer
                   v.waddr   := r.raddr;
-                  -- Check if not a CMD or ADDR byte (1st four bytes) and unlocked
-                  if (r.raddr > 3) and (r.lock = '0') then
-                     -- Write to RAM
-                     v.we := '1';
+                  -- 32-bit Address Mode
+                  if r.addr32BitMode = '0' then
+                     -- Check if not a CMD or ADDR byte (1st five bytes) and unlocked
+                     if (r.raddr > 4) and (r.lock = '0') then
+                        -- Write to RAM
+                        v.we := '1';
+                     end if;
+                  -- 24-bit Address Mode
+                  else
+                     -- Check if not a CMD or ADDR byte (1st four bytes) and unlocked
+                     if (r.raddr > 3) and (r.lock = '0') then
+                        -- Write to RAM
+                        v.we := '1';
+                     end if;
                   end if;
                   -- Increment the read address
                   v.raddr := r.raddr + 1;
@@ -455,8 +482,7 @@ begin
 
       csL  <= r.csL;
       sck  <= r.sck;
-      dout <= r.dout;
-      oeL  <= r.oeL;
+      mosi <= r.mosi;
       
    end process comb;
 
@@ -541,6 +567,6 @@ begin
          -- Port B
          clkb  => axiClk,
          addrb => r.raddr,
-         doutb => ramDout);             
+         doutb => ramDout);          
 
 end rtl;
