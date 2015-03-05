@@ -59,6 +59,7 @@ architecture rtl of AxiWinbondW25QReg is
    constant DOUBLE_SCK_FREQ_C : real    := getRealMult(SPI_CLK_FREQ_G, 2.0);
    constant SCK_HALF_PERIOD_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, DOUBLE_SCK_FREQ_C))-1;
    constant MIN_CS_WIDTH_C    : natural := (getTimeRatio(AXI_CLK_FREQ_G, 2.0E+7));
+   constant MAX_SCK_CNT_C     : natural := ite((SCK_HALF_PERIOD_C>MIN_CS_WIDTH_C),SCK_HALF_PERIOD_C,MIN_CS_WIDTH_C);
 
    constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit interface   
    
@@ -88,7 +89,7 @@ architecture rtl of AxiWinbondW25QReg is
       -- SPI Signals
       csL           : sl;
       sck           : sl;
-      sckCnt        : natural range 0 to SCK_HALF_PERIOD_C;
+      sckCnt        : natural range 0 to MAX_SCK_CNT_C;
       dout          : slv(3 downto 0);
       oeL           : slv(3 downto 0);
       bitPntr       : natural range 0 to 7;
@@ -119,7 +120,7 @@ architecture rtl of AxiWinbondW25QReg is
       sck           => '0',
       sckCnt        => 0,
       dout          => x"F",
-      oeL           => x"1",
+      oeL           => x"2",
       bitPntr       => 0,
       -- AXI Stream Signals
       rxSlave       => AXI_STREAM_SLAVE_INIT_C,
@@ -138,6 +139,9 @@ architecture rtl of AxiWinbondW25QReg is
    signal rxMaster : AxiStreamMasterType;
    signal txCtrl   : AxiStreamCtrlType;   
    
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "true";
+
 begin
 
    -------------------------------
@@ -173,7 +177,7 @@ begin
             v.csL  := '1';
             v.sck  := '0';
             v.dout := x"F";
-            v.oeL  := x"1";
+            v.oeL  := x"2";
             v.lock := '1';
             -- Check for a write request
             if (axiStatus.writeEnable = '1') then
@@ -182,6 +186,8 @@ begin
                   v.waddr  := axiWriteMaster.awaddr(8 downto 0);
                   v.raddr  := axiWriteMaster.awaddr(8 downto 0);
                   v.wrData := axiWriteMaster.wdata;
+                  -- Reset the counter
+                  v.cnt   := (others => '0');                  
                   -- Next state
                   v.state  := WORD_WRITE_S;
                else
@@ -207,6 +213,8 @@ begin
                if axiReadMaster.araddr(9) = '1' then
                   v.waddr := (others => '0');
                   v.raddr := axiReadMaster.araddr(8 downto 0);
+                  -- Reset the counter
+                  v.cnt   := (others => '0');                  
                   -- Next state
                   v.state := WORD_READ_S;
                else
@@ -241,8 +249,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WORD_WRITE_S =>
-            -- Unlocked RAM write
-            v.lock                := '0';
+            -- Write a byte to the RAM
             v.we                  := '1';
             v.waddr               := r.raddr;
             v.ramDin              := r.wrData(31 downto 24);
