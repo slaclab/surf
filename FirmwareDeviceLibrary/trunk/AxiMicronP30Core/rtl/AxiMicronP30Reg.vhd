@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2015-02-27
+-- Last update: 2015-03-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,10 +29,11 @@ use unisim.vcomponents.all;
 
 entity AxiMicronP30Reg is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6;  -- units of Hz
-      AXI_CONFIG_G     : AxiStreamConfigType;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      TPD_G            : time                := 1 ns;
+      MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
+      AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
+      AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
+      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Interface 
       flashAddr      : out   slv(30 downto 0);
@@ -654,8 +655,11 @@ begin
       rin <= v;
 
       -- Outputs
-      flashAddr     <= r.addr;
-      flashCeL      <= r.ceL;
+      for i in 0 to 30 loop
+         flashAddr <= r.addr(i) or MEM_ADDR_MASK_G(i);
+      end loop
+         
+         flashCeL <= r.ceL;
       flashOeL      <= r.oeL;
       flashWeL      <= r.weL;
       axiReadSlave  <= r.axiReadSlave;

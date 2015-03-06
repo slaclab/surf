@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2015-02-26
+-- Last update: 2015-03-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use work.AxiMicronP30Pkg.all;
 entity AxiMicronP30Core is
    generic (
       TPD_G            : time                := 1 ns;
+      MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
       AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
       AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);
@@ -58,6 +59,7 @@ begin
    AxiMicronP30Reg_Inst : entity work.AxiMicronP30Reg
       generic map (
          TPD_G            => TPD_G,
+         MEM_ADDR_MASK_G  => MEM_ADDR_MASK_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
          AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G) 
