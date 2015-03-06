@@ -70,8 +70,9 @@ architecture rtl of AxiMicronN25QReg is
       WORD_WRITE_S,
       WORD_READ_S,
       WORD_READ_HOLD_S,
-      RX_CMD_S,
+      RX_ADDR_S,
       RX_LOAD_S,
+      BUF_WRITE_MODE_S,
       SCK_LOW_S,
       SCK_HIGH_S,
       MIN_CS_WIDTH_S,
@@ -85,6 +86,8 @@ architecture rtl of AxiMicronN25QReg is
       cmd           : slv(7 downto 0);
       status        : slv(7 downto 0);
       txStream      : sl;
+      bufProgEn     : sl;
+      fastCnt       : slv(3 downto 0);
       -- RAM Signals
       RnW           : sl;
       we            : sl;
@@ -118,6 +121,8 @@ architecture rtl of AxiMicronN25QReg is
       cmd           => (others => '0'),
       status        => (others => '0'),
       txStream      => '0',
+      bufProgEn     => '0',
+      fastCnt       => (others => '0'),
       -- RAM Signals      
       RnW           => '1',
       we            => '0',
@@ -270,7 +275,7 @@ begin
                      -- Ready to readout the FIFO
                      v.rxSlave.tReady := '1';
                      -- Next state
-                     v.state          := RX_CMD_S;
+                     v.state          := RX_ADDR_S;
                   else
                      -- Blow off the data
                      v.rxSlave.tReady := '1';
@@ -329,26 +334,17 @@ begin
                v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
-         when RX_CMD_S =>
+         when RX_ADDR_S =>
             -- Ready to readout the FIFO
             v.rxSlave.tReady := '1';
             -- Check for FIFO data
             if rxMaster.tValid = '1' then
-               -- Set the commands values
-               v.RnW      := rxMaster.tData(31);
-               v.txStream := rxMaster.tData(30);
-               v.cmd      := rxMaster.tData(23 downto 16);
-               v.xferSize := rxMaster.tData(8 downto 0);
+               -- Set the address
+               v.addr  := rxMaster.tData(31 downto 0);
                -- Reset the counter
-               v.raddr    := (others => '0');
-               -- Check for RnW = '0' and txStream = '0'
-               if axiWriteMaster.wdata(31 downto 30) = 0 then
-                  -- Next state
-                  v.state := RX_LOAD_S;
-               else
-                  -- Next state
-                  v.state := IDLE_S;
-               end if;
+               v.raddr := (others => '0');
+               -- Next state
+               v.state := RX_LOAD_S;
             end if;
          ----------------------------------------------------------------------
          when RX_LOAD_S =>
@@ -372,15 +368,17 @@ begin
                   if ssiGetUserEofe(AXI_CONFIG_C, rxMaster) = '1' then
                      -- Next state
                      v.state := IDLE_S;
-                  elsif r.raddr /= r.xferSize then
+                  elsif r.raddr /= 255 then
                      -- Next state
                      v.state := IDLE_S;
                   else
+                     -- Set the flag
+                     v.bufProgEn := '1';
                      -- Next state
-                     v.state := SCK_LOW_S;
+                     v.state     := BUF_WRITE_MODE_S;
                   end if;
                -- No EOF but reached counter size
-               elsif r.raddr = r.xferSize then
+               elsif r.raddr = 255 then
                   -- Reset the counter
                   v.raddr          := (others => '0');
                   -- Done reading out the FIFO
@@ -389,6 +387,87 @@ begin
                   v.state          := IDLE_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when BUF_WRITE_MODE_S =>
+            -- Set the flag
+            v.RnW     := '1';
+            -- Increment the counter
+            v.fastCnt := r.fastCnt + 1;
+            -- Check the counter
+            case r.fastCnt is
+               when x"0" =>
+                  -- Poll the status register
+                  v.cmd      := x"05";
+                  v.xferSize := toSlv(1, 9);
+               when x"1" =>
+                  -- Check if busy
+                  if r.status(0) = '1' then
+                     -- Poll the status register
+                     v.cmd      := x"05";
+                     v.xferSize := toSlv(1, 9);
+                     -- Set the counter
+                     v.fastCnt  := r.fastCnt;
+                  else
+                     -- Set the write enable register
+                     v.cmd      := x"06";
+                     v.xferSize := toSlv(0, 9);
+                  end if;
+               when x"2" =>
+                  -- Poll the status register
+                  v.cmd      := x"05";
+                  v.xferSize := toSlv(1, 9);
+               when x"3" =>
+                  -- Check if busy
+                  if r.status(0) = '1' then
+                     -- Poll the status register
+                     v.cmd      := x"05";
+                     v.xferSize := toSlv(1, 9);
+                     -- Set the counter
+                     v.fastCnt  := r.fastCnt;
+                  else
+                     -- Set the write command
+                     v.cmd := x"02";
+                     -- Check address mode
+                     if r.addr32BitMode = '1' then
+                        -- 32-bit Address Mode
+                        v.xferSize := toSlv(260, 9);
+                     else
+                        -- 24-bit Address Mode
+                        v.xferSize := toSlv(259, 9);
+                     end if;
+                  end if;
+               when x"4" =>
+                  -- Poll the status register
+                  v.cmd      := x"05";
+                  v.xferSize := toSlv(1, 9);
+               when others =>
+                  -- Set the counter
+                  v.fastCnt := r.fastCnt;
+                  -- Check if busy
+                  if r.status(0) = '1' then
+                     -- Poll the status register
+                     v.cmd      := x"05";
+                     v.xferSize := toSlv(1, 9);
+                  else
+                     -- Set the write enable register
+                     v.cmd      := x"04";
+                     v.xferSize := toSlv(0, 9);
+                                   -- Reset the flag
+                    v.bufProgEn := '0';
+                     -- Reset the counter
+                     v.fastCnt := x"0";
+                  end if;
+            end case;
+            -- Check address mode
+            if r.addr32BitMode = '1' then
+               -- 32-bit Address Mode
+               v.raddr := PRESET_32BIT_ADDR_C;
+            else
+               -- 24-bit Address Mode
+               v.raddr := PRESET_24BIT_ADDR_C;
+            end if;
+            -- Next state
+            v.state := SCK_LOW_S;
          ----------------------------------------------------------------------
          when SCK_LOW_S =>
             -- Assert the chip select
@@ -496,6 +575,9 @@ begin
                   v.rd(0) := '1';
                   -- Next State
                   v.state := BUF_READ_MODE_S;
+               elsif r.bufProgEn = '1' then
+                  -- Next State
+                  v.state := BUF_WRITE_MODE_S;
                else
                   -- Next State
                   v.state := IDLE_S;
