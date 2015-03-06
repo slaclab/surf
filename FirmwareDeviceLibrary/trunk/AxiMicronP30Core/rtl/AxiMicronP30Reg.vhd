@@ -525,12 +525,8 @@ begin
                v.txMaster.tValid              := '1';
                v.txMaster.tData(31 downto 16) := x"0000";
                v.txMaster.tData(15 downto 0)  := r.dataReg;
-               -- Check for SOF flag
-               if (r.bufReadCnt = 0)then
-                  ssiSetUserSof(AXI_CONFIG_C, v.txMaster, '1');
-               end if;
                -- Increment the counter
-               v.bufReadCnt := r.bufReadCnt + 1;
+               v.bufReadCnt                   := r.bufReadCnt + 1;
                -- Check the counter
                if r.bufReadCnt = x"FF" then
                   -- Reset the counter
@@ -621,27 +617,37 @@ begin
             v.weL      := '1';
             v.tristate := r.RnW;
             v.din      := r.wrData;
-            -- Increment the counter
-            v.cnt      := r.cnt + 1;
-            -- Check the counter 
-            if r.cnt = MAX_CNT_C then
-               -- Reset the counter
-               v.cnt := 0;
-               -- Check for buffered program command mode
-               if r.bufProgEn = '1' then
-                  -- Next state
-                  v.state := BUF_WRITE_MODE_S;
-               -- Check for fast program command mode
-               elsif r.fastProgEn = '1' then
-                  -- Next state
-                  v.state := FAST_MODE_S;
-               -- Check for buffered read command mode
-               elsif r.bufReadEn = '1' then
-                  -- Next state
-                  v.state := BUF_READ_MODE_S;
-               else
-                  -- Next state
-                  v.state := IDLE_S;
+            if txCtrl.pause = '0' then
+               -- Increment the counter
+               v.cnt := r.cnt + 1;
+               -- Check the counter 
+               if r.cnt = MAX_CNT_C then
+                  -- Reset the counter
+                  v.cnt := 0;
+                  -- Check for buffered program command mode
+                  if r.bufProgEn = '1' then
+                     -- Next state
+                     v.state := BUF_WRITE_MODE_S;
+                  -- Check for fast program command mode
+                  elsif r.fastProgEn = '1' then
+                     -- Next state
+                     v.state := FAST_MODE_S;
+                  -- Check for buffered read command mode
+                  elsif r.bufReadEn = '1' then
+                     -- Check for SOF
+                     if r.bufReadCnt = 0 then
+                        -- Write to the FIFO
+                        v.txMaster.tValid             := '1';
+                        ssiSetUserSof(AXI_CONFIG_C, v.txMaster, '1');
+                        v.txMaster.tData(31)          := '0';
+                        v.txMaster.tData(30 downto 0) := r.addr;
+                     end if;
+                     -- Next state
+                     v.state := BUF_READ_MODE_S;
+                  else
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
                end if;
             end if;
       ----------------------------------------------------------------------
