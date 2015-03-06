@@ -180,6 +180,7 @@ begin
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
       variable axiReadResp  : slv(1 downto 0);
+      variable i            : natural;
    begin
       -- Latch the current value
       v := r;
@@ -656,10 +657,9 @@ begin
 
       -- Outputs
       for i in 0 to 30 loop
-         flashAddr <= r.addr(i) or MEM_ADDR_MASK_G(i);
-      end loop
-         
-         flashCeL <= r.ceL;
+         flashAddr(i) <= r.addr(i) or MEM_ADDR_MASK_G(i);
+      end loop;
+      flashCeL      <= r.ceL;
       flashOeL      <= r.oeL;
       flashWeL      <= r.weL;
       axiReadSlave  <= r.axiReadSlave;
