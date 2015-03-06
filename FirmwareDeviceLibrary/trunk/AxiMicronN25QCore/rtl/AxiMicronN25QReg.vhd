@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2015-03-05
+-- Last update: 2015-03-06
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,11 +70,12 @@ architecture rtl of AxiMicronN25QReg is
       WORD_WRITE_S,
       WORD_READ_S,
       WORD_READ_HOLD_S,
-      RX_SIZE_S,
+      RX_CMD_S,
       RX_LOAD_S,
       SCK_LOW_S,
       SCK_HIGH_S,
-      MIN_CS_WIDTH_S); 
+      MIN_CS_WIDTH_S,
+      BUF_READ_MODE_S); 
 
    type RegType is record
       test          : slv(31 downto 0);
@@ -83,6 +84,7 @@ architecture rtl of AxiMicronN25QReg is
       addr32BitMode : sl;
       cmd           : slv(7 downto 0);
       status        : slv(7 downto 0);
+      txStream      : sl;
       -- RAM Signals
       RnW           : sl;
       we            : sl;
@@ -115,6 +117,7 @@ architecture rtl of AxiMicronN25QReg is
       addr32BitMode => '0',
       cmd           => (others => '0'),
       status        => (others => '0'),
+      txStream      => '0',
       -- RAM Signals      
       RnW           => '1',
       we            => '0',
@@ -147,15 +150,15 @@ architecture rtl of AxiMicronN25QReg is
    signal rxMaster : AxiStreamMasterType;
    signal txCtrl   : AxiStreamCtrlType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "true";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, miso, r, ramDout, rxMaster) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, miso, r, ramDout, rxMaster, txCtrl) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -174,7 +177,7 @@ begin
       -- Shift register
       v.rd(1) := r.rd(0);
       v.rd(0) := '0';
-      
+
       -- Set the tKeep = 32-bit transfers
       v.txMaster.tKeep := x"00FF";
 
@@ -186,11 +189,12 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the signals in IDLE state
-            v.csL   := '1';
-            v.sck   := '0';
-            v.cnt   := (others => '0');
-            v.waddr := (others => '0');
-            v.raddr := (others => '0');
+            v.csL      := '1';
+            v.sck      := '0';
+            v.txStream := '0';
+            v.cnt      := (others => '0');
+            v.waddr    := (others => '0');
+            v.raddr    := (others => '0');
             -- Check for a write request
             if (axiStatus.writeEnable = '1') then
                if axiWriteMaster.awaddr(9) = '1' then
@@ -211,6 +215,7 @@ begin
                         v.addr := axiWriteMaster.wdata;
                      when x"0C" =>
                         v.RnW      := axiWriteMaster.wdata(31);
+                        v.txStream := axiWriteMaster.wdata(30);
                         v.cmd      := axiWriteMaster.wdata(23 downto 16);
                         v.xferSize := axiWriteMaster.wdata(8 downto 0);
                         -- Check address mode
@@ -265,7 +270,7 @@ begin
                      -- Ready to readout the FIFO
                      v.rxSlave.tReady := '1';
                      -- Next state
-                     v.state          := RX_SIZE_S;
+                     v.state          := RX_CMD_S;
                   else
                      -- Blow off the data
                      v.rxSlave.tReady := '1';
@@ -296,7 +301,7 @@ begin
             -- Check if the RAM data is updated
             if r.rd = "00" then
                -- Set the flag
-               v.rd(0)                            := '1';
+               v.rd(0)                           := '1';
                -- Shift the data
                v.axiReadSlave.rdata(31 downto 8) := v.axiReadSlave.rdata(23 downto 0);
                v.axiReadSlave.rdata(7 downto 0)  := ramDout;
@@ -324,17 +329,20 @@ begin
                v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
-         when RX_SIZE_S =>
+         when RX_CMD_S =>
             -- Ready to readout the FIFO
             v.rxSlave.tReady := '1';
             -- Check for FIFO data
             if rxMaster.tValid = '1' then
-               -- Set the base address
+               -- Set the commands values
+               v.RnW      := rxMaster.tData(31);
+               v.txStream := rxMaster.tData(30);
+               v.cmd      := rxMaster.tData(23 downto 16);
                v.xferSize := rxMaster.tData(8 downto 0);
                -- Reset the counter
                v.raddr    := (others => '0');
-               -- Check for the unlock
-               if axiWriteMaster.wdata(31 downto 9) = 0 then
+               -- Check for RnW = '0' and txStream = '0'
+               if axiWriteMaster.wdata(31 downto 30) = 0 then
                   -- Next state
                   v.state := RX_LOAD_S;
                else
@@ -437,13 +445,14 @@ begin
             -- Check the counter value
             if r.sckCnt = SCK_HALF_PERIOD_C then
                -- Set the default state
-               v.state               := SCK_LOW_S;
+               v.state              := SCK_LOW_S;
                -- Reset the counter
-               v.sckCnt              := 0;
-               -- Update the data bus
-               v.ramDin(7-r.bitPntr) := miso;
+               v.sckCnt             := 0;
+               -- Update the ram data bus
+               v.ramDin(7 downto 1) := r.ramDin(6 downto 0);
+               v.ramDin(0)          := miso;
                -- Increment the counter
-               v.bitPntr             := r.bitPntr + 1;
+               v.bitPntr            := r.bitPntr + 1;
                -- Check the counter value
                if r.bitPntr = 7 then
                   -- Reset the counter
@@ -458,6 +467,8 @@ begin
                   v.rd(0)   := '1';
                   -- Check the xfer size
                   if r.cnt = r.xferSize then
+                     -- Reset the counter
+                     v.cnt   := (others => '0');
                      -- Next state
                      v.state := MIN_CS_WIDTH_S;
                   end if;
@@ -477,8 +488,46 @@ begin
                v.status := r.ramDin;
                -- Reset the counter
                v.sckCnt := 0;
-               -- Next State
-               v.state  := IDLE_S;
+               -- Check for TX streaming
+               if r.txStream = '1' then
+                  -- Reset the counter
+                  v.raddr := (others => '1');
+                  -- Set the flag
+                  v.rd(0) := '1';
+                  -- Next State
+                  v.state := BUF_READ_MODE_S;
+               else
+                  -- Next State
+                  v.state := IDLE_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when BUF_READ_MODE_S =>
+            -- Check the TX FIFO status 
+            if (txCtrl.pause = '0') and (r.rd = "00") then
+               -- Set the flag
+               v.rd(0)           := '1';
+               -- Increment the counter
+               v.raddr           := r.raddr + 1;
+               -- Write to the TX FIFO
+               v.txMaster.tValid := '1';
+               -- Check for SOF
+               if r.raddr = "111111111" then
+                  ssiSetUserSof(AXI_CONFIG_C, v.txMaster, '1');
+                  v.txMaster.tData(31 downto 0) := r.addr;
+               else
+                  v.txMaster.tData(31 downto 8) := (others => '0');
+                  v.txMaster.tData(7 downto 0)  := ramDout;
+               end if;
+               -- Check for EOF
+               if r.raddr = 255 then
+                  -- Reset the counter
+                  v.raddr          := (others => '0');
+                  -- Set the EOF flag
+                  v.txMaster.tLast := '1';
+                  -- Next State
+                  v.state          := IDLE_S;
+               end if;
             end if;
       ----------------------------------------------------------------------
       end case;
