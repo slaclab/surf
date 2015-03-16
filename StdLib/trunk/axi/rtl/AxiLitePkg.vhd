@@ -14,6 +14,7 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 
@@ -209,15 +210,58 @@ package AxiLitePkg is
       axiResp               : in    slv(1 downto 0) := AXI_RESP_OK_C);
 
    -------------------------------------------------------------------------------------------------
+   -- Address decode procedures
+   -------------------------------------------------------------------------------------------------
+   procedure axiSlaveRegister (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      addr                   : in    slv;
+      offset                 : in    integer;
+      reg                    : inout slv);
+
+   procedure axiSlaveRegister (
+      signal axiReadMaster  : in    AxiLiteReadMasterType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      addr                  : in    slv;
+      offset                : in    integer;
+      reg                   : in    slv);
+
+   procedure axiSlaveRegister (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      addr                   : in    slv;
+      offset                 : in    integer;
+      reg                    : inout sl);
+
+   procedure axiSlaveRegister (
+      signal axiReadMaster  : in    AxiLiteReadMasterType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      addr                  : in    slv;
+      offset                : in    integer;
+      reg                   : in    sl);
+
+   procedure axiSlaveDefault (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
+
+   -------------------------------------------------------------------------------------------------
    -- Slave AXI Processing functions
    -------------------------------------------------------------------------------------------------
 
    -- Generate evenly distributed address map
-   function genAxiLiteConfig (num       : positive;
-                               base     : slv(31 downto 0);
-                               baseBot  : integer range 0 to 32;
-                               addrBits : integer range 0 to 32) 
+   function genAxiLiteConfig (num      : positive;
+                              base     : slv(31 downto 0);
+                              baseBot  : integer range 0 to 32;
+                              addrBits : integer range 0 to 32) 
       return AxiLiteCrossbarMasterConfigArray;
+
 
 end AxiLitePkg;
 
@@ -261,7 +305,8 @@ package body AxiLitePkg is
 
       -- Incomming read txn and last txn has concluded
       if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
-         readEnable := '1';
+         readEnable         := '1';
+         axiReadSlave.rdata := (others => '0');
       end if;
 
       -- Reset rvalid upon rready
@@ -301,14 +346,105 @@ package body AxiLitePkg is
    end procedure;
 
    -------------------------------------------------------------------------------------------------
+   -- Procedures for simplified address decoding
+   -------------------------------------------------------------------------------------------------
+   procedure axiSlaveRegister (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      addr                   : in    slv;
+      offset                 : in    integer;
+      reg                    : inout slv) is
+   begin
+      -- Read must come first so as not to overwrite the variable if read and write happen at once
+      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+         if (std_match(axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
+            axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
+            axiSlaveReadResponse(axiReadSlave);
+         end if;
+      end if;
+
+      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
+         if (std_match(axiWriteMaster.awaddr(addr'length-1 downto 0), addr)) then
+            reg := axiWriteMaster.wdata(offset+reg'length-1 downto offset);
+            axiSlaveWriteResponse(axiWriteSlave);
+         end if;
+      end if;
+
+   end procedure;
+
+   procedure axiSlaveRegister (
+      signal axiReadMaster  : in    AxiLiteReadMasterType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      addr                  : in    slv;
+      offset                : in    integer;
+      reg                   : in    slv) is
+   begin
+      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+         if (std_match(axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
+            axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
+            axiSlaveReadResponse(axiReadSlave);
+         end if;
+      end if;
+   end procedure;
+
+   procedure axiSlaveRegister (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      addr                   : in    slv;
+      offset                 : in    integer;
+      reg                    : inout sl)
+   is
+      variable tmp : slv(0 downto 0);
+   begin
+      tmp(0) := reg;
+      axiSlaveRegister(axiWriteMaster, axiReadMaster, axiWriteSlave, axiReadSlave, addr, offset, tmp);
+      reg    := tmp(0);
+   end procedure;
+
+   procedure axiSlaveRegister (
+      signal axiReadMaster  : in    AxiLiteReadMasterType;
+      variable axiReadSlave : inout AxiLiteReadSlaveType;
+      addr                  : in    slv;
+      offset                : in    integer;
+      reg                   : in    sl)
+   is
+      variable tmp : slv(0 downto 0);
+   begin
+      tmp(0) := reg;
+      axiSlaveRegister(axiReadMaster, axiReadSlave, addr, offset, tmp);
+   end procedure;
+   
+   procedure axiSlaveDefault (
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C)   is
+   begin
+      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0' and
+          axiWriteSlave.awready = '0') then
+         axiSlaveWriteResponse(axiWriteSlave, axiResp);
+      end if;
+
+      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0' and
+          axiReadSlave.arready = '0') then
+         axiSlaveReadResponse(axiReadSlave, axiResp);
+      end if;
+   end procedure;
+
+   -------------------------------------------------------------------------------------------------
    -- Slave AXI Processing functions
    -------------------------------------------------------------------------------------------------
 
    -- Generate evenly distributed address map
-   function genAxiLiteConfig (num       : positive;
-                               base     : slv(31 downto 0);
-                               baseBot  : integer range 0 to 32;
-                               addrBits : integer range 0 to 32)
+   function genAxiLiteConfig (num      : positive;
+                              base     : slv(31 downto 0);
+                              baseBot  : integer range 0 to 32;
+                              addrBits : integer range 0 to 32)
       return AxiLiteCrossbarMasterConfigArray is
       variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
       variable addr    : slv(31 downto 0);
@@ -329,5 +465,7 @@ package body AxiLitePkg is
       return retConf;
    end function;
 
+
+   
 end package body AxiLitePkg;
 
