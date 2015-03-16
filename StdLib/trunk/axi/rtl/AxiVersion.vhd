@@ -128,29 +128,29 @@ begin
           -- Wrapper procedures to make calls cleaner.
       procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is
       begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, addr, offset, reg);
+         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
       end procedure;
 
       procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
       begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, addr, offset, reg);
+         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
       end procedure;
 
       procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
       begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, addr, offset, reg);
+         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
       end procedure;
 
       procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
       begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, addr, offset, reg);
+         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
       end procedure;
 
 
       procedure axiSlaveDefault (
          axiResp : in slv(1 downto 0)) is
       begin
-         axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiResp);
+         axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, axiResp);
       end procedure;
 
    begin
