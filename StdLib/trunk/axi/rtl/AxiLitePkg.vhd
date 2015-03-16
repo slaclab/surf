@@ -217,6 +217,7 @@ package AxiLitePkg is
       signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
       reg                    : inout slv);
@@ -224,6 +225,7 @@ package AxiLitePkg is
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
       variable axiReadSlave : inout AxiLiteReadSlaveType;
+      variable axiStatus    : in    AxiLiteStatusType;
       addr                  : in    slv;
       offset                : in    integer;
       reg                   : in    slv);
@@ -233,6 +235,7 @@ package AxiLitePkg is
       signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
       reg                    : inout sl);
@@ -240,6 +243,7 @@ package AxiLitePkg is
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
       variable axiReadSlave : inout AxiLiteReadSlaveType;
+      variable axiStatus    : in    AxiLiteStatusType;
       addr                  : in    slv;
       offset                : in    integer;
       reg                   : in    sl);
@@ -249,6 +253,7 @@ package AxiLitePkg is
       signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiStatus     : in    AxiLiteStatusType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
 
    -------------------------------------------------------------------------------------------------
@@ -353,19 +358,20 @@ package body AxiLitePkg is
       signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
       reg                    : inout slv) is
    begin
       -- Read must come first so as not to overwrite the variable if read and write happen at once
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+      if (axiStatus.readEnable = '1') then
          if (std_match(axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
             axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
             axiSlaveReadResponse(axiReadSlave);
          end if;
       end if;
 
-      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
+      if (axiStatus.writeEnable = '1') then
          if (std_match(axiWriteMaster.awaddr(addr'length-1 downto 0), addr)) then
             reg := axiWriteMaster.wdata(offset+reg'length-1 downto offset);
             axiSlaveWriteResponse(axiWriteSlave);
@@ -377,11 +383,12 @@ package body AxiLitePkg is
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
       variable axiReadSlave : inout AxiLiteReadSlaveType;
+      variable axiStatus    : in    AxiLiteStatusType;
       addr                  : in    slv;
       offset                : in    integer;
       reg                   : in    slv) is
    begin
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+      if (axiStatus.readEnable = '1') then
          if (std_match(axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
             axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
             axiSlaveReadResponse(axiReadSlave);
@@ -394,6 +401,7 @@ package body AxiLitePkg is
       signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
       reg                    : inout sl)
@@ -401,13 +409,14 @@ package body AxiLitePkg is
       variable tmp : slv(0 downto 0);
    begin
       tmp(0) := reg;
-      axiSlaveRegister(axiWriteMaster, axiReadMaster, axiWriteSlave, axiReadSlave, addr, offset, tmp);
+      axiSlaveRegister(axiWriteMaster, axiReadMaster, axiWriteSlave, axiReadSlave, axiStatus, addr, offset, tmp);
       reg    := tmp(0);
    end procedure;
 
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
       variable axiReadSlave : inout AxiLiteReadSlaveType;
+      variable axiStatus    : in    AxiLiteStatusType;
       addr                  : in    slv;
       offset                : in    integer;
       reg                   : in    sl)
@@ -415,7 +424,7 @@ package body AxiLitePkg is
       variable tmp : slv(0 downto 0);
    begin
       tmp(0) := reg;
-      axiSlaveRegister(axiReadMaster, axiReadSlave, addr, offset, tmp);
+      axiSlaveRegister(axiReadMaster, axiReadSlave, axiStatus, addr, offset, tmp);
    end procedure;
    
    procedure axiSlaveDefault (
@@ -423,15 +432,14 @@ package body AxiLitePkg is
       signal axiReadMaster   : in    AxiLiteReadMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      variable axiStatus     : in    AxiLiteStatusType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C)   is
    begin
-      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0' and
-          axiWriteSlave.awready = '0') then
+      if (axiStatus.writeEnable = '1' and axiWriteSlave.awready = '0') then
          axiSlaveWriteResponse(axiWriteSlave, axiResp);
       end if;
 
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0' and
-          axiReadSlave.arready = '0') then
+      if (axiStatus.readEnable = '1' and axiReadSlave.arready = '0') then
          axiSlaveReadResponse(axiReadSlave, axiResp);
       end if;
    end procedure;
