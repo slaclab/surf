@@ -311,7 +311,7 @@ package body AxiLitePkg is
       -- Incomming read txn and last txn has concluded
       if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
          readEnable         := '1';
-         axiReadSlave.rdata := (others => '0');
+--         axiReadSlave.rdata := (others => '0');
       end if;
 
       -- Reset rvalid upon rready
