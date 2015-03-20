@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2014-06-04
+-- Last update: 2015-03-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -338,7 +338,7 @@ architecture rtl of Gtp7Core is
    signal txCharIsKFull  : slv(3 downto 0)  := (others => '0');
    signal txCharDispMode : slv(3 downto 0)  := (others => '0');
    signal txCharDispVal  : slv(3 downto 0)  := (others => '0');
-   
+
    -- DRP Signals
    signal drpAddr : slv(8 downto 0);
    signal drpDo   : slv(15 downto 0);
@@ -350,13 +350,13 @@ architecture rtl of Gtp7Core is
 
 begin
 
-   txOutClkOut     <= txOutClk;
+   txOutClkOut <= txOutClk;
 
    rxOutClkOut     <= rxOutClkBufg;
    qPllResetOut(0) <= rxPllResets(0) or txPllResets(0);
    qPllResetOut(1) <= rxPllResets(1) or txPllResets(1);
-   
-   rxPllLock       <= qPllLockIn(0) when RX_PLL0_USED_C else qPllLockIn(1);   
+
+   rxPllLock <= qPllLockIn(0) when RX_PLL0_USED_C else qPllLockIn(1);
 
    --------------------------------------------------------------------------------------------------
    -- Rx Logic
@@ -466,20 +466,39 @@ begin
          O => rxOutClkBufg);
 
    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
-      Gtp7RecClkMonitor_Inst : entity work.Gtp7RecClkMonitor
+      SyncClockFreq_1 : entity work.SyncClockFreq
          generic map (
-            COUNTER_UPPER_VALUE      => 15,
-            GCLK_COUNTER_UPPER_VALUE => 15,
-            CLOCK_PULSES             => 164,
-            EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
+            TPD_G             => TPD_G,
+            REF_CLK_FREQ_G    => 125.0E6,
+            REFRESH_RATE_G    => 1.0E3,
+            CLK_LOWER_LIMIT_G => 124.5E6,
+            CLK_UPPER_LIMIT_G => 125.5E6,
+            CNT_WIDTH_G       => 32)
          port map (
-            GT_RST        => gtRxReset,
-            REF_CLK       => gtRxRefClkBufg,
-            RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
-            SYSTEM_CLK    => stableClkIn,
-            PLL_LK_DET    => rxPllLock,
-            RECCLK_STABLE => rxRecClkStable,
-            EXEC_RESTART  => rxRecClkMonitorRestart);
+            freqOut     => open,
+            freqUpdated => open,
+            locked      => rxRecClkStable,
+            tooFast     => open,
+            tooSlow     => open,
+            clkIn       => rxOutClkBufg,
+            locClk      => stableClkIn,
+            refClk      => gtRxRefClkBufg);
+
+
+--      Gtp7RecClkMonitor_Inst : entity work.Gtp7RecClkMonitor
+--         generic map (
+--            COUNTER_UPPER_VALUE      => 15,
+--            GCLK_COUNTER_UPPER_VALUE => 15,
+--            CLOCK_PULSES             => 164,
+--            EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
+--         port map (
+--            GT_RST        => gtRxReset,
+--            REF_CLK       => gtRxRefClkBufg,
+--            RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
+--            SYSTEM_CLK    => stableClkIn,
+--            PLL_LK_DET    => rxPllLock,
+--            RECCLK_STABLE => rxRecClkStable,
+--            EXEC_RESTART  => rxRecClkMonitorRestart);
    end generate;
 
    RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
@@ -1273,20 +1292,20 @@ begin
          TXPRBSSEL            => "000");  
 
 
-    ------------------------- Soft Fix for Production Silicon----------------------
-    Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
-       port map(
-        RST_IN         => rxUserResetIn,
-        GTRXRESET_IN   => gtRxReset,
-        RXPMARESETDONE => rxPmaResetDone,
-        GTRXRESET_OUT  => gtRxRst,
-        DRP_OP_DONE    => open,
-        DRPCLK         => stableClkIn,
-        DRPEN          => drpEn,
-        DRPADDR        => drpAddr,
-        DRPWE          => drpWe,
-        DRPDO          => drpDo,
-        DRPDI          => drpDi,
-        DRPRDY         => drpRdy); 
-        
+   ------------------------- Soft Fix for Production Silicon----------------------
+   Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
+      port map(
+         RST_IN         => rxUserResetIn,
+         GTRXRESET_IN   => gtRxReset,
+         RXPMARESETDONE => rxPmaResetDone,
+         GTRXRESET_OUT  => gtRxRst,
+         DRP_OP_DONE    => open,
+         DRPCLK         => stableClkIn,
+         DRPEN          => drpEn,
+         DRPADDR        => drpAddr,
+         DRPWE          => drpWe,
+         DRPDO          => drpDo,
+         DRPDI          => drpDi,
+         DRPRDY         => drpRdy); 
+
 end architecture rtl;
