@@ -1,0 +1,6 @@
+vhdl work rtl/AxiAds42lb69Core.vhd
+vhdl work rtl/AxiAds42lb69Deser.vhd
+vhdl work rtl/AxiAds42lb69DeserBit.vhd
+vhdl work rtl/AxiAds42lb69Pkg.vhd
+vhdl work rtl/AxiAds42lb69Pll.vhd
+vhdl work rtl/AxiAds42lb69Reg.vhd
