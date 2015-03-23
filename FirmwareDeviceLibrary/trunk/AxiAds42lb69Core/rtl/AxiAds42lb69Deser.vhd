@@ -5,13 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2015-03-20
+-- Last update: 2015-03-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -78,20 +78,20 @@ begin
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
-         ADC_CLK_FREQ_G => ADC_CLK_FREQ_G);
-   port map (
-      -- ADC Clocking ports
-      adcClkP   => clkP,
-      adcClkN   => clkN,
-      adcSyncP  => syncP,
-      adcSyncN  => syncN,
-      adcClkFbP => clkFbP,
-      adcClkFbN => clkFbN,
-      -- ADC Reference Signals
-      adcSync   => adcSync,
-      adcClk    => adcClk,
-      adcRst    => adcRst,
-      adcClock  => adcClock);         
+         ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)
+      port map (
+         -- ADC Clocking ports
+         adcClkP   => clkP,
+         adcClkN   => clkN,
+         adcSyncP  => syncP,
+         adcSyncN  => syncN,
+         adcClkFbP => clkFbP,
+         adcClkFbN => clkFbN,
+         -- ADC Reference Signals
+         adcSync   => adcSync,
+         adcClk    => adcClk,
+         adcRst    => adcRst,
+         adcClock  => adcClock);         
 
    SynchVector_Inst : entity work.SynchronizerVector
       generic map(

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2015-03-20
+-- Last update: 2015-03-23
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -103,7 +103,6 @@ begin
    AxiAds42lb69Reg_Inst : entity work.AxiAds42lb69Reg
       generic map(
          TPD_G              => TPD_G,
-         COMMON_CLK_G       => COMMON_CLK_G,
          DMODE_INIT_G       => DMODE_INIT_G,
          DELAY_INIT_G       => DELAY_INIT_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
@@ -125,8 +124,6 @@ begin
          status         => status,
          config         => config,
          -- Clocks and Resets
-         axiClk         => axiClk,
-         axiRst         => axiRst,
          adcClk         => adcClk,
          adcRst         => adcRst,
          refclk200MHz   => refclk200MHz);   
