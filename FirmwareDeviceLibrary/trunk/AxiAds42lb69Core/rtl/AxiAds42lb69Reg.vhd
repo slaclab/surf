@@ -4,14 +4,14 @@
 -- File       : AxiAds42lb69Reg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-21
--- Last update: 2015-03-20
--- Platform   : Vivado 2013.3
+-- Created    : 2015-03-20
+-- Last update: 2015-03-23
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -105,7 +105,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, r, regIn, sdo) is
+   comb : process (adcRst, axiReadMaster, axiWriteMaster, r, regIn, sdo) is
       variable i            : integer;
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -368,7 +368,7 @@ begin
       end case;
 
       -- Synchronous Reset
-      if axiRst = '1' then
+      if adcRst = '1' then
          v                     := REG_INIT_C;
          v.regOut.delayIn.load := '1';
          v.regOut.delayIn.rst  := '1';
@@ -397,8 +397,8 @@ begin
 
    PwrUpRst_inst : entity work.PwrUpRst
       generic map (
-         TPD_G => TPD_G
-         TPD_G => getTimeRatio(ADC_CLK_FREQ_G, 2.0E+06))  -- 500 ns reset pulse
+         TPD_G      => TPD_G,
+         DURATION_G => getTimeRatio(ADC_CLK_FREQ_G, 2.0E+06))  -- 500 ns reset pulse
       port map (
          arst   => adcRst,
          clk    => adcClk,

@@ -4,14 +4,14 @@
 -- File       : AxiAds42lb69DeserBit.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-21
--- Last update: 2014-04-21
--- Platform   : Vivado 2013.3
+-- Created    : 2015-03-20
+-- Last update: 2015-03-23
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
