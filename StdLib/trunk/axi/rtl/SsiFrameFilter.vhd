@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2014-05-02
--- Platform   : Vivado 2013.3
+-- Last update: 2015-03-24
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:   This module is used to filter out bad SSI frames.
@@ -14,11 +14,13 @@
 -- Note: If EN_FRAME_FILTER_G = true, then this module DOES NOT support 
 --       interleaving of channels during the middle of a frame transfer.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -35,8 +37,8 @@ entity SsiFrameFilter is
       -- Slave Port
       sAxisMaster    : in  AxiStreamMasterType;
       sAxisSlave     : out AxiStreamSlaveType;
-      sAxisDropWrite : out sl;
-      sAxisTermFrame : out sl;
+      sAxisDropWrite : out sl;          -- Word dropped status output
+      sAxisTermFrame : out sl;          -- Frame dropped status output
       -- Master Port
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
@@ -48,28 +50,25 @@ end SsiFrameFilter;
 architecture rtl of SsiFrameFilter is
 
    type StateType is (
-      WAIT_FOR_SOF_S,
-      WAIT_FOR_EOF_S,
-      WAIT_FOR_READY_S);        
+      IDLE_S,
+      MOVE_S);        
 
    type RegType is record
-      sAxisDropWrite : sl;
-      sAxisTermFrame : sl;
-      tDest          : slv(7 downto 0);
-      tId            : slv(7 downto 0);
-      mAxisMaster    : AxiStreamMasterType;
-      sAxisSlave     : AxiStreamSlaveType;
-      state          : StateType;
+      wordDropped  : sl;
+      frameDropped : sl;
+      tDest        : slv(7 downto 0);
+      master       : AxiStreamMasterType;
+      slave        : AxiStreamSlaveType;
+      state        : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      '0',
-      '0',
-      (others => '0'),
-      (others => '0'),
-      AXI_STREAM_MASTER_INIT_C,
-      AXI_STREAM_SLAVE_INIT_C,
-      WAIT_FOR_SOF_S);
+      wordDropped  => '0',
+      frameDropped => '0',
+      tDest        => x"00",
+      master       => AXI_STREAM_MASTER_INIT_C,
+      slave        => AXI_STREAM_SLAVE_INIT_C,
+      state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -94,107 +93,70 @@ begin
          -- Latch the current value
          v := r;
 
-         -- Update the local RX flow control
-         v.sAxisSlave := mAxisSlave;
-
          -- Reset strobe Signals
-         ssiResetFlags(v.mAxisMaster);
-         v.sAxisDropWrite := '0';
-         v.sAxisTermFrame := '0';
+         v.wordDropped  := '0';
+         v.frameDropped := '0';
 
-         -- State Machine
-         case (r.state) is
-            ----------------------------------------------------------------------
-            when WAIT_FOR_SOF_S =>
-               -- Check for a FIFO write
-               if sAxisMaster.tValid = '1' then
-                  -- Wait for a start of frame bit
-                  if ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1' then  -- (sof = 1, eof = ?, eofe = ?)
-                     -- Check if the FIFO is ready 
-                     if r.sAxisSlave.tReady = '1' then
-                        -- Check for eof flag 
-                        if sAxisMaster.tLast = '1' then  --(sof = 1, eof = 1, eofe = ?)
-                           -- Write the filtered data into the FIFO
-                           v.mAxisMaster := sAxisMaster;
-                        else            -- (sof = 1, eof = 0, eofe = ?)
-                           -- Write the filtered data into the FIFO
-                           v.mAxisMaster := sAxisMaster;
-                           -- Latch the Virtual Channel pointer
-                           v.tDest       := sAxisMaster.tDest;
-                           v.tId         := sAxisMaster.tId;
-                           -- Next state
-                           v.state       := WAIT_FOR_EOF_S;
-                        end if;
+         -- Check if target is ready
+         if mAxisSlave.tReady = '1' then
+
+            --  Move the data bus
+            v.slave.tReady := '1';
+            v.master       := sAxisMaster;
+
+            -- Check for data being moved
+            if sAxisMaster.tValid = '1' then
+
+               -- State Machine
+               case (r.state) is
+                  ----------------------------------------------------------------------
+                  when IDLE_S =>
+                     -- Check for SOF
+                     if ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1' then
+                        -- Latch tDest
+                        v.tDest := sAxisMaster.tDest;
+                        -- Next state
+                        v.state := MOVE_S;
                      else
+                        -- Blow off the data
+                        v.master.tValid := '0';
                         -- Strobe the error flags
-                        v.sAxisDropWrite := '1';
-                        -- Check for eof flag 
+                        v.wordDropped   := '1';
+                        -- Check for EOF flag 
                         if sAxisMaster.tLast = '1' then
-                           v.sAxisTermFrame := '1';
+                           v.frameDropped := '1';
                         end if;
                      end if;
-                  else
-                     -- Strobe the error flags
-                     v.sAxisDropWrite := '1';
-                     -- Check for eof flag 
+                  ----------------------------------------------------------------------
+                  when MOVE_S =>
+                     -- Force the tDest
+                     v.master.tDest := r.tDest;
+                     -- Check for EOF   
                      if sAxisMaster.tLast = '1' then
-                        v.sAxisTermFrame := '1';
-                     end if;
-                  end if;
-               end if;
-            ----------------------------------------------------------------------
-            when WAIT_FOR_EOF_S =>
-               -- Check for a FIFO write
-               if sAxisMaster.tValid = '1' then
-                  -- Check if the FIFO is ready 
-                  if r.sAxisSlave.tReady = '1' then
-                     -- Check for errors
-                     -- Check for a 
-                     if (ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1') or     -- Check for sof
-                                                (r.tDest /= sAxisMaster.tDest) or  -- Check for change in tDest
-                                                (r.tId /= sAxisMaster.tId) then  -- Check for change in tDest
-                        -- Strobe the error flag
-                        v.sAxisDropWrite     := '1';
-                        v.sAxisTermFrame     := '1';
-                        -- terminate the frame with error flag
-                        v.mAxisMaster.tValid := '1';
-                        ssiSetUserSof(AXIS_CONFIG_G, v.mAxisMaster, '0');
-                        v.mAxisMaster.tLast  := '1';
-                        ssiSetUserEofe(AXIS_CONFIG_G, v.mAxisMaster, '1');
                         -- Next state
-                        v.state              := WAIT_FOR_SOF_S;
-                     -- Check for eof flag 
-                     elsif sAxisMaster.tLast = '1' then  --(sof = 0, eof = 1, eofe = ?)                        
-                        -- Write the filtered data into the FIFO
-                        v.mAxisMaster := sAxisMaster;
-                        -- Next state
-                        v.state       := WAIT_FOR_SOF_S;
-                     else               --(sof = 0, eof = 0, eofe = ?) 
-                        -- Write the filtered data into the FIFO
-                        v.mAxisMaster := sAxisMaster;
+                        v.state := IDLE_S;
                      end if;
-                  else
-                     -- Next state
-                     v.state := WAIT_FOR_READY_S;
-                  end if;
-               end if;
-            ----------------------------------------------------------------------
-            when WAIT_FOR_READY_S =>
-               -- Check if the FIFO is ready 
-               if r.sAxisSlave.tReady = '1' then
-                  -- Strobe the error flags
-                  v.sAxisDropWrite     := '1';
-                  v.sAxisTermFrame     := '1';
-                  -- terminate the frame with error flag
-                  v.mAxisMaster.tValid := '1';
-                  v.mAxisMaster.tLast  := '1';
-                  ssiSetUserSof(AXIS_CONFIG_G, v.mAxisMaster, '0');
-                  ssiSetUserEofe(AXIS_CONFIG_G, v.mAxisMaster, '1');
-                  -- Next state
-                  v.state              := WAIT_FOR_SOF_S;
-               end if;
-         ----------------------------------------------------------------------
-         end case;
+                     -- Check for SSI framing errors
+                     if (ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1') or  -- Check for invalid SOF
+                                          (r.tDest /= sAxisMaster.tDest) then  -- Check for change in tDest
+                        -- Set the EOF flag
+                        v.master.tLast := '1';
+                        -- Set the EOFE flag
+                        ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+                        -- Strobe the error flags
+                        v.wordDropped  := '1';
+                        v.frameDropped := sAxisMaster.tLast;
+                        -- Next state
+                        v.state        := IDLE_S;
+                     end if;
+               ----------------------------------------------------------------------
+               end case;
+            end if;
+
+         else
+            -- Halt the data bus
+            v.slave.tReady := '0';
+         end if;
 
          -- Synchronous Reset
          if axisRst = '1' then
@@ -205,10 +167,10 @@ begin
          rin <= v;
 
          -- Outputs
-         mAxisMaster    <= r.mAxisMaster;
-         sAxisSlave     <= r.sAxisSlave;
-         sAxisDropWrite <= r.sAxisDropWrite;
-         sAxisTermFrame <= r.sAxisTermFrame;
+         sAxisSlave     <= v.slave;
+         mAxisMaster    <= r.master;
+         sAxisDropWrite <= r.wordDropped;
+         sAxisTermFrame <= r.frameDropped;
          
       end process comb;
 
@@ -220,5 +182,5 @@ begin
       end process seq;
       
    end generate;
-   
+
 end rtl;
