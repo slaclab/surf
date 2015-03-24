@@ -115,8 +115,11 @@ begin
                      if ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1' then
                         -- Latch tDest
                         v.tDest := sAxisMaster.tDest;
-                        -- Next state
-                        v.state := MOVE_S;
+                        -- Check for no EOF
+                        if sAxisMaster.tLast = '0' then
+                           -- Next state
+                           v.state := MOVE_S;
+                        end if;
                      else
                         -- Blow off the data
                         v.master.tValid := '0';
