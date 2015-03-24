@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2014-05-16
+-- Last update: 2015-03-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ entity I2cRegMasterAxiBridge is
    
    generic (
       TPD_G               : time                   := 1 ns;
-      I2C_REG_ADDR_SIZE_G : integer                := 8;
       DEVICE_MAP_G        : I2cAxiLiteDevArray;
       EN_USER_REG_G       : boolean                := false;
       NUM_WRITE_REG_G     : integer range 1 to 128 := 1;
@@ -58,8 +57,27 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
 
-   constant DEVICE_MAP_LENGTH_C    : natural := DEVICE_MAP_G'length;
-   constant I2C_DEV_AXI_ADDR_LOW_C : natural := I2C_REG_ADDR_SIZE_G+2;
+   constant DEVICE_MAP_LENGTH_C : natural := DEVICE_MAP_G'length;
+
+   -- Number of device register space address bits maped into axi bus is determined by
+   -- the maximum address size of all the devices.
+   constant I2C_REG_ADDR_SIZE_C : natural := maxAddrSize(DEVICE_MAP_G);
+
+   constant I2C_REG_AXI_ADDR_LOW_C  : natural := 2;
+   constant I2C_REG_AXI_ADDR_HIGH_C : natural :=
+      ite(I2C_REG_ADDR_SIZE_C = 0,
+          ite(EN_USER_REG_G = false,
+              2,
+              --else (EN_USER_REG_G = true)
+              8),                       -- Need minimum size of 8 if user regs enabled
+          -- else (I2C_REG_ADDR_SIZE_C > 0)
+          I2C_REG_AXI_ADDR_LOW_C + I2C_REG_ADDR_SIZE_C-1);
+
+   subtype I2C_REG_AXI_ADDR_RANGE_C is natural range
+      I2C_REG_AXI_ADDR_HIGH_C downto I2C_REG_AXI_ADDR_LOW_C;
+
+   -- Number of device address bits mapped into axi bus space is determined by number of devices
+   constant I2C_DEV_AXI_ADDR_LOW_C : natural := I2C_REG_AXI_ADDR_HIGH_C + 1;
    constant I2C_DEV_AXI_ADDR_HIGH_C : natural := ite(
       (DEVICE_MAP_LENGTH_C = 1),
       I2C_DEV_AXI_ADDR_LOW_C,
@@ -68,12 +86,6 @@ architecture rtl of I2cRegMasterAxiBridge is
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
       I2C_DEV_AXI_ADDR_HIGH_C downto I2C_DEV_AXI_ADDR_LOW_C;
    
-   constant I2C_REG_AXI_ADDR_HIGH_C : natural := I2C_REG_ADDR_SIZE_G+2-1;
-   constant I2C_REG_AXI_ADDR_LOW_C  : natural := 2;
-
-   subtype I2C_REG_AXI_ADDR_RANGE_C is natural range
-      I2C_REG_AXI_ADDR_HIGH_C downto I2C_REG_AXI_ADDR_LOW_C;
-
    constant USER_AXI_ADDR_HIGH_C : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
    constant USER_AXI_ADDR_LOW_C  : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
 
@@ -88,7 +100,7 @@ architecture rtl of I2cRegMasterAxiBridge is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      (others        => x"00000000"),
+      writeRegister  => (others => x"00000000"),
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       i2cRegMasterIn => I2C_REG_MASTER_IN_INIT_C);
@@ -134,14 +146,15 @@ begin
          ret.tenbit  := DEVICE_MAP_G(i).i2cTenbit;
 
          if (readN = READ_C) then
-            ret.regAddr(I2C_REG_ADDR_SIZE_G-1 downto 0) := axiReadMaster.araddr(I2C_REG_AXI_ADDR_RANGE_C);
+            ret.regAddr(I2C_REG_ADDR_SIZE_C-1 downto 0) := axiReadMaster.araddr(I2C_REG_AXI_ADDR_RANGE_C);
          else
-            ret.regAddr(I2C_REG_ADDR_SIZE_G-1 downto 0) := axiWriteMaster.awaddr(I2C_REG_AXI_ADDR_RANGE_C);
+            ret.regAddr(I2C_REG_ADDR_SIZE_C-1 downto 0) := axiWriteMaster.awaddr(I2C_REG_AXI_ADDR_RANGE_C);
          end if;
 
          ret.regWrData(DEVICE_MAP_G(i).dataSize-1 downto 0) := axiWriteMaster.wData(DEVICE_MAP_G(i).dataSize-1 downto 0);
 
-         ret.regAddrSize := conv_std_logic_vector(I2C_REG_ADDR_SIZE_G/8 - 1, 2);
+         ret.regAddrSize := conv_std_logic_vector(DEVICE_MAP_G(i).addrSize/8 - 1, 2);
+         ret.regAddrSkip := toSl(DEVICE_MAP_G(i).addrSize = 0);
          ret.regDataSize := conv_std_logic_vector(DEVICE_MAP_G(i).dataSize/8 - 1, 2);
          ret.endianness  := DEVICE_MAP_G(i).endianness;
          return ret;

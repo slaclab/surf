@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-22
--- Last update: 2014-11-06
+-- Last update: 2015-03-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -132,6 +132,13 @@ begin
                v.i2cMasterIn.op     := '1';  -- Write address bytes       
                v.i2cMasterIn.stop   := '1';  --regIn.regOp;  -- no i2c stop after addr when reg read
                v.state              := ADDR_S;
+               if (regIn.regAddrSkip = '1') then
+                  if (regIn.regOp = '1') then
+                     v.state := WRITE_S;
+                  else
+                     v.state := READ_S;
+                  end if;                  
+               end if;
             end if;
             
          when ADDR_S =>
