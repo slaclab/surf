@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-18
--- Last update: 2013-12-18
+-- Last update: 2015-03-23
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -67,21 +67,21 @@ architecture rtl of QuadPortRam is
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   shared variable mem : mem_type := (others => INIT_C);
+   signal mem : mem_type := (others => INIT_C);
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
-   attribute ram_style of mem : variable is "distributed";
+   attribute ram_style of mem : signal is "distributed";
 
    attribute ram_extract        : string;
-   attribute ram_extract of mem : variable is "TRUE";
+   attribute ram_extract of mem : signal is "TRUE";
 
    -- Attribute for Synplicity Synthesizer 
    attribute syn_ramstyle        : string;
-   attribute syn_ramstyle of mem : variable is "distributed";
+   attribute syn_ramstyle of mem : signal is "distributed";
 
    attribute syn_keep        : string;
-   attribute syn_keep of mem : variable is "TRUE";
+   attribute syn_keep of mem : signal is "TRUE";
    
 begin
 
@@ -97,15 +97,13 @@ begin
       begin
          if rising_edge(clka) then
             if (en_a = '1') and (wea = '1') then
-               mem(conv_integer(addra)) := dina;
+               mem(conv_integer(addra)) <= dina;
             end if;
          end if;
       end process;
 
-      process(addra)
-      begin
-         douta <= mem(conv_integer(addra));
-      end process;
+      douta <= mem(conv_integer(addra));
+
       
    end generate;
 
@@ -119,7 +117,7 @@ begin
                   douta <= INIT_C after TPD_G;
                elsif en_a = '1' then
                   if wea = '1' then
-                     mem(conv_integer(addra)) := dina;
+                     mem(conv_integer(addra)) <= dina;
                   else
                      douta <= mem(conv_integer(addra)) after TPD_G;
                   end if;
@@ -137,7 +135,7 @@ begin
                elsif en_a = '1' then
                   douta <= mem(conv_integer(addra)) after TPD_G;
                   if wea = '1' then
-                     mem(conv_integer(addra)) := dina;
+                     mem(conv_integer(addra)) <= dina;
                   end if;
                end if;
             end if;
@@ -152,7 +150,7 @@ begin
                   douta <= INIT_C after TPD_G;
                elsif en_a = '1' then
                   if wea = '1' then
-                     mem(conv_integer(addra)) := dina;
+                     mem(conv_integer(addra)) <= dina;
                   end if;
                   douta <= mem(conv_integer(addra)) after TPD_G;
                end if;
@@ -177,10 +175,7 @@ begin
    end generate;
 
    PORT_B_NOT_REG : if (REG_EN_G = false) generate
-      process(addrb)
-      begin
-         doutb <= mem(conv_integer(addrb));
-      end process;
+      doutb <= mem(conv_integer(addrb));
    end generate;
 
    -- Port C
@@ -198,10 +193,7 @@ begin
    end generate;
 
    PORT_C_NOT_REG : if (REG_EN_G = false) generate
-      process(addrc)
-      begin
-         doutc <= mem(conv_integer(addrc));
-      end process;
+      doutc <= mem(conv_integer(addrc));
    end generate;
 
    -- Port D
@@ -219,10 +211,7 @@ begin
    end generate;
 
    PORT_D_NOT_REG : if (REG_EN_G = false) generate
-      process(addrd)
-      begin
-         doutd <= mem(conv_integer(addrd));
-      end process;
+      doutd <= mem(conv_integer(addrd));
    end generate;
    
 end rtl;
