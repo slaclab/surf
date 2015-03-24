@@ -78,6 +78,7 @@ package I2cPkg is
       regAddr     : slv(31 downto 0);
       regWrData   : slv(31 downto 0);
       regOp       : sl;
+      regAddrSkip : sl;
       regAddrSize : slv(1 downto 0);
       regDataSize : slv(1 downto 0);
       regReq      : sl;
@@ -90,6 +91,7 @@ package I2cPkg is
       regAddr     => (others => '0'),
       regWrData   => (others => '0'),
       regOp       => '0',               -- 1 for write, 0 for read
+      regAddrSkip => '0',
       regAddrSize => (others => '0'),
       regDataSize => (others => '0'),
       regReq      => '0',
@@ -150,10 +152,13 @@ package I2cPkg is
       i2cAddress : slv(9 downto 0);
       i2cTenbit  : sl;
       dataSize   : integer;
+      addrSize   : integer;
       endianness : sl;
    end record I2cAxiLiteDevType;
 
    type I2cAxiLiteDevArray is array (natural range <>) of I2cAxiLiteDevType;
+
+   function maxAddrSize (constant devMap : I2cAxiLiteDevArray) return natural;
 
    --------------------------------------------------------------------------------------------------
    -- Opencores i2c
@@ -197,3 +202,18 @@ package I2cPkg is
 
 
 end;
+
+package body I2cPkg is
+
+   function maxAddrSize (constant devMap : I2cAxiLiteDevArray) return natural is
+      variable ret : natural := 0;
+   begin
+      for i in devMap'range loop
+         if (devMap(i).addrSize > ret) then
+            ret := devMap(i).addrSize;
+         end if;
+      end loop;
+      return ret;
+   end function maxAddrSize;
+
+end package body I2cPkg;
