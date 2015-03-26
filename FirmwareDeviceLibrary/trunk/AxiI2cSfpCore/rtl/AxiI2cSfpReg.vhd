@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-04-21
+-- Last update: 2015-03-26
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,6 +54,7 @@ architecture rtl of AxiI2cSfpReg is
          i2cAddress => "0001010000",    -- Default to the SFF-8074i standard EEPROM address (0xA0)
          i2cTenbit  => '0',
          dataSize   => 8,               -- in units of bits
+         addrSize   => 8,               -- in units of bits
          endianness => '1'));           -- Big endian  
 
    constant NUM_WRITE_REG_C : positive := 4;
@@ -79,13 +80,12 @@ begin
 
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
-         TPD_G               => TPD_G,
-         I2C_REG_ADDR_SIZE_G => 8,
-         DEVICE_MAP_G        => DEVICE_MAP_C,
-         EN_USER_REG_G       => true,
-         NUM_WRITE_REG_G     => NUM_WRITE_REG_C-1,
-         NUM_READ_REG_G      => NUM_READ_REG_C-1,
-         AXI_ERROR_RESP_G    => AXI_ERROR_RESP_G)      
+         TPD_G            => TPD_G,
+         DEVICE_MAP_G     => DEVICE_MAP_C,
+         EN_USER_REG_G    => true,
+         NUM_WRITE_REG_G  => NUM_WRITE_REG_C-1,
+         NUM_READ_REG_G   => NUM_READ_REG_C-1,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)      
       port map (
          -- I2C Interface
          i2cRegMasterIn    => i2cRegMasterIn,
