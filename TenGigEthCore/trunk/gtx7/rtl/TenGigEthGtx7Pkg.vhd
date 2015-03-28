@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-02-23
+-- Last update: 2015-03-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ use work.TenGigEthPkg.all;
 package TenGigEthGtx7Pkg is
 
    type TenGigEthGtx7Config is record
+      softRst                   : sl;
       phyConfig                 : TenGigEthMacConfig;
       pma_pmd_type              : slv(2 downto 0);
       pma_loopback              : sl;
@@ -42,10 +43,25 @@ package TenGigEthGtx7Pkg is
       set_pcs_link_status       : sl;
       clear_pcs_status2         : sl;
       clear_test_patt_err_count : sl;
+      gtEyeScanReset            : sl;
+      gtEyeScanTrigger          : sl;
+      gtRxCdrHold               : sl;
+      gtTxPrbsForceErr          : sl;
+      gtTxPolarity              : sl;
+      gtRxPolarity              : sl;
+      gtTxPmaReset              : sl;
+      gtRxPmaReset              : sl;
+      gtRxDfelpmReset           : sl;
+      gtRxlpmen                 : sl;
+      gtRxRate                  : slv(2 downto 0);
+      gtTxPreCursor             : slv(4 downto 0);
+      gtTxPostCursor            : slv(4 downto 0);
+      gtTxDiffCtrl              : slv(3 downto 0);
    end record;
    constant TEN_GIG_ETH_GTX7_CONFIG_INIT_C : TenGigEthGtx7Config := (
+      softRst                   => '0',
       phyConfig                 => TEN_GIG_ETH_MAC_CONFIG_INIT_C,
-      pma_pmd_type              => "111",  --111 = 10GBASE-SR
+      pma_pmd_type              => "111",  --111 = 10GBASE-SR (Wavelength:850 nm & OM3:300m)
       pma_loopback              => '0',
       pma_reset                 => '0',
       global_tx_disable         => '0',
@@ -62,8 +78,22 @@ package TenGigEthGtx7Pkg is
       set_pma_link_status       => '0',
       set_pcs_link_status       => '0',
       clear_pcs_status2         => '0',
-      clear_test_patt_err_count => '0');
-
+      clear_test_patt_err_count => '0',
+      gtEyeScanReset            => '0',
+      gtEyeScanTrigger          => '0',
+      gtRxCdrHold               => '0',
+      gtTxPrbsForceErr          => '0',
+      gtTxPolarity              => '0',
+      gtRxPolarity              => '0',
+      gtTxPmaReset              => '0',
+      gtRxPmaReset              => '0',
+      gtRxDfelpmReset           => '0',
+      gtRxlpmen                 => '0',
+      gtRxRate                  => "000",
+      gtTxPreCursor             => "00000",
+      gtTxPostCursor            => "00000",
+      gtTxDiffCtrl              => "1110");    
+         
    type TenGigEthGtx7Status is record
       phyReady                : sl;
       phyStatus               : TenGigEthMacStatus;
@@ -83,12 +113,18 @@ package TenGigEthGtx7Pkg is
       pcs_rx_link_status      : sl;
       pcs_rx_locked           : sl;
       pcs_hiber               : sl;
-      teng_pcs_rx_link_status : sl;
       pcs_err_block_count     : slv(7 downto 0);
       pcs_ber_count           : slv(5 downto 0);
       pcs_rx_hiber_lh         : sl;
       pcs_rx_locked_ll        : sl;
       pcs_test_patt_err_count : slv(15 downto 0);
+      gtEyeScanDataError      : sl;
+      gtTxBufStatus           : slv(1 downto 0);
+      gtRxBufStatus           : slv(2 downto 0);
+      gtRxPrbsErr             : sl;
+      gtTxResetDone           : sl;
+      gtRxResetDone           : sl;
+      gtDmonitorOut           : slv(7 downto 0);
    end record;
    
 end TenGigEthGtx7Pkg;

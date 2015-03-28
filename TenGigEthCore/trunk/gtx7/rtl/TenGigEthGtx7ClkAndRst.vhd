@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-02-23
+-- Last update: 2015-03-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ architecture rtl of TenGigEthGtx7ClkAndRst is
    signal txReset      : sl;
    signal qPllLocked   : sl;
    signal txReady      : sl;
-   signal rstCnt       : slv(7 downto 0) := X"00";
+   signal rstCnt       : slv(7 downto 0) := x"00";
    signal rstPulse     : slv(3 downto 0) := "1110";
 
 begin
@@ -102,11 +102,19 @@ begin
          qPllOutClk     => qPllOutClk,
          qPllOutRefClk  => qPllOutRefClk,
          qPllLock       => qPllLocked,
-         qPllLockDetClk => '0',                -- IP Core ties this to GND???
+         qPllLockDetClk => '0',                -- IP Core ties this to GND (see note below) 
          qPllRefClkLost => open,
          qPllPowerDown  => '0',
-         qPllReset      => rstPulse(0));    
-
+         qPllReset      => rstPulse(0));          
+   ---------------------------------------------------------------------------------------------
+   -- Note: GTXE2_COMMON pin gtxe2_common_0_i.QPLLLOCKDETCLK cannot be driven by a clock derived 
+   --       from the same clock used as the reference clock for the QPLL, including TXOUTCLK*, 
+   --       RXOUTCLK*, the output from the IBUFDS_GTE2 providing the reference clock, and any 
+   --       buffered or multiplied/divided versions of these clock outputs. Please see UG476 for 
+   --       more information. Source, through a clock buffer, is the same as the GT cell 
+   --       reference clock.
+   ---------------------------------------------------------------------------------------------
+   
    CLK156_BUFG : BUFG
       port map (
          I => refClk,
@@ -115,18 +123,46 @@ begin
    CLK312_BUFG : BUFG
       port map (
          I => txClk322,
-         O => txClock);    
-
-   PwrUpRst_Inst : entity work.PwrUpRst
+         O => txClock);  
+         
+   Synchronizer_0 : entity work.Synchronizer
       generic map(
          TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1',
-         DURATION_G     => 512)
+         RST_ASYNC_G    => true,
+         RST_POLARITY_G => '1',
+         STAGES_G       => 4,
+         INIT_G         => "1111")
       port map (
-         arst   => extRst,
-         clk    => phyClock,
-         rstOut => phyReset);  
+         clk     => phyClock,
+         rst     => extRst,
+         dataIn  => '0',
+         dataOut => phyReset);         
+
+   Synchronizer_1 : entity work.Synchronizer
+      generic map(
+         TPD_G          => TPD_G,
+         RST_ASYNC_G    => true,
+         RST_POLARITY_G => '0',
+         STAGES_G       => 4,
+         INIT_G         => "0000")
+      port map (
+         clk     => txClock,
+         rst     => qPllLocked,
+         dataIn  => '1',
+         dataOut => txReady);           
+
+   Synchronizer_2 : entity work.Synchronizer
+      generic map(
+         TPD_G          => TPD_G,
+         RST_ASYNC_G    => true,
+         RST_POLARITY_G => '1',
+         STAGES_G       => 4,
+         INIT_G         => "1111")
+      port map (
+         clk     => txClock,
+         rst     => rstPulse(0),
+         dataIn  => '0',
+         dataOut => txReset);  
 
    process(phyClock)
    begin
@@ -141,34 +177,12 @@ begin
          -- Check for reset
          if phyReset = '1' then
             rstPulse <= "1110" after TPD_G;
-         else
-            if rstCnt(7) = '1' then
-               rstPulse(3)          <= '0'                  after TPD_G;
-               rstPulse(2 downto 0) <= rstPulse(3 downto 1) after TPD_G;
-            end if;
+         elsif rstCnt(7) = '1' then
+            rstPulse(3)          <= '0'                  after TPD_G;
+            rstPulse(2 downto 0) <= rstPulse(3 downto 1) after TPD_G;
          end if;
       end if;
    end process;
-
-   RstSync_0 : entity work.RstSync
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk      => txClock,
-         asyncRst => rstPulse(0),
-         syncRst  => txReset); 
-
-   RstSync_1 : entity work.RstSync
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0')
-      port map (
-         clk      => txClock,
-         asyncRst => qPllLocked,
-         syncRst  => txReady);          
 
    process(txClock)
    begin

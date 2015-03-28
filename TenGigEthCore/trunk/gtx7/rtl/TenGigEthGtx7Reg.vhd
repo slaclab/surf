@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2015-02-23
+-- Last update: 2015-03-27
 -- Platform   : Vivado 2014.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ end TenGigEthGtx7Reg;
 
 architecture rtl of TenGigEthGtx7Reg is
 
-   constant STATUS_SIZE_C : positive := 26;
+   constant STATUS_SIZE_C : positive := 29;
 
    type RegType is record
       cntRst        : sl;
@@ -104,9 +104,12 @@ begin
          statusIn(20) => status.pcs_rx_link_status,
          statusIn(21) => status.pcs_rx_locked,
          statusIn(22) => status.pcs_hiber,
-         statusIn(23) => status.teng_pcs_rx_link_status,
-         statusIn(24) => status.pcs_rx_hiber_lh,
-         statusIn(25) => status.pcs_rx_locked_ll,
+         statusIn(23) => status.pcs_rx_hiber_lh,
+         statusIn(24) => status.pcs_rx_locked_ll,
+         statusIn(25) => status.gtEyeScanDataError,
+         statusIn(26) => status.gtRxPrbsErr,
+         statusIn(27) => status.gtTxResetDone,
+         statusIn(28) => status.gtRxResetDone,
          -- Output Status bit Signals (rdClk domain)           
          statusOut    => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
@@ -120,7 +123,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiWriteMaster, cntOut, r, rst, statusOut) is
+   comb : process (axiReadMaster, axiWriteMaster, cntOut, r, rst, status, statusOut) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -134,7 +137,8 @@ begin
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Reset strobe signals
-      v.cntRst := '0';
+      v.cntRst         := '0';
+      v.config.softRst := '0';
 
       -- Calculate the read pointer
       rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
@@ -182,10 +186,30 @@ begin
                   v.config.test_patt_a_b(31 downto 0) := axiWriteMaster.wdata;
                when x"93" =>
                   v.config.test_patt_a_b(57 downto 32) := axiWriteMaster.wdata(25 downto 0);
+               when x"A0" =>
+                  v.config.gtTxDiffCtrl     := axiWriteMaster.wdata(3 downto 0);
+                  v.config.gtTxPostCursor   := axiWriteMaster.wdata(8 downto 4);
+                  v.config.gtTxPreCursor    := axiWriteMaster.wdata(13 downto 9);
+                  v.config.gtRxRate         := axiWriteMaster.wdata(16 downto 14);
+                  v.config.gtRxlpmen        := axiWriteMaster.wdata(17);
+                  v.config.gtRxDfelpmReset  := axiWriteMaster.wdata(18);
+                  v.config.gtRxPmaReset     := axiWriteMaster.wdata(19);
+                  v.config.gtTxPmaReset     := axiWriteMaster.wdata(20);
+                  v.config.gtRxPolarity     := axiWriteMaster.wdata(21);
+                  v.config.gtTxPolarity     := axiWriteMaster.wdata(22);
+                  v.config.gtTxPrbsForceErr := axiWriteMaster.wdata(23);
+                  v.config.gtRxCdrHold      := axiWriteMaster.wdata(24);
+                  v.config.gtEyeScanTrigger := axiWriteMaster.wdata(25);
+                  v.config.gtEyeScanReset   := axiWriteMaster.wdata(26);
                when x"F0" =>
                   v.rollOverEn := axiWriteMaster.wdata(STATUS_SIZE_C-1 downto 0);
-               when x"FF" =>
+               when x"FD" =>
                   v.cntRst := '1';
+               when x"FE" =>
+                  v.config.softRst := '1';
+               when x"FF" =>
+                  v                             := REG_INIT_C;
+                  v.config.phyConfig.macAddress := MAC_ADDR_G;
                when others =>
                   axiWriteResp := AXI_ERROR_RESP_G;
             end case;
@@ -205,6 +229,17 @@ begin
             case (axiReadMaster.araddr(9 downto 2)) is
                when x"40" =>
                   v.axiReadSlave.rdata(STATUS_SIZE_C-1 downto 0) := statusOut;
+               when x"7D" =>
+                  v.axiReadSlave.rdata(15 downto 0) := status.phyStatus.rxPauseValue;
+               when x"7E" =>
+                  v.axiReadSlave.rdata(15 downto 0)  := status.pcs_test_patt_err_count;
+                  v.axiReadSlave.rdata(23 downto 16) := status.pcs_err_block_count;
+                  v.axiReadSlave.rdata(29 downto 24) := status.pcs_ber_count;
+               when x"7F" =>
+                  v.axiReadSlave.rdata(7 downto 0)   := status.core_status;
+                  v.axiReadSlave.rdata(15 downto 8)  := status.gtDmonitorOut;
+                  v.axiReadSlave.rdata(17 downto 16) := status.gtTxBufStatus;
+                  v.axiReadSlave.rdata(20 downto 18) := status.gtRxBufStatus;
                when X"80" =>
                   v.axiReadSlave.rdata := r.config.phyConfig.macAddress(31 downto 0);
                when X"81" =>
@@ -240,6 +275,21 @@ begin
                   v.axiReadSlave.rdata(31 downto 0) := r.config.test_patt_a_b(31 downto 0);
                when x"93" =>
                   v.axiReadSlave.rdata(25 downto 0) := r.config.test_patt_a_b(57 downto 32);
+               when x"A0" =>
+                  v.axiReadSlave.rdata(3 downto 0)   := r.config.gtTxDiffCtrl;
+                  v.axiReadSlave.rdata(8 downto 4)   := r.config.gtTxPostCursor;
+                  v.axiReadSlave.rdata(13 downto 9)  := r.config.gtTxPreCursor;
+                  v.axiReadSlave.rdata(16 downto 14) := r.config.gtRxRate;
+                  v.axiReadSlave.rdata(17)           := r.config.gtRxlpmen;
+                  v.axiReadSlave.rdata(18)           := r.config.gtRxDfelpmReset;
+                  v.axiReadSlave.rdata(19)           := r.config.gtRxPmaReset;
+                  v.axiReadSlave.rdata(20)           := r.config.gtTxPmaReset;
+                  v.axiReadSlave.rdata(21)           := r.config.gtRxPolarity;
+                  v.axiReadSlave.rdata(22)           := r.config.gtTxPolarity;
+                  v.axiReadSlave.rdata(23)           := r.config.gtTxPrbsForceErr;
+                  v.axiReadSlave.rdata(24)           := r.config.gtRxCdrHold;
+                  v.axiReadSlave.rdata(25)           := r.config.gtEyeScanTrigger;
+                  v.axiReadSlave.rdata(26)           := r.config.gtEyeScanReset;
                when x"F0" =>
                   v.axiReadSlave.rdata(STATUS_SIZE_C-1 downto 0) := r.rollOverEn;
                when others =>
