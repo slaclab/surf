@@ -35,6 +35,7 @@ entity TenGigEthMacCore is
       EOH_BIT_G       : integer             := 0;
       ERR_BIT_G       : integer             := 1;
       HEADER_SIZE_G   : integer             := 16;
+      SHIFT_EN_G      : boolean             := false;
       AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);      
    port (
       -- Streaming DMA Interface 
@@ -79,6 +80,7 @@ begin
          EOH_BIT_G     => EOH_BIT_G,
          ERR_BIT_G     => ERR_BIT_G,
          HEADER_SIZE_G => HEADER_SIZE_G,
+         SHIFT_EN_G    => SHIFT_EN_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Streaming DMA Interface 
@@ -114,6 +116,7 @@ begin
          TPD_G         => TPD_G,
          ADDR_WIDTH_G  => OB_ADDR_WIDTH_G,
          VALID_THOLD_G => VALID_THOLD_G,
+         SHIFT_EN_G    => SHIFT_EN_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Streaming DMA Interface 
