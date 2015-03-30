@@ -542,7 +542,7 @@ begin
                   if detSOC = '1' then
 
                      -- Do we output data and mark in frame?
-                     -- Yes if SOF is set and serial number is ok 
+                     -- Yes if SOF is set 
                      -- Yes if already in frame
                      if nxtCellEn = '1' then
                         inCellEn                        <= '1' after TPD_G;
@@ -550,15 +550,15 @@ begin
                      end if;
 
                      -- Do we mark output as SOF?
-                     -- Yes if SOF is seen and the serial number is ok and we are not already in frame
-                     if detSOF = '1' and serErr = '0' and vcInFrame(conv_integer(currVc)) = '0' then
+                     -- Yes if SOF is seen and we are not already in frame
+                     if detSOF = '1' and vcInFrame(conv_integer(currVc)) = '0' then
                         inCellSOF <= '1' after TPD_G;
                      end if;
 
                      -- Do we mark serial error flag?
                      -- Yes if SOF is set and we are already in frame
-                     -- Yes if serial number error
-                     if (detSOF = '1' and vcInFrame(conv_integer(currVc)) = '1') or serErr = '1' then
+                     -- Yes if serial number error and we are in frame
+                     if vcInFrame(conv_integer(currVc)) and (detSOF = '1' or serErr = '1') then
                         inCellSerErr <= '1' after TPD_G;
                      end if;
                   
@@ -614,9 +614,9 @@ begin
 
 
    -- Do we output data and mark in frame?
-   -- Yes if SOF is set and serial number is ok 
+   -- Yes if SOF is set
    -- Yes if already in frame
-   nxtCellEn <= '1' when ((detSOF = '1' and serErr = '0') or vcInFrame(conv_integer(currVc)) = '1') else '0'; 
+   nxtCellEn <= '1' when (detSOF = '1' or vcInFrame(conv_integer(currVc)) = '1') else '0'; 
 
 
    -- Data Output
