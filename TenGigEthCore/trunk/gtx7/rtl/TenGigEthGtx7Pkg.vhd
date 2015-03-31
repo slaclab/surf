@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-03-27
+-- Last update: 2015-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ package TenGigEthGtx7Pkg is
       gtTxPreCursor             => "00000",
       gtTxPostCursor            => "00000",
       gtTxDiffCtrl              => "1110");    
-         
+
    type TenGigEthGtx7Status is record
       phyReady                : sl;
       phyStatus               : TenGigEthMacStatus;
@@ -113,6 +113,7 @@ package TenGigEthGtx7Pkg is
       pcs_rx_link_status      : sl;
       pcs_rx_locked           : sl;
       pcs_hiber               : sl;
+      teng_pcs_rx_link_status : sl;
       pcs_err_block_count     : slv(7 downto 0);
       pcs_ber_count           : slv(5 downto 0);
       pcs_rx_hiber_lh         : sl;
