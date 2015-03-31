@@ -5,11 +5,11 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-03-27
+-- Last update: 2015-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Gtx7 Wrapper for 10GBASE-R Ethernet
+-- Description: 10GBASE-R Ethernet for Gtx7
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -40,14 +40,11 @@ entity TenGigEthGtx7 is
       HEADER_SIZE_G      : integer               := 16;
       SHIFT_EN_G         : boolean               := false;
       MAC_ADDR_G         : slv(47 downto 0)      := TEN_GIG_ETH_MAC_ADDR_INIT_C;
-      -- QUAD PLL Configurations
-      REFCLK_DIV2_G      : boolean               := false;  --  FALSE: gtClkP/N = 156.25 MHz, TRUE: gtClkP/N = 312.5 MHz
-      QPLL_REFCLK_SEL_G  : bit_vector            := "001";
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);      
+      AXIS_CONFIG_G      : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);  -- Note: Only support 64-bit AXIS configurations
    port (
       -- Streaming DMA Interface 
       dmaClk             : in  sl;
@@ -67,14 +64,17 @@ entity TenGigEthGtx7 is
       sigDet             : in  sl                     := '1';
       txFault            : in  sl                     := '0';
       txDisable          : out sl;
-      -- Debugging Signals
+      -- Misc. Signals
       extRst             : in  sl;
-      phyClk             : out sl;
-      phyRst             : out sl;
+      phyClk             : in  sl;
+      phyRst             : in  sl;
       phyReady           : out sl;
+      -- Quad PLL Ports
+      qplllock           : in  sl;
+      qplloutclk         : in  sl;
+      qplloutrefclk      : in  sl;
+      qpllRst            : out sl;
       -- MGT Ports
-      gtClkP             : in  sl;
-      gtClkN             : in  sl;
       gtTxP              : out sl;
       gtTxN              : out sl;
       gtRxP              : in  sl;
@@ -93,15 +93,11 @@ architecture mapping of TenGigEthGtx7 is
    signal phyTxd : slv(63 downto 0);
    signal phyTxc : slv(7 downto 0);
 
-   signal phyClock      : sl;
-   signal phyReset      : sl;
-   signal areset        : sl;
-   signal txClk322      : sl;
-   signal txUsrClk      : sl;
-   signal txUsrClk2     : sl;
-   signal txUsrRdy      : sl;
-   signal qplloutclk    : sl;
-   signal qplloutrefclk : sl;
+   signal areset    : sl;
+   signal txClk322  : sl;
+   signal txUsrClk  : sl;
+   signal txUsrClk2 : sl;
+   signal txUsrRdy  : sl;
 
    signal drpReqGnt : sl;
    signal drpEn     : sl;
@@ -113,15 +109,16 @@ architecture mapping of TenGigEthGtx7 is
 
    signal configurationVector : slv(535 downto 0) := (others => '0');
    signal statusVector        : slv(447 downto 0);
-   signal config              : TenGigEthGtx7Config;
-   signal status              : TenGigEthGtx7Status;
+
+   signal config : TenGigEthGtx7Config;
+   signal status : TenGigEthGtx7Status;
    
 begin
 
-   phyClk   <= phyClock;
-   phyRst   <= phyReset;
-   phyReady <= status.phyReady;
-   areset   <= extRst or config.softRst;
+   phyReady        <= status.phyReady;
+   areset          <= extRst or config.softRst;
+   status.qplllock <= qplllock;
+
    ------------------
    -- Synchronization 
    ------------------
@@ -137,8 +134,8 @@ begin
          sAxiWriteMaster => axiLiteWriteMaster,
          sAxiWriteSlave  => axiLiteWriteSlave,
          -- Master Port
-         mAxiClk         => phyClock,
-         mAxiClkRst      => phyReset,
+         mAxiClk         => phyClk,
+         mAxiClkRst      => phyRst,
          mAxiReadMaster  => mAxiReadMaster,
          mAxiReadSlave   => mAxiReadSlave,
          mAxiWriteMaster => mAxiWriteMaster,
@@ -151,7 +148,7 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 3)
       port map (
-         clk        => phyClock,
+         clk        => phyClk,
          -- Input
          dataIn(0)  => sigDet,
          dataIn(1)  => txFault,
@@ -185,8 +182,8 @@ begin
          dmaObMaster => dmaObMaster,
          dmaObSlave  => dmaObSlave,
          -- PHY Interface
-         phyClk      => phyClock,
-         phyRst      => phyReset,
+         phyClk      => phyClk,
+         phyRst      => phyRst,
          phyReady    => status.phyReady,
          phyRxd      => phyRxd,
          phyRxc      => phyRxc,
@@ -201,13 +198,13 @@ begin
    U_TenGigEthGtx7Core : entity work.TenGigEthGtx7Core
       port map (
          -- Clocks and Resets
-         clk156               => phyClock,
-         dclk                 => phyClock,
+         clk156               => phyClk,
+         dclk                 => phyClk,
          txusrclk             => txUsrClk,
          txusrclk2            => txUsrClk2,
          areset               => areset,
          txclk322             => txClk322,
-         areset_clk156        => phyReset,
+         areset_clk156        => phyRst,
          gttxreset            => status.gtTxRst,
          gtrxreset            => status.gtRxRst,
          txuserrdy            => txUsrRdy,
@@ -278,32 +275,26 @@ begin
          drp_drpdo_i          => drpDo);
 
    -------------------------------------
-   -- 10GBASE-R's Clock and Reset Module
+   -- 10GBASE-R's Reset Module
    -------------------------------------        
-   U_TenGigEthGtx7ClkAndRst : entity work.TenGigEthGtx7ClkAndRst
+   U_TenGigEthGtx7Rst : entity work.TenGigEthGtx7Rst
       generic map (
-         TPD_G             => TPD_G,
-         REFCLK_DIV2_G     => REFCLK_DIV2_G,
-         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)
+         TPD_G => TPD_G)
       port map (
          -- Clocks and Resets
-         extRst        => extRst,
-         phyClk        => phyClock,
-         phyRst        => phyReset,
-         txClk322      => txClk322,
-         txUsrClk      => txUsrClk,
-         txUsrClk2     => txUsrClk2,
-         gtTxRst       => status.gtTxRst,
-         gtRxRst       => status.gtRxRst,
-         txUsrRdy      => txUsrRdy,
-         rstCntDone    => status.rstCntDone,
-         -- MGT Ports
-         gtClkP        => gtClkP,
-         gtClkN        => gtClkN,
+         extRst     => extRst,
+         phyClk     => phyClk,
+         phyRst     => phyRst,
+         txClk322   => txClk322,
+         txUsrClk   => txUsrClk,
+         txUsrClk2  => txUsrClk2,
+         gtTxRst    => status.gtTxRst,
+         gtRxRst    => status.gtRxRst,
+         txUsrRdy   => txUsrRdy,
+         rstCntDone => status.rstCntDone,
          -- Quad PLL Ports
-         qplllock      => status.qplllock,
-         qplloutclk    => qplloutclk,
-         qplloutrefclk => qplloutrefclk); 
+         qplllock   => status.qplllock,
+         qpllRst    => qpllRst); 
 
    -------------------------------         
    -- Configuration Vector Mapping
@@ -335,12 +326,17 @@ begin
    status.pcs_rx_link_status      <= statusVector(226);
    status.pcs_rx_locked           <= statusVector(256);
    status.pcs_hiber               <= statusVector(257);
-   status.phyReady                <= statusVector(268) or config.pcs_loopback;
+   status.teng_pcs_rx_link_status <= statusVector(268);
    status.pcs_err_block_count     <= statusVector(279 downto 272);
    status.pcs_ber_count           <= statusVector(285 downto 280);
    status.pcs_rx_hiber_lh         <= statusVector(286);
    status.pcs_rx_locked_ll        <= statusVector(287);
    status.pcs_test_patt_err_count <= statusVector(303 downto 288);
+
+   ----------------------
+   -- Core Status Mapping
+   ----------------------   
+   status.phyReady <= status.core_status(0) or config.pcs_loopback;
 
    --------------------------------     
    -- Configuration/Status Register   
@@ -353,8 +349,8 @@ begin
          AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
       port map (
          -- Clocks and resets
-         clk            => phyClock,
-         rst            => phyReset,
+         clk            => phyClk,
+         rst            => phyRst,
          -- AXI-Lite Register Interface
          axiReadMaster  => mAxiReadMaster,
          axiReadSlave   => mAxiReadSlave,
