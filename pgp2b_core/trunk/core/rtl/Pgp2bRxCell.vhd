@@ -558,7 +558,7 @@ begin
                      -- Do we mark serial error flag?
                      -- Yes if SOF is set and we are already in frame
                      -- Yes if serial number error and we are in frame
-                     if vcInFrame(conv_integer(currVc)) and (detSOF = '1' or serErr = '1') then
+                     if vcInFrame(conv_integer(currVc)) = '1' and (detSOF = '1' or serErr = '1') then
                         inCellSerErr <= '1' after TPD_G;
                      end if;
                   
