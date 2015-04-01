@@ -5,11 +5,11 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2014-06-13
+-- Last update: 2015-04-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Example 1GigE-UDP front end wrapper
+-- Description: Example PGP 3.125 Gbps front end wrapper
 -- Note: Default generic configurations are for the KC705 development board
 -- Note: Default uses 125 MHz reference clock to generate 3.125 Gbps PGP link
 -------------------------------------------------------------------------------
