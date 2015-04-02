@@ -1,0 +1,9 @@
+vhdl work rtl/Gth7AutoPhaseAligner.vhd
+vhdl work rtl/Gth7Core.vhd
+vhdl work rtl/Gth7QuadPll.vhd
+vhdl work rtl/Gth7RecClkMonitor.vhd
+vhdl work rtl/Gth7RxFixedLatPhaseAligner.vhd
+vhdl work rtl/Gth7RxRst.vhd
+vhdl work rtl/Gth7RxRstSeq.vhd
+vhdl work rtl/Gth7TxManualPhaseAligner.vhd
+vhdl work rtl/Gth7TxRst.vhd
