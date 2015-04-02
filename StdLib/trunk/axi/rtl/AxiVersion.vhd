@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-03-16
+-- Last update: 2015-03-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,11 +27,15 @@ use work.Version.all;
 
 entity AxiVersion is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
-      CLK_PERIOD_G     : real            := 8.0E-9;  -- units of seconds
-      EN_DEVICE_DNA_G  : boolean         := false;
-      EN_DS2411_G      : boolean         := false);
+      TPD_G              : time                   := 1 ns;
+      AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_SLVERR_C;
+      CLK_PERIOD_G       : real                   := 8.0E-9;  -- units of seconds
+      EN_DEVICE_DNA_G    : boolean                := false;
+      EN_DS2411_G        : boolean                := false;
+      EN_ICAP_G          : boolean                := false;
+      AUTO_RELOAD_EN_G   : boolean                := false;
+      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;    -- units of seconds
+      AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
    port (
       axiClk : in sl;
       axiRst : in sl;
@@ -41,8 +45,9 @@ entity AxiVersion is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
-      masterReset : out sl;
-      fpgaReload  : out sl;
+      masterReset    : out sl;
+      fpgaReload     : out sl;
+      fpgaReloadAddr : out slv(31 downto 0);
 
       -- Optional user values
       userValues : in Slv32Array(0 to 63) := (others => X"00000000");
@@ -52,6 +57,8 @@ entity AxiVersion is
 end AxiVersion;
 
 architecture rtl of AxiVersion is
+
+   constant RELOAD_COUNT_C : integer := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
 
    type RomType is array (0 to 63) of slv(31 downto 0);
 
@@ -71,19 +78,25 @@ architecture rtl of AxiVersion is
 
 
    type RegType is record
-      scratchPad    : slv(31 downto 0);
-      masterReset   : sl;
-      fpgaReload    : sl;
-      axiReadSlave  : AxiLiteReadSlaveType;
-      axiWriteSlave : AxiLiteWriteSlaveType;
+      scratchPad     : slv(31 downto 0);
+      counter        : slv(31 downto 0);
+      counterRst     : sl;
+      masterReset    : sl;
+      fpgaReload     : sl;
+      fpgaReloadAddr : slv(31 downto 0);
+      axiReadSlave   : AxiLiteReadSlaveType;
+      axiWriteSlave  : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      scratchPad    => (others => '0'),
-      masterReset   => '0',
-      fpgaReload    => '0',
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+      scratchPad     => (others => '0'),
+      counter        => (others => '0'),
+      counterRst     => '0',
+      masterReset    => '0',
+      fpgaReload     => '0',
+      fpgaReloadAddr => AUTO_RELOAD_ADDR_G,
+      axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
 
    signal r   : RegType := REG_INIT_C;
@@ -120,12 +133,23 @@ begin
             fdValid   => fdValid);
    end generate GEN_DS2411;
 
+   GEN_ICAP : if (EN_ICAP_G) generate
+      Iprog7Series_1 : entity work.Iprog7Series
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk         => axiClk,
+            rst         => axiRst,
+            start       => r.fpgaReload,
+            bootAddress => r.fpgaReloadAddr);
+   end generate;
+
    comb : process (axiRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
                    r, stringRom, userValues) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
 
-          -- Wrapper procedures to make calls cleaner.
+      -- Wrapper procedures to make calls cleaner.
       procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is
       begin
          axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
@@ -167,12 +191,32 @@ begin
       axiSlaveRegisterR(X"010", 0, ite(fdValid = '1', fdSerial(63 downto 32), X"00000000"));
       axiSlaveRegisterR(X"014", 0, ite(fdValid = '1', fdSerial(31 downto 0), X"00000000"));
       axiSlaveRegisterW(X"018", 0, v.masterReset);
+
       axiSlaveRegisterW(X"01C", 0, v.fpgaReload);
+      axiSlaveRegisterW(X"020", 0, v.fpgaReloadAddr);
+      axiSlaveRegisterR(X"024", 0, r.counter);
+      axiSlaveRegisterW(X"028", 0, v.counterRst);
+
 
       axiSlaveRegisterR("01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
       axiSlaveRegisterR("10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
 
       axiSlaveDefault(AXI_ERROR_RESP_G);
+
+      ----------------------------------------------------------------------------------------------
+      -- Increment the counter every clock
+      ----------------------------------------------------------------------------------------------
+      v.counter := r.counter + 1;
+      if (r.counterRst = '1') then
+         v.counter := (others => '0');
+      end if;
+
+      ----------------------------------------------------------------------------------------------
+      -- If counter reaches RELOAD_COUNT_C and AUTO_RELOAD_EN_G is true then trigger a reload
+      ----------------------------------------------------------------------------------------------
+      if (r.counter = RELOAD_COUNT_C and AUTO_RELOAD_EN_G) then
+         v.fpgaReload := '1';
+      end if;
 
       ----------------------------------------------------------------------------------------------
       -- Reset
@@ -184,9 +228,10 @@ begin
 
       rin <= v;
 
-      fpgaReload    <= r.fpgaReload;
-      axiReadSlave  <= r.axiReadSlave;
-      axiWriteSlave <= r.axiWriteSlave;
+      fpgaReload     <= r.fpgaReload;
+      fpgaReloadAddr <= r.fpgaReloadAddr;
+      axiReadSlave   <= r.axiReadSlave;
+      axiWriteSlave  <= r.axiWriteSlave;
       
    end process comb;
 
