@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-08-21
+-- Last update: 2015-03-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ entity Pgp2bGtp7FixedLat is
       SIM_VERSION_G         : string     := "1.0";
       SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
+      REF_CLK_FREQ_G        : real       := 125.0E6;
       -- TX/RX Settings - Defaults to 2.5 Gbps operation 
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
@@ -229,6 +230,7 @@ begin
          SIM_VERSION_G         => SIM_VERSION_G,
          SIMULATION_G          => SIMULATION_G,
          STABLE_CLOCK_PERIOD_G => STABLE_CLOCK_PERIOD_G,
+         REF_CLK_FREQ_G        => REF_CLK_FREQ_G,
          RXOUT_DIV_G           => RXOUT_DIV_G,
          TXOUT_DIV_G           => TXOUT_DIV_G,
          RX_CLK25_DIV_G        => RX_CLK25_DIV_G,
@@ -283,7 +285,7 @@ begin
          qPllLockIn       => gtQPllLock,
          qPllRefClkLostIn => gtQPllRefClkLost,
          qPllResetOut     => gtQPllReset,
-         gtRxRefClkBufg => gtRxRefClkBufg,
+         gtRxRefClkBufg   => gtRxRefClkBufg,
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,
          gtRxP            => gtRxP,
