@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2015-03-19
+-- Last update: 2015-03-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,7 +33,8 @@ entity Gtp7Core is
 
       SIMULATION_G : boolean := false;
 
-      STABLE_CLOCK_PERIOD_G : real := 4.0E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real := 4.0E-9;   --units of seconds
+      REF_CLK_FREQ_G        : real := 125.0E6;  -- Only needed if Fixed Latency used
 
       -- TX/RX Settings --
       RXOUT_DIV_G      : integer    := 2;
@@ -469,14 +470,14 @@ begin
       SyncClockFreq_1 : entity work.SyncClockFreq
          generic map (
             TPD_G             => TPD_G,
-            REF_CLK_FREQ_G    => 125.0E6,
+            REF_CLK_FREQ_G    => REF_CLK_FREQ_G,
             REFRESH_RATE_G    => 1.0E3,
-            CLK_LOWER_LIMIT_G => 124.5E6,
-            CLK_UPPER_LIMIT_G => 125.5E6,
+            CLK_LOWER_LIMIT_G => REF_CLK_FREQ_G * (1.004),
+            CLK_UPPER_LIMIT_G => REF_CLK_FREQ_G * (0.996),
             CNT_WIDTH_G       => 32)
          port map (
             freqOut     => open,
-            freqUpdated => open,
+            freqUpdated => rxRecClkMonitorRestart,
             locked      => rxRecClkStable,
             tooFast     => open,
             tooSlow     => open,
