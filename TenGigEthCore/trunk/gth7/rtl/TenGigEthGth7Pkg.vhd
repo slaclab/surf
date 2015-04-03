@@ -125,7 +125,7 @@ package TenGigEthGth7Pkg is
       gtRxPrbsErr             : sl;
       gtTxResetDone           : sl;
       gtRxResetDone           : sl;
-      gtDmonitorOut           : slv(7 downto 0);
+      gtDmonitorOut           : slv(14 downto 0);
    end record;
    
 end TenGigEthGth7Pkg;
