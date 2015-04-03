@@ -26,11 +26,12 @@ entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
 architecture testbed of AxiStreamPipelineTb is
 
-   constant CLK_PERIOD_C : time              := 10 ns;
-   constant TPD_C        : time              := CLK_PERIOD_C/4;
-   constant FIFO_WIDTH_C : natural           := 5;
-   constant DATA_WIDTH_C : natural           := 128;
-   constant MAX_CNT_C    : slv(127 downto 0) := toSlv(4096, 128);
+   constant CLK_PERIOD_C  : time              := 1 ns;
+   constant TPD_C         : time              := CLK_PERIOD_C/4;
+   constant FIFO_WIDTH_C  : natural           := 4;
+   constant DATA_WIDTH_C  : natural           := 128;
+   constant PIPE_STAGES_C : natural           := 4;
+   constant MAX_CNT_C     : slv(127 downto 0) := toSlv(65535, 128);
 
    type StateType is (
       FILLUP_S,
@@ -91,8 +92,13 @@ begin
                when FILLUP_S =>
                   -- Check the FIFO status
                   if fifoAFull = '0' then
-                     fifoWrEn <= '1'     after TPD_C;
-                     cnt      <= cnt + 1 after TPD_C;
+                     -- Increment the counter
+                     writeDelay <= writeDelay + 1 after TPD_C;
+                     -- Check the counter
+                     if writeDelay < 3 then
+                        fifoWrEn <= '1'     after TPD_C;
+                        cnt      <= cnt + 1 after TPD_C;
+                     end if;
                   else
                      -- Next state
                      state <= DRAIN_S after TPD_C;
@@ -150,7 +156,7 @@ begin
    AxiStreamPipeline_Inst : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_C,
-         PIPE_STAGES_G => 1)
+         PIPE_STAGES_G => PIPE_STAGES_C)
       port map (
          -- Clock and Reset
          axisClk     => clk,
@@ -177,7 +183,10 @@ begin
             -- Increment the counter
             readDelay <= readDelay + 1 after TPD_C;
             -- Check the counter to create a tReady duty cycle
-            if readDelay < 5 then
+            if state /= FILLUP_S then
+               -- Set the flag
+               mAxisSlave.tReady <= '1' after TPD_C;
+            elsif readDelay < 2 then
                -- Set the flag
                mAxisSlave.tReady <= '1' after TPD_C;
             end if;
