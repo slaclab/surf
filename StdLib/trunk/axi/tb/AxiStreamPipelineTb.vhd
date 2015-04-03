@@ -5,13 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2014-05-02
--- Platform   : Vivado 2013.3
+-- Last update: 2015-04-03
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for testing the VcPrbsTx and VcPrbsRx modules
+-- Description: Simulation Testbed for testing the AxiStreamPipelineTb module
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -26,26 +26,39 @@ entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
 architecture testbed of AxiStreamPipelineTb is
 
-   constant CLK_PERIOD_C : time := 10 ns;
-   constant TPD_C        : time := CLK_PERIOD_C/4;
+   constant CLK_PERIOD_C : time              := 10 ns;
+   constant TPD_C        : time              := CLK_PERIOD_C/4;
+   constant FIFO_WIDTH_C : natural           := 5;
+   constant DATA_WIDTH_C : natural           := 128;
+   constant MAX_CNT_C    : slv(127 downto 0) := toSlv(4096, 128);
 
-   signal clk,
-      rst,
-      passed,
-      failed,
-      toggle,
-      fifoWrEn,
-      fifoAFull,
-      fifoRdEn : sl := '0';
-   signal mAxisMaster,
-      sAxisMaster : AxiStreamMasterType;
-   signal mAxisSlave,
-      sAxisSlave : AxiStreamSlaveType;
-   signal cnt,
-      check : slv(127 downto 0);
-      
-   signal readDelay : slv(3 downto 0);
+   type StateType is (
+      FILLUP_S,
+      DRAIN_S,
+      HOLD_S);       
 
+   signal state     : StateType := FILLUP_S;
+   signal clk       : sl        := '0';
+   signal rst       : sl        := '0';
+   signal passed    : sl        := '0';
+   signal failed    : sl        := '0';
+   signal toggle    : sl        := '0';
+   signal fifoWrEn  : sl        := '0';
+   signal fifoAFull : sl        := '0';
+   signal fifoRdEn  : sl        := '0';
+
+   signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
+   signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
+   signal writeDelay : slv(3 downto 0)              := (others => '0');
+   signal readDelay  : slv(3 downto 0)              := (others => '0');
+   signal fillCount  : slv(FIFO_WIDTH_C-1 downto 0) := (others => '0');
+   signal cnt        : slv(DATA_WIDTH_C-1 downto 0) := (others => '1');
+   signal check      : slv(DATA_WIDTH_C-1 downto 0) := (others => '0');
+   
 begin
 
    -- Generate clocks and resets
@@ -60,28 +73,66 @@ begin
          rst  => rst,
          rstL => open); 
 
+   -- Data generator
    process(clk)
    begin
       if rising_edge(clk) then
+         -- Reset the flag
          fifoWrEn <= '0' after TPD_C;
+         -- Check for a reset
          if rst = '1' then
-            cnt <= (others => '1') after TPD_C;
+            -- Reset the registers
+            cnt        <= (others => '1') after TPD_C;
+            writeDelay <= (others => '0') after TPD_C;
+            state      <= FILLUP_S        after TPD_C;
          else
-            if fifoAFull = '0' then
-               fifoWrEn <= '1'     after TPD_C;
-               cnt      <= cnt + 1 after TPD_C;
-            end if;
+            case state is
+               ----------------------------------------------------------------------
+               when FILLUP_S =>
+                  -- Check the FIFO status
+                  if fifoAFull = '0' then
+                     fifoWrEn <= '1'     after TPD_C;
+                     cnt      <= cnt + 1 after TPD_C;
+                  else
+                     -- Next state
+                     state <= DRAIN_S after TPD_C;
+                  end if;
+               ----------------------------------------------------------------------
+               when DRAIN_S =>
+                  -- Check the FIFO status
+                  if fillCount = 0 then
+                     -- Next state
+                     state <= HOLD_S after TPD_C;
+                  end if;
+               ----------------------------------------------------------------------
+               when HOLD_S =>
+                  -- Check for polling
+                  if (mAxisSlave.tReady = '1') and (mAxisMaster.tValid = '1') then
+                     -- Reset the counter
+                     writeDelay <= (others => '0') after TPD_C;
+                  elsif writeDelay /= x"F" then
+                     -- Increment the counter
+                     writeDelay <= writeDelay + 1;
+                  else
+                     -- Reset the counter
+                     writeDelay <= (others => '0') after TPD_C;
+                     -- Next state
+                     state      <= FILLUP_S        after TPD_C;
+                  end if;
+            ----------------------------------------------------------------------
+            end case;
          end if;
       end if;
    end process;
 
+   -- Buffer the data
    FifoSync_Inst : entity work.FifoSync
       generic map (
          TPD_G        => TPD_C,
          BRAM_EN_G    => false,
          FWFT_EN_G    => true,
-         DATA_WIDTH_G => 128,
-         ADDR_WIDTH_G => 4)
+         DATA_WIDTH_G => DATA_WIDTH_C,
+         ADDR_WIDTH_G => FIFO_WIDTH_C)
       port map (
          rst         => rst,
          clk         => clk,
@@ -90,11 +141,12 @@ begin
          din         => cnt,
          dout        => sAxisMaster.tData,
          valid       => sAxisMaster.tValid,
+         data_count  => fillCount,
          almost_full => fifoAFull); 
 
    fifoRdEn <= sAxisMaster.tValid and sAxisSlave.tReady;
 
-   -- VcPrbsTx (VHDL module to be tested)
+   -- AxiStreamPipeline (VHDL module to be tested)
    AxiStreamPipeline_Inst : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_C,
@@ -113,23 +165,36 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
+         -- Reset the flag
          mAxisSlave.tReady <= '0' after TPD_C;
+         -- Check for reset
          if rst = '1' then
+            -- Reset the registers
             check      <= (others => '0')         after TPD_C;
             readDelay  <= (others => '0')         after TPD_C;
             mAxisSlave <= AXI_STREAM_SLAVE_INIT_C after TPD_C;
          else
-            readDelay <= readDelay + 1  after TPD_C;
-            if readDelay < 3 then
+            -- Increment the counter
+            readDelay <= readDelay + 1 after TPD_C;
+            -- Check the counter to create a tReady duty cycle
+            if readDelay < 5 then
+               -- Set the flag
                mAxisSlave.tReady <= '1' after TPD_C;
             end if;
+            -- Check the flag
             if mAxisSlave.tReady = '1' then
+               -- Check for FIFO data
                if mAxisMaster.tValid = '1' then
+                  -- Increment the counter
                   check <= check + 1 after TPD_C;
+                  -- Check for data error
                   if mAxisMaster.tData /= check then
+                     -- Assert the flag and not the simulation
                      failed <= '1' after TPD_C;
                   end if;
-                  if check = 256 then
+                  -- Check if simulation is completed
+                  if check = MAX_CNT_C then
+                     -- Assert the flag and not the simulation
                      passed <= '1' after TPD_C;
                   end if;
                end if;
