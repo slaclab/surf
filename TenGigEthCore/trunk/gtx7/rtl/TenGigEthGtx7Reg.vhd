@@ -236,10 +236,10 @@ begin
                   v.axiReadSlave.rdata(23 downto 16) := status.pcs_err_block_count;
                   v.axiReadSlave.rdata(29 downto 24) := status.pcs_ber_count;
                when x"7F" =>
-                  v.axiReadSlave.rdata(7 downto 0)   := status.core_status;
-                  v.axiReadSlave.rdata(15 downto 8)  := status.gtDmonitorOut;
-                  v.axiReadSlave.rdata(17 downto 16) := status.gtTxBufStatus;
-                  v.axiReadSlave.rdata(20 downto 18) := status.gtRxBufStatus;
+                  v.axiReadSlave.rdata(7 downto 0)   := status.gtDmonitorOut;
+                  v.axiReadSlave.rdata(23 downto 16) := status.core_status;
+                  v.axiReadSlave.rdata(25 downto 24) := status.gtTxBufStatus;
+                  v.axiReadSlave.rdata(28 downto 26) := status.gtRxBufStatus;
                when X"80" =>
                   v.axiReadSlave.rdata := r.config.phyConfig.macAddress(31 downto 0);
                when X"81" =>
