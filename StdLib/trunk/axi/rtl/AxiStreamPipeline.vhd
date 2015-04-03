@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-01
--- Last update: 2014-05-05
+-- Last update: 2015-04-03
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -77,7 +77,6 @@ begin
             for i in PIPE_STAGES_C downto 2 loop
                v.mAxisMaster(i) := r.mAxisMaster(i-1);
             end loop;
-
             -- Check if the lowest cell is empty
             if r.mAxisMaster(0).tValid = '0' then
                -- Set the ready bit
@@ -100,7 +99,7 @@ begin
                   -- Fill the lowest cell
                   v.mAxisMaster(0)    := sAxisMaster;
                else
-                  -- Reset the ready bit
+                  -- Set the ready bit
                   v.sAxisSlave.tReady     := '1';
                   -- Reset the lowest cell tValid
                   v.mAxisMaster(0).tValid := '0';
@@ -113,7 +112,20 @@ begin
             if r.sAxisSlave.tReady = '1' then
                -- Fill the lowest cell
                v.mAxisMaster(0) := sAxisMaster;
+            elsif r.mAxisMaster(0).tValid = '0' then
+               -- Set the ready bit
+               v.sAxisSlave.tReady := '1';
             end if;
+            -- Check if we need to internally shift the data to remove gaps
+            for i in PIPE_STAGES_C-1 downto 1 loop
+               -- Check for empty cell ahead of a filled cell
+               if (r.mAxisMaster(i).tValid = '0') and (r.mAxisMaster(i-1).tValid = '1') then
+                  -- Shift the lowest cell
+                  v.mAxisMaster(i)          := r.mAxisMaster(i-1);
+                  -- Reset the flag
+                  v.mAxisMaster(i-1).tValid := '0';
+               end if;
+            end loop;
          end if;
 
          -- Synchronous Reset
