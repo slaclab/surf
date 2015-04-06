@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-05
--- Last update: 2014-05-05
+-- Last update: 2015-04-06
 -- Platform   : Vivado 2014.1
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ begin
                   v.mValid(0) := sValid;
                   v.mData(0)  := sData;
                else
-                  -- Reset the read bit
+                  -- Set the read bit
                   v.sRdEn     := '1';
                   -- Reset the lowest cell mValid
                   v.mValid(0) := '0';
@@ -127,7 +127,21 @@ begin
                -- Fill the lowest cell
                v.mValid(0) := sValid;
                v.mData(0)  := sData;
+            elsif r.mValid(0) = '0' then
+               -- Set the read bit
+               v.sRdEn := '1';
             end if;
+            -- Check if we need to internally shift the data to remove gaps
+            for i in PIPE_STAGES_C-1 downto 1 loop
+               -- Check for empty cell ahead of a filled cell
+               if (r.mValid(i) = '0') and (r.mValid(i-1) = '1') then
+                  -- Shift the lowest cell                  
+                  v.mValid(i)   := r.mValid(i-1);
+                  v.mData(i)    := r.mData(i-1);
+                  -- Reset the flag
+                  v.mValid(i-1) := '0';
+               end if;
+            end loop;
          end if;
 
          -- Synchronous Reset
