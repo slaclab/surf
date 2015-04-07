@@ -1,0 +1,1 @@
+coregen/XauiGth7Core.xci
