@@ -1,0 +1,5 @@
+
+vhdl work rtl/XauiGthUltraScaleWrapper.vhd
+vhdl work rtl/XauiGthUltraScale.vhd
+vhdl work rtl/XauiGthUltraScaleCore.vhd
+vhdl work rtl/XauiGthUltraScaleCore_block.dcp

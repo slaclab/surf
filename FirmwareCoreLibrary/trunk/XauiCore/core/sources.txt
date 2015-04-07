@@ -1,0 +1,4 @@
+
+vhdl work rtl/XauiPkg.vhd
+vhdl work rtl/XauiReg.vhd
+
