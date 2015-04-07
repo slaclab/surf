@@ -1,0 +1,5 @@
+
+vhdl work rtl/XauiGtx7Wrapper.vhd
+vhdl work rtl/XauiGtx7.vhd
+vhdl work rtl/XauiGtx7Core.vhd
+vhdl work rtl/XauiGtx7Core_block.dcp
