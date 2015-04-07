@@ -21,7 +21,6 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.TenGigEthPkg.all;
-use work.TenGigEthGtx7Pkg.all;
 
 entity TenGigEthGtx7 is
    -- Defaults:
@@ -39,10 +38,9 @@ entity TenGigEthGtx7 is
       ERR_BIT_G          : integer               := 1;
       HEADER_SIZE_G      : integer               := 16;
       SHIFT_EN_G         : boolean               := false;
-      MAC_ADDR_G         : slv(47 downto 0)      := TEN_GIG_ETH_MAC_ADDR_INIT_C;
+      MAC_ADDR_G         : slv(47 downto 0)      := MAC_ADDR_INIT_C;
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
-      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G      : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);  -- Note: Only support 64-bit AXIS configurations
    port (
@@ -108,10 +106,9 @@ architecture mapping of TenGigEthGtx7 is
    signal drpDo     : slv(15 downto 0);
 
    signal configurationVector : slv(535 downto 0) := (others => '0');
-   signal statusVector        : slv(447 downto 0);
 
-   signal config : TenGigEthGtx7Config;
-   signal status : TenGigEthGtx7Status;
+   signal config : TenGigEthConfig;
+   signal status : TenGigEthStatus;
    
 begin
 
@@ -161,7 +158,7 @@ begin
    ---------------------------
    -- 10 Gig Ethernet MAC core
    ---------------------------
-   U_TenGigEthMacCore : entity work.TenGigEthMacCore
+   U_XMacCore : entity work.XMacCore
       generic map (
          TPD_G           => TPD_G,
          IB_ADDR_WIDTH_G => IB_ADDR_WIDTH_G,
@@ -226,7 +223,7 @@ begin
          -- Configuration and Status
          sim_speedup_control  => '0',
          configuration_vector => configurationVector,
-         status_vector        => statusVector,
+         status_vector        => open,
          core_status          => status.core_status,
          tx_resetdone         => status.txRstdone,
          rx_resetdone         => status.rxRstdone,
@@ -234,28 +231,6 @@ begin
          tx_fault             => status.txFault,
          tx_disable           => status.txDisable,
          pma_pmd_type         => config.pma_pmd_type,
-         -- MGT Debugging interface
-         gt0_eyescanreset     => config.gtEyeScanReset,
-         gt0_eyescandataerror => status.gtEyeScanDataError,
-         gt0_txbufstatus      => status.gtTxBufStatus,
-         gt0_rxbufstatus      => status.gtRxBufStatus,
-         gt0_eyescantrigger   => config.gtEyeScanTrigger,
-         gt0_rxcdrhold        => config.gtRxCdrHold,
-         gt0_txprbsforceerr   => config.gtTxPrbsForceErr,
-         gt0_txpolarity       => config.gtTxPolarity,
-         gt0_rxpolarity       => config.gtRxPolarity,
-         gt0_rxprbserr        => status.gtRxPrbsErr,
-         gt0_txpmareset       => config.gtTxPmaReset,
-         gt0_rxpmareset       => config.gtRxPmaReset,
-         gt0_txresetdone      => status.gtTxResetDone,
-         gt0_rxresetdone      => status.gtRxResetDone,
-         gt0_rxdfelpmreset    => config.gtRxDfelpmReset,
-         gt0_rxlpmen          => config.gtRxlpmen,
-         gt0_dmonitorout      => status.gtDmonitorOut,
-         gt0_rxrate           => config.gtRxRate,
-         gt0_txprecursor      => config.gtTxPreCursor,
-         gt0_txpostcursor     => config.gtTxPostCursor,
-         gt0_txdiffctrl       => config.gtTxDiffCtrl,
          -- DRP interface
          -- Note: If no arbitration is required on the GT DRP ports 
          -- then connect REQ to GNT and connect other signals i <= o;         
@@ -277,7 +252,7 @@ begin
    -------------------------------------
    -- 10GBASE-R's Reset Module
    -------------------------------------        
-   U_TenGigEthGtx7Rst : entity work.TenGigEthGtx7Rst
+   U_TenGigEthRst : entity work.TenGigEthRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -301,37 +276,9 @@ begin
    -------------------------------         
    configurationVector(0)              <= config.pma_loopback;
    configurationVector(15)             <= config.pma_reset;
-   configurationVector(16)             <= config.global_tx_disable;
    configurationVector(110)            <= config.pcs_loopback;
-   configurationVector(111)            <= config.pcs_reset;
-   configurationVector(169 downto 112) <= config.test_patt_a_b;
-   configurationVector(233 downto 176) <= config.test_patt_a_b;
-   configurationVector(240)            <= config.data_patt_sel;
-   configurationVector(241)            <= config.test_patt_sel;
-   configurationVector(242)            <= config.rx_test_patt_en;
-   configurationVector(243)            <= config.tx_test_patt_en;
-   configurationVector(244)            <= config.prbs31_tx_en;
-   configurationVector(245)            <= config.prbs31_rx_en;
-   configurationVector(399 downto 384) <= config.timer_ctrl;
-   configurationVector(512)            <= config.set_pma_link_status;
-   configurationVector(516)            <= config.set_pcs_link_status;
-   configurationVector(518)            <= config.clear_pcs_status2;
-   configurationVector(519)            <= config.clear_test_patt_err_count;
-
-   ------------------------
-   -- Status Vector Mapping
-   ------------------------
-   status.pma_link_status         <= statusVector(18);
-   status.rx_sig_det              <= statusVector(48);
-   status.pcs_rx_link_status      <= statusVector(226);
-   status.pcs_rx_locked           <= statusVector(256);
-   status.pcs_hiber               <= statusVector(257);
-   status.teng_pcs_rx_link_status <= statusVector(268);
-   status.pcs_err_block_count     <= statusVector(279 downto 272);
-   status.pcs_ber_count           <= statusVector(285 downto 280);
-   status.pcs_rx_hiber_lh         <= statusVector(286);
-   status.pcs_rx_locked_ll        <= statusVector(287);
-   status.pcs_test_patt_err_count <= statusVector(303 downto 288);
+   configurationVector(111)            <= config.pcs_reset;   
+   configurationVector(399 downto 384) <= x"4C4B";-- timer_ctrl = 0x4C4B (default)
 
    ----------------------
    -- Core Status Mapping
@@ -341,11 +288,10 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_TenGigEthGtx7Reg : entity work.TenGigEthGtx7Reg
+   U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
          TPD_G              => TPD_G,
          MAC_ADDR_G         => MAC_ADDR_G,
-         STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
       port map (
          -- Clocks and resets

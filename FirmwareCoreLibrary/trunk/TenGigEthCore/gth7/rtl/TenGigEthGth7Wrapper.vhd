@@ -22,7 +22,6 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.TenGigEthPkg.all;
-use work.TenGigEthGth7Pkg.all;
 
 entity TenGigEthGth7Wrapper is
    -- Defaults:
@@ -40,7 +39,7 @@ entity TenGigEthGth7Wrapper is
       ERR_BIT_G          : NaturalArray(3 downto 0)         := (others => 1);
       HEADER_SIZE_G      : NaturalArray(3 downto 0)         := (others => 16);
       SHIFT_EN_G         : BooleanArray(3 downto 0)         := (others => false);
-      MAC_ADDR_G         : Slv48Array(3 downto 0)           := (others => TEN_GIG_ETH_MAC_ADDR_INIT_C);
+      MAC_ADDR_G         : Slv48Array(3 downto 0)           := (others => MAC_ADDR_INIT_C);
       NUM_LANE_G         : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -48,7 +47,6 @@ entity TenGigEthGth7Wrapper is
       QPLL_REFCLK_SEL_G  : bit_vector                       := "001";
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
-      STATUS_CNT_WIDTH_G : natural range 1 to 32            := 32;
       -- AXI Streaming Configurations
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
@@ -151,7 +149,6 @@ begin
             MAC_ADDR_G         => MAC_ADDR_G(i),
             -- AXI-Lite Configurations
             AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G,
-            STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
             -- AXI Streaming Configurations
             AXIS_CONFIG_G      => AXIS_CONFIG_G(i))       
          port map (

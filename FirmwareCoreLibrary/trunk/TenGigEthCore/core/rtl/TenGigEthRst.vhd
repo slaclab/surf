@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtx7Rst.vhd
+-- File       : TenGigEthRst.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-03-30
+-- Last update: 2015-04-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,27 +24,28 @@ use work.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity TenGigEthGtx7Rst is
+entity TenGigEthRst is
    generic (
       TPD_G : time := 1 ns);
    port (
       -- Clocks and Resets
-      extRst     : in  sl;              -- async reset
-      phyClk     : in  sl;
-      phyRst     : in  sl;
-      txClk322   : in  sl;
-      txUsrClk   : out sl;
-      txUsrClk2  : out sl;
-      gtTxRst    : out sl;
-      gtRxRst    : out sl;
-      txUsrRdy   : out sl;
-      rstCntDone : out sl;
+      extRst      : in  sl;             -- async reset
+      gtPowerGood : in  sl := '1';
+      phyClk      : in  sl;
+      phyRst      : in  sl;
+      txClk322    : in  sl;
+      txUsrClk    : out sl;
+      txUsrClk2   : out sl;
+      gtTxRst     : out sl;
+      gtRxRst     : out sl;
+      txUsrRdy    : out sl;
+      rstCntDone  : out sl;
       -- Quad PLL Ports
-      qplllock   : in  sl;
-      qpllRst    : out sl);      
-end TenGigEthGtx7Rst;
+      qplllock    : in  sl;
+      qpllRst     : out sl);      
+end TenGigEthRst;
 
-architecture rtl of TenGigEthGtx7Rst is
+architecture rtl of TenGigEthRst is
 
    signal txClock : sl;
    signal txReset : sl;
@@ -61,7 +62,7 @@ begin
    rstCntDone <= rstCnt(7);
    gtTxRst    <= rstPulse(0);
    gtRxRst    <= rstPulse(0);
-   qpllRst    <= rstPulse(0);
+   qpllRst    <= rstPulse(0) and not(gtPowerGood);
 
    CLK312_BUFG : BUFG
       port map (

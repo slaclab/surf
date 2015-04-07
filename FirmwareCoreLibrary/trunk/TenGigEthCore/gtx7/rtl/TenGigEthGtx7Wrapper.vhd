@@ -22,7 +22,6 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.TenGigEthPkg.all;
-use work.TenGigEthGtx7Pkg.all;
 
 entity TenGigEthGtx7Wrapper is
    -- Defaults:
@@ -40,14 +39,14 @@ entity TenGigEthGtx7Wrapper is
       ERR_BIT_G          : NaturalArray(3 downto 0)         := (others => 1);
       HEADER_SIZE_G      : NaturalArray(3 downto 0)         := (others => 16);
       SHIFT_EN_G         : BooleanArray(3 downto 0)         := (others => false);
-      MAC_ADDR_G         : Slv48Array(3 downto 0)           := (others => TEN_GIG_ETH_MAC_ADDR_INIT_C);
+      MAC_ADDR_G         : Slv48Array(3 downto 0)           := (others => MAC_ADDR_INIT_C);
       NUM_LANE_G         : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
+      USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       REFCLK_DIV2_G      : boolean                          := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       QPLL_REFCLK_SEL_G  : bit_vector                       := "001";
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
-      STATUS_CNT_WIDTH_G : natural range 1 to 32            := 32;
       -- AXI Streaming Configurations
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
@@ -76,8 +75,9 @@ entity TenGigEthGtx7Wrapper is
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
-      gtClkP              : in  sl;
-      gtClkN              : in  sl;
+      gtRefClk            : in  sl                                             := '0';  -- 156.25 MHz only
+      gtClkP              : in  sl                                             := '1';
+      gtClkN              : in  sl                                             := '0';
       -- MGT Ports
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
@@ -108,6 +108,7 @@ begin
    TenGigEthGtx7Clk_Inst : entity work.TenGigEthGtx7Clk
       generic map (
          TPD_G             => TPD_G,
+         USE_GTREFCLK_G    => USE_GTREFCLK_G,
          REFCLK_DIV2_G     => REFCLK_DIV2_G,
          QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)         
       port map (
@@ -116,6 +117,7 @@ begin
          phyClk        => phyClock,
          phyRst        => phyReset,
          -- MGT Clock Port (156.25 MHz or 312.5 MHz)
+         gtRefClk      => gtRefClk,
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
          -- Quad PLL Ports
@@ -147,7 +149,6 @@ begin
             MAC_ADDR_G         => MAC_ADDR_G(i),
             -- AXI-Lite Configurations
             AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G,
-            STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
             -- AXI Streaming Configurations
             AXIS_CONFIG_G      => AXIS_CONFIG_G(i))       
          port map (

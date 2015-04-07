@@ -25,7 +25,8 @@ use unisim.vcomponents.all;
 entity TenGigEthGtx7Clk is
    generic (
       TPD_G             : time       := 1 ns;
-      REFCLK_DIV2_G     : boolean    := false;  --  FALSE: gtClkP/N = 156.25 MHz, TRUE: gtClkP/N = 312.5 MHz
+      USE_GTREFCLK_G    : boolean    := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
+      REFCLK_DIV2_G     : boolean    := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       QPLL_REFCLK_SEL_G : bit_vector := "001");
    port (
       -- Clocks and Resets
@@ -33,8 +34,9 @@ entity TenGigEthGtx7Clk is
       phyClk        : out sl;
       phyRst        : out sl;
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
-      gtClkP        : in  sl;
-      gtClkN        : in  sl;
+      gtRefClk      : in  sl := '0';    -- 156.25 MHz only
+      gtClkP        : in  sl := '1';
+      gtClkN        : in  sl := '0';
       -- Quad PLL Ports
       qplllock      : out sl;
       qplloutclk    : out sl;
@@ -43,6 +45,8 @@ entity TenGigEthGtx7Clk is
 end TenGigEthGtx7Clk;
 
 architecture mapping of TenGigEthGtx7Clk is
+
+   constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G,"111",QPLL_REFCLK_SEL_G);
 
    signal refClockDiv2 : sl;
    signal refClock     : sl;
@@ -76,7 +80,7 @@ begin
          ODIV2 => refClockDiv2,
          O     => refClock);  
 
-   refClk <= refClockDiv2 when(REFCLK_DIV2_G) else refClock;
+   refClk <= gtRefClk when (USE_GTREFCLK_G) else refClockDiv2 when(REFCLK_DIV2_G) else refClock;
 
    CLK156_BUFG : BUFG
       port map (
@@ -89,7 +93,7 @@ begin
          SIM_RESET_SPEEDUP_G => "TRUE",        --Does not affect hardware
          SIM_VERSION_G       => "4.0",
          QPLL_CFG_G          => x"0680181",
-         QPLL_REFCLK_SEL_G   => QPLL_REFCLK_SEL_G,
+         QPLL_REFCLK_SEL_G   => QPLL_REFCLK_SEL_C,
          QPLL_FBDIV_G        => "0101000000",  -- 64B/66B Encoding
          QPLL_FBDIV_RATIO_G  => '0',           -- 64B/66B Encoding
          QPLL_REFCLK_DIV_G   => 1)    
