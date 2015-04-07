@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-03-30
+-- Last update: 2015-04-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ entity TenGigEthGth7Wrapper is
       MAC_ADDR_G         : Slv48Array(3 downto 0)           := (others => TEN_GIG_ETH_MAC_ADDR_INIT_C);
       NUM_LANE_G         : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
+      USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       REFCLK_DIV2_G      : boolean                          := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       QPLL_REFCLK_SEL_G  : bit_vector                       := "001";
       -- AXI-Lite Configurations
@@ -76,8 +77,9 @@ entity TenGigEthGth7Wrapper is
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
-      gtClkP              : in  sl;
-      gtClkN              : in  sl;
+      gtRefClk            : in  sl                                             := '0';  -- 156.25 MHz only
+      gtClkP              : in  sl                                             := '1';
+      gtClkN              : in  sl                                             := '0';
       -- MGT Ports
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
@@ -108,6 +110,7 @@ begin
    TenGigEthGth7Clk_Inst : entity work.TenGigEthGth7Clk
       generic map (
          TPD_G             => TPD_G,
+         USE_GTREFCLK_G    => USE_GTREFCLK_G,
          REFCLK_DIV2_G     => REFCLK_DIV2_G,
          QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)         
       port map (
@@ -116,6 +119,7 @@ begin
          phyClk        => phyClock,
          phyRst        => phyReset,
          -- MGT Clock Port (156.25 MHz or 312.5 MHz)
+         gtRefClk      => gtRefClk,
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
          -- Quad PLL Ports
