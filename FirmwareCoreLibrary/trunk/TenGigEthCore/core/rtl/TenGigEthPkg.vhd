@@ -1,0 +1,62 @@
+-------------------------------------------------------------------------------
+-- Title      : 10G Ethernet Package
+-------------------------------------------------------------------------------
+-- File       : TenGigEthPkg.vhd
+-- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2015-02-12
+-- Last update: 2015-04-07
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: 10G Ethernet: constants & types.
+-------------------------------------------------------------------------------
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+use work.StdRtlPkg.all;
+use work.XMacPkg.all;
+
+package TenGigEthPkg is
+
+   -- Default MAC is 01:03:00:56:44:00
+   constant MAC_ADDR_INIT_C : slv(47 downto 0) := XMAC_ADDR_INIT_C;
+
+   type TenGigEthConfig is record
+      softRst      : sl;
+      phyConfig    : XMacConfig;
+      pma_pmd_type : slv(2 downto 0);
+      pma_loopback : sl;
+      pma_reset    : sl;
+      pcs_loopback : sl;
+      pcs_reset    : sl;
+   end record;
+   constant TEN_GIG_ETH_CONFIG_INIT_C : TenGigEthConfig := (
+      softRst      => '0',
+      phyConfig    => XMAC_CONFIG_INIT_C,
+      pma_pmd_type => "111",            --111 = 10GBASE-SR (Wavelength:850 nm & OM3:300m)
+      pma_loopback => '0',
+      pma_reset    => '0',
+      pcs_loopback => '0',
+      pcs_reset    => '0');
+
+   type TenGigEthStatus is record
+      phyReady    : sl;
+      phyStatus   : XMacStatus;
+      txDisable   : sl;
+      sigDet      : sl;
+      txFault     : sl;
+      gtTxRst     : sl;
+      gtRxRst     : sl;
+      rstCntDone  : sl;
+      qplllock    : sl;
+      txRstdone   : sl;
+      rxRstdone   : sl;
+      txUsrRdy    : sl;
+      core_status : slv(7 downto 0);
+   end record;
+   
+end TenGigEthPkg;
