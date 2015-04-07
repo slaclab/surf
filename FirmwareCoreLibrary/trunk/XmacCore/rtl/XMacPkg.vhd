@@ -37,8 +37,8 @@ package XMacPkg is
       rxShiftEn       : sl;
    end record;
    
-   constant XMAC_CONFIG_INIT_C : TenGigEthMacConfig := (
-      macAddress      => TEN_GIG_ETH_MAC_ADDR_INIT_C,
+   constant XMAC_CONFIG_INIT_C : XMacConfig := (
+      macAddress      => XMAC_ADDR_INIT_C,
       byteSwap        => '0',
       -- Inbound Configurations
       rxShift         => (others => '0'),
