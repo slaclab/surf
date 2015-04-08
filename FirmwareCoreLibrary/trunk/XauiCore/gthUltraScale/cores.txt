@@ -1,1 +1,1 @@
- 
+coregen/XauiGthUltraScaleCore.xci  
