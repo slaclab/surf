@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-04-08
+-- Last update: 2015-04-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,9 +42,6 @@ entity XauiGthUltraScaleWrapper is
       HEADER_SIZE_G    : natural             := 16;
       SHIFT_EN_G       : boolean             := false;
       MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
-      -- QUAD PLL Configurations
-      USE_GTREFCLK_G   : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
-      REFCLK_DIV2_G    : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
@@ -70,11 +67,9 @@ entity XauiGthUltraScaleWrapper is
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
-      -- MGT Clock Port (156.25 MHz or 312.5 MHz)
-      -- Note: gtRefClk is not supported yet
-      gtRefClk           : in  sl                     := '0';  -- 156.25 MHz only
-      gtClkP             : in  sl                     := '1';
-      gtClkN             : in  sl                     := '0';
+      -- MGT Clock Port (156.25 MHz)
+      gtClkP             : in  sl;
+      gtClkN             : in  sl;
       -- MGT Ports
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
@@ -84,10 +79,7 @@ end XauiGthUltraScaleWrapper;
 
 architecture mapping of XauiGthUltraScaleWrapper is
 
-   signal phyClock     : sl;
-   signal refClockDiv2 : sl;
-   signal refClock     : sl;
-   signal refClk       : sl;
+   signal refClk : sl;
 
 begin
 
@@ -96,10 +88,8 @@ begin
          I     => gtClkP,
          IB    => gtClkN,
          CEB   => '0',
-         ODIV2 => refClockDiv2,
-         O     => refClock);           
-         
-   refClk <= gtRefClk when (USE_GTREFCLK_G) else refClockDiv2 when(REFCLK_DIV2_G) else refClock;
+         ODIV2 => open,
+         O     => refClk);              -- 156.25 MHz only     
 
    ----------------------
    -- 10 GigE XAUI Module
@@ -142,7 +132,7 @@ begin
          phyRst             => phyRst,
          phyReady           => phyReady,
          -- MGT Ports
-         gtRefClk           => refClk,
+         refClk             => refClk,
          gtTxP              => gtTxP,
          gtTxN              => gtTxN,
          gtRxP              => gtRxP,

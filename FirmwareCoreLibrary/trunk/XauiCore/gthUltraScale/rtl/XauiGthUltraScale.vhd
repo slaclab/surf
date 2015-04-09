@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-04-08
+-- Last update: 2015-04-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,9 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.XauiPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity XauiGthUltraScale is
    -- Defaults:
@@ -64,7 +67,7 @@ entity XauiGthUltraScale is
       phyRst             : out sl;
       phyReady           : out sl;
       -- MGT Ports
-      gtRefClk           : in  sl;
+      refClk             : in  sl;
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
       gtRxP              : in  slv(3 downto 0);
@@ -78,9 +81,9 @@ architecture mapping of XauiGthUltraScale is
    signal phyTxd : slv(63 downto 0);
    signal phyTxc : slv(7 downto 0);
 
-   signal areset   : sl;
-   signal phyClock : sl;
-   signal phyReset : sl;
+   signal phyClock  : sl;
+   signal phyClkBuf : sl;
+   signal phyReset  : sl;
 
    signal config : XauiConfig;
    signal status : XauiStatus;
@@ -131,11 +134,11 @@ begin
    U_XauiGthUltraScaleCore : entity work.XauiGthUltraScaleCore
       port map (
          -- Clocks and Resets
-         dclk                 => gtRefClk,
-         reset                => areset,
+         dclk                 => phyClock,
+         reset                => status.areset,
          clk156_out           => phyClock,
          clk156_lock          => status.clkLock,
-         refclk               => gtRefClk,
+         refclk               => refClk,
          -- PHY Interface
          xgmii_txd            => phyTxd,
          xgmii_txc            => phyTxc,
@@ -171,25 +174,14 @@ begin
    --------------------------
    status.areset <= config.softRst or extRst;
 
-   RstSync_0 : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 4) 
-      port map (
-         clk      => gtRefClk,
-         asyncRst => status.areset,
-         syncRst  => areset);
-
-   RstSync_1 : entity work.RstSync
+   RstSync_Inst : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
          OUT_POLARITY_G  => '1',
          RELEASE_DELAY_G => 4) 
       port map (
-         clk      => gtRefClk,
+         clk      => phyClock,
          asyncRst => status.clkLock,
          syncRst  => phyReset);         
 
