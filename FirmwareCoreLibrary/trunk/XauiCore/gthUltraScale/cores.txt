@@ -1,1 +1,2 @@
-coregen/XauiGthUltraScaleCore.xci  
+# Using the .dcp instead of the .xci (see sources.txt) 
+# coregen/XauiGthUltraScaleCore.xci  
