@@ -99,7 +99,7 @@ begin
       gtGRefClk(i)      <= qpllRefClk(i) when QPLL_REFCLK_SEL_G(i) = "111" else '0';
    end generate GEN_CLK_SELECT;
 
-   gthe3_common_0_i : GTHE3_COMMON
+   GTHE3_COMMON_Inst : GTHE3_COMMON
       generic map (
          BIAS_CFG0          => BIAS_CFG0_G,
          BIAS_CFG1          => BIAS_CFG1_G,
