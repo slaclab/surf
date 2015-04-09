@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-04-07
+-- Last update: 2015-04-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,8 @@ use unisim.vcomponents.all;
 
 entity TenGigEthRst is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      XIL_DEVICE_G : string := "7SERIES");
    port (
       -- Clocks and Resets
       extRst      : in  sl;             -- async reset
@@ -64,10 +65,24 @@ begin
    gtRxRst    <= rstPulse(0);
    qpllRst    <= rstPulse(0) and not(gtPowerGood);
 
-   CLK312_BUFG : BUFG
-      port map (
-         I => txClk322,
-         O => txClock);  
+   GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+      CLK312_BUFG : BUFG
+         port map (
+            I => txClk322,
+            O => txClock);
+   end generate;
+
+   GEN_ULTRA_SCALE : if (XIL_DEVICE_G /= "7SERIES") generate
+      CLK312_BUFG : BUFG_GT
+         port map (
+            I       => txclk322,
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => txClock);    
+   end generate;
 
    Synchronizer_1 : entity work.Synchronizer
       generic map(
