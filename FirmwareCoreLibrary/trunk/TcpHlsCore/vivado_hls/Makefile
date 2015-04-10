@@ -2,7 +2,8 @@
 # Define target output
 target: dcp
 
-# Set CFLAGs and LDFLAGs
+# Set ARGV, CFLAGs, LDFLAGs
+export ARGV    = $(PWD)/src/csim/in.dat $(PWD)/src/csim/queryReply.dat $(PWD)/src/csim/gold.dat $(PWD)/src/csim/out.dat
 export CFLAGS  = 
 export LDFLAGS = 
 

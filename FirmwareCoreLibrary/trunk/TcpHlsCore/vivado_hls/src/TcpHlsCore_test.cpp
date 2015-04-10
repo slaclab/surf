@@ -20,30 +20,38 @@ int main(int argc, char *argv[])
 	ifstream goldOutFile;
 	ofstream outputFile;
 	uint8_t	 correctReq	= 0;
+   int i;
 
 	if (argc < 4) {
-
+      cerr << "argc = " << dec << argc << endl;
+      for(i=0;i<argc;i++){
+         cerr << "argv["<<i<<"] = " << argv[i] << endl;
+      }
 		cerr << "Error! You need provide the following parameters in the provided order: stimuli input file name, ARP reply file name, golden output file and output file name." << endl;
 		return -1;
 	}
     cerr << "Attempting to open files... " << endl;
 	inputFile.open(argv[1]);
 	if (!inputFile)	{
+      cerr << "inputFile.argv[1] = " << argv[1] << endl;
 		cerr << " Error opening input file!" << endl;
 		return -1;
     }
 	queryFile.open(argv[2]);
 	if (!queryFile) {
+      cerr << "queryFile.argv[2] = " << argv[2] << endl;
 		cerr << " Error opening ARP reply input file!" << endl;
 		return -1;
 	}
 	goldOutFile.open(argv[3]);
 	if (!goldOutFile) {
+      cerr << "goldOutFile.argv[3] = " << argv[3] << endl;
 		cerr << " Error opening golden output file!" << endl;
 		return -1;
 	}
 	outputFile.open(argv[4]);
 	if (!outputFile) {
+      cerr << "outputFile.argv[4] = " << argv[4] << endl;
 		cerr << " Error opening output file!" << endl;
 		return -1;
 	}
