@@ -11,13 +11,13 @@ open_project ${PROJECT}_project
 open_solution "solution1"
 
 ## Run C/C++ simulation testbed
-csim_design -ldflags ${LDFLAGS}
+csim_design -clean -ldflags ${LDFLAGS} -argv ${ARGV}
 
 ## Synthesis C/C++ code into RTL
 csynth_design
 
 ## Run co-simulation (compares the C/C++ code to the RTL)
-cosim_design -ldflags ${LDFLAGS} -trace_level all -rtl vhdl -tool vcs
+cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl vhdl -tool vcs
 
 ## Export the Design
 export_design -evaluate vhdl -format syn_dcp

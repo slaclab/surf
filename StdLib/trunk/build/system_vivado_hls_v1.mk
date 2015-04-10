@@ -42,6 +42,7 @@ test:
 	@echo VIVADO_BUILD_DIR: $(VIVADO_BUILD_DIR)
 	@echo VIVADO_PROJECT: $(VIVADO_PROJECT)
 	@echo SRC_FILE: $(SRC_FILE)
+	@echo ARGV: $(ARGV)
 	@echo CFLAGS: $(CFLAGS)
 	@echo LDFLAGS: $(LDFLAGS)
 
