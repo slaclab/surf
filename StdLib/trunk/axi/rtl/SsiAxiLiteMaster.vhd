@@ -195,6 +195,7 @@ begin
 
       -- Init
       v.mFifoAxisMaster        := sFifoAxisMaster;
+      v.mFifoAxisMaster.tUser  := (others => '0');
       v.mFifoAxisMaster.tKeep  := (others => '1');
       v.mFifoAxisMaster.tValid := '0';
       v.mFifoAxisMaster.tLast  := '0';
@@ -222,6 +223,7 @@ begin
                -- Bad frame 
                if sFifoAxisMaster.tLast = '0' then
                   v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
+                  v.mFifoAxisMaster.tUser  := sFifoAxisMaster.tUser;
                   v.state                  := S_ADDR_C;
                end if;
             end if;
