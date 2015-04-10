@@ -35,7 +35,7 @@ config_rtl -encoding onehot -reset all
 config_dataflow -default_channel fifo -fifo_depth 512
 
 ## Setup the csim ldflags
-csim_design -setup -ldflags ${LDFLAGS}
+csim_design -setup -ldflags ${LDFLAGS} -argv ${ARGV}
 
 ## Target specific solution setup script
 SourceTclFile ${PROJ_DIR}/solution.tcl
