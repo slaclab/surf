@@ -20,17 +20,18 @@ using namespace hls;
 struct axiWord
 {
    ap_uint<64>  data;
-   ap_uint<8>   strb;
+   ap_uint<8>   keep;
    ap_uint<128> user;
    ap_uint<1>   last;
 };
 
 void TcpHlsCore(
-      stream<axiWord> &inData,
-      stream<ap_uint<32> > &queryIP,
-      stream<axiWord> &outData,
-      stream<ap_uint<48> > &returnMAC
-      );
+   stream<axiWord> &sXMac, 
+   stream<ap_uint<32> > &queryIP, 
+   stream<axiWord> &mXMac, 
+   stream<ap_uint<48> > &returnMAC,
+   ap_uint<48> myMacAddr,
+   uint32_t myIpAddr);
 
 #endif // GLOBALS_H_ not defined
 
