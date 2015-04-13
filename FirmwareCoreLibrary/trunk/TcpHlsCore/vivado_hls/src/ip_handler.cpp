@@ -161,7 +161,7 @@ void lengthAdjust(stream<axiWord> &macDetect2lengthCut, stream<axiWord> &cutLeng
                currWord.last    = 1;
                ap_uint<4> remainingLength   = ih_totalLength - (ih_wordCount*8);
                if (remainingLength != 0)
-                  currWord.strb.range(remainingLength-1, 0) = 1;
+                  currWord.keep.range(remainingLength-1, 0) = 1;
             }
             else {
                if (currWord.last == 1)

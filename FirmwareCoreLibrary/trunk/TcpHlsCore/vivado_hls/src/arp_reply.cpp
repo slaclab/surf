@@ -45,8 +45,15 @@ arpTableEntry cam::compare(ap_uint<32> searchAddress)
    return temp;
 }
 
-void arp_server(stream<axiWord> &inData, stream<ap_uint<32> > &queryIP, stream<axiWord> &outData, stream<ap_uint<48> > &returnMAC)
-{
+void arp_server(
+      stream<axiWord> &inData,
+      stream<ap_uint<32> > &queryIP,
+      stream<axiWord> &outData,
+      stream<ap_uint<48> > &returnMAC,
+      ap_uint<48> MY_MAC_ADDR,
+      uint32_t MY_IP_ADDR
+      ){
+
 #pragma HLS INLINE region
 #pragma HLS pipeline II=1 enable_flush
 
@@ -138,7 +145,7 @@ void arp_server(stream<axiWord> &inData, stream<ap_uint<32> > &queryIP, stream<a
                case 5:
                   sendWord.data.range(63, 16) = 0; // Sought-after MAC pt.1
                   sendWord.data.range(15, 0)  = inputIP.range(31, 16);
-                  sendWord.strb = 0x03;
+                  sendWord.keep = 0x03;
                   sendWord.last = 1;
                   arpState = ARP_W8REPLY;
                   break;
@@ -258,7 +265,7 @@ void arp_server(stream<axiWord> &inData, stream<ap_uint<32> > &queryIP, stream<a
                case 5:
                   sendWord.data.range(63, 16) = 0;
                   sendWord.data.range(15, 0) = protoAddrSrc.range(31, 16);
-                  sendWord.strb = 0x03;
+                  sendWord.keep = 0x03;
                   sendWord.last = 1;
                   arpState = ARP_IDLE;
                   break;
