@@ -167,7 +167,7 @@ begin
          configuration_vector => config.configVector,
          status_vector        => status.statusVector); 
 
-   status.phyReady <= status.statusVector(7);
+   status.phyReady <= uAnd(status.debugVector);
 
    --------------------------
    -- 10GBASE-R's Reset Logic
