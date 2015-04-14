@@ -92,26 +92,24 @@ void arp_server(
          {
             inputIP = 0;
             sendCount = 0;
-			requestEnabled = false;
-            if (!inData.empty())
+            requestEnabled = false;
+            if (!inData.empty()){
                arpState = ARP_PARSE;
-            else if (!queryIP.empty())
-            {	
-				queryIP.read(inputIP);
-				arpState = ARP_QUERY;
+            }else if (!queryIP.empty()){	
+               queryIP.read(inputIP);
+               arpState = ARP_QUERY;
             }
             break;
          }
       case ARP_QUERY:
          {
             queryResult = arpTable.compare(inputIP);
-            if (queryResult.valid == 1)
-            {
+            if (queryResult.valid == 1){
                returnMAC.write(queryResult.macAddress);
                arpState  = ARP_IDLE;
-            }
-            else if (queryResult.valid == 0)
+            }else if (queryResult.valid == 0)}{
                arpState  = ARP_SENTRQ;
+            }
             break;
          }
       case ARP_SENTRQ:
@@ -212,25 +210,26 @@ void arp_server(
                      break;
                   case 4:
                      hwAddrDst = currWord.data.range(47, 0);
-                     protoAddrDst.range(31, 16) = currWord.data.range(63, 48);
+                     protoAddrDst.range(15, 0) = currWord.data.range(63, 48);
                      break;
                   case 5:
-                     protoAddrDst.range(15, 0) = currWord.data.range(15, 0);
+                     protoAddrDst.range(31, 16) = currWord.data.range(15, 0);
                      break;
                   default:
                      break;
                }
                if (currWord.last == 1) {
-					if (opCode == REQUEST && protoAddrDst == MY_IP_ADDR && requestEnabled == false)
-						arpState = ARP_REPLY;
-					else if (opCode == REPLY && protoAddrDst == MY_IP_ADDR && requestEnabled == true)
-						arpState = ARP_RETURNVALUE;
-					else 
-						arpState = ARP_IDLE;
+                  if (opCode == REQUEST && protoAddrDst == MY_IP_ADDR && requestEnabled == false){
+                     arpState = ARP_REPLY;
+                  }else if (opCode == REPLY && protoAddrDst == MY_IP_ADDR && requestEnabled == true){
+                     arpState = ARP_RETURNVALUE;
+                  }else{
+                     arpState = ARP_IDLE;
+                  }
                   wordCount = 0;
-               }
-               else
+               }else{
                   wordCount++;
+               }
             }
             break;
          }
