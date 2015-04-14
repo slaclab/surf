@@ -9,27 +9,29 @@
 ------------- Begin Cut here for COMPONENT Declaration ------ COMP_TAG
 COMPONENT TcpHlsCore
   PORT (
-    inData_TDATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-    inData_TSTRB : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    inData_TUSER : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
-    inData_TLAST : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+    sXMac_TDATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+    sXMac_TKEEP : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    sXMac_TUSER : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
+    sXMac_TLAST : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     queryIP_V_V_dout : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
     queryIP_V_V_empty_n : IN STD_LOGIC;
     queryIP_V_V_read : OUT STD_LOGIC;
-    outData_TDATA : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-    outData_TSTRB : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-    outData_TUSER : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-    outData_TLAST : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+    mXMac_TDATA : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
+    mXMac_TKEEP : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+    mXMac_TUSER : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
+    mXMac_TLAST : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
     returnMAC_V_V_din : OUT STD_LOGIC_VECTOR(47 DOWNTO 0);
     returnMAC_V_V_full_n : IN STD_LOGIC;
     returnMAC_V_V_write : OUT STD_LOGIC;
+    myMacAddr_V : IN STD_LOGIC_VECTOR(47 DOWNTO 0);
+    myIpAddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
     ap_clk : IN STD_LOGIC;
     ap_rst_n : IN STD_LOGIC;
-    inData_TVALID : IN STD_LOGIC;
-    inData_TREADY : OUT STD_LOGIC;
+    sXMac_TVALID : IN STD_LOGIC;
+    sXMac_TREADY : OUT STD_LOGIC;
     ap_done : OUT STD_LOGIC;
-    outData_TVALID : OUT STD_LOGIC;
-    outData_TREADY : IN STD_LOGIC;
+    mXMac_TVALID : OUT STD_LOGIC;
+    mXMac_TREADY : IN STD_LOGIC;
     ap_start : IN STD_LOGIC;
     ap_idle : OUT STD_LOGIC;
     ap_ready : OUT STD_LOGIC
@@ -43,27 +45,29 @@ END COMPONENT;
 ------------- Begin Cut here for INSTANTIATION Template ----- INST_TAG
 your_instance_name : TcpHlsCore
   PORT MAP (
-    inData_TDATA => inData_TDATA,
-    inData_TSTRB => inData_TSTRB,
-    inData_TUSER => inData_TUSER,
-    inData_TLAST => inData_TLAST,
+    sXMac_TDATA => sXMac_TDATA,
+    sXMac_TKEEP => sXMac_TKEEP,
+    sXMac_TUSER => sXMac_TUSER,
+    sXMac_TLAST => sXMac_TLAST,
     queryIP_V_V_dout => queryIP_V_V_dout,
     queryIP_V_V_empty_n => queryIP_V_V_empty_n,
     queryIP_V_V_read => queryIP_V_V_read,
-    outData_TDATA => outData_TDATA,
-    outData_TSTRB => outData_TSTRB,
-    outData_TUSER => outData_TUSER,
-    outData_TLAST => outData_TLAST,
+    mXMac_TDATA => mXMac_TDATA,
+    mXMac_TKEEP => mXMac_TKEEP,
+    mXMac_TUSER => mXMac_TUSER,
+    mXMac_TLAST => mXMac_TLAST,
     returnMAC_V_V_din => returnMAC_V_V_din,
     returnMAC_V_V_full_n => returnMAC_V_V_full_n,
     returnMAC_V_V_write => returnMAC_V_V_write,
+    myMacAddr_V => myMacAddr_V,
+    myIpAddr => myIpAddr,
     ap_clk => ap_clk,
     ap_rst_n => ap_rst_n,
-    inData_TVALID => inData_TVALID,
-    inData_TREADY => inData_TREADY,
+    sXMac_TVALID => sXMac_TVALID,
+    sXMac_TREADY => sXMac_TREADY,
     ap_done => ap_done,
-    outData_TVALID => outData_TVALID,
-    outData_TREADY => outData_TREADY,
+    mXMac_TVALID => mXMac_TVALID,
+    mXMac_TREADY => mXMac_TREADY,
     ap_start => ap_start,
     ap_idle => ap_idle,
     ap_ready => ap_ready
