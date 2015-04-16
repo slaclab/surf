@@ -45,7 +45,7 @@ entity AxiStreamMux is
 
       -- MUX Address
       sAxisAuto : in sl                                    := '1';  -- '1' for AUTO MUX, '0' for manual MUX
-      sAxisAddr : in slv(bitSize(NUM_SLAVES_G)-1 downto 0) := (others => '0');  -- manual MUX address
+      sAxisAddr : in slv(bitSize(NUM_SLAVES_G-1) downto 0) := (others => '0');  -- manual MUX address
 
       -- Master
       mAxisMaster : out AxiStreamMasterType;
