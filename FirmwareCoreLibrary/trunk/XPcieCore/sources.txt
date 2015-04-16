@@ -1,0 +1,18 @@
+ vhdl work rtl/PciePkg.vhd
+ 
+ vhdl work rtl/PcieCore.vhd
+ 
+ vhdl work rtl/PcieTlpCtrl.vhd
+ vhdl work rtl/PcieTlpOutbound.vhd
+ vhdl work rtl/PcieTlpInbound.vhd
+ 
+ vhdl work rtl/PcieAxiLite.vhd
+ vhdl work rtl/PcieAxiLiteMaster.vhd
+ vhdl work rtl/PcieSysReg.vhd
+ vhdl work rtl/PcieRxDesc.vhd
+ vhdl work rtl/PcieTxDesc.vhd
+ vhdl work rtl/PcieTxDescFifo.vhd
+ 
+ vhdl work rtl/PcieIrqCtrl.vhd
+ 
+ vhdl work rtl/PcieDmaLoopBack.vhd
