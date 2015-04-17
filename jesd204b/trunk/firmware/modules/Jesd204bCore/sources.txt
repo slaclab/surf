@@ -1,1 +1,6 @@
-
+vhdl work rtl/Jesd204bPkg.vhd
+vhdl work rtl/syncFsm.vhd
+vhdl work rtl/sysrefDly.vhd
+vhdl work rtl/LmfcGen.vhd
+vhdl work rtl/JesdRx.vhd
+vhdl work rtl/Jesd204b.vhd
