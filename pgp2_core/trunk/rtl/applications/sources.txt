@@ -1,0 +1,5 @@
+vhdl    work Pgp2AppPackage.vhd
+vhdl    work Pgp2CmdSlave.vhd
+vhdl    work Pgp2RegSlave.vhd
+vhdl    work Pgp2UsBuff.vhd
+
