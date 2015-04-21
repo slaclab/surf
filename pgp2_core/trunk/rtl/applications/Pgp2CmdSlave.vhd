@@ -27,10 +27,12 @@
 -- 11/20/2009: created.
 -- 05/24/2010: Modified FIFO
 -- 06/10/2013: updated for series 7 FPGAs (LLR)
+-- 04/20/2015: added StdLib buffer support (should be used for all families) (by MK)
 -------------------------------------------------------------------------------
 
 library ieee;
 use work.all;
+--use work.StdRtlPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -41,7 +43,7 @@ entity Pgp2CmdSlave is
       DestMask : natural := 0;          -- Destination ID Mask For Match
       -- FifoType: (default = V5)
       -- V4 = Virtex 4,  V5 = Virtex 5, V6 = Virtex 6, V7 = Virtex 7, 
-      -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7
+      -- S6 = Spartan 6, A7 = Artix 7,  K7 = kintex7, SL = StdLib
       FifoType : string  := "V5"
       );
    port (
@@ -172,6 +174,48 @@ architecture Pgp2CmdSlave of Pgp2CmdSlave is
       full          : out std_logic;
       wr_data_count : out std_logic_vector(9 downto 0));
    end component;
+   
+   component FifoAsync is
+      generic (
+         TPD_G          : time                       := 1 ns;
+         RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+         BRAM_EN_G      : boolean                    := true;
+         FWFT_EN_G      : boolean                    := false;
+         USE_DSP48_G    : string                     := "no";
+         ALTERA_SYN_G   : boolean                    := false;
+         ALTERA_RAM_G   : string                     := "M9K";
+         SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
+         PIPE_STAGES_G  : natural range 0 to 16      := 0;
+         DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
+         ADDR_WIDTH_G   : integer range 2 to 48      := 4;
+         INIT_G         : slv                        := "0";
+         FULL_THRES_G   : integer range 1 to (2**24) := 1;
+         EMPTY_THRES_G  : integer range 1 to (2**24) := 1);
+      port (
+         -- Asynchronous Reset
+         rst           : in  sl;
+         -- Write Ports (wr_clk domain)
+         wr_clk        : in  sl;
+         wr_en         : in  sl;
+         din           : in  slv(DATA_WIDTH_G-1 downto 0);
+         wr_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
+         wr_ack        : out sl;
+         overflow      : out sl;
+         prog_full     : out sl;
+         almost_full   : out sl;
+         full          : out sl;
+         not_full      : out sl;
+         -- Read Ports (rd_clk domain)
+         rd_clk        : in  sl;
+         rd_en         : in  sl;
+         dout          : out slv(DATA_WIDTH_G-1 downto 0);
+         rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0);
+         valid         : out sl;
+         underflow     : out sl;
+         prog_empty    : out sl;
+         almost_empty  : out sl;
+         empty         : out sl);
+   end component;
 
    -- Local Signals
    signal intDestId    : std_logic_vector(5 downto 0);
@@ -215,6 +259,8 @@ architecture Pgp2CmdSlave of Pgp2CmdSlave is
    attribute syn_noprune of pgp2_a7_afifo_18x1023   : component is true;
    attribute syn_black_box of pgp2_k7_afifo_18x1023 : component is true;
    attribute syn_noprune of pgp2_k7_afifo_18x1023   : component is true;
+   attribute syn_black_box of FifoAsync : component is true;
+   attribute syn_noprune of FifoAsync   : component is true;
 
 begin
 
@@ -344,6 +390,38 @@ begin
          full          => fifoFull,
          wr_data_count => fifoCount
          );
+   end generate;
+   
+   -- StdLib Receive FIFO
+   U_GenRxSLFifo : if FifoType = "SL" generate
+      U_RegRxSLFifo : FifoAsync 
+      generic map (
+         RST_POLARITY_G => '1',
+         DATA_WIDTH_G   => 18,
+         ADDR_WIDTH_G   => 10
+      )
+      port map ( 
+         rst               => pgpRxReset,
+         wr_clk            => pgpRxClk,
+         wr_en             => vcFrameRxValid,
+         din               => fifoDin,
+         wr_data_count     => fifoCount,
+         wr_ack            => open,
+         overflow          => open,
+         prog_full         => open,
+         almost_full       => open,
+         full              => fifoFull,
+         not_full          => open,
+         rd_clk            => locClk,
+         rd_en             => fifoRd,
+         dout              => fifoDout,
+         rd_data_count     => open,
+         valid             => open,
+         underflow         => open,
+         prog_empty        => open,
+         almost_empty      => open,
+         empty             => fifoEmpty
+      );
    end generate;
 
    -- Data coming out of Rx FIFO
