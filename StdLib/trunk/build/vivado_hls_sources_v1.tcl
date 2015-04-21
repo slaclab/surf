@@ -13,32 +13,14 @@ set_top ${PROJECT}
 ## Add sources 
 source ${PROJ_DIR}/sources.tcl
 
-## Target specific project setup script
-SourceTclFile ${PROJ_DIR}/project.tcl
-
 ## Create a solution
 open_solution "solution1"
-
-## Set default part
-set_part {XC7Z045FFG900-2}
-
-## Set default clock (units of ns)
-create_clock -period 10 -name clk
-
-## Set default clock uncertainty (units of ns)
-set_clock_uncertainty 0.1
-
-## Configure the RTL to be one-shot encode and reset all logic on reset
-config_rtl -encoding onehot -reset all
-
-## Set the data flow to be FIFO (not ping-pong) and default of 512 deep
-config_dataflow -default_channel fifo -fifo_depth 512
 
 ## Setup the csim ldflags
 csim_design -setup -ldflags ${LDFLAGS} -argv ${ARGV}
 
 ## Target specific solution setup script
-SourceTclFile ${PROJ_DIR}/solution.tcl
+source ${PROJ_DIR}/solution.tcl
 
 ## Close the solution
 close_solution
