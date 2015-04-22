@@ -36,8 +36,8 @@
 -------------------------------------------------------------------------------
 
 library ieee;
-use work.all;
---use work.StdRtlPkg.all;
+--use work.all;
+use work.StdRtlPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -1112,7 +1112,7 @@ begin
    end generate;
    
    -- StdLib Receive FIFO
-   U_GenRxSLFifo : if FifoType = "SL" generate
+   U_GenRxSLFifo1 : if FifoType = "SL" generate
       U_RegRxSLFifo : FifoAsync 
       generic map (
          RST_POLARITY_G => '1',
