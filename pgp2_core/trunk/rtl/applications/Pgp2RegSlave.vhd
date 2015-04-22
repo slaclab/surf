@@ -341,8 +341,8 @@ architecture Pgp2RegSlave of Pgp2RegSlave is
    attribute syn_noprune of pgp2_a7_afifo_18x1023   : component is true;
    attribute syn_black_box of pgp2_k7_afifo_18x1023 : component is true;
    attribute syn_noprune of pgp2_k7_afifo_18x1023   : component is true;
-   attribute syn_black_box of FifoAsync : component is true;
-   attribute syn_noprune of FifoAsync   : component is true;
+--   attribute syn_black_box of FifoAsync : component is true;
+--   attribute syn_noprune of FifoAsync   : component is true;
 
 begin
 
