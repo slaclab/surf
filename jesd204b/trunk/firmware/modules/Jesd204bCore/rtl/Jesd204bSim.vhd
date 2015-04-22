@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b module
+-- Title      : JESD204b module for simulation
 -------------------------------------------------------------------------------
--- File       : Jesd204b.vhd
+-- File       : 
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14
@@ -20,18 +20,19 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-
+--use work.AxiLitePkg.all;
 use work.Jesd204bPkg.all;
+--use work.Version.all;
 
-entity Jesd204b is
+entity Jesd204bSim is
    generic (
       TPD_G            : time                := 1 ns;
       
    -- AXI Lite and stream generics
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
+   --   MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
+   --   AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
+   --   AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
+   --   AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);
       
    -- JESD generics
    
@@ -54,18 +55,18 @@ entity Jesd204b is
    port (
    -- AXI interface      
       -- Clocks and Resets
-      axiClk         : in    sl;
-      axiRst         : in    sl;
-      
+    --  axiClk         : in    sl;
+    --  axiRst         : in    sl;
       -- AXI-Lite Register Interface
-      axilReadMaster  : in    AxiLiteReadMasterType;
-      axilReadSlave   : out   AxiLiteReadSlaveType;
-      axilWriteMaster : in    AxiLiteWriteMasterType;
-      axilWriteSlave  : out   AxiLiteWriteSlaveType;
-      
+    --  axiReadMaster  : in    AxiLiteReadMasterType;
+    --  axiReadSlave   : out   AxiLiteReadSlaveType;
+    --  axiWriteMaster : in    AxiLiteWriteMasterType;
+    --  axiWriteSlave  : out   AxiLiteWriteSlaveType;
       -- AXI Streaming Interface
-      txAxisMaster_o  : out   AxiStreamMasterType;
-      txCtrl_i        : in    AxiStreamCtrlType;   
+    --  mAxisMaster    : out   AxiStreamMasterType;
+    --  mAxisSlave     : in    AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+    --  sAxisMaster    : in    AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   --   sAxisSlave     : out   AxiStreamSlaveType;
       
    -- JESD
       -- Clocks and Resets   
@@ -82,13 +83,16 @@ entity Jesd204b is
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl;
 
-      -- Data output todo AxiStream itf
+      -- Simulation signals TODO remove or rename file as sim
+      sysrefDlyRx_i  : in   slv(4 downto 0); 
+      enableRx_i     : in   slv(L_G-1 downto 0);
+      statusRxArr_o  : out  Slv8Array(0 to L_G-1);
       dataValid_o    : out  sl;
       sampleData_o   : out  Slv32Array(0 to L_G-1)
    );
-end Jesd204b;
+end Jesd204bSim;
 
-architecture rtl of Jesd204b is
+architecture rtl of Jesd204bSim is
 
 -- Register
    type RegType is record
@@ -117,72 +121,21 @@ signal s_dataValidVec   : slv(L_G-1 downto 0);
 signal s_nSyncAll   : sl;
 signal s_nSyncAny   : sl;
 
--- Control and status from AxiLie
-signal s_sysrefDlyRx  : slv(4 downto 0); 
-signal s_enableRx     : slv(L_G-1 downto 0);
-signal s_statusRxArr  : Slv8Array(0 to L_G-1);
-
--- Axi Lite interface synced to devClk
-signal sAxiReadMasterDev : AxiLiteReadMasterType;
-signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
-signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
-signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
-
 -- Sysref input delayed
 signal  s_sysref  : sl;
 
 begin
-   -- Synchronise axiLite interface to devClk
-   AxiLiteAsync_INST: entity work.AxiLiteAsync
-   generic map (
-      TPD_G           => TPD_G,
-      NUM_ADDR_BITS_G => 32)
-   port map (
-      -- In
-      sAxiClk         => axiClk,
-      sAxiClkRst      => axiRst,
-      sAxiReadMaster  => axilReadMaster,
-      sAxiReadSlave   => axilReadSlave,
-      sAxiWriteMaster => axilWriteMaster,
-      sAxiWriteSlave  => axilWriteSlave,
-      
-      -- Out
-      mAxiClk         => devClk_i,
-      mAxiClkRst      => devRst_i,
-      mAxiReadMaster  => sAxiReadMasterDev,
-      mAxiReadSlave   => sAxiReadSlaveDev,
-      mAxiWriteMaster => sAxiWriteMasterDev,
-      mAxiWriteSlave  => sAxiWriteSlaveDev
-   );
-
-
-   AxiLiteRegItf_INST: entity work.AxiLiteRegItf
-   generic map (
-      TPD_G            => TPD_G,
-      AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-      L_G              => L_G)
-   port map (
-      devClk_i        => devClk_i,
-      devRst_i        => devRst_i,
-      axilReadMaster  => sAxiReadMasterDev,
-      axilReadSlave   => sAxiReadSlaveDev,
-      axilWriteMaster => sAxiWriteMasterDev,
-      axilWriteSlave  => sAxiWriteSlaveDev,
-      statusRxArr_i   => s_statusRxArr,
-      sysrefDlyRx_o   => s_sysrefDlyRx,
-      enableRx_o      => s_enableRx
-   );
 
    -- Delay SYSREF input (for 1 to 32 c-c)
    SysrefDly_INST: entity work.SysrefDly
    generic map (
       TPD_G       => TPD_G,
-      DLY_WIDTH_G => s_sysrefDlyRx'high + 1 
+      DLY_WIDTH_G => sysrefDlyRx_i'high + 1 
    )
    port map (
       clk      => devClk_i,
       rst      => devRst_i,
-      dly_i    => s_sysrefDlyRx,
+      dly_i    => sysrefDlyRx_i,
       sysref_i => sysref_i,
       sysref_o => s_sysref
    );
@@ -216,8 +169,8 @@ begin
          devClk_i     => devClk_i,
          devRst_i     => devRst_i,
          sysRef_i     => s_sysref,
-         enable_i     => s_enableRx(I),
-         status_o     => s_statusRxArr(I),
+         enable_i     => enableRx_i(I),
+         status_o     => statusRxArr_o(I),
          dataRx_i     => dataRx_i(I),
          chariskRx_i  => chariskRx_i(I),
          lmfc_i       => s_lmfc,

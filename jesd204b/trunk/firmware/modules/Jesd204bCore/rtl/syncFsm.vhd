@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Synchroniser Finite state machine
 -------------------------------------------------------------------------------
--- File       : 
+-- File       : syncFSM.vhd 
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14

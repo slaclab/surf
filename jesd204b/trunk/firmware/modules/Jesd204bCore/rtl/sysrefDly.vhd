@@ -60,9 +60,6 @@ architecture rtl of SysrefDly is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
-   --! Internal signals
-   signal s_index : integer;   
-   
 begin
 
    comb : process (r, rst,sysref_i) is
