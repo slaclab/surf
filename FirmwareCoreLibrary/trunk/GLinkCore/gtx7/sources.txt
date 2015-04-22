@@ -1,1 +1,3 @@
 vhdl work rtl/GLinkGtx7FixedLat.vhd
+vhdl work rtl/GLinkGtx7Core.vhd
+vhdl work rtl/GLinkGtx7RxRst.vhd
