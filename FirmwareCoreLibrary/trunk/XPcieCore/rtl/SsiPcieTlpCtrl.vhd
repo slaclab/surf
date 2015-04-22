@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieTlpCtrl.vhd
+-- File       : SsiPcieTlpCtrl.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-16
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe TLP Packet Controller
+-- Description: SSI PCIe TLP Packet Controller
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieTlpCtrl is
+entity SsiPcieTlpCtrl is
    generic (
       TPD_G      : time                   := 1 ns;
-      DMA_SIZE_G : positive range 1 to 32 := 1);
+      DMA_SIZE_G : positive range 1 to 16 := 1);
    port (
       -- PCIe Interface
       trnPending       : out sl;
@@ -54,9 +54,9 @@ entity PcieTlpCtrl is
       -- Clock and Resets
       pciClk           : in  sl;
       pciRst           : in  sl);       
-end PcieTlpCtrl;
+end SsiPcieTlpCtrl;
 
-architecture rtl of PcieTlpCtrl is
+architecture rtl of SsiPcieTlpCtrl is
 
    type StateType is (
       SOF_00_S,
@@ -128,6 +128,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Not ready for data
+      v.rxSlave.tReady := '0';
+
       -- Update tValid register
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
@@ -136,88 +139,68 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when SOF_00_S =>
-            -- Check for new data
-            if pciIbMaster.tValid = '1' then
-               -- Check if target is ready for data
-               if v.txMaster.tValid = '0' then
-                  -- Ready for data
-                  v.rxSlave.tReady := '1';
-                  -- Pass the data to the FIFO
-                  v.txMaster       := pciIbMaster;
-                  -- Save this transaction
-                  v.master         := pciIbMaster;
-                  -- Check for straddling SOF                  
-                  if (tFirst = '1') and (sof /= x"0") then
-                     -- Terminate the incoming packet
-                     v.txMaster.tLast    := '1';
-                     -- Block the SOF in straddling packet
-                     v.txMaster.tUser(1) := '0';
-                     -- Reset the tLast value
-                     v.master.tLast      := '0';
-                     -- Set the tKeep value
-                     v.master.tKeep      := x"FFFF";
-                     -- Next state
-                     v.state             := SOF_10_S;
-                  end if;
-               else
-                  -- Not ready for data
-                  v.rxSlave.tReady := '0';
+            -- Check for data moving
+            if (v.txMaster.tValid = '0') and (pciIbMaster.tValid = '1') then
+               -- Ready for data
+               v.rxSlave.tReady := '1';
+               -- Pass the data to the FIFO
+               v.txMaster       := pciIbMaster;
+               -- Save this transaction
+               v.master         := pciIbMaster;
+               -- Check for straddling SOF                  
+               if (tFirst = '1') and (sof /= x"0") then
+                  -- Terminate the incoming packet
+                  v.txMaster.tLast    := '1';
+                  -- Block the SOF in straddling packet
+                  v.txMaster.tUser(1) := '0';
+                  -- Reset the tLast value
+                  v.master.tLast      := '0';
+                  -- Set the tKeep value
+                  v.master.tKeep      := x"FFFF";
+                  -- Next state
+                  v.state             := SOF_10_S;
                end if;
-            else
-               -- Not ready for data
-               v.rxSlave.tReady := '0';
             end if;
          ----------------------------------------------------------------------
          when SOF_10_S =>
-            -- Check for new data
-            if pciIbMaster.tValid = '1' then
-               -- Check if target is ready for data
-               if v.txMaster.tValid = '0' then
-                  -- Ready for data
-                  v.rxSlave.tReady                := '1';
-                  -- Update the bus with last transaction
-                  v.txMaster                      := r.master;
-                  -- Update tData value
-                  v.txMaster.tData(63 downto 0)   := r.master.tData(127 downto 64);
-                  v.txMaster.tData(127 downto 64) := pciIbMaster.tData(63 downto 0);
-                  -- Update tKeep value
-                  v.txMaster.tKeep(7 downto 0)    := r.master.tKeep(15 downto 8);
-                  v.txMaster.tKeep(15 downto 8)   := pciIbMaster.tKeep(7 downto 0);
-                  -- Save this transaction
-                  v.master                        := pciIbMaster;
-                  -- Check for straddling SOF
-                  if (tFirst = '1') and (sof /= x"0") then
-                     -- Terminate the incoming packet
+            -- Check for data moving
+            if (v.txMaster.tValid = '0') and (pciIbMaster.tValid = '1') then
+               -- Ready for data
+               v.rxSlave.tReady                := '1';
+               -- Update the bus with last transaction
+               v.txMaster                      := r.master;
+               -- Update tData value
+               v.txMaster.tData(63 downto 0)   := r.master.tData(127 downto 64);
+               v.txMaster.tData(127 downto 64) := pciIbMaster.tData(63 downto 0);
+               -- Update tKeep value
+               v.txMaster.tKeep(7 downto 0)    := r.master.tKeep(15 downto 8);
+               v.txMaster.tKeep(15 downto 8)   := pciIbMaster.tKeep(7 downto 0);
+               -- Save this transaction
+               v.master                        := pciIbMaster;
+               -- Check for straddling SOF
+               if (tFirst = '1') and (sof /= x"0") then
+                  -- Terminate the incoming packet
+                  v.txMaster.tLast := '1';
+                  -- Reset the tLast value
+                  v.master.tLast   := '0';
+                  -- Set the tKeep value
+                  v.master.tKeep   := x"FFFF";
+               -- Check for tLast
+               elsif (pciIbMaster.tLast = '1') then
+                  -- Check the upper half for EOF
+                  if (eof(3) = '1') then
+                     -- Next state
+                     v.state := EOF_10_S;
+                  else
+                     -- Assert tLast
                      v.txMaster.tLast := '1';
-                     -- Reset the tLast value
-                     v.master.tLast   := '0';
-                     -- Set the tKeep value
-                     v.master.tKeep   := x"FFFF";
-                  -- Check for tLast
-                  elsif (pciIbMaster.tLast = '1') then
-                     -- Check the upper half for EOF
-                     if (eof(3) = '1') then
-                        -- Next state
-                        v.state := EOF_10_S;
-                     else
-                        -- Assert tLast
-                        v.txMaster.tLast := '1';
-                        -- Next state
-                        v.state          := SOF_00_S;
-                     end if;
+                     -- Next state
+                     v.state          := SOF_00_S;
                   end if;
-               else
-                  -- Not ready for data
-                  v.rxSlave.tReady := '0';
                end if;
-            else
-               -- Not ready for data
-               v.rxSlave.tReady := '0';
             end if;
          ----------------------------------------------------------------------
          when EOF_10_S =>
-            -- Not ready for data
-            v.rxSlave.tReady := '0';
             -- Check if target is ready for data
             if v.txMaster.tValid = '0' then
                -- Pass the data to the FIFO
@@ -268,7 +251,7 @@ begin
    --------------------
    -- Receive Interface
    --------------------
-   PcieTlpOutbound_Inst : entity work.PcieTlpOutbound
+   SsiPcieTlpOutbound_Inst : entity work.SsiPcieTlpOutbound
       generic map (
          TPD_G      => TPD_G,
          DMA_SIZE_G => DMA_SIZE_G)
@@ -289,7 +272,7 @@ begin
    ---------------------
    -- Transmit Interface
    ---------------------
-   PcieTlpInbound_Inst : entity work.PcieTlpInbound
+   SsiPcieTlpInbound_Inst : entity work.SsiPcieTlpInbound
       generic map (
          TPD_G      => TPD_G,
          DMA_SIZE_G => DMA_SIZE_G)
@@ -298,8 +281,8 @@ begin
          regIbMaster   => regIbMaster,
          regIbSlave    => regIbSlave,
          dmaTxIbMaster => dmaTxIbMaster,
-         dmaRxIbMaster => dmaRxIbMaster,
          dmaTxIbSlave  => dmaTxIbSlave,
+         dmaRxIbMaster => dmaRxIbMaster,
          dmaRxIbSlave  => dmaRxIbSlave,
          -- PCIe Interface
          trnPending    => pendingTransaction,

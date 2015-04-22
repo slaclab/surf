@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieTxDescFifo.vhd
+-- File       : SsiPcieTxDescFifo.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe Transmit Descriptor FIFO
+-- Description: SSI PCIe Transmit Descriptor FIFO
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-entity PcieTxDescFifo is
+entity SsiPcieTxDescFifo is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -34,32 +34,35 @@ entity PcieTxDescFifo is
       newAck     : out sl;
       newAddr    : out slv(31 downto 2);
       newLength  : out slv(23 downto 0);
-      newControl : out slv(7 downto 0);
+      newDmaCh   : out slv(3 downto 0);
+      newSubCh   : out slv(3 downto 0);
       -- Global Signals
       pciClk     : in  sl;
       pciRst     : in  sl); 
-end PcieTxDescFifo;
+end SsiPcieTxDescFifo;
 
-architecture rtl of PcieTxDescFifo is
+architecture rtl of SsiPcieTxDescFifo is
 
    type StateType is (
       IDLE_S,
       ACK_S);    
 
    type RegType is record
-      newAck     : sl;
-      newAddr    : slv(31 downto 2);
-      newLength  : slv(23 downto 0);
-      newControl : slv(7 downto 0);
-      state      : StateType;
+      newAck    : sl;
+      newAddr   : slv(31 downto 2);
+      newLength : slv(23 downto 0);
+      newDmaCh  : slv(3 downto 0);
+      newSubCh  : slv(3 downto 0);
+      state     : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      newAck     => '0',
-      newAddr    => (others => '0'),
-      newLength  => (others => '0'),
-      newControl => (others => '0'),
-      state      => IDLE_S);
+      newAck    => '0',
+      newAddr   => (others => '0'),
+      newLength => (others => '0'),
+      newDmaCh  => (others => '0'),
+      newSubCh  => (others => '0'),
+      state     => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -104,12 +107,13 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             if (newReq = '1') and (tFifoValid = '1') then
-               v.newAck     := '1';
-               v.newAddr    := tFifoDout(63 downto 34);
-               v.newControl := tFifoDout(31 downto 24);
-               v.newLength  := tFifoDout(23 downto 0);
+               v.newAck    := '1';
+               v.newAddr   := tFifoDout(63 downto 34);
+               v.newDmaCh  := tFifoDout(31 downto 28);
+               v.newSubCh  := tFifoDout(27 downto 24);
+               v.newLength := tFifoDout(23 downto 0);
                -- Next state
-               v.state      := ACK_S;
+               v.state     := ACK_S;
             end if;
          ----------------------------------------------------------------------
          when ACK_S =>
@@ -129,10 +133,11 @@ begin
       rin <= v;
 
       -- Outputs
-      newAck     <= r.newAck;
-      newAddr    <= r.newAddr;
-      newControl <= r.newControl;
-      newLength  <= r.newLength;
+      newAck    <= r.newAck;
+      newAddr   <= r.newAddr;
+      newDmaCh  <= r.newDmaCh;
+      newSubCh  <= r.newSubCh;
+      newLength <= r.newLength;
       
    end process comb;
 

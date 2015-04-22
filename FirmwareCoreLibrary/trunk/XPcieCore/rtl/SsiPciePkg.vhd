@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PciePkg.vhd
+-- File       : SsiPciePkg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Package file for Xilinx PCIe Core
+-- Description: Package file for SSI PCIe Core
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -19,17 +19,11 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
-package PciePkg is
+package SsiPciePkg is
 
-   constant PCIE_AXIS_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,              -- 128 bit interface
-      TDEST_BITS_C  => 4,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 2,               -- SOF, EOFE
-      TUSER_MODE_C  => TUSER_NORMAL_C);   
+   constant PCIE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(16);
 
    -- Max transfer length, words
    constant PCIE_MAX_RX_TRANS_LENGTH_C : integer := 32;  -- 128 Bytes, smallest to ensure comparability
@@ -39,12 +33,12 @@ package PciePkg is
    -- TranToPci Types/Constants                             
    ------------------------------------------------------------------------          
    -- Transaction FIFO Interface, To PCI
-   type PcieTranToPciType is record
+   type TranToPcieType is record
       txReq  : sl;                      -- Transaction Request
       trPend : sl;                      -- Transaction is pending
    end record;
-   type PcieTranToPciArray is array (integer range<>) of PcieTranToPciType;
-  
+   type TranToPcieArray is array (integer range<>) of TranToPcieType;
+
    ------------------------------------------------------------------------
    -- TranFromPci Types/Constants                             
    ------------------------------------------------------------------------              
@@ -57,51 +51,52 @@ package PciePkg is
 
    ------------------------------------------------------------------------
    -- DescToPci Types/Constants                             
-   -- Note: This description is out of data and needs updating (LLR - 16APRIL2105)
    ------------------------------------------------------------------------                  
-   -- Descriptor Interface, To PCI
-   -- Status Value
-   --   11 = fifoErr
-   --   10 = frameErr
-   --    9 = tranEofe
-   --    8 = tranEofe or frameErr or fifoErr
-   --  7:3 = DMA Channel ID
-   --  2:0 = Sub Channel ID, Interface Specific
    type DescToPcieType is record
-      newReq     : sl;                  -- Request for new descriptor address
-      doneReq    : sl;                  -- Transfer done request
-      doneAddr   : slv(31 downto 2);    -- Address for descriptor
-      doneLength : slv(23 downto 0);    -- Length in dwords, 1 based (Rx Only)
-      doneStatus : slv(11 downto 0);    -- Status for descriptor     (Rx Only)
+      newReq       : sl;                -- Request for new descriptor address
+      doneReq      : sl;                -- Transfer done request
+      doneFrameErr : sl;                -- Status for descriptor     (Rx Only)
+      doneTranEofe : sl;                -- Status for descriptor     (Rx Only)
+      doneDmaCh    : slv(3 downto 0);   -- Status for descriptor     (Rx Only)
+      doneSubCh    : slv(3 downto 0);   -- Status for descriptor     (Rx Only)    
+      doneAddr     : slv(31 downto 2);  -- Address for descriptor
+      doneLength   : slv(23 downto 0);  -- Length in dwords, 1 based (Rx Only)
    end record;
    type DescToPcieArray is array (integer range<>) of DescToPcieType;
+   constant DESC_TO_PCIE_INIT_C : DescToPcieType := (
+      newReq       => '0',
+      doneReq      => '0',
+      doneFrameErr => '0',
+      doneTranEofe => '0',
+      doneDmaCh    => (others => '0'),
+      doneSubCh    => (others => '0'),
+      doneAddr     => (others => '0'),
+      doneLength   => (others => '0'));
 
    ------------------------------------------------------------------------
    -- DescFromPci Types/Constants                             
    ------------------------------------------------------------------------                      
-   -- Descriptor Interface, From PCI
-   -- Control Value
-   --  7:3 = DMA Channel ID
-   --  2:0 = Sub Channel ID, Interface Specific
-   type PcieDescFromPciType is record
-      newAck     : sl;                  -- New descriptor ack
-      newAddr    : slv(31 downto 2);    -- Address for descriptor
-      newLength  : slv(23 downto 0);    -- Length in dwords, 1 based (TX Only)
-      newControl : slv(7 downto 0);     -- Control word              (TX Only)
-      doneAck    : sl;                  -- Descriptor done ack
-      maxFrame   : slv(23 downto 0);    -- Max Frame Length, dwords, 1 based
+   type DescFromPcieType is record
+      newAck    : sl;                   -- New descriptor ack
+      newAddr   : slv(31 downto 2);     -- Address for descriptor
+      newLength : slv(23 downto 0);     -- Length in dwords, 1 based (TX Only)
+      newDmaCh  : slv(3 downto 0);      -- Control word              (TX Only)
+      newSubCh  : slv(3 downto 0);      -- Control word              (TX Only)
+      doneAck   : sl;                   -- Descriptor done ack
+      maxFrame  : slv(23 downto 0);     -- Max Frame Length, dwords, 1 based
    end record;
-   type DescFromPcieArray is array (integer range<>) of PcieDescFromPciType;
+   type DescFromPcieArray is array (integer range<>) of DescFromPcieType;
 
    ------------------------------------------------------------------------
    -- CfgIn Types/Constants                             
    ------------------------------------------------------------------------        
    type PcieCfgInType is record
-      irqReq     : sl;
-      irqAssert  : sl;
-      TrnPending : sl;
+      irqReq       : sl;
+      irqAssert    : sl;
+      TrnPending   : sl;
+      cfgTurnoffOk : sl;
    end record;
-      
+
    ------------------------------------------------------------------------
    -- CfgOut Types/Constants                             
    ------------------------------------------------------------------------            
@@ -164,9 +159,9 @@ package PciePkg is
       axisMaster : AxiStreamMasterType)
       return PcieHdrType;
 
-end package PciePkg;
+end package SsiPciePkg;
 
-package body PciePkg is
+package body SsiPciePkg is
 
    function reverseOrderPcie (
       axisMaster : AxiStreamMasterType;
@@ -230,4 +225,4 @@ package body PciePkg is
       return(retVar);
    end function;
 
-end package body PciePkg;
+end package body SsiPciePkg;

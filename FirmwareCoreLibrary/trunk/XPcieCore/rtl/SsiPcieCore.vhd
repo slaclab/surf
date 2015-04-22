@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieCore.vhd
+-- File       : SsiPcieCore.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Xilinx PCIe Core
+-- Description: SSI PCIe Core, Top Level
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -20,22 +20,19 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieCore is
+entity SsiPcieCore is
    generic (
       TPD_G            : time                   := 1 ns;
-      DMA_SIZE_G       : positive range 1 to 32 := 1;
+      DMA_SIZE_G       : positive range 1 to 16 := 1;
       LOOPBACK_EN_G    : boolean                := true;  -- true = synthesis loopback capability
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C);
    port (
       -- System Interface
-      userIrqReq     : in  sl;
+      userIrqReq     : in  sl := '0';
       serialNumber   : in  slv(63 downto 0);
       cardRst        : out sl;
-      cntRst         : out sl;
-      reboot         : out sl;
-      rebootAddr     : out slv(31 downto 0);
       -- AXI-Lite Interface (0x7FFFFFFF:0x00000C00)
       axiWriteMaster : out AxiLiteWriteMasterType;
       axiWriteSlave  : in  AxiLiteWriteSlaveType;
@@ -56,12 +53,12 @@ entity PcieCore is
       -- Clock and Resets
       pciClk         : in  sl;
       pciRst         : in  sl);
-end PcieCore;
+end SsiPcieCore;
 
-architecture mapping of PcieCore is
+architecture mapping of SsiPcieCore is
 
    -- Register Signals
-   signal regTranFromPci : TranFromPciType;
+   signal regTranFromPci : TranFromPcieType;
    signal regObMaster    : AxiStreamMasterType;
    signal regObSlave     : AxiStreamSlaveType;
    signal regIbMaster    : AxiStreamMasterType;
@@ -84,12 +81,14 @@ architecture mapping of PcieCore is
    signal dmaTxTranFromPci : TranFromPcieArray(DMA_SIZE_G-1 downto 0);
    signal dmaTxIbMaster    : AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
    signal dmaTxIbSlave     : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-   signal dmaTxObSlave     : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
    signal dmaTxObMaster    : AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+   signal dmaTxObSlave     : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
 
    -- Interrupt Signals
    signal irqRequest : sl;
    signal coreIrqReq : sl;
+   signal irqEnable  : sl;
+   signal irqActive  : sl;
 
    -- DMA Loopback Signals
    signal dmaLoopback : slv(DMA_SIZE_G-1 downto 0);
@@ -103,7 +102,7 @@ begin
    -----------------
    -- TLP Controller
    -----------------
-   PcieTlpCtrl_Inst : entity work.PcieTlpCtrl
+   SsiPcieTlpCtrl_Inst : entity work.SsiPcieTlpCtrl
       generic map (
          TPD_G      => TPD_G,
          DMA_SIZE_G => DMA_SIZE_G)
@@ -111,7 +110,7 @@ begin
          -- PCIe Interface
          trnPending       => cfgToPci.TrnPending,
          cfgTurnoffOk     => cfgToPci.cfgTurnoffOk,
-         pciCfgOut        => pciCfgOut,
+         cfgFromPci       => cfgFromPci,
          pciIbMaster      => pciIbMaster,
          pciIbSlave       => pciIbSlave,
          pciObMaster      => pciObMaster,
@@ -138,7 +137,7 @@ begin
    ----------------------
    -- Register Controller
    ----------------------   
-   PcieAxiLite_Inst : entity work.PcieAxiLite
+   SsiPcieAxiLite_Inst : entity work.SsiPcieAxiLite
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
@@ -147,9 +146,6 @@ begin
          -- System Signals
          serialNumber     => serialNumber,
          cardRst          => cardRst,
-         cntRst           => cntRst,
-         reboot           => reboot,
-         rebootAddr       => rebootAddr,
          dmaLoopback      => dmaLoopback,
          -- External AXI-Lite (0x7FFFFFFF:0x00000C00)
          axiWriteMaster   => axiWriteMaster,
@@ -157,7 +153,7 @@ begin
          axiReadMaster    => axiReadMaster,
          axiReadSlave     => axiReadSlave,
          -- PCIe Interface
-         pciCfgOut        => pciCfgOut,
+         cfgFromPci       => cfgFromPci,
          irqEnable        => irqEnable,
          irqActive        => irqActive,
          regTranFromPci   => regTranFromPci,
@@ -180,7 +176,7 @@ begin
    ----------------------
    -- Interrupt Controller
    ----------------------   
-   PcieIrqCtrl_Inst : entity work.PcieIrqCtrl
+   SsiPcieIrqCtrl_Inst : entity work.SsiPcieIrqCtrl
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -196,12 +192,12 @@ begin
          pciClk       => pciClk,
          pciRst       => pciRst);         
 
-   ---------------
-   -- DMA Loopback
-   ---------------
-   GEN_MUX :
+   GEN_DMA_CH :
    for i in 0 to DMA_SIZE_G-1 generate
-      PcieDmaLoopBack_Inst : entity work.PcieDmaLoopBack
+      ---------------
+      -- DMA Loopback
+      ---------------
+      SsiPcieDmaLoopBack_Inst : entity work.SsiPcieDmaLoopBack
          generic map (
             TPD_G         => TPD_G,
             LOOPBACK_EN_G => LOOPBACK_EN_G,
@@ -221,7 +217,50 @@ begin
             -- Clock and Resets
             pciClk      => pciClk,
             pciRst      => pciRst);    
-   end generate GEN_MUX;
 
+      ----------------
+      -- TX DMA Engine
+      ----------------            
+      SsiPcieTxDma_Inst : entity work.SsiPcieTxDma
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- PCIe Interface
+            dmaDescToPci   => dmaTxDescToPci(i),
+            dmaDescFromPci => dmaTxDescFromPci(i),
+            dmaTranFromPci => dmaTxTranFromPci(i),
+            dmaIbMaster    => dmaTxIbMaster(i),
+            dmaIbSlave     => dmaTxIbSlave(i),
+            dmaObMaster    => dmaTxObMaster(i),
+            dmaObSlave     => dmaTxObSlave(i),
+            -- DMA Output
+            mAxisMaster    => obMasters(i),
+            mAxisSlave     => obSlaves(i),
+            -- Clock and Resets
+            pciClk         => pciClk,
+            pciRst         => pciRst); 
+
+      ----------------
+      -- RX DMA Engine
+      ----------------            
+      SsiPcieRxDma_Inst : entity work.SsiPcieRxDma
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- PCIe Interface
+            dmaDescToPci   => dmaRxDescToPci(i),
+            dmaDescFromPci => dmaRxDescFromPci(i),
+            dmaTranFromPci => dmaRxTranFromPci(i),
+            dmaIbMaster    => dmaRxIbMaster(i),
+            dmaIbSlave     => dmaRxIbSlave(i),
+            dmaChannel     => toSlv(i, 4),
+            -- DMA Input
+            sAxisMaster    => ibMasters(i),
+            sAxisSlave     => ibSlaves(i),
+            -- Clock and Resets
+            pciClk         => pciClk,
+            pciRst         => pciRst);             
+
+   end generate GEN_DMA_CH;
    
 end mapping;

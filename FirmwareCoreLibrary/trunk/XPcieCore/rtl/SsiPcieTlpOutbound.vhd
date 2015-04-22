@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieTlpOutbound.vhd
+-- File       : SsiPcieTlpOutbound.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-16
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe Outbound TLP Packet Controller
+-- Description: SSI PCIe Outbound TLP Packet Controller
 -- Note: Memory IO bursting not supported.  
 --       Only one 32-bit word transaction at a time.
 
@@ -24,12 +24,12 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieTlpOutbound is
+entity SsiPcieTlpOutbound is
    generic (
       TPD_G      : time                   := 1 ns;
-      DMA_SIZE_G : positive range 1 to 32 := 1);
+      DMA_SIZE_G : positive range 1 to 16 := 1);
    port (
       -- PCIe Interface
       sAsixHdr      : in  PcieHdrType;
@@ -43,13 +43,12 @@ entity PcieTlpOutbound is
       -- Clock and Resets
       pciClk        : in  sl;
       pciRst        : in  sl);       
-end PcieTlpOutbound;
+end SsiPcieTlpOutbound;
 
-architecture rtl of PcieTlpOutbound is
+architecture rtl of SsiPcieTlpOutbound is
 
    type StateType is (
       IDLE_S,
-      REG_S,
       DMA_S);   
 
    type RegType is record
@@ -85,6 +84,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Default to not ready for data
+      v.sAxisSlave.tReady := '0';
+
       -- Update REG tValid register
       if regObSlave.tReady = '1' then
          v.regObMaster.tValid := '0';
@@ -100,24 +102,16 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Default to not ready for data
-            v.sAxisSlave.tReady := '0';
             -- Check for new data
-            if sAxisMaster.tValid = '1' then
+            if (sAxisMaster.tValid = '1') and (v.regObMaster.tValid = '0') then
                -- Check for SOF and correct request ID
                if (sAxisMaster.tUser(1) = '1') then
                   -- Check for memory read or write always goes to reg block
                   -- Note: Memory IO bursting not supported. Only one 32-bit word transaction at a time.    
                   if (sAsixHdr.xType = "00000") and (sAxisMaster.tLast = '1') and (sAxisMaster.tUser(1) = '1') then
-                     -- Check if target is ready for data
-                     if v.regObMaster.tValid = '0' then
-                        -- Accept the data
-                        v.sAxisSlave.tReady := '1';
-                        v.regObMaster       := sAxisMaster;                       
-                     else
-                        -- Next state
-                        v.state := REG_S;
-                     end if;
+                     -- Accept the data
+                     v.sAxisSlave.tReady := '1';
+                     v.regObMaster       := sAxisMaster;
                   -- Else check for a a completion header with data payload and for TX DMA tag
                   elsif (sAsixHdr.xType = "01010") and (dmaTag(0) = '1') and (dmaTagPntr < DMA_SIZE_G) then
                      -- Set the channel pointer
@@ -146,33 +140,17 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when REG_S =>
-            -- Check if target is ready for data
-            if v.regObMaster.tValid = '0' then
-               -- Ready for data
-               v.sAxisSlave.tReady := '1';
-               v.regObMaster       := sAxisMaster;
-               -- Next state
-               v.state := IDLE_S;
-            else
-               -- Not ready for data
-               v.sAxisSlave.tReady := '0';
-            end if;
-         ----------------------------------------------------------------------
          when DMA_S =>
             -- Check if target is ready for data
-            if v.dmaTxObMaster(r.chPntr).tValid = '0' then
+            if (v.dmaTxObMaster(r.chPntr).tValid = '0') and (sAxisMaster.tValid = '1') then
                -- Ready for data
                v.sAxisSlave.tReady       := '1';
                v.dmaTxObMaster(r.chPntr) := sAxisMaster;
                -- Check for tLast
-               if (sAxisMaster.tLast = '1') and (sAxisMaster.tValid = '1') then
+               if sAxisMaster.tLast = '1' then
                   -- Next state
                   v.state := IDLE_S;
                end if;
-            else
-               -- Not ready for data
-               v.sAxisSlave.tReady := '0';
             end if;
       ----------------------------------------------------------------------
       end case;

@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieRxDesc.vhd
+-- File       : SsiPcieRxDesc.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe Receive Descriptor Controller
+-- Description: SSI PCIe Receive Descriptor Controller
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieRxDesc is
+entity SsiPcieRxDesc is
    generic (
       TPD_G            : time                   := 1 ns;
-      DMA_SIZE_G       : positive range 1 to 32 := 1;
+      DMA_SIZE_G       : positive range 1 to 16 := 1;
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C);      
    port (
       -- Parallel Interface 
@@ -44,9 +44,9 @@ entity PcieRxDesc is
       -- Global Signals
       pciClk         : in  sl;
       pciRst         : in  sl); 
-end PcieRxDesc;
+end SsiPcieRxDesc;
 
-architecture rtl of PcieRxDesc is
+architecture rtl of SsiPcieRxDesc is
 
    type AddrVector is array (integer range<>) of slv(31 downto 2);
    type CntVector is array (integer range<>) of slv(9 downto 0);
@@ -75,7 +75,7 @@ architecture rtl of PcieRxDesc is
       descData      : slv(31 downto 0);
       rFifoWr       : sl;
       rFifoRd       : sl;
-      rFifoDin      : slv(67 downto 0);
+      rFifoDin      : slv(65 downto 0);
       -- AXI-Lite
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -122,7 +122,7 @@ architecture rtl of PcieRxDesc is
 
    -- Receive descriptor done
    signal rFifoValid : sl;
-   signal rFifoDout  : slv(67 downto 0);
+   signal rFifoDout  : slv(65 downto 0);
    signal rFifoAFull : sl;
    signal rFifoFull  : sl;
    signal rFifoCnt   : slv(9 downto 0);
@@ -227,8 +227,8 @@ begin
                   v.axiReadSlave.rdata(30)         := rFifoFull;
                   v.axiReadSlave.rdata(29)         := r.lastDescErr;
                   v.axiReadSlave.rdata(28)         := '0';
-                  v.axiReadSlave.rdata(27)         := rFifoDout(63);  -- frameErr
-                  v.axiReadSlave.rdata(26)         := rFifoDout(62);  -- EOFE
+                  v.axiReadSlave.rdata(27)         := rFifoDout(65);  -- frameErr
+                  v.axiReadSlave.rdata(26)         := rFifoDout(64);  -- EOFE
                   v.axiReadSlave.rdata(9 downto 0) := rFifoCnt;
                when x"43" =>
                   if (rFifoValid = '1') and (r.rdDone = '0') then
@@ -285,7 +285,10 @@ begin
             v.doneAck(r.doneCnt)     := '1';
             v.rxCount                := r.rxCount + 1;
             v.rFifoWr                := '1';
-            v.rFifoDin(67 downto 56) := dmaDescToPci(r.doneCnt).doneStatus;
+            v.rFifoDin(65)           := dmaDescToPci(r.doneCnt).doneFrameErr;
+            v.rFifoDin(64)           := dmaDescToPci(r.doneCnt).doneTranEofe;
+            v.rFifoDin(63 downto 60) := dmaDescToPci(r.doneCnt).doneDmaCh;
+            v.rFifoDin(59 downto 56) := dmaDescToPci(r.doneCnt).doneSubCh;
             v.rFifoDin(55 downto 32) := dmaDescToPci(r.doneCnt).doneLength;
             v.rFifoDin(31 downto 2)  := dmaDescToPci(r.doneCnt).doneAddr;
          end if;
@@ -370,8 +373,9 @@ begin
       dmaDescFromPci(i).maxFrame <= r.maxFrame;
 
       -- Unused fields
-      dmaDescFromPci(i).newLength  <= (others => '0');
-      dmaDescFromPci(i).newControl <= (others => '0');
+      dmaDescFromPci(i).newLength <= (others => '0');
+      dmaDescFromPci(i).newDmaCh  <= (others => '0');
+      dmaDescFromPci(i).newSubCh  <= (others => '0');
 
       -- Done Ack
       dmaDescFromPci(i).doneAck <= r.doneAck(i);
@@ -379,14 +383,14 @@ begin
    end generate GEN_FIFO;
 
    -- FIFO for done descriptors
-   -- 67:56 = Status
+   -- 65:56 = Status
    -- 55:32 = Length, 1 based
    -- 31:0  = Address
    U_RxFifo : entity work.FifoSync
       generic map(
          BRAM_EN_G    => true,
          FWFT_EN_G    => true,
-         DATA_WIDTH_G => 68,
+         DATA_WIDTH_G => 66,
          ADDR_WIDTH_G => 10)    
       port map (
          rst         => r.fifoRst,

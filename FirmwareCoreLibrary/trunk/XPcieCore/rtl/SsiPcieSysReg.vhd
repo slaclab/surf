@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieSysReg.vhd
+-- File       : SsiPcieSysReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe System Registers
+-- Description: SSI PCIe System Registers
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,19 +21,19 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 use work.Version.all;
 
-entity PcieSysReg is
+entity SsiPcieSysReg is
    generic (
       TPD_G            : time                   := 1 ns;
-      DMA_SIZE_G       : positive range 1 to 32 := 1;
+      DMA_SIZE_G       : positive range 1 to 16 := 1;
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C);      
    port (
       -- PCIe Interface
       cfgFromPci     : in  PcieCfgOutType;
       irqActive      : in  sl;
-      irqEnable      : out  sl;
+      irqEnable      : out sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -43,15 +43,13 @@ entity PcieSysReg is
       serialNumber   : in  slv(63 downto 0);
       cardRst        : out sl;
       cntRst         : out sl;
-      reboot         : out sl;
-      rebootAddr     : out slv(31 downto 0);
       dmaLoopback    : out slv(DMA_SIZE_G-1 downto 0);
       -- Global Signals
       pciClk         : in  sl;
       pciRst         : in  sl); 
-end PcieSysReg;
+end SsiPcieSysReg;
 
-architecture rtl of PcieSysReg is
+architecture rtl of SsiPcieSysReg is
 
    constant MAX_CNT_C : natural := getTimeRatio(125.0E+6, 1.0);
 
@@ -71,12 +69,8 @@ architecture rtl of PcieSysReg is
    type RegType is record
       cardRst       : sl;
       cntRst        : sl;
-      rebootEn      : sl;
-      reboot        : sl;
-      rebootAddr    : slv(31 downto 0);
-      rebootTimer   : natural range 0 to MAX_CNT_C;
       irqEnable     : sl;
-      dmaLoopback    : slv(DMA_SIZE_G-1 downto 0);
+      dmaLoopback   : slv(DMA_SIZE_G-1 downto 0);
       scratchPad    : slv(31 downto 0);
       -- AXI-Lite
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -86,12 +80,8 @@ architecture rtl of PcieSysReg is
    constant REG_INIT_C : RegType := (
       cardRst       => '1',
       cntRst        => '0',
-      rebootEn      => '0',
-      reboot        => '0',
-      rebootAddr    => (others => '0'),
-      rebootTimer   => 0,
       irqEnable     => '0',
-      dmaLoopback    => (others => '0'),
+      dmaLoopback   => (others => '0'),
       scratchPad    => (others => '0'),
       -- AXI-Lite
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -158,8 +148,6 @@ begin
       axiSlaveRegisterW(X"010", 1, v.cardRst);
       axiSlaveRegisterW(X"014", 0, v.irqEnable);
       axiSlaveRegisterR(X"014", 1, irqActive);
-      axiSlaveRegisterW(X"018", 0, v.rebootAddr);
-      axiSlaveRegisterW(X"01C", 0, v.rebootEn);
 
       axiSlaveRegisterR(X"020", 0, cfgFromPci.Status);
       axiSlaveRegisterR(X"020", 16, cfgFromPci.command);
@@ -179,17 +167,6 @@ begin
 
       axiSlaveDefault(AXI_ERROR_RESP_G);
 
-      -- Check for enabled timer
-      if r.rebootEn = '1' then
-         if r.rebootTimer = MAX_CNT_C then
-            v.reboot := '1';
-         else
-            v.rebootTimer := r.rebootTimer + 1;
-         end if;
-      else
-         v.rebootTimer := 0;
-      end if;
-
       -- Synchronous Reset
       if pciRst = '1' then
          v := REG_INIT_C;
@@ -202,14 +179,11 @@ begin
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
 
-      cntRst    <= r.cntRst;
-      cardRst   <= r.cardRst;
+      cntRst  <= r.cntRst;
+      cardRst <= r.cardRst;
 
-      irqEnable <= r.irqEnable;
+      irqEnable   <= r.irqEnable;
       dmaLoopback <= r.dmaLoopback;
-      
-      reboot     <= r.reboot;
-      rebootAddr <= r.rebootAddr;
       
    end process comb;
 

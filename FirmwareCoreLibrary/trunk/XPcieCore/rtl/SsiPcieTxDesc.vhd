@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieTxDesc.vhd
+-- File       : SsiPcieTxDesc.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe Transmit Descriptor Controller
+-- Description: SSI PCIe Transmit Descriptor Controller
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieTxDesc is
+entity SsiPcieTxDesc is
    generic (
       TPD_G            : time                   := 1 ns;
-      DMA_SIZE_G       : positive range 1 to 32 := 1;
+      DMA_SIZE_G       : positive range 1 to 16 := 1;
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C);      
    port (
       -- DMA Descriptor Interface 
@@ -44,9 +44,9 @@ entity PcieTxDesc is
       -- Global Signals
       pciClk         : in  sl;
       pciRst         : in  sl); 
-end PcieTxDesc;
+end SsiPcieTxDesc;
 
-architecture rtl of PcieTxDesc is
+architecture rtl of SsiPcieTxDesc is
 
    type RegType is record
       wrDone        : sl;
@@ -162,7 +162,7 @@ begin
       -- AXI-Lite Read Logic
       -----------------------------      
       if (axiStatus.readEnable = '1') then
-         v.rdDone := '1';
+         v.rdDone             := '1';
          -- Reset the bus
          v.axiReadSlave.rdata := (others => '0');
          -- Check for alignment
@@ -262,7 +262,7 @@ begin
 
    GEN_FIFO :
    for i in 0 to (DMA_SIZE_G-1) generate
-      PcieTxDescFifo_Inst : entity work.PcieTxDescFifo
+      SsiPcieTxDescFifo_Inst : entity work.SsiPcieTxDescFifo
          generic map(
             TPD_G => TPD_G)
          port map (
@@ -275,7 +275,8 @@ begin
             newAck     => dmaDescFromPci(i).newAck,
             newAddr    => dmaDescFromPci(i).newAddr,
             newLength  => dmaDescFromPci(i).newLength,
-            newControl => dmaDescFromPci(i).newControl);
+            newDmaCh   => dmaDescFromPci(i).newDmaCh,
+            newSubCh   => dmaDescFromPci(i).newSubCh);
 
       -- Done Ack
       dmaDescFromPci(i).doneAck  <= r.doneAck(i);

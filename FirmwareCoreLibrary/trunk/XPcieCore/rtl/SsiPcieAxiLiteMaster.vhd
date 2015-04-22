@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieAxiLiteMaster.vhd
+-- File       : SsiPcieAxiLiteMaster.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe to AXI-Lite Bridge Module
+-- Description: SSI PCIe to AXI-Lite Bridge Module
 --
 -- Note: Only support bar = 0 register transactions
 -- Note: Memory IO bursting not supported.  
@@ -26,9 +26,9 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieAxiLiteMaster is
+entity SsiPcieAxiLiteMaster is
    generic (
       TPD_G : time := 1 ns); 
    port (
@@ -46,9 +46,9 @@ entity PcieAxiLiteMaster is
       -- Global Signals
       pciClk              : in  sl;
       pciRst              : in  sl);
-end PcieAxiLiteMaster;
+end SsiPcieAxiLiteMaster;
 
-architecture rtl of PcieAxiLiteMaster is
+architecture rtl of SsiPcieAxiLiteMaster is
 
    type stateType is (
       IDLE_S,
@@ -61,58 +61,27 @@ architecture rtl of PcieAxiLiteMaster is
       hdr         : PcieHdrType;
       writeMaster : AxiLiteWriteMasterType;
       readMaster  : AxiLiteReadMasterType;
-      rxSlave     : AxiStreamSlaveType;
+      regObSlave  : AxiStreamSlaveType;
       txMaster    : AxiStreamMasterType;
       state       : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      rdData      => (others=>'0'),
+      rdData      => (others => '0'),
       hdr         => PCIE_HDR_INIT_C,
       writeMaster => AXI_LITE_WRITE_MASTER_INIT_C,
       readMaster  => AXI_LITE_READ_MASTER_INIT_C,
-      rxSlave     => AXI_STREAM_SLAVE_INIT_C,
+      regObSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster    => AXI_STREAM_MASTER_INIT_C,
       state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal rxMaster : AxiStreamMasterType;
-   signal txSlave  : AxiStreamSlaveType;
-
 begin
-
-   RX_FIFO : entity work.AxiStreamFifo
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => PCIE_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PCIE_AXIS_CONFIG_C)            
-      port map (
-         -- Slave Port
-         sAxisClk    => pciClk,
-         sAxisRst    => pciRst,
-         sAxisMaster => regObMaster,
-         sAxisSlave  => regObSlave,
-         -- Master Port
-         mAxisClk    => pciClk,
-         mAxisRst    => pciRst,
-         mAxisMaster => rxMaster,
-         mAxisSlave  => r.rxSlave);      
-
-   comb : process (mAxiLiteReadSlave, mAxiLiteWriteSlave, pciRst, r, regTranFromPci, rxMaster,
-                   txSlave) is
+   
+   comb : process (mAxiLiteReadSlave, mAxiLiteWriteSlave, pciRst, r, regIbSlave, regObMaster,
+                   regTranFromPci) is
       variable v      : RegType;
       variable header : PcieHdrType;
    begin
@@ -120,29 +89,29 @@ begin
       v := r;
 
       -- Reset strobing signals
-      v.rxSlave.tReady := '0';
+      v.regObSlave.tReady := '0';
 
       -- Update tValid register
-      if txSlave.tReady = '1' then
+      if regIbSlave.tReady = '1' then
          v.txMaster.tValid := '0';
       end if;
 
       -- Decode the current header for the FIFO
-      header := getPcieHdr(rxMaster);
+      header := getPcieHdr(regObMaster);
 
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for FIFO data
-            if (rxMaster.tValid = '1') and (r.rxSlave.tReady = '0') then
+            if regObMaster.tValid = '1' then
                -- ACK the FIFO tValid
-               v.rxSlave.tReady := '1';
+               v.regObSlave.tReady := '1';
                -- Latch the header
-               v.hdr            := header;
+               v.hdr               := header;
                -- Check for valid read operation
                if (header.fmt(1) = '0') and (header.bar = 0) then
                   -- Set the read address buses
-                  v.readMaster.araddr(1 downto 0)  := "00";          -- 32-bit alignment
+                  v.readMaster.araddr(1 downto 0)  := "00";             -- 32-bit alignment
                   v.readMaster.araddr(31 downto 2) := header.addr;
                   -- Start AXI-Lite transaction
                   v.readMaster.arvalid             := '1';
@@ -290,6 +259,8 @@ begin
       -- Outputs
       mAxiLiteWriteMaster <= r.writeMaster;
       mAxiLiteReadMaster  <= r.readMaster;
+      regObSlave          <= v.regObSlave;
+      regIbMaster         <= r.txMaster;
       
    end process comb;
 
@@ -299,33 +270,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   TX_FIFO : entity work.AxiStreamFifo
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => PCIE_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PCIE_AXIS_CONFIG_C)            
-      port map (
-         -- Slave Port
-         sAxisClk    => pciClk,
-         sAxisRst    => pciRst,
-         sAxisMaster => r.txMaster,
-         sAxisSlave  => txSlave,
-         -- Master Port
-         mAxisClk    => pciClk,
-         mAxisRst    => pciRst,
-         mAxisMaster => regIbMaster,
-         mAxisSlave  => regIbSlave); 
 
 end rtl;
