@@ -45,7 +45,6 @@ entity GLinkGtx7FixedLat is
       RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard      
       -- RX Equalizer Attributes
-      RX_EQUALIZER_G        : string     := "DFE";                  -- Or "LPM"
       RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
       RX_CM_TRIM_G          : bit_vector := "010";
       RX_DFE_LPM_CFG_G      : bit_vector := x"0954";
@@ -78,6 +77,7 @@ entity GLinkGtx7FixedLat is
       gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
       -- Misc. MGT control
+      lpmMode          : in  sl := '1';
       loopback         : in  slv(2 downto 0);
       txPowerDown      : in  sl;
       rxPowerDown      : in  sl;
@@ -245,7 +245,7 @@ begin
    txUserReset <= gLinkTx.linkRst or gLinkTxRst;
 
    -- GTX 7 Core in Fixed Latency mode
-   Gtx7Core_Inst : entity work.Gtx7Core
+   Gtx7Core_Inst : entity work.GLinkGtx7Core
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
@@ -285,7 +285,6 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXSLIDE_MODE_G        => "PMA",
          -- RX Equalizer Attributes
-         RX_EQUALIZER_G        => RX_EQUALIZER_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          RX_CM_TRIM_G          => RX_CM_TRIM_G,
          RX_DFE_LPM_CFG_G      => RX_DFE_LPM_CFG_G,
@@ -298,6 +297,7 @@ begin
          FIXED_ALIGN_COMMA_2_G => FIXED_ALIGN_COMMA_2_C,
          FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")
       port map (
+         lpmMode          => lpmMode,
          stableClkIn      => stableClk,
          cPllRefClkIn     => gtCPllRefClk,
          cPllLockOut      => gtCPllLock,
