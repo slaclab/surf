@@ -28,13 +28,13 @@ use work.jesd204bpkg.all;
 
 use ieee.numeric_std.all;
  
-entity jesd204btb is
-end jesd204btb;
+entity Jesd204bTb is
+end Jesd204bTb;
  
-architecture behavior of jesd204btb is 
+architecture behavior of Jesd204bTb is 
  
     -- Component Declaration for the Unit Under Test (UUT)
-    component jesd204b
+    component jesd204bSim
     port(
          devClk_i       : in  std_logic;
          devRst_i       : in  std_logic;
@@ -42,10 +42,10 @@ architecture behavior of jesd204btb is
          dataRx_i       : in  slv32array(0 to 1);
          chariskRx_i    : in  slv4array(0 to 1);
          nSync_o        : out std_logic;
-         r_ctrlRegArr   : in  ctrlRegArrType(0 to 1);
-         r_statRegArr   : out statRegArrType(0 to 1);
-         dataValid_o    : out std_logic;
-         sysrefDly_i    : in  slv(4 downto 0);
+         sysrefDlyRx_i  : in  slv(4 downto 0); 
+         enableRx_i     : in  slv(1 downto 0);
+         statusRxArr_o  : out Slv8Array(0 to 1);
+         dataValid_o    : out sl;
          sampleData_o   : out Slv32Array(0 to 1)
         );
     end component;
@@ -56,32 +56,32 @@ architecture behavior of jesd204btb is
    signal sysRef_i      : std_logic   := '0';
    signal dataRx_i      : Slv32Array(0 to 1):= (others=>(others=>'0'));
    signal chariskRx_i   : Slv4Array(0 to 1):= (others=>(others=>'0'));
-   signal sysrefDly_i   : slv(4 downto 0):= "11111";
-   signal r_ctrlRegArr  : ctrlRegArrType(0 to 1) := ( ('0', "0000"), ('0', "0000") );
+   signal sysrefDlyRx_i : slv(4 downto 0):= "00000";
+   signal enableRx_i    : slv(1 downto 0) := "00";
 
  	--Outputs
-   signal nSync_o : std_logic;
-   signal r_statRegArr : statRegArrType(0 to 1);
-   signal dataValid_o : std_logic;
-   signal sampleData_o : Slv32Array(0 to 1);
+   signal nSync_o       : std_logic;
+   signal statusRxArr_o : Slv8Array(0 to 1);
+   signal dataValid_o   : std_logic;
+   signal sampleData_o  : Slv32Array(0 to 1);
  
    constant clk_period : time := 10 ns;
  
 begin
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: Jesd204b port map (
-          devClk_i => devClk_i,
-          devRst_i => devRst_i,
-          sysRef_i => sysRef_i,
-          dataRx_i => dataRx_i,
-          chariskRx_i => chariskRx_i,
-          nSync_o => nSync_o,
-          r_ctrlRegArr => r_ctrlRegArr,
-          r_statRegArr => r_statRegArr,
-          dataValid_o => dataValid_o,
-          sampleData_o => sampleData_o,
-          sysrefDly_i => sysrefDly_i
+   uut: Jesd204bSim port map (
+         devClk_i      => devClk_i,
+         devRst_i      => devRst_i,
+         sysRef_i      => sysRef_i,
+         dataRx_i      => dataRx_i,
+         chariskRx_i   => chariskRx_i,
+         nSync_o       => nSync_o,
+         enableRx_i    => enableRx_i,
+         statusRxArr_o => statusRxArr_o,
+         dataValid_o   => dataValid_o,
+         sampleData_o  => sampleData_o,
+         sysrefDlyRx_i   => sysrefDlyRx_i
    );
 
    -- Clock process definitions
@@ -107,8 +107,7 @@ begin
       wait for clk_period*50;
       
       -- Enable the RX module
-      r_ctrlRegArr(0).enable <= '1';
-      r_ctrlRegArr(1).enable <= '1';
+      enableRx_i <= "11";
       
       wait for clk_period/2;
       
@@ -127,16 +126,16 @@ begin
       -- ILA start
       
       -- Multi frame 1
-      dataRx_i(0)    <=  x"01_00_1C_BC"; 
+      dataRx_i(0)    <=  x"02_01_1C_BC"; 
       chariskRx_i(0) <=  "0011";
       wait for clk_period;
-      dataRx_i(0)    <=  x"01_00_02_00"; 
+      dataRx_i(0)    <=  x"06_05_04_03"; 
       chariskRx_i(0) <=  "0000";      
       wait for clk_period;
-      dataRx_i(0)    <=  x"02_00_01_00"; 
+      dataRx_i(0)    <=  x"0A_09_08_07"; 
       chariskRx_i(0) <=  "0000";   
       wait for clk_period;
-      dataRx_i(0)    <=  x"01_00_02_00"; 
+      dataRx_i(0)    <=  x"0E_0D_0C_0B"; 
       chariskRx_i(0) <=  "0000";      
       wait for clk_period;
       dataRx_i(0)    <=  x"02_00_01_00"; 
@@ -327,18 +326,31 @@ begin
       
       -- Start of data
       wait for clk_period;      
-      dataRx_i(0)    <=  x"00_01_00_7C"; 
+      dataRx_i(0)    <=  x"02_01_00_7C"; 
       chariskRx_i(0) <=  "0001";
       wait for clk_period;      
-      dataRx_i(0)    <=  x"00_01_00_02"; 
-      chariskRx_i(0) <=  "0001";
-
+      dataRx_i(0)    <=  x"06_05_04_03"; 
+      chariskRx_i(0) <=  "0000";
+      wait for clk_period;      
+      dataRx_i(0)    <=  x"0A_09_08_07"; 
+      chariskRx_i(0) <=  "0000";
+      wait for clk_period;      
+      dataRx_i(0)    <=  x"0E_0D_0C_0B"; 
+      chariskRx_i(0) <=  "0000";
+      wait for clk_period;      
+      dataRx_i(0)    <=  x"02_01_00_0F"; 
+      chariskRx_i(0) <=  "0000";
+      wait for clk_period;      
+      dataRx_i(0)    <=  x"00_00_00_03"; 
+      chariskRx_i(0) <=  "0000";
+      wait for clk_period;      
+      dataRx_i(0)    <=  x"00_00_00_00"; 
+      chariskRx_i(0) <=  "0000";       
 ----------------------------------------------------------------- End of first sync      
       wait for clk_period*100;     
       
       -- Disable the RX modules
-      r_ctrlRegArr(0).enable <= '0';
-      r_ctrlRegArr(1).enable <= '0';
+      enableRx_i <= "00";
       
       -- Start sending Comma 
       dataRx_i(0)    <=  x"BC_BC_BC_BC"; 
@@ -347,8 +359,7 @@ begin
       wait for clk_period*100;      
 
       -- Enable the RX modules
-      r_ctrlRegArr(0).enable <= '1';
-      r_ctrlRegArr(1).enable <= '1';
+      enableRx_i <= "11";
 
 ----------------------------------------------------------------- Start of second sync      
 
