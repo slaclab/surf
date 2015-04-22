@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieAxiLite.vhd
+-- File       : SsiPcieAxiLite.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-07-02
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe AXI-Lite Core Module
+-- Description: SSI PCIe AXI-Lite Core Module
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -20,20 +20,17 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.PciePkg.all;
+use work.SsiPciePkg.all;
 
-entity PcieAxiLite is
+entity SsiPcieAxiLite is
    generic (
       TPD_G            : time                   := 1 ns;
-      DMA_SIZE_G       : positive range 1 to 32 := 1;
+      DMA_SIZE_G       : positive range 1 to 16 := 1;
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C);
    port (
       -- System Signals
       serialNumber     : in  slv(63 downto 0);
       cardRst          : out sl;
-      cntRst           : out sl;
-      reboot           : out sl;
-      rebootAddr       : out slv(31 downto 0);
       dmaLoopback      : out slv(DMA_SIZE_G-1 downto 0);
       -- External AXI-Lite (0x7FFFFFFF:0x00000C00)
       axiWriteMaster   : out AxiLiteWriteMasterType;
@@ -60,9 +57,9 @@ entity PcieAxiLite is
       -- Clock and Resets
       pciClk           : in  sl;
       pciRst           : in  sl);
-end PcieAxiLite;
+end SsiPcieAxiLite;
 
-architecture mapping of PcieAxiLite is
+architecture mapping of SsiPcieAxiLite is
 
    constant NUM_AXI_MASTERS_C : natural := 4;
 
@@ -108,12 +105,11 @@ architecture mapping of PcieAxiLite is
    signal txDmaIrqReq : sl;
 
    signal cardReset : sl;
-   signal cntReset  : sl;
+   signal cntRst    : sl;
    
 begin
 
    cardRst <= cardReset;
-   cntRst  <= cntReset;
    irqReq  <= rxDmaIrqReq or txDmaIrqReq;
 
    axiWriteMaster <= mAxiWriteMasters(USER_INDEX_C);
@@ -125,7 +121,7 @@ begin
    ----------------------
    -- Register Controller
    ----------------------
-   PcieAxiLiteMaster_Inst : entity work.PcieAxiLiteMaster
+   SsiPcieAxiLiteMaster_Inst : entity work.SsiPcieAxiLiteMaster
       generic map (
          TPD_G => TPD_G)   
       port map (
@@ -169,7 +165,7 @@ begin
    -----------------------
    -- PCI System Module
    -----------------------
-   PcieSysReg_Inst : entity work.PcieSysReg
+   SsiPcieSysReg_Inst : entity work.SsiPcieSysReg
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
@@ -188,9 +184,7 @@ begin
          -- System Signals
          serialNumber   => serialNumber,
          cardRst        => cardReset,
-         cntRst         => cntReset,
-         reboot         => reboot,
-         rebootAddr     => rebootAddr,
+         cntRst         => cntRst,
          -- Global Signals
          pciClk         => pciClk,
          pciRst         => pciRst);            
@@ -198,7 +192,7 @@ begin
    -----------------------
    -- RX Descriptor Module
    -----------------------
-   PcieRxDesc_Inst : entity work.PcieRxDesc
+   SsiPcieRxDesc_Inst : entity work.SsiPcieRxDesc
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
@@ -215,7 +209,7 @@ begin
          -- IRQ Request
          irqReq         => rxDmaIrqReq,
          -- Counter reset
-         cntRst         => cntReset,
+         cntRst         => cntRst,
          -- Global Signals
          pciClk         => pciClk,
          pciRst         => cardReset);
@@ -223,7 +217,7 @@ begin
    -----------------------
    -- TX Descriptor Module
    -----------------------
-   PcieTxDesc_Inst : entity work.PcieTxDesc
+   SsiPcieTxDesc_Inst : entity work.SsiPcieTxDesc
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
@@ -240,7 +234,7 @@ begin
          -- IRQ Request
          irqReq         => txDmaIrqReq,
          -- Counter reset
-         cntRst         => cntReset,
+         cntRst         => cntRst,
          -- Global Signals
          pciClk         => pciClk,
          pciRst         => cardReset);

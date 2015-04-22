@@ -1,18 +1,25 @@
- vhdl work rtl/PciePkg.vhd
+ vhdl work rtl/SsiPciePkg.vhd
  
- vhdl work rtl/PcieCore.vhd
+ vhdl work rtl/SsiPcieCore.vhd
  
- vhdl work rtl/PcieTlpCtrl.vhd
- vhdl work rtl/PcieTlpOutbound.vhd
- vhdl work rtl/PcieTlpInbound.vhd
+ vhdl work rtl/SsiPcieTlpCtrl.vhd
+ vhdl work rtl/SsiPcieTlpOutbound.vhd
+ vhdl work rtl/SsiPcieTlpInbound.vhd
  
- vhdl work rtl/PcieAxiLite.vhd
- vhdl work rtl/PcieAxiLiteMaster.vhd
- vhdl work rtl/PcieSysReg.vhd
- vhdl work rtl/PcieRxDesc.vhd
- vhdl work rtl/PcieTxDesc.vhd
- vhdl work rtl/PcieTxDescFifo.vhd
+ vhdl work rtl/SsiPcieAxiLite.vhd
+ vhdl work rtl/SsiPcieAxiLiteMaster.vhd
+ vhdl work rtl/SsiPcieSysReg.vhd
+ vhdl work rtl/SsiPcieRxDesc.vhd
+ vhdl work rtl/SsiPcieTxDesc.vhd
+ vhdl work rtl/SsiPcieTxDescFifo.vhd
  
- vhdl work rtl/PcieIrqCtrl.vhd
+ vhdl work rtl/SsiPcieIrqCtrl.vhd
  
- vhdl work rtl/PcieDmaLoopBack.vhd
+ vhdl work rtl/SsiPcieDmaLoopBack.vhd
+ 
+ vhdl work rtl/SsiPcieTxDma.vhd
+ vhdl work rtl/SsiPcieTxDmaMemReq.vhd
+ vhdl work rtl/SsiPcieTxDmaFifoMux.vhd
+
+ vhdl work rtl/SsiPcieRxDma.vhd
+ vhdl work rtl/SsiPcieRxDmaTransFifo.vhd

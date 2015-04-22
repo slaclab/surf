@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieIrqCtrl.vhd
+-- File       : SsiPcieIrqCtrl.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-16
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe Interrupt Controller
+-- Description: SSI PCIe Interrupt Controller
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 
-entity PcieIrqCtrl is
+entity SsiPcieIrqCtrl is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -36,9 +36,9 @@ entity PcieIrqCtrl is
       -- Clock and Resets
       pciClk       : in  sl;
       pciRst       : in  sl);       
-end PcieIrqCtrl;
+end SsiPcieIrqCtrl;
 
-architecture rtl of PcieIrqCtrl is
+architecture rtl of SsiPcieIrqCtrl is
 
    type StateType is (
       IDLE_S,

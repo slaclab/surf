@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : PCIe Core
+-- Title      : SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PcieDmaLoopBack.vhd
+-- File       : SsiPcieDmaLoopBack.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-16
--- Last update: 2015-04-16
+-- Created    : 2015-04-22
+-- Last update: 2015-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PCIe Inbound TLP Packet Controller
+-- Description: SSI PCIe Inbound TLP Packet Controller
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -22,13 +22,13 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity PcieDmaLoopBack is
+entity SsiPcieDmaLoopBack is
    generic (
       TPD_G         : time                   := 1 ns;
-      LOOPBACK_EN_G : boolean                := true;-- true = synthesis loopback capability
-      DMA_SIZE_G    : positive range 1 to 32 := 1);
+      LOOPBACK_EN_G : boolean                := true;  -- true = synthesis loopback capability
+      DMA_SIZE_G    : positive range 1 to 16 := 1);
    port (
-      dmaLoopback :  in   sl;
+      dmaLoopback : in  sl;
       -- External DMA Interface
       dmaIbMaster : in  AxiStreamMasterType;
       dmaIbSlave  : out AxiStreamSlaveType;
@@ -42,9 +42,9 @@ entity PcieDmaLoopBack is
       -- Clock and Resets
       pciClk      : in  sl;
       pciRst      : in  sl);       
-end PcieDmaLoopBack;
+end SsiPcieDmaLoopBack;
 
-architecture rtl of PcieDmaLoopBack is
+architecture rtl of SsiPcieDmaLoopBack is
 
    signal loopbackMaster : AxiStreamMasterType;
    signal loopbackSlave  : AxiStreamSlaveType;
