@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-01-14
--- Last update: 2015-01-14
+-- Last update: 2015-04-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -77,10 +77,10 @@ entity Pgp2bGtx7VarLat is
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
       gtCPllRefClk     : in  sl;                      -- Drives CPLL if used
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl;                      -- Signals from QPLL if used
-      gtQPllClk        : in  sl;
-      gtQPllLock       : in  sl;
-      gtQPllRefClkLost : in  sl;
+      gtQPllRefClk     : in  sl := '0';                      -- Signals from QPLL if used
+      gtQPllClk        : in  sl := '0';
+      gtQPllLock       : in  sl := '1';
+      gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
       -- Gt Serial IO
       gtTxP            : out sl;                      -- GT Serial Transmit Positive
@@ -92,13 +92,13 @@ entity Pgp2bGtx7VarLat is
       pgpTxClk         : in  sl;
       pgpTxRecClk      : out sl;                      -- recovered clock
       pgpTxMmcmReset   : out sl;
-      pgpTxMmcmLocked  : in  sl;
+      pgpTxMmcmLocked  : in  sl := '1';
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxRecClk      : out sl;                      -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmReset   : out sl;
-      pgpRxMmcmLocked  : in  sl;
+      pgpRxMmcmLocked  : in  sl := '1';
       -- Non VC Rx Signals
       pgpRxIn          : in  Pgp2bRxInType;
       pgpRxOut         : out Pgp2bRxOutType;
