@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2015-04-01
+-- Last update: 2015-04-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -125,10 +125,10 @@ begin
          NUM_CLOCKS_G       => 1,
          -- MMCM attributes
          BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 16.0,
-         DIVCLK_DIVIDE_G    => 2,
-         CLKFBOUT_MULT_F_G  => 31.875,
-         CLKOUT0_DIVIDE_F_G => 6.375)
+         CLKIN_PERIOD_G     => CLKIN_PERIOD_G,
+         DIVCLK_DIVIDE_G    => DIVCLK_DIVIDE_G,
+         CLKFBOUT_MULT_F_G  => CLKFBOUT_MULT_F_G,
+         CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G)
       port map(
          clkIn     => stableClock,
          rstIn     => extRstSync,
