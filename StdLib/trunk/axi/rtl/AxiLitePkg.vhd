@@ -220,7 +220,9 @@ package AxiLitePkg is
       variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
-      reg                    : inout slv);
+      reg                    : inout slv;
+      constAssign            : in    boolean := false;
+      constVal               : in    slv     := "0");
 
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
@@ -238,7 +240,9 @@ package AxiLitePkg is
       variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
-      reg                    : inout sl);
+      reg                    : inout sl;
+      constAssign            : in    boolean := false;
+      constVal               : in    sl      := '0');
 
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
@@ -310,7 +314,7 @@ package body AxiLitePkg is
 
       -- Incomming read txn and last txn has concluded
       if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
-         readEnable         := '1';
+         readEnable := '1';
 --         axiReadSlave.rdata := (others => '0');
       end if;
 
@@ -361,7 +365,9 @@ package body AxiLitePkg is
       variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
-      reg                    : inout slv) is
+      reg                    : inout slv;
+      constAssign            : in    boolean := false;
+      constVal               : in    slv     := "0") is
    begin
       -- Read must come first so as not to overwrite the variable if read and write happen at once
       if (axiStatus.readEnable = '1') then
@@ -373,7 +379,11 @@ package body AxiLitePkg is
 
       if (axiStatus.writeEnable = '1') then
          if (std_match(axiWriteMaster.awaddr(addr'length-1 downto 0), addr)) then
-            reg := axiWriteMaster.wdata(offset+reg'length-1 downto offset);
+            if (constAssign) then
+               reg := constVal;
+            else
+               reg := axiWriteMaster.wdata(offset+reg'length-1 downto offset);
+            end if;
             axiSlaveWriteResponse(axiWriteSlave);
          end if;
       end if;
@@ -404,13 +414,17 @@ package body AxiLitePkg is
       variable axiStatus     : in    AxiLiteStatusType;
       addr                   : in    slv;
       offset                 : in    integer;
-      reg                    : inout sl)
+      reg                    : inout sl;
+      constAssign            : in    boolean := false;
+      constVal               : in    sl      := '0')
    is
-      variable tmp : slv(0 downto 0);
+      variable tmpReg : slv(0 downto 0);
+      variable tmpVal : slv(0 downto 0);
    begin
-      tmp(0) := reg;
-      axiSlaveRegister(axiWriteMaster, axiReadMaster, axiWriteSlave, axiReadSlave, axiStatus, addr, offset, tmp);
-      reg    := tmp(0);
+      tmpReg(0) := reg;
+      tmpVal(0) := constVal;
+      axiSlaveRegister(axiWriteMaster, axiReadMaster, axiWriteSlave, axiReadSlave, axiStatus, addr, offset, tmpReg, constAssign, tmpVal);
+      reg    := tmpReg(0);
    end procedure;
 
    procedure axiSlaveRegister (
