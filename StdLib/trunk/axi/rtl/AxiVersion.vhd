@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-03-25
+-- Last update: 2015-04-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -150,9 +150,9 @@ begin
       variable axiStatus : AxiLiteStatusType;
 
       -- Wrapper procedures to make calls cleaner.
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
       begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
+         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg, cA, cV);
       end procedure;
 
       procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
@@ -181,6 +181,8 @@ begin
       -- Latch the current value
       v := r;
 
+      v.counter := r.counter + 1;
+
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
@@ -194,8 +196,8 @@ begin
 
       axiSlaveRegisterW(X"01C", 0, v.fpgaReload);
       axiSlaveRegisterW(X"020", 0, v.fpgaReloadAddr);
-      axiSlaveRegisterR(X"024", 0, r.counter);
-      axiSlaveRegisterW(X"028", 0, v.counterRst);
+      axiSlaveRegisterW(X"024", 0, v.counter, true, X"00000000");
+--      axiSlaveRegisterW(X"028", 0, v.counterRst);
 
 
       axiSlaveRegisterR("01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
@@ -206,10 +208,10 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Increment the counter every clock
       ----------------------------------------------------------------------------------------------
-      v.counter := r.counter + 1;
-      if (r.counterRst = '1') then
-         v.counter := (others => '0');
-      end if;
+--      v.counter := r.counter + 1;
+--      if (r.counterRst = '1') then
+--         v.counter := (others => '0');
+--      end if;
 
       ----------------------------------------------------------------------------------------------
       -- If counter reaches RELOAD_COUNT_C and AUTO_RELOAD_EN_G is true then trigger a reload
