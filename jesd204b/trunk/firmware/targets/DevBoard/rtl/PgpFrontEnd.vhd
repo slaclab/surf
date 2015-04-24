@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
--- Last update: 2015-04-21
+-- Last update: 2015-04-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,8 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+use work.Gtx7CfgPkg.all;
+use work.Pgp2bPkg.all;
 
 entity PgpFrontEnd is
    
@@ -28,14 +30,16 @@ entity PgpFrontEnd is
       TPD_G                  : time    := 1 ns;
       PGP_REFCLK_FREQ_G      : real    := 125.0E6;
       PGP_LINE_RATE_G        : real    := 3.125E9;
+      PGP_CLK_FREQ_G         : real    := 156.25E6;
       AXIL_CLK_FREQ_G        : real    := 125.0E6;
-      AXIS_CLK_FREQ_G        : real    := 160.0;
+      AXIS_CLK_FREQ_G        : real    := 185.0E6;
       AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
-      AXIS_CONFIG_C          : AxiStreamConfigType
+      AXIS_CONFIG_G          : AxiStreamConfigType
       );
    port (
       pgpRefClk : in sl;
       pgpClk    : in sl;
+      pgpClkRst : in sl;
 
       -- PGP MGT signals
       pgpGtRxN : in  sl;                -- SFP+ 
@@ -52,12 +56,11 @@ entity PgpFrontEnd is
       axilReadSlave   : in  AxiLiteReadSlaveType;
 
       -- AXI Stream data interface
-      axisClk                : in  sl;
-      axisClkRst             : in  sl;
-      axisFifoPauseThreshold : in  slv(AXIS_FIFO_ADDR_WIDTH_G-1 downto 0);
-      axisTxMasters          : in  AxiStreamMasterArray(1 downto 0);
-      axisTxSlaves           : out AxiStreamSlaveArray(1 downto 0);
-      axisTxCtrl             : out AxiStreamCtrlArray(1 downto 0);
+      axisClk       : in  sl;
+      axisClkRst    : in  sl;
+      axisTxMasters : in  AxiStreamMasterArray(1 downto 0);
+      axisTxSlaves  : out AxiStreamSlaveArray(1 downto 0);
+      axisTxCtrl    : out AxiStreamCtrlArray(1 downto 0);
 
       leds : out slv(1 downto 0));
 
@@ -66,13 +69,12 @@ end entity PgpFrontEnd;
 
 architecture rtl of PgpFrontEnd is
 
-   constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_C;
-   constant PGP_CLK_FREQ_C      : real := PGP_LINE_RATE_C / 20;
+   constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_G;
 
    -------------------------------------------------------------------------------------------------
    -- PGP MGT PLL Config
    -------------------------------------------------------------------------------------------------
-   constant PGP_GTX_CPLL_CONFIG_G : Gtx7CfgType := getGtx7CPllCfg(PGP_REFCLK_FREQ_C, PGP_LINE_RATE_C);
+   constant PGP_GTX_CPLL_CFG_C : Gtx7CPllCfgType := getGtx7CPllCfg(PGP_REFCLK_FREQ_G, PGP_LINE_RATE_G);
 
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
@@ -110,10 +112,12 @@ architecture rtl of PgpFrontEnd is
    -------------------------------------------------------------------------------------------------
    signal pgpTxIn      : Pgp2bTxInType;
    signal pgpTxOut     : Pgp2bTxOutType;
+   signal pgpRxIn      : Pgp2bRxInType;
+   signal pgpRxOut     : Pgp2bRxOutType;
    signal pgpTxMasters : AxiStreamMasterArray(3 downto 0);
    signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0);
    signal pgpRxMasters : AxiStreamMasterArray(3 downto 0);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(3 downto 0));
+   signal pgpRxCtrl    : AxiStreamCtrlArray(3 downto 0);
    
 begin
 
@@ -124,7 +128,7 @@ begin
    Pgp2bGtx7VarLat_1 : entity work.Pgp2bGtx7VarLat
       generic map (
          TPD_G                 => TPD_G,
-         STABLE_CLOCK_PERIOD_G => 4 ns,
+         STABLE_CLOCK_PERIOD_G => 4.0E-9,
          CPLL_FBDIV_G          => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_G,
          CPLL_FBDIV_45_G       => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_45_G,
          CPLL_REFCLK_DIV_G     => PGP_GTX_CPLL_CFG_C.CPLL_REFCLK_DIV_G,
@@ -144,7 +148,7 @@ begin
          gtTxN        => pgpGtTxN,
          gtRxP        => pgpGtRxP,
          gtRxN        => pgpGtRxN,
-         pgpTxReset   => pgpClkRst
+         pgpTxReset   => pgpClkRst,
          pgpTxClk     => pgpClk,
          pgpRxReset   => pgpClkRst,
          pgpRxClk     => pgpClk,
@@ -165,10 +169,10 @@ begin
          TPD_G               => TPD_G,
          EN_32BIT_ADDR_G     => false,
          BRAM_EN_G           => true,
-         GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_C = AXIL_CLK_FREQ_G),
+         GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_G = AXIL_CLK_FREQ_G),
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 2**9-32,
-         AXIS_CONFIG_G       => SSI_PGP2B_CONFIG_C)
+         AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C)
       port map (
          sAxisClk            => pgpClk,
          sAxisRst            => pgpClkRst,
@@ -197,7 +201,7 @@ begin
          MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
       port map (
          axiClk              => axilClk,
-         axiClkRst           => axiRst,
+         axiClkRst           => axilClkRst,
          sAxiWriteMasters(0) => mAxilWriteMaster,
          sAxiWriteSlaves(0)  => mAxilWriteSlave,
          sAxiReadMasters(0)  => mAxilReadMaster,
@@ -221,10 +225,10 @@ begin
    Pgp2bAxi_1 : entity work.Pgp2bAxi
       generic map (
          TPD_G              => TPD_G,
-         COMMON_TX_CLK_G    => (PGP_CLK_FREQ_C = AXIL_CLK_FREQ_G)
-         COMMON_RX_CLK_G    => (PGP_CLK_FREQ_C = AXIL_CLK_FREQ_G),
+         COMMON_TX_CLK_G    => (PGP_CLK_FREQ_G = AXIL_CLK_FREQ_G),
+         COMMON_RX_CLK_G    => (PGP_CLK_FREQ_G = AXIL_CLK_FREQ_G),
          WRITE_EN_G         => false,
-         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G,
+         AXI_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
          STATUS_CNT_WIDTH_G => 32,
          ERROR_CNT_WIDTH_G  => 16)
       port map (
@@ -238,10 +242,10 @@ begin
          pgpRxOut        => pgpRxOut,
          axilClk         => axilClk,
          axilRst         => axilClkRst,
-         axilReadMaster  => mAxilReadMasters(0),
-         axilReadSlave   => mAxilReadSlaves(0),
-         axilWriteMaster => mAxilWriteMasters(0),
-         axilWriteSlave  => mAxilWriteSlaves(0));
+         axilReadMaster  => sAxilReadMasters(1),
+         axilReadSlave   => sAxilReadSlaves(1),
+         axilWriteMaster => sAxilWriteMasters(1),
+         axilWriteSlave  => sAxilWriteSlaves(1));
 
    leds(0) <= pgpRxOut.linkReady;
    leds(1) <= pgpTxOut.linkReady;
@@ -259,25 +263,24 @@ begin
             VALID_THOLD_G       => 1,
             BRAM_EN_G           => true,
             USE_BUILT_IN_G      => false,
-            GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_C = AXIS_CLK_FREQ_G),
+            GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_G = AXIS_CLK_FREQ_G),
 --            CASCADE_SIZE_G      => CASCADE_SIZE_G,
             FIFO_ADDR_WIDTH_G   => AXIS_FIFO_ADDR_WIDTH_G,
-            FIFO_FIXED_THRESH_G => false,
+            FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 2**AXIS_FIFO_ADDR_WIDTH_G-1,
 --            CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
             SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
             MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
-            sAxisClk        => axisClk,
-            sAxisRst        => axisRst,
-            sAxisMaster     => axisTxMasters(i),
-            sAxisSlave      => axisTxSlaves(i),
-            sAxisCtrl       => axisTxCtrl(i),
-            fifoPauseThresh => axisFifoPauseThreshold,
-            mAxisClk        => pgpClk,
-            mAxisRst        => pgpClkRst,
-            mAxisMaster     => pgpTxMasters(i+1),
-            mAxisSlave      => pgpTXSlaves(i+1));
+            sAxisClk    => axisClk,
+            sAxisRst    => axisClkRst,
+            sAxisMaster => axisTxMasters(i),
+            sAxisSlave  => axisTxSlaves(i),
+            sAxisCtrl   => axisTxCtrl(i),
+            mAxisClk    => pgpClk,
+            mAxisRst    => pgpClkRst,
+            mAxisMaster => pgpTxMasters(i+1),
+            mAxisSlave  => pgpTXSlaves(i+1));
    end generate AXIS_FIFOS;
 
 
