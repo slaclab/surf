@@ -1,5 +1,5 @@
 # Define target output
-target: prom
+target: bit
 
 # Define target part
 export PRJ_PART = XC7K325TFFG900-2
@@ -10,7 +10,6 @@ export MODULE_DIRS = $(PROJ_DIR)/../../modules/StdLib  \
                      $(PROJ_DIR)/../../modules/Pgp2bCore/core  \
                      $(PROJ_DIR)/../../modules/Pgp2bCore/gtx7  \
                      $(PROJ_DIR)/../../modules/Jesd204bCore  \
-                     $(PROJ_DIR)/../../modules/DeviceLib/AxiMicronP30Core  \
                      $(PROJ_DIR)
 
 # Use top level makefile
