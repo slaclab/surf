@@ -37,7 +37,7 @@ package Gtx7CfgPkg is
       CPLL_FBDIV_45_G   : integer;
       OUT_DIV_G         : integer;
       CLK25_DIV_G       : integer;
-   end record Gtx7CfgType;
+   end record Gtx7CPllCfgType;
 
    constant CPLL_REFCLK_DIV_VALIDS_C : IntegerArray := (1, 2);
    constant CPLL_FBDIV_VALIDS_C      : IntegerArray := (1, 2, 3, 4, 5);
@@ -160,14 +160,15 @@ package body Gtx7CfgPkg is
       variable ret : bit_vector(9 downto 0) := (others => '0');
    begin
       case (fbdivInt) is
-         when 16  => ret := "0000100000";
-         when 20  => ret := "0000110000";
-         when 32  => ret := "0001100000";
-         when 40  => ret := "0010000000";
-         when 64  => ret := "0011100000";
-         when 66  => ret := "0101000000";
-         when 80  => ret := "0100100000";
-         when 100 => ret := "0101110000";
+         when 16        => ret := "0000100000";
+         when 20        => ret := "0000110000";
+         when 32        => ret := "0001100000";
+         when 40        => ret := "0010000000";
+         when 64        => ret := "0011100000";
+         when 66        => ret := "0101000000";
+         when 80        => ret := "0100100000";
+         when 100       => ret := "0101110000";
+         when others    => ret := "0000000000"; --Added others ulegat
       end case;
       return ret;
    end function getQPllFbdiv;
