@@ -2,13 +2,13 @@
 target: prom
 
 # Define target part
-export PRJ_PART = XC7A100TFGG676-3
+export PRJ_PART = XC7K325TFFG900-2
 
 # List of build core directories.
 export MODULE_DIRS = $(PROJ_DIR)/../../modules/StdLib  \
-                     $(PROJ_DIR)/../../modules/MgtLib/gtp7  \
+                     $(PROJ_DIR)/../../modules/MgtLib/gtx7  \
                      $(PROJ_DIR)/../../modules/Pgp2bCore/core  \
-                     $(PROJ_DIR)/../../modules/Pgp2bCore/gtp7  \
+                     $(PROJ_DIR)/../../modules/Pgp2bCore/gtx7  \
                      $(PROJ_DIR)/../../modules/Jesd204bCore  \
                      $(PROJ_DIR)/../../modules/DeviceLib/AxiMicronP30Core  \
                      $(PROJ_DIR)

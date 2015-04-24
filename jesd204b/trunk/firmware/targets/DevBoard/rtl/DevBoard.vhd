@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,19 +24,21 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity DevBoard is
    
    generic (
       TPD_G                  : time    := 1 ns;
+      SIMULATION_G           : boolean := false;
       -- PGP Config
       PGP_REFCLK_FREQ_G      : real    := 125.0E6;
       PGP_LINE_RATE_G        : real    := 3.125E9;
       -- AXIL Config
-      AXIL_CLK_FREQ_C        : real    := 125.0E6;
+      AXIL_CLK_FREQ_G        : real    := 125.0E6;
       -- AXIS Config
-      AXIS_CLK_FREQ_G        : real : 160.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 9);
+      AXIS_CLK_FREQ_G        : real    := 185.0E6;
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 16);
    port (
       pgpRefClkP : in sl;
       pgpRefClkN : in sl;
@@ -73,14 +75,14 @@ entity DevBoard is
       syncbN : out sl;                  -- LA08_N - FMC G13
 
       -- Adc OVR/trigger signals
-      ovraTrigRdy : in sl;              -- LA25_P - FMC G27
-      ovrbTrigger : in sl;              -- LA26_P - FMC D26
+--      ovraTrigRdy : in sl;              -- LA25_P - FMC G27
+--      ovrbTrigger : in sl;              -- LA26_P - FMC D26
 
       -- ADC SPI config interface
-      spiSclk : out sl;                 -- FMC H37
-      spiSdi  : out sl;                 -- FMC G36
-      spiSdo  : in  sl;                 -- FMC G37
-      spiCsL  : out sl;                 -- FMC H38
+--      spiSclk : out sl;                 -- FMC H37
+--      spiSdi  : out sl;                 -- FMC G36
+--      spiSdo  : in  sl;                 -- FMC G37
+--      spiCsL  : out sl;                 -- FMC H38
 
       -- Onboard LEDs
       leds : out slv(3 downto 0));
@@ -90,52 +92,55 @@ end entity DevBoard;
 
 architecture rtl of DevBoard is
 
-   constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_C;
-   constant AXI_CLK_FREQ_C      : real := PGP_LINE_RATE_C / 20;
+   constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_G;
+   constant PGP_CLK_FREQ_C      : real := PGP_LINE_RATE_G / 20.0;
 
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
-   signal gtRefClk125  : sl;
-   signal gtRefClk125G : sl;
-
+   signal pgpRefClk  : sl;
+   signal pgpRefClkG : sl;
    signal axilClk    : sl;
    signal axilClkRst : sl;
    signal pgpClk     : sl;
    signal pgpClkRst  : sl;
-   signal jesdClk    : sl;
-   signal jesdClkRst : sl;
-   signal mmcmRst    : sl;
+   signal pgpMmcmRst : sl;
+
+   signal jesdRefClkDiv2 : sl;
+   signal jesdRefClkG    : sl;
+   signal jesdClk        : sl;
+   signal jesdClkRst     : sl;
+   signal jesdMmcmRst    : sl;
 
    signal powerOnReset : sl;
    signal masterReset  : sl;
    signal fpgaReload   : sl;
 
-   -------------------------------------------------------------------------------------------------
-   -- PGP MGT PLL Config
-   -------------------------------------------------------------------------------------------------
-   constant PGP_GTX_CPLL_CONFIG_G : Gtx7CfgType := getGtx7CPllCfg(PGP_REFCLK_FREQ_C, PGP_LINE_RATE_C);
 
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 2;
+   constant NUM_AXI_MASTERS_C : natural := 3;
 
-   constant VERSION_AXI_INDEX_C : natural := 0;
-   constant ADC_SPI_AXI_INDEX_C : natural := 1;
+   constant VERSION_AXIL_INDEX_C : natural              := 0;
+   constant PRBS_AXIL_INDEX_C    : NaturalArray(0 to 1) := (1, 2);
 
-   constant VERSION_AXI_BASE_ADDR_C : slv(31 downto 0) := X"00000000";
-   constant ADC_SPI_AXI_BASE_ADDR_C : slv(31 downto 0) := X"00010000";
+   constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
+   constant PRBS_AXIL_BASE_ADDR_C    : slv32Array(0 to 1) := (X"00010000", X"00020000");
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
-      VERSION_AXI_INDEX_C => (
-         baseAddr         => VERSION_AXI_BASE_ADDR_C,
-         addrBits         => 12,
-         connectivity     => X"0001"),
-      ADC_SPI_AXI_INDEX_C => (
-         baseAddr         => ADC_SPI_AXI_BASE_ADDR_C,
-         addrBits         => 14,
-         connectivity     => X"0001"));
+      VERSION_AXIL_INDEX_C => (
+         baseAddr          => VERSION_AXIL_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),
+      PRBS_AXIL_INDEX_C(0) => (
+         baseAddr          => PRBS_AXIL_BASE_ADDR_C(0),
+         addrBits          => 8,
+         connectivity      => X"0001"),
+      PRBS_AXIL_INDEX_C(1) => (
+         baseAddr          => PRBS_AXIL_BASE_ADDR_C(1),
+         addrBits          => 8,
+         connectivity      => X"0001"));
 
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
    signal extAxilWriteSlave  : AxiLiteWriteSlaveType;
@@ -150,11 +155,12 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
    -------------------------------------------------------------------------------------------------
+   constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+
    signal axisTxMasters : AxiStreamMasterArray(1 downto 0);
    signal axisTxSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal axisTxCtrl    : AxiStreamCtrlArray(1 downto 0);
 
-   signal axisFifoPauseThreshold : slv(AXIS_FIFO_ADDR_WIDTH_G-1 downto 0);
-   
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -185,26 +191,26 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create global clocks from gt ref clocks
    -------------------------------------------------------------------------------------------------
-   mmcmRst <= masterReset or powerOnReset;
+   pgpMmcmRst <= masterReset or powerOnReset;
 
-   U_CtrlClockManager7 : entity work.ClockManager7
+   ClockManager7_PGP : entity work.ClockManager7
       generic map (
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
          FB_BUFG_G          => true,
-         NUM_CLOCKS_G       => 1,
+         NUM_CLOCKS_G       => 2,
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => PGP_REFCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
          CLKFBOUT_MULT_F_G  => 7.5,
          CLKOUT0_DIVIDE_F_G => 7.5,
          CLKOUT0_RST_HOLD_G => 16,
-         CLKOUT1_DIVIDE_G => 6,
+         CLKOUT1_DIVIDE_G   => 6,
          CLKOUT1_RST_HOLD_G => 16)
       port map (
-         clkIn     => ctrlRefClkG,
-         rstIn     => axilClkMmcmRst,
+         clkIn     => pgpRefClkG,
+         rstIn     => pgpMmcmRst,
          clkOut(0) => axilClk,
          clkOut(1) => pgpClk,
          rstOut(0) => axilClkRst,
@@ -221,7 +227,7 @@ begin
       port map (
          clk => axilClk,
          o   => leds(0));
-   
+
    Heartbeat_pgpClk : entity work.Heartbeat
       generic map (
          TPD_G        => TPD_G,
@@ -235,15 +241,17 @@ begin
    -------------------------------------------------------------------------------------------------
    PgpFrontEnd_1 : entity work.PgpFrontEnd
       generic map (
-         TPD_G                 => TPD_G,
-         PGP_REFCLK_FREQ_G     => PGP_REFCLK_FREQ_G,
-         PGP_LINE_RATE_G       => PGP_LINE_RATE_G,
-         AXI_LITE_CLK_FREQ_G   => AXI_LITE_CLK_FREQ_G,
-         AXI_STREAM_CLK_FREQ_G => AXI_STREAM_CLK_FREQ_G,
-         AXI_STREAM_CONFIG_C   => AXI_STREAM_CONFIG_C)
+         TPD_G                  => TPD_G,
+         PGP_REFCLK_FREQ_G      => PGP_REFCLK_FREQ_G,
+         PGP_LINE_RATE_G        => PGP_LINE_RATE_G,
+         AXIL_CLK_FREQ_G        => AXIL_CLK_FREQ_G,
+         AXIS_CLK_FREQ_G        => AXIS_CLK_FREQ_G,
+         AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
+         AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
       port map (
          pgpRefClk       => pgpRefClk,
          pgpClk          => pgpClk,
+         pgpClkRst       => pgpClkRst,
          pgpGtRxN        => pgpGtRxN,
          pgpGtRxP        => pgpGtRxP,
          pgpGtTxN        => pgpGtTxN,
@@ -254,8 +262,8 @@ begin
          axilWriteSlave  => extAxilWriteSlave,
          axilReadMaster  => extAxilReadMaster,
          axilReadSlave   => extAxilReadSlave,
-         axisClk         => axisClk,
-         axisClkRst      => axisClkRst,
+         axisClk         => jesdClk,
+         axisClkRst      => jesdClkRst,
          axisTxMasters   => axisTxMasters,
          axisTxSlaves    => axisTxSlaves,
          axisTxCtrl      => axisTxCtrl,
@@ -289,19 +297,78 @@ begin
       generic map (
          TPD_G            => TPD_G,
          EN_DEVICE_DNA_G  => true,
-         EN_DS2411_G      => true,
+         EN_DS2411_G      => false,
          EN_ICAP_G        => true,
          AUTO_RELOAD_EN_G => false)
       port map (
-         axiClk                                           => axilClk,
-         axiRst                                           => axilClkRst,
-         axiReadMaster                                    => locAxilReadMasters(VERSION_AXI_INDEX_C),
-         axiReadSlave                                     => locAxilReadSlaves(VERSION_AXI_INDEX_C),
-         axiWriteMaster                                   => locAxilWriteMasters(VERSION_AXI_INDEX_C),
-         axiWriteSlave                                    => locAxilWriteSlaves(VERSION_AXI_INDEX_C),
-         masterReset                                      => masterReset,
-         userValues(0)(AXIS_FIFO_ADDR_WIDTH_G-1 downto 0) => axisFifoPauseThreshold);
+         axiClk         => axilClk,
+         axiRst         => axilClkRst,
+         axiReadMaster  => locAxilReadMasters(VERSION_AXIL_INDEX_C),
+         axiReadSlave   => locAxilReadSlaves(VERSION_AXIL_INDEX_C),
+         axiWriteMaster => locAxilWriteMasters(VERSION_AXIL_INDEX_C),
+         axiWriteSlave  => locAxilWriteSlaves(VERSION_AXIL_INDEX_C),
+         masterReset    => masterReset);
 
 
+   -------------------------------------------------------------------------------------------------
+   -- JESD Clocking
+   -------------------------------------------------------------------------------------------------
+   IBUFDS_GTE2_FPGADEVCLKA : IBUFDS_GTE2
+      port map (
+         I     => fpgaDevClkaP,
+         IB    => fpgaDevClkaN,
+         CEB   => '0',
+         ODIV2 => jesdRefClkDiv2);
+
+   JESDREFCLK_BUFG : BUFG
+      port map (
+         I => jesdRefClkDiv2,
+         O => jesdRefClkG);
+
+   jesdMmcmRst <= powerOnReset or masterReset;
+
+   ClockManager7_JESD : entity work.ClockManager7
+      generic map (
+         TPD_G              => TPD_G,
+         TYPE_G             => "MMCM",
+         INPUT_BUFG_G       => false,
+         FB_BUFG_G          => true,
+         NUM_CLOCKS_G       => 1,
+         BANDWIDTH_G        => "OPTIMIZED",
+         CLKIN_PERIOD_G     => 5.405,
+         DIVCLK_DIVIDE_G    => 1,
+         CLKFBOUT_MULT_F_G  => 5.375,
+         CLKOUT0_DIVIDE_F_G => 5.375,
+         CLKOUT0_RST_HOLD_G => 16)
+      port map (
+         clkIn     => jesdRefClkG,
+         rstIn     => jesdMmcmRst,
+         clkOut(0) => jesdClk,
+         rstOut(0) => jesdClkRst);
+
+   -------------------------------------------------------------------------------------------------
+   -- Placeholder for JESD block
+   -------------------------------------------------------------------------------------------------
+   PRBS : for i in 1 downto 0 generate
+      SsiPrbsTx_1 : entity work.SsiPrbsTx
+         generic map (
+            TPD_G                      => TPD_G,
+            GEN_SYNC_FIFO_G            => false,
+            MASTER_AXI_STREAM_CONFIG_G => JESD_SSI_CONFIG_C)
+         port map (
+            mAxisClk        => jesdClk,
+            mAxisRst        => jesdClkRst,
+            mAxisMaster     => axisTxMasters(i),
+            mAxisSlave      => axisTxSlaves(i),
+            locClk          => axilClk,
+            locRst          => axilClkRst,
+            trig            => '1',
+            packetLength    => X"0000FFFF",
+            axilReadMaster  => locAxilReadMasters(PRBS_AXIL_INDEX_C(i)),
+            axilReadSlave   => locAxilReadSlaves(PRBS_AXIL_INDEX_C(i)),
+            axilWriteMaster => locAxilWriteMasters(PRBS_AXIL_INDEX_C(i)),
+            axilWriteSlave  => locAxilWriteSlaves(PRBS_AXIL_INDEX_C(i)));
+
+   end generate PRBS;
 
 end architecture rtl;

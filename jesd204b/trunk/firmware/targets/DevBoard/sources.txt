@@ -1,3 +1,4 @@
 vhdl work Version.vhd
 vhdl work rtl/DevBoard.vhd
+vhdl work rtl/PgpFrontEnd.vhd
 
