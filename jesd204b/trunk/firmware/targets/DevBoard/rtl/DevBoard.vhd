@@ -24,6 +24,7 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+use work.Gtx7CfgPkg.all;
 use work.SsiPkg.all;
 
 entity DevBoard is
@@ -55,6 +56,11 @@ entity DevBoard is
       fpgaDevClkaN : in sl;             -- GBT_CLK_0_N - FMC D4
       fpgaDevClkbP : in sl;             -- LA00_P_CC - FMC G6
       fpgaDevClkbN : in sl;             -- LA00_N_CC - FMC G7
+      
+      -- JESD synchronisation timing signal (Used in subclass 1 mode)
+      -- has to meet setup and hold times of JESD devClk
+      -- periodic (period has to be multiple of LMFC clock)
+      -- single   (another pulse has to be generated if re-sync needed)      
       fpgaSysRefP  : in sl;             -- LA03_P - FMC G9
       fpgaSysRefN  : in sl;             -- LA04_N - FMC G10
 
@@ -70,7 +76,9 @@ entity DevBoard is
       adcGtRxP : in  slv(3 downto 0);
       adcGtRxN : in  slv(3 downto 0);
 
-      -- Synchronization JESD signals (Used in subclass 0 and subclass 2 modes)
+      -- JESD receiver requesting sync (Used in all subclass modes)
+      -- '1' - synchronisation OK
+      -- '0' - synchronisation Not OK - synchronisation request
       syncbP : out sl;                  -- LA08_P - FMC G12
       syncbN : out sl;                  -- LA08_N - FMC G13
 
@@ -91,9 +99,42 @@ entity DevBoard is
 end entity DevBoard;
 
 architecture rtl of DevBoard is
-
+   -------------------------------------------------------------------------------------------------
+   -- PGP constants
+   -------------------------------------------------------------------------------------------------
    constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_G;
    constant PGP_CLK_FREQ_C      : real := PGP_LINE_RATE_G / 20.0;
+
+   -------------------------------------------------------------------------------------------------
+   -- JESD constants and signals
+   -------------------------------------------------------------------------------------------------
+   constant REFCLK_FREQUENCY_C : real     := 370.0E6;
+   constant RERCLK_PERIOD_C    : real     := 1.0/REFCLK_FREQUENCY_C;
+   constant LINE_RATE_C        : real     := 7.40E9;
+   constant AXI_PACKET_SIZE_C  : positive := 2**8;
+   constant F_C                : positive := 2;
+   constant K_C                : positive := 32;
+   constant L_C                : positive := 2;
+   constant GT_WORD_SIZE_C     : positive := 4; -- NOTE: This constant has to be the same as in the Jesd204bPkg
+   constant SUB_CLASS_C        : positive := 1;
+   
+   
+   signal  s_sysRef : sl;
+   signal  s_nsync  : sl;
+
+   -- QPLL config constants
+   constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
+
+   -- QPLL
+   signal  gtCPllRefClk  : sl; 
+   signal  gtCPllLock    : sl; 
+   signal  qPllOutClk    : sl; 
+   signal  qPllOutRefClk : sl; 
+   signal  qPllLock      : sl; 
+   signal  qPllRefClkLost: sl; 
+   signal  qPllReset     : slv(L_C-1 downto 0); 
+   signal  gtQPllReset   : sl;
+   
 
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
@@ -107,6 +148,7 @@ architecture rtl of DevBoard is
    signal pgpMmcmRst : sl;
 
    signal jesdRefClkDiv2 : sl;
+   signal jesdRefClk     : sl;
    signal jesdRefClkG    : sl;
    signal jesdClk        : sl;
    signal jesdClkRst     : sl;
@@ -115,30 +157,26 @@ architecture rtl of DevBoard is
    signal powerOnReset : sl;
    signal masterReset  : sl;
    signal fpgaReload   : sl;
-
+  
 
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 3;
+   constant NUM_AXI_MASTERS_C : natural := 2;
 
    constant VERSION_AXIL_INDEX_C : natural              := 0;
-   constant PRBS_AXIL_INDEX_C    : NaturalArray(0 to 1) := (1, 2);
+   constant JESD_AXIL_INDEX_C    : natural              := 1;
 
    constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant PRBS_AXIL_BASE_ADDR_C    : slv32Array(0 to 1) := (X"00010000", X"00020000");
+   constant JESD_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"00010000";
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
          baseAddr          => VERSION_AXIL_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"),
-      PRBS_AXIL_INDEX_C(0) => (
-         baseAddr          => PRBS_AXIL_BASE_ADDR_C(0),
-         addrBits          => 8,
-         connectivity      => X"0001"),
-      PRBS_AXIL_INDEX_C(1) => (
-         baseAddr          => PRBS_AXIL_BASE_ADDR_C(1),
+      JESD_AXIL_INDEX_C    => (
+         baseAddr          => JESD_AXIL_BASE_ADDR_C,
          addrBits          => 8,
          connectivity      => X"0001"));
 
@@ -318,7 +356,9 @@ begin
          I     => fpgaDevClkaP,
          IB    => fpgaDevClkaN,
          CEB   => '0',
-         ODIV2 => jesdRefClkDiv2);
+         ODIV2 => jesdRefClkDiv2,
+         O     => jesdRefClk          
+   );
 
    JESDREFCLK_BUFG : BUFG
       port map (
@@ -335,7 +375,7 @@ begin
          FB_BUFG_G          => true,
          NUM_CLOCKS_G       => 1,
          BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 5.405,
+         CLKIN_PERIOD_G     => RERCLK_PERIOD_C,
          DIVCLK_DIVIDE_G    => 1,
          CLKFBOUT_MULT_F_G  => 5.375,
          CLKOUT0_DIVIDE_F_G => 5.375,
@@ -347,28 +387,111 @@ begin
          rstOut(0) => jesdClkRst);
 
    -------------------------------------------------------------------------------------------------
-   -- Placeholder for JESD block
+   -- QPLL for JESD MGTs
+   ------------------------------------------------------------------------------------------------- 
+   Gtx7QuadPll_INST: entity work.Gtx7QuadPll
+   generic map (
+      TPD_G               => TPD_G,
+      QPLL_CFG_G          => x"0680181", -- TODO check
+      QPLL_REFCLK_SEL_G   => "001",      -- TODO check
+      QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set
+      QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set
+      QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set
+   )
+   port map (
+      qPllRefClk     => jesdRefClk, -- Reference clock directly from the output
+      qPllOutClk     => qPllOutClk,
+      qPllOutRefClk  => qPllOutRefClk,
+      qPllLock       => qPllLock,
+      qPllLockDetClk => '0',
+      qPllRefClkLost => qPllRefClkLost,
+      qPllPowerDown  => '0',
+      qPllReset      => qPllReset(0)
+   );      
+  
    -------------------------------------------------------------------------------------------------
-   PRBS : for i in 1 downto 0 generate
-      SsiPrbsTx_1 : entity work.SsiPrbsTx
-         generic map (
-            TPD_G                      => TPD_G,
-            GEN_SYNC_FIFO_G            => false,
-            MASTER_AXI_STREAM_CONFIG_G => JESD_SSI_CONFIG_C)
-         port map (
-            mAxisClk        => jesdClk,
-            mAxisRst        => jesdClkRst,
-            mAxisMaster     => axisTxMasters(i),
-            mAxisSlave      => axisTxSlaves(i),
-            locClk          => axilClk,
-            locRst          => axilClkRst,
-            trig            => '1',
-            packetLength    => X"0000FFFF",
-            axilReadMaster  => locAxilReadMasters(PRBS_AXIL_INDEX_C(i)),
-            axilReadSlave   => locAxilReadSlaves(PRBS_AXIL_INDEX_C(i)),
-            axilWriteMaster => locAxilWriteMasters(PRBS_AXIL_INDEX_C(i)),
-            axilWriteSlave  => locAxilWriteSlaves(PRBS_AXIL_INDEX_C(i)));
+   -- JESD block
+   -------------------------------------------------------------------------------------------------   
+   Jesd204bGtx7_INST: entity work.Jesd204bGtx7
+   generic map (
+      TPD_G                 => TPD_G,
+      
+      -- CPLL Configurations (not used)
+      CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
+      CPLL_FBDIV_45_G       => 4,  -- use getGtx7CPllCfg to set
+      CPLL_REFCLK_DIV_G     => 1,  -- use getGtx7CPllCfg to set
+      
+      RXOUT_DIV_G           => QPLL_CONFIG_C.OUT_DIV_G,  -- use getGtx7QPllCfg to set
+      RX_CLK25_DIV_G        => QPLL_CONFIG_C.CLK25_DIV_G,-- use getGtx7QPllCfg to set,
+                                                       
+      -- Configure PLL sources
+      TX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
+      RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
+      
+      -- AXI
+      AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
+      AXI_PACKET_SIZE_G     => AXI_PACKET_SIZE_C,
+      
+      -- JESD
+      F_G                => F_C,
+      K_G                => K_C,
+      L_G                => L_C,
+      GT_WORD_SIZE_G     => GT_WORD_SIZE_C,
+      SUB_CLASS_G        => SUB_CLASS_C
+   )
+   port map (
+      
+      stableClk         => jesdRefClkG, -- Stable because it is never reset
+      devClk_i          => jesdClk, -- both same
+      devClk2_i         => jesdClk, -- both same
+      devRst_i          => jesdClkRst,
+      
+      qPllRefClkIn      => qPllOutRefClk,
+      qPllClkIn         => qPllOutClk,
+      qPllLockIn        => qPllLock,
+      qPllRefClkLostIn  => qPllRefClkLost,
+      qPllResetOut      => qPllReset, 
 
-   end generate PRBS;
+      gtTxP             => adcGtTxP(1 downto 0),
+      gtTxN             => adcGtTxN(1 downto 0),
+      gtRxP             => adcGtRxP(1 downto 0),
+      gtRxN             => adcGtRxN(1 downto 0),
+   
+      axiClk            => axilClk,
+      axiRst            => axilClkRst,
+      axilReadMaster    => locAxilReadMasters(JESD_AXIL_INDEX_C),
+      axilReadSlave     => locAxilReadSlaves(JESD_AXIL_INDEX_C),
+      axilWriteMaster   => locAxilWriteMasters(JESD_AXIL_INDEX_C),
+      axilWriteSlave    => locAxilWriteSlaves(JESD_AXIL_INDEX_C),  
+      txAxisMasterArr   => axisTxMasters,
+      txCtrlArr         => axisTxCtrl,
+      sysRef_i          => s_sysRef,
+      nSync_o           => s_nSync
+   );
+   
+   ----------------------------------------------------------------
+   -- Put sync and sysref on differential io buffer
+   ----------------------------------------------------------------
+   IBUFDS_rsysref_inst : IBUFDS
+   generic map (
+      DIFF_TERM => FALSE,
+      IBUF_LOW_PWR => TRUE,
+      IOSTANDARD => "DEFAULT")
+   port map (
+      I  => fpgaSysRefP,
+      IB => fpgaSysRefN,
+      O  => s_sysRef
+   );
+   
+   OBUFDS_nsync_inst : OBUFDS
+   generic map (
+      IOSTANDARD => "DEFAULT",
+      SLEW => "SLOW"
+   )
+   port map (
+      I =>  s_nSync,
+      O =>  syncbP, 
+      OB => syncbN
+   );
 
 end architecture rtl;
