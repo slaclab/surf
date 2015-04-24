@@ -223,6 +223,11 @@ begin
       AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
       AXI_PACKET_SIZE_G     => AXI_PACKET_SIZE_G,
       
+                                                                 
+     -- Configure PLL sources
+      TX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
+      RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
+      
       -- JESD
       F_G                   => F_G,
       K_G                   => K_G,
@@ -252,8 +257,8 @@ begin
       axilReadSlave     => axilReadSlave,
       axilWriteMaster   => axilWriteMaster,
       axilWriteSlave    => axilWriteSlave,
-      txAxisMasterArr_o => txAxisMasterArr,
-      txCtrlArr_i       => txCtrlArr,
+      txAxisMasterArr   => txAxisMasterArr,
+      txCtrlArr         => txCtrlArr,
       sysRef_i          => s_sysRef,
       nSync_o           => s_nSync
    );

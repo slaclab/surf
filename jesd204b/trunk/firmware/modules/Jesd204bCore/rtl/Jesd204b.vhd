@@ -65,8 +65,8 @@ entity Jesd204b is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr_o  : out   AxiStreamMasterArray(0 to L_G-1);
-      txCtrlArr_i        : in    AxiStreamCtrlArray(0 to L_G-1);   
+      txAxisMasterArr_o  : out   AxiStreamMasterArray(L_G-1 downto 0);
+      txCtrlArr_i        : in    AxiStreamCtrlArray(L_G-1 downto 0);   
       
    -- JESD
       -- Clocks and Resets   
@@ -77,7 +77,7 @@ entity Jesd204b is
       sysRef_i       : in    sl;
 
       -- Data and character inputs from GT (transceivers)
-      r_jesdGtRxArr  : in   jesdGtRxLaneTypeArray(0 to L_G-1);
+      r_jesdGtRxArr  : in   jesdGtRxLaneTypeArray(L_G-1 downto 0);
       gt_reset_o     : out  slv(L_G-1 downto 0);    
 
       -- Synchronisation output combined from all receivers 
@@ -116,7 +116,7 @@ signal s_nSyncAny   : sl;
 -- Control and status from AxiLie
 signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
 signal s_enableRx     : slv(L_G-1 downto 0);
-signal s_statusRxArr  : Slv8Array(0 to L_G-1);
+signal s_statusRxArr  : Slv8Array(L_G-1 downto 0);
 
 -- Axi Lite interface synced to devClk
 signal sAxiReadMasterDev : AxiLiteReadMasterType;
@@ -125,7 +125,7 @@ signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
 signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
 -- Axi Stream
-signal s_sampleDataArr : AxiTxDataType(0 to L_G-1);
+signal s_sampleDataArr : AxiTxDataType(L_G-1 downto 0);
 
 -- Sysref conditioning
 signal  s_sysrefSync : sl;
@@ -137,7 +137,7 @@ begin
    assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    -- AXI stream interface one module per lane
-   generateAxiStreamLanes : for I in 0 to L_G-1 generate
+   generateAxiStreamLanes : for I in L_G-1 downto 0 generate
       AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
       generic map (
          TPD_G             => TPD_G,
@@ -246,7 +246,7 @@ begin
     
    -- JESD Receiver modules (one module per Lane)
    
-   generateRxLanes : for I in 0 to L_G-1 generate    
+   generateRxLanes : for I in L_G-1 downto 0 generate    
       JesdRx_INST: entity work.JesdRx
       generic map (
          TPD_G          => TPD_G,

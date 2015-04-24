@@ -76,7 +76,6 @@ architecture rtl of AxiStreamLaneTx is
       dataCnt        : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0);
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
-
    end record;
    
    constant REG_INIT_C : RegType := (
@@ -127,22 +126,22 @@ begin
             if txCtrl_i.pause = '0' and enable_i = '1' then -- TODO later add "and dataReady_i = '1'"
                -- Next State
                v.state := SOF_S;
-            end if;
+            end if;  
          ----------------------------------------------------------------------
          when SOF_S =>
            
-               -- Increment the counter            
-               v.dataCnt := (others => '0');
-               
-               
+            -- Increment the counter            
+            v.dataCnt := (others => '0');
+
+
             -- No data sent 
-               v.txAxisMaster.tvalid  := '1';
-               v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)   := (others => '0'); 
-              
-               -- Set the SOF bit
-               ssiSetUserSof(JESD_SSI_CONFIG_C, v.txAxisMaster, '1');
-  
-               v.state      := DATA_S;
+            v.txAxisMaster.tvalid  := '1';
+            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)   := (others => '0'); 
+
+            -- Set the SOF bit
+            ssiSetUserSof(JESD_SSI_CONFIG_C, v.txAxisMaster, '1');
+
+            v.state      := DATA_S;
          ----------------------------------------------------------------------
          when DATA_S =>
          
