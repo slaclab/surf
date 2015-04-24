@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Module supports a subset of features from JESD204b standard.
--- information.
+--              information.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -28,10 +28,11 @@ use work.Jesd204bPkg.all;
 
 entity Jesd204b is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G             : time                        := 1 ns;
       
    -- AXI Lite and stream generics
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
+      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
+      AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8;
       
    -- JESD generics
    
@@ -49,8 +50,8 @@ entity Jesd204b is
       
       --JESD204B class (0 and 1 supported)
       SUB_CLASS_G : positive := 1
-   );   
-   
+   );
+
    port (
    -- AXI interface      
       -- Clocks and Resets
@@ -64,8 +65,8 @@ entity Jesd204b is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMaster_o  : out   AxiStreamMasterType;
-      txCtrl_i        : in    AxiStreamCtrlType;   
+      txAxisMasterArr_o  : out   AxiStreamMasterArray(0 to L_G-1);
+      txCtrlArr_i        : in    AxiStreamCtrlArray(0 to L_G-1);   
       
    -- JESD
       -- Clocks and Resets   
@@ -76,20 +77,16 @@ entity Jesd204b is
       sysRef_i       : in    sl;
 
       -- Data and character inputs from GT (transceivers)
-      dataRx_i       : in    Slv32Array(0 to L_G-1);       
-      chariskRx_i    : in    Slv4Array(0 to L_G-1);
+      r_jesdGtRxArr  : in   jesdGtRxLaneTypeArray(0 to L_G-1);
+      gt_reset_o     : out  slv(L_G-1 downto 0);    
 
       -- Synchronisation output combined from all receivers 
-      nSync_o        : out   sl;
-
-      -- Data output todo AxiStream itf
-      dataValid_o    : out  sl;
-      sampleData_o   : out  Slv32Array(0 to L_G-1)
+      nSync_o        : out   sl
    );
 end Jesd204b;
 
 architecture rtl of Jesd204b is
-
+ 
 -- Register
    type RegType is record
       nSyncAllD1 : sl;
@@ -104,7 +101,6 @@ architecture rtl of Jesd204b is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-
 -- Internal signals
 
 -- Local Multi Frame Clock 
@@ -118,7 +114,7 @@ signal s_nSyncAll   : sl;
 signal s_nSyncAny   : sl;
 
 -- Control and status from AxiLie
-signal s_sysrefDlyRx  : slv(4 downto 0); 
+signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
 signal s_enableRx     : slv(L_G-1 downto 0);
 signal s_statusRxArr  : Slv8Array(0 to L_G-1);
 
@@ -128,15 +124,44 @@ signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
 signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
 signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
--- Sysref input delayed
-signal  s_sysref  : sl;
+-- Axi Stream
+signal s_sampleDataArr : AxiTxDataType(0 to L_G-1);
+
+-- Sysref conditioning
+signal  s_sysrefSync : sl;
+signal  s_sysrefD    : sl;
 
 begin
+   -- Check generics TODO add others
+   assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
+   assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
+
+   -- AXI stream interface one module per lane
+   generateAxiStreamLanes : for I in 0 to L_G-1 generate
+      AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
+      generic map (
+         TPD_G             => TPD_G,
+         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
+         AXI_PACKET_SIZE_G => AXI_PACKET_SIZE_G,
+         
+         GT_WORD_SIZE_G    => GT_WORD_SIZE_G)
+      port map (
+         devClk_i       => devClk_i,
+         devRst_i       => devRst_i,
+         txAxisMaster_o => txAxisMasterArr_o(I),
+         txCtrl_i       => txCtrlArr_i(I),
+         enable_i       => s_enableRx(I),
+         sampleData_i   => s_sampleDataArr(I),
+         dataReady_i    => s_dataValidVec(I)
+      );
+   end generate generateAxiStreamLanes;
+
    -- Synchronise axiLite interface to devClk
    AxiLiteAsync_INST: entity work.AxiLiteAsync
    generic map (
       TPD_G           => TPD_G,
-      NUM_ADDR_BITS_G => 32)
+      NUM_ADDR_BITS_G => 32
+   )
    port map (
       -- In
       sAxiClk         => axiClk,
@@ -155,7 +180,7 @@ begin
       mAxiWriteSlave  => sAxiWriteSlaveDev
    );
 
-
+   -- axiLite register interface
    AxiLiteRegItf_INST: entity work.AxiLiteRegItf
    generic map (
       TPD_G            => TPD_G,
@@ -173,18 +198,35 @@ begin
       enableRx_o      => s_enableRx
    );
 
+   -- Synchronise SYSREF input to devClk_i
+   Synchronizer_INST: entity work.Synchronizer
+   generic map (
+      TPD_G          => TPD_G,
+      RST_POLARITY_G => '1',
+      OUT_POLARITY_G => '1',
+      RST_ASYNC_G    => false,
+      STAGES_G       => 2,
+      BYPASS_SYNC_G  => false,
+      INIT_G         => "0")
+   port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => sysref_i,
+      dataOut => s_sysrefSync
+   );
+
    -- Delay SYSREF input (for 1 to 32 c-c)
    SysrefDly_INST: entity work.SysrefDly
    generic map (
       TPD_G       => TPD_G,
-      DLY_WIDTH_G => s_sysrefDlyRx'high + 1 
+      DLY_WIDTH_G => SYSRF_DLY_WIDTH_C 
    )
    port map (
       clk      => devClk_i,
       rst      => devRst_i,
       dly_i    => s_sysrefDlyRx,
-      sysref_i => sysref_i,
-      sysref_o => s_sysref
+      sysref_i => s_sysrefSync,
+      sysref_o => s_sysrefD
    );
 
    -- LMFC period generator aligned to SYSREF input
@@ -198,7 +240,7 @@ begin
       clk      => devClk_i,
       rst      => devRst_i,
       nSync_i  => r.nSyncAllD1,
-      sysref_i => s_sysref,
+      sysref_i => s_sysrefD,
       lmfc_o   => s_lmfc 
    );
     
@@ -215,17 +257,16 @@ begin
       port map (
          devClk_i     => devClk_i,
          devRst_i     => devRst_i,
-         sysRef_i     => s_sysref,
+         sysRef_i     => s_sysrefD,
          enable_i     => s_enableRx(I),
          status_o     => s_statusRxArr(I),
-         dataRx_i     => dataRx_i(I),
-         chariskRx_i  => chariskRx_i(I),
+         r_jesdGtRx   => r_jesdGtRxArr(I),
          lmfc_i       => s_lmfc,
          nSyncAll_i   => r.nSyncAllD1,
          nSyncAny_i   => r.nSyncAnyD1,
          nSync_o      => s_nSyncVec(I),
          dataValid_o  => s_dataValidVec(I),
-         sampleData_o => sampleData_o(I)
+         sampleData_o => s_sampleDataArr(I)
       );
    end generate;
    
@@ -256,6 +297,6 @@ begin
 
    -- Output assignment
    nSync_o     <= r.nSyncAllD1;
-   dataValid_o <= uAnd(s_dataValidVec);
+   gt_reset_o  <= not s_enableRx;
    -----------------------------------------------------
 end rtl;

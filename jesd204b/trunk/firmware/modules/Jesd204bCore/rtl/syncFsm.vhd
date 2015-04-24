@@ -48,6 +48,7 @@ entity syncFSM is
       
       -- Enable the module
       enable_i       : in    sl;      
+      gtReady_i     : in    sl;
       
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i       : in    sl;
@@ -56,6 +57,8 @@ entity syncFSM is
       dataRx_i       : in    slv((GT_WORD_SIZE_G*8)-1 downto 0);       
       chariskRx_i    : in    slv(GT_WORD_SIZE_G-1 downto 0);
       
+      
+
       
       -- Local multi frame clock
       lmfc_i         : in    sl;
@@ -140,7 +143,7 @@ begin
    s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_G);  
 
    -- State machine
-   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAll_i, nSyncAny_i, linkErr_i, s_kDetected) is
+   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAll_i, nSyncAny_i, linkErr_i, s_kDetected, gtReady_i) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -159,7 +162,7 @@ begin
             v.dataValid  := '0';
             
             -- Next state condition            
-            if  sysRef_i = '1' and enable_i = '1' and nSyncAll_i = '0' then
+            if  sysRef_i = '1' and enable_i = '1' and nSyncAll_i = '0' and gtReady_i = '1' then
                v.state    := SYSREF_S;
             end if;
          ----------------------------------------------------------------------

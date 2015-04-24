@@ -53,10 +53,8 @@ entity JesdRx is
       status_o       : out   slv(RX_STAT_WIDTH_C-1 downto 0);
       
       -- Data and character inputs from GT (transceivers)
-      dataRx_i       : in    slv((GT_WORD_SIZE_G*8)-1 downto 0);       
-      chariskRx_i    : in    slv(GT_WORD_SIZE_G-1 downto 0);
-      
-      
+      r_jesdGtRx     : in    jesdGtRxLaneType;       
+     
       -- Local multi frame clock
       lmfc_i         : in    sl;
       
@@ -126,7 +124,7 @@ architecture rtl of JesdRx is
 begin
    
    -- Input assignment
-   s_charAndData  <= chariskRx_i & dataRx_i;
+   s_charAndData  <= r_jesdGtRx.dataK & r_jesdGtRx.data;
    
    -- Buffer control
    s_bufRst     <= devRst_i or not s_nSync or not enable_i;
@@ -202,8 +200,9 @@ begin
       rst          => devRst_i,
       enable_i     => enable_i,
       sysRef_i     => sysRef_i,
-      dataRx_i     => dataRx_i,
-      chariskRx_i  => chariskRx_i,
+      dataRx_i     => r_jesdGtRx.data,
+      chariskRx_i  => r_jesdGtRx.dataK,
+      gtReady_i    => r_jesdGtRx.rstDone,
       lmfc_i       => lmfc_i,
       nSyncAll_i   => nSyncAll_i,
       nSyncAny_i   => nSyncAny_i,
@@ -232,18 +231,18 @@ begin
       v.bufWeD1 := s_bufWe;
       
       -- Register errors (store until reset)
-      for I in (ERR_REG_WIDTH_C-1) downto 0 loop
+      for I in 0 to(ERR_REG_WIDTH_C-1) loop
          if ( s_errComb(I) = '1' ) then
             v.errReg(I) := '1';
          end if;
       end loop;
       
-      -- Register errors
+      -- Clear registered errors if module is disabled 
       if ( enable_i= '0') then
          v.errReg := REG_INIT_C.errReg;
       end if;
       
-      -- Clear registered errors if       
+      -- Reset registers
       if (devRst_i = '1') then
          v := REG_INIT_C;
       end if;
@@ -262,6 +261,6 @@ begin
    nSync_o      <= s_nSync or not enable_i;
    dataValid_o  <= s_dataValid;
    sampleData_o <= s_sampleData;
-   status_o     <= enable_i & r.errReg & s_nSync & s_ila & s_dataValid & s_alignFrame;
+   status_o     <= enable_i & r.errReg & s_nSync & s_ila & s_dataValid & r_jesdGtRx.rstDone;
 
 end rtl;

@@ -40,7 +40,6 @@ entity AxiStreamLaneTx is
 
       -- Transceiver word size (GTP,GTX,GTH) (2 or 4 bytes)
       GT_WORD_SIZE_G    : positive                    := 4
-
    );
    port (
    
@@ -61,11 +60,10 @@ end AxiStreamLaneTx;
 
 architecture rtl of AxiStreamLaneTx is
 
-   constant JESD_SSI_CONFIG_C : AxiStreamConfigType  := ssiAxiStreamConfig(GT_WORD_SIZE_G, TKEEP_COMP_C);
-   constant TSTRB_C           : slv(15 downto 0)     := ( 15 downto GT_WORD_SIZE_G => '0', GT_WORD_SIZE_G-1 downto 0 => '1');
-   constant KEEP_C            : slv(15 downto 0)     := ( 15 downto GT_WORD_SIZE_G => '0', GT_WORD_SIZE_G-1 downto 0 => '1');
-
-   constant PACKET_SIZE_SLV_C : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0)     := intToSlv(AXI_PACKET_SIZE_G, bitSize(AXI_PACKET_SIZE_G));
+   constant JESD_SSI_CONFIG_C : AxiStreamConfigType                           := ssiAxiStreamConfig(GT_WORD_SIZE_G, TKEEP_COMP_C);
+   constant PACKET_SIZE_SLV_C : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0)    := intToSlv(AXI_PACKET_SIZE_G, bitSize(AXI_PACKET_SIZE_G));
+   constant TSTRB_C           : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
+   constant KEEP_C            : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
 
    type StateType is (
       IDLE_S,
@@ -94,9 +92,9 @@ architecture rtl of AxiStreamLaneTx is
    
 begin
 
-   assert (GT_WORD_SIZE_G mod 8 = 0) report "GT_WORD_SIZE_G must be a multiple of 8" severity failure;
+   assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
 
-   comb : process (devRst_i, r, enable_i,sampleData_i,sampleData_i) is
+   comb : process (devRst_i, r, enable_i,sampleData_i, txCtrl_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -153,7 +151,7 @@ begin
          
                -- Send the JESD data 
                v.txAxisMaster.tvalid  := '1';
-               v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)   := sampleData_i; 
+               v.txAxisMaster.tData((GT_WORD_SIZE_G*8)-1 downto 0)   := sampleData_i; 
          
          
             -- Wait until the whole packet is sent
