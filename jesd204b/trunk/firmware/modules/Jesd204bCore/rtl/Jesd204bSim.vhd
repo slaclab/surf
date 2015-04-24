@@ -77,8 +77,8 @@ entity Jesd204bSim is
       sysRef_i       : in    sl;
 
       -- Data and character inputs from GT (transceivers)
-      dataRx_i       : in    Slv32Array(0 to L_G-1);       
-      chariskRx_i    : in    Slv4Array(0 to L_G-1);
+      r_jesdGtRxArr  : in   jesdGtRxLaneTypeArray(0 to L_G-1);
+      gt_reset_o     : out  slv(L_G-1 downto 0); 
 
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl;
@@ -171,8 +171,7 @@ begin
          sysRef_i     => s_sysref,
          enable_i     => enableRx_i(I),
          status_o     => statusRxArr_o(I),
-         dataRx_i     => dataRx_i(I),
-         chariskRx_i  => chariskRx_i(I),
+         r_jesdGtRx   => r_jesdGtRxArr(I),
          lmfc_i       => s_lmfc,
          nSyncAll_i   => r.nSyncAllD1,
          nSyncAny_i   => r.nSyncAnyD1,
@@ -209,6 +208,7 @@ begin
 
    -- Output assignment
    nSync_o     <= r.nSyncAllD1;
-   dataValid_o <= uAnd(s_dataValidVec);
+   dataValid_o <= uAnd(s_dataValidVec); --just for sim
+   gt_reset_o  <= not enableRx_i;
    -----------------------------------------------------
 end rtl;
