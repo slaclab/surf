@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,8 @@ entity SsiPcieAxiLite is
       -- PCIe Interface
       cfgFromPci       : in  PcieCfgOutType;
       irqActive        : in  sl;
-      irqEnable        : out sl;
+      irqIntEnable     : out sl;
+      irqExtEnable     : out sl;
       regTranFromPci   : in  TranFromPcieType;
       regObMaster      : in  AxiStreamMasterType;
       regObSlave       : out AxiStreamSlaveType;
@@ -174,7 +175,8 @@ begin
          -- PCIe Interface
          cfgFromPci     => cfgFromPci,
          irqActive      => irqActive,
-         irqEnable      => irqEnable,
+         irqIntEnable   => irqIntEnable,
+         irqExtEnable   => irqExtEnable,
          dmaLoopback    => dmaLoopback,
          -- AXI-Lite Register Interface
          axiReadMaster  => mAxiReadMasters(SYS_INDEX_C),

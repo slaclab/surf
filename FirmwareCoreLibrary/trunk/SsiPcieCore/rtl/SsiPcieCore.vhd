@@ -5,11 +5,35 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: SSI PCIe Core, Top Level
+-- Description: 
+--    SSI PCIe Core, Top Level
+--
+--    Supports up to 16x independent DMA channels
+--    Each DMA has 16x virtual channels
+--
+--    Supports the following Xilinx IP Core PCIe configurations:
+--       1) Generation 1: x1, x2, x4 and x8 lanes
+--       2) Generation 2: x1, x2, x4 and x8 lanes
+--       3) Generation 3: x1, x2, and x4
+--
+--    External User interrupt is support in the firmware.  However, the default 
+--    PCIe Linux driver can not be used.  To support this feature in software, 
+--    you will have to copy the SSI PCIe Linux driver then modify the interrupt 
+--    routine.
+--
+---------------------------------------------------------------------------------
+-- SsiPcieCore Linux Driver:
+--    Vendor ID = 0x1A4A
+--    Devide ID = 0x2030
+---------------------------------------------------------------------------------
+-- Note: Assumes 128-bit AXIS interface to Xilinx IP core.
+---------------------------------------------------------------------------------
+-- Note: Unable able to support PCIe GEN3 8x lanes 
+--       because it requires 256-bit AXIS bus (out of range for AxiStreamPkg.vhd)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -30,29 +54,29 @@ entity SsiPcieCore is
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C);
    port (
       -- System Interface
-      userIrqReq     : in  sl := '0';
-      serialNumber   : in  slv(63 downto 0);
-      cardRst        : out sl;
+      userIrqReq          : in  sl := '0';  -- Must be '0' for default PCIe Linux driver
+      serialNumber        : in  slv(63 downto 0);
+      cardRst             : out sl;
       -- AXI-Lite Interface (0x7FFFFFFF:0x00000C00)
-      axiWriteMaster : out AxiLiteWriteMasterType;
-      axiWriteSlave  : in  AxiLiteWriteSlaveType;
-      axiReadMaster  : out AxiLiteReadMasterType;
-      axiReadSlave   : in  AxiLiteReadSlaveType;
+      mAxiLiteWriteMaster : out AxiLiteWriteMasterType;
+      mAxiLiteWriteSlave  : in  AxiLiteWriteSlaveType;
+      mAxiLiteReadMaster  : out AxiLiteReadMasterType;
+      mAxiLiteReadSlave   : in  AxiLiteReadSlaveType;
       -- DMA Interface
-      dmaIbMasters   : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaIbSlaves    : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      dmaObMasters   : out AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaObSlaves    : in  AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaIbMasters        : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaIbSlaves         : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaObMasters        : out AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaObSlaves         : in  AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
       -- PCIe Interface      
-      cfgFromPci     : in  PcieCfgOutType;
-      cfgToPci       : out PcieCfgInType;
-      pciIbMaster    : in  AxiStreamMasterType;
-      pciIbSlave     : out AxiStreamSlaveType;
-      pciObMaster    : out AxiStreamMasterType;
-      pciObSlave     : in  AxiStreamSlaveType;
+      cfgFromPci          : in  PcieCfgOutType;
+      cfgToPci            : out PcieCfgInType;
+      pciIbMaster         : out AxiStreamMasterType;
+      pciIbSlave          : in  AxiStreamSlaveType;
+      pciObMaster         : in  AxiStreamMasterType;
+      pciObSlave          : out AxiStreamSlaveType;
       -- Clock and Resets
-      pciClk         : in  sl;
-      pciRst         : in  sl);
+      pciClk              : in  sl;
+      pciRst              : in  sl);
 end SsiPcieCore;
 
 architecture mapping of SsiPcieCore is
@@ -85,10 +109,11 @@ architecture mapping of SsiPcieCore is
    signal dmaTxObSlave     : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
 
    -- Interrupt Signals
-   signal irqRequest : sl;
-   signal coreIrqReq : sl;
-   signal irqEnable  : sl;
-   signal irqActive  : sl;
+   signal irqRequest   : sl;
+   signal coreIrqReq   : sl;
+   signal irqIntEnable : sl;
+   signal irqExtEnable : sl;
+   signal irqActive    : sl;
 
    -- DMA Loopback Signals
    signal dmaLoopback : slv(DMA_SIZE_G-1 downto 0);
@@ -99,6 +124,8 @@ architecture mapping of SsiPcieCore is
    
 begin
 
+   cfgToPci.serialNumber <= serialNumber;
+
    -----------------
    -- TLP Controller
    -----------------
@@ -108,8 +135,8 @@ begin
          DMA_SIZE_G => DMA_SIZE_G)
       port map (
          -- PCIe Interface
-         trnPending       => cfgToPci.TrnPending,
-         cfgTurnoffOk     => cfgToPci.cfgTurnoffOk,
+         trnPending       => cfgToPci.trnPending,
+         cfgTurnoffOk     => cfgToPci.turnoffOk,
          cfgFromPci       => cfgFromPci,
          pciIbMaster      => pciIbMaster,
          pciIbSlave       => pciIbSlave,
@@ -148,13 +175,14 @@ begin
          cardRst          => cardRst,
          dmaLoopback      => dmaLoopback,
          -- External AXI-Lite (0x7FFFFFFF:0x00000C00)
-         axiWriteMaster   => axiWriteMaster,
-         axiWriteSlave    => axiWriteSlave,
-         axiReadMaster    => axiReadMaster,
-         axiReadSlave     => axiReadSlave,
+         axiWriteMaster   => mAxiLiteWriteMaster,
+         axiWriteSlave    => mAxiLiteWriteSlave,
+         axiReadMaster    => mAxiLiteReadMaster,
+         axiReadSlave     => mAxiLiteReadSlave,
          -- PCIe Interface
          cfgFromPci       => cfgFromPci,
-         irqEnable        => irqEnable,
+         irqIntEnable     => irqIntEnable,
+         irqExtEnable     => irqExtEnable,
          irqActive        => irqActive,
          regTranFromPci   => regTranFromPci,
          regObMaster      => regObMaster,
@@ -181,9 +209,10 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Interrupt Interface
-         irqEnable    => irqEnable,
-         coreIrqReq   => coreIrqReq,
-         userIrqReq   => userIrqReq,
+         irqIntEnable => irqIntEnable,
+         irqExtEnable => irqExtEnable,
+         intIrqReq    => coreIrqReq,
+         extIrqReq    => userIrqReq,
          irqAck       => cfgFromPci.irqAck,
          irqActive    => irqActive,
          cfgIrqReq    => cfgToPci.irqReq,

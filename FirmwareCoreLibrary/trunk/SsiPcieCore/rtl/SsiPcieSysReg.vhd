@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,7 +33,8 @@ entity SsiPcieSysReg is
       -- PCIe Interface
       cfgFromPci     : in  PcieCfgOutType;
       irqActive      : in  sl;
-      irqEnable      : out sl;
+      irqIntEnable   : out sl;
+      irqExtEnable   : out sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -51,8 +52,6 @@ end SsiPcieSysReg;
 
 architecture rtl of SsiPcieSysReg is
 
-   constant MAX_CNT_C : natural := getTimeRatio(125.0E+6, 1.0);
-
    type RomType is array (0 to 63) of slv(31 downto 0);
    function makeStringRom return RomType is
       variable ret : RomType := (others => (others => '0'));
@@ -69,7 +68,8 @@ architecture rtl of SsiPcieSysReg is
    type RegType is record
       cardRst       : sl;
       cntRst        : sl;
-      irqEnable     : sl;
+      irqIntEnable  : sl;
+      irqExtEnable  : sl;
       dmaLoopback   : slv(DMA_SIZE_G-1 downto 0);
       scratchPad    : slv(31 downto 0);
       -- AXI-Lite
@@ -80,7 +80,8 @@ architecture rtl of SsiPcieSysReg is
    constant REG_INIT_C : RegType := (
       cardRst       => '1',
       cntRst        => '0',
-      irqEnable     => '0',
+      irqIntEnable  => '0',
+      irqExtEnable  => '0',
       dmaLoopback   => (others => '0'),
       scratchPad    => (others => '0'),
       -- AXI-Lite
@@ -146,8 +147,13 @@ begin
 
       axiSlaveRegisterW(X"010", 0, v.cntRst);
       axiSlaveRegisterW(X"010", 1, v.cardRst);
-      axiSlaveRegisterW(X"014", 0, v.irqEnable);
-      axiSlaveRegisterR(X"014", 1, irqActive);
+
+      axiSlaveRegisterR(X"014", 0, irqActive);
+      axiSlaveRegisterW(X"014", 1, v.irqIntEnable);
+      axiSlaveRegisterW(X"014", 2, v.irqExtEnable);
+
+      axiSlaveRegisterR(X"018", 0, toSlv(DMA_SIZE_G, 32));
+      axiSlaveRegisterW(X"01C", 0, v.dmaLoopback);
 
       axiSlaveRegisterR(X"020", 0, cfgFromPci.Status);
       axiSlaveRegisterR(X"020", 16, cfgFromPci.command);
@@ -159,9 +165,6 @@ begin
       axiSlaveRegisterR(X"02C", 8, cfgFromPci.deviceNumber);
       axiSlaveRegisterR(X"02C", 16, cfgFromPci.functionNumber);
       axiSlaveRegisterR(X"02C", 24, cfgFromPci.linkState);
-
-      axiSlaveRegisterR(X"030", 0, toSlv(DMA_SIZE_G, 32));
-      axiSlaveRegisterW(X"034", 0, v.dmaLoopback);
 
       axiSlaveRegisterR("11--------", 0, buildStampString(rdPntr));
 
@@ -182,8 +185,9 @@ begin
       cntRst  <= r.cntRst;
       cardRst <= r.cardRst;
 
-      irqEnable   <= r.irqEnable;
-      dmaLoopback <= r.dmaLoopback;
+      irqIntEnable <= r.irqIntEnable;
+      irqExtEnable <= r.irqExtEnable;
+      dmaLoopback  <= r.dmaLoopback;
       
    end process comb;
 
