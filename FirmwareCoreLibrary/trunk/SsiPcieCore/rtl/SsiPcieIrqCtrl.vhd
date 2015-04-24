@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,9 +26,10 @@ entity SsiPcieIrqCtrl is
       TPD_G : time := 1 ns);
    port (
       -- Interrupt Interface
-      irqEnable    : in  sl;
-      coreIrqReq   : in  sl;
-      userIrqReq   : in  sl;
+      irqIntEnable : in  sl;
+      irqExtEnable : in  sl;
+      intIrqReq    : in  sl;
+      extIrqReq    : in  sl;
       irqAck       : in  sl;
       irqActive    : out sl;
       cfgIrqReq    : out sl;
@@ -66,15 +67,21 @@ architecture rtl of SsiPcieIrqCtrl is
    
 begin
 
-   comb : process (coreIrqReq, irqAck, irqEnable, pciRst, r, userIrqReq) is
-      variable v : RegType;
-      variable i : natural;
+   comb : process (extIrqReq, intIrqReq, irqAck, irqExtEnable, irqIntEnable, pciRst, r) is
+      variable v          : RegType;
+      variable i          : natural;
+      variable irqEnable  : sl;
+      variable intRequest : sl;
+      variable extRequest : sl;
    begin
       -- Latch the current value
       v := r;
 
       -- Update the interrupt request
-      v.irqRequest := coreIrqReq or userIrqReq;
+      irqEnable    := irqIntEnable or irqExtEnable;
+      intRequest   := irqIntEnable and intIrqReq;
+      extRequest   := irqExtEnable and extIrqReq;
+      v.irqRequest := intRequest or extRequest;
 
       case r.state is
          ----------------------------------------------------------------------

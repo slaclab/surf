@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,15 +93,16 @@ package SsiPciePkg is
    type PcieCfgInType is record
       irqReq       : sl;
       irqAssert    : sl;
-      TrnPending   : sl;
-      cfgTurnoffOk : sl;
+      trnPending   : sl;
+      turnoffOk    : sl;
+      serialNumber : slv(63 downto 0);
    end record;
 
    ------------------------------------------------------------------------
    -- CfgOut Types/Constants                             
    ------------------------------------------------------------------------            
    type PcieCfgOutType is record
-      cfgToTurnOff   : sl;
+      toTurnOff      : sl;
       irqAck         : sl;
       busNumber      : slv(7 downto 0);
       deviceNumber   : slv(4 downto 0);

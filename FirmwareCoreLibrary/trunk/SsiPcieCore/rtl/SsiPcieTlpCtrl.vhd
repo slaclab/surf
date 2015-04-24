@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,10 +32,10 @@ entity SsiPcieTlpCtrl is
       trnPending       : out sl;
       cfgTurnoffOk     : out sl;
       cfgFromPci       : in  PcieCfgOutType;
-      pciIbMaster      : in  AxiStreamMasterType;
-      pciIbSlave       : out AxiStreamSlaveType;
-      pciObMaster      : out AxiStreamMasterType;
-      pciObSlave       : in  AxiStreamSlaveType;
+      pciIbMaster      : out AxiStreamMasterType;
+      pciIbSlave       : in  AxiStreamSlaveType;
+      pciObMaster      : in  AxiStreamMasterType;
+      pciObSlave       : out AxiStreamSlaveType;
       -- Register Interface
       regTranFromPci   : out TranFromPcieType;
       regObMaster      : out AxiStreamMasterType;
@@ -113,14 +113,14 @@ begin
    regTranFromPci.tag   <= x"00";       -- Not Used
    regTranFromPci.locId <= locId;
 
-   tFirst <= pciIbMaster.tUser(1);
-   sof    <= pciIbMaster.tUser(7 downto 4);
-   eof    <= pciIbMaster.tUser(11 downto 8);
+   tFirst <= pciObMaster.tUser(1);
+   sof    <= pciObMaster.tUser(7 downto 4);
+   eof    <= pciObMaster.tUser(11 downto 8);
 
    -------------------------------
    -- Check for straddling frames
    -------------------------------
-   comb : process (cfgFromPci, eof, pciIbMaster, pciRst, pendingTransaction, r, sof, tFirst,
+   comb : process (cfgFromPci, eof, pciObMaster, pciRst, pendingTransaction, r, sof, tFirst,
                    txSlave) is
       variable v : RegType;
       variable i : natural;
@@ -140,13 +140,13 @@ begin
          ----------------------------------------------------------------------
          when SOF_00_S =>
             -- Check for data moving
-            if (v.txMaster.tValid = '0') and (pciIbMaster.tValid = '1') then
+            if (v.txMaster.tValid = '0') and (pciObMaster.tValid = '1') then
                -- Ready for data
                v.rxSlave.tReady := '1';
                -- Pass the data to the FIFO
-               v.txMaster       := pciIbMaster;
+               v.txMaster       := pciObMaster;
                -- Save this transaction
-               v.master         := pciIbMaster;
+               v.master         := pciObMaster;
                -- Check for straddling SOF                  
                if (tFirst = '1') and (sof /= x"0") then
                   -- Terminate the incoming packet
@@ -164,19 +164,19 @@ begin
          ----------------------------------------------------------------------
          when SOF_10_S =>
             -- Check for data moving
-            if (v.txMaster.tValid = '0') and (pciIbMaster.tValid = '1') then
+            if (v.txMaster.tValid = '0') and (pciObMaster.tValid = '1') then
                -- Ready for data
                v.rxSlave.tReady                := '1';
                -- Update the bus with last transaction
                v.txMaster                      := r.master;
                -- Update tData value
                v.txMaster.tData(63 downto 0)   := r.master.tData(127 downto 64);
-               v.txMaster.tData(127 downto 64) := pciIbMaster.tData(63 downto 0);
+               v.txMaster.tData(127 downto 64) := pciObMaster.tData(63 downto 0);
                -- Update tKeep value
                v.txMaster.tKeep(7 downto 0)    := r.master.tKeep(15 downto 8);
-               v.txMaster.tKeep(15 downto 8)   := pciIbMaster.tKeep(7 downto 0);
+               v.txMaster.tKeep(15 downto 8)   := pciObMaster.tKeep(7 downto 0);
                -- Save this transaction
-               v.master                        := pciIbMaster;
+               v.master                        := pciObMaster;
                -- Check for straddling SOF
                if (tFirst = '1') and (sof /= x"0") then
                   -- Terminate the incoming packet
@@ -186,7 +186,7 @@ begin
                   -- Set the tKeep value
                   v.master.tKeep   := x"FFFF";
                -- Check for tLast
-               elsif (pciIbMaster.tLast = '1') then
+               elsif (pciObMaster.tLast = '1') then
                   -- Check the upper half for EOF
                   if (eof(3) = '1') then
                      -- Next state
@@ -220,7 +220,7 @@ begin
       end case;
 
       --  Turn-off OK if requested and no transaction is pending
-      if (cfgFromPci.cfgToTurnOff = '1') and (pendingTransaction = '0') then
+      if (cfgFromPci.toTurnOff = '1') and (pendingTransaction = '0') then
          v.cfgTurnoffOk := '1';
       else
          v.cfgTurnoffOk := '0';
@@ -235,7 +235,7 @@ begin
       rin <= v;
 
       -- Outputs
-      pciIbSlave   <= v.rxSlave;
+      pciObSlave   <= v.rxSlave;
       axisHdr      <= getPcieHdr(r.txMaster);
       cfgTurnoffOk <= r.cfgTurnoffOk;
       
@@ -286,8 +286,8 @@ begin
          dmaRxIbSlave  => dmaRxIbSlave,
          -- PCIe Interface
          trnPending    => pendingTransaction,
-         mAxisMaster   => pciObMaster,
-         mAxisSlave    => pciObSlave,
+         mAxisMaster   => pciIbMaster,
+         mAxisSlave    => pciIbSlave,
          -- Global Signals
          pciClk        => pciClk,
          pciRst        => pciRst); 
