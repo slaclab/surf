@@ -1,33 +1,39 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use IEEE.NUMERIC_STD.all;
+use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
 package Jesd204bPkg is
 
 -- Constant definitions
+
+   -- 8B10B characters (8-bit values)
    constant K_CHAR_C    : slv(7 downto 0) := x"BC";
 
+   -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;   
    constant RX_STAT_WIDTH_C   : positive := 8;
    
--- Types TODO Remove later
+   -- Number of bytes in MGT word (2 or 4). Has to be same as GT_WORD_SIZE_G
+   constant GT_WORD_SIZE_C : positive := 4;
+   
+   
+-- Types 
 -------------------------------------------------------------------------- 
-   type ctrlRegType is
-   record
-      enable  : sl;
-      lmfcDly : slv(3 downto 0);
-   end record;
+   type jesdGtRxLaneType is record
+      data    : slv((GT_WORD_SIZE_C*8)-1 downto 0); -- PHY receive data
+      dataK   : slv(GT_WORD_SIZE_C-1 downto 0);     -- PHY receive data is K character
+      dispErr : slv(GT_WORD_SIZE_C-1 downto 0);     -- PHY receive data has disparity error
+      decErr  : slv(GT_WORD_SIZE_C-1 downto 0);     -- PHY receive data not in table
+      rstDone : sl;
+   end record jesdGtRxLaneType;
    
-   type statRegType is
-   record
-      statReg : slv(7 downto 0);
-   end record;
+   type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
    
-   type ctrlRegArrType is array (natural range<>) of ctrlRegType;
-   type statRegArrType is array (natural range<>) of statRegType;
-   
+   type AxiTxDataType is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
+ 
+  
 -- Functions
 --------------------------------------------------------------------------  
    -- Detect K character
@@ -60,7 +66,6 @@ package body Jesd204bPkg is
    -- Detect K character
    function detKcharFunc(data_slv: slv; charisk_slv: slv; bytes_int: positive) return std_logic is
    begin
-
       if(bytes_int = 2) then
          if(   data_slv (7  downto 0 ) = K_CHAR_C and
                data_slv (15 downto 8 ) = K_CHAR_C and
@@ -167,14 +172,14 @@ package body Jesd204bPkg is
    function JesdDataAlign(data_slv: slv; position_slv: slv; bytes_int: positive) return std_logic_vector is
    begin
       if(bytes_int = 2) then
-         case position_slv is
+         case position_slv(bytes_int -1 downto 0) is
 		      when "01"   => return data_slv  (31   downto 16);
             when "10"   => return data_slv  (31-8 downto 16-8);
             when others => return data_slv  (31   downto 16);
          end case;
       elsif(bytes_int = 4) then
-         case position_slv is
-		    when "0001" => return data_slv(63     downto 32);
+         case position_slv(bytes_int -1 downto 0) is
+		      when "0001" => return data_slv(63     downto 32);
             when "0010" => return data_slv(63-1*8 downto 32-1*8);
             when "0100" => return data_slv(63-2*8 downto 32-2*8);
             when "1000" => return data_slv(63-3*8 downto 32-3*8);
@@ -196,6 +201,6 @@ package body Jesd204bPkg is
    begin
       return std_logic_vector(to_unsigned(data_int, bytes_int));
    end IntToSlv;
+
    
-  
 end package body Jesd204bPkg;
