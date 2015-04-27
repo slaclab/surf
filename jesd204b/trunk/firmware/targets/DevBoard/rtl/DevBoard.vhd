@@ -177,7 +177,7 @@ architecture rtl of DevBoard is
          connectivity      => X"0001"),
       JESD_AXIL_INDEX_C    => (
          baseAddr          => JESD_AXIL_BASE_ADDR_C,
-         addrBits          => 8,
+         addrBits          => 12,
          connectivity      => X"0001"));
 
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
