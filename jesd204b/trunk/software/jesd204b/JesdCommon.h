@@ -14,14 +14,14 @@
 // Modification history :
 // 27/04/2015: created
 //-----------------------------------------------------------------------------
-#ifndef __AXI_VERSION_H__
-#define __AXI_VERSION_H__
+#ifndef __JESD_COMMON_H__
+#define __JESD_COMMON_H__
 
 #include <Device.h>
 #include <stdint.h>
 using namespace std;
 
-//! Class to contain AxiVersion
+//! Class to contain JESDCommon
 class JesdCommon : public Device {
 
    public:
