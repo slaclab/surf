@@ -30,7 +30,7 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
                         Device(linkConfig,baseAddress,"JesdCommon",index,parent) {
 
    // Description
-   desc_ = "Firmware Version object.";
+   desc_ = "Common JESD interface object.";
 
    // Create Registers: name, address
    RegisterLink *rl;
