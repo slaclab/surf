@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
--- Last update: 2015-04-24
+-- Last update: 2015-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ entity DevBoard is
       AXIL_CLK_FREQ_G        : real    := 125.0E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 16);
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 9);
    port (
       pgpRefClkP : in sl;
       pgpRefClkN : in sl;
@@ -54,8 +54,8 @@ entity DevBoard is
       -- Signals from clock manager
       fpgaDevClkaP : in sl;             -- GBT_CLK_0_P - FMC D3
       fpgaDevClkaN : in sl;             -- GBT_CLK_0_N - FMC D4
-      fpgaDevClkbP : in sl;             -- LA00_P_CC - FMC G6
-      fpgaDevClkbN : in sl;             -- LA00_N_CC - FMC G7
+--      fpgaDevClkbP : in sl;             -- LA00_P_CC - FMC G6
+--      fpgaDevClkbN : in sl;             -- LA00_N_CC - FMC G7
       
       -- JESD synchronisation timing signal (Used in subclass 1 mode)
       -- has to meet setup and hold times of JESD devClk
@@ -65,10 +65,10 @@ entity DevBoard is
       fpgaSysRefN  : in sl;             -- LA04_N - FMC G10
 
       -- Signals to ADC (if clock manager not used)
-      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
-      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
-      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
-      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
+--      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
+--      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
+--      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
+--      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
 
       -- JESD MGT signals
       adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]

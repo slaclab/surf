@@ -56,16 +56,20 @@ set_property PACKAGE_PIN H2 [get_ports pgpGtTxP]
 set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP] 
 set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
 
-set_property PACKAGE_PIN C25 [get_ports fpgaDevClkbP]
-set_property PACKAGE_PIN B25 [get_ports fpgaDevClkbN]
+# set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbP]
+# set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbN]
+# set_property PACKAGE_PIN C25 [get_ports fpgaDevClkbP]
+# set_property PACKAGE_PIN B25 [get_ports fpgaDevClkbN]
 
+set_property IOSTANDARD LVDS_25 [get_ports fpgaSysRefP]
+set_property IOSTANDARD LVDS_25 [get_ports fpgaSysRefN]
 set_property PACKAGE_PIN H26 [get_ports fpgaSysRefP]
 set_property PACKAGE_PIN H27 [get_ports fpgaSysRefN]
 
-set_property PACKAGE_PIN D26 [get_ports adcDevClkP]
-set_property PACKAGE_PIN C26 [get_ports adcDevClkN]
-set_property PACKAGE_PIN G29 [get_ports adcSysRefP]
-set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
+# set_property PACKAGE_PIN D26 [get_ports adcDevClkP]
+# set_property PACKAGE_PIN C26 [get_ports adcDevClkN]
+# set_property PACKAGE_PIN G29 [get_ports adcSysRefP]
+# set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
 
 #D5 on FMC
 set_property PACKAGE_PIN E3 [get_ports {adcGtRxN[0]}]
@@ -78,6 +82,8 @@ set_property PACKAGE_PIN B5 [get_ports {adcGtRxP[2]}]
 set_property PACKAGE_PIN A8 [get_ports {adcGtRxN[3]}]
 set_property PACKAGE_PIN A7 [get_ports {adcGtRxP[3]}]
 
+set_property IOSTANDARD LVDS_25 [get_ports syncbP]
+set_property IOSTANDARD LVDS_25 [get_ports syncbN]
 set_property PACKAGE_PIN E29 [get_ports {syncbP}]
 set_property PACKAGE_PIN E30 [get_ports {syncbN}]
 
