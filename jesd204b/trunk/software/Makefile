@@ -22,7 +22,7 @@ else
    DEF      :=
    CFLAGS   := $(DEF_CFLAGS) -fpermissive
    LFLAGS   := $(DEF_LFLAGS)
-   EXT_TARS := gui ana
+   EXT_TARS := gui
    CLN      := server_clean
    UTL_DIR  := $(PWD)/util
    OBJ      := $(PWD)/.obj
@@ -75,7 +75,7 @@ $(OBJ)/%.o: $(GEN_DIR)/%.cpp $(GEN_DIR)/%.h
 $(OBJ)/%.o: $(DEV_DIR)/%.cpp $(DEV_DIR)/%.h
 	$(CC) -c $(CFLAGS) $(DEF) -o $@ $<
 
-# Compile Tracker Sources
+# Compile JESD Sources
 $(OBJ)/%.o: $(JESD_DIR)/%.cpp $(JESD_DIR)/%.h
 	$(CC) -c $(CFLAGS) $(DEF) -o $@ $<
 
