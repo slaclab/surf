@@ -16,10 +16,12 @@
 #include <DevBoard.h>
 #include <AxiVersion.h>
 #include <Pgp2bAxi.h>
+#include <JesdCommon.h>
 #include <AxiMicronP30.h>
 #include <PrbsRx.h>
 #include <PrbsTx.h>
 #include <Register.h>
+#include <RegisterLink.h>
 #include <Variable.h>
 #include <sstream>
 #include <iostream>
@@ -37,7 +39,7 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
    //addDevice(new FebCore    ( linkConfig, baseAddress | (0x00000000 >> 2)*addrSize, 0, this, addrSize));
    addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | (0x00F00000 * (addrSize/4)), 0, this, addrSize));   
    addDevice(new AxiVersion ( linkConfig, baseAddress | (0x00000000 * (addrSize/4)), 0, this, addrSize));
-
+   addDevice(new JesdCommon ( linkConfig, baseAddress | (0x00010000 * (addrSize/4)), 0, this, addrSize));
 //    addDevice(new PrbsTx   ( linkConfig, baseAddress | (0x00212000 >> 2)*addrSize, 1, this, addrSize));
 //    addDevice(new PrbsTx   ( linkConfig, baseAddress | (0x00212100 >> 2)*addrSize, 2, this, addrSize));
 
