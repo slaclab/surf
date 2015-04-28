@@ -44,25 +44,25 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
    
    
    
-   addRegisterLink(rl = new RegisterLink("StatusL1",      baseAddress_ + (0x10*addrSize), 1, 8,
-                                "GTXRdy",        Variable::Status, 0, 0x1,
-                                "DataValid",     Variable::Status, 1, 0x1, 
-                                "IlasActive",    Variable::Status, 2, 0x1,
-                                "nSync",         Variable::Status, 3, 0x1,                                 
-                                "RxBuffUfl",     Variable::Status, 4, 0x1,
-                                "RxBuffOfl",     Variable::Status, 5, 0x1,                                 
-                                "AlignErr",      Variable::Status, 6, 0x1,
-                                "RxEnabled",     Variable::Status, 7, 0x1));                                                      
+   addRegisterLink(rl = new RegisterLink("L1Status",      baseAddress_ + (0x10*addrSize), 1, 8,
+                                "L1GTXRdy",        Variable::Status, 0, 0x1,
+                                "L1DataValid",     Variable::Status, 1, 0x1, 
+                                "L1IlasActive",    Variable::Status, 2, 0x1,
+                                "L1nSync",         Variable::Status, 3, 0x1,                                 
+                                "L1RxBuffUfl",     Variable::Status, 4, 0x1,
+                                "L1RxBuffOfl",     Variable::Status, 5, 0x1,                                 
+                                "L1AlignErr",      Variable::Status, 6, 0x1,
+                                "L1RxEnabled",     Variable::Status, 7, 0x1));                                                      
                                 
-   addRegisterLink(rl = new RegisterLink("StatusL2",      baseAddress_ + (0x11*addrSize), 1, 8,
-                                "GTXRdy",        Variable::Status, 0, 0x1,
-                                "DataValid",     Variable::Status, 1, 0x1, 
-                                "IlasActive",    Variable::Status, 2, 0x1,
-                                "nSync",         Variable::Status, 3, 0x1,                                 
-                                "RxBuffUfl",     Variable::Status, 4, 0x1,
-                                "RxBuffOfl",     Variable::Status, 5, 0x1,                                 
-                                "AlignErr",      Variable::Status, 6, 0x1,
-                                "RxEnabled",     Variable::Status, 7, 0x1));
+   addRegisterLink(rl = new RegisterLink("L2Status",      baseAddress_ + (0x11*addrSize), 1, 8,
+                                "L2GTXRdy",        Variable::Status, 0, 0x1,
+                                "L2DataValid",     Variable::Status, 1, 0x1, 
+                                "L2IlasActive",    Variable::Status, 2, 0x1,
+                                "L2nSync",         Variable::Status, 3, 0x1,                                 
+                                "L2RxBuffUfl",     Variable::Status, 4, 0x1,
+                                "L2RxBuffOfl",     Variable::Status, 5, 0x1,                                 
+                                "L2AlignErr",      Variable::Status, 6, 0x1,
+                                "L2RxEnabled",     Variable::Status, 7, 0x1));
    // Variables
 
    //Commands
