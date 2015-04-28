@@ -29,8 +29,8 @@ create_clock -period 2.7027 -name jesdRefClk [get_ports fpgaDevClkaP]
 create_generated_clock -name jesdRefClkDiv2 -divide_by 2 -source [get_ports fpgaDevClkaP] \
     [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}]
 
-create_generated_clock -name jesdClk -divide_by 1 -source [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}] \
-    [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
+#create_generated_clock -name jesdClk -divide_by 1 -source [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}] \
+#    [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
 
 
 
@@ -39,7 +39,8 @@ create_generated_clock -name jesdClk -divide_by 1 -source [get_pins {IBUFDS_GTE2
 set_clock_groups -asynchronous \ 
     -group [get_clocks -include_generated_clocks pgpClk] \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks jesdClk]
+    -group [get_clocks -include_generated_clocks jesdRefClk]
+#    -group [get_clocks -include_generated_clocks jesdClk]
 
 #Assure that sychronization registers are placed in the same slice with no logic between each sync stage
 set_property ASYNC_REG TRUE [get_cells -hierarchical *crossDomainSyncReg_reg*]
