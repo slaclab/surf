@@ -1,5 +1,5 @@
 # Define target output
-target: bit
+target: prom
 
 # Define target part
 export PRJ_PART = XC7K325TFFG900-2
