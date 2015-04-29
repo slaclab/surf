@@ -42,7 +42,7 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
 
 
    // Description
-   desc_ = "FrontEndTest Control";
+   desc_ = "JESD Dev Board";
    
    // Data mask:
    //   REG  = lane 0, vc 0 (RX and TX)

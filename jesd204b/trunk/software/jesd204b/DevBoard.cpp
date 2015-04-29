@@ -36,9 +36,9 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
    // Description
    desc_ = "JESD Dev Board";
 
-   addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | (0x00F00000 * (addrSize/4)), 0, this, addrSize)); 
-   addDevice(new AxiVersion ( linkConfig, baseAddress | (0x00000000 * (addrSize/4)), 0, this, addrSize));
-   addDevice(new JesdCommon ( linkConfig, baseAddress | (0x00010000 * (addrSize/4)), 0, this, addrSize)); 
+   addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x00F00000>>2) * (addrSize)), 0, this, addrSize)); 
+   addDevice(new AxiVersion ( linkConfig, baseAddress | ((0x00000000>>2) * (addrSize)), 0, this, addrSize));
+   addDevice(new JesdCommon ( linkConfig, baseAddress | ((0x00010000>>2) * (addrSize)), 0, this, addrSize)); 
 
 }
 
