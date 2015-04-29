@@ -289,11 +289,11 @@ begin
             VALID_THOLD_G       => 1,
             BRAM_EN_G           => true,
             USE_BUILT_IN_G      => false,
-            GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_G = AXIS_CLK_FREQ_G),
+            GEN_SYNC_FIFO_G     => false,
 --            CASCADE_SIZE_G      => CASCADE_SIZE_G,
             FIFO_ADDR_WIDTH_G   => AXIS_FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 2**AXIS_FIFO_ADDR_WIDTH_G-1,
+            FIFO_PAUSE_THRESH_G => 2**AXIS_FIFO_ADDR_WIDTH_G-300,
 --            CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
             SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
             MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
