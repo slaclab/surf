@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
--- Last update: 2015-04-27
+-- Last update: 2015-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -279,6 +279,7 @@ begin
    PgpFrontEnd_1 : entity work.PgpFrontEnd
       generic map (
          TPD_G                  => TPD_G,
+         SIMULATION_G           => SIMULATION_G,
          PGP_REFCLK_FREQ_G      => PGP_REFCLK_FREQ_G,
          PGP_LINE_RATE_G        => PGP_LINE_RATE_G,
          AXIL_CLK_FREQ_G        => AXIL_CLK_FREQ_G,

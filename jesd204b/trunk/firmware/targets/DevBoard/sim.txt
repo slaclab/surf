@@ -1,1 +1,1 @@
-vhdl work sim/FrontEndTestTb.vhd
+vhdl work sim/DevBoardTb.vhd
