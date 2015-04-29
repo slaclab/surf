@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-11-10
+-- Last update: 2015-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ end AxiStreamLaneTx;
 architecture rtl of AxiStreamLaneTx is
 
    constant JESD_SSI_CONFIG_C : AxiStreamConfigType                           := ssiAxiStreamConfig(GT_WORD_SIZE_G, TKEEP_COMP_C);
-   constant PACKET_SIZE_SLV_C : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0)    := intToSlv(AXI_PACKET_SIZE_G, bitSize(AXI_PACKET_SIZE_G));
+--   constant PACKET_SIZE_SLV_C : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0)    := intToSlv(AXI_PACKET_SIZE_G, bitSize(AXI_PACKET_SIZE_G));
    constant TSTRB_C           : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
    constant KEEP_C            : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
 
@@ -73,7 +73,7 @@ architecture rtl of AxiStreamLaneTx is
    );  
 
    type RegType is record    
-      dataCnt        : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0);
+      dataCnt        : slv(9 downto 0);
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
    end record;
@@ -87,13 +87,11 @@ architecture rtl of AxiStreamLaneTx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txCtrl : AxiStreamCtrlType;
-   
 begin
 
    assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
 
-   comb : process (devRst_i, r, enable_i,sampleData_i, txCtrl_i) is
+   comb : process (devRst_i, enable_i, r, sampleData_i, txCtrl_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -109,6 +107,8 @@ begin
       -- Latch the configuration
       v.txAxisMaster.tKeep := KEEP_C;
       v.txAxisMaster.tStrb := TSTRB_C;
+
+      v.dataCnt := (others => '0');
       
       -- State Machine
       case (r.state) is
@@ -116,7 +116,7 @@ begin
          when IDLE_S =>
          
             -- Put packet data count to zero 
-            v.dataCnt := (others => '0');  
+--            v.dataCnt := (others => '0');  
  
             -- No data sent 
             v.txAxisMaster.tvalid  := '0';
@@ -132,7 +132,7 @@ begin
          when SOF_S =>
            
             -- Increment the counter            
-            v.dataCnt := (others => '0');
+--            v.dataCnt := (others => '0');
 
 
             -- No data sent 
@@ -156,7 +156,7 @@ begin
                v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent
-            if r.dataCnt = PACKET_SIZE_SLV_C then
+            if r.dataCnt = AXI_PACKET_SIZE_G then
                -- Next State
                v.state   := EOF_S;
             end if;
@@ -164,7 +164,7 @@ begin
          when EOF_S =>
          
             -- Put packet data count to zero 
-            v.dataCnt := (others => '0'); 
+--            v.dataCnt := (others => '0'); 
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
@@ -176,6 +176,8 @@ begin
             ssiSetUserEofe(JESD_SSI_CONFIG_C, v.txAxisMaster, '0');
 
             v.state := IDLE_S;
+
+         when others => null;
 
       ----------------------------------------------------------------------
       end case;
