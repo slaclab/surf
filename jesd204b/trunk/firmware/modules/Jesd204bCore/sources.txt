@@ -4,6 +4,8 @@ vhdl work rtl/syncFsm.vhd
 vhdl work rtl/sysrefDly.vhd
 vhdl work rtl/LmfcGen.vhd
 vhdl work rtl/JesdRx.vhd
+vhdl work rtl/JesdTxTest.vhd
+vhdl work rtl/syncFsmTx.vhd
 vhdl work rtl/AxiLiteRegItf.vhd
 vhdl work rtl/AxiStreamLaneTx.vhd
 vhdl work rtl/Jesd204b.vhd

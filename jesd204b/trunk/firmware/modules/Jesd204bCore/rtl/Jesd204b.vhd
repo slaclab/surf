@@ -30,6 +30,9 @@ entity Jesd204b is
    generic (
       TPD_G             : time                        := 1 ns;
       
+   -- Test tx module instead of GTX
+      TEST_G            : boolean                     := true;
+      
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
       AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8;
@@ -131,6 +134,11 @@ signal s_sampleDataArr : AxiTxDataType(L_G-1 downto 0);
 signal  s_sysrefSync : sl;
 signal  s_sysrefD    : sl;
 
+-- Record containing GT signals
+signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
+
+
+
 begin
    -- Check generics TODO add others
    assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
@@ -197,23 +205,77 @@ begin
       sysrefDlyRx_o   => s_sysrefDlyRx,
       enableRx_o      => s_enableRx
    );
-
-   -- Synchronise SYSREF input to devClk_i
-   Synchronizer_INST: entity work.Synchronizer
+  
+   -- LMFC period generator aligned to SYSREF input
+   -------------------------------------------------------------------------
+   LmfcGen_INST: entity work.LmfcGen
    generic map (
       TPD_G          => TPD_G,
-      RST_POLARITY_G => '1',
-      OUT_POLARITY_G => '1',
-      RST_ASYNC_G    => false,
-      STAGES_G       => 2,
-      BYPASS_SYNC_G  => false,
-      INIT_G         => "0")
+      K_G            => K_G,
+      F_G            => F_G,
+      GT_WORD_SIZE_G => GT_WORD_SIZE_G)
    port map (
-      clk     => devClk_i,
-      rst     => devRst_i,
-      dataIn  => sysref_i,
-      dataOut => s_sysrefSync
+      clk      => devClk_i,
+      rst      => devRst_i,
+      nSync_i  => r.nSyncAllD1,
+      sysref_i => s_sysrefD,
+      lmfc_o   => s_lmfc 
    );
+
+   -- IF DEF
+   
+   -- Generate TX test core if TEST_G=true is selected
+   GenerateTest: if TEST_G = true generate
+   -----------------------------------------
+      GenerateTxLanes : for I in L_G-1 downto 0 generate    
+         JesdTxSimple_INST: entity work.JesdTxTest
+            generic map (
+               TPD_G          => TPD_G,
+               F_G            => F_G,
+               K_G            => K_G,
+               GT_WORD_SIZE_G => GT_WORD_SIZE_G,
+               SUB_CLASS_G    => SUB_CLASS_G)
+            port map (
+               devClk_i      => devClk_i,
+               devRst_i      => devRst_i,
+               enable_i      => s_enableRx(I),
+               r_jesdGtRx    => s_jesdGtRxArr(I),
+               lmfc_i        => s_lmfc,
+               nSync_i       => r.nSyncAllD1,
+               txDataValid_o => open);
+      end generate GenerateTxLanes;
+      
+      -- Sysref connected to enable (rsysref works on rising edge)
+      s_sysrefSync <= s_enableRx(0) or s_enableRx(1);
+
+   ----------------------------------------       
+   end generate GenerateTest;
+   
+   -- ELSE   
+   
+   GenerateOper: if TEST_G = false generate
+   -----------------------------------------
+      -- Use input from GTX
+      s_jesdGtRxArr <= r_jesdGtRxArr;
+      
+      -- Synchronise SYSREF input to devClk_i
+      Synchronizer_INST: entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => false,
+         STAGES_G       => 2,
+         BYPASS_SYNC_G  => false,
+         INIT_G         => "0")
+      port map (
+         clk     => devClk_i,
+         rst     => devRst_i,
+         dataIn  => sysref_i,
+         dataOut => s_sysrefSync
+      );
+   -----------------------------------------
+   end generate GenerateOper;
 
    -- Delay SYSREF input (for 1 to 32 c-c)
    SysrefDly_INST: entity work.SysrefDly
@@ -228,24 +290,9 @@ begin
       sysref_i => s_sysrefSync,
       sysref_o => s_sysrefD
    );
-
-   -- LMFC period generator aligned to SYSREF input
-   LmfcGen_INST: entity work.LmfcGen
-   generic map (
-      TPD_G          => TPD_G,
-      K_G            => K_G,
-      F_G            => F_G,
-      GT_WORD_SIZE_G => GT_WORD_SIZE_G)
-   port map (
-      clk      => devClk_i,
-      rst      => devRst_i,
-      nSync_i  => r.nSyncAllD1,
-      sysref_i => s_sysrefD,
-      lmfc_o   => s_lmfc 
-   );
-    
-   -- JESD Receiver modules (one module per Lane)
    
+   
+   -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for I in L_G-1 downto 0 generate    
       JesdRx_INST: entity work.JesdRx
       generic map (
@@ -260,7 +307,7 @@ begin
          sysRef_i     => s_sysrefD,
          enable_i     => s_enableRx(I),
          status_o     => s_statusRxArr(I),
-         r_jesdGtRx   => r_jesdGtRxArr(I),
+         r_jesdGtRx   => s_jesdGtRxArr(I),
          lmfc_i       => s_lmfc,
          nSyncAll_i   => r.nSyncAllD1,
          nSyncAny_i   => r.nSyncAnyD1,

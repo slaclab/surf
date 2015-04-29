@@ -244,7 +244,7 @@ begin
          v.errReg := REG_INIT_C.errReg;
       end if;
 
-                                        -- Reset registers
+      -- Reset registers
       if (devRst_i = '1') then
          v := REG_INIT_C;
       end if;
@@ -259,7 +259,7 @@ begin
       end if;
    end process seq;
 
-                                        -- Output assignment
+   -- Output assignment
    nSync_o      <= s_nSync or not enable_i;
    dataValid_o  <= s_dataValid;
    sampleData_o <= s_sampleData;
