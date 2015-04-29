@@ -49,11 +49,11 @@ entity Jesd204bGtx7 is
       RX_CLK25_DIV_G        : integer; -- use getGtx7CPllCfg or to getGtx7QPllCfg set     
       
       -- MGT Configurations
-      PMA_RSV_G             : bit_vector := x"00018480";            -- TODO Check in coregen      
-      RX_OS_CFG_G           : bit_vector := "0000010000000";        -- TODO Check in coregen 
-      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- TODO Check in coregen 
-      RXDFEXYDEN_G          : sl         := '0';                    -- TODO Check in coregen 
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3010D90C";            -- TODO Check in coregen 
+      PMA_RSV_G             : bit_vector := x"001E7080";            -- Values from coregen     
+      RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Values from coregen 
+      RXCDR_CFG_G           : bit_vector := x"03000023ff10400020";  -- Values from coregen  
+      RXDFEXYDEN_G          : sl         := '1';                    -- Values from coregen 
+      RX_DFE_KL_CFG2_G      : bit_vector := X"301148AC";            -- Values from coregen 
 
       -- Configure PLL sources
       TX_PLL_G         : string; -- "QPLL" or "CPLL"

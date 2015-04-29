@@ -120,13 +120,14 @@ begin
  
             -- No data sent 
             v.txAxisMaster.tvalid  := '0';
-            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)  := (others => '0');
- 
+            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)  := (others => '0');                
+            v.txAxisMaster.tLast := '0';
+            
             -- Check if fifo and JESD is ready
             if txCtrl_i.pause = '0' and enable_i = '1' then -- TODO later add "and dataReady_i = '1'"
                -- Next State
                v.state := SOF_S;
-            end if;  
+            end if;
          ----------------------------------------------------------------------
          when SOF_S =>
            
@@ -136,8 +137,9 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)   := (others => '0'); 
-
+            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)   := (others => '0');              
+            v.txAxisMaster.tLast := '0';
+            
             -- Set the SOF bit
             ssiSetUserSof(JESD_SSI_CONFIG_C, v.txAxisMaster, '1');
 
@@ -150,8 +152,8 @@ begin
          
                -- Send the JESD data 
                v.txAxisMaster.tvalid  := '1';
-               v.txAxisMaster.tData((GT_WORD_SIZE_G*8)-1 downto 0)   := sampleData_i; 
-         
+               v.txAxisMaster.tData((GT_WORD_SIZE_G*8)-1 downto 0)   := sampleData_i;
+               v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent
             if r.dataCnt = PACKET_SIZE_SLV_C then
@@ -167,8 +169,7 @@ begin
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
             v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)  := (others => '0');
-
-            -- Set the EOF bit                
+            -- Set the EOF(tlast) bit                
             v.txAxisMaster.tLast := '1';
             
             -- Set the EOFE bit ERROR bit TODO add JESD error later
