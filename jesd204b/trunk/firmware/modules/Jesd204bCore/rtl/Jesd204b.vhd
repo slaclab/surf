@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Module supports a subset of features from JESD204b standard.
---              information.
+--              
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ entity Jesd204b is
       TPD_G             : time                        := 1 ns;
       
    -- Test tx module instead of GTX
-      TEST_G            : boolean                     := true;
+      TEST_G            : boolean                     := false;
       
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
@@ -225,9 +225,9 @@ begin
    -- IF DEF
    
    -- Generate TX test core if TEST_G=true is selected
-   GenerateTest: if TEST_G = true generate
+   TEST_GEN: if TEST_G = true generate
    -----------------------------------------
-      GenerateTxLanes : for I in L_G-1 downto 0 generate    
+      TX_LANES_GEN : for I in L_G-1 downto 0 generate    
          JesdTxSimple_INST: entity work.JesdTxTest
             generic map (
                TPD_G          => TPD_G,
@@ -243,17 +243,16 @@ begin
                lmfc_i        => s_lmfc,
                nSync_i       => r.nSyncAllD1,
                txDataValid_o => open);
-      end generate GenerateTxLanes;
+      end generate TX_LANES_GEN;
       
       -- Sysref connected to enable (rsysref works on rising edge)
       s_sysrefSync <= s_enableRx(0) or s_enableRx(1);
-
    ----------------------------------------       
-   end generate GenerateTest;
+   end generate TEST_GEN;
    
    -- ELSE   
    
-   GenerateOper: if TEST_G = false generate
+   GT_OPER_GEN: if TEST_G = false generate
    -----------------------------------------
       -- Use input from GTX
       s_jesdGtRxArr <= r_jesdGtRxArr;
@@ -275,7 +274,7 @@ begin
          dataOut => s_sysrefSync
       );
    -----------------------------------------
-   end generate GenerateOper;
+   end generate GT_OPER_GEN;
 
    -- Delay SYSREF input (for 1 to 32 c-c)
    SysrefDly_INST: entity work.SysrefDly
@@ -290,8 +289,7 @@ begin
       sysref_i => s_sysrefSync,
       sysref_o => s_sysrefD
    );
-   
-   
+
    -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for I in L_G-1 downto 0 generate    
       JesdRx_INST: entity work.JesdRx
