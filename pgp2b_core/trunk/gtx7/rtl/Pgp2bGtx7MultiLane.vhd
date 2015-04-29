@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-11-17
+-- Last update: 2015-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -153,10 +153,11 @@ architecture rtl of Pgp2bGtx7MultiLane is
    signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      U_Pgp2bLane,
-      Gtx7Core_Inst : label is "TRUE";
+
+--   attribute KEEP_HIERARCHY : string;
+--   attribute KEEP_HIERARCHY of
+--      U_Pgp2bLane,
+--      Gtx7Core_Inst : label is "TRUE";
    
 begin
 

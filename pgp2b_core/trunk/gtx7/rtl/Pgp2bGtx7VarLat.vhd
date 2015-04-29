@@ -75,7 +75,7 @@ entity Pgp2bGtx7VarLat is
    port (
       -- GT Clocking
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl;                      -- Drives CPLL if used
+      gtCPllRefClk     : in  sl := '0';                      -- Drives CPLL if used
       gtCPllLock       : out sl;
       gtQPllRefClk     : in  sl := '0';                      -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';

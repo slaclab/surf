@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2014-11-10
+-- Last update: 2015-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -273,6 +273,8 @@ architecture rtl of Gtx7Core is
    constant RX_INT_DATAWIDTH_C : integer := (RX_INT_DATA_WIDTH_G/32);
    constant TX_INT_DATAWIDTH_C : integer := (TX_INT_DATA_WIDTH_G/32);
 
+   constant RXLPMEN_C : sl := ite(RX_EQUALIZER_G = "LPM", '1', '0');
+
    --------------------------------------------------------------------------------------------------
    -- Signals
    --------------------------------------------------------------------------------------------------
@@ -364,17 +366,16 @@ architecture rtl of Gtx7Core is
       txCharDispMode,
       txCharDispVal : slv(7 downto 0) := (others => '0');
    
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      Gtx7RxRst_Inst,
-      RstSync_RxResetDone,
-      Gtx7RecClkMonitor_Inst,
-      Gtx7AutoPhaseAligner_Rx,
-      Gtx7RxFixedLatPhaseAligner_Inst,
-      Gtx7TxRst_Inst,
-      RstSync_Tx,
-      PhaseAlign_Tx,
-      Gtx7TxManualPhaseAligner_1 : label is "TRUE";
+--   attribute KEEP_HIERARCHY : string;
+--   attribute KEEP_HIERARCHY of
+--      Gtx7RxRst_Inst,
+--      RstSync_RxResetDone,
+--      Gtx7AutoPhaseAligner_Rx,
+--      Gtx7RxFixedLatPhaseAligner_Inst,
+--      Gtx7TxRst_Inst,
+--      RstSync_Tx,
+--      PhaseAlign_Tx,
+--      Gtx7TxManualPhaseAligner_1 : label is "TRUE";
    
 begin
 
@@ -1144,7 +1145,7 @@ begin
          RXCDRRESETRSV    => '0',
          RXELECIDLE       => open,
          RXELECIDLEMODE   => "11",
-         RXLPMEN          => ite(RX_EQUALIZER_G = "LPM", '1', '0'),
+         RXLPMEN          => RXLPMEN_C, 
          RXLPMHFHOLD      => rxLpmHfHold,
          RXLPMHFOVRDEN    => '0',
          RXLPMLFHOLD      => rxLpmLfHold,
