@@ -16,9 +16,9 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000002"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000005"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "DevBoard: Vivado v2014.4 (x86_64) Built Tue Apr 28 13:47:20 PDT 2015 by bareese";
+constant BUILD_STAMP_C : string := "DevBoard: Vivado v2014.4 (x86_64) Built Wed Apr 29 15:30:39 PDT 2015 by ulegat";
 
 end Version;
  

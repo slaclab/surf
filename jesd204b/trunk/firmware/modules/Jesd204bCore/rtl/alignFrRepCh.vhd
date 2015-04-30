@@ -65,13 +65,13 @@ end entity alignFrRepCh;
 architecture rtl of alignFrRepCh is
    
    type RegType is record
-      daraRxD1       : slv(dataRx_i'range);
+      dataRxD1       : slv(dataRx_i'range);
       chariskRxD1    : slv(chariskRx_i'range);
       position       : slv(chariskRx_i'range);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      daraRxD1       => (others => '0'),
+      dataRxD1       => (others => '0'),
       chariskRxD1    => (others => '0'),
       position       => intToSlv(1, GT_WORD_SIZE_G) -- Initialize at "0001" or "01"  
    );
@@ -102,7 +102,7 @@ begin
       v := r;
       
       -- Buffer data and char one clock cycle 
-      v.daraRxD1    := dataRx_i;
+      v.dataRxD1    := dataRx_i;
       v.chariskRxD1 := chariskRx_i;
 
       -- Register the alignment 
@@ -133,13 +133,13 @@ begin
    s_alignErr    <= '1' when r.position = (r.position'range => '1') else '0';
    
    -- Byte swap and combine the two consecutive GT words
-   s_twoWordBuff <= byteSwapSlv(r.daraRxD1, GT_WORD_SIZE_G) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_G);
+   s_twoWordBuff <= byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_G) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_G);
 
    -- Align the bytes within the words                     
    s_dataAligned <= JesdDataAlign(s_twoWordBuff, r.position, GT_WORD_SIZE_G);
 
    -- Output assignment
   alignErr_o   <= s_alignErr;
-  sampleData_o <= s_dataAligned;
+  sampleData_o <= byteSwapSlv(s_dataAligned, GT_WORD_SIZE_G);
 
 end architecture rtl;

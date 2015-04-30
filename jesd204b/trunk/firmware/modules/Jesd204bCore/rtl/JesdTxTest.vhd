@@ -25,75 +25,155 @@ use work.Jesd204bPkg.all;
 entity JesdTxTest is
    generic (
       TPD_G : time := 1 ns;
-
-      -- Number of bytes in a frame
-      F_G : positive := 2;
-
-      -- Number of frames in a multi frame
-      K_G : positive := 32;
-
       --Transceiver word size (GTP,GTX,GTH)
-      GT_WORD_SIZE_G : positive := 4;
-
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : positive := 1
-      );
+      GT_WORD_SIZE_G : positive := 4
+   );
    port (
 
       -- JESD
       -- Clocks and Resets   
-      devClk_i : in sl;
-      devRst_i : in sl;
+      devClk_i       : in  sl;
+      devRst_i       : in  sl;
 
       -- Control and status register records
-      enable_i : in  sl;
-
-      -- Data and character output and GT signals (simple generated)
-      r_jesdGtRx : out jesdGtRxLaneType;
+      enable_i       : in  sl;
 
       -- Local multi frame clock
-      lmfc_i : in sl;
+      lmfc_i         : in  sl;
 
       -- Synchronisation request input 
-      nSync_i : in sl;
+      nSync_i        : in  sl;
       
-      txDataValid_o : out sl
+      -- Lane delay inputs
+      delay_i        : in  slv(3 downto 0); -- 1 to 16 clock cycles
+      align_i        : in  slv(3 downto 0); -- 0001, 0010, 0100, 1000
+
+      txDataValid_o  : out sl;
+      
+      -- Data and character output and GT signals (simple generated)
+      r_jesdGtRx     : out jesdGtRxLaneType    
+      
     );
 end JesdTxTest;
 
 
 architecture rtl of JesdTxTest is
 
+   -- Register type
+   type RegType is record
+      dataD1     : slv(r_jesdGtRx.data'range);
+      dataKD1    : slv(r_jesdGtRx.dataK'range);
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      dataD1       => (others => '0'),
+      dataKD1      => (others => '0')
+   );
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    -- Internal signals
 
    -- Control signals from FSM
    signal s_testCntr   : slv(7 downto 0);
    signal s_dataValid  : sl;
-
+   signal s_align      : sl;
+   signal s_lmfc_dly   : sl;
+   signal s_nsync_dly  : sl;
+   signal s_dataK      : slv(r_jesdGtRx.dataK'range);
+   signal s_data       : slv(r_jesdGtRx.data'range);  
+   
 begin
+
+   -- Delay lmfc input (for 1 to 16 c-c) to 
+   lmfcDly_INST: entity work.SysrefDly
+   generic map (
+      TPD_G       => TPD_G,
+      DLY_WIDTH_G => 4 
+   )
+   port map (
+      clk      => devClk_i,
+      rst      => devRst_i,
+      dly_i    => delay_i,
+      sysref_i => lmfc_i,
+      sysref_o => s_lmfc_dly
+   );
+   
+   -- Delay nsync input (for 1 to 16 c-c) to 
+   nsyncDly_INST: entity work.SysrefDly
+   generic map (
+      TPD_G       => TPD_G,
+      DLY_WIDTH_G => 4 
+   )
+   port map (
+      clk      => devClk_i,
+      rst      => devRst_i,
+      dly_i    => delay_i,
+      sysref_i => nSync_i,
+      sysref_o => s_nsync_dly
+   );
 
    -- Synchronisation FSM
    syncFSM_INST : entity work.syncFsmTx
       generic map (
          TPD_G          => TPD_G,
-         F_G            => F_G,
-         K_G            => K_G,
-         GT_WORD_SIZE_G => GT_WORD_SIZE_G,
-         SUB_CLASS_G    => SUB_CLASS_G)
+         GT_WORD_SIZE_G => GT_WORD_SIZE_G)
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
          enable_i     => enable_i,
-         lmfc_i       => lmfc_i,
-         nSync_i      => nSync_i,
+         lmfc_i       => s_lmfc_dly,
+         nSync_i      => s_nsync_dly,
          testCntr_o   => s_testCntr, 
-         dataValid_o  => s_dataValid
+         dataValid_o  => s_dataValid,
+         align_o      => s_align
       );
+    
+   comb : process (r, devRst_i,s_dataK,s_data) is
+      variable v : RegType;
+   begin
+      v := r;
       
+      -- Buffer data and char one clock cycle 
+      v.dataKD1  := s_dataK;
+      v.dataD1   := s_data;
+      
+      if (devRst_i = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      rin <= v;
+      
+   end process comb;
+
+   seq : process (devClk_i) is
+   begin
+      if (rising_edge(devClk_i)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
    -- GT output generation   
-   r_jesdGtRx.dataK   <= "1111" when s_dataValid='0' else "0000";
-   r_jesdGtRx.data    <= (K_CHAR_C   & K_CHAR_C   & K_CHAR_C   & K_CHAR_C)    when s_dataValid='0' else 
-                         ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) & (s_testCntr));
+   s_dataK   <= "1111" when (s_dataValid = '0' and  s_align = '0') else "0000";
+   s_data    <= (K_CHAR_C   & K_CHAR_C   & K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
+                ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) & (s_testCntr));
+
+   --- Currently works only for GT_WORD_SIZE_G = 2
+   with align_i select 
+   r_jesdGtRx.dataK   <= s_dataK                                     when "0001", 
+                         s_dataK(2 downto 0) & r.dataKD1(3)          when "0010",
+                         s_dataK(1 downto 0) & r.dataKD1(3 downto 2) when "0100",
+                         s_dataK(0)          & r.dataKD1(3 downto 1) when "1000",
+                         s_dataK                                     when others;
+
+   with align_i select 
+   r_jesdGtRx.data    <= s_data                                       when "0001", 
+                         s_data(23 downto 0) & r.dataD1(31 downto 24) when "0010",
+                         s_data(15 downto 0) & r.dataD1(31 downto 16) when "0100",
+                         s_data(7 downto 0)  & r.dataD1(31 downto 8)  when "1000",
+                         s_data                                       when others; 
+   
    r_jesdGtRx.dispErr <= "0000";
    r_jesdGtRx.decErr  <= "0000";
    r_jesdGtRx.rstDone <= '1';

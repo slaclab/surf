@@ -61,7 +61,6 @@ end AxiStreamLaneTx;
 architecture rtl of AxiStreamLaneTx is
 
    constant JESD_SSI_CONFIG_C : AxiStreamConfigType                           := ssiAxiStreamConfig(GT_WORD_SIZE_G, TKEEP_COMP_C);
---   constant PACKET_SIZE_SLV_C : slv(bitSize(AXI_PACKET_SIZE_G)-1 downto 0)    := intToSlv(AXI_PACKET_SIZE_G, bitSize(AXI_PACKET_SIZE_G));
    constant TSTRB_C           : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
    constant KEEP_C            : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
 
@@ -107,8 +106,6 @@ begin
       -- Latch the configuration
       v.txAxisMaster.tKeep := KEEP_C;
       v.txAxisMaster.tStrb := TSTRB_C;
-
-      v.dataCnt := (others => '0');
       
       -- State Machine
       case (r.state) is
@@ -116,7 +113,7 @@ begin
          when IDLE_S =>
          
             -- Put packet data count to zero 
---            v.dataCnt := (others => '0');  
+            v.dataCnt := (others => '0');  
  
             -- No data sent 
             v.txAxisMaster.tvalid  := '0';
@@ -132,7 +129,7 @@ begin
          when SOF_S =>
            
             -- Increment the counter            
---            v.dataCnt := (others => '0');
+            v.dataCnt := (others => '0');
 
 
             -- No data sent 
@@ -147,13 +144,13 @@ begin
          ----------------------------------------------------------------------
          when DATA_S =>
          
-               -- Increment the counter            
-               v.dataCnt := r.dataCnt + 1;         
-         
-               -- Send the JESD data 
-               v.txAxisMaster.tvalid  := '1';
-               v.txAxisMaster.tData((GT_WORD_SIZE_G*8)-1 downto 0)   := sampleData_i;
-               v.txAxisMaster.tLast := '0'; 
+            -- Increment the counter            
+            v.dataCnt := r.dataCnt + 1;         
+      
+            -- Send the JESD data 
+            v.txAxisMaster.tvalid  := '1';
+            v.txAxisMaster.tData((GT_WORD_SIZE_G*8)-1 downto 0)   := sampleData_i;
+            v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent
             if r.dataCnt = AXI_PACKET_SIZE_G then
@@ -164,7 +161,7 @@ begin
          when EOF_S =>
          
             -- Put packet data count to zero 
---            v.dataCnt := (others => '0'); 
+            v.dataCnt := (others => '0'); 
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';

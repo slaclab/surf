@@ -121,6 +121,10 @@ signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
 signal s_enableRx     : slv(L_G-1 downto 0);
 signal s_statusRxArr  : Slv8Array(L_G-1 downto 0);
 
+-- Testing registers
+signal s_dlyTxArr  : Slv4Array(L_G-1 downto 0);
+signal s_alignTxArr: Slv4Array(L_G-1 downto 0);
+
 -- Axi Lite interface synced to devClk
 signal sAxiReadMasterDev : AxiLiteReadMasterType;
 signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
@@ -203,7 +207,9 @@ begin
       axilWriteSlave  => sAxiWriteSlaveDev,
       statusRxArr_i   => s_statusRxArr,
       sysrefDlyRx_o   => s_sysrefDlyRx,
-      enableRx_o      => s_enableRx
+      enableRx_o      => s_enableRx,
+      dlyTxArr_o      => s_dlyTxArr,     
+      alignTxArr_o    => s_alignTxArr
    );
   
    -- LMFC period generator aligned to SYSREF input
@@ -231,17 +237,16 @@ begin
          JesdTxSimple_INST: entity work.JesdTxTest
             generic map (
                TPD_G          => TPD_G,
-               F_G            => F_G,
-               K_G            => K_G,
-               GT_WORD_SIZE_G => GT_WORD_SIZE_G,
-               SUB_CLASS_G    => SUB_CLASS_G)
+               GT_WORD_SIZE_G => GT_WORD_SIZE_G)
             port map (
                devClk_i      => devClk_i,
                devRst_i      => devRst_i,
                enable_i      => s_enableRx(I),
-               r_jesdGtRx    => s_jesdGtRxArr(I),
+               delay_i       => s_dlyTxArr(I),        
+               align_i       => s_alignTxArr(I),
                lmfc_i        => s_lmfc,
                nSync_i       => r.nSyncAllD1,
+               r_jesdGtRx    => s_jesdGtRxArr(I),
                txDataValid_o => open);
       end generate TX_LANES_GEN;
       

@@ -25,18 +25,8 @@ use work.Jesd204bPkg.all;
 entity syncFsmTx is
    generic (
       TPD_G            : time                := 1 ns;
-
-      -- Number of bytes in a frame
-      F_G : positive := 2;
-      
-      -- Number of frames in a multi frame
-      K_G : positive := 32;
-           
       --Transceiver word size (GTP,GTX,GTH) (2 or 4)
-      GT_WORD_SIZE_G : positive := 4;
-      
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : positive := 1
+      GT_WORD_SIZE_G : positive := 4
    );    
    port (
       -- Clocks and Resets   
@@ -54,8 +44,10 @@ entity syncFsmTx is
           
       testCntr_o     : out   slv(7 downto 0); 
 
-      -- Synchronisation process is complete and data is valid
-      dataValid_o    : out   sl
+      -- Synchronisation process is complete start sending data 
+      dataValid_o    : out   sl;
+      -- First data
+      align_o        : out   sl
     );
 end syncFsmTx;
 
@@ -63,22 +55,24 @@ architecture rtl of syncFsmTx is
 
    type stateType is (
       IDLE_S,
-      SYNC_S,      
+      SYNC_S,
+      ALIGN_S,     
       DATA_S
    );
 
    type RegType is record
       -- Synchronous FSM control outputs
       dataValid   : sl;
+      align       : sl;      
       cnt         : slv(7 downto 0);
-
+      
       -- Status Machine
       state       : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-
       dataValid    => '0',
+      align        => '0',
       cnt          =>  (others => '0'),
 
       -- Status Machine
@@ -105,6 +99,7 @@ begin
             -- Outputs
             v.cnt       := (others => '0');
             v.dataValid := '0';
+            v.align     := '0';
             
             -- Next state condition            
             if  nSync_i = '0' then
@@ -116,20 +111,31 @@ begin
             -- Outputs
             v.cnt       := (others => '0');
             v.dataValid := '0';
+            v.align     := '0';
             
             -- Next state condition            
             if  nSync_i = '1' and enable_i = '1' and lmfc_i = '1' then
-               v.state   := DATA_S;
+               v.state   := ALIGN_S;                             
             elsif enable_i = '0' then  
                v.state   := IDLE_S;            
             end if;
-
+         ----------------------------------------------------------------------
+         when ALIGN_S =>
+                  
+            -- Outputs
+            v.cnt       := (others => '0');
+            v.dataValid := '0';
+            v.align     := '1';
+                       
+            -- Next state condition            
+            v.state   := DATA_S;       
          ----------------------------------------------------------------------
          when DATA_S =>
 
             -- Outputs
-            v.cnt       := v.cnt+4; -- four data bytes sent in parallel
+            v.cnt       := r.cnt+4; -- four data bytes sent in parallel
             v.dataValid := '1';
+            v.align     := '0';
             
             -- Next state condition            
             if  nSync_i = '0' or enable_i = '0' then  
@@ -141,6 +147,7 @@ begin
             -- Outputs
             v.cnt       := (others => '0');
             v.dataValid := '0';
+            v.align     := '0';
             
             -- Next state condition            
             v.state   := IDLE_S;            
@@ -167,5 +174,5 @@ begin
    -- Output assignment
    testCntr_o  <= r.cnt;     
    dataValid_o <= r.dataValid;
-
+   align_o     <= r.align;
 end rtl;
