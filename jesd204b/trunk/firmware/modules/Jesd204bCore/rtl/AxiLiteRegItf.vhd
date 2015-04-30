@@ -55,7 +55,9 @@ entity AxiLiteRegItf is
       
       -- Control
       sysrefDlyRx_o  : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
-      enableRx_o     : out  slv(L_G-1 downto 0)
+      enableRx_o     : out  slv(L_G-1 downto 0);
+      dlyTxArr_o     : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
+      alignTxArr_o   : out  Slv4Array(L_G-1 downto 0) -- 0001, 0010, 0100, 1000
    );   
 end AxiLiteRegItf;
 
@@ -66,8 +68,8 @@ architecture rtl of AxiLiteRegItf is
       enableRx       : slv(L_G-1 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
 
-      -- JESD Status (R)
-      statusRxArr    : Slv8Array(0 to L_G-1);
+      -- JESD Test (RW)
+      testTXItf      : Slv16Array(0 to L_G-1);
       
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -77,7 +79,8 @@ architecture rtl of AxiLiteRegItf is
    constant REG_INIT_C : RegType := (
       enableRx       => (others => '0'),  
       sysrefDlyRx    => (others => '0'),
-      statusRxArr    => (others => (others => '0')),
+      testTXItf      => (others => (others => '0')),
+      
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -107,6 +110,11 @@ begin
                v.enableRx := axilWriteMaster.wdata(L_G-1 downto 0);
             when X"01" => -- ADDR (4)
                v.sysrefDlyRx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
+            when X"12" => -- ADDR (72)
+               v.testTXItf(0) := axilWriteMaster.wdata(15 downto 0);
+            when X"13" => -- ADDR (76)
+               v.testTXItf(1) := axilWriteMaster.wdata(15 downto 0);            
+
             when others =>
                axilWriteResp := AXI_ERROR_RESP_G;
          end case;
@@ -125,6 +133,10 @@ begin
                v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := statusRxArr_i(0);
             when X"11" => -- ADDR (68)
                v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := statusRxArr_i(1);
+            when X"12" => -- ADDR (72)
+               v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(0);
+            when X"13" => -- ADDR (76)
+               v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(1);
             when others =>
                axilReadResp := AXI_ERROR_RESP_G;
          end case;
@@ -154,5 +166,11 @@ begin
    
    -- Output assignment
    sysrefDlyRx_o <= r.sysrefDlyRx;
-   enableRx_o    <= r.enableRx;    
+   enableRx_o    <= r.enableRx;
+   
+   TX_LANES_GEN : for I in L_G-1 downto 0 generate 
+      dlyTxArr_o(I)    <=   r.testTXItf(I) (11 downto 8);
+      alignTxArr_o(I)  <=   r.testTXItf(I) ( 3 downto 0);
+   end generate TX_LANES_GEN;
+---------------------------------------------------------------------
 end rtl;
