@@ -42,7 +42,13 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
    addRegisterLink(rl = new RegisterLink("SysrefDelay",   baseAddress_ + (0x01*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Sets the synchronisation delay in clock cycles");   
    
-   
+   addRegisterLink(rl = new RegisterLink("L1Test",      baseAddress_ + (0x12*addrSize), 1, 2,
+                                "L1Align",         Variable::Configuration, 0, 0xf,
+                                "L1Delay",         Variable::Configuration, 8, 0xf));
+                                
+   addRegisterLink(rl = new RegisterLink("L2Test",      baseAddress_ + (0x13*addrSize), 1, 2,
+                                "L2Align",         Variable::Configuration, 0, 0xf,
+                                "L2Delay",         Variable::Configuration, 8, 0xf));
    
    addRegisterLink(rl = new RegisterLink("L1Status",      baseAddress_ + (0x10*addrSize), 1, 8,
                                 "L1GTXRdy",        Variable::Status, 0, 0x1,
