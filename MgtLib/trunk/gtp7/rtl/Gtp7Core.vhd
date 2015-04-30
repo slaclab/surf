@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2015-03-20
+-- Last update: 2015-04-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -466,43 +466,28 @@ begin
          I => rxOutClk,
          O => rxOutClkBufg);
 
-   GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
-      SyncClockFreq_1 : entity work.SyncClockFreq
-         generic map (
-            TPD_G             => TPD_G,
-            REF_CLK_FREQ_G    => REF_CLK_FREQ_G,
-            REFRESH_RATE_G    => 1.0E3,
-            CLK_LOWER_LIMIT_G => REF_CLK_FREQ_G * (1.004),
-            CLK_UPPER_LIMIT_G => REF_CLK_FREQ_G * (0.996),
-            CNT_WIDTH_G       => 32)
-         port map (
-            freqOut     => open,
-            freqUpdated => rxRecClkMonitorRestart,
-            locked      => rxRecClkStable,
-            tooFast     => open,
-            tooSlow     => open,
-            clkIn       => rxOutClkBufg,
-            locClk      => stableClkIn,
-            refClk      => gtRxRefClkBufg);
-
-
---      Gtp7RecClkMonitor_Inst : entity work.Gtp7RecClkMonitor
+--   GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
+--      SyncClockFreq_1 : entity work.SyncClockFreq
 --         generic map (
---            COUNTER_UPPER_VALUE      => 15,
---            GCLK_COUNTER_UPPER_VALUE => 15,
---            CLOCK_PULSES             => 164,
---            EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
+--            TPD_G             => TPD_G,
+--            REF_CLK_FREQ_G    => REF_CLK_FREQ_G,
+--            REFRESH_RATE_G    => 1.0E3,
+--            CLK_LOWER_LIMIT_G => REF_CLK_FREQ_G * (1.010),
+--            CLK_UPPER_LIMIT_G => REF_CLK_FREQ_G * (0.990),
+--            CNT_WIDTH_G       => 32)
 --         port map (
---            GT_RST        => gtRxReset,
---            REF_CLK       => gtRxRefClkBufg,
---            RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
---            SYSTEM_CLK    => stableClkIn,
---            PLL_LK_DET    => rxPllLock,
---            RECCLK_STABLE => rxRecClkStable,
---            EXEC_RESTART  => rxRecClkMonitorRestart);
-   end generate;
+--            freqOut     => open,
+--            freqUpdated => rxRecClkMonitorRestart,
+--            locked      => rxRecClkStable,
+--            tooFast     => open,
+--            tooSlow     => open,
+--            clkIn       => rxOutClkBufg,
+--            locClk      => stableClkIn,
+--            refClk      => gtRxRefClkBufg);
 
-   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
+--   end generate;
+
+--   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
       rxRecClkMonitorRestart <= '0';
       process(stableClkIn)
       begin
@@ -520,7 +505,7 @@ begin
             end if;
          end if;
       end process;
-   end generate RX_NO_RECCLK_MON_GEN;
+--   end generate RX_NO_RECCLK_MON_GEN;
 
    -------------------------------------------------------------------------------------------------
    -- Phase alignment needed when rx buffer is disabled
