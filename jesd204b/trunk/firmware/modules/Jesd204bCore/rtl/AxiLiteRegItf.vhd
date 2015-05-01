@@ -51,13 +51,15 @@ entity AxiLiteRegItf is
       
    -- JESD registers
       -- Status
-      statusRxArr_i  : in   statuRegisterArray(0 to L_G-1);
+      statusRxArr_i   : in   statuRegisterArray(0 to L_G-1);
       
       -- Control
-      sysrefDlyRx_o  : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
-      enableRx_o     : out  slv(L_G-1 downto 0);
-      dlyTxArr_o     : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
-      alignTxArr_o   : out  alignTxArray(L_G-1 downto 0) -- 0001, 0010, 0100, 1000
+      sysrefDlyRx_o     : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
+      enableRx_o        : out  slv(L_G-1 downto 0);
+      dlyTxArr_o        : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
+      alignTxArr_o      : out  alignTxArray(L_G-1 downto 0); -- 0001, 0010, 0100, 1000
+      axisTrigger_o     : out  slv(L_G-1 downto 0);
+      axisPacketSize_o  : out  slv(23 downto 0)
    );   
 end AxiLiteRegItf;
 
@@ -67,9 +69,9 @@ architecture rtl of AxiLiteRegItf is
       -- JESD Control (RW)
       enableRx       : slv(L_G-1 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
-
-      -- JESD Test (RW)
       testTXItf      : Slv16Array(0 to L_G-1);
+      axisTrigger    : slv(L_G-1 downto 0);
+      axisPacketSize : slv(23 downto 0);
       
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -80,7 +82,9 @@ architecture rtl of AxiLiteRegItf is
       enableRx       => (others => '0'),  
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => (others => '0')),
-      
+      axisTrigger    => (others => '0'),   
+      axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
+ 
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -110,6 +114,10 @@ begin
                v.enableRx := axilWriteMaster.wdata(L_G-1 downto 0);
             when X"01" => -- ADDR (4)
                v.sysrefDlyRx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
+            when X"02" => -- ADDR (8)
+               v.axisTrigger := axilWriteMaster.wdata(L_G-1 downto 0);   
+            when X"03" => -- ADDR (12)
+               v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);  
             when X"12" => -- ADDR (72)
                v.testTXItf(0) := axilWriteMaster.wdata(15 downto 0);
             when X"13" => -- ADDR (76)
@@ -129,6 +137,10 @@ begin
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableRx;
             when X"01" =>  -- ADDR (4)
                v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyRx;
+            when X"02" =>  -- ADDR (8)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.axisTrigger;
+            when X"03" =>  -- ADDR (12)
+               v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;               
             when X"10" => -- ADDR (64)
                v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := statusRxArr_i(0);
             when X"11" => -- ADDR (68)
@@ -167,10 +179,12 @@ begin
    -- Output assignment
    sysrefDlyRx_o <= r.sysrefDlyRx;
    enableRx_o    <= r.enableRx;
+   axisTrigger_o    <= r.axisTrigger;
+   axisPacketSize_o <= r.axisPacketSize;
    
    TX_LANES_GEN : for I in L_G-1 downto 0 generate 
       dlyTxArr_o(I)    <=   r.testTXItf(I) (11 downto 8);
       alignTxArr_o(I)  <=   r.testTXItf(I) (GT_WORD_SIZE_C-1 downto 0);
-   end generate TX_LANES_GEN;
+   end generate TX_LANES_GEN;   
 ---------------------------------------------------------------------
 end rtl;

@@ -54,15 +54,13 @@ entity syncFSM is
       
       -- Local multi frame clock
       lmfc_i         : in    sl;
-      
-      -- All of the RX modules are ready for synchronisation
-      nSyncAll_i       : in    sl;
-
+     
       -- One or more RX modules requested synchronisation
-      nSyncAny_i       : in    sl;
+      nSyncAny_i     : in    sl;
+      nSyncAnyD1_i   : in    sl;
       
       -- Combined link errors 
-      linkErr_i     : in    sl;
+      linkErr_i      : in    sl;
       
    -- Synchronous FSM control outputs
    
@@ -135,7 +133,7 @@ begin
    s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);  
 
    -- State machine
-   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAll_i, nSyncAny_i, linkErr_i, s_kDetected, gtReady_i) is
+   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, s_kDetected, gtReady_i) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -155,7 +153,7 @@ begin
             
             -- Next state condition (depending on subclass)
             if  SUB_CLASS_G = 1 then
-               if  sysRef_i = '1' and enable_i = '1' and nSyncAll_i = '0' and gtReady_i = '1' then
+               if  sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' then
                   v.state    := SYSREF_S;
                end if;
             else  

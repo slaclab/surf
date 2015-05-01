@@ -31,15 +31,16 @@ entity AxiStreamLaneTx is
    generic (
       -- General Configurations
       TPD_G             : time                        := 1 ns;
-      
-      -- 
-      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-      AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8);
+      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C);
    port (
    
       -- JESD devClk
       devClk_i          : in  sl;
       devRst_i          : in  sl;
+      
+      -- AXI control
+      packetSize_i   : in  slv(23 downto 0);
+      trigger_i      : in  sl; --TODO use later 
       
       -- Axi Stream
       txAxisMaster_o  : out AxiStreamMasterType;
@@ -66,7 +67,7 @@ architecture rtl of AxiStreamLaneTx is
    );  
 
    type RegType is record    
-      dataCnt        : slv(9 downto 0);
+      dataCnt        : slv(packetSize_i'range);
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
    end record;
@@ -113,7 +114,7 @@ begin
             v.txAxisMaster.tLast   := '0';
             
             -- Check if fifo and JESD is ready
-            if txCtrl_i.pause = '0' and enable_i = '1' then -- TODO later add "and dataReady_i = '1'"
+            if txCtrl_i.pause = '0' and enable_i = '1' and dataReady_i = '1' then -- TODO later add "and dataReady_i = '1' and trigger_i = '1'"
                -- Next State
                v.state := SOF_S;
             end if;
@@ -126,7 +127,7 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData   := (others => '0');              
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;              
             v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit
@@ -145,7 +146,7 @@ begin
             v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent
-            if r.dataCnt = (AXI_PACKET_SIZE_G-1) then
+            if r.dataCnt = (packetSize_i-1) then
                -- Next State
                v.state   := EOF_S;
             end if;
@@ -157,7 +158,7 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData   := (others => '0');
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
             -- Set the EOF(tlast) bit                
             v.txAxisMaster.tLast := '1';
             

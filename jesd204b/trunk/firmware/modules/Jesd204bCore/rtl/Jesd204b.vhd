@@ -39,7 +39,6 @@ entity Jesd204b is
       
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-      AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8;
       
    -- JESD generics
    
@@ -93,12 +92,10 @@ architecture rtl of Jesd204b is
  
 -- Register
    type RegType is record
-      nSyncAllD1 : sl;
       nSyncAnyD1 : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      nSyncAllD1  => '0',
       nSyncAnyD1  => '0'
    );
 
@@ -134,6 +131,8 @@ signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
 -- Axi Stream
 signal s_sampleDataArr : AxiTxDataTypeArray(L_G-1 downto 0);
+signal s_axisPacketSizeReg : slv(23 downto 0);
+signal s_axisTriggerReg    : slv(L_G-1 downto 0);
 
 -- Sysref conditioning
 signal  s_sysrefSync : sl;
@@ -141,7 +140,6 @@ signal  s_sysrefD    : sl;
 
 -- Record containing GT signals
 signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
-
 
 
 begin
@@ -153,11 +151,12 @@ begin
       AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
       generic map (
          TPD_G             => TPD_G,
-         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
-         AXI_PACKET_SIZE_G => AXI_PACKET_SIZE_G)
+         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G)
       port map (
          devClk_i       => devClk_i,
          devRst_i       => devRst_i,
+         packetSize_i   => s_axisPacketSizeReg,
+         trigger_i      => s_axisTriggerReg(I),
          txAxisMaster_o => txAxisMasterArr_o(I),
          txCtrl_i       => txCtrlArr_i(I),
          enable_i       => s_enableRx(I),
@@ -207,7 +206,9 @@ begin
       sysrefDlyRx_o   => s_sysrefDlyRx,
       enableRx_o      => s_enableRx,
       dlyTxArr_o      => s_dlyTxArr,     
-      alignTxArr_o    => s_alignTxArr
+      alignTxArr_o    => s_alignTxArr,
+      axisTrigger_o   => s_axisTriggerReg,
+      axisPacketSize_o=> s_axisPacketSizeReg
    );
   
    -- LMFC period generator aligned to SYSREF input
@@ -220,7 +221,7 @@ begin
    port map (
       clk      => devClk_i,
       rst      => devRst_i,
-      nSync_i  => r.nSyncAllD1,
+      nSync_i  => r.nSyncAnyD1,
       sysref_i => s_sysrefD,
       lmfc_o   => s_lmfc 
    );
@@ -242,7 +243,7 @@ begin
                delay_i       => s_dlyTxArr(I),        
                align_i       => s_alignTxArr(I),
                lmfc_i        => s_lmfc,
-               nSync_i       => r.nSyncAllD1,
+               nSync_i       => r.nSyncAnyD1,
                r_jesdGtRx    => s_jesdGtRxArr(I),
                txDataValid_o => open);
       end generate TX_LANES_GEN;
@@ -331,8 +332,8 @@ begin
          status_o     => s_statusRxArr(I),
          r_jesdGtRx   => s_jesdGtRxArr(I),
          lmfc_i       => s_lmfc,
-         nSyncAll_i   => r.nSyncAllD1,
-         nSyncAny_i   => r.nSyncAnyD1,
+         nSyncAnyD1_i => r.nSyncAnyD1,
+         nSyncAny_i   => s_nSyncAny,
          nSync_o      => s_nSyncVec(I),
          dataValid_o  => s_dataValidVec(I),
          sampleData_o => s_sampleDataArr(I)
@@ -340,14 +341,12 @@ begin
    end generate;
    
    -- Combine nSync signals from all receivers
-   s_nSyncAll <= uOr(s_nSyncVec);
    s_nSyncAny <= uAnd(s_nSyncVec);
    
    -- DFF
    comb : process (r, devRst_i, s_nSyncAll, s_nSyncAny) is
       variable v : RegType;
    begin
-      v.nSyncAllD1 := s_nSyncAll;
       v.nSyncAnyD1 := s_nSyncAny;
       
       if (devRst_i = '1') then
@@ -365,7 +364,7 @@ begin
    end process seq;
 
    -- Output assignment
-   nSync_o     <= r.nSyncAllD1;
+   nSync_o     <= r.nSyncAnyD1;
    gt_reset_o  <= not s_enableRx;
    -----------------------------------------------------
 end rtl;
