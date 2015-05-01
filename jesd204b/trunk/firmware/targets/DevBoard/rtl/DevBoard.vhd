@@ -111,7 +111,6 @@ architecture rtl of DevBoard is
    constant LINE_RATE_C        : real     := 7.40E9;
    constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/40.0);
    
-   constant AXI_PACKET_SIZE_C  : positive := 2**8;
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
    constant L_C                : positive := 2;
@@ -439,7 +438,6 @@ begin
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
-      AXI_PACKET_SIZE_G     => AXI_PACKET_SIZE_C,
       
       -- JESD
       F_G                => F_C,

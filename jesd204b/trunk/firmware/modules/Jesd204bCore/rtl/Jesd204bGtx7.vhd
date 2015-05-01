@@ -78,7 +78,6 @@ entity Jesd204bGtx7 is
    -- AXI Lite and AXI stream generics
    ----------------------------------------------------------------------------------------------
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-      AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8;
 
    -- JESD generics
    ----------------------------------------------------------------------------------------------
@@ -166,7 +165,6 @@ begin
       TEST_G            => TEST_G,
       SELF_TEST_G       => SELF_TEST_G,
       AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
-      AXI_PACKET_SIZE_G => AXI_PACKET_SIZE_G,
       F_G               => F_G,
       K_G               => K_G,
       L_G               => L_G,

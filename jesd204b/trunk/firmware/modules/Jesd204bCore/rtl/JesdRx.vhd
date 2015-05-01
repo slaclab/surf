@@ -55,12 +55,10 @@ entity JesdRx is
       -- Local multi frame clock
       lmfc_i      : in sl;
 
-      -- All of the RX modules are ready for synchronisation
-      nSyncAll_i  : in sl;
-
       -- One or more RX modules requested synchronisation
-      nSyncAny_i  : in sl;
-
+      nSyncAny_i    : in sl;
+      nSyncAnyD1_i  : in sl;
+      
       -- Synchronisation request output 
       nSync_o     : out sl;
 
@@ -197,7 +195,7 @@ begin
          chariskRx_i  => r_jesdGtRx.dataK,
          gtReady_i    => r_jesdGtRx.rstDone,
          lmfc_i       => lmfc_i,
-         nSyncAll_i   => nSyncAll_i,
+         nSyncAnyD1_i => nSyncAnyD1_i,
          nSyncAny_i   => nSyncAny_i,
          linkErr_i    => s_linkErr,
          nSync_o      => s_nSync,
