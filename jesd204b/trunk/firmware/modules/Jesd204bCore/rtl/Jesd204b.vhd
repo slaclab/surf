@@ -29,9 +29,13 @@ use work.Jesd204bPkg.all;
 entity Jesd204b is
    generic (
       TPD_G             : time                        := 1 ns;
-      
-   -- Test tx module instead of GTX
+
+      -- Test tx module instead of GTX
       TEST_G            : boolean                     := false;
+      
+      -- Internal SYSREF SELF_TEST_G= TRUE else 
+      -- External SYSREF
+      SELF_TEST_G        : boolean                    := false; 
       
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
@@ -47,10 +51,7 @@ entity Jesd204b is
       
       --Number of lanes (1 to 8)
       L_G : positive := 2;
-      
-      --Transceiver word size (GTP,GTX,GTH) (2 or 4 supported)
-      GT_WORD_SIZE_G : positive := 4;
-      
+           
       --JESD204B class (0 and 1 supported)
       SUB_CLASS_G : positive := 1
    );
@@ -119,11 +120,11 @@ signal s_nSyncAny   : sl;
 -- Control and status from AxiLie
 signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
 signal s_enableRx     : slv(L_G-1 downto 0);
-signal s_statusRxArr  : Slv8Array(L_G-1 downto 0);
+signal s_statusRxArr  : statuRegisterArray(L_G-1 downto 0);
 
 -- Testing registers
-signal s_dlyTxArr  : Slv4Array(L_G-1 downto 0);
-signal s_alignTxArr: Slv4Array(L_G-1 downto 0);
+signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
+signal s_alignTxArr : alignTxArray(L_G-1 downto 0);
 
 -- Axi Lite interface synced to devClk
 signal sAxiReadMasterDev : AxiLiteReadMasterType;
@@ -132,7 +133,7 @@ signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
 signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
 -- Axi Stream
-signal s_sampleDataArr : AxiTxDataType(L_G-1 downto 0);
+signal s_sampleDataArr : AxiTxDataTypeArray(L_G-1 downto 0);
 
 -- Sysref conditioning
 signal  s_sysrefSync : sl;
@@ -145,7 +146,6 @@ signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
 
 begin
    -- Check generics TODO add others
-   assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
    assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    -- AXI stream interface one module per lane
@@ -154,9 +154,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
-         AXI_PACKET_SIZE_G => AXI_PACKET_SIZE_G,
-         
-         GT_WORD_SIZE_G    => GT_WORD_SIZE_G)
+         AXI_PACKET_SIZE_G => AXI_PACKET_SIZE_G)
       port map (
          devClk_i       => devClk_i,
          devRst_i       => devRst_i,
@@ -218,8 +216,7 @@ begin
    generic map (
       TPD_G          => TPD_G,
       K_G            => K_G,
-      F_G            => F_G,
-      GT_WORD_SIZE_G => GT_WORD_SIZE_G)
+      F_G            => F_G)
    port map (
       clk      => devClk_i,
       rst      => devRst_i,
@@ -234,10 +231,9 @@ begin
    TEST_GEN: if TEST_G = true generate
    -----------------------------------------
       TX_LANES_GEN : for I in L_G-1 downto 0 generate    
-         JesdTxSimple_INST: entity work.JesdTxTest
+         JesdTxTest_INST: entity work.JesdTxTest
             generic map (
-               TPD_G          => TPD_G,
-               GT_WORD_SIZE_G => GT_WORD_SIZE_G)
+               TPD_G          => TPD_G)
             port map (
                devClk_i      => devClk_i,
                devRst_i      => devRst_i,
@@ -250,8 +246,31 @@ begin
                txDataValid_o => open);
       end generate TX_LANES_GEN;
       
-      -- Sysref connected to enable (rsysref works on rising edge)
-      s_sysrefSync <= s_enableRx(0) or s_enableRx(1);
+      -- IF DEF
+      SELF_TEST_GEN: if SELF_TEST_G = true generate
+         -- Sysref connected to enable (rsysref works on rising edge)
+         s_sysrefSync <= s_enableRx(0) or s_enableRx(1);
+      end generate SELF_TEST_GEN;
+      -- ELSE
+      EXT_TEST_GEN: if SELF_TEST_G = false generate
+         -- Sysref connected to the input (external sysref)
+         -- Synchronise SYSREF input to devClk_i
+         Synchronizer_INST: entity work.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => false,
+            STAGES_G       => 2,
+            BYPASS_SYNC_G  => false,
+            INIT_G         => "0")
+         port map (
+            clk     => devClk_i,
+            rst     => devRst_i,
+            dataIn  => sysref_i,
+            dataOut => s_sysrefSync
+         );
+      end generate EXT_TEST_GEN;
    ----------------------------------------       
    end generate TEST_GEN;
    
@@ -302,7 +321,6 @@ begin
          TPD_G          => TPD_G,
          F_G            => F_G,
          K_G            => K_G,
-         GT_WORD_SIZE_G => GT_WORD_SIZE_G,
          SUB_CLASS_G    => SUB_CLASS_G)
       port map (
          devClk_i     => devClk_i,

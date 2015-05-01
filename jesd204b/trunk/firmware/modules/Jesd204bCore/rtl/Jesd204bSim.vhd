@@ -44,10 +44,7 @@ entity Jesd204bSim is
       
       --Number of lanes (1 to 8)
       L_G : positive := 2;
-      
-      --Transceiver word size (GTP,GTX,GTH) (2 or 4 supported)
-      GT_WORD_SIZE_G : positive := 4;
-      
+           
       --JESD204B class (0 and 1 supported)
       SUB_CLASS_G : positive := 1
    );   
@@ -145,8 +142,7 @@ begin
    generic map (
       TPD_G          => TPD_G,
       K_G            => K_G,
-      F_G            => F_G,
-      GT_WORD_SIZE_G => GT_WORD_SIZE_G)
+      F_G            => F_G)
    port map (
       clk      => devClk_i,
       rst      => devRst_i,
@@ -163,7 +159,6 @@ begin
          TPD_G          => TPD_G,
          F_G            => F_G,
          K_G            => K_G,
-         GT_WORD_SIZE_G => GT_WORD_SIZE_G,
          SUB_CLASS_G    => SUB_CLASS_G)
       port map (
          devClk_i     => devClk_i,

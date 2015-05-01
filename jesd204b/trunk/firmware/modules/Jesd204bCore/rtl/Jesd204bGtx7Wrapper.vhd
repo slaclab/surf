@@ -50,7 +50,6 @@ entity Jesd204bGtx7Wrapper is
       F_G            : positive := 2;
       K_G            : positive := 32;
       L_G            : positive := 2;
-      GT_WORD_SIZE_G : positive := 4;
       SUB_CLASS_G    : positive := 1
    );
 
@@ -141,7 +140,6 @@ architecture rtl of Jesd204bGtx7Wrapper is
 begin
 
    -- Check generics TODO add others
-   assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
    assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    IBUFDS_GTE2_Inst : IBUFDS_GTE2
@@ -232,7 +230,6 @@ begin
       F_G                   => F_G,
       K_G                   => K_G,
       L_G                   => L_G,
-      GT_WORD_SIZE_G        => GT_WORD_SIZE_G,
       SUB_CLASS_G           => SUB_CLASS_G
    )
    port map (

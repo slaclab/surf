@@ -51,13 +51,13 @@ entity AxiLiteRegItf is
       
    -- JESD registers
       -- Status
-      statusRxArr_i  : in   Slv8Array(0 to L_G-1);
+      statusRxArr_i  : in   statuRegisterArray(0 to L_G-1);
       
       -- Control
       sysrefDlyRx_o  : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
       enableRx_o     : out  slv(L_G-1 downto 0);
       dlyTxArr_o     : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
-      alignTxArr_o   : out  Slv4Array(L_G-1 downto 0) -- 0001, 0010, 0100, 1000
+      alignTxArr_o   : out  alignTxArray(L_G-1 downto 0) -- 0001, 0010, 0100, 1000
    );   
 end AxiLiteRegItf;
 
@@ -170,7 +170,7 @@ begin
    
    TX_LANES_GEN : for I in L_G-1 downto 0 generate 
       dlyTxArr_o(I)    <=   r.testTXItf(I) (11 downto 8);
-      alignTxArr_o(I)  <=   r.testTXItf(I) ( 3 downto 0);
+      alignTxArr_o(I)  <=   r.testTXItf(I) (GT_WORD_SIZE_C-1 downto 0);
    end generate TX_LANES_GEN;
 ---------------------------------------------------------------------
 end rtl;
