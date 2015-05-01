@@ -115,7 +115,7 @@ architecture rtl of DevBoard is
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
    constant L_C                : positive := 2;
-   constant SUB_CLASS_C        : positive := 1;
+   constant SUB_CLASS_C        : natural  := 1;
    
    
    signal  s_sysRef : sl;

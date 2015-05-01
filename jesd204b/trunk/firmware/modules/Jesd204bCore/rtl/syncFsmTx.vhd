@@ -24,7 +24,9 @@ use work.Jesd204bPkg.all;
 
 entity syncFsmTx is
    generic (
-      TPD_G            : time                := 1 ns);    
+      TPD_G       : time     := 1 ns;
+      --JESD204B class (0 and 1 supported)
+      SUB_CLASS_G : natural := 1);    
    port (
       -- Clocks and Resets   
       clk            : in    sl;    
@@ -45,7 +47,7 @@ entity syncFsmTx is
       dataValid_o    : out   sl;
       -- First data
       align_o        : out   sl
-    );
+   );
 end syncFsmTx;
 
 architecture rtl of syncFsmTx is
@@ -110,12 +112,20 @@ begin
             v.dataValid := '0';
             v.align     := '0';
             
-            -- Next state condition            
-            if  nSync_i = '1' and enable_i = '1' and lmfc_i = '1' then
-               v.state   := ALIGN_S;                             
-            elsif enable_i = '0' then  
-               v.state   := IDLE_S;            
-            end if;
+            -- Next state condition
+            if  SUB_CLASS_G = 1 then
+               if  nSync_i = '1' and enable_i = '1' and lmfc_i = '1' then
+                  v.state   := ALIGN_S;                             
+               elsif enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if;
+            else  
+               if  nSync_i = '1' and enable_i = '1' then
+                  v.state   := ALIGN_S;                             
+               elsif enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if;
+            end if; 
          ----------------------------------------------------------------------
          when ALIGN_S =>
                   
@@ -172,4 +182,5 @@ begin
    testCntr_o  <= r.cnt;     
    dataValid_o <= r.dataValid;
    align_o     <= r.align;
+----------------------------------------------
 end rtl;

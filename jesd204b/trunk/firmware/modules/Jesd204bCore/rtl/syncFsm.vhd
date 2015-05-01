@@ -34,7 +34,7 @@ entity syncFSM is
       K_G : positive := 32;
                
       --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : positive := 1
+      SUB_CLASS_G : natural := 1
    );    
    port (
       -- Clocks and Resets   
@@ -154,7 +154,7 @@ begin
             v.dataValid  := '0';
             
             -- Next state condition (depending on subclass)
-            if  SUB_CLASS_G = '1' then
+            if  SUB_CLASS_G = 1 then
                if  sysRef_i = '1' and enable_i = '1' and nSyncAll_i = '0' and gtReady_i = '1' then
                   v.state    := SYSREF_S;
                end if;
@@ -190,7 +190,7 @@ begin
             v.dataValid  := '0';
             
             -- Next state condition
-            if  SUB_CLASS_G = '1' then
+            if  SUB_CLASS_G = 1 then
                if  s_kDetected = '0' then
                   v.state   := HOLD_S;
                elsif enable_i = '0' then  
@@ -235,7 +235,7 @@ begin
             v.cnt := 0;
             
             -- Next state condition            
-            if  SUB_CLASS_G = '1' then
+            if  SUB_CLASS_G = 1 then
                v.state   := ILA_S; 
             else  
                v.state   := DATA_S;           
@@ -272,7 +272,7 @@ begin
             v.dataValid  := '1';
             
             -- Next state condition
-            if  SUB_CLASS_G = '1' then
+            if  SUB_CLASS_G = 1 then
                if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
                   v.state   := IDLE_S;            
                end if; 
@@ -313,10 +313,10 @@ begin
    end process seq;
    
    -- Output assignment
-   nSync_o <= r.nSync;
-   readBuff_o <= r.readBuff;   
+   nSync_o      <= r.nSync;
+   readBuff_o   <= r.readBuff;   
    alignFrame_o <= r.alignFrame; 
-   Ila_o <= r.Ila;        
-   dataValid_o <= r.dataValid;
+   Ila_o        <= r.Ila;        
+   dataValid_o  <= r.dataValid;
 
 end rtl;
