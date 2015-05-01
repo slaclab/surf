@@ -53,7 +53,7 @@ entity Jesd204b is
       L_G : positive := 2;
            
       --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : positive := 1
+      SUB_CLASS_G : natural := 1
    );
 
    port (
@@ -233,7 +233,8 @@ begin
       TX_LANES_GEN : for I in L_G-1 downto 0 generate    
          JesdTxTest_INST: entity work.JesdTxTest
             generic map (
-               TPD_G          => TPD_G)
+               TPD_G          => TPD_G,
+               SUB_CLASS_G    => SUB_CLASS_G)
             port map (
                devClk_i      => devClk_i,
                devRst_i      => devRst_i,

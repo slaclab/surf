@@ -24,7 +24,9 @@ use work.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G : time := 1 ns;
+      SUB_CLASS_G : natural := 1
+      );
    port (
 
       -- JESD
@@ -114,7 +116,8 @@ begin
    -- Synchronisation FSM
    syncFSM_INST : entity work.syncFsmTx
       generic map (
-         TPD_G          => TPD_G)
+         TPD_G          => TPD_G,
+         SUB_CLASS_G    => SUB_CLASS_G)
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
@@ -178,28 +181,28 @@ begin
    end generate SIZE_4_GEN;
 
       -- GT output generation (depending on GT_WORD_SIZE_C)
-   SIZE_2_GEN: if GT_WORD_SIZE_C = 2 generate
-   ----------------------------------------------------
-      s_dataK   <= "11"                     when (s_dataValid = '0' and  s_align = '0') else 
-                   "00";
-      s_data    <= (K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
-                   ((s_testCntr+1) & (s_testCntr));
+   -- SIZE_2_GEN: if GT_WORD_SIZE_C = 2 generate
+   -- ----------------------------------------------------
+      -- s_dataK   <= "11"                     when (s_dataValid = '0' and  s_align = '0') else 
+                   -- "00";
+      -- s_data    <= (K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
+                   -- ((s_testCntr+1) & (s_testCntr));
 
-      with align_i select 
-      r_jesdGtRx.dataK   <= s_dataK                       when "01", 
-                            s_dataK(0) & r.dataKD1(1)     when "10",
-                            s_dataK                       when others;
+      -- with align_i select 
+      -- r_jesdGtRx.dataK   <= s_dataK                       when "01", 
+                            -- s_dataK(0) & r.dataKD1(1)     when "10",
+                            -- s_dataK                       when others;
 
-      with align_i select 
-      r_jesdGtRx.data    <= s_data                                       when "01", 
-                            s_data(7 downto 0)  & r.dataD1(15 downto 8)  when "10",
-                            s_data                                       when others; 
+      -- with align_i select 
+      -- r_jesdGtRx.data    <= s_data                                       when "01", 
+                            -- s_data(7 downto 0)  & r.dataD1(15 downto 8)  when "10",
+                            -- s_data                                       when others; 
       
-      r_jesdGtRx.dispErr <= "00";
-      r_jesdGtRx.decErr  <= "00";
-      r_jesdGtRx.rstDone <= '1';
-   -----------------------------------------------   
-   end generate SIZE_2_GEN;
+      -- r_jesdGtRx.dispErr <= "00";
+      -- r_jesdGtRx.decErr  <= "00";
+      -- r_jesdGtRx.rstDone <= '1';
+   -- -----------------------------------------------   
+   -- end generate SIZE_2_GEN;
    
    
    -- Output assignment   

@@ -33,8 +33,8 @@ entity JesdRx is
       K_G : positive := 32;
 
       --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : positive := 1
-      );
+      SUB_CLASS_G : natural := 1
+   );
    port (
 
       -- JESD

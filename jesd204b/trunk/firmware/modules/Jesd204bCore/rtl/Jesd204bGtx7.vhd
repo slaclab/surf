@@ -85,7 +85,7 @@ entity Jesd204bGtx7 is
       F_G            : positive := 2;
       K_G            : positive := 32;
       L_G            : positive := 2;
-      SUB_CLASS_G    : positive := 1
+      SUB_CLASS_G    : natural  := 1
    );
 
    port (
