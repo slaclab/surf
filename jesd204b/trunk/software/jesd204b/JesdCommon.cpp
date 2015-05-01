@@ -35,12 +35,21 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
    // Create Registers: name, address
    RegisterLink *rl;
    
-   addRegisterLink(rl = new RegisterLink("Enable",        baseAddress_ + (0x00*addrSize), Variable::Configuration));
+   addRegisterLink(rl = new RegisterLink("Enable",           baseAddress_ + (0x00*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Enables the RX modules: 0x3 - enables both modules at a time");
    
    
-   addRegisterLink(rl = new RegisterLink("SysrefDelay",   baseAddress_ + (0x01*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Sets the synchronisation delay in clock cycles");   
+   addRegisterLink(rl = new RegisterLink("SysrefDelay",      baseAddress_ + (0x01*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Sets the synchronisation delay in clock cycles");
+
+   addRegisterLink(rl = new RegisterLink("AXISTrigger",      baseAddress_ + (0x02*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Triggers the AXI stream transfer: 0x3 - triggers both modules at a time");
+   
+   
+   addRegisterLink(rl = new RegisterLink("AXISpacketSize",   baseAddress_ + (0x03*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Data packet size (when enabled packets are being sent continuously)"); 
+
+   
    
    addRegisterLink(rl = new RegisterLink("L1Test",      baseAddress_ + (0x12*addrSize), 1, 2,
                                 "L1Align",         Variable::Configuration, 0, 0xf,
@@ -50,7 +59,7 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
                                 "L2Align",         Variable::Configuration, 0, 0xf,
                                 "L2Delay",         Variable::Configuration, 8, 0xf));
    
-   addRegisterLink(rl = new RegisterLink("L1Status",      baseAddress_ + (0x10*addrSize), 1, 8,
+   addRegisterLink(rl = new RegisterLink("L1Status",    baseAddress_ + (0x10*addrSize), 1, 10,
                                 "L1GTXRdy",        Variable::Status, 0, 0x1,
                                 "L1DataValid",     Variable::Status, 1, 0x1, 
                                 "L1IlasActive",    Variable::Status, 2, 0x1,
@@ -58,9 +67,11 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
                                 "L1RxBuffUfl",     Variable::Status, 4, 0x1,
                                 "L1RxBuffOfl",     Variable::Status, 5, 0x1,                                 
                                 "L1AlignErr",      Variable::Status, 6, 0x1,
-                                "L1RxEnabled",     Variable::Status, 7, 0x1));                                                      
+                                "L1RxEnabled",     Variable::Status, 7, 0x1,
+                                "L1DisparityErr",  Variable::Status, 8, 0xF,
+                                "L1DecErr",        Variable::Status, 12,0xF));                                                      
                                 
-   addRegisterLink(rl = new RegisterLink("L2Status",      baseAddress_ + (0x11*addrSize), 1, 8,
+   addRegisterLink(rl = new RegisterLink("L2Status",     baseAddress_ + (0x11*addrSize), 1, 10,
                                 "L2GTXRdy",        Variable::Status, 0, 0x1,
                                 "L2DataValid",     Variable::Status, 1, 0x1, 
                                 "L2IlasActive",    Variable::Status, 2, 0x1,
@@ -68,7 +79,9 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
                                 "L2RxBuffUfl",     Variable::Status, 4, 0x1,
                                 "L2RxBuffOfl",     Variable::Status, 5, 0x1,                                 
                                 "L2AlignErr",      Variable::Status, 6, 0x1,
-                                "L2RxEnabled",     Variable::Status, 7, 0x1));
+                                "L2RxEnabled",     Variable::Status, 7, 0x1,                                "L1DisparityErr",  Variable::Status, 8, 0xF,
+                                "L2DisparityErr",  Variable::Status, 8, 0xF,
+                                "L2DecErr",        Variable::Status, 12,0xF));
    // Variables
 
    //Commands
