@@ -24,10 +24,7 @@ use work.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
-      TPD_G : time := 1 ns;
-      --Transceiver word size (GTP,GTX,GTH)
-      GT_WORD_SIZE_G : positive := 4
-   );
+      TPD_G : time := 1 ns);
    port (
 
       -- JESD
@@ -46,7 +43,7 @@ entity JesdTxTest is
       
       -- Lane delay inputs
       delay_i        : in  slv(3 downto 0); -- 1 to 16 clock cycles
-      align_i        : in  slv(3 downto 0); -- 0001, 0010, 0100, 1000
+      align_i        : in  slv(GT_WORD_SIZE_C-1 downto 0); -- 0001, 0010, 0100, 1000
 
       txDataValid_o  : out sl;
       
@@ -117,8 +114,7 @@ begin
    -- Synchronisation FSM
    syncFSM_INST : entity work.syncFsmTx
       generic map (
-         TPD_G          => TPD_G,
-         GT_WORD_SIZE_G => GT_WORD_SIZE_G)
+         TPD_G          => TPD_G)
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
@@ -154,30 +150,58 @@ begin
       end if;
    end process seq;
 
-   -- GT output generation   
-   s_dataK   <= "1111" when (s_dataValid = '0' and  s_align = '0') else "0000";
-   s_data    <= (K_CHAR_C   & K_CHAR_C   & K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
-                ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) & (s_testCntr));
+   -- GT output generation (depending on GT_WORD_SIZE_C)
+   SIZE_4_GEN: if GT_WORD_SIZE_C = 4 generate
+   ----------------------------------------------------
+      s_dataK   <= "1111" when (s_dataValid = '0' and  s_align = '0') else "0000";
+      s_data    <= (K_CHAR_C   & K_CHAR_C   & K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
+                   ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) & (s_testCntr));
 
-   --- Currently works only for GT_WORD_SIZE_G = 2
-   with align_i select 
-   r_jesdGtRx.dataK   <= s_dataK                                     when "0001", 
-                         s_dataK(2 downto 0) & r.dataKD1(3)          when "0010",
-                         s_dataK(1 downto 0) & r.dataKD1(3 downto 2) when "0100",
-                         s_dataK(0)          & r.dataKD1(3 downto 1) when "1000",
-                         s_dataK                                     when others;
+      with align_i select 
+      r_jesdGtRx.dataK   <= s_dataK                                     when "0001", 
+                            s_dataK(2 downto 0) & r.dataKD1(3)          when "0010",
+                            s_dataK(1 downto 0) & r.dataKD1(3 downto 2) when "0100",
+                            s_dataK(0)          & r.dataKD1(3 downto 1) when "1000",
+                            s_dataK                                     when others;
 
-   with align_i select 
-   r_jesdGtRx.data    <= s_data                                       when "0001", 
-                         s_data(23 downto 0) & r.dataD1(31 downto 24) when "0010",
-                         s_data(15 downto 0) & r.dataD1(31 downto 16) when "0100",
-                         s_data(7 downto 0)  & r.dataD1(31 downto 8)  when "1000",
-                         s_data                                       when others; 
+      with align_i select 
+      r_jesdGtRx.data    <= s_data                                       when "0001", 
+                            s_data(23 downto 0) & r.dataD1(31 downto 24) when "0010",
+                            s_data(15 downto 0) & r.dataD1(31 downto 16) when "0100",
+                            s_data(7 downto 0)  & r.dataD1(31 downto 8)  when "1000",
+                            s_data                                       when others; 
+      
+      r_jesdGtRx.dispErr <= "0000";
+      r_jesdGtRx.decErr  <= "0000";
+      r_jesdGtRx.rstDone <= '1';
+   -----------------------------------------------   
+   end generate SIZE_4_GEN;
+
+      -- GT output generation (depending on GT_WORD_SIZE_C)
+   SIZE_2_GEN: if GT_WORD_SIZE_C = 2 generate
+   ----------------------------------------------------
+      s_dataK   <= "11"                     when (s_dataValid = '0' and  s_align = '0') else 
+                   "00";
+      s_data    <= (K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
+                   ((s_testCntr+1) & (s_testCntr));
+
+      with align_i select 
+      r_jesdGtRx.dataK   <= s_dataK                       when "01", 
+                            s_dataK(0) & r.dataKD1(1)     when "10",
+                            s_dataK                       when others;
+
+      with align_i select 
+      r_jesdGtRx.data    <= s_data                                       when "01", 
+                            s_data(7 downto 0)  & r.dataD1(15 downto 8)  when "10",
+                            s_data                                       when others; 
+      
+      r_jesdGtRx.dispErr <= "00";
+      r_jesdGtRx.decErr  <= "00";
+      r_jesdGtRx.rstDone <= '1';
+   -----------------------------------------------   
+   end generate SIZE_2_GEN;
    
-   r_jesdGtRx.dispErr <= "0000";
-   r_jesdGtRx.decErr  <= "0000";
-   r_jesdGtRx.rstDone <= '1';
-
+   
    -- Output assignment   
    txDataValid_o  <= s_dataValid;
  --------------------------------------------

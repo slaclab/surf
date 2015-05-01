@@ -24,10 +24,7 @@ use work.Jesd204bPkg.all;
 
 entity syncFsmTx is
    generic (
-      TPD_G            : time                := 1 ns;
-      --Transceiver word size (GTP,GTX,GTH) (2 or 4)
-      GT_WORD_SIZE_G : positive := 4
-   );    
+      TPD_G            : time                := 1 ns);    
    port (
       -- Clocks and Resets   
       clk            : in    sl;    
@@ -133,7 +130,7 @@ begin
          when DATA_S =>
 
             -- Outputs
-            v.cnt       := r.cnt+4; -- four data bytes sent in parallel
+            v.cnt       := r.cnt+GT_WORD_SIZE_C; -- two or four data bytes sent in parallel
             v.dataValid := '1';
             v.align     := '0';
             

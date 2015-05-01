@@ -15,8 +15,6 @@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
-
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -34,10 +32,7 @@ entity syncFSM is
       
       -- Number of frames in a multi frame
       K_G : positive := 32;
-           
-      --Transceiver word size (GTP,GTX,GTH) (2 or 4)
-      GT_WORD_SIZE_G : positive := 4;
-      
+               
       --JESD204B class (0 and 1 supported)
       SUB_CLASS_G : positive := 1
    );    
@@ -54,11 +49,8 @@ entity syncFSM is
       sysRef_i       : in    sl;
           
       -- Data and character inputs from GT (transceivers)
-      dataRx_i       : in    slv((GT_WORD_SIZE_G*8)-1 downto 0);       
-      chariskRx_i    : in    slv(GT_WORD_SIZE_G-1 downto 0);
-      
-      
-
+      dataRx_i       : in    slv((GT_WORD_SIZE_C*8)-1 downto 0);       
+      chariskRx_i    : in    slv(GT_WORD_SIZE_C-1 downto 0);
       
       -- Local multi frame clock
       lmfc_i         : in    sl;
@@ -140,7 +132,7 @@ architecture rtl of syncFSM is
 begin
    
    -- Asynchronous K character detection 
-   s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_G);  
+   s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);  
 
    -- State machine
    comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAll_i, nSyncAny_i, linkErr_i, s_kDetected, gtReady_i) is
@@ -161,9 +153,15 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             
-            -- Next state condition            
-            if  sysRef_i = '1' and enable_i = '1' and nSyncAll_i = '0' and gtReady_i = '1' then
-               v.state    := SYSREF_S;
+            -- Next state condition (depending on subclass)
+            if  SUB_CLASS_G = '1' then
+               if  sysRef_i = '1' and enable_i = '1' and nSyncAll_i = '0' and gtReady_i = '1' then
+                  v.state    := SYSREF_S;
+               end if;
+            else  
+               if  enable_i = '1' and gtReady_i = '1' and s_kDetected = '1' then
+                  v.state    := SYNC_S;
+               end if;            
             end if;
          ----------------------------------------------------------------------
          when SYSREF_S =>
@@ -191,11 +189,19 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             
-            -- Next state condition            
-            if  s_kDetected = '0' then
-               v.state   := HOLD_S;
-            elsif enable_i = '0' then  
-               v.state   := IDLE_S;            
+            -- Next state condition
+            if  SUB_CLASS_G = '1' then
+               if  s_kDetected = '0' then
+                  v.state   := HOLD_S;
+               elsif enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if;
+            else  
+               if  s_kDetected = '0' then
+                  v.state   := ALIGN_S;
+               elsif enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if;
             end if;
 
          ----------------------------------------------------------------------
@@ -229,8 +235,11 @@ begin
             v.cnt := 0;
             
             -- Next state condition            
-            v.state   := ILA_S;            
-         
+            if  SUB_CLASS_G = '1' then
+               v.state   := ILA_S; 
+            else  
+               v.state   := DATA_S;           
+            end if;
          ----------------------------------------------------------------------
          when ILA_S =>
                      -- Outputs
@@ -262,10 +271,16 @@ begin
             v.Ila        := '0';
             v.dataValid  := '1';
             
-            -- Next state condition            
-            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
-               v.state   := IDLE_S;            
-            end if;
+            -- Next state condition
+            if  SUB_CLASS_G = '1' then
+               if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if; 
+            else  
+               if  linkErr_i = '1' or enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if; 
+            end if;            
          ----------------------------------------------------------------------      
          when others =>
             -- Outputs

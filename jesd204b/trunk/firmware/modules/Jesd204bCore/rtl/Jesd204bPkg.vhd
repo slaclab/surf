@@ -8,15 +8,17 @@ package Jesd204bPkg is
 
 -- Constant definitions
 
+   -- Number of bytes in MGT word (2 or 4).
+   constant GT_WORD_SIZE_C : positive := 2;
+   
    -- 8B10B characters (8-bit values)
    constant K_CHAR_C : slv(7 downto 0) := x"BC";
 
    -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;
-   constant RX_STAT_WIDTH_C   : positive := 8;
+   constant RX_STAT_WIDTH_C   : positive := 8 + 2*GT_WORD_SIZE_C;
 
-   -- Number of bytes in MGT word (2 or 4). Has to be same as GT_WORD_SIZE_G
-   constant GT_WORD_SIZE_C : positive := 4;
+
 
 
 -- Types 
@@ -29,10 +31,14 @@ package Jesd204bPkg is
       rstDone : sl;
    end record jesdGtRxLaneType;
 
+   
+   -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
-
-   type AxiTxDataType is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
-
+   type AxiTxDataTypeArray    is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
+   type statuRegisterArray    is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1 downto 0);
+   type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1 downto 0);
+   
+   
 
 -- Functions
 --------------------------------------------------------------------------  

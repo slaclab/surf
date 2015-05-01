@@ -34,13 +34,7 @@ entity AxiStreamLaneTx is
       
       -- 
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-      AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8;
-      
-      -- JESD configuration
-
-      -- Transceiver word size (GTP,GTX,GTH) (2 or 4 bytes)
-      GT_WORD_SIZE_G    : positive                    := 4
-   );
+      AXI_PACKET_SIZE_G : natural range 1 to (2**24)  :=2**8);
    port (
    
       -- JESD devClk
@@ -53,16 +47,16 @@ entity AxiStreamLaneTx is
       
       -- JESD signals
       enable_i        : in  sl;      
-      sampleData_i    : in  slv((GT_WORD_SIZE_G*8)-1 downto 0);
+      sampleData_i    : in  slv((GT_WORD_SIZE_C*8)-1 downto 0);
       dataReady_i     : in  sl
    );
 end AxiStreamLaneTx;
 
 architecture rtl of AxiStreamLaneTx is
 
-   constant JESD_SSI_CONFIG_C : AxiStreamConfigType                           := ssiAxiStreamConfig(GT_WORD_SIZE_G, TKEEP_COMP_C);
-   constant TSTRB_C           : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
-   constant KEEP_C            : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_G => '0') & ( GT_WORD_SIZE_G-1 downto 0 => '1');
+   constant JESD_SSI_CONFIG_C : AxiStreamConfigType                           := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
+   constant TSTRB_C           : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_C => '0') & ( GT_WORD_SIZE_C-1 downto 0 => '1');
+   constant KEEP_C            : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_C => '0') & ( GT_WORD_SIZE_C-1 downto 0 => '1');
 
    type StateType is (
       IDLE_S,
@@ -87,8 +81,6 @@ architecture rtl of AxiStreamLaneTx is
    signal rin : RegType;
 
 begin
-
-   assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
 
    comb : process (devRst_i, enable_i, r, sampleData_i, txCtrl_i) is
       variable v             : RegType;
@@ -117,8 +109,8 @@ begin
  
             -- No data sent 
             v.txAxisMaster.tvalid  := '0';
-            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)  := (others => '0');                
-            v.txAxisMaster.tLast := '0';
+            v.txAxisMaster.tData   := (others => '0');                
+            v.txAxisMaster.tLast   := '0';
             
             -- Check if fifo and JESD is ready
             if txCtrl_i.pause = '0' and enable_i = '1' then -- TODO later add "and dataReady_i = '1'"
@@ -134,8 +126,8 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)   := (others => '0');              
-            v.txAxisMaster.tLast := '0';
+            v.txAxisMaster.tData   := (others => '0');              
+            v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit
             ssiSetUserSof(JESD_SSI_CONFIG_C, v.txAxisMaster, '1');
@@ -149,11 +141,11 @@ begin
       
             -- Send the JESD data 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData((GT_WORD_SIZE_G*8)-1 downto 0)   := sampleData_i;
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
             v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent
-            if r.dataCnt = AXI_PACKET_SIZE_G then
+            if r.dataCnt = (AXI_PACKET_SIZE_G-1) then
                -- Next State
                v.state   := EOF_S;
             end if;
@@ -165,7 +157,7 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData(GT_WORD_SIZE_G-1 downto 0)  := (others => '0');
+            v.txAxisMaster.tData   := (others => '0');
             -- Set the EOF(tlast) bit                
             v.txAxisMaster.tLast := '1';
             

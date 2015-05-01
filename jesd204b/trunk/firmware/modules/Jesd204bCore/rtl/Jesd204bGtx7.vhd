@@ -33,7 +33,11 @@ entity Jesd204bGtx7 is
       TPD_G             : time                        := 1 ns;
       
    -- Test tx module instead of GTX
-      TEST_G            : boolean                     := true;
+      TEST_G            : boolean                     := false;
+      
+      -- Internal SYSREF SELF_TEST_G= TRUE else 
+      -- External SYSREF
+      SELF_TEST_G        : boolean                    := false; 
       
    -- GT Settings
    ----------------------------------------------------------------------------------------------     
@@ -81,7 +85,6 @@ entity Jesd204bGtx7 is
       F_G            : positive := 2;
       K_G            : positive := 32;
       L_G            : positive := 2;
-      GT_WORD_SIZE_G : positive := 4;
       SUB_CLASS_G    : positive := 1
    );
 
@@ -152,7 +155,6 @@ architecture rtl of Jesd204bGtx7 is
 
 begin
    -- Check generics TODO add others
-   assert (GT_WORD_SIZE_G = 2 or GT_WORD_SIZE_G = 4) report "GT_WORD_SIZE_G must be 2 or 4" severity failure;
    assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    --------------------------------------------------------------------------------------------------
@@ -162,12 +164,12 @@ begin
    generic map (
       TPD_G             => TPD_G,
       TEST_G            => TEST_G,
+      SELF_TEST_G       => SELF_TEST_G,
       AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
       AXI_PACKET_SIZE_G => AXI_PACKET_SIZE_G,
       F_G               => F_G,
       K_G               => K_G,
       L_G               => L_G,
-      GT_WORD_SIZE_G    => GT_WORD_SIZE_G,
       SUB_CLASS_G       => SUB_CLASS_G)
    port map (
       axiClk            => axiClk,
@@ -223,13 +225,13 @@ begin
                RX_PLL_G                 => RX_PLL_G,
                
                -- Data width
-               TX_EXT_DATA_WIDTH_G      => GT_WORD_SIZE_G*8,
-               TX_INT_DATA_WIDTH_G      => GT_WORD_SIZE_G*8+GT_WORD_SIZE_G*2,
+               TX_EXT_DATA_WIDTH_G      => GT_WORD_SIZE_C*8,
+               TX_INT_DATA_WIDTH_G      => GT_WORD_SIZE_C*8+GT_WORD_SIZE_C*2,
                TX_8B10B_EN_G            => true,
                
                -- Data width
-               RX_EXT_DATA_WIDTH_G      => GT_WORD_SIZE_G*8,
-               RX_INT_DATA_WIDTH_G      => GT_WORD_SIZE_G*8+GT_WORD_SIZE_G*2,
+               RX_EXT_DATA_WIDTH_G      => GT_WORD_SIZE_C*8,
+               RX_INT_DATA_WIDTH_G      => GT_WORD_SIZE_C*8+GT_WORD_SIZE_C*2,
                RX_8B10B_EN_G            => true,
                
           

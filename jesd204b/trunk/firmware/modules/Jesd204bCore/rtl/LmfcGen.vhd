@@ -14,8 +14,8 @@
 --              Synchronises with the rising edge of sysref_i if sync is requested 
 --              by any of the on-board JESD receivers.
 --              Outputs first pulse 2 c-c after sysref_i='1'
---              Period determined by F_G*K_G/GT_WORD_SIZE_G.
---                (Example: 2*32/4 = 16)
+--              Period determined by F_G*K_G/GT_WORD_SIZE_C.
+--              (Example: 2*32/4 = 16)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -32,9 +32,7 @@ entity LmfcGen is
    generic (
       TPD_G        : time   := 1 ns;
       K_G          : positive   := 32;
-      F_G          : positive   := 2;
-      GT_WORD_SIZE_G : positive := 4
-   );
+      F_G          : positive   := 2);
    port (
       clk      : in  sl;
       rst      : in  sl;
@@ -49,7 +47,7 @@ end entity LmfcGen;
 
 architecture rtl of LmfcGen is
    
-   constant PERIOD_C    : positive := ((K_G * F_G)/GT_WORD_SIZE_G)-1;
+   constant PERIOD_C    : positive := ((K_G * F_G)/GT_WORD_SIZE_C)-1;
    constant CNT_WIDTH_C : positive := bitSize(PERIOD_C);
 
    type RegType is record

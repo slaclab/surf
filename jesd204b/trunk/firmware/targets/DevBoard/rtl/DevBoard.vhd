@@ -23,6 +23,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Gtx7CfgPkg.all;
+use work.jesd204bpkg.all;
 use work.SsiPkg.all;
 
 entity DevBoard is
@@ -114,7 +115,6 @@ architecture rtl of DevBoard is
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
    constant L_C                : positive := 2;
-   constant GT_WORD_SIZE_C     : positive := 4; -- NOTE: This constant has to be the same as in the Jesd204bPkg
    constant SUB_CLASS_C        : positive := 1;
    
    
@@ -192,7 +192,7 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
    -------------------------------------------------------------------------------------------------
-   constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
 
    signal axisTxMasters : AxiStreamMasterArray(1 downto 0);
    signal axisTxSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -417,7 +417,13 @@ begin
    -------------------------------------------------------------------------------------------------   
    Jesd204bGtx7_INST: entity work.Jesd204bGtx7
    generic map (
-      TPD_G                 => TPD_G,
+      TPD_G       => TPD_G,
+        
+      -- Test tx module instead of GTX
+      TEST_G      =>  true,
+      -- Internal SYSREF SELF_TEST_G= TRUE else 
+      -- External SYSREF
+      SELF_TEST_G =>  true,      
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
@@ -439,7 +445,6 @@ begin
       F_G                => F_C,
       K_G                => K_C,
       L_G                => L_C,
-      GT_WORD_SIZE_G     => GT_WORD_SIZE_C,
       SUB_CLASS_G        => SUB_CLASS_C
    )
    port map (

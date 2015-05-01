@@ -33,11 +33,7 @@ entity alignFrRepCh is
       TPD_G        : time       := 1 ns;
       
       -- Number of bytes in a frame
-      F_G : positive := 2;
-           
-      --Transceiver word size (GTP,GTX,GTH) (2 or 4)
-      GT_WORD_SIZE_G : positive := 4  
-   );
+      F_G : positive := 2);
    port (
       clk      : in  sl;
       rst      : in  sl;
@@ -50,11 +46,11 @@ entity alignFrRepCh is
       dataReady_i    : in  sl;
       
       -- Data and character indication 
-      dataRx_i       : in    slv((GT_WORD_SIZE_G*8)-1 downto 0);       
-      chariskRx_i    : in    slv(GT_WORD_SIZE_G-1     downto 0);
+      dataRx_i       : in    slv((GT_WORD_SIZE_C*8)-1 downto 0);       
+      chariskRx_i    : in    slv(GT_WORD_SIZE_C-1     downto 0);
       
       -- Aligned sample data output     
-      sampleData_o  : out slv((GT_WORD_SIZE_G*8)-1    downto 0);
+      sampleData_o  : out slv((GT_WORD_SIZE_C*8)-1    downto 0);
       
       -- Alignment error
       -- Invalid data received at time of alignment
@@ -73,7 +69,7 @@ architecture rtl of alignFrRepCh is
    constant REG_INIT_C : RegType := (
       dataRxD1       => (others => '0'),
       chariskRxD1    => (others => '0'),
-      position       => intToSlv(1, GT_WORD_SIZE_G) -- Initialize at "0001" or "01"  
+      position       => intToSlv(1, GT_WORD_SIZE_C) -- Initialize at "0001" or "01"  
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -85,7 +81,7 @@ architecture rtl of alignFrRepCh is
    signal s_alignErr    : sl; 
 
    -- Alignment error. Invalid data received at time of alignment  
-   signal s_twowordbuff : slv((GT_WORD_SIZE_G*16)-1    downto 0);
+   signal s_twowordbuff : slv((GT_WORD_SIZE_C*16)-1    downto 0);
    signal s_dataaligned : slv(dataRx_i'range);
    
 begin
@@ -107,7 +103,7 @@ begin
 
       -- Register the alignment 
       if (alignFrame_i = '1') then
-         v.position := detectPosFunc(dataRx_i,chariskRx_i, GT_WORD_SIZE_G);
+         v.position := detectPosFunc(dataRx_i,chariskRx_i, GT_WORD_SIZE_C);
       end if;
       
       if (rst = '1') then
@@ -133,13 +129,13 @@ begin
    s_alignErr    <= '1' when r.position = (r.position'range => '1') else '0';
    
    -- Byte swap and combine the two consecutive GT words
-   s_twoWordBuff <= byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_G) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_G);
+   s_twoWordBuff <= byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
 
    -- Align the bytes within the words                     
-   s_dataAligned <= JesdDataAlign(s_twoWordBuff, r.position, GT_WORD_SIZE_G);
+   s_dataAligned <= JesdDataAlign(s_twoWordBuff, r.position, GT_WORD_SIZE_C);
 
    -- Output assignment
   alignErr_o   <= s_alignErr;
-  sampleData_o <= byteSwapSlv(s_dataAligned, GT_WORD_SIZE_G);
+  sampleData_o <= byteSwapSlv(s_dataAligned, GT_WORD_SIZE_C);
 
 end architecture rtl;
