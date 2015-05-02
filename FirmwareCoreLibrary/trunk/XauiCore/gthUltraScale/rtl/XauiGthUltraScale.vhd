@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-04-09
+-- Last update: 2015-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ entity XauiGthUltraScale is
       MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
       -- XAUI Configurations
       XAUI_20GIGE_G    : boolean             := false;
-      REF_CLK_FREQ_G   : real                := 156.25E+6;-- Support 125MHz, 156.25MHz, or 312.5MHz
+      REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
@@ -70,7 +70,7 @@ entity XauiGthUltraScale is
       phyRst             : out sl;
       phyReady           : out sl;
       -- MGT Ports
-      refClk             : in  sl;
+      refClk             : in  sl;      -- 125MHz, 156.25MHz, or 312.5MHz
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
       gtRxP              : in  slv(3 downto 0);
@@ -135,7 +135,7 @@ begin
    -- 10 GigE XAUI Core
    --------------------
    GEN_10GIGE : if (XAUI_20GIGE_G = false) generate
-      GEN_125MHz : if (REF_CLK_FREQ_G = 125.00E+6) generate   
+      GEN_125MHz : if (REF_CLK_FREQ_G = 125.00E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale125MHz10GigECore
             port map (
                -- Clocks and Resets
@@ -171,8 +171,8 @@ begin
                debug                => status.debugVector,
                configuration_vector => config.configVector,
                status_vector        => status.statusVector); 
-      end generate;         
-      GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate   
+      end generate;
+      GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz10GigECore
             port map (
                -- Clocks and Resets
@@ -208,8 +208,8 @@ begin
                debug                => status.debugVector,
                configuration_vector => config.configVector,
                status_vector        => status.statusVector); 
-      end generate;     
-      GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate   
+      end generate;
+      GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale312p5MHz10GigECore
             port map (
                -- Clocks and Resets
@@ -245,14 +245,14 @@ begin
                debug                => status.debugVector,
                configuration_vector => config.configVector,
                status_vector        => status.statusVector); 
-      end generate;          
-   end generate;          
-         
+      end generate;
+   end generate;
+
    --------------------
    -- 20 GigE XAUI Core
    --------------------
    GEN_20GIGE : if (XAUI_20GIGE_G = true) generate
-      GEN_125MHz : if (REF_CLK_FREQ_G = 125.00E+6) generate   
+      GEN_125MHz : if (REF_CLK_FREQ_G = 125.00E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale125MHz20GigECore
             port map (
                -- Clocks and Resets
@@ -288,8 +288,8 @@ begin
                debug                => status.debugVector,
                configuration_vector => config.configVector,
                status_vector        => status.statusVector); 
-      end generate;         
-      GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate   
+      end generate;
+      GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz20GigECore
             port map (
                -- Clocks and Resets
@@ -325,8 +325,8 @@ begin
                debug                => status.debugVector,
                configuration_vector => config.configVector,
                status_vector        => status.statusVector); 
-      end generate;     
-      GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate   
+      end generate;
+      GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale312p5MHz20GigECore
             port map (
                -- Clocks and Resets
@@ -362,8 +362,8 @@ begin
                debug                => status.debugVector,
                configuration_vector => config.configVector,
                status_vector        => status.statusVector); 
-      end generate;          
-   end generate;           
+      end generate;
+   end generate;
 
    status.phyReady <= uAnd(status.debugVector);
 
