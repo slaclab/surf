@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-04-09
+-- Last update: 2015-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ entity XauiGthUltraScaleWrapper is
       MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
       -- XAUI Configurations
       XAUI_20GIGE_G    : boolean             := false;
-      REF_CLK_FREQ_G   : real                := 156.25E+6;-- Support 125MHz, 156.25MHz, or 312.5MHz
+      REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
@@ -70,7 +70,7 @@ entity XauiGthUltraScaleWrapper is
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
-      -- MGT Clock Port (156.25 MHz)
+      -- MGT Clock Port (125MHz, 156.25MHz, or 312.5MHz)
       gtClkP             : in  sl;
       gtClkN             : in  sl;
       -- MGT Ports
@@ -92,7 +92,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => open,
-         O     => refClk);              -- 156.25 MHz only     
+         O     => refClk);   
 
    ----------------------
    -- 10 GigE XAUI Module
@@ -112,7 +112,7 @@ begin
          MAC_ADDR_G       => MAC_ADDR_G,
          -- XAUI Configurations
          XAUI_20GIGE_G    => XAUI_20GIGE_G,
-         REF_CLK_FREQ_G   => REF_CLK_FREQ_G,     
+         REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
          -- AXI-Lite Configurations
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          -- AXI Streaming Configurations
