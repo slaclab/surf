@@ -42,6 +42,9 @@ entity XauiGthUltraScale is
       HEADER_SIZE_G    : integer             := 16;
       SHIFT_EN_G       : boolean             := false;
       MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
+      -- XAUI Configurations
+      XAUI_20GIGE_G    : boolean             := false;
+      REF_CLK_FREQ_G   : real                := 156.25E+6;-- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
@@ -131,41 +134,236 @@ begin
    --------------------
    -- 10 GigE XAUI Core
    --------------------
-   U_XauiGthUltraScaleCore : entity work.XauiGthUltraScaleCore
-      port map (
-         -- Clocks and Resets
-         dclk                 => phyClock,
-         reset                => status.areset,
-         clk156_out           => phyClock,
-         clk156_lock          => status.clkLock,
-         refclk               => refClk,
-         -- PHY Interface
-         xgmii_txd            => phyTxd,
-         xgmii_txc            => phyTxc,
-         xgmii_rxd            => phyRxd,
-         xgmii_rxc            => phyRxc,
-         -- MGT Ports
-         xaui_tx_l0_p         => gtTxP(0),
-         xaui_tx_l0_n         => gtTxN(0),
-         xaui_tx_l1_p         => gtTxP(1),
-         xaui_tx_l1_n         => gtTxN(1),
-         xaui_tx_l2_p         => gtTxP(2),
-         xaui_tx_l2_n         => gtTxN(2),
-         xaui_tx_l3_p         => gtTxP(3),
-         xaui_tx_l3_n         => gtTxN(3),
-         xaui_rx_l0_p         => gtRxP(0),
-         xaui_rx_l0_n         => gtRxN(0),
-         xaui_rx_l1_p         => gtRxP(1),
-         xaui_rx_l1_n         => gtRxN(1),
-         xaui_rx_l2_p         => gtRxP(2),
-         xaui_rx_l2_n         => gtRxN(2),
-         xaui_rx_l3_p         => gtRxP(3),
-         xaui_rx_l3_n         => gtRxN(3),
-         -- Configuration and Status
-         signal_detect        => (others => '1'),
-         debug                => status.debugVector,
-         configuration_vector => config.configVector,
-         status_vector        => status.statusVector); 
+   GEN_10GIGE : if (XAUI_20GIGE_G = false) generate
+      GEN_125MHz : if (REF_CLK_FREQ_G = 125.00E+6) generate   
+         U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale125MHz10GigECore
+            port map (
+               -- Clocks and Resets
+               dclk                 => phyClock,
+               reset                => status.areset,
+               clk156_out           => phyClock,
+               clk156_lock          => status.clkLock,
+               refclk               => refClk,
+               -- PHY Interface
+               xgmii_txd            => phyTxd,
+               xgmii_txc            => phyTxc,
+               xgmii_rxd            => phyRxd,
+               xgmii_rxc            => phyRxc,
+               -- MGT Ports
+               xaui_tx_l0_p         => gtTxP(0),
+               xaui_tx_l0_n         => gtTxN(0),
+               xaui_tx_l1_p         => gtTxP(1),
+               xaui_tx_l1_n         => gtTxN(1),
+               xaui_tx_l2_p         => gtTxP(2),
+               xaui_tx_l2_n         => gtTxN(2),
+               xaui_tx_l3_p         => gtTxP(3),
+               xaui_tx_l3_n         => gtTxN(3),
+               xaui_rx_l0_p         => gtRxP(0),
+               xaui_rx_l0_n         => gtRxN(0),
+               xaui_rx_l1_p         => gtRxP(1),
+               xaui_rx_l1_n         => gtRxN(1),
+               xaui_rx_l2_p         => gtRxP(2),
+               xaui_rx_l2_n         => gtRxN(2),
+               xaui_rx_l3_p         => gtRxP(3),
+               xaui_rx_l3_n         => gtRxN(3),
+               -- Configuration and Status
+               signal_detect        => (others => '1'),
+               debug                => status.debugVector,
+               configuration_vector => config.configVector,
+               status_vector        => status.statusVector); 
+      end generate;         
+      GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate   
+         U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz10GigECore
+            port map (
+               -- Clocks and Resets
+               dclk                 => phyClock,
+               reset                => status.areset,
+               clk156_out           => phyClock,
+               clk156_lock          => status.clkLock,
+               refclk               => refClk,
+               -- PHY Interface
+               xgmii_txd            => phyTxd,
+               xgmii_txc            => phyTxc,
+               xgmii_rxd            => phyRxd,
+               xgmii_rxc            => phyRxc,
+               -- MGT Ports
+               xaui_tx_l0_p         => gtTxP(0),
+               xaui_tx_l0_n         => gtTxN(0),
+               xaui_tx_l1_p         => gtTxP(1),
+               xaui_tx_l1_n         => gtTxN(1),
+               xaui_tx_l2_p         => gtTxP(2),
+               xaui_tx_l2_n         => gtTxN(2),
+               xaui_tx_l3_p         => gtTxP(3),
+               xaui_tx_l3_n         => gtTxN(3),
+               xaui_rx_l0_p         => gtRxP(0),
+               xaui_rx_l0_n         => gtRxN(0),
+               xaui_rx_l1_p         => gtRxP(1),
+               xaui_rx_l1_n         => gtRxN(1),
+               xaui_rx_l2_p         => gtRxP(2),
+               xaui_rx_l2_n         => gtRxN(2),
+               xaui_rx_l3_p         => gtRxP(3),
+               xaui_rx_l3_n         => gtRxN(3),
+               -- Configuration and Status
+               signal_detect        => (others => '1'),
+               debug                => status.debugVector,
+               configuration_vector => config.configVector,
+               status_vector        => status.statusVector); 
+      end generate;     
+      GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate   
+         U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale312p5MHz10GigECore
+            port map (
+               -- Clocks and Resets
+               dclk                 => phyClock,
+               reset                => status.areset,
+               clk156_out           => phyClock,
+               clk156_lock          => status.clkLock,
+               refclk               => refClk,
+               -- PHY Interface
+               xgmii_txd            => phyTxd,
+               xgmii_txc            => phyTxc,
+               xgmii_rxd            => phyRxd,
+               xgmii_rxc            => phyRxc,
+               -- MGT Ports
+               xaui_tx_l0_p         => gtTxP(0),
+               xaui_tx_l0_n         => gtTxN(0),
+               xaui_tx_l1_p         => gtTxP(1),
+               xaui_tx_l1_n         => gtTxN(1),
+               xaui_tx_l2_p         => gtTxP(2),
+               xaui_tx_l2_n         => gtTxN(2),
+               xaui_tx_l3_p         => gtTxP(3),
+               xaui_tx_l3_n         => gtTxN(3),
+               xaui_rx_l0_p         => gtRxP(0),
+               xaui_rx_l0_n         => gtRxN(0),
+               xaui_rx_l1_p         => gtRxP(1),
+               xaui_rx_l1_n         => gtRxN(1),
+               xaui_rx_l2_p         => gtRxP(2),
+               xaui_rx_l2_n         => gtRxN(2),
+               xaui_rx_l3_p         => gtRxP(3),
+               xaui_rx_l3_n         => gtRxN(3),
+               -- Configuration and Status
+               signal_detect        => (others => '1'),
+               debug                => status.debugVector,
+               configuration_vector => config.configVector,
+               status_vector        => status.statusVector); 
+      end generate;          
+   end generate;          
+         
+   --------------------
+   -- 20 GigE XAUI Core
+   --------------------
+   GEN_20GIGE : if (XAUI_20GIGE_G = true) generate
+      GEN_125MHz : if (REF_CLK_FREQ_G = 125.00E+6) generate   
+         U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale125MHz20GigECore
+            port map (
+               -- Clocks and Resets
+               dclk                 => phyClock,
+               reset                => status.areset,
+               clk156_out           => phyClock,
+               clk156_lock          => status.clkLock,
+               refclk               => refClk,
+               -- PHY Interface
+               xgmii_txd            => phyTxd,
+               xgmii_txc            => phyTxc,
+               xgmii_rxd            => phyRxd,
+               xgmii_rxc            => phyRxc,
+               -- MGT Ports
+               xaui_tx_l0_p         => gtTxP(0),
+               xaui_tx_l0_n         => gtTxN(0),
+               xaui_tx_l1_p         => gtTxP(1),
+               xaui_tx_l1_n         => gtTxN(1),
+               xaui_tx_l2_p         => gtTxP(2),
+               xaui_tx_l2_n         => gtTxN(2),
+               xaui_tx_l3_p         => gtTxP(3),
+               xaui_tx_l3_n         => gtTxN(3),
+               xaui_rx_l0_p         => gtRxP(0),
+               xaui_rx_l0_n         => gtRxN(0),
+               xaui_rx_l1_p         => gtRxP(1),
+               xaui_rx_l1_n         => gtRxN(1),
+               xaui_rx_l2_p         => gtRxP(2),
+               xaui_rx_l2_n         => gtRxN(2),
+               xaui_rx_l3_p         => gtRxP(3),
+               xaui_rx_l3_n         => gtRxN(3),
+               -- Configuration and Status
+               signal_detect        => (others => '1'),
+               debug                => status.debugVector,
+               configuration_vector => config.configVector,
+               status_vector        => status.statusVector); 
+      end generate;         
+      GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate   
+         U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz20GigECore
+            port map (
+               -- Clocks and Resets
+               dclk                 => phyClock,
+               reset                => status.areset,
+               clk156_out           => phyClock,
+               clk156_lock          => status.clkLock,
+               refclk               => refClk,
+               -- PHY Interface
+               xgmii_txd            => phyTxd,
+               xgmii_txc            => phyTxc,
+               xgmii_rxd            => phyRxd,
+               xgmii_rxc            => phyRxc,
+               -- MGT Ports
+               xaui_tx_l0_p         => gtTxP(0),
+               xaui_tx_l0_n         => gtTxN(0),
+               xaui_tx_l1_p         => gtTxP(1),
+               xaui_tx_l1_n         => gtTxN(1),
+               xaui_tx_l2_p         => gtTxP(2),
+               xaui_tx_l2_n         => gtTxN(2),
+               xaui_tx_l3_p         => gtTxP(3),
+               xaui_tx_l3_n         => gtTxN(3),
+               xaui_rx_l0_p         => gtRxP(0),
+               xaui_rx_l0_n         => gtRxN(0),
+               xaui_rx_l1_p         => gtRxP(1),
+               xaui_rx_l1_n         => gtRxN(1),
+               xaui_rx_l2_p         => gtRxP(2),
+               xaui_rx_l2_n         => gtRxN(2),
+               xaui_rx_l3_p         => gtRxP(3),
+               xaui_rx_l3_n         => gtRxN(3),
+               -- Configuration and Status
+               signal_detect        => (others => '1'),
+               debug                => status.debugVector,
+               configuration_vector => config.configVector,
+               status_vector        => status.statusVector); 
+      end generate;     
+      GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate   
+         U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale312p5MHz20GigECore
+            port map (
+               -- Clocks and Resets
+               dclk                 => phyClock,
+               reset                => status.areset,
+               clk156_out           => phyClock,
+               clk156_lock          => status.clkLock,
+               refclk               => refClk,
+               -- PHY Interface
+               xgmii_txd            => phyTxd,
+               xgmii_txc            => phyTxc,
+               xgmii_rxd            => phyRxd,
+               xgmii_rxc            => phyRxc,
+               -- MGT Ports
+               xaui_tx_l0_p         => gtTxP(0),
+               xaui_tx_l0_n         => gtTxN(0),
+               xaui_tx_l1_p         => gtTxP(1),
+               xaui_tx_l1_n         => gtTxN(1),
+               xaui_tx_l2_p         => gtTxP(2),
+               xaui_tx_l2_n         => gtTxN(2),
+               xaui_tx_l3_p         => gtTxP(3),
+               xaui_tx_l3_n         => gtTxN(3),
+               xaui_rx_l0_p         => gtRxP(0),
+               xaui_rx_l0_n         => gtRxN(0),
+               xaui_rx_l1_p         => gtRxP(1),
+               xaui_rx_l1_n         => gtRxN(1),
+               xaui_rx_l2_p         => gtRxP(2),
+               xaui_rx_l2_n         => gtRxN(2),
+               xaui_rx_l3_p         => gtRxP(3),
+               xaui_rx_l3_n         => gtRxN(3),
+               -- Configuration and Status
+               signal_detect        => (others => '1'),
+               debug                => status.debugVector,
+               configuration_vector => config.configVector,
+               status_vector        => status.statusVector); 
+      end generate;          
+   end generate;           
 
    status.phyReady <= uAnd(status.debugVector);
 
