@@ -42,6 +42,9 @@ entity XauiGthUltraScaleWrapper is
       HEADER_SIZE_G    : natural             := 16;
       SHIFT_EN_G       : boolean             := false;
       MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
+      -- XAUI Configurations
+      XAUI_20GIGE_G    : boolean             := false;
+      REF_CLK_FREQ_G   : real                := 156.25E+6;-- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
@@ -107,6 +110,9 @@ begin
          HEADER_SIZE_G    => HEADER_SIZE_G,
          SHIFT_EN_G       => SHIFT_EN_G,
          MAC_ADDR_G       => MAC_ADDR_G,
+         -- XAUI Configurations
+         XAUI_20GIGE_G    => XAUI_20GIGE_G,
+         REF_CLK_FREQ_G   => REF_CLK_FREQ_G,     
          -- AXI-Lite Configurations
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          -- AXI Streaming Configurations
