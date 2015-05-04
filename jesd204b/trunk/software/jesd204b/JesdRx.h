@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File          : JesdCommon.h
+// File          : JesdRx.h
 // Author        : Uros legat <ulegat@slac.stanford.edu>
 //                            <uros.legat@cosylab.com>
 // Created       : 27/04/2015
@@ -21,8 +21,8 @@
 #include <stdint.h>
 using namespace std;
 
-//! Class to contain JESDCommon
-class JesdCommon : public Device {
+//! Class to contain JesdRx
+class JesdRx : public Device {
 
    public:
 
@@ -33,10 +33,10 @@ class JesdCommon : public Device {
        * \param index       Device index
        * \param parent      Parent device
       */
-      JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
+      JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
 
       //! Deconstructor
-      ~JesdCommon ( );
+      ~JesdRx ( );
 
       //! Method to process a command
       /*!

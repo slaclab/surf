@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : JesdRx module 
+-- Title      : JesdRx single lane module 
 -------------------------------------------------------------------------------
--- File       : JesdRx.vhd
+-- File       : JesdRxLane.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14
@@ -10,7 +10,13 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Receiver JESD204b standard.
--- 
+--              Supports sub-class 1 deterministic latency.
+--              Supports sub-class 0 non deterministic latency
+--              Features:
+--              - Comma synchronisation
+--              - Internal buffer to align the lanes.
+--              - Sample data alignment (Sample extraction from GT word - barrel shifter).
+--              - Alignment character replacement (TODO).
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -22,7 +28,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity JesdRx is
+entity JesdRxLane is
    generic (
       TPD_G : time := 1 ns;
 
@@ -66,10 +72,10 @@ entity JesdRx is
       dataValid_o  : out sl;
       sampleData_o : out slv((GT_WORD_SIZE_C*8)-1 downto 0)
       );
-end JesdRx;
+end JesdRxLane;
 
 
-architecture rtl of JesdRx is
+architecture rtl of JesdRxLane is
 
    constant ERR_REG_WIDTH_C : positive := 3+2*GT_WORD_SIZE_C;
 
