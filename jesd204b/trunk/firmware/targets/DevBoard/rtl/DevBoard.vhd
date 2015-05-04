@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : Development board for JESD ADC test
 -------------------------------------------------------------------------------
 -- File       : DevBoard.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
@@ -414,7 +414,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- JESD block
    -------------------------------------------------------------------------------------------------   
-   Jesd204bGtx7_INST: entity work.Jesd204bGtx7
+   Jesd204bGtx7_INST: entity work.Jesd204bRxGtx7
    generic map (
       TPD_G       => TPD_G,
         
@@ -435,6 +435,13 @@ begin
       -- Configure PLL sources
       TX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
       RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
+      
+      -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
+      PMA_RSV_G             =>  x"001E7080",            -- Values from coregen     
+      RX_OS_CFG_G           =>  "0000010000000",        -- Values from coregen 
+      RXCDR_CFG_G           =>  x"03000023ff10400020",  -- Values from coregen  
+      RXDFEXYDEN_G          =>  '1',                    -- Values from coregen 
+      RX_DFE_KL_CFG2_G      =>  x"301148AC",            -- Values from coregen 
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
