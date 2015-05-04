@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b module
+-- Title      : JESD204b multi-lane receiver module
 -------------------------------------------------------------------------------
--- File       : Jesd204b.vhd
+-- File       : Jesd204bRx.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14
@@ -9,8 +9,13 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Module supports a subset of features from JESD204b standard.
---              
+-- Description: Receiver JESD204b module.
+--              Supports a subset of features from JESD204b standard.
+--              Supports sub-class 1 deterministic latency.
+--              Supports sub-class 0 non deterministic latency.
+--              Features:
+--              - Synchronisation of LMFC to SYSREF
+--              - Multi-lane operation (L_G: 1-8)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -26,7 +31,7 @@ use work.SsiPkg.all;
 
 use work.Jesd204bPkg.all;
 
-entity Jesd204b is
+entity Jesd204bRx is
    generic (
       TPD_G             : time                        := 1 ns;
 
@@ -86,9 +91,9 @@ entity Jesd204b is
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl
    );
-end Jesd204b;
+end Jesd204bRx;
 
-architecture rtl of Jesd204b is
+architecture rtl of Jesd204bRx is
  
 -- Register
    type RegType is record
@@ -226,7 +231,7 @@ begin
       lmfc_o   => s_lmfc 
    );
 
-   -- IF DEF
+   -- IF DEF TEST_G
    
    -- Generate TX test core if TEST_G=true is selected
    TEST_GEN: if TEST_G = true generate
@@ -248,12 +253,25 @@ begin
                txDataValid_o => open);
       end generate TX_LANES_GEN;
       
-      -- IF DEF
+      -- IF DEF SELF_TEST_G
       SELF_TEST_GEN: if SELF_TEST_G = true generate
-         -- Sysref connected to enable (rsysref works on rising edge)
-         s_sysrefSync <= s_enableRx(0) or s_enableRx(1);
+         -- Generate the sysref internally
+         -- Sysref period will be 8x K_G.
+         SysrefGen_INST: entity work.LmfcGen
+         generic map (
+            TPD_G          => TPD_G,
+            K_G            => 256,
+            F_G            => 2)
+         port map (
+            clk      => devClk_i,
+            rst      => devRst_i,
+            nSync_i  => '0',
+            sysref_i => '0',
+            lmfc_o   => s_sysrefSync
+         );
       end generate SELF_TEST_GEN;
-      -- ELSE
+      
+      -- ELSE (not SELF_TEST_G)
       EXT_TEST_GEN: if SELF_TEST_G = false generate
          -- Sysref connected to the input (external sysref)
          -- Synchronise SYSREF input to devClk_i
@@ -276,7 +294,7 @@ begin
    ----------------------------------------       
    end generate TEST_GEN;
    
-   -- ELSE   
+   -- ELSE   (not TEST_G)
    
    GT_OPER_GEN: if TEST_G = false generate
    -----------------------------------------
@@ -318,7 +336,7 @@ begin
 
    -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for I in L_G-1 downto 0 generate    
-      JesdRx_INST: entity work.JesdRx
+      JesdRxLane_INST: entity work.JesdRxLane
       generic map (
          TPD_G          => TPD_G,
          F_G            => F_G,

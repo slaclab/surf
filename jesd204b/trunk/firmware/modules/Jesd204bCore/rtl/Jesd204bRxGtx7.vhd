@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b module containing the gtx7 MGT
+-- Title      : JESD204b receiver module containing the gtx7 MGT
 -------------------------------------------------------------------------------
--- File       : Jesd204b.vhd
+-- File       : Jesd204bRxGtx7.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14
@@ -9,7 +9,9 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Framework module for JESD receiver module.
+--              Contains generic settings for GTX7 Receiver
+--              
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -28,7 +30,7 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.Jesd204bPkg.all;
 
-entity Jesd204bGtx7 is
+entity Jesd204bRxGtx7 is
    generic (
       TPD_G             : time                        := 1 ns;
       
@@ -136,9 +138,9 @@ entity Jesd204bGtx7 is
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl
    );
-end Jesd204bGtx7;
+end Jesd204bRxGtx7;
 
-architecture rtl of Jesd204bGtx7 is
+architecture rtl of Jesd204bRxGtx7 is
  
 -- Internal signals
    signal r_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);       
@@ -157,9 +159,9 @@ begin
    assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    --------------------------------------------------------------------------------------------------
-   -- JESD core
+   -- JESD receiver core
    --------------------------------------------------------------------------------------------------  
-   Jesd204b_INST: entity work.Jesd204b
+   Jesd204b_INST: entity work.Jesd204bRx
    generic map (
       TPD_G             => TPD_G,
       TEST_G            => TEST_G,

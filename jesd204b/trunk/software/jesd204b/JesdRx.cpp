@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File          : JesdCommon.cpp
+// File          : JesdRx.cpp
 // Author        : Uros legat <ulegat@slac.stanford.edu>
 //                            <uros.legat@cosylab.com>
 // Created       : 27/04/2015
@@ -14,7 +14,7 @@
 // Modification history :
 // 27/04/2015: created
 //-----------------------------------------------------------------------------
-#include <JesdCommon.h>
+#include <JesdRx.h>
 #include <Register.h>
 #include <RegisterLink.h>
 #include <Variable.h>
@@ -26,8 +26,8 @@
 using namespace std;
 
 // Constructor
-JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize ) : 
-                        Device(linkConfig,baseAddress,"JesdCommon",index,parent) {
+JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize ) : 
+                        Device(linkConfig,baseAddress,"JesdRx",index,parent) {
 
    // Description
    desc_ = "Common JESD interface object.";
@@ -90,7 +90,7 @@ JesdCommon::JesdCommon ( uint32_t linkConfig, uint32_t baseAddress, uint32_t ind
 }
 
 // Deconstructor
-JesdCommon::~JesdCommon ( ) { }
+JesdRx::~JesdRx ( ) { }
 
 // Process Commands
 
