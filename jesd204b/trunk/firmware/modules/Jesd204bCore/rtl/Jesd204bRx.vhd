@@ -244,56 +244,40 @@ begin
                nSync_i       => r.nSyncAnyD1,
                r_jesdGtRx    => s_jesdGtRxArr(I),
                txDataValid_o => open);
-      end generate TX_LANES_GEN;
-      
-      -- IF DEF SELF_TEST_G
-      SELF_TEST_GEN: if SELF_TEST_G = true generate
-         -- Generate the sysref internally
-         -- Sysref period will be 8x K_G.
-         SysrefGen_INST: entity work.LmfcGen
-         generic map (
-            TPD_G          => TPD_G,
-            K_G            => 256,
-            F_G            => 2)
-         port map (
-            clk      => devClk_i,
-            rst      => devRst_i,
-            nSync_i  => '0',
-            sysref_i => '0',
-            lmfc_o   => s_sysrefSync
-         );
-      end generate SELF_TEST_GEN;
-      
-      -- ELSE (not SELF_TEST_G)
-      EXT_TEST_GEN: if SELF_TEST_G = false generate
-         -- Sysref connected to the input (external sysref)
-         -- Synchronise SYSREF input to devClk_i
-         Synchronizer_INST: entity work.Synchronizer
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => '1',
-            OUT_POLARITY_G => '1',
-            RST_ASYNC_G    => false,
-            STAGES_G       => 2,
-            BYPASS_SYNC_G  => false,
-            INIT_G         => "0")
-         port map (
-            clk     => devClk_i,
-            rst     => devRst_i,
-            dataIn  => sysref_i,
-            dataOut => s_sysrefSync
-         );
-      end generate EXT_TEST_GEN;
-   ----------------------------------------       
+      end generate TX_LANES_GEN;     
    end generate TEST_GEN;
    
-   -- ELSE   (not TEST_G)
-   
+   -- ELSE   (not TEST_G) just connect to the input from the MGT
    GT_OPER_GEN: if TEST_G = false generate
    -----------------------------------------
       -- Use input from GTX
       s_jesdGtRxArr <= r_jesdGtRxArr;
-      
+   end generate GT_OPER_GEN;
+   ---------------------------------------- 
+   
+   
+   ----------------------------------------  
+   -- IF DEF SELF_TEST_G
+   SELF_TEST_GEN: if SELF_TEST_G = true generate
+      -- Generate the sysref internally
+      -- Sysref period will be 8x K_G.
+      SysrefGen_INST: entity work.LmfcGen
+      generic map (
+         TPD_G          => TPD_G,
+         K_G            => 256,
+         F_G            => 2)
+      port map (
+         clk      => devClk_i,
+         rst      => devRst_i,
+         nSync_i  => '0',
+         sysref_i => '0',
+         lmfc_o   => s_sysrefSync
+      );
+   end generate SELF_TEST_GEN;
+   
+   -- ELSE (not SELF_TEST_G)
+   EXT_TEST_GEN: if SELF_TEST_G = false generate
+      -- Sysref connected to the input (external sysref)
       -- Synchronise SYSREF input to devClk_i
       Synchronizer_INST: entity work.Synchronizer
       generic map (
@@ -310,8 +294,8 @@ begin
          dataIn  => sysref_i,
          dataOut => s_sysrefSync
       );
-   -----------------------------------------
-   end generate GT_OPER_GEN;
+   end generate EXT_TEST_GEN;
+   ----------------------------------------  
 
    -----------------------------------------------------------
    -- SYSREF and LMFC
