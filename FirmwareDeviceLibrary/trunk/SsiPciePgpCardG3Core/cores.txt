@@ -1,2 +1,2 @@
 ## Sourcing the .dcp file in the sources.txt
-#coregen/PgpCardG3SsiPcieIpCore.xci
+#coregen/SsiPciePgpCardG3IpCore.xci

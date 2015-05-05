@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpCardG3 Wrapper for SSI PCIe Core
 -------------------------------------------------------------------------------
--- File       : PgpCardG3PcieFrontEnd.vhd
+-- File       : SsiPciePgpCardG3FrontEnd.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-24
@@ -24,7 +24,7 @@ use work.SsiPciePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity PgpCardG3PcieFrontEnd is
+entity SsiPciePgpCardG3FrontEnd is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -47,9 +47,9 @@ entity PgpCardG3PcieFrontEnd is
       pciRxN      : in  slv(3 downto 0);
       pciTxP      : out slv(3 downto 0);
       pciTxN      : out slv(3 downto 0));     
-end PgpCardG3PcieFrontEnd;
+end SsiPciePgpCardG3FrontEnd;
 
-architecture mapping of PgpCardG3PcieFrontEnd is
+architecture mapping of SsiPciePgpCardG3FrontEnd is
 
    signal pciRefClk : sl;
    signal sysRstL   : sl;
@@ -92,7 +92,7 @@ begin
          I => pciRstL,
          O => sysRstL);          
 
-   PcieCore_Inst : entity work.PgpCardG3SsiPcieIpCore
+   PcieCore_Inst : entity work.SsiPciePgpCardG3IpCore
       port map(
          -------------------------------------
          -- PCI Express (pci_exp) Interface --
