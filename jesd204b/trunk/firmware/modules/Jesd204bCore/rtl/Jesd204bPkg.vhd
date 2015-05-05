@@ -13,6 +13,7 @@ package Jesd204bPkg is
    
    -- 8B10B characters (8-bit values)
    constant K_CHAR_C : slv(7 downto 0) := x"BC";
+   constant R_CHAR_C : slv(7 downto 0) := x"1C";   
 
    -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;

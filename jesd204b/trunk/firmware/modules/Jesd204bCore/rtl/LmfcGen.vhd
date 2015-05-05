@@ -41,7 +41,9 @@ entity LmfcGen is
       nSync_i  : in  sl; 
       sysref_i : in  sl;
       
-      lmfc_o   : out sl  
+      -- Outs
+      sysrefRe_o : out sl;      
+      lmfc_o     : out sl  
    );
 end entity LmfcGen;
 

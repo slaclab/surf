@@ -16,6 +16,7 @@
 --              Features:
 --              - Synchronisation of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-8)
+--              Note: The receiver does not support scrambling (assumes that the data is not scrambled)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -142,6 +143,7 @@ signal s_axisTriggerReg    : slv(L_G-1 downto 0);
 -- Sysref conditioning
 signal  s_sysrefSync : sl;
 signal  s_sysrefD    : sl;
+signal  s_sysrefRe   : sl;
 
 -- Record containing GT signals
 signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
@@ -151,6 +153,9 @@ begin
    -- Check generics TODO add others
    assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
 
+   -----------------------------------------------------------
+   -- AXI
+   -----------------------------------------------------------   
    -- AXI stream interface one module per lane
    generateAxiStreamLanes : for I in L_G-1 downto 0 generate
       AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
@@ -216,21 +221,9 @@ begin
       axisPacketSize_o=> s_axisPacketSizeReg
    );
   
-   -- LMFC period generator aligned to SYSREF input
-   -------------------------------------------------------------------------
-   LmfcGen_INST: entity work.LmfcGen
-   generic map (
-      TPD_G          => TPD_G,
-      K_G            => K_G,
-      F_G            => F_G)
-   port map (
-      clk      => devClk_i,
-      rst      => devRst_i,
-      nSync_i  => r.nSyncAnyD1,
-      sysref_i => s_sysrefD,
-      lmfc_o   => s_lmfc 
-   );
-
+   -----------------------------------------------------------
+   -- TEST or OPER
+   -----------------------------------------------------------  
    -- IF DEF TEST_G
    
    -- Generate TX test core if TEST_G=true is selected
@@ -320,6 +313,10 @@ begin
    -----------------------------------------
    end generate GT_OPER_GEN;
 
+   -----------------------------------------------------------
+   -- SYSREF and LMFC
+   -----------------------------------------------------------     
+   
    -- Delay SYSREF input (for 1 to 32 c-c)
    SysrefDly_INST: entity work.SysrefDly
    generic map (
@@ -334,9 +331,28 @@ begin
       sysref_o => s_sysrefD
    );
 
+   -- LMFC period generator aligned to SYSREF input
+   LmfcGen_INST: entity work.LmfcGen
+   generic map (
+      TPD_G          => TPD_G,
+      K_G            => K_G,
+      F_G            => F_G)
+   port map (
+      clk         => devClk_i,
+      rst         => devRst_i,
+      nSync_i     => r.nSyncAnyD1,
+      sysref_i    => s_sysrefD,  -- Delayed SYSREF IN
+      sysrefRe_o  => s_sysrefRe, -- Rising-edge of SYSREF OUT 
+      lmfc_o      => s_lmfc 
+   );
+   
+   -----------------------------------------------------------
+   -- Receiver modules (L_G)
+   ----------------------------------------------------------- 
+   
    -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for I in L_G-1 downto 0 generate    
-      JesdRxLane_INST: entity work.JesdRxLane
+      JesdRx_INST: entity work.JesdRxLane
       generic map (
          TPD_G          => TPD_G,
          F_G            => F_G,
@@ -345,7 +361,7 @@ begin
       port map (
          devClk_i     => devClk_i,
          devRst_i     => devRst_i,
-         sysRef_i     => s_sysrefD,
+         sysRef_i     => s_sysrefRe, -- Rising-edge of SYSREF
          enable_i     => s_enableRx(I),
          status_o     => s_statusRxArr(I),
          r_jesdGtRx   => s_jesdGtRxArr(I),
