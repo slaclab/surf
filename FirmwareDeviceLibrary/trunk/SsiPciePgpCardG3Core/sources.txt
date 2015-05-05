@@ -1,4 +1,4 @@
-vhdl work rtl/PgpCardG3SsiPcieCore.vhd
-vhdl work rtl/PgpCardG3PcieFrontEnd.vhd
+vhdl work rtl/SsiPciePgpCardG3Core.vhd
+vhdl work rtl/SsiPciePgpCardG3FrontEnd.vhd
 
-vhdl work coregen/PgpCardG3SsiPcieIpCore.dcp
+vhdl work coregen/SsiPciePgpCardG3IpCore.dcp
