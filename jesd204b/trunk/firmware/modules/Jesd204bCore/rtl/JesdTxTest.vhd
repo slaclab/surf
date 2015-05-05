@@ -82,6 +82,7 @@ architecture rtl of JesdTxTest is
    signal s_nsync_dly  : sl;
    signal s_dataK      : slv(r_jesdGtRx.dataK'range);
    signal s_data       : slv(r_jesdGtRx.data'range);  
+   signal s_data_sel   : slv(1 downto 0);
    
 begin
 
@@ -152,14 +153,22 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
+   
+   
+   s_data_sel <= s_dataValid & s_align;
    -- GT output generation (depending on GT_WORD_SIZE_C)
    SIZE_4_GEN: if GT_WORD_SIZE_C = 4 generate
    ----------------------------------------------------
-      s_dataK   <= "1111" when (s_dataValid = '0' and  s_align = '0') else "0000";
-      s_data    <= (K_CHAR_C   & K_CHAR_C   & K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
-                   ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) & (s_testCntr));
-
+      with s_data_sel select
+      s_dataK   <= "1111" when "00",
+                   "0001" when "01",
+                   "0000" when others;
+                   
+      with s_data_sel select                   
+      s_data    <= (K_CHAR_C   & K_CHAR_C   & K_CHAR_C   & K_CHAR_C)                   when "00", 
+                   ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) &  R_CHAR_C)     when "01",
+                   ( (s_testCntr+3) & (s_testCntr+2) & (s_testCntr+1) & (s_testCntr))  when others;
+                   
       with align_i select 
       r_jesdGtRx.dataK   <= s_dataK                                     when "0001", 
                             s_dataK(2 downto 0) & r.dataKD1(3)          when "0010",
