@@ -114,6 +114,7 @@ begin
    end process seq;
    
    -- Output assignment
-   lmfc_o <= r.lmfc;
-
+   lmfc_o       <= r.lmfc;
+   sysrefRe_o   <= r.sysrefRe;
+---------------------------------------   
 end architecture rtl;

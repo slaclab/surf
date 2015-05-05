@@ -186,7 +186,7 @@ begin
          );
 
    -- Synchronisation FSM
-   syncFSM_INST : entity work.syncFSM
+   syncFSM_INST : entity work.SyncFsmRx
       generic map (
          TPD_G          => TPD_G,
          F_G            => F_G,

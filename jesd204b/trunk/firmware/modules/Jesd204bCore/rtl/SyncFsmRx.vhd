@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Synchroniser Finite state machine
 -------------------------------------------------------------------------------
--- File       : syncFSM.vhd 
+-- File       : SyncFsmRx.vhd 
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14
@@ -23,7 +23,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity syncFSM is
+entity SyncFsmRx is
    generic (
       TPD_G            : time                := 1 ns;
 
@@ -82,9 +82,9 @@ entity syncFSM is
       dataValid_o    : out   sl
 
     );
-end syncFSM;
+end SyncFsmRx;
 
-architecture rtl of syncFSM is
+architecture rtl of SyncFsmRx is
 
    type stateType is (
       IDLE_S,

@@ -115,7 +115,7 @@ begin
    );
 
    -- Synchronisation FSM
-   syncFSM_INST : entity work.syncFsmTx
+   syncFSM_INST : entity work.SyncFsmTxTest
       generic map (
          TPD_G          => TPD_G,
          SUB_CLASS_G    => SUB_CLASS_G)
@@ -210,7 +210,7 @@ begin
       -- r_jesdGtRx.dispErr <= "00";
       -- r_jesdGtRx.decErr  <= "00";
       -- r_jesdGtRx.rstDone <= '1';
-   -- -----------------------------------------------   
+   -- ----------------------------------------------- 
    -- end generate SIZE_2_GEN;
    
    
