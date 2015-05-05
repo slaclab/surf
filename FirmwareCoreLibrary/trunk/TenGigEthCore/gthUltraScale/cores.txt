@@ -1,2 +1,3 @@
 # Using the .dcp instead of the .xci (see sources.txt) 
-# coregen/TenGigEthGthUltraScaleCore.xci
+# coregen/TenGigEthGthUltraScale156p25MHzCore.xci
+# coregen/TenGigEthGthUltraScale312p5MHzCore.xci

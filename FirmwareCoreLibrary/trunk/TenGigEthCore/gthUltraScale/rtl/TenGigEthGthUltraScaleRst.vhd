@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : TenGigEthRst.vhd
+-- File       : TenGigEthGthUltraScaleRst.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
+-- Created    : 2015-05-04
 -- Last update: 2015-05-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
@@ -24,58 +24,96 @@ use work.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity TenGigEthRst is
+entity TenGigEthGthUltraScaleRst is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- Clocks and Resets
-      extRst      : in  sl;             -- async reset
-      gtPowerGood : in  sl := '1';
-      phyClk      : in  sl;
-      phyRst      : in  sl;
+      extRst      : in  sl;
+      coreClk     : in  sl;
+      coreRst     : out sl;
+      phyClk      : out sl;
+      phyRst      : out sl;
+      txBufgGtRst : in  sl;
+      qplllock    : in  sl;
       txClk322    : in  sl;
       txUsrClk    : out sl;
       txUsrClk2   : out sl;
       gtTxRst     : out sl;
       gtRxRst     : out sl;
       txUsrRdy    : out sl;
-      rstCntDone  : out sl;
-      -- Quad PLL Ports
-      qplllock    : in  sl;
-      qpllRst     : out sl);      
-end TenGigEthRst;
+      rstCntDone  : out sl);      
+end TenGigEthGthUltraScaleRst;
 
-architecture rtl of TenGigEthRst is
+architecture rtl of TenGigEthGthUltraScaleRst is
 
-   signal txClock : sl;
-   signal txReset : sl;
-   signal txReady : sl;
+   signal coreReset : sl;
+   signal phyReset  : sl;
+   signal txClockGt : sl;
+   signal txClock   : sl;
+   signal txReset   : sl;
+   signal txReady   : sl;
 
-   signal rstCnt   : slv(7 downto 0) := x"00";
+   signal rstCnt   : slv(8 downto 0) := (others => '0');
    signal rstPulse : slv(3 downto 0) := "1110";
 
 begin
 
-   txUsrClk  <= txClock;
+   -- Clock Outputs
    txUsrClk2 <= txClock;
+   phyClk    <= txClock;
 
-   rstCntDone <= rstCnt(7);
+   -- Reset Outputs
+   coreRst    <= coreReset;
+   phyRst     <= txReset;
+   rstCntDone <= rstCnt(8);
    gtTxRst    <= rstPulse(0);
    gtRxRst    <= rstPulse(0);
-   qpllRst    <= rstPulse(0) and not(gtPowerGood);
 
-   CLK312_BUFG : BUFG
+   Synchronizer_0 : entity work.Synchronizer
+      generic map(
+         TPD_G          => TPD_G,
+         RST_ASYNC_G    => true,
+         RST_POLARITY_G => '1',
+         STAGES_G       => 5,
+         INIT_G         => "11111")
       port map (
-         I => txClk322,
-         O => txClock);
+         clk     => coreClk,
+         rst     => extRst,
+         dataIn  => '0',
+         dataOut => coreReset);    
+
+   CLK312_BUFG_GT : BUFG_GT
+      port map (
+         I       => txclk322,
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => txBufgGtRst,
+         CLRMASK => '0',
+         DIV     => "000",
+         O       => txUsrClk);   
+
+   CLK156_BUFG_GT : BUFG_GT
+      port map (
+         I       => txclk322,
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => txBufgGtRst,
+         CLRMASK => '0',
+         DIV     => "001",
+         O       => txClockGt);   
+
+   CLK156_BUFG : BUFG
+      port map (
+         I => txClockGt,
+         O => txClock);           
 
    Synchronizer_1 : entity work.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
          RST_POLARITY_G => '0',
-         STAGES_G       => 4,
-         INIT_G         => "0000")
+         STAGES_G       => 5,
+         INIT_G         => "00000")
       port map (
          clk     => txClock,
          rst     => qPllLock,
@@ -87,28 +125,28 @@ begin
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
          RST_POLARITY_G => '1',
-         STAGES_G       => 4,
-         INIT_G         => "1111")
+         STAGES_G       => 5,
+         INIT_G         => "11111")
       port map (
          clk     => txClock,
          rst     => rstPulse(0),
          dataIn  => '0',
          dataOut => txReset);  
 
-   process(phyClk)
+   process(coreClk)
    begin
-      if rising_edge(phyClk) then
+      if rising_edge(coreClk) then
          -- Hold off release the GT resets until 500ns after configuration.
-         -- 128 ticks at 6.4ns period will be >> 500 ns.
-         if rstCnt(7) = '0' then
+         -- 256 ticks at the minimum possible 2.56ns period (390MHz) will be >> 500 ns.
+         if rstCnt(8) = '0' then
             rstCnt <= rstCnt + 1 after TPD_G;
          else
             rstCnt <= rstCnt after TPD_G;
          end if;
          -- Check for reset
-         if phyRst = '1' then
+         if coreReset = '1' then
             rstPulse <= "1110" after TPD_G;
-         elsif rstCnt(7) = '1' then
+         elsif rstCnt(8) = '1' then
             rstPulse(3)          <= '0'                  after TPD_G;
             rstPulse(2 downto 0) <= rstPulse(3 downto 1) after TPD_G;
          end if;
