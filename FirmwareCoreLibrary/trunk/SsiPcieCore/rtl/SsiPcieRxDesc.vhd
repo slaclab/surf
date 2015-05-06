@@ -231,22 +231,30 @@ begin
                   v.axiReadSlave.rdata(26)         := rFifoDout(64);  -- EOFE
                   v.axiReadSlave.rdata(9 downto 0) := rFifoCnt;
                when x"43" =>
-                  if (rFifoValid = '1') and (r.rdDone = '0') then
-                     v.axiReadSlave.rdata    := rFifoDout(63 downto 32);
-                     v.descData(31 downto 2) := rFifoDout(31 downto 2);
-                     v.descData(1)           := '0';
-                     v.descData(0)           := '1';
+                  if r.rdDone = '0' then
+                     -- Check if we need to read the FIFO
+                     if rFifoValid = '1' then
+                        v.axiReadSlave.rdata    := rFifoDout(63 downto 32);
+                        v.descData(31 downto 1) := rFifoDout(31 downto 1);
+                        v.descData(0)           := '1';
+                     else
+                        v.descData := (others => '0');
+                     end if;
                   else
-                     v.descData := (others => '0');
-                  end if;
+                     v.axiReadSlave.rdata := r.axiReadSlave.rdata;
+                  end if;                  
                when x"44" =>
-                  v.axiReadSlave.rdata := r.descData;
-                  -- Check if we need to reset the flag
-                  if (r.descData(0) = '1') and (r.rdDone = '0') then
-                     v.descData(0) := '0';
-                     v.reqIrq      := '0';
-                     v.rFifoRd     := '1';
-                  end if;
+                  if r.rdDone = '0' then               
+                     v.axiReadSlave.rdata := r.descData;
+                     -- Check if we need to reset the flag
+                     if r.descData(0) = '1' then
+                        v.descData(0) := '0';
+                        v.reqIrq      := '0';
+                        v.rFifoRd     := '1';
+                     end if;
+                  else
+                     v.axiReadSlave.rdata := r.axiReadSlave.rdata;
+                  end if;                    
                when others =>
                   axiReadResp := AXI_ERROR_RESP_G;
             end case;
@@ -291,6 +299,7 @@ begin
             v.rFifoDin(59 downto 56) := dmaDescToPci(r.doneCnt).doneSubCh;
             v.rFifoDin(55 downto 32) := dmaDescToPci(r.doneCnt).doneLength;
             v.rFifoDin(31 downto 2)  := dmaDescToPci(r.doneCnt).doneAddr;
+            v.rFifoDin(1)            := dmaDescToPci(r.doneCnt).doneFrameErr or dmaDescToPci(r.doneCnt).doneTranEofe;
          end if;
          -- Increment DMA channel pointer counter
          if r.doneCnt = (DMA_SIZE_G-1) then
