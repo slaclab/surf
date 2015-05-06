@@ -1,0 +1,27 @@
+#!/bin/sh
+
+module="SsiPcie"
+device="SsiPcie"
+mode="666"
+
+# remove old driver
+/sbin/rmmod -s $module
+
+# add new driver
+/sbin/insmod ./$module.ko || exit 1
+
+# remove stale nodes
+rm -f /dev/${device}*
+
+major=`grep $module /proc/devices | cut -f1 -d' '`
+
+i="0";
+
+for num in $major
+do
+   mknod /dev/${device}${i}  c $num 0
+   ((i++))
+done
+
+# give appropriate group/permissions
+chmod $mode /dev/${device}*
