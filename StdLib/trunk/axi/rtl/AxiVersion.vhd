@@ -48,6 +48,9 @@ entity AxiVersion is
       masterReset    : out sl;
       fpgaReload     : out sl;
       fpgaReloadAddr : out slv(31 downto 0);
+      
+      dnaValueOut : out slv(63 downto 0);
+      fdSerialOut : out slv(63 downto 0);
 
       -- Optional user values
       userValues : in Slv32Array(0 to 63) := (others => X"00000000");
@@ -108,6 +111,9 @@ architecture rtl of AxiVersion is
    signal fdSerial : slv(63 downto 0) := (others => '0');
    
 begin
+
+   dnaValueOut <= dnaValue;
+   fdSerialOut <= fdSerial;
 
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
       DeviceDna_1 : entity work.DeviceDna
