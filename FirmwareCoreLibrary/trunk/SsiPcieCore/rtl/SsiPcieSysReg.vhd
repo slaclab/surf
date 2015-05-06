@@ -148,8 +148,8 @@ begin
       axiSlaveRegisterW(X"010", 0, v.cntRst);
       axiSlaveRegisterW(X"010", 1, v.cardRst);
 
-      axiSlaveRegisterR(X"014", 0, irqActive);
-      axiSlaveRegisterW(X"014", 1, v.irqIntEnable);
+      axiSlaveRegisterW(X"014", 0, v.irqIntEnable);
+      axiSlaveRegisterR(X"014", 1, irqActive);
       axiSlaveRegisterW(X"014", 2, v.irqExtEnable);
 
       axiSlaveRegisterR(X"018", 0, toSlv(DMA_SIZE_G, 32));
