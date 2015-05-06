@@ -20,7 +20,7 @@
 --                   - A(K28.3) - x"7C" - End of multi-frame
 --                   - F(K28.7) - x"FC" - Inserted at the end of the frame
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -32,9 +32,11 @@ use work.Jesd204bPkg.all;
 
 entity JesdTxLane is
    generic (
-      TPD_G : time := 1 ns;
-      SUB_CLASS_G : natural := 1
-      );
+      TPD_G       : time      := 1 ns;
+      F_G         : positive  := 2;
+      K_G         : positive  := 32;
+      SUB_CLASS_G : natural   := 1
+   );
    port (
 
       -- JESD

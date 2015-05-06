@@ -29,7 +29,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.Jesd204bPkg.all;
 
-entity AxiLiteRegItf is
+entity AxiLiteRxRegItf is
    generic (
    -- General Configurations
       TPD_G                      : time                       := 1 ns;
@@ -51,7 +51,7 @@ entity AxiLiteRegItf is
       
    -- JESD registers
       -- Status
-      statusRxArr_i   : in   statuRegisterArray(0 to L_G-1);
+      statusRxArr_i   : in   rxStatuRegisterArray(0 to L_G-1);
       
       -- Control
       sysrefDlyRx_o     : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
@@ -61,9 +61,9 @@ entity AxiLiteRegItf is
       axisTrigger_o     : out  slv(L_G-1 downto 0);
       axisPacketSize_o  : out  slv(23 downto 0)
    );   
-end AxiLiteRegItf;
+end AxiLiteRxRegItf;
 
-architecture rtl of AxiLiteRegItf is
+architecture rtl of AxiLiteRxRegItf is
 
    type RegType is record
       -- JESD Control (RW)

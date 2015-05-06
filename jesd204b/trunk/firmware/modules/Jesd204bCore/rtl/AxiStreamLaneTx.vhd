@@ -12,7 +12,7 @@
 -- Description:   This module sends the RX JESD lane 
 --                on Virtual Channel Lane.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;

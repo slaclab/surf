@@ -36,12 +36,14 @@ package Jesd204bPkg is
    type jesdGtTxLaneType is record
       data    : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
       dataK   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
+      gtReset : sl;  
   end record jesdGtTxLaneType;   
    -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
    type jesdGtTxLaneTypeArray is array (natural range <>) of jesdGtTxLaneType;
-   type AxiTxDataTypeArray    is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
-   type statuRegisterArray    is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1 downto 0);
+   type AxiDataTypeArray      is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
+   type rxStatuRegisterArray  is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1 downto 0);
+   type txStatuRegisterArray  is array (natural range <>) of slv( (TX_STAT_WIDTH_C)-1 downto 0);
    type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1 downto 0);
    
    
