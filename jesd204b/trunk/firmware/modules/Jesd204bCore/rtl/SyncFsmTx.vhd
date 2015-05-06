@@ -12,7 +12,7 @@
 -- Description: Finite state machine for sub-class 1 and sub-class 0 deterministic latency
 --              lane synchronisation.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;

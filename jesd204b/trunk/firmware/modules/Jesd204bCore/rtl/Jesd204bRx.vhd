@@ -18,7 +18,7 @@
 --              - Multi-lane operation (L_G: 1-8)
 --              Note: The receiver does not support scrambling (assumes that the data is not scrambled)
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -123,7 +123,7 @@ signal s_nSyncAny   : sl;
 -- Control and status from AxiLie
 signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
 signal s_enableRx     : slv(L_G-1 downto 0);
-signal s_statusRxArr  : statuRegisterArray(L_G-1 downto 0);
+signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
 
 -- Testing registers
 signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
@@ -136,7 +136,7 @@ signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
 signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
 -- Axi Stream
-signal s_sampleDataArr : AxiTxDataTypeArray(L_G-1 downto 0);
+signal s_sampleDataArr : AxiDataTypeArray(L_G-1 downto 0);
 signal s_axisPacketSizeReg : slv(23 downto 0);
 signal s_axisTriggerReg    : slv(L_G-1 downto 0);
 
@@ -200,7 +200,7 @@ begin
    );
 
    -- axiLite register interface
-   AxiLiteRegItf_INST: entity work.AxiLiteRegItf
+   AxiLiteRegItf_INST: entity work.AxiLiteRxRegItf
    generic map (
       TPD_G            => TPD_G,
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
@@ -254,53 +254,26 @@ begin
       s_jesdGtRxArr <= r_jesdGtRxArr;
    end generate GT_OPER_GEN;
    ---------------------------------------- 
-   
-   
-   ----------------------------------------  
-   -- IF DEF SELF_TEST_G
-   SELF_TEST_GEN: if SELF_TEST_G = true generate
-      -- Generate the sysref internally
-      -- Sysref period will be 8x K_G.
-      SysrefGen_INST: entity work.LmfcGen
-      generic map (
-         TPD_G          => TPD_G,
-         K_G            => 256,
-         F_G            => 2)
-      port map (
-         clk      => devClk_i,
-         rst      => devRst_i,
-         nSync_i  => '0',
-         sysref_i => '0',
-         lmfc_o   => s_sysrefSync
-      );
-   end generate SELF_TEST_GEN;
-   
-   -- ELSE (not SELF_TEST_G)
-   
-   EXT_TEST_GEN: if SELF_TEST_G = false generate
-      -- Sysref connected to the input (external sysref)
-      -- Synchronise SYSREF input to devClk_i
-      Synchronizer_INST: entity work.Synchronizer
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
-      port map (
-         clk     => devClk_i,
-         rst     => devRst_i,
-         dataIn  => sysref_i,
-         dataOut => s_sysrefSync
-      );
-   end generate EXT_TEST_GEN;
-   ----------------------------------------  
 
    -----------------------------------------------------------
    -- SYSREF and LMFC
    -----------------------------------------------------------     
+   -- Synchronise SYSREF input to devClk_i
+   Synchronizer_INST: entity work.Synchronizer
+   generic map (
+      TPD_G          => TPD_G,
+      RST_POLARITY_G => '1',
+      OUT_POLARITY_G => '1',
+      RST_ASYNC_G    => false,
+      STAGES_G       => 2,
+      BYPASS_SYNC_G  => false,
+      INIT_G         => "0")
+   port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => sysref_i,
+      dataOut => s_sysrefSync
+   );
    
    -- Delay SYSREF input (for 1 to 32 c-c)
    SysrefDly_INST: entity work.SysrefDly
