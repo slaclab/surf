@@ -16,7 +16,7 @@
 --              - Comma synchronisation
 --              - Internal buffer to align the lanes.
 --              - Sample data alignment (Sample extraction from GT word - barrel shifter).
---              - Alignment character replacement (TODO).
+--              - Alignment character replacement (TODO - test).
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -170,7 +170,7 @@ begin
          );
 
    -- Align the rx data within the GT word and replace the characters. 
-   alignFrRepCh_INST : entity work.alignFrRepCh
+   alignFrRepCh_INST : entity work.AlignFrRepCh
       generic map (
          TPD_G          => TPD_G,
          F_G            => F_G)

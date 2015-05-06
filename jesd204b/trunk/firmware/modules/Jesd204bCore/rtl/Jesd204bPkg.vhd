@@ -18,7 +18,8 @@ package Jesd204bPkg is
    -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;
    constant RX_STAT_WIDTH_C   : positive := 8 + 2*GT_WORD_SIZE_C;
-
+   constant TX_STAT_WIDTH_C   : positive := 4;
+   
    -- AXI packet size at powerup
    constant  AXI_PACKET_SIZE_DEFAULT_C : slv(23 downto 0):=x"00_01_00";
 
@@ -32,9 +33,13 @@ package Jesd204bPkg is
       rstDone : sl;
    end record jesdGtRxLaneType;
 
-   
+   type jesdGtTxLaneType is record
+      data    : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
+      dataK   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
+  end record jesdGtTxLaneType;   
    -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
+   type jesdGtTxLaneTypeArray is array (natural range <>) of jesdGtTxLaneType;
    type AxiTxDataTypeArray    is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
    type statuRegisterArray    is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1 downto 0);
    type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1 downto 0);

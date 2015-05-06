@@ -47,7 +47,7 @@ entity Jesd204bSim is
            
       --JESD204B class (0 and 1 supported)
       SUB_CLASS_G : positive := 1
-   );   
+   );  
    
    port (
    -- AXI interface      

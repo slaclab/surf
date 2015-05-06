@@ -6,6 +6,7 @@ vhdl work rtl/LmfcGen.vhd
 vhdl work rtl/JesdRxLane.vhd
 vhdl work rtl/JesdTxTest.vhd
 vhdl work rtl/SyncFsmTxTest.vhd
+vhdl work rtl/JesdTxLane.vhd
 vhdl work rtl/SyncFsmTx.vhd
 vhdl work rtl/AxiLiteRegItf.vhd
 vhdl work rtl/AxiStreamLaneTx.vhd
