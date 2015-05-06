@@ -276,6 +276,7 @@ begin
    end generate SELF_TEST_GEN;
    
    -- ELSE (not SELF_TEST_G)
+   
    EXT_TEST_GEN: if SELF_TEST_G = false generate
       -- Sysref connected to the input (external sysref)
       -- Synchronise SYSREF input to devClk_i

@@ -32,6 +32,9 @@ entity SyncFsmRx is
       
       -- Number of frames in a multi frame
       K_G : positive := 32;
+      
+      -- Number of multi-frames in ILA sequence (4-255)
+      NUM_ILAS_MF_G : positive := 4; 
                
       --JESD204B class (0 and 1 supported)
       SUB_CLASS_G : natural := 1
@@ -103,7 +106,7 @@ architecture rtl of SyncFsmRx is
       alignFrame  : sl;
       Ila         : sl;
       dataValid   : sl;
-      cnt         : integer;
+      cnt         : slv(7 downto 0);
 
       -- Status Machine
       state       : StateType;
@@ -115,7 +118,7 @@ architecture rtl of SyncFsmRx is
       alignFrame   => '0',
       Ila          => '0',
       dataValid    => '0',
-      cnt          =>  0,
+      cnt          =>  (others => '0'),
 
       -- Status Machine
       state        => IDLE_S
@@ -158,8 +161,8 @@ begin
                end if;
             else  
                if  enable_i = '1' and gtReady_i = '1' and s_kDetected = '1' then
-                  v.state    := SYNC_S;
-               end if;            
+                  v.state    := SYSREF_S;
+               end if;         
             end if;
          ----------------------------------------------------------------------
          when SYSREF_S =>
@@ -188,20 +191,11 @@ begin
             v.dataValid  := '0';
             
             -- Next state condition
-            if  SUB_CLASS_G = 1 then
-               if  s_kDetected = '0' then
-                  v.state   := HOLD_S;
-               elsif enable_i = '0' then  
-                  v.state   := IDLE_S;            
-               end if;
-            else  
-               if  s_kDetected = '0' then
-                  v.state   := ALIGN_S;
-               elsif enable_i = '0' then  
-                  v.state   := IDLE_S;            
-               end if;
+            if  s_kDetected = '0' then
+               v.state   := HOLD_S;
+            elsif enable_i = '0' then  
+               v.state   := IDLE_S;            
             end if;
-
          ----------------------------------------------------------------------
          when HOLD_S =>
          
@@ -230,14 +224,11 @@ begin
             v.dataValid  := '0';
             
             -- Put ILA Sequence counter to 0
-            v.cnt := 0;
+            v.cnt := (others => '0');
             
             -- Next state condition            
-            if  SUB_CLASS_G = 1 then
-               v.state   := ILA_S; 
-            else  
-               v.state   := DATA_S;           
-            end if;
+            v.state   := ILA_S; 
+
          ----------------------------------------------------------------------
          when ILA_S =>
                      -- Outputs
@@ -247,19 +238,18 @@ begin
             v.Ila        := '1';
             v.dataValid  := '0';
             
-            -- Next state condition
-            -- After four LMFC clocks the ILA sequence ends and relevant ADC data is being received.
+            -- Increase lmfc counter.
             if (lmfc_i = '1') then
                v.cnt := r.cnt + 1;
             end if;
             
-            -- Next state condition            
-            if  r.cnt = 4 then
+            -- Next state condition
+            -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.            
+            if  r.cnt = NUM_ILAS_MF_G then
                v.state   := DATA_S;
             elsif nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
                v.state   := IDLE_S;           
             end if;
-         
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Outputs
@@ -270,15 +260,9 @@ begin
             v.dataValid  := '1';
             
             -- Next state condition
-            if  SUB_CLASS_G = 1 then
-               if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
-                  v.state   := IDLE_S;            
-               end if; 
-            else  
-               if  linkErr_i = '1' or enable_i = '0' then  
-                  v.state   := IDLE_S;            
-               end if; 
-            end if;            
+            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
+               v.state   := IDLE_S;            
+            end if;
          ----------------------------------------------------------------------      
          when others =>
             -- Outputs

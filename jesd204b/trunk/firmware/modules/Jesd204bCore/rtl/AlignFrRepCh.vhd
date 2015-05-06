@@ -149,7 +149,7 @@ begin
    
    -- Buffer aligned word and replace the alignment characters with the data
    s_twoWordBuffAl <= r.dataAlignedD1 & s_dataAligned;
-   s_twoCharBuffAl <= r.charAlignedD1 & s_charAligned;  
+   s_twoCharBuffAl <= r.charAlignedD1 & s_charAligned;
    
    s_data <= JesdCharReplace(s_twoWordBuffAl, s_twoCharBuffAl, F_G, GT_WORD_SIZE_C, dataReady_i);
    
