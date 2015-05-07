@@ -51,11 +51,11 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
 
    
    
-   addRegisterLink(rl = new RegisterLink("L1Test",      baseAddress_ + (0x12*addrSize), 1, 2,
+   addRegisterLink(rl = new RegisterLink("L1Test",      baseAddress_ + (0x20*addrSize), 1, 2,
                                 "L1Align",         Variable::Configuration, 0, 0xf,
                                 "L1Delay",         Variable::Configuration, 8, 0xf));
                                 
-   addRegisterLink(rl = new RegisterLink("L2Test",      baseAddress_ + (0x13*addrSize), 1, 2,
+   addRegisterLink(rl = new RegisterLink("L2Test",      baseAddress_ + (0x21*addrSize), 1, 2,
                                 "L2Align",         Variable::Configuration, 0, 0xf,
                                 "L2Delay",         Variable::Configuration, 8, 0xf));
    

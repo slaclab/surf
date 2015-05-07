@@ -37,7 +37,6 @@ package Jesd204bPkg is
    type jesdGtTxLaneType is record
       data    : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
       dataK   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
-      gtReset : sl;  
   end record jesdGtTxLaneType;   
    -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
