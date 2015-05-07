@@ -83,7 +83,7 @@ architecture rtl of AxiStreamLaneTx is
 
 begin
 
-   comb : process (devRst_i, enable_i, r, sampleData_i, txCtrl_i) is
+   comb : process (devRst_i, enable_i, r, sampleData_i, txCtrl_i, dataReady_i, packetSize_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);

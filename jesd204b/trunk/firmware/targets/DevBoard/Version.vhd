@@ -16,7 +16,7 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000009"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000A"; -- MAKE_VERSION
 
 constant BUILD_STAMP_C : string := "DevBoard: Vivado v2014.4 (x86_64) Built Wed May  6 17:03:51 PDT 2015 by ulegat";
 
@@ -25,6 +25,7 @@ end Version;
 -------------------------------------------------------------------------------
 -- Revision History:
 -------------------------------------------------------------------------------
+-- 05/07/2015 - 0000000A      - Added ILAS and made axiLiteReg generic.
 -- 05/06/2015 - 00000009      - Tx core loopback (devBoard has tx and rx).
 -- 04/30/2015 - 00000008      - Fixed enable mechanism for independent lane operation. 
 -- 04/30/2015 - 00000007      - Added subclass 0 support, packet size settable from register and AXIS trigger placeholder.

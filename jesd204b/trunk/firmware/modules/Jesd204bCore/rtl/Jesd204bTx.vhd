@@ -85,6 +85,7 @@ entity Jesd204bTx is
       nSync_i        : in    sl;
       
       -- GT is ready to transmit data after reset
+      gtTxReset_o    : out   slv(L_G-1 downto 0); 
       gtTxReady_i    : in    slv(L_G-1 downto 0);   
       
       -- Data and character inputs from GT (transceivers)
@@ -119,6 +120,7 @@ architecture rtl of Jesd204bTx is
    signal  s_sysrefSync : sl;
    signal  s_nSyncSync  : sl;
    signal  s_sysrefRe   : sl;
+   signal  s_sysrefD    : sl;   
 
 
 begin
@@ -225,7 +227,7 @@ begin
       dataIn  => sysref_i,
       dataOut => s_sysrefSync
    );
-      
+       
    -- Synchronise nSync input to devClk_i
    Synchronizer_nsync_INST: entity work.Synchronizer
    generic map (
@@ -243,6 +245,20 @@ begin
       dataOut => s_nSyncSync
    );  
    
+   -- Delay SYSREF input (for 1 to 32 c-c)
+   SysrefDly_INST: entity work.SysrefDly
+   generic map (
+      TPD_G       => TPD_G,
+      DLY_WIDTH_G => SYSRF_DLY_WIDTH_C 
+   )
+   port map (
+      clk      => devClk_i,
+      rst      => devRst_i,
+      dly_i    => s_sysrefDlyTx,
+      sysref_i => s_sysrefSync,
+      sysref_o => s_sysrefD
+   );
+   
    -- LMFC period generator aligned to SYSREF input
    LmfcGen_INST: entity work.LmfcGen
    generic map (
@@ -253,7 +269,7 @@ begin
       clk         => devClk_i,
       rst         => devRst_i,
       nSync_i     => s_nSyncSync,
-      sysref_i    => s_sysrefSync,
+      sysref_i    => s_sysrefD,
       sysrefRe_o  => s_sysrefRe, -- Rising-edge of SYSREF OUT 
       lmfc_o      => s_lmfc 
    );
@@ -285,7 +301,7 @@ begin
     
    -- Output assignment
    GT_RST_GEN : for I in L_G-1 downto 0 generate 
-      r_jesdGtTxArr(I).gtReset  <= not s_enableTx(I);
+      gtTxReset_o(I)  <= not s_enableTx(I);
    end generate GT_RST_GEN;
    
    -----------------------------------------------------

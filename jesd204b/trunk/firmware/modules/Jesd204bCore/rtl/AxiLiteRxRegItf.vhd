@@ -91,7 +91,13 @@ architecture rtl of AxiLiteRxRegItf is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
+   -- Integer address
+   signal s_addr: natural := 0; 
+   
 begin
+   
+   -- Convert address to integer (lower two bits of address are always '0')
+   s_addr <= slvToInt( axilReadMaster.araddr(9 downto 2) );
 
    comb : process (axilReadMaster, axilWriteMaster, r, devRst_i, statusRxArr_i) is
       variable v             : RegType;
@@ -109,22 +115,23 @@ begin
 
       if (axilStatus.writeEnable = '1') then
          axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
-         case (axilWriteMaster.awaddr(9 downto 2)) is
-            when X"00" => -- ADDR (0)
-               v.enableRx := axilWriteMaster.wdata(L_G-1 downto 0);
-            when X"01" => -- ADDR (4)
-               v.sysrefDlyRx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
-            when X"02" => -- ADDR (8)
-               v.axisTrigger := axilWriteMaster.wdata(L_G-1 downto 0);   
-            when X"03" => -- ADDR (12)
-               v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);  
-            when X"12" => -- ADDR (72)
-               v.testTXItf(0) := axilWriteMaster.wdata(15 downto 0);
-            when X"13" => -- ADDR (76)
-               v.testTXItf(1) := axilWriteMaster.wdata(15 downto 0);            
-
+         case (s_addr) is
+            when 16#00# => -- ADDR (0)
+               v.enableRx        := axilWriteMaster.wdata(L_G-1 downto 0);
+            when 16#01# => -- ADDR (4)
+               v.sysrefDlyRx     := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
+            when 16#02# => -- ADDR (8)
+               v.axisTrigger     := axilWriteMaster.wdata(L_G-1 downto 0);   
+            when 16#03# => -- ADDR (12)
+               v.axisPacketSize  := axilWriteMaster.wdata(23 downto 0);
+            when 16#20# to 16#2F# =>               
+               for I in 0 to(L_G-1) loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     v.testTXItf(I)  := axilWriteMaster.wdata(15 downto 0);
+                  end if;
+               end loop; 
             when others =>
-               axilWriteResp := AXI_ERROR_RESP_G;
+               axilWriteResp     := AXI_ERROR_RESP_G;
          end case;
          axiSlaveWriteResponse(v.axilWriteSlave);
       end if;
@@ -132,25 +139,29 @@ begin
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          v.axilReadSlave.rdata := (others => '0');
-         case (axilReadMaster.araddr(9 downto 2)) is
-            when X"00" =>  -- ADDR (0)
-               v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableRx;
-            when X"01" =>  -- ADDR (4)
-               v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyRx;
-            when X"02" =>  -- ADDR (8)
-               v.axilReadSlave.rdata(L_G-1 downto 0) := r.axisTrigger;
-            when X"03" =>  -- ADDR (12)
-               v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;               
-            when X"10" => -- ADDR (64)
-               v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := statusRxArr_i(0);
-            when X"11" => -- ADDR (68)
-               v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := statusRxArr_i(1);
-            when X"12" => -- ADDR (72)
-               v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(0);
-            when X"13" => -- ADDR (76)
-               v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(1);
+         case (s_addr) is
+            when 16#00# =>  -- ADDR (0)
+               v.axilReadSlave.rdata(L_G-1 downto 0)                 := r.enableRx;
+            when 16#01# =>  -- ADDR (4)
+               v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0)   := r.sysrefDlyRx;
+            when 16#02# =>  -- ADDR (8)
+               v.axilReadSlave.rdata(L_G-1 downto 0)                 := r.axisTrigger;
+            when 16#03# =>  -- ADDR (12)
+               v.axilReadSlave.rdata(23 downto 0)                    := r.axisPacketSize;               
+            when 16#10# to 16#1F# => 
+               for I in 0 to(L_G-1) loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0)     := statusRxArr_i(I);
+                  end if;
+               end loop;
+            when 16#20# to 16#2F# =>               
+               for I in 0 to(L_G-1) loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     v.axilReadSlave.rdata(15 downto 0)                    := r.testTXItf(I);
+                  end if;
+               end loop;            
             when others =>
-               axilReadResp := AXI_ERROR_RESP_G;
+               axilReadResp                                          := AXI_ERROR_RESP_G;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;
@@ -177,10 +188,10 @@ begin
    end process seq;
    
    -- Output assignment
-   sysrefDlyRx_o <= r.sysrefDlyRx;
-   enableRx_o    <= r.enableRx;
-   axisTrigger_o    <= r.axisTrigger;
-   axisPacketSize_o <= r.axisPacketSize;
+   sysrefDlyRx_o     <= r.sysrefDlyRx;
+   enableRx_o        <= r.enableRx;
+   axisTrigger_o     <= r.axisTrigger;
+   axisPacketSize_o  <= r.axisPacketSize;
    
    TX_LANES_GEN : for I in L_G-1 downto 0 generate 
       dlyTxArr_o(I)    <=   r.testTXItf(I) (11 downto 8);
