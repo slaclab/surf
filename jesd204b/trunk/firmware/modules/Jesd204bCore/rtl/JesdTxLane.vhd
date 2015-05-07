@@ -87,7 +87,6 @@ architecture rtl of JesdTxLane is
    -- Internal signals
 
    -- Control signals from FSM
-   signal s_testCntr   : slv(7 downto 0);
    signal s_dataValid  : sl;
    signal s_ila        : sl;
    
@@ -98,9 +97,6 @@ architecture rtl of JesdTxLane is
    signal s_ilaKMux        : slv(r_jesdGtTx.dataK'range);
    signal s_commaDataMux   : slv(r_jesdGtTx.data'range);
    signal s_commaKMux      : slv(r_jesdGtTx.dataK'range);
-
-   signal s_data           : slv(r_jesdGtTx.data'range);
-   signal s_dataK          : slv(r_jesdGtTx.dataK'range);
 
    signal s_data_sel       : slv(1 downto 0);
    
@@ -155,8 +151,18 @@ begin
    end generate COMMA_GEN;
    
    -- Initial Synchronisation Data Sequence (ILAS) TODO
-   s_ilaDataMux <= (others => '0');   
-   s_ilaKMux    <= (others => '0');   
+   ilasGen_INST: entity work.ilasGen
+   generic map (
+      TPD_G => TPD_G,
+      F_G   => F_G)
+   port map (
+      clk        => devClk_i,
+      rst        => devRst_i,
+      enable_i   => enable_i,
+      ilas_i     => s_ila,
+      lmfc_i     => lmfc_i,
+      ilasData_o => s_ilaDataMux,
+      ilasK_o    => s_ilaKMux);
    
    -- Sample data with added synchronisation characters TODO
    s_sampleDataMux <= r.sampleDataD1;
@@ -170,15 +176,15 @@ begin
    r_jesdGtTx.dataK     <= s_commaKMux    when "00",
                            s_ilaKMux      when "01",
                            s_sampleKMux   when "10",
-                           s_commaKMux    when "11";
+                           s_commaKMux    when others;
                 
    with s_data_sel select                   
    r_jesdGtTx.data      <= s_commaDataMux       when "00", 
                            s_ilaDataMux         when "01",
                            s_sampleDataMux      when "10",
-                           s_commaDataMux       when "11";
+                           s_commaDataMux       when others;
                               
    -- Output assignment   
-   status_o  <= '0' & nSync_i & s_dataValid & s_ila;
+   status_o  <= nSync_i & s_dataValid & s_ila & gtTxReady_i;
  --------------------------------------------
 end rtl;

@@ -11,7 +11,7 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -70,10 +70,10 @@ entity DevBoard is
 --      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
 
       -- JESD MGT signals
-      adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
-      adcGtTxN : out slv(3 downto 0);
-      adcGtRxP : in  slv(3 downto 0);
-      adcGtRxN : in  slv(3 downto 0);
+     -- adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
+     -- adcGtTxN : out slv(3 downto 0);
+     -- adcGtRxP : in  slv(3 downto 0);
+     -- adcGtRxN : in  slv(3 downto 0);
 
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
@@ -160,21 +160,27 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 2;
+   constant NUM_AXI_MASTERS_C : natural := 3;
 
    constant VERSION_AXIL_INDEX_C : natural              := 0;
-   constant JESD_AXIL_INDEX_C    : natural              := 1;
-
+   constant JESD_AXIL_RX_INDEX_C    : natural           := 1;
+   constant JESD_AXIL_TX_INDEX_C    : natural           := 2;
+   
    constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant JESD_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"00010000";
-
+   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"00010000";
+   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"00020000";
+   
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
          baseAddr          => VERSION_AXIL_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"),
-      JESD_AXIL_INDEX_C    => (
-         baseAddr          => JESD_AXIL_BASE_ADDR_C,
+      JESD_AXIL_RX_INDEX_C    => (
+         baseAddr          => JESD_AXIL_RX_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),
+      JESD_AXIL_TX_INDEX_C    => (
+         baseAddr          => JESD_AXIL_TX_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"));
 
@@ -414,15 +420,19 @@ begin
    -------------------------------------------------------------------------------------------------
    -- JESD block
    -------------------------------------------------------------------------------------------------   
-   Jesd204bGtx7_INST: entity work.Jesd204bRxGtx7
+   Jesd204bGtx7_INST: entity work.Jesd204bGtx7
    generic map (
       TPD_G       => TPD_G,
         
       -- Test tx module instead of GTX
-      TEST_G      =>  true,
+      TEST_G      =>  false,
+      
       -- Internal SYSREF SELF_TEST_G= TRUE else 
       -- External SYSREF
-      SELF_TEST_G =>  true,      
+      SYSREF_GEN_G=>  true, 
+      
+      -- Simulation (no GT core, RX module is fed from Tx module)
+      SIM_G       =>  true,      
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
@@ -465,17 +475,24 @@ begin
       qPllRefClkLostIn  => qPllRefClkLost,
       qPllResetOut      => qPllReset, 
 
-      gtTxP             => adcGtTxP(1 downto 0),
-      gtTxN             => adcGtTxN(1 downto 0),
-      gtRxP             => adcGtRxP(1 downto 0),
-      gtRxN             => adcGtRxN(1 downto 0),
+      gtTxP             => open,--adcGtTxP(1 downto 0),
+      gtTxN             => open,--adcGtTxN(1 downto 0),
+      gtRxP             => "00",--adcGtRxP(1 downto 0),
+      gtRxN             => "00",--adcGtRxN(1 downto 0),
    
       axiClk            => axilClk,
       axiRst            => axilClkRst,
-      axilReadMaster    => locAxilReadMasters(JESD_AXIL_INDEX_C),
-      axilReadSlave     => locAxilReadSlaves(JESD_AXIL_INDEX_C),
-      axilWriteMaster   => locAxilWriteMasters(JESD_AXIL_INDEX_C),
-      axilWriteSlave    => locAxilWriteSlaves(JESD_AXIL_INDEX_C),  
+      
+      axilReadMasterRx  => locAxilReadMasters(JESD_AXIL_RX_INDEX_C),
+      axilReadSlaveRx   => locAxilReadSlaves(JESD_AXIL_RX_INDEX_C),
+      axilWriteMasterRx => locAxilWriteMasters(JESD_AXIL_RX_INDEX_C),
+      axilWriteSlaveRx  => locAxilWriteSlaves(JESD_AXIL_RX_INDEX_C), 
+      
+      axilReadMasterTx  => locAxilReadMasters(JESD_AXIL_TX_INDEX_C),
+      axilReadSlaveTx   => locAxilReadSlaves(JESD_AXIL_TX_INDEX_C),
+      axilWriteMasterTx => locAxilWriteMasters(JESD_AXIL_TX_INDEX_C),
+      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_TX_INDEX_C), 
+
       txAxisMasterArr   => axisTxMasters,
       txCtrlArr         => axisTxCtrl,
       sysRef_i          => s_sysRef,

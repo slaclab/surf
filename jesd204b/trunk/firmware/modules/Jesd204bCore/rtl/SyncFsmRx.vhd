@@ -247,7 +247,7 @@ begin
             -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.            
             if  r.cnt = NUM_ILAS_MF_G then
                v.state   := DATA_S;
-            elsif nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
+            elsif nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' then  
                v.state   := IDLE_S;           
             end if;
          ----------------------------------------------------------------------
@@ -260,7 +260,7 @@ begin
             v.dataValid  := '1';
             
             -- Next state condition
-            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' then  
+            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' then  
                v.state   := IDLE_S;            
             end if;
          ----------------------------------------------------------------------      

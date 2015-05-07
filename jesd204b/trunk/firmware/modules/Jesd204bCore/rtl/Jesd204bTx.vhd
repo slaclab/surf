@@ -38,11 +38,7 @@ entity Jesd204bTx is
 
       -- Test tx module instead of GTX
       TEST_G            : boolean                     := false;
-      
-      -- Internal SYSREF SELF_TEST_G= TRUE else 
-      -- External SYSREF
-      SELF_TEST_G        : boolean                    := false; 
-      
+           
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
       
@@ -159,7 +155,7 @@ begin
       port map (
          clk           => devClk_i,
          rst           => devRst_i,
-         enable_i      => s_enableTx(I),
+         enable_i      => s_statusTxArr(I)(2),
          strobe_i      => s_lmfc,
          sample_data_o => s_sampleDataArr(I));
    end generate generateTestStreamLanes;

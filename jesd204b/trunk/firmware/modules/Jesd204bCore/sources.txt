@@ -3,6 +3,7 @@ vhdl work rtl/AlignFrRepCh.vhd
 vhdl work rtl/SyncFsmRx.vhd
 vhdl work rtl/SysrefDly.vhd
 vhdl work rtl/LmfcGen.vhd
+vhdl work rtl/ilasGen.vhd
 vhdl work rtl/TestStreamTx.vhd
 vhdl work rtl/JesdRxLane.vhd
 vhdl work rtl/JesdTxTest.vhd
@@ -14,4 +15,5 @@ vhdl work rtl/AxiLiteTxRegItf.vhd
 vhdl work rtl/AxiStreamLaneTx.vhd
 vhdl work rtl/Jesd204bTx.vhd
 vhdl work rtl/Jesd204bRx.vhd
+vhdl work rtl/Jesd204bGtx7.vhd
 vhdl work rtl/Jesd204bRxGtx7.vhd
