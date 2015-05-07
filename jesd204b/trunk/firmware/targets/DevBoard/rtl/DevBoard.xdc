@@ -73,15 +73,15 @@ set_property PACKAGE_PIN H27 [get_ports fpgaSysRefN]
 # set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
 
 #D5 on FMC
-set_property PACKAGE_PIN E3 [get_ports {adcGtRxN[0]}]
+#set_property PACKAGE_PIN E3 [get_ports {adcGtRxN[0]}]
 #D4 on FMC
-set_property PACKAGE_PIN E4 [get_ports {adcGtRxP[0]}]
-set_property PACKAGE_PIN D5 [get_ports {adcGtRxN[1]}]
-set_property PACKAGE_PIN D6 [get_ports {adcGtRxP[1]}]
-set_property PACKAGE_PIN B6 [get_ports {adcGtRxN[2]}]
-set_property PACKAGE_PIN B5 [get_ports {adcGtRxP[2]}]
-set_property PACKAGE_PIN A8 [get_ports {adcGtRxN[3]}]
-set_property PACKAGE_PIN A7 [get_ports {adcGtRxP[3]}]
+#set_property PACKAGE_PIN E4 [get_ports {adcGtRxP[0]}]
+#set_property PACKAGE_PIN D5 [get_ports {adcGtRxN[1]}]
+#set_property PACKAGE_PIN D6 [get_ports {adcGtRxP[1]}]
+#set_property PACKAGE_PIN B6 [get_ports {adcGtRxN[2]}]
+#set_property PACKAGE_PIN B5 [get_ports {adcGtRxP[2]}]
+#set_property PACKAGE_PIN A8 [get_ports {adcGtRxN[3]}]
+#set_property PACKAGE_PIN A7 [get_ports {adcGtRxP[3]}]
 
 set_property IOSTANDARD LVDS_25 [get_ports syncbP]
 set_property IOSTANDARD LVDS_25 [get_ports syncbN]

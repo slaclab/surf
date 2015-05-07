@@ -56,6 +56,9 @@ architecture rtl of TestStreamTx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
+   -- 
+   signal s_sample_data : slv (sample_data_o'range);
+   --
 begin
 
    comb : process (r, rst,strobe_i,enable_i) is
@@ -89,8 +92,10 @@ begin
    
    -- Output assignment
    SAMPLE_DATA_GEN : for I in SAM_IN_WORD_C-1 downto 0 generate 
-      sample_data_o((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= r.cnt;
+      s_sample_data((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= r.cnt;
    end generate SAMPLE_DATA_GEN;  
 
+   sample_data_o <= byteSwapSlv(s_sample_data, GT_WORD_SIZE_C);
+   
 ---------------------------------------   
 end architecture rtl;

@@ -14,8 +14,8 @@
 // Modification history :
 // 27/04/2015: created
 //-----------------------------------------------------------------------------
-#ifndef __JESD_COMMON_H__
-#define __JESD_COMMON_H__
+#ifndef __JESD_RX_COMMON_H__
+#define __JESD_RX_COMMON_H__
 
 #include <Device.h>
 #include <stdint.h>

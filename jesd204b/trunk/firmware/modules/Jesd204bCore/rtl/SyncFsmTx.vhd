@@ -148,7 +148,7 @@ begin
  
             -- Next state condition
             -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.            
-            if  r.cnt = NUM_ILAS_MF_G then
+            if  v.cnt = NUM_ILAS_MF_G then
                v.state   := DATA_S;
             elsif nSync_i = '0' or enable_i = '0' then  
                v.state   := IDLE_S;           
