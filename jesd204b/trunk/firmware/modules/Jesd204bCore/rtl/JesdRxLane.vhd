@@ -62,7 +62,7 @@ entity JesdRxLane is
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i : in sl;
 
-      -- Control and status register records
+      -- Control register
       enable_i     : in  sl;
       replEnable_i : in  sl;
       status_o     : out slv((RX_STAT_WIDTH_C)-1 downto 0);

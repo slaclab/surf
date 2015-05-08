@@ -49,7 +49,9 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    addRegisterLink(rl = new RegisterLink("AXISpacketSize",   baseAddress_ + (0x03*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Data packet size (when enabled packets are being sent continuously)"); 
 
-   
+   addRegisterLink(rl = new RegisterLink("ReplaceEnable",    baseAddress_ + (0x04*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Enable character replacement module(if disabled the transmitter will not emit control characters). Default '1'.");
+
      
    addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 4,
                                 "L1_GTXRdy",        Variable::Status, 0, 0x1,

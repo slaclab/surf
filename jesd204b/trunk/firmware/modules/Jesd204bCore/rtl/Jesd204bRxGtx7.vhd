@@ -169,7 +169,6 @@ begin
    generic map (
       TPD_G             => TPD_G,
       TEST_G            => TEST_G,
-      SELF_TEST_G       => SELF_TEST_G,
       AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
       F_G               => F_G,
       K_G               => K_G,
