@@ -15,7 +15,8 @@ package Jesd204bPkg is
    constant K_CHAR_C : slv(7 downto 0) := x"BC";
    constant R_CHAR_C : slv(7 downto 0) := x"1C";
    constant A_CHAR_C : slv(7 downto 0) := x"7C";   
-
+   constant F_CHAR_C : slv(7 downto 0) := x"FC";
+   
    -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;
    constant RX_STAT_WIDTH_C   : positive := 8 + 2*GT_WORD_SIZE_C;
@@ -253,9 +254,12 @@ package body Jesd204bPkg is
          else
             vSlv := data_slv((bytes_int*8)-1 downto 0);
             -- Replace the character in the data with the data value from previous frame
-            for I in 0 to (bytes_int-1) loop
-               if (char_slv(I) = '1') then
-                  vSlv((I*8+7) downto I*8) := data_slv( (I*8+7+8*F_int) downto (I*8 + 8*F_int));    
+            for I in (bytes_int-1) downto 0 loop
+               if ( char_slv(I) = '1' and
+                    (data_slv( (I*8+7) downto I*8) = A_CHAR_C or 
+                     data_slv( (I*8+7) downto I*8) = F_CHAR_C)
+                  ) then
+                  vSlv((I*8+7) downto I*8) := data_slv( (I*8+8*F_int)+7 downto (I*8 + 8*F_int));    
                end if;
             end loop;
          end if;

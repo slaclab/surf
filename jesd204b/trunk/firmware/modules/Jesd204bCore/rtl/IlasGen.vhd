@@ -46,8 +46,6 @@ end entity ilasGen;
 
 architecture rtl of ilasGen is
    
-   constant SAM_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
-
    type RegType is record
       lmfcD1      : sl;
       lmfcD2      : sl;

@@ -51,17 +51,17 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
 
    
      
-   addRegisterLink(rl = new RegisterLink("L1Status",    baseAddress_ + (0x10*addrSize), 1, 4,
-                                "L1GTXRdy",        Variable::Status, 0, 0x1,
-                                "L1DataValid",     Variable::Status, 1, 0x1, 
-                                "L1IlasActive",    Variable::Status, 2, 0x1,
-                                "L1nSync",         Variable::Status, 3, 0x1));                                                      
+   addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 4,
+                                "L1_GTXRdy",        Variable::Status, 0, 0x1,
+                                "L1_DataValid",     Variable::Status, 1, 0x1, 
+                                "L1_IlasActive",    Variable::Status, 2, 0x1,
+                                "L1_nSync",         Variable::Status, 3, 0x1));                                                      
                                 
-   addRegisterLink(rl = new RegisterLink("L2Status",     baseAddress_ + (0x11*addrSize), 1, 4,
-                                "L2GTXRdy",        Variable::Status, 0, 0x1,
-                                "L2DataValid",     Variable::Status, 1, 0x1, 
-                                "L2IlasActive",    Variable::Status, 2, 0x1,
-                                "L2nSync",         Variable::Status, 3, 0x1));
+   addRegisterLink(rl = new RegisterLink("L2_Status",     baseAddress_ + (0x11*addrSize), 1, 4,
+                                "L2_GTXRdy",        Variable::Status, 0, 0x1,
+                                "L2_DataValid",     Variable::Status, 1, 0x1, 
+                                "L2_IlasActive",    Variable::Status, 2, 0x1,
+                                "L2_nSync",         Variable::Status, 3, 0x1));
    // Variables
 
    //Commands
