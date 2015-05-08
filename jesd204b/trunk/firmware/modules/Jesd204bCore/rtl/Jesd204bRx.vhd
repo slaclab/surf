@@ -119,6 +119,7 @@ signal s_nSyncAny   : sl;
 -- Control and status from AxiLie
 signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
 signal s_enableRx     : slv(L_G-1 downto 0);
+signal s_replEnable   : sl;
 signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
 
 -- Testing registers
@@ -211,6 +212,7 @@ begin
       statusRxArr_i   => s_statusRxArr,
       sysrefDlyRx_o   => s_sysrefDlyRx,
       enableRx_o      => s_enableRx,
+      replEnable_o    => s_replEnable,
       dlyTxArr_o      => s_dlyTxArr,     
       alignTxArr_o    => s_alignTxArr,
       axisTrigger_o   => s_axisTriggerReg,
@@ -317,6 +319,7 @@ begin
          devRst_i     => devRst_i,
          sysRef_i     => s_sysrefRe, -- Rising-edge of SYSREF
          enable_i     => s_enableRx(I),
+         replEnable_i => s_replEnable,
          status_o     => s_statusRxArr(I),
          r_jesdGtRx   => s_jesdGtRxArr(I),
          lmfc_i       => s_lmfc,

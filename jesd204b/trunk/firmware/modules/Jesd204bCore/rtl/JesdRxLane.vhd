@@ -17,6 +17,17 @@
 --              - Internal buffer to align the lanes.
 --              - Sample data alignment (Sample extraction from GT word - barrel shifter).
 --              - Alignment character replacement (TODO - test).
+--             Status register encoding:
+--                bit 0: GT Reset done
+--                bit 1: Received data valid
+--                bit 2: Received data is misaligned
+--                bit 3: Synchronisation output status 
+--                bit 4: Rx buffer overflow
+--                bit 5: Rx buffer underflow
+--                bit 6: Comma position not as expected during alignment
+--                bit 7: RX module enabled status
+--                bit 8-11: Disparity error
+--                bit 12-15: Dec. Error
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -52,8 +63,9 @@ entity JesdRxLane is
       sysRef_i : in sl;
 
       -- Control and status register records
-      enable_i : in  sl;
-      status_o : out slv((RX_STAT_WIDTH_C)-1 downto 0);
+      enable_i     : in  sl;
+      replEnable_i : in  sl;
+      status_o     : out slv((RX_STAT_WIDTH_C)-1 downto 0);
 
       -- Data and character inputs from GT (transceivers)
       r_jesdGtRx  : in jesdGtRxLaneType;
@@ -71,13 +83,13 @@ entity JesdRxLane is
       -- Synchronisation process is complete and data is valid
       dataValid_o  : out sl;
       sampleData_o : out slv((GT_WORD_SIZE_C*8)-1 downto 0)
-      );
+   );
 end JesdRxLane;
 
 
 architecture rtl of JesdRxLane is
 
-   constant ERR_REG_WIDTH_C : positive := 3+2*GT_WORD_SIZE_C;
+   constant ERR_REG_WIDTH_C : positive := 4+2*GT_WORD_SIZE_C;
 
 -- Register
    type RegType is record
@@ -117,6 +129,7 @@ architecture rtl of JesdRxLane is
    signal s_bufUnf   : sl;
    signal s_bufFull  : sl;
    signal s_alignErr : sl;
+   signal s_positionErr : sl;   
    signal s_linkErr  : sl;
    signal s_errComb  : slv(ERR_REG_WIDTH_C-1 downto 0);
 
@@ -177,13 +190,15 @@ begin
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
+         replEnable_i => replenable_i,
          alignFrame_i => s_alignFrame,
-         dataReady_i  => s_dataValid,
+         dataValid_i  => s_dataValid,
          dataRx_i     => s_charAndDataBuff((GT_WORD_SIZE_C*8)-1 downto 0),
          chariskRx_i  => s_charAndDataBuff(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
          sampleData_o => s_sampleData,
-         alignErr_o   => s_alignErr
-         );
+         alignErr_o   => s_alignErr,
+         positionErr_o=> s_positionErr
+      );
 
    -- Synchronisation FSM
    syncFSM_INST : entity work.SyncFsmRx
@@ -212,10 +227,10 @@ begin
          );
 
    -- Error that stops 
-   s_linkErr <= s_alignErr or s_bufOvf or s_bufUnf;
+   s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf;
 
    -- Combine errors that need registering
-   s_errComb <= r_jesdGtRx.decErr & r_jesdGtRx.dispErr & s_alignErr & s_bufOvf & s_bufUnf;
+   s_errComb <= r_jesdGtRx.decErr & r_jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf;
 
    -- Synchronous process function:
    -- - Registering of errors
@@ -260,6 +275,6 @@ begin
    nSync_o      <= s_nSync or not enable_i;
    dataValid_o  <= s_dataValid;
    sampleData_o <= s_sampleData;
-   status_o     <= r.errReg(r.errReg'high downto 3) & enable_i & r.errReg(2 downto 0) & s_nSync & s_ila & s_dataValid & r_jesdGtRx.rstDone;
+   status_o     <= r.errReg(r.errReg'high downto 4) & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

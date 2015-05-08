@@ -114,7 +114,7 @@ begin
             v.txAxisMaster.tLast   := '0';
             
             -- Check if fifo and JESD is ready
-            if txCtrl_i.pause = '0' and enable_i = '1' and dataReady_i = '1' then -- TODO later add "and dataReady_i = '1' and trigger_i = '1'"
+            if txCtrl_i.pause = '0' and enable_i = '1' then -- TODO later add "and dataReady_i = '1' and trigger_i = '1'"
                -- Next State
                v.state := SOF_S;
             end if;

@@ -72,18 +72,6 @@ end JesdTxLane;
 
 architecture rtl of JesdTxLane is
 
-   -- Register type
-   type RegType is record
-      sampleDataD1     : slv(r_jesdGtTx.data'range);
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      sampleDataD1      => (others => '0')
-   );
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
    -- Internal signals
 
    -- Control signals from FSM
@@ -120,38 +108,16 @@ begin
          ila_o        => s_ila
       );    
 
-  
-   comb : process (r, devRst_i,sampleData_i) is
-      variable v : RegType;
-   begin
-      v := r;
-
-      -- Buffer data and char one clock cycle 
-      v.sampleDataD1  := sampleData_i;
-      
-      if (devRst_i = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      rin <= v;  
-   end process comb;
-
-   seq : process (devClk_i) is
-   begin
-      if (rising_edge(devClk_i)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
    ----------------------------------------------------   
-   -- Comma 
+   -- Comma character generation
    COMMA_GEN : for I in GT_WORD_SIZE_C-1 downto 0 generate
       s_commaDataMux(I*8+7 downto I*8) <= K_CHAR_C;   
       s_commaKMux(I)    <= '1';
    end generate COMMA_GEN;
    
-   -- Initial Synchronisation Data Sequence (ILAS) TODO
-   ilasGen_INST: entity work.ilasGen
+   ----------------------------------------------------     
+   -- Initial Synchronisation Data Sequence (ILAS)
+   ilasGen_INST: entity work.IlasGen
    generic map (
       TPD_G => TPD_G,
       F_G   => F_G)
@@ -163,11 +129,23 @@ begin
       lmfc_i     => lmfc_i,
       ilasData_o => s_ilaDataMux,
       ilasK_o    => s_ilaKMux);
-   
+      
+   ----------------------------------------------------     
    -- Sample data with added synchronisation characters TODO
-   s_sampleDataMux <= r.sampleDataD1;
-   s_sampleKMux    <= (others => '0');
-   
+   AlignChGen_INST: entity work.AlignChGen
+   generic map (
+      TPD_G => TPD_G,
+      F_G   => F_G)
+   port map (
+      clk          => devClk_i,
+      rst          => devRst_i,
+      enable_i     => enable_i,
+      lmfc_i       => lmfc_i,
+      dataValid_i  => s_dataValid,
+      sampleData_i => sampleData_i,
+      sampleData_o => s_sampleDataMux,
+      sampleK_o    => s_sampleKMux);
+ 
    ----------------------------------------------------
    -- Output multiplexers   
    s_data_sel <= s_dataValid & s_ila;

@@ -34,12 +34,15 @@ entity AlignFrRepCh is
       clk      : in  sl;
       rst      : in  sl;
       
+      -- Enable character replacement
+      replEnable_i : in  sl;
+      
       -- One c-c long pulse from syncFSM indicating that first non K
       -- character has been received
       alignFrame_i   : in  sl;
       
       -- Data ready (replace control character with data when '1')
-      dataReady_i    : in  sl;
+      dataValid_i    : in  sl;
       
       -- Data and character indication 
       dataRx_i       : in  slv((GT_WORD_SIZE_C*8)-1 downto 0);       
@@ -48,13 +51,15 @@ entity AlignFrRepCh is
       -- Aligned sample data output     
       sampleData_o  : out slv((GT_WORD_SIZE_C*8)-1    downto 0);
       
-      -- Alignment error
-      -- Invalid data received at time of alignment
-      alignErr_o    : out sl
+      -- Alignment and sync position errors
+      alignErr_o    : out sl; -- Invalid or misaligned character in the data
+      positionErr_o : out sl  -- Invalid (comma) position received at time of alignment
    );
 end entity AlignFrRepCh;
 
 architecture rtl of AlignFrRepCh is
+   -- How many samples is in a GT word
+   constant SAMPLES_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
    
    type RegType is record
       dataRxD1       : slv(dataRx_i'range);
@@ -76,20 +81,6 @@ architecture rtl of AlignFrRepCh is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
-   --! Internal signals
-   
-   -- Alignment error. Invalid data received at time of alignment
-   signal s_alignErr    : sl; 
-
-   -- Alignment error. Invalid data received at time of alignment  
-   signal s_twoWordbuff : slv((GT_WORD_SIZE_C*16)-1    downto 0);
-   signal s_twoCharBuff : slv((GT_WORD_SIZE_C*2) -1    downto 0);
-   signal s_twoWordbuffAl : slv((GT_WORD_SIZE_C*16)-1    downto 0);
-   signal s_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1    downto 0);
-   signal s_dataaligned : slv(dataRx_i'range);
-   signal s_charAligned : slv(chariskRx_i'range);  
-   signal s_data        : slv(dataRx_i'range);
-   
    
 begin
 
@@ -99,8 +90,20 @@ begin
    -- v.position = (others => '1')
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-   comb : process (r, rst,chariskRx_i,dataRx_i,alignFrame_i, s_dataAligned, s_charAligned) is
+   comb : process (r, rst,chariskRx_i,dataRx_i,alignFrame_i,dataValid_i,replEnable_i) is
       variable v : RegType;
+      
+         -- Alignment error. Invalid data received at time of alignment
+      variable v_positionErr   : sl;
+      variable v_alignErr      : sl;      
+      variable v_twoWordbuff   : slv((GT_WORD_SIZE_C*16)-1    downto 0);
+      variable v_twoCharBuff   : slv((GT_WORD_SIZE_C*2) -1    downto 0);
+      variable v_twoWordbuffAl : slv((GT_WORD_SIZE_C*16)-1    downto 0);
+      variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1    downto 0);
+      variable v_dataaligned   : slv(dataRx_i'range);
+      variable v_charAligned   : slv(chariskRx_i'range);  
+      variable v_data          : slv(dataRx_i'range);
+
    begin
       v := r;
       
@@ -109,20 +112,67 @@ begin
       v.chariskRxD1 := chariskRx_i;
 
       -- Buffer aligned data
-      v.dataAlignedD1 := s_dataAligned;
-      v.charAlignedD1 := s_charAligned;
+      v.dataAlignedD1 := v_dataAligned;
+      v.charAlignedD1 := v_charAligned;
 
       -- Register the alignment 
       if (alignFrame_i = '1') then
          v.position := detectPosFunc(dataRx_i,chariskRx_i, GT_WORD_SIZE_C);
       end if;
+  
+
+   -- Align samples (Combinatorial logic) 
+   
+      -- Check position error (if position vector "1111" is returned)
+      v_positionErr    := ite(allBits (r.position, '1'), '1', '0');
       
+      -- Byte swap and combine the two consecutive GT words
+      v_twoWordBuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
+      v_twoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
+      
+      -- Align the bytes within the words                     
+      v_dataAligned := JesdDataAlign(v_twoWordBuff, r.position, GT_WORD_SIZE_C);
+      v_charAligned := JesdCharAlign(v_twoCharBuff, r.position, GT_WORD_SIZE_C);
+      
+   -- Buffer aligned word and replace the alignment characters with the data
+      v_twoWordBuffAl := r.dataAlignedD1 & v_dataAligned;
+      v_twoCharBuffAl := r.charAlignedD1 & v_charAligned;
+      v_alignErr      := '0';
+      
+   -- Replace the character in the data with the data value from previous frame    
+      if(replEnable_i = '1' and dataValid_i = '1') then
+         for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+            if ( v_twoCharBuffAl(I*F_G) = '1' and
+                 (v_twoWordBuffAl( (I*F_G*8+7) downto I*F_G*8) = A_CHAR_C or
+                  v_twoWordBuffAl( (I*F_G*8+7) downto I*F_G*8) = F_CHAR_C)
+               ) then
+               v_twoWordBuffAl((I*F_G*8+7) downto I*F_G*8) := v_twoWordBuffAl( (I*F_G*8+8*F_G)+7 downto (I*F_G*8+8*F_G));    
+               v_twoCharBuffAl(I*F_G) := '0';
+            end if;
+         end loop;
+      end if;
+      
+   -- Check character if there are still characters in the data and issue the alignment error
+   -- The error indicates that the characters in the data are possibly misplaced or wrong characters 
+   -- have been received.
+      if(replEnable_i = '1' and dataValid_i = '1') then
+         for I in (GT_WORD_SIZE_C-1) downto 0 loop
+            if ( v_twoCharBuffAl(I) = '1') then
+                  v_alignErr := '1';  
+            end if;
+         end loop;
+      end if;
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
-
-      rin <= v;
       
+      -- Output assignment
+      rin <= v;
+      positionErr_o  <= v_positionErr;      
+      alignErr_o     <= v_alignErr;
+      sampleData_o   <= byteSwapSlv(v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
+      -----------------------------------------------------------
    end process comb;
 
    seq : process (clk) is
@@ -131,30 +181,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   -- Align samples (Combinatorial logic)
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-   
-   -- Check alignment error
-   s_alignErr    <= '1' when r.position = (r.position'range => '1') else '0';
-   
-   -- Byte swap and combine the two consecutive GT words
-   s_twoWordBuff <= byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
-   s_twoCharBuff <= bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
-   
-   -- Align the bytes within the words                     
-   s_dataAligned <= JesdDataAlign(s_twoWordBuff, r.position, GT_WORD_SIZE_C);
-   s_charAligned <= JesdCharAlign(s_twoCharBuff, r.position, GT_WORD_SIZE_C);
-   
-   -- Buffer aligned word and replace the alignment characters with the data
-   s_twoWordBuffAl <= r.dataAlignedD1 & s_dataAligned;
-   s_twoCharBuffAl <= r.charAlignedD1 & s_charAligned;
-   
-   s_data <= JesdCharReplace(s_twoWordBuffAl, s_twoCharBuffAl, F_G, GT_WORD_SIZE_C, dataReady_i);
-   
-   -- Output assignment
-  alignErr_o   <= s_alignErr;
-  sampleData_o <= byteSwapSlv(s_data, GT_WORD_SIZE_C);
-
 end architecture rtl;
