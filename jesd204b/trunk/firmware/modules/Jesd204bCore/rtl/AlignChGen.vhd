@@ -92,9 +92,7 @@ begin
       -- Buffer data for two clock cycles 
       v.sampleDataD1  := sampleData_i;
       v.sampleDataD2  := r.sampleDataD1;
-      
-  
-      
+
       -- Delay LMFC for 1 c-c
       v.lmfcD1 := lmfc_i;
 

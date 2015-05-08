@@ -103,6 +103,7 @@ architecture rtl of Jesd204bTx is
    -- Control and status from AxiLie
    signal s_sysrefDlyTx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
    signal s_enableTx     : slv(L_G-1 downto 0);
+   signal s_replEnable   : sl;
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
 
    -- Axi Lite interface synced to devClk
@@ -203,6 +204,7 @@ begin
       statusTxArr_i   => s_statusTxArr,
       sysrefDlyTx_o   => s_sysrefDlyTx,
       enableTx_o      => s_enableTx,
+      replEnable_o    => s_replEnable,
       axisTrigger_o   => s_axisTriggerReg,
       axisPacketSize_o=> s_axisPacketSizeReg
    );
@@ -275,7 +277,7 @@ begin
    );
    
    -----------------------------------------------------------
-   -- Receiver modules (L_G)
+   -- Transmitter modules (L_G)
    ----------------------------------------------------------- 
    
    -- JESD Transmitter modules (one module per Lane)
@@ -290,6 +292,7 @@ begin
          devClk_i     => devClk_i,
          devRst_i     => devRst_i,
          enable_i     => s_enableTx(I), -- From AXI lite
+         replEnable_i => s_replEnable,  -- From AXI lite
          lmfc_i       => s_lmfc,
          nSync_i      => s_nSyncSync,
          gtTxReady_i  => gtTxReady_i(I),

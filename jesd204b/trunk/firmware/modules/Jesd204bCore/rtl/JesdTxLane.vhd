@@ -44,8 +44,9 @@ entity JesdTxLane is
       devClk_i       : in  sl;
       devRst_i       : in  sl;
 
-      -- Control and status register records
+      -- Control register
       enable_i       : in  sl;
+      replEnable_i : in  sl;      
 
       -- Local multi frame clock
       lmfc_i         : in  sl;
@@ -139,7 +140,7 @@ begin
    port map (
       clk          => devClk_i,
       rst          => devRst_i,
-      enable_i     => enable_i,
+      enable_i     => replEnable_i,
       lmfc_i       => lmfc_i,
       dataValid_i  => s_dataValid,
       sampleData_i => sampleData_i,
