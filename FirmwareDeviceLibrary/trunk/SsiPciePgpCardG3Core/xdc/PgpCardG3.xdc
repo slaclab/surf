@@ -161,5 +161,7 @@ set_property PACKAGE_PIN H18  [get_ports pciRefClkP]
 set_property PACKAGE_PIN G18  [get_ports pciRefClkN]
 create_clock -name pciRefClkP -period 10 [get_ports pciRefClkP]
 
-set_property -dict { PACKAGE_PIN L23 IOSTANDARD LVCMOS33 PULLUP true} [get_ports { pciRstL }]
+set_property PACKAGE_PIN L23  [get_ports pciRstL]
+set_property IOSTANDARD LVCMOS33 [get_ports pciRstL]
+set_property PULLUP true [get_ports pciRstL]
 set_false_path -from [get_ports pciRstL]
