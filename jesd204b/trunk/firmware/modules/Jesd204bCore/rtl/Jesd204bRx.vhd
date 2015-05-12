@@ -86,7 +86,9 @@ entity Jesd204bRx is
       gt_reset_o     : out  slv(L_G-1 downto 0);    
 
       -- Synchronisation output combined from all receivers 
-      nSync_o        : out   sl
+      nSync_o        : out   sl;
+      
+      leds_o         : out   slv(1 downto 0)
    );
 end Jesd204bRx;
 
@@ -111,6 +113,7 @@ signal s_lmfc   : sl;
 
 -- Synchronisation output generation
 signal s_nSyncVec       : slv(L_G-1 downto 0);
+signal s_nSyncVecEn     : slv(L_G-1 downto 0);
 signal s_dataValidVec   : slv(L_G-1 downto 0);
 
 signal s_nSyncAll   : sl;
@@ -148,7 +151,7 @@ signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
 
 begin
    -- Check generics TODO add others
-   assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
+   assert (1 <= L_G and L_G <= 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    -----------------------------------------------------------
    -- AXI
@@ -331,8 +334,13 @@ begin
       );
    end generate;
    
+   -- Put sync output in 'z' if not enabled
+   syncVectEn : for I in L_G-1 downto 0 generate
+       s_nSyncVecEn(I) <= s_nSyncVec(I) when s_enableRx(I)='1' else '1';
+   end generate syncVectEn;
+   
    -- Combine nSync signals from all receivers
-   s_nSyncAny <= uAnd(s_nSyncVec);
+   s_nSyncAny <= uAnd(s_nSyncVecEn);
    
    -- DFF
    comb : process (r, devRst_i, s_nSyncAll, s_nSyncAny) is
@@ -356,6 +364,7 @@ begin
 
    -- Output assignment
    nSync_o     <= r.nSyncAnyD1;
-   gt_reset_o  <= not s_enableRx;
+   gt_reset_o  <= "00";
+   leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    -----------------------------------------------------
 end rtl;

@@ -131,6 +131,8 @@ architecture rtl of JesdRxLane is
    signal s_alignErr : sl;
    signal s_positionErr : sl;   
    signal s_linkErr  : sl;
+   signal s_kDetected  : sl;   
+   signal s_refDetected  : sl;     
    signal s_errComb  : slv(ERR_REG_WIDTH_C-1 downto 0);
 
 begin
@@ -223,8 +225,10 @@ begin
          readBuff_o   => s_readBuff,
          alignFrame_o => s_alignFrame,
          ila_o        => s_ila,
+         kDetected_o  => s_kDetected,
+         sysref_o     => s_refDetected,
          dataValid_o  => s_dataValid
-         );
+      );
 
    -- Error that stops 
    s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf;
@@ -272,9 +276,10 @@ begin
    end process seq;
 
    -- Output assignment
-   nSync_o      <= s_nSync or not enable_i;
+  -- nSync_o      <= s_nSync or not enable_i;
+   nSync_o      <= s_nSync;
    dataValid_o  <= s_dataValid;
    sampleData_o <= s_sampleData;
-   status_o     <= r.errReg(r.errReg'high downto 4) & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
+   status_o     <= r.errReg(r.errReg'high downto 4) & enable_i & r.errReg(2 downto 0) & s_kDetected & s_refDetected & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

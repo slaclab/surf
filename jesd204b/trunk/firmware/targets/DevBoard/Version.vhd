@@ -16,15 +16,19 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000B"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000E"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "DevBoard: Vivado v2014.4 (x86_64) Built Fri May  8 12:02:25 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "DevBoard: Vivado v2014.4 (x86_64) Built Tue May 12 16:24:40 PDT 2015 by ulegat";
 
 end Version;
  
 -------------------------------------------------------------------------------
 -- Revision History:
 -------------------------------------------------------------------------------
+-- 05/12/2015 - 0000000F      - RX - ADC board test F2 - 370 MHz out
+-- 05/11/2015 - 0000000E      - RX - ADC board test F2 - 61.44 MHz out
+-- 05/11/2015 - 0000000D      - RX - ADC board test F2 
+-- 05/08/2015 - 0000000C      - RX - ADC board test F22
 -- 05/07/2015 - 0000000B      - RXTX -Added char replacement enable/disable.
 -- 05/07/2015 - 0000000A      - RXTX -Added ILAS and made axiLiteReg generic.
 -- 05/06/2015 - 00000009      - RXTX -Tx core loopback (devBoard has tx and rx).
