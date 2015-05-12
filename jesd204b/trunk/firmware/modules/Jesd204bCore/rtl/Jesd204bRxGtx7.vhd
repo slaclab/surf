@@ -136,7 +136,10 @@ entity Jesd204bRxGtx7 is
       sysRef_i       : in    sl;
 
       -- Synchronisation output combined from all receivers 
-      nSync_o        : out   sl
+      nSync_o        : out   sl;
+      
+      -- Out to led
+      leds_o    : out   slv(1 downto 0)
    );
 end Jesd204bRxGtx7;
 
@@ -160,7 +163,7 @@ architecture rtl of Jesd204bRxGtx7 is
 
 begin
    -- Check generics TODO add others
-   assert (1 < L_G and L_G < 8)                      report "L_G must be between 1 and 8"   severity failure;
+   assert (1 <= L_G and L_G <= 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    --------------------------------------------------------------------------------------------------
    -- JESD receiver core
@@ -188,7 +191,8 @@ begin
       sysRef_i          => s_sysRef,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtUserReset,
-      nSync_o           => nSync_o
+      nSync_o           => nSync_o,
+      leds_o            => leds_o
    );
    --------------------------------------------------------------------------------------------------
    -- Generate the internal or external SYSREF depending on SELF_TEST_G

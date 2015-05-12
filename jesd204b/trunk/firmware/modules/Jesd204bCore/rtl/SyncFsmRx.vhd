@@ -79,7 +79,13 @@ entity SyncFsmRx is
       alignFrame_o        : out   sl;   
       
       -- Ila frames are being received
-      ila_o          : out   sl; 
+      ila_o          : out   sl;
+      
+      -- K detected
+      kDetected_o    : out   sl;
+      
+      -- sysref received     
+      sysref_o       : out   sl;
 
       -- Synchronisation process is complete and data is valid
       dataValid_o    : out   sl
@@ -106,6 +112,7 @@ architecture rtl of SyncFsmRx is
       alignFrame  : sl;
       Ila         : sl;
       dataValid   : sl;
+      sysref      : sl;
       cnt         : slv(7 downto 0);
 
       -- Status Machine
@@ -118,6 +125,7 @@ architecture rtl of SyncFsmRx is
       alignFrame   => '0',
       Ila          => '0',
       dataValid    => '0',
+      sysref       => '0',
       cnt          =>  (others => '0'),
 
       -- Status Machine
@@ -153,6 +161,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '0';
             v.dataValid  := '0';
+            v.sysref     := '0';
             
             -- Next state condition (depending on subclass)
             if  SUB_CLASS_G = 1 then
@@ -173,6 +182,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '0';
             v.dataValid  := '0';
+            v.sysref     := '1';
             
             -- Next state condition            
             if  s_kDetected = '1' and lmfc_i = '1' then
@@ -189,6 +199,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '0';
             v.dataValid  := '0';
+            v.sysref     := '1';
             
             -- Next state condition
             if  s_kDetected = '0' then
@@ -205,6 +216,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '0';
             v.dataValid  := '0';
+            v.sysref     := '1';
             
             -- Next state condition            
             if  lmfc_i = '1' then
@@ -222,6 +234,7 @@ begin
             v.alignFrame := '1';
             v.Ila        := '1';
             v.dataValid  := '0';
+            v.sysref     := '1';
             
             -- Put ILA Sequence counter to 0
             v.cnt := (others => '0');
@@ -237,6 +250,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '1';
             v.dataValid  := '0';
+            v.sysref     := '1';
             
             -- Increase lmfc counter.
             if (lmfc_i = '1') then
@@ -258,6 +272,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '0';
             v.dataValid  := '1';
+            v.sysref     := '1';
             
             -- Next state condition
             if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' then  
@@ -271,6 +286,7 @@ begin
             v.alignFrame := '0';
             v.Ila        := '0';
             v.dataValid  := '0';
+            v.sysref     := '0';
             
             -- Next state condition            
             v.state   := IDLE_S;            
@@ -300,5 +316,6 @@ begin
    alignFrame_o <= r.alignFrame; 
    Ila_o        <= r.Ila;        
    dataValid_o  <= r.dataValid;
-
+   kDetected_o  <= s_kDetected;
+   sysref_o     <= r.sysref;
 end rtl;

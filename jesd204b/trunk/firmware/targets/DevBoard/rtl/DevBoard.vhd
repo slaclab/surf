@@ -70,10 +70,10 @@ entity DevBoard is
 --      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
 
       -- JESD MGT signals
-     -- adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
-     -- adcGtTxN : out slv(3 downto 0);
-     -- adcGtRxP : in  slv(3 downto 0);
-     -- adcGtRxN : in  slv(3 downto 0);
+      adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
+      adcGtTxN : out slv(3 downto 0);
+      adcGtRxP : in  slv(3 downto 0);
+      adcGtRxN : in  slv(3 downto 0);
 
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
@@ -92,7 +92,12 @@ entity DevBoard is
 --      spiCsL  : out sl;                 -- FMC H38
 
       -- Onboard LEDs
-      leds : out slv(3 downto 0));
+      leds : out slv(7 downto 0);
+      
+      -- ADC EVM Out reference clock (SMA-370MHz)
+      usrClk : out sl;
+      gpioClk: out sl
+   );
 
 
 end entity DevBoard;
@@ -107,16 +112,17 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- JESD constants and signals
    -------------------------------------------------------------------------------------------------
-   constant REFCLK_FREQUENCY_C : real     := 370.0E6;
-   constant LINE_RATE_C        : real     := 7.40E9;
+   constant REFCLK_FREQUENCY_C : real     := 368.64E6;  
+   --constant REFCLK_FREQUENCY_C : real     := 125.0E6; --TODO check
+   constant LINE_RATE_C        : real     := 7.3728E9;
+   --constant LINE_RATE_C        : real     := 2.50E9;
    constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/40.0);
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
    constant L_C                : positive := 2;
    constant SUB_CLASS_C        : natural  := 1;
-   
-   
+
    signal  s_sysRef : sl;
    signal  s_nsync  : sl;
 
@@ -160,27 +166,21 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 3;
+   constant NUM_AXI_MASTERS_C : natural := 2;
 
    constant VERSION_AXIL_INDEX_C : natural              := 0;
-   constant JESD_AXIL_RX_INDEX_C    : natural           := 1;
-   constant JESD_AXIL_TX_INDEX_C    : natural           := 2;
-   
+   constant JESD_AXIL_INDEX_C    : natural              := 1;
+
    constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"00010000";
-   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"00020000";
-   
+   constant JESD_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"00010000";
+
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
          baseAddr          => VERSION_AXIL_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"),
-      JESD_AXIL_RX_INDEX_C    => (
-         baseAddr          => JESD_AXIL_RX_BASE_ADDR_C,
-         addrBits          => 12,
-         connectivity      => X"0001"),
-      JESD_AXIL_TX_INDEX_C    => (
-         baseAddr          => JESD_AXIL_TX_BASE_ADDR_C,
+      JESD_AXIL_INDEX_C    => (
+         baseAddr          => JESD_AXIL_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"));
 
@@ -202,8 +202,51 @@ architecture rtl of DevBoard is
    signal axisTxMasters : AxiStreamMasterArray(1 downto 0);
    signal axisTxSlaves  : AxiStreamSlaveArray(1 downto 0);
    signal axisTxCtrl    : AxiStreamCtrlArray(1 downto 0);
-
+   
+   -------------------------------------------------------------------------------------------------
+   -- PGP Signals and Virtual Channels
+   -------------------------------------------------------------------------------------------------
+   signal s_usrClk : sl;   
+   signal s_usrRst : sl;      
+   
+   
 begin
+
+   -------------------------------------------------------------------------------------------------
+   -- ADC EVM Out reference clock (61.44 MHz)
+   -------------------------------------------------------------------------------------------------
+      ClockManager7_OUT : entity work.ClockManager7
+      generic map (
+         TPD_G              => TPD_G,
+         TYPE_G             => "MMCM",
+         INPUT_BUFG_G       => false,
+         FB_BUFG_G          => true,
+         NUM_CLOCKS_G       => 1,
+         BANDWIDTH_G        => "OPTIMIZED",
+         CLKIN_PERIOD_G     => 8.0,
+         DIVCLK_DIVIDE_G    => 5,
+         CLKFBOUT_MULT_F_G  => 47.000,--37.000
+         CLKOUT0_DIVIDE_F_G => 19.125,--2.5
+         CLKOUT0_RST_HOLD_G => 16)
+      port map (
+         clkIn     => pgpRefClkG,
+         rstIn     => pgpMmcmRst,
+         clkOut(0) => s_usrClk,
+         rstOut(0) => s_usrRst);
+    
+   usrClk <= s_usrClk;
+
+   -- ClkOutBufSingle_INST: entity work.ClkOutBufSingle
+   -- generic map (
+      -- XIL_DEVICE_G   => "7SERIES",
+      -- RST_POLARITY_G => '1',
+      -- INVERT_G       => false)
+   -- port map (
+      -- rstIn  => s_usrClk,
+      -- clkIn  => s_usrRst,
+      -- clkOut => usrClk);
+
+   gpioClk <= jesdClk;
 
    -------------------------------------------------------------------------------------------------
    -- Bring in gt reference clocks
@@ -265,7 +308,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          PERIOD_IN_G  => 8.0E-9,
-         PERIOD_OUT_G => 0.8)
+         PERIOD_OUT_G => 1.0)
       port map (
          clk => axilClk,
          o   => leds(0));
@@ -274,10 +317,26 @@ begin
       generic map (
          TPD_G        => TPD_G,
          PERIOD_IN_G  => 6.4E-9,
-         PERIOD_OUT_G => 0.64)
+         PERIOD_OUT_G => 1.0)
       port map (
          clk => pgpClk,
          o   => leds(1));
+         
+   Heartbeat_jesdclk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 5.425E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => jesdClk,
+         o   => leds(4));
+         
+   leds(5) <= qPllLock;
+   leds(6) <= qPllRefClkLost;
+   leds(7) <= qPllReset(0);
+   
+
+   
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
    -------------------------------------------------------------------------------------------------
@@ -372,46 +431,43 @@ begin
 
    jesdMmcmRst <= powerOnReset or masterReset;
 
-   -- ClockManager7_JESD : entity work.ClockManager7
-      -- generic map (
-         -- TPD_G              => TPD_G,
-         -- TYPE_G             => "MMCM",
-         -- INPUT_BUFG_G       => false,
-         -- FB_BUFG_G          => true,
-         -- NUM_CLOCKS_G       => 1,
-         -- BANDWIDTH_G        => "OPTIMIZED",
-         -- CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
-         -- DIVCLK_DIVIDE_G    => 1,
-         -- CLKFBOUT_MULT_F_G  => 5.375,
-         -- CLKOUT0_DIVIDE_F_G => 5.375,
-         -- CLKOUT0_RST_HOLD_G => 16)
-      -- port map (
-         -- clkIn     => jesdRefClkG,
-         -- rstIn     => jesdMmcmRst,
-         -- clkOut(0) => jesdClk,
-         -- rstOut(0) => jesdClkRst);
-         
-   jesdClk    <= pgpClk;
-   jesdClkRst <= pgpClkRst;
-    
+   ClockManager7_JESD : entity work.ClockManager7
+      generic map (
+         TPD_G              => TPD_G,
+         TYPE_G             => "MMCM",
+         INPUT_BUFG_G       => false,
+         FB_BUFG_G          => true,
+         NUM_CLOCKS_G       => 1,
+         BANDWIDTH_G        => "OPTIMIZED",
+         CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
+         DIVCLK_DIVIDE_G    => 1,
+         CLKFBOUT_MULT_F_G  => 5.375,
+         CLKOUT0_DIVIDE_F_G => 5.375,
+         CLKOUT0_RST_HOLD_G => 16)
+      port map (
+         clkIn     => jesdRefClkG,
+         rstIn     => jesdMmcmRst,
+         clkOut(0) => jesdClk,
+         rstOut(0) => jesdClkRst);
+            
    -------------------------------------------------------------------------------------------------
    -- QPLL for JESD MGTs
    ------------------------------------------------------------------------------------------------- 
    Gtx7QuadPll_INST: entity work.Gtx7QuadPll
    generic map (
       TPD_G               => TPD_G,
-      QPLL_CFG_G          => x"0680181", -- TODO check
+      QPLL_CFG_G          => x"06801C1", -- TODO check
       QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
-      QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set
-      QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set
-      QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set
+      QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set b'0000110000'
+      QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set '1'
+      QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set '1'
    )
    port map (
-      qPllRefClk     => jesdRefClk, -- Reference clock directly from the output
+      qPllRefClk     => jesdRefClk, -- Reference clock directly from the input
       qPllOutClk     => qPllOutClk,
       qPllOutRefClk  => qPllOutRefClk,
       qPllLock       => qPllLock,
-      qPllLockDetClk => '0',
+      qPllLockDetClk => pgpClk,
       qPllRefClkLost => qPllRefClkLost,
       qPllPowerDown  => '0',
       qPllReset      => qPllReset(0)
@@ -420,19 +476,15 @@ begin
    -------------------------------------------------------------------------------------------------
    -- JESD block
    -------------------------------------------------------------------------------------------------   
-   Jesd204bGtx7_INST: entity work.Jesd204bGtx7
+   Jesd204bGtx7_INST: entity work.Jesd204bRxGtx7
    generic map (
       TPD_G       => TPD_G,
         
       -- Test tx module instead of GTX
       TEST_G      =>  false,
-      
       -- Internal SYSREF SELF_TEST_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G=>  true, 
-      
-      -- Simulation (no GT core, RX module is fed from Tx module)
-      SIM_G       =>  true,      
+      SELF_TEST_G =>  false,      
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
@@ -475,28 +527,22 @@ begin
       qPllRefClkLostIn  => qPllRefClkLost,
       qPllResetOut      => qPllReset, 
 
-      gtTxP             => open,--adcGtTxP(1 downto 0),
-      gtTxN             => open,--adcGtTxN(1 downto 0),
-      gtRxP             => "00",--adcGtRxP(1 downto 0),
-      gtRxN             => "00",--adcGtRxN(1 downto 0),
+      gtTxP             => adcGtTxP(1 downto 0),
+      gtTxN             => adcGtTxN(1 downto 0),
+      gtRxP             => adcGtRxP(1 downto 0),
+      gtRxN             => adcGtRxN(1 downto 0),
    
       axiClk            => axilClk,
       axiRst            => axilClkRst,
-      
-      axilReadMasterRx  => locAxilReadMasters(JESD_AXIL_RX_INDEX_C),
-      axilReadSlaveRx   => locAxilReadSlaves(JESD_AXIL_RX_INDEX_C),
-      axilWriteMasterRx => locAxilWriteMasters(JESD_AXIL_RX_INDEX_C),
-      axilWriteSlaveRx  => locAxilWriteSlaves(JESD_AXIL_RX_INDEX_C), 
-      
-      axilReadMasterTx  => locAxilReadMasters(JESD_AXIL_TX_INDEX_C),
-      axilReadSlaveTx   => locAxilReadSlaves(JESD_AXIL_TX_INDEX_C),
-      axilWriteMasterTx => locAxilWriteMasters(JESD_AXIL_TX_INDEX_C),
-      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_TX_INDEX_C), 
-
+      axilReadMaster    => locAxilReadMasters(JESD_AXIL_INDEX_C),
+      axilReadSlave     => locAxilReadSlaves(JESD_AXIL_INDEX_C),
+      axilWriteMaster   => locAxilWriteMasters(JESD_AXIL_INDEX_C),
+      axilWriteSlave    => locAxilWriteSlaves(JESD_AXIL_INDEX_C),  
       txAxisMasterArr   => axisTxMasters,
       txCtrlArr         => axisTxCtrl,
       sysRef_i          => s_sysRef,
-      nSync_o           => s_nSync
+      nSync_o           => s_nSync,
+      leds_o            => open--leds(7 downto 6)
    );
    
    ----------------------------------------------------------------
