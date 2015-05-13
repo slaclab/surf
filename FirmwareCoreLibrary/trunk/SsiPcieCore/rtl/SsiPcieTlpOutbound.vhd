@@ -72,6 +72,9 @@ architecture rtl of SsiPcieTlpOutbound is
    signal dmaTag     : slv(7 downto 0);
    signal dmaTagPntr : natural range 0 to 127;
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    dmaTag     <= sAxisMaster.tData(79 downto 72);

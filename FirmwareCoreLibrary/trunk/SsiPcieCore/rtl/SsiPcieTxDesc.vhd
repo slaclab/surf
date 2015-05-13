@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -95,6 +95,9 @@ architecture rtl of SsiPcieTxDesc is
    signal dFifoCnt     : slv(9 downto 0);
    signal dFifoValid   : sl;
 
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    -- Assert IRQ when transmit desc is ready
@@ -138,18 +141,15 @@ begin
             -- Address is aligned
             axiWriteResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            case (axiWriteMaster.awaddr(9 downto 2)) is
-               when "000-----" =>
-                  v.tFifoDin(63 downto 32) := (others => '0');
-                  v.tFifoDin(31 downto 0)  := axiWriteMaster.wdata;
-               when "001-----" =>
-                  v.tFifoDin(63 downto 32) := axiWriteMaster.wdata;
-                  v.tFifoWr(wrPntr)        := not(r.wrDone);
-               when others =>
-                  axiWriteResp := AXI_ERROR_RESP_G;
-            end case;
+            if (axiWriteMaster.awaddr(9 downto 7) = "000") and (wrPntr < DMA_SIZE_G) then
+               v.tFifoDin(31 downto 0) := axiWriteMaster.wdata;
+            elsif (axiWriteMaster.awaddr(9 downto 7) = "001") and (wrPntr < DMA_SIZE_G) then
+               v.tFifoDin(63 downto 32) := axiWriteMaster.wdata;
+               v.tFifoWr(wrPntr)        := not(r.wrDone);
+            else
+               axiWriteResp := AXI_ERROR_RESP_G;
+            end if;
          else
-            -- Address is not aligned
             axiWriteResp := AXI_ERROR_RESP_G;
          end if;
          -- Send AXI response
@@ -193,6 +193,10 @@ begin
                   else
                      v.axiReadSlave.rdata := r.axiReadSlave.rdata;
                   end if;
+               when x"44" =>
+                  v.axiReadSlave.rdata := r.tFifoDin(31 downto 0);
+               when x"45" =>
+                  v.axiReadSlave.rdata := r.tFifoDin(63 downto 32);
                when others =>
                   axiReadResp := AXI_ERROR_RESP_G;
             end case;

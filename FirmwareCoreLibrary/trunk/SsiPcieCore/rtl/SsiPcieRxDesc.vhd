@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -127,6 +127,9 @@ architecture rtl of SsiPcieRxDesc is
    signal rFifoFull  : sl;
    signal rFifoCnt   : slv(9 downto 0);
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    -- Assert IRQ request when there is a entry in the receive queue
@@ -174,24 +177,22 @@ begin
             -- Address is aligned
             axiWriteResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            case (axiWriteMaster.awaddr(9 downto 2)) is
-               when "000-----" =>
-                  if r.wrDone = '0' then
-                     v.lastDesc              := axiWriteMaster.wdata(31 downto 2);
-                     v.dFifoDin(31 downto 2) := axiWriteMaster.wdata(31 downto 2);
-                     v.dFifoWr(wrPntr)       := '1';
-                     if axiWriteMaster.wdata(31 downto 2) = r.lastDesc then
-                        v.lastDescErr := '1';
-                     end if;
+            if (axiWriteMaster.awaddr(9 downto 7) = "000") and (wrPntr < DMA_SIZE_G) then
+               if r.wrDone = '0' then
+                  v.lastDesc              := axiWriteMaster.wdata(31 downto 2);
+                  v.dFifoDin(31 downto 2) := axiWriteMaster.wdata(31 downto 2);
+                  v.dFifoWr(wrPntr)       := '1';
+                  if axiWriteMaster.wdata(31 downto 2) = r.lastDesc then
+                     v.lastDescErr := '1';
                   end if;
-               when x"40" =>
-                  v.rxFreeEn := axiWriteMaster.wdata(31);
-                  v.maxFrame := axiWriteMaster.wdata(23 downto 0);
-               when others =>
-                  axiWriteResp := AXI_ERROR_RESP_G;
-            end case;
+               end if;
+            elsif axiWriteMaster.awaddr(9 downto 2) = x"40" then
+               v.rxFreeEn := axiWriteMaster.wdata(31);
+               v.maxFrame := axiWriteMaster.wdata(23 downto 0);
+            else
+               axiWriteResp := AXI_ERROR_RESP_G;
+            end if;
          else
-            -- Address is not aligned
             axiWriteResp := AXI_ERROR_RESP_G;
          end if;
          -- Send AXI response
@@ -212,52 +213,54 @@ begin
             -- Address is aligned
             axiReadResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            case (axiReadMaster.araddr(9 downto 2)) is
-               when "001-----" =>
-                  v.axiReadSlave.rdata(31)         := dFifoFull(rdPntr);
-                  v.axiReadSlave.rdata(30)         := dFifoValid(rdPntr);
-                  v.axiReadSlave.rdata(9 downto 0) := dFifoCnt(rdPntr);
-               when x"40" =>
-                  v.axiReadSlave.rdata(31)          := r.rxFreeEn;
-                  v.axiReadSlave.rdata(23 downto 0) := r.maxFrame;
-               when x"41" =>
-                  v.axiReadSlave.rdata := r.rxCount;
-               when x"42" =>
-                  v.axiReadSlave.rdata(31)         := rFifoValid;
-                  v.axiReadSlave.rdata(30)         := rFifoFull;
-                  v.axiReadSlave.rdata(29)         := r.lastDescErr;
-                  v.axiReadSlave.rdata(28)         := '0';
-                  v.axiReadSlave.rdata(27)         := rFifoDout(65);  -- frameErr
-                  v.axiReadSlave.rdata(26)         := rFifoDout(64);  -- EOFE
-                  v.axiReadSlave.rdata(9 downto 0) := rFifoCnt;
-               when x"43" =>
-                  if r.rdDone = '0' then
-                     -- Check if we need to read the FIFO
-                     if rFifoValid = '1' then
-                        v.axiReadSlave.rdata    := rFifoDout(63 downto 32);
-                        v.descData(31 downto 1) := rFifoDout(31 downto 1);
-                        v.descData(0)           := '1';
+            if (axiReadMaster.araddr(9 downto 7) = "001") and (rdPntr < DMA_SIZE_G) then
+               v.axiReadSlave.rdata(31)         := dFifoFull(rdPntr);
+               v.axiReadSlave.rdata(30)         := dFifoValid(rdPntr);
+               v.axiReadSlave.rdata(9 downto 0) := dFifoCnt(rdPntr);
+            else
+               case (axiReadMaster.araddr(9 downto 2)) is
+                  when x"40" =>
+                     v.axiReadSlave.rdata(31)          := r.rxFreeEn;
+                     v.axiReadSlave.rdata(23 downto 0) := r.maxFrame;
+                  when x"41" =>
+                     v.axiReadSlave.rdata := r.rxCount;
+                  when x"42" =>
+                     v.axiReadSlave.rdata(31)         := rFifoValid;
+                     v.axiReadSlave.rdata(30)         := rFifoFull;
+                     v.axiReadSlave.rdata(29)         := r.lastDescErr;
+                     v.axiReadSlave.rdata(28)         := '0';
+                     v.axiReadSlave.rdata(27)         := rFifoDout(65);  -- frameErr
+                     v.axiReadSlave.rdata(26)         := rFifoDout(64);  -- EOFE
+                     v.axiReadSlave.rdata(9 downto 0) := rFifoCnt;
+                  when x"43" =>
+                     if r.rdDone = '0' then
+                        -- Check if we need to read the FIFO
+                        if rFifoValid = '1' then
+                           v.axiReadSlave.rdata    := rFifoDout(63 downto 32);
+                           v.descData(31 downto 1) := rFifoDout(31 downto 1);
+                           v.descData(0)           := '1';
+                        else
+                           v.descData := (others => '0');
+                        end if;
                      else
-                        v.descData := (others => '0');
+                        v.axiReadSlave.rdata := r.axiReadSlave.rdata;
                      end if;
-                  else
-                     v.axiReadSlave.rdata := r.axiReadSlave.rdata;
-                  end if;                  
-               when x"44" =>
-                  if r.rdDone = '0' then               
-                     v.axiReadSlave.rdata := r.descData;
-                     -- Check if we need to reset the flag
-                     if r.descData(0) = '1' then
-                        v.descData(0) := '0';
-                        v.reqIrq      := '0';
-                        v.rFifoRd     := '1';
+                  when x"44" =>
+                     if r.rdDone = '0' then
+                        v.axiReadSlave.rdata := r.descData;
+                        -- Check if we need to reset the flag
+                        if r.descData(0) = '1' then
+                           v.descData(0) := '0';
+                           v.reqIrq      := '0';
+                           v.rFifoRd     := '1';
+                        end if;
+                     else
+                        v.axiReadSlave.rdata := r.axiReadSlave.rdata;
                      end if;
-                  else
-                     v.axiReadSlave.rdata := r.axiReadSlave.rdata;
-                  end if;                    
-               when others =>
-                  axiReadResp := AXI_ERROR_RESP_G;
-            end case;
+                  when others =>
+                     axiReadResp := AXI_ERROR_RESP_G;
+               end case;
+            end if;
          else
             -- Address is not aligned
             axiReadResp := AXI_ERROR_RESP_G;
