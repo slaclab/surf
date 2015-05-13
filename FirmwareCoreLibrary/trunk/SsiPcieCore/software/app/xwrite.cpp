@@ -39,7 +39,7 @@ int main (int argc, char **argv) {
    size  = atoi(argv[3]);
 
    // Check ranges
-   if ( size == 0 || lane > 7 || vc > 3 ) {
+   if ( size == 0 || lane > 15 || vc > 15 ) {
       cout << "Invalid size, lane or vc value" << endl;
       return(1);
    }
@@ -71,9 +71,9 @@ int main (int argc, char **argv) {
   
    free(data);
    
+   /*
    sleep(1);
-   /* 
-  */
+  
    // Allocate a buffer
    uint          maxSize;
    uint          error; 
@@ -98,6 +98,7 @@ int main (int argc, char **argv) {
    }
   
    free(data);   
+   */
    
    close(s);
    return(0);
