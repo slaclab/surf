@@ -162,6 +162,7 @@ ssize_t SsiPcie_Write(struct file *filp, const char* buffer, size_t count, loff_
          // Write descriptor
          if(ssiPcieTx->lane < ssiDevice->dmaSize) {
             ssiDevice->reg->txWrA[ssiPcieTx->lane] = descA;
+            asm("nop");//no operation function to force sequential MEM IO read (first txWrA then txWrB)
             ssiDevice->reg->txWrB[ssiPcieTx->lane] = descB;   
          } else {
             printk(KERN_DEBUG "%s: Write: Invalid ssiPcieTx->lane: %i\n", MOD_NAME, ssiPcieTx->lane);
