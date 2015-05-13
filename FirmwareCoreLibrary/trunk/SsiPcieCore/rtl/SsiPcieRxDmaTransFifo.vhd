@@ -82,6 +82,9 @@ architecture rtl of SsiPcieRxDmaTransFifo is
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    comb : process (axisSlave, pciRst, r, sAxisMaster, tranAFull) is

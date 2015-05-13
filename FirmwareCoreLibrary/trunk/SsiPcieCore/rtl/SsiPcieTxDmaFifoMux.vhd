@@ -64,6 +64,9 @@ architecture rtl of SsiPcieTxDmaFifoMux is
 
    signal txSlave : AxiStreamSlaveType;
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    comb : process (pciRst, r, sAxisMaster, txSlave) is

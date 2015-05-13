@@ -103,6 +103,9 @@ architecture rtl of SsiPcieRxDma is
    signal rxSlave  : AxiStreamSlaveType;
    signal txSlave  : AxiStreamSlaveType;
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    SsiPcieRxDmaTransFifo_Inst : entity work.SsiPcieRxDmaTransFifo

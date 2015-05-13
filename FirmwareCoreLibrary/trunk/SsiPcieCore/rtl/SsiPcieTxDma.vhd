@@ -87,6 +87,9 @@ architecture rtl of SsiPcieTxDma is
    signal dmaSlave   : AxiStreamSlaveType;
    signal dmaCtrl    : AxiStreamCtrlType;
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    dmaObSlave <= dmaSlave;

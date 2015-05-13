@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-24
+-- Last update: 2015-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ use work.SsiPciePkg.all;
 entity SsiPcieAxiLite is
    generic (
       TPD_G            : time                   := 1 ns;
+      BAR_MASK_G       : slv(31 downto 0)       := x"FFFF0000";
       DMA_SIZE_G       : positive range 1 to 16 := 1;
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C);
    port (
@@ -124,7 +125,8 @@ begin
    ----------------------
    SsiPcieAxiLiteMaster_Inst : entity work.SsiPcieAxiLiteMaster
       generic map (
-         TPD_G => TPD_G)   
+         TPD_G      => TPD_G,
+         BAR_MASK_G => BAR_MASK_G)   
       port map (
          -- PCI Interface         
          regTranFromPci      => regTranFromPci,

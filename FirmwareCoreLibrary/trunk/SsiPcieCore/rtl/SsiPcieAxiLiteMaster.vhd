@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,8 @@ use work.SsiPciePkg.all;
 
 entity SsiPcieAxiLiteMaster is
    generic (
-      TPD_G : time := 1 ns); 
+      TPD_G      : time             := 1 ns;
+      BAR_MASK_G : slv(31 downto 0) := x"FFFF0000"); 
    port (
       -- PCI Interface
       regTranFromPci      : in  TranFromPcieType;
@@ -49,6 +50,23 @@ entity SsiPcieAxiLiteMaster is
 end SsiPcieAxiLiteMaster;
 
 architecture rtl of SsiPcieAxiLiteMaster is
+
+   function GenAddr (
+      hdr  : PcieHdrType;
+      mask : slv(31 downto 0))
+      return slv(31 downto 0) is
+      variable i      : natural;
+      variable retVar : slv(31 downto 0);
+   begin
+      -- Setup for 32-bit alignment
+      retVar(1 downto 0) := "00";
+      -- Loop through the bit field
+      for i in 31 downto 2 loop
+         retVar(i) := hdr.addr(i) and not(mask(i));
+      end loop;
+      -- Forward the updated address value
+      return(retVar);
+   end function;
 
    type stateType is (
       IDLE_S,
@@ -78,6 +96,9 @@ architecture rtl of SsiPcieAxiLiteMaster is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
    
    comb : process (mAxiLiteReadSlave, mAxiLiteWriteSlave, pciRst, r, regIbSlave, regObMaster,
@@ -111,13 +132,12 @@ begin
                -- Check for valid read operation
                if (header.fmt(1) = '0') and (header.bar = 0) then
                   -- Set the read address buses
-                  v.readMaster.araddr(1 downto 0)  := "00";             -- 32-bit alignment
-                  v.readMaster.araddr(31 downto 2) := header.addr;
+                  v.readMaster.araddr  := GenAddr(header, BAR_MASK_G);
                   -- Start AXI-Lite transaction
-                  v.readMaster.arvalid             := '1';
-                  v.readMaster.rready              := '1';
+                  v.readMaster.arvalid := '1';
+                  v.readMaster.rready  := '1';
                   -- Next state
-                  v.state                          := RD_AXI_LITE_TRANS_S;
+                  v.state              := RD_AXI_LITE_TRANS_S;
                else
                   -- Next state
                   v.state := ACK_HDR_S;
@@ -209,16 +229,15 @@ begin
                -- Check for valid write operation
                if (r.hdr.fmt(1) = '1') and (r.hdr.bar = 0) then
                   -- Set the write address buses
-                  v.writeMaster.awaddr(1 downto 0)  := "00";            -- 32-bit alignment
-                  v.writeMaster.awaddr(31 downto 2) := r.hdr.addr;
+                  v.writeMaster.awaddr  := GenAddr(r.hdr, BAR_MASK_G);
                   -- Set the write data buses
-                  v.writeMaster.wdata               := r.hdr.data;
+                  v.writeMaster.wdata   := r.hdr.data;
                   -- Start AXI-Lite transaction
-                  v.writeMaster.awvalid             := '1';
-                  v.writeMaster.wvalid              := '1';
-                  v.writeMaster.bready              := '1';
+                  v.writeMaster.awvalid := '1';
+                  v.writeMaster.wvalid  := '1';
+                  v.writeMaster.bready  := '1';
                   -- Next state
-                  v.state                           := WR_AXI_LITE_TRANS_S;
+                  v.state               := WR_AXI_LITE_TRANS_S;
                else
                   -- Next state
                   v.state := IDLE_S;

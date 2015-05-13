@@ -91,6 +91,9 @@ architecture rtl of SsiPcieSysReg is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    -------------------------------

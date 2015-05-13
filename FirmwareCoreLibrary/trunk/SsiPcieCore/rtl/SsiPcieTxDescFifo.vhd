@@ -70,6 +70,9 @@ architecture rtl of SsiPcieTxDescFifo is
    signal tFifoValid : sl;
    signal tFifoDout  : slv(63 downto 0);
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    -- FIFO for Transmit descriptors
@@ -79,11 +82,11 @@ begin
    U_RxFifo : entity work.FifoSync
       generic map(
          TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
+         BRAM_EN_G    => false,
          FWFT_EN_G    => true,
          FULL_THRES_G => 500,
          DATA_WIDTH_G => 64,
-         ADDR_WIDTH_G => 9)             
+         ADDR_WIDTH_G => 32)             
       port map (
          rst       => pciRst,
          clk       => pciClk,

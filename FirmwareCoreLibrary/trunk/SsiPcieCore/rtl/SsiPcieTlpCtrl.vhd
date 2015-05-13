@@ -90,6 +90,9 @@ architecture rtl of SsiPcieTlpCtrl is
    signal eof                : slv(3 downto 0);
    signal locId              : slv(15 downto 0);
    
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    trnPending <= pendingTransaction;

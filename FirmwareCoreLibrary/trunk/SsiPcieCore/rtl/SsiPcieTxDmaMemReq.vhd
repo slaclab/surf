@@ -89,6 +89,9 @@ architecture rtl of SsiPcieTxDmaMemReq is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute dont_touch : string;
+   -- attribute dont_touch of r : signal is "true";
+   
 begin
 
    comb : process (dmaDescFromPci, dmaIbSlave, dmaObMaster, dmaObSlave, dmaTranFromPci, done, pause,
