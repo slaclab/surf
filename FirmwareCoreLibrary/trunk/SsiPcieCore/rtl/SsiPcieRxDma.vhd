@@ -99,14 +99,46 @@ architecture rtl of SsiPcieRxDma is
    signal tranLength : slv(8 downto 0);
    signal tranCnt    : slv(8 downto 0);
 
+   signal ibMaster : AxiStreamMasterType;
+   signal ibSlave  : AxiStreamSlaveType;   
+   
    signal rxMaster : AxiStreamMasterType;
    signal rxSlave  : AxiStreamSlaveType;
+   
    signal txSlave  : AxiStreamSlaveType;
    
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
 begin
+
+   FIFO_RX : entity work.AxiStreamFifo
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         PIPE_STAGES_G       => 0,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         BRAM_EN_G           => false,
+         USE_BUILT_IN_G      => false,
+         GEN_SYNC_FIFO_G     => true,
+         CASCADE_SIZE_G      => 1,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PCIE_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PCIE_AXIS_CONFIG_C)            
+      port map (
+         -- Slave Port
+         sAxisClk    => pciClk,
+         sAxisRst    => pciRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         -- Master Port
+         mAxisClk    => pciClk,
+         mAxisRst    => pciRst,
+         mAxisMaster => ibMaster,
+         mAxisSlave  => ibSlave);   
 
    SsiPcieRxDmaTransFifo_Inst : entity work.SsiPcieRxDmaTransFifo
       generic map(
@@ -120,8 +152,8 @@ begin
          tranLength  => tranLength,
          tranCnt     => tranCnt,
          -- Streaming Interfaces
-         sAxisMaster => sAxisMaster,
-         sAxisSlave  => sAxisSlave,
+         sAxisMaster => ibMaster,
+         sAxisSlave  => ibSlave,
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave,
          -- Clock and Resets

@@ -25,8 +25,7 @@ use work.AxiStreamPkg.all;
 entity SsiPcieDmaLoopBack is
    generic (
       TPD_G         : time                   := 1 ns;
-      LOOPBACK_EN_G : boolean                := true;  -- true = synthesis loopback capability
-      DMA_SIZE_G    : positive range 1 to 16 := 1);
+      LOOPBACK_EN_G : boolean                := true);  -- true = synthesis loopback capability
    port (
       dmaLoopback : in  sl;
       -- External DMA Interface
@@ -44,55 +43,17 @@ entity SsiPcieDmaLoopBack is
       pciRst      : in  sl);       
 end SsiPcieDmaLoopBack;
 
-architecture rtl of SsiPcieDmaLoopBack is
-
-   signal loopbackMaster : AxiStreamMasterType;
-   signal loopbackSlave  : AxiStreamSlaveType;
+architecture mapping of SsiPcieDmaLoopBack is
    
 begin
 
    GEN_LOOPBACK : if (LOOPBACK_EN_G = true) generate
-      
-      dmaObMaster.tValid <= obMaster.tValid and not(dmaLoopback);
-      dmaObMaster.tData  <= obMaster.tData;
-      dmaObMaster.tStrb  <= obMaster.tStrb;
-      dmaObMaster.tKeep  <= obMaster.tKeep;
-      dmaObMaster.tLast  <= obMaster.tLast;
-      dmaObMaster.tDest  <= obMaster.tDest;
-      dmaObMaster.tId    <= obMaster.tId;
-      dmaObMaster.tUser  <= obMaster.tUser;
-
-      loopbackMaster.tValid <= obMaster.tValid and (dmaLoopback);
-      loopbackMaster.tData  <= obMaster.tData;
-      loopbackMaster.tStrb  <= obMaster.tStrb;
-      loopbackMaster.tKeep  <= obMaster.tKeep;
-      loopbackMaster.tLast  <= obMaster.tLast;
-      loopbackMaster.tDest  <= obMaster.tDest;
-      loopbackMaster.tId    <= obMaster.tId;
-      loopbackMaster.tUser  <= obMaster.tUser;
-
-      obSlave <= dmaObSlave when(dmaLoopback = '0') else loopbackSlave;
-
-      AxiStreamMux_Inst : entity work.AxiStreamMux
-         generic map (
-            TPD_G        => TPD_G,
-            NUM_SLAVES_G => 2)
-         port map (
-            -- Clock and reset
-            axisClk         => pciClk,
-            axisRst         => pciRst,
-            -- Slaves
-            sAxisMasters(0) => dmaIbMaster,
-            sAxisMasters(1) => loopbackMaster,
-            sAxisSlaves(0)  => dmaIbSlave,
-            sAxisSlaves(1)  => loopbackSlave,
-            -- MUX Address
-            sAxisAuto       => '0',
-            sAxisAddr(0)    => dmaLoopback,
-            -- Master
-            mAxisMaster     => ibMaster,
-            mAxisSlave      => ibSlave);   
-
+   
+      dmaObMaster <= obMaster    when(dmaLoopback = '0') else AXI_STREAM_MASTER_INIT_C;  
+      dmaIbSlave  <= ibSlave     when(dmaLoopback = '0') else AXI_STREAM_SLAVE_INIT_C;  
+      ibMaster    <= dmaIbMaster when(dmaLoopback = '0') else obMaster;     
+      obSlave     <= dmaObSlave  when(dmaLoopback = '0') else ibSlave;     
+   
    end generate;
 
    GEN_NO_LOOPBACK : if (LOOPBACK_EN_G = false) generate
@@ -104,4 +65,4 @@ begin
       
    end generate;
 
-end rtl;
+end mapping;
