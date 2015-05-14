@@ -15,7 +15,7 @@
 #include "../include/SsiPcieMod.h"
 #include "../include/SsiPcieWrap.h"
 #define DEVNAME "/dev/SsiPcie0"
-
+#define LOOPBACK true
 using namespace std;
 
 int main (int argc, char **argv) {
@@ -26,7 +26,8 @@ int main (int argc, char **argv) {
    uint          lane;
    uint          vc;
    uint          size;
-   uint          *data;
+   uint          *txData;
+   uint          *rxData;
 
    if (argc != 4) {
       cout << "Usage: xwrite lane vc size" << endl;
@@ -52,7 +53,7 @@ int main (int argc, char **argv) {
    time(&t);
    srandom(t); 
 
-   data = (uint *)malloc(sizeof(uint)*size);
+   txData = (uint *)malloc(sizeof(uint)*size);
 
    // DMA Write
    cout << endl;
@@ -61,26 +62,22 @@ int main (int argc, char **argv) {
    cout << ", Vc=" << dec << vc << endl;  
       
    for (x=0; x<size; x++) {
-      data[x] = random();
-      cout << " 0x" << setw(8) << setfill('0') << hex << data[x];
+      txData[x] = random();
+      cout << " 0x" << setw(8) << setfill('0') << hex << txData[x];
       if ( ((x+1)%10) == 0 ) cout << endl << "   ";
    }
    cout << endl;
-   ret = ssipcie_send (s,data,size,lane,vc);
+   ret = ssipcie_send (s,txData,size,lane,vc);
    cout << "Ret=" << dec << ret << endl << endl;
   
-   free(data);
-   
-   /*
+#if LOOPBACK
    sleep(1);
-  
-   // Allocate a buffer
    uint          maxSize;
    uint          error; 
    maxSize = 1024*1024*2;
-   data = (uint *)malloc(sizeof(uint)*maxSize);
+   rxData = (uint *)malloc(sizeof(uint)*maxSize);
 
-   ret = ssipcie_recv(s,data,maxSize,&lane,&vc,&error);
+   ret = ssipcie_recv(s,rxData,maxSize,&lane,&vc,&error);
 
    if ( ret != 0 ) {
       cout << "Receiving:";
@@ -89,17 +86,31 @@ int main (int argc, char **argv) {
       cout << ", Error=" << dec << error;
 
       for (x=0; x<(uint)ret; x++) {
-         cout << " 0x" << setw(8) << setfill('0') << hex << data[x];
+         cout << " 0x" << setw(8) << setfill('0') << hex << rxData[x];
          if ( ((x+1)%10) == 0 ) cout << endl << "   ";
       }
       cout << endl;
       cout << "Ret=" << dec << ret << endl;
       cout << endl;
+      
+      if((uint)ret == size){
+         error = 0;
+         for (x=0; x<(uint)ret; x++) {
+            if(rxData[x]!=txData[x]) error++;
+         }
+         if(error!=0){
+            cout << "Error Count = " << dec << error << endl;
+         }else{
+            cout << "No Errors detected" << endl;  
+         }
+      } else{
+         cout << "Error: RX size != TX size" << endl;
+      }
    }
-  
-   free(data);   
-   */
+   free(rxData);   
+#endif
    
+   free(txData);   
    close(s);
    return(0);
 }
