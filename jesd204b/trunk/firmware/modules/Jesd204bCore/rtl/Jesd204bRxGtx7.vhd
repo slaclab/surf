@@ -37,9 +37,9 @@ entity Jesd204bRxGtx7 is
    -- Test tx module instead of GTX
       TEST_G            : boolean                     := false;
       
-      -- Internal SYSREF SELF_TEST_G= TRUE else 
+      -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SELF_TEST_G        : boolean                    := false; 
+      SYSREF_GEN_G        : boolean                    := false; 
       
    -- GT Settings
    ----------------------------------------------------------------------------------------------     
@@ -195,10 +195,10 @@ begin
       leds_o            => leds_o
    );
    --------------------------------------------------------------------------------------------------
-   -- Generate the internal or external SYSREF depending on SELF_TEST_G
+   -- Generate the internal or external SYSREF depending on SYSREF_GEN_G
    --------------------------------------------------------------------------------------------------
-   -- IF DEF SELF_TEST_G
-   SELF_TEST_GEN: if SELF_TEST_G = true generate
+   -- IF DEF SYSREF_GEN_G
+   SELF_TEST_GEN: if SYSREF_GEN_G = true generate
       -- Generate the sysref internally
       -- Sysref period will be 8x K_G.
       SysrefGen_INST: entity work.LmfcGen
@@ -215,7 +215,7 @@ begin
       );
    end generate SELF_TEST_GEN;
    -- Else 
-   OPER_GEN: if SELF_TEST_G = false generate
+   OPER_GEN: if SYSREF_GEN_G = false generate
       s_sysRef <= sysRef_i;
    end generate OPER_GEN;
    

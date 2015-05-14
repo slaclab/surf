@@ -280,6 +280,6 @@ begin
    nSync_o      <= s_nSync;
    dataValid_o  <= s_dataValid;
    sampleData_o <= s_sampleData;
-   status_o     <= r.errReg(r.errReg'high downto 4) & enable_i & r.errReg(2 downto 0) & s_kDetected & s_refDetected & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
+   status_o     <= r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;
