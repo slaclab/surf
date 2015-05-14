@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-24
--- Last update: 2015-05-05
+-- Last update: 2015-05-14
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,8 +24,10 @@ use work.SsiPciePkg.all;
 
 entity SsiPciePgpCardG3Core is
    generic (
-      TPD_G      : time     := 1 ns;
-      DMA_SIZE_G : positive := 8);
+      TPD_G         : time             := 1 ns;
+      LOOPBACK_EN_G : boolean          := true;  -- true = synthesis loopback capability
+      BAR_MASK_G    : slv(31 downto 0) := x"FFFF0000";
+      DMA_SIZE_G    : positive         := 8);
    port (
       -- System Interface
       serialNumber        : in  slv(63 downto 0);
@@ -97,8 +99,9 @@ begin
    SsiPcieCore_Inst : entity work.SsiPcieCore
       generic map (
          TPD_G            => TPD_G,
+         BAR_MASK_G       => BAR_MASK_G,
          DMA_SIZE_G       => DMA_SIZE_G,
-         LOOPBACK_EN_G    => true,
+         LOOPBACK_EN_G    => LOOPBACK_EN_G,
          AXI_ERROR_RESP_G => AXI_RESP_OK_C)
       port map (
          -- System Interface
