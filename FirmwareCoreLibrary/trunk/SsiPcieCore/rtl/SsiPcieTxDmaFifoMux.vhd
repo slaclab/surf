@@ -75,6 +75,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset strobing signals
+      v.rxSlave.tReady := '0';      
+      
       -- Update tValid register
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,10 +52,7 @@ architecture rtl of SsiPcieTxDma is
 
    type RegType is record
       done      : sl;
-      armed     : sl;
-      timeout   : sl;
       remLength : slv(23 downto 0);
-      timer     : slv(11 downto 0);
       rxSlave   : AxiStreamSlaveType;
       txMaster  : AxiStreamMasterType;
       state     : StateType;
@@ -63,10 +60,7 @@ architecture rtl of SsiPcieTxDma is
    
    constant REG_INIT_C : RegType := (
       done      => '0',
-      armed     => '0',
-      timeout   => '0',
       remLength => (others => '0'),
-      timer     => (others => '0'),
       rxSlave   => AXI_STREAM_SLAVE_INIT_C,
       txMaster  => AXI_STREAM_MASTER_INIT_C,
       state     => IDLE_S);
@@ -86,8 +80,8 @@ architecture rtl of SsiPcieTxDma is
    signal txSlave    : AxiStreamSlaveType;
    signal dmaSlave   : AxiStreamSlaveType;
    signal dmaCtrl    : AxiStreamCtrlType;
-   
-   -- attribute dont_touch : string;
+
+   -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
    
 begin
