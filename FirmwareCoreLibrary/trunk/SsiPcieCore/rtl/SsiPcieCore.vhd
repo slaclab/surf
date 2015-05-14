@@ -231,8 +231,7 @@ begin
       SsiPcieDmaLoopBack_Inst : entity work.SsiPcieDmaLoopBack
          generic map (
             TPD_G         => TPD_G,
-            LOOPBACK_EN_G => LOOPBACK_EN_G,
-            DMA_SIZE_G    => DMA_SIZE_G)
+            LOOPBACK_EN_G => LOOPBACK_EN_G)
          port map (
             dmaLoopback => dmaLoopback(i),
             -- External DMA Interface
