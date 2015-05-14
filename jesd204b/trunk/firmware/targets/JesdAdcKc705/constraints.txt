@@ -1,0 +1,1 @@
+rtl/JesdAdcKc705.xdc

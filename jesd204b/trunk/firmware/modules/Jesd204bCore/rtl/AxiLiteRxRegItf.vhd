@@ -132,7 +132,7 @@ begin
             when 16#04# => -- ADDR (16)
                v.replEnable      := axilWriteMaster.wdata(0);               
             when 16#20# to 16#2F# =>               
-               for I in 0 to(L_G-1) loop
+               for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
                      v.testTXItf(I)  := axilWriteMaster.wdata(15 downto 0);
                   end if;
@@ -158,13 +158,13 @@ begin
             when 16#04# =>  -- ADDR (16)
                v.axilReadSlave.rdata(0)                              := r.replEnable;               
             when 16#10# to 16#1F# => 
-               for I in 0 to(L_G-1) loop
+               for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
                      v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0)     := statusRxArr_i(I);
                   end if;
                end loop;
             when 16#20# to 16#2F# =>               
-               for I in 0 to(L_G-1) loop
+               for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
                      v.axilReadSlave.rdata(15 downto 0)                    := r.testTXItf(I);
                   end if;

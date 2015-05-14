@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Development board for JESD ADC test
 -------------------------------------------------------------------------------
--- File       : DevBoard.vhd
+-- File       : JesdAdcKc705.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
@@ -26,7 +26,7 @@ use work.Gtx7CfgPkg.all;
 use work.jesd204bpkg.all;
 use work.SsiPkg.all;
 
-entity DevBoard is
+entity JesdAdcKc705 is
    
    generic (
       TPD_G                  : time    := 1 ns;
@@ -102,9 +102,9 @@ entity DevBoard is
    );
 
 
-end entity DevBoard;
+end entity JesdAdcKc705;
 
-architecture rtl of DevBoard is
+architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    -- PGP constants
    -------------------------------------------------------------------------------------------------

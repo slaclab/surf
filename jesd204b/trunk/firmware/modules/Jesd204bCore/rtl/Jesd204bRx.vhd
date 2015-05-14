@@ -336,7 +336,7 @@ begin
    
    -- Put sync output in 'z' if not enabled
    syncVectEn : for I in L_G-1 downto 0 generate
-       s_nSyncVecEn(I) <= s_nSyncVec(I) when s_enableRx(I)='1' else '1';
+       s_nSyncVecEn(I) <= s_nSyncVec(I) when s_enableRx(I)='1' else 'Z';
    end generate syncVectEn;
    
    -- Combine nSync signals from all receivers
