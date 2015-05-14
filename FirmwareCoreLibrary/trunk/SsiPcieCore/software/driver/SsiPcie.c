@@ -736,7 +736,7 @@ static int SsiPcie_Probe(struct pci_dev *pcidev, const struct pci_device_id *dev
    
    // Poll the firmware register to get number of DMA channels
    ssiDevice->dmaSize = ssiDevice->reg->dmaSize;
-   if( (ssiDevice->dmaSize == 0) || (ssiDevice->dmaSize > 16) ){
+   if( (ssiDevice->dmaSize < 1) || (ssiDevice->dmaSize > 16) ){
       printk(KERN_WARNING"%s: Init: Invalid DMA Size. dmaSize=%i\n",MOD_NAME,ssiDevice->dmaSize);
       return ERROR;
    }
