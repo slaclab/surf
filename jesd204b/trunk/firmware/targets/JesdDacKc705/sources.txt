@@ -1,0 +1,4 @@
+vhdl work Version.vhd
+vhdl work rtl/JesdDacKc705.vhd
+vhdl work rtl/PgpFrontEnd.vhd
+
