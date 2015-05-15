@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : Development board for JESD ADC test
+-- Title      : Development board for JESD DAC test
 -------------------------------------------------------------------------------
--- File       : JesdAdcKc705.vhd
+-- File       : JesdDacKc705.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
@@ -26,7 +26,7 @@ use work.Gtx7CfgPkg.all;
 use work.jesd204bpkg.all;
 use work.SsiPkg.all;
 
-entity JesdAdcKc705 is
+entity JesdDacKc705 is
    
    generic (
       TPD_G                  : time    := 1 ns;
@@ -78,8 +78,8 @@ entity JesdAdcKc705 is
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
       -- '0' - synchronisation Not OK - synchronisation request
-      syncbP : out sl;                  -- LA08_P - FMC G12
-      syncbN : out sl;                  -- LA08_N - FMC G13
+      syncbP : in sl;                  -- LA08_P - FMC G12
+      syncbN : in sl;                  -- LA08_N - FMC G13
 
       -- Adc OVR/trigger signals
 --      ovraTrigRdy : in sl;              -- LA25_P - FMC G27
@@ -100,11 +100,9 @@ entity JesdAdcKc705 is
       usrClk : out sl;
       gpioClk: out sl
    );
+end entity JesdDacKc705;
 
-
-end entity JesdAdcKc705;
-
-architecture rtl of JesdAdcKc705 is
+architecture rtl of JesdDacKc705 is
    -------------------------------------------------------------------------------------------------
    -- PGP constants
    -------------------------------------------------------------------------------------------------
@@ -219,24 +217,24 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC EVM Out reference clock (61.44 MHz)
    -------------------------------------------------------------------------------------------------
-      ClockManager7_OUT : entity work.ClockManager7
-      generic map (
-         TPD_G              => TPD_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         NUM_CLOCKS_G       => 1,
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 8.0,
-         DIVCLK_DIVIDE_G    => 5,
-         CLKFBOUT_MULT_F_G  => 37.000,--47.000
-         CLKOUT0_DIVIDE_F_G => 2.5,--19.125
-         CLKOUT0_RST_HOLD_G => 16)
-      port map (
-         clkIn     => pgpRefClkG,
-         rstIn     => pgpMmcmRst,
-         clkOut(0) => s_usrClk,
-         rstOut(0) => s_usrRst);
+   ClockManager7_OUT : entity work.ClockManager7
+   generic map (
+      TPD_G              => TPD_G,
+      TYPE_G             => "MMCM",
+      INPUT_BUFG_G       => false,
+      FB_BUFG_G          => true,
+      NUM_CLOCKS_G       => 1,
+      BANDWIDTH_G        => "OPTIMIZED",
+      CLKIN_PERIOD_G     => 8.0,
+      DIVCLK_DIVIDE_G    => 5,
+      CLKFBOUT_MULT_F_G  => 37.000,--47.000
+      CLKOUT0_DIVIDE_F_G => 2.5,--19.125
+      CLKOUT0_RST_HOLD_G => 16)
+   port map (
+      clkIn     => pgpRefClkG,
+      rstIn     => pgpMmcmRst,
+      clkOut(0) => s_usrClk,
+      rstOut(0) => s_usrRst);
     
    usrClk <= s_usrClk;
 
@@ -370,8 +368,8 @@ begin
          axilReadSlave   => extAxilReadSlave,
          axisClk         => jesdClk,
          axisClkRst      => jesdClkRst,
-         axisTxMasters   => axisTxMasters,
-         axisTxSlaves    => axisTxSlaves,
+         axisTxMasters   => axisTxMasters, -- Disconnected
+         axisTxSlaves    => axisTxSlaves,  -- Disconnected
          axisTxCtrl      => axisTxCtrl,
          leds            => leds(3 downto 2));
 
@@ -478,17 +476,18 @@ begin
    );      
   
    -------------------------------------------------------------------------------------------------
-   -- JESD block
+   -- JESD Tx block
    -------------------------------------------------------------------------------------------------   
-   Jesd204bGtx7_INST: entity work.Jesd204bRxGtx7
+   Jesd204bTxGtx7_INST: entity work.Jesd204bTxGtx7
    generic map (
-      TPD_G       => TPD_G,
-        
-      -- Test tx module instead of GTX
-      TEST_G      =>  false,
+      TPD_G                 => TPD_G,
+     
       -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G =>  false,      
+      SYSREF_GEN_G =>  false,  
+      
+      -- Disconnect MGT for simulation
+      SIM_G                 => false,
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
@@ -508,7 +507,15 @@ begin
       RXCDR_CFG_G           =>  x"03000023ff10400020",  -- Values from coregen  
       RXDFEXYDEN_G          =>  '1',                    -- Values from coregen 
       RX_DFE_KL_CFG2_G      =>  x"301148AC",            -- Values from coregen 
-      
+         
+      TXOUT_DIV_G           =>   QPLL_CONFIG_C.OUT_DIV_G,
+      TX_CLK25_DIV_G        =>   QPLL_CONFIG_C.CLK25_DIV_G,
+      TX_BUF_EN_G           =>   true,
+      TX_OUTCLK_SRC_G       =>   "OUTCLKPMA",
+      TX_DLY_BYPASS_G       =>   '1',
+      TX_PHASE_ALIGN_G      =>   "NONE",
+      TX_BUF_ADDR_MODE_G    =>   "FULL",
+           
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
       
@@ -516,21 +523,14 @@ begin
       F_G                => F_C,
       K_G                => K_C,
       L_G                => L_C,
-      SUB_CLASS_G        => SUB_CLASS_C
-   )
+      SUB_CLASS_G        => SUB_CLASS_C)
    port map (
-      
-      stableClk         => jesdRefClkG, -- Stable because it is never reset
-      devClk_i          => jesdClk, -- both same
-      devClk2_i         => jesdClk, -- both same
-      devRst_i          => jesdClkRst,
-      
       qPllRefClkIn      => qPllOutRefClk,
       qPllClkIn         => qPllOutClk,
       qPllLockIn        => qPllLock,
       qPllRefClkLostIn  => qPllRefClkLost,
-      qPllResetOut      => qPllReset, 
-
+      qPllResetOut      => qPllReset,
+      
       gtTxP(0)          => adcGtTxP(0),
       gtTxP(1)          => adcGtTxP(2),      
       gtTxN(0)          => adcGtTxN(0),
@@ -539,18 +539,28 @@ begin
       gtRxP(1)          => adcGtRxP(2),      
       gtRxN(0)          => adcGtRxN(0),
       gtRxN(1)          => adcGtRxN(2),
-   
+      
+      stableClk         => jesdRefClkG, -- Stable because it is never reset
+      devClk_i          => jesdClk, -- both same
+      devClk2_i         => jesdClk, -- both same
+      devRst_i          => jesdClkRst,
       axiClk            => axilClk,
       axiRst            => axilClkRst,
-      axilReadMaster    => locAxilReadMasters(JESD_AXIL_INDEX_C),
-      axilReadSlave     => locAxilReadSlaves(JESD_AXIL_INDEX_C),
-      axilWriteMaster   => locAxilWriteMasters(JESD_AXIL_INDEX_C),
-      axilWriteSlave    => locAxilWriteSlaves(JESD_AXIL_INDEX_C),  
-      txAxisMasterArr   => axisTxMasters,
-      txCtrlArr         => axisTxCtrl,
+      
+      axilReadMasterTx  => locAxilReadMasters(JESD_AXIL_INDEX_C),
+      axilReadSlaveTx   => locAxilReadSlaves(JESD_AXIL_INDEX_C),
+      axilWriteMasterTx => locAxilWriteMasters(JESD_AXIL_INDEX_C),
+      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_INDEX_C),
+      
+      --Currently no AXI stream input
+      rxAxisMasterArr_i  => (L_C-1 downto 0 => AXI_STREAM_MASTER_INIT_C),
+      rxAxisSlaveArr_o   => open,
+      
+      -- External sample data input
+      extSampleDataArray_i => (L_C-1 downto 0 => (RX_STAT_WIDTH_C-1 downto 0 => '0')),
+      
       sysRef_i          => s_sysRef,
-      nSync_o           => s_nSync,
-      leds_o            => open--leds(7 downto 6)
+      nSync_i           => s_nSync
    );
    
    ----------------------------------------------------------------
@@ -569,15 +579,15 @@ begin
    
    sysRef <= s_sysRef;
    
-   OBUFDS_nsync_inst : OBUFDS
+   IBUFDS_nsync_inst : IBUFDS
    generic map (
-      IOSTANDARD => "DEFAULT",
-      SLEW => "SLOW"
-   )
+      DIFF_TERM => FALSE,
+      IBUF_LOW_PWR => TRUE,
+      IOSTANDARD => "DEFAULT")
    port map (
-      I =>  s_nSync,
-      O =>  syncbP, 
-      OB => syncbN
+      O =>  s_nSync,
+      I =>  syncbP, 
+      IB => syncbN
    );
 
 end architecture rtl;
