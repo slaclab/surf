@@ -70,8 +70,8 @@ entity Jesd204bTxGtx7 is
       RX_PLL_G         : string:= "QPLL"; -- "QPLL" or "CPLL"
      
       -- TX defaults not currently used
-      TXOUT_DIV_G           : integer    := 2;
-      TX_CLK25_DIV_G        : integer    := 7;
+      TXOUT_DIV_G        : integer := 2;
+      TX_CLK25_DIV_G     : integer := 7;
       TX_BUF_EN_G        : boolean := true;
       TX_OUTCLK_SRC_G    : string  := "OUTCLKPMA";
       TX_DLY_BYPASS_G    : sl      := '1';
@@ -119,13 +119,7 @@ entity Jesd204bTxGtx7 is
    ------------------------------------------------------------------------------------------------   
       axiClk         : in    sl;
       axiRst         : in    sl;  
-      
-      -- AXI-Lite RX Register Interface
-      axilReadMasterRx  : in    AxiLiteReadMasterType;
-      axilReadSlaveRx   : out   AxiLiteReadSlaveType;
-      axilWriteMasterRx : in    AxiLiteWriteMasterType;
-      axilWriteSlaveRx  : out   AxiLiteWriteSlaveType;
-      
+           
       -- AXI-Lite RX Register Interface
       axilReadMasterTx  : in    AxiLiteReadMasterType;
       axilReadSlaveTx   : out   AxiLiteReadSlaveType;
@@ -133,17 +127,20 @@ entity Jesd204bTxGtx7 is
       axilWriteSlaveTx  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
-      txCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      rxAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
+      rxAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
+
+      -- External sample data input
+      extSampleDataArray_i : in sampleDataArray;      
       
    -- JESD
    ------------------------------------------------------------------------------------------------   
 
       -- SYSREF for subcalss 1 fixed latency
-      sysRef_i       : in    sl;
+      sysRef_i       : in  sl;
 
       -- Synchronisation output combined from all receivers 
-      nSync_o        : out   sl
+      nSync_i        : in  sl
    );
 end Jesd204bTxGtx7;
 
@@ -167,14 +164,11 @@ architecture rtl of Jesd204bTxGtx7 is
    signal s_gtTxReady       : slv(L_G-1 downto 0);
    
    -- Generated or external
-   signal s_sysRef      : sl;
-   signal s_nSync       : sl;   
-    
-   
+   signal s_sysRef      : sl;    
 
 begin
    -- Check generics TODO add others
-   assert (1 =< L_G and L_G =< 8)                      report "L_G must be between 1 and 8"   severity failure;
+   assert (1 <= L_G and L_G <= 8)                      report "L_G must be between 1 and 8"   severity failure;
 
    --------------------------------------------------------------------------------------------------
    -- JESD transmitter core
@@ -182,7 +176,6 @@ begin
    Jesd204bTx_INST: entity work.Jesd204bTx
    generic map (
       TPD_G            => TPD_G,
-      TEST_G           => TEST_G,
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       F_G              => F_G,
       K_G              => K_G,
@@ -195,12 +188,13 @@ begin
       axilReadSlave     => axilReadSlaveTx,
       axilWriteMaster   => axilWriteMasterTx,
       axilWriteSlave    => axilWriteSlaveTx,
-      txAxisMasterArr_o => open,
-      txCtrlArr_i       => txCtrlArr,
+      rxAxisMasterArr_i => rxAxisMasterArr_i,
+      rxAxisSlaveArr_o  => rxAxisSlaveArr_o,
+      extSampleDataArray_i => extSampleDataArray_i,
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,
-      nSync_i           => s_nSync,
+      nSync_i           => nSync_i,
       gtTxReady_i       => s_gtTxReady,
       gtTxReset_o       => s_gtTxUserReset,
       r_jesdGtTxArr     => r_jesdGtTxArr
@@ -404,8 +398,5 @@ begin
    -----------------------------------------
    end generate GT_OPER_GEN;    
    -----------------------------------------------------
-   
-   -- Output assignment
-   nSync_o <= s_nSync;
 
 end rtl;

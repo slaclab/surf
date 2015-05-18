@@ -227,8 +227,8 @@ begin
       BANDWIDTH_G        => "OPTIMIZED",
       CLKIN_PERIOD_G     => 8.0,
       DIVCLK_DIVIDE_G    => 5,
-      CLKFBOUT_MULT_F_G  => 37.000,--47.000
-      CLKOUT0_DIVIDE_F_G => 2.5,--19.125
+      CLKFBOUT_MULT_F_G  => 47.000,--37.000
+      CLKOUT0_DIVIDE_F_G => 19.125,--2.5
       CLKOUT0_RST_HOLD_G => 16)
    port map (
       clkIn     => pgpRefClkG,

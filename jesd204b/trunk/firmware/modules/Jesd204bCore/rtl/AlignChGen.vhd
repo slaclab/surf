@@ -120,14 +120,11 @@ begin
             end if;
          end loop;
       end if; 
-      
-      
-      
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
 
-      
       -- Buffer char for one clock cycles      
       v.sampleKD1 := v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0); 
 

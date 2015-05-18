@@ -136,7 +136,7 @@ signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
 signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
 -- Axi Stream
-signal s_sampleDataArr : AxiDataTypeArray(L_G-1 downto 0);
+signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);
 signal s_axisPacketSizeReg : slv(23 downto 0);
 signal s_axisTriggerReg    : slv(L_G-1 downto 0);
 

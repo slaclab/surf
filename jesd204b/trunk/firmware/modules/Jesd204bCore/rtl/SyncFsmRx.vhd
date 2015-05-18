@@ -46,7 +46,7 @@ entity SyncFsmRx is
       
       -- Enable the module
       enable_i       : in    sl;      
-      gtReady_i     : in    sl;
+      gtReady_i      : in    sl;
       
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i       : in    sl;

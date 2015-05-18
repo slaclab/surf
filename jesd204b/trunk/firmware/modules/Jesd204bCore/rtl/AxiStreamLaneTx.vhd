@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Single lane JESD AXI stream data control 
+-- Title      : Single lane JESD AXI stream data transmit control 
 -------------------------------------------------------------------------------
 -- File       : AxiStreamLaneTx.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -11,10 +11,14 @@
 -------------------------------------------------------------------------------
 -- Description:   This module sends the RX JESD lane 
 --                on Virtual Channel Lane.
+--                - When data is requested by trigger_i = '1'.
+--                - the module sends data a packet at the time to AXI stream FIFO.
+--                - Between packets the FSM waits until txCtrl_i.pause = '0'
+--                Note: Tx pause must indicate that the AXI stream FIFO can hold the whole data packet.
+--                Note: The data transmission is enabled only if JESD data is valid dataReady_i='1'. 
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -40,7 +44,7 @@ entity AxiStreamLaneTx is
       
       -- AXI control
       packetSize_i   : in  slv(23 downto 0);
-      trigger_i      : in  sl; --TODO use later 
+      trigger_i      : in  sl; 
       
       -- Axi Stream
       txAxisMaster_o  : out AxiStreamMasterType;

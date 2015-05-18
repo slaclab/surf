@@ -42,13 +42,11 @@ package Jesd204bPkg is
    -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
    type jesdGtTxLaneTypeArray is array (natural range <>) of jesdGtTxLaneType;
-   type AxiDataTypeArray      is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
+   type sampleDataArray       is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
    type rxStatuRegisterArray  is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1 downto 0);
    type txStatuRegisterArray  is array (natural range <>) of slv( (TX_STAT_WIDTH_C)-1 downto 0);
    type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1 downto 0);
    
-   
-
 -- Functions
 --------------------------------------------------------------------------  
    -- Detect K character
@@ -57,9 +55,13 @@ package Jesd204bPkg is
    -- Output variable index from SLV (use in variable length shift register) 
    function varIndexOutFunc(shft_slv : slv; index_slv : slv) return std_logic;
 
+   -- Detect position of first non K character (Swapped)
+   function detectPosFuncSwap(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector;
+
    -- Detect position of first non K character
    function detectPosFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector;
-
+   
+   
    -- Byte swap slv (bytes int 2 or 4)
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector;
    
@@ -77,7 +79,11 @@ package Jesd204bPkg is
    
    -- Replace alignment characters with data
    function JesdCharReplace(data_slv : slv; char_slv : slv; F_int : positive; bytes_int : positive ; enable_sl : sl) return std_logic_vector;
-   
+ 
+ -- Replace alignment characters with data
+   function outSampleZero(F_int : positive; bytes_int : positive ) return std_logic_vector;
+
+ 
 end Jesd204bPkg;
 
 package body Jesd204bPkg is
@@ -131,6 +137,61 @@ package body Jesd204bPkg is
                data_slv (15 downto 8) /= K_CHAR_C
                ) then
             return "01";
+         elsif(data_slv (7 downto 0) /= K_CHAR_C and
+               data_slv (15 downto 8) = K_CHAR_C and
+               charisk_slv(1) = '1'
+               ) then
+            return "10";
+         else
+            return "11";
+         end if;
+      -- GT word is 4 bytes wide
+      elsif(bytes_int = 4) then
+         if(data_slv (7 downto 0) /= K_CHAR_C and
+               data_slv (15 downto 8) /= K_CHAR_C and
+               data_slv (23 downto 16) /= K_CHAR_C and
+               data_slv (31 downto 24) /= K_CHAR_C
+               ) then
+            return "0001";
+         elsif(data_slv (7 downto 0) /= K_CHAR_C and
+               data_slv (15 downto 8) /= K_CHAR_C and
+               data_slv (23 downto 16) /= K_CHAR_C and
+               data_slv (31 downto 24) = K_CHAR_C and
+               charisk_slv(3) = '1'
+               ) then
+            return "0010";
+         elsif(data_slv (7 downto 0) /= K_CHAR_C and
+               data_slv (15 downto 8) /= K_CHAR_C and
+               data_slv (23 downto 16) = K_CHAR_C and
+               data_slv (31 downto 24) = K_CHAR_C and
+               charisk_slv(3 downto 2) = "11"
+               ) then
+            return "0100";
+         elsif(data_slv (7 downto 0) /= K_CHAR_C and
+               data_slv (15 downto 8) = K_CHAR_C and
+               data_slv (23 downto 16) = K_CHAR_C and
+               data_slv (31 downto 24) = K_CHAR_C and
+               charisk_slv(3 downto 1) = "111"
+               ) then
+            return "1000";
+         else
+            return "1111";
+         end if;
+      else
+         return (bytes_int-1 downto 0 => '1');
+      end if;
+   end detectPosFunc;   
+   
+   
+   -- Detect position of first non K character (Swapped bits/bytes)
+   function detectPosFuncSwap(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector is
+   begin
+      -- GT word is 2 bytes
+      if(bytes_int = 2) then
+         if(data_slv (7 downto 0) /= K_CHAR_C and
+               data_slv (15 downto 8) /= K_CHAR_C
+               ) then
+            return "01";
          elsif(data_slv (7 downto 0) = K_CHAR_C and
                data_slv (15 downto 8) /= K_CHAR_C and
                charisk_slv(0) = '1'
@@ -174,7 +235,7 @@ package body Jesd204bPkg is
       else
          return (bytes_int-1 downto 0 => '1');
       end if;
-   end detectPosFunc;
+   end detectPosFuncSwap;
 
    -- Byte swap slv (bytes int 2 or 4)
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
@@ -267,5 +328,19 @@ package body Jesd204bPkg is
          return vSlv((bytes_int*8)-1 downto 0);        
 
    end  JesdCharReplace;
+
+
+   -- Output zero sample data depending on word size and Frame size
+   function outSampleZero(F_int : positive; bytes_int : positive ) return std_logic_vector is
+         constant SAMPLES_IN_WORD_C    : positive := (bytes_int/F_int);
+         variable  vSlv: slv((bytes_int*8)-1 downto 0);
+   begin
+      for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+          vSlv(I*8*F_int+8*F_int-1) := '1';    
+      end loop;
+         
+      return vSlv;        
+
+   end  outSampleZero;
 --------------------------------------------------------------------------------------------
 end package body Jesd204bPkg;

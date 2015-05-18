@@ -35,10 +35,7 @@ use work.Jesd204bPkg.all;
 entity Jesd204bTx is
    generic (
       TPD_G             : time                        := 1 ns;
-
-      -- Test tx module instead of GTX
-      TEST_G            : boolean                     := false;
-           
+          
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
       
@@ -70,8 +67,8 @@ entity Jesd204bTx is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr_o  : out   AxiStreamMasterArray(L_G-1 downto 0);
-      txCtrlArr_i        : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      rxAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
+      rxAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0);   
       
    -- JESD
       -- Clocks and Resets   
@@ -84,9 +81,12 @@ entity Jesd204bTx is
       -- Synchronisation input combined from all receivers 
       nSync_i        : in    sl;
       
+      -- External sample data input
+      extSampleDataArray_i : in sampleDataArray;
+      
       -- GT is ready to transmit data after reset
       gtTxReset_o    : out   slv(L_G-1 downto 0); 
-      gtTxReady_i    : in    slv(L_G-1 downto 0);   
+      gtTxReady_i    : in    slv(L_G-1 downto 0); 
       
       -- Data and character inputs from GT (transceivers)
       r_jesdGtTxArr  : out   jesdGtTxLaneTypeArray(L_G-1 downto 0)
@@ -105,65 +105,45 @@ architecture rtl of Jesd204bTx is
    signal s_enableTx     : slv(L_G-1 downto 0);
    signal s_replEnable   : sl;
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
-
+   signal  s_dataValid   : slv(L_G-1 downto 0);
+   signal  s_swTriggerReg: slv(L_G-1 downto 0);
+   
    -- Axi Lite interface synced to devClk
    signal sAxiReadMasterDev : AxiLiteReadMasterType;
    signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
    signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
    signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
-   -- Axi Stream
-   signal s_sampleDataArr : AxiDataTypeArray(L_G-1 downto 0);
-   signal s_axisPacketSizeReg : slv(23 downto 0);
-   signal s_axisTriggerReg    : slv(L_G-1 downto 0);
+   -- Data out multiplexer
+   signal s_testDataArr   : sampleDataArray(L_G-1 downto 0);
+   signal s_axiDataArr    : sampleDataArray(L_G-1 downto 0);
+   
+   signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);  
 
    -- Sysref conditioning
    signal  s_sysrefSync : sl;
    signal  s_nSyncSync  : sl;
    signal  s_sysrefRe   : sl;
-   signal  s_sysrefD    : sl;   
+   signal  s_sysrefD    : sl;
+
+
+   
+   -- Select output 
+   signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
 
 
 begin
    -- Check generics TODO add others
-   assert (1 < L_G and L_G < 8)  report "L_G must be between 1 and 8"   severity failure;
-
+   assert (1 <= L_G and L_G <= 8)  report "L_G must be between 1 and 8"   severity failure;
+   
+   -- 
+   generateValid : for I in L_G-1 downto 0 generate
+      s_dataValid(I) <= s_statusTxArr(I)(2);
+   end generate generateValid;
+   
    -----------------------------------------------------------
-   -- AXI
-   ---------------------------------------------------------   
-   -- AXI stream interface one module per lane
-   -- generateAxiStreamLanes : for I in L_G-1 downto 0 generate
-      -- AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
-      -- generic map (
-         -- TPD_G             => TPD_G,
-         -- AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G)
-      -- port map (
-         -- devClk_i       => devClk_i,
-         -- devRst_i       => devRst_i,
-         -- packetSize_i   => s_axisPacketSizeReg,
-         -- trigger_i      => s_axisTriggerReg(I),
-         -- txAxisMaster_o => txAxisMasterArr_o(I),
-         -- txCtrl_i       => txCtrlArr_i(I),
-         -- enable_i       => s_enableRx(I),
-         -- sampleData_i   => s_sampleDataArr(I),
-         -- dataReady_i    => s_dataValidVec(I)
-      -- );
-   -- end generate generateAxiStreamLanes;
-   
-   generateTestStreamLanes : for I in L_G-1 downto 0 generate
-      TestStreamTx_INST: entity work.TestStreamTx
-      generic map (
-         TPD_G => TPD_G,
-         F_G   => F_G)
-      port map (
-         clk           => devClk_i,
-         rst           => devRst_i,
-         enable_i      => s_statusTxArr(I)(2),
-         strobe_i      => s_lmfc,
-         sample_data_o => s_sampleDataArr(I));
-   end generate generateTestStreamLanes;
-   
-
+   -- AXI lite registers
+   -----------------------------------------------------------  
    -- Synchronise axiLite interface to devClk
    AxiLiteAsync_INST: entity work.AxiLiteAsync
    generic map (
@@ -201,14 +181,60 @@ begin
       axilReadSlave   => sAxiReadSlaveDev,
       axilWriteMaster => sAxiWriteMasterDev,
       axilWriteSlave  => sAxiWriteSlaveDev,
+      
+      -- Registers
       statusTxArr_i   => s_statusTxArr,
+      muxOutSelArr_o  => s_muxOutSelArr,
       sysrefDlyTx_o   => s_sysrefDlyTx,
       enableTx_o      => s_enableTx,
       replEnable_o    => s_replEnable,
-      axisTrigger_o   => s_axisTriggerReg,
-      axisPacketSize_o=> s_axisPacketSizeReg
+      swTrigger_o     => s_swTriggerReg, -- Disconnected
+      axisPacketSize_o=> open
    );
- 
+   
+   -----------------------------------------------------------
+   -- Data sources
+   -----------------------------------------------------------
+   
+   -- AXI stream rx interface one module per lane
+   generateAxiStreamLanes : for I in L_G-1 downto 0 generate
+      AxiStreamLaneRx_INST: entity work.AxiStreamLaneRx
+      generic map (
+         TPD_G => TPD_G,
+         F_G   => F_G)
+      port map (
+         devClk_i       => devClk_i,
+         devRst_i       => devRst_i,
+         rxAxisMaster_i => rxAxisMasterArr_i(I),
+         rxAxisSlave_o  => rxAxisSlaveArr_o(I),
+         jesdReady_i    => s_dataValid(I),
+         enable_i       => s_enableTx(I),
+         sampleData_o   => s_axiDataArr(I));
+   end generate generateAxiStreamLanes;
+   
+   generateTestStreamLanes : for I in L_G-1 downto 0 generate
+      TestStreamTx_INST: entity work.TestStreamTx
+      generic map (
+         TPD_G => TPD_G,
+         F_G   => F_G)
+      port map (
+         clk           => devClk_i,
+         rst           => devRst_i,
+         enable_i      => s_dataValid(I),
+         strobe_i      => s_lmfc,
+         sample_data_o => s_testDataArr(I));
+   end generate generateTestStreamLanes;
+   
+   -- Sample data mux
+   generateMux : for I in L_G-1 downto 0 generate
+      -- Separate mux for separate lane
+      with s_muxOutSelArr(I) select 
+      s_sampleDataArr(I) <= outSampleZero(F_G,GT_WORD_SIZE_C)when "000",
+                            extSampleDataArray_i(I)          when "001",
+                            s_axiDataArr(I)                  when "010",  
+                            s_testDataArr(I)                 when others;
+   end generate generateMux;
+
    -----------------------------------------------------------
    -- SYSREF, SYNC, and LMFC
    -----------------------------------------------------------
@@ -303,8 +329,9 @@ begin
    end generate generateTxLanes;
     
    -- Output assignment
+   -- TODO route from register (do not link to enable signal)
    GT_RST_GEN : for I in L_G-1 downto 0 generate 
-      gtTxReset_o(I)  <= not s_enableTx(I);
+      gtTxReset_o(I)  <= '0';
    end generate GT_RST_GEN;
    
    -----------------------------------------------------
