@@ -51,7 +51,7 @@ entity AxiLiteRxRegItf is
       
    -- JESD registers
       -- Status
-      statusRxArr_i   : in   rxStatuRegisterArray(0 to L_G-1);
+      statusRxArr_i   : in   rxStatuRegisterArray(L_G-1 downto 0);
       
       -- Control
       sysrefDlyRx_o     : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
@@ -71,7 +71,7 @@ architecture rtl of AxiLiteRxRegItf is
       enableRx       : slv(L_G-1 downto 0);
       replEnable     : sl;
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
-      testTXItf      : Slv16Array(0 to L_G-1);
+      testTXItf      : Slv16Array(L_G-1 downto 0);
       axisTrigger    : slv(L_G-1 downto 0);
       axisPacketSize : slv(23 downto 0);
       
@@ -133,7 +133,7 @@ begin
                v.replEnable      := axilWriteMaster.wdata(0);               
             when 16#20# to 16#2F# =>               
                for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
                      v.testTXItf(I)  := axilWriteMaster.wdata(15 downto 0);
                   end if;
                end loop; 

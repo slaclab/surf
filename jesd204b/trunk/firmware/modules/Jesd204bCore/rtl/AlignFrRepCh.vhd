@@ -119,7 +119,6 @@ begin
       if (alignFrame_i = '1') then
          v.position := detectPosFunc(dataRx_i,chariskRx_i, GT_WORD_SIZE_C);
       end if;
-  
 
    -- Align samples (Combinatorial logic) 
    
@@ -127,9 +126,11 @@ begin
       v_positionErr    := ite(allBits (r.position, '1'), '1', '0');
       
       -- Byte swap and combine the two consecutive GT words
-      v_twoWordBuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
-      v_twoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
-      
+     -- v_twoWordBuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);  
+     -- v_twoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
+     v_twoWordBuff := r.dataRxD1 & dataRx_i;  
+     v_twoCharBuff := r.chariskRxD1 & chariskRx_i;
+     
       -- Align the bytes within the words                     
       v_dataAligned := JesdDataAlign(v_twoWordBuff, r.position, GT_WORD_SIZE_C);
       v_charAligned := JesdCharAlign(v_twoCharBuff, r.position, GT_WORD_SIZE_C);
