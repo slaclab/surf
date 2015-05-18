@@ -114,11 +114,12 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    -- JESD constants and signals
    -------------------------------------------------------------------------------------------------
-   constant REFCLK_FREQUENCY_C : real     := 370.00E6; 
-   -- constant REFCLK_FREQUENCY_C : real     := 368.64E6; 
-   --constant REFCLK_FREQUENCY_C : real     := 125.0E6; --TODO check
-   -- constant LINE_RATE_C        : real     := 7.3728E9;
-   constant LINE_RATE_C        : real     := 7.40E9;
+   -- constant REFCLK_FREQUENCY_C : real     := 300.00E6;
+   -- constant REFCLK_FREQUENCY_C : real     := 368.64E6;
+   constant REFCLK_FREQUENCY_C : real     := 184.32E6;
+   --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
+   constant LINE_RATE_C        : real     := 7.3728E9;
+   --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
    constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/40.0);
    
@@ -229,8 +230,8 @@ begin
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => 8.0,
          DIVCLK_DIVIDE_G    => 5,
-         CLKFBOUT_MULT_F_G  => 37.000,--47.000
-         CLKOUT0_DIVIDE_F_G => 2.5,--19.125
+         CLKFBOUT_MULT_F_G  => 47.000,--37.000
+         CLKOUT0_DIVIDE_F_G => 19.125,--2.5
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
@@ -430,7 +431,7 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClkDiv2,
+         I => jesdRefClk, -- same as GT refclk
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -503,11 +504,12 @@ begin
       RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
       
       -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
-      PMA_RSV_G             =>  x"001E7080",            -- Values from coregen     
-      RX_OS_CFG_G           =>  "0000010000000",        -- Values from coregen 
-      RXCDR_CFG_G           =>  x"03000023ff10400020",  -- Values from coregen  
-      RXDFEXYDEN_G          =>  '1',                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      =>  x"301148AC",            -- Values from coregen 
+      --                        -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
+      PMA_RSV_G             =>  X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
+      RX_OS_CFG_G           =>  "0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
+      RXCDR_CFG_G           =>  x"000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
+      RXDFEXYDEN_G          =>  '1',                           --'1',                        --'1',                    -- Values from coregen 
+      RX_DFE_KL_CFG2_G      =>  x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
