@@ -82,7 +82,7 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L2_RxBuffUfl",     Variable::Status, 4, 0x1,
                                 "L2_RxBuffOfl",     Variable::Status, 5, 0x1,                                 
                                 "L2_PositionErr",   Variable::Status, 6, 0x1,
-                                "L2_RxEnabled",     Variable::Status, 7, 0x1,                                "L1DisparityErr",  Variable::Status, 8, 0xF,
+                                "L2_RxEnabled",     Variable::Status, 7, 0x1,
                                 "L2_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L2_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L2_DisparityErr",  Variable::Status, 10,0xF,
