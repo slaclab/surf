@@ -129,15 +129,18 @@ architecture rtl of JesdAdcKc705 is
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
-   constant L_C                : positive := 1;
+   constant L_C                : positive := 2;
    constant SUB_CLASS_C        : natural  := 1;
 
    signal  s_sysRef : sl;
    signal  s_nsync  : sl;
 
    -- QPLL config constants
-   constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
+   --constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
 
+   constant CPLL_CONFIG_C     : Gtx7CPllCfgType := getGtx7CPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
+
+   
    -- QPLL
    signal  gtCPllRefClk  : sl; 
    signal  gtCPllLock    : sl; 
@@ -147,6 +150,9 @@ architecture rtl of JesdAdcKc705 is
    signal  qPllRefClkLost: sl; 
    signal  qPllReset     : slv(L_C-1 downto 0); 
    signal  gtQPllReset   : sl;
+   
+   --CPLL
+   signal  cPllLock  : slv(L_C-1 downto 0);  
    
 
    -------------------------------------------------------------------------------------------------
@@ -208,9 +214,9 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
 
-   signal axisTxMasters : AxiStreamMasterArray(L_C-1 downto 0);
-   signal axisTxSlaves  : AxiStreamSlaveArray(L_C-1 downto 0);
-   signal axisTxCtrl    : AxiStreamCtrlArray(L_C-1 downto 0);
+   signal axisTxMasters : AxiStreamMasterArray(1 downto 0);
+   signal axisTxSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal axisTxCtrl    : AxiStreamCtrlArray(1 downto 0);
    
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
@@ -350,10 +356,11 @@ begin
          clk => jesdClk,
          o   => leds(4));
          
-   leds(5) <= qPllLock;
-   leds(6) <= qPllRefClkLost;
-   leds(7) <= qPllReset(0);
-   
+   --leds(5) <= qPllLock;
+   --leds(6) <= qPllRefClkLost;
+   leds(7) <= '0';
+   leds(5) <= cPllLock(0);
+   leds(6) <= cPllLock(1);
 
    
    -------------------------------------------------------------------------------------------------
@@ -385,12 +392,9 @@ begin
          axilReadSlave   => extAxilReadSlave,
          axisClk         => jesdClk,
          axisClkRst      => jesdClkRst,
-         axisTxMasters(0)   => axisTxMasters(0),
-         axisTxMasters(1)   => AXI_STREAM_MASTER_INIT_C,
-         axisTxSlaves(0)    => axisTxSlaves(0),
-         axisTxSlaves(1)    => open,
-         axisTxCtrl(0)      => axisTxCtrl(0),
-         axisTxCtrl(1)      => open,
+         axisTxMasters   => axisTxMasters,
+         axisTxSlaves    => axisTxSlaves,
+         axisTxCtrl      => axisTxCtrl,
          leds            => leds(3 downto 2));
 
    -------------------------------------------------------------------------------------------------
@@ -475,25 +479,28 @@ begin
    -------------------------------------------------------------------------------------------------
    -- QPLL for JESD MGTs
    ------------------------------------------------------------------------------------------------- 
-   Gtx7QuadPll_INST: entity work.Gtx7QuadPll
-   generic map (
-      TPD_G               => TPD_G,
-      QPLL_CFG_G          => x"06801C1", -- TODO check
-      QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
-      QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set b'0000110000'
-      QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set '1'
-      QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set '1'
-   )
-   port map (
-      qPllRefClk     => jesdRefClk, -- Reference clock directly from the input
-      qPllOutClk     => qPllOutClk,
-      qPllOutRefClk  => qPllOutRefClk,
-      qPllLock       => qPllLock,
-      qPllLockDetClk => pgpClk,
-      qPllRefClkLost => qPllRefClkLost,
-      qPllPowerDown  => '0',
-      qPllReset      => qPllReset(0)
-   );      
+   -- Gtx7QuadPll_INST: entity work.Gtx7QuadPll
+   -- generic map (
+      -- TPD_G               => TPD_G,
+      -- QPLL_CFG_G          => x"06801C1", -- TODO check
+      -- QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
+      -- QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set b'0000110000'
+      -- QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set '1'
+      -- QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set '1'
+   -- )
+   -- port map (
+      -- qPllRefClk     => jesdRefClk, -- Reference clock directly from the input
+      -- qPllOutClk     => qPllOutClk,
+      -- qPllOutRefClk  => qPllOutRefClk,
+      -- qPllLock       => qPllLock,
+      -- qPllLockDetClk => pgpClk,
+      -- qPllRefClkLost => qPllRefClkLost,
+      -- qPllPowerDown  => '0',
+      -- qPllReset      => qPllReset(0)
+   -- );
+   
+   qPllOutClk <= '0';
+   qPllOutRefClk  <= '0';
   
    -------------------------------------------------------------------------------------------------
    -- JESD block
@@ -509,16 +516,16 @@ begin
       SYSREF_GEN_G =>  false,      
       
       -- CPLL Configurations (not used)
-      CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
-      CPLL_FBDIV_45_G       => 4,  -- use getGtx7CPllCfg to set
-      CPLL_REFCLK_DIV_G     => 1,  -- use getGtx7CPllCfg to set
+      CPLL_FBDIV_G          => CPLL_CONFIG_C.CPLL_FBDIV_G,  -- use getGtx7CPllCfg to set
+      CPLL_FBDIV_45_G       => CPLL_CONFIG_C.CPLL_FBDIV_45_G,  -- use getGtx7CPllCfg to set
+      CPLL_REFCLK_DIV_G     => CPLL_CONFIG_C.CPLL_REFCLK_DIV_G,  -- use getGtx7CPllCfg to set
       
-      RXOUT_DIV_G           => QPLL_CONFIG_C.OUT_DIV_G,  -- use getGtx7QPllCfg to set
-      RX_CLK25_DIV_G        => QPLL_CONFIG_C.CLK25_DIV_G,-- use getGtx7QPllCfg to set,
+      RXOUT_DIV_G           => CPLL_CONFIG_C.OUT_DIV_G,  -- use getGtx7QPllCfg to set
+      RX_CLK25_DIV_G        => CPLL_CONFIG_C.CLK25_DIV_G,-- use getGtx7QPllCfg to set,
                                                        
       -- Configure PLL sources
-      TX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
-      RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
+      TX_PLL_G              =>  "CPLL", -- "QPLL" or "CPLL"
+      RX_PLL_G              =>  "CPLL", -- "QPLL" or "CPLL"
       
       -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
       --                        -- 156.25, 3.125 (2b) -- 78.125, 3.125            -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
@@ -539,7 +546,7 @@ begin
    )
    port map (
       
-      stableClk         => jesdRefClkG, -- Stable because it is never reset
+      stableClk         => pgpRefClkG,--jesdRefClkG, -- Stable because it is never reset
       devClk_i          => jesdClk, -- both same
       devClk2_i         => jesdClk, -- both same
       devRst_i          => jesdClkRst,
@@ -550,14 +557,17 @@ begin
       qPllRefClkLostIn  => qPllRefClkLost,
       qPllResetOut      => qPllReset, 
 
+      cPllRefClkIn      => jesdRefClk, 
+      cPllLockOut       => cPllLock,  
+      
       gtTxP(0)          => adcGtTxP(0),
-      --gtTxP(1)          => adcGtTxP(2),      
+      gtTxP(1)          => adcGtTxP(2),      
       gtTxN(0)          => adcGtTxN(0),
-      --gtTxN(1)          => adcGtTxN(2),  
+      gtTxN(1)          => adcGtTxN(2),  
       gtRxP(0)          => adcGtRxP(0),
-      --gtRxP(1)          => adcGtRxP(2),      
+      gtRxP(1)          => adcGtRxP(2),      
       gtRxN(0)          => adcGtRxN(0),
-     -- gtRxN(1)          => adcGtRxN(2),
+      gtRxN(1)          => adcGtRxN(2),
    
       axiClk            => axilClk,
       axiRst            => axilClkRst,
