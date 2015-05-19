@@ -100,7 +100,11 @@ entity Jesd204bRxGtx7 is
       qPllClkIn        : in  sl;    
       qPllLockIn       : in  sl;     
       qPllRefClkLostIn : in  sl;     
-      qPllResetOut     : out slv(L_G-1 downto 0);     
+      qPllResetOut     : out slv(L_G-1 downto 0);
+
+      -- CPLL
+      cPllRefClkIn     : in  sl;
+      cPllLockOut      : out slv(L_G-1 downto 0);
       
       -- Gt Serial IO
       gtTxP            : out slv(L_G-1 downto 0);         -- GT Serial Transmit Positive
@@ -339,8 +343,8 @@ begin
                RX_DFE_KL_CFG2_G         => RX_DFE_KL_CFG2_G)
             port map (
                stableClkIn      => stableClk,
-               cPllRefClkIn     => '0',
-               cPllLockOut      => open,
+               cPllRefClkIn     => cPllRefClkIn,
+               cPllLockOut      => cPllLockOut(I),
                
                qPllRefClkIn     => qPllRefClkIn,
                qPllClkIn        => qPllClkIn,
