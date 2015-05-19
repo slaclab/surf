@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-12-18
+-- Last update: 2015-05-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ package AxiStreamPkg is
 
    type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C, TUSER_LAST_C);
 
-   type TKeepModeType is (TKEEP_NORMAL_C,  TKEEP_COMP_C);
+   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C);
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
@@ -145,8 +145,12 @@ package AxiStreamPkg is
       bitPos     : in    integer;
       bitValue   : in    sl;
       bytePos    : in    integer := -1);  -- -1 = last
-      
-   function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;      
+
+   function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;
+
+   function genTKeep (
+      bytes : integer range 0 to 16)
+      return slv;
 
 end package AxiStreamPkg;
 
@@ -249,10 +253,36 @@ package body AxiStreamPkg is
       axisMaster.tUser((axisConfig.TUSER_BITS_C*pos) + bitPos) := bitValue;
       
    end procedure;
-   
+
    function ite (i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType is
    begin
       if (i) then return t; else return e; end if;
-   end function ite;     
+   end function ite;
+
+   function genTKeep (
+      bytes : integer range 0 to 16)
+      return slv
+   is
+   begin
+      case bytes is
+         when 0  => return X"0000";
+         when 1  => return X"0001";
+         when 2  => return X"0003";
+         when 3  => return X"0007";
+         when 4  => return X"000F";
+         when 5  => return X"001F";
+         when 6  => return X"003F";
+         when 7  => return X"007F";
+         when 8  => return X"00FF";
+         when 9  => return X"01FF";
+         when 10 => return X"03FF";
+         when 11 => return X"07FF";
+         when 12 => return X"0FFF";
+         when 13 => return X"1FFF";
+         when 14 => return X"3FFF";
+         when 15 => return X"7FFF";
+         when 16 => return X"FFFF";
+      end case;
+   end function genTKeep;
 
 end package body AxiStreamPkg;
