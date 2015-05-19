@@ -16,9 +16,9 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000005"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000007"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Mon May 18 15:46:12 PDT 2015 by bareese";
+constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Tue May 19 10:26:43 PDT 2015 by ulegat";
 
 end Version;
  
@@ -31,3 +31,4 @@ end Version;
 -- 05/18/2015 - 00000003      - ADC F22 61.44MHz out. 184.32MHz ref 7.3728GHz. Pol = '1', byte swapped
 -- 05/18/2015 - 00000004      - ADC F22 61.44MHz out. 184.32MHz ref 7.3728GHz. Pol = '0', byte swapped
 -- 05/18/2015 - 00000005      - Chipscope test
+-- 05/18/2015 - 00000006      - ADC F22 368.64MHz out. 184.32MHz ref 7.3728GHz. Pol = '0'

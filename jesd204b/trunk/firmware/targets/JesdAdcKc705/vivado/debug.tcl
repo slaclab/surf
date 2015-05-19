@@ -12,7 +12,7 @@ set ilaJesdClk u_ila_0
 # Create 1st Debug Core
 CreateDebugCore ${ilaJesdClk}
 
-SetDebugCoreClk ${ilaJesdClk} {gpioClk_OBUF}
+SetDebugCoreClk ${ilaJesdClk} {jesdClk}
 
 set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaJesdClk}]
 

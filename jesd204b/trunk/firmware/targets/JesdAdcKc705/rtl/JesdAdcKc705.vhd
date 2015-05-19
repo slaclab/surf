@@ -218,7 +218,7 @@ architecture rtl of JesdAdcKc705 is
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- ADC EVM Out reference clock (61.44 MHz)
+   -- ADC EVM Out reference clock (368.64MHz) (61.44 MHz) (370MHz)
    -------------------------------------------------------------------------------------------------
       ClockManager7_OUT : entity work.ClockManager7
       generic map (
@@ -229,29 +229,39 @@ begin
          NUM_CLOCKS_G       => 1,
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => 8.0,
-         DIVCLK_DIVIDE_G    => 5,
-         CLKFBOUT_MULT_F_G  => 47.000,--37.000
-         CLKOUT0_DIVIDE_F_G => 19.125,--2.5
+         DIVCLK_DIVIDE_G    => 6,     --5,     --5,
+         CLKFBOUT_MULT_F_G  => 50.875,--47.000,--37.000,
+         CLKOUT0_DIVIDE_F_G => 2.875, --19.125,--2.5
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
          rstIn     => pgpMmcmRst,
          clkOut(0) => s_usrClk,
          rstOut(0) => s_usrRst);
-    
-   usrClk <= s_usrClk;
+         
+   -- Output reference
+   UsrClkBufSingle_INST: entity work.ClkOutBufSingle
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn  => s_usrClk,
+      rstIn  => s_usrRst,
 
-   -- ClkOutBufSingle_INST: entity work.ClkOutBufSingle
-   -- generic map (
-      -- XIL_DEVICE_G   => "7SERIES",
-      -- RST_POLARITY_G => '1',
-      -- INVERT_G       => false)
-   -- port map (
-      -- rstIn  => s_usrClk,
-      -- clkIn  => s_usrRst,
-      -- clkOut => usrClk);
+      clkOut => usrClk);
+      
+   -- Output JESD clk for debug
+   GPioClkBufSingle_INST: entity work.ClkOutBufSingle
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn  => jesdClk,
+      rstIn  => jesdClkRst,
 
-   gpioClk <= jesdClk;
+      clkOut => gpioClk);  
 
    -------------------------------------------------------------------------------------------------
    -- Bring in gt reference clocks
