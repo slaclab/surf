@@ -124,7 +124,8 @@ architecture rtl of JesdAdcKc705 is
    --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
-   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
+   --constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
+   constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/20.0);
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
