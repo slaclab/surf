@@ -546,7 +546,7 @@ begin
    )
    port map (
       
-      stableClk         => pgpRefClkG,--jesdRefClkG, -- Stable because it is never reset
+      stableClk         => pgpClk,--jesdRefClkG, -- Stable because it is never reset
       devClk_i          => jesdClk, -- both same
       devClk2_i         => jesdClk, -- both same
       devRst_i          => jesdClkRst,
