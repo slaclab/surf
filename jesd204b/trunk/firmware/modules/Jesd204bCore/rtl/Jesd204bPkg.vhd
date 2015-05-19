@@ -9,7 +9,7 @@ package Jesd204bPkg is
 -- Constant definitions
 
    -- Number of bytes in MGT word (2 or 4).
-   constant GT_WORD_SIZE_C : positive := 4;
+   constant GT_WORD_SIZE_C : positive := 2;
    
    -- 8B10B characters (8-bit values)
    constant K_CHAR_C : slv(7 downto 0) := x"BC";
