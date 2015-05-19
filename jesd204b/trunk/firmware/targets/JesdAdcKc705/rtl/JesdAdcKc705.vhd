@@ -124,12 +124,12 @@ architecture rtl of JesdAdcKc705 is
    --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
-   --constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
-   constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/20.0);
+   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
+   --constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/20.0);
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
-   constant L_C                : positive := 2;
+   constant L_C                : positive := 1;
    constant SUB_CLASS_C        : natural  := 1;
 
    signal  s_sysRef : sl;
@@ -208,9 +208,9 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
 
-   signal axisTxMasters : AxiStreamMasterArray(1 downto 0);
-   signal axisTxSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal axisTxCtrl    : AxiStreamCtrlArray(1 downto 0);
+   signal axisTxMasters : AxiStreamMasterArray(L_C-1 downto 0);
+   signal axisTxSlaves  : AxiStreamSlaveArray(L_C-1 downto 0);
+   signal axisTxCtrl    : AxiStreamCtrlArray(L_C-1 downto 0);
    
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
@@ -239,7 +239,7 @@ begin
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
-         rstIn     => pgpMmcmRst,
+         rstIn     => '0',
          clkOut(0) => s_usrClk,
          rstOut(0) => s_usrRst);
          
@@ -385,9 +385,12 @@ begin
          axilReadSlave   => extAxilReadSlave,
          axisClk         => jesdClk,
          axisClkRst      => jesdClkRst,
-         axisTxMasters   => axisTxMasters,
-         axisTxSlaves    => axisTxSlaves,
-         axisTxCtrl      => axisTxCtrl,
+         axisTxMasters(0)   => axisTxMasters(0),
+         axisTxMasters(1)   => AXI_STREAM_MASTER_INIT_C,
+         axisTxSlaves(0)    => axisTxSlaves(0),
+         axisTxSlaves(1)    => open,
+         axisTxCtrl(0)      => axisTxCtrl(0),
+         axisTxCtrl(1)      => open,
          leds            => leds(3 downto 2));
 
    -------------------------------------------------------------------------------------------------
@@ -548,13 +551,13 @@ begin
       qPllResetOut      => qPllReset, 
 
       gtTxP(0)          => adcGtTxP(0),
-      gtTxP(1)          => adcGtTxP(2),      
+      --gtTxP(1)          => adcGtTxP(2),      
       gtTxN(0)          => adcGtTxN(0),
-      gtTxN(1)          => adcGtTxN(2),  
+      --gtTxN(1)          => adcGtTxN(2),  
       gtRxP(0)          => adcGtRxP(0),
-      gtRxP(1)          => adcGtRxP(2),      
+      --gtRxP(1)          => adcGtRxP(2),      
       gtRxN(0)          => adcGtRxN(0),
-      gtRxN(1)          => adcGtRxN(2),
+     -- gtRxN(1)          => adcGtRxN(2),
    
       axiClk            => axilClk,
       axiRst            => axilClkRst,

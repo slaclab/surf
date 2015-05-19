@@ -364,7 +364,7 @@ begin
 
    -- Output assignment
    nSync_o     <= r.nSyncAnyD1;
-   gt_reset_o  <= "00";
+   gt_reset_o  <= (others=>'0');
    leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    -----------------------------------------------------
 end rtl;
