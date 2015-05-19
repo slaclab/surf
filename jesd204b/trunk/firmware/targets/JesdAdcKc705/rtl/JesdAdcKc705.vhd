@@ -116,12 +116,15 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    -- constant REFCLK_FREQUENCY_C : real     := 300.00E6;
    -- constant REFCLK_FREQUENCY_C : real     := 368.64E6;
-   constant REFCLK_FREQUENCY_C : real     := 184.32E6;
+   -- constant REFCLK_FREQUENCY_C : real     := 184.32E6;
+   -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
+   constant REFCLK_FREQUENCY_C : real     := 156.25E6;
    --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   constant LINE_RATE_C        : real     := 7.3728E9;
+   constant LINE_RATE_C        : real     := 3.125E9;
+   --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
-   constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/40.0);
+   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
@@ -218,7 +221,7 @@ architecture rtl of JesdAdcKc705 is
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- ADC EVM Out reference clock (368.64MHz) (61.44 MHz) (370MHz)
+   -- ADC EVM Out reference clock (156.25MHz)(368.64MHz) (61.44 MHz) (370MHz)
    -------------------------------------------------------------------------------------------------
       ClockManager7_OUT : entity work.ClockManager7
       generic map (
@@ -229,9 +232,9 @@ begin
          NUM_CLOCKS_G       => 1,
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => 8.0,
-         DIVCLK_DIVIDE_G    => 6,     --5,     --5,
-         CLKFBOUT_MULT_F_G  => 50.875,--47.000,--37.000,
-         CLKOUT0_DIVIDE_F_G => 2.875, --19.125,--2.5
+         DIVCLK_DIVIDE_G    => 4, --6,     --5,     --5,
+         CLKFBOUT_MULT_F_G  => 31.875,--50.875,--47.000,--37.000,
+         CLKOUT0_DIVIDE_F_G => 6.375,--2.875, --19.125,--2.5
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
@@ -514,12 +517,12 @@ begin
       RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
       
       -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
-      --                        -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
-      PMA_RSV_G             =>  X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
-      RX_OS_CFG_G           =>  "0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
-      RXCDR_CFG_G           =>  x"000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
-      RXDFEXYDEN_G          =>  '1',                           --'1',                        --'1',                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      =>  x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
+      --                        -- 156.25, 3.125 (2b) -- 78.125, 3.125            -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
+      PMA_RSV_G             =>  X"00018480",          --X"00018480",          --X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
+      RX_OS_CFG_G           =>  "0000010000000",      --"0000010000000",      --"0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
+      RXCDR_CFG_G           =>  x"03000023ff10200020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
+      RXDFEXYDEN_G          =>  '1',                  --'1',                  --'1',                           --'1',                        --'1',                    -- Values from coregen 
+      RX_DFE_KL_CFG2_G      =>  x"301148AC",          --x"301148AC",          --x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
