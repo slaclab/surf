@@ -16,9 +16,9 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000D"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000F; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Wed May 20 12:44:31 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Wed May 20 13:18:16 PDT 2015 by ulegat";
 
 end Version;
  
@@ -38,4 +38,5 @@ end Version;
 -- 05/19/2015 - 0000000A      - dual lane - out clk reset tied to '0'
 -- 05/19/2015 - 0000000B      - CPLL 2-byte
 -- 05/19/2015 - 0000000C      - CPLL 2-byte - GT parameters as in PGP
--- 05/19/2015 - 0000000D      - CPLL 2-byte - FPGA refclk to ADC
+-- 05/20/2015 - 0000000D      - CPLL 2-byte - FPGA refclk to ADC
+-- 05/20/2015 - 0000000E      - JESD out
