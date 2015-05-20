@@ -28,6 +28,8 @@ entity SsiPcieSysReg is
    generic (
       TPD_G            : time                   := 1 ns;
       DMA_SIZE_G       : positive range 1 to 16 := 1;
+      BAR_SIZE_G       : positive range 1 to 4  := 1;
+      BAR_MASK_G       : Slv32Array(3 downto 0) := (others=>x"FFF00000");
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C);      
    port (
       -- PCIe Interface
@@ -168,6 +170,13 @@ begin
       axiSlaveRegisterR(X"02C", 8, cfgFromPci.deviceNumber);
       axiSlaveRegisterR(X"02C", 16, cfgFromPci.functionNumber);
       axiSlaveRegisterR(X"02C", 24, cfgFromPci.linkState);
+      
+      axiSlaveRegisterR(X"030", 0, BAR_MASK_G(0));   
+      axiSlaveRegisterR(X"034", 0, BAR_MASK_G(1));   
+      axiSlaveRegisterR(X"038", 0, BAR_MASK_G(2));   
+      axiSlaveRegisterR(X"03C", 0, BAR_MASK_G(3));   
+
+      axiSlaveRegisterR(X"040", 0, toSlv(BAR_SIZE_G, 32));   
 
       axiSlaveRegisterR("11--------", 0, buildStampString(rdPntr));
 

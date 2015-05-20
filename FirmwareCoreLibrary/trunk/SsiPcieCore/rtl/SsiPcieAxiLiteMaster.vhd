@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-05-12
+-- Last update: 2015-05-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,26 +30,34 @@ use work.SsiPciePkg.all;
 
 entity SsiPcieAxiLiteMaster is
    generic (
-      TPD_G      : time             := 1 ns;
-      BAR_MASK_G : slv(31 downto 0) := x"FFFF0000"); 
+      TPD_G      : time                   := 1 ns;
+      BAR_SIZE_G : positive range 1 to 4  := 1;
+      BAR_MASK_G : Slv32Array(3 downto 0) := (others => x"FFF00000")); 
    port (
       -- PCI Interface
-      regTranFromPci      : in  TranFromPcieType;
-      regObMaster         : in  AxiStreamMasterType;
-      regObSlave          : out AxiStreamSlaveType;
-      regIbMaster         : out AxiStreamMasterType;
-      regIbSlave          : in  AxiStreamSlaveType;
-      -- AXI-Lite Interface
-      mAxiLiteWriteMaster : out AxiLiteWriteMasterType;
-      mAxiLiteWriteSlave  : in  AxiLiteWriteSlaveType;
-      mAxiLiteReadMaster  : out AxiLiteReadMasterType;
-      mAxiLiteReadSlave   : in  AxiLiteReadSlaveType;
+      regTranFromPci  : in  TranFromPcieType;
+      regObMaster     : in  AxiStreamMasterType;
+      regObSlave      : out AxiStreamSlaveType;
+      regIbMaster     : out AxiStreamMasterType;
+      regIbSlave      : in  AxiStreamSlaveType;
+      -- External AXI-Lite Interface
+      mExtWriteMaster : out AxiLiteWriteMasterArray(BAR_SIZE_G-1 downto 0);
+      mExtWriteSlave  : in  AxiLiteWriteSlaveArray(BAR_SIZE_G-1 downto 0);
+      mExtReadMaster  : out AxiLiteReadMasterArray(BAR_SIZE_G-1 downto 0);
+      mExtReadSlave   : in  AxiLiteReadSlaveArray(BAR_SIZE_G-1 downto 0);
+      -- Internal AXI-Lite Interface
+      mIntWriteMaster : out AxiLiteWriteMasterType;
+      mIntWriteSlave  : in  AxiLiteWriteSlaveType;
+      mIntReadMaster  : out AxiLiteReadMasterType;
+      mIntReadSlave   : in  AxiLiteReadSlaveType;
       -- Global Signals
-      pciClk              : in  sl;
-      pciRst              : in  sl);
+      pciClk          : in  sl;
+      pciRst          : in  sl);
 end SsiPcieAxiLiteMaster;
 
 architecture rtl of SsiPcieAxiLiteMaster is
+
+   constant INT_BAR_MASK_C : slv(31 downto 0) := x"FFFFF000";
 
    function GenAddr (
       hdr  : PcieHdrType;
@@ -72,26 +80,30 @@ architecture rtl of SsiPcieAxiLiteMaster is
       IDLE_S,
       RD_AXI_LITE_TRANS_S,
       ACK_HDR_S,
-      WR_AXI_LITE_TRANS_S);   
+      WR_AXI_LITE_TRANS_S);    
 
    type RegType is record
-      rdData      : slv(31 downto 0);
-      hdr         : PcieHdrType;
-      writeMaster : AxiLiteWriteMasterType;
-      readMaster  : AxiLiteReadMasterType;
-      regObSlave  : AxiStreamSlaveType;
-      txMaster    : AxiStreamMasterType;
-      state       : StateType;
+      rdData          : slv(31 downto 0);
+      hdr             : PcieHdrType;
+      mExtWriteMaster : AxiLiteWriteMasterArray(BAR_SIZE_G-1 downto 0);
+      mExtReadMaster  : AxiLiteReadMasterArray(BAR_SIZE_G-1 downto 0);
+      mIntWriteMaster : AxiLiteWriteMasterType;
+      mIntReadMaster  : AxiLiteReadMasterType;
+      regObSlave      : AxiStreamSlaveType;
+      txMaster        : AxiStreamMasterType;
+      state           : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      rdData      => (others => '0'),
-      hdr         => PCIE_HDR_INIT_C,
-      writeMaster => AXI_LITE_WRITE_MASTER_INIT_C,
-      readMaster  => AXI_LITE_READ_MASTER_INIT_C,
-      regObSlave  => AXI_STREAM_SLAVE_INIT_C,
-      txMaster    => AXI_STREAM_MASTER_INIT_C,
-      state       => IDLE_S);
+      rdData          => (others => '0'),
+      hdr             => PCIE_HDR_INIT_C,
+      mExtWriteMaster => (others => AXI_LITE_WRITE_MASTER_INIT_C),
+      mExtReadMaster  => (others => AXI_LITE_READ_MASTER_INIT_C),
+      mIntWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
+      mIntReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
+      regObSlave      => AXI_STREAM_SLAVE_INIT_C,
+      txMaster        => AXI_STREAM_MASTER_INIT_C,
+      state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -101,10 +113,11 @@ architecture rtl of SsiPcieAxiLiteMaster is
    
 begin
    
-   comb : process (mAxiLiteReadSlave, mAxiLiteWriteSlave, pciRst, r, regIbSlave, regObMaster,
-                   regTranFromPci) is
+   comb : process (mExtReadSlave, mExtWriteSlave, mIntReadSlave, mIntWriteSlave, pciRst, r,
+                   regIbSlave, regObMaster, regTranFromPci) is
       variable v      : RegType;
       variable header : PcieHdrType;
+      variable bar    : natural;
    begin
       -- Latch the current value
       v := r;
@@ -116,6 +129,9 @@ begin
       if regIbSlave.tReady = '1' then
          v.txMaster.tValid := '0';
       end if;
+
+      -- Create integer version of bar
+      bar := conv_integer(r.hdr.bar);
 
       -- Decode the current header for the FIFO
       header := getPcieHdr(regObMaster);
@@ -130,35 +146,63 @@ begin
                -- Latch the header
                v.hdr               := header;
                -- Check for valid read operation
-               if (header.fmt(1) = '0') and (header.bar = 0) then
-                  -- Set the read address buses
-                  v.readMaster.araddr  := GenAddr(header, BAR_MASK_G);
-                  -- Start AXI-Lite transaction
-                  v.readMaster.arvalid := '1';
-                  v.readMaster.rready  := '1';
+               if (header.fmt(1) = '0') and ((header.bar < BAR_SIZE_G) or (header.bar = 4)) then
+                  if header.bar = 4 then
+                     -- Set the read address buses
+                     v.mIntReadMaster.araddr  := GenAddr(header, INT_BAR_MASK_C);
+                     -- Start AXI-Lite transaction
+                     v.mIntReadMaster.arvalid := '1';
+                     v.mIntReadMaster.rready  := '1';
+                  else
+                     -- Set the read address buses
+                     v.mExtReadMaster(conv_integer(header.bar)).araddr  := GenAddr(header, BAR_MASK_G(conv_integer(header.bar)));
+                     -- Start AXI-Lite transaction
+                     v.mExtReadMaster(conv_integer(header.bar)).arvalid := '1';
+                     v.mExtReadMaster(conv_integer(header.bar)).rready  := '1';
+                  end if;
                   -- Next state
-                  v.state              := RD_AXI_LITE_TRANS_S;
+                  v.state := RD_AXI_LITE_TRANS_S;
                else
+                  -- Reset the data bus
+                  v.rdData := (others => '0');
                   -- Next state
-                  v.state := ACK_HDR_S;
+                  v.state  := ACK_HDR_S;
                end if;
             end if;
          ----------------------------------------------------------------------
          when RD_AXI_LITE_TRANS_S =>
-            -- Check if we need to clear the arvalid flag
-            if mAxiLiteReadSlave.arready = '1' then
-               v.readMaster.arvalid := '0';
-            end if;
-            -- Check if we need to clear the rready flag
-            if mAxiLiteReadSlave.rvalid = '1' then
-               v.readMaster.rready := '0';
-               v.rdData            := mAxiLiteReadSlave.rdata;
-            end if;
-            -- Check if transaction is done
-            if v.readMaster.arvalid = '0' and
-               v.readMaster.rready = '0' then
-               -- Next State
-               v.state := ACK_HDR_S;
+            if bar = 4 then
+               -- Check if we need to clear the arvalid flag
+               if mIntReadSlave.arready = '1' then
+                  v.mIntReadMaster.arvalid := '0';
+               end if;
+               -- Check if we need to clear the rready flag
+               if mIntReadSlave.rvalid = '1' then
+                  v.mIntReadMaster.rready := '0';
+                  v.rdData                := mIntReadSlave.rdata;
+               end if;
+               -- Check if transaction is done
+               if v.mIntReadMaster.arvalid = '0' and
+                  v.mIntReadMaster.rready = '0' then
+                  -- Next State
+                  v.state := ACK_HDR_S;
+               end if;
+            else
+               -- Check if we need to clear the arvalid flag
+               if mExtReadSlave(bar).arready = '1' then
+                  v.mExtReadMaster(bar).arvalid := '0';
+               end if;
+               -- Check if we need to clear the rready flag
+               if mExtReadSlave(bar).rvalid = '1' then
+                  v.mExtReadMaster(bar).rready := '0';
+                  v.rdData                     := mExtReadSlave(bar).rdata;
+               end if;
+               -- Check if transaction is done
+               if v.mExtReadMaster(bar).arvalid = '0' and
+                  v.mExtReadMaster(bar).rready = '0' then
+                  -- Next State
+                  v.state := ACK_HDR_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when ACK_HDR_S =>
@@ -168,9 +212,7 @@ begin
                -- Generate a 3-DW completion TPL             
                ------------------------------------------------------
                --DW0
-               if(r.hdr.bar /= 0) then
-                  v.txMaster.tData(127 downto 96) := (others => '0');
-               elsif r.hdr.fmt(1) = '1' then           --echo back write data
+               if r.hdr.fmt(1) = '1' then           --echo back write data
                   -- Reorder Data
                   v.txMaster.tData(103 downto 96)  := r.hdr.data(31 downto 24);
                   v.txMaster.tData(111 downto 104) := r.hdr.data(23 downto 16);
@@ -227,17 +269,28 @@ begin
                   v.txMaster.tKeep := x"FFFF";
                end if;
                -- Check for valid write operation
-               if (r.hdr.fmt(1) = '1') and (r.hdr.bar = 0) then
-                  -- Set the write address buses
-                  v.writeMaster.awaddr  := GenAddr(r.hdr, BAR_MASK_G);
-                  -- Set the write data buses
-                  v.writeMaster.wdata   := r.hdr.data;
-                  -- Start AXI-Lite transaction
-                  v.writeMaster.awvalid := '1';
-                  v.writeMaster.wvalid  := '1';
-                  v.writeMaster.bready  := '1';
+               if (r.hdr.fmt(1) = '1') and ((bar < BAR_SIZE_G) or (bar = 4)) then
+                  if bar = 4 then
+                     -- Set the write address buses
+                     v.mIntWriteMaster.awaddr  := GenAddr(r.hdr, INT_BAR_MASK_C);
+                     -- Set the write data buses
+                     v.mIntWriteMaster.wdata   := r.hdr.data;
+                     -- Start AXI-Lite transaction
+                     v.mIntWriteMaster.awvalid := '1';
+                     v.mIntWriteMaster.wvalid  := '1';
+                     v.mIntWriteMaster.bready  := '1';
+                  else
+                     -- Set the write address buses
+                     v.mExtWriteMaster(bar).awaddr  := GenAddr(r.hdr, BAR_MASK_G(bar));
+                     -- Set the write data buses
+                     v.mExtWriteMaster(bar).wdata   := r.hdr.data;
+                     -- Start AXI-Lite transaction
+                     v.mExtWriteMaster(bar).awvalid := '1';
+                     v.mExtWriteMaster(bar).wvalid  := '1';
+                     v.mExtWriteMaster(bar).bready  := '1';
+                  end if;
                   -- Next state
-                  v.state               := WR_AXI_LITE_TRANS_S;
+                  v.state := WR_AXI_LITE_TRANS_S;
                else
                   -- Next state
                   v.state := IDLE_S;
@@ -245,24 +298,46 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WR_AXI_LITE_TRANS_S =>
-            -- Check if we need to clear the awvalid flag
-            if mAxiLiteWriteSlave.awready = '1' then
-               v.writeMaster.awvalid := '0';
-            end if;
-            -- Check if we need to clear the wvalid flag
-            if mAxiLiteWriteSlave.wready = '1' then
-               v.writeMaster.wvalid := '0';
-            end if;
-            -- Check if we need to clear the bready flag
-            if mAxiLiteWriteSlave.bvalid = '1' then
-               v.writeMaster.bready := '0';
-            end if;
-            -- Check if transaction is done
-            if v.writeMaster.awvalid = '0' and
-               v.writeMaster.wvalid = '0' and
-               v.writeMaster.bready = '0' then
-               -- Next state
-               v.state := IDLE_S;
+            if bar = 4 then
+               -- Check if we need to clear the awvalid flag
+               if mIntWriteSlave.awready = '1' then
+                  v.mIntWriteMaster.awvalid := '0';
+               end if;
+               -- Check if we need to clear the wvalid flag
+               if mIntWriteSlave.wready = '1' then
+                  v.mIntWriteMaster.wvalid := '0';
+               end if;
+               -- Check if we need to clear the bready flag
+               if mIntWriteSlave.bvalid = '1' then
+                  v.mIntWriteMaster.bready := '0';
+               end if;
+               -- Check if transaction is done
+               if v.mIntWriteMaster.awvalid = '0' and
+                  v.mIntWriteMaster.wvalid = '0' and
+                  v.mIntWriteMaster.bready = '0' then
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
+            else
+               -- Check if we need to clear the awvalid flag
+               if mExtWriteSlave(bar).awready = '1' then
+                  v.mExtWriteMaster(bar).awvalid := '0';
+               end if;
+               -- Check if we need to clear the wvalid flag
+               if mExtWriteSlave(bar).wready = '1' then
+                  v.mExtWriteMaster(bar).wvalid := '0';
+               end if;
+               -- Check if we need to clear the bready flag
+               if mExtWriteSlave(bar).bvalid = '1' then
+                  v.mExtWriteMaster(bar).bready := '0';
+               end if;
+               -- Check if transaction is done
+               if v.mExtWriteMaster(bar).awvalid = '0' and
+                  v.mExtWriteMaster(bar).wvalid = '0' and
+                  v.mExtWriteMaster(bar).bready = '0' then
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
             end if;
       ----------------------------------------------------------------------
       end case;
@@ -276,10 +351,12 @@ begin
       rin <= v;
 
       -- Outputs
-      mAxiLiteWriteMaster <= r.writeMaster;
-      mAxiLiteReadMaster  <= r.readMaster;
-      regObSlave          <= v.regObSlave;
-      regIbMaster         <= r.txMaster;
+      regObSlave      <= v.regObSlave;
+      regIbMaster     <= r.txMaster;
+      mIntWriteMaster <= r.mIntWriteMaster;
+      mIntReadMaster  <= r.mIntReadMaster;
+      mExtWriteMaster <= r.mExtWriteMaster;
+      mExtReadMaster  <= r.mExtReadMaster;
       
    end process comb;
 
