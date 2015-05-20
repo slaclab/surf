@@ -138,6 +138,9 @@ entity Jesd204bRxGtx7 is
 
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i       : in    sl;
+      
+      -- SYSREF out when it is generated internally SYSREF_GEN_G=True     
+      sysRef_o       : out    sl;
 
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl;
@@ -217,10 +220,12 @@ begin
          sysref_i => '0',
          lmfc_o   => s_sysRef
       );
+      sysRef_o <= s_sysRef;
    end generate SELF_TEST_GEN;
    -- Else 
    OPER_GEN: if SYSREF_GEN_G = false generate
       s_sysRef <= sysRef_i;
+      sysRef_o <= '0';
    end generate OPER_GEN;
    
    --------------------------------------------------------------------------------------------------

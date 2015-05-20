@@ -47,8 +47,10 @@ set_property ASYNC_REG TRUE [get_cells -hierarchical *crossDomainSyncReg_reg*]
 
 
 # User clock output
-set_property PACKAGE_PIN Y23 [get_ports gpioClk]
-set_property IOSTANDARD LVCMOS25 [get_ports gpioClk]
+set_property PACKAGE_PIN Y24 [get_ports gpioClkN]
+set_property IOSTANDARD LVCMOS25 [get_ports gpioClkN]
+set_property PACKAGE_PIN Y23 [get_ports gpioClkP]
+set_property IOSTANDARD LVCMOS25 [get_ports gpioClkP]
 
 set_property PACKAGE_PIN L25 [get_ports usrClk]
 set_property IOSTANDARD LVCMOS25 [get_ports usrClk]
@@ -65,8 +67,10 @@ set_property PACKAGE_PIN H2 [get_ports pgpGtTxP]
 # JESD reference clock Devclk A
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaP]
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
-set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP] 
-set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
+set_property PACKAGE_PIN J8 [get_ports fpgaDevClkaP] 
+set_property PACKAGE_PIN J7 [get_ports fpgaDevClkaN]
+#set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP] 
+#set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
 
 # JESD reference clock Devclk B
 # set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbP]
@@ -87,10 +91,10 @@ set_property PACKAGE_PIN E29 [get_ports {syncbP}]
 set_property PACKAGE_PIN E30 [get_ports {syncbN}]
 
 # Internally generated devClk and SYSREF (going from FPGA to ADC)
-# set_property PACKAGE_PIN D26 [get_ports adcDevClkP]
-# set_property PACKAGE_PIN C26 [get_ports adcDevClkN]
-# set_property PACKAGE_PIN G29 [get_ports adcSysRefP]
-# set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
+ set_property PACKAGE_PIN D26 [get_ports adcDevClkP]
+ set_property PACKAGE_PIN C26 [get_ports adcDevClkN]
+ set_property PACKAGE_PIN G29 [get_ports adcSysRefP]
+ set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
 
 # GTX RX ports coming from ADC ( [0:1]-Two channel 1 lanes, [2:3]-Two channel 2 lanes  )
 # SA0 - Channel A lane 0
@@ -128,8 +132,8 @@ set_property IOSTANDARD LVCMOS15 [get_ports leds[6]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[7]]
 
 #GPIO0 SYSREF output DEBUG
-set_property PACKAGE_PIN AB25  [get_ports sysRef]
-set_property IOSTANDARD LVCMOS15 [get_ports sysRef]
+#set_property PACKAGE_PIN AB25  [get_ports sysRef]
+#set_property IOSTANDARD LVCMOS15 [get_ports sysRef]
 
 
 
