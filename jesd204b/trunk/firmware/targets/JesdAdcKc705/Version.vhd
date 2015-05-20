@@ -16,9 +16,9 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000B"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000C"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Tue May 19 16:50:58 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Tue May 19 17:52:21 PDT 2015 by ulegat";
 
 end Version;
  
@@ -37,3 +37,4 @@ end Version;
 -- 05/19/2015 - 00000009      - one lane (two byte word) ADC F22 156.25MHz out. 156.25MHz ref 3.125GHz(CS).
 -- 05/19/2015 - 0000000A      - dual lane - out clk reset tied to '0'
 -- 05/19/2015 - 0000000B      - CPLL 2-byte
+-- 05/19/2015 - 0000000C      - CPLL 2-byte - FPGA refclk to ADC

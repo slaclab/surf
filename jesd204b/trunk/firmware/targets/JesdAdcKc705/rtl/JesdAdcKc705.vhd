@@ -64,10 +64,10 @@ entity JesdAdcKc705 is
       fpgaSysRefN  : in sl;             -- LA04_N - FMC G10
 
       -- Signals to ADC (if clock manager not used)
---      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
---      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
---      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
---      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
+      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
+      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
+      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
+      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
 
       -- JESD MGT signals
       adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
@@ -93,12 +93,13 @@ entity JesdAdcKc705 is
 
       -- Onboard LEDs
       leds : out slv(7 downto 0);
-      
-      sysRef : out sl;
-      
-      -- ADC EVM Out reference clock (SMA-370MHz)
+          
+      -- JESD clock output for debug
       usrClk : out sl;
-      gpioClk: out sl
+      
+      -- FPGA reference - External SMA loopback
+      gpioClkP: out sl;
+      gpioClkN: out sl
    );
 
 
@@ -133,6 +134,7 @@ architecture rtl of JesdAdcKc705 is
    constant SUB_CLASS_C        : natural  := 1;
 
    signal  s_sysRef : sl;
+   signal  s_sysRefOut : sl;   
    signal  s_nsync  : sl;
 
    -- QPLL config constants
@@ -248,19 +250,7 @@ begin
          rstIn     => '0',
          clkOut(0) => s_usrClk,
          rstOut(0) => s_usrRst);
-         
-   -- Output reference
-   UsrClkBufSingle_INST: entity work.ClkOutBufSingle
-   generic map (
-      XIL_DEVICE_G   => "7SERIES",
-      RST_POLARITY_G => '1',
-      INVERT_G       => false)
-   port map (
-      clkIn  => s_usrClk,
-      rstIn  => s_usrRst,
-
-      clkOut => usrClk);
-      
+              
    -- Output JESD clk for debug
    GPioClkBufSingle_INST: entity work.ClkOutBufSingle
    generic map (
@@ -271,7 +261,7 @@ begin
       clkIn  => jesdClk,
       rstIn  => jesdClkRst,
 
-      clkOut => gpioClk);  
+      clkOut => usrClk);  
 
    -------------------------------------------------------------------------------------------------
    -- Bring in gt reference clocks
@@ -513,7 +503,7 @@ begin
       TEST_G      =>  false,
       -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G =>  false,      
+      SYSREF_GEN_G =>  true,      
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => CPLL_CONFIG_C.CPLL_FBDIV_G,  -- use getGtx7CPllCfg to set
@@ -578,6 +568,7 @@ begin
       txAxisMasterArr   => axisTxMasters,
       txCtrlArr         => axisTxCtrl,
       sysRef_i          => s_sysRef,
+      sysRef_o          => s_sysRefOut,          
       nSync_o           => s_nSync,
       leds_o            => open--leds(7 downto 6)
    );
@@ -595,9 +586,7 @@ begin
       IB => fpgaSysRefN,
       O  => s_sysRef
    );
-   
-   sysRef <= s_sysRef;
-   
+     
    OBUFDS_nsync_inst : OBUFDS
    generic map (
       IOSTANDARD => "DEFAULT",
@@ -608,5 +597,47 @@ begin
       O =>  syncbP, 
       OB => syncbN
    );
-
+   
+   ---------------------------------------------------
+   -- Outputs to ADC when in Clock generator mode
+   ----------------------------------------------------
+   OBUFDS_sysref_inst : OBUFDS
+   generic map (
+      IOSTANDARD => "DEFAULT",
+      SLEW => "SLOW"
+   )
+   port map (
+      I =>  s_sysRefOut,
+      O =>  adcSysRefP, 
+      OB => adcSysRefN
+   );
+   
+   -- Output clock reference to ADC 
+   ADCClkBufSingle_INST: entity work.ClkOutBufDiff
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn  => s_usrClk,
+      rstIn  => s_usrRst,
+      outEnL => '0',
+      clkOutP=> adcDevClkP,
+      clkOutN=> adcDevClkN
+   );
+   
+   -- Output reference to FPGA (out GPIO clk in MGT clk)
+   FPGAClkBufSingle_INST: entity work.ClkOutBufDiff
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn  => s_usrClk,
+      rstIn  => s_usrRst,
+      outEnL => '0',
+      clkOutP=> gpioClkP,
+      clkOutN=> gpioClkN);
+   
+   
 end architecture rtl;
