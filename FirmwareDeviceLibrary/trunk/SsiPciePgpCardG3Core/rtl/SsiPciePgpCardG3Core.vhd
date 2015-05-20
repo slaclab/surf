@@ -6,7 +6,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-24
 -- Last update: 2015-05-14
--- Platform   : Vivado 2014.4
+-- Platform   : Vivado 2015.1
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
@@ -26,14 +26,13 @@ entity SsiPciePgpCardG3Core is
    generic (
       TPD_G         : time             := 1 ns;
       LOOPBACK_EN_G : boolean          := true;  -- true = synthesis loopback capability
-      BAR_MASK_G    : slv(31 downto 0) := x"FFFF0000";
       DMA_SIZE_G    : positive         := 8);
    port (
       -- System Interface
       serialNumber        : in  slv(63 downto 0);
       cardRst             : out sl;
       pciLinkUp           : out sl;
-      -- AXI-Lite Interface (0x7FFFFFFF:0x00000C00)
+      -- AXI-Lite Interface
       mAxiLiteWriteMaster : out AxiLiteWriteMasterType;
       mAxiLiteWriteSlave  : in  AxiLiteWriteSlaveType;
       mAxiLiteReadMaster  : out AxiLiteReadMasterType;
@@ -99,8 +98,9 @@ begin
    SsiPcieCore_Inst : entity work.SsiPcieCore
       generic map (
          TPD_G            => TPD_G,
-         BAR_MASK_G       => BAR_MASK_G,
          DMA_SIZE_G       => DMA_SIZE_G,
+         BAR_SIZE_G       => 1,
+         BAR_MASK_G       => (others=>x"FFF00000"),         
          LOOPBACK_EN_G    => LOOPBACK_EN_G,
          AXI_ERROR_RESP_G => AXI_RESP_OK_C)
       port map (
@@ -108,11 +108,11 @@ begin
          userIrqReq          => '0',
          serialNumber        => serialNumber,
          cardRst             => cardRst,
-         -- AXI-Lite Interface (0x7FFFFFFF:0x00000C00)
-         mAxiLiteWriteMaster => mAxiLiteWriteMaster,
-         mAxiLiteWriteSlave  => mAxiLiteWriteSlave,
-         mAxiLiteReadMaster  => mAxiLiteReadMaster,
-         mAxiLiteReadSlave   => mAxiLiteReadSlave,
+         -- AXI-Lite Interface
+         mAxiLiteWriteMaster(0) => mAxiLiteWriteMaster,
+         mAxiLiteWriteSlave(0)  => mAxiLiteWriteSlave,
+         mAxiLiteReadMaster(0)  => mAxiLiteReadMaster,
+         mAxiLiteReadSlave(0)   => mAxiLiteReadSlave,
          -- DMA Interface
          dmaIbMasters        => dmaIbMasters,
          dmaIbSlaves         => dmaIbSlaves,
