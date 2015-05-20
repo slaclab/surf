@@ -91,18 +91,19 @@ entity JesdAdcKc705 is
 --      spiSdo  : in  sl;                 -- FMC G37
 --      spiCsL  : out sl;                 -- FMC H38
 
+      -- FPGA reference - External SMA loopback
+      gpioClkP: out sl;
+      gpioClkN: out sl;
+      
+      -- Debug 
+      ---------------------------------------------------
       -- Onboard LEDs
       leds : out slv(7 downto 0);
           
       -- JESD clock output for debug
-      usrClk : out sl;
-      
-      -- FPGA reference - External SMA loopback
-      gpioClkP: out sl;
-      gpioClkN: out sl
+      usrClk    : out sl;
+      sysrefDbg : out sl      
    );
-
-
 end entity JesdAdcKc705;
 
 architecture rtl of JesdAdcKc705 is
@@ -226,6 +227,11 @@ architecture rtl of JesdAdcKc705 is
    signal s_usrClk : sl;   
    signal s_usrRst : sl;      
    
+   -------------------------------------------------------------------------------------------------
+   -- Debug
+   -------------------------------------------------------------------------------------------------   
+   signal s_syncAllLED : sl;
+   signal s_validAllLED : sl;
    
 begin
 
@@ -251,18 +257,6 @@ begin
          clkOut(0) => s_usrClk,
          rstOut(0) => s_usrRst);
               
-   -- Output JESD clk for debug
-   GPioClkBufSingle_INST: entity work.ClkOutBufSingle
-   generic map (
-      XIL_DEVICE_G   => "7SERIES",
-      RST_POLARITY_G => '1',
-      INVERT_G       => false)
-   port map (
-      clkIn  => jesdClk,
-      rstIn  => jesdClkRst,
-
-      clkOut => usrClk);  
-
    -------------------------------------------------------------------------------------------------
    -- Bring in gt reference clocks
    -------------------------------------------------------------------------------------------------
@@ -315,44 +309,7 @@ begin
          clkOut(1) => pgpClk,
          rstOut(0) => axilClkRst,
          rstOut(1) => pgpClkRst);
-
-   -------------------------------------------------------------------------------------------------
-   -- LED Test Outputs
-   -------------------------------------------------------------------------------------------------
-   Heartbeat_axilClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 8.0E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => axilClk,
-         o   => leds(0));
-
-   Heartbeat_pgpClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 6.4E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => pgpClk,
-         o   => leds(1));
-         
-   Heartbeat_jesdclk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 5.425E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => jesdClk,
-         o   => leds(4));
-         
-   --leds(5) <= qPllLock;
-   --leds(6) <= qPllRefClkLost;
-   leds(7) <= '0';
-   leds(5) <= cPllLock(0);
-   leds(6) <= cPllLock(1);
-
-   
+ 
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
    -------------------------------------------------------------------------------------------------
@@ -511,8 +468,10 @@ begin
       CPLL_REFCLK_DIV_G     => CPLL_CONFIG_C.CPLL_REFCLK_DIV_G,  -- use getGtx7CPllCfg to set
       
       RXOUT_DIV_G           => CPLL_CONFIG_C.OUT_DIV_G,  -- use getGtx7QPllCfg to set
+      TXOUT_DIV_G           => CPLL_CONFIG_C.OUT_DIV_G,
       RX_CLK25_DIV_G        => CPLL_CONFIG_C.CLK25_DIV_G,-- use getGtx7QPllCfg to set,
-                                                       
+      TX_CLK25_DIV_G        => CPLL_CONFIG_C.CLK25_DIV_G, 
+       
       -- Configure PLL sources
       TX_PLL_G              =>  "CPLL", -- "QPLL" or "CPLL"
       RX_PLL_G              =>  "CPLL", -- "QPLL" or "CPLL"
@@ -521,9 +480,9 @@ begin
       --                        -- 156.25, 3.125 (2b) -- 78.125, 3.125            -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
       PMA_RSV_G             =>  X"00018480",          --X"00018480",          --X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
       RX_OS_CFG_G           =>  "0000010000000",      --"0000010000000",      --"0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
-      RXCDR_CFG_G           =>  x"03000023ff10200020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
-      RXDFEXYDEN_G          =>  '1',                  --'1',                  --'1',                           --'1',                        --'1',                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      =>  x"301148AC",          --x"301148AC",          --x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
+      RXCDR_CFG_G           =>  x"03000023ff40200020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
+      RXDFEXYDEN_G          =>  '0',                  --'1',                  --'1',                           --'1',                        --'1',                    -- Values from coregen 
+      RX_DFE_KL_CFG2_G      =>  x"3010D90C",          --x"301148AC",          --x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
@@ -570,7 +529,8 @@ begin
       sysRef_i          => s_sysRef,
       sysRef_o          => s_sysRefOut,          
       nSync_o           => s_nSync,
-      leds_o            => open--leds(7 downto 6)
+      leds_o(0)         => s_syncAllLED,-- (0) Sync (OR)
+      leds_o(1)         => s_validAllLED-- (1) Data_valid (AND) 
    );
    
    ----------------------------------------------------------------
@@ -638,6 +598,61 @@ begin
       outEnL => '0',
       clkOutP=> gpioClkP,
       clkOutN=> gpioClkN);
+
+   -------------------------------------------------------------------------------------------------
+   -- Debug outputs
+   -------------------------------------------------------------------------------------------------
+   -- LED Test Outputs
+   Heartbeat_axilClk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 8.0E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => axilClk,
+         o   => leds(0));
+
+   Heartbeat_pgpClk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 6.4E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => pgpClk,
+         o   => leds(1));
+         
+   Heartbeat_jesdclk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 5.425E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => jesdClk,
+         o   => leds(4));
+         
+   leds(5) <= cPllLock(0);
+   leds(6) <= cPllLock(1);
+   leds(7) <= s_syncAllLED;
    
+   -- Debug output pins
+   OBUF_sysref_inst : OBUF
+   port map (
+      I =>  s_sysRefOut,
+      O =>  sysrefDbg 
+   );
+   --sysrefDbg <= s_sysRefOut;
+   
+   -- Output JESD clk for debug
+   GPioClkBufSingle_INST: entity work.ClkOutBufSingle
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn  => jesdClk,
+      rstIn  => jesdClkRst,
+      --clkIn  => s_usrClk,
+      --rstIn  => s_usrRst,
+      clkOut => usrClk);  
    
 end architecture rtl;

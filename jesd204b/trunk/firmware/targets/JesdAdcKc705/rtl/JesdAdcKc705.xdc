@@ -46,14 +46,11 @@ set_clock_groups -asynchronous \
 set_property ASYNC_REG TRUE [get_cells -hierarchical *crossDomainSyncReg_reg*]
 
 
-# User clock output
+# User GPIO clock output (MGT loopback)
 set_property PACKAGE_PIN Y24 [get_ports gpioClkN]
-set_property IOSTANDARD LVCMOS25 [get_ports gpioClkN]
+set_property IOSTANDARD LVDS_25 [get_ports gpioClkN]
 set_property PACKAGE_PIN Y23 [get_ports gpioClkP]
-set_property IOSTANDARD LVCMOS25 [get_ports gpioClkP]
-
-set_property PACKAGE_PIN L25 [get_ports usrClk]
-set_property IOSTANDARD LVCMOS25 [get_ports usrClk]
+set_property IOSTANDARD LVDS_25 [get_ports gpioClkP]
 
 # PGP clock and GTX
 set_property PACKAGE_PIN G8 [get_ports pgpRefClkP] 
@@ -67,8 +64,11 @@ set_property PACKAGE_PIN H2 [get_ports pgpGtTxP]
 # JESD reference clock Devclk A
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaP]
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
+
+# From (EXT)SMA
 set_property PACKAGE_PIN J8 [get_ports fpgaDevClkaP] 
 set_property PACKAGE_PIN J7 [get_ports fpgaDevClkaN]
+# From (ADC)FMC
 #set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP] 
 #set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
 
@@ -95,6 +95,11 @@ set_property PACKAGE_PIN E30 [get_ports {syncbN}]
  set_property PACKAGE_PIN C26 [get_ports adcDevClkN]
  set_property PACKAGE_PIN G29 [get_ports adcSysRefP]
  set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
+ 
+ set_property IOSTANDARD LVDS_25 [get_ports adcDevClkP]
+ set_property IOSTANDARD LVDS_25 [get_ports adcDevClkN]
+ set_property IOSTANDARD LVDS_25 [get_ports adcSysRefP]
+ set_property IOSTANDARD LVDS_25 [get_ports adcSysRefN]
 
 # GTX RX ports coming from ADC ( [0:1]-Two channel 1 lanes, [2:3]-Two channel 2 lanes  )
 # SA0 - Channel A lane 0
@@ -113,7 +118,7 @@ set_property PACKAGE_PIN A7 [get_ports {adcGtRxN[2]}]
 set_property PACKAGE_PIN B6 [get_ports {adcGtRxP[3]}]
 set_property PACKAGE_PIN B5 [get_ports {adcGtRxN[3]}]
 
-# Output leds
+# Output leds DEBUG
 set_property PACKAGE_PIN AB8  [get_ports {leds[0]}]
 set_property PACKAGE_PIN AA8  [get_ports {leds[1]}]
 set_property PACKAGE_PIN AC9  [get_ports {leds[2]}]
@@ -123,18 +128,20 @@ set_property PACKAGE_PIN G19  [get_ports {leds[5]}]
 set_property PACKAGE_PIN E18  [get_ports {leds[6]}]
 set_property PACKAGE_PIN F16  [get_ports {leds[7]}]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[0]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[2]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[1]]
+set_property IOSTANDARD LVCMOS15 [get_ports leds[2]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[3]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[4]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[5]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[6]]
 set_property IOSTANDARD LVCMOS15 [get_ports leds[7]]
 
-#GPIO0 SYSREF output DEBUG
-#set_property PACKAGE_PIN AB25  [get_ports sysRef]
-#set_property IOSTANDARD LVCMOS15 [get_ports sysRef]
+#SYSREF output DEBUG (XADC_GPIO_0 J46-PIN18)
+set_property PACKAGE_PIN AB25  [get_ports sysrefDbg]
+set_property IOSTANDARD LVCMOS15 [get_ports sysrefDbg]
 
-
+#USER SMA clock (jesdClk) DEBUG
+set_property PACKAGE_PIN L25 [get_ports usrClk]
+set_property IOSTANDARD LVCMOS25 [get_ports usrClk]
 
 
