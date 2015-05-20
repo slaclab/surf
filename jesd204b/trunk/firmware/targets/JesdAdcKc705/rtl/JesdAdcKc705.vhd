@@ -579,8 +579,8 @@ begin
       RST_POLARITY_G => '1',
       INVERT_G       => false)
    port map (
-      clkIn  => s_usrClk,
-      rstIn  => s_usrRst,
+      clkIn  => jesdClk, -- Output JESD to ADC
+      rstIn  => jesdClkRst, 
       outEnL => '0',
       clkOutP=> adcDevClkP,
       clkOutN=> adcDevClkN
