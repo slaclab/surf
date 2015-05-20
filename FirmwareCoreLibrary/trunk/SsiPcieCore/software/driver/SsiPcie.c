@@ -28,6 +28,8 @@
 #include "SsiPcie.h"
 #include "../include/SsiPcieMod.h"
 
+#define CORE_BAR 4
+
 MODULE_LICENSE("GPL");
 MODULE_DEVICE_TABLE(pci, SsiPcie_Ids);
 module_init(SsiPcie_Init);
@@ -365,6 +367,12 @@ int my_Ioctl(struct file *filp, __u32 cmd, __u64 argument) {
          stat->PciFunction  = (tmp >> 16)&0x3;
          stat->PciDevice    = (tmp >>  8)&0x1F;
          stat->PciBus       = tmp&0xFF;   
+         
+         stat->BarSize    = ssiDevice->reg->barSize;
+         stat->BarMask[0] = ssiDevice->reg->barMask[0];         
+         stat->BarMask[1] = ssiDevice->reg->barMask[1];         
+         stat->BarMask[2] = ssiDevice->reg->barMask[2];         
+         stat->BarMask[3] = ssiDevice->reg->barMask[3];         
 
          stat->PciBaseHdwr  = ssiDevice->baseHdwr;
          stat->PciBaseLen   = ssiDevice->baseLen;         
@@ -715,8 +723,8 @@ static int SsiPcie_Probe(struct pci_dev *pcidev, const struct pci_device_id *dev
    pci_enable_device(pcidev);
 
    // Get Base Address of registers from pci structure.
-   ssiDevice->baseHdwr = pci_resource_start (pcidev, 0);
-   ssiDevice->baseLen  = pci_resource_len (pcidev, 0);
+   ssiDevice->baseHdwr = pci_resource_start (pcidev, CORE_BAR);
+   ssiDevice->baseLen  = pci_resource_len (pcidev, CORE_BAR);
 
    // Remap the I/O register block so that it can be safely accessed.
    ssiDevice->reg = (struct SsiPcieReg *)ioremap_nocache(ssiDevice->baseHdwr, ssiDevice->baseLen);
@@ -733,6 +741,12 @@ static int SsiPcie_Probe(struct pci_dev *pcidev, const struct pci_device_id *dev
 
    // Remove card reset, bit 1 of cardRstStat register
    ssiDevice->reg->cardRstStat &= 0xFFFFFFFD;
+   asm("nop");
+   idx = ssiDevice->reg->cardRstStat;
+   if( (idx & 0x2) == 0x2 ){
+      printk(KERN_WARNING"%s: Init: Card Reset Status Register error. cardRstStat=%0x%x\n",MOD_NAME,ssiDevice->reg->cardRstStat);
+      return ERROR;
+   }  
    
    // Poll the firmware register to get number of DMA channels
    ssiDevice->dmaSize = ssiDevice->reg->dmaSize;

@@ -51,7 +51,11 @@ int main (int argc, char **argv) {
    cout << "         CardReset: 0x" << setw(1) << setfill('0') << status.CardReset << endl;   
    cout << "        ScratchPad: 0x" << setw(8) << setfill('0') << status.ScratchPad << endl;
    cout << "           DmaSize: 0x" << setw(1) << setfill('0') << status.DmaSize << endl;
-   cout << "       DmaLoopback: 0x" << setw(4) << setfill('0') << status.DmaLoopback << endl;   
+   cout << "       DmaLoopback: 0x" << setw(4) << setfill('0') << status.DmaLoopback << endl; 
+   cout << "           BarSize: 0x" << setw(1) << setfill('0') << status.BarSize << endl;
+   for(x=0;x<(int)status.BarSize;x++){
+      cout << "        BarMask["<<x<<"]: 0x" << setw(8) << setfill('0') << status.BarMask[x] << endl; 
+   }      
    cout << endl;
    
    cout << "        TxDmaAFull["<<DmaSize-1<<":0]: ";        

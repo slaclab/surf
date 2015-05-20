@@ -13,7 +13,7 @@ mode="666"
 # remove stale nodes
 rm -f /dev/${device}*
 
-major=`grep $module /proc/devices | cut -f1 -d' '`
+major=`grep SsiPcie /proc/devices | cut -f1 -d' '`
 
 i="0";
 

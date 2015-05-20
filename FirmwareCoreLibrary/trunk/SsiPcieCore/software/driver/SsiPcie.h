@@ -56,7 +56,9 @@ struct SsiPcieReg {
    __u32 dmaSize;       // Software_Addr = 0x018
    __u32 dmaLoopback;   // Software_Addr = 0x01C
    __u32 pciStat[4];    // Software_Addr = 0x02C:0x020
-   __u32 sysSpare[180]; // Software_Addr = 0x2FC:0x030   
+   __u32 barMask[4];    // Software_Addr = 0x03C:0x030   
+   __u32 barSize;       // Software_Addr = 0x040   
+   __u32 sysSpare[175]; // Software_Addr = 0x2FC:0x044   
    __u32 BuildStamp[64];// Software_Addr = 0x3FC:0x300
    
    // SsiPcieRxDesc.vhd   
@@ -106,6 +108,7 @@ struct SsiDevice {
    ulong             baseHdwr;
    ulong             baseLen;
    __u32             dmaSize;
+   __u32             barSize;
    struct SsiPcieReg *reg;
 
    // Device structure

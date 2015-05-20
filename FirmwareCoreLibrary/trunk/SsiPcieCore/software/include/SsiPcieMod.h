@@ -58,6 +58,8 @@ typedef struct {
    __u32 CardReset;
    __u32 DmaSize;   
    __u32 DmaLoopback;   
+   __u32 BarSize;   
+   __u32 BarMask[4];      
 
    // PCI Status & Control Registers
    __u32 PciCommand;

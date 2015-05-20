@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-05-12
+-- Last update: 2015-05-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,55 +25,54 @@ use work.SsiPciePkg.all;
 entity SsiPcieAxiLite is
    generic (
       TPD_G            : time                   := 1 ns;
-      BAR_MASK_G       : slv(31 downto 0)       := x"FFFF0000";
       DMA_SIZE_G       : positive range 1 to 16 := 1;
+      BAR_SIZE_G       : positive range 1 to 4  := 1;
+      BAR_MASK_G       : Slv32Array(3 downto 0) := (others => x"FFF00000");
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C);
    port (
       -- System Signals
-      serialNumber     : in  slv(63 downto 0);
-      cardRst          : out sl;
-      dmaLoopback      : out slv(DMA_SIZE_G-1 downto 0);
-      -- External AXI-Lite (0x7FFFFFFF:0x00000C00)
-      axiWriteMaster   : out AxiLiteWriteMasterType;
-      axiWriteSlave    : in  AxiLiteWriteSlaveType;
-      axiReadMaster    : out AxiLiteReadMasterType;
-      axiReadSlave     : in  AxiLiteReadSlaveType;
+      serialNumber        : in  slv(63 downto 0);
+      cardRst             : out sl;
+      dmaLoopback         : out slv(DMA_SIZE_G-1 downto 0);
+      -- External AXI-Lite Interface
+      mAxiLiteWriteMaster : out AxiLiteWriteMasterArray(BAR_SIZE_G-1 downto 0);
+      mAxiLiteWriteSlave  : in  AxiLiteWriteSlaveArray(BAR_SIZE_G-1 downto 0);
+      mAxiLiteReadMaster  : out AxiLiteReadMasterArray(BAR_SIZE_G-1 downto 0);
+      mAxiLiteReadSlave   : in  AxiLiteReadSlaveArray(BAR_SIZE_G-1 downto 0);
       -- PCIe Interface
-      cfgFromPci       : in  PcieCfgOutType;
-      irqActive        : in  sl;
-      irqIntEnable     : out sl;
-      irqExtEnable     : out sl;
-      regTranFromPci   : in  TranFromPcieType;
-      regObMaster      : in  AxiStreamMasterType;
-      regObSlave       : out AxiStreamSlaveType;
-      regIbMaster      : out AxiStreamMasterType;
-      regIbSlave       : in  AxiStreamSlaveType;
+      cfgFromPci          : in  PcieCfgOutType;
+      irqActive           : in  sl;
+      irqIntEnable        : out sl;
+      irqExtEnable        : out sl;
+      regTranFromPci      : in  TranFromPcieType;
+      regObMaster         : in  AxiStreamMasterType;
+      regObSlave          : out AxiStreamSlaveType;
+      regIbMaster         : out AxiStreamMasterType;
+      regIbSlave          : in  AxiStreamSlaveType;
       -- RX DMA Descriptor Interface
-      dmaRxDescToPci   : in  DescToPcieArray(DMA_SIZE_G-1 downto 0);
-      dmaRxDescFromPci : out DescFromPcieArray(DMA_SIZE_G-1 downto 0);
+      dmaRxDescToPci      : in  DescToPcieArray(DMA_SIZE_G-1 downto 0);
+      dmaRxDescFromPci    : out DescFromPcieArray(DMA_SIZE_G-1 downto 0);
       -- TX DMA Descriptor Interface
-      dmaTxDescToPci   : in  DescToPcieArray(DMA_SIZE_G-1 downto 0);
-      dmaTxDescFromPci : out DescFromPcieArray(DMA_SIZE_G-1 downto 0);
+      dmaTxDescToPci      : in  DescToPcieArray(DMA_SIZE_G-1 downto 0);
+      dmaTxDescFromPci    : out DescFromPcieArray(DMA_SIZE_G-1 downto 0);
       -- Interrupt Signals
-      irqReq           : out sl;
+      irqReq              : out sl;
       -- Clock and Resets
-      pciClk           : in  sl;
-      pciRst           : in  sl);
+      pciClk              : in  sl;
+      pciRst              : in  sl);
 end SsiPcieAxiLite;
 
 architecture mapping of SsiPcieAxiLite is
 
-   constant NUM_AXI_MASTERS_C : natural := 4;
+   constant NUM_AXI_MASTERS_C : natural := 3;
 
    constant SYS_INDEX_C     : natural := 0;
    constant RX_DESC_INDEX_C : natural := 1;
    constant TX_DESC_INDEX_C : natural := 2;
-   constant USER_INDEX_C    : natural := 3;
 
    constant SYS_ADDR_C     : slv(31 downto 0) := X"00000000";
    constant RX_DESC_ADDR_C : slv(31 downto 0) := X"00000400";
    constant TX_DESC_ADDR_C : slv(31 downto 0) := X"00000800";
-   constant USER_ADDR_C    : slv(31 downto 0) := X"00000C00";
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       SYS_INDEX_C     => (
@@ -87,11 +86,7 @@ architecture mapping of SsiPcieAxiLite is
       TX_DESC_INDEX_C => (
          baseAddr     => TX_DESC_ADDR_C,
          addrBits     => 10,
-         connectivity => X"0001"),
-      USER_INDEX_C    => (
-         baseAddr     => USER_ADDR_C,
-         addrBits     => 31,
-         connectivity => X"0001"));  
+         connectivity => X"0001"));
 
    signal sAxiReadMaster  : AxiLiteReadMasterType;
    signal sAxiReadSlave   : AxiLiteReadSlaveType;
@@ -114,34 +109,34 @@ begin
    cardRst <= cardReset;
    irqReq  <= rxDmaIrqReq or txDmaIrqReq;
 
-   axiWriteMaster <= mAxiWriteMasters(USER_INDEX_C);
-   axiReadMaster  <= mAxiReadMasters(USER_INDEX_C);
-
-   mAxiWriteSlaves(USER_INDEX_C) <= axiWriteSlave;
-   mAxiReadSlaves(USER_INDEX_C)  <= axiReadSlave;
-
    ----------------------
    -- Register Controller
    ----------------------
    SsiPcieAxiLiteMaster_Inst : entity work.SsiPcieAxiLiteMaster
       generic map (
          TPD_G      => TPD_G,
+         BAR_SIZE_G => BAR_SIZE_G,
          BAR_MASK_G => BAR_MASK_G)   
       port map (
          -- PCI Interface         
-         regTranFromPci      => regTranFromPci,
-         regObMaster         => regObMaster,
-         regObSlave          => regObSlave,
-         regIbMaster         => regIbMaster,
-         regIbSlave          => regIbSlave,
-         -- AXI Lite Bus 
-         mAxiLiteWriteMaster => sAxiWriteMaster,
-         mAxiLiteWriteSlave  => sAxiWriteSlave,
-         mAxiLiteReadMaster  => sAxiReadMaster,
-         mAxiLiteReadSlave   => sAxiReadSlave,
+         regTranFromPci  => regTranFromPci,
+         regObMaster     => regObMaster,
+         regObSlave      => regObSlave,
+         regIbMaster     => regIbMaster,
+         regIbSlave      => regIbSlave,
+         -- External AXI-Lite Interface
+         mExtWriteMaster => mAxiLiteWriteMaster,
+         mExtWriteSlave  => mAxiLiteWriteSlave,
+         mExtReadMaster  => mAxiLiteReadMaster,
+         mExtReadSlave   => mAxiLiteReadSlave,
+         -- Internal AXI-Lite Interface
+         mIntWriteMaster => sAxiWriteMaster,
+         mIntWriteSlave  => sAxiWriteSlave,
+         mIntReadMaster  => sAxiReadMaster,
+         mIntReadSlave   => sAxiReadSlave,
          -- Global Signals
-         pciClk              => pciClk,
-         pciRst              => pciRst);
+         pciClk          => pciClk,
+         pciRst          => pciRst);
 
    -------------------------
    -- AXI-Lite Crossbar Core
@@ -172,6 +167,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
+         BAR_SIZE_G       => BAR_SIZE_G,
+         BAR_MASK_G       => BAR_MASK_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- PCIe Interface

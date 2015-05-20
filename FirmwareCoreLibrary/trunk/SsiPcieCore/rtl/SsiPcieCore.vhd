@@ -49,8 +49,9 @@ use work.SsiPciePkg.all;
 entity SsiPcieCore is
    generic (
       TPD_G            : time                   := 1 ns;
-      BAR_MASK_G       : slv(31 downto 0)       := x"FFFF0000";
       DMA_SIZE_G       : positive range 1 to 16 := 1;
+      BAR_SIZE_G       : positive range 1 to 4  := 1;
+      BAR_MASK_G       : Slv32Array(3 downto 0) := (others=>x"FFF00000");
       LOOPBACK_EN_G    : boolean                := true;  -- true = synthesis loopback capability
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C);
    port (
@@ -58,11 +59,11 @@ entity SsiPcieCore is
       userIrqReq          : in  sl := '0';  -- Must be '0' for default PCIe Linux driver
       serialNumber        : in  slv(63 downto 0);
       cardRst             : out sl;
-      -- AXI-Lite Interface (0x7FFFFFFF:0x00000C00)
-      mAxiLiteWriteMaster : out AxiLiteWriteMasterType;
-      mAxiLiteWriteSlave  : in  AxiLiteWriteSlaveType;
-      mAxiLiteReadMaster  : out AxiLiteReadMasterType;
-      mAxiLiteReadSlave   : in  AxiLiteReadSlaveType;
+      -- AXI-Lite Interface
+      mAxiLiteWriteMaster   : out AxiLiteWriteMasterArray(BAR_SIZE_G-1 downto 0);
+      mAxiLiteWriteSlave    : in  AxiLiteWriteSlaveArray(BAR_SIZE_G-1 downto 0);
+      mAxiLiteReadMaster    : out AxiLiteReadMasterArray(BAR_SIZE_G-1 downto 0);
+      mAxiLiteReadSlave     : in  AxiLiteReadSlaveArray(BAR_SIZE_G-1 downto 0);
       -- DMA Interface
       dmaIbMasters        : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
       dmaIbSlaves         : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
@@ -168,19 +169,20 @@ begin
    SsiPcieAxiLite_Inst : entity work.SsiPcieAxiLite
       generic map (
          TPD_G            => TPD_G,
-         BAR_MASK_G       => BAR_MASK_G,
          DMA_SIZE_G       => DMA_SIZE_G,
+         BAR_SIZE_G       => BAR_SIZE_G,
+         BAR_MASK_G       => BAR_MASK_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- System Signals
          serialNumber     => serialNumber,
          cardRst          => cardRst,
          dmaLoopback      => dmaLoopback,
-         -- External AXI-Lite (0x7FFFFFFF:0x00000C00)
-         axiWriteMaster   => mAxiLiteWriteMaster,
-         axiWriteSlave    => mAxiLiteWriteSlave,
-         axiReadMaster    => mAxiLiteReadMaster,
-         axiReadSlave     => mAxiLiteReadSlave,
+         -- External AXI-Lite Interface
+         mAxiLiteWriteMaster   => mAxiLiteWriteMaster,
+         mAxiLiteWriteSlave    => mAxiLiteWriteSlave,
+         mAxiLiteReadMaster    => mAxiLiteReadMaster,
+         mAxiLiteReadSlave     => mAxiLiteReadSlave,
          -- PCIe Interface
          cfgFromPci       => cfgFromPci,
          irqIntEnable     => irqIntEnable,
