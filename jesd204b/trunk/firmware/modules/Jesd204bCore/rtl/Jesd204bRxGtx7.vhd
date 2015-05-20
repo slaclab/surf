@@ -60,9 +60,9 @@ entity Jesd204bRxGtx7 is
       -- MGT Configurations
       PMA_RSV_G             : bit_vector := x"001E7080";            -- Values from coregen     
       RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Values from coregen 
-      RXCDR_CFG_G           : bit_vector := x"03000023ff10400020";  -- Values from coregen  
-      RXDFEXYDEN_G          : sl         := '1';                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      : bit_vector := X"301148AC";            -- Values from coregen 
+      RXCDR_CFG_G           : bit_vector := x"03000023ff10400020";  -- Values from coregen DF 
+      RXDFEXYDEN_G          : sl         := '1';                    -- Values from coregen DF
+      RX_DFE_KL_CFG2_G      : bit_vector := X"301148AC";            -- Values from coregen DF
 
       -- Configure PLL sources
       TX_PLL_G         : string; -- "QPLL" or "CPLL"
@@ -322,7 +322,7 @@ begin
                CLK_COR_SEQ_2_2_G        => "0000000000",  -- Default
                CLK_COR_SEQ_2_3_G        => "0000000000",  -- Default
                CLK_COR_SEQ_2_4_G        => "0000000000",  -- Default
-               RX_CHAN_BOND_EN_G        => false, --true
+               RX_CHAN_BOND_EN_G        => false, --true ulegat
                RX_CHAN_BOND_MASTER_G    => (i = 0),
                CHAN_BOND_KEEP_ALIGN_G   => "FALSE",       -- Default
                CHAN_BOND_MAX_SKEW_G     => 10,
@@ -379,14 +379,14 @@ begin
                rxCharIsKOut     => r_jesdGtRxArr(I).dataK,
                rxDecErrOut      => r_jesdGtRxArr(I).decErr,
                rxDispErrOut     => r_jesdGtRxArr(I).dispErr,
-               rxPolarityIn     => '0',
+               rxPolarityIn     => '0',  -- TODO check 
                rxBufStatusOut   => open,
                rxChBondLevelIn  => slv(to_unsigned((L_G-1-I), 3)),
                rxChBondIn       => rxChBondIn(I),
                rxChBondOut      => rxChBondOut(I),
                txOutClkOut      => open,
-               txUsrClkIn       => '0',
-               txUsrClk2In      => '0',
+               txUsrClkIn       => devClk_i,
+               txUsrClk2In      => devClk2_i,
                txUserRdyOut     => open,
                txMmcmResetOut   => open,
                txMmcmLockedIn   => '1',
