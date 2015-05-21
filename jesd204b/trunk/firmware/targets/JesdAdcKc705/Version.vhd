@@ -18,7 +18,7 @@ package Version is
 
 constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000010"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Thu May 21 09:08:34 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Thu May 21 14:01:19 PDT 2015 by ulegat";
 
 end Version;
  
@@ -41,3 +41,5 @@ end Version;
 -- 05/20/2015 - 0000000D      - CPLL 2-byte - FPGA refclk to ADC
 -- 05/20/2015 - 0000000E      - JESD out /2
 -- 05/20/2015 - 0000000F      - JESD out /2
+-- 05/20/2015 - 00000010      - Recovered clock
+
