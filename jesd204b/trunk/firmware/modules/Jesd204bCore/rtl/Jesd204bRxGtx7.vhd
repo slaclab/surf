@@ -92,6 +92,9 @@ entity Jesd204bRxGtx7 is
    port (
    -- GT Interface
    ----------------------------------------------------------------------------------------------
+      -- Recovered clock output
+      rxOutClkOut : in  sl;  
+      
       -- GT Clocking
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"(buffered refClkDiv2) 
       
@@ -364,7 +367,7 @@ begin
                gtRxP            => gtRxP(I),
                gtRxN            => gtRxN(I),
                
-               rxOutClkOut      => open,
+               rxOutClkOut      => rxOutClkOut,
                rxUsrClkIn       => devClk_i,
                rxUsrClk2In      => devClk2_i,
                rxUserRdyOut     => open,

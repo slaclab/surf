@@ -168,6 +168,8 @@ architecture rtl of JesdAdcKc705 is
    signal pgpClkRst  : sl;
    signal pgpMmcmRst : sl;
 
+   signal rxOutClkOut : sl;
+   
    signal jesdRefClkDiv2 : sl;
    signal jesdRefClk     : sl;
    signal jesdRefClkG    : sl;
@@ -398,7 +400,7 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClk, -- same as GT refclk
+         I => rxOutClkOut, -- same as GT refclk (recovered clock used as JESD clk)
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -493,6 +495,7 @@ begin
       SUB_CLASS_G        => SUB_CLASS_C
    )
    port map (
+      rxOutClkOut       => rxOutClkOut,
       
       stableClk         => pgpClk,--jesdRefClkG, -- Stable because it is never reset
       devClk_i          => jesdClk, -- both same
@@ -529,7 +532,9 @@ begin
       sysRef_o          => s_sysRefOut,          
       nSync_o           => s_nSync,
       leds_o(0)         => s_syncAllLED,-- (0) Sync (OR)
-      leds_o(1)         => s_validAllLED-- (1) Data_valid (AND) 
+      leds_o(1)         => s_validAllLED-- (1) Data_valid (AND)
+      jesdClk_o         => jesdClk,
+      jesdRst_o         => jesdClkRst
    );
    
    ----------------------------------------------------------------
