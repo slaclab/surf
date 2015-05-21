@@ -359,7 +359,6 @@ begin
                 
                gtRxRefClkBufg   => stableClk,  -- TODO check        
                
-               
                gtTxP            => gtTxP(I),
                gtTxN            => gtTxN(I),
                gtRxP            => gtRxP(I),

@@ -122,12 +122,11 @@ architecture rtl of JesdAdcKc705 is
    -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
    constant REFCLK_FREQUENCY_C : real     := 156.25E6;
    --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   constant LINE_RATE_C        : real     := 3.125E9;
+   constant LINE_RATE_C        : real     := 3.125E9/2.0;
    --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
    constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
-   --constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/20.0);
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
@@ -241,15 +240,15 @@ begin
       ClockManager7_OUT : entity work.ClockManager7
       generic map (
          TPD_G              => TPD_G,
-         TYPE_G             => "MMCM",
+         TYPE_G             => "PLL",
          INPUT_BUFG_G       => false,
          FB_BUFG_G          => true,
          NUM_CLOCKS_G       => 1,
-         BANDWIDTH_G        => "OPTIMIZED",
+         BANDWIDTH_G        => "HIGH",
          CLKIN_PERIOD_G     => 8.0,
          DIVCLK_DIVIDE_G    => 4, --6,     --5,     --5,
-         CLKFBOUT_MULT_F_G  => 31.875,--50.875,--47.000,--37.000,
-         CLKOUT0_DIVIDE_F_G => 6.375,--2.875, --19.125,--2.5
+         CLKFBOUT_MULT_G  => 55,--50.875,--47.000,--37.000,
+         CLKOUT0_DIVIDE_G => 11,--2.875, --19.125,--2.5
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
@@ -414,8 +413,8 @@ begin
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 5.375,
-         CLKOUT0_DIVIDE_F_G => 5.375,
+         CLKFBOUT_MULT_F_G  => 6.375,
+         CLKOUT0_DIVIDE_F_G => 6.375,--12.75,
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => jesdRefClkG,
@@ -481,8 +480,8 @@ begin
       PMA_RSV_G             =>  X"00018480",          --X"00018480",          --X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
       RX_OS_CFG_G           =>  "0000010000000",      --"0000010000000",      --"0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
       RXCDR_CFG_G           =>  x"03000023ff40200020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
-      RXDFEXYDEN_G          =>  '0',                  --'1',                  --'1',                           --'1',                        --'1',                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      =>  x"3010D90C",          --x"301148AC",          --x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
+      RXDFEXYDEN_G          =>  '1',                  --'1',                  --'1',                           --'1',                        --'1',                    -- Values from coregen 
+      RX_DFE_KL_CFG2_G      =>  x"301148AC",          --x"301148AC",          --x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
@@ -579,8 +578,8 @@ begin
       RST_POLARITY_G => '1',
       INVERT_G       => false)
    port map (
-      clkIn  => jesdClk, -- Output JESD to ADC
-      rstIn  => jesdClkRst, 
+      clkIn  => s_usrClk, -- Output JESD to ADC
+      rstIn  => s_usrRst, 
       outEnL => '0',
       clkOutP=> adcDevClkP,
       clkOutN=> adcDevClkN
