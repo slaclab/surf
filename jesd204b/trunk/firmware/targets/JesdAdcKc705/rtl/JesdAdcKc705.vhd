@@ -122,11 +122,11 @@ architecture rtl of JesdAdcKc705 is
    -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
    constant REFCLK_FREQUENCY_C : real     := 156.25E6;
    --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   constant LINE_RATE_C        : real     := 3.125E9/2.0;
+   constant LINE_RATE_C        : real     := 3.125E9;
    --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
-   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)/(LINE_RATE_C/(10.0));
+   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)*10.0/(LINE_RATE_C);
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
@@ -168,7 +168,7 @@ architecture rtl of JesdAdcKc705 is
    signal pgpClkRst  : sl;
    signal pgpMmcmRst : sl;
 
-   signal rxOutClkOut : sl;
+   signal rxOutClkOut : slv(L_C-1 downto 0);
    
    signal jesdRefClkDiv2 : sl;
    signal jesdRefClk     : sl;
@@ -231,8 +231,10 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    -- Debug
    -------------------------------------------------------------------------------------------------   
-   signal s_syncAllLED : sl;
+   signal s_syncAllLED  : sl;
    signal s_validAllLED : sl;
+   signal rxUserRdyOut  : slv(L_C-1 downto 0);   
+   signal rxMmcmResetOut: slv(L_C-1 downto 0); 
    
 begin
 
@@ -400,7 +402,8 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => rxOutClkOut, -- same as GT refclk (recovered clock used as JESD clk)
+       --I => jesdRefClk
+         I => rxOutClkOut(0), -- same as GT refclk (recovered clock used as JESD clk)
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -415,7 +418,7 @@ begin
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 6.375,
+         CLKFBOUT_MULT_F_G  => 6.375,--6.375
          CLKOUT0_DIVIDE_F_G => 6.375,--12.75,
          CLKOUT0_RST_HOLD_G => 16)
       port map (
@@ -532,10 +535,9 @@ begin
       sysRef_o          => s_sysRefOut,          
       nSync_o           => s_nSync,
       leds_o(0)         => s_syncAllLED,-- (0) Sync (OR)
-      leds_o(1)         => s_validAllLED-- (1) Data_valid (AND)
-      jesdClk_o         => jesdClk,
-      jesdRst_o         => jesdClkRst
-   );
+      leds_o(1)         => s_validAllLED,-- (1) Data_valid (AND)
+      rxUserRdyOut      => rxUserRdyOut,  
+      rxMmcmResetOut    => rxMmcmResetOut);
    
    ----------------------------------------------------------------
    -- Put sync and sysref on differential io buffer
@@ -635,8 +637,8 @@ begin
          o   => leds(4));
          
    leds(5) <= cPllLock(0);
-   leds(6) <= cPllLock(1);
-   leds(7) <= s_syncAllLED;
+   leds(6) <= rxUserRdyOut(0);
+   leds(7) <= rxMmcmResetOut(0);
    
    -- Debug output pins
    OBUF_sysref_inst : OBUF

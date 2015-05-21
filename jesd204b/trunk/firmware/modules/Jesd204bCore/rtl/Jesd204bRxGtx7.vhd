@@ -93,7 +93,7 @@ entity Jesd204bRxGtx7 is
    -- GT Interface
    ----------------------------------------------------------------------------------------------
       -- Recovered clock output
-      rxOutClkOut : in  sl;  
+      rxOutClkOut      : out slv(L_G-1 downto 0);
       
       -- GT Clocking
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"(buffered refClkDiv2) 
@@ -149,7 +149,11 @@ entity Jesd204bRxGtx7 is
       nSync_o        : out   sl;
       
       -- Out to led
-      leds_o    : out   slv(1 downto 0)
+      leds_o    : out   slv(1 downto 0);
+      -- GT diagnostics
+      rxUserRdyOut   : out   slv(1 downto 0);
+      rxMmcmResetOut : out   slv(1 downto 0)
+      
    );
 end Jesd204bRxGtx7;
 
@@ -367,11 +371,11 @@ begin
                gtRxP            => gtRxP(I),
                gtRxN            => gtRxN(I),
                
-               rxOutClkOut      => rxOutClkOut,
+               rxOutClkOut      => rxOutClkOut(I),
                rxUsrClkIn       => devClk_i,
                rxUsrClk2In      => devClk2_i,
-               rxUserRdyOut     => open,
-               rxMmcmResetOut   => open,
+               rxUserRdyOut     => rxUserRdyOut(I),
+               rxMmcmResetOut   => rxMmcmResetOut(I),
                rxMmcmLockedIn   => '1',
                rxUserResetIn    => s_gtReset(I),
                rxResetDoneOut   => r_jesdGtRxArr(I).rstDone,
