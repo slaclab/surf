@@ -251,8 +251,8 @@ begin
          BANDWIDTH_G        => "HIGH",
          CLKIN_PERIOD_G     => 8.0,
          DIVCLK_DIVIDE_G    => 4, --6,     --5,     --5,
-         CLKFBOUT_MULT_G  => 55,--50.875,--47.000,--37.000,
-         CLKOUT0_DIVIDE_G => 11,--2.875, --19.125,--2.5
+         CLKFBOUT_MULT_G    => 55,--50.875,--47.000,--37.000,
+         CLKOUT0_DIVIDE_G   => 11,--2.875, --19.125,--2.5
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
@@ -402,8 +402,8 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-       --I => jesdRefClk
-         I => rxOutClkOut(0), -- same as GT refclk (recovered clock used as JESD clk)
+         I => jesdRefClk,   -- GT refclk used as JESD clk
+         --I => rxOutClkOut(0), -- recovered clock used as JESD clk
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -655,10 +655,10 @@ begin
       RST_POLARITY_G => '1',
       INVERT_G       => false)
    port map (
-      clkIn  => jesdClk,
-      rstIn  => jesdClkRst,
-      --clkIn  => s_usrClk,
-      --rstIn  => s_usrRst,
+      --clkIn  => jesdClk,
+      --rstIn  => jesdClkRst,
+      clkIn  => s_usrClk,
+      rstIn  => s_usrRst,
       clkOut => usrClk);  
    
 end architecture rtl;

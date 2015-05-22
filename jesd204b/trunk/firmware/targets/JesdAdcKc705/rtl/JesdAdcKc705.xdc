@@ -66,11 +66,11 @@ set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaP]
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
 
 # From (EXT)SMA
-set_property PACKAGE_PIN J8 [get_ports fpgaDevClkaP] 
-set_property PACKAGE_PIN J7 [get_ports fpgaDevClkaN]
+#set_property PACKAGE_PIN J8 [get_ports fpgaDevClkaP] 
+#set_property PACKAGE_PIN J7 [get_ports fpgaDevClkaN]
 # From (ADC)FMC
-#set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP] 
-#set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
+set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP] 
+set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
 
 # JESD reference clock Devclk B
 # set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbP]
