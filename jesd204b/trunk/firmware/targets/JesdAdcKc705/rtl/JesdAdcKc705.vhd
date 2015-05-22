@@ -122,7 +122,7 @@ architecture rtl of JesdAdcKc705 is
    -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
    constant REFCLK_FREQUENCY_C : real     := 156.25E6;
    --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   constant LINE_RATE_C        : real     := 3.125E9;
+   constant LINE_RATE_C        : real     := 3.125E9/2.0;
    --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
@@ -419,7 +419,7 @@ begin
          CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
          CLKFBOUT_MULT_F_G  => 6.375,--6.375
-         CLKOUT0_DIVIDE_F_G => 6.375,--12.75,
+         CLKOUT0_DIVIDE_F_G => 12.75,--6.375,
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => jesdRefClkG,
