@@ -91,6 +91,7 @@ void AxiSlaveSim::readRun() {
             cout << "Read Start,  " 
                  << " System=" << _smem->_path
                  << " Addr=0x" << hex << setw(8) << setfill('0') << nextAddr->araddr
+                 << " Length=" << dec << setw(0) << setfill('0') << ((nextAddr->arlen+1) * 2)
                  << endl;
          }
 
