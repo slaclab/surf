@@ -122,7 +122,7 @@ architecture rtl of JesdAdcKc705 is
    -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
    constant REFCLK_FREQUENCY_C : real     := 156.25E6;
    --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   constant LINE_RATE_C        : real     := 3.125E9/2.0;
+   constant LINE_RATE_C        : real     := 3.125E9;
    --constant LINE_RATE_C        : real     := 7.3728E9;
    --constant LINE_RATE_C        : real     := 6.00E9;
    --constant LINE_RATE_C        : real     := 2.50E9;
@@ -169,6 +169,7 @@ architecture rtl of JesdAdcKc705 is
    signal pgpMmcmRst : sl;
 
    signal rxOutClkOut : slv(L_C-1 downto 0);
+   signal txOutClkOut : slv(L_C-1 downto 0);   
    
    signal jesdRefClkDiv2 : sl;
    signal jesdRefClk     : sl;
@@ -403,7 +404,7 @@ begin
    JESDREFCLK_BUFG : BUFG
       port map (
          I => jesdRefClk,   -- GT refclk used as JESD clk
-         --I => rxOutClkOut(0), -- recovered clock used as JESD clk
+         --I => txOutClkOut(0), -- recovered clock used as JESD clk
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -419,7 +420,7 @@ begin
          CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
          CLKFBOUT_MULT_F_G  => 6.375,--6.375
-         CLKOUT0_DIVIDE_F_G => 12.75,--6.375,
+         CLKOUT0_DIVIDE_F_G => 6.375,--12.75,
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => jesdRefClkG,
@@ -484,9 +485,10 @@ begin
       --                        -- 156.25, 3.125 (2b) -- 78.125, 3.125            -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
       PMA_RSV_G             =>  X"00018480",          --X"00018480",          --X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
       RX_OS_CFG_G           =>  "0000010000000",      --"0000010000000",      --"0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
-      RXCDR_CFG_G           =>  x"03000023ff40200020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
+      RXCDR_CFG_G           =>  x"03000023ff10200020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
       RXDFEXYDEN_G          =>  '1',                  --'1',                  --'1',                           --'1',                        --'1',                    -- Values from coregen 
       RX_DFE_KL_CFG2_G      =>  x"301148AC",          --x"301148AC",          --x"301148AC",                   --x"301148AC",                --x"301148AC",            -- Values from coregen 
+      --x"03000023ff40200020",
       
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
@@ -499,6 +501,7 @@ begin
    )
    port map (
       rxOutClkOut       => rxOutClkOut,
+      txOutClkOut       => txOutClkOut,
       
       stableClk         => pgpClk,--jesdRefClkG, -- Stable because it is never reset
       devClk_i          => jesdClk, -- both same
