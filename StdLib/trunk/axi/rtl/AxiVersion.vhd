@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-04-15
+-- Last update: 2015-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -203,7 +203,6 @@ begin
       axiSlaveRegisterW(X"01C", 0, v.fpgaReload);
       axiSlaveRegisterW(X"020", 0, v.fpgaReloadAddr);
       axiSlaveRegisterW(X"024", 0, v.counter, true, X"00000000");
---      axiSlaveRegisterW(X"028", 0, v.counterRst);
 
 
       axiSlaveRegisterR("01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
