@@ -94,6 +94,7 @@ entity Jesd204bRxGtx7 is
    ----------------------------------------------------------------------------------------------
       -- Recovered clock output
       rxOutClkOut      : out slv(L_G-1 downto 0);
+      txOutClkOut      : out slv(L_G-1 downto 0);
       
       -- GT Clocking
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"(buffered refClkDiv2) 
@@ -295,9 +296,9 @@ begin
                RX_DDIEN_G               => '0',
                RX_BUF_ADDR_MODE_G       => "FULL",
                RX_ALIGN_MODE_G          => "GT",          -- Default
-               ALIGN_COMMA_DOUBLE_G     => "FALSE",       -- Default
+               ALIGN_COMMA_DOUBLE_G     => "TRUE",         -- True for JESD to align comma on every polarity
                ALIGN_COMMA_ENABLE_G     => "1111111111",  -- Default
-               ALIGN_COMMA_WORD_G       => 2,             -- Default
+               ALIGN_COMMA_WORD_G       => 1,            -- 1 for JESD to align comma on every byte
                ALIGN_MCOMMA_DET_G       => "TRUE",
                ALIGN_MCOMMA_VALUE_G     => "1010000011",  -- Default
                ALIGN_MCOMMA_EN_G        => '1',
@@ -390,7 +391,7 @@ begin
                rxChBondLevelIn  => slv(to_unsigned((L_G-1-I), 3)),
                rxChBondIn       => rxChBondIn(I),
                rxChBondOut      => rxChBondOut(I),
-               txOutClkOut      => open,
+               txOutClkOut      => txOutClkOut(I),
                txUsrClkIn       => devClk_i,
                txUsrClk2In      => devClk2_i,
                txUserRdyOut     => open,
