@@ -205,7 +205,7 @@ void AxiSimSlaveUpdate ( void *userPtr ) {
          }
 
          // Ready for next transaction
-         else {
+         if ( asPtr->writeCompBusy == 0 ) {
 
             // Software has posted a transaction
             if ( getWriteComp(asPtr->smem,&writeComp) ) {
@@ -249,7 +249,7 @@ void AxiSimSlaveUpdate ( void *userPtr ) {
          }
 
          // Ready for next transaction
-         else {
+         if ( asPtr->readDataBusy == 0 ) {
 
             // Software has posted a transaction
             if ( getReadData(asPtr->smem,&readData) ) {
