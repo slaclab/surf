@@ -37,7 +37,9 @@ entity AxiStreamLaneTx is
       TPD_G             : time                        := 1 ns;
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C);
    port (
-   
+      -- Lane number to be inserted into AXI stream
+      laneNum_i       : integer range 0 to 15;
+      
       -- JESD devClk
       devClk_i          : in  sl;
       devRst_i          : in  sl;
@@ -48,7 +50,9 @@ entity AxiStreamLaneTx is
       
       -- Axi Stream
       txAxisMaster_o  : out AxiStreamMasterType;
-      txCtrl_i        : in  AxiStreamCtrlType;
+      pause_i         : in  sl;
+      
+
       
       -- JESD signals
       enable_i        : in  sl;      
@@ -87,7 +91,7 @@ architecture rtl of AxiStreamLaneTx is
 
 begin
 
-   comb : process (devRst_i, enable_i, r, sampleData_i, txCtrl_i, dataReady_i, packetSize_i) is
+   comb : process (devRst_i, enable_i, r, sampleData_i, pause_i, dataReady_i, packetSize_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -118,7 +122,7 @@ begin
             v.txAxisMaster.tLast   := '0';
             
             -- Check if fifo and JESD is ready
-            if txCtrl_i.pause = '0' and enable_i = '1' then -- TODO later add "and dataReady_i = '1' and trigger_i = '1'"
+            if (pause_i = '0' and enable_i = '1' and trigger_i = '1') then -- TODO later add "and dataReady_i = '1' and trigger_i = '1'"
                -- Next State
                v.state := SOF_S;
             end if;
@@ -131,7 +135,7 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;              
+            v.txAxisMaster.tData   := intToSlv(laneNum_i,32);           
             v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit

@@ -106,48 +106,51 @@ architecture rtl of Jesd204bRx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
--- Internal signals
+   -- Internal signals
 
--- Local Multi Frame Clock 
-signal s_lmfc   : sl;
+   -- Local Multi Frame Clock 
+   signal s_lmfc   : sl;
 
--- Synchronisation output generation
-signal s_nSyncVec       : slv(L_G-1 downto 0);
-signal s_nSyncVecEn     : slv(L_G-1 downto 0);
-signal s_dataValidVec   : slv(L_G-1 downto 0);
+   -- Synchronisation output generation
+   signal s_nSyncVec       : slv(L_G-1 downto 0);
+   signal s_nSyncVecEn     : slv(L_G-1 downto 0);
+   signal s_dataValidVec   : slv(L_G-1 downto 0);
 
-signal s_nSyncAll   : sl;
-signal s_nSyncAny   : sl;
+   signal s_nSyncAll   : sl;
+   signal s_nSyncAny   : sl;
 
--- Control and status from AxiLie
-signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
-signal s_enableRx     : slv(L_G-1 downto 0);
-signal s_replEnable   : sl;
-signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
+   -- Control and status from AxiLie
+   signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
+   signal s_enableRx     : slv(L_G-1 downto 0);
+   signal s_replEnable   : sl;
+   signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
 
--- Testing registers
-signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
-signal s_alignTxArr : alignTxArray(L_G-1 downto 0);
+   -- Testing registers
+   signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
+   signal s_alignTxArr : alignTxArray(L_G-1 downto 0);
 
--- Axi Lite interface synced to devClk
-signal sAxiReadMasterDev : AxiLiteReadMasterType;
-signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
-signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
-signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
+   -- Axi Lite interface synced to devClk
+   signal sAxiReadMasterDev : AxiLiteReadMasterType;
+   signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
+   signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
+   signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
 
--- Axi Stream
-signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);
-signal s_axisPacketSizeReg : slv(23 downto 0);
-signal s_axisTriggerReg    : slv(L_G-1 downto 0);
+   -- Axi Stream
+   signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);
+   signal s_axisPacketSizeReg : slv(23 downto 0);
+   signal s_axisTriggerReg    : slv(L_G-1 downto 0);
 
--- Sysref conditioning
-signal  s_sysrefSync : sl;
-signal  s_sysrefD    : sl;
-signal  s_sysrefRe   : sl;
+   -- Sysref conditioning
+   signal  s_sysrefSync : sl;
+   signal  s_sysrefD    : sl;
+   signal  s_sysrefRe   : sl;
 
--- Record containing GT signals
-signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
+   -- Record containing GT signals
+   signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
 
+   -- Generate pause signal logic OR
+   signal s_pauseVec : slv(L_G-1 downto 0);
+   signal s_pause    : sl;
 
 begin
    -- Check generics TODO add others
@@ -155,7 +158,15 @@ begin
 
    -----------------------------------------------------------
    -- AXI
-   -----------------------------------------------------------   
+   ----------------------------------------------------------- 
+   -- AXI stream interface one module per lane
+   generatePauseSignal : for I in L_G-1 downto 0 generate
+         s_pauseVec(I) <= txCtrlArr_i(I).pause;
+   end generate generatePauseSignal;
+   
+   -- Start the next AXI stream packer transfer transfer when all FIFOs are empty  
+   s_pause <= uOr(s_pauseVec);
+   
    -- AXI stream interface one module per lane
    generateAxiStreamLanes : for I in L_G-1 downto 0 generate
       AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
@@ -163,12 +174,13 @@ begin
          TPD_G             => TPD_G,
          AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G)
       port map (
+         laneNum_i      => I,         
          devClk_i       => devClk_i,
          devRst_i       => devRst_i,
          packetSize_i   => s_axisPacketSizeReg,
          trigger_i      => s_axisTriggerReg(I),
          txAxisMaster_o => txAxisMasterArr_o(I),
-         txCtrl_i       => txCtrlArr_i(I),
+         pause_i        => s_pause,
          enable_i       => s_enableRx(I),
          sampleData_i   => s_sampleDataArr(I),
          dataReady_i    => s_dataValidVec(I)
