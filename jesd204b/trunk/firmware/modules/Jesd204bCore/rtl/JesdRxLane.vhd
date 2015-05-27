@@ -220,7 +220,7 @@ begin
          lmfc_i       => lmfc_i,
          nSyncAnyD1_i => nSyncAnyD1_i,
          nSyncAny_i   => nSyncAny_i,
-         linkErr_i    => '0',--s_linkErr,
+         linkErr_i    => s_linkErr,
          nSync_o      => s_nSync,
          readBuff_o   => s_readBuff,
          alignFrame_o => s_alignFrame,

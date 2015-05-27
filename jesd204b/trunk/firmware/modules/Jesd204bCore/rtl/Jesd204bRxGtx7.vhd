@@ -386,7 +386,7 @@ begin
                rxCharIsKOut     => r_jesdGtRxArr(I).dataK,
                rxDecErrOut      => r_jesdGtRxArr(I).decErr,
                rxDispErrOut     => r_jesdGtRxArr(I).dispErr,
-               rxPolarityIn     => '0',  -- TODO check 
+               rxPolarityIn     => '1',  -- Changed to '1' after receiving weird data (sometimes ok sometimes wrong)
                rxBufStatusOut   => open,
                rxChBondLevelIn  => slv(to_unsigned((L_G-1-I), 3)),
                rxChBondIn       => rxChBondIn(I),

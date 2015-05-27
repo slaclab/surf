@@ -142,7 +142,6 @@ architecture rtl of JesdAdcKc705 is
 
    constant CPLL_CONFIG_C     : Gtx7CPllCfgType := getGtx7CPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
 
-   
    -- QPLL
    signal  gtCPllRefClk  : sl; 
    signal  gtCPllLock    : sl; 
@@ -155,7 +154,6 @@ architecture rtl of JesdAdcKc705 is
    
    --CPLL
    signal  cPllLock  : slv(L_C-1 downto 0);  
-   
 
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
@@ -388,7 +386,6 @@ begin
          axiWriteSlave  => locAxilWriteSlaves(VERSION_AXIL_INDEX_C),
          masterReset    => masterReset);
 
-
    -------------------------------------------------------------------------------------------------
    -- JESD Clocking
    -------------------------------------------------------------------------------------------------
@@ -403,8 +400,7 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClk,   -- GT refclk used as JESD clk
-         --I => txOutClkOut(0), -- recovered clock used as JESD clk
+         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -419,8 +415,8 @@ begin
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 6.375,--6.375
-         CLKOUT0_DIVIDE_F_G => 6.375,--12.75,
+         CLKFBOUT_MULT_F_G  => 12.75,--6.375,--6.375,
+         CLKOUT0_DIVIDE_F_G => 12.75,--6.375,
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => jesdRefClkG,
@@ -451,7 +447,7 @@ begin
       -- qPllReset      => qPllReset(0)
    -- );
    
-   qPllOutClk <= '0';
+   qPllOutClk     <= '0';
    qPllOutRefClk  <= '0';
   
    -------------------------------------------------------------------------------------------------
@@ -465,7 +461,7 @@ begin
       TEST_G      =>  false,
       -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G =>  true,      
+      SYSREF_GEN_G =>  false,      
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => CPLL_CONFIG_C.CPLL_FBDIV_G,  -- use getGtx7CPllCfg to set
@@ -640,16 +636,16 @@ begin
          o   => leds(4));
          
    leds(5) <= cPllLock(0);
-   leds(6) <= rxUserRdyOut(0);
-   leds(7) <= rxMmcmResetOut(0);
+   leds(6) <= s_syncAllLED;
+   leds(7) <= s_validAllLED;
    
    -- Debug output pins
    OBUF_sysref_inst : OBUF
    port map (
-      I =>  s_sysRefOut,
+      I => s_sysRef,
+      --I =>  s_sysRefOut,
       O =>  sysrefDbg 
    );
-   --sysrefDbg <= s_sysRefOut;
    
    -- Output JESD clk for debug
    GPioClkBufSingle_INST: entity work.ClkOutBufSingle
