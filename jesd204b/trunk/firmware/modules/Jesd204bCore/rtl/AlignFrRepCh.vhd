@@ -128,8 +128,6 @@ begin
       -- Byte swap and combine the two consecutive GT words
       v_twoWordBuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);  
       v_twoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
-     --v_twoWordBuff := r.dataRxD1 & dataRx_i;  
-     --v_twoCharBuff := r.chariskRxD1 & chariskRx_i;
      
       -- Align the bytes within the words                     
       v_dataAligned := JesdDataAlign(v_twoWordBuff, r.position, GT_WORD_SIZE_C);
@@ -143,6 +141,7 @@ begin
    -- Replace the character in the data with the data value from previous frame    
       if(replEnable_i = '1' and dataValid_i = '1') then
          for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+            -- Replace the character in the data with the data value from previous frame             
             if ( v_twoCharBuffAl(I*F_G) = '1' and
                  (v_twoWordBuffAl( (I*F_G*8+7) downto I*F_G*8) = A_CHAR_C or
                   v_twoWordBuffAl( (I*F_G*8+7) downto I*F_G*8) = F_CHAR_C)

@@ -20,6 +20,7 @@ ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLane
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[0].AxiStreamLaneTx_INST/n_0_r[txAxisMaster][tValid]_i_1__0}
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[1].AxiStreamLaneTx_INST/n_0_r[txAxisMaster][tLast]_i_1}
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[1].AxiStreamLaneTx_INST/n_0_r[txAxisMaster][tValid]_i_1}
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[0].AxiStreamLaneTx_INST/s_sampleDataArr[0]_2[*]}
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/r_jesdGtRxArr[0][dispErr][*]}
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/rxCharIsKOut[*]}
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/statusRxArr_i[0][*]}

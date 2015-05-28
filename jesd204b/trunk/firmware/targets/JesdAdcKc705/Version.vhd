@@ -16,9 +16,9 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000015"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000016"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Wed May 27 09:52:10 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Thu May 28 16:10:29 PDT 2015 by ulegat";
 
 end Version;
  
@@ -46,4 +46,4 @@ end Version;
 -- 05/20/2015 - 00000012      - 2-byte - F2 - Dual lane
 -- 05/26/2015 - 00000013      - 2-byte - LMK reference - comma alignment parameters fixed
 -- 05/26/2015 - 00000014      - 4-byte - LMK reference - AXIS starts on enable and trigger
--- 05/26/2015 - 00000015      - 4-byte - LMK reference - Polarity '1'
+-- 05/26/2015 - 00000015      - 4-byte - 7.4GHz 

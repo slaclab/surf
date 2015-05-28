@@ -91,7 +91,7 @@ architecture rtl of AxiStreamLaneTx is
 
 begin
 
-   comb : process (devRst_i, enable_i, r, sampleData_i, pause_i, dataReady_i, packetSize_i) is
+   comb : process (devRst_i, enable_i, r, sampleData_i, pause_i, dataReady_i, packetSize_i,trigger_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -135,7 +135,9 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData   := intToSlv(laneNum_i,32);           
+            
+            -- Insert the lane number at the first data byte (byte swapped so it is transferred correctly)
+            v.txAxisMaster.tData   := byteSwapSlv(intToSlv(laneNum_i,32), 4);      
             v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit
