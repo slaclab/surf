@@ -40,7 +40,7 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
    addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x00F00000>>2) * (addrSize)), 0, this, addrSize)); 
    addDevice(new AxiVersion ( linkConfig, baseAddress | ((0x00000000>>2) * (addrSize)), 0, this, addrSize));
    addDevice(new JesdRx     ( linkConfig, baseAddress | ((0x00010000>>2) * (addrSize)), 0, this, addrSize)); 
-   //addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00020000>>2) * (addrSize)), 0, this, addrSize)); 
+   addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00020000>>2) * (addrSize)), 0, this, addrSize)); 
 
 }
 

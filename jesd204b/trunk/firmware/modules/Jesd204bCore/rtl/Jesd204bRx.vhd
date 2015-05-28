@@ -347,13 +347,16 @@ begin
    end generate;
    
    -- Put sync output in 'z' if not enabled
-   syncVectEn : for I in L_G-1 downto 0 generate
-       s_nSyncVecEn(I) <= s_nSyncVec(I) when s_enableRx(I)='1' else 'Z';
-   end generate syncVectEn;
+   --syncVectEn : for I in L_G-1 downto 0 generate
+   --    s_nSyncVecEn(I) <= s_nSyncVec(I) when s_enableRx(I)='1' else 'Z';
+   --end generate syncVectEn;
+   
+   ---- Combine nSync signals from all receivers
+   --s_nSyncAny <= uAnd(s_nSyncVecEn) when s_enableRx <='1' else '0';
    
    -- Combine nSync signals from all receivers
-   s_nSyncAny <= uAnd(s_nSyncVecEn);
-   
+   s_nSyncAny <= uAnd(s_nSyncVec);
+
    -- DFF
    comb : process (r, devRst_i, s_nSyncAll, s_nSyncAny) is
       variable v : RegType;

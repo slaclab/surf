@@ -126,7 +126,8 @@ architecture rtl of Jesd204bTx is
    signal  s_sysrefRe   : sl;
    signal  s_sysrefD    : sl;
 
-
+   -- Test ramp control
+   signal  s_rampStep   : slv(RAMP_STEP_WIDTH_C-1 downto 0);
    
    -- Select output 
    signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
@@ -188,7 +189,8 @@ begin
       sysrefDlyTx_o   => s_sysrefDlyTx,
       enableTx_o      => s_enableTx,
       replEnable_o    => s_replEnable,
-      swTrigger_o     => s_swTriggerReg, -- Disconnected
+      swTrigger_o     => s_swTriggerReg,
+      rampStep_o      => s_rampStep,
       axisPacketSize_o=> open
    );
    
@@ -208,7 +210,7 @@ begin
          rxAxisMaster_i => rxAxisMasterArr_i(I),
          rxAxisSlave_o  => rxAxisSlaveArr_o(I),
          jesdReady_i    => s_dataValid(I),
-         enable_i       => s_enableTx(I),
+         enable_i       => s_swTriggerReg(I),
          sampleData_o   => s_axiDataArr(I));
    end generate generateAxiStreamLanes;
    
@@ -221,8 +223,8 @@ begin
          clk           => devClk_i,
          rst           => devRst_i,
          enable_i      => s_dataValid(I),
-         strobe_i      => s_lmfc,
-         sample_data_o => s_testDataArr(I));
+         rampStep_i    => s_rampStep,
+         sampleData_o  => s_testDataArr(I));
    end generate generateTestStreamLanes;
    
    -- Sample data mux

@@ -52,6 +52,8 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    addRegisterLink(rl = new RegisterLink("ReplaceEnable",    baseAddress_ + (0x04*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Enable character replacement module(if disabled the transmitter will not emit control characters). Default '1'.");
 
+   addRegisterLink(rl = new RegisterLink("RampStep",    baseAddress_ + (0x05*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("rampStep_i=0 increment every c-c, rampStep_i=1 increment every second c-c, etc.");
      
    addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 4,
                                 "L1_GTXRdy",        Variable::Status, 0, 0x1,
@@ -64,6 +66,15 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L2_DataValid",     Variable::Status, 1, 0x1, 
                                 "L2_IlasActive",    Variable::Status, 2, 0x1,
                                 "L2_nSync",         Variable::Status, 3, 0x1));
+                                
+                                
+   addRegisterLink(rl = new RegisterLink("L1_data_mux",           baseAddress_ + (0x20*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");                            
+    
+   addRegisterLink(rl = new RegisterLink("L2_data_mux",           baseAddress_ + (0x21*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");                            
+    
+                                
    // Variables
 
    //Commands

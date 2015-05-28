@@ -214,7 +214,7 @@ begin
    Jesd204bTx_INST: entity work.Jesd204bTx
    generic map (
       TPD_G            => TPD_G,
-      TEST_G           => TEST_G,
+
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       F_G              => F_G,
       K_G              => K_G,
@@ -227,8 +227,9 @@ begin
       axilReadSlave     => axilReadSlaveTx,
       axilWriteMaster   => axilWriteMasterTx,
       axilWriteSlave    => axilWriteSlaveTx,
-      txAxisMasterArr_o => open,
-      txCtrlArr_i       => txCtrlArr,
+      rxAxisMasterArr_i => (others => AXI_STREAM_MASTER_INIT_C),
+      rxAxisSlaveArr_o  => open,
+      extSampleDataArray_i => (L_G-1 downto 0 => (others => '0')),
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,

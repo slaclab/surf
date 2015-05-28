@@ -24,6 +24,9 @@ package Jesd204bPkg is
    
    -- AXI packet size at powerup
    constant  AXI_PACKET_SIZE_DEFAULT_C : slv(23 downto 0):=x"00_01_00";
+   
+   -- TX specific
+   constant RAMP_STEP_WIDTH_C   : positive := 8;
 
 -- Types 
 -------------------------------------------------------------------------- 
@@ -38,14 +41,14 @@ package Jesd204bPkg is
    type jesdGtTxLaneType is record
       data    : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
       dataK   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
-  end record jesdGtTxLaneType;   
+   end record jesdGtTxLaneType;   
    -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
    type jesdGtTxLaneTypeArray is array (natural range <>) of jesdGtTxLaneType;
-   type sampleDataArray       is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
-   type rxStatuRegisterArray  is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1 downto 0);
-   type txStatuRegisterArray  is array (natural range <>) of slv( (TX_STAT_WIDTH_C)-1 downto 0);
-   type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1 downto 0);
+   type sampleDataArray       is array (natural range <>) of slv( (GT_WORD_SIZE_C*8)-1 downto 0);
+   type rxStatuRegisterArray  is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1  downto 0);
+   type txStatuRegisterArray  is array (natural range <>) of slv( (TX_STAT_WIDTH_C)-1  downto 0);
+   type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1   downto 0);
    
 -- Functions
 --------------------------------------------------------------------------  
@@ -60,7 +63,6 @@ package Jesd204bPkg is
 
    -- Detect position of first non K character
    function detectPosFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector;
-   
    
    -- Byte swap slv (bytes int 2 or 4)
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector;
@@ -335,8 +337,11 @@ package body Jesd204bPkg is
          constant SAMPLES_IN_WORD_C    : positive := (bytes_int/F_int);
          variable  vSlv: slv((bytes_int*8)-1 downto 0);
    begin
+      
+      vSlv := (others=>'0');
+      
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-          vSlv(I*8*F_int+8*F_int-1) := '1';    
+          vSlv(I*8*F_int+7) := '1';  
       end loop;
          
       return vSlv;        

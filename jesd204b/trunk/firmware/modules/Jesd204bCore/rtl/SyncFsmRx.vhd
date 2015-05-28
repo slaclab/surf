@@ -221,7 +221,7 @@ begin
             -- Next state condition            
             if  lmfc_i = '1' then
                v.state   := ALIGN_S;
-            elsif linkErr_i = '1' or enable_i = '0' then  
+            elsif enable_i = '0' then  
                v.state   := IDLE_S;        
             end if;
 

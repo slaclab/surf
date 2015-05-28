@@ -59,6 +59,7 @@ entity AxiLiteTxRegItf is
       enableTx_o        : out  slv(L_G-1 downto 0);
       replEnable_o      : out  sl;
       swTrigger_o       : out  slv(L_G-1 downto 0);
+      rampStep_o        : out  slv(RAMP_STEP_WIDTH_C-1 downto 0);
       axisPacketSize_o  : out  slv(23 downto 0)
    );   
 end AxiLiteTxRegItf;
@@ -73,6 +74,7 @@ architecture rtl of AxiLiteTxRegItf is
       swTrigger      : slv(L_G-1 downto 0);
       axisPacketSize : slv(23 downto 0);
       muxOutSelArr   : Slv3Array(L_G-1 downto 0);
+      rampStep       : slv(RAMP_STEP_WIDTH_C-1 downto 0);
       
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -85,8 +87,9 @@ architecture rtl of AxiLiteTxRegItf is
       sysrefDlyTx    => (others => '0'),
       swTrigger      => (others => '0'),   
       axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
-      muxOutSelArr   => (others => (others => '0')),
- 
+      muxOutSelArr   => (others => "011"),
+      rampStep       => (others => '0'),
+      
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -129,7 +132,9 @@ begin
             when 16#03# => -- ADDR (12)
                v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
             when 16#04# => -- ADDR (16)
-               v.replEnable      := axilWriteMaster.wdata(0);
+               v.replEnable := axilWriteMaster.wdata(0);
+            when 16#05# => -- ADDR (20)
+               v.rampStep := axilWriteMaster.wdata(RAMP_STEP_WIDTH_C-1 downto 0);  
             when 16#20# to 16#2F# =>               
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -155,7 +160,9 @@ begin
             when 16#03# =>  -- ADDR (12)
                v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
             when 16#04# =>  -- ADDR (16)
-               v.axilReadSlave.rdata(0) := r.replEnable;               
+               v.axilReadSlave.rdata(0) := r.replEnable;
+            when 16#05# =>  -- ADDR (20)
+               v.axilReadSlave.rdata(RAMP_STEP_WIDTH_C-1 downto 0) := r.rampStep; 
             when 16#10# to 16#1F# => 
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -201,6 +208,8 @@ begin
    replEnable_o     <= r.replEnable;
    swTrigger_o      <= r.swTrigger;
    axisPacketSize_o <= r.axisPacketSize;
+   rampStep_o       <= r.rampStep;
    muxOutSelArr_o   <= r.muxOutSelArr;
+
 ---------------------------------------------------------------------
 end rtl;

@@ -241,14 +241,15 @@ begin
    --------------------------------------------------------------------------------------------------
    GT_OPER_GEN: if TEST_G = false generate
       GTX7_CORE_GEN : for I in (L_G-1) downto 0  generate
+      
          -- Channel Bonding
-         rxChBondIn(I) <= "00000";
-         --Bond_Master : if (I = 0) generate
-        --    rxChBondIn(I) <= "00000";
-         --end generate Bond_Master;
-         --Bond_Slaves : if (I /= 0) generate
-         --   rxChBondIn(I) <= rxChBondOut(I-1);
-         --end generate Bond_Slaves;
+         Bond_Master : if (I = 0) generate
+           rxChBondIn(I) <= "00000";
+         end generate Bond_Master;
+         
+         Bond_Slaves : if (I /= 0) generate
+           rxChBondIn(I) <= rxChBondOut(I-1);
+         end generate Bond_Slaves;
          
          -- Generate GT reset from user reset and global reset
          -- devRst_i - is holding the module in reset for one minute after power-up
@@ -330,7 +331,7 @@ begin
                CLK_COR_SEQ_2_2_G        => "0000000000",  -- Default
                CLK_COR_SEQ_2_3_G        => "0000000000",  -- Default
                CLK_COR_SEQ_2_4_G        => "0000000000",  -- Default
-               RX_CHAN_BOND_EN_G        => false, --true ulegat
+               RX_CHAN_BOND_EN_G        => true, --true ulegat
                RX_CHAN_BOND_MASTER_G    => (i = 0),
                CHAN_BOND_KEEP_ALIGN_G   => "FALSE",       -- Default
                CHAN_BOND_MAX_SKEW_G     => 10,
