@@ -252,12 +252,14 @@ begin
       v.bufWeD1 := s_bufWe;
 
       -- Register errors (store until reset)
-      for I in 0 to(ERR_REG_WIDTH_C-1) loop
-         if (s_errComb(I) = '1') then
-            v.errReg(I) := '1';
-         end if;
-      end loop;
-
+      if (r_jesdGtRx.rstDone = '1') then
+         for I in 0 to(ERR_REG_WIDTH_C-1) loop
+            if (s_errComb(I) = '1') then
+               v.errReg(I) := '1';
+            end if;
+         end loop;
+      end if;   
+      
       -- Clear registered errors if module is disabled
       if (clearErr_i = '1') then
          v.errReg := REG_INIT_C.errReg;
