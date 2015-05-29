@@ -120,11 +120,18 @@ architecture rtl of Jesd204bRx is
    signal s_nSyncAll   : sl;
    signal s_nSyncAny   : sl;
 
-   -- Control and status from AxiLie
+   -- Control and status from AxiLite
+   ------------------------------------------------------------
    signal s_sysrefDlyRx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
    signal s_enableRx     : slv(L_G-1 downto 0);
    signal s_replEnable   : sl;
+   -- JESD subclass selection (from AXI lite register)
+   signal s_subClass    : sl;
+   -- User reset (from AXI lite register)
+   signal s_gtReset     : sl;
+   signal s_clearErr    : sl;
    signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
+
 
    -- Testing registers
    signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
@@ -152,10 +159,6 @@ architecture rtl of Jesd204bRx is
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_G-1 downto 0);
    signal s_pause    : sl;
-   
-   -- JESD subclass selection (from AXI lite register)
-   signal s_subClass    : sl;
-  
 
 begin
    -- Check JESD generics
@@ -238,7 +241,9 @@ begin
       dlyTxArr_o      => s_dlyTxArr,     
       alignTxArr_o    => s_alignTxArr,
       axisTrigger_o   => s_axisTriggerReg,
-      subClass_o      => s_subClass, 
+      subClass_o      => s_subClass,
+      gtReset_o       => s_gtReset,
+      clearErr_o      => s_clearErr,
       axisPacketSize_o=> s_axisPacketSizeReg
    );
   
@@ -341,6 +346,7 @@ begin
          devRst_i     => devRst_i,
          sysRef_i     => s_sysrefRe, -- Rising-edge of SYSREF
          enable_i     => s_enableRx(I),
+         clearErr_i   => s_clearErr,
          replEnable_i => s_replEnable,
          status_o     => s_statusRxArr(I),
          r_jesdGtRx   => s_jesdGtRxArr(I),
@@ -384,7 +390,7 @@ begin
 
    -- Output assignment
    nSync_o     <= r.nSyncAnyD1;
-   gt_reset_o  <= (others=>'0');
+   gt_reset_o  <= (others=> s_gtReset);
    leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    -----------------------------------------------------
 end rtl;
