@@ -85,8 +85,7 @@ entity Jesd204bRxGtx7 is
    ----------------------------------------------------------------------------------------------
       F_G            : positive := 2;
       K_G            : positive := 32;
-      L_G            : positive := 2;
-      SUB_CLASS_G    : natural  := 1
+      L_G            : positive := 2
    );
 
    port (
@@ -188,8 +187,7 @@ begin
       AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
       F_G               => F_G,
       K_G               => K_G,
-      L_G               => L_G,
-      SUB_CLASS_G       => SUB_CLASS_G)
+      L_G               => L_G)
    port map (
       axiClk            => axiClk,
       axiRst            => axiRst,

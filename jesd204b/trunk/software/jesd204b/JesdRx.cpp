@@ -49,9 +49,10 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    addRegisterLink(rl = new RegisterLink("AXISpacketSize",   baseAddress_ + (0x03*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Data packet size (when enabled packets are being sent continuously)"); 
 
-   addRegisterLink(rl = new RegisterLink("ReplaceEnable",    baseAddress_ + (0x04*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Enable character replacement module(if disabled the data will contain control characters). Default '1'. Disable only for debugging purposes.");
-   
+   addRegisterLink(rl = new RegisterLink("CommonControl",    baseAddress_ + (0x04*addrSize), 1, 2,
+                                "SubClass",         Variable::Configuration, 0, 0x1,
+                                "ReplaceEnable",         Variable::Configuration, 1, 0x1));   
+     
    addRegisterLink(rl = new RegisterLink("L1_Test",      baseAddress_ + (0x20*addrSize), 1, 2,
                                 "L1_Align",         Variable::Configuration, 0, 0xf,
                                 "L1_Delay",         Variable::Configuration, 8, 0xf));

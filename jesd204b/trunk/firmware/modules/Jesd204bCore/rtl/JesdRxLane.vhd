@@ -47,10 +47,7 @@ entity JesdRxLane is
       F_G : positive := 2;
 
       -- Number of frames in a multi frame
-      K_G : positive := 32;
-
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : natural := 1
+      K_G : positive := 32
    );
    port (
 
@@ -58,6 +55,9 @@ entity JesdRxLane is
       -- Clocks and Resets   
       devClk_i : in sl;
       devRst_i : in sl;
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i : in sl;
 
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i : in sl;
@@ -207,8 +207,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          F_G            => F_G,
-         K_G            => K_G,
-         SUB_CLASS_G    => SUB_CLASS_G)
+         K_G            => K_G)
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
@@ -227,7 +226,8 @@ begin
          ila_o        => s_ila,
          kDetected_o  => s_kDetected,
          sysref_o     => s_refDetected,
-         dataValid_o  => s_dataValid
+         dataValid_o  => s_dataValid,
+         subClass_i   => subClass_i
       );
 
    -- Error that stops 

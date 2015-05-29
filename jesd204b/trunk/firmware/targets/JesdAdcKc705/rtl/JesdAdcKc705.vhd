@@ -73,9 +73,8 @@ entity JesdAdcKc705 is
       -- K*F/GT_WORD_SIZE_C has to be integer     
       K_G                : positive := 32;
       -- Number of serial lanes: 1 to 16    
-      L_G                : positive := 2;
-      -- JESD subclass: 0 and 1 supported   
-      SUB_CLASS_G        : natural  := 1
+      L_G                : positive := 2
+
    );
    port (
       pgpRefClkP : in sl;
@@ -524,8 +523,7 @@ begin
       -- JESD
       F_G                => F_G,
       K_G                => K_G,
-      L_G                => L_G,
-      SUB_CLASS_G        => SUB_CLASS_G
+      L_G                => L_G
    )
    port map (
       rxOutClkOut       => rxOutClkOut,

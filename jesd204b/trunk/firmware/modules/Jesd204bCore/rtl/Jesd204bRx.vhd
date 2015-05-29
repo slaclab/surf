@@ -55,10 +55,7 @@ entity Jesd204bRx is
       K_G : positive := 32;
       
       --Number of lanes (1 to 8)
-      L_G : positive := 2;
-           
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : natural := 1
+      L_G : positive := 2
    );
 
    port (
@@ -155,13 +152,16 @@ architecture rtl of Jesd204bRx is
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_G-1 downto 0);
    signal s_pause    : sl;
+   
+   -- JESD subclass selection (from AXI lite register)
+   signal s_subClass    : sl;
+  
 
 begin
    -- Check JESD generics
    assert (1 <= L_G and L_G <= 16)                          report "L_G must be between 1 and 16"   severity failure;
    assert ( ((K_G * F_G) mod GT_WORD_SIZE_C) = 0)           report "K_G setting is incorrect"       severity failure;
    assert (F_G=1 or F_G=2 or (F_G=4 and GT_WORD_SIZE_C=4))  report "F_G setting must be 1,2,or 4*"  severity failure;   
-   assert (SUB_CLASS_G=0 or SUB_CLASS_G=1)                  report "SUB_CLASS_G setting must be 0,1"severity failure;  
 
    -----------------------------------------------------------
    -- AXI
@@ -238,6 +238,7 @@ begin
       dlyTxArr_o      => s_dlyTxArr,     
       alignTxArr_o    => s_alignTxArr,
       axisTrigger_o   => s_axisTriggerReg,
+      subClass_o      => s_subClass, 
       axisPacketSize_o=> s_axisPacketSizeReg
    );
   
@@ -252,8 +253,7 @@ begin
       TX_LANES_GEN : for I in L_G-1 downto 0 generate    
          JesdTxTest_INST: entity work.JesdTxTest
             generic map (
-               TPD_G          => TPD_G,
-               SUB_CLASS_G    => SUB_CLASS_G)
+               TPD_G          => TPD_G)
             port map (
                devClk_i      => devClk_i,
                devRst_i      => devRst_i,
@@ -263,6 +263,7 @@ begin
                lmfc_i        => s_lmfc,
                nSync_i       => r.nSyncAnyD1,
                r_jesdGtRx    => s_jesdGtRxArr(I),
+               subClass_i    => s_subClass,
                txDataValid_o => open);
       end generate TX_LANES_GEN;     
    end generate TEST_GEN;
@@ -334,8 +335,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          F_G            => F_G,
-         K_G            => K_G,
-         SUB_CLASS_G    => SUB_CLASS_G)
+         K_G            => K_G)
       port map (
          devClk_i     => devClk_i,
          devRst_i     => devRst_i,
@@ -349,7 +349,8 @@ begin
          nSyncAny_i   => s_nSyncAny,
          nSync_o      => s_nSyncVec(I),
          dataValid_o  => s_dataValidVec(I),
-         sampleData_o => s_sampleDataArr(I)
+         sampleData_o => s_sampleDataArr(I),
+         subClass_i   => s_subClass
       );
    end generate;
    

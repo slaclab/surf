@@ -18,7 +18,7 @@ package Version is
 
 constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000016"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Fri May 29 11:31:03 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdAdcKc705: Vivado v2014.4 (x86_64) Built Fri May 29 13:57:04 PDT 2015 by ulegat";
 
 end Version;
  
@@ -47,4 +47,4 @@ end Version;
 -- 05/26/2015 - 00000013      - 2-byte - LMK reference - comma alignment parameters fixed
 -- 05/26/2015 - 00000014      - 4-byte - LMK reference - AXIS starts on enable and trigger
 -- 05/28/2015 - 00000015      - 4-byte - 7.4GHz
--- 05/29/2015 - 00000016      - 4-byte - 7.4GHz - Synced AXIS - Worked over night
+-- 05/29/2015 - 00000016      - 4-byte - 7.4GHz - Synced AXIS - Worked over night, Subclass added to registers

@@ -19,7 +19,6 @@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -60,6 +59,7 @@ entity AxiLiteRxRegItf is
       dlyTxArr_o        : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
       alignTxArr_o      : out  alignTxArray(L_G-1 downto 0); -- 0001, 0010, 0100, 1000
       axisTrigger_o     : out  slv(L_G-1 downto 0);
+      subClass_o        : out  sl;
       axisPacketSize_o  : out  slv(23 downto 0) 
    );   
 end AxiLiteRxRegItf;
@@ -69,7 +69,7 @@ architecture rtl of AxiLiteRxRegItf is
    type RegType is record
       -- JESD Control (RW)
       enableRx       : slv(L_G-1 downto 0);
-      replEnable     : sl;
+      commonCtrl     : slv(1 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       testTXItf      : Slv16Array(L_G-1 downto 0);
       axisTrigger    : slv(L_G-1 downto 0);
@@ -82,7 +82,7 @@ architecture rtl of AxiLiteRxRegItf is
    
    constant REG_INIT_C : RegType := (
       enableRx       => (others => '0'),
-      replEnable     => '1',  
+      commonCtrl     => "11",
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => (others => '0')),
       axisTrigger    => (others => '0'),   
@@ -130,7 +130,7 @@ begin
             when 16#03# => -- ADDR (12)
                v.axisPacketSize  := axilWriteMaster.wdata(23 downto 0);
             when 16#04# => -- ADDR (16)
-               v.replEnable      := axilWriteMaster.wdata(0);               
+               v.commonCtrl      := axilWriteMaster.wdata(1 downto 0);         
             when 16#20# to 16#2F# =>               
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -156,7 +156,7 @@ begin
             when 16#03# =>  -- ADDR (12)
                v.axilReadSlave.rdata(23 downto 0)                    := r.axisPacketSize;
             when 16#04# =>  -- ADDR (16)
-               v.axilReadSlave.rdata(0)                              := r.replEnable;               
+               v.axilReadSlave.rdata(1 downto 0)                     := r.commonCtrl;               
             when 16#10# to 16#1F# => 
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -199,7 +199,8 @@ begin
    -- Output assignment
    sysrefDlyRx_o     <= r.sysrefDlyRx;
    enableRx_o        <= r.enableRx;
-   replEnable_o      <= r.replEnable;
+   replEnable_o      <= r.commonCtrl(1);
+   subClass_o        <= r.commonCtrl(0);
    axisTrigger_o     <= r.axisTrigger;
    axisPacketSize_o  <= r.axisPacketSize;
    
