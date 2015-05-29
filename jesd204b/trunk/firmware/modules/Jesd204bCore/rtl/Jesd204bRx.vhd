@@ -15,7 +15,11 @@
 --              Supports sub-class 0 non deterministic latency.
 --              Features:
 --              - Synchronisation of LMFC to SYSREF
---              - Multi-lane operation (L_G: 1-8)
+--              - Multi-lane operation (L_G: 1-16)
+--              - Frame position correction and position check
+--              - GT error check
+--              - Alignment character replacement and alignment check
+--               
 --              Note: The receiver does not support scrambling (assumes that the data is not scrambled)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
@@ -153,8 +157,11 @@ architecture rtl of Jesd204bRx is
    signal s_pause    : sl;
 
 begin
-   -- Check generics TODO add others
-   assert (1 <= L_G and L_G <= 8)                      report "L_G must be between 1 and 8"   severity failure;
+   -- Check JESD generics
+   assert (1 <= L_G and L_G <= 16)                          report "L_G must be between 1 and 16"   severity failure;
+   assert ( ((K_G * F_G) mod GT_WORD_SIZE_C) = 0)           report "K_G setting is incorrect"       severity failure;
+   assert (F_G=1 or F_G=2 or (F_G=4 and GT_WORD_SIZE_C=4))  report "F_G setting must be 1,2,or 4*"  severity failure;   
+   assert (SUB_CLASS_G=0 or SUB_CLASS_G=1)                  report "SUB_CLASS_G setting must be 0,1"severity failure;  
 
    -----------------------------------------------------------
    -- AXI
@@ -347,15 +354,12 @@ begin
    end generate;
    
    -- Put sync output in 'z' if not enabled
-   --syncVectEn : for I in L_G-1 downto 0 generate
-   --    s_nSyncVecEn(I) <= s_nSyncVec(I) when s_enableRx(I)='1' else 'Z';
-   --end generate syncVectEn;
-   
-   ---- Combine nSync signals from all receivers
-   --s_nSyncAny <= uAnd(s_nSyncVecEn) when s_enableRx <='1' else '0';
+   syncVectEn : for I in L_G-1 downto 0 generate
+      s_nSyncVecEn(I) <= s_nSyncVec(I) or not s_enableRx(I);
+   end generate syncVectEn;
    
    -- Combine nSync signals from all receivers
-   s_nSyncAny <= uAnd(s_nSyncVec);
+   s_nSyncAny <= '0' when allBits (s_enableRx, '0')  else uAnd(s_nSyncVecEn);
 
    -- DFF
    comb : process (r, devRst_i, s_nSyncAll, s_nSyncAny) is

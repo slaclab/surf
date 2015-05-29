@@ -9,7 +9,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Receiver JESD204b module.
+-- Description: Transmitter JESD204b module.
 --              Supports a subset of features from JESD204b standard.
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency.
