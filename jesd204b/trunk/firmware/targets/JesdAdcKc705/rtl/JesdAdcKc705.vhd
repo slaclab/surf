@@ -2,14 +2,31 @@
 -- Title      : Development board for JESD ADC test
 -------------------------------------------------------------------------------
 -- File       : JesdAdcKc705.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-08-22
--- Last update: 2015-04-29
--- Platform   : 
+-- Author     : Benjamin Reese <bareese@slac.stanford.edu>
+--              Uros Legat <ulegat@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Created    : 2015-04-10
+-- Last update: 2015-05-29
+-- Platform   : Xilinx Kc705 Development platform
+--              TI ADC16DX370EVM
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
+--    Outputs reference clock of 370MHz
+--     - on FMC ADC LVDS output (to optionally provide reference from FPGA)
+--     - on GPIO LVDS output (to optionally provide reference from FPGA)
+--     - on USER Single ended output (to optionally provide reference from FPGA to LMK chip)
+--    Configured for 4-byte operation: GT_WORD_SIZE_C=4
+--    To configure for 2-byte operation: GT_WORD_SIZE_C=2, adjust LANE rate, GTX parameters, JESD clock MGMM 
+--    LED indicators:
+--    - LED0 - Axi Lite clock HB
+--    - LED1 - PGP clock HB
+--    - LED2 - PGP Rx link ready
+--    - LED3 - PGP Tx link ready
+--    - LED4 - JESD clock HB
+--    - LED5 - JESD QPLL locked
+--    - LED6 - JESD nSync signal
+--    - LED7 - JESD Data valid
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -38,7 +55,28 @@ entity JesdAdcKc705 is
       AXIL_CLK_FREQ_G        : real    := 125.0E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 9);
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
+      
+      --JESD configuration
+      -----------------------------------------------------
+      -- Test tx module instead of GTX
+      TEST_G             : boolean := false;
+      -- TRUE  Internal SYSREF
+      -- FALSE External SYSREF
+      SYSREF_GEN_G       : boolean := false;      
+
+      REFCLK_FREQUENCY_G : real     := 370.00E6;
+      LINE_RATE_G        : real     := 7.40E9;
+      
+      -- The JESD module supports values: 1,2,4(four byte GT word only)
+      F_G                : positive := 2;
+      -- K*F/GT_WORD_SIZE_C has to be integer     
+      K_G                : positive := 32;
+      -- Number of serial lanes: 1 to 16    
+      L_G                : positive := 2;
+      -- JESD subclass: 0 and 1 supported   
+      SUB_CLASS_G        : natural  := 1
+   );
    port (
       pgpRefClkP : in sl;
       pgpRefClkN : in sl;
@@ -120,27 +158,20 @@ architecture rtl of JesdAdcKc705 is
    -- constant REFCLK_FREQUENCY_C : real     := 368.64E6;
    -- constant REFCLK_FREQUENCY_C : real     := 184.32E6;
    -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
-   --constant REFCLK_FREQUENCY_C : real     := 156.25E6;
-   --constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   --constant LINE_RATE_C        : real     := 3.125E9;
-   --constant LINE_RATE_C        : real     := 7.3728E9;
-   --constant LINE_RATE_C        : real     := 6.00E9;
-   constant REFCLK_FREQUENCY_C : real     := 370.00E6;
-   constant LINE_RATE_C        : real     := 7.40E9;
-   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)*10.0/(LINE_RATE_C);
+   -- constant REFCLK_FREQUENCY_C : real     := 156.25E6;
+   -- constant REFCLK_FREQUENCY_C : real     := 125.0E6;
+   -- constant LINE_RATE_C        : real     := 3.125E9;
+   -- constant LINE_RATE_C        : real     := 7.3728E9;
+   -- constant LINE_RATE_C        : real     := 6.00E9;
+   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)*10.0/(LINE_RATE_G);
    
-   constant F_C                : positive := 2;
-   constant K_C                : positive := 32;
-   constant L_C                : positive := 2;
-   constant SUB_CLASS_C        : natural  := 1;
-
-   signal  s_sysRef : sl;
-   signal  s_sysRefOut : sl;   
-   signal  s_nsync  : sl;
+   signal   s_sysRef    : sl;
+   signal   s_sysRefOut : sl;   
+   signal   s_nsync     : sl;
 
    -- QPLL config constants
-   constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
-   --constant CPLL_CONFIG_C     : Gtx7CPllCfgType := getGtx7CPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
+   constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_G, LINE_RATE_G);   
+   --constant CPLL_CONFIG_C     : Gtx7CPllCfgType := getGtx7CPllCfg(REFCLK_FREQUENCY_G, LINE_RATE_G);   
 
    -- QPLL
    signal  gtCPllRefClk  : sl; 
@@ -149,11 +180,11 @@ architecture rtl of JesdAdcKc705 is
    signal  qPllOutRefClk : sl; 
    signal  qPllLock      : sl; 
    signal  qPllRefClkLost: sl; 
-   signal  qPllReset     : slv(L_C-1 downto 0); 
+   signal  qPllReset     : slv(L_G-1 downto 0);
    signal  gtQPllReset   : sl;
    
    --CPLL
-   signal  cPllLock  : slv(L_C-1 downto 0);  
+   signal  cPllLock  : slv(L_G-1 downto 0);  
 
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
@@ -166,8 +197,8 @@ architecture rtl of JesdAdcKc705 is
    signal pgpClkRst  : sl;
    signal pgpMmcmRst : sl;
 
-   signal rxOutClkOut : slv(L_C-1 downto 0);
-   signal txOutClkOut : slv(L_C-1 downto 0);   
+   signal rxOutClkOut : slv(L_G-1 downto 0);
+   signal txOutClkOut : slv(L_G-1 downto 0);   
    
    signal jesdRefClkDiv2 : sl;
    signal jesdRefClk     : sl;
@@ -217,9 +248,9 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
 
-   signal axisTxMasters : AxiStreamMasterArray(1 downto 0);
-   signal axisTxSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal axisTxCtrl    : AxiStreamCtrlArray(1 downto 0);
+   signal axisTxMasters : AxiStreamMasterArray(L_G-1 downto 0);
+   signal axisTxSlaves  : AxiStreamSlaveArray(L_G-1 downto 0);
+   signal axisTxCtrl    : AxiStreamCtrlArray(L_G-1 downto 0);
    
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
@@ -232,8 +263,8 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------   
    signal s_syncAllLED  : sl;
    signal s_validAllLED : sl;
-   signal rxUserRdyOut  : slv(L_C-1 downto 0);   
-   signal rxMmcmResetOut: slv(L_C-1 downto 0); 
+   signal rxUserRdyOut  : slv(L_G-1 downto 0);   
+   signal rxMmcmResetOut: slv(L_G-1 downto 0); 
    
 begin
 
@@ -324,7 +355,9 @@ begin
          AXIL_CLK_FREQ_G        => AXIL_CLK_FREQ_G,
          AXIS_CLK_FREQ_G        => AXIS_CLK_FREQ_G,
          AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
-         AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
+         AXIS_CONFIG_G          => JESD_SSI_CONFIG_C,
+         L_G                    => L_G
+      )
       port map (
          pgpRefClk       => pgpRefClk,
          pgpClk          => pgpClk,
@@ -458,10 +491,10 @@ begin
       TPD_G       => TPD_G,
         
       -- Test tx module instead of GTX
-      TEST_G      =>  false,
+      TEST_G      =>  TEST_G,
       -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G =>  false,      
+      SYSREF_GEN_G =>  SYSREF_GEN_G,      
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => 4,--CPLL_CONFIG_C.CPLL_FBDIV_G,  -- use getGtx7CPllCfg to set
@@ -478,7 +511,7 @@ begin
       RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
       
       -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
-      --                        -- 156.25, 3.125 (2b) -- 78.125(156.25), 3.125-- 184, 7.38                     -- 300, 6.0                   --370, 7.4
+      --                        -- 184, 7.4           -- 78.125(156.25), 3.125         -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
       PMA_RSV_G             =>  X"001E7080",          --X"00018480",          --X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
       RX_OS_CFG_G           =>  "0000010000000",      --"0000010000000",      --"0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
       RXCDR_CFG_G           =>  x"03000023ff10400020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
@@ -489,10 +522,10 @@ begin
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
       
       -- JESD
-      F_G                => F_C,
-      K_G                => K_C,
-      L_G                => L_C,
-      SUB_CLASS_G        => SUB_CLASS_C
+      F_G                => F_G,
+      K_G                => K_G,
+      L_G                => L_G,
+      SUB_CLASS_G        => SUB_CLASS_G
    )
    port map (
       rxOutClkOut       => rxOutClkOut,
@@ -512,6 +545,11 @@ begin
       cPllRefClkIn      => jesdRefClk, 
       cPllLockOut       => cPllLock,  
       
+      -- gtTxP             => adcGtTxP,          
+      -- gtTxN             => adcGtTxN,        
+      -- gtRxP             => adcGtRxP,
+      -- gtRxN             => adcGtRxN,
+     
       gtTxP(0)          => adcGtTxP(0),
       gtTxP(1)          => adcGtTxP(2),      
       gtTxN(0)          => adcGtTxN(0),
@@ -634,7 +672,6 @@ begin
          clk => jesdClk,
          o   => leds(4));
          
-   --leds(5) <= cPllLock(0);
    leds(5) <= qPllLock;
    leds(6) <= s_syncAllLED;
    leds(7) <= s_validAllLED;

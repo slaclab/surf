@@ -33,8 +33,9 @@ entity PgpFrontEnd is
       AXIL_CLK_FREQ_G        : real    := 125.0E6;
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
       AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
-      AXIS_CONFIG_G          : AxiStreamConfigType
-      );
+      AXIS_CONFIG_G          : AxiStreamConfigType;
+      L_G                    : positive:=2
+   );
    port (
       pgpRefClk : in sl;
       pgpClk    : in sl;
@@ -57,9 +58,9 @@ entity PgpFrontEnd is
       -- AXI Stream data interface
       axisClk       : in  sl;
       axisClkRst    : in  sl;
-      axisTxMasters : in  AxiStreamMasterArray(1 downto 0);
-      axisTxSlaves  : out AxiStreamSlaveArray(1 downto 0);
-      axisTxCtrl    : out AxiStreamCtrlArray(1 downto 0);
+      axisTxMasters : in  AxiStreamMasterArray(L_G-1 downto 0);
+      axisTxSlaves  : out AxiStreamSlaveArray(L_G-1 downto 0);
+      axisTxCtrl    : out AxiStreamCtrlArray(L_G-1 downto 0);
 
       leds : out slv(1 downto 0));
 
@@ -277,7 +278,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXI Stream FIFOS
    -------------------------------------------------------------------------------------------------
-   AXIS_FIFOS : for i in 1 downto 0 generate
+   AXIS_FIFOS : for i in L_G-1 downto 0 generate
       AxiStreamFifo_1 : entity work.AxiStreamFifo
          generic map (
             TPD_G               => TPD_G,

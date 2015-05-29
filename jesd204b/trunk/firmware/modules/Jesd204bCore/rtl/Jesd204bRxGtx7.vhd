@@ -177,9 +177,7 @@ architecture rtl of Jesd204bRxGtx7 is
    
 
 begin
-   -- Check generics TODO add others
-   assert (1 <= L_G and L_G <= 8)                      report "L_G must be between 1 and 8"   severity failure;
-
+ 
    --------------------------------------------------------------------------------------------------
    -- JESD receiver core
    --------------------------------------------------------------------------------------------------  

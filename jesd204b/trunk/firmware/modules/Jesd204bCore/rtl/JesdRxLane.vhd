@@ -16,7 +16,7 @@
 --              - Comma synchronisation
 --              - Internal buffer to align the lanes.
 --              - Sample data alignment (Sample extraction from GT word - barrel shifter).
---              - Alignment character replacement (TODO - test).
+--              - Alignment character replacement.
 --             Status register encoding:
 --                bit 0: GT Reset done
 --                bit 1: Received data valid
@@ -114,7 +114,7 @@ architecture rtl of JesdRxLane is
    signal s_ila        : sl;
    signal s_dataValid  : sl;
 
-                                        -- Buffer control
+   -- Buffer control
    signal s_bufRst : sl;
    signal s_bufWe  : sl;
    signal s_bufRe  : sl;

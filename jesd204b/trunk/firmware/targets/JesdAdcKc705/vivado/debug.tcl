@@ -16,24 +16,18 @@ SetDebugCoreClk ${ilaJesdClk} {jesdClk}
 
 set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaJesdClk}]
 
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[0].AxiStreamLaneTx_INST/s_sampleDataArr[0]_2[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/r_jesdGtRxArr[0][dispErr][*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/rxCharIsKOut[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/statusRxArr_i[0][*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/r_jesdGtRxArr[0][decErr][*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[0].Gtx7Core_Inst/rxDataOut[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/r_jesdGtRxArr[0][dispErr][*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxCharIsKOut[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/statusRxArr_i[0][*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/r_jesdGtRxArr[0][decErr][*]}
+
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxDispErrOut[*]}
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxDecErrOut[*]}
+
 ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxDataOut[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/statusRxArr_i[0][*]} 
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxCharIsKOut[*]}
+
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[1].AxiStreamLaneTx_INST/sampleData_i[*]}
 
 
 delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaJesdClk}]]
 
 # Write the port map file
-write_debug_probes -force ${VIVADO_DIR}/debug_probes.ltx
-
-exec cp ${VIVADO_DIR}/debug_probes.ltx ${PROJ_DIR}/debug_probes.ltx
+write_debug_probes -force ${PROJ_DIR}/debug_probes.ltx
 
