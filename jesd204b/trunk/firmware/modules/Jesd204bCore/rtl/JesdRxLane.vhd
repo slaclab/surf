@@ -61,6 +61,9 @@ entity JesdRxLane is
 
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i : in sl;
+      
+      -- Clear registered errors     
+      clearErr_i : in sl;
 
       -- Control register
       enable_i     : in  sl;
@@ -100,7 +103,7 @@ architecture rtl of JesdRxLane is
    constant REG_INIT_C : RegType := (
       bufWeD1 => '0',
       errReg  => (others => '0')
-      );
+   );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -241,7 +244,7 @@ begin
    -- - Delay the s_bufWe to use it for s_bufRe 
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
-   comb : process (devRst_i, enable_i, r, s_bufWe, s_errComb) is
+   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb) is
       variable v : RegType;
    begin
       v := r;
@@ -255,8 +258,8 @@ begin
          end if;
       end loop;
 
-      -- Clear registered errors if module is disabled 
-      if (enable_i = '0') then
+      -- Clear registered errors if module is disabled
+      if (clearErr_i = '1') then
          v.errReg := REG_INIT_C.errReg;
       end if;
 
