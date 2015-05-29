@@ -51,7 +51,7 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
 
    addRegisterLink(rl = new RegisterLink("CommonControl",    baseAddress_ + (0x04*addrSize), 1, 4,
                                 "SubClass",              Variable::Configuration, 0, 0x1,
-                                "ReplaceEnable",         Variable::Configuration, 1, 0x1
+                                "ReplaceEnable",         Variable::Configuration, 1, 0x1,
                                 "ResetGTs",              Variable::Configuration, 2, 0x1,
                                 "ClearErrors",           Variable::Configuration, 3, 0x1));   
      
