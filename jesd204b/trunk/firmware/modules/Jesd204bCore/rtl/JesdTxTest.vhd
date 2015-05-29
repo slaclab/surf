@@ -24,15 +24,17 @@ use work.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
-      TPD_G : time := 1 ns;
-      SUB_CLASS_G : natural := 1
-      );
+      TPD_G : time := 1 ns
+   );
    port (
 
       -- JESD
       -- Clocks and Resets   
       devClk_i       : in  sl;
       devRst_i       : in  sl;
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i : in sl; 
 
       -- Control and status register records
       enable_i       : in  sl;
@@ -117,8 +119,7 @@ begin
    -- Synchronisation FSM
    syncFSM_INST : entity work.SyncFsmTxTest
       generic map (
-         TPD_G          => TPD_G,
-         SUB_CLASS_G    => SUB_CLASS_G)
+         TPD_G          => TPD_G)
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
@@ -127,7 +128,8 @@ begin
          nSync_i      => s_nsync_dly,
          testCntr_o   => s_testCntr, 
          dataValid_o  => s_dataValid,
-         align_o      => s_align
+         align_o      => s_align,
+         subClass_i   => subClass_i
       );
     
    comb : process (r, devRst_i,s_dataK,s_data) is

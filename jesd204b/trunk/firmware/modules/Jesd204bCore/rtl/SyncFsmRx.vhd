@@ -25,7 +25,7 @@ use work.Jesd204bPkg.all;
 
 entity SyncFsmRx is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G: time    := 1 ns;
 
       -- Number of bytes in a frame
       F_G : positive := 2;
@@ -34,10 +34,7 @@ entity SyncFsmRx is
       K_G : positive := 32;
       
       -- Number of multi-frames in ILA sequence (4-255)
-      NUM_ILAS_MF_G : positive := 4; 
-               
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : natural := 1
+      NUM_ILAS_MF_G : positive := 4
    );    
    port (
       -- Clocks and Resets   
@@ -47,6 +44,9 @@ entity SyncFsmRx is
       -- Enable the module
       enable_i       : in    sl;      
       gtReady_i      : in    sl;
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i : in sl; 
       
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i       : in    sl;
@@ -164,14 +164,14 @@ begin
             v.sysref     := '0';
             
             -- Next state condition (depending on subclass)
-            if  SUB_CLASS_G = 1 then
-               if  sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' then
+            if  subClass_i = '1' then
+               if  sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' and s_kDetected = '1' then
                   v.state    := SYSREF_S;
                end if;
             else  
                if  enable_i = '1' and gtReady_i = '1' and s_kDetected = '1' then
                   v.state    := SYSREF_S;
-               end if;         
+               end if;        
             end if;
          ----------------------------------------------------------------------
          when SYSREF_S =>

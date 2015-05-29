@@ -24,17 +24,18 @@ use work.Jesd204bPkg.all;
 
 entity SyncFsmTxTest is
    generic (
-      TPD_G       : time     := 1 ns;
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : natural := 1);    
+      TPD_G       : time     := 1 ns);    
    port (
       -- Clocks and Resets   
       clk            : in    sl;    
       rst            : in    sl;
       
       -- Enable the module
-      enable_i       : in    sl;      
-
+      enable_i       : in    sl;
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i     : in sl;
+      
       -- Local multi frame clock
       lmfc_i         : in    sl;
    
@@ -113,7 +114,7 @@ begin
             v.align     := '0';
             
             -- Next state condition
-            if  SUB_CLASS_G = 1 then
+            if  subClass_i = '1' then
                if  nSync_i = '1' and enable_i = '1' and lmfc_i = '1' then
                   v.state   := ALIGN_S;                             
                elsif enable_i = '0' then  
