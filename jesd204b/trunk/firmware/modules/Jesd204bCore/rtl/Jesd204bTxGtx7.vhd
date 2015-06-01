@@ -86,8 +86,7 @@ entity Jesd204bTxGtx7 is
    ----------------------------------------------------------------------------------------------
       F_G            : positive := 2;
       K_G            : positive := 32;
-      L_G            : positive := 2;
-      SUB_CLASS_G    : natural  := 1
+      L_G            : positive := 2
    );
 
    port (
@@ -138,9 +137,15 @@ entity Jesd204bTxGtx7 is
 
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i       : in  sl;
-
+      
+      -- SYSREF out when it is generated internally SYSREF_GEN_G=True     
+      sysRef_o       : out    sl;
+      
       -- Synchronisation output combined from all receivers 
-      nSync_i        : in  sl
+      nSync_i        : in  sl;
+
+      -- Out to led
+      leds_o    : out   slv(1 downto 0)
    );
 end Jesd204bTxGtx7;
 
@@ -179,8 +184,7 @@ begin
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       F_G              => F_G,
       K_G              => K_G,
-      L_G              => L_G,
-      SUB_CLASS_G      => SUB_CLASS_G)
+      L_G              => L_G)
    port map (
       axiClk            => axiClk,
       axiRst            => axiRst,
@@ -197,7 +201,8 @@ begin
       nSync_i           => nSync_i,
       gtTxReady_i       => s_gtTxReady,
       gtTxReset_o       => s_gtTxUserReset,
-      r_jesdGtTxArr     => r_jesdGtTxArr
+      r_jesdGtTxArr     => r_jesdGtTxArr,
+      leds_o            => leds_o
    );
 
    --------------------------------------------------------------------------------------------------
@@ -219,10 +224,12 @@ begin
          sysref_i => '0',
          lmfc_o   => s_sysRef
       );
+      sysRef_o <= s_sysRef;
    end generate SELF_TEST_GEN;
    -- Else 
    OPER_GEN: if SYSREF_GEN_G = false generate
       s_sysRef <= sysRef_i;
+      sysRef_o <= '0';
    end generate OPER_GEN;
 
    --------------------------------------------------------------------------------------------------
@@ -285,9 +292,9 @@ begin
                RX_DDIEN_G               => '0',
                RX_BUF_ADDR_MODE_G       => "FULL",
                RX_ALIGN_MODE_G          => "GT",          -- Default
-               ALIGN_COMMA_DOUBLE_G     => "FALSE",       -- Default
+               ALIGN_COMMA_DOUBLE_G     => "TRUE",       
                ALIGN_COMMA_ENABLE_G     => "1111111111",  -- Default
-               ALIGN_COMMA_WORD_G       => 2,             -- Default
+               ALIGN_COMMA_WORD_G       => 1,             
                ALIGN_MCOMMA_DET_G       => "TRUE",
                ALIGN_MCOMMA_VALUE_G     => "1010000011",  -- Default
                ALIGN_MCOMMA_EN_G        => '1',
@@ -398,5 +405,4 @@ begin
    -----------------------------------------
    end generate GT_OPER_GEN;    
    -----------------------------------------------------
-
 end rtl;

@@ -28,13 +28,14 @@ entity SyncFsmTx is
       --JESD204B class (0 and 1 supported)
       
       -- Number of multi-frames in ILA sequence (4-255)
-      NUM_ILAS_MF_G : positive := 4;
-      
-      SUB_CLASS_G : natural := 1);    
+      NUM_ILAS_MF_G : positive := 4);    
    port (
       -- Clocks and Resets   
       clk            : in  sl;    
       rst            : in  sl;
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i     : in sl;   
       
       -- Enable the module
       enable_i       : in  sl;      
@@ -111,7 +112,7 @@ begin
             v.ila       := '0';
             
             -- Next state condition (depending on subclass)
-            if  SUB_CLASS_G = 1 then
+            if  subClass_i = '1' then
                if  sysRef_i = '1' and enable_i = '1' and gtTxReady_i = '1' then
                   v.state    := SYNC_S;
                end if;

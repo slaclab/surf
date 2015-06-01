@@ -432,7 +432,8 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk
+         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk (GT_WORD_SIZE_C=4)
+      -- I => jesdRefClk,   -- GT refclk used as JESD clk (GT_WORD_SIZE_C=2)
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -569,7 +570,7 @@ begin
       sysRef_o          => s_sysRefOut,          
       nSync_o           => s_nSync,
       leds_o(0)         => s_syncAllLED,-- (0) Sync (OR)
-      leds_o(1)         => s_validAllLED,-- (1) Data_valid (AND)
+      leds_o(1)         => s_validAllLED,-- (1) Data_valid
       rxUserRdyOut      => rxUserRdyOut,  
       rxMmcmResetOut    => rxMmcmResetOut);
    
@@ -613,7 +614,7 @@ begin
    );
    
    -- Output clock reference to ADC 
-   ADCClkBufSingle_INST: entity work.ClkOutBufDiff
+   ADCClkBufDiff_INST: entity work.ClkOutBufDiff
    generic map (
       XIL_DEVICE_G   => "7SERIES",
       RST_POLARITY_G => '1',
@@ -627,7 +628,7 @@ begin
    );
    
    -- Output reference to FPGA (out GPIO clk in MGT clk)
-   FPGAClkBufSingle_INST: entity work.ClkOutBufDiff
+   FPGAClkBufDiff_INST: entity work.ClkOutBufDiff
    generic map (
       XIL_DEVICE_G   => "7SERIES",
       RST_POLARITY_G => '1',
@@ -682,8 +683,8 @@ begin
       O =>  sysrefDbg 
    );
    
-   -- Output JESD clk for debug
-   GPioClkBufSingle_INST: entity work.ClkOutBufSingle
+   -- Output user clock for single ended reference
+   UserClkBufSingle_INST: entity work.ClkOutBufSingle
    generic map (
       XIL_DEVICE_G   => "7SERIES",
       RST_POLARITY_G => '1',

@@ -496,7 +496,8 @@ begin
       txAxisMasterArr   => axisTxMasters,
       txCtrlArr         => axisTxCtrl,
       sysRef_i          => s_sysRef,
-      nSync_o           => s_nSync
+      nSync_o           => s_nSync,
+      leds_o            => open
    );
    
    ----------------------------------------------------------------

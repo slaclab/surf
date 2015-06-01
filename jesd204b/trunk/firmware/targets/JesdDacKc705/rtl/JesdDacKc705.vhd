@@ -38,7 +38,25 @@ entity JesdDacKc705 is
       AXIL_CLK_FREQ_G        : real    := 125.0E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 9);
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
+      
+      --JESD configuration
+      -----------------------------------------------------
+      -- GTX disconnected 
+      SIM_G              : boolean := false;
+      -- TRUE  Internal SYSREF
+      -- FALSE External SYSREF
+      SYSREF_GEN_G       : boolean := false;  
+      
+      REFCLK_FREQUENCY_G : real     := 370.00E6;
+      LINE_RATE_G        : real     := 7.40E9;
+      
+      -- The JESD module supports values: 1,2,4(four byte GT word only)
+      F_G                : positive := 2;
+      -- K*F/GT_WORD_SIZE_C has to be integer     
+      K_G                : positive := 32;
+      -- Number of serial lanes: 1 to 16    
+      L_G                : positive := 2);
    port (
       pgpRefClkP : in sl;
       pgpRefClkN : in sl;
@@ -96,7 +114,7 @@ entity JesdDacKc705 is
       
       sysRef : out sl;
       
-      -- ADC EVM Out reference clock (SMA-370MHz)
+      -- Out reference clock or debug clock
       usrClk : out sl;
       gpioClk: out sl
    );
@@ -112,24 +130,19 @@ architecture rtl of JesdDacKc705 is
    -------------------------------------------------------------------------------------------------
    -- JESD constants and signals
    -------------------------------------------------------------------------------------------------
-   constant REFCLK_FREQUENCY_C : real     := 370.00E6; 
+   -- constant REFCLK_FREQUENCY_C : real     := 370.00E6; 
    -- constant REFCLK_FREQUENCY_C : real     := 368.64E6; 
-   --constant REFCLK_FREQUENCY_C : real     := 125.0E6; --TODO check
+   -- constant REFCLK_FREQUENCY_C : real     := 125.0E6;
    -- constant LINE_RATE_C        : real     := 7.3728E9;
-   constant LINE_RATE_C        : real     := 7.40E9;
-   --constant LINE_RATE_C        : real     := 2.50E9;
-   constant DEVCLK_PERIOD_C    : real     := 1.0/(LINE_RATE_C/40.0);
-   
-   constant F_C                : positive := 2;
-   constant K_C                : positive := 32;
-   constant L_C                : positive := 2;
-   constant SUB_CLASS_C        : natural  := 1;
+   -- constant LINE_RATE_C        : real     := 7.40E9;
+   -- constant LINE_RATE_C        : real     := 2.50E9;
+   constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)*10.0/(LINE_RATE_G);
 
    signal  s_sysRef : sl;
    signal  s_nsync  : sl;
 
    -- QPLL config constants
-   constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_C, LINE_RATE_C);   
+   constant QPLL_CONFIG_C     : Gtx7QPllCfgType := getGtx7QPllCfg(REFCLK_FREQUENCY_G, LINE_RATE_G);   
 
    -- QPLL
    signal  gtCPllRefClk  : sl; 
@@ -138,7 +151,7 @@ architecture rtl of JesdDacKc705 is
    signal  qPllOutRefClk : sl; 
    signal  qPllLock      : sl; 
    signal  qPllRefClkLost: sl; 
-   signal  qPllReset     : slv(L_C-1 downto 0); 
+   signal  qPllReset     : slv(L_G-1 downto 0); 
    signal  gtQPllReset   : sl;
    
 
@@ -174,7 +187,7 @@ architecture rtl of JesdDacKc705 is
    constant JESD_AXIL_INDEX_C    : natural              := 1;
 
    constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant JESD_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"00010000";
+   constant JESD_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"00020000";
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
@@ -209,9 +222,14 @@ architecture rtl of JesdDacKc705 is
    -- PGP Signals and Virtual Channels
    -------------------------------------------------------------------------------------------------
    signal s_usrClk : sl;   
-   signal s_usrRst : sl;      
-   
-   
+   signal s_usrRst : sl;
+
+   -------------------------------------------------------------------------------------------------
+   -- Debug
+   -------------------------------------------------------------------------------------------------   
+   signal s_syncAllLED  : sl;
+   signal s_validAllLED : sl;
+
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -236,20 +254,6 @@ begin
       clkOut(0) => s_usrClk,
       rstOut(0) => s_usrRst);
     
-   usrClk <= s_usrClk;
-
-   -- ClkOutBufSingle_INST: entity work.ClkOutBufSingle
-   -- generic map (
-      -- XIL_DEVICE_G   => "7SERIES",
-      -- RST_POLARITY_G => '1',
-      -- INVERT_G       => false)
-   -- port map (
-      -- rstIn  => s_usrClk,
-      -- clkIn  => s_usrRst,
-      -- clkOut => usrClk);
-
-   gpioClk <= jesdClk;
-
    -------------------------------------------------------------------------------------------------
    -- Bring in gt reference clocks
    -------------------------------------------------------------------------------------------------
@@ -303,42 +307,6 @@ begin
          rstOut(0) => axilClkRst,
          rstOut(1) => pgpClkRst);
 
-   -------------------------------------------------------------------------------------------------
-   -- LED Test Outputs
-   -------------------------------------------------------------------------------------------------
-   Heartbeat_axilClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 8.0E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => axilClk,
-         o   => leds(0));
-
-   Heartbeat_pgpClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 6.4E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => pgpClk,
-         o   => leds(1));
-         
-   Heartbeat_jesdclk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 5.425E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => jesdClk,
-         o   => leds(4));
-         
-   leds(5) <= qPllLock;
-   leds(6) <= qPllRefClkLost;
-   leds(7) <= qPllReset(0);
-   
-
-   
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
    -------------------------------------------------------------------------------------------------
@@ -428,7 +396,8 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClkDiv2,
+         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk (GT_WORD_SIZE_C=4)
+      -- I => jesdRefClk,   -- GT refclk used as JESD clk (GT_WORD_SIZE_C=2)
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -482,12 +451,11 @@ begin
    generic map (
       TPD_G                 => TPD_G,
      
+      -- GTX disconnected
+      SIM_G      =>  SIM_G,
       -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G =>  false,  
-      
-      -- Disconnect MGT for simulation
-      SIM_G                 => false,
+      SYSREF_GEN_G =>  SYSREF_GEN_G,    
       
       -- CPLL Configurations (not used)
       CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
@@ -520,10 +488,9 @@ begin
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
       
       -- JESD
-      F_G                => F_C,
-      K_G                => K_C,
-      L_G                => L_C,
-      SUB_CLASS_G        => SUB_CLASS_C)
+      F_G                => F_G,
+      K_G                => K_G,
+      L_G                => L_G)
    port map (
       qPllRefClkIn      => qPllOutRefClk,
       qPllClkIn         => qPllOutClk,
@@ -553,18 +520,22 @@ begin
       axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_INDEX_C),
       
       --Currently no AXI stream input
-      rxAxisMasterArr_i  => (L_C-1 downto 0 => AXI_STREAM_MASTER_INIT_C),
+      rxAxisMasterArr_i  => (L_G-1 downto 0 => AXI_STREAM_MASTER_INIT_C),
       rxAxisSlaveArr_o   => open,
       
       -- External sample data input
-      extSampleDataArray_i => (L_C-1 downto 0 => (RX_STAT_WIDTH_C-1 downto 0 => '0')),
+      extSampleDataArray_i => (L_G-1 downto 0 => (RX_STAT_WIDTH_C-1 downto 0 => '0')),
+      
+      leds_o(0)         => s_syncAllLED, -- (0) Sync
+      leds_o(1)         => s_validAllLED,-- (1) Data_valid
       
       sysRef_i          => s_sysRef,
+      sysRef_o          => open, -- TODO Add internal sysref GEN output          
       nSync_i           => s_nSync
    );
    
    ----------------------------------------------------------------
-   -- Put sync and sysref on differential io buffer
+   -- Get sync and sysref from differential io buffer
    ----------------------------------------------------------------
    IBUFDS_rsysref_inst : IBUFDS
    generic map (
@@ -590,4 +561,60 @@ begin
       IB => syncbN
    );
 
+   -------------------------------------------------------------------------------------------------
+   -- LED Test Outputs
+   -------------------------------------------------------------------------------------------------
+   Heartbeat_axilClk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 8.0E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => axilClk,
+         o   => leds(0));
+
+   Heartbeat_pgpClk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 6.4E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => pgpClk,
+         o   => leds(1));
+         
+   Heartbeat_jesdclk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 5.425E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => jesdClk,
+         o   => leds(4));
+         
+   leds(5) <= qPllLock;
+   leds(6) <= s_syncAllLED;
+   leds(7) <= s_validAllLED;
+   
+   -- Output user clock for single ended reference  
+   UserClkBufSingle_INST: entity work.ClkOutBufSingle
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn       => s_usrClk,
+      rstIn       => s_usrRst,
+      clkOut      => usrClk);
+
+   -- Output JESD clk for debug
+   GPioClkBufSingle_INST: entity work.ClkOutBufSingle
+   generic map (
+      XIL_DEVICE_G   => "7SERIES",
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn  => jesdClk,
+      rstIn  => jesdClkRst,
+      clkOut => gpioClk);
+   
 end architecture rtl;
