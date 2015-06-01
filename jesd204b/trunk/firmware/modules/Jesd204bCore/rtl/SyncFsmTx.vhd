@@ -55,6 +55,9 @@ entity SyncFsmTx is
       -- Synchronisation process is complete start sending data 
       dataValid_o    : out sl;
       
+      -- sysref received     
+      sysref_o       : out   sl;
+      
       -- Initial lane synchronisation sequence indicator
       ila_o          : out sl
    );
@@ -72,7 +75,8 @@ architecture rtl of SyncFsmTx is
    type RegType is record
       -- Synchronous FSM control outputs
       dataValid   : sl;
-      ila       : sl;
+      ila         : sl;
+      sysref      : sl;
       -- Count       
       cnt         : slv(7 downto 0);
       
@@ -82,7 +86,8 @@ architecture rtl of SyncFsmTx is
    
    constant REG_INIT_C : RegType := (
       dataValid    => '0',
-      ila        => '0',
+      ila          => '0',
+      sysref       => '0',
       cnt          =>  (others => '0'),
 
       -- Status Machine
@@ -110,6 +115,7 @@ begin
             v.cnt       := (others => '0');
             v.dataValid := '0';
             v.ila       := '0';
+            v.sysref    := '0';
             
             -- Next state condition (depending on subclass)
             if  subClass_i = '1' then
@@ -128,6 +134,7 @@ begin
             v.cnt       := (others => '0');
             v.dataValid := '0';
             v.ila       := '0';
+            v.sysref    := '1';
             
             -- Next state condition
             if  nSync_i = '1' and lmfc_i = '1' then
@@ -141,6 +148,7 @@ begin
             -- Outputs
             v.dataValid := '0';
             v.ila       := '1';
+            v.sysref    := '1';
             
             -- Increase lmfc counter.
             if (lmfc_i = '1') then
@@ -161,6 +169,7 @@ begin
             v.cnt       := r.cnt+GT_WORD_SIZE_C; -- two or four data bytes sent in parallel
             v.dataValid := '1';
             v.ila       := '0';
+            v.sysref    := '1';
             
             -- Next state condition            
             if  nSync_i = '0' or enable_i = '0' then  
@@ -173,6 +182,7 @@ begin
             v.cnt       := (others => '0');
             v.dataValid := '0';
             v.ila       := '0';
+            v.sysref    := '0';
             
             -- Next state condition            
             v.state   := IDLE_S;            
@@ -199,5 +209,6 @@ begin
    -- Output assignment   
    dataValid_o <= r.dataValid;
    ila_o       <= r.ila;
+   sysref_o    <= r.sysref;
 ----------------------------------------------
 end rtl;

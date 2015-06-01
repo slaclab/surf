@@ -20,7 +20,7 @@ package Jesd204bPkg is
    -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;
    constant RX_STAT_WIDTH_C   : positive := 10 + 2*GT_WORD_SIZE_C;
-   constant TX_STAT_WIDTH_C   : positive := 4;
+   constant TX_STAT_WIDTH_C   : positive := 6;
    
    -- AXI packet size at powerup
    constant  AXI_PACKET_SIZE_DEFAULT_C : slv(23 downto 0):=x"00_01_00";
