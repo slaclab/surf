@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2015-06-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,21 +31,23 @@ use work.AxiStreamPkg.all;
 entity AxiStreamDeMux is
    generic (
       TPD_G         : time                  := 1 ns;
-      NUM_MASTERS_G : integer range 1 to 32 := 4
-   ); port (
+      NUM_MASTERS_G : integer range 1 to 32 := 12;
+      TDEST_HIGH_G  : integer range 0 to 7  := 7;
+      TDEST_LOW_G   : integer range 0 to 7  := 0);
+   port (
 
       -- Clock and reset
-      axisClk        : in sl;
-      axisRst        : in sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
       -- Slave
-      sAxisMaster  : in  AxiStreamMasterType;
-      sAxisSlave   : out AxiStreamSlaveType;
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType;
 
       -- Masters
       mAxisMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
       mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0)
-   );
+      );
 end AxiStreamDeMux;
 
 architecture structure of AxiStreamDeMux is
@@ -57,15 +59,19 @@ architecture structure of AxiStreamDeMux is
 
    constant REG_INIT_C : RegType := (
       slave   => AXI_STREAM_SLAVE_INIT_C,
-      masters => (others=>AXI_STREAM_MASTER_INIT_C)
-   );
+      masters => (others => AXI_STREAM_MASTER_INIT_C)
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (axisRst, r, sAxisMaster, mAxisSlaves ) is
+   assert (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_MASTERS_G))
+      report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
+      " is too small for NUM_MASTERS_G=" & integer'image(NUM_MASTERS_G) severity error;
+
+   comb : process (axisRst, r, sAxisMaster, mAxisSlaves) is
       variable v   : RegType;
       variable idx : integer;
    begin
@@ -79,7 +85,7 @@ begin
       end loop;
 
       -- Decode destination
-      idx := conv_integer(sAxisMaster.tDest);
+      idx := conv_integer(sAxisMaster.tDest(TDEST_HIGH_G downto TDEST_LOW_G));
 
       -- Invalid destination
       if idx >= NUM_MASTERS_G then
