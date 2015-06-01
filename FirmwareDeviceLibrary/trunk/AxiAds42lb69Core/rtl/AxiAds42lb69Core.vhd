@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2015-03-23
+-- Last update: 2015-05-19
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,22 +25,22 @@ use work.AxiAds42lb69Pkg.all;
 
 entity AxiAds42lb69Core is
    generic (
-      TPD_G              : time                            := 1 ns;
-      COMMON_CLK_G       : boolean                         := false;  -- true if axiClk = adcClk
-      USE_PLL_G          : boolean                         := false;  -- true = phase compensate the ADC data bus
-      ADC_CLK_FREQ_G     : real                            := 250.0E+6;  -- units of Hz
-      DMODE_INIT_G       : slv(1 downto 0)                 := "00";
-      DELAY_INIT_G       : Slv5VectorArray(0 to 1, 0 to 7) := (others => (others => (others => '0')));
-      IODELAY_GROUP_G    : string                          := "AXI_ADS42LB69_IODELAY_GRP";
-      STATUS_CNT_WIDTH_G : natural range 1 to 32           := 32;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                 := AXI_RESP_SLVERR_C);      
+      TPD_G              : time                                    := 1 ns;
+      COMMON_CLK_G       : boolean                                 := false;  -- true if axiClk = adcClk
+      USE_PLL_G          : boolean                                 := false;  -- true = phase compensate the ADC data bus
+      ADC_CLK_FREQ_G     : real                                    := 250.0E+6;  -- units of Hz
+      DMODE_INIT_G       : slv(1 downto 0)                         := "00";
+      DELAY_INIT_G       : Slv5VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
+      IODELAY_GROUP_G    : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
+      STATUS_CNT_WIDTH_G : natural range 1 to 32                   := 32;
+      AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C);      
    port (
       -- ADC Ports
       adcIn          : in  AxiAds42lb69InType;
       adcOut         : out AxiAds42lb69OutType;
       -- ADC signals (adcClk domain)
       adcSync        : in  sl;
-      adcData        : out Slv16Array(0 to 1);
+      adcData        : out Slv16Array(1 downto 0);
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
