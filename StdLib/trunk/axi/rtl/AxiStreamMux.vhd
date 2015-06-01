@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-05
+-- Last update: 2015-05-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,8 +31,9 @@ use work.AxiStreamPkg.all;
 entity AxiStreamMux is
    generic (
       TPD_G        : time                  := 1 ns;
-      NUM_SLAVES_G : integer range 1 to 32 := 4
-      );
+      NUM_SLAVES_G : integer range 1 to 32 := 4;
+      TDEST_HIGH_G : integer range 0 to 7  := 7;
+      TDEST_LOW_G  : integer range 0 to 7  := 0);
    port (
 
       -- Clock and reset
@@ -44,7 +45,7 @@ entity AxiStreamMux is
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
 
       -- MUX Address
-      sAxisAuto : in sl                                    := '1';  -- '1' for AUTO MUX, '0' for manual MUX
+      sAxisAuto : in sl                                      := '1';  -- '1' for AUTO MUX, '0' for manual MUX
       sAxisAddr : in slv(bitSize(NUM_SLAVES_G-1)-1 downto 0) := (others => '0');  -- manual MUX address
 
       -- Master
@@ -61,28 +62,32 @@ architecture structure of AxiStreamMux is
    type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C);
 
    type RegType is record
-      state    : StateType;
-      acks     : slv(ARB_BITS_C-1 downto 0);
-      ackNum   : slv(DEST_SIZE_C-1 downto 0);
-      valid    : sl;
-      slaves   : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
-      master   : AxiStreamMasterType;
+      state  : StateType;
+      acks   : slv(ARB_BITS_C-1 downto 0);
+      ackNum : slv(DEST_SIZE_C-1 downto 0);
+      valid  : sl;
+      slaves : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      master : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state    => S_IDLE_C,
-      acks     => (others => '0'),
-      ackNum   => (others => '0'),
-      valid    => '0',
-      slaves   => (others => AXI_STREAM_SLAVE_INIT_C),
-      master   => AXI_STREAM_MASTER_INIT_C
+      state  => S_IDLE_C,
+      acks   => (others => '0'),
+      ackNum => (others => '0'),
+      valid  => '0',
+      slaves => (others => AXI_STREAM_SLAVE_INIT_C),
+      master => AXI_STREAM_MASTER_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
-
+   
+   assert (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G))
+      report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
+      " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
+   
    comb : process (axisRst, mAxisSlave, r, sAxisAddr, sAxisAuto, sAxisMasters) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
@@ -97,12 +102,12 @@ begin
 
       -- Select source
       selData       := sAxisMasters(conv_integer(r.ackNum));
-      selData.tDest := (others => '0');
+      selData.tDest(7 downto TDEST_LOW_G) := (others => '0');
 
-      selData.tDest(DEST_SIZE_C-1 downto 0) := r.ackNum;
+      selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
 
       -- Format requests
-      requests := (others=>'0');
+      requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          -- Check for automatic MUX'ing
          if sAxisAuto = '1' then
