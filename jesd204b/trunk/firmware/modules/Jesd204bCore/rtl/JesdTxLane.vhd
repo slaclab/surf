@@ -34,8 +34,7 @@ entity JesdTxLane is
    generic (
       TPD_G       : time      := 1 ns;
       F_G         : positive  := 2;
-      K_G         : positive  := 32;
-      SUB_CLASS_G : natural   := 1
+      K_G         : positive  := 32
    );
    port (
 
@@ -43,7 +42,10 @@ entity JesdTxLane is
       -- Clocks and Resets   
       devClk_i       : in  sl;
       devRst_i       : in  sl;
-
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i : in sl;
+      
       -- Control register
       enable_i       : in  sl;
       replEnable_i : in  sl;      
@@ -95,11 +97,11 @@ begin
    syncFSM_INST : entity work.SyncFsmTx
       generic map (
       TPD_G         => TPD_G,
-      NUM_ILAS_MF_G => 4,
-      SUB_CLASS_G   => SUB_CLASS_G)
+      NUM_ILAS_MF_G => 4)
       port map (
          clk          => devClk_i,
          rst          => devRst_i,
+         subClass_i   => subClass_i,
          enable_i     => enable_i,
          gtTxReady_i  => gtTxReady_i,
          lmfc_i       => lmfc_i,
@@ -164,6 +166,6 @@ begin
                            s_commaDataMux       when others;
                               
    -- Output assignment   
-   status_o  <= nSync_i & s_dataValid & s_ila & gtTxReady_i;
+   status_o  <= nSync_i & s_ila & s_dataValid & gtTxReady_i;
  --------------------------------------------
 end rtl;

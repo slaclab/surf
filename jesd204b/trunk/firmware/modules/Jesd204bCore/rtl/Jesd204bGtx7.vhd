@@ -88,8 +88,7 @@ entity Jesd204bGtx7 is
    ----------------------------------------------------------------------------------------------
       F_G            : positive := 2;
       K_G            : positive := 32;
-      L_G            : positive := 2;
-      SUB_CLASS_G    : natural  := 1
+      L_G            : positive := 2
    );
 
    port (
@@ -145,7 +144,10 @@ entity Jesd204bGtx7 is
       sysRef_i       : in    sl;
 
       -- Synchronisation output combined from all receivers 
-      nSync_o        : out   sl
+      nSync_o        : out   sl;
+      
+      -- Debug output
+      leds_o         : out   slv(1 downto 0)
    );
 end Jesd204bGtx7;
 
@@ -189,8 +191,7 @@ begin
       AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
       F_G               => F_G,
       K_G               => K_G,
-      L_G               => L_G,
-      SUB_CLASS_G       => SUB_CLASS_G)
+      L_G               => L_G)
    port map (
       axiClk            => axiClk,
       axiRst            => axiRst,
@@ -218,8 +219,7 @@ begin
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       F_G              => F_G,
       K_G              => K_G,
-      L_G              => L_G,
-      SUB_CLASS_G      => SUB_CLASS_G)
+      L_G              => L_G)
    port map (
       axiClk            => axiClk,
       axiRst            => axiRst,
@@ -236,7 +236,8 @@ begin
       nSync_i           => s_nSync,
       gtTxReady_i       => s_gtTxReady,
       gtTxReset_o       => s_gtTxUserReset,
-      r_jesdGtTxArr     => r_jesdGtTxArr
+      r_jesdGtTxArr     => r_jesdGtTxArr,
+      leds_o            => leds_o
    );
 
    --------------------------------------------------------------------------------------------------

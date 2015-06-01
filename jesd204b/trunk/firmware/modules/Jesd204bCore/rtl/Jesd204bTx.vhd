@@ -89,7 +89,8 @@ entity Jesd204bTx is
       gtTxReady_i    : in    slv(L_G-1 downto 0); 
       
       -- Data and character inputs from GT (transceivers)
-      r_jesdGtTxArr  : out   jesdGtTxLaneTypeArray(L_G-1 downto 0)
+      r_jesdGtTxArr  : out   jesdGtTxLaneTypeArray(L_G-1 downto 0);
+      leds_o         : out   slv(1 downto 0)
    );
 end Jesd204bTx;
 
@@ -101,12 +102,19 @@ architecture rtl of Jesd204bTx is
    signal s_lmfc   : sl;
 
    -- Control and status from AxiLie
+   ------------------------------------------------------------
    signal s_sysrefDlyTx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
    signal s_enableTx     : slv(L_G-1 downto 0);
    signal s_replEnable   : sl;
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
    signal  s_dataValid   : slv(L_G-1 downto 0);
    signal  s_swTriggerReg: slv(L_G-1 downto 0);
+   -- JESD subclass selection (from AXI lite register)
+   signal s_subClass    : sl;
+   -- User reset (from AXI lite register)
+   signal s_gtReset     : sl;
+   signal s_clearErr    : sl;
+   signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
    
    -- Axi Lite interface synced to devClk
    signal sAxiReadMasterDev : AxiLiteReadMasterType;
@@ -131,8 +139,11 @@ architecture rtl of Jesd204bTx is
    
    -- Select output 
    signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
-
-
+   
+   -- LED out generation
+   signal s_dataValidVec   : slv(L_G-1 downto 0);
+   
+   
 begin
    -- Check generics TODO add others
    assert (1 <= L_G and L_G <= 8)  report "L_G must be between 1 and 8"   severity failure;
@@ -189,6 +200,9 @@ begin
       sysrefDlyTx_o   => s_sysrefDlyTx,
       enableTx_o      => s_enableTx,
       replEnable_o    => s_replEnable,
+      subClass_o      => s_subClass,
+      gtReset_o       => s_gtReset,
+      clearErr_o      => s_clearErr,
       swTrigger_o     => s_swTriggerReg,
       rampStep_o      => s_rampStep,
       axisPacketSize_o=> open
@@ -279,8 +293,7 @@ begin
    SysrefDly_INST: entity work.SysrefDly
    generic map (
       TPD_G       => TPD_G,
-      DLY_WIDTH_G => SYSRF_DLY_WIDTH_C 
-   )
+      DLY_WIDTH_G => SYSRF_DLY_WIDTH_C)
    port map (
       clk      => devClk_i,
       rst      => devRst_i,
@@ -314,11 +327,11 @@ begin
       generic map (
          TPD_G       => TPD_G,
          F_G         => F_G,
-         K_G         => K_G,
-         SUB_CLASS_G => SUB_CLASS_G)
+         K_G         => K_G)
       port map (
          devClk_i     => devClk_i,
          devRst_i     => devRst_i,
+         subClass_i   => s_subClass,    -- From AXI lite
          enable_i     => s_enableTx(I), -- From AXI lite
          replEnable_i => s_replEnable,  -- From AXI lite
          lmfc_i       => s_lmfc,
@@ -331,10 +344,12 @@ begin
    end generate generateTxLanes;
     
    -- Output assignment
-   -- TODO route from register (do not link to enable signal)
-   GT_RST_GEN : for I in L_G-1 downto 0 generate 
-      gtTxReset_o(I)  <= '0';
-   end generate GT_RST_GEN;
+   gtTxReset_o  <= (others=> s_gtReset);
    
+   GT_RST_GEN : for I in L_G-1 downto 0 generate 
+      s_dataValidVec(I)  <= s_statusTxArr(I)(2);
+   end generate GT_RST_GEN;
+
+   leds_o <= uOr(s_dataValidVec) & s_nSyncSync;
    -----------------------------------------------------
 end rtl;

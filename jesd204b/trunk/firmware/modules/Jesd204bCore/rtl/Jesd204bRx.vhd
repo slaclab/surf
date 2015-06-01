@@ -234,6 +234,7 @@ begin
       axilReadSlave   => sAxiReadSlaveDev,
       axilWriteMaster => sAxiWriteMasterDev,
       axilWriteSlave  => sAxiWriteSlaveDev,
+      
       statusRxArr_i   => s_statusRxArr,
       sysrefDlyRx_o   => s_sysrefDlyRx,
       enableRx_o      => s_enableRx,
