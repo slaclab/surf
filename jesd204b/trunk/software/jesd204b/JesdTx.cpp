@@ -58,17 +58,21 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    addRegisterLink(rl = new RegisterLink("RampStep",    baseAddress_ + (0x05*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("rampStep_i=0 increment every c-c, rampStep_i=1 increment every second c-c, etc.");
      
-   addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 4,
+   addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 6,
                                 "L1_GTXRdy",        Variable::Status, 0, 0x1,
                                 "L1_DataValid",     Variable::Status, 1, 0x1, 
                                 "L1_IlasActive",    Variable::Status, 2, 0x1,
-                                "L1_nSync",         Variable::Status, 3, 0x1));                                                      
+                                "L1_nSync",         Variable::Status, 3, 0x1,                                                     
+                                "L1_TxEnabled",     Variable::Status, 4, 0x1,
+                                "L1_SysRefDetected",Variable::Status, 5, 0x1));
                                 
-   addRegisterLink(rl = new RegisterLink("L2_Status",     baseAddress_ + (0x11*addrSize), 1, 4,
+   addRegisterLink(rl = new RegisterLink("L2_Status",     baseAddress_ + (0x11*addrSize), 1, 6,
                                 "L2_GTXRdy",        Variable::Status, 0, 0x1,
                                 "L2_DataValid",     Variable::Status, 1, 0x1, 
                                 "L2_IlasActive",    Variable::Status, 2, 0x1,
-                                "L2_nSync",         Variable::Status, 3, 0x1));
+                                "L2_nSync",         Variable::Status, 3, 0x1,                                                     
+                                "L2_TxEnabled",     Variable::Status, 4, 0x1,
+                                "L2_SysRefDetected",Variable::Status, 5, 0x1));
                                 
                                 
    addRegisterLink(rl = new RegisterLink("L1_data_mux",           baseAddress_ + (0x20*addrSize), Variable::Configuration));

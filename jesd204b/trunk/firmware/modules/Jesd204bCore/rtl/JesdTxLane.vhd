@@ -80,6 +80,7 @@ architecture rtl of JesdTxLane is
    -- Control signals from FSM
    signal s_dataValid  : sl;
    signal s_ila        : sl;
+   signal s_refDetected: sl; 
    
    -- Data-path
    signal s_sampleDataMux  : slv(r_jesdGtTx.data'range);
@@ -108,6 +109,7 @@ begin
          nSync_i      => nSync_i,
          sysRef_i     => sysRef_i, 
          dataValid_o  => s_dataValid,
+         sysref_o     => s_refDetected,
          ila_o        => s_ila
       );    
 
@@ -166,6 +168,6 @@ begin
                            s_commaDataMux       when others;
                               
    -- Output assignment   
-   status_o  <= nSync_i & s_ila & s_dataValid & gtTxReady_i;
+   status_o  <= s_refDetected & enable_i & nSync_i & s_ila & s_dataValid & gtTxReady_i;
  --------------------------------------------
 end rtl;

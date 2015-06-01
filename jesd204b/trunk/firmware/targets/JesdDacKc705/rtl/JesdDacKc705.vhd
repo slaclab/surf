@@ -499,13 +499,13 @@ begin
       qPllResetOut      => qPllReset,
       
       gtTxP(0)          => adcGtTxP(0),
-      gtTxP(1)          => adcGtTxP(2),      
+      gtTxP(1)          => adcGtTxP(1),      
       gtTxN(0)          => adcGtTxN(0),
-      gtTxN(1)          => adcGtTxN(2),  
+      gtTxN(1)          => adcGtTxN(1),  
       gtRxP(0)          => adcGtRxP(0),
-      gtRxP(1)          => adcGtRxP(2),      
+      gtRxP(1)          => adcGtRxP(1),      
       gtRxN(0)          => adcGtRxN(0),
-      gtRxN(1)          => adcGtRxN(2),
+      gtRxN(1)          => adcGtRxN(1),
       
       stableClk         => jesdRefClkG, -- Stable because it is never reset
       devClk_i          => jesdClk, -- both same
