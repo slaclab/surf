@@ -25,7 +25,7 @@ use unisim.vcomponents.all;
 entity AxiAds42lb69Pll is
    generic (
       TPD_G          : time    := 1 ns;
-      USE_PLL_G      : boolean := false;
+      USE_PLL_G      : boolean := true;
       ADC_CLK_FREQ_G : real    := 250.0E+6);
    port (
       -- ADC Clocking ports
@@ -44,9 +44,7 @@ end AxiAds42lb69Pll;
 
 architecture mapping of AxiAds42lb69Pll is
 
-   constant ADC_CLK_PERIOD_C    : real := getRealDiv(1, ADC_CLK_FREQ_G);
-   constant ADC_CLK_PERIOD_NS_C : real := getRealMult(1.0E+9, ADC_CLK_PERIOD_C);
-   constant CLKFBOUT_MULT_F_C   : real := getRealDiv(1.0E+9, ADC_CLK_FREQ_G);
+   constant ADC_CLK_PERIOD_NS_C : real := getRealDiv(1.0E+9, ADC_CLK_FREQ_G);
 
    signal clkFeedBack    : sl;
    signal clkFeedBackIn  : sl;
@@ -73,7 +71,7 @@ begin
             COMPENSATION         => "ZHOLD",
             STARTUP_WAIT         => false,
             DIVCLK_DIVIDE        => 1,
-            CLKFBOUT_MULT_F      => CLKFBOUT_MULT_F_C,
+            CLKFBOUT_MULT_F      => ADC_CLK_PERIOD_NS_C,
             CLKFBOUT_PHASE       => 0.000,
             CLKFBOUT_USE_FINE_PS => false,
             CLKIN1_PERIOD        => ADC_CLK_PERIOD_NS_C,

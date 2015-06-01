@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2015-03-23
+-- Last update: 2015-05-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,11 +27,11 @@ use unisim.vcomponents.all;
 
 entity AxiAds42lb69Deser is
    generic (
-      TPD_G           : time                            := 1 ns;
-      USE_PLL_G       : boolean                         := false;
-      ADC_CLK_FREQ_G  : real                            := 250.0E+6;
-      DELAY_INIT_G    : Slv5VectorArray(0 to 1, 0 to 7) := (others => (others => (others => '0')));
-      IODELAY_GROUP_G : string                          := "AXI_ADS42LB69_IODELAY_GRP");
+      TPD_G           : time                                    := 1 ns;
+      USE_PLL_G       : boolean                                 := false;
+      ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
+      DELAY_INIT_G    : Slv5VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
+      IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP");
    port (
       -- ADC Ports  
       clkP         : out sl;
@@ -40,10 +40,10 @@ entity AxiAds42lb69Deser is
       syncN        : out sl;
       clkFbP       : in  sl;
       clkFbN       : in  sl;
-      dataP        : in  Slv8Array(0 to 1);
-      dataN        : in  Slv8Array(0 to 1);
+      dataP        : in  Slv8Array(1 downto 0);
+      dataN        : in  Slv8Array(1 downto 0);
       -- ADC Data Interface (adcClk domain)
-      adcData      : out Slv16Array(0 to 1);
+      adcData      : out Slv16Array(1 downto 0);
       -- Register Interface (adcClk domain)
       dmode        : in  slv(1 downto 0);
       -- Register Interface (refclk200MHz domain)
@@ -60,14 +60,14 @@ architecture rtl of AxiAds42lb69Deser is
 
    signal adcClock  : sl;
    signal dmux      : slv(1 downto 0);
-   signal adcDataPs : Slv8Array(0 to 1);
-   signal adcDataNs : Slv8Array(0 to 1);
-   signal adcDataP  : Slv8Array(0 to 1);
-   signal adcDataN  : Slv8Array(0 to 1);
-   signal adcDataNd : Slv8Array(0 to 1);
-   signal adcDmuxA  : Slv8Array(0 to 1);
-   signal adcDmuxB  : Slv8Array(0 to 1);
-   signal data      : Slv16Array(0 to 1);
+   signal adcDataPs : Slv8Array(1 downto 0);
+   signal adcDataNs : Slv8Array(1 downto 0);
+   signal adcDataP  : Slv8Array(1 downto 0);
+   signal adcDataN  : Slv8Array(1 downto 0);
+   signal adcDataNd : Slv8Array(1 downto 0);
+   signal adcDmuxA  : Slv8Array(1 downto 0);
+   signal adcDmuxB  : Slv8Array(1 downto 0);
+   signal data      : Slv16Array(1 downto 0);
 
    attribute IODELAY_GROUP                    : string;
    attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
@@ -109,9 +109,9 @@ begin
          RST    => delayIn.rst);        -- 1-bit input: Active high reset input                   
 
    GEN_CH :
-   for ch in 0 to 1 generate
+   for ch in 1 downto 0 generate
       GEN_DAT :
-      for i in 0 to 7 generate
+      for i in 7 downto 0 generate
          
          AxiAds42lb69DeserBit_Inst : entity work.AxiAds42lb69DeserBit
             generic map(
