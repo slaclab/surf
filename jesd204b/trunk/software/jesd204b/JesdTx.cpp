@@ -49,11 +49,12 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    addRegisterLink(rl = new RegisterLink("AXISpacketSize",   baseAddress_ + (0x03*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Data packet size (when enabled packets are being sent continuously)"); 
 
-   addRegisterLink(rl = new RegisterLink("CommonControl",    baseAddress_ + (0x04*addrSize), 1, 4,
+   addRegisterLink(rl = new RegisterLink("CommonControl",    baseAddress_ + (0x04*addrSize), 1, 5,
                                 "SubClass",              Variable::Configuration, 0, 0x1,
                                 "ReplaceEnable",         Variable::Configuration, 1, 0x1,
                                 "ResetGTs",              Variable::Configuration, 2, 0x1,
-                                "ClearErrors",           Variable::Configuration, 3, 0x1));
+                                "ClearErrors",           Variable::Configuration, 3, 0x1,
+                                "SawMRamp",              Variable::Configuration, 4, 0x1));
 
    addRegisterLink(rl = new RegisterLink("RampStep",    baseAddress_ + (0x05*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("rampStep_i=0 increment every c-c, rampStep_i=1 increment every second c-c, etc.");

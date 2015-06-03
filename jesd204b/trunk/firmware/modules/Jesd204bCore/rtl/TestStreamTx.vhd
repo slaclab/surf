@@ -23,8 +23,9 @@
  
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+--use ieee.std_logic_arith.all;
+
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.jesd204bpkg.all;
@@ -40,11 +41,11 @@ entity TestStreamTx is
       
       -- Enable counter      
       enable_i     : in  sl;
-      
-      -- Increase counter
-      rampStep_i   : in slv(RAMP_STEP_WIDTH_C-1 downto 0);
-      
-      -- Outs    
+      sawNRamp_i        : in  sl;      
+      -- Increase counter by the step
+      rampStep_i   : in slv(RAMP_STEP_WIDTH_C-1 downto 0);     
+ 
+      -- Outs 
       sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0)  
    );
 end entity TestStreamTx;
@@ -55,15 +56,13 @@ architecture rtl of TestStreamTx is
 
    type RegType is record
       stepCnt      : slv(RAMP_STEP_WIDTH_C-1 downto 0);
-      rampCnt      : slv(F_G*8-1 downto 0);
-      strobe       : sl;
+      rampCnt      : signed(F_G*8-1 downto 0);
       inc          : sl;      
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       stepCnt     => (others => '0'),
       rampCnt     => (others => '0'),
-      strobe      => '0',
       inc         => '1'
    );
 
@@ -75,39 +74,49 @@ architecture rtl of TestStreamTx is
    --
 begin
 
-   comb : process (r, rst,enable_i,rampStep_i) is
+   comb : process (r, rst,enable_i,rampStep_i,sawNRamp_i) is
       variable v : RegType;
+      variable v_rampCntPP : signed(F_G*8 downto 0);  
    begin
       v := r;
-      
-      -- Strobe period ticker (one clock cycle every step period, constant '1' if rampStep_i=0)
-      -------------------------------------------------------------
-      if (r.stepCnt = rampStep_i) then
-         v.stepCnt  := (others => '0');
-         v.strobe := '1';
-      else 
-         v.stepCnt := r.stepCnt + 1;
-         v.strobe := '0';         
-      end if;
-      
+          
       -- Ramp generator      
       ------------------------------------------------------------- 
-      
       -- Increment/decrement ramp control
-      if (r.rampCnt = (F_G*8-1 downto 0 => '0')) then
+      if (v.inc = '0') then
+         v_rampCntPP := ('0'&v.rampCnt) - slvToInt(rampStep_i)*SAM_IN_WORD_C;
+         if (v_rampCntPP(F_G*8) = '1') then
+            v.inc := '1';
+         end if;
+      elsif (v.inc = '1') then
+         v_rampCntPP := ('0'&v.rampCnt) + slvToInt(rampStep_i)*SAM_IN_WORD_C;
+         if (v_rampCntPP(F_G*8) = '1') then
+            v.inc := '0';
+         end if;
+      end if;
+      
+      if (sawNRamp_i = '1') then
          v.inc := '1';
-      elsif (r.rampCnt = (F_G*8-1 downto 0 => '1')) then
-         v.inc := '0';     
-      end if;     
+      end if;
       
       -- Ramp up or down counter
-      if (r.strobe = '1') then
-         if (v.inc = '1') then
-            v.rampCnt := r.rampCnt + 1;
-         else
-            v.rampCnt := r.rampCnt - 1;
-         end if;                   
-      end if;
+       if (v.inc = '1') then
+        -- Increment sample base
+         v.rampCnt := r.rampCnt +  slvToInt(rampStep_i)*SAM_IN_WORD_C;
+         
+         -- Increment samples within the word
+         for I in (SAM_IN_WORD_C-1) downto 0 loop
+            s_sample_data((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+I*slvToInt(rampStep_i));
+         end loop;
+      else
+         -- Decrement sample base         
+         v.rampCnt := r.rampCnt - slvToInt(rampStep_i)*SAM_IN_WORD_C;
+         
+         -- Decrement samples within the word
+         for I in (SAM_IN_WORD_C-1) downto 0 loop
+            s_sample_data((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-I*slvToInt(rampStep_i));
+         end loop;
+      end if;                
 
       if (enable_i = '0') then
          v := REG_INIT_C;
@@ -128,11 +137,7 @@ begin
       end if;
    end process seq;
    
-   -- Output assignment
-   SAMPLE_DATA_GEN : for I in SAM_IN_WORD_C-1 downto 0 generate 
-      s_sample_data((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= r.rampCnt;
-   end generate SAMPLE_DATA_GEN;  
-
+   -- Output assignment 
    sampleData_o <= byteSwapSlv(s_sample_data, GT_WORD_SIZE_C);
    
 ---------------------------------------   

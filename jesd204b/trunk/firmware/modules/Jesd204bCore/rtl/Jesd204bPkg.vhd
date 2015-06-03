@@ -26,7 +26,7 @@ package Jesd204bPkg is
    constant  AXI_PACKET_SIZE_DEFAULT_C : slv(23 downto 0):=x"00_01_00";
    
    -- TX specific
-   constant RAMP_STEP_WIDTH_C   : positive := 8;
+   constant RAMP_STEP_WIDTH_C   : positive := 12;
 
 -- Types 
 -------------------------------------------------------------------------- 

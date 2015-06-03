@@ -459,8 +459,7 @@ begin
       -- JESD
       F_G                => F_C,
       K_G                => K_C,
-      L_G                => L_C,
-      SUB_CLASS_G        => SUB_CLASS_C
+      L_G                => L_C
    )
    port map (
       
