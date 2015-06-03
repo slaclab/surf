@@ -63,6 +63,7 @@ entity AxiLiteTxRegItf is
       subClass_o        : out  sl;
       gtReset_o         : out  sl;
       clearErr_o        : out  sl;
+      sawNRamp_o        : out  sl;
       axisPacketSize_o  : out  slv(23 downto 0)
    );   
 end AxiLiteTxRegItf;
@@ -72,7 +73,7 @@ architecture rtl of AxiLiteTxRegItf is
    type RegType is record
       -- JESD Control (RW)
       enableTx       : slv(L_G-1 downto 0);
-      commonCtrl     : slv(3 downto 0);
+      commonCtrl     : slv(4 downto 0);
       sysrefDlyTx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       swTrigger      : slv(L_G-1 downto 0);
       axisPacketSize : slv(23 downto 0);
@@ -86,12 +87,12 @@ architecture rtl of AxiLiteTxRegItf is
    
    constant REG_INIT_C : RegType := (
       enableTx       => (others => '0'),
-      commonCtrl     => "0011",        
+      commonCtrl     => "00011",        
       sysrefDlyTx    => (others => '0'),
       swTrigger      => (others => '0'),   
       axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
       muxOutSelArr   => (others => "011"),
-      rampStep       => (others => '0'),
+      rampStep       => intToSlv(1,RAMP_STEP_WIDTH_C),
       
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -135,7 +136,7 @@ begin
             when 16#03# => -- ADDR (12)
                v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
             when 16#04# => -- ADDR (16)
-               v.commonCtrl := axilWriteMaster.wdata(3 downto 0); 
+               v.commonCtrl := axilWriteMaster.wdata(4 downto 0); 
             when 16#05# => -- ADDR (20)
                v.rampStep := axilWriteMaster.wdata(RAMP_STEP_WIDTH_C-1 downto 0);  
             when 16#20# to 16#2F# =>               
@@ -163,7 +164,7 @@ begin
             when 16#03# =>  -- ADDR (12)
                v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
             when 16#04# =>  -- ADDR (16)
-               v.axilReadSlave.rdata(3 downto 0) := r.commonCtrl;
+               v.axilReadSlave.rdata(4 downto 0) := r.commonCtrl;
             when 16#05# =>  -- ADDR (20)
                v.axilReadSlave.rdata(RAMP_STEP_WIDTH_C-1 downto 0) := r.rampStep; 
             when 16#10# to 16#1F# => 
@@ -208,6 +209,7 @@ begin
    -- Output assignment
    sysrefDlyTx_o    <= r.sysrefDlyTx;
    enableTx_o       <= r.enableTx;
+   sawNRamp_o       <= r.commonCtrl(4);
    clearErr_o       <= r.commonCtrl(3);
    gtReset_o        <= r.commonCtrl(2);
    replEnable_o     <= r.commonCtrl(1);

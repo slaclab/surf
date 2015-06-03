@@ -107,14 +107,15 @@ architecture rtl of Jesd204bTx is
    signal s_enableTx     : slv(L_G-1 downto 0);
    signal s_replEnable   : sl;
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
-   signal  s_dataValid   : slv(L_G-1 downto 0);
-   signal  s_swTriggerReg: slv(L_G-1 downto 0);
+   signal s_dataValid   : slv(L_G-1 downto 0);
+   signal s_swTriggerReg: slv(L_G-1 downto 0);
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
    -- User reset (from AXI lite register)
    signal s_gtReset     : sl;
    signal s_clearErr    : sl;
-   signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
+   signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
+   signal s_sawNRamp    : sl;
    
    -- Axi Lite interface synced to devClk
    signal sAxiReadMasterDev : AxiLiteReadMasterType;
@@ -140,17 +141,13 @@ architecture rtl of Jesd204bTx is
    -- Select output 
    signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
    
-   -- LED out generation
-   signal s_dataValidVec   : slv(L_G-1 downto 0);
-   
-   
 begin
    -- Check generics TODO add others
    assert (1 <= L_G and L_G <= 8)  report "L_G must be between 1 and 8"   severity failure;
    
    -- 
    generateValid : for I in L_G-1 downto 0 generate
-      s_dataValid(I) <= s_statusTxArr(I)(2);
+      s_dataValid(I) <= s_statusTxArr(I)(1);
    end generate generateValid;
    
    -----------------------------------------------------------
@@ -203,6 +200,7 @@ begin
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
+      sawNRamp_o      => s_sawNRamp,
       swTrigger_o     => s_swTriggerReg,
       rampStep_o      => s_rampStep,
       axisPacketSize_o=> open
@@ -238,6 +236,7 @@ begin
          rst           => devRst_i,
          enable_i      => s_dataValid(I),
          rampStep_i    => s_rampStep,
+         sawNRamp_i    => s_sawNRamp,
          sampleData_o  => s_testDataArr(I));
    end generate generateTestStreamLanes;
    
@@ -346,10 +345,6 @@ begin
    -- Output assignment
    gtTxReset_o  <= (others=> s_gtReset);
    
-   GT_RST_GEN : for I in L_G-1 downto 0 generate 
-      s_dataValidVec(I)  <= s_statusTxArr(I)(2);
-   end generate GT_RST_GEN;
-
-   leds_o <= uOr(s_dataValidVec) & s_nSyncSync;
+   leds_o <= uOr(s_dataValid) & s_nSyncSync;
    -----------------------------------------------------
 end rtl;
