@@ -54,11 +54,19 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "ReplaceEnable",         Variable::Configuration, 1, 0x1,
                                 "ResetGTs",              Variable::Configuration, 2, 0x1,
                                 "ClearErrors",           Variable::Configuration, 3, 0x1,
-                                "SawMRamp",              Variable::Configuration, 4, 0x1));
+                                "EnableTestSig",         Variable::Configuration, 4, 0x1));
 
-   addRegisterLink(rl = new RegisterLink("RampStep",    baseAddress_ + (0x05*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("rampStep_i=0 increment every c-c, rampStep_i=1 increment every second c-c, etc.");
-     
+   addRegisterLink(rl = new RegisterLink("PeriodRampStep",    baseAddress_ + (0x05*addrSize), 1, 2,
+                                "RampStep",              Variable::Configuration, 0, 0xffff,
+                                "SquarePeriod",          Variable::Configuration, 16,0xffff));
+   rl->getVariable()->setDescription("Ramp increment step and a period of the wave in c-c ");
+
+   addRegisterLink(rl = new RegisterLink("LowAmplitudeVal",   baseAddress_ + (0x06*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("Low value of the square waveform amplitude");
+
+   addRegisterLink(rl = new RegisterLink("HighAmplitudeVal",  baseAddress_ + (0x07*addrSize), Variable::Configuration));
+   rl->getVariable()->setDescription("High value of the square waveform amplitude");
+   
    addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 6,
                                 "L1_GTXRdy",        Variable::Status, 0, 0x1,
                                 "L1_DataValid",     Variable::Status, 1, 0x1, 
@@ -75,13 +83,18 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L2_TxEnabled",     Variable::Status, 4, 0x1,
                                 "L2_SysRefDetected",Variable::Status, 5, 0x1));
                                 
+    
+   addRegisterLink(rl = new RegisterLink("L1_SignalSelect",    baseAddress_ + (0x20*addrSize), 1, 2,
+                                "L1_data_out_mux",  Variable::Configuration, 0, 0xf,
+                                "L1_test_out_mux",  Variable::Configuration, 4, 0xf));
                                 
-   addRegisterLink(rl = new RegisterLink("L1_data_mux",           baseAddress_ + (0x20*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");                            
     
-   addRegisterLink(rl = new RegisterLink("L2_data_mux",           baseAddress_ + (0x21*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");                            
-    
+   addRegisterLink(rl = new RegisterLink("L2_SignalSelect",    baseAddress_ + (0x21*addrSize), 1, 2,
+                                "L2_data_out_mux",  Variable::Configuration, 0, 0xf,
+                                "L2_test_out_mux",  Variable::Configuration, 4, 0xf));
+                                
+   rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");     
                                 
    // Variables
 
