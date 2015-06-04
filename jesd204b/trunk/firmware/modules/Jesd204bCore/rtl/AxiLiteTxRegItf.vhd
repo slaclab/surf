@@ -36,7 +36,9 @@ entity AxiLiteTxRegItf is
       AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;  
    -- JESD 
       -- Number of RX lanes (1 to 8)
-      L_G : positive := 2
+      L_G : positive := 2;
+      
+      F_G : positive := 2
    );    
    port (
     -- JESD devClk
@@ -55,15 +57,21 @@ entity AxiLiteTxRegItf is
       
       -- Control
       muxOutSelArr_o    : out  Slv3Array(L_G-1 downto 0);
+      sigTypeArr_o      : out  Slv2Array(L_G-1 downto 0);
       sysrefDlyTx_o     : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
       enableTx_o        : out  slv(L_G-1 downto 0);
       replEnable_o      : out  sl;
       swTrigger_o       : out  slv(L_G-1 downto 0);
-      rampStep_o        : out  slv(RAMP_STEP_WIDTH_C-1 downto 0);
+      rampStep_o        : out  slv(PER_STEP_WIDTH_C-1 downto 0);
+      squarePeriod_o    : out  slv(PER_STEP_WIDTH_C-1 downto 0);      
       subClass_o        : out  sl;
       gtReset_o         : out  sl;
       clearErr_o        : out  sl;
-      sawNRamp_o        : out  sl;
+      enableTestSig_o   : out  sl;
+
+      posAmplitude_o    : out  slv(F_G*8-1 downto 0);   
+      negAmplitude_o    : out  slv(F_G*8-1 downto 0);
+
       axisPacketSize_o  : out  slv(23 downto 0)
    );   
 end AxiLiteTxRegItf;
@@ -77,8 +85,10 @@ architecture rtl of AxiLiteTxRegItf is
       sysrefDlyTx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       swTrigger      : slv(L_G-1 downto 0);
       axisPacketSize : slv(23 downto 0);
-      muxOutSelArr   : Slv3Array(L_G-1 downto 0);
-      rampStep       : slv(RAMP_STEP_WIDTH_C-1 downto 0);
+      signalSelectArr: Slv8Array(L_G-1 downto 0);
+      periodStep     : slv(31 downto 0);
+      posAmplitude   : slv(F_G*8-1 downto 0);
+      negAmplitude   : slv(F_G*8-1 downto 0);
       
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -87,13 +97,15 @@ architecture rtl of AxiLiteTxRegItf is
    
    constant REG_INIT_C : RegType := (
       enableTx       => (others => '0'),
-      commonCtrl     => "00011",        
+      commonCtrl     => "10011",        
       sysrefDlyTx    => (others => '0'),
       swTrigger      => (others => '0'),   
       axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
-      muxOutSelArr   => (others => "011"),
-      rampStep       => intToSlv(1,RAMP_STEP_WIDTH_C),
-      
+      signalSelectArr=> (others => b"0010_0011"),
+      periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(4096,PER_STEP_WIDTH_C),
+      posAmplitude   => (others => '1'),
+      negAmplitude   => (others => '0'),
+
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -138,11 +150,15 @@ begin
             when 16#04# => -- ADDR (16)
                v.commonCtrl := axilWriteMaster.wdata(4 downto 0); 
             when 16#05# => -- ADDR (20)
-               v.rampStep := axilWriteMaster.wdata(RAMP_STEP_WIDTH_C-1 downto 0);  
+               v.periodStep := axilWriteMaster.wdata;
+            when 16#06# => -- ADDR (24)
+               v.negAmplitude := axilWriteMaster.wdata(F_G*8-1 downto 0);               
+            when 16#07# => -- ADDR (28)
+               v.posAmplitude := axilWriteMaster.wdata(F_G*8-1 downto 0);  
             when 16#20# to 16#2F# =>               
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
-                     v.muxOutSelArr(I)  := axilWriteMaster.wdata(2 downto 0);
+                     v.signalSelectArr(I)  := axilWriteMaster.wdata(7 downto 0);
                   end if;
                end loop;  
             when others =>
@@ -166,7 +182,11 @@ begin
             when 16#04# =>  -- ADDR (16)
                v.axilReadSlave.rdata(4 downto 0) := r.commonCtrl;
             when 16#05# =>  -- ADDR (20)
-               v.axilReadSlave.rdata(RAMP_STEP_WIDTH_C-1 downto 0) := r.rampStep; 
+               v.axilReadSlave.rdata := r.periodStep;
+            when 16#06# =>  -- ADDR (24)
+               v.axilReadSlave.rdata(F_G*8-1 downto 0) := r.negAmplitude;               
+            when 16#07# =>  -- ADDR (28)
+               v.axilReadSlave.rdata(F_G*8-1 downto 0) := r.posAmplitude;               
             when 16#10# to 16#1F# => 
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -176,7 +196,7 @@ begin
             when 16#20# to 16#2F# =>               
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(2 downto 0)                    := r.muxOutSelArr(I);
+                     v.axilReadSlave.rdata(7 downto 0)                    := r.signalSelectArr(I);
                   end if;
                end loop;
             when others =>
@@ -209,15 +229,21 @@ begin
    -- Output assignment
    sysrefDlyTx_o    <= r.sysrefDlyTx;
    enableTx_o       <= r.enableTx;
-   sawNRamp_o       <= r.commonCtrl(4);
+   enableTestSig_o  <= r.commonCtrl(4);
    clearErr_o       <= r.commonCtrl(3);
    gtReset_o        <= r.commonCtrl(2);
    replEnable_o     <= r.commonCtrl(1);
    subClass_o       <= r.commonCtrl(0);
    swTrigger_o      <= r.swTrigger;
    axisPacketSize_o <= r.axisPacketSize;
-   rampStep_o       <= r.rampStep;
-   muxOutSelArr_o   <= r.muxOutSelArr;
-
+   rampStep_o       <= r.periodStep(PER_STEP_WIDTH_C-1   downto  0);
+   squarePeriod_o   <= r.periodStep(16+PER_STEP_WIDTH_C-1 downto 16);
+   posAmplitude_o   <= r.posAmplitude;   
+   negAmplitude_o   <= r.negAmplitude;
+   
+   TX_LANES_GEN : for I in L_G-1 downto 0 generate
+      muxOutSelArr_o(I)  <= r.signalSelectArr(I)(2 downto 0);
+      sigTypeArr_o(I)    <= r.signalSelectArr(I)(5 downto 4);   
+   end generate TX_LANES_GEN;    
 ---------------------------------------------------------------------
 end rtl;

@@ -115,7 +115,16 @@ architecture rtl of Jesd204bTx is
    signal s_gtReset     : sl;
    signal s_clearErr    : sl;
    signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
-   signal s_sawNRamp    : sl;
+   
+   signal s_sigTypeArr  : Slv2Array(L_G-1 downto 0);
+   -- Test signal control
+   signal  s_rampStep      : slv(PER_STEP_WIDTH_C-1 downto 0);
+   signal  s_squarePeriod  : slv(PER_STEP_WIDTH_C-1 downto 0);   
+   signal  s_enableTestSig : sl;   
+   
+   
+   signal s_posAmplitude: slv(F_G*8-1 downto 0);   
+   signal s_negAmplitude: slv(F_G*8-1 downto 0);
    
    -- Axi Lite interface synced to devClk
    signal sAxiReadMasterDev : AxiLiteReadMasterType;
@@ -134,13 +143,10 @@ architecture rtl of Jesd204bTx is
    signal  s_nSyncSync  : sl;
    signal  s_sysrefRe   : sl;
    signal  s_sysrefD    : sl;
-
-   -- Test ramp control
-   signal  s_rampStep   : slv(RAMP_STEP_WIDTH_C-1 downto 0);
-   
+  
    -- Select output 
    signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
-   
+   signal  s_testEn : slv(L_G-1 downto 0);
 begin
    -- Check generics TODO add others
    assert (1 <= L_G and L_G <= 8)  report "L_G must be between 1 and 8"   severity failure;
@@ -182,7 +188,8 @@ begin
    generic map (
       TPD_G            => TPD_G,
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-      L_G              => L_G)
+      L_G              => L_G,
+      F_G   => F_G)
    port map (
       devClk_i        => devClk_i,
       devRst_i        => devRst_i,
@@ -200,9 +207,13 @@ begin
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
-      sawNRamp_o      => s_sawNRamp,
+      sigTypeArr_o    => s_sigTypeArr,
+      posAmplitude_o  => s_posAmplitude,
+      negAmplitude_o  => s_negAmplitude,
       swTrigger_o     => s_swTriggerReg,
       rampStep_o      => s_rampStep,
+      squarePeriod_o  => s_squarePeriod,
+      enableTestSig_o => s_enableTestSig,
       axisPacketSize_o=> open
    );
    
@@ -226,7 +237,11 @@ begin
          sampleData_o   => s_axiDataArr(I));
    end generate generateAxiStreamLanes;
    
+   -- Different test sihnals   
    generateTestStreamLanes : for I in L_G-1 downto 0 generate
+   
+      s_testEn(I) <= s_dataValid(I) and s_enableTestSig;
+      
       TestStreamTx_INST: entity work.TestStreamTx
       generic map (
          TPD_G => TPD_G,
@@ -234,9 +249,12 @@ begin
       port map (
          clk           => devClk_i,
          rst           => devRst_i,
-         enable_i      => s_dataValid(I),
+         enable_i      => s_testEn(I),
          rampStep_i    => s_rampStep,
-         sawNRamp_i    => s_sawNRamp,
+         squarePeriod_i=> s_squarePeriod,
+         posAmplitude_i=> s_posAmplitude,
+         negAmplitude_i=> s_negAmplitude,
+         type_i        => s_sigTypeArr(I),
          sampleData_o  => s_testDataArr(I));
    end generate generateTestStreamLanes;
    

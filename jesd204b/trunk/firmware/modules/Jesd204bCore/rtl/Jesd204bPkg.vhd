@@ -26,7 +26,9 @@ package Jesd204bPkg is
    constant  AXI_PACKET_SIZE_DEFAULT_C : slv(23 downto 0):=x"00_01_00";
    
    -- TX specific
-   constant RAMP_STEP_WIDTH_C   : positive := 12;
+   
+   -- Ramp step or square wave period slv width (max 16)
+   constant PER_STEP_WIDTH_C   : positive := 16;
 
 -- Types 
 -------------------------------------------------------------------------- 
@@ -77,7 +79,7 @@ package Jesd204bPkg is
    function slvToInt(data_slv : slv) return integer;
 
    -- Convert integer to standard logic vector
-   function intToSlv(data_int : positive; bytes_int : positive) return std_logic_vector;
+   function intToSlv(data_int : integer; bytes_int : positive) return std_logic_vector;
    
    -- Replace alignment characters with data
    function JesdCharReplace(data_slv : slv; char_slv : slv; F_int : positive; bytes_int : positive ; enable_sl : sl) return std_logic_vector;
@@ -303,7 +305,7 @@ package body Jesd204bPkg is
    end slvToInt;
 
    -- Convert integer to standard logic vector
-   function intToSlv(data_int : positive; bytes_int : positive) return std_logic_vector is
+   function intToSlv(data_int : integer; bytes_int : positive) return std_logic_vector is
    begin
       return std_logic_vector(to_unsigned(data_int, bytes_int));
    end IntToSlv;
