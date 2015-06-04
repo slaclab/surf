@@ -5,14 +5,14 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2014-04-17
+-- Last update: 2015-06-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Decoder for the Condition Inversion Master Transition coding
 -- used by the GLink Protocol.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -43,13 +43,15 @@ end entity GLinkDecoder;
 architecture rtl of GLinkDecoder is
 
    type RegType is record
-      toggle  : sl;
-      gLinkRx : GLinkRxType;
+      deglitch : slv(3 downto 0);
+      toggle   : sl;
+      gLinkRx  : GLinkRxType;
    end record;
    
    constant REG_INIT_C : RegType := (
-      '0',
-      GLINK_RX_INIT_C);      
+      deglitch => (others => '0'),
+      toggle   => '0',
+      gLinkRx  => GLINK_RX_INIT_C);      
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -75,6 +77,10 @@ begin
    begin
       v := r;
 
+      -- Shift Register
+      v.deglitch(3)          := r.gLinkRx.error;
+      v.deglitch(2 downto 0) := r.deglitch(3 downto 1);
+      
       -- Update the TX and RX MGT ready values
       v.gLinkRx.rxReady := rxReady;
       v.gLinkRx.txReady := txRdy;
@@ -157,8 +163,8 @@ begin
 
       -- Outputs      
       gLinkRx       <= r.gLinkRx;
-      decoderError  <= r.gLinkRx.error;
-      decoderErrorL <= not(r.gLinkRx.error);
+      decoderError  <= uAnd(r.deglitch);
+      decoderErrorL <= not(uAnd(r.deglitch));
       
    end process comb;
 
