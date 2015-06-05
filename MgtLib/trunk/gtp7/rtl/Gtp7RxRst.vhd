@@ -69,9 +69,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 entity Gtp7RxRst is
    generic(
@@ -217,7 +216,7 @@ architecture RTL of Gtp7RxRst is
 begin
 
    --Alias section, signals used within this module mapped to output ports:
-   RETRY_COUNTER     <= std_logic_vector(TO_UNSIGNED(retry_counter_int, RETRY_COUNTER_BITWIDTH));
+   RETRY_COUNTER     <= conv_std_logic_vector(retry_counter_int, RETRY_COUNTER_BITWIDTH);
    RUN_PHALIGNMENT   <= run_phase_alignment_int;
    RX_FSM_RESET_DONE <= rx_fsm_reset_done_int;
    GTRXRESET         <= gtrxreset_i;

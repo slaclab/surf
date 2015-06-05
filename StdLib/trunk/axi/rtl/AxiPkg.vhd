@@ -15,7 +15,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
-use IEEE.numeric_std.all;
+
 use work.StdRtlPkg.all;
 
 package AxiPkg is
