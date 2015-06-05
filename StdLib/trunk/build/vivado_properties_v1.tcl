@@ -17,11 +17,6 @@ config_webtalk -user off
 # Default to no flattening of the hierarchy
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY none [get_runs synth_1]
 
-# Enable implementation steps by default
-set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-
 # Close and reopen project to force the physical path of ${VIVADO_BUILD_DIR} (bug in Vivado 2014.1)
 VivadoRefresh ${VIVADO_PROJECT}
 
@@ -66,6 +61,7 @@ if { [version -short] <= 2014.2 } {
 # Prevent Vivado from doing power optimization
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE NoBramPowerOpt [get_runs impl_1]
 
 # Target specific properties script
 SourceTclFile ${VIVADO_DIR}/properties.tcl

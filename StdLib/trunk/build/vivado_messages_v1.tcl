@@ -58,9 +58,13 @@ set_msg_config -id {Opt 31-80}      -new_severity ERROR;# IMPL: Multi-driver net
 set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net found in the design
 
 # Check if Multi-Driven Nets are allowed
-if { ${AllowMultiDriven} != 1 } {
-   set_msg_config -id {Synth 8-3352} -new_severity ERROR;# SYNTH: multi-driven net
+if { ${AllowMultiDriven} == 1 } {
+    set_msg_config -id {Synth 8-3352} -new_severity INFO;# SYNTH: multi-driven net
+} else {
+    set_msg_config -id {Synth 8-3352} -new_severity ERROR;	
 }
+
+set_msg_config -id {Timing 38-3} -new_severity INFO; #User defined clocks are common and should be info, not warning.
 
 ##set_msg_config -id {Route 35-39}    -new_severity ERROR;# IMPL: The design did not meet timing requirements. 
 ## NOTE: we don't change this message to ERROR severity because we want to impl_1 to finish 
