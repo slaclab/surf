@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-24
--- Last update: 2014-05-05
+-- Last update: 2015-01-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -126,7 +126,12 @@ begin
 
    assert ((WR_DATA_WIDTH_G >= RD_DATA_WIDTH_G and WR_DATA_WIDTH_G mod RD_DATA_WIDTH_G = 0) or
            (RD_DATA_WIDTH_G > WR_DATA_WIDTH_G and RD_DATA_WIDTH_G mod WR_DATA_WIDTH_G = 0))
-      report "Data widths must be even number multiples of each other" severity failure;
+      report "FifoMux: Data widths must be even number multiples of each other"
+      severity failure;
+
+   assert ((FWFT_EN_G = false and RD_DATA_WIDTH_G >= WR_DATA_WIDTH_G) or FWFT_EN_G)
+      report "FifoMux: non-FWFT mode can only be used if the read width is >= the write data width"
+      severity failure;
 
    --------------
    -- Write Logic
