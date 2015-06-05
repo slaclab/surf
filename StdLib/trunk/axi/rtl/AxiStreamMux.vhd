@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-05-29
+-- Last update: 2015-06-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,10 +30,11 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G        : time                  := 1 ns;
-      NUM_SLAVES_G : integer range 1 to 32 := 4;
-      TDEST_HIGH_G : integer range 0 to 7  := 7;
-      TDEST_LOW_G  : integer range 0 to 7  := 0);
+      TPD_G         : time                  := 1 ns;
+      NUM_SLAVES_G  : integer range 1 to 32 := 4;
+      PIPE_STAGES_G : integer range 0 to 16 := 0;  -- mux be > 1 if cascading muxes
+      TDEST_HIGH_G  : integer range 0 to 7  := 7;
+      TDEST_LOW_G   : integer range 0 to 7  := 0);
    port (
 
       -- Clock and reset
@@ -82,13 +83,16 @@ architecture structure of AxiStreamMux is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal pipeAxisMaster : AxiStreamMasterType;
+   signal pipeAxisSlave  : AxiStreamSlaveType;
+   
 begin
    
    assert (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G))
       report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
    
-   comb : process (axisRst, mAxisSlave, r, sAxisAddr, sAxisAuto, sAxisMasters) is
+   comb : process (axisRst, pipeAxisSlave, r, sAxisAddr, sAxisAuto, sAxisMasters) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -101,7 +105,7 @@ begin
       end loop;
 
       -- Select source
-      selData       := sAxisMasters(conv_integer(r.ackNum));
+      selData                             := sAxisMasters(conv_integer(r.ackNum));
       selData.tDest(7 downto TDEST_LOW_G) := (others => '0');
 
       selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
@@ -145,10 +149,10 @@ begin
             v.valid := '0';
 
             -- Pass ready
-            v.slaves(conv_integer(r.ackNum)).tReady := mAxisSlave.tReady;
+            v.slaves(conv_integer(r.ackNum)).tReady := pipeAxisSlave.tReady;
 
             -- Advance pipeline 
-            if r.master.tValid = '0' or mAxisSlave.tReady = '1' then
+            if r.master.tValid = '0' or pipeAxisSlave.tReady = '1' then
                v.master := selData;
 
                -- tLast to be presented
@@ -159,7 +163,7 @@ begin
 
          -- Laster transfer
          when S_LAST_C =>
-            if mAxisSlave.tReady = '1' then
+            if pipeAxisSlave.tReady = '1' then
                v.master.tValid := '0';
                v.state         := S_IDLE_C;
             end if;
@@ -172,10 +176,22 @@ begin
 
       rin <= v;
 
-      sAxisSlaves <= v.slaves;
-      mAxisMaster <= r.master;
+      sAxisSlaves    <= v.slaves;
+      pipeAxisMaster <= r.master;
 
    end process comb;
+
+   AxiStreamPipeline_1 : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
+      port map (
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => pipeAxisMaster,
+         sAxisSlave  => pipeAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
    seq : process (axisClk) is
    begin
