@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-09-16
+-- Last update: 2015-06-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,18 +27,19 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 
 entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G            : time                        := 1 ns;
-      INT_PIPE_STAGES_G : natural range 0 to 16      := 1;  -- Internal FIFO setting
-      PIPE_STAGES_G    : natural range 0 to 16       := 0;
-      SLAVE_READY_EN_G : boolean                     := true;
-      VALID_THOLD_G    : integer range 0 to (2**24)  := 1; -- =1 = normal operation
-                                                           -- =0 = only when frame ready
-                                                           -- >1 = only when frame ready or # entries
+      TPD_G               : time                       := 1 ns;
+      INT_PIPE_STAGES_G   : natural range 0 to 16      := 1;  -- Internal FIFO setting
+      PIPE_STAGES_G       : natural range 0 to 16      := 0;
+      SLAVE_READY_EN_G    : boolean                    := true;
+      VALID_THOLD_G       : integer range 0 to (2**24) := 1;  -- =1 = normal operation
+                                                              -- =0 = only when frame ready
+                                                              -- >1 = only when frame ready or # entries
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -74,7 +75,16 @@ entity AxiStreamFifo is
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);
+      mAxisSlave  : in  AxiStreamSlaveType;
+
+      -- Option AXI-Lite interface
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '1';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType
+      );
 end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
@@ -85,8 +95,8 @@ architecture rtl of AxiStreamFifo is
 
    -- Use SLAVE TKEEP Mode
    constant KEEP_MODE_C : TKeepModeType := SLAVE_AXI_CONFIG_G.TKEEP_MODE_C;
-   constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
-                                           ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
+   constant KEEP_BITS_C : integer := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
+                                         ite(KEEP_MODE_C = TKEEP_COMP_C, bitSize(DATA_BYTES_C-1), 0));
 
    -- User user bit mode of slave
    constant USER_MODE_C : TUserModeType := SLAVE_AXI_CONFIG_G.TUSER_MODE_C;
@@ -94,9 +104,9 @@ architecture rtl of AxiStreamFifo is
    -- Use whichever interface has the least number of user bits
    constant SLAVE_USER_BITS_C  : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
    constant MASTER_USER_BITS_C : integer := MASTER_AXI_CONFIG_G.TUSER_BITS_C;
-   constant FIFO_USER_BITS_C   : integer := minimum(SLAVE_USER_BITS_C,MASTER_USER_BITS_C);
+   constant FIFO_USER_BITS_C   : integer := minimum(SLAVE_USER_BITS_C, MASTER_USER_BITS_C);
 
-   constant FIFO_USER_TOT_C : integer := ite(USER_MODE_C = TUSER_FIRST_LAST_C, FIFO_USER_BITS_C*2, 
+   constant FIFO_USER_TOT_C : integer := ite(USER_MODE_C = TUSER_FIRST_LAST_C, FIFO_USER_BITS_C*2,
                                              ite(USER_MODE_C = TUSER_LAST_C, FIFO_USER_BITS_C,
                                                  DATA_BYTES_C * FIFO_USER_BITS_C));
 
@@ -112,7 +122,7 @@ architecture rtl of AxiStreamFifo is
 
    -- Convert record to slv
    function iAxiToSlv (din : AxiStreamMasterType) return slv is
-      variable retValue : slv(FIFO_BITS_C-1 downto 0) := (others=>'0');
+      variable retValue : slv(FIFO_BITS_C-1 downto 0) := (others => '0');
       variable i        : integer                     := 0;
    begin
 
@@ -126,20 +136,20 @@ architecture rtl of AxiStreamFifo is
       if KEEP_MODE_C = TKEEP_NORMAL_C then
          assignSlv(i, retValue, din.tKeep(KEEP_BITS_C-1 downto 0));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         assignSlv(i, retValue, onesCount(din.tKeep(DATA_BYTES_C-1 downto 1))); -- Assume lsb is present
+         assignSlv(i, retValue, onesCount(din.tKeep(DATA_BYTES_C-1 downto 1)));  -- Assume lsb is present
       end if;
 
       -- Pack user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
-         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,0),FIFO_USER_BITS_C));  -- First byte
-         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
+         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, 0), FIFO_USER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
-         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
+         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
-            assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,j),FIFO_USER_BITS_C));
+            assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, j), FIFO_USER_BITS_C));
          end loop;
       end if;
 
@@ -187,31 +197,31 @@ architecture rtl of AxiStreamFifo is
          assignRecord(i, din, master.tKeep(KEEP_BITS_C-1 downto 0));
          byteCnt := conv_integer(onesCount(master.tKeep(KEEP_BITS_C-1 downto 0)));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
+         byteCnt                               := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
          master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '0');
          master.tKeep(byteCnt-1 downto 0)      := (others => '1');
-         i := i + KEEP_BITS_C;
+         i                                     := i + KEEP_BITS_C;
       else
          byteCnt := DATA_BYTES_C;
-         i := i + KEEP_BITS_C;
+         i       := i + KEEP_BITS_C;
       end if;
 
       -- get user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), 0); -- First byte
+         axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resizeSlv(user, MASTER_USER_BITS_C), 0);  -- First byte
 
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), -1); -- Last valid byte
+         axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resizeSlv(user, MASTER_USER_BITS_C), -1);  -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), -1); -- Last valid byte
+         axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resizeSlv(user, MASTER_USER_BITS_C), -1);  -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
             assignRecord(i, din, user);
-            axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), j);
+            axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resizeSlv(user, MASTER_USER_BITS_C), j);
          end loop;
       end if;
 
@@ -245,10 +255,11 @@ architecture rtl of AxiStreamFifo is
 
    constant WR_REG_INIT_C : WrRegType := (
       count    => (others => '0'),
-      wrMaster => AXI_STREAM_MASTER_INIT_C
-      );
+      wrMaster => AXI_STREAM_MASTER_INIT_C);
 
-   signal wrR, wrRin : WrRegType := WR_REG_INIT_C;
+   signal wrR, wrRin    : WrRegType := WR_REG_INIT_C;
+   signal sLocAxisCtrl  : AxiStreamCtrlType;
+   signal sLocAxisSlave : AxiStreamSlaveType;
 
    ----------------
    -- FIFO Signals
@@ -259,6 +270,7 @@ architecture rtl of AxiStreamFifo is
    signal fifoWrCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull     : sl;
+   signal fifoFull      : sl;
    signal fifoReady     : sl;
    signal fifoPFull     : sl;
    signal fifoPFullVec  : slv(CASCADE_SIZE_G-1 downto 0);
@@ -301,6 +313,37 @@ architecture rtl of AxiStreamFifo is
    ---------------
    -- Debug Signals
    ---------------
+   type AxilRegType is record
+      test           : slv(31 downto 0);
+      countReset     : sl;
+      fifoWrCountMax : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+      tLastCount     : slv(31 downto 0);
+      pauseLast      : sl;
+      pauseCount     : slv(31 downto 0);
+      overflowLast   : sl;
+      overflowCount  : slv(31 downto 0);
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+   end record AxilRegType;
+
+   constant AXIL_REG_INIT_C : AxilRegType := (
+      test           => (others => '0'),
+      countReset     => '0',
+      fifoWrCountMax => (others => '0'),
+      tLastCount     => (others => '0'),
+      pauseLast      => '0',
+      pauseCount     => (others => '0'),
+      overflowLast   => '0',
+      overflowCount  => (others => '0'),
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+
+   signal axilR, axilRin : AxilRegType := AXIL_REG_INIT_C;
+
+   signal locAxilReadMaster  : AxiLiteReadMasterType;
+   signal locAxilReadSlave   : AxiLiteReadSlaveType;
+   signal locAxilWriteMaster : AxiLiteWriteMasterType;
+   signal locAxilWriteSlave  : AxiLiteWriteSlaveType;
 
 begin
 
@@ -313,9 +356,12 @@ begin
    -------------------------
    -- Write Logic
    -------------------------
-   wrComb : process (wrR, sAxisMaster, fifoReady) is
+   wrComb : process (fifoReady, sAxisMaster, sLocAxisCtrl, sLocAxisSlave, wrR) is
       variable v   : WrRegType;
       variable idx : integer;
+
+      
+      
    begin
       v   := wrR;
       idx := conv_integer(wrR.count);
@@ -356,8 +402,6 @@ begin
          end if;
       end if;
 
-      wrRin <= v;
-
       -- Write logic enabled
       if WR_LOGIC_EN_C then
          fifoDin       <= iAxiToSlv(wrR.wrMaster);
@@ -371,9 +415,14 @@ begin
          fifoWriteLast <= sAxisMaster.tValid and fifoReady and sAxisMaster.tLast;
       end if;
 
-      sAxisSlave.tReady <= fifoReady;
+      sLocAxisSlave.tReady <= fifoReady;
+      sAxisCtrl            <= sLocAxisCtrl;
+      sAxisSlave           <= sLocAxisSlave;
 
+      wrRin <= v;
    end process wrComb;
+
+
 
    wrSeq : process (sAxisClk) is
    begin
@@ -395,12 +444,12 @@ begin
    process (sAxisClk, fifoPFull, fifoPFullVec) is
    begin
       if FIFO_FIXED_THRESH_G then
-         sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
+         sLocAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
       elsif (rising_edge(sAxisClk)) then
          if sAxisRst = '1' or fifoWrCount >= fifoPauseThresh then
-            sAxisCtrl.pause <= '1' after TPD_G;
+            sLocAxisCtrl.pause <= '1' after TPD_G;
          else
-            sAxisCtrl.pause <= '0' after TPD_G;
+            sLocAxisCtrl.pause <= '0' after TPD_G;
          end if;
       end if;
    end process;
@@ -438,11 +487,11 @@ begin
          din           => fifoDin,
          wr_data_count => fifoWrCount,
          wr_ack        => open,
-         overflow      => sAxisCtrl.overflow,
+         overflow      => sLocAxisCtrl.overflow,
          prog_full     => fifoPFull,
          progFullVec   => fifoPFullVec,
          almost_full   => fifoAFull,
-         full          => open,
+         full          => fifoFull,
          not_full      => open,
          rd_clk        => mAxisClk,
          rd_en         => fifoRead,
@@ -484,7 +533,7 @@ begin
             rst           => sAxisRst,
             wr_clk        => sAxisClk,
             wr_en         => fifoWriteLast,
-            din           => (others=>'0'),
+            din           => (others => '0'),
             wr_data_count => open,
             wr_ack        => open,
             overflow      => open,
@@ -551,8 +600,8 @@ begin
          v.rdMaster.tUser((RD_BYTES_C*MASTER_USER_BITS_C)-1 downto 0)
             := fifoMaster.tUser((RD_BYTES_C*MASTER_USER_BITS_C*idx)+((RD_BYTES_C*MASTER_USER_BITS_C)-1) downto (RD_BYTES_C*MASTER_USER_BITS_C*idx));
 
-         v.rdMaster.tDest  := fifoMaster.tDest;
-         v.rdMaster.tId    := fifoMaster.tId;
+         v.rdMaster.tDest := fifoMaster.tDest;
+         v.rdMaster.tId   := fifoMaster.tId;
 
          -- Reached end of fifo data or no more valid bytes in last word
          if fifoMaster.tValid = '1' then
@@ -572,8 +621,8 @@ begin
          -- Drop transfers with no tKeep bits set, except on tLast
          v.rdMaster.tValid := fifoMaster.tValid and
                               (uOr(v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)) or
-                              v.rdMaster.tLast);
-         
+                               v.rdMaster.tLast);
+
       else
          v.ready := '0';
       end if;
@@ -592,7 +641,7 @@ begin
          fifoRead     <= axisSlave.tReady and fifoValid;
          fifoReadLast <= axisSlave.tReady and fifoValid and fifoMaster.tLast;
       end if;
-     
+      
    end process rdComb;
 
    -- If fifo is asynchronous, must use async reset on rd side.
@@ -614,8 +663,8 @@ begin
 
    U_Pipe : entity work.AxiStreamPipeline
       generic map (
-         TPD_G          => TPD_G,
-         PIPE_STAGES_G  => PIPE_STAGES_G
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G
          )
       port map (
          -- Clock and Reset
@@ -626,8 +675,158 @@ begin
          sAxisSlave  => axisSlave,
          -- Master Port
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);   
+         mAxisSlave  => mAxisSlave);
 
+   -------------------------------------------------------------------------------------------------
+   -- Option AXI-Lite interface for debug
+   -- Convert to use slave clock
+   -------------------------------------------------------------------------------------------------
+   AxiLiteAsync_1 : entity work.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 32)
+      port map (
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         mAxiClk         => sAxisClk,
+         mAxiClkRst      => sAxisRst,
+         mAxiReadMaster  => locAxilReadMaster,
+         mAxiReadSlave   => locAxilReadSlave,
+         mAxiWriteMaster => locAxilWriteMaster,
+         mAxiWriteSlave  => locAxilWriteSlave);
+
+--   locAxilWriteMaster <= axilWriteMaster;
+--   locAxilReadMaster  <= axilReadMaster;
+--   axilWriteSlave     <= locAxilWriteSlave;
+--   axilReadSlave      <= locAxilReadSlave;
+
+
+   axilComb : process (axilR, fifoFull, fifoWrCount, locAxilReadMaster, locAxilWriteMaster,
+                       sAxisMaster, sAxisRst, sLocAxisCtrl, sLocAxisSlave) is
+      variable v         : AxilRegType;
+      variable axiStatus : AxiLiteStatusType;
+
+      -- Wrapper procedures to make calls cleaner.
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
+      begin
+         axiSlaveRegister(locAxilWriteMaster, locAxilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg, cA, cV);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
+      begin
+         axiSlaveRegister(locAxilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
+      begin
+         axiSlaveRegister(locAxilWriteMaster, locAxilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
+      begin
+         axiSlaveRegister(locAxilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveDefault (
+         axiResp : in slv(1 downto 0)) is
+      begin
+         axiSlaveDefault(locAxilWriteMaster, locAxilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, axiResp);
+      end procedure;
+   begin
+
+
+      ----------------------------------------------------------------------------------------------
+      -- Debug logic
+      ----------------------------------------------------------------------------------------------
+      if (fifoWrCount > axilR.fifoWrCountMax and fifoFull = '0') then
+         v.fifoWrCountMax := fifoWrCount;
+      end if;
+
+      if (sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' and sLocAxisSlave.tReady = '1') then
+         v.tLastCount := axilR.tLastCount + 1;
+      end if;
+
+      v.pauseLast := sLocAxisCtrl.pause;
+      if (sLocAxisCtrl.pause = '1' and axilR.pauseLast = '0') then
+         v.pauseCount := axilR.pauseCount + 1;
+      end if;
+
+      v.overflowLast := sLocAxisCtrl.overflow;
+      if (sLocAxisCtrl.overflow = '1' and axilR.overflowLast = '0') then
+         v.overflowCount := axilR.overflowCount + 1;
+      end if;
+
+      if (axilR.countReset = '1') then
+         v.fifoWrCountMax := (others => '0');
+         v.tLastCount     := (others => '0');
+         v.pauseCount     := (others => '0');
+         v.overflowCount  := (others => '0');
+      end if;
+      v.countReset := '0';
+
+      axiSlaveWaitTxn(locAxilWriteMaster, locAxilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+
+      if (axiStatus.writeEnable = '1') then
+         -- Send Axi response
+         case locAxilWriteMaster.awaddr(7 downto 0) is
+            when X"00" =>
+               v.countReset := locAxilWriteMaster.wdata(0);
+            when others => null;
+         end case;
+         axiSlaveWriteResponse(v.axilWriteSlave);
+      end if;
+
+      if (axiStatus.readEnable = '1') then
+         -- Decode address and assign read data
+         v.axilReadSlave.rdata := (others => '0');
+         case locAxilReadMaster.araddr(7 downto 0) is
+            when X"04" =>
+               v.axilReadSlave.rdata(fifoWrCount'length-1 downto 0) := fifoWrCount;
+            when X"08" =>
+               v.axilReadSlave.rdata(axilR.fifoWrCountMax'range) := axilR.fifoWrCountMax;
+            when X"0C" =>
+               v.axilReadSlave.rdata(axilR.tLastCount'range) := axilR.tLastCount;
+            when X"10" =>
+               v.axilReadSlave.rdata(axilR.pauseCount'range) := axilR.pauseCount;
+            when X"14" =>
+               v.axilReadSlave.rdata(axilR.overflowCount'range) := axilR.overflowCount;
+            when others => null;
+         end case;
+         -- Send Axi Response
+         axiSlaveReadResponse(v.axilReadSlave);
+      end if;
+
+--      axiSlaveRegisterW(X"00", 0, v.countReset);
+--      axiSlaveRegisterR(X"04", 0, fifoWrCount);
+--      axiSlaveRegisterR(X"08", 0, axilR.fifoWrCountMax);
+--      axiSlaveRegisterR(X"0C", 0, axilR.tLastCount);
+--      axiSlaveRegisterR(X"10", 0, axilR.pauseCount);
+--      axiSlaveRegisterR(X"14", 0, axilR.overflowCount);
+--      axiSlaveDefault(AXI_RESP_OK_C);
+
+      if (sAxisRst = '1') then
+         v := AXIL_REG_INIT_C;
+         v.axilWriteSlave := axilR.axilWriteSlave;
+         v.axilReadSlave := axilR.axilReadSlave;
+      end if;
+
+      locAxilWriteSlave <= axilR.axilWriteSlave;
+      locAxilReadSlave  <= axilR.axilReadSlave;
+
+      axilRin <= v;
+
+   end process axilComb;
+
+   axilSeq : process (sAxisClk) is
+   begin
+      if (rising_edge(sAxisClk)) then
+         axilR <= axilRin after TPD_G;
+      end if;
+   end process axilSeq;
 end rtl;
 
 

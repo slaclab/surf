@@ -15,9 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use ieee.std_logic_arith.all;
-use IEEE.numeric_std.all;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;

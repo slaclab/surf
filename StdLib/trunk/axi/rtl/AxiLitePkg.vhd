@@ -14,8 +14,7 @@
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
+use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
 
 package AxiLitePkg is
@@ -424,7 +423,7 @@ package body AxiLitePkg is
       tmpReg(0) := reg;
       tmpVal(0) := constVal;
       axiSlaveRegister(axiWriteMaster, axiReadMaster, axiWriteSlave, axiReadSlave, axiStatus, addr, offset, tmpReg, constAssign, tmpVal);
-      reg    := tmpReg(0);
+      reg       := tmpReg(0);
    end procedure;
 
    procedure axiSlaveRegister (
