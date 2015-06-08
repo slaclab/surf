@@ -20,3 +20,4 @@ vhdl work rtl/Jesd204bRx.vhd
 vhdl work rtl/Jesd204bGtx7.vhd
 vhdl work rtl/Jesd204bRxGtx7.vhd
 vhdl work rtl/Jesd204bTxGtx7.vhd
+vhdl work rtl/Jesd204bTxGthUltra.vhd

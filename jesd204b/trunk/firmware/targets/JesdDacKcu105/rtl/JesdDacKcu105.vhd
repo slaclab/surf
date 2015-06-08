@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 -- Title      : Development board for JESD DAC test
 -------------------------------------------------------------------------------
--- File       : JesdDacKc705.vhd
+-- File       : JesdDacKcu105.vhd
 -- Author     : Benjamin Reese <bareese@slac.stanford.edu>
 --              Uros Legat <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
--- Created    : 2015-05-29
--- Last update: 2015-06-04
--- Platform   : Xilinx Kc705 Development platform
+-- Created    : 2015-04-10
+-- Last update: 2015-05-29
+-- Platform   : Xilinx Kcu105 Development platform
 --              TI DAC38J82EVM
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ use work.Gtx7CfgPkg.all;
 use work.jesd204bpkg.all;
 use work.SsiPkg.all;
 
-entity JesdDacKc705 is
+entity JesdDacKcu105 is
    
    generic (
       TPD_G                  : time    := 1 ns;
@@ -79,10 +79,10 @@ entity JesdDacKc705 is
       pgpRefClkN : in sl;
 
       -- PGP MGT signals
-      pgpGtRxN : in  sl;                -- SFP+ 
-      pgpGtRxP : in  sl;
-      pgpGtTxN : out sl;
-      pgpGtTxP : out sl;
+     -- pgpGtRxN : in  sl;                -- SFP+ 
+     -- pgpGtRxP : in  sl;
+     -- pgpGtTxN : out sl;
+     -- pgpGtTxP : out sl;
 
       -- FMC Signals -- 
       -- Signals from clock manager
@@ -105,10 +105,10 @@ entity JesdDacKc705 is
 --      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
 
       -- JESD MGT signals
-      adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
-      adcGtTxN : out slv(3 downto 0);
-      adcGtRxP : in  slv(3 downto 0);
-      adcGtRxN : in  slv(3 downto 0);
+      adcGtTxP : out slv(1 downto 0);   -- FMC HPC DP[3:0]
+      adcGtTxN : out slv(1 downto 0);
+      adcGtRxP : in  slv(1 downto 0);
+      adcGtRxN : in  slv(1 downto 0);
 
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
@@ -135,9 +135,9 @@ entity JesdDacKc705 is
       usrClk : out sl;
       gpioClk: out sl
    );
-end entity JesdDacKc705;
+end entity JesdDacKcu105;
 
-architecture rtl of JesdDacKc705 is
+architecture rtl of JesdDacKcu105 is
    -------------------------------------------------------------------------------------------------
    -- PGP constants
    -------------------------------------------------------------------------------------------------
@@ -274,11 +274,10 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Bring in gt reference clocks
    -------------------------------------------------------------------------------------------------
-   IBUFDS_GTE2_GTREFCLK125 : IBUFDS_GTE2
+   IBUFDS_GTE2_GTREFCLK125 : IBUFDS
       port map (
          I   => pgpRefClkP,
          IB  => pgpRefClkN,
-         CEB => '0',
          O   => pgpRefClk);
 
    GTREFCLK125_BUFG : BUFG
@@ -327,82 +326,82 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
    -------------------------------------------------------------------------------------------------
-   PgpFrontEnd_1 : entity work.PgpFrontEnd
-      generic map (
-         TPD_G                  => TPD_G,
-         SIMULATION_G           => SIMULATION_G,
-         PGP_REFCLK_FREQ_G      => PGP_REFCLK_FREQ_G,
-         PGP_LINE_RATE_G        => PGP_LINE_RATE_G,
-         AXIL_CLK_FREQ_G        => AXIL_CLK_FREQ_G,
-         AXIS_CLK_FREQ_G        => AXIS_CLK_FREQ_G,
-         AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
-         AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
-      port map (
-         pgpRefClk       => pgpRefClk,
-         pgpClk          => pgpClk,
-         pgpClkRst       => pgpClkRst,
-         pgpGtRxN        => pgpGtRxN,
-         pgpGtRxP        => pgpGtRxP,
-         pgpGtTxN        => pgpGtTxN,
-         pgpGtTxP        => pgpGtTxP,
-         axilClk         => axilClk,
-         axilClkRst      => axilClkRst,
-         axilWriteMaster => extAxilWriteMaster,
-         axilWriteSlave  => extAxilWriteSlave,
-         axilReadMaster  => extAxilReadMaster,
-         axilReadSlave   => extAxilReadSlave,
-         axisClk         => jesdClk,
-         axisClkRst      => jesdClkRst,
-         axisTxMasters   => axisTxMasters, -- Disconnected
-         axisTxSlaves    => axisTxSlaves,  -- Disconnected
-         axisTxCtrl      => axisTxCtrl,
-         leds            => leds(3 downto 2));
+   -- PgpFrontEnd_1 : entity work.PgpFrontEnd
+      -- generic map (
+         -- TPD_G                  => TPD_G,
+         -- SIMULATION_G           => SIMULATION_G,
+         -- PGP_REFCLK_FREQ_G      => PGP_REFCLK_FREQ_G,
+         -- PGP_LINE_RATE_G        => PGP_LINE_RATE_G,
+         -- AXIL_CLK_FREQ_G        => AXIL_CLK_FREQ_G,
+         -- AXIS_CLK_FREQ_G        => AXIS_CLK_FREQ_G,
+         -- AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
+         -- AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
+      -- port map (
+         -- pgpRefClk       => pgpRefClk,
+         -- pgpClk          => pgpClk,
+         -- pgpClkRst       => pgpClkRst,
+         -- pgpGtRxN        => pgpGtRxN,
+         -- pgpGtRxP        => pgpGtRxP,
+         -- pgpGtTxN        => pgpGtTxN,
+         -- pgpGtTxP        => pgpGtTxP,
+         -- axilClk         => axilClk,
+         -- axilClkRst      => axilClkRst,
+         -- axilWriteMaster => extAxilWriteMaster,
+         -- axilWriteSlave  => extAxilWriteSlave,
+         -- axilReadMaster  => extAxilReadMaster,
+         -- axilReadSlave   => extAxilReadSlave,
+         -- axisClk         => jesdClk,
+         -- axisClkRst      => jesdClkRst,
+         -- axisTxMasters   => axisTxMasters, -- Disconnected
+         -- axisTxSlaves    => axisTxSlaves,  -- Disconnected
+         -- axisTxCtrl      => axisTxCtrl,
+         -- leds            => leds(3 downto 2));
 
    -------------------------------------------------------------------------------------------------
    -- Top Axi Crossbar
    -------------------------------------------------------------------------------------------------
-   TopAxiCrossbar : entity work.AxiLiteCrossbar
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
-         MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
-      port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilClkRst,
-         sAxiWriteMasters(0) => extAxilWriteMaster,
-         sAxiWriteSlaves(0)  => extAxilWriteSlave,
-         sAxiReadMasters(0)  => extAxilReadMaster,
-         sAxiReadSlaves(0)   => extAxilReadSlave,
-         mAxiWriteMasters    => locAxilWriteMasters,
-         mAxiWriteSlaves     => locAxilWriteSlaves,
-         mAxiReadMasters     => locAxilReadMasters,
-         mAxiReadSlaves      => locAxilReadSlaves);
+   -- TopAxiCrossbar : entity work.AxiLiteCrossbar
+      -- generic map (
+         -- TPD_G              => TPD_G,
+         -- NUM_SLAVE_SLOTS_G  => 1,
+         -- NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
+         -- MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
+      -- port map (
+         -- axiClk              => axilClk,
+         -- axiClkRst           => axilClkRst,
+         -- sAxiWriteMasters(0) => extAxilWriteMaster,
+         -- sAxiWriteSlaves(0)  => extAxilWriteSlave,
+         -- sAxiReadMasters(0)  => extAxilReadMaster,
+         -- sAxiReadSlaves(0)   => extAxilReadSlave,
+         -- mAxiWriteMasters    => locAxilWriteMasters,
+         -- mAxiWriteSlaves     => locAxilWriteSlaves,
+         -- mAxiReadMasters     => locAxilReadMasters,
+         -- mAxiReadSlaves      => locAxilReadSlaves);
 
    -------------------------------------------------------------------------------------------------
    -- Put version info on AXI Bus
    -------------------------------------------------------------------------------------------------
-   AxiVersion_1 : entity work.AxiVersion
-      generic map (
-         TPD_G            => TPD_G,
-         EN_DEVICE_DNA_G  => true,
-         EN_DS2411_G      => false,
-         EN_ICAP_G        => true,
-         AUTO_RELOAD_EN_G => false)
-      port map (
-         axiClk         => axilClk,
-         axiRst         => axilClkRst,
-         axiReadMaster  => locAxilReadMasters(VERSION_AXIL_INDEX_C),
-         axiReadSlave   => locAxilReadSlaves(VERSION_AXIL_INDEX_C),
-         axiWriteMaster => locAxilWriteMasters(VERSION_AXIL_INDEX_C),
-         axiWriteSlave  => locAxilWriteSlaves(VERSION_AXIL_INDEX_C),
-         masterReset    => masterReset);
+   -- AxiVersion_1 : entity work.AxiVersion
+      -- generic map (
+         -- TPD_G            => TPD_G,
+         -- EN_DEVICE_DNA_G  => true,
+         -- EN_DS2411_G      => false,
+         -- EN_ICAP_G        => true,
+         -- AUTO_RELOAD_EN_G => false)
+      -- port map (
+         -- axiClk         => axilClk,
+         -- axiRst         => axilClkRst,
+         -- axiReadMaster  => locAxilReadMasters(VERSION_AXIL_INDEX_C),
+         -- axiReadSlave   => locAxilReadSlaves(VERSION_AXIL_INDEX_C),
+         -- axiWriteMaster => locAxilWriteMasters(VERSION_AXIL_INDEX_C),
+         -- axiWriteSlave  => locAxilWriteSlaves(VERSION_AXIL_INDEX_C),
+         -- masterReset    => masterReset);
 
 
    -------------------------------------------------------------------------------------------------
    -- JESD Clocking
    -------------------------------------------------------------------------------------------------
-   IBUFDS_GTE2_FPGADEVCLKA : IBUFDS_GTE2
+   IBUFDS_GTE2_FPGADEVCLKA : IBUFDS_GTE3
       port map (
          I     => fpgaDevClkaP,
          IB    => fpgaDevClkaN,
@@ -411,11 +410,25 @@ begin
          O     => jesdRefClk          
    );
      
-   JESDREFCLK_BUFG : BUFG
+   -- JESDREFCLK_GT_SYNC : BUFG_GT
+      -- port map (
+         -- CLK      => jesdRefClkDiv2,   
+         -- CE       => '1',
+         -- CLR      => pgpMmcmRst,
+         -- CE_SYNC  => s_CE_SYNC   
+         -- CLR_SYNC => s_CLR_SYNC);     
+     
+   JESDREFCLK_BUFG_GT : BUFG_GT
       port map (
-         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk (GT_WORD_SIZE_C=4)
-      -- I => jesdRefClk,   -- GT refclk used as JESD clk (GT_WORD_SIZE_C=2)
-         O => jesdRefClkG);
+         I => jesdRefClkDiv2,   
+         CE     => '1',         
+         CLR    => '0',
+         CEMASK => '1',
+         CLRMASK=> '1',
+
+         DIV    => "001",  -- GT_WORD_SIZE_C=4
+         --DIV    => "000",  -- GT_WORD_SIZE_C=2
+         O      => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
 
@@ -429,7 +442,7 @@ begin
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => DEVCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 5.375,
+         CLKFBOUT_MULT_F_G  => 5.375,--2.6875,
          CLKOUT0_DIVIDE_F_G => 5.375,
          CLKOUT0_RST_HOLD_G => 16)
       port map (
@@ -441,101 +454,60 @@ begin
    -------------------------------------------------------------------------------------------------
    -- QPLL for JESD MGTs
    ------------------------------------------------------------------------------------------------- 
-   Gtx7QuadPll_INST: entity work.Gtx7QuadPll
-   generic map (
-      TPD_G               => TPD_G,
-      QPLL_CFG_G          => x"06801C1", -- TODO check
-      QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
-      QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set b'0000110000'
-      QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set '1'
-      QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set '1'
-   )
-   port map (
-      qPllRefClk     => jesdRefClk, -- Reference clock directly from the input
-      qPllOutClk     => qPllOutClk,
-      qPllOutRefClk  => qPllOutRefClk,
-      qPllLock       => qPllLock,
-      qPllLockDetClk => pgpClk,
-      qPllRefClkLost => qPllRefClkLost,
-      qPllPowerDown  => '0',
-      qPllReset      => qPllReset(0)
-   );      
+   -- Gtx7QuadPll_INST: entity work.Gtx7QuadPll
+   -- generic map (
+      -- TPD_G               => TPD_G,
+      -- QPLL_CFG_G          => x"06801C1", -- TODO check
+      -- QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
+      -- QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set b'0000110000'
+      -- QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set '1'
+      -- QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set '1'
+   -- )
+   -- port map (
+      -- qPllRefClk     => jesdRefClk, -- Reference clock directly from the input
+      -- qPllOutClk     => qPllOutClk,
+      -- qPllOutRefClk  => qPllOutRefClk,
+      -- qPllLock       => qPllLock,
+      -- qPllLockDetClk => pgpClk,
+      -- qPllRefClkLost => qPllRefClkLost,
+      -- qPllPowerDown  => '0',
+      -- qPllReset      => qPllReset(0)
+   -- );      
   
    -------------------------------------------------------------------------------------------------
    -- JESD Tx block
    -------------------------------------------------------------------------------------------------   
-   Jesd204bTxGtx7_INST: entity work.Jesd204bTxGtx7
+   Jesd204bTxGthUltra_INST: entity work.Jesd204bTxGthUltra
    generic map (
-      TPD_G                 => TPD_G,
-     
-      -- GTX disconnected
-      SIM_G      =>  SIM_G,
-      -- Internal SYSREF SYSREF_GEN_G= TRUE else 
-      -- External SYSREF
-      SYSREF_GEN_G =>  SYSREF_GEN_G,    
-      
-      -- CPLL Configurations (not used)
-      CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
-      CPLL_FBDIV_45_G       => 4,  -- use getGtx7CPllCfg to set
-      CPLL_REFCLK_DIV_G     => 1,  -- use getGtx7CPllCfg to set
-      
-      RXOUT_DIV_G           => QPLL_CONFIG_C.OUT_DIV_G,  -- use getGtx7QPllCfg to set
-      RX_CLK25_DIV_G        => QPLL_CONFIG_C.CLK25_DIV_G,-- use getGtx7QPllCfg to set,
-                                                       
-      -- Configure PLL sources
-      TX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
-      RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
-      
-      -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
-      PMA_RSV_G             =>  x"001E7080",            -- Values from coregen     
-      RX_OS_CFG_G           =>  "0000010000000",        -- Values from coregen 
-      RXCDR_CFG_G           =>  x"03000023ff10400020",  -- Values from coregen  
-      RXDFEXYDEN_G          =>  '1',                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      =>  x"301148AC",            -- Values from coregen 
-         
-      TXOUT_DIV_G           =>   QPLL_CONFIG_C.OUT_DIV_G,
-      TX_CLK25_DIV_G        =>   QPLL_CONFIG_C.CLK25_DIV_G,
-      TX_BUF_EN_G           =>   true,
-      TX_OUTCLK_SRC_G       =>   "OUTCLKPMA",
-      TX_DLY_BYPASS_G       =>   '1',
-      TX_PHASE_ALIGN_G      =>   "NONE",
-      TX_BUF_ADDR_MODE_G    =>   "FULL",
-           
-      -- AXI
-      AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
-      
-      -- JESD
-      F_G                => F_G,
-      K_G                => K_G,
-      L_G                => L_G)
+      TPD_G            => TPD_G,
+      SYSREF_GEN_G     => SYSREF_GEN_G,
+      SIM_G            => SIM_G,
+      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+      F_G              => F_G,
+      K_G              => K_G,
+      L_G              => L_G)
    port map (
-      qPllRefClkIn      => qPllOutRefClk,
-      qPllClkIn         => qPllOutClk,
-      qPllLockIn        => qPllLock,
-      qPllRefClkLostIn  => qPllRefClkLost,
-      qPllResetOut      => qPllReset,
+      stableClk   => jesdRefClkG, -- Stable because it is never reset (jesdRefClk/2)
+      refClk      => jesdRefClk,
+      gtTxP(0)    => adcGtTxP(0),
+      gtTxP(1)    => adcGtTxP(1),      
+      gtTxN(0)    => adcGtTxN(0),
+      gtTxN(1)    => adcGtTxN(1),  
+      gtRxP(0)    => adcGtRxP(0),
+      gtRxP(1)    => adcGtRxP(1),      
+      gtRxN(0)    => adcGtRxN(0),
+      gtRxN(1)    => adcGtRxN(1),
+
+      devClk_i    => jesdClk,
+      devClk2_i   => jesdClk,
+      devRst_i    => jesdClkRst,
+      axiClk      => axilClk,
+      axiRst      => axilClkRst,
       
-      gtTxP(0)          => adcGtTxP(0),
-      gtTxP(1)          => adcGtTxP(1),      
-      gtTxN(0)          => adcGtTxN(0),
-      gtTxN(1)          => adcGtTxN(1),  
-      gtRxP(0)          => adcGtRxP(0),
-      gtRxP(1)          => adcGtRxP(1),      
-      gtRxN(0)          => adcGtRxN(0),
-      gtRxN(1)          => adcGtRxN(1),
-      
-      stableClk         => jesdRefClkG, -- Stable because it is never reset
-      devClk_i          => jesdClk, -- both same
-      devClk2_i         => jesdClk, -- both same
-      devRst_i          => jesdClkRst,
-      axiClk            => axilClk,
-      axiRst            => axilClkRst,
-      
-      axilReadMasterTx  => locAxilReadMasters(JESD_AXIL_INDEX_C),
-      axilReadSlaveTx   => locAxilReadSlaves(JESD_AXIL_INDEX_C),
-      axilWriteMasterTx => locAxilWriteMasters(JESD_AXIL_INDEX_C),
-      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_INDEX_C),
-      
+      axilReadMasterTx     => AXI_LITE_READ_MASTER_INIT_C,--locAxilReadMasters(JESD_AXIL_INDEX_C),
+      axilReadSlaveTx      => open,--locAxilReadSlaves(JESD_AXIL_INDEX_C),
+      axilWriteMasterTx    => AXI_LITE_WRITE_MASTER_INIT_C,--locAxilWriteMasters(JESD_AXIL_INDEX_C),
+      axilWriteSlaveTx     => open,--locAxilWriteSlaves(JESD_AXIL_INDEX_C),
       --Currently no AXI stream input
       rxAxisMasterArr_i  => (L_G-1 downto 0 => AXI_STREAM_MASTER_INIT_C),
       rxAxisSlaveArr_o   => open,
@@ -545,12 +517,12 @@ begin
       
       leds_o(0)         => s_syncAllLED, -- (0) Sync
       leds_o(1)         => s_validAllLED,-- (1) Data_valid
+      qPllLock_o       => qPllLock,
       
       sysRef_i          => s_sysRef,
       sysRef_o          => open, -- TODO Add internal sysref GEN output          
-      nSync_i           => s_nSync
-   );
-   
+      nSync_i           => s_nSync);
+      
    ----------------------------------------------------------------
    -- Get sync and sysref from differential io buffer
    ----------------------------------------------------------------
@@ -615,7 +587,7 @@ begin
    -- Output user clock for single ended reference  
    UserClkBufSingle_INST: entity work.ClkOutBufSingle
    generic map (
-      XIL_DEVICE_G   => "7SERIES",
+      XIL_DEVICE_G   => "ULTRASCALE",
       RST_POLARITY_G => '1',
       INVERT_G       => false)
    port map (
@@ -626,7 +598,7 @@ begin
    -- Output JESD clk for debug
    GPioClkBufSingle_INST: entity work.ClkOutBufSingle
    generic map (
-      XIL_DEVICE_G   => "7SERIES",
+      XIL_DEVICE_G   => "ULTRASCALE",
       RST_POLARITY_G => '1',
       INVERT_G       => false)
    port map (
