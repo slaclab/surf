@@ -96,7 +96,7 @@ architecture rtl of AxiLiteTxRegItf is
    end record;
    
    constant REG_INIT_C : RegType := (
-      enableTx       => (others => '0'),
+      enableTx       => (others => '1'),
       commonCtrl     => "10011",        
       sysrefDlyTx    => (others => '0'),
       swTrigger      => (others => '0'),   
