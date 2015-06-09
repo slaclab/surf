@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,8 +31,6 @@ entity SsiPcieTxDmaMemReq is
       -- DMA Interface
       dmaIbMaster    : out AxiStreamMasterType;
       dmaIbSlave     : in  AxiStreamSlaveType;
-      dmaObMaster    : in  AxiStreamMasterType;
-      dmaObSlave     : in  AxiStreamSlaveType;
       dmaDescFromPci : in  DescFromPcieType;
       dmaDescToPci   : out DescToPcieType;
       dmaTranFromPci : in  TranFromPcieType;
@@ -55,12 +53,13 @@ architecture rtl of SsiPcieTxDmaMemReq is
       IDLE_S,
       CHECK_THRESH_S,
       SEND_IO_REQ_HDR_S,
-      WAIT_FOR_RESPONSE_S,
+      CALC_PIPELINE_DLY_S,
       CHECK_LENGTH_S,
       TR_DONE_S);    
 
    type RegType is record
       start        : sl;
+      cnt          : slv(3 downto 0);
       newDmaCh     : slv(3 downto 0);
       newSubCh     : slv(3 downto 0);
       tranLength   : slv(8 downto 0);
@@ -75,6 +74,7 @@ architecture rtl of SsiPcieTxDmaMemReq is
    
    constant REG_INIT_C : RegType := (
       start        => '0',
+      cnt          => (others => '0'),
       newDmaCh     => (others => '0'),
       newSubCh     => (others => '0'),
       tranLength   => (others => '0'),
@@ -94,8 +94,7 @@ architecture rtl of SsiPcieTxDmaMemReq is
    
 begin
 
-   comb : process (dmaDescFromPci, dmaIbSlave, dmaObMaster, dmaObSlave, dmaTranFromPci, done, pause,
-                   pciRst, r, remLength) is
+   comb : process (dmaDescFromPci, dmaIbSlave, dmaTranFromPci, done, pause, pciRst, r, remLength) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -132,6 +131,8 @@ begin
                v.reqLength             := dmaDescFromPci.newLength;
                -- Reset the pending length for next state (won't be updated yet) 
                v.pendLength            := (others => '0');
+               -- Reset the counter
+               v.cnt                   := x"0";
                -- Next state
                v.state                 := CHECK_THRESH_S;
             end if;
@@ -200,12 +201,13 @@ begin
                -- Calculate remaining request length
                v.reqLength                    := r.reqLength - r.tranLength;
                -- Next state
-               v.state                        := WAIT_FOR_RESPONSE_S;
+               v.state                        := CALC_PIPELINE_DLY_S;
             end if;
          ----------------------------------------------------------------------
-         when WAIT_FOR_RESPONSE_S =>
-            -- Check for the response (tValid, SOF, tReady)
-            if (dmaObMaster.tValid = '1') and (dmaObMaster.tUser(1) = '1') and (dmaObSlave.tReady = '1') then
+         when CALC_PIPELINE_DLY_S =>
+            v.cnt := r.cnt + 1;
+            if r.cnt = x"F" then
+               v.cnt   := x"0";
                -- Next state
                v.state := CHECK_LENGTH_S;
             end if;

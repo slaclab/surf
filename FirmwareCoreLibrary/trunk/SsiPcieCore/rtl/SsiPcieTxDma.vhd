@@ -78,15 +78,12 @@ architecture rtl of SsiPcieTxDma is
    signal rxMaster   : AxiStreamMasterType;
    signal rxSlave    : AxiStreamSlaveType;
    signal txSlave    : AxiStreamSlaveType;
-   signal dmaSlave   : AxiStreamSlaveType;
    signal dmaCtrl    : AxiStreamCtrlType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
    
 begin
-
-   dmaObSlave <= dmaSlave;
 
    SsiPcieTxDmaMemReq_Inst : entity work.SsiPcieTxDmaMemReq
       generic map (
@@ -95,8 +92,6 @@ begin
          -- DMA Interface
          dmaIbMaster    => dmaIbMaster,
          dmaIbSlave     => dmaIbSlave,
-         dmaObMaster    => dmaObMaster,
-         dmaObSlave     => dmaSlave,
          dmaDescFromPci => dmaDescFromPci,
          dmaDescToPci   => dmaDescToPci,
          dmaTranFromPci => dmaTranFromPci,
@@ -135,7 +130,7 @@ begin
          sAxisClk    => pciClk,
          sAxisRst    => pciRst,
          sAxisMaster => dmaObMaster,
-         sAxisSlave  => dmaSlave,
+         sAxisSlave  => dmaObSlave,
          sAxisCtrl   => dmaCtrl,
          -- Master Port
          mAxisClk    => pciClk,

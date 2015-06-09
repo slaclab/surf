@@ -63,23 +63,22 @@ struct SsiPcieReg {
    
    // SsiPcieRxDesc.vhd   
    __u32 rxFree[16];    // Software_Addr = 0x43C:0x400
-   __u32 rxSpare0[16];  // Software_Addr = 0x47C:0x440
-   __u32 rxFreeStat[16];// Software_Addr = 0x4BC:0x480
-   __u32 rxSpare1[16];  // Software_Addr = 0x4FC:0x4C0
+   __u32 rxFreeStat[16];// Software_Addr = 0x47C:0x440
+   __u32 rxSpare0[32];  // Software_Addr = 0x4FC:0x480
    __u32 rxMaxFrame;    // Software_Addr = 0x500
    __u32 rxCount;       // Software_Addr = 0x504
    __u32 rxStatus;      // Software_Addr = 0x508
    __u32 rxRead[2];     // Software_Addr = 0x510:0x50C
-   __u32 rxSpare2[187]; // Software_Addr = 0x77C:0x514
+   __u32 rxSpare1[187]; // Software_Addr = 0x77C:0x514
    
    // SsiPcieTxDesc.vhd
-   __u32 txWrA[16];     // Software_Addr = 0x83C:0x800
-   __u32 txSpare0[16];  // Software_Addr = 0x87C:0x840
-   __u32 txWrB[16];     // Software_Addr = 0x8BC:0x880
-   __u32 txSpare1[16];  // Software_Addr = 0x8FC:0x8C0
-   __u32 txStat[2];     // Software_Addr = 0x904:0x900
-   __u32 txCount;       // Software_Addr = 0x908
-   __u32 txRead;        // Software_Addr = 0x90C
+   __u32 txWrA[16];    // Software_Addr = 0x83C:0x800
+   __u32 txWrB[16];    // Software_Addr = 0x87C:0x840
+   __u32 txFifoCnt[16];// Software_Addr = 0x8BC:0x880
+   __u32 txSpare[16];  // Software_Addr = 0x8FC:0x8C0
+   __u32 txStat[2];    // Software_Addr = 0x904:0x900
+   __u32 txCount;      // Software_Addr = 0x908
+   __u32 txRead;       // Software_Addr = 0x90C
 };
 
 // Structure for TX buffers

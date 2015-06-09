@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ architecture rtl of SsiPcieRxDmaTransFifo is
    signal tranAFull  : sl;
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;
-   
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
@@ -109,7 +109,7 @@ begin
       end if;
 
       -- Check if ready to move data
-      if (sAxisMaster.tValid = '1') and (v.axisMaster.tValid = '0') and (tranAFull = '0') then
+      if (sAxisMaster.tValid = '1') and (v.axisMaster.tValid = '0') and (tranAFull = '0') and (r.tranWr = '0') then
          -- Ready for data
          v.sAxisSlave.tReady := '1';
          -- Latch the FIFO data
@@ -201,6 +201,7 @@ begin
          BRAM_EN_G    => false,
          FWFT_EN_G    => true,
          DATA_WIDTH_G => 23,
+         FULL_THRES_G => 60,
          ADDR_WIDTH_G => 6)             -- Use RAM64 
       port map (
          clk                => pciClk,
@@ -211,7 +212,7 @@ begin
          din(18)            => r.tranEofe,
          din(17 downto 9)   => r.tranLength,
          din(8 downto 0)    => r.tranCnt,
-         almost_full        => tranAFull,
+         prog_full          => tranAFull,
          --Read Ports (rd_clk domain)
          rd_en              => tranRd,
          dout(22 downto 19) => tranSubId,
