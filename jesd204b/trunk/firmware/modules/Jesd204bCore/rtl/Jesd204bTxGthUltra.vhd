@@ -12,7 +12,7 @@
 -- Description: Framework module for JESD.
 --              GTH coregen generated core 2 GTH modules
 --              Note: Intended only for two serial lanes L_G=2.
---                    7.4 GHz lane rate and 370MHz reference, Freerunning DRP clk 185 MHz
+--                    7.4 GHz lane rate and 370MHz reference, Freerunning clk 185 MHz
 --                    If different amount of lanes or freq is required the Core has to be regenerated 
 --                    by Xilinx Coregen. 
 -------------------------------------------------------------------------------
@@ -39,10 +39,10 @@ entity Jesd204bTxGthUltra is
            
       -- Internal SYSREF SYSREF_GEN_G= TRUE else 
       -- External SYSREF
-      SYSREF_GEN_G       : boolean                    := true; 
+      SYSREF_GEN_G       : boolean                    := false; 
       
       -- Simulation disconnect the GTX
-      SIM_G              : boolean                    := true; 
+      SIM_G              : boolean                    := false; 
       
       
    -- GT Settings
@@ -93,7 +93,7 @@ entity Jesd204bTxGthUltra is
       rxAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
 
       -- External sample data input
-      extSampleDataArray_i : in sampleDataArray;      
+      extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);      
       
    -- JESD
    ------------------------------------------------------------------------------------------------   
@@ -137,6 +137,13 @@ architecture rtl of Jesd204bTxGthUltra is
    -- Generated or external
    signal s_sysRef      : sl;  
 
+   signal s_data  : slv(63 downto 0);
+   signal s_dataK : slv(15 downto 0);
+   signal s_devClkVec : slv(1 downto 0);
+   signal s_devClk2Vec : slv(1 downto 0);
+   
+   signal s_txDone : sl;
+   
 ---------------------------------------   
    component gthultrascalejesdcoregen
       port (
@@ -155,6 +162,7 @@ architecture rtl of Jesd204bTxGthUltra is
          gtwiz_userdata_rx_out : out std_logic_vector(63 downto 0);
          gtrefclk00_in : in std_logic_vector(0 downto 0);
          qpll0outclk_out : out std_logic_vector(0 downto 0);
+         qpll0lock_out : out std_logic_vector(0 downto 0);
          qpll0outrefclk_out : out std_logic_vector(0 downto 0);
          gthrxn_in : in std_logic_vector(1 downto 0);
          gthrxp_in : in std_logic_vector(1 downto 0);
@@ -257,16 +265,22 @@ begin
    s_gtxRst <= devRst_i or uOr(s_gtTxUserReset);
    
    -- debug
-   qPllLock_o <= uOr(s_gtTxReady);
+   qPllLock_o <= s_txDone;
    
    --------------------------------------------------------------------------------------------------
    -- Generate the GTX channels(Only for L_G = 2)
    --------------------------------------------------------------------------------------------------
+   s_data  <= r_jesdGtTxArr(1).data & r_jesdGtTxArr(0).data;
+   s_dataK <= x"0" & r_jesdGtTxArr(1).dataK & X"0" & r_jesdGtTxArr(0).dataK;
+   s_devClkVec   <= devClk_i & devClk_i;
+   s_devClk2Vec  <= devClk2_i & devClk2_i;
+   s_gtTxReady   <= s_txDone & s_txDone;
+   
    GthUltrascaleJesdCoregen_INST: GthUltrascaleJesdCoregen
    port map (
       -- Clocks
-      gtwiz_userclk_tx_active_in(0)        => devClk_i,
-      gtwiz_userclk_rx_active_in(0)        => devClk_i,
+      gtwiz_userclk_tx_active_in(0)        => '1',
+      gtwiz_userclk_rx_active_in(0)        => '1',
       gtwiz_reset_clk_freerun_in(0)        => stableClk,
       
       gtwiz_reset_all_in(0)                   => s_gtxRst,
@@ -274,35 +288,35 @@ begin
       gtwiz_reset_tx_datapath_in(0)           => s_gtxRst,
       gtwiz_reset_rx_pll_and_datapath_in(0)   => s_gtxRst,
       gtwiz_reset_rx_datapath_in(0)           => s_gtxRst,
-      gtwiz_reset_rx_cdr_stable_out           => open,
-      gtwiz_reset_tx_done_out              => open,
+      gtwiz_reset_rx_cdr_stable_out        => open,
+      gtwiz_reset_tx_done_out(0)           => s_txDone,
       gtwiz_reset_rx_done_out              => open,
-      gtwiz_userdata_tx_in                 => r_jesdGtTxArr(1).data & r_jesdGtTxArr(0).data,
+      gtwiz_userdata_tx_in                 => s_data,
       gtwiz_userdata_rx_out                => open,
       gtrefclk00_in(0)                     => refClk,
       qpll0outclk_out                      => open,
       qpll0outrefclk_out                   => open,
       gthrxn_in                            => gtRxN,
       gthrxp_in                            => gtRxP,
-      --qpll0lock_out(0)                     => qPllLock_o,
+      qpll0lock_out                        => open,--qPllLock_o,
       rx8b10ben_in                         => "11",
       rxcommadeten_in                      => "11",
       rxmcommaalignen_in                   => "11",
       rxpcommaalignen_in                   => "11",
       rxpolarity_in                        => "11",  -- Changed to '1' after receiving weird data (sometimes ok sometimes wrong)
-      rxusrclk_in                          => (others => devClk_i),
-      rxusrclk2_in                         => (others => devClk_i),
+      rxusrclk_in                          => s_devClkVec,
+      rxusrclk2_in                         => s_devClk2Vec,
       tx8b10ben_in                         => "11",
       txctrl0_in                           => X"0000_0000",
       txctrl1_in                           => X"0000_0000",
-      txctrl2_in                           => x"0" & r_jesdGtTxArr(1).dataK & X"0" & r_jesdGtTxArr(0).dataK,
+      txctrl2_in                           => s_dataK,
       txpolarity_in                        => "00",
-      txusrclk_in                          => (others => devClk_i),
-      txusrclk2_in                         => (others => devClk_i),
+      txusrclk_in                          => s_devClkVec,
+      txusrclk2_in                         => s_devClk2Vec,
       gthtxn_out                           => gtTxN,
       gthtxp_out                           => gtTxP,
       txoutclk_out                         => open,
-      txpmaresetdone_out                   => s_gtTxReady,
+      txpmaresetdone_out                   => open,
       
       -- RX settings 
       rxbyteisaligned_out                  => open,

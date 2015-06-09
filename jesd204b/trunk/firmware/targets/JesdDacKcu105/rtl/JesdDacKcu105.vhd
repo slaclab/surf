@@ -517,7 +517,7 @@ begin
       
       leds_o(0)         => s_syncAllLED, -- (0) Sync
       leds_o(1)         => s_validAllLED,-- (1) Data_valid
-      qPllLock_o       => qPllLock,
+      qPllLock_o        => qPllLock,
       
       sysRef_i          => s_sysRef,
       sysRef_o          => open, -- TODO Add internal sysref GEN output          
@@ -579,7 +579,11 @@ begin
       port map (
          clk => jesdClk,
          o   => leds(4));
-         
+   
+   -- 
+   leds(2) <= s_nSync;
+   leds(3) <= jesdClkRst;
+   
    leds(5) <= qPllLock;
    leds(6) <= s_syncAllLED;
    leds(7) <= s_validAllLED;

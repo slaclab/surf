@@ -70,7 +70,7 @@ begin
          clkN => pgpRefClkN);
 
    -- component instantiation
-   DUT : entity work.JesdDacKc705Tb
+   DUT : entity work.JesdDacKc705
       generic map (
          TPD_G                  => TPD_G,
          SIMULATION_G           => true,
