@@ -363,6 +363,6 @@ begin
    -- Output assignment
    gtTxReset_o  <= (others=> s_gtReset);
    
-   leds_o <= uOr(s_dataValid) & s_nSyncSync;
+   leds_o <= uOr(s_dataValid) & uOr(s_enableTx);
    -----------------------------------------------------
 end rtl;

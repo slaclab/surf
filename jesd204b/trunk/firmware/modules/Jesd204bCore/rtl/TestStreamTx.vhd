@@ -91,7 +91,7 @@ begin
    begin
       v := r;
      
-      -- Ramp generator      
+      -- Ramp generator      TODO FIX LATCH !!!!!!!!!!
       ------------------------------------------------------------- 
       if (type_i = "00" or type_i = "01") then
          -- Increment/decrement ramp control      

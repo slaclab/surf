@@ -100,7 +100,7 @@ architecture rtl of SyncFsmTx is
 begin
    
    -- State machine
-   comb : process (rst, r, enable_i, lmfc_i, nSync_i, gtTxReady_i, sysRef_i) is
+   comb : process (rst, r, enable_i, lmfc_i, nSync_i, gtTxReady_i, sysRef_i, subClass_i) is
       variable v : RegType;
    begin
       -- Latch the current value
