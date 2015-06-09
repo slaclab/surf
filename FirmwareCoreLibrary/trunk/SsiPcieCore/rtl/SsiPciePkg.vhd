@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-24
+-- Last update: 2015-06-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,6 +48,9 @@ package SsiPciePkg is
       tag   : slv(7 downto 0);          -- Assigned tag
    end record;
    type TranFromPcieArray is array (integer range<>) of TranFromPcieType;
+   constant TRAN_FROM_PCIE_INIT_C : TranFromPcieType := (
+      locId => (others => '0'),
+      tag   => (others => '0'));   
 
    ------------------------------------------------------------------------
    -- DescToPci Types/Constants                             
