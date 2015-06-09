@@ -156,8 +156,8 @@ begin
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Calculate the address pointers
-      wrPntr := conv_integer(axiWriteMaster.awaddr(6 downto 2));
-      rdPntr := conv_integer(axiReadMaster.araddr(6 downto 2));
+      wrPntr := conv_integer(axiWriteMaster.awaddr(5 downto 2));
+      rdPntr := conv_integer(axiReadMaster.araddr(5 downto 2));
 
       -- Reset strobe signals
       v.dFifoWr := (others => '0');
@@ -177,7 +177,7 @@ begin
             -- Address is aligned
             axiWriteResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            if (axiWriteMaster.awaddr(9 downto 7) = "000") and (wrPntr < DMA_SIZE_G) then
+            if (axiWriteMaster.awaddr(9 downto 6) = x"0") and (wrPntr < DMA_SIZE_G) then
                if r.wrDone = '0' then
                   v.lastDesc              := axiWriteMaster.wdata(31 downto 2);
                   v.dFifoDin(31 downto 2) := axiWriteMaster.wdata(31 downto 2);
@@ -213,7 +213,7 @@ begin
             -- Address is aligned
             axiReadResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            if (axiReadMaster.araddr(9 downto 7) = "001") and (rdPntr < DMA_SIZE_G) then
+            if (axiReadMaster.araddr(9 downto 6) = x"1") and (rdPntr < DMA_SIZE_G) then
                v.axiReadSlave.rdata(31)         := dFifoFull(rdPntr);
                v.axiReadSlave.rdata(30)         := dFifoValid(rdPntr);
                v.axiReadSlave.rdata(9 downto 0) := dFifoCnt(rdPntr);

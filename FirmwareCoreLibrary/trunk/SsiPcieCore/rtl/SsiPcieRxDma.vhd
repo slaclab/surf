@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -100,13 +100,13 @@ architecture rtl of SsiPcieRxDma is
    signal tranCnt    : slv(8 downto 0);
 
    signal ibMaster : AxiStreamMasterType;
-   signal ibSlave  : AxiStreamSlaveType;   
-   
+   signal ibSlave  : AxiStreamSlaveType;
+
    signal rxMaster : AxiStreamMasterType;
    signal rxSlave  : AxiStreamSlaveType;
-   
-   signal txSlave  : AxiStreamSlaveType;
-   
+
+   signal txSlave : AxiStreamSlaveType;
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
@@ -190,7 +190,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for data in the transaction FIFO and data FIFO
-            if (tranValid = '1') and (r.tranRd = '0') and (rxMaster.tValid = '1') then
+            if (tranValid = '1') and (r.tranRd = '0') and (v.txMaster.tValid = '0') and (rxMaster.tValid = '1') then
                -- Check for start of frame bit
                if ssiGetUserSof(PCIE_AXIS_CONFIG_C, rxMaster) = '1' then
                   -- Send a request to the descriptor

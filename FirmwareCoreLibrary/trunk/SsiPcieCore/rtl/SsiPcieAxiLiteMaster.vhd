@@ -164,7 +164,7 @@ begin
                   v.state := RD_AXI_LITE_TRANS_S;
                else
                   -- Reset the data bus
-                  v.rdData := (others => '0');
+                  v.rdData := (others => '1');
                   -- Next state
                   v.state  := ACK_HDR_S;
                end if;
@@ -207,67 +207,47 @@ begin
          ----------------------------------------------------------------------
          when ACK_HDR_S =>
             -- Check if target is ready for data
-            if v.txMaster.tValid = '0' then
-               ------------------------------------------------------
-               -- Generate a 3-DW completion TPL             
-               ------------------------------------------------------
-               --DW0
-               if r.hdr.fmt(1) = '1' then           --echo back write data
-                  -- Reorder Data
-                  v.txMaster.tData(103 downto 96)  := r.hdr.data(31 downto 24);
-                  v.txMaster.tData(111 downto 104) := r.hdr.data(23 downto 16);
-                  v.txMaster.tData(119 downto 112) := r.hdr.data(15 downto 8);
-                  v.txMaster.tData(127 downto 120) := r.hdr.data(7 downto 0);
-               else                     --send read data 
-                  -- Reorder Data
+            if v.txMaster.tValid = '0' then         
+               -- Check for read operation
+               if r.hdr.fmt(1) = '0' then
+                  -- Write to the FIFO
+                  v.txMaster.tValid := '1';
+                  -- Set the EOF bit
+                  v.txMaster.tLast  := '1';               
+                  -- TLP = DW0/H2/H1/H0
+                  v.txMaster.tKeep                 := x"FFFF";
+                  --DW0 (Reordered Data)
                   v.txMaster.tData(103 downto 96)  := r.rdData(31 downto 24);
                   v.txMaster.tData(111 downto 104) := r.rdData(23 downto 16);
                   v.txMaster.tData(119 downto 112) := r.rdData(15 downto 8);
                   v.txMaster.tData(127 downto 120) := r.rdData(7 downto 0);
+                  --H2
+                  v.txMaster.tData(95 downto 80)   := r.hdr.ReqId;         -- Echo back requester ID
+                  v.txMaster.tData(79 downto 72)   := r.hdr.Tag;  -- Echo back Tag               
+                  v.txMaster.tData(71)             := '0';        -- PCIe Reserved
+                  v.txMaster.tData(70 downto 64)   := r.hdr.addr(6 downto 2) & "00";
+                  --H1
+                  v.txMaster.tData(63 downto 48)   := regTranFromPci.locId;  -- Send Completer ID                  
+                  v.txMaster.tData(47 downto 45)   := "000";      -- Success
+                  v.txMaster.tData(44)             := '0';        -- PCIe Reserved
+                  v.txMaster.tData(43 downto 32)   := x"004";
+                  --H0
+                  v.txMaster.tData(31)             := '0';        -- PCIe Reserved               
+                  v.txMaster.tData(30 downto 24)   := PIO_CPLD_FMT_TYPE_C;
+                  v.txMaster.tData(23)             := '0';        -- PCIe Reserved
+                  v.txMaster.tData(22 downto 20)   := r.hdr.tc;   -- Echo back TC bit
+                  v.txMaster.tData(19 downto 16)   := "0000";     -- PCIe Reserved
+                  v.txMaster.tData(15)             := '0';   -- TD Field
+                  v.txMaster.tData(14)             := '0';   -- EP Field
+                  v.txMaster.tData(13 downto 12)   := r.hdr.attr;          -- Echo back ATTR
+                  v.txMaster.tData(11 downto 10)   := "00";       -- PCIe Reserved                  
+                  v.txMaster.tData(9 downto 0)     := toSlv(1,10);               
                end if;
-               --H2
-               v.txMaster.tData(95 downto 80) := r.hdr.ReqId;           -- Echo back requester ID
-               v.txMaster.tData(79 downto 72) := r.hdr.Tag;             -- Echo back Tag
-               v.txMaster.tData(71)           := '0';  -- PCIe Reserved
-               v.txMaster.tData(70 downto 64) := r.hdr.addr(6 downto 2) & "00";  -- Send back Lower Address
-               --H1
-               v.txMaster.tData(63 downto 48) := regTranFromPci.locId;  -- Send Completer ID
-               -- Check for write operation
-               if r.hdr.xType /= 0 then
-                  v.txMaster.tData(47 downto 45) := "001";              -- Unsupported
-               else
-                  v.txMaster.tData(47 downto 45) := "000";              -- Success
-               end if;
-               v.txMaster.tData(44)           := '0';  --The BCM field is always zero, except when a packet origins from a bridge with PCI-X. So it’s zero.
-               v.txMaster.tData(43 downto 32) := x"004";   --Byte Count - sending 4 bytes
-               --H0
-               v.txMaster.tData(31)           := '0';  -- PCIe Reserved
-               -- Check for write operation
-               if r.hdr.fmt(1) = '1' then
-                  v.txMaster.tData(30 downto 29) := "00";
-               else
-                  v.txMaster.tData(30 downto 29) := "10";
-               end if;
-               v.txMaster.tData(28 downto 24) := "01010";  --Type=0x0A for completion TLP
-               v.txMaster.tData(23)           := '0';  -- PCIe Reserved
-               v.txMaster.tData(22 downto 20) := r.hdr.tc;              -- Echo back TC bit
-               v.txMaster.tData(19 downto 16) := "0000";   -- PCIe Reserved
-               v.txMaster.tData(15)           := r.hdr.td;              -- Echo back TD bit
-               v.txMaster.tData(14)           := r.hdr.ep;              -- Echo back EP bit
-               v.txMaster.tData(13 downto 12) := r.hdr.attr;            -- Echo back ATTR
-               v.txMaster.tData(11 downto 10) := "00";     -- PCIe Reserved
-               v.txMaster.tData(9 downto 0)   := r.hdr.xLength;         -- Echo back the length
-               ------------------------------------------------------  
-               -- Write to the FIFO
-               v.txMaster.tValid              := '1';
-               -- Set the EOF bit
-               v.txMaster.tLast               := '1';
-               -- Check for write operation
-               if r.hdr.fmt(1) = '1' then
-                  v.txMaster.tKeep := x"0FFF";
-               else
-                  v.txMaster.tKeep := x"FFFF";
-               end if;
+               -------------------------------------------------------------------
+               -- Note: Memory write operation are "posted" only, which should not
+               --       respond with a completion TLP (Refer to page 179 of 
+               --       "PCI Express System Architecture" ISBN: 0-321-15630-7)
+               -------------------------------------------------------------------             
                -- Check for valid write operation
                if (r.hdr.fmt(1) = '1') and ((bar < BAR_SIZE_G) or (bar = 4)) then
                   if bar = 4 then
@@ -295,7 +275,7 @@ begin
                   -- Next state
                   v.state := IDLE_S;
                end if;
-            end if;
+            end if;         
          ----------------------------------------------------------------------
          when WR_AXI_LITE_TRANS_S =>
             if bar = 4 then

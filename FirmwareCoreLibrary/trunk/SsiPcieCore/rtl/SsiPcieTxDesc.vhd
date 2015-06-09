@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-05-13
+-- Last update: 2015-05-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ architecture rtl of SsiPcieTxDesc is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   -- Done Descriptor Signals
+   signal tFifoCnt     : Slv5Array(DMA_SIZE_G-1 downto 0);
    signal dmaDescAFull : slv(DMA_SIZE_G-1 downto 0);
    signal dFifoAFull   : sl;
    signal dFifoDout    : slv(31 downto 0);
@@ -107,7 +107,7 @@ begin
    -- Configuration Register
    -------------------------------  
    comb : process (axiReadMaster, axiWriteMaster, cntRst, dFifoAFull, dFifoCnt, dFifoDout,
-                   dFifoValid, dmaDescAFull, dmaDescToPci, pciRst, r) is
+                   dFifoValid, dmaDescAFull, dmaDescToPci, pciRst, r, tFifoCnt) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -122,8 +122,8 @@ begin
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Calculate the address pointers
-      wrPntr := conv_integer(axiWriteMaster.awaddr(6 downto 2));
-      rdPntr := conv_integer(axiReadMaster.araddr(6 downto 2));
+      wrPntr := conv_integer(axiWriteMaster.awaddr(5 downto 2));
+      rdPntr := conv_integer(axiReadMaster.araddr(5 downto 2));
 
       -- Reset strobe signals
       v.tFifoWr := (others => '0');
@@ -141,9 +141,9 @@ begin
             -- Address is aligned
             axiWriteResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            if (axiWriteMaster.awaddr(9 downto 7) = "000") and (wrPntr < DMA_SIZE_G) then
+            if (axiWriteMaster.awaddr(9 downto 6) = x"0") and (wrPntr < DMA_SIZE_G) then
                v.tFifoDin(31 downto 0) := axiWriteMaster.wdata;
-            elsif (axiWriteMaster.awaddr(9 downto 7) = "001") and (wrPntr < DMA_SIZE_G) then
+            elsif (axiWriteMaster.awaddr(9 downto 6) = x"1") and (wrPntr < DMA_SIZE_G) then
                v.tFifoDin(63 downto 32) := axiWriteMaster.wdata;
                v.tFifoWr(wrPntr)        := not(r.wrDone);
             else
@@ -170,39 +170,40 @@ begin
             -- Address is aligned
             axiReadResp := AXI_RESP_OK_C;
             -- Decode address and perform write
-            case (axiReadMaster.araddr(9 downto 2)) is
-               when x"40" =>
-                  v.axiReadSlave.rdata(DMA_SIZE_G-1 downto 0) := dmaDescAFull;
-               when x"41" =>
-                  v.axiReadSlave.rdata(31)         := dFifoValid;
-                  v.axiReadSlave.rdata(9 downto 0) := dFifoCnt;
-               when x"42" =>
-                  v.axiReadSlave.rdata := r.txCount;
-               when x"43" =>
-                  if r.rdDone = '0' then
-                     -- Check if we need to read the FIFO
-                     if dFifoValid = '1' then
-                        v.axiReadSlave.rdata(31 downto 2) := dFifoDout(31 downto 2);
-                        v.axiReadSlave.rdata(1)           := '0';
-                        v.axiReadSlave.rdata(0)           := '1';
-                        -- Reset the flag
-                        v.reqIrq                          := '0';
-                        -- Read the FIFO
-                        v.dFifoRd                         := '1';
+            if (axiReadMaster.araddr(9 downto 6) = x"2") and (rdPntr < DMA_SIZE_G) then
+               v.axiReadSlave.rdata(4 downto 0) := tFifoCnt(rdPntr);
+            else
+               case (axiReadMaster.araddr(9 downto 2)) is
+                  when x"40" =>
+                     v.axiReadSlave.rdata(DMA_SIZE_G-1 downto 0) := dmaDescAFull;
+                  when x"41" =>
+                     v.axiReadSlave.rdata(31)         := dFifoValid;
+                     v.axiReadSlave.rdata(9 downto 0) := dFifoCnt;
+                  when x"42" =>
+                     v.axiReadSlave.rdata := r.txCount;
+                  when x"43" =>
+                     if r.rdDone = '0' then
+                        -- Check if we need to read the FIFO
+                        if dFifoValid = '1' then
+                           v.axiReadSlave.rdata(31 downto 2) := dFifoDout(31 downto 2);
+                           v.axiReadSlave.rdata(1)           := '0';
+                           v.axiReadSlave.rdata(0)           := '1';
+                           -- Reset the flag
+                           v.reqIrq                          := '0';
+                           -- Read the FIFO
+                           v.dFifoRd                         := '1';
+                        end if;
+                     else
+                        v.axiReadSlave.rdata := r.axiReadSlave.rdata;
                      end if;
-                  else
-                     v.axiReadSlave.rdata := r.axiReadSlave.rdata;
-                  end if;
-               when x"44" =>
-                  v.axiReadSlave.rdata := r.tFifoDin(31 downto 0);
-               when x"45" =>
-                  v.axiReadSlave.rdata := r.tFifoDin(63 downto 32);
-               when others =>
-                  axiReadResp := AXI_ERROR_RESP_G;
-            end case;
-         else
-            -- Address is not aligned
-            axiReadResp := AXI_ERROR_RESP_G;
+                  when x"44" =>
+                     v.axiReadSlave.rdata := r.tFifoDin(31 downto 0);
+                  when x"45" =>
+                     v.axiReadSlave.rdata := r.tFifoDin(63 downto 32);
+                  when others =>
+                     axiReadResp := AXI_ERROR_RESP_G;
+               end case;
+            end if;
          end if;
          -- Send AXI response
          axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
@@ -274,6 +275,7 @@ begin
             pciRst     => pciRst,
             tFifoWr    => r.tFifoWr(i),
             tFifoDin   => r.tFifoDin,
+            tFifoCnt   => tFifoCnt(i),
             tFifoAFull => dmaDescAFull(i),
             newReq     => dmaDescToPci(i).newReq,
             newAck     => dmaDescFromPci(i).newAck,

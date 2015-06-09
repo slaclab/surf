@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-05-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ entity SsiPcieTxDescFifo is
       tFifoWr    : in  sl;
       tFifoDin   : in  slv(63 downto 0);
       tFifoAFull : out sl;
+      tFifoCnt   : out slv(4 downto 0);
       -- DMA Controller Interface
       newReq     : in  sl;
       newAck     : out sl;
@@ -69,7 +70,7 @@ architecture rtl of SsiPcieTxDescFifo is
 
    signal tFifoValid : sl;
    signal tFifoDout  : slv(63 downto 0);
-   
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
@@ -86,16 +87,17 @@ begin
          FWFT_EN_G    => true,
          FULL_THRES_G => 500,
          DATA_WIDTH_G => 64,
-         ADDR_WIDTH_G => 32)             
+         ADDR_WIDTH_G => 5)             
       port map (
-         rst       => pciRst,
-         clk       => pciClk,
-         din       => tFifoDin,
-         wr_en     => tFifoWr,
-         rd_en     => r.newAck,
-         dout      => tFifoDout,
-         valid     => tFifoValid,
-         prog_full => tFifoAFull);
+         rst        => pciRst,
+         clk        => pciClk,
+         din        => tFifoDin,
+         wr_en      => tFifoWr,
+         rd_en      => r.newAck,
+         dout       => tFifoDout,
+         valid      => tFifoValid,
+         data_count => tFifoCnt,
+         prog_full  => tFifoAFull);
 
    comb : process (newReq, pciRst, r, tFifoDout, tFifoValid) is
       variable v : RegType;
