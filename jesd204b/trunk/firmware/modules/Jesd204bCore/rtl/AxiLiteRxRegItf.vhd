@@ -83,7 +83,7 @@ architecture rtl of AxiLiteRxRegItf is
    end record;
    
    constant REG_INIT_C : RegType := (
-      enableRx       => (others => '0'),
+      enableRx       => (others => '1'),
       commonCtrl     => "0011",
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => (others => '0')),
