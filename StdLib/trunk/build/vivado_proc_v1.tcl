@@ -112,6 +112,35 @@ proc CopyIpCores { } {
          }        
       }
    }
+}  
+
+# Copies all source code defined cores.txt IP cores from the build tree to source tree
+proc CopyIpCoresAll { } {
+   # Get variables
+   set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl   
+   
+   # Make sure the IP Cores have been built
+   BuildIpCores
+   
+   # Check if the target project has IP cores
+   if { [get_ips] != "" } {
+      # Loop through the IP cores
+      foreach corePntr [get_ips] {
+         # Copy source code from build tree to source tree
+         foreach coreFilePntr ${CORE_FILES} {
+            if { [ string match *${corePntr}* ${coreFilePntr} ] } { 
+               set SRC [get_files ${corePntr}.xci]
+               set DST ${coreFilePntr}            
+               set SRC  [string trim ${SRC} ${corePntr}.xci]
+               set DST  [string trim ${DST} ${corePntr}.xci]
+               exec cp -rf ${SRC} ${DST}    
+               puts "exec cp -rf ${SRC} ${DST}"    
+            }
+         }        
+      }
+   }
 }   
 
 # Checking Timing Function
