@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-05-13
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,19 +29,19 @@ entity SSiPcieTlpInbound is
       DMA_SIZE_G : positive range 1 to 16 := 1);
    port (
       -- Inbound DMA Interface
-      regIbMaster   : in  AxiStreamMasterType;
-      regIbSlave    : out AxiStreamSlaveType;
-      dmaTxIbMaster : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaTxIbSlave  : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      dmaRxIbMaster : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaRxIbSlave  : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      regIbMaster    : in  AxiStreamMasterType;
+      regIbSlave     : out AxiStreamSlaveType;
+      dmaTxIbMasters : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaTxIbSlaves  : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaRxIbMasters : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaRxIbSlaves  : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
       -- PCIe Interface
-      trnPending    : out sl;
-      mAxisMaster   : out AxiStreamMasterType;
-      mAxisSlave    : in  AxiStreamSlaveType;
+      trnPending     : out sl;
+      mAxisMaster    : out AxiStreamMasterType;
+      mAxisSlave     : in  AxiStreamSlaveType;
       -- Clock and Resets
-      pciClk        : in  sl;
-      pciRst        : in  sl);       
+      pciClk         : in  sl;
+      pciRst         : in  sl);       
 end SsiPcieTlpInbound;
 
 architecture rtl of SsiPcieTlpInbound is
@@ -51,35 +51,35 @@ architecture rtl of SsiPcieTlpInbound is
       DMA_RX_S);    
 
    type RegType is record
-      trnPending   : sl;
-      arbCnt       : natural range 0 to DMA_SIZE_G-1;
-      chPntr       : natural range 0 to DMA_SIZE_G-1;
-      regIbSlave   : AxiStreamSlaveType;
-      dmaTxIbSlave : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      dmaRxIbSlave : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      txMaster     : AxiStreamMasterType;
-      state        : StateType;
+      trnPending    : sl;
+      arbCnt        : natural range 0 to DMA_SIZE_G-1;
+      chPntr        : natural range 0 to DMA_SIZE_G-1;
+      regIbSlave    : AxiStreamSlaveType;
+      dmaTxIbSlaves : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaRxIbSlaves : AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      txMaster      : AxiStreamMasterType;
+      state         : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      trnPending   => '0',
-      arbCnt       => 0,
-      chPntr       => 0,
-      regIbSlave   => AXI_STREAM_SLAVE_INIT_C,
-      dmaTxIbSlave => (others => AXI_STREAM_SLAVE_INIT_C),
-      dmaRxIbSlave => (others => AXI_STREAM_SLAVE_INIT_C),
-      txMaster     => AXI_STREAM_MASTER_INIT_C,
-      state        => IDLE_S);
+      trnPending    => '0',
+      arbCnt        => 0,
+      chPntr        => 0,
+      regIbSlave    => AXI_STREAM_SLAVE_INIT_C,
+      dmaTxIbSlaves => (others => AXI_STREAM_SLAVE_INIT_C),
+      dmaRxIbSlaves => (others => AXI_STREAM_SLAVE_INIT_C),
+      txMaster      => AXI_STREAM_MASTER_INIT_C,
+      state         => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
 begin
 
-   comb : process (dmaRxIbMaster, dmaTxIbMaster, mAxisSlave, pciRst, r, regIbMaster) is
+   comb : process (dmaRxIbMasters, dmaTxIbMasters, mAxisSlave, pciRst, r, regIbMaster) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -90,8 +90,8 @@ begin
       v.trnPending        := '0';
       v.regIbSlave.tReady := '0';
       for i in 0 to DMA_SIZE_G-1 loop
-         v.dmaTxIbSlave(i).tReady := '0';
-         v.dmaRxIbSlave(i).tReady := '0';
+         v.dmaTxIbSlaves(i).tReady := '0';
+         v.dmaRxIbSlaves(i).tReady := '0';
       end loop;
 
       -- Update tValid register
@@ -104,10 +104,10 @@ begin
          v.trnPending := '1';
       end if;
       for i in 0 to DMA_SIZE_G-1 loop
-         if dmaTxIbMaster(i).tValid = '1' then
+         if dmaTxIbMasters(i).tValid = '1' then
             v.trnPending := '1';
          end if;
-         if dmaRxIbMaster(i).tValid = '1' then
+         if dmaRxIbMasters(i).tValid = '1' then
             v.trnPending := '1';
          end if;
       end loop;
@@ -123,20 +123,20 @@ begin
                   v.regIbSlave.tReady := '1';
                   v.txMaster          := regIbMaster;
                -- 2nd priority: TX DMA's Memory Requesting
-               elsif dmaTxIbMaster(r.arbCnt).tValid = '1' then
+               elsif dmaTxIbMasters(r.arbCnt).tValid = '1' then
                   -- Ready for data
-                  v.dmaTxIbSlave(r.arbCnt).tReady := '1';
-                  v.txMaster          := dmaTxIbMaster(r.arbCnt);             
+                  v.dmaTxIbSlaves(r.arbCnt).tReady := '1';
+                  v.txMaster                       := dmaTxIbMasters(r.arbCnt);
                else
                   -- Check for RX DMA data
-                  if dmaRxIbMaster(r.arbCnt).tValid = '1' then
+                  if dmaRxIbMasters(r.arbCnt).tValid = '1' then
                      -- Select the register path
-                     v.chPntr                        := r.arbCnt;
+                     v.chPntr                         := r.arbCnt;
                      -- Ready for data
-                     v.dmaRxIbSlave(r.arbCnt).tReady := '1';
-                     v.txMaster                      := dmaRxIbMaster(r.arbCnt);
+                     v.dmaRxIbSlaves(r.arbCnt).tReady := '1';
+                     v.txMaster                       := dmaRxIbMasters(r.arbCnt);
                      -- Check for not(tLast)
-                     if dmaRxIbMaster(r.arbCnt).tLast = '0'then
+                     if dmaRxIbMasters(r.arbCnt).tLast = '0'then
                         -- Next state
                         v.state := DMA_RX_S;
                      end if;
@@ -152,12 +152,12 @@ begin
          ----------------------------------------------------------------------
          when DMA_RX_S =>
             -- Check if target is ready for data
-            if (v.txMaster.tValid = '0') and (dmaRxIbMaster(r.chPntr).tValid = '1') then
+            if (v.txMaster.tValid = '0') and (dmaRxIbMasters(r.chPntr).tValid = '1') then
                -- Ready for data
-               v.dmaRxIbSlave(r.chPntr).tReady := '1';
-               v.txMaster                      := dmaRxIbMaster(r.chPntr);
+               v.dmaRxIbSlaves(r.chPntr).tReady := '1';
+               v.txMaster                       := dmaRxIbMasters(r.chPntr);
                -- Check for tLast
-               if dmaRxIbMaster(r.chPntr).tLast = '1' then
+               if dmaRxIbMasters(r.chPntr).tLast = '1' then
                   -- Next state
                   v.state := IDLE_S;
                end if;
@@ -174,11 +174,11 @@ begin
       rin <= v;
 
       -- Outputs
-      trnPending   <= r.trnPending;
-      regIbSlave   <= v.regIbSlave;
-      dmaTxIbSlave <= v.dmaTxIbSlave;
-      dmaRxIbSlave <= v.dmaRxIbSlave;
-      mAxisMaster  <= r.txMaster;
+      trnPending    <= r.trnPending;
+      regIbSlave    <= v.regIbSlave;
+      dmaTxIbSlaves <= v.dmaTxIbSlaves;
+      dmaRxIbSlaves <= v.dmaRxIbSlaves;
+      mAxisMaster   <= r.txMaster;
 
    end process comb;
 

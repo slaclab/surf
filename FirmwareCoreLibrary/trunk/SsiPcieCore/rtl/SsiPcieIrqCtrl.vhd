@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-24
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,13 +23,12 @@ use work.StdRtlPkg.all;
 
 entity SsiPcieIrqCtrl is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G      : time                  := 1 ns;
+      BAR_SIZE_G : positive range 1 to 4 := 1);
    port (
       -- Interrupt Interface
-      irqIntEnable : in  sl;
-      irqExtEnable : in  sl;
-      intIrqReq    : in  sl;
-      extIrqReq    : in  sl;
+      irqEnable    : in  slv(BAR_SIZE_G-1 downto 0);
+      irqReq       : in  slv(BAR_SIZE_G-1 downto 0);
       irqAck       : in  sl;
       irqActive    : out sl;
       cfgIrqReq    : out sl;
@@ -64,32 +63,31 @@ architecture rtl of SsiPcieIrqCtrl is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
 begin
 
-   comb : process (extIrqReq, intIrqReq, irqAck, irqExtEnable, irqIntEnable, pciRst, r) is
-      variable v          : RegType;
-      variable i          : natural;
-      variable irqEnable  : sl;
-      variable intRequest : sl;
-      variable extRequest : sl;
+   comb : process (irqAck, irqEnable, irqReq, pciRst, r) is
+      variable v : RegType;
+      variable i : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Update the interrupt request
-      irqEnable    := irqIntEnable or irqExtEnable;
-      intRequest   := irqIntEnable and intIrqReq;
-      extRequest   := irqExtEnable and extIrqReq;
-      v.irqRequest := intRequest or extRequest;
+      v.irqRequest := '0';
+      for i in BAR_SIZE_G-1 downto 0 loop
+         if (irqEnable(i) = '1') and (irqReq(i) = '1') then
+            v.irqRequest := '1';
+         end if;
+      end loop;
 
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            if (r.irqRequest = '1') and (irqEnable = '1') then
+            if (r.irqRequest = '1') and (uOr(irqEnable) = '1') then
                v.irqReq    := '1';
                v.irqAssert := '1';
                v.state     := SET_S;
@@ -103,7 +101,7 @@ begin
             end if;
          -----------------------------------------------------------------------
          when SERV_S =>
-            if (r.irqRequest = '0') or (irqEnable = '0') then
+            if (r.irqRequest = '0') or (uOr(irqEnable) = '0') then
                v.irqReq    := '1';
                v.irqAssert := '0';
                v.state     := CLR_S;
