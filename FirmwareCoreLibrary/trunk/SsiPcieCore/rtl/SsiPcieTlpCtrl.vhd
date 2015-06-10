@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-24
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,12 +45,12 @@ entity SsiPcieTlpCtrl is
       -- DMA Interface      
       dmaTxTranFromPci : out TranFromPcieArray(DMA_SIZE_G-1 downto 0);
       dmaRxTranFromPci : out TranFromPcieArray(DMA_SIZE_G-1 downto 0);
-      dmaTxObMaster    : out AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaTxObSlave     : in  AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      dmaTxIbMaster    : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaTxIbSlave     : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      dmaRxIbMaster    : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaRxIbSlave     : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaTxObMasters   : out AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaTxObSlaves    : in  AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaTxIbMasters   : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaTxIbSlaves    : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaRxIbMasters   : in  AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaRxIbSlaves    : out AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
       -- Clock and Resets
       pciClk           : in  sl;
       pciRst           : in  sl);       
@@ -89,7 +89,7 @@ architecture rtl of SsiPcieTlpCtrl is
    signal sof                : slv(3 downto 0);
    signal eof                : slv(3 downto 0);
    signal locId              : slv(15 downto 0);
-   
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
@@ -260,17 +260,17 @@ begin
          DMA_SIZE_G => DMA_SIZE_G)
       port map (
          -- PCIe Interface
-         sAsixHdr      => axisHdr,
-         sAxisMaster   => r.txMaster,
-         sAxisSlave    => txSlave,
+         sAsixHdr       => axisHdr,
+         sAxisMaster    => r.txMaster,
+         sAxisSlave     => txSlave,
          -- Outbound DMA Interface
-         regObMaster   => regObMaster,
-         regObSlave    => regObSlave,
-         dmaTxObMaster => dmaTxObMaster,
-         dmaTxObSlave  => dmaTxObSlave,
+         regObMaster    => regObMaster,
+         regObSlave     => regObSlave,
+         dmaTxObMasters => dmaTxObMasters,
+         dmaTxObSlaves  => dmaTxObSlaves,
          -- Global Signals
-         pciClk        => pciClk,
-         pciRst        => pciRst);    
+         pciClk         => pciClk,
+         pciRst         => pciRst);    
 
    ---------------------
    -- Transmit Interface
@@ -281,18 +281,18 @@ begin
          DMA_SIZE_G => DMA_SIZE_G)
       port map (
          -- Inbound DMA Interface
-         regIbMaster   => regIbMaster,
-         regIbSlave    => regIbSlave,
-         dmaTxIbMaster => dmaTxIbMaster,
-         dmaTxIbSlave  => dmaTxIbSlave,
-         dmaRxIbMaster => dmaRxIbMaster,
-         dmaRxIbSlave  => dmaRxIbSlave,
+         regIbMaster    => regIbMaster,
+         regIbSlave     => regIbSlave,
+         dmaTxIbMasters => dmaTxIbMasters,
+         dmaTxIbSlaves  => dmaTxIbSlaves,
+         dmaRxIbMasters => dmaRxIbMasters,
+         dmaRxIbSlaves  => dmaRxIbSlaves,
          -- PCIe Interface
-         trnPending    => pendingTransaction,
-         mAxisMaster   => pciIbMaster,
-         mAxisSlave    => pciIbSlave,
+         trnPending     => pendingTransaction,
+         mAxisMaster    => pciIbMaster,
+         mAxisSlave     => pciIbSlave,
          -- Global Signals
-         pciClk        => pciClk,
-         pciRst        => pciRst); 
+         pciClk         => pciClk,
+         pciRst         => pciRst); 
 
 end rtl;

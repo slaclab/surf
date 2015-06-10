@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-04-22
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,17 +32,17 @@ entity SsiPcieTlpOutbound is
       DMA_SIZE_G : positive range 1 to 16 := 1);
    port (
       -- PCIe Interface
-      sAsixHdr      : in  PcieHdrType;
-      sAxisMaster   : in  AxiStreamMasterType;
-      sAxisSlave    : out AxiStreamSlaveType;
+      sAsixHdr       : in  PcieHdrType;
+      sAxisMaster    : in  AxiStreamMasterType;
+      sAxisSlave     : out AxiStreamSlaveType;
       -- Outbound DMA Interface
-      regObMaster   : out AxiStreamMasterType;
-      regObSlave    : in  AxiStreamSlaveType;
-      dmaTxObMaster : out AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaTxObSlave  : in  AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      regObMaster    : out AxiStreamMasterType;
+      regObSlave     : in  AxiStreamSlaveType;
+      dmaTxObMasters : out AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaTxObSlaves  : in  AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
       -- Clock and Resets
-      pciClk        : in  sl;
-      pciRst        : in  sl);       
+      pciClk         : in  sl;
+      pciRst         : in  sl);       
 end SsiPcieTlpOutbound;
 
 architecture rtl of SsiPcieTlpOutbound is
@@ -52,26 +52,26 @@ architecture rtl of SsiPcieTlpOutbound is
       DMA_S);   
 
    type RegType is record
-      chPntr        : natural range 0 to DMA_SIZE_G-1;
-      sAxisSlave    : AxiStreamSlaveType;
-      regObMaster   : AxiStreamMasterType;
-      dmaTxObMaster : AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      state         : StateType;
+      chPntr         : natural range 0 to DMA_SIZE_G-1;
+      sAxisSlave     : AxiStreamSlaveType;
+      regObMaster    : AxiStreamMasterType;
+      dmaTxObMasters : AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      state          : StateType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      chPntr        => 0,
-      sAxisSlave    => AXI_STREAM_SLAVE_INIT_C,
-      regObMaster   => AXI_STREAM_MASTER_INIT_C,
-      dmaTxObMaster => (others => AXI_STREAM_MASTER_INIT_C),
-      state         => IDLE_S);
+      chPntr         => 0,
+      sAxisSlave     => AXI_STREAM_SLAVE_INIT_C,
+      regObMaster    => AXI_STREAM_MASTER_INIT_C,
+      dmaTxObMasters => (others => AXI_STREAM_MASTER_INIT_C),
+      state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal dmaTag     : slv(7 downto 0);
    signal dmaTagPntr : natural range 0 to 127;
-   
+
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
    
@@ -80,7 +80,7 @@ begin
    dmaTag     <= sAxisMaster.tData(79 downto 72);
    dmaTagPntr <= conv_integer(dmaTag(7 downto 1));
 
-   comb : process (dmaTag, dmaTagPntr, dmaTxObSlave, pciRst, r, regObSlave, sAsixHdr, sAxisMaster) is
+   comb : process (dmaTag, dmaTagPntr, dmaTxObSlaves, pciRst, r, regObSlave, sAsixHdr, sAxisMaster) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -97,8 +97,8 @@ begin
 
       -- Update DMA tValid registers
       for i in 0 to DMA_SIZE_G-1 loop
-         if dmaTxObSlave(i).tReady = '1' then
-            v.dmaTxObMaster(i).tValid := '0';
+         if dmaTxObSlaves(i).tReady = '1' then
+            v.dmaTxObMasters(i).tValid := '0';
          end if;
       end loop;
 
@@ -120,10 +120,10 @@ begin
                      -- Set the channel pointer
                      v.chPntr := dmaTagPntr;
                      -- Check if target is ready for data
-                     if v.dmaTxObMaster(dmaTagPntr).tValid = '0' then
+                     if v.dmaTxObMasters(dmaTagPntr).tValid = '0' then
                         -- Ready for data
-                        v.sAxisSlave.tReady         := '1';
-                        v.dmaTxObMaster(dmaTagPntr) := sAxisMaster;
+                        v.sAxisSlave.tReady          := '1';
+                        v.dmaTxObMasters(dmaTagPntr) := sAxisMaster;
                         -- Check for not(tLast)
                         if sAxisMaster.tLast = '0' then
                            -- Next state
@@ -145,10 +145,10 @@ begin
          ----------------------------------------------------------------------
          when DMA_S =>
             -- Check if target is ready for data
-            if (v.dmaTxObMaster(r.chPntr).tValid = '0') and (sAxisMaster.tValid = '1') then
+            if (v.dmaTxObMasters(r.chPntr).tValid = '0') and (sAxisMaster.tValid = '1') then
                -- Ready for data
-               v.sAxisSlave.tReady       := '1';
-               v.dmaTxObMaster(r.chPntr) := sAxisMaster;
+               v.sAxisSlave.tReady        := '1';
+               v.dmaTxObMasters(r.chPntr) := sAxisMaster;
                -- Check for tLast
                if sAxisMaster.tLast = '1' then
                   -- Next state
@@ -167,9 +167,9 @@ begin
       rin <= v;
 
       -- Outputs
-      sAxisSlave    <= v.sAxisSlave;
-      dmaTxObMaster <= r.dmaTxObMaster;
-      regObMaster   <= r.regObMaster;
+      sAxisSlave     <= v.sAxisSlave;
+      dmaTxObMasters <= r.dmaTxObMasters;
+      regObMaster    <= r.regObMaster;
       
    end process comb;
 

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-05-15
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,7 +57,9 @@ end SsiPcieAxiLiteMaster;
 
 architecture rtl of SsiPcieAxiLiteMaster is
 
-   constant INT_BAR_MASK_C : slv(31 downto 0) := x"FFFFF000";
+   constant PIO_CPLD_FMT_TYPE_C : slv(6 downto 0)  := "1001010";
+   constant PIO_CPL_FMT_TYPE_C  : slv(6 downto 0)  := "0001010";
+   constant INT_BAR_MASK_C      : slv(31 downto 0) := x"FFFFF000";
 
    function GenAddr (
       hdr  : PcieHdrType;
@@ -139,6 +141,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Reset the read data bus
+            v.rdData := (others => '1');
             -- Check for FIFO data
             if regObMaster.tValid = '1' then
                -- ACK the FIFO tValid
@@ -163,10 +167,8 @@ begin
                   -- Next state
                   v.state := RD_AXI_LITE_TRANS_S;
                else
-                  -- Reset the data bus
-                  v.rdData := (others => '1');
                   -- Next state
-                  v.state  := ACK_HDR_S;
+                  v.state := ACK_HDR_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -179,7 +181,10 @@ begin
                -- Check if we need to clear the rready flag
                if mIntReadSlave.rvalid = '1' then
                   v.mIntReadMaster.rready := '0';
-                  v.rdData                := mIntReadSlave.rdata;
+                  -- Check for a valid responds
+                  if mIntReadSlave.rresp = AXI_RESP_OK_C then
+                     v.rdData := mIntReadSlave.rdata;
+                  end if;
                end if;
                -- Check if transaction is done
                if v.mIntReadMaster.arvalid = '0' and
@@ -195,7 +200,10 @@ begin
                -- Check if we need to clear the rready flag
                if mExtReadSlave(bar).rvalid = '1' then
                   v.mExtReadMaster(bar).rready := '0';
-                  v.rdData                     := mExtReadSlave(bar).rdata;
+                  -- Check for a valid responds
+                  if mExtReadSlave(bar).rresp = AXI_RESP_OK_C then
+                     v.rdData := mExtReadSlave(bar).rdata;
+                  end if;
                end if;
                -- Check if transaction is done
                if v.mExtReadMaster(bar).arvalid = '0' and
@@ -207,13 +215,13 @@ begin
          ----------------------------------------------------------------------
          when ACK_HDR_S =>
             -- Check if target is ready for data
-            if v.txMaster.tValid = '0' then         
+            if v.txMaster.tValid = '0' then
                -- Check for read operation
                if r.hdr.fmt(1) = '0' then
                   -- Write to the FIFO
-                  v.txMaster.tValid := '1';
+                  v.txMaster.tValid                := '1';
                   -- Set the EOF bit
-                  v.txMaster.tLast  := '1';               
+                  v.txMaster.tLast                 := '1';
                   -- TLP = DW0/H2/H1/H0
                   v.txMaster.tKeep                 := x"FFFF";
                   --DW0 (Reordered Data)
@@ -222,32 +230,32 @@ begin
                   v.txMaster.tData(119 downto 112) := r.rdData(15 downto 8);
                   v.txMaster.tData(127 downto 120) := r.rdData(7 downto 0);
                   --H2
-                  v.txMaster.tData(95 downto 80)   := r.hdr.ReqId;         -- Echo back requester ID
-                  v.txMaster.tData(79 downto 72)   := r.hdr.Tag;  -- Echo back Tag               
-                  v.txMaster.tData(71)             := '0';        -- PCIe Reserved
+                  v.txMaster.tData(95 downto 80)   := r.hdr.ReqId;  -- Echo back requester ID
+                  v.txMaster.tData(79 downto 72)   := r.hdr.Tag;    -- Echo back Tag               
+                  v.txMaster.tData(71)             := '0';   -- PCIe Reserved
                   v.txMaster.tData(70 downto 64)   := r.hdr.addr(6 downto 2) & "00";
                   --H1
                   v.txMaster.tData(63 downto 48)   := regTranFromPci.locId;  -- Send Completer ID                  
-                  v.txMaster.tData(47 downto 45)   := "000";      -- Success
-                  v.txMaster.tData(44)             := '0';        -- PCIe Reserved
+                  v.txMaster.tData(47 downto 45)   := "000";        -- Success
+                  v.txMaster.tData(44)             := '0';   -- PCIe Reserved
                   v.txMaster.tData(43 downto 32)   := x"004";
                   --H0
-                  v.txMaster.tData(31)             := '0';        -- PCIe Reserved               
+                  v.txMaster.tData(31)             := '0';   -- PCIe Reserved               
                   v.txMaster.tData(30 downto 24)   := PIO_CPLD_FMT_TYPE_C;
-                  v.txMaster.tData(23)             := '0';        -- PCIe Reserved
-                  v.txMaster.tData(22 downto 20)   := r.hdr.tc;   -- Echo back TC bit
-                  v.txMaster.tData(19 downto 16)   := "0000";     -- PCIe Reserved
+                  v.txMaster.tData(23)             := '0';   -- PCIe Reserved
+                  v.txMaster.tData(22 downto 20)   := r.hdr.tc;     -- Echo back TC bit
+                  v.txMaster.tData(19 downto 16)   := "0000";       -- PCIe Reserved
                   v.txMaster.tData(15)             := '0';   -- TD Field
                   v.txMaster.tData(14)             := '0';   -- EP Field
-                  v.txMaster.tData(13 downto 12)   := r.hdr.attr;          -- Echo back ATTR
-                  v.txMaster.tData(11 downto 10)   := "00";       -- PCIe Reserved                  
-                  v.txMaster.tData(9 downto 0)     := toSlv(1,10);               
+                  v.txMaster.tData(13 downto 12)   := r.hdr.attr;   -- Echo back ATTR
+                  v.txMaster.tData(11 downto 10)   := "00";  -- PCIe Reserved                  
+                  v.txMaster.tData(9 downto 0)     := toSlv(1, 10);
                end if;
                -------------------------------------------------------------------
                -- Note: Memory write operation are "posted" only, which should not
                --       respond with a completion TLP (Refer to page 179 of 
                --       "PCI Express System Architecture" ISBN: 0-321-15630-7)
-               -------------------------------------------------------------------             
+               -------------------------------------------------------------------           
                -- Check for valid write operation
                if (r.hdr.fmt(1) = '1') and ((bar < BAR_SIZE_G) or (bar = 4)) then
                   if bar = 4 then
@@ -275,7 +283,7 @@ begin
                   -- Next state
                   v.state := IDLE_S;
                end if;
-            end if;         
+            end if;
          ----------------------------------------------------------------------
          when WR_AXI_LITE_TRANS_S =>
             if bar = 4 then
