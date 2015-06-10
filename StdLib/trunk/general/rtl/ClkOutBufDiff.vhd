@@ -23,6 +23,7 @@ use UNISIM.VCOMPONENTS.all;
 
 entity ClkOutBufDiff is
    generic (
+      TPD_G          : time    := 1 ns;
       XIL_DEVICE_G   : string  := "7SERIES";
       RST_POLARITY_G : sl      := '1';
       INVERT_G       : boolean := false);
