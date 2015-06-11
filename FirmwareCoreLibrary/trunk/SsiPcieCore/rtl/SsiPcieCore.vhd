@@ -54,6 +54,7 @@ entity SsiPcieCore is
       BAR_MASK_G : Slv32Array(3 downto 0) := (others => x"FFF00000"));
    port (
       -- System Interface
+      irqActive             : out sl;
       irqEnable           : in  slv(BAR_SIZE_G-1 downto 0) := (others => '0');
       irqReq              : in  slv(BAR_SIZE_G-1 downto 0) := (others => '0');
       serialNumber        : in  slv(63 downto 0);
@@ -91,11 +92,12 @@ architecture mapping of SsiPcieCore is
    signal regObSlave     : AxiStreamSlaveType;
    signal regIbMaster    : AxiStreamMasterType;
    signal regIbSlave     : AxiStreamSlaveType;
-   signal irqActive      : sl;
+   signal irqActiveInt      : sl;
    
 begin
 
    cfgToPci.serialNumber <= serialNumber;
+   irqActive             <= irqActiveInt;
 
    -----------------
    -- TLP Controller
@@ -153,7 +155,7 @@ begin
          -- PCIe Interface
          irqEnable           => irqEnable,
          irqReq              => irqReq,
-         irqActive           => irqActive,
+         irqActive           => irqActiveInt,
          cfgFromPci          => cfgFromPci,
          regTranFromPci      => regTranFromPci,
          regObMaster         => regObMaster,
@@ -176,7 +178,7 @@ begin
          irqEnable    => irqEnable,
          irqReq       => irqReq,
          irqAck       => cfgFromPci.irqAck,
-         irqActive    => irqActive,
+         irqActive    => irqActiveInt,
          cfgIrqReq    => cfgToPci.irqReq,
          cfgIrqAssert => cfgToPci.irqAssert,
          -- Clock and Resets
