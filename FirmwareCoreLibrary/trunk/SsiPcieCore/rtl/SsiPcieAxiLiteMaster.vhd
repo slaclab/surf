@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-06-10
+-- Last update: 2015-06-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -263,6 +263,7 @@ begin
                      v.mIntWriteMaster.awaddr  := GenAddr(r.hdr, INT_BAR_MASK_C);
                      -- Set the write data buses
                      v.mIntWriteMaster.wdata   := r.hdr.data;
+                     v.mIntWriteMaster.wstrb   := r.hdr.FirstDwBe;
                      -- Start AXI-Lite transaction
                      v.mIntWriteMaster.awvalid := '1';
                      v.mIntWriteMaster.wvalid  := '1';
@@ -272,6 +273,7 @@ begin
                      v.mExtWriteMaster(bar).awaddr  := GenAddr(r.hdr, BAR_MASK_G(bar));
                      -- Set the write data buses
                      v.mExtWriteMaster(bar).wdata   := r.hdr.data;
+                     v.mExtWriteMaster(bar).wstrb   := r.hdr.FirstDwBe;
                      -- Start AXI-Lite transaction
                      v.mExtWriteMaster(bar).awvalid := '1';
                      v.mExtWriteMaster(bar).wvalid  := '1';
