@@ -1,0 +1,70 @@
+-------------------------------------------------------------------------------
+-- Title      : 
+-------------------------------------------------------------------------------
+-- File       : AxiSy56040Core.vhd
+-- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2015-06-12
+-- Last update: 2015-06-12
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: AXI-Lite interface to Clock Crossbar
+--
+--    Note: Set the addrBits on the crossbar for this module to 4 bits wide
+-------------------------------------------------------------------------------
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
+use work.AxiSy56040Pkg.all;
+
+entity AxiSy56040Core is
+   generic (
+      TPD_G            : time                  := 1 ns;
+      AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
+      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00");
+      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+   port (
+      -- XBAR Ports 
+      xBar           : out AxiSy56040OutType;
+      -- AXI-Lite Register Interface
+      axiReadMaster  : in  AxiLiteReadMasterType;
+      axiReadSlave   : out AxiLiteReadSlaveType;
+      axiWriteMaster : in  AxiLiteWriteMasterType;
+      axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Clocks and Resets
+      axiClk         : in  sl;
+      axiRst         : in  sl);
+end AxiSy56040Core;
+
+architecture mapping of AxiSy56040Core is
+
+begin
+
+   AxiSy56040Reg_Inst : entity work.AxiSy56040Reg
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
+         XBAR_DEFAULT_G   => XBAR_DEFAULT_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G) 
+      port map (
+         -- XBAR Ports 
+         xBarSin        => xBar.sin,
+         xBarSout       => xBar.sout,
+         xBarConfig     => xBar.config,
+         xBarLoad       => xBar.load,
+         -- AXI-Lite Register Interface
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave,
+         -- Clocks and Resets
+         axiClk         => axiClk,
+         axiRst         => axiRst); 
+
+end mapping;
