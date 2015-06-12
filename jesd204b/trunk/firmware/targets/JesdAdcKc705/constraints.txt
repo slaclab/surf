@@ -1,1 +1,1 @@
-rtl/JesdAdcKc705.xdc
+rtl/JesdAdcKcu105.xdc
