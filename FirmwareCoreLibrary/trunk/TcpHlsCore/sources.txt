@@ -1,2 +1,0 @@
-vhdl work rtl/TcpHls.vhd
-vhdl work vivado_hls/ip/TcpHlsCore.dcp
