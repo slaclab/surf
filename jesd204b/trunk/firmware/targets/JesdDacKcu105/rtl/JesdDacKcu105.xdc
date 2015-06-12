@@ -92,7 +92,6 @@ set_property PACKAGE_PIN K17 [get_ports {syncbN}]
 set_property LOC GTHE3_CHANNEL_X0Y19 [get_cells {Jesd204bTxGthUltra_INST/GthUltrascaleJesdCoregen_INST/inst/gen_gtwizard_gthe3_top.GthUltrascaleJesdCoregen_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[4].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST}]
 set_property LOC GTHE3_CHANNEL_X0Y18 [get_cells {Jesd204bTxGthUltra_INST/GthUltrascaleJesdCoregen_INST/inst/gen_gtwizard_gthe3_top.GthUltrascaleJesdCoregen_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[4].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[1].GTHE3_CHANNEL_PRIM_INST}]
 
-
 # GTX RX ports coming from DAC ( DAC has 8 lanes but only 4 are connected on KC705 )
 # Lane 0 - FMC A30-P, A31-N
 #set_property PACKAGE_PIN B6 [get_ports {adcGtTxP[1]}]
