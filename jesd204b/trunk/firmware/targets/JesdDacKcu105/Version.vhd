@@ -16,13 +16,14 @@ use ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000000"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000002"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdDacKcu105: Vivado v2015.1 (x86_64) Built Wed Jun 10 10:23:11 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdDacKcu105: Vivado v2015.1 (x86_64) Built Fri Jun 12 11:30:30 PDT 2015 by ulegat";
 
 end Version;
  
 -------------------------------------------------------------------------------
 -- Revision History:
 -------------------------------------------------------------------------------
--- 06/05/2015 - 00000000      - First complete version
+-- 06/05/2015 - 00000000      - Without pgp
+-- 06/12/2015 - 00000001      - First complete system
