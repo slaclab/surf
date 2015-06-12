@@ -1,1 +1,1 @@
-vhdl work sim/JesdAdcKc705Tb.vhd
+vhdl work sim/JesdAdcKcu105Tb.vhd
