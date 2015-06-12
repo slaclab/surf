@@ -2,4 +2,5 @@ vhdl work Version.vhd
 vhdl work rtl/JesdDacKcu105.vhd
 vhdl work rtl/PgpFrontEnd.vhd
 vhdl work rtl/PgpGthCoreWrapper.vhd
+vhdl work rtl/Pgp2bGthUltra.vhd
 

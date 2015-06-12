@@ -14,54 +14,53 @@
 #-------------------------------------------------------------------------------
 
 #Clocks
-create_clock -period 8.000 -name pgpRefClk [get_ports pgpRefClkP]
+create_clock -period 8.000 -name sysClk125 [get_ports sysClk125P]
 
-create_generated_clock -name axilClk -multiply_by 1 -source [get_ports pgpRefClkP] \
+create_clock -period 6.400 -name pgpRefClk [get_ports pgpRefClkP]
+
+create_generated_clock -name pgpClk  -multiply_by 1  -source [get_ports pgpRefClkP] \
     [get_pins {ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT0}]
-
-create_generated_clock -name pgpClk  -multiply_by 10 -divide_by 8  -source [get_ports pgpRefClkP] \
-    [get_pins {ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT1}]
 
 create_clock -period 2.703 -name jesdRefClk [get_ports fpgaDevClkaP]
 
 #create_generated_clock -name jesdRefClkDiv2 -divide_by 2 -source [get_ports fpgaDevClkaP] \
 #    [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}]
 
-create_generated_clock -name jesdClk -divide_by 2 -source [get_pins {JESDREFCLK_BUFG_GT/O}] \
+create_generated_clock -name jesdClk -divide_by 2 -source [get_ports {fpgaDevClkaP}] \
     [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
 
 set_clock_groups -asynchronous \ 
-    -group [get_clocks -include_generated_clocks pgpClk] \
-    -group [get_clocks -include_generated_clocks axilClk] \
+    -group [get_clocks -include_generated_clocks pgpRefClk] \
     -group [get_clocks -include_generated_clocks jesdRefClk] \
-    -group [get_clocks -include_generated_clocks jesdClk]
+    -group [get_clocks -include_generated_clocks sysClk125]
 
 #Assure that sychronization registers are placed in the same slice with no logic between each sync stage
 set_property ASYNC_REG TRUE [get_cells -hierarchical *crossDomainSyncReg_reg*]
 
+
+# System clock
+set_property -dict { PACKAGE_PIN G10 IOSTANDARD LVDS} [get_ports sysClk125P]
+set_property -dict { PACKAGE_PIN F10 IOSTANDARD LVDS} [get_ports sysClk125N]
+
 # User clock outputs
-set_property PACKAGE_PIN H27 [get_ports gpioClk]
-set_property IOSTANDARD LVCMOS18 [get_ports gpioClk]
+set_property -dict { PACKAGE_PIN H27 IOSTANDARD LVCMOS18} [get_ports gpioClk]
+set_property -dict { PACKAGE_PIN D23 IOSTANDARD LVCMOS18} [get_ports usrClk]
 
-set_property PACKAGE_PIN D23 [get_ports usrClk]
-set_property IOSTANDARD LVCMOS18 [get_ports usrClk]
+# PGP REF Clk IO
+set_property -dict { PACKAGE_PIN F12 IOSTANDARD LVCMOS18 } [get_ports pgpRefClkSel]
+set_property PACKAGE_PIN P6   [get_ports pgpRefClkP]
+set_property PACKAGE_PIN P5   [get_ports pgpRefClkN]
 
-# PGP clock and GTX
-set_property IOSTANDARD LVDS [get_ports pgpRefClkP]
-set_property IOSTANDARD LVDS [get_ports pgpRefClkN]
-set_property PACKAGE_PIN G10 [get_ports pgpRefClkP] 
-set_property PACKAGE_PIN F10 [get_ports pgpRefClkN]
-
-#set_property PACKAGE_PIN G3 [get_ports pgpGtRxN]
-#set_property PACKAGE_PIN G4 [get_ports pgpGtRxP]
-#set_property PACKAGE_PIN H1 [get_ports pgpGtTxN]
-#set_property PACKAGE_PIN H2 [get_ports pgpGtTxP]
+# PGP GT ports (SFP0)
+set_property PACKAGE_PIN T1 [get_ports pgpGtRxN]
+set_property PACKAGE_PIN T2 [get_ports pgpGtRxP]
+set_property PACKAGE_PIN U3 [get_ports pgpGtTxN]
+set_property PACKAGE_PIN U4 [get_ports pgpGtTxP]
 
 # JESD reference clock FPGA CLK1 (FMC-D5-P,D4-N) 
-set_property IOSTANDARD LVDS [get_ports fpgaDevClkaP]
-set_property IOSTANDARD LVDS [get_ports fpgaDevClkaN]
-set_property PACKAGE_PIN K6 [get_ports fpgaDevClkaP]
-set_property PACKAGE_PIN K5 [get_ports fpgaDevClkaN]
+set_property PACKAGE_PIN K6  [get_ports fpgaDevClkaP]
+set_property PACKAGE_PIN K5  [get_ports fpgaDevClkaN]
+
 
 # JESD reference clock FPGA CLK2 (FMC-J2-P,J3-N) - NC on KC705
 # set_property IOSTANDARD LVDS [get_ports fpgaDevClkbP]

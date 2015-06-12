@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2015-06-09
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,15 +24,16 @@ entity PgpGthCoreWrapper is
       TPD_G : time := 1 ns);
 
    port (
-      stableClk : in sl;
+      stableClk : in  sl;
       -- GTH FPGA IO
-      gtRefClk : in  sl;
-      gtRxP    : in  sl;
-      gtRxN    : in  sl;
-      gtTxP    : out sl;
-      gtTxN    : out sl;
+      gtRefClk  : in  sl;
+      gtRxP     : in  sl;
+      gtRxN     : in  sl;
+      gtTxP     : out sl;
+      gtTxN     : out sl;
 
       -- Rx ports
+      rxReset        : in  sl;
       rxUsrClkActive : in  sl;
       rxCdrStable    : out sl;
       rxResetDone    : out sl;
@@ -41,6 +42,7 @@ entity PgpGthCoreWrapper is
       rxDataK        : out slv(1 downto 0);
       rxDispErr      : out slv(1 downto 0);
       rxDecErr       : out slv(1 downto 0);
+      rxPolarity     : in  sl;
       rxOutClk       : out sl;
 
       -- Tx Ports
@@ -83,6 +85,7 @@ architecture rtl of PgpGthCoreWrapper is
          rxcommadeten_in                    : in  slv(0 downto 0);
          rxmcommaalignen_in                 : in  slv(0 downto 0);
          rxpcommaalignen_in                 : in  slv(0 downto 0);
+         rxpolarity_in                      : in  slv(0 downto 0);
          rxusrclk_in                        : in  slv(0 downto 0);
          rxusrclk2_in                       : in  slv(0 downto 0);
          tx8b10ben_in                       : in  slv(0 downto 0);
@@ -117,15 +120,15 @@ begin
          gtwiz_reset_clk_freerun_in (0)        => stableClk,
          gtwiz_reset_all_in(0)                 => '0',
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
-         gtwiz_reset_tx_datapath_in(0)         => '0',
+         gtwiz_reset_tx_datapath_in(0)         => txReset,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
-         gtwiz_reset_rx_datapath_in(0)         => '0',
+         gtwiz_reset_rx_datapath_in(0)         => rxReset,
          gtwiz_reset_rx_cdr_stable_out(0)      => open,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
          gtwiz_userdata_tx_in                  => txData,
          gtwiz_userdata_rx_out                 => rxData,
-         drpclk_in(0)                          => '0',
+         drpclk_in(0)                          => stableClk,
          gthrxn_in(0)                          => gtRxN,
          gthrxp_in(0)                          => gtRxP,
          gtrefclk0_in(0)                       => gtRefClk,
@@ -134,6 +137,7 @@ begin
          rxcommadeten_in(0)                    => '1',
          rxmcommaalignen_in(0)                 => '1',
          rxpcommaalignen_in(0)                 => '1',
+         rxpolarity_in(0)                      => rxPolarity,
          rxusrclk_in(0)                        => rxUsrClk,
          rxusrclk2_in(0)                       => rxUsrClk,
          tx8b10ben_in(0)                       => '1',
