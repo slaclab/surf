@@ -288,7 +288,7 @@ begin
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => sysClk125G,
-         rstIn     => sysClk125Rst,
+         rstIn     => '0',
          clkOut(0) => s_usrClk,
          rstOut(0) => s_usrRst);
 
@@ -424,15 +424,7 @@ begin
          CEB   => '0',
          ODIV2 => jesdRefClkDiv2,
          O     => jesdRefClk
-         );
-
-   -- JESDREFCLK_GT_SYNC : BUFG_GT
-   -- port map (
-   -- CLK      => jesdRefClkDiv2,   
-   -- CE       => '1',
-   -- CLR      => pgpMmcmRst,
-   -- CE_SYNC  => s_CE_SYNC   
-   -- CLR_SYNC => s_CLR_SYNC);     
+         ); 
 
    JESDREFCLK_BUFG_GT : BUFG_GT
       port map (
@@ -466,30 +458,7 @@ begin
          rstIn     => jesdMmcmRst,
          clkOut(0) => jesdClk,
          rstOut(0) => jesdClkRst);
-
-   -------------------------------------------------------------------------------------------------
-   -- QPLL for JESD MGTs
-   ------------------------------------------------------------------------------------------------- 
-   -- Gtx7QuadPll_INST: entity work.Gtx7QuadPll
-   -- generic map (
-   -- TPD_G               => TPD_G,
-   -- QPLL_CFG_G          => x"06801C1", -- TODO check
-   -- QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
-   -- QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set b'0000110000'
-   -- QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set '1'
-   -- QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set '1'
-   -- )
-   -- port map (
-   -- qPllRefClk     => jesdRefClk, -- Reference clock directly from the input
-   -- qPllOutClk     => qPllOutClk,
-   -- qPllOutRefClk  => qPllOutRefClk,
-   -- qPllLock       => qPllLock,
-   -- qPllLockDetClk => pgpClk,
-   -- qPllRefClkLost => qPllRefClkLost,
-   -- qPllPowerDown  => '0',
-   -- qPllReset      => qPllReset(0)
-   -- );      
-
+   
    -------------------------------------------------------------------------------------------------
    -- JESD Tx block
    -------------------------------------------------------------------------------------------------   
@@ -586,10 +555,6 @@ begin
       port map (
          clk => jesdClk,
          o   => leds(1));
-
-   -- 
---   leds(2) <= s_nSync;
---   leds(3) <= jesdClkRst;
 
    leds(5) <= qPllLock;
    leds(6) <= s_syncAllLED;
