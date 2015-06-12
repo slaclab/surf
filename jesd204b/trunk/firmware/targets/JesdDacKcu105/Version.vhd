@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
--------------------------------------------------------
+-------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.ALL;
 
@@ -18,7 +18,7 @@ package Version is
 
 constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000000"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdDacKcu105: Vivado v2015.1 (x86_64) Built Tue Jun  9 16:40:28 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdDacKcu105: Vivado v2015.1 (x86_64) Built Wed Jun 10 10:23:11 PDT 2015 by ulegat";
 
 end Version;
  

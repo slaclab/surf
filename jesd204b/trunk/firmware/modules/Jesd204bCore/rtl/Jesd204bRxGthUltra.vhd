@@ -269,7 +269,6 @@ begin
    
    s_devClkVec   <= devClk_i & devClk_i;
    s_devClk2Vec  <= devClk2_i & devClk2_i;
-   s_gtTxReady   <= s_txDone & s_txDone;
    
    -- debug
    --qPllLock_o <= s_rxDone;
@@ -293,14 +292,14 @@ begin
          gtwiz_reset_rx_cdr_stable_out        => open,
          gtwiz_reset_tx_done_out              => open,
          gtwiz_reset_rx_done_out(0)           => s_rxDone,
-         gtwiz_userdata_tx_in                 => open,
+         gtwiz_userdata_tx_in                 => (s_data'range =>'0'),
          gtwiz_userdata_rx_out                => s_data,
          gtrefclk00_in(0)                     => refClk,
          qpll0outclk_out                      => open,
          qpll0outrefclk_out                   => open,
          gthrxn_in                            => gtRxN,
          gthrxp_in                            => gtRxP,
-         qpll0lock_out                        => qPllLock_o,
+         qpll0lock_out(0)                     => qPllLock_o,
 
          tx8b10ben_in                         => "11",
          txctrl0_in                           => X"0000_0000",
