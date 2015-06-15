@@ -1,0 +1,11 @@
+vhdl     work rtl/EvrV1Core.vhd  
+vhdl     work rtl/EvrV1Databuff.vhd  
+verilog  work rtl/EvrV1DbusDecode.v
+vhdl     work rtl/EvrV1EventRAM256x32.vhd  
+vhdl     work rtl/EvrV1EventReceiver.vhd  
+verilog  work rtl/EvrV1EventReceiverChannel.v
+vhdl     work rtl/EvrV1HeartBeat.vhd  
+vhdl     work rtl/EvrV1Pkg.vhd  
+vhdl     work rtl/EvrV1Reg.vhd  
+verilog  work rtl/EvrV1TimeofDayReceiver.v
+vhdl     work rtl/EvrV1TimeStampFIFO.vhd  
