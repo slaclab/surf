@@ -271,20 +271,20 @@ begin
    sysClk125Rst <= masterReset or powerOnReset;
 
    -------------------------------------------------------------------------------------------------
-   -- ADC EVM Out reference clock (61.44 MHz)
+   -- ADC EVM Out reference clock (10.00 MHz)
    -------------------------------------------------------------------------------------------------
-   ClockManager7_OUT : entity work.ClockManager7
+      ClockManager7_OUT : entity work.ClockManager7
       generic map (
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
          FB_BUFG_G          => true,
          NUM_CLOCKS_G       => 1,
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => 8.0,
-         DIVCLK_DIVIDE_G    => 5,
-         CLKFBOUT_MULT_F_G  => 47.000,  --37.000
-         CLKOUT0_DIVIDE_F_G => 19.125,  --2.5
+         BANDWIDTH_G        => "HIGH",
+         CLKIN_PERIOD_G     => 8.0,      --(10.0MHz)  (156.25MHz)(368.64MHz) (61.44 MHz) (370MHz)
+         DIVCLK_DIVIDE_G    => 1,        --1,         --4,         --6,        --5,        --5,
+         CLKFBOUT_MULT_F_G  => 8.000,    --8.0,       --55,        --50.875,   --47.000,   --37.000,
+         CLKOUT0_DIVIDE_F_G => 100.0,    --100.0,     --11,        --2.875,    --19.125,   --2.5
          CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => sysClk125G,
@@ -578,8 +578,8 @@ begin
          RST_POLARITY_G => '1',
          INVERT_G       => false)
       port map (
-         clkIn  => jesdClk,
-         rstIn  => jesdClkRst,
+         clkIn  => s_usrClk,
+         rstIn  => s_usrClk,
          clkOut => gpioClk);
 
 end architecture rtl;
