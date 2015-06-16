@@ -87,7 +87,7 @@ architecture rtl of AxiLiteRxRegItf is
       commonCtrl     => "0011",
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => (others => '0')),
-      axisTrigger    => (others => '1'),   
+      axisTrigger    => (others => '0'),   
       axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
  
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,

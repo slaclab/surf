@@ -361,6 +361,11 @@ begin
       );
    end generate;
    
+   -- Test rising edge pulser
+   
+   
+   
+   
    -- Put sync output in 'z' if not enabled
    syncVectEn : for I in L_G-1 downto 0 generate
       s_nSyncVecEn(I) <= s_nSyncVec(I) or not s_enableRx(I);
@@ -392,6 +397,6 @@ begin
    -- Output assignment
    nSync_o     <= r.nSyncAnyD1;
    gt_reset_o  <= (others=> s_gtReset);
-   leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
+   leds_o <= uOr(s_dataValidVec) & r.nSyncAnyD1;
    -----------------------------------------------------
 end rtl;
