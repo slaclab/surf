@@ -17,7 +17,8 @@
 #include <MultLink.h>
 #include <MultDestPgp.h>
 #include <DevBoardSystem.h>
-#include <DevBoard.h>
+#include <DacBoard.h>
+#include <AdcBoard.h>
 
 #include <Register.h>
 #include <Variable.h>
@@ -53,6 +54,8 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
     commLink_->addDataSource(PGP_DATA(0,2));    
     linkConfig_ = PGP_CMD(0,1)|PGP_REG(0,0);
     
+    uint AdclinkConfig = PGP_CMD(0,1)|PGP_REG(0,0);
+    uint DaclinkConfig = PGP_CMD(1,1)|PGP_REG(1,0);
    
    // Setup top level device
    //   setDebug(true);
@@ -73,7 +76,8 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
    v->set("False");
    
    // Add sub-devices
-   addDevice(new DevBoard(linkConfig_, 0x00000000, 0, this, addrSize));
+   addDevice(new AdcBoard(AdclinkConfig, 0x00000000, 0, this, addrSize));
+   addDevice(new DacBoard(DaclinkConfig, 0x00000000, 0, this, addrSize));
    
    // Add Commands
    addCommand(new Command("SoftwareTrigger", 0x015A));

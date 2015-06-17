@@ -58,12 +58,12 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    addRegisterLink(rl = new RegisterLink("L1_Test",      baseAddress_ + (0x20*addrSize), 1, 3,
                                 "L1_Align",         Variable::Configuration, 0, 0xf,
                                 "L1_Delay",         Variable::Configuration, 8, 0xf,
-                                "L1_Threshold",     Variable::Configuration, 16,0xff));
+                                "L1_Threshold",     Variable::Configuration, 16,0xffff));
                                 
    addRegisterLink(rl = new RegisterLink("L2_Test",      baseAddress_ + (0x21*addrSize), 1, 3,
                                 "L2_Align",         Variable::Configuration, 0, 0xf,
                                 "L2_Delay",         Variable::Configuration, 8, 0xf,
-                                "L2_Threshold",     Variable::Configuration, 16,0xff));
+                                "L2_Threshold",     Variable::Configuration, 16,0xffff));
    
    addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 12,
                                 "L1_GTXReady",       Variable::Status, 0, 0x1,
