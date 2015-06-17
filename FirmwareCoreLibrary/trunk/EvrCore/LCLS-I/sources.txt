@@ -8,4 +8,5 @@ vhdl     work rtl/EvrV1HeartBeat.vhd
 vhdl     work rtl/EvrV1Pkg.vhd  
 vhdl     work rtl/EvrV1Reg.vhd  
 verilog  work rtl/EvrV1TimeofDayReceiver.v
+verilog  work rtl/EvrV1TimeStampGenerator.v
 vhdl     work rtl/EvrV1TimeStampFIFO.vhd  

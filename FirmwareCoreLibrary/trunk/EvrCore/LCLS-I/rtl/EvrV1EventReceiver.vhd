@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-06-12
+-- Last update: 2015-06-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,6 +69,13 @@ architecture rtl of EvrV1EventReceiver is
          TimeStamp   : out slv(63 downto 0);
          timeDebug   : out slv(36 downto 0));
    end component EvrV1TimeofDayReceiver;
+
+   component EvrV1TimeStampGenerator is
+      port(
+         Clock     : in  sl;
+         Reset     : in  sl;
+         TimeStamp : out slv(63 downto 0));
+   end component EvrV1TimeStampGenerator;
 
    component EvrV1DbusDecode is
       port(
@@ -142,6 +149,7 @@ architecture rtl of EvrV1EventReceiver is
    signal eventStream    : slv(7 downto 0);
    signal eventStreamDly : slv(7 downto 0);
    signal timeStamp      : slv(63 downto 0);
+   signal intTimeStamp   : slv(63 downto 0);
    signal timeStampDly   : slv(63 downto 0);
 
    signal pulseControl  : Slv32Array(11 downto 0);
@@ -353,7 +361,16 @@ begin
          Reset       => evrRst,
          EventStream => eventStream,
          TimeStamp   => timeStamp,
-         timeDebug   => open);  
+         timeDebug   => open); 
+
+   -----------------------------
+   -- Debug Time Stamp Generator
+   -----------------------------
+   TimeStampGenerator_Inst : EvrV1TimeStampGenerator
+      port map (
+         Clock     => evrClk,
+         Reset     => evrRst,
+         TimeStamp => intTimeStamp);          
 
    -------------------------------------------------------------------
    -- Delay EventStream and TimeStamp by one clock for writing in FIFO
@@ -365,7 +382,11 @@ begin
             timeStampDly   <= (others => '0') after TPD_G;
             eventStreamDly <= (others => '0') after TPD_G;
          else
-            timeStampDly   <= timeStamp   after TPD_G;
+            if intEventEn = '1' then
+               timeStampDly <= intTimeStamp after TPD_G;
+            else
+               timeStampDly <= timeStamp after TPD_G;
+            end if;
             eventStreamDly <= eventStream after TPD_G;
          end if;
       end if;
@@ -428,10 +449,14 @@ begin
       variable i : natural;
    begin
       if rising_edge(axiClk) then
-         if (tsFifoWrCnt > 1) then
-            status.tsFifoNext <= '1' after TPD_G;
-         else
+         if fifoRst = '1' then
             status.tsFifoNext <= '0' after TPD_G;
+         else
+            if (tsFifoWrCnt > 1) then
+               status.tsFifoNext <= '1' after TPD_G;
+            else
+               status.tsFifoNext <= '0' after TPD_G;
+            end if;
          end if;
       end if;
    end process;
@@ -726,7 +751,7 @@ begin
          if axiRst = '1' then
             intFlag(3) <= '0' after TPD_G;
          else
-            if irqClr(3) = '1' then
+            if config.irqClr(3) = '1' then
                intFlag(3) <= '0' after TPD_G;
             elsif (config.evrEnable = '1') and (tsFIFOempty = '0') then
                intFlag(3) <= '1' after TPD_G;
@@ -741,7 +766,7 @@ begin
          if axiRst = '1' then
             intFlag(5) <= '0' after TPD_G;
          else
-            if irqClr(5) = '1' then
+            if config.irqClr(5) = '1' then
                intFlag(5) <= '0' after TPD_G;
             elsif (evrEnable = '1') and (dbrdy = '1') then
                intFlag(5) <= '1' after TPD_G;
