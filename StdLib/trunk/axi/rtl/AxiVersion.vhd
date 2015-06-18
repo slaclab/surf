@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-06-17
+-- Last update: 2015-06-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -142,9 +142,10 @@ begin
    end generate GEN_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
-      Iprog7Series_1 : entity work.Iprog7Series
+      Iprog_1 : entity work.Iprog
          generic map (
-            TPD_G => TPD_G)
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => XIL_DEVICE_G)
          port map (
             clk         => axiClk,
             rst         => axiRst,

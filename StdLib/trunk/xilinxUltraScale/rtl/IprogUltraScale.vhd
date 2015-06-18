@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : Iprog7Series.vhd
+-- File       : IprogUltraScale.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-11-01
+-- Created    : 2015-06-18
 -- Last update: 2015-06-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
@@ -12,7 +12,7 @@
 -- Description:   Uses the ICAP primitive to internally 
 --                toggle the PROG_B via IPROG command
 -------------------------------------------------------------------------------
--- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -25,7 +25,7 @@ use work.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity Iprog7Series is
+entity IprogUltraScale is
    generic (
       TPD_G          : time    := 1 ns;
       USE_SLOWCLK_G  : boolean := false;
@@ -36,9 +36,9 @@ entity Iprog7Series is
       slowClk     : in sl               := '0';
       start       : in sl;
       bootAddress : in slv(31 downto 0) := X"00000000");
-end Iprog7Series;
+end IprogUltraScale;
 
-architecture rtl of Iprog7Series is
+architecture rtl of IprogUltraScale is
 
    function selectMapBitSwapping (input : slv) return slv is
       variable i      : integer;
@@ -58,6 +58,7 @@ architecture rtl of Iprog7Series is
    type RegType is record
       state       : StateType;
       csl         : sl;
+      rdy         : sl;
       rnw         : sl;
       cnt         : slv(3 downto 0);
       configData  : slv(31 downto 0);
@@ -67,6 +68,7 @@ architecture rtl of Iprog7Series is
    constant REG_INIT_C : RegType := (
       state       => IDLE_S,
       csl         => '1',
+      rdy         => '1',
       rnw         => '1',
       cnt         => (others => '0'),
       configData  => (others => '0'),
@@ -79,23 +81,25 @@ architecture rtl of Iprog7Series is
    signal icape2Clk : sl;
    signal icape2Rst : sl;
    signal startEdge : sl;
+   signal rdy       : sl;
 
 begin
    
    icape2Clk <= slowClk when(USE_SLOWCLK_G) else divClk;
 
-   BUFR_ICPAPE2 : BUFR
+   BUFGCE_DIV_Inst : BUFGCE_DIV
       generic map (
-         BUFR_DIVIDE => "8")
+         BUFGCE_DIVIDE => 8)
       port map (
+         I   => clk,
          CE  => '1',
          CLR => '0',
-         I   => clk,
-         O   => divClk);
+         O   => divClk);         
 
    RstSync_Inst : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => icape2Clk,
          asyncRst => rst,
@@ -110,22 +114,27 @@ begin
          dataIn  => start,
          dataOut => startEdge);
 
-   ICAPE2_Inst : ICAPE2
+   ICAPE3_Inst : ICAPE3
       generic map (
-         DEVICE_ID         => x"03651093",  -- Specifies the pre-programmed Device ID value to be used for simulation purposes
-         ICAP_WIDTH        => "X32",  -- Specifies the input and output data width to be used with the ICAPE2 Possible values: (X8,X16 or X32)
+         DEVICE_ID         => X"03628093",  -- Specifies the pre-programmed Device ID value to be used for simulation purposes
+         ICAP_AUTO_SWITCH  => "DISABLE",    -- Enable switch ICAP using sync word
          SIM_CFG_FILE_NAME => "NONE")  -- Specifies the Raw Bitstream (RBT) file to be parsed by the simulation model
       port map (
-         O     => open,                 -- 32-bit output: Configuration data output bus
-         CLK   => icape2Clk,            -- 1-bit input: Clock Input
-         CSIB  => r.csl,                -- 1-bit input: Active-Low ICAP Enable
-         I     => r.configData,         -- 32-bit input: Configuration data input bus
-         RDWRB => r.rnw);               -- 1-bit input: Read/Write Select input
+         AVAIL   => rdy,                -- 1-bit output: Availability status of ICAP
+         O       => open,               -- 32-bit output: Configuration data output bus
+         PRDONE  => open,  -- 1-bit output: Indicates completion of Partial Reconfiguration
+         PRERROR => open,  -- 1-bit output: Indicates Error during Partial Reconfiguration
+         CLK     => icape2Clk,          -- 1-bit input: Clock input
+         CSIB    => r.csl,              -- 1-bit input: Active-Low ICAP enable
+         I       => r.configData,       -- 32-bit input: Configuration data input bus
+         RDWRB   => r.rnw);             -- 1-bit input: Read/Write Select input
 
-   comb : process (bootAddress, icape2Rst, r, startEdge) is
+   comb : process (bootAddress, icape2Rst, r, rdy, startEdge) is
       variable v : RegType;
    begin
       v := r;
+
+      v.rdy := rdy;
 
       case (r.state) is
          when IDLE_S =>
@@ -138,35 +147,43 @@ begin
             end if;
 
          when PROG_S =>
-            v.csl := '0';
-            v.rnw := '0';
-            v.cnt := r.cnt + 1;
-            case (r.cnt) is
-               when X"0" =>
-                  --Sync Word
-                  v.configData := selectMapBitSwapping(X"AA995566");
-               when X"1" =>
-                  --Type 1 NO OP
-                  v.configData := selectMapBitSwapping(X"20000000");
-               when X"2" =>
-                  --Type 1 Write 1 Words to WBSTAR
-                  v.configData := selectMapBitSwapping(X"30020001");
-               when X"3" =>
-                  --Warm Boot Start Address (Load the Desired Address)
-                  v.configData := selectMapBitSwapping(bitReverse(r.bootAddress));
-               when X"4" =>
-                  --Type 1 Write 1 Words to CMD
-                  v.configData := selectMapBitSwapping(X"30008001");
-               when X"5" =>
-                  --IPROG Command
-                  v.configData := selectMapBitSwapping(X"0000000F");
-               when X"6" =>
-                  --Type 1 NO OP
-                  v.configData := selectMapBitSwapping(X"20000000");
-                  v.state      := IDLE_S;
-               when others => null;
-            end case;
-            
+            if rdy = '1' then
+               v.csl := '0';
+               v.rnw := '0';
+               v.cnt := r.cnt + 1;
+               case (r.cnt) is
+                  when X"0" =>
+                     --Sync Word
+                     v.configData := selectMapBitSwapping(X"AA995566");
+                  when X"1" =>
+                     --Type 1 NO OP
+                     v.configData := selectMapBitSwapping(X"20000000");
+                  when X"2" =>
+                     --Type 1 Write 1 Words to WBSTAR
+                     v.configData := selectMapBitSwapping(X"30020001");
+                  when X"3" =>
+                     --Warm Boot Start Address (Load the Desired Address)
+                     v.configData := selectMapBitSwapping(bitReverse(r.bootAddress));
+                  when X"4" =>
+                     --Type 1 Write 1 Words to CMD
+                     v.configData := selectMapBitSwapping(X"30008001");
+                  when X"5" =>
+                     --IPROG Command
+                     v.configData := selectMapBitSwapping(X"0000000F");
+                  when X"6" =>
+                     --Type 1 NO OP
+                     v.configData := selectMapBitSwapping(X"20000000");
+                     v.state      := IDLE_S;
+                  when others => null;
+               end case;
+            end if;
+            -- Check for interrupt
+            if (r.rdy = '1') and (rdy = '0') then
+               -- Reset the IPROG procedure
+               v.csl := '1';
+               v.rnw := '1';
+               v.cnt := (others => '0');
+            end if;
          when others => null;
       end case;
 

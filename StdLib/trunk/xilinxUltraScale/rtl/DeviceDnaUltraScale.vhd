@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-17
--- Last update: 2015-06-17
+-- Last update: 2015-06-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,12 +26,14 @@ use unisim.vcomponents.all;
 
 entity DeviceDnaUltraScale is
    generic (
-      TPD_G           : time := 1 ns;
-      IN_POLARITY_G   : sl   := '1';
-      SIM_DNA_VALUE_G : slv  := X"000000000000000000000000");
+      TPD_G           : time    := 1 ns;
+      USE_SLOWCLK_G   : boolean := false;
+      RST_POLARITY_G  : sl      := '1';
+      SIM_DNA_VALUE_G : slv     := X"000000000000000000000000");
    port (
       clk      : in  sl;
       rst      : in  sl;
+      slowClk  : in  sl := '0';
       dnaValue : out slv(63 downto 0);
       dnaValid : out sl);
 end DeviceDnaUltraScale;
@@ -63,10 +65,13 @@ architecture rtl of DeviceDnaUltraScale is
    signal rin : RegType;
 
    signal dnaDout : sl;
+   signal divClk  : sl;
    signal locClk  : sl;
    signal locRst  : sl;
 
 begin
+
+   locClk <= slowClk when(USE_SLOWCLK_G) else divClk;
 
    BUFGCE_DIV_Inst : BUFGCE_DIV
       generic map (
@@ -75,12 +80,12 @@ begin
          I   => clk,
          CE  => '1',
          CLR => '0',
-         O   => locClk);
+         O   => divClk);
 
    RstSync_Inst : entity work.RstSync
       generic map (
-         IN_POLARITY_G => IN_POLARITY_G,
-         TPD_G         => TPD_G)   
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => locClk,
          asyncRst => rst,

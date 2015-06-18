@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-17
--- Last update: 2015-06-17
+-- Last update: 2015-06-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,13 +21,15 @@ use work.StdRtlPkg.all;
 
 entity DeviceDna is
    generic (
-      TPD_G           : time   := 1 ns;
-      XIL_DEVICE_G    : string := "7SERIES";
-      SIM_DNA_VALUE_G : slv    := X"000000000000000000000000";
-      IN_POLARITY_G   : sl     := '1');
+      TPD_G           : time    := 1 ns;
+      XIL_DEVICE_G    : string  := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      USE_SLOWCLK_G   : boolean := false;
+      RST_POLARITY_G  : sl      := '1';
+      SIM_DNA_VALUE_G : slv     := X"000000000000000000000000");
    port (
       clk      : in  sl;
       rst      : in  sl;
+      slowClk  : in  sl := '0';
       dnaValue : out slv(63 downto 0);
       dnaValid : out sl);
 end DeviceDna;
@@ -40,11 +42,13 @@ begin
       DeviceDna7Series_Inst : entity work.DeviceDna7Series
          generic map (
             TPD_G           => TPD_G,
-            IN_POLARITY_G   => IN_POLARITY_G,
+            USE_SLOWCLK_G   => USE_SLOWCLK_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
             SIM_DNA_VALUE_G => to_bitvector(SIM_DNA_VALUE_G))   
          port map (
             clk      => clk,
             rst      => rst,
+            slowClk  => slowClk,
             dnaValue => dnaValue,
             dnaValid => dnaValid);
    end generate;
@@ -53,11 +57,13 @@ begin
       DeviceDnaUltraScale_Inst : entity work.DeviceDnaUltraScale
          generic map (
             TPD_G           => TPD_G,
-            IN_POLARITY_G   => IN_POLARITY_G,
+            USE_SLOWCLK_G   => USE_SLOWCLK_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
             SIM_DNA_VALUE_G => SIM_DNA_VALUE_G)   
          port map (
             clk      => clk,
             rst      => rst,
+            slowClk  => slowClk,
             dnaValue => dnaValue,
             dnaValid => dnaValid);
    end generate;
