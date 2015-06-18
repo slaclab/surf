@@ -12,6 +12,7 @@ vhdl work rtl/Crc32Parallel.vhd
 vhdl work rtl/CrcPkg.vhd
 vhdl work rtl/Debouncer.vhd
 vhdl work rtl/Decoder8b10b.vhd
+vhdl work rtl/DeviceDna.vhd
 vhdl work rtl/DS2411Core.vhd
 vhdl work rtl/DspAddSub.vhd
 vhdl work rtl/DspCounter.vhd

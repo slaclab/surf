@@ -12,6 +12,7 @@ vhdl work general/rtl/Crc32.vhd
 vhdl work general/rtl/CRC32Rtl.vhd
 vhdl work general/rtl/Debouncer.vhd
 vhdl work general/rtl/Decoder8b10b.vhd
+vhdl work general/rtl/DeviceDna.vhd
 vhdl work general/rtl/DS2411Core.vhd
 vhdl work general/rtl/DspAddSub.vhd
 vhdl work general/rtl/DspCounter.vhd
@@ -37,12 +38,14 @@ vhdl work ram/rtl/QuadPortRam.vhd
 vhdl work ram/rtl/SimpleDualPortRam.vhd
 vhdl work ram/rtl/TrueDualPortRam.vhd
 
-vhdl work xilinx7/rtl/DeviceDna.vhd
+vhdl work xilinx7/rtl/DeviceDna7Series.vhd
 vhdl work xilinx7/rtl/Iprog7Series.vhd
 vhdl work xilinx7/rtl/XadcSimpleCore.vhd
 vhdl work xilinx7/rtl/Dsp48Comparator4x12b.vhd
 vhdl work xilinx7/rtl/ClockManager7Pkg.vhd
 vhdl work xilinx7/rtl/ClockManager7.vhd
+
+vhdl work xilinxUltraScale/rtl/DeviceDnaUltraScale.vhd
 
 vhdl work sync/rtl/Synchronizer.vhd
 vhdl work sync/rtl/SynchronizerVector.vhd
