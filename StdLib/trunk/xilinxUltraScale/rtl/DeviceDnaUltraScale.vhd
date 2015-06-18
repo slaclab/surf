@@ -1,17 +1,17 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : DeviceDna.vhd
+-- File       : DeviceDnaUltraScale.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-25
--- Last update: 2014-05-22
+-- Created    : 2015-06-17
+-- Last update: 2015-06-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Wrapper for the DNA_PORT
+-- Description: Wrapper for the UltraScale DNA_PORT
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -19,25 +19,24 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+use work.StdRtlPkg.all;
+
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-
-entity DeviceDna is
+entity DeviceDnaUltraScale is
    generic (
-      TPD_G           : time       := 1 ns;
-      IN_POLARITY_G   : sl         := '1';
-      SIM_DNA_VALUE_G : bit_vector := X"000000000000000");
+      TPD_G           : time := 1 ns;
+      IN_POLARITY_G   : sl   := '1';
+      SIM_DNA_VALUE_G : slv  := X"000000000000000000000000");
    port (
-      -- Clock & Reset Signals
       clk      : in  sl;
       rst      : in  sl;
       dnaValue : out slv(63 downto 0);
       dnaValid : out sl);
-end DeviceDna;
+end DeviceDnaUltraScale;
 
-architecture rtl of DeviceDna is
+architecture rtl of DeviceDnaUltraScale is
    
    constant DNA_SHIFT_LENGTH_C : natural := 64;
 
@@ -69,10 +68,9 @@ architecture rtl of DeviceDna is
 
 begin
 
-   BUFR_Inst : BUFR
+   BUFGCE_DIV_Inst : BUFGCE_DIV
       generic map (
-         BUFR_DIVIDE => "8",
-         SIM_DEVICE  => "7SERIES")
+         BUFGCE_DIVIDE => 8)
       port map (
          I   => clk,
          CE  => '1',
@@ -112,7 +110,7 @@ begin
          ----------------------------------------------------------------------
          when SHIFT_S =>
             -- Shift the data out
-            v.dnaShift := '1';         
+            v.dnaShift := '1';
             -- Check the shift strobe status
             if r.dnaShift = '1' then
                -- Shift register
@@ -149,7 +147,9 @@ begin
       end if;
    end process sync;
 
-   DNA_PORT_I : DNA_PORT
+   DNA_PORT_I : DNA_PORTE2
+      generic map (
+         SIM_DNA_VALUE => SIM_DNA_VALUE_G)
       port map (
          CLK   => locClk,
          READ  => r.dnaRead,

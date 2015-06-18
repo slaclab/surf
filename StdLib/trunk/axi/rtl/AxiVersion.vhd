@@ -5,14 +5,14 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-04-27
+-- Last update: 2015-06-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 
@@ -29,12 +29,13 @@ entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;
       AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_SLVERR_C;
-      CLK_PERIOD_G       : real                   := 8.0E-9;  -- units of seconds
+      CLK_PERIOD_G       : real                   := 8.0E-9;     -- units of seconds
+      XIL_DEVICE_G       : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
       EN_DEVICE_DNA_G    : boolean                := false;
       EN_DS2411_G        : boolean                := false;
       EN_ICAP_G          : boolean                := false;
       AUTO_RELOAD_EN_G   : boolean                := false;
-      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;    -- units of seconds
+      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;       -- units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
    port (
       axiClk : in sl;
@@ -48,7 +49,7 @@ entity AxiVersion is
       masterReset    : out sl;
       fpgaReload     : out sl;
       fpgaReloadAddr : out slv(31 downto 0);
-      
+
       dnaValueOut : out slv(63 downto 0);
       fdSerialOut : out slv(63 downto 0);
 
@@ -118,7 +119,8 @@ begin
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
       DeviceDna_1 : entity work.DeviceDna
          generic map (
-            TPD_G => TPD_G)
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => XIL_DEVICE_G)
          port map (
             clk      => axiClk,
             rst      => axiRst,
@@ -150,8 +152,8 @@ begin
             bootAddress => r.fpgaReloadAddr);
    end generate;
 
-   comb : process (axiRst, axiReadMaster, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
-                   r, stringRom, userValues) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid, r,
+                   stringRom, userValues) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
 
