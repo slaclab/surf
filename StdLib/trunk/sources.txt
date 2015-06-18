@@ -18,6 +18,7 @@ vhdl work general/rtl/DspAddSub.vhd
 vhdl work general/rtl/DspCounter.vhd
 vhdl work general/rtl/Encoder8b10b.vhd
 vhdl work general/rtl/Heartbeat.vhd
+vhdl work general/rtl/Iprog.vhd
 vhdl work general/rtl/PwrUpRst.vhd
 vhdl work general/rtl/WatchDogRst.vhd
 
@@ -46,6 +47,7 @@ vhdl work xilinx7/rtl/ClockManager7Pkg.vhd
 vhdl work xilinx7/rtl/ClockManager7.vhd
 
 vhdl work xilinxUltraScale/rtl/DeviceDnaUltraScale.vhd
+vhdl work xilinxUltraScale/rtl/IprogUltraScale.vhd
 
 vhdl work sync/rtl/Synchronizer.vhd
 vhdl work sync/rtl/SynchronizerVector.vhd

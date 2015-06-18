@@ -18,6 +18,7 @@ vhdl work rtl/DspAddSub.vhd
 vhdl work rtl/DspCounter.vhd
 vhdl work rtl/Encoder8b10b.vhd
 vhdl work rtl/Heartbeat.vhd
+vhdl work rtl/Iprog.vhd
 vhdl work rtl/PwrUpRst.vhd
 
 vhdl work rtl/CrcPkg.vhd
