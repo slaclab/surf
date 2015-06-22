@@ -43,4 +43,18 @@ package SaciMasterPkg is
     rdData : slv(31 downto 0);
   end record SaciMasterOutType;
 
+   constant SACI_MASTER_IN_INIT_C : SaciMasterInType := (
+      req    => '0',
+      reset  => '0',
+      chip   => (others => '0'),
+      op     => '0',
+      cmd    => (others => '0'),
+      addr   => (others => '0'),
+      wrData => (others => '0'));
+
+   constant SACI_MASTER_OUT_INIT_C : SaciMasterOutType := (
+      ack    => '0',
+      fail   => '0',
+      rdData => (others => '0'));
+
 end package SaciMasterPkg;
