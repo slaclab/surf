@@ -85,8 +85,8 @@ entity Jesd204bRxGthUltra is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
-      txCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      rxAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
+      rxCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
       
    -- JESD
    ------------------------------------------------------------------------------------------------   
@@ -102,6 +102,9 @@ entity Jesd204bRxGthUltra is
       
       -- Out to led
       leds_o    : out   slv(1 downto 0);
+  
+      -- Rising edge pulses for test
+      pulse_o   : out   slv(L_G-1 downto 0);
       
       -- Out to led     
       qPllLock_o : out sl      
@@ -112,6 +115,7 @@ architecture rtl of Jesd204bRxGthUltra is
 ---------------------------------------   
    component gthultrascalejesdcoregen
       port (
+         gtwiz_userclk_tx_reset_in : in std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_active_in : in std_logic_vector(0 downto 0);
          gtwiz_userclk_rx_active_in : in std_logic_vector(0 downto 0);
          gtwiz_reset_clk_freerun_in : in std_logic_vector(0 downto 0);
@@ -125,12 +129,10 @@ architecture rtl of Jesd204bRxGthUltra is
          gtwiz_reset_rx_done_out : out std_logic_vector(0 downto 0);
          gtwiz_userdata_tx_in : in std_logic_vector(63 downto 0);
          gtwiz_userdata_rx_out : out std_logic_vector(63 downto 0);
-         gtrefclk00_in : in std_logic_vector(0 downto 0);
-         qpll0outclk_out : out std_logic_vector(0 downto 0);
-         qpll0lock_out : out std_logic_vector(0 downto 0);
-         qpll0outrefclk_out : out std_logic_vector(0 downto 0);
+         drpclk_in : in std_logic_vector(1 downto 0);
          gthrxn_in : in std_logic_vector(1 downto 0);
          gthrxp_in : in std_logic_vector(1 downto 0);
+         gtrefclk0_in : in std_logic_vector(1 downto 0);
          rx8b10ben_in : in std_logic_vector(1 downto 0);
          rxcommadeten_in : in std_logic_vector(1 downto 0);
          rxmcommaalignen_in : in std_logic_vector(1 downto 0);
@@ -185,9 +187,10 @@ architecture rtl of Jesd204bRxGthUltra is
 
    signal s_data  : slv(63 downto 0);   
 
-   signal s_devClkVec : slv(1 downto 0);
-   signal s_devClk2Vec : slv(1 downto 0);
-   
+   signal s_devClkVec      : slv(1 downto 0);
+   signal s_devClk2Vec     : slv(1 downto 0);
+   signal s_stableClkVec   : slv(1 downto 0);
+   signal s_gtRefClkVec    : slv(1 downto 0);   
    signal s_rxDone : sl;
    
 begin
@@ -210,14 +213,15 @@ begin
       axilReadSlave     => axilReadSlave,
       axilWriteMaster   => axilWriteMaster,
       axilWriteSlave    => axilWriteSlave,
-      txAxisMasterArr_o => txAxisMasterArr,
-      txCtrlArr_i       => txCtrlArr,
+      rxAxisMasterArr_o => rxAxisMasterArr,
+      rxCtrlArr_i       => rxCtrlArr,
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtUserReset,
       nSync_o           => nSync_o,
+      pulse_o           => pulse_o,
       leds_o            => leds_o
    );
    --------------------------------------------------------------------------------------------------
@@ -262,46 +266,52 @@ begin
    r_jesdGtRxArr(1).dispErr   <= s_rxctrl1(19 downto 16);   
    
    r_jesdGtRxArr(0).decErr   <= s_rxctrl3(3  downto  0);   
-   r_jesdGtRxArr(1).decErr   <= s_rxctrl3(12 downto  9);
+   r_jesdGtRxArr(1).decErr   <= s_rxctrl3(11 downto  8);
 
    r_jesdGtRxArr(0).rstDone  <= s_rxDone;  
    r_jesdGtRxArr(1).rstDone  <= s_rxDone;
    
-   s_devClkVec   <= devClk_i & devClk_i;
-   s_devClk2Vec  <= devClk2_i & devClk2_i;
+   s_devClkVec    <= devClk_i  & devClk_i;
+   s_devClk2Vec   <= devClk2_i & devClk2_i;
+   s_stableClkVec <= stableClk & stableClk; 
+   s_gtRefClkVec  <= refClk    & refClk;
+
+   qPllLock_o <= s_rxDone;
    
-   -- debug
-   --qPllLock_o <= s_rxDone;
-      
    --------------------------------------------------------------------------------------------------
    -- Include Core from Coregen Vivado 15.1 
-   --------------------------------------------------------------------------------------------------
+   -- Coregen settings:
+   -- - Lane rate 7.4 GHz
+   -- - Reference freq 184 MHz
+   -- - 8b10b enabled
+   -- - 32b/40b word datapath
+   -- - Comma detection has to be enabled to any byte boundary - IMPORTANT
+    --------------------------------------------------------------------------------------------------
    GT_OPER_GEN: if TEST_G = false generate
       GthUltrascaleJesdCoregen_INST: GthUltrascaleJesdCoregen
       port map (
          -- Clocks
+         gtwiz_userclk_tx_reset_in(0)         => s_gtReset,
          gtwiz_userclk_tx_active_in(0)        => '1',
          gtwiz_userclk_rx_active_in(0)        => '1',
          gtwiz_reset_clk_freerun_in(0)        => stableClk,
          
-         gtwiz_reset_all_in(0)                   => s_gtReset,
-         gtwiz_reset_tx_pll_and_datapath_in(0)   => s_gtReset,
+         gtwiz_reset_all_in(0)                   => '0',
+         gtwiz_reset_tx_pll_and_datapath_in(0)   => '0',
          gtwiz_reset_tx_datapath_in(0)           => s_gtReset,
-         gtwiz_reset_rx_pll_and_datapath_in(0)   => s_gtReset,
+         gtwiz_reset_rx_pll_and_datapath_in(0)   => '0',
          gtwiz_reset_rx_datapath_in(0)           => s_gtReset,
          gtwiz_reset_rx_cdr_stable_out        => open,
          gtwiz_reset_tx_done_out              => open,
          gtwiz_reset_rx_done_out(0)           => s_rxDone,
          gtwiz_userdata_tx_in                 => (s_data'range =>'0'),
          gtwiz_userdata_rx_out                => s_data,
-         gtrefclk00_in(0)                     => refClk,
-         qpll0outclk_out                      => open,
-         qpll0outrefclk_out                   => open,
+         drpclk_in                            => s_stableClkVec,
          gthrxn_in                            => gtRxN,
          gthrxp_in                            => gtRxP,
-         qpll0lock_out(0)                     => qPllLock_o,
+         gtrefclk0_in                         => s_gtRefClkVec,
 
-         tx8b10ben_in                         => "11",
+         tx8b10ben_in                         => "00",
          txctrl0_in                           => X"0000_0000",
          txctrl1_in                           => X"0000_0000",
          txctrl2_in                           => X"0000",
@@ -318,7 +328,7 @@ begin
          rxcommadeten_in                      => "11",
          rxmcommaalignen_in                   => "11",
          rxpcommaalignen_in                   => "11",
-         rxpolarity_in                        => "11",  -- TODO Check Changed to '1' after receiving weird data (sometimes ok sometimes wrong)
+         rxpolarity_in                        => "11",  -- TODO Check
          rxusrclk_in                          => s_devClkVec,
          rxusrclk2_in                         => s_devClk2Vec,
 

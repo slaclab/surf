@@ -71,8 +71,8 @@ entity Jesd204bRx is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr_o  : out   AxiStreamMasterArray(L_G-1 downto 0);
-      txCtrlArr_i        : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      rxAxisMasterArr_o  : out   AxiStreamMasterArray(L_G-1 downto 0);
+      rxCtrlArr_i        : in    AxiStreamCtrlArray(L_G-1 downto 0);   
       
    -- JESD
       -- Clocks and Resets   
@@ -88,6 +88,8 @@ entity Jesd204bRx is
 
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl;
+      
+      pulse_o        : out   slv(L_G-1 downto 0);
       
       leds_o         : out   slv(1 downto 0)
    );
@@ -130,8 +132,9 @@ architecture rtl of Jesd204bRx is
    -- User reset (from AXI lite register)
    signal s_gtReset     : sl;
    signal s_clearErr    : sl;
-   signal s_statusRxArr  : rxStatuRegisterArray(L_G-1 downto 0);
-
+   signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
+   signal s_thresoldHighArr : Slv16Array(L_G-1 downto 0);
+   signal s_thresoldLowArr  : Slv16Array(L_G-1 downto 0);
 
    -- Testing registers
    signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
@@ -171,7 +174,7 @@ begin
    ----------------------------------------------------------- 
    -- AXI stream interface one module per lane
    generatePauseSignal : for I in L_G-1 downto 0 generate
-         s_pauseVec(I) <= txCtrlArr_i(I).pause;
+         s_pauseVec(I) <= rxCtrlArr_i(I).pause;
    end generate generatePauseSignal;
    
    -- Start the next AXI stream packer transfer transfer when all FIFOs are empty  
@@ -179,7 +182,7 @@ begin
    
    -- AXI stream interface one module per lane
    generateAxiStreamLanes : for I in L_G-1 downto 0 generate
-      AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
+      AxiStreamLaneTx_INST: entity work.AxiStreamLaneRx
       generic map (
          TPD_G             => TPD_G,
          AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G)
@@ -189,7 +192,7 @@ begin
          devRst_i       => devRst_i,
          packetSize_i   => s_axisPacketSizeReg,
          trigger_i      => s_axisTriggerReg(I),
-         txAxisMaster_o => txAxisMasterArr_o(I),
+         rxAxisMaster_o => rxAxisMasterArr_o(I),
          pause_i        => s_pause,
          enable_i       => s_enableRx(I),
          sampleData_i   => s_sampleDataArr(I),
@@ -245,7 +248,9 @@ begin
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
-      axisPacketSize_o=> s_axisPacketSizeReg
+      thresoldHighArr_o => s_thresoldHighArr,
+      thresoldLowArr_o  => s_thresoldLowArr,
+      axisPacketSize_o  => s_axisPacketSizeReg
    );
   
    -----------------------------------------------------------
@@ -361,11 +366,22 @@ begin
       );
    end generate;
    
-   -- Test rising edge pulser
-   
-   
-   
-   
+   -- Test signal generator
+   generatePulserLanes : for I in L_G-1 downto 0 generate    
+      Pulser_INST: entity work.TestSigGen
+      generic map (
+         TPD_G => TPD_G,
+         F_G   => F_G)
+      port map (
+         clk            => devClk_i,
+         rst            => devRst_i,
+         enable_i       => s_dataValidVec(I),
+         thresoldLow_i  => s_thresoldLowArr(I),
+         thresoldHigh_i => s_thresoldHighArr(I),         
+         sampleData_i   => s_sampleDataArr(I),
+         testSig_o      => pulse_o(I));
+   end generate;   
+
    -- Put sync output in 'z' if not enabled
    syncVectEn : for I in L_G-1 downto 0 generate
       s_nSyncVecEn(I) <= s_nSyncVec(I) or not s_enableRx(I);
@@ -397,6 +413,6 @@ begin
    -- Output assignment
    nSync_o     <= r.nSyncAnyD1;
    gt_reset_o  <= (others=> s_gtReset);
-   leds_o <= uOr(s_dataValidVec) & r.nSyncAnyD1;
+   leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    -----------------------------------------------------
 end rtl;

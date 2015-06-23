@@ -1,0 +1,108 @@
+-------------------------------------------------------------------------------
+-- Title      : Outputs a digital signal depending on thresholds
+-------------------------------------------------------------------------------
+-- File       : TestSigGen.vhd
+-- Author     : Uros Legat  <ulegat@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Created    : 2015-04-15
+-- Last update: 2015-04-15
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: This is a test module so only F_G = 2 
+--              and is GT_WORD_SIZE_C = 4 is supported.          
+-------------------------------------------------------------------------------
+-- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+
+use work.StdRtlPkg.all;
+use work.Jesd204bPkg.all;
+
+entity TestSigGen is
+   generic (
+      TPD_G        : time       := 1 ns;
+      
+      -- Number of bytes in a frame
+      F_G : positive := 2);
+   port (
+      clk      : in  sl;
+      rst      : in  sl;
+      
+      -- Enable pulser
+      enable_i   : in  sl;
+      
+      -- Threshold for Rising edge detection      
+      thresoldLow_i  : in  slv((F_G*8)-1 downto 0);
+      thresoldHigh_i : in  slv((F_G*8)-1 downto 0);
+       
+      -- Sample data input     
+      sampleData_i  : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      
+      -- Test signal 
+      testSig_o    : out sl
+   );
+end entity TestSigGen;
+
+architecture rtl of TestSigGen is
+   -- How many samples is in a GT word
+   constant SAMPLES_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
+   
+   type RegType is record
+      sig         : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      sig              => '0'
+   );
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+   signal s_sampleDataBr : slv(sampleData_i'range);
+   
+begin
+
+   s_sampleDataBr <= byteSwapSlv(sampleData_i, GT_WORD_SIZE_C);
+   
+   -- Buffer two GT words. And compare previous and current samples to threshold.
+   -- If the difference between the previous and current sample is higher than threshold
+   -- output a pulse.
+   ---------------------------------------------------------------------
+   ---------------------------------------------------------------------
+   comb : process (r, rst,s_sampleDataBr, thresoldLow_i, thresoldHigh_i) is
+      variable v : RegType;
+      variable v_sigVec    : slv((SAMPLES_IN_WORD_C-1) downto 0);
+   begin
+      v := r;
+      
+--      if (  signed(s_sampleDataBr((F_G*8)-1 downto 0) ) > signed(thresoldHigh_i))   then
+      if (  s_sampleDataBr((F_G*8)-1 downto 0) > thresoldHigh_i)   then
+         v.sig := '1';
+--      elsif (  signed(s_sampleDataBr((F_G*8)-1 downto 0) ) < signed(thresoldLow_i)) then
+      elsif (  s_sampleDataBr((F_G*8)-1 downto 0) < thresoldLow_i) then
+         v.sig := '0';
+      end if;
+      
+      if (rst = '1' or enable_i='0') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Output assignment
+      rin <= v;
+      testSig_o <= r.sig;
+      -----------------------------------------------------------
+   end process comb;
+
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+   ---------------------------------------------------------------------
+   ---------------------------------------------------------------------
+end architecture rtl;

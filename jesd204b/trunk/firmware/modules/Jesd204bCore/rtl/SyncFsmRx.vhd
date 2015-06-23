@@ -275,7 +275,7 @@ begin
             v.sysref     := '1';
             
             -- Next state condition
-            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' then  
+            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' or gtReady_i = '0' then  
                v.state   := IDLE_S;            
             end if;
          ----------------------------------------------------------------------      

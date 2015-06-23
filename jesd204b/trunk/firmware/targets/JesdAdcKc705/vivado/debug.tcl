@@ -17,10 +17,14 @@ SetDebugCoreClk ${ilaJesdClk} {jesdClk}
 set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaJesdClk}]
 
 
-ConfigProbe ${ilaJesdClk} {Jesd204bGthRxUltra_INST/GT_OPER_GEN.GthUltrascaleJesdCoregen_INST/gtwiz_userdata_rx_out[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGthRxUltra_INST/GT_OPER_GEN.GthUltrascaleJesdCoregen_INST/rxctrl0_out[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGthRxUltra_INST/GT_OPER_GEN.GthUltrascaleJesdCoregen_INST/rxctrl1_out[*]}
-ConfigProbe ${ilaJesdClk} {Jesd204bGthRxUltra_INST/GT_OPER_GEN.GthUltrascaleJesdCoregen_INST/rxctrl3_out[*]}
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxDispErrOut[*]}
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxDecErrOut[*]}
+
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxDataOut[*]}
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/GT_OPER_GEN.GTX7_CORE_GEN[1].Gtx7Core_Inst/rxCharIsKOut[*]}
+
+ConfigProbe ${ilaJesdClk} {Jesd204bGtx7_INST/Jesd204b_INST/generateAxiStreamLanes[1].AxiStreamLaneTx_INST/sampleData_i[*]}
+
 
 delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaJesdClk}]]
 

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Axi-lite interface for register access  
 -------------------------------------------------------------------------------
--- File       : AxiLiteRegItf.vhd
+-- File       : AxiLiteRxRegItf.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-15
@@ -9,13 +9,35 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:  Register decoding for JESD core
---               Registers
---               0x000 (RW)- Enable RX lanes (1 to L_G)
---               0x004 (RW)- SYSREF delay (5 bit)
---               0x100 (R) - Lane 1 status 
---               0x101 (R) - Lane 2 status               
---               ...
+-- Description:  Register decoding for JESD RX core
+--               0x00 (RW)- Enable RX lanes (L_G downto 1)
+--               0x01 (RW)- SYSREF delay (5 bit)
+--               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1)
+--               0x03 (RW)- AXI stream packet size (24 bit)
+--               0x04 (RW)- Common control register:
+--                   bit 0: JESD Subclass (Default '1')
+--                   bit 1: Enable control character replacement(Default '1')
+--                   bit 2: Reset MGTs (Default '0')
+--                   bit 3: Clear Registered errors (Default '0')                        
+--               0x1X (R) - Lane X status
+--                   bit 0: GT Reset done
+--                   bit 1: Received data valid
+--                   bit 2: Received data is misaligned
+--                   bit 3: Synchronisation output status 
+--                   bit 4: Rx buffer overflow
+--                   bit 5: Rx buffer underflow
+--                   bit 6: Comma position not as expected during alignment
+--                   bit 7: TX lane enabled status
+--                   bit 8: SysRef detected (active only when the RX lane is enabled)
+--                   bit 9: Comma (K28.5) detected
+--                   bit 10-13: Disparity error
+--                   bit 14-17: Not in table Error
+--               0x2X (RW) - Lane X test module control
+--                   bit 11-8: Lane delay (Number of JESD clock cycles)
+--                   bit 3-0:  Lane alignment within one clock cycle (Valid values= "0001", "0010","0100","1000")
+--               0x3X (RW) - Lane X test signal thresholds 
+--                   bit 31-16: High threshold
+--                   bit 15-0:  Low threshold
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -58,6 +80,8 @@ entity AxiLiteRxRegItf is
       replEnable_o      : out  sl;
       dlyTxArr_o        : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
       alignTxArr_o      : out  alignTxArray(L_G-1 downto 0); -- 0001, 0010, 0100, 1000
+      thresoldLowArr_o  : out  Slv16Array(L_G-1 downto 0); -- Test signal threshold low
+      thresoldHighArr_o : out  Slv16Array(L_G-1 downto 0); -- Test signal threshold high  
       axisTrigger_o     : out  slv(L_G-1 downto 0);
       subClass_o        : out  sl;
       gtReset_o         : out  sl;
@@ -74,6 +98,7 @@ architecture rtl of AxiLiteRxRegItf is
       commonCtrl     : slv(3 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       testTXItf      : Slv16Array(L_G-1 downto 0);
+      testSigThr     : Slv32Array(L_G-1 downto 0);      
       axisTrigger    : slv(L_G-1 downto 0);
       axisPacketSize : slv(23 downto 0);
       
@@ -86,8 +111,9 @@ architecture rtl of AxiLiteRxRegItf is
       enableRx       => (others => '1'),
       commonCtrl     => "0011",
       sysrefDlyRx    => (others => '0'),
-      testTXItf      => (others => (others => '0')),
-      axisTrigger    => (others => '0'),   
+      testTXItf      => (others => x"0000"),
+      testSigThr     => (others => x"C340_4E20"),
+      axisTrigger    => (others => '0'),
       axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
  
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -138,6 +164,12 @@ begin
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
                      v.testTXItf(I)  := axilWriteMaster.wdata(15 downto 0);
                   end if;
+               end loop;
+            when 16#30# to 16#3F# =>               
+               for I in (L_G-1) downto 0 loop
+                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
+                     v.testSigThr(I)  := axilWriteMaster.wdata(31 downto 0);
+                  end if;
                end loop; 
             when others =>
                axilWriteResp     := AXI_ERROR_RESP_G;
@@ -170,7 +202,13 @@ begin
                   if (axilReadMaster.araddr(5 downto 2) = I) then
                      v.axilReadSlave.rdata(15 downto 0)                    := r.testTXItf(I);
                   end if;
-               end loop;            
+               end loop; 
+            when 16#30# to 16#3F# =>               
+               for I in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     v.axilReadSlave.rdata(31 downto 0)                    := r.testSigThr(I);
+                  end if;
+               end loop; 
             when others =>
                axilReadResp                                          := AXI_ERROR_RESP_G;
          end case;
@@ -211,6 +249,9 @@ begin
    TX_LANES_GEN : for I in L_G-1 downto 0 generate 
       dlyTxArr_o(I)    <=   r.testTXItf(I) (11 downto 8);
       alignTxArr_o(I)  <=   r.testTXItf(I) (GT_WORD_SIZE_C-1 downto 0);
+      
+      thresoldHighArr_o(I) <=   r.testSigThr(I) (31 downto 16);     
+      thresoldLowArr_o(I)  <=   r.testSigThr(I) (15 downto 0);
    end generate TX_LANES_GEN;   
 ---------------------------------------------------------------------
 end rtl;

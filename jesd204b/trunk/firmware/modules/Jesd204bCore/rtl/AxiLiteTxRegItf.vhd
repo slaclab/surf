@@ -9,13 +9,40 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:  Register decoding for JESD core
---               Registers
---               0x000 (RW)- Enable TX lanes (1 to L_G)
---               0x004 (RW)- SYSREF delay (5 bit)
---               0x100 (R) - Lane 1 status 
---               0x101 (R) - Lane 2 status               
---               ...
+-- Description:  Register decoding for JESD TX core
+--               0x00 (RW)- Enable TX lanes (L_G downto 1)
+--               0x01 (RW)- SYSREF delay (5 bit)
+--               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1) (Not used-Reserved)
+--               0x03 (RW)- AXI stream packet size (24 bit) (Not used-Reserved)
+--               0x04 (RW)- Common control register:
+--                   bit 0: JESD Subclass (Default '1')
+--                   bit 1: Enable control character replacement(Default '1')
+--                   bit 2: Reset MGTs (Default '0') 
+--                   bit 3: Clear Registered errors (Default '0')  (Not used-Reserved)
+--                   bit 4: Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes.
+--               0x05 (RW)- Test signal control: Ramp step and Square signal period control
+--                   bit 31-16: Square signal period (Clock cycles)
+--                   bit 15-0:  Ramp step (Clock cycles)
+--               0x06 (RW)- Square wave test signal amplitude low
+--               0x07 (RW)- Square wave test signal amplitude high
+--               0x1X (R) - Lane X status
+--                   bit 0: GT Reset done
+--                   bit 1: Transmuting valid data
+--                   bit 2: Transmitting ILA sequence
+--                   bit 3: Synchronisation input status 
+--                   bit 4: TX lane enabled status
+--                   bit 5: SysRef detected (active only when the TX lane is enabled)
+--               0x2X (RW) - Lane X signal select (Mux control)
+--                   bit 5-4: Test signal select:
+--                         "00" - Saw signal
+--                         "01" - Ramp signal
+--                         "10" - Square wave
+--                         "11" - Output zero
+--                   bit 1-0: Signal source select:
+--                         "00" - Output zero 
+--                         "01" - Internal FPGA source (Not used-Reserved)
+--                         "10" - AXI Stream data source 
+--                         "11" - Test signal
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

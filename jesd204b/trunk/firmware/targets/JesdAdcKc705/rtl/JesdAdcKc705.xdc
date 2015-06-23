@@ -1,19 +1,17 @@
 #-------------------------------------------------------------------------------
-#-- Title         : HPS Front End Board Constraints
-#-- File          : FrontEndBoard.xdc
-#-- Author        : Ben Reese <bareese@slac.stanford.edu>
-#-- Created       : 11/20/2013
+#-- Title         : JESD AdcKc705 Board Constraints
+#-- File          : JesdAdcKc705.xdc
+#-- Author        : Uros Legat <ulegat@slac.stanford.edu>
+#-- Created       : 06/04/2015
 #-------------------------------------------------------------------------------
 #-- Description:
-#-- Constrains for the HPS Front End Board
+#-- Constrains for the Kc705 JESD DAC TI ADC16DX370EVM
 #-------------------------------------------------------------------------------
-#-- Copyright (c) 2013 by Ben Reese. All rights reserved.
+#-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 #-------------------------------------------------------------------------------
 #-- Modification history:
-#-- 11/20/2013: created.
+#-- 06/04/2015: created.
 #-------------------------------------------------------------------------------
-
-
 
 #Clocks
 create_clock -period 8.000 -name pgpRefClk [get_ports pgpRefClkP]
@@ -24,27 +22,18 @@ create_generated_clock -name axilClk -source [get_ports pgpRefClkP] -multiply_by
 create_generated_clock -name pgpClk -source [get_ports pgpRefClkP] -divide_by 8 -multiply_by 10 \
  [get_pins ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT1]
 
-#create_clock -period 5.4254 -name jesdRefClk [get_ports fpgaDevClkaP]
-create_clock -period 2.703 -name jesdRefClk [get_ports fpgaDevClkaP]
+create_clock -period 5.405 -name jesdRefClk [get_ports fpgaDevClkaP]
 
-#create_generated_clock -name jesdRefClkDiv2 -divide_by 2 -source [get_ports fpgaDevClkaP] \
-#  [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}]
-
-create_generated_clock -name jesdClk -source [get_pins IBUFDS_GTE2_FPGADEVCLKA/ODIV2] -divide_by 1 \
- [get_pins ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0]
-
-#create_generated_clock -name jesdClk -divide_by 1 -source [get_pins {IBUFDS_GTE2_FPGADEVCLKA/O}] \
-# [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
+create_generated_clock -name jesdClk -divide_by 1 -source [get_ports {fpgaDevClkaP}] \
+    [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
 
 set_clock_groups -asynchronous \ 
     -group [get_clocks -include_generated_clocks pgpClk] \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks jesdRefClk] \
-    -group [get_clocks -include_generated_clocks jesdClk]
+    -group [get_clocks -include_generated_clocks jesdRefClk]
 
 #Assure that sychronization registers are placed in the same slice with no logic between each sync stage
 set_property ASYNC_REG true [get_cells -hierarchical *crossDomainSyncReg_reg*]
-
 
 # User GPIO clock output (MGT loopback)
 set_property IOSTANDARD LVDS_25 [get_ports gpioClkN]
@@ -163,6 +152,19 @@ set_property IOSTANDARD LVCMOS15 [get_ports {leds[7]}]
 set_property PACKAGE_PIN AB25 [get_ports sysrefDbg]
 set_property IOSTANDARD LVCMOS15 [get_ports sysrefDbg]
 
+#Rising edge pulse output DEBUG (J46-PIN20)
+set_property PACKAGE_PIN AB28 [get_ports rePulseDbg[0]]
+set_property IOSTANDARD LVCMOS15 [get_ports rePulseDbg[0]]
+
+#Rising edge pulse output DEBUG (J46-PIN19)
+set_property PACKAGE_PIN AA27 [get_ports rePulseDbg[1]]
+set_property IOSTANDARD LVCMOS15 [get_ports rePulseDbg[1]]
+
 #USER SMA clock (jesdClk) DEBUG
 set_property PACKAGE_PIN L25 [get_ports usrClk]
 set_property IOSTANDARD LVCMOS25 [get_ports usrClk]
+
+#SYNC output LED indicator on ADC-EVM (FMC H31)
+set_property PACKAGE_PIN D16 [get_ports syncDbg]
+set_property IOSTANDARD LVCMOS15 [get_ports syncDbg]
+

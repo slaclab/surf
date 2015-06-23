@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
-#-- Title         : HPS Front End Board Constraints
+#-- Title         : JESD DacKcu105 Board Constraints
 #-- File          : JesdDacKcu105.xdc
 #-- Author        : Uros Legat <ulegat@slac.stanford.edu>
 #-- Created       : 06/04/2015
 #-------------------------------------------------------------------------------
 #-- Description:
-#-- Constrains for the Kcu105 JESD DAC 
+#-- Constrains for the Kcu105 JESD DAC TI DAC38J82EVM
 #-------------------------------------------------------------------------------
 #-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 #-------------------------------------------------------------------------------
@@ -21,12 +21,9 @@ create_clock -period 6.400 -name pgpRefClk [get_ports pgpRefClkP]
 create_generated_clock -name pgpClk  -multiply_by 1  -source [get_ports pgpRefClkP] \
     [get_pins {ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT0}]
 
-create_clock -period 2.703 -name jesdRefClk [get_ports fpgaDevClkaP]
+create_clock -period 5.405 -name jesdRefClk [get_ports fpgaDevClkaP]
 
-#create_generated_clock -name jesdRefClkDiv2 -divide_by 2 -source [get_ports fpgaDevClkaP] \
-#    [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}]
-
-create_generated_clock -name jesdClk -divide_by 2 -source [get_ports {fpgaDevClkaP}] \
+create_generated_clock -name jesdClk -divide_by 1 -source [get_ports {fpgaDevClkaP}] \
     [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
 
 set_clock_groups -asynchronous \ 
@@ -60,13 +57,6 @@ set_property PACKAGE_PIN U4 [get_ports pgpGtTxP]
 # JESD reference clock FPGA CLK1 (FMC-D5-P,D4-N) 
 set_property PACKAGE_PIN K6  [get_ports fpgaDevClkaP]
 set_property PACKAGE_PIN K5  [get_ports fpgaDevClkaN]
-
-
-# JESD reference clock FPGA CLK2 (FMC-J2-P,J3-N) - NC on KC705
-# set_property IOSTANDARD LVDS [get_ports fpgaDevClkbP]
-# set_property IOSTANDARD LVDS [get_ports fpgaDevClkbN]
-# set_property PACKAGE_PIN C25 [get_ports fpgaDevClkbP]
-# set_property PACKAGE_PIN B25 [get_ports fpgaDevClkbN]
 
 # JESD SYSREF input (FMC-G9-P,G10-N) 
 set_property IOSTANDARD LVDS [get_ports fpgaSysRefP]
@@ -134,6 +124,14 @@ set_property -dict { PACKAGE_PIN N22 IOSTANDARD LVCMOS18 } [get_ports { leds[4] 
 set_property -dict { PACKAGE_PIN M22 IOSTANDARD LVCMOS18 } [get_ports { leds[5] }]
 set_property -dict { PACKAGE_PIN R23 IOSTANDARD LVCMOS18 } [get_ports { leds[6] }]
 set_property -dict { PACKAGE_PIN P23 IOSTANDARD LVCMOS18 } [get_ports { leds[7] }]
+
+#Rising edge pulse output DEBUG (J53-PIN3)
+set_property PACKAGE_PIN AM14 [get_ports rePulseDbg[0]]
+set_property IOSTANDARD LVCMOS18 [get_ports rePulseDbg[0]]
+
+#Rising edge pulse output DEBUG (J53-PIN4)
+set_property PACKAGE_PIN AM15 [get_ports rePulseDbg[1]]
+set_property IOSTANDARD LVCMOS18 [get_ports rePulseDbg[1]]
 
 #GPIO0 SYSREF output DEBUG
 set_property PACKAGE_PIN AL14  [get_ports sysRef]

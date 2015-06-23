@@ -89,8 +89,8 @@ entity Jesd204bTxGthUltra is
       axilWriteSlaveTx  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      rxAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
-      rxAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
+      txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
+      txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
 
       -- External sample data input
       extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);      
@@ -106,7 +106,10 @@ entity Jesd204bTxGthUltra is
       
       -- Synchronisation output combined from all receivers 
       nSync_i        : in  sl;
-
+      
+      -- Test signal      
+      pulse_o   : out   slv(L_G-1 downto 0);
+      
       -- Out to led
       leds_o    : out   slv(1 downto 0);
       
@@ -118,56 +121,59 @@ end Jesd204bTxGthUltra;
 architecture rtl of Jesd204bTxGthUltra is
 
 ---------------------------------------   
-   component gthultrascalejesdcoregen
-      port (
-         gtwiz_userclk_tx_active_in : in std_logic_vector(0 downto 0);
-         gtwiz_userclk_rx_active_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_clk_freerun_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_all_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_tx_pll_and_datapath_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_tx_datapath_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_pll_and_datapath_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_datapath_in : in std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_cdr_stable_out : out std_logic_vector(0 downto 0);
-         gtwiz_reset_tx_done_out : out std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_done_out : out std_logic_vector(0 downto 0);
-         gtwiz_userdata_tx_in : in std_logic_vector(63 downto 0);
-         gtwiz_userdata_rx_out : out std_logic_vector(63 downto 0);
-         gtrefclk00_in : in std_logic_vector(0 downto 0);
-         qpll0outclk_out : out std_logic_vector(0 downto 0);
-         qpll0lock_out : out std_logic_vector(0 downto 0);
-         qpll0outrefclk_out : out std_logic_vector(0 downto 0);
-         gthrxn_in : in std_logic_vector(1 downto 0);
-         gthrxp_in : in std_logic_vector(1 downto 0);
-         rx8b10ben_in : in std_logic_vector(1 downto 0);
-         rxcommadeten_in : in std_logic_vector(1 downto 0);
-         rxmcommaalignen_in : in std_logic_vector(1 downto 0);
-         rxpcommaalignen_in : in std_logic_vector(1 downto 0);
-         rxpolarity_in : in std_logic_vector(1 downto 0);
-         rxusrclk_in : in std_logic_vector(1 downto 0);
-         rxusrclk2_in : in std_logic_vector(1 downto 0);
-         tx8b10ben_in : in std_logic_vector(1 downto 0);
-         txctrl0_in : in std_logic_vector(31 downto 0);
-         txctrl1_in : in std_logic_vector(31 downto 0);
-         txctrl2_in : in std_logic_vector(15 downto 0);
-         txpolarity_in : in std_logic_vector(1 downto 0);
-         txusrclk_in : in std_logic_vector(1 downto 0);
-         txusrclk2_in : in std_logic_vector(1 downto 0);
-         gthtxn_out : out std_logic_vector(1 downto 0);
-         gthtxp_out : out std_logic_vector(1 downto 0);
-         rxbyteisaligned_out : out std_logic_vector(1 downto 0);
-         rxbyterealign_out : out std_logic_vector(1 downto 0);
-         rxcommadet_out : out std_logic_vector(1 downto 0);
-         rxctrl0_out : out std_logic_vector(31 downto 0);
-         rxctrl1_out : out std_logic_vector(31 downto 0);
-         rxctrl2_out : out std_logic_vector(15 downto 0);
-         rxctrl3_out : out std_logic_vector(15 downto 0);
-         rxoutclk_out : out std_logic_vector(1 downto 0);
-         rxpmaresetdone_out : out std_logic_vector(1 downto 0);
-         txoutclk_out : out std_logic_vector(1 downto 0);
-         txpmaresetdone_out : out std_logic_vector(1 downto 0)
-      );
-   end component;
+component gthultrascalejesdcoregen
+  port (
+    gtwiz_userclk_rx_active_in : in std_logic_vector(0 downto 0);
+    gtwiz_buffbypass_tx_reset_in : in std_logic_vector(0 downto 0);
+    gtwiz_buffbypass_tx_start_user_in : in std_logic_vector(0 downto 0);
+    gtwiz_buffbypass_tx_done_out : out std_logic_vector(0 downto 0);
+    gtwiz_buffbypass_tx_error_out : out std_logic_vector(0 downto 0);
+    gtwiz_reset_clk_freerun_in : in std_logic_vector(0 downto 0);
+    gtwiz_reset_all_in : in std_logic_vector(0 downto 0);
+    gtwiz_reset_tx_pll_and_datapath_in : in std_logic_vector(0 downto 0);
+    gtwiz_reset_tx_datapath_in : in std_logic_vector(0 downto 0);
+    gtwiz_reset_rx_pll_and_datapath_in : in std_logic_vector(0 downto 0);
+    gtwiz_reset_rx_datapath_in : in std_logic_vector(0 downto 0);
+    gtwiz_reset_rx_cdr_stable_out : out std_logic_vector(0 downto 0);
+    gtwiz_reset_tx_done_out : out std_logic_vector(0 downto 0);
+    gtwiz_reset_rx_done_out : out std_logic_vector(0 downto 0);
+    gtwiz_userdata_tx_in : in std_logic_vector(63 downto 0);
+    gtwiz_userdata_rx_out : out std_logic_vector(63 downto 0);
+    gtrefclk00_in : in std_logic_vector(0 downto 0);
+    qpll0lock_out : out std_logic_vector(0 downto 0);
+    qpll0outclk_out : out std_logic_vector(0 downto 0);
+    qpll0outrefclk_out : out std_logic_vector(0 downto 0);
+    gthrxn_in : in std_logic_vector(1 downto 0);
+    gthrxp_in : in std_logic_vector(1 downto 0);
+    rx8b10ben_in : in std_logic_vector(1 downto 0);
+    rxcommadeten_in : in std_logic_vector(1 downto 0);
+    rxmcommaalignen_in : in std_logic_vector(1 downto 0);
+    rxpcommaalignen_in : in std_logic_vector(1 downto 0);
+    rxpolarity_in : in std_logic_vector(1 downto 0);
+    rxusrclk_in : in std_logic_vector(1 downto 0);
+    rxusrclk2_in : in std_logic_vector(1 downto 0);
+    tx8b10ben_in : in std_logic_vector(1 downto 0);
+    txctrl0_in : in std_logic_vector(31 downto 0);
+    txctrl1_in : in std_logic_vector(31 downto 0);
+    txctrl2_in : in std_logic_vector(15 downto 0);
+    txpolarity_in : in std_logic_vector(1 downto 0);
+    txusrclk_in : in std_logic_vector(1 downto 0);
+    txusrclk2_in : in std_logic_vector(1 downto 0);
+    gthtxn_out : out std_logic_vector(1 downto 0);
+    gthtxp_out : out std_logic_vector(1 downto 0);
+    rxbyteisaligned_out : out std_logic_vector(1 downto 0);
+    rxbyterealign_out : out std_logic_vector(1 downto 0);
+    rxcommadet_out : out std_logic_vector(1 downto 0);
+    rxctrl0_out : out std_logic_vector(31 downto 0);
+    rxctrl1_out : out std_logic_vector(31 downto 0);
+    rxctrl2_out : out std_logic_vector(15 downto 0);
+    rxctrl3_out : out std_logic_vector(15 downto 0);
+    rxoutclk_out : out std_logic_vector(1 downto 0);
+    rxpmaresetdone_out : out std_logic_vector(1 downto 0);
+    txoutclk_out : out std_logic_vector(1 downto 0);
+    txpmaresetdone_out : out std_logic_vector(1 downto 0)
+  );
+end component;
 -------------------------------------
 
 -- Internal signals   
@@ -220,8 +226,8 @@ begin
       axilReadSlave     => axilReadSlaveTx,
       axilWriteMaster   => axilWriteMasterTx,
       axilWriteSlave    => axilWriteSlaveTx,
-      rxAxisMasterArr_i => rxAxisMasterArr_i,
-      rxAxisSlaveArr_o  => rxAxisSlaveArr_o,
+      txAxisMasterArr_i => txAxisMasterArr_i,
+      txAxisSlaveArr_o  => txAxisSlaveArr_o,
       extSampleDataArray_i => extSampleDataArray_i,
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
@@ -230,6 +236,7 @@ begin
       gtTxReady_i       => s_gtTxReady,
       gtTxReset_o       => s_gtTxUserReset,
       r_jesdGtTxArr     => r_jesdGtTxArr,
+      pulse_o           => pulse_o,
       leds_o            => leds_o
    );
 
@@ -270,17 +277,29 @@ begin
    s_devClk2Vec  <= devClk2_i & devClk2_i;
    s_gtTxReady   <= s_txDone & s_txDone;
    -- debug
-   qPllLock_o <= s_txDone;
+   --qPllLock_o <= s_txDone;
 
    --------------------------------------------------------------------------------------------------
    -- Include Core from Coregen Vivado 15.1 
-   --------------------------------------------------------------------------------------------------
+   -- Coregen settings:
+   -- - Lane rate 7.4 GHz
+   -- - Reference freq 184 MHz
+   -- - 8b10b encription enabled
+   -- - 32b/40b word datapath
+   -- - TR buffer disabled for deterministic latency - IMPORTANT
+    --------------------------------------------------------------------------------------------------
    --GT_OPER_GEN: if SIM_G = false generate
       GthUltrascaleJesdCoregen_INST: GthUltrascaleJesdCoregen
       port map (
          -- Clocks
-         gtwiz_userclk_tx_active_in(0)        => '1',
+--         gtwiz_userclk_tx_active_in(0)        => '1',
          gtwiz_userclk_rx_active_in(0)        => '1',
+         
+         gtwiz_buffbypass_tx_reset_in(0) => s_gtxRst,
+         gtwiz_buffbypass_tx_start_user_in(0) => s_gtxRst,
+         gtwiz_buffbypass_tx_done_out(0) => qPllLock_o,
+         gtwiz_buffbypass_tx_error_out => open, 
+
          gtwiz_reset_clk_freerun_in(0)        => stableClk,
          
          gtwiz_reset_all_in(0)                   => s_gtxRst,

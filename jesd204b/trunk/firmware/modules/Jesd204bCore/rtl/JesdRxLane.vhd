@@ -26,8 +26,10 @@
 --                bit 5: Rx buffer underflow
 --                bit 6: Comma position not as expected during alignment
 --                bit 7: RX module enabled status
---                bit 8-11: Disparity error
---                bit 12-15: Dec. Error
+--                bit 8: SysRef detected (active only when the lane is enabled)
+--                bit 9: Comma (K28.5) detected
+--                bit 10-13: Disparity error
+--                bit 14-17: Not in table Error
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

@@ -65,7 +65,7 @@ entity JesdAdcKc705 is
       -- FALSE External SYSREF
       SYSREF_GEN_G       : boolean := false;      
 
-      REFCLK_FREQUENCY_G : real     := 370.00E6;
+      REFCLK_FREQUENCY_G : real     := 185.00E6;
       LINE_RATE_G        : real     := 7.40E9;
       
       -- The JESD module supports values: 1,2,4(four byte GT word only)
@@ -74,53 +74,47 @@ entity JesdAdcKc705 is
       K_G                : positive := 32;
       -- Number of serial lanes: 1 to 16    
       L_G                : positive := 2
-
    );
    port (
       pgpRefClkP : in sl;
       pgpRefClkN : in sl;
 
-      -- PGP MGT signals
+      -- PGP MGT signals (SFP)
       pgpGtRxN : in  sl;                -- SFP+ 
       pgpGtRxP : in  sl;
       pgpGtTxN : out sl;
       pgpGtTxP : out sl;
 
       -- FMC Signals -- 
+      ------------------------------------------------------------------- 
       -- Signals from clock manager
-      fpgaDevClkaP : in sl;             -- GBT_CLK_0_P - FMC D3
-      fpgaDevClkaN : in sl;             -- GBT_CLK_0_N - FMC D4
---      fpgaDevClkbP : in sl;             -- LA00_P_CC - FMC G6
---      fpgaDevClkbN : in sl;             -- LA00_N_CC - FMC G7
+      fpgaDevClkaP : in sl;             -- FMC-D3-P
+      fpgaDevClkaN : in sl;             -- FMC-D4-N
       
       -- JESD synchronisation timing signal (Used in subclass 1 mode)
       -- has to meet setup and hold times of JESD devClk
       -- periodic (period has to be multiple of LMFC clock)
       -- single   (another pulse has to be generated if re-sync needed)      
-      fpgaSysRefP  : in sl;             -- LA03_P - FMC G9
-      fpgaSysRefN  : in sl;             -- LA04_N - FMC G10
+      fpgaSysRefP  : in sl;             -- FMC-G9-P
+      fpgaSysRefN  : in sl;             -- FMC-G10-N
 
       -- Signals to ADC (if clock manager not used)
-      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
-      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
-      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
-      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
+      adcDevClkP : out sl;              -- FMC-D7-P
+      adcDevClkN : out sl;              -- FMC-D8-N
+      adcSysRefP : out sl;              -- FMC-D11-P
+      adcSysRefN : out sl;              -- FMC-D12-N
 
       -- JESD MGT signals
-      adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
+      adcGtTxP : out slv(3 downto 0);
       adcGtTxN : out slv(3 downto 0);
-      adcGtRxP : in  slv(3 downto 0);
-      adcGtRxN : in  slv(3 downto 0);
+      adcGtRxP : in  slv(3 downto 0);   -- FMC-A10-P -- FMC-A2-P
+      adcGtRxN : in  slv(3 downto 0);   -- FMC-A11-N -- FMC-A3-N
 
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
       -- '0' - synchronisation Not OK - synchronisation request
-      syncbP : out sl;                  -- LA08_P - FMC G12
-      syncbN : out sl;                  -- LA08_N - FMC G13
-
-      -- Adc OVR/trigger signals
---      ovraTrigRdy : in sl;              -- LA25_P - FMC G27
---      ovrbTrigger : in sl;              -- LA26_P - FMC D26
+      syncbP : out sl;                  -- FMC-G12-P
+      syncbN : out sl;                  -- FMC-G13-N
 
       -- ADC SPI config interface
 --      spiSclk : out sl;                 -- FMC H37
@@ -132,14 +126,22 @@ entity JesdAdcKc705 is
       gpioClkP: out sl;
       gpioClkN: out sl;
       
-      -- Debug 
-      ---------------------------------------------------
+      -- Debug Signals -- 
+      -------------------------------------------------------------------
       -- Onboard LEDs
       leds : out slv(7 downto 0);
-          
-      -- JESD clock output for debug
-      usrClk    : out sl;
-      sysrefDbg : out sl      
+      
+      -- Digital square wave signal for deterministic latency check (Adjustable by setting the threshold registers)             
+      rePulseDbg : out slv(1 downto 0); -- J46-PIN20 -- J46-PIN19
+      
+      -- Out JESD clock 185MHz      
+      usrClk    : out sl;       -- SMA USER CLOCK P
+      
+      -- Sysref output pin      
+      sysrefDbg : out sl;       -- J46-PIN18
+      
+      -- Out to led on ADC EVM  -- FMC-H31
+      syncDbg    : out sl    
    );
 end entity JesdAdcKc705;
 
@@ -247,9 +249,9 @@ architecture rtl of JesdAdcKc705 is
    -------------------------------------------------------------------------------------------------
    constant JESD_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
 
-   signal axisTxMasters : AxiStreamMasterArray(L_G-1 downto 0);
-   signal axisTxSlaves  : AxiStreamSlaveArray(L_G-1 downto 0);
-   signal axisTxCtrl    : AxiStreamCtrlArray(L_G-1 downto 0);
+   signal axisRxMasters : AxiStreamMasterArray(L_G-1 downto 0);
+   signal axisRxSlaves  : AxiStreamSlaveArray(L_G-1 downto 0);
+   signal axisRxCtrl    : AxiStreamCtrlArray(L_G-1 downto 0);
    
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
@@ -264,11 +266,12 @@ architecture rtl of JesdAdcKc705 is
    signal s_validAllLED : sl;
    signal rxUserRdyOut  : slv(L_G-1 downto 0);   
    signal rxMmcmResetOut: slv(L_G-1 downto 0); 
+   signal s_rePulse     : slv(L_G-1 downto 0);
    
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- ADC EVM Out reference clock         
+   -- ADC EVM Out reference clock
    -------------------------------------------------------------------------------------------------
       ClockManager7_OUT : entity work.ClockManager7
       generic map (
@@ -373,9 +376,9 @@ begin
          axilReadSlave   => extAxilReadSlave,
          axisClk         => jesdClk,
          axisClkRst      => jesdClkRst,
-         axisTxMasters   => axisTxMasters,
-         axisTxSlaves    => axisTxSlaves,
-         axisTxCtrl      => axisTxCtrl,
+         axisTxMasters   => axisRxMasters,
+         axisTxSlaves    => axisRxSlaves,
+         axisTxCtrl      => axisRxCtrl,
          leds            => leds(3 downto 2));
 
    -------------------------------------------------------------------------------------------------
@@ -432,8 +435,7 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk (GT_WORD_SIZE_C=4)
-      -- I => jesdRefClk,   -- GT refclk used as JESD clk (GT_WORD_SIZE_C=2)
+         I => jesdRefClk,   -- JESD clock = refclk = 185 MHz
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -511,7 +513,7 @@ begin
       RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
       
       -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
-      --                        -- 184, 7.4           -- 78.125(156.25), 3.125         -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
+      --                        -- 185, 7.4           -- 78.125(156.25), 3.125         -- 184, 7.38                     -- 300, 6.0                   --370, 7.4
       PMA_RSV_G             =>  X"001E7080",          --X"00018480",          --X"001E7080",                   -- X"00018480",               --x"001E7080",            -- Values from coregen     
       RX_OS_CFG_G           =>  "0000010000000",      --"0000010000000",      --"0000010000000",               --"0000010000000",            --"0000010000000",        -- Values from coregen 
       RXCDR_CFG_G           =>  x"03000023ff10400020",--x"03000023ff10200020",--x"03000023ff10400020",           --x"03000023FF20400020",      --x"03000023ff10400020",  -- Values from coregen  
@@ -564,11 +566,14 @@ begin
       axilReadSlave     => locAxilReadSlaves(JESD_AXIL_INDEX_C),
       axilWriteMaster   => locAxilWriteMasters(JESD_AXIL_INDEX_C),
       axilWriteSlave    => locAxilWriteSlaves(JESD_AXIL_INDEX_C),  
-      txAxisMasterArr   => axisTxMasters,
-      txCtrlArr         => axisTxCtrl,
+      rxAxisMasterArr   => axisRxMasters,
+      rxCtrlArr         => axisRxCtrl,
       sysRef_i          => s_sysRef,
       sysRef_o          => s_sysRefOut,          
       nSync_o           => s_nSync,
+      
+      pulse_o           => s_rePulse,
+      
       leds_o(0)         => s_syncAllLED,-- (0) Sync (OR)
       leds_o(1)         => s_validAllLED,-- (1) Data_valid
       rxUserRdyOut      => rxUserRdyOut,  
@@ -676,11 +681,33 @@ begin
    leds(7) <= s_validAllLED;
    
    -- Debug output pins
+   OBUF_sync_inst : OBUF
+   port map (
+      I => s_nSync,
+      O =>  syncDbg 
+   );
+   
+   
+   -- Debug output pins
    OBUF_sysref_inst : OBUF
    port map (
       I => s_sysRef,
       --I =>  s_sysRefOut,
       O =>  sysrefDbg 
+   );
+   
+   -- Debug output pins
+   OBUF_rePulse_0_inst : OBUF
+   port map (
+      I => s_rePulse(0),
+      O => rePulseDbg(0)
+   );
+   
+   -- Debug output pins
+   OBUF_rePulse_1_inst : OBUF
+   port map (
+      I => s_rePulse(1),
+      O => rePulseDbg(1)
    );
    
    -- Output user clock for single ended reference
@@ -690,10 +717,11 @@ begin
       RST_POLARITY_G => '1',
       INVERT_G       => false)
    port map (
-      --clkIn  => jesdClk,
-      --rstIn  => jesdClkRst,
-      clkIn  => s_usrClk,
-      rstIn  => '0',--s_usrRst,
-      clkOut => usrClk);  
+      clkIn  => jesdClk,
+      rstIn  => jesdClkRst,
+      --clkIn  => s_usrClk,
+      --rstIn  => '0',--s_usrRst,
+      clkOut => usrClk);
+   
    
 end architecture rtl;

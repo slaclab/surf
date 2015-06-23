@@ -1,19 +1,17 @@
 #-------------------------------------------------------------------------------
-#-- Title         : HPS Front End Board Constraints
-#-- File          : FrontEndBoard.xdc
-#-- Author        : Ben Reese <bareese@slac.stanford.edu>
-#-- Created       : 11/20/2013
+#-- Title         : JESD DacKc705 Board Constraints
+#-- File          : JesdDacKc705.xdc
+#-- Author        : Uros Legat <ulegat@slac.stanford.edu>
+#-- Created       : 06/04/2015
 #-------------------------------------------------------------------------------
 #-- Description:
-#-- Constrains for the HPS Front End Board
+#-- Constrains for the Kc705 JESD DAC TI DAC38J82EVM
 #-------------------------------------------------------------------------------
-#-- Copyright (c) 2013 by Ben Reese. All rights reserved.
+#-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 #-------------------------------------------------------------------------------
 #-- Modification history:
-#-- 11/20/2013: created.
+#-- 06/04/2015: created.
 #-------------------------------------------------------------------------------
-
-
 
 #Clocks
 create_clock -period 8.000 -name pgpRefClk [get_ports pgpRefClkP]
@@ -24,19 +22,15 @@ create_generated_clock -name axilClk -multiply_by 1 -source [get_ports pgpRefClk
 create_generated_clock -name pgpClk  -multiply_by 10 -divide_by 8  -source [get_ports pgpRefClkP] \
     [get_pins {ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT1}]
 
-create_clock -period 2.703 -name jesdRefClk [get_ports fpgaDevClkaP]
+create_clock -period 5.405 -name jesdRefClk [get_ports fpgaDevClkaP]
 
-#create_generated_clock -name jesdRefClkDiv2 -divide_by 2 -source [get_ports fpgaDevClkaP] \
-#    [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}]
-
-create_generated_clock -name jesdClk -divide_by 1 -source [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}] \
+create_generated_clock -name jesdClk -divide_by 1 -source [get_ports {fpgaDevClkaP}] \
     [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
 
 set_clock_groups -asynchronous \ 
     -group [get_clocks -include_generated_clocks pgpClk] \
     -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks jesdRefClk] \
-    -group [get_clocks -include_generated_clocks jesdClk]
+    -group [get_clocks -include_generated_clocks jesdRefClk]
 
 #Assure that sychronization registers are placed in the same slice with no logic between each sync stage
 set_property ASYNC_REG TRUE [get_cells -hierarchical *crossDomainSyncReg_reg*]
@@ -62,15 +56,6 @@ set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaP]
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
 set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP]
 set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
-# Maybe this is correct ???
-#set_property PACKAGE_PIN C25 [get_ports fpgaDevClkaP] 
-#set_property PACKAGE_PIN C26 [get_ports fpgaDevClkaN]
-
-# JESD reference clock FPGA CLK2 (FMC-J2-P,J3-N) - NC on KC705
-# set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbP]
-# set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbN]
-# set_property PACKAGE_PIN C25 [get_ports fpgaDevClkbP]
-# set_property PACKAGE_PIN B25 [get_ports fpgaDevClkbN]
 
 # JESD SYSREF input (FMC-G9-P,G10-N) 
 set_property IOSTANDARD LVDS_25 [get_ports fpgaSysRefP]
@@ -92,7 +77,7 @@ set_property PACKAGE_PIN E15 [get_ports {syncbN}]
 # set_property PACKAGE_PIN G29 [get_ports dacSysRefP]
 # set_property PACKAGE_PIN F30 [get_ports dacSysRefN]
 
-# GTX RX ports coming from DAC ( DAC has 8 lanes but only 4 are connected on KC705 )
+# GTX RX ports coming from DAC ( DAC has 8 lanes but only 4 are connected on KC705 2 are used)
 # Lane 0 - FMC A30-P, A31-N
 set_property PACKAGE_PIN A4 [get_ports {adcGtTxP[0]}]
 set_property PACKAGE_PIN A3 [get_ports {adcGtTxN[0]}]
@@ -102,12 +87,12 @@ set_property PACKAGE_PIN B2 [get_ports {adcGtTxP[1]}]
 set_property PACKAGE_PIN B1 [get_ports {adcGtTxN[1]}]
 
 # Lane 2 - FMC A22-P, A23-N
-set_property PACKAGE_PIN C4 [get_ports {adcGtTxP[2]}]
-set_property PACKAGE_PIN C3 [get_ports {adcGtTxN[2]}]
+#set_property PACKAGE_PIN C4 [get_ports {adcGtTxP[2]}]
+#set_property PACKAGE_PIN C3 [get_ports {adcGtTxN[2]}]
 
 # Lane 3 - FMC C2-P, C3-N
-set_property PACKAGE_PIN D2 [get_ports {adcGtTxP[3]}]
-set_property PACKAGE_PIN D1 [get_ports {adcGtTxN[3]}]
+#set_property PACKAGE_PIN D2 [get_ports {adcGtTxP[3]}]
+#set_property PACKAGE_PIN D1 [get_ports {adcGtTxN[3]}]
 
 # Lane 4 - FMC B32-P, B33-N
 #set_property PACKAGE_PIN xx [get_ports {adcGtTxP[4]}]
@@ -146,3 +131,11 @@ set_property IOSTANDARD LVCMOS15 [get_ports leds[7]]
 #GPIO0 SYSREF output DEBUG
 set_property PACKAGE_PIN AB25  [get_ports sysRef]
 set_property IOSTANDARD LVCMOS15 [get_ports sysRef]
+
+#Rising edge pulse output DEBUG (J46-PIN20)
+set_property PACKAGE_PIN AB28 [get_ports rePulseDbg[0]]
+set_property IOSTANDARD LVCMOS15 [get_ports rePulseDbg[0]]
+
+#Rising edge pulse output DEBUG (J46-PIN19)
+set_property PACKAGE_PIN AA27 [get_ports rePulseDbg[1]]
+set_property IOSTANDARD LVCMOS15 [get_ports rePulseDbg[1]]

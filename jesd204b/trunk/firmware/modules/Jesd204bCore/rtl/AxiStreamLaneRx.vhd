@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Single lane JESD AXI stream data receive control
+-- Title      : Single lane JESD AXI stream data transmit control 
 -------------------------------------------------------------------------------
 -- File       : AxiStreamLaneRx.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -9,16 +9,16 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   This module receives the data on Virtual Channel Lane
---                and sends it to JESD TX lane.
---                When the rxAxisMaster_i.tvalid = '1'
---                the module sends data over JESD to DAC.
---                Otherwise it sends zero.
---                Note: The data reception is enabled only if JESD synchronisation is in data valid state dataReady_i='1'.
+-- Description:   This module sends the data from RX JESD lane 
+--                on Virtual Channel Lane.
+--                - When data is requested by trigger_i = '1'.
+--                - the module sends data a packet at the time to AXI stream FIFO.
+--                - Between packets the FSM waits until txCtrl_i.pause = '0'
+--                Note: Tx pause must indicate that the AXI stream FIFO can hold the whole data packet.
+--                Note: The data transmission is enabled only if JESD data is valid dataReady_i='1'. 
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -34,37 +34,173 @@ use work.Jesd204bPkg.all;
 entity AxiStreamLaneRx is
    generic (
       -- General Configurations
-      TPD_G   : time                        := 1 ns;
-      F_G     : positive := 2
-   );
+      TPD_G             : time                        := 1 ns;
+      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C);
    port (
-   
+      -- Lane number to be inserted into AXI stream
+      laneNum_i       : integer range 0 to 15;
+      
       -- JESD devClk
       devClk_i          : in  sl;
       devRst_i          : in  sl;
       
+      -- AXI control
+      packetSize_i   : in  slv(23 downto 0);
+      trigger_i      : in  sl; 
+      
       -- Axi Stream
-      rxAxisMaster_i  : in  AxiStreamMasterType;
-      rxAxisSlave_o   : out AxiStreamSlaveType;      
+      rxAxisMaster_o  : out AxiStreamMasterType;
+      pause_i         : in  sl;
+      
+
       
       -- JESD signals
-      jesdReady_i     : in  sl;
-      enable_i        : in  sl; 
-      
-      sampleData_o    : out slv((GT_WORD_SIZE_C*8)-1 downto 0)
+      enable_i        : in  sl;      
+      sampleData_i    : in  slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      dataReady_i     : in  sl
    );
 end AxiStreamLaneRx;
 
 architecture rtl of AxiStreamLaneRx is
 
-  
-begin
-   
-   rxAxisSlave_o.tReady <= jesdReady_i and enable_i;
+   constant JESD_SSI_CONFIG_C : AxiStreamConfigType                           := ssiAxiStreamConfig(GT_WORD_SIZE_C, TKEEP_COMP_C);
+   constant TSTRB_C           : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_C => '0') & ( GT_WORD_SIZE_C-1 downto 0 => '1');
+   constant KEEP_C            : slv(15 downto 0)                              := (15 downto GT_WORD_SIZE_C => '0') & ( GT_WORD_SIZE_C-1 downto 0 => '1');
 
-   sampleData_o <= rxAxisMaster_i.tData((GT_WORD_SIZE_C*8)-1 downto 0) when  (rxAxisMaster_i.tValid = '1' and 
-                                                                              jesdReady_i = '1'           and   
-                                                                              enable_i = '1')                         
-                                        else
-                   outSampleZero(F_G,GT_WORD_SIZE_C);    
+   type StateType is (
+      IDLE_S,
+      SOF_S,
+      DATA_S,
+      EOF_S
+   );  
+
+   type RegType is record    
+      dataCnt        : slv(packetSize_i'range);
+      txAxisMaster   : AxiStreamMasterType;
+      state          : StateType;
+   end record;
+   
+   constant REG_INIT_C : RegType := (
+      dataCnt        => (others => '0'),
+      txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
+      state          => IDLE_S
+   );
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+begin
+
+   comb : process (devRst_i, enable_i, r, laneNum_i, sampleData_i, pause_i, dataReady_i, packetSize_i,trigger_i) is
+      variable v             : RegType;
+      variable axilStatus    : AxiLiteStatusType;
+      variable axilWriteResp : slv(1 downto 0);
+      variable axilReadResp  : slv(1 downto 0);
+   begin
+      -- Latch the current value
+      v := r;
+
+      -- Reset strobing signals
+      ssiResetFlags(v.txAxisMaster);
+      v.txAxisMaster.tData := (others => '0');
+
+      -- Latch the configuration
+      v.txAxisMaster.tKeep := KEEP_C;
+      v.txAxisMaster.tStrb := TSTRB_C;
+      
+      -- State Machine
+      case (r.state) is
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+         
+            -- Put packet data count to zero 
+            v.dataCnt := (others => '0');  
+ 
+            -- No data sent 
+            v.txAxisMaster.tvalid  := '0';
+            v.txAxisMaster.tData   := (others => '0');                
+            v.txAxisMaster.tLast   := '0';
+            
+            -- Check if fifo and JESD is ready
+            if (pause_i = '0' and enable_i = '1' and trigger_i = '1') then -- TODO later add "and dataReady_i = '1' and trigger_i = '1'"
+               -- Next State
+               v.state := SOF_S;
+            end if;
+         ----------------------------------------------------------------------
+         when SOF_S =>
+           
+            -- Increment the counter            
+            v.dataCnt := (others => '0');
+
+
+            -- No data sent 
+            v.txAxisMaster.tvalid  := '1';
+            
+            -- Insert the lane number at the first data byte (byte swapped so it is transferred correctly)
+            v.txAxisMaster.tData   := byteSwapSlv(intToSlv(laneNum_i,32), 4);      
+            v.txAxisMaster.tLast   := '0';
+            
+            -- Set the SOF bit
+            ssiSetUserSof(JESD_SSI_CONFIG_C, v.txAxisMaster, '1');
+
+            v.state      := DATA_S;
+         ----------------------------------------------------------------------
+         when DATA_S =>
+         
+            -- Increment the counter            
+            v.dataCnt := r.dataCnt + 1;         
+      
+            -- Send the JESD data 
+            v.txAxisMaster.tvalid  := '1';
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
+            v.txAxisMaster.tLast := '0'; 
+         
+            -- Wait until the whole packet is sent
+            if r.dataCnt = (packetSize_i-1) then
+               -- Next State
+               v.state   := EOF_S;
+            end if;
+         ----------------------------------------------------------------------
+         when EOF_S =>
+         
+            -- Put packet data count to zero 
+            v.dataCnt := (others => '0'); 
+
+            -- No data sent 
+            v.txAxisMaster.tvalid  := '1';
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
+            -- Set the EOF(tlast) bit                
+            v.txAxisMaster.tLast := '1';
+            
+            -- Set the EOFE bit ERROR bit TODO add JESD error later
+            ssiSetUserEofe(JESD_SSI_CONFIG_C, v.txAxisMaster, '0');
+
+            v.state := IDLE_S;
+
+         when others => null;
+
+      ----------------------------------------------------------------------
+      end case;
+
+      -- Reset
+      if (devRst_i = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+      
+   end process comb;
+
+   seq : process (devClk_i) is
+   begin
+      if rising_edge(devClk_i) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+ 
+   -- Output assignment
+   rxAxisMaster_o <= r.txAxisMaster;
+    
+
 end rtl;
