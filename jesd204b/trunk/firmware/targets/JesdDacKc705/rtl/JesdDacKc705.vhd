@@ -12,10 +12,8 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
---    Outputs reference clock of 370MHz
---     - on FMC ADC LVDS output (to optionally provide reference from FPGA)
---     - on GPIO LVDS output (to optionally provide reference from FPGA)
---     - on USER Single ended output (to optionally provide reference from FPGA to LMK chip)
+--    Outputs reference clock of 10 MHz on USER Single ended output (to optionally lock all system clocks (LMK chips) to this clock)
+--    Outputs JESD clock of 185 MHz on GPIO Single ended output (for debug).
 --    Configured for 4-byte operation: GT_WORD_SIZE_C=4
 --    To configure for 2-byte operation: GT_WORD_SIZE_C=2, adjust LANE rate, GTX parameters, JESD clock MGMM 
 --    LED indicators:
@@ -63,9 +61,9 @@ entity JesdDacKc705 is
       SIM_G              : boolean := false;
       -- TRUE  Internal SYSREF
       -- FALSE External SYSREF
-      SYSREF_GEN_G       : boolean := false;  
+      SYSREF_GEN_G       : boolean := false; 
       
-      REFCLK_FREQUENCY_G : real     := 370.00E6;
+      REFCLK_FREQUENCY_G : real     := 185.00E6;
       LINE_RATE_G        : real     := 7.40E9;
       
       -- The JESD module supports values: 1,2,4(four byte GT word only)
@@ -78,62 +76,53 @@ entity JesdDacKc705 is
       pgpRefClkP : in sl;
       pgpRefClkN : in sl;
 
-      -- PGP MGT signals
-      pgpGtRxN : in  sl;                -- SFP+ 
+      -- PGP MGT signals (SFP)
+      pgpGtRxN : in  sl; 
       pgpGtRxP : in  sl;
       pgpGtTxN : out sl;
       pgpGtTxP : out sl;
 
       -- FMC Signals -- 
+      -------------------------------------------------------------------
       -- Signals from clock manager
-      fpgaDevClkaP : in sl;             -- GBT_CLK_0_P - FMC D3
-      fpgaDevClkaN : in sl;             -- GBT_CLK_0_N - FMC D4
---      fpgaDevClkbP : in sl;             -- LA00_P_CC - FMC G6
---      fpgaDevClkbN : in sl;             -- LA00_N_CC - FMC G7
+      fpgaDevClkaP : in sl;             -- FMC-G6-P
+      fpgaDevClkaN : in sl;             -- FMC-G7-N
       
       -- JESD synchronisation timing signal (Used in subclass 1 mode)
       -- has to meet setup and hold times of JESD devClk
       -- periodic (period has to be multiple of LMFC clock)
       -- single   (another pulse has to be generated if re-sync needed)      
-      fpgaSysRefP  : in sl;             -- LA03_P - FMC G9
-      fpgaSysRefN  : in sl;             -- LA04_N - FMC G10
+      fpgaSysRefP  : in sl;             -- FMC-G9-P
+      fpgaSysRefN  : in sl;             -- FMC-G10-N
 
-      -- Signals to ADC (if clock manager not used)
---      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
---      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
---      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
---      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
-
-      -- JESD MGT signals
-      adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
-      adcGtTxN : out slv(3 downto 0);
-      adcGtRxP : in  slv(3 downto 0);
-      adcGtRxN : in  slv(3 downto 0);
+      -- JESD MGT signals 
+      adcGtTxP : out slv(1 downto 0);   -- FMC-A4-P -- FMC-B2-P
+      adcGtTxN : out slv(1 downto 0);   -- FMC-A3-N -- FMC-B1-N
+      adcGtRxP : in  slv(1 downto 0);   
+      adcGtRxN : in  slv(1 downto 0);   
 
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
       -- '0' - synchronisation Not OK - synchronisation request
-      syncbP : in sl;                  -- LA08_P - FMC G12
-      syncbN : in sl;                  -- LA08_N - FMC G13
-
-      -- Adc OVR/trigger signals
---      ovraTrigRdy : in sl;              -- LA25_P - FMC G27
---      ovrbTrigger : in sl;              -- LA26_P - FMC D26
-
-      -- ADC SPI config interface
---      spiSclk : out sl;                 -- FMC H37
---      spiSdi  : out sl;                 -- FMC G36
---      spiSdo  : in  sl;                 -- FMC G37
---      spiCsL  : out sl;                 -- FMC H38
-
+      syncbP : in sl;                   -- FMC-F10-P
+      syncbN : in sl;                   -- FMC-F11-N
+      
+      -- Debug Signals -- 
+      -------------------------------------------------------------------
       -- Onboard LEDs
       leds : out slv(7 downto 0);
       
-      sysRef : out sl;
+      -- Digital square wave signal for deterministic latency check 
+      rePulseDbg : out slv(1 downto 0); --J46-PIN20 --J46-PIN19
       
-      -- Out reference clock or debug clock
-      usrClk : out sl;
-      gpioClk: out sl
+      -- Sysref output pin       
+      sysRef : out sl;  -- J46-PIN18
+      
+      -- Out reference clock 10MHz 
+      usrClk : out sl;  -- SMA USER CLOCK P
+      
+      -- Out JESD clock 185MHz
+      gpioClk: out sl   -- SMA GPIO CLOCK P
    );
 end entity JesdDacKc705;
 
@@ -246,25 +235,26 @@ architecture rtl of JesdDacKc705 is
    -------------------------------------------------------------------------------------------------   
    signal s_syncAllLED  : sl;
    signal s_validAllLED : sl;
+   signal s_rePulse     : slv(L_G-1 downto 0);
 
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- ADC EVM Out reference clock (61.44 MHz)
+   -- ADC EVM Out reference clock (10.00 MHz)
    -------------------------------------------------------------------------------------------------
-   ClockManager7_OUT : entity work.ClockManager7
-   generic map (
-      TPD_G              => TPD_G,
-      TYPE_G             => "MMCM",
-      INPUT_BUFG_G       => false,
-      FB_BUFG_G          => true,
-      NUM_CLOCKS_G       => 1,
-      BANDWIDTH_G        => "OPTIMIZED",
-      CLKIN_PERIOD_G     => 8.0,
-      DIVCLK_DIVIDE_G    => 5,
-      CLKFBOUT_MULT_F_G  => 47.000,--37.000
-      CLKOUT0_DIVIDE_F_G => 19.125,--2.5
-      CLKOUT0_RST_HOLD_G => 16)
+      ClockManager7_OUT : entity work.ClockManager7
+      generic map (
+         TPD_G              => TPD_G,
+         TYPE_G             => "MMCM",
+         INPUT_BUFG_G       => false,
+         FB_BUFG_G          => true,
+         NUM_CLOCKS_G       => 1,
+         BANDWIDTH_G        => "HIGH",
+         CLKIN_PERIOD_G     => 8.0,      --(10.0MHz)  (156.25MHz)(368.64MHz) (61.44 MHz) (370MHz)
+         DIVCLK_DIVIDE_G    => 1,        --1,         --4,         --6,        --5,        --5,
+         CLKFBOUT_MULT_F_G  => 8.000,    --8.0,       --55,        --50.875,   --47.000,   --37.000,
+         CLKOUT0_DIVIDE_F_G => 100.0,    --100.0,     --11,        --2.875,    --19.125,   --2.5
+         CLKOUT0_RST_HOLD_G => 16)
    port map (
       clkIn     => pgpRefClkG,
       rstIn     => pgpMmcmRst,
@@ -413,8 +403,7 @@ begin
      
    JESDREFCLK_BUFG : BUFG
       port map (
-         I => jesdRefClkDiv2,   -- GT refclk/2 used as JESD clk (GT_WORD_SIZE_C=4)
-      -- I => jesdRefClk,   -- GT refclk used as JESD clk (GT_WORD_SIZE_C=2)
+         I => jesdRefClk, -- JESD clock = refclk = 185 MHz
          O => jesdRefClkG);
 
    jesdMmcmRst <= powerOnReset or masterReset;
@@ -537,11 +526,13 @@ begin
       axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_INDEX_C),
       
       --Currently no AXI stream input
-      rxAxisMasterArr_i  => (L_G-1 downto 0 => AXI_STREAM_MASTER_INIT_C),
-      rxAxisSlaveArr_o   => open,
+      txAxisMasterArr_i  => (L_G-1 downto 0 => AXI_STREAM_MASTER_INIT_C),
+      txAxisSlaveArr_o   => open,
       
       -- External sample data input
       extSampleDataArray_i => (L_G-1 downto 0 => (RX_STAT_WIDTH_C-1 downto 0 => '0')),
+      
+      pulse_o    => s_rePulse,
       
       leds_o(0)         => s_syncAllLED, -- (0) Sync
       leds_o(1)         => s_validAllLED,-- (1) Data_valid
@@ -610,7 +601,7 @@ begin
          
    leds(5) <= qPllLock;
    leds(6) <= s_syncAllLED;
-   leds(7) <= s_validAllLED;
+   leds(7) <= s_validAllLED; 
    
    -- Output user clock for single ended reference  
    UserClkBufSingle_INST: entity work.ClkOutBufSingle
@@ -633,5 +624,21 @@ begin
       clkIn  => jesdClk,
       rstIn  => jesdClkRst,
       clkOut => gpioClk);
+      
+      
+   -- Debug output pins
+   OBUF_rePulse_0_inst : OBUF
+   port map (
+      I => s_rePulse(0),
+      O => rePulseDbg(0)
+   );
+   
+   -- Debug output pins
+   OBUF_rePulse_1_inst : OBUF
+   port map (
+      I => s_rePulse(1),
+      O => rePulseDbg(1)
+   );   
+      
    
 end architecture rtl;

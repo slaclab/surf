@@ -67,8 +67,8 @@ entity Jesd204bTx is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      rxAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
-      rxAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0);   
+      txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
+      txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0);   
       
    -- JESD
       -- Clocks and Resets   
@@ -90,6 +90,7 @@ entity Jesd204bTx is
       
       -- Data and character inputs from GT (transceivers)
       r_jesdGtTxArr  : out   jesdGtTxLaneTypeArray(L_G-1 downto 0);
+      pulse_o        : out   slv(L_G-1 downto 0);
       leds_o         : out   slv(1 downto 0)
    );
 end Jesd204bTx;
@@ -223,15 +224,15 @@ begin
    
    -- AXI stream rx interface one module per lane
    generateAxiStreamLanes : for I in L_G-1 downto 0 generate
-      AxiStreamLaneRx_INST: entity work.AxiStreamLaneRx
+      AxiStreamLaneRx_INST: entity work.AxiStreamLaneTx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
       port map (
          devClk_i       => devClk_i,
          devRst_i       => devRst_i,
-         rxAxisMaster_i => rxAxisMasterArr_i(I),
-         rxAxisSlave_o  => rxAxisSlaveArr_o(I),
+         txAxisMaster_i => txAxisMasterArr_i(I),
+         txAxisSlave_o  => txAxisSlaveArr_o(I),
          jesdReady_i    => s_dataValid(I),
          enable_i       => s_swTriggerReg(I),
          sampleData_o   => s_axiDataArr(I));
@@ -255,6 +256,7 @@ begin
          posAmplitude_i=> s_posAmplitude,
          negAmplitude_i=> s_negAmplitude,
          type_i        => s_sigTypeArr(I),
+         pulse_o       => pulse_o(I),
          sampleData_o  => s_testDataArr(I));
    end generate generateTestStreamLanes;
    

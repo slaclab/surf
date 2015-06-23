@@ -126,8 +126,8 @@ entity Jesd204bTxGtx7 is
       axilWriteSlaveTx  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      rxAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
-      rxAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
+      txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
+      txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
 
       -- External sample data input
       extSampleDataArray_i : in sampleDataArray;      
@@ -143,7 +143,10 @@ entity Jesd204bTxGtx7 is
       
       -- Synchronisation output combined from all receivers 
       nSync_i        : in  sl;
-
+      
+      -- Test signal
+      pulse_o   : out   slv(L_G-1 downto 0);
+      
       -- Out to led
       leds_o    : out   slv(1 downto 0)
    );
@@ -192,8 +195,8 @@ begin
       axilReadSlave     => axilReadSlaveTx,
       axilWriteMaster   => axilWriteMasterTx,
       axilWriteSlave    => axilWriteSlaveTx,
-      rxAxisMasterArr_i => rxAxisMasterArr_i,
-      rxAxisSlaveArr_o  => rxAxisSlaveArr_o,
+      txAxisMasterArr_i => txAxisMasterArr_i,
+      txAxisSlaveArr_o  => txAxisSlaveArr_o,
       extSampleDataArray_i => extSampleDataArray_i,
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
@@ -202,6 +205,7 @@ begin
       gtTxReady_i       => s_gtTxReady,
       gtTxReset_o       => s_gtTxUserReset,
       r_jesdGtTxArr     => r_jesdGtTxArr,
+      pulse_o           => pulse_o,
       leds_o            => leds_o
    );
 

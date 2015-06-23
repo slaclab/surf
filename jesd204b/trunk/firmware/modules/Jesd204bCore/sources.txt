@@ -15,6 +15,7 @@ vhdl work rtl/AxiLiteRxRegItf.vhd
 vhdl work rtl/AxiLiteTxRegItf.vhd
 vhdl work rtl/AxiStreamLaneTx.vhd
 vhdl work rtl/AxiStreamLaneRx.vhd
+vhdl work rtl/TestSigGen.vhd
 vhdl work rtl/Jesd204bTx.vhd
 vhdl work rtl/Jesd204bRx.vhd
 vhdl work rtl/Jesd204bGtx7.vhd

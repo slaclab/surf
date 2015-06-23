@@ -206,7 +206,9 @@ begin
       sysRef_i          => s_sysRef,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtRxUserReset,
-      nSync_o           => s_nSync
+      nSync_o           => s_nSync,
+      pulse_o           => open,
+      leds_o            => open
    );
 
    --------------------------------------------------------------------------------------------------

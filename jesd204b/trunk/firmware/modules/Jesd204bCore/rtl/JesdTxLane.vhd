@@ -19,6 +19,13 @@
 --              - Control character generation:
 --                   - A(K28.3) - x"7C" - End of multi-frame
 --                   - F(K28.7) - x"FC" - Inserted at the end of the frame
+--             Status register encoding:
+--                bit 0: GT Reset done
+--                bit 1: Transmuting valid data
+--                bit 2: Transmitting ILA sequence
+--                bit 3: Synchronisation input status 
+--                bit 4: TX module enabled status
+--                bit 5: SysRef detected (active only when the lane is enabled)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

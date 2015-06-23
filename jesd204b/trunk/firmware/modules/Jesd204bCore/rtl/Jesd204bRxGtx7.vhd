@@ -133,8 +133,8 @@ entity Jesd204bRxGtx7 is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
-      txCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      rxAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
+      rxCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
       
    -- JESD
    ------------------------------------------------------------------------------------------------   
@@ -150,6 +150,10 @@ entity Jesd204bRxGtx7 is
       
       -- Out to led
       leds_o    : out   slv(1 downto 0);
+     
+      -- Rising edge pulses for test
+      pulse_o   : out   slv(L_G-1 downto 0);
+      
       -- GT diagnostics
       rxUserRdyOut   : out   slv(1 downto 0);
       rxMmcmResetOut : out   slv(1 downto 0)
@@ -195,14 +199,15 @@ begin
       axilReadSlave     => axilReadSlave,
       axilWriteMaster   => axilWriteMaster,
       axilWriteSlave    => axilWriteSlave,
-      txAxisMasterArr_o => txAxisMasterArr,
-      txCtrlArr_i       => txCtrlArr,
+      rxAxisMasterArr_o => rxAxisMasterArr,
+      rxCtrlArr_i       => rxCtrlArr,
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtUserReset,
       nSync_o           => nSync_o,
+      pulse_o           => pulse_o,
       leds_o            => leds_o
    );
    --------------------------------------------------------------------------------------------------

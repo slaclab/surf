@@ -10,11 +10,11 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Outputs a saw, ramp, or square wave test signal data stream for testing
---              
---              
---              
---              
---              
+--  Saw signal (type_i = 00): Ramp step is determined by rampStep_i.
+--  Ramp signal(type_i = 01): Ramp step is determined by rampStep_i.             
+--  Square wave(type_i = 10): Period is squarePeriod_i. Duty cycle is 50%.              
+--                            Amplitude is determined by posAmplitude_i and negAmplitude_i.
+--                            pulse_o is a binary equivalent of the analogue square wave.      
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -54,8 +54,10 @@ entity TestStreamTx is
       posAmplitude_i   : in slv(F_G*8-1 downto 0);   
       negAmplitude_i   : in slv(F_G*8-1 downto 0);
       
-      -- Outs 
-      sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0)  
+      -- Sample data containing test signal
+      sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
+      -- Digital out pulse for latency debug
+      pulse_o : out sl
    );
 end entity TestStreamTx;
 
@@ -79,15 +81,13 @@ architecture rtl of TestStreamTx is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
-   -- Signal types
-   signal s_testData : slv (sampleData_o'range);
    --
 begin
 
-   comb : process (r, rst,enable_i,rampStep_i,type_i,posAmplitude_i,squarePeriod_i,negAmplitude_i, s_testData) is
+   comb : process (r, rst,enable_i,rampStep_i,type_i,posAmplitude_i,squarePeriod_i,negAmplitude_i) is
       variable v : RegType;
-      variable v_rampCntPP : signed(F_G*8 downto 0);  
+      variable v_rampCntPP : signed(F_G*8 downto 0);
+      variable v_testData  : slv (sampleData_o'range);
    begin
       v := r;
      
@@ -119,7 +119,7 @@ begin
             
             -- Increment samples within the word
             for I in (SAM_IN_WORD_C-1) downto 0 loop
-               s_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+I*slvToInt(rampStep_i));
+               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+I*slvToInt(rampStep_i));
             end loop;
          else
             -- Decrement sample base         
@@ -127,7 +127,7 @@ begin
             
             -- Decrement samples within the word
             for I in (SAM_IN_WORD_C-1) downto 0 loop
-               s_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     <= std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-I*slvToInt(rampStep_i));
+               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-I*slvToInt(rampStep_i));
             end loop;
          end if;
          
@@ -141,14 +141,14 @@ begin
             v.sign := not r.sign;
             if (r.sign = '0') then
                for I in (SAM_IN_WORD_C-1) downto 0 loop
-                  s_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    <= negAmplitude_i;
+                  v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := negAmplitude_i;
                end loop;
             elsif (r.sign = '1') then
                for I in (SAM_IN_WORD_C-1) downto 0 loop
-                  s_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    <= posAmplitude_i;
+                  v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := posAmplitude_i;
                end loop;
             else
-                  s_testData <= s_testData;
+                  v_testData := v_testData;
             end if;
          end if;
          
@@ -156,7 +156,7 @@ begin
          v.rampCnt := (others=>'0');
          v.inc := '1';
       else
-         s_testData <= (others=>'0');
+         v_testData := (others=>'0');
          
          -- Initialize square parameters
          v.squareCnt := (others=>'0');
@@ -177,6 +177,9 @@ begin
 
       rin <= v;
       
+      -- Output assignment
+      sampleData_o <= byteSwapSlv(v_testData, GT_WORD_SIZE_C);  
+      
    end process comb;
 
    seq : process (clk) is
@@ -186,8 +189,7 @@ begin
       end if;
    end process seq;
    
-   -- Output assignment mux
-   sampleData_o <= byteSwapSlv(s_testData, GT_WORD_SIZE_C);
-   
+   -- Digital square waveform out 
+   pulse_o <= r.sign;  
 ---------------------------------------   
 end architecture rtl;

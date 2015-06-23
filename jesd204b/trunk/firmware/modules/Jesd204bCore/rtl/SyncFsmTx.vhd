@@ -172,7 +172,7 @@ begin
             v.sysref    := '1';
             
             -- Next state condition            
-            if  nSync_i = '0' or enable_i = '0' then  
+            if  nSync_i = '0' or enable_i = '0' or gtTxReady_i = '0' then  
                v.state   := IDLE_S;            
             end if;
          ----------------------------------------------------------------------      

@@ -16,9 +16,9 @@ use ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000002"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000005"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "JesdDacKcu105: Vivado v2015.1 (x86_64) Built Mon Jun 15 15:12:04 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "JesdDacKcu105: Vivado v2015.1 (x86_64) Built Fri Jun 19 14:32:37 PDT 2015 by ulegat";
 
 end Version;
  
@@ -27,3 +27,7 @@ end Version;
 -------------------------------------------------------------------------------
 -- 06/05/2015 - 00000000      - Without pgp
 -- 06/12/2015 - 00000001      - First complete system
+-- 06/12/2015 - 00000002      - Added 10 Mhz clock out
+-- 06/12/2015 - 00000003      - Changed leds, added pulse
+-- 06/12/2015 - 00000004      - Changed leds, added pulse, 185 reference
+-- 06/19/2015 - 00000005      - Tx buff disabled,185 reference
