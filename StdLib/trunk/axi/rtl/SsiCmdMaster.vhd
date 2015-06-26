@@ -5,7 +5,7 @@
 -- File       : SsiCmdMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2014-06-10
+-- Last update: 2015-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ entity SsiCmdMaster is
       TPD_G : time := 1 ns;
 
       -- AXI Stream FIFO Config
+      SLAVE_READY_EN_G    : boolean                    := false;
       BRAM_EN_G           : boolean                    := false;
       XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
       USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
@@ -101,6 +102,7 @@ begin
    SlaveAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
@@ -119,8 +121,8 @@ begin
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
          sAxisCtrl   => sAxisCtrl,
-         mAxisClk     => cmdClk,
-         mAxisRst     => cmdRst,
+         mAxisClk    => cmdClk,
+         mAxisRst    => cmdRst,
          mAxisMaster => fifoAxisMaster,
          mAxisSlave  => fifoAxisSlave);
 

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2015-01-08
+-- Last update: 2015-06-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -238,10 +238,7 @@ package body SsiPkg is
       variable ret : SsiMasterType;
    begin
       ret      := axis2ssiMaster(axisConfig, AXI_STREAM_MASTER_INIT_C);
---      ret.keep := (others => '0');
---      for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
---         ret.keep(i) := '1';
---      end loop;
+      ret.keep := genTKeep(axisConfig.TDATA_BYTES_C);
       return ret;
    end function ssiMasterInit;
 
