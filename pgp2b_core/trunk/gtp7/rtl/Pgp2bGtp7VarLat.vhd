@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-06-23
+-- Last update: 2015-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -80,13 +80,13 @@ entity Pgp2bGtp7VarLat is
       pgpTxRecClk      : out sl;        -- recovered clock      
       pgpTxClk         : in  sl;
       pgpTxMmcmReset   : out sl;
-      pgpTxMmcmLocked  : in  sl;
+      pgpTxMmcmLocked  : in  sl := '1';
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxRecClk      : out sl;        -- recovered clock      
       pgpRxClk         : in  sl;
       pgpRxMmcmReset   : out sl;
-      pgpRxMmcmLocked  : in  sl;
+      pgpRxMmcmLocked  : in  sl := '1';
       -- Non VC Rx Signals
       pgpRxIn          : in  Pgp2bRxInType;
       pgpRxOut         : out Pgp2bRxOutType;
