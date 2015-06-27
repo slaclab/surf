@@ -205,13 +205,13 @@ architecture RTL of Gtp7RxRst is
 
    signal fsmCnt : std_logic_vector(15 downto 0);
 
-   attribute mark_debug : string;
-   attribute mark_debug of rx_state,
-      reset_time_out,
-      recclk_mon_restart_count,
-      retry_counter_int,
-      data_valid_sync,
-      gtrxreset_i : signal is "TRUE";
+--   attribute mark_debug : string;
+--   attribute mark_debug of rx_state,
+--      reset_time_out,
+--      recclk_mon_restart_count,
+--      retry_counter_int,
+--      data_valid_sync,
+--      gtrxreset_i : signal is "TRUE";
    
 begin
 
