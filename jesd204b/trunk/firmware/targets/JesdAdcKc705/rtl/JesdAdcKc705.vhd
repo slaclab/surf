@@ -691,8 +691,8 @@ begin
    -- Debug output pins
    OBUF_sysref_inst : OBUF
    port map (
-      I => s_sysRef,
-      --I =>  s_sysRefOut,
+     -- I => s_sysRef,
+      I =>  s_sysRefOut,
       O =>  sysrefDbg 
    );
    

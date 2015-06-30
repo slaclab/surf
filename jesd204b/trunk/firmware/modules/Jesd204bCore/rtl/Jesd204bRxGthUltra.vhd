@@ -177,7 +177,7 @@ architecture rtl of Jesd204bRxGthUltra is
    signal s_gtReset       : sl;
    
    -- Generated or external
-   signal s_sysRef      : sl;
+   signal s_sysRef, s_sysRefDbg      : sl;
 
    -- GT signals
    signal s_rxctrl0 : slv(31 downto 0);
@@ -218,6 +218,7 @@ begin
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,
+      sysRefDbg_o       => s_sysRefDbg,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtUserReset,
       nSync_o           => nSync_o,
@@ -248,7 +249,7 @@ begin
    -- Else 
    OPER_GEN: if SYSREF_GEN_G = false generate
       s_sysRef <= sysRef_i;
-      sysRef_o <= '0';
+      sysRef_o <= s_sysRefDbg;
    end generate OPER_GEN;
    
    --------------------------------------------------------------------------------------------------

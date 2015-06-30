@@ -53,6 +53,8 @@ set_property PACKAGE_PIN H2 [get_ports pgpGtTxP]
 ########################################################
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaP]
 set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
+#set_property PACKAGE_PIN B25 [get_ports fpgaDevClkaP]
+#set_property PACKAGE_PIN C25 [get_ports fpgaDevClkaN]
 
 # From (EXT)SMA
 #set_property PACKAGE_PIN J8 [get_ports fpgaDevClkaP]
@@ -60,6 +62,8 @@ set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
 # From (ADC)FMC22
 set_property PACKAGE_PIN C8 [get_ports fpgaDevClkaP]
 set_property PACKAGE_PIN C7 [get_ports fpgaDevClkaN]
+
+
 # From (ADC)FMC2
 #set_property PACKAGE_PIN N8 [get_ports fpgaDevClkaP]
 #set_property PACKAGE_PIN N7 [get_ports fpgaDevClkaN]

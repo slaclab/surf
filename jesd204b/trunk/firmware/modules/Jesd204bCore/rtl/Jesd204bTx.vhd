@@ -48,10 +48,7 @@ entity Jesd204bTx is
       K_G : positive := 32;
       
       --Number of lanes (1 to 8)
-      L_G : positive := 2;
-           
-      --JESD204B class (0 and 1 supported)
-      SUB_CLASS_G : natural := 1
+      L_G : positive := 2
    );
 
    port (
@@ -82,7 +79,7 @@ entity Jesd204bTx is
       nSync_i        : in    sl;
       
       -- External sample data input
-      extSampleDataArray_i : in sampleDataArray;
+      extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);
       
       -- GT is ready to transmit data after reset
       gtTxReset_o    : out   slv(L_G-1 downto 0); 
@@ -365,6 +362,6 @@ begin
    -- Output assignment
    gtTxReset_o  <= (others=> s_gtReset);
    
-   leds_o <= uOr(s_dataValid) & uOr(s_enableTx);
+   leds_o <= uOr(s_dataValid) & s_nSyncSync;
    -----------------------------------------------------
 end rtl;

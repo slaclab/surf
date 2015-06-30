@@ -87,7 +87,7 @@ begin
 
       -- LMFC is aligned to sysref on rising edge of sysref_i. 
       -- The alignment is only done when nSync_i=‘0‘    
-      if (r.sysrefRe = '1' and nSync_i = '0') then
+      if (r.sysrefRe = '1' and nSync_i = '0' ) then
          v.cnt  := (others => '0');
          v.lmfc := '1';
       elsif (r.cnt = PERIOD_C) then
