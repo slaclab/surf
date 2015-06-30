@@ -16,8 +16,8 @@
 --              Features:
 --              - Synchronisation of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-16)
---              - Frame position correction and position check
---              - GT error check
+--              - Lane alignment using RX buffers
+--              - Serial lane error check
 --              - Alignment character replacement and alignment check
 --               
 --              Note: The receiver does not support scrambling (assumes that the data is not scrambled)
@@ -48,13 +48,13 @@ entity Jesd204bRx is
       
    -- JESD generics
    
-      -- Number of bytes in a frame
+      -- Number of bytes in a frame (1,2,or 4)
       F_G : positive := 2;
       
-      -- Number of frames in a multi frame
+      -- Number of frames in a multi frame (32)
       K_G : positive := 32;
       
-      --Number of lanes (1 to 8)
+      --Number of lanes (1 to 16)
       L_G : positive := 2
    );
 
@@ -82,6 +82,9 @@ entity Jesd204bRx is
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i       : in    sl;
 
+      -- SYSREF output for debug
+      sysRefDbg_o    : out    sl;
+      
       -- Data and character inputs from GT (transceivers)
       r_jesdGtRxArr  : in   jesdGtRxLaneTypeArray(L_G-1 downto 0);
       gt_reset_o     : out  slv(L_G-1 downto 0);    
@@ -330,7 +333,7 @@ begin
    port map (
       clk         => devClk_i,
       rst         => devRst_i,
-      nSync_i     => r.nSyncAnyD1,
+      nSync_i     => '0', -- r.nSyncAnyD1,
       sysref_i    => s_sysrefD,  -- Delayed SYSREF IN
       sysrefRe_o  => s_sysrefRe, -- Rising-edge of SYSREF OUT 
       lmfc_o      => s_lmfc 
@@ -414,5 +417,6 @@ begin
    nSync_o     <= r.nSyncAnyD1;
    gt_reset_o  <= (others=> s_gtReset);
    leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
+   sysRefDbg_o <= s_sysrefD;
    -----------------------------------------------------
 end rtl;

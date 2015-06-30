@@ -176,7 +176,7 @@ architecture rtl of Jesd204bRxGtx7 is
    signal s_gtReset       : slv(L_G-1 downto 0);
    
    -- Generated or external
-   signal s_sysRef      : sl;
+   signal s_sysRef, s_sysRefDbg   : sl;
    
 
 begin
@@ -208,6 +208,7 @@ begin
       gt_reset_o        => s_gtUserReset,
       nSync_o           => nSync_o,
       pulse_o           => pulse_o,
+      sysRefDbg_o       => s_sysRefDbg,
       leds_o            => leds_o
    );
    --------------------------------------------------------------------------------------------------
@@ -234,7 +235,7 @@ begin
    -- Else 
    OPER_GEN: if SYSREF_GEN_G = false generate
       s_sysRef <= sysRef_i;
-      sysRef_o <= '0';
+      sysRef_o <= s_sysRefDbg;
    end generate OPER_GEN;
    
    --------------------------------------------------------------------------------------------------

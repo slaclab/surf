@@ -236,7 +236,8 @@ begin
       );
 
    -- Error that stops 
-   s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf;
+   s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf or uOr(r_jesdGtRx.dispErr) or uOr(r_jesdGtRx.decErr);
+   -- s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf or uOr(r_jesdGtRx.dispErr) or uOr(r_jesdGtRx.decErr) or s_alignErr;
 
    -- Combine errors that need registering
    s_errComb <= r_jesdGtRx.decErr & r_jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf;
