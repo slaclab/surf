@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b module containing the gtx7 MGT and both receiver and transmitter modules
+-- Title      : JESD204b module containing both receiver and transmitter modules
 -------------------------------------------------------------------------------
 -- File       : Jesd204bRxGtx7.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Framework module for JESD.
---              Contains generic settings for GTX7 L_G Receivers
+--              Note: This module is used only in simulation
 --              
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
@@ -134,8 +134,8 @@ entity Jesd204bGtx7 is
       axilWriteSlaveTx  : out   AxiLiteWriteSlaveType;
       
       -- AXI Streaming Interface
-      txAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
-      txCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      rxAxisMasterArr : out   AxiStreamMasterArray(L_G-1 downto 0);
+      rxCtrlArr       : in    AxiStreamCtrlArray(L_G-1 downto 0);   
       
    -- JESD
    ------------------------------------------------------------------------------------------------   
@@ -199,14 +199,15 @@ begin
       axilReadSlave     => axilReadSlaveRx,
       axilWriteMaster   => axilWriteMasterRx,
       axilWriteSlave    => axilWriteSlaveRx,
-      txAxisMasterArr_o => txAxisMasterArr,
-      txCtrlArr_i       => txCtrlArr,
+      rxAxisMasterArr_o => rxAxisMasterArr,
+      rxCtrlArr_i       => rxCtrlArr,
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtRxUserReset,
       nSync_o           => s_nSync,
+      sysRefDbg_o       => open,
       pulse_o           => open,
       leds_o            => open
    );
@@ -229,8 +230,8 @@ begin
       axilReadSlave     => axilReadSlaveTx,
       axilWriteMaster   => axilWriteMasterTx,
       axilWriteSlave    => axilWriteSlaveTx,
-      rxAxisMasterArr_i => (others => AXI_STREAM_MASTER_INIT_C),
-      rxAxisSlaveArr_o  => open,
+      txAxisMasterArr_i => (others => AXI_STREAM_MASTER_INIT_C),
+      txAxisSlaveArr_o  => open,
       extSampleDataArray_i => (L_G-1 downto 0 => (others => '0')),
       devClk_i          => devClk_i,
       devRst_i          => devRst_i,
