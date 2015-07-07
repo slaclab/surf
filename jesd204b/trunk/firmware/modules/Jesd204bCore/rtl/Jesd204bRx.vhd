@@ -70,9 +70,13 @@ entity Jesd204bRx is
       axilWriteMaster : in    AxiLiteWriteMasterType;
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       
-      -- AXI Streaming Interface
+      -- AXI Streaming Interface (Use to directly connect to AXI stream interface)
       rxAxisMasterArr_o  : out   AxiStreamMasterArray(L_G-1 downto 0);
       rxCtrlArr_i        : in    AxiStreamCtrlArray(L_G-1 downto 0);   
+      
+   -- Sample data output (Use if external data acquisition core is attached)
+      sampleDataArr_o   : out   sampleDataArray(L_G-1 downto 0);
+      dataValidVec_o    : out   slv(L_G-1 downto 0);
       
    -- JESD
       -- Clocks and Resets   
@@ -418,5 +422,8 @@ begin
    gt_reset_o  <= (others=> s_gtReset);
    leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    sysRefDbg_o <= s_sysrefD;
+   sampleDataArr_o <= s_sampleDataArr;
+   dataValidVec_o  <= s_dataValidVec;
+   
    -----------------------------------------------------
 end rtl;
