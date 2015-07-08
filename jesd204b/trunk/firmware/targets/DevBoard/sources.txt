@@ -1,4 +1,8 @@
 vhdl work Version.vhd
-vhdl work rtl/DevBoard.vhd
+vhdl work rtl/Jesd204bGtx7.vhd
 vhdl work rtl/PgpFrontEnd.vhd
-
+vhdl work rtl/RatePulser.vhd
+vhdl work rtl/AxiLiteDaqRegItf.vhd
+vhdl work rtl/AxisDaq.vhd
+vhdl work rtl/AxisDaqMux.vhd
+vhdl work rtl/DevBoard.vhd

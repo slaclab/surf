@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Development board for JESD ADC test
+-- Title      : Development board for JESD ADC simulation
 -------------------------------------------------------------------------------
 -- File       : DevBoard.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
@@ -113,7 +113,7 @@ architecture rtl of DevBoard is
    
    constant F_C                : positive := 2;
    constant K_C                : positive := 32;
-   constant L_C                : positive := 2;
+   constant L_C                : positive := 6;
    constant SUB_CLASS_C        : natural  := 1;
    
    
@@ -156,19 +156,20 @@ architecture rtl of DevBoard is
    signal masterReset  : sl;
    signal fpgaReload   : sl;
   
-
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 3;
+   constant NUM_AXI_MASTERS_C : natural := 4;
 
-   constant VERSION_AXIL_INDEX_C : natural              := 0;
+   constant VERSION_AXIL_INDEX_C    : natural           := 0;
    constant JESD_AXIL_RX_INDEX_C    : natural           := 1;
    constant JESD_AXIL_TX_INDEX_C    : natural           := 2;
+   constant DAQ_AXIL_INDEX_C        : natural           := 3;
    
    constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
    constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"00010000";
    constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"00020000";
+   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"00030000";   
    
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
@@ -182,8 +183,12 @@ architecture rtl of DevBoard is
       JESD_AXIL_TX_INDEX_C    => (
          baseAddr          => JESD_AXIL_TX_BASE_ADDR_C,
          addrBits          => 12,
-         connectivity      => X"0001"));
-
+         connectivity      => X"0001"),   
+      DAQ_AXIL_INDEX_C    => (
+         baseAddr          => DAQ_AXIL_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001") );
+         
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
    signal extAxilWriteSlave  : AxiLiteWriteSlaveType;
    signal extAxilReadMaster  : AxiLiteReadMasterType;
@@ -193,6 +198,10 @@ architecture rtl of DevBoard is
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
+   
+   -- Sample data
+   signal s_sampleDataArr   : sampleDataArray(L_C-1 downto 0);
+   signal s_dataValidVec    : slv(L_C-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
@@ -476,8 +485,8 @@ begin
 
       gtTxP             => open,--adcGtTxP(1 downto 0),
       gtTxN             => open,--adcGtTxN(1 downto 0),
-      gtRxP             => "00",--adcGtRxP(1 downto 0),
-      gtRxN             => "00",--adcGtRxN(1 downto 0),
+      gtRxP             => "000000",--adcGtRxP(5 downto 0),
+      gtRxN             => "000000",--adcGtRxN(5 downto 0),
    
       axiClk            => axilClk,
       axiRst            => axilClkRst,
@@ -490,15 +499,43 @@ begin
       axilReadMasterTx  => locAxilReadMasters(JESD_AXIL_TX_INDEX_C),
       axilReadSlaveTx   => locAxilReadSlaves(JESD_AXIL_TX_INDEX_C),
       axilWriteMasterTx => locAxilWriteMasters(JESD_AXIL_TX_INDEX_C),
-      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_TX_INDEX_C), 
+      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_TX_INDEX_C),
+      
+            
+      sampleDataArr_o   => s_sampleDataArr,
+      dataValidVec_o    => s_dataValidVec,
 
-      txAxisMasterArr   => axisTxMasters,
-      txCtrlArr         => axisTxCtrl,
+      rxAxisMasterArr   => open,
+      rxCtrlArr         => (others => AXI_STREAM_CTRL_INIT_C),
       sysRef_i          => s_sysRef,
       nSync_o           => s_nSync,
       leds_o            => open
    );
    
+   -------------------------------------------------------------------------------------------------
+   -- DAQ Multiplexer block
+   ------------------------------------------------------------------------------------------------- 
+   AxisDaqMux_INST: entity work.AxisDaqMux
+   generic map (
+      TPD_G   => TPD_G,
+      L_G     => L_C,
+      L_AXI_G => 2)
+   port map (
+      axiClk            => axilClk,
+      axiRst            => axilClkRst,
+      devClk_i          => jesdClk,
+      devRst_i          => jesdClkRst,
+      trigHW_i          => '0',
+      axilReadMaster  => locAxilReadMasters(DAQ_AXIL_INDEX_C),
+      axilReadSlave   => locAxilReadSlaves(DAQ_AXIL_INDEX_C),
+      axilWriteMaster => locAxilWriteMasters(DAQ_AXIL_INDEX_C),
+      axilWriteSlave  => locAxilWriteSlaves(DAQ_AXIL_INDEX_C),
+      
+      sampleDataArr_i   => s_sampleDataArr,
+      dataValidVec_i    => s_dataValidVec,
+      rxAxisMasterArr_o => axisTxMasters,
+      rxCtrlArr_i       => axisTxCtrl);
+
    ----------------------------------------------------------------
    -- Put sync and sysref on differential io buffer
    ----------------------------------------------------------------
