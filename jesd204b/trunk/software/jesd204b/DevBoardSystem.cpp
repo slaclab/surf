@@ -19,6 +19,7 @@
 #include <DevBoardSystem.h>
 #include <DacBoard.h>
 #include <AdcBoard.h>
+#include <DevBoard.h>
 
 #include <Register.h>
 #include <Variable.h>
@@ -76,8 +77,9 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
    v->set("False");
    
    // Add sub-devices
-   addDevice(new AdcBoard(AdclinkConfig, 0x00000000, 0, this, addrSize));
-   addDevice(new DacBoard(DaclinkConfig, 0x00000000, 0, this, addrSize));
+   addDevice(new DevBoard(linkConfig_, 0x00000000, 0, this, addrSize));
+   //addDevice(new AdcBoard(AdclinkConfig, 0x00000000, 0, this, addrSize));
+   //addDevice(new DacBoard(DaclinkConfig, 0x00000000, 0, this, addrSize));
    
    // Add Commands
    addCommand(new Command("SoftwareTrigger", 0x015A));

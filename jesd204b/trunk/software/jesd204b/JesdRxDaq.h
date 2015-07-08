@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File          : JesdRx.h
+// File          : JesdRxDaq.h
 // Author        : Uros legat <ulegat@slac.stanford.edu>
 //                            <uros.legat@cosylab.com>
 // Created       : 27/04/2015
@@ -21,8 +21,8 @@
 #include <stdint.h>
 using namespace std;
 
-//! Class to contain JesdRx
-class JesdRx : public Device {
+//! Class to contain JesdRxDaq
+class JesdRxDaq : public Device {
 
    public:
 
@@ -33,10 +33,10 @@ class JesdRx : public Device {
        * \param index       Device index
        * \param parent      Parent device
       */
-      JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
+      JesdRxDaq ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
 
       //! Deconstructor
-      ~JesdRx ( );
+      ~JesdRxDaq ( );
 
       //! Method to process a command
       /*!
