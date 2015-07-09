@@ -35,7 +35,6 @@ use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 
 entity AxiSpiMaster is
-   
    generic (
       TPD_G        : time    := 1 ns;
       DATA_SIZE_G  : natural := 24;
@@ -56,7 +55,6 @@ entity AxiSpiMaster is
       coreSDout: out sl;
       coreCsb  : out sl
    );
-
 end entity AxiSpiMaster;
 
 architecture rtl of AxiSpiMaster is
