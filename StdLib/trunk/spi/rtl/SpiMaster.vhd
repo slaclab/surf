@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : FlashMain.vhd
+-- File       : SpiMaster.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-24
