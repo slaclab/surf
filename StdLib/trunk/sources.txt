@@ -102,3 +102,4 @@ vhdl work axi/rtl/SsiPrbsTxOld.vhd
 
 vhdl work spi/rtl/SpiMaster.vhd
 vhdl work spi/rtl/SpiSlave.vhd
+vhdl work spi/rtl/AxiSpiMaster.vhd
