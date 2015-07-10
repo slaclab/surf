@@ -2,10 +2,10 @@
 -- Title      : Development board for JESD ADC simulation
 -------------------------------------------------------------------------------
 -- File       : DevBoard.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- Author     : Uros Legat  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-08-22
--- Last update: 2015-04-29
+-- Created    : 2015-05-05
+-- Last update: 2015-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -78,19 +78,25 @@ entity DevBoard is
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
       -- '0' - synchronisation Not OK - synchronisation request
-      syncbP : out sl;                  -- LA08_P - FMC G12
-      syncbN : out sl;                  -- LA08_N - FMC G13
+      syncbP : out sl;                  
+      syncbN : out sl;                  
 
       -- Adc OVR/trigger signals
---      ovraTrigRdy : in sl;              -- LA25_P - FMC G27
---      ovrbTrigger : in sl;              -- LA26_P - FMC D26
+--      ovraTrigRdy : in sl;            
+--      ovrbTrigger : in sl;            
 
-      -- ADC SPI config interface
---      spiSclk : out sl;                 -- FMC H37
---      spiSdi  : out sl;                 -- FMC G36
---      spiSdo  : in  sl;                 -- FMC G37
---      spiCsL  : out sl;                 -- FMC H38
+      -- ADC and LMK SPI config interface
+      spiSclk_o : out   sl;               
+      spiSdi_o  : out   sl;               
+      spiSdo_i  : in    sl;
+      spiSdio_io : inout sl;
+      spiCsL_o  : out   slv(3 downto 0);
 
+      -- DAC SPI config interface
+      spiSclkDac_o : out   sl;               
+      spiSdioDac_io : inout sl;
+      spiCsLDac_o  : out   sl;
+        
       -- Onboard LEDs
       leds : out slv(3 downto 0));
 
@@ -103,6 +109,23 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_G;
    constant PGP_CLK_FREQ_C      : real := PGP_LINE_RATE_G / 20.0;
+   
+   -------------------------------------------------------------------------------------------------
+   -- SPI
+   -------------------------------------------------------------------------------------------------   
+   constant NUM_COMMON_SPI_CHIPS_C : positive range 1 to 8 := 4;
+   signal  coreSclk  : slv(NUM_COMMON_SPI_CHIPS_C-1 downto 0); 
+   signal  coreSDout : slv(NUM_COMMON_SPI_CHIPS_C-1 downto 0);
+   signal  coreCsb   : slv(NUM_COMMON_SPI_CHIPS_C-1 downto 0);   
+
+   signal  muxSDin  : sl; 
+   signal  muxSClk  : sl;
+   signal  muxSDout : sl;
+   
+   signal  lmkSDin  : sl;
+   
+   signal  spiSDinDac  : sl;
+   signal  spiSDoutDac : sl;
 
    -------------------------------------------------------------------------------------------------
    -- JESD constants and signals
@@ -159,17 +182,27 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 4;
+   constant NUM_AXI_MASTERS_C : natural := 9;
 
-   constant VERSION_AXIL_INDEX_C    : natural           := 0;
-   constant JESD_AXIL_RX_INDEX_C    : natural           := 1;
-   constant JESD_AXIL_TX_INDEX_C    : natural           := 2;
-   constant DAQ_AXIL_INDEX_C        : natural           := 3;
+   constant VERSION_AXIL_INDEX_C    : natural   := 0;
+   constant JESD_AXIL_RX_INDEX_C    : natural   := 1;
+   constant JESD_AXIL_TX_INDEX_C    : natural   := 2;
+   constant DAQ_AXIL_INDEX_C        : natural   := 3;
+   constant ADC_0_INDEX_C           : natural   := 4;
+   constant ADC_1_INDEX_C           : natural   := 5;
+   constant ADC_2_INDEX_C           : natural   := 6;
+   constant LMK_INDEX_C             : natural   := 7;
+   constant DAC_INDEX_C             : natural   := 8;
    
    constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"00010000";
-   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"00020000";
-   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"00030000";   
+   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"00100000";
+   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"00200000";
+   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"00300000";
+   constant ADC_0_BASE_ADDR_C        : slv(31 downto 0)   := X"00400000";
+   constant ADC_1_BASE_ADDR_C        : slv(31 downto 0)   := X"00500000";
+   constant ADC_2_BASE_ADDR_C        : slv(31 downto 0)   := X"00600000";
+   constant LMK_BASE_ADDR_C          : slv(31 downto 0)   := X"00700000";
+   constant DAC_BASE_ADDR_C          : slv(31 downto 0)   := X"00800000";
    
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
@@ -187,7 +220,27 @@ architecture rtl of DevBoard is
       DAQ_AXIL_INDEX_C    => (
          baseAddr          => DAQ_AXIL_BASE_ADDR_C,
          addrBits          => 12,
-         connectivity      => X"0001") );
+         connectivity      => X"0001"), 
+      ADC_0_INDEX_C => (
+         baseAddr          => ADC_0_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),
+      ADC_1_INDEX_C    => (
+         baseAddr          => ADC_1_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),
+      ADC_2_INDEX_C    => (
+         baseAddr          => ADC_2_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),   
+      LMK_INDEX_C    => (
+         baseAddr          => LMK_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),   
+      DAC_INDEX_C    => (
+         baseAddr          => DAC_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"));
          
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
    signal extAxilWriteSlave  : AxiLiteWriteSlaveType;
@@ -529,7 +582,7 @@ begin
       axilReadMaster  => locAxilReadMasters(DAQ_AXIL_INDEX_C),
       axilReadSlave   => locAxilReadSlaves(DAQ_AXIL_INDEX_C),
       axilWriteMaster => locAxilWriteMasters(DAQ_AXIL_INDEX_C),
-      axilWriteSlave  => locAxilWriteSlaves(DAQ_AXIL_INDEX_C),
+      axilWriteSlave  => locAxilWriteSlaves(DAQ_AXIL_INDEX_C),  
       
       sampleDataArr_i   => s_sampleDataArr,
       dataValidVec_i    => s_dataValidVec,
@@ -560,5 +613,91 @@ begin
       O =>  syncbP, 
       OB => syncbN
    );
+   
+   ----------------------------------------------------------------
+   -- SPI interface ADCs and LMK 
+   ----------------------------------------------------------------
+   adcSpiChips : for I in NUM_COMMON_SPI_CHIPS_C-1 downto 0 generate
+      AxiSpiMaster_INST: entity work.AxiSpiMaster
+      generic map (
+         TPD_G             => TPD_G,
+         ADDRESS_SIZE_G    => 15,
+         DATA_SIZE_G       => 8,   
+         CLK_PERIOD_G      => 6.4E-9,
+         SPI_SCLK_PERIOD_G => 100.0E-6)
+      port map (
+         axiClk         => axilClk,
+         axiRst         => axilClkRst,
+         axiReadMaster  => locAxilReadMasters(4+I),
+         axiReadSlave   => locAxilReadSlaves(4+I),
+         axiWriteMaster => locAxilWriteMasters(4+I),
+         axiWriteSlave  => locAxilWriteSlaves(4+I),  
+         coreSclk       => coreSclk(I),
+         coreSDin       => muxSDin,
+         coreSDout      => coreSDout(I),
+         coreCsb        => coreCsb(I));
+   end generate adcSpiChips;
+   
+   -- Input mux from "IO" port if LMK and from "I" port for ADCs 
+   muxSDin <= lmkSDin when coreCsb = "0111" else spiSdo_i;
+   
+   -- Output mux
+   with coreCsb select
+   muxSclk  <= coreSclk(0) when "1110",
+               coreSclk(1) when "1101",
+               coreSclk(2) when "1011",
+               coreSclk(3) when "0111",
+               '0'         when others;
+              
+   with coreCsb select  
+   muxSDout <= coreSDout(0) when "1110",
+               coreSDout(1) when "1101",
+               coreSDout(2) when "1011",
+               coreSDout(3) when "0111",
+               '0'          when others;
+   
+   -- Outputs 
+   spiSclk_o <= muxSclk;
+   spiSdi_o  <= muxSDout;
+
+   ADC_SDIO_IOBUFT : IOBUF
+      port map (
+         I => '0',
+         O => lmkSDin,
+         IO => spiSdio_io,
+         T => muxSDout);
+
+   -- Active low chip selects
+   spiCsL_o <= coreCsb;
+   
+   ----------------------------------------------------------------
+   -- SPI interface ADCs and LMK 
+   ----------------------------------------------------------------  
+   dacAxiSpiMaster_INST: entity work.AxiSpiMaster
+   generic map (
+      TPD_G             => TPD_G,
+      ADDRESS_SIZE_G    => 7,
+      DATA_SIZE_G       => 16,
+      CLK_PERIOD_G      => 6.4E-9,
+      SPI_SCLK_PERIOD_G => 100.0E-6)
+   port map (
+      axiClk         => axilClk,
+      axiRst         => axilClkRst,
+      axiReadMaster  => locAxilReadMasters(8),
+      axiReadSlave   => locAxilReadSlaves(8),
+      axiWriteMaster => locAxilWriteMasters(8),
+      axiWriteSlave  => locAxilWriteSlaves(8),  
+      coreSclk       => spiSclkDac_o,
+      coreSDin       => spiSDinDac,
+      coreSDout      => spiSDoutDac,
+      coreCsb        => spiCsLDac_o);
+   
+       
+   DAC_SDIO_IOBUFT : IOBUF
+      port map (
+         I => '0',
+         O  => spiSDinDac,
+         IO => spiSdioDac_io,
+         T  => spiSDoutDac);
 
 end architecture rtl;
