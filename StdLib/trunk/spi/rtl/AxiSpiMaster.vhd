@@ -32,12 +32,13 @@ use unisim.vcomponents.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+--use work.I2cPkg.all;
 
 entity AxiSpiMaster is
    generic (
       TPD_G        : time    := 1 ns;
-      DATA_SIZE_G  : natural := 24;
+      ADDRESS_SIZE_G : natural := 15;
+      DATA_SIZE_G    : natural := 8;    
       CLK_PERIOD_G      : real := 6.4E-9;
       SPI_SCLK_PERIOD_G : real := 100.0E-6
    );
@@ -60,7 +61,9 @@ end entity AxiSpiMaster;
 architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs
-   signal rdData : slv(23 downto 0);
+   constant PACKET_SIZE_C : positive:= 1+ ADDRESS_SIZE_G + DATA_SIZE_G; -- "1+" For R/W command bit
+
+   signal rdData : slv(PACKET_SIZE_C-1 downto 0);
    signal rdEn   : sl;
 
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_SPI_TXN_DONE_S);
@@ -71,7 +74,7 @@ architecture rtl of AxiSpiMaster is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
       -- Adc Core Inputs
-      wrData        : slv(23 downto 0);
+      wrData        : slv(PACKET_SIZE_C-1 downto 0);
       wrEn          : sl;
    end record RegType;
 
@@ -99,24 +102,25 @@ begin
          when WAIT_AXI_TXN_S =>
 
             if (axiStatus.writeEnable = '1') then
-               v.wrData(23)           := '0';                                -- Write bit
-               v.wrData(22 downto 21) := "00";                               -- Number of bytes (1)
-               v.wrData(20 downto 16) := "00000";                            -- Unused address bits
-               v.wrData(15 downto 8)  := axiWriteMaster.awaddr(9 downto 2);  -- Address
-               v.wrData(7 downto 0)   := axiWriteMaster.wdata(7 downto 0);   -- Data
-               v.wrEn                 := '1';
-               v.state                := WAIT_CYCLE_S;
+               -- Write bit
+               v.wrData(PACKET_SIZE_C-1)                                  := '0';
+               -- Address (make sure that the assigned AXI address in the crossbar is big enough)               
+               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G)  := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
+               -- Data
+               v.wrData(DATA_SIZE_G-1 downto 0)                           := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);       
+               v.wrEn                                                     := '1';
+               v.state                                                    := WAIT_CYCLE_S;
             end if;
 
             if (axiStatus.readEnable = '1') then
-               v.wrData(23)           := '1';              -- read bit
-               v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
-               v.wrData(20 downto 16) := "00000";          -- Unused address bits
-               v.wrData(15 downto 8)  := axiReadMaster.araddr(9 downto 2);  -- Address
-               v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
-                                                           -- drive during data segment
-               v.wrEn                 := '1';
-               v.state                := WAIT_CYCLE_S;
+               -- Read bit
+               v.wrData(PACKET_SIZE_C-1)                                    := '1';
+               -- Address               
+               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G)  := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);
+               -- Make bus float to Z so slave can drive during data segment
+               v.wrData(DATA_SIZE_G-1 downto 0)                           := (others => '1');  
+               v.wrEn                                                     := '1';
+               v.state                                                    := WAIT_CYCLE_S;
             end if;
 
          when WAIT_CYCLE_S =>
@@ -133,8 +137,8 @@ begin
                   axiSlaveWriteResponse(v.axiWriteSlave);
                else
                   -- Finish read
-                  v.axiReadSlave.rdata             := (others => '0');
-                  v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
+                  v.axiReadSlave.rdata                         := (others => '0');
+                  v.axiReadSlave.rdata(DATA_SIZE_G-1 downto 0) := rdData(DATA_SIZE_G-1 downto 0);
                   axiSlaveReadResponse(v.axiReadSlave);
                end if;
             end if;
@@ -164,7 +168,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,
-         DATA_SIZE_G       => DATA_SIZE_G,
+         DATA_SIZE_G       => PACKET_SIZE_C,
          CPHA_G            => '0',      -- Sample on leading edge
          CPOL_G            => '0',      -- Sample on rising edge
          CLK_PERIOD_G      => CLK_PERIOD_G, -- 8.0E-9,
