@@ -18,6 +18,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 
+
 ----------------------------------------------------------------------------------------------------
 
 entity DevBoardTb is
@@ -56,6 +57,14 @@ architecture sim of DevBoardTb is
    signal syncbN       : sl;
    signal leds         : slv(3 downto 0);
 
+   signal   spiSclk_o              : sl;
+   signal   spiSdi_o               : sl;
+   signal   spiSdo_i               : sl := '0';
+   signal   spiSdio_io             : sl;
+   signal   spiCsL_o               : slv(3 downto 0);
+   signal   spiSclkDac_o           : sl := '1';
+   signal   spiSdioDac_io          : sl;
+   signal   spiCsLDac_o            : sl;
 
 begin
 
@@ -93,7 +102,17 @@ begin
          -- adcGtRxN     => adcGtRxN,
          syncbP       => syncbP,
          syncbN       => syncbN,
+         spiSclk_o     => spiSclk_o,
+         spiSdi_o      => spiSdi_o,
+         spiSdo_i      => spiSdo_i,
+         spiSdio_io    => spiSdio_io,
+         spiCsL_o      => spiCsL_o,
+         spiSclkDac_o  => spiSclkDac_o,
+         spiSdioDac_io => spiSdioDac_io,
+         spiCsLDac_o   => spiCsLDac_o,
          leds         => leds);
+
+
 
 
 
