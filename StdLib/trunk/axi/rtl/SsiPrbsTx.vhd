@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-11-10
+-- Last update: 2015-07-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-
 
 entity SsiPrbsTx is
    generic (
@@ -90,6 +89,7 @@ architecture rtl of SsiPrbsTx is
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
       axiEn          : sl;
+      oneShot        : sl;
       trig           : sl;
       tDest          : slv(7 downto 0);
       tId            : slv(7 downto 0);
@@ -107,6 +107,7 @@ architecture rtl of SsiPrbsTx is
       txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
       state          => IDLE_S,
       axiEn          => '0',
+      oneShot        => '0',
       trig           => '1',
       tDest          => X"00",
       tId            => X"00",
@@ -132,6 +133,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset the one shot
+      v.oneShot := '0';
+
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite interface
       ----------------------------------------------------------------------------------------------
@@ -141,8 +145,11 @@ begin
          axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          case (axilWriteMaster.awaddr(7 downto 0)) is
             when X"00" =>
-               v.axiEn := axilWriteMaster.wdata(0);
-               v.trig  := axilWriteMaster.wdata(1);
+               v.axiEn   := axilWriteMaster.wdata(0);
+               v.trig    := axilWriteMaster.wdata(1);
+               -- BIT2 reserved for busy
+               -- BIT3 reserved for overflow
+               v.oneShot := axilWriteMaster.wdata(4);
             when X"04" =>
                v.packetLength := axilWriteMaster.wdata(31 downto 0);
             when X"08" =>
@@ -163,6 +170,7 @@ begin
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
+               -- BIT4 reserved for oneShot
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
             when X"08" =>
@@ -205,7 +213,7 @@ begin
             -- Reset the busy flag
             v.busy := '0';
             -- Check for a trigger
-            if r.trig = '1' then
+            if (r.trig = '1') or (r.oneShot = '1') then
                -- Latch the generator seed
                v.randomData         := r.eventCnt;
                -- Set the busy flag
