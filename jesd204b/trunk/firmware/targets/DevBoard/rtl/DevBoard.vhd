@@ -9,7 +9,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Used only for simulation
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -188,22 +188,31 @@ architecture rtl of DevBoard is
    constant JESD_AXIL_RX_INDEX_C    : natural   := 1;
    constant JESD_AXIL_TX_INDEX_C    : natural   := 2;
    constant DAQ_AXIL_INDEX_C        : natural   := 3;
+   
+  -- constant DISP_AXIL_INDEX_C       : natural   := 4;
+  
    constant ADC_0_INDEX_C           : natural   := 4;
    constant ADC_1_INDEX_C           : natural   := 5;
    constant ADC_2_INDEX_C           : natural   := 6;
+   
    constant LMK_INDEX_C             : natural   := 7;
    constant DAC_INDEX_C             : natural   := 8;
+
+
    
-   constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"00100000";
-   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"00200000";
-   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"00300000";
-   constant ADC_0_BASE_ADDR_C        : slv(31 downto 0)   := X"00400000";
-   constant ADC_1_BASE_ADDR_C        : slv(31 downto 0)   := X"00500000";
-   constant ADC_2_BASE_ADDR_C        : slv(31 downto 0)   := X"00600000";
-   constant LMK_BASE_ADDR_C          : slv(31 downto 0)   := X"00700000";
-   constant DAC_BASE_ADDR_C          : slv(31 downto 0)   := X"00800000";
+   constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"0000_0000";
+   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"0010_0000";
+   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"0020_0000";
+   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"0030_0000";
    
+  -- constant DISP_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"0040_0000";
+   
+   constant ADC_0_BASE_ADDR_C        : slv(31 downto 0)   := X"0050_0000";
+   constant ADC_1_BASE_ADDR_C        : slv(31 downto 0)   := X"0060_0000";
+   constant ADC_2_BASE_ADDR_C        : slv(31 downto 0)   := X"0070_0000";
+   constant LMK_BASE_ADDR_C          : slv(31 downto 0)   := X"0080_0000";   
+   constant DAC_BASE_ADDR_C          : slv(31 downto 0)   := X"0090_0000";   
+
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
          baseAddr          => VERSION_AXIL_BASE_ADDR_C,
@@ -220,22 +229,22 @@ architecture rtl of DevBoard is
       DAQ_AXIL_INDEX_C    => (
          baseAddr          => DAQ_AXIL_BASE_ADDR_C,
          addrBits          => 12,
-         connectivity      => X"0001"), 
+         connectivity      => X"0001"),
       ADC_0_INDEX_C => (
          baseAddr          => ADC_0_BASE_ADDR_C,
-         addrBits          => 12,
+         addrBits          => 16,
          connectivity      => X"0001"),
       ADC_1_INDEX_C    => (
          baseAddr          => ADC_1_BASE_ADDR_C,
-         addrBits          => 12,
+         addrBits          => 16,
          connectivity      => X"0001"),
       ADC_2_INDEX_C    => (
          baseAddr          => ADC_2_BASE_ADDR_C,
-         addrBits          => 12,
-         connectivity      => X"0001"),   
+         addrBits          => 16,
+         connectivity      => X"0001"),
       LMK_INDEX_C    => (
          baseAddr          => LMK_BASE_ADDR_C,
-         addrBits          => 12,
+         addrBits          => 16,
          connectivity      => X"0001"),   
       DAC_INDEX_C    => (
          baseAddr          => DAC_BASE_ADDR_C,
@@ -623,8 +632,8 @@ begin
          TPD_G             => TPD_G,
          ADDRESS_SIZE_G    => 15,
          DATA_SIZE_G       => 8,   
-         CLK_PERIOD_G      => 6.4E-9,
-         SPI_SCLK_PERIOD_G => 100.0E-6)
+         CLK_PERIOD_G      => 8.0E-9, --6.4E-9, TODO switch back for implementation
+         SPI_SCLK_PERIOD_G => 100.0E-9) --100.0E-6 TODO switch back for implementation
       port map (
          axiClk         => axilClk,
          axiRst         => axilClkRst,
@@ -671,22 +680,22 @@ begin
    spiCsL_o <= coreCsb;
    
    ----------------------------------------------------------------
-   -- SPI interface ADCs and LMK 
+   -- SPI interface DAC
    ----------------------------------------------------------------  
    dacAxiSpiMaster_INST: entity work.AxiSpiMaster
    generic map (
       TPD_G             => TPD_G,
       ADDRESS_SIZE_G    => 7,
       DATA_SIZE_G       => 16,
-      CLK_PERIOD_G      => 6.4E-9,
-      SPI_SCLK_PERIOD_G => 100.0E-6)
+      CLK_PERIOD_G      => 8.0E-9, --6.4E-9, TODO switch back for implementation
+      SPI_SCLK_PERIOD_G => 100.0E-9) --100.0E-6 TODO switch back for implementation
    port map (
       axiClk         => axilClk,
       axiRst         => axilClkRst,
-      axiReadMaster  => locAxilReadMasters(8),
-      axiReadSlave   => locAxilReadSlaves(8),
-      axiWriteMaster => locAxilWriteMasters(8),
-      axiWriteSlave  => locAxilWriteSlaves(8),  
+      axiReadMaster  => locAxilReadMasters(DAC_INDEX_C),
+      axiReadSlave   => locAxilReadSlaves(DAC_INDEX_C),
+      axiWriteMaster => locAxilWriteMasters(DAC_INDEX_C),
+      axiWriteSlave  => locAxilWriteSlaves(DAC_INDEX_C),  
       coreSclk       => spiSclkDac_o,
       coreSDin       => spiSDinDac,
       coreSDout      => spiSDoutDac,

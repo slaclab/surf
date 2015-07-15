@@ -16,11 +16,14 @@
 #include <DevBoard.h>
 #include <AxiVersion.h>
 #include <Pgp2bAxi.h>
+#include <JesdRxDaq.h>
 #include <JesdRx.h>
 #include <JesdTx.h>
+#include <Adc16Dx370.h>
+#include <Dac38J84.h>
+#include <Lmk04828.h>
+
 #include <AxiMicronP30.h>
-#include <PrbsRx.h>
-#include <PrbsTx.h>
 #include <Register.h>
 #include <RegisterLink.h>
 #include <Variable.h>
@@ -35,13 +38,22 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
                         Device(linkConfig,baseAddress,"DevBoard",index,parent) {
 
    // Description
-   desc_ = "JESD Dev Board";
+   desc_ = "LLRF demo Board";
 
-   addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x00F00000>>2) * (addrSize)), 0, this, addrSize)); 
+   addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x01000000>>2) * (addrSize)), 0, this, addrSize)); 
    addDevice(new AxiVersion ( linkConfig, baseAddress | ((0x00000000>>2) * (addrSize)), 0, this, addrSize));
-   addDevice(new JesdRx     ( linkConfig, baseAddress | ((0x00010000>>2) * (addrSize)), 0, this, addrSize)); 
-   addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00020000>>2) * (addrSize)), 0, this, addrSize));
-   addDevice(new JesdRxDaq  ( linkConfig, baseAddress | ((0x00030000>>2) * (addrSize)), 0, this, addrSize)); 
+   addDevice(new JesdRx     ( linkConfig, baseAddress | ((0x00100000>>2) * (addrSize)), 0, this, addrSize)); 
+   addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00200000>>2) * (addrSize)), 0, this, addrSize));
+   addDevice(new JesdRxDaq  ( linkConfig, baseAddress | ((0x00300000>>2) * (addrSize)), 0, this, addrSize));
+   
+   addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00500000>>2) * (addrSize)), 0, this, addrSize));
+   addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00600000>>2) * (addrSize)), 1, this, addrSize));
+   addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00700000>>2) * (addrSize)), 2, this, addrSize));
+   
+   addDevice(new Lmk04828   ( linkConfig, baseAddress | ((0x00800000>>2) * (addrSize)), 0, this, addrSize));
+   addDevice(new Dac38J84   ( linkConfig, baseAddress | ((0x00900000>>2) * (addrSize)), 0, this, addrSize));
+    
+   getVariable("Enabled")->setHidden(true);
 }
 
 // Deconstructor

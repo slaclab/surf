@@ -44,7 +44,7 @@ entity AxisDaq is
       devRst_i          : in  sl;
       
       -- Lane number AXI number to be inserted into AXI stream
-      laneNum_i       : integer range 0 to 15;
+      laneNum_i       : integer;
       axiNum_i        : integer range 0 to 15;
    
       -- DAQ
@@ -88,13 +88,13 @@ architecture rtl of AxisDaq is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   signal s_num : slv(31 downto 0);
+   signal s_num : slv((GT_WORD_SIZE_C*8)-1 downto 0);
    
 begin
 
-   s_num <= intToSlv(laneNum_i,16) & intToSlv(axiNum_i,16); 
+   s_num <= intToSlv(laneNum_i,(GT_WORD_SIZE_C*4)) & intToSlv(axiNum_i,(GT_WORD_SIZE_C*4));
 
-   comb : process (devRst_i, enable_i, r, s_num, sampleData_i, pause_i, dataReady_i, packetSize_i,trigRe_i) is
+   comb : process (devRst_i, enable_i, r, s_num, sampleData_i, pause_i, dataReady_i, packetSize_i,trigRe_i, pulse_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -140,7 +140,7 @@ begin
             v.txAxisMaster.tvalid  := '1';
             
             -- Insert the axi and lane number at the first packet data word (byte swapped so it is transferred correctly)
-            v.txAxisMaster.tData   := byteSwapSlv(s_num, 4);     
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := byteSwapSlv(s_num, 4);     
             v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit
@@ -150,17 +150,24 @@ begin
          ----------------------------------------------------------------------
          when DATA_S =>
          
-            -- Increment the counter            
-            v.dataCnt := r.dataCnt + 1;         
-      
+            -- Increment the counter
+            -- and sample data on pulse_i rate
+            if  pulse_i = '1' then
+               v.dataCnt := r.dataCnt + 1;
+               v.txAxisMaster.tvalid  := '1';
+            else
+               v.dataCnt := r.dataCnt;
+               v.txAxisMaster.tvalid  := '0';
+            end if;
+            
             -- Send the JESD data 
-            v.txAxisMaster.tvalid  := pulse_i; -- Sample data on certain rate
             v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
             v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent
-            if r.dataCnt = (packetSize_i-1) then
+            if r.dataCnt = (packetSize_i) then
                -- Next State
+               v.txAxisMaster.tvalid  := '0';
                v.state   := EOF_S;
             end if;
          ----------------------------------------------------------------------
@@ -171,7 +178,7 @@ begin
 
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
-            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := (others => '0');
             -- Set the EOF(tlast) bit                
             v.txAxisMaster.tLast := '1';
             

@@ -12,10 +12,6 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
---    Outputs reference clock of 370MHz
---     - on FMC ADC LVDS output (to optionally provide reference from FPGA)
---     - on GPIO LVDS output (to optionally provide reference from FPGA)
---     - on USER Single ended output (to optionally provide reference from FPGA to LMK chip)
 --    Configured for 4-byte operation: GT_WORD_SIZE_C=4
 --    To configure for 2-byte operation: GT_WORD_SIZE_C=2, adjust LANE rate, GTX parameters, JESD clock MGMM 
 --    LED indicators:
@@ -49,10 +45,10 @@ entity AtcaDemoBoard is
       TPD_G                  : time    := 1 ns;
       SIMULATION_G           : boolean := false;
       -- PGP Config
-      PGP_REFCLK_FREQ_G      : real    := 125.0E6;
+      PGP_REFCLK_FREQ_G      : real    := 156.25E6;
       PGP_LINE_RATE_G        : real    := 3.125E9;
       -- AXIL Config
-      AXIL_CLK_FREQ_G        : real    := 125.0E6;
+      AXIL_CLK_FREQ_G        : real    := 156.25E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
       AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
@@ -76,9 +72,6 @@ entity AtcaDemoBoard is
       L_AXI_G               : positive := 2
    );
    port (
-      sysClk125P : in sl;
-      sysClk125N : in sl;
-
       -- PGP MGT signals (SFP)
       pgpRefClkSel : out sl := '0';
       pgpRefClkP   : in  sl;
@@ -91,47 +84,40 @@ entity AtcaDemoBoard is
       -- FMC Signals -- 
       -------------------------------------------------------------------
       -- Signals from clock manager
-      fpgaDevClkaP : in sl;             -- FMC-D3-P
-      fpgaDevClkaN : in sl;             -- FMC-D4-N
+      fpgaDevClkaP : in sl;             
+      fpgaDevClkaN : in sl;             
       
       -- JESD synchronisation timing signal (Used in subclass 1 mode)
       -- has to meet setup and hold times of JESD devClk
       -- periodic (period has to be multiple of LMFC clock)
       -- single   (another pulse has to be generated if re-sync needed)      
-      fpgaSysRefP  : in sl;             -- FMC-G9-P
-      fpgaSysRefN  : in sl;             -- FMC-G10-N
-
-      -- Signals to ADC (if clock manager not used)
-      adcDevClkP : out sl;              -- FMC-D7-P
-      adcDevClkN : out sl;              -- FMC-D8-N
-      adcSysRefP : out sl;              -- FMC-D11-P
-      adcSysRefN : out sl;              -- FMC-D12-N
+      fpgaSysRefP  : in sl;            
+      fpgaSysRefN  : in sl;            
 
       -- JESD MGT signals
       adcGtTxP : out slv(5 downto 0);    
       adcGtTxN : out slv(5 downto 0);
-      adcGtRxP : in  slv(5 downto 0);   -- FMC-A10-P -- FMC-A2-P
-      adcGtRxN : in  slv(5 downto 0);   -- FMC-A11-N -- FMC-A3-N
+      adcGtRxP : in  slv(5 downto 0);
+      adcGtRxN : in  slv(5 downto 0);
 
       -- JESD receiver requesting sync (Used in all subclass modes)
       -- '1' - synchronisation OK
       -- '0' - synchronisation Not OK - synchronisation request
-      syncbP : out sl;                  -- FMC-G12-P
-      syncbN : out sl;                  -- FMC-G13-N
+      syncb1P : out sl;                  
+      syncb1N : out sl;
+      syncb2P : out sl;                  
+      syncb2N : out sl;
+      syncb3P : out sl;                  
+      syncb3N : out sl;     
 
       -- ADC SPI config interface
---      spiSclk : out sl;                 -- FMC H37
---      spiSdi  : out sl;                 -- FMC G36
---      spiSdo  : in  sl;                 -- FMC G37
---      spiCsL  : out sl;                 -- FMC H38
-
-      -- FPGA reference - External SMA loopback
-      userClkP: out sl;
-      userClkN: out sl;
-      
-      
+--      spiSclk : out sl;
+--      spiSdi  : out sl;
+--      spiSdo  : in  sl;
+--      spiCsL  : out sl;
+         
       -- External HW Acquisition trigger
-      trigHW_i: in sl;
+      trigHW: in sl;
       
       -- Debug Signals -- 
       -------------------------------------------------------------------
@@ -142,13 +128,11 @@ entity AtcaDemoBoard is
       gpioClk    : out sl;
       
       -- Sysref output pin      
-      sysrefDbg  : out sl;      -- J53-PIN1
+      sysrefDbg  : out sl;
       
       -- Digital square wave signal for deterministic latency check (Adjustable by setting the threshold registers)      
-      rePulseDbg : out slv(1 downto 0); -- J53-PIN4 -- J53-PIN3
+      rePulseDbg : out slv(1 downto 0) 
       
-      -- Out to led on ADC EVM  -- FMC-H31
-      syncDbg    : out sl
    );
 end entity AtcaDemoBoard;
 
@@ -162,15 +146,6 @@ architecture rtl of AtcaDemoBoard is
    -------------------------------------------------------------------------------------------------
    -- JESD constants and signals
    -------------------------------------------------------------------------------------------------
-   -- constant REFCLK_FREQUENCY_C : real     := 300.00E6;
-   -- constant REFCLK_FREQUENCY_C : real     := 368.64E6;
-   -- constant REFCLK_FREQUENCY_C : real     := 184.32E6;
-   -- constant REFCLK_FREQUENCY_C : real     := 78.125E6;
-   -- constant REFCLK_FREQUENCY_C : real     := 156.25E6;
-   -- constant REFCLK_FREQUENCY_C : real     := 125.0E6;
-   -- constant LINE_RATE_C        : real     := 3.125E9;
-   -- constant LINE_RATE_C        : real     := 7.3728E9;
-   -- constant LINE_RATE_C        : real     := 6.00E9;
    constant DEVCLK_PERIOD_C    : real     := real(GT_WORD_SIZE_C)*10.0/(LINE_RATE_G);
    
    signal   s_sysRef    : sl;
@@ -183,10 +158,6 @@ architecture rtl of AtcaDemoBoard is
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
-   signal sysClk125  : sl;
-   signal sysClk125G : sl;
-   signal sysClk125Rst : sl;
-
    signal pgpRefClk     : sl;
    signal pgpRefClkDiv2 : sl;
    signal pgpRefClkG    : sl;
@@ -275,54 +246,6 @@ architecture rtl of AtcaDemoBoard is
    
 begin
    -------------------------------------------------------------------------------------------------
-   -- System clock
-   -------------------------------------------------------------------------------------------------
-   IBUFDS_SYSCLK125 : IBUFDS
-      port map (
-         I  => sysClk125P,
-         IB => sysClk125N,
-         O  => sysClk125);
-
-   BUFG_SYSCLK125 : BUFG
-      port map (
-         I => sysClk125,
-         O => sysClk125G);
-
-   PwrUpRst_1 : entity work.PwrUpRst
-      generic map (
-         TPD_G          => TPD_G,
-         SIM_SPEEDUP_G  => SIMULATION_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk    => sysClk125G,
-         rstOut => powerOnReset);
-
-   sysClk125Rst <= masterReset or powerOnReset;
-   
-   -------------------------------------------------------------------------------------------------
-   -- ADC EVM Out reference clock         
-   -------------------------------------------------------------------------------------------------
-      ClockManager7_OUT : entity work.ClockManager7
-      generic map (
-         TPD_G              => TPD_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         NUM_CLOCKS_G       => 1,
-         BANDWIDTH_G        => "HIGH",
-         CLKIN_PERIOD_G     => 8.0,      --(10.0MHz)  (156.25MHz)(368.64MHz) (61.44 MHz) (370MHz)
-         DIVCLK_DIVIDE_G    => 1,        --1,         --4,         --6,        --5,        --5,
-         CLKFBOUT_MULT_F_G  => 8.000,    --8.0,       --55,        --50.875,   --47.000,   --37.000,
-         CLKOUT0_DIVIDE_F_G => 100.0,    --100.0,     --11,        --2.875,    --19.125,   --2.5
-         CLKOUT0_RST_HOLD_G => 16)
-      port map (
-         clkIn     => sysClk125G,
-         rstIn     => '0',
-         clkOut(0) => s_usrClk,
-         rstOut(0) => s_usrRst);
-              
-    -------------------------------------------------------------------------------------------------
    -- PGP Refclk
    -------------------------------------------------------------------------------------------------
    PGPREFCLK_IBUFDS_GTE3 : IBUFDS_GTE3
@@ -340,8 +263,21 @@ begin
          CLR     => '0',
          CEMASK  => '1',
          CLRMASK => '1',
-         DIV     => "000",              -- GT_WORD_SIZE_C=4
+         DIV     => "000",
          O       => pgpRefClkG);
+         
+   -------------------------------------------------------------------------------------------------
+   -- Power up reset generated from PGP clock
+   -------------------------------------------------------------------------------------------------
+   PwrUpRst_1 : entity work.PwrUpRst
+      generic map (
+         TPD_G          => TPD_G,
+         SIM_SPEEDUP_G  => SIMULATION_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1')
+      port map (
+         clk    => pgpRefClkG,
+         rstOut => powerOnReset);
 
    pgpMmcmRst <= powerOnReset or masterReset;
 
@@ -383,7 +319,7 @@ begin
          AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
          AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
       port map (
-         stableClk       => sysClk125G,
+         stableClk       => pgpRefClkG,
          pgpRefClk       => pgpRefClk,
          pgpClk          => pgpClk,
          pgpClkRst       => pgpClkRst,
@@ -563,7 +499,7 @@ begin
       axiRst            => axilClkRst,
       devClk_i          => jesdClk,
       devRst_i          => jesdClkRst,
-      trigHW_i          => trigHW_i,
+      trigHW_i          => trigHW,
       
       axilReadMaster  => locAxilReadMasters(DAQ_AXIL_INDEX_C),
       axilReadSlave   => locAxilReadSlaves(DAQ_AXIL_INDEX_C),
@@ -590,59 +526,41 @@ begin
       IB => fpgaSysRefN,
       O  => s_sysRef
    );
-     
-   OBUFDS_nsync_inst : OBUFDS
+   
+   -- Sync outputs are all combined (TODO consider separating if having problems)   
+   OBUFDS_nsync1_inst : OBUFDS
    generic map (
       IOSTANDARD => "DEFAULT",
       SLEW => "SLOW"
    )
    port map (
       I =>  s_nSync,
-      O =>  syncbP, 
-      OB => syncbN
+      O =>  syncb1P, 
+      OB => syncb1N
    );
    
-   ---------------------------------------------------
-   -- Outputs to ADC when in Clock generator mode
-   ----------------------------------------------------
-   OBUFDS_sysref_inst : OBUFDS
+   OBUFDS_nsync2_inst : OBUFDS
    generic map (
       IOSTANDARD => "DEFAULT",
       SLEW => "SLOW"
    )
    port map (
-      I =>  s_sysRefOut,
-      O =>  adcSysRefP, 
-      OB => adcSysRefN
+      I =>  s_nSync,
+      O =>  syncb2P, 
+      OB => syncb2N
    );
    
-   -- Output clock reference to ADC 
-   ADCClkBufDiff_INST: entity work.ClkOutBufDiff
+   OBUFDS_nsync3_inst : OBUFDS
    generic map (
-      XIL_DEVICE_G   => "ULTRASCALE",
-      RST_POLARITY_G => '1',
-      INVERT_G       => false)
+      IOSTANDARD => "DEFAULT",
+      SLEW => "SLOW"
+   )
    port map (
-      clkIn  => s_usrClk, -- Output JESD to ADC
-      rstIn  => '0',--s_usrRst, 
-      outEnL => '0',
-      clkOutP=> adcDevClkP,
-      clkOutN=> adcDevClkN
+      I =>  s_nSync,
+      O =>  syncb3P, 
+      OB => syncb3N
    );
    
-   -- Output reference to FPGA (out User clk in MGT clk)
-   FPGAClkBufDiff_INST: entity work.ClkOutBufDiff
-   generic map (
-      XIL_DEVICE_G   => "ULTRASCALE",
-      RST_POLARITY_G => '1',
-      INVERT_G       => false)
-   port map (
-      clkIn  => s_usrClk,
-      rstIn  => '0',--s_usrRst,
-      outEnL => '0',
-      clkOutP=> userClkP,
-      clkOutN=> userClkN);
-
    -------------------------------------------------------------------------------------------------
    -- Debug outputs
    -------------------------------------------------------------------------------------------------
@@ -684,14 +602,7 @@ begin
       I => s_sysRefOut,
       O =>  sysrefDbg 
    );
-   
-   -- Debug output pins
-   OBUF_sync_inst : OBUF
-   port map (
-      I => s_nSync,
-      O =>  syncDbg 
-   );
-   
+     
    -- Debug output pins
    OBUF_rePulse_0_inst : OBUF
    port map (
@@ -715,8 +626,6 @@ begin
    port map (
       clkIn  => jesdClk,
       rstIn  => jesdClkRst,
-      --clkIn  => s_usrClk,
-      --rstIn  => '0',--s_usrRst,
-      clkOut => gpioClk);  
+      clkOut => gpioClk);
    
 end architecture rtl;
