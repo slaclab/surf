@@ -84,12 +84,12 @@ architecture rtl of PgpFrontEnd is
    constant PGP_AXI_INDEX_C : natural := 1;
 
    constant EXT_AXI_BASE_ADDR_C : slv(31 downto 0) := X"00000000";
-   constant PGP_AXI_BASE_ADDR_C : slv(31 downto 0) := X"00f00000";
+   constant PGP_AXI_BASE_ADDR_C : slv(31 downto 0) := X"01000000";
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       EXT_AXI_INDEX_C => (
          baseAddr     => EXT_AXI_BASE_ADDR_C,
-         addrBits     => 20,
+         addrBits     => 24,
          connectivity => X"0001"),
       PGP_AXI_INDEX_C => (
          baseAddr     => PGP_AXI_BASE_ADDR_C,

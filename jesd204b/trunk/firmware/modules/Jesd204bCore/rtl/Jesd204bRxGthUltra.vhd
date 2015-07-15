@@ -221,6 +221,8 @@ begin
       sysRefDbg_o       => s_sysRefDbg,
       r_jesdGtRxArr     => r_jesdGtRxArr,
       gt_reset_o        => s_gtUserReset,
+      sampleDataArr_o   => open, -- DAQ handled internally
+      dataValidVec_o    => open, -- DAQ handled internally
       nSync_o           => nSync_o,
       pulse_o           => pulse_o,
       leds_o            => leds_o

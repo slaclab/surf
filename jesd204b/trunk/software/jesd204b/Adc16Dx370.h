@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------------
-// File          : JesdRx.h
+// File          : Adc16Dx370.h
 // Author        : Uros legat <ulegat@slac.stanford.edu>
 //                            <uros.legat@cosylab.com>
 // Created       : 27/04/2015
 // Project       : 
 //-----------------------------------------------------------------------------
 // Description :
-//    Device Driver for Jesd204b
+//    Device Driver for Adc16Dx370
 //-----------------------------------------------------------------------------
 // Copyright (c) 2015 by SLAC. All rights reserved.
 // Proprietary and confidential to SLAC.
@@ -14,15 +14,15 @@
 // Modification history :
 // 27/04/2015: created
 //-----------------------------------------------------------------------------
-#ifndef __JESD_RX_COMMON_H__
-#define __JESD_RX_COMMON_H__
+#ifndef __ADC_H__
+#define __ADC_H__
 
 #include <Device.h>
 #include <stdint.h>
 using namespace std;
 
-//! Class to contain JesdRx
-class JesdRx : public Device {
+//! Class to contain Adc16Dx370
+class Adc16Dx370 : public Device {
 
    public:
 
@@ -33,10 +33,10 @@ class JesdRx : public Device {
        * \param index       Device index
        * \param parent      Parent device
       */
-      JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
+      Adc16Dx370 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
 
       //! Deconstructor
-      ~JesdRx ( );
+      ~Adc16Dx370 ( );
 
       //! Method to process a command
       /*!

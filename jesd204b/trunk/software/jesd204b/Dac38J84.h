@@ -1,12 +1,12 @@
 //-----------------------------------------------------------------------------
-// File          : JesdRx.h
+// File          : Dac38J84.h
 // Author        : Uros legat <ulegat@slac.stanford.edu>
 //                            <uros.legat@cosylab.com>
 // Created       : 27/04/2015
 // Project       : 
 //-----------------------------------------------------------------------------
 // Description :
-//    Device Driver for Jesd204b
+//    Device Driver for Dac38J84
 //-----------------------------------------------------------------------------
 // Copyright (c) 2015 by SLAC. All rights reserved.
 // Proprietary and confidential to SLAC.
@@ -14,15 +14,15 @@
 // Modification history :
 // 27/04/2015: created
 //-----------------------------------------------------------------------------
-#ifndef __JESD_RX_COMMON_H__
-#define __JESD_RX_COMMON_H__
+#ifndef __DAC_H__
+#define __DAC_H__
 
 #include <Device.h>
 #include <stdint.h>
 using namespace std;
 
-//! Class to contain JesdRx
-class JesdRx : public Device {
+//! Class to contain Dac38J84
+class Dac38J84 : public Device {
 
    public:
 
@@ -33,10 +33,10 @@ class JesdRx : public Device {
        * \param index       Device index
        * \param parent      Parent device
       */
-      JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
+      Dac38J84 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize=1 );
 
       //! Deconstructor
-      ~JesdRx ( );
+      ~Dac38J84 ( );
 
       //! Method to process a command
       /*!

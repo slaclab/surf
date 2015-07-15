@@ -80,19 +80,7 @@ end AxisDaqMux;
 
 architecture rtl of AxisDaqMux is
  
--- Register
-   type RegType is record
-      nSyncAnyD1 : sl;
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      nSyncAnyD1  => '0'
-   );
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
-   -- Internal signals
+ -- Internal signals
 
    -- DAQ signals 
    signal s_pulse   : sl;
@@ -100,7 +88,7 @@ architecture rtl of AxisDaqMux is
    signal s_sampleDataArrMux : sampleDataArray(L_AXI_G-1 downto 0);
    signal s_dataValidVecMux  : slv(L_AXI_G-1 downto 0);
    signal s_axisPacketSizeReg : slv(23 downto 0);
-   signal s_laneNum : NaturalArray(L_AXI_G-1 downto 0);
+   signal s_laneNum : IntegerArray(L_AXI_G-1 downto 0);
    signal s_muxSel  : Slv4Array(L_AXI_G-1 downto 0);
    signal s_rateDiv : slv(15 downto 0);
 
@@ -112,18 +100,14 @@ architecture rtl of AxisDaqMux is
 
    -- Axi Stream
 
-
    -- Trigger conditioning
    signal  s_trigHw     : sl;
    signal  s_trigSw     : sl;
    signal  s_trigComb   : sl;   
    signal  s_trigRe     : sl;
 
-   -- Record containing GT signals
-   signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
-
    -- Generate pause signal logic OR
-   signal s_pauseVec : slv(L_G-1 downto 0);
+   signal s_pauseVec : slv(L_AXI_G-1 downto 0);
    signal s_pause    : sl;
 
 begin
@@ -173,6 +157,8 @@ begin
       axilWriteMaster => sAxiWriteMasterDev,
       axilWriteSlave  => sAxiWriteSlaveDev,
       
+      busy_i          => s_pause,
+      
       trigSw_o         => s_trigSw,
       rateDiv_o        => s_rateDiv,
       axisPacketSize_o => s_axisPacketSizeReg,
@@ -218,7 +204,7 @@ begin
    -----------------------------------------------------------
    -- MULTIPLEXER logic
    -----------------------------------------------------------    
-   comb : process (s_muxSel) is
+   comb : process (s_muxSel, sampleDataArr_i, dataValidVec_i) is
    begin
       for I in L_AXI_G-1 downto 0 loop
          -- Multiplexer

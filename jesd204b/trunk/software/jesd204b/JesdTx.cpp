@@ -97,6 +97,7 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
    rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");     
                                 
    // Variables
+   getVariable("Enabled")->setHidden(true);
 
    //Commands
 

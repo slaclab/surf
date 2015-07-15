@@ -99,7 +99,8 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L2_DisparityErr",  Variable::Status, 10,0xF,
                                 "L2_DecErr",        Variable::Status, 14,0xF));
    // Variables
-
+   getVariable("Enabled")->setHidden(true);
+   
    //Commands
 
 

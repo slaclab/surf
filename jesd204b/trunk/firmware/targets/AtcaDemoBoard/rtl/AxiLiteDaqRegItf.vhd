@@ -44,6 +44,9 @@ entity AxiLiteDaqRegItf is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       
    -- JESD registers
+      -- Busy
+      busy_i          : in  sl;            
+   
       -- Control
       trigSw_o          : out  sl;
       axisPacketSize_o  : out  slv(23 downto 0);
@@ -69,8 +72,8 @@ architecture rtl of AxiLiteDaqRegItf is
    constant REG_INIT_C : RegType := (
       commonCtrl       => "0",
       axisPacketSize   => x"00_01_00",
-      rateDiv          => x"0000",
-      muxSel           => (others => x"0000"),
+      rateDiv          => x"0001",
+      muxSel           => (x"2", x"1"),
  
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -88,7 +91,7 @@ begin
    s_RdAddr <= slvToInt( axilReadMaster.araddr(9 downto 2) );
    s_WrAddr <= slvToInt( axilWriteMaster.awaddr(9 downto 2) ); 
    
-   comb : process (axilReadMaster, axilWriteMaster, r, devRst_i, s_RdAddr, s_WrAddr) is
+   comb : process (axilReadMaster, axilWriteMaster, r, devRst_i, s_RdAddr, s_WrAddr, busy_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -108,11 +111,11 @@ begin
          axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          case (s_WrAddr) is
             when 16#00# => -- ADDR (0)
-               v.commonCtrl      := axilWriteMaster.wdata(0 downto 0);    
-            when 16#01# => -- ADDR (4)
-               v.axisPacketSize  := axilWriteMaster.wdata(23 downto 0);
+               v.commonCtrl      := axilWriteMaster.wdata(0 downto 0); 
             when 16#02# => -- ADDR (8)
-               v.rateDiv  := axilWriteMaster.wdata(15 downto 0); 
+               v.rateDiv  := axilWriteMaster.wdata(15 downto 0);                
+            when 16#03# => -- ADDR (12)
+               v.axisPacketSize  := axilWriteMaster.wdata(23 downto 0);
             when 16#10# to 16#1F# =>               
                for I in (L_AXI_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -132,9 +135,11 @@ begin
             when 16#00# =>  -- ADDR (0)
                v.axilReadSlave.rdata(0 downto 0)                 := r.commonCtrl;
             when 16#01# =>  -- ADDR (4)
-               v.axilReadSlave.rdata(23 downto 0)                := r.axisPacketSize;
+               v.axilReadSlave.rdata(0)                          := busy_i;
             when 16#02# =>  -- ADDR (8)
-               v.axilReadSlave.rdata(15 downto 0)                := r.rateDiv;
+               v.axilReadSlave.rdata(15 downto 0)                := r.rateDiv;               
+            when 16#03# =>  -- ADDR (12)
+               v.axilReadSlave.rdata(23 downto 0)                := r.axisPacketSize;
             when 16#10# to 16#1F# => 
                for I in (L_AXI_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then

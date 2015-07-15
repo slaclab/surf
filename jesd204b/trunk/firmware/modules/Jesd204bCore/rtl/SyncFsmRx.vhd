@@ -107,6 +107,10 @@ architecture rtl of SyncFsmRx is
 
    type RegType is record
       -- Synchronous FSM control outputs
+      kDetectRegD1: sl;
+      kDetectRegD2: sl;
+      kDetectRegD3: sl;
+      
       nSync       : sl;
       readBuff    : sl;
       alignFrame  : sl;
@@ -120,6 +124,10 @@ architecture rtl of SyncFsmRx is
    end record RegType;
    
    constant REG_INIT_C : RegType := (
+      kDetectRegD1 => '0',
+      kDetectRegD2 => '0',
+      kDetectRegD3 => '0',
+   
       nSync        => '0',
       readBuff     => '0',
       alignFrame   => '0',
@@ -134,22 +142,23 @@ architecture rtl of SyncFsmRx is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
-   -- Internal async signals 
+   
    signal s_kDetected : sl;
 
 begin
-   
-   -- Asynchronous K character detection 
-   s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);  
 
    -- State machine
-   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, s_kDetected, gtReady_i) is
+   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, gtReady_i, s_kDetected) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
       
+      -- Comma detected pipeline
+      v.kDetectRegD1 := detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);       
+      v.kDetectRegD2 := r.kDetectRegD1;
+      v.kDetectRegD3 := r.kDetectRegD2;      
+
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -309,6 +318,9 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+   
+   -- Comma detected if detected in three consecutive clock cycles
+   s_kDetected <= r.kDetectRegD1 and r.kDetectRegD2 and r.kDetectRegD3;
    
    -- Output assignment
    nSync_o      <= r.nSync;
