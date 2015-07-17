@@ -255,6 +255,19 @@ proc HlsVersionCheck { } {
    }
 }
 
+proc VersionCheck { lockVersion } {
+   set VersionNumber [version -short]
+   if { ${lockVersion} != ${VersionNumber} } {
+      puts "\n\n****************************************************************"
+      puts "Vivado Version Lock == ${lockVersion} != ${VersionNumber}"
+      puts "You need to change your Vivado software to Version ${lockVersion}"
+      puts "****************************************************************\n\n" 
+      return -1
+   } else {
+      return 0
+   }
+}
+
 ###############################################################
 #### Partial Reconfiguration Functions ########################
 ###############################################################
