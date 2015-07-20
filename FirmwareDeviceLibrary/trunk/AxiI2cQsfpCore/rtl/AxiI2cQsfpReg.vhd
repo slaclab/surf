@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2014-04-24
+-- Last update: 2015-07-20
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,12 +48,19 @@ end AxiI2cQsfpReg;
 
 architecture rtl of AxiI2cQsfpReg is
 
-   constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 0) := (
+   constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (
       0             => (
-         i2cAddress => "0001010000",    -- Default to the SFF-8074i standard EEPROM address (0xA0)
+         i2cAddress => "0001010000",    -- Configuration PROM
          i2cTenbit  => '0',
          dataSize   => 8,               -- in units of bits
-         endianness => '1'));           -- Big endian  
+         addrSize   => 8,               -- in units of bits
+         endianness => '1'),            -- Big endian 
+      1             => (
+         i2cAddress => "0001010001",    -- Diagnostic Monitoring 
+         i2cTenbit  => '0',
+         dataSize   => 8,               -- in units of bits
+         addrSize   => 8,               -- in units of bits
+         endianness => '1'));           -- Big endian   
 
    constant NUM_WRITE_REG_C : positive := 5;
    constant STATUS_SIZE_C   : positive := 2;
