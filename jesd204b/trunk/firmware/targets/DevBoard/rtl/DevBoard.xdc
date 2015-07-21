@@ -1,128 +1,104 @@
 #-------------------------------------------------------------------------------
-#-- Title         : HPS Front End Board Constraints
-#-- File          : FrontEndBoard.xdc
-#-- Author        : Ben Reese <bareese@slac.stanford.edu>
-#-- Created       : 11/20/2013
+#-- Title         : JESD AdcKcu105 Board Constraints
+#-- File          : JesdAdcKcu105.xdc
+#-- Author        : Uros Legat <ulegat@slac.stanford.edu>
+#-- Created       : 06/04/2015
 #-------------------------------------------------------------------------------
 #-- Description:
-#-- Constrains for the HPS Front End Board
+#-- Constrains for the Kcu105 JESD DAC TI ADC16DX370EVM
 #-------------------------------------------------------------------------------
-#-- Copyright (c) 2013 by Ben Reese. All rights reserved.
+#-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 #-------------------------------------------------------------------------------
 #-- Modification history:
-#-- 11/20/2013: created.
+#-- 06/04/2015: created.
 #-------------------------------------------------------------------------------
 
-
-
 #Clocks
-create_clock -period 8.000 -name pgpRefClk [get_ports pgpRefClkP]
+create_clock -period 8.000 -name sysClk125 [get_ports sysClk125P]
 
-create_generated_clock -name axilClk -multiply_by 1 -source [get_ports pgpRefClkP] \
-    [get_pins {ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT0}]
+create_clock -period 6.400 -name pgpRefClk [get_ports pgpRefClkP]
 
-create_generated_clock -name pgpClk  -multiply_by 10 -divide_by 8  -source [get_ports pgpRefClkP] \
-    [get_pins {ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT1}]
+create_generated_clock -name pgpClk -source [get_ports pgpRefClkP] -multiply_by 1 [get_pins ClockManager7_PGP/MmcmGen.U_Mmcm/CLKOUT0]
 
-create_clock -period 2.7027 -name jesdRefClk [get_ports fpgaDevClkaP]
-
-create_generated_clock -name jesdRefClkDiv2 -divide_by 2 -source [get_ports fpgaDevClkaP] \
-    [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}]
-
-#create_generated_clock -name jesdClk -divide_by 1 -source [get_pins {IBUFDS_GTE2_FPGADEVCLKA/ODIV2}] \
-#    [get_pins {ClockManager7_JESD/MmcmGen.U_Mmcm/CLKOUT0}]
-
-
-
-#create_generated_clock -name dnaClk -source [get_pins {SysClkMmcm_1/mmcm_adv_inst/CLKOUT0}] -edges {1 3 5} [get_pins {AxiVersion_1/GEN_DEVICE_DNA.DeviceDna_1/r_reg[dnaClk]/Q}]
-
-set_clock_groups -asynchronous \ 
-    -group [get_clocks -include_generated_clocks pgpClk] \
-    -group [get_clocks -include_generated_clocks axilClk] \
-    -group [get_clocks -include_generated_clocks jesdRefClk]
-#    -group [get_clocks -include_generated_clocks jesdClk]
-
+set_clock_groups -asynchronous\
+ -group [get_clocks -include_generated_clocks pgpRefClk]\
+ -group [get_clocks -include_generated_clocks sysClk125]
+ 
 #Assure that sychronization registers are placed in the same slice with no logic between each sync stage
-set_property ASYNC_REG TRUE [get_cells -hierarchical *crossDomainSyncReg_reg*]
+set_property ASYNC_REG true [get_cells -hierarchical *crossDomainSyncReg_reg*]
 
 
-# User clock output
-set_property PACKAGE_PIN Y23 [get_ports gpioClk]
-set_property IOSTANDARD LVCMOS25 [get_ports gpioClk]
-
-set_property PACKAGE_PIN L25 [get_ports usrClk]
-set_property IOSTANDARD LVCMOS25 [get_ports usrClk]
+# System clock
+set_property -dict {PACKAGE_PIN G10 IOSTANDARD LVDS} [get_ports sysClk125P]
+set_property -dict {PACKAGE_PIN F10 IOSTANDARD LVDS} [get_ports sysClk125N]
 
 
-set_property PACKAGE_PIN G8 [get_ports pgpRefClkP] 
-set_property PACKAGE_PIN G7  [get_ports pgpRefClkN]
+# PGP REF Clk IO
+set_property -dict {PACKAGE_PIN F12 IOSTANDARD LVCMOS18} [get_ports pgpRefClkSel]
+set_property PACKAGE_PIN P5 [get_ports pgpRefClkN]
+set_property PACKAGE_PIN P6 [get_ports pgpRefClkP]
 
-set_property PACKAGE_PIN G3 [get_ports pgpGtRxN]
-set_property PACKAGE_PIN G4 [get_ports pgpGtRxP]
-set_property PACKAGE_PIN H1 [get_ports pgpGtTxN]
-set_property PACKAGE_PIN H2 [get_ports pgpGtTxP]
-
-set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaP]
-set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkaN]
-set_property PACKAGE_PIN N8 [get_ports fpgaDevClkaP] 
-set_property PACKAGE_PIN N7 [get_ports fpgaDevClkaN]
-
-# Connected to ADC devclk B
-#set_property PACKAGE_PIN AD23 [get_ports fpgaDevClkaP] 
-#set_property PACKAGE_PIN AE24 [get_ports fpgaDevClkaN]
-
-# set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbP]
-# set_property IOSTANDARD LVDS_25 [get_ports fpgaDevClkbN]
-# set_property PACKAGE_PIN C25 [get_ports fpgaDevClkbP]
-# set_property PACKAGE_PIN B25 [get_ports fpgaDevClkbN]
-
-set_property IOSTANDARD LVDS_25 [get_ports fpgaSysRefP]
-set_property IOSTANDARD LVDS_25 [get_ports fpgaSysRefN]
-set_property PACKAGE_PIN AG20 [get_ports fpgaSysRefP]
-set_property PACKAGE_PIN AH20 [get_ports fpgaSysRefN]
-
-# set_property PACKAGE_PIN D26 [get_ports adcDevClkP]
-# set_property PACKAGE_PIN C26 [get_ports adcDevClkN]
-# set_property PACKAGE_PIN G29 [get_ports adcSysRefP]
-# set_property PACKAGE_PIN F30 [get_ports adcSysRefN]
-
-#D5 on FMC
-set_property PACKAGE_PIN F5 [get_ports {adcGtRxN[0]}]
-#D4 on FMC
-set_property PACKAGE_PIN F6 [get_ports {adcGtRxP[0]}]
-#set_property PACKAGE_PIN D5 [get_ports {adcGtRxN[1]}]
-#set_property PACKAGE_PIN D6 [get_ports {adcGtRxP[1]}]
-#set_property PACKAGE_PIN B6 [get_ports {adcGtRxN[2]}]
-#set_property PACKAGE_PIN B5 [get_ports {adcGtRxP[2]}]
-#set_property PACKAGE_PIN A8 [get_ports {adcGtRxN[3]}]
-#set_property PACKAGE_PIN A7 [get_ports {adcGtRxP[3]}]
-
-set_property IOSTANDARD LVDS_25 [get_ports syncbP]
-set_property IOSTANDARD LVDS_25 [get_ports syncbN]
-set_property PACKAGE_PIN AJ22 [get_ports {syncbP}]
-set_property PACKAGE_PIN AJ23 [get_ports {syncbN}]
-
-set_property PACKAGE_PIN AB8  [get_ports {leds[0]}]
-set_property PACKAGE_PIN AA8  [get_ports {leds[1]}]
-set_property PACKAGE_PIN AC9  [get_ports {leds[2]}]
-set_property PACKAGE_PIN AB9  [get_ports {leds[3]}]
-set_property PACKAGE_PIN AE26 [get_ports {leds[4]}]
-set_property PACKAGE_PIN G19  [get_ports {leds[5]}]
-set_property PACKAGE_PIN E18  [get_ports {leds[6]}]
-set_property PACKAGE_PIN F16  [get_ports {leds[7]}]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[0]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[2]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[1]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[3]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[4]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[5]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[6]]
-set_property IOSTANDARD LVCMOS15 [get_ports leds[7]]
-
-#GPIO0
-set_property PACKAGE_PIN AB25  [get_ports sysRef]
-set_property IOSTANDARD LVCMOS15 [get_ports sysRef]
+# PGP GT ports (SFP0)
+set_property PACKAGE_PIN T2 [get_ports pgpGtRxP]
+set_property PACKAGE_PIN T1 [get_ports pgpGtRxN]
+set_property PACKAGE_PIN U4 [get_ports pgpGtTxP]
+set_property PACKAGE_PIN U3 [get_ports pgpGtTxN]
 
 
+# JESD reference clock Devclk A (FMC-D5-P,D4-N)
+########################################################
+#set_property IOSTANDARD LVDS [get_ports fpgaDevClkaP]
+#set_property IOSTANDARD LVDS [get_ports fpgaDevClkaN]
+#set_property PACKAGE_PIN K5 [get_ports fpgaDevClkaN]
+#set_property PACKAGE_PIN K6 [get_ports fpgaDevClkaP]
+
+
+# JESD SYSREF input
+########################################################
+# From (ADC)FMC22 (FMC-G9-P,G10-N)
+set_property IOSTANDARD LVDS [get_ports fpgaSysRefP]
+set_property IOSTANDARD LVDS [get_ports fpgaSysRefN]
+set_property PACKAGE_PIN A13 [get_ports fpgaSysRefP]
+set_property PACKAGE_PIN A12 [get_ports fpgaSysRefN]
+
+# JESD NSYNC output
+########################################################
+
+# To (ADC)FMC22 (G12-P G13-N)
+set_property IOSTANDARD LVDS [get_ports syncbP]
+set_property IOSTANDARD LVDS [get_ports syncbN]
+set_property PACKAGE_PIN J8 [get_ports syncbP]
+set_property PACKAGE_PIN H8 [get_ports syncbN]
+
+# SPI ports
+set_property -dict {PACKAGE_PIN AJ8  IOSTANDARD LVCMOS18 PULLUP true}  [get_ports {spiCsL_o[0]}]
+set_property -dict {PACKAGE_PIN AJ23 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports {spiCsL_o[1]}]
+set_property -dict {PACKAGE_PIN AJ24 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports {spiCsL_o[2]}]
+set_property -dict {PACKAGE_PIN AH22 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports {spiCsL_o[3]}]
+
+set_property -dict {PACKAGE_PIN AL8 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiSclk_o]
+set_property -dict {PACKAGE_PIN AM9 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiSdi_o]
+set_property -dict {PACKAGE_PIN AJ9 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiSdo_i]
+set_property -dict {PACKAGE_PIN AK8 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiSdio_io]
+
+set_property -dict {PACKAGE_PIN AK22 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiSclkDac_o]
+set_property -dict {PACKAGE_PIN AJ21 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiSdioDac_io]
+set_property -dict {PACKAGE_PIN AK23 IOSTANDARD LVCMOS18 PULLUP true}  [get_ports spiCsLDac_o]
+
+# Leds
+set_property -dict {PACKAGE_PIN AP8 IOSTANDARD LVCMOS18} [get_ports {leds[0]}]
+set_property -dict {PACKAGE_PIN H23 IOSTANDARD LVCMOS18} [get_ports {leds[1]}]
+set_property -dict {PACKAGE_PIN P20 IOSTANDARD LVCMOS18} [get_ports {leds[2]}]
+set_property -dict {PACKAGE_PIN P21 IOSTANDARD LVCMOS18} [get_ports {leds[3]}]
+set_property -dict {PACKAGE_PIN N22 IOSTANDARD LVCMOS18} [get_ports {leds[4]}]
+
+
+# Bitstream generation options
+set_property BITSTREAM.CONFIG.CONFIGRATE 33 [current_design]
+set_property CONFIG_VOLTAGE 1.8 [current_design]
+set_property CFGBVS GND [current_design]
+set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
+set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
+set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
 
 
