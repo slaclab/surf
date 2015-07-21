@@ -41,6 +41,8 @@ architecture sim of DevBoardTb is
    -- component ports
    signal pgpRefClkP   : sl;
    signal pgpRefClkN   : sl;
+   signal sysClk125P   : sl;
+   signal sysClk125N   : sl;
    signal pgpGtRxN     : sl              := '0';
    signal pgpGtRxP     : sl              := '0';
    signal pgpGtTxN     : sl;
@@ -55,25 +57,32 @@ architecture sim of DevBoardTb is
    signal adcGtRxN     : slv(3 downto 0) := (others => '1');
    signal syncbP       : sl;
    signal syncbN       : sl;
-   signal leds         : slv(3 downto 0);
+   signal leds         : slv(4 downto 0);
 
-   signal   spiSclk_o              : sl;
-   signal   spiSdi_o               : sl;
-   signal   spiSdo_i               : sl := '0';
-   signal   spiSdio_io             : sl;
-   signal   spiCsL_o               : slv(3 downto 0);
+   signal   spiSclk_o              : sl:= '1';
+   signal   spiSdi_o               : sl:= '1';
+   signal   spiSdo_i               : sl := '1';
+   signal   spiSdio_io             : sl:= '1';
+   signal   spiCsL_o               : slv(3 downto 0):= "0000";
    signal   spiSclkDac_o           : sl := '1';
-   signal   spiSdioDac_io          : sl;
-   signal   spiCsLDac_o            : sl;
+   signal   spiSdioDac_io          : sl:= '1';
+   signal   spiCsLDac_o            : sl:= '1';
 
 begin
 
    ClkRst_1 : entity work.ClkRst
-      generic map (
-         CLK_PERIOD_G => 8 ns)
-      port map (
-         clkP => pgpRefClkP,
-         clkN => pgpRefClkN);
+   generic map (
+      CLK_PERIOD_G => 8 ns)
+   port map (
+      clkP => pgpRefClkP,
+      clkN => pgpRefClkN);
+         
+   ClkRst_2 : entity work.ClkRst
+   generic map (
+      CLK_PERIOD_G => 8 ns)
+   port map (
+      clkP => sysClk125P,
+      clkN => sysClk125N);
 
    -- component instantiation
    DUT : entity work.DevBoard
@@ -86,14 +95,17 @@ begin
          AXIS_CLK_FREQ_G        => 156.25E6,
          AXIS_FIFO_ADDR_WIDTH_G => 10)
       port map (
+         sysClk125P   => sysClk125P,
+         sysClk125N   => sysClk125N,
+         pgpRefClkSel  => open,
          pgpRefClkP   => pgpRefClkP,
          pgpRefClkN   => pgpRefClkN,
          pgpGtRxN     => pgpGtRxN,
          pgpGtRxP     => pgpGtRxP,
          pgpGtTxN     => pgpGtTxN,
          pgpGtTxP     => pgpGtTxP,
-         fpgaDevClkaP => fpgaDevClkaP,
-         fpgaDevClkaN => fpgaDevClkaN,
+ --        fpgaDevClkaP => fpgaDevClkaP,
+ --        fpgaDevClkaN => fpgaDevClkaN,
          fpgaSysRefP  => fpgaSysRefP,
          fpgaSysRefN  => fpgaSysRefN,
          -- adcGtTxP     => adcGtTxP,

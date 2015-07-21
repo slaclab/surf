@@ -2,7 +2,7 @@
 target: prom
 
 # Define target part
-export PRJ_PART = XC7K325TFFG900-2
+export PRJ_PART = XCKU040-FFVA1156-2-E
 
 # List of build core directories.
 export MODULE_DIRS = $(PROJ_DIR)/../../modules/StdLib  \

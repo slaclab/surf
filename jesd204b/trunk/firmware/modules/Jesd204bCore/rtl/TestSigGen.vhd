@@ -49,9 +49,7 @@ entity TestSigGen is
 end entity TestSigGen;
 
 architecture rtl of TestSigGen is
-   -- How many samples is in a GT word
-   constant SAMPLES_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
-   
+  
    type RegType is record
       sig         : sl;
    end record RegType;
@@ -75,7 +73,6 @@ begin
    ---------------------------------------------------------------------
    comb : process (r, rst,s_sampleDataBr, thresoldLow_i, thresoldHigh_i) is
       variable v : RegType;
-      variable v_sigVec    : slv((SAMPLES_IN_WORD_C-1) downto 0);
    begin
       v := r;
       

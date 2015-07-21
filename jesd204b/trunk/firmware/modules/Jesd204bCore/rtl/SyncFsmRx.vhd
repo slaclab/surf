@@ -144,11 +144,16 @@ architecture rtl of SyncFsmRx is
    signal rin : RegType;
    
    signal s_kDetected : sl;
+   signal s_kStable   : sl;
 
 begin
 
+   s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);
+      -- Comma detected if detected in three consecutive clock cycles
+   s_kStable   <= s_kDetected and r.kDetectRegD1 and r.kDetectRegD2 and r.kDetectRegD3;
+   
    -- State machine
-   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, gtReady_i, s_kDetected) is
+   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, gtReady_i, s_kDetected, s_kStable) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -174,11 +179,11 @@ begin
             
             -- Next state condition (depending on subclass)
             if  subClass_i = '1' then
-               if  sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' and s_kDetected = '1' then
+               if  sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' and s_kStable = '1' then
                   v.state    := SYSREF_S;
                end if;
             else  
-               if  enable_i = '1' and gtReady_i = '1' and s_kDetected = '1' then
+               if  enable_i = '1' and gtReady_i = '1' and s_kStable = '1' then
                   v.state    := SYSREF_S;
                end if;        
             end if;
@@ -270,7 +275,7 @@ begin
             -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.            
             if  r.cnt = NUM_ILAS_MF_G then
                v.state   := DATA_S;
-            elsif nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' then  
+            elsif enable_i = '0' or s_kStable = '1' then  
                v.state   := IDLE_S;           
             end if;
          ----------------------------------------------------------------------
@@ -284,7 +289,7 @@ begin
             v.sysref     := '1';
             
             -- Next state condition
-            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kDetected = '1' or gtReady_i = '0' then  
+            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kStable = '1' or gtReady_i = '0' then  
                v.state   := IDLE_S;            
             end if;
          ----------------------------------------------------------------------      
@@ -318,16 +323,13 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
-   -- Comma detected if detected in three consecutive clock cycles
-   s_kDetected <= r.kDetectRegD1 and r.kDetectRegD2 and r.kDetectRegD3;
-   
+     
    -- Output assignment
    nSync_o      <= r.nSync;
    readBuff_o   <= r.readBuff;   
    alignFrame_o <= r.alignFrame; 
    Ila_o        <= r.Ila;        
    dataValid_o  <= r.dataValid;
-   kDetected_o  <= s_kDetected;
+   kDetected_o  <= s_kStable;
    sysref_o     <= r.sysref;
 end rtl;

@@ -119,7 +119,7 @@ begin
             
             -- Increment samples within the word
             for I in (SAM_IN_WORD_C-1) downto 0 loop
-               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+I*slvToInt(rampStep_i));
+               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
             end loop;
          else
             -- Decrement sample base         
@@ -127,7 +127,7 @@ begin
             
             -- Decrement samples within the word
             for I in (SAM_IN_WORD_C-1) downto 0 loop
-               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-I*slvToInt(rampStep_i));
+               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
             end loop;
          end if;
          
