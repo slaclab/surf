@@ -57,28 +57,28 @@ architecture rtl of TrueDualPortRam is
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   shared variable mem : mem_type := (others => INIT_C);
+   signal mem : mem_type := (others => INIT_C);
 
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
-   attribute ram_style of mem : variable is "block";
+   attribute ram_style of mem : signal is "block";
 
    attribute ram_extract        : string;
-   attribute ram_extract of mem : variable is "TRUE";
+   attribute ram_extract of mem : signal is "TRUE";
 
    attribute keep        : boolean;     --"keep" is same for XST and Altera
-   attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
+   attribute keep of mem : signal is true;  --"keep" is same for XST and Altera
 
    -- Attribute for Synplicity Synthesizer 
    attribute syn_ramstyle        : string;
-   attribute syn_ramstyle of mem : variable is "block";
+   attribute syn_ramstyle of mem : signal is "block";
 
    attribute syn_keep        : string;
-   attribute syn_keep of mem : variable is "TRUE";
+   attribute syn_keep of mem : signal is "TRUE";
 
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
-   attribute ramstyle of mem : variable is ALTERA_RAM_G;
+   attribute ramstyle of mem : signal is ALTERA_RAM_G;
    
 begin
 
@@ -106,7 +106,7 @@ begin
                douta <= INIT_C after TPD_G;
             else
                if (wea = '1') and (ena = '1') then
-                  mem(conv_integer(addra)) := dina;
+                  mem(conv_integer(addra)) <= dina after TPD_G;
                else
                   douta <= mem(conv_integer(addra)) after TPD_G;
                end if;
@@ -122,7 +122,7 @@ begin
                doutb <= INIT_C after TPD_G;
             else
                if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) := dinb;
+                  mem(conv_integer(addrb)) <= dinb after TPD_G;
                else
                   doutb <= mem(conv_integer(addrb)) after TPD_G;
                end if;
@@ -142,7 +142,7 @@ begin
             else
                douta <= mem(conv_integer(addra)) after TPD_G;
                if (wea = '1') and (ena = '1') then
-                  mem(conv_integer(addra)) := dina;
+                  mem(conv_integer(addra)) <= dina after TPD_G;
                end if;
             end if;
          end if;
@@ -157,7 +157,7 @@ begin
             else
                doutb <= mem(conv_integer(addrb)) after TPD_G;
                if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) := dinb;
+                  mem(conv_integer(addrb)) <= dinb after TPD_G;
                end if;
             end if;
          end if;
@@ -174,7 +174,7 @@ begin
                douta <= INIT_C after TPD_G;
             else
                if (wea = '1') and (ena = '1') then
-                  mem(conv_integer(addra)) := dina;
+                  mem(conv_integer(addra)) <= dina after TPD_G;
                end if;
                douta <= mem(conv_integer(addra)) after TPD_G;
             end if;
@@ -189,7 +189,7 @@ begin
                doutb <= INIT_C after TPD_G;
             else
                if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) := dinb;
+                  mem(conv_integer(addrb)) <= dina after TPD_G;
                end if;
                doutb <= mem(conv_integer(addrb)) after TPD_G;
             end if;
