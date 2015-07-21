@@ -42,7 +42,7 @@ JesdRxDaq::JesdRxDaq ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index
    rl->getVariable()->setDescription("Indicates that the data acquisition is in progress");
 
    addRegisterLink(rl = new RegisterLink("SampleDecimation", baseAddress_ + (0x02*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Reduces the sample rate (0 - SR, 1 - SR/2, 2 - SR/3, etc)");
+   rl->getVariable()->setDescription("Reduces the sample rate (0 - SR, 1 - SR/2, 2 - SR/4, 2 - SR/6 etc)");
 
    addRegisterLink(rl = new RegisterLink("DaqBufferSize", baseAddress_ + (0x03*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Size of a single continuous data buffer"); 

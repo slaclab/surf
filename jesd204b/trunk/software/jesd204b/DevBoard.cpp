@@ -19,6 +19,9 @@
 #include <JesdRxDaq.h>
 #include <JesdRx.h>
 #include <JesdTx.h>
+#include <JesdTxGen.h>
+#include <SigGenRam.h>
+
 #include <Adc16Dx370.h>
 #include <Dac38J84.h>
 #include <Lmk04828.h>
@@ -45,7 +48,10 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
    addDevice(new JesdRx     ( linkConfig, baseAddress | ((0x00100000>>2) * (addrSize)), 0, this, addrSize)); 
    addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00200000>>2) * (addrSize)), 0, this, addrSize));
    addDevice(new JesdRxDaq  ( linkConfig, baseAddress | ((0x00300000>>2) * (addrSize)), 0, this, addrSize));
-   
+  
+   addDevice(new JesdTxGen  ( linkConfig, baseAddress | ((0x00400000>>2) * (addrSize)), 0, this, addrSize));
+   addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00410000>>2) * (addrSize)), 0, this, addrSize));
+    
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00500000>>2) * (addrSize)), 0, this, addrSize));
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00600000>>2) * (addrSize)), 1, this, addrSize));
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00700000>>2) * (addrSize)), 2, this, addrSize));
