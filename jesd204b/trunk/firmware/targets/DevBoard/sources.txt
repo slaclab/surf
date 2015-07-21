@@ -1,8 +1,16 @@
 vhdl work Version.vhd
-vhdl work rtl/Jesd204bGtx7.vhd
+vhdl work rtl/Decimator.vhd
+vhdl work rtl/PgpGthCoreWrapper.vhd
+vhdl work rtl/Pgp2bGthUltra.vhd
 vhdl work rtl/PgpFrontEnd.vhd
-vhdl work rtl/RatePulser.vhd
+
+vhdl work rtl/AxiLiteGenRegItf.vhd
+vhdl work rtl/SigGenLane.vhd
+vhdl work rtl/DacSignalGenerator.vhd
+
 vhdl work rtl/AxiLiteDaqRegItf.vhd
 vhdl work rtl/AxisDaq.vhd
 vhdl work rtl/AxisDaqMux.vhd
+
+vhdl work rtl/Jesd204bRxTxSim.vhd
 vhdl work rtl/DevBoard.vhd

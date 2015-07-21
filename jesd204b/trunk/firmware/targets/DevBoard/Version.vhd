@@ -16,15 +16,16 @@ USE ieee.std_logic_1164.ALL;
 
 package Version is
 
-constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"0000000F"; -- MAKE_VERSION
+constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000011"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "DevBoard: Vivado v2015.1 (x86_64) Built Tue Jul 14 10:44:08 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "DevBoard: Vivado v2015.1 (x86_64) Built Mon Jul 20 17:47:09 PDT 2015 by ulegat";
 
 end Version;
  
 -------------------------------------------------------------------------------
 -- Revision History:
 -------------------------------------------------------------------------------
+-- 05/12/2015 - 00000011      - LLRF board TX RX Siggen DAQ loopback test + SPI + RAM
 -- 05/12/2015 - 00000010      - RX - ADC board test F2 - 370 MHz out - subclass0
 -- 05/12/2015 - 0000000F      - RX - ADC board test F2 - 370 MHz out
 -- 05/11/2015 - 0000000E      - RX - ADC board test F2 - 61.44 MHz out

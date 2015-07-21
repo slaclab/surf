@@ -128,8 +128,10 @@ architecture rtl of AxiLiteTxRegItf is
       sysrefDlyTx    => (others => '0'),
       swTrigger      => (others => '0'),   
       axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
-      signalSelectArr=> (others => b"0010_0011"),
-      periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(4096,PER_STEP_WIDTH_C),
+      --signalSelectArr=> (others => b"0010_0011"),
+      --periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(4096,PER_STEP_WIDTH_C),
+      signalSelectArr=> (others => b"0000_0001"), -- Set to external
+      periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(1,PER_STEP_WIDTH_C),
       posAmplitude   => (others => '1'),
       negAmplitude   => (others => '0'),
 

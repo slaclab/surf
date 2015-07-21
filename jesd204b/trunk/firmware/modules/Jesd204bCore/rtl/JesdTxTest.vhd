@@ -158,7 +158,8 @@ begin
    
    
    s_data_sel <= s_dataValid & s_align;
-   -- GT output generation (depending on GT_WORD_SIZE_C)
+   
+   --GT output generation (depending on GT_WORD_SIZE_C)
    SIZE_4_GEN: if GT_WORD_SIZE_C = 4 generate
    ----------------------------------------------------
       with s_data_sel select

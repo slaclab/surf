@@ -127,8 +127,8 @@ architecture rtl of Jesd204bRxGthUltra is
          gtwiz_reset_rx_cdr_stable_out : out std_logic_vector(0 downto 0);
          gtwiz_reset_tx_done_out : out std_logic_vector(0 downto 0);
          gtwiz_reset_rx_done_out : out std_logic_vector(0 downto 0);
-         gtwiz_userdata_tx_in : in std_logic_vector(63 downto 0);
-         gtwiz_userdata_rx_out : out std_logic_vector(63 downto 0);
+         gtwiz_userdata_tx_in : in std_logic_vector((2*GT_WORD_SIZE_C*8)-1 downto 0);
+         gtwiz_userdata_rx_out : out std_logic_vector((2*GT_WORD_SIZE_C*8)-1 downto 0);
          drpclk_in : in std_logic_vector(1 downto 0);
          gthrxn_in : in std_logic_vector(1 downto 0);
          gthrxp_in : in std_logic_vector(1 downto 0);
@@ -185,7 +185,7 @@ architecture rtl of Jesd204bRxGthUltra is
    signal s_rxctrl2 : slv(15 downto 0);
    signal s_rxctrl3 : slv(15 downto 0);
 
-   signal s_data  : slv(63 downto 0);   
+   signal s_data  : slv((2*GT_WORD_SIZE_C*8)-1 downto 0);   
 
    signal s_devClkVec      : slv(1 downto 0);
    signal s_devClk2Vec     : slv(1 downto 0);
@@ -259,17 +259,17 @@ begin
    --------------------------------------------------------------------------------------------------
    s_gtReset <= devRst_i or uOr(s_gtUserReset);
 
-   r_jesdGtRxArr(0).data      <= s_data(31 downto 0);
-   r_jesdGtRxArr(1).data      <= s_data(63 downto 32);
+   r_jesdGtRxArr(0).data      <= s_data((GT_WORD_SIZE_C*8)-1 downto 0);
+   r_jesdGtRxArr(1).data      <= s_data((2*GT_WORD_SIZE_C*8)-1 downto (GT_WORD_SIZE_C*8));
    
-   r_jesdGtRxArr(0).dataK     <= s_rxctrl0(3  downto  0);
-   r_jesdGtRxArr(1).dataK     <= s_rxctrl0(19 downto 16);
+   r_jesdGtRxArr(0).dataK     <= s_rxctrl0(GT_WORD_SIZE_C-1  downto  0);
+   r_jesdGtRxArr(1).dataK     <= s_rxctrl0(16+GT_WORD_SIZE_C-1 downto 16);
    
-   r_jesdGtRxArr(0).dispErr   <= s_rxctrl1(3  downto  0);   
-   r_jesdGtRxArr(1).dispErr   <= s_rxctrl1(19 downto 16);   
+   r_jesdGtRxArr(0).dispErr   <= s_rxctrl1(GT_WORD_SIZE_C-1  downto  0);   
+   r_jesdGtRxArr(1).dispErr   <= s_rxctrl1(16+GT_WORD_SIZE_C-1 downto 16);
    
-   r_jesdGtRxArr(0).decErr   <= s_rxctrl3(3  downto  0);   
-   r_jesdGtRxArr(1).decErr   <= s_rxctrl3(11 downto  8);
+   r_jesdGtRxArr(0).decErr   <= s_rxctrl3(GT_WORD_SIZE_C-1  downto  0);
+   r_jesdGtRxArr(1).decErr   <= s_rxctrl3(8+GT_WORD_SIZE_C-1 downto 8);
 
    r_jesdGtRxArr(0).rstDone  <= s_rxDone;  
    r_jesdGtRxArr(1).rstDone  <= s_rxDone;
