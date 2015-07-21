@@ -121,7 +121,7 @@ begin
          v.axiWrEn := '1';
          axiSlaveWriteResponse(v.axiWriteSlave);
          
-      elsif (axiStatus.readEnable = '1') then
+      elsif (axiStatus.readEnable = '1' and r.axiRdEn="00") then
          v.axiAddr := axiReadMaster.araddr(ADDR_WIDTH_G+2-1 downto 2);
          -- If output of ram is registered, read data will be ready 2 cycles after address asserted
          -- If not registered it will be ready on next cycle
