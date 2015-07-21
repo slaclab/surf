@@ -83,7 +83,6 @@ architecture rtl of AxisDaqMux is
  -- Internal signals
 
    -- DAQ signals 
-   signal s_pulse   : sl;
    signal s_enAxi   : slv(L_AXI_G-1 downto 0);
    signal s_sampleDataArrMux : sampleDataArray(L_AXI_G-1 downto 0);
    signal s_dataValidVecMux  : slv(L_AXI_G-1 downto 0);
@@ -104,7 +103,6 @@ architecture rtl of AxisDaqMux is
    signal  s_trigHw     : sl;
    signal  s_trigSw     : sl;
    signal  s_trigComb   : sl;   
-   signal  s_trigRe     : sl;
 
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_AXI_G-1 downto 0);
@@ -188,19 +186,6 @@ begin
    -- Combine both SW and HW triggers
    s_trigComb <= s_trigHw or s_trigSw;
    
-   -- Clock divider pulse for DAQ sample rate
-   RatePulser_INST: entity work.RatePulser
-   generic map (
-      TPD_G => TPD_G)
-   port map (
-      clk       => devClk_i,
-      rst       => devRst_i,
-      rateDiv_i => s_rateDiv,
-      trig_i    => s_trigComb,
-      trigRe_o  => s_trigRe,
-      pulse_o   => s_pulse
-   );
-
    -----------------------------------------------------------
    -- MULTIPLEXER logic
    -----------------------------------------------------------    
@@ -287,8 +272,8 @@ begin
          laneNum_i      => s_laneNum(I),
          axiNum_i       => I,        
          packetSize_i   => s_axisPacketSizeReg,
-         pulse_i        => s_pulse,
-         trigRe_i       => s_trigRe,
+         rateDiv_i      => s_rateDiv,
+         trig_i         => s_trigComb,
          rxAxisMaster_o => rxAxisMasterArr_o(I),
          pause_i        => s_pause,
          sampleData_i   => s_sampleDataArrMux(I),

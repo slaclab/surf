@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:   This module sends to a single virtual Channel Lane.
---                - When data is requested by trigRe_i = '1'.
+--                - When data is requested by trig_i = '1' (rising edge is detected on trig_i).
 --                - the module sends data a packet at the time to AXI stream FIFO.
 --                - Between packets the FSM waits until txCtrl_i.pause = '0'
 --                  after that it is ready to receive the next trigger.
@@ -49,8 +49,8 @@ entity AxisDaq is
    
       -- DAQ
       packetSize_i   : in  slv(23 downto 0);    
-      pulse_i        : in  sl;
-      trigRe_i       : in  sl;
+      rateDiv_i      : in  slv(15 downto 0);
+      trig_i         : in  sl;
       
       -- Axi Stream
       rxAxisMaster_o  : out AxiStreamMasterType;
@@ -89,12 +89,34 @@ architecture rtl of AxisDaq is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    signal s_num : slv((GT_WORD_SIZE_C*8)-1 downto 0);
-   
+   signal s_rateClk : sl;
+   signal s_trigRe : sl;  
+   signal s_decSampData : slv((GT_WORD_SIZE_C*8)-1 downto 0);
+  
+  
 begin
+   
+   -- Rate divider module
+   Decimator_INST: entity work.Decimator
+   generic map (
+      TPD_G => TPD_G,
+      F_G => 2
+   )
+   port map (
+      clk           => devClk_i,
+      rst           => devRst_i,
+      sampleData_i  => sampleData_i,
+      decSampData_o => s_decSampData,
+      rateDiv_i     => rateDiv_i,
+      trig_i        => trig_i,
+      trigRe_o      => s_trigRe,
+      rateClk_o     => s_rateClk);
 
+   
+   -- Combine AXIS lane number and JESD lane number
    s_num <= intToSlv(laneNum_i,(GT_WORD_SIZE_C*4)) & intToSlv(axiNum_i,(GT_WORD_SIZE_C*4));
 
-   comb : process (devRst_i, enable_i, r, s_num, sampleData_i, pause_i, dataReady_i, packetSize_i,trigRe_i, pulse_i) is
+   comb : process (devRst_i, enable_i, r, s_num, s_decSampData, pause_i, dataReady_i, packetSize_i,s_trigRe, s_rateClk) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -125,7 +147,7 @@ begin
             v.txAxisMaster.tLast   := '0';
             
             -- Check if fifo and JESD is ready
-            if (pause_i = '0' and enable_i = '1' and dataReady_i = '1' and trigRe_i = '1') then -- TODO later add "and dataReady_i = '1' and trigRe_i = '1'"
+            if (pause_i = '0' and enable_i = '1' and dataReady_i = '1' and s_trigRe = '1') then
                -- Next State
                v.state := SOF_S;
             end if;
@@ -140,7 +162,7 @@ begin
             v.txAxisMaster.tvalid  := '1';
             
             -- Insert the axi and lane number at the first packet data word (byte swapped so it is transferred correctly)
-            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := byteSwapSlv(s_num, 4);     
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := byteSwapSlv(s_num, GT_WORD_SIZE_C);   
             v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit
@@ -151,8 +173,8 @@ begin
          when DATA_S =>
          
             -- Increment the counter
-            -- and sample data on pulse_i rate
-            if  pulse_i = '1' then
+            -- and sample data on s_rateClk rate
+            if  s_rateClk = '1' then
                v.dataCnt := r.dataCnt + 1;
                v.txAxisMaster.tvalid  := '1';
             else
@@ -161,7 +183,7 @@ begin
             end if;
             
             -- Send the JESD data 
-            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := sampleData_i;
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := s_decSampData;
             v.txAxisMaster.tLast := '0'; 
          
             -- Wait until the whole packet is sent

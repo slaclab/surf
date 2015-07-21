@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-08-22
--- Last update: 2015-04-29
+-- Last update: 2015-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,15 +27,17 @@ entity PgpFrontEnd is
    generic (
       TPD_G                  : time    := 1 ns;
       SIMULATION_G           : boolean := false;
-      PGP_REFCLK_FREQ_G      : real    := 125.0E6;
+      PGP_REFCLK_FREQ_G      : real    := 156.25E6;
       PGP_LINE_RATE_G        : real    := 3.125E9;
       PGP_CLK_FREQ_G         : real    := 156.25E6;
-      AXIL_CLK_FREQ_G        : real    := 125.0E6;
+      AXIL_CLK_FREQ_G        : real    := 156.25E6;
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
       AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
       AXIS_CONFIG_G          : AxiStreamConfigType
       );
    port (
+      stableClk : in sl;
+
       pgpRefClk : in sl;
       pgpClk    : in sl;
       pgpClkRst : in sl;
@@ -126,49 +128,44 @@ begin
    -------------------------------------------------------------------------------------------------
    REAL_PGP : if (not SIMULATION_G) generate
       
-
-      Pgp2bGtx7VarLat_1 : entity work.Pgp2bGtx7VarLat
+      Pgp2bGthUltra_1 : entity work.Pgp2bGthUltra
          generic map (
-            TPD_G                 => TPD_G,
-            STABLE_CLOCK_PERIOD_G => 4.0E-9,
-            CPLL_FBDIV_G          => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_G,
-            CPLL_FBDIV_45_G       => PGP_GTX_CPLL_CFG_C.CPLL_FBDIV_45_G,
-            CPLL_REFCLK_DIV_G     => PGP_GTX_CPLL_CFG_C.CPLL_REFCLK_DIV_G,
-            RXOUT_DIV_G           => PGP_GTX_CPLL_CFG_C.OUT_DIV_G,
-            TXOUT_DIV_G           => PGP_GTX_CPLL_CFG_C.OUT_DIV_G,
-            RX_CLK25_DIV_G        => PGP_GTX_CPLL_CFG_C.CLK25_DIV_G,
-            TX_CLK25_DIV_G        => PGP_GTX_CPLL_CFG_C.CLK25_DIV_G,
-            TX_PLL_G              => "CPLL",
-            RX_PLL_G              => "CPLL",
-            PAYLOAD_CNT_TOP_G     => 7,
-            VC_INTERLEAVE_G       => 0,  -- Sending to PGP card so can't interleave
-            NUM_VC_EN_G           => 3)
+            TPD_G             => TPD_G,
+            PAYLOAD_CNT_TOP_G => 7,
+            VC_INTERLEAVE_G   => 0,
+            NUM_VC_EN_G       => 3)
          port map (
-            stableClk    => axilClk,
-            gtCPllRefClk => pgpRefClk,
-            gtTxP        => pgpGtTxP,
-            gtTxN        => pgpGtTxN,
-            gtRxP        => pgpGtRxP,
-            gtRxN        => pgpGtRxN,
-            pgpTxReset   => pgpClkRst,
-            pgpTxClk     => pgpClk,
-            pgpRxReset   => pgpClkRst,
-            pgpRxClk     => pgpClk,
-            pgpRxIn      => pgpRxIn,
-            pgpRxOut     => pgpRxOut,
-            pgpTxIn      => pgpTxIn,
-            pgpTxOut     => pgpTxOut,
-            pgpTxMasters => pgpTxMasters,
-            pgpTxSlaves  => pgpTxSlaves,
-            pgpRxMasters => pgpRxMasters,
-            pgpRxCtrl    => pgpRxCtrl);
+            stableClk        => stableClk,
+            gtRefClk         => pgpRefClk,
+            pgpGtTxP         => pgpGtTxP,
+            pgpGtTxN         => pgpGtTxN,
+            pgpGtRxP         => pgpGtRxP,
+            pgpGtRxN         => pgpGtRxN,
+            pgpTxReset       => pgpClkRst,
+            pgpTxRecClk      => open,
+            pgpTxClk         => pgpClk,
+            pgpTxMmcmLocked  => '1',
+            pgpRxReset       => pgpClkRst,
+            pgpRxRecClk      => open,
+            pgpRxClk         => pgpClk,
+            pgpRxMmcmLocked  => '1',
+            pgpRxIn          => pgpRxIn,
+            pgpRxOut         => pgpRxOut,
+            pgpTxIn          => pgpTxIn,
+            pgpTxOut         => pgpTxOut,
+            pgpTxMasters     => pgpTxMasters,
+            pgpTxSlaves      => pgpTxSlaves,
+            pgpRxMasters     => pgpRxMasters,
+            pgpRxMasterMuxed => open,
+            pgpRxCtrl        => pgpRxCtrl);
+
    end generate REAL_PGP;
 
    SIM_PGP : if (SIMULATION_G) generate
       PgpSimModel_1 : entity work.PgpSimModel
          generic map (
             TPD_G      => TPD_G,
-            LANE_CNT_G => 1)
+            LANE_CNT_G => 2)
          port map (
             pgpTxClk         => pgpClk,
             pgpTxClkRst      => pgpClkRst,
@@ -193,6 +190,7 @@ begin
          TPD_G               => TPD_G,
          EN_32BIT_ADDR_G     => false,
          BRAM_EN_G           => true,
+         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_G = AXIL_CLK_FREQ_G),
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 2**9-32,

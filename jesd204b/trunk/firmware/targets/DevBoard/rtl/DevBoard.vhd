@@ -40,19 +40,23 @@ entity DevBoard is
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
       AXIS_FIFO_ADDR_WIDTH_G : integer := 9);
    port (
-      pgpRefClkP : in sl;
-      pgpRefClkN : in sl;
+      sysClk125P : in sl;
+      sysClk125N : in sl;
 
-      -- PGP MGT signals
-      pgpGtRxN : in  sl;                -- SFP+ 
-      pgpGtRxP : in  sl;
-      pgpGtTxN : out sl;
-      pgpGtTxP : out sl;
+      -- PGP MGT signals (SFP)
+      pgpRefClkSel : out sl := '0';
+      pgpRefClkP   : in  sl;
+      pgpRefClkN   : in  sl;
+      pgpGtRxN     : in  sl;
+      pgpGtRxP     : in  sl;
+      pgpGtTxN     : out sl;
+      pgpGtTxP     : out sl;
 
       -- FMC Signals -- 
+      -------------------------------------------------------------------
       -- Signals from clock manager
-      fpgaDevClkaP : in sl;             -- GBT_CLK_0_P - FMC D3
-      fpgaDevClkaN : in sl;             -- GBT_CLK_0_N - FMC D4
+   --   fpgaDevClkaP : in sl;             -- FMC-D3-P
+  --    fpgaDevClkaN : in sl;             -- FMC-D4-N
 --      fpgaDevClkbP : in sl;             -- LA00_P_CC - FMC G6
 --      fpgaDevClkbN : in sl;             -- LA00_N_CC - FMC G7
       
@@ -63,27 +67,8 @@ entity DevBoard is
       fpgaSysRefP  : in sl;             -- LA03_P - FMC G9
       fpgaSysRefN  : in sl;             -- LA04_N - FMC G10
 
-      -- Signals to ADC (if clock manager not used)
---      adcDevClkP : out sl;              -- LA01_P_CC - FMC D7
---      adcDevClkN : out sl;              -- LA01_N_CC - FMC D8
---      adcSysRefP : out sl;              -- LA05_P_CC - FMC D11
---      adcSysRefN : out sl;              -- LA05_N_CC - FMC D12
-
-      -- JESD MGT signals
-     -- adcGtTxP : out slv(3 downto 0);   -- FMC HPC DP[3:0]
-     -- adcGtTxN : out slv(3 downto 0);
-     -- adcGtRxP : in  slv(3 downto 0);
-     -- adcGtRxN : in  slv(3 downto 0);
-
-      -- JESD receiver requesting sync (Used in all subclass modes)
-      -- '1' - synchronisation OK
-      -- '0' - synchronisation Not OK - synchronisation request
       syncbP : out sl;                  
-      syncbN : out sl;                  
-
-      -- Adc OVR/trigger signals
---      ovraTrigRdy : in sl;            
---      ovrbTrigger : in sl;            
+      syncbN : out sl;       
 
       -- ADC and LMK SPI config interface
       spiSclk_o : out   sl;               
@@ -98,7 +83,7 @@ entity DevBoard is
       spiCsLDac_o  : out   sl;
         
       -- Onboard LEDs
-      leds : out slv(3 downto 0));
+      leds : out slv(4 downto 0));
 
 
 end entity DevBoard;
@@ -160,7 +145,13 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- Clock Signals
    -------------------------------------------------------------------------------------------------
+   
+   signal sysClk125  : sl;
+   signal sysClk125G : sl;
+   signal sysClk125Rst : sl;
+
    signal pgpRefClk  : sl;
+   signal pgpRefClkDiv2 : sl;
    signal pgpRefClkG : sl;
    signal axilClk    : sl;
    signal axilClkRst : sl;
@@ -182,21 +173,19 @@ architecture rtl of DevBoard is
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 9;
+   constant NUM_AXI_MASTERS_C : natural := 10;
 
    constant VERSION_AXIL_INDEX_C    : natural   := 0;
    constant JESD_AXIL_RX_INDEX_C    : natural   := 1;
    constant JESD_AXIL_TX_INDEX_C    : natural   := 2;
    constant DAQ_AXIL_INDEX_C        : natural   := 3;
+   constant DISP_AXIL_INDEX_C       : natural   := 4;
+   constant ADC_0_INDEX_C           : natural   := 5;
+   constant ADC_1_INDEX_C           : natural   := 6;
+   constant ADC_2_INDEX_C           : natural   := 7;
+   constant LMK_INDEX_C             : natural   := 8;
    
-  -- constant DISP_AXIL_INDEX_C       : natural   := 4;
-  
-   constant ADC_0_INDEX_C           : natural   := 4;
-   constant ADC_1_INDEX_C           : natural   := 5;
-   constant ADC_2_INDEX_C           : natural   := 6;
-   
-   constant LMK_INDEX_C             : natural   := 7;
-   constant DAC_INDEX_C             : natural   := 8;
+   constant DAC_INDEX_C             : natural   := 9;
 
 
    
@@ -204,9 +193,7 @@ architecture rtl of DevBoard is
    constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"0010_0000";
    constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"0020_0000";
    constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"0030_0000";
-   
-  -- constant DISP_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"0040_0000";
-   
+   constant DISP_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"0040_0000";
    constant ADC_0_BASE_ADDR_C        : slv(31 downto 0)   := X"0050_0000";
    constant ADC_1_BASE_ADDR_C        : slv(31 downto 0)   := X"0060_0000";
    constant ADC_2_BASE_ADDR_C        : slv(31 downto 0)   := X"0070_0000";
@@ -230,21 +217,25 @@ architecture rtl of DevBoard is
          baseAddr          => DAQ_AXIL_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"),
+      DISP_AXIL_INDEX_C    => (
+         baseAddr          => DISP_AXIL_BASE_ADDR_C,
+         addrBits          => 20,
+         connectivity      => X"0001"),
       ADC_0_INDEX_C => (
          baseAddr          => ADC_0_BASE_ADDR_C,
-         addrBits          => 16,
+         addrBits          => 20,
          connectivity      => X"0001"),
       ADC_1_INDEX_C    => (
          baseAddr          => ADC_1_BASE_ADDR_C,
-         addrBits          => 16,
+         addrBits          => 20,
          connectivity      => X"0001"),
       ADC_2_INDEX_C    => (
          baseAddr          => ADC_2_BASE_ADDR_C,
-         addrBits          => 16,
+         addrBits          => 20,
          connectivity      => X"0001"),
       LMK_INDEX_C    => (
          baseAddr          => LMK_BASE_ADDR_C,
-         addrBits          => 16,
+         addrBits          => 20,
          connectivity      => X"0001"),   
       DAC_INDEX_C    => (
          baseAddr          => DAC_BASE_ADDR_C,
@@ -262,9 +253,11 @@ architecture rtl of DevBoard is
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    
    -- Sample data
-   signal s_sampleDataArr   : sampleDataArray(L_C-1 downto 0);
+   signal s_sampleDataArrIn   : sampleDataArray(L_C-1 downto 0);
    signal s_dataValidVec    : slv(L_C-1 downto 0);
 
+   signal s_sampleDataArrOut   : sampleDataArray(L_C-1 downto 0);
+   
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
    -------------------------------------------------------------------------------------------------
@@ -276,20 +269,19 @@ architecture rtl of DevBoard is
 
 begin
 
+    -------------------------------------------------------------------------------------------------
+   -- System clock
    -------------------------------------------------------------------------------------------------
-   -- Bring in gt reference clocks
-   -------------------------------------------------------------------------------------------------
-   IBUFDS_GTE2_GTREFCLK125 : IBUFDS_GTE2
+   IBUFDS_SYSCLK125 : IBUFDS
       port map (
-         I   => pgpRefClkP,
-         IB  => pgpRefClkN,
-         CEB => '0',
-         O   => pgpRefClk);
+         I  => sysClk125P,
+         IB => sysClk125N,
+         O  => sysClk125);
 
-   GTREFCLK125_BUFG : BUFG
+   BUFG_SYSCLK125 : BUFG
       port map (
-         I => pgpRefClk,
-         O => pgpRefClkG);
+         I => sysClk125,
+         O => sysClk125G);
 
    PwrUpRst_1 : entity work.PwrUpRst
       generic map (
@@ -298,13 +290,34 @@ begin
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1')
       port map (
-         clk    => pgpRefClkG,
+         clk    => sysClk125G,
          rstOut => powerOnReset);
 
+   sysClk125Rst <= masterReset or powerOnReset;
+   
+        
    -------------------------------------------------------------------------------------------------
-   -- Create global clocks from gt ref clocks
+   -- PGP Refclk
    -------------------------------------------------------------------------------------------------
-   pgpMmcmRst <= masterReset or powerOnReset;
+   PGPREFCLK_IBUFDS_GTE3 : IBUFDS_GTE3
+      port map (
+         I     => pgpRefClkP,
+         IB    => pgpRefClkN,
+         CEB   => '0',
+         ODIV2 => pgpRefClkDiv2,
+         O     => pgpRefClk);
+
+   PGPREFCLK_BUFG_GT : BUFG_GT
+      port map (
+         I       => pgpRefClkDiv2,
+         CE      => '1',
+         CLR     => '0',
+         CEMASK  => '1',
+         CLRMASK => '1',
+         DIV     => "000",              -- GT_WORD_SIZE_C=4
+         O       => pgpRefClkG);
+
+   pgpMmcmRst <= powerOnReset or masterReset;
 
    ClockManager7_PGP : entity work.ClockManager7
       generic map (
@@ -312,43 +325,24 @@ begin
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
          FB_BUFG_G          => true,
-         NUM_CLOCKS_G       => 2,
+         NUM_CLOCKS_G       => 1,
          BANDWIDTH_G        => "OPTIMIZED",
          CLKIN_PERIOD_G     => PGP_REFCLK_PERIOD_C*1.0E9,
          DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => 7.5,
-         CLKOUT0_DIVIDE_F_G => 7.5,
-         CLKOUT0_RST_HOLD_G => 16,
-         CLKOUT1_DIVIDE_G   => 6,
-         CLKOUT1_RST_HOLD_G => 16)
+         CLKFBOUT_MULT_F_G  => 6.375,
+         CLKOUT0_DIVIDE_F_G => 6.375,
+         CLKOUT0_RST_HOLD_G => 16)
       port map (
          clkIn     => pgpRefClkG,
          rstIn     => pgpMmcmRst,
-         clkOut(0) => axilClk,
-         clkOut(1) => pgpClk,
-         rstOut(0) => axilClkRst,
-         rstOut(1) => pgpClkRst);
+         clkOut(0) => pgpClk,
+         rstOut(0) => pgpClkRst);
 
-   -------------------------------------------------------------------------------------------------
-   -- LED Test Outputs
-   -------------------------------------------------------------------------------------------------
-   Heartbeat_axilClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 8.0E-9,
-         PERIOD_OUT_G => 0.8)
-      port map (
-         clk => axilClk,
-         o   => leds(0));
+   -- Use pgp clock for axil clock
+   axilClk    <= pgpClk;
+   axilClkRst <= pgpClkRst;
 
-   Heartbeat_pgpClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 6.4E-9,
-         PERIOD_OUT_G => 0.64)
-      port map (
-         clk => pgpClk,
-         o   => leds(1));
+ 
    -------------------------------------------------------------------------------------------------
    -- PGP Interface 
    -------------------------------------------------------------------------------------------------
@@ -363,6 +357,7 @@ begin
          AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
          AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
       port map (
+         stableClk       => sysClk125G,
          pgpRefClk       => pgpRefClk,
          pgpClk          => pgpClk,
          pgpClkRst       => pgpClkRst,
@@ -410,9 +405,9 @@ begin
    AxiVersion_1 : entity work.AxiVersion
       generic map (
          TPD_G            => TPD_G,
-         EN_DEVICE_DNA_G  => true,
+         EN_DEVICE_DNA_G  => false,
          EN_DS2411_G      => false,
-         EN_ICAP_G        => true,
+         EN_ICAP_G        => false,
          AUTO_RELOAD_EN_G => false)
       port map (
          axiClk         => axilClk,
@@ -427,21 +422,21 @@ begin
    -------------------------------------------------------------------------------------------------
    -- JESD Clocking
    -------------------------------------------------------------------------------------------------
-   IBUFDS_GTE2_FPGADEVCLKA : IBUFDS_GTE2
-      port map (
-         I     => fpgaDevClkaP,
-         IB    => fpgaDevClkaN,
-         CEB   => '0',
-         ODIV2 => jesdRefClkDiv2,
-         O     => jesdRefClk          
-   );
+   -- IBUFDS_GTE2_FPGADEVCLKA : IBUFDS_GTE2
+      -- port map (
+         -- I     => fpgaDevClkaP,
+         -- IB    => fpgaDevClkaN,
+         -- CEB   => '0',
+         -- ODIV2 => jesdRefClkDiv2,
+         -- O     => jesdRefClk          
+   -- );
      
-   JESDREFCLK_BUFG : BUFG
-      port map (
-         I => jesdRefClkDiv2,
-         O => jesdRefClkG);
+   -- JESDREFCLK_BUFG : BUFG
+      -- port map (
+         -- I => jesdRefClkDiv2,
+         -- O => jesdRefClkG);
 
-   jesdMmcmRst <= powerOnReset or masterReset;
+   -- jesdMmcmRst <= powerOnReset or masterReset;
 
    -- ClockManager7_JESD : entity work.ClockManager7
       -- generic map (
@@ -466,32 +461,9 @@ begin
    jesdClkRst <= pgpClkRst;
     
    -------------------------------------------------------------------------------------------------
-   -- QPLL for JESD MGTs
-   ------------------------------------------------------------------------------------------------- 
-   Gtx7QuadPll_INST: entity work.Gtx7QuadPll
-   generic map (
-      TPD_G               => TPD_G,
-      QPLL_CFG_G          => x"0680181", -- TODO check
-      QPLL_REFCLK_SEL_G   => "001",      -- Should be ok
-      QPLL_FBDIV_G        => QPLL_CONFIG_C.QPLL_FBDIV_G,      -- use getGtx7QPllCfg to set
-      QPLL_FBDIV_RATIO_G  => QPLL_CONFIG_C.QPLL_FBDIV_RATIO_G,-- use getGtx7QPllCfg to set
-      QPLL_REFCLK_DIV_G   => QPLL_CONFIG_C.QPLL_REFCLK_DIV_G  -- use getGtx7QPllCfg to set
-   )
-   port map (
-      qPllRefClk     => jesdRefClk, -- Reference clock directly from the output
-      qPllOutClk     => qPllOutClk,
-      qPllOutRefClk  => qPllOutRefClk,
-      qPllLock       => qPllLock,
-      qPllLockDetClk => '0',
-      qPllRefClkLost => qPllRefClkLost,
-      qPllPowerDown  => '0',
-      qPllReset      => qPllReset(0)
-   );      
-  
-   -------------------------------------------------------------------------------------------------
    -- JESD block
    -------------------------------------------------------------------------------------------------   
-   Jesd204bGtx7_INST: entity work.Jesd204bGtx7
+   Jesd204bRxTxSim_INST: entity work.Jesd204bRxTxSim
    generic map (
       TPD_G       => TPD_G,
         
@@ -504,26 +476,7 @@ begin
       
       -- Simulation (no GT core, RX module is fed from Tx module)
       SIM_G       =>  true,      
-      
-      -- CPLL Configurations (not used)
-      CPLL_FBDIV_G          => 4,  -- use getGtx7CPllCfg to set
-      CPLL_FBDIV_45_G       => 4,  -- use getGtx7CPllCfg to set
-      CPLL_REFCLK_DIV_G     => 1,  -- use getGtx7CPllCfg to set
-      
-      RXOUT_DIV_G           => QPLL_CONFIG_C.OUT_DIV_G,  -- use getGtx7QPllCfg to set
-      RX_CLK25_DIV_G        => QPLL_CONFIG_C.CLK25_DIV_G,-- use getGtx7QPllCfg to set,
-                                                       
-      -- Configure PLL sources
-      TX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
-      RX_PLL_G              =>  "QPLL", -- "QPLL" or "CPLL"
-      
-      -- MGT Configurations (USE Xilinx Coregen to set those, depending on the clocks)
-      PMA_RSV_G             =>  x"001E7080",            -- Values from coregen     
-      RX_OS_CFG_G           =>  "0000010000000",        -- Values from coregen 
-      RXCDR_CFG_G           =>  x"03000023ff10400020",  -- Values from coregen  
-      RXDFEXYDEN_G          =>  '1',                    -- Values from coregen 
-      RX_DFE_KL_CFG2_G      =>  x"301148AC",            -- Values from coregen 
-      
+          
       -- AXI
       AXI_ERROR_RESP_G      => AXI_RESP_SLVERR_C,
       
@@ -538,18 +491,7 @@ begin
       devClk_i          => jesdClk, -- both same
       devClk2_i         => jesdClk, -- both same
       devRst_i          => jesdClkRst,
-      
-      qPllRefClkIn      => qPllOutRefClk,
-      qPllClkIn         => qPllOutClk,
-      qPllLockIn        => qPllLock,
-      qPllRefClkLostIn  => qPllRefClkLost,
-      qPllResetOut      => qPllReset, 
-
-      gtTxP             => open,--adcGtTxP(1 downto 0),
-      gtTxN             => open,--adcGtTxN(1 downto 0),
-      gtRxP             => "000000",--adcGtRxP(5 downto 0),
-      gtRxN             => "000000",--adcGtRxN(5 downto 0),
-   
+        
       axiClk            => axilClk,
       axiRst            => axilClkRst,
       
@@ -564,8 +506,11 @@ begin
       axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_TX_INDEX_C),
       
             
-      sampleDataArr_o   => s_sampleDataArr,
+      sampleDataArr_o   => s_sampleDataArrOut,
       dataValidVec_o    => s_dataValidVec,
+      
+      sampleDataArr_i   => s_sampleDataArrIn,
+      
 
       rxAxisMasterArr   => open,
       rxCtrlArr         => (others => AXI_STREAM_CTRL_INIT_C),
@@ -593,10 +538,31 @@ begin
       axilWriteMaster => locAxilWriteMasters(DAQ_AXIL_INDEX_C),
       axilWriteSlave  => locAxilWriteSlaves(DAQ_AXIL_INDEX_C),  
       
-      sampleDataArr_i   => s_sampleDataArr,
+      sampleDataArr_i   => s_sampleDataArrOut,
       dataValidVec_i    => s_dataValidVec,
       rxAxisMasterArr_o => axisTxMasters,
       rxCtrlArr_i       => axisTxCtrl);
+      
+   -------------------------------------------------------------------------------------------------
+   -- DAC Signal Generator block
+   -------------------------------------------------------------------------------------------------    
+   DacSignalGenerator_INST: entity work.DacSignalGenerator
+   generic map (
+      TPD_G            => TPD_G,
+      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+      ADDR_WIDTH_G     => 9,
+      DATA_WIDTH_G     => 32,
+      L_G              => L_C)
+   port map (
+      axiClk          => axilClk,
+      axiRst          => axilClkRst,
+      devClk_i        => jesdClk,
+      devRst_i        => jesdClkRst,
+      axilReadMaster  => locAxilReadMasters(DISP_AXIL_INDEX_C),
+      axilReadSlave   => locAxilReadSlaves(DISP_AXIL_INDEX_C),
+      axilWriteMaster => locAxilWriteMasters(DISP_AXIL_INDEX_C),
+      axilWriteSlave  => locAxilWriteSlaves(DISP_AXIL_INDEX_C),  
+      sampleDataArr_o => s_sampleDataArrIn);
 
    ----------------------------------------------------------------
    -- Put sync and sysref on differential io buffer
@@ -637,10 +603,10 @@ begin
       port map (
          axiClk         => axilClk,
          axiRst         => axilClkRst,
-         axiReadMaster  => locAxilReadMasters(4+I),
-         axiReadSlave   => locAxilReadSlaves(4+I),
-         axiWriteMaster => locAxilWriteMasters(4+I),
-         axiWriteSlave  => locAxilWriteSlaves(4+I),  
+         axiReadMaster  => locAxilReadMasters(ADC_0_INDEX_C+I),
+         axiReadSlave   => locAxilReadSlaves(ADC_0_INDEX_C+I),
+         axiWriteMaster => locAxilWriteMasters(ADC_0_INDEX_C+I),
+         axiWriteSlave  => locAxilWriteSlaves(ADC_0_INDEX_C+I),  
          coreSclk       => coreSclk(I),
          coreSDin       => muxSDin,
          coreSDout      => coreSDout(I),
@@ -708,5 +674,36 @@ begin
          O  => spiSDinDac,
          IO => spiSdioDac_io,
          T  => spiSDoutDac);
+  
+   -------------------------------------------------------------------------------------------------
+   -- Debug outputs
+   -------------------------------------------------------------------------------------------------
+   -- LED Test Outputs
+   Heartbeat_axilClk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 8.0E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => axilClk,
+         o   => leds(0));
 
+   Heartbeat_pgpClk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 6.4E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => pgpClk,
+         o   => leds(1));
+         
+   Heartbeat_jesdclk : entity work.Heartbeat
+      generic map (
+         TPD_G        => TPD_G,
+         PERIOD_IN_G  => 2.7E-9,
+         PERIOD_OUT_G => 1.0)
+      port map (
+         clk => jesdClk,
+         o   => leds(4));      
+         
 end architecture rtl;
