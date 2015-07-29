@@ -279,10 +279,10 @@ if { [version -short] <= 2014.2 } {
    set in  [open ${simTbOutDir}/compile.sh r]
    set out [open ${simTbOutDir}/compile.temp  w]
 
-   # Find and replace the AFS path 
+   # Find and replace the AFS path and added secure Verilog support
    while { [eof ${in}] != 1 } {
       gets ${in} line
-      set line [string map {"-full64" "-full64 -nc -l"} ${line}]
+      set line [string map {"-full64" "-full64 -nc -l +v2k"} ${line}]
       puts ${out} ${line} 
    }
 
@@ -312,6 +312,9 @@ if { [version -short] <= 2014.2 } {
       # Replace ${simTbFileName}_simv with the simv
       set replaceString "${simTbFileName}_simv simv"
       set line [string map ${replaceString}  ${line}] 
+
+      # By default: Mask off warnings during elaboration
+      set line [string map {"-full64" "-full64 +warn=none"} ${line}]
 
       # Write to file
        puts ${out} ${line} 
