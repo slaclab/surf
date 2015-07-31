@@ -25,7 +25,10 @@ using namespace std;
 class Lmk04828 : public Device {
 
    public:
-
+      //! Device configuration address range constants
+      #define START_ADDR 0x100     
+      #define END_ADDR   0x17D
+      
       //! Constructor
       /*! 
        * \param linkConfig Device linkConfig

@@ -158,7 +158,7 @@ begin
       devRst_i          => devRst_i,
       sysRef_i          => s_sysRef,
       r_jesdGtRxArr     => r_jesdGtRxArr,
-      gt_reset_o        => s_gtRxUserReset,
+      gtRxReset_o       => s_gtRxUserReset,
       sampleDataArr_o   => sampleDataArr_o,
       dataValidVec_o    => dataValidVec_o,
       nSync_o           => s_nSync,

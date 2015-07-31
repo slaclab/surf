@@ -28,19 +28,21 @@ using namespace std;
 // Constructor
 Dac38J84::Dac38J84 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize ) : 
                         Device(linkConfig,baseAddress,"Dac38J84",index,parent) {
-
-   // Description
-   desc_ = "ADC data acquisition control";
+   uint32_t i;
+   RegisterLink *rl;
+   stringstream tmp;
+   
+  // Description
+   desc_ = "DAC data acquisition control";
 
    // Create Registers: name, address
-   RegisterLink *rl;
-   
-   addRegisterLink(rl = new RegisterLink("CONFIG_0", baseAddress_ + (0x00*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Various configuration");
-   
-   addRegisterLink(rl = new RegisterLink("CONFIG_127", baseAddress_ + (0x80*addrSize), Variable::Status));
-   rl->getVariable()->setDescription("Errors, Vendor id, version");
-   
+   for (i=START_ADDR;i<=END_ADDR;i++) {
+      tmp.str("");
+      tmp << "DacReg" << hex << setw(4) << setfill('0') << hex << i;
+      addRegisterLink(rl = new RegisterLink(tmp.str(), (baseAddress_+ (i*addrSize)), Variable::Configuration));
+      rl->getVariable()->setPerInstance(true);                                                                              
+   }  
+
    // Variables
    getVariable("Enabled")->setHidden(true);
    

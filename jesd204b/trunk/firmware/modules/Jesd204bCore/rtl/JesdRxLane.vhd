@@ -247,7 +247,7 @@ begin
    -- - Delay the s_bufWe to use it for s_bufRe 
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
-   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb) is
+   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync) is
       variable v : RegType;
    begin
       v := r;
@@ -255,7 +255,7 @@ begin
       v.bufWeD1 := s_bufWe;
 
       -- Register errors (store until reset)
-      if (r_jesdGtRx.rstDone = '1') then
+      if (r_jesdGtRx.rstDone = '1' and s_nSync = '1') then
          for I in 0 to(ERR_REG_WIDTH_C-1) loop
             if (s_errComb(I) = '1') then
                v.errReg(I) := '1';

@@ -52,9 +52,9 @@ entity PgpGthCoreWrapper is
       txResetDone    : out sl;
       txData         : in  slv(15 downto 0);
       txDataK        : in  slv(1 downto 0);
-      txOutClk       : out sl;
+      txOutClk       : out sl
 
-      loopback : in slv(2 downto 0)
+      --loopback : in slv(2 downto 0)
       );
 end entity PgpGthCoreWrapper;
 
@@ -80,8 +80,9 @@ architecture rtl of PgpGthCoreWrapper is
          gthrxn_in                          : in  slv(0 downto 0);
          gthrxp_in                          : in  slv(0 downto 0);
          gtrefclk0_in                       : in  slv(0 downto 0);
-         loopback_in                        : in  slv(2 downto 0);
+        -- loopback_in                        : in  slv(2 downto 0);
          rx8b10ben_in                       : in  slv(0 downto 0);
+         rxbufreset_in                      : in  slv(0 DOWNTO 0);
          rxcommadeten_in                    : in  slv(0 downto 0);
          rxmcommaalignen_in                 : in  slv(0 downto 0);
          rxpcommaalignen_in                 : in  slv(0 downto 0);
@@ -132,7 +133,7 @@ begin
          gthrxn_in(0)                          => gtRxN,
          gthrxp_in(0)                          => gtRxP,
          gtrefclk0_in(0)                       => gtRefClk,
-         loopback_in                           => loopback,
+        -- loopback_in                           => loopback,
          rx8b10ben_in(0)                       => '1',
          rxcommadeten_in(0)                    => '1',
          rxmcommaalignen_in(0)                 => '1',
@@ -141,6 +142,7 @@ begin
          rxusrclk_in(0)                        => rxUsrClk,
          rxusrclk2_in(0)                       => rxUsrClk,
          tx8b10ben_in(0)                       => '1',
+         rxbufreset_in(0)                      => '0',
          txctrl0_in                            => X"0000",
          txctrl1_in                            => X"0000",
          txctrl2_in(1 downto 0)                => txDataK,
@@ -163,5 +165,4 @@ begin
          rxpmaresetdone_out(0)                 => open,
          txoutclk_out(0)                       => txOutClk,
          txpmaresetdone_out(0)                 => open);
-
 end architecture rtl;

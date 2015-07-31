@@ -12,9 +12,13 @@ package Jesd204bPkg is
    constant GT_WORD_SIZE_C : positive := 4;
    
    -- 8B10B characters (8-bit values)
+   -- K.28.5
    constant K_CHAR_C : slv(7 downto 0) := x"BC";
+   -- K.28.0
    constant R_CHAR_C : slv(7 downto 0) := x"1C";
-   constant A_CHAR_C : slv(7 downto 0) := x"7C";   
+   -- K.28.3
+   constant A_CHAR_C : slv(7 downto 0) := x"7C";
+   -- K.28.7   
    constant F_CHAR_C : slv(7 downto 0) := x"FC";
    
    -- Register or counter widths

@@ -51,7 +51,7 @@ entity AtcaDemoBoard is
       AXIL_CLK_FREQ_G        : real    := 156.25E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 12;
       
       --JESD configuration
       -----------------------------------------------------
@@ -68,81 +68,108 @@ entity AtcaDemoBoard is
       -- K*F/GT_WORD_SIZE_C has to be integer     
       K_G                : positive := 32;
       -- Number of serial lanes: 1 to 16    
-      L_RX_G                : positive := 6;
-      L_AXI_G               : positive := 2
+      L_RX_G             : positive := 6;
+      L_TX_G             : positive := 2;
+      L_AXI_G            : positive := 2;
+      GEN_BRAM_ADDR_WIDTH_G  : integer range 1 to (2**24) := 12
    );
    port (
+
+      -- RTM's High Speed Ports
       -- PGP MGT signals (SFP)
-      pgpRefClkSel : out sl := '0';
-      pgpRefClkP   : in  sl;
-      pgpRefClkN   : in  sl;
-      pgpGtRxN     : in  sl;
-      pgpGtRxP     : in  sl;
-      pgpGtTxN     : out sl;
-      pgpGtTxP     : out sl;
+      rtmHsRxP      : in    sl;
+      rtmHsRxN      : in    sl;
+      rtmHsTxP      : out   sl;
+      rtmHsTxN      : out   sl;
+      -- 156.25MHz
+      genClkP       : in    sl;
+      genClkN       : in    sl;
 
       -- FMC Signals -- 
       -------------------------------------------------------------------
-      -- Signals from clock manager
-      fpgaDevClkaP : in sl;             
-      fpgaDevClkaN : in sl;             
-      
-      -- JESD synchronisation timing signal (Used in subclass 1 mode)
-      -- has to meet setup and hold times of JESD devClk
-      -- periodic (period has to be multiple of LMFC clock)
-      -- single   (another pulse has to be generated if re-sync needed)      
-      fpgaSysRefP  : in sl;            
-      fpgaSysRefN  : in sl;            
 
-      -- JESD MGT signals
-      adcGtTxP : out slv(5 downto 0);    
-      adcGtTxN : out slv(5 downto 0);
-      adcGtRxP : in  slv(5 downto 0);
-      adcGtRxN : in  slv(5 downto 0);
+      -- JESD PORTS
+      jesdRxP       : in    Slv6Array(1 downto 1);
+      jesdRxN       : in    Slv6Array(1 downto 1);
+      jesdTxP       : out   Slv6Array(1 downto 1);
+      jesdTxN       : out   Slv6Array(1 downto 1);
 
-      -- JESD receiver requesting sync (Used in all subclass modes)
+      jesdClkP      : in    Slv1Array(1 downto 1);
+      jesdClkN      : in    Slv1Array(1 downto 1);         
+            
+      -- AMC's System Reference Ports
+      sysRefP       : inout Slv1Array(1 downto 1);
+      sysRefN       : inout Slv1Array(1 downto 1);           
+
+      -- JESD receiver sending sync to ADCs (Used in all subclass modes)
       -- '1' - synchronisation OK
       -- '0' - synchronisation Not OK - synchronisation request
-      syncb1P : out sl;                  
-      syncb1N : out sl;
-      syncb2P : out sl;                  
-      syncb2N : out sl;
-      syncb3P : out sl;                  
-      syncb3N : out sl;     
+      syncOutP       : out Slv3Array(1 downto 1);
+      syncOutN       : out Slv3Array(1 downto 1);
+      
+      -- JESD transmitter receiving sync from DAC (Used in all subclass modes)
+      -- '1' - synchronisation OK
+      -- '0' - synchronisation Not OK - synchronisation request      
+      syncInP       : in Slv1Array(1 downto 1);
+      syncInN       : in Slv1Array(1 downto 1);     
+        
+      -- ADC and LMK SPI config interface
+      spiSclk_o  : out   sl;               
+      spiSdi_o   : out   sl;               
+      spiSdo_i   : in    sl;
+      spiSdio_io : inout sl;
+      spiCsL_o   : out   slv(3 downto 0);
 
-      -- ADC SPI config interface
---      spiSclk : out sl;
---      spiSdi  : out sl;
---      spiSdo  : in  sl;
---      spiCsL  : out sl;
+      -- DAC SPI config interface
+      spiSclkDac_o  : out   sl;               
+      spiSdioDac_io : inout sl;
+      spiCsLDac_o   : out   sl;
          
       -- External HW Acquisition trigger
-      trigHW: in sl;
+      trigHW: in sl
       
       -- Debug Signals -- 
       -------------------------------------------------------------------
       -- Onboard LEDs
-      leds : out slv(7 downto 0);
+      -- leds : out slv(7 downto 0);
           
-      -- Out JESD clock 185MHz
-      gpioClk    : out sl;
+      -- -- Out JESD clock 185MHz
+      -- gpioClk    : out sl;
       
-      -- Sysref output pin      
-      sysrefDbg  : out sl;
+      -- -- Sysref output pin      
+      -- sysrefDbg  : out sl;
       
-      -- Digital square wave signal for deterministic latency check (Adjustable by setting the threshold registers)      
-      rePulseDbg : out slv(1 downto 0) 
+      -- -- Digital square wave signal for deterministic latency check (Adjustable by setting the threshold registers)      
+      -- rePulseDbg : out slv(1 downto 0) 
       
    );
 end entity AtcaDemoBoard;
 
 architecture rtl of AtcaDemoBoard is
+      
    -------------------------------------------------------------------------------------------------
    -- PGP constants
    -------------------------------------------------------------------------------------------------
    constant PGP_REFCLK_PERIOD_C : real := 1.0 / PGP_REFCLK_FREQ_G;
    constant PGP_CLK_FREQ_C      : real := PGP_LINE_RATE_G / 20.0;
+   
+   -------------------------------------------------------------------------------------------------
+   -- SPI
+   -------------------------------------------------------------------------------------------------   
+   constant NUM_COMMON_SPI_CHIPS_C : positive range 1 to 8 := 4;
+   signal  coreSclk  : slv(NUM_COMMON_SPI_CHIPS_C-1 downto 0); 
+   signal  coreSDout : slv(NUM_COMMON_SPI_CHIPS_C-1 downto 0);
+   signal  coreCsb   : slv(NUM_COMMON_SPI_CHIPS_C-1 downto 0);   
 
+   signal  muxSDin  : sl; 
+   signal  muxSClk  : sl;
+   signal  muxSDout : sl;
+   
+   signal  lmkSDin  : sl;
+   
+   signal  spiSDinDac  : sl;
+   signal  spiSDoutDac : sl;
+   
    -------------------------------------------------------------------------------------------------
    -- JESD constants and signals
    -------------------------------------------------------------------------------------------------
@@ -150,8 +177,8 @@ architecture rtl of AtcaDemoBoard is
    
    signal   s_sysRef    : sl;
    signal   s_sysRefOut : sl;   
-   signal   s_nsync     : sl;
-
+   signal   s_nsyncADC  : sl;
+   signal   s_nsyncDAC  : sl;
    -- QPLL
    signal  qPllLock      : sl; 
 
@@ -182,29 +209,71 @@ architecture rtl of AtcaDemoBoard is
    -------------------------------------------------------------------------------------------------
    -- AXI Lite Config and Signals
    -------------------------------------------------------------------------------------------------
-   constant NUM_AXI_MASTERS_C : natural := 3;
+   constant NUM_AXI_MASTERS_C : natural := 10;
 
-   constant VERSION_AXIL_INDEX_C : natural              := 0;
-   constant JESD_AXIL_INDEX_C    : natural              := 1;
-   constant DAQ_AXIL_INDEX_C     : natural              := 2;
-   
-   constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"00000000";
-   constant JESD_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"00010000";
-   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"00030000";   
+   constant VERSION_AXIL_INDEX_C    : natural   := 0;
+   constant JESD_AXIL_RX_INDEX_C    : natural   := 1;
+   constant JESD_AXIL_TX_INDEX_C    : natural   := 2;
+   constant DAQ_AXIL_INDEX_C        : natural   := 3;
+   constant DISP_AXIL_INDEX_C       : natural   := 4;
+   constant ADC_0_INDEX_C           : natural   := 5;
+   constant ADC_1_INDEX_C           : natural   := 6;
+   constant ADC_2_INDEX_C           : natural   := 7;
+   constant LMK_INDEX_C             : natural   := 8;
+   constant DAC_INDEX_C             : natural   := 9;
+
+   constant VERSION_AXIL_BASE_ADDR_C : slv(31 downto 0)   := X"0000_0000";
+   constant JESD_AXIL_RX_BASE_ADDR_C : slv(31 downto 0)   := X"0010_0000";
+   constant JESD_AXIL_TX_BASE_ADDR_C : slv(31 downto 0)   := X"0020_0000";
+   constant DAQ_AXIL_BASE_ADDR_C     : slv(31 downto 0)   := X"0030_0000";
+   constant DISP_AXIL_BASE_ADDR_C    : slv(31 downto 0)   := X"0040_0000";
+   constant ADC_0_BASE_ADDR_C        : slv(31 downto 0)   := X"0050_0000";
+   constant ADC_1_BASE_ADDR_C        : slv(31 downto 0)   := X"0060_0000";
+   constant ADC_2_BASE_ADDR_C        : slv(31 downto 0)   := X"0070_0000";
+   constant LMK_BASE_ADDR_C          : slv(31 downto 0)   := X"0080_0000";   
+   constant DAC_BASE_ADDR_C          : slv(31 downto 0)   := X"0090_0000";   
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
       VERSION_AXIL_INDEX_C => (
          baseAddr          => VERSION_AXIL_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"),
-      JESD_AXIL_INDEX_C    => (
-         baseAddr          => JESD_AXIL_BASE_ADDR_C,
+      JESD_AXIL_RX_INDEX_C    => (
+         baseAddr          => JESD_AXIL_RX_BASE_ADDR_C,
          addrBits          => 12,
          connectivity      => X"0001"),
+      JESD_AXIL_TX_INDEX_C    => (
+         baseAddr          => JESD_AXIL_TX_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"),   
       DAQ_AXIL_INDEX_C    => (
          baseAddr          => DAQ_AXIL_BASE_ADDR_C,
          addrBits          => 12,
-         connectivity      => X"0001")  );
+         connectivity      => X"0001"),
+      DISP_AXIL_INDEX_C    => (
+         baseAddr          => DISP_AXIL_BASE_ADDR_C,
+         addrBits          => 20,
+         connectivity      => X"0001"),
+      ADC_0_INDEX_C => (
+         baseAddr          => ADC_0_BASE_ADDR_C,
+         addrBits          => 20,
+         connectivity      => X"0001"),
+      ADC_1_INDEX_C    => (
+         baseAddr          => ADC_1_BASE_ADDR_C,
+         addrBits          => 20,
+         connectivity      => X"0001"),
+      ADC_2_INDEX_C    => (
+         baseAddr          => ADC_2_BASE_ADDR_C,
+         addrBits          => 20,
+         connectivity      => X"0001"),
+      LMK_INDEX_C    => (
+         baseAddr          => LMK_BASE_ADDR_C,
+         addrBits          => 20,
+         connectivity      => X"0001"),   
+      DAC_INDEX_C    => (
+         baseAddr          => DAC_BASE_ADDR_C,
+         addrBits          => 12,
+         connectivity      => X"0001"));
 
    signal extAxilWriteMaster : AxiLiteWriteMasterType;
    signal extAxilWriteSlave  : AxiLiteWriteSlaveType;
@@ -217,8 +286,9 @@ architecture rtl of AtcaDemoBoard is
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    
    -- Sample data
-   signal s_sampleDataArr   : sampleDataArray(L_RX_G-1 downto 0);
-   signal s_dataValidVec    : slv(L_RX_G-1 downto 0); 
+   signal s_sampleDataArrOut  : sampleDataArray(L_RX_G-1 downto 0);
+   signal s_dataValidVec      : slv(L_RX_G-1 downto 0);
+   signal s_sampleDataArrIn   : sampleDataArray(L_TX_G-1 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- PGP Signals and Virtual Channels
@@ -250,8 +320,8 @@ begin
    -------------------------------------------------------------------------------------------------
    PGPREFCLK_IBUFDS_GTE3 : IBUFDS_GTE3
       port map (
-         I     => pgpRefClkP,
-         IB    => pgpRefClkN,
+         I     => genClkP,
+         IB    => genClkN,
          CEB   => '0',
          ODIV2 => pgpRefClkDiv2,
          O     => pgpRefClk);
@@ -323,10 +393,10 @@ begin
          pgpRefClk       => pgpRefClk,
          pgpClk          => pgpClk,
          pgpClkRst       => pgpClkRst,
-         pgpGtRxN        => pgpGtRxN,
-         pgpGtRxP        => pgpGtRxP,
-         pgpGtTxN        => pgpGtTxN,
-         pgpGtTxP        => pgpGtTxP,
+         pgpGtRxN        => rtmHsRxN,
+         pgpGtRxP        => rtmHsRxP,
+         pgpGtTxN        => rtmHsTxN,
+         pgpGtTxP        => rtmHsTxP,
          axilClk         => axilClk,
          axilClkRst      => axilClkRst,
          axilWriteMaster => extAxilWriteMaster,
@@ -338,7 +408,7 @@ begin
          axisTxMasters   => axisRxMasters,
          axisTxSlaves    => axisRxSlaves,
          axisTxCtrl      => axisRxCtrl,
-         leds            => leds(3 downto 2));
+         leds            => open);--leds(3 downto 2));
 
    -------------------------------------------------------------------------------------------------
    -- Top Axi Crossbar
@@ -385,8 +455,8 @@ begin
    -------------------------------------------------------------------------------------------------
    IBUFDS_GTE2_FPGADEVCLKA : IBUFDS_GTE3
       port map (
-         I     => fpgaDevClkaP,
-         IB    => fpgaDevClkaN,
+         I     => jesdClkP(1)(0),
+         IB    => jesdClkN(1)(0),
          CEB   => '0',
          ODIV2 => jesdRefClkDiv2, -- Frequency the same as jesdRefClk
          O     => jesdRefClk          
@@ -453,35 +523,67 @@ begin
       devClk_i          => jesdClk, -- both same
       devClk2_i         => jesdClk, -- both same
       devRst_i          => jesdClkRst, 
-          
-      gtTxP          => adcGtTxP,   
-      gtTxN          => adcGtTxN, 
-      gtRxP          => adcGtRxP,   
-      gtRxN          => adcGtRxN,
-   
+      
+      -- Remap the ports to match channel numbers on LLRF board
+      gtTxP(0)          => jesdTxP(1)(4),
+      gtTxP(1)          => jesdTxP(1)(5),
+      gtTxP(2)          => jesdTxP(1)(0),
+      gtTxP(3)          => jesdTxP(1)(1),
+      gtTxP(4)          => jesdTxP(1)(2),
+      gtTxP(5)          => jesdTxP(1)(3),
+      
+      gtTxN(0)          => jesdTxN(1)(4),
+      gtTxN(1)          => jesdTxN(1)(5),      
+      gtTxN(2)          => jesdTxN(1)(0),      
+      gtTxN(3)          => jesdTxN(1)(1),      
+      gtTxN(4)          => jesdTxN(1)(2),
+      gtTxN(5)          => jesdTxN(1)(3),
+      
+      gtRxP(0)          => jesdRxP(1)(4),
+      gtRxP(1)          => jesdRxP(1)(5),
+      gtRxP(2)          => jesdRxP(1)(0),
+      gtRxP(3)          => jesdRxP(1)(1),
+      gtRxP(4)          => jesdRxP(1)(2),
+      gtRxP(5)          => jesdRxP(1)(3),
+      
+      gtRxN(0)          => jesdRxN(1)(4),
+      gtRxN(1)          => jesdRxN(1)(5),   
+      gtRxN(2)          => jesdRxN(1)(0),
+      gtRxN(3)          => jesdRxN(1)(1),
+      gtRxN(4)          => jesdRxN(1)(2),
+      gtRxN(5)          => jesdRxN(1)(3),
+
       axiClk            => axilClk,
       axiRst            => axilClkRst,
       
-      axilReadMaster  => locAxilReadMasters(JESD_AXIL_INDEX_C),
-      axilReadSlave   => locAxilReadSlaves(JESD_AXIL_INDEX_C),
-      axilWriteMaster => locAxilWriteMasters(JESD_AXIL_INDEX_C),
-      axilWriteSlave  => locAxilWriteSlaves(JESD_AXIL_INDEX_C),
+      axilReadMasterRx  => locAxilReadMasters(JESD_AXIL_RX_INDEX_C),
+      axilReadSlaveRx   => locAxilReadSlaves(JESD_AXIL_RX_INDEX_C),
+      axilWriteMasterRx => locAxilWriteMasters(JESD_AXIL_RX_INDEX_C),
+      axilWriteSlaveRx  => locAxilWriteSlaves(JESD_AXIL_RX_INDEX_C), 
+      
+      axilReadMasterTx  => locAxilReadMasters(JESD_AXIL_TX_INDEX_C),
+      axilReadSlaveTx   => locAxilReadSlaves(JESD_AXIL_TX_INDEX_C),
+      axilWriteMasterTx => locAxilWriteMasters(JESD_AXIL_TX_INDEX_C),
+      axilWriteSlaveTx  => locAxilWriteSlaves(JESD_AXIL_TX_INDEX_C),
       
       -- AXI stream interface not used because of external DAQ module 
       rxAxisMasterArr   => open,
       rxCtrlArr         => (others => AXI_STREAM_CTRL_INIT_C),
       
-      sampleDataArr_o   => s_sampleDataArr,
+      sampleDataArr_o   => s_sampleDataArrOut,
       dataValidVec_o    => s_dataValidVec,
       
+      sampleDataArr_i   => s_sampleDataArrIn,
+
       sysRef_i          => s_sysRef,
       sysRef_o          => s_sysRefOut,          
-      nSync_o           => s_nSync,
+      nSync_o           => s_nSyncADC,
+      nSync_i           => s_nSyncDAC,
       
       pulse_o           => s_rePulse,
       
-      leds_o(0)         => s_syncAllLED, -- (0) Sync (OR)
-      leds_o(1)         => s_validAllLED,-- (1) Data_valid
+      ledsRx_o         => open,
+      ledsTx_o         => open,
       
       qPllLock_o        => qPllLock
    );
@@ -506,13 +608,31 @@ begin
       axilWriteMaster => locAxilWriteMasters(DAQ_AXIL_INDEX_C),
       axilWriteSlave  => locAxilWriteSlaves(DAQ_AXIL_INDEX_C),
       
-      sampleDataArr_i   => s_sampleDataArr,
+      sampleDataArr_i   => s_sampleDataArrOut,
       dataValidVec_i    => s_dataValidVec,
       rxAxisMasterArr_o => axisRxMasters,
       rxCtrlArr_i       => axisRxCtrl);
+   -------------------------------------------------------------------------------------------------
+   -- DAC Signal Generator block
+   -------------------------------------------------------------------------------------------------    
+   DacSignalGenerator_INST: entity work.DacSignalGenerator
+   generic map (
+      TPD_G            => TPD_G,
+      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+      ADDR_WIDTH_G     => GEN_BRAM_ADDR_WIDTH_G,
+      DATA_WIDTH_G     => (GT_WORD_SIZE_C*8),
+      L_G              => L_TX_G)
+   port map (
+      axiClk          => axilClk,
+      axiRst          => axilClkRst,
+      devClk_i        => jesdClk,
+      devRst_i        => jesdClkRst,
+      axilReadMaster  => locAxilReadMasters(DISP_AXIL_INDEX_C),
+      axilReadSlave   => locAxilReadSlaves(DISP_AXIL_INDEX_C),
+      axilWriteMaster => locAxilWriteMasters(DISP_AXIL_INDEX_C),
+      axilWriteSlave  => locAxilWriteSlaves(DISP_AXIL_INDEX_C),  
+      sampleDataArr_o => s_sampleDataArrIn);
 
-   
-   
    ----------------------------------------------------------------
    -- Put sync and sysref on differential io buffer
    ----------------------------------------------------------------
@@ -522,21 +642,21 @@ begin
       IBUF_LOW_PWR => TRUE,
       IOSTANDARD => "DEFAULT")
    port map (
-      I  => fpgaSysRefP,
-      IB => fpgaSysRefN,
+      I  => sysRefP(1)(0),
+      IB => sysRefN(1)(0),
       O  => s_sysRef
    );
    
-   -- Sync outputs are all combined (TODO consider separating if having problems)   
+   -- ADC Sync outputs are all combined (TODO consider separating if having problems)   
    OBUFDS_nsync1_inst : OBUFDS
    generic map (
       IOSTANDARD => "DEFAULT",
       SLEW => "SLOW"
    )
    port map (
-      I =>  s_nSync,
-      O =>  syncb1P, 
-      OB => syncb1N
+      I =>  s_nsyncADC,
+      O =>  syncOutP(1)(0), 
+      OB => syncOutN(1)(0) 
    );
    
    OBUFDS_nsync2_inst : OBUFDS
@@ -545,9 +665,9 @@ begin
       SLEW => "SLOW"
    )
    port map (
-      I =>  s_nSync,
-      O =>  syncb2P, 
-      OB => syncb2N
+      I =>  s_nSyncADC,
+      O =>  syncOutP(1)(1), 
+      OB => syncOutN(1)(1) 
    );
    
    OBUFDS_nsync3_inst : OBUFDS
@@ -556,76 +676,176 @@ begin
       SLEW => "SLOW"
    )
    port map (
-      I =>  s_nSync,
-      O =>  syncb3P, 
-      OB => syncb3N
+      I =>  s_nSyncADC,
+      O =>  syncOutP(1)(2), 
+      OB => syncOutN(1)(2) 
    );
    
+   IBUFDS_nsync4_inst : IBUFDS
+   generic map (
+      DIFF_TERM => FALSE,
+      IBUF_LOW_PWR => TRUE,
+      IOSTANDARD => "DEFAULT")
+   port map (
+      I  => syncInP(1)(0),
+      IB => syncInN(1)(0),
+      O  => s_nSyncDAC
+   );
+   
+   
+   ----------------------------------------------------------------
+   -- SPI interface ADCs and LMK 
+   ----------------------------------------------------------------
+   adcSpiChips : for I in NUM_COMMON_SPI_CHIPS_C-1 downto 0 generate
+      AxiSpiMaster_INST: entity work.AxiSpiMaster
+      generic map (
+         TPD_G             => TPD_G,
+         ADDRESS_SIZE_G    => 15,
+         DATA_SIZE_G       => 8,   
+         CLK_PERIOD_G      => 6.4E-9, 
+         SPI_SCLK_PERIOD_G => 100.0E-6) -- TODO check
+      port map (
+         axiClk         => axilClk,
+         axiRst         => axilClkRst,
+         axiReadMaster  => locAxilReadMasters(ADC_0_INDEX_C+I),
+         axiReadSlave   => locAxilReadSlaves(ADC_0_INDEX_C+I),
+         axiWriteMaster => locAxilWriteMasters(ADC_0_INDEX_C+I),
+         axiWriteSlave  => locAxilWriteSlaves(ADC_0_INDEX_C+I),  
+         coreSclk       => coreSclk(I),
+         coreSDin       => muxSDin,
+         coreSDout      => coreSDout(I),
+         coreCsb        => coreCsb(I));
+   end generate adcSpiChips;
+   
+   -- Input mux from "IO" port if LMK and from "I" port for ADCs 
+   muxSDin <= lmkSDin when coreCsb = "0111" else spiSdo_i;
+   
+   -- Output mux
+   with coreCsb select
+   muxSclk  <= coreSclk(0) when "1110",
+               coreSclk(1) when "1101",
+               coreSclk(2) when "1011",
+               coreSclk(3) when "0111",
+               '0'         when others;
+              
+   with coreCsb select  
+   muxSDout <= coreSDout(0) when "1110",
+               coreSDout(1) when "1101",
+               coreSDout(2) when "1011",
+               coreSDout(3) when "0111",
+               '0'          when others;
+   
+   -- Outputs 
+   spiSclk_o <= muxSclk;
+   spiSdi_o  <= muxSDout;
+
+   ADC_SDIO_IOBUFT : IOBUF
+      port map (
+         I => '0',
+         O => lmkSDin,
+         IO => spiSdio_io,
+         T => muxSDout);
+
+   -- Active low chip selects
+   spiCsL_o <= coreCsb;
+   
+   ----------------------------------------------------------------
+   -- SPI interface DAC
+   ----------------------------------------------------------------  
+   dacAxiSpiMaster_INST: entity work.AxiSpiMaster
+   generic map (
+      TPD_G             => TPD_G,
+      ADDRESS_SIZE_G    => 7,
+      DATA_SIZE_G       => 16,
+      CLK_PERIOD_G      => 6.4E-9, 
+      SPI_SCLK_PERIOD_G => 100.0E-6) -- TODO check
+   port map (
+      axiClk         => axilClk,
+      axiRst         => axilClkRst,
+      axiReadMaster  => locAxilReadMasters(DAC_INDEX_C),
+      axiReadSlave   => locAxilReadSlaves(DAC_INDEX_C),
+      axiWriteMaster => locAxilWriteMasters(DAC_INDEX_C),
+      axiWriteSlave  => locAxilWriteSlaves(DAC_INDEX_C),  
+      coreSclk       => spiSclkDac_o,
+      coreSDin       => spiSDinDac,
+      coreSDout      => spiSDoutDac,
+      coreCsb        => spiCsLDac_o);
+   
+       
+   DAC_SDIO_IOBUFT : IOBUF
+      port map (
+         I => '0',
+         O  => spiSDinDac,
+         IO => spiSdioDac_io,
+         T  => spiSDoutDac);   
+
    -------------------------------------------------------------------------------------------------
    -- Debug outputs
    -------------------------------------------------------------------------------------------------
-   -- LED Test Outputs
-   Heartbeat_axilClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 8.0E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => axilClk,
-         o   => leds(0));
+   -- -- LED Test Outputs
+   -- Heartbeat_axilClk : entity work.Heartbeat
+      -- generic map (
+         -- TPD_G        => TPD_G,
+         -- PERIOD_IN_G  => 8.0E-9,
+         -- PERIOD_OUT_G => 1.0)
+      -- port map (
+         -- clk => axilClk,
+         -- o   => leds(0));
 
-   Heartbeat_pgpClk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 6.4E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => pgpClk,
-         o   => leds(1));
+   -- Heartbeat_pgpClk : entity work.Heartbeat
+      -- generic map (
+         -- TPD_G        => TPD_G,
+         -- PERIOD_IN_G  => 6.4E-9,
+         -- PERIOD_OUT_G => 1.0)
+      -- port map (
+         -- clk => pgpClk,
+         -- o   => leds(1));
          
-   Heartbeat_jesdclk : entity work.Heartbeat
-      generic map (
-         TPD_G        => TPD_G,
-         PERIOD_IN_G  => 5.425E-9,
-         PERIOD_OUT_G => 1.0)
-      port map (
-         clk => jesdClk,
-         o   => leds(4));
+   -- Heartbeat_jesdclk : entity work.Heartbeat
+      -- generic map (
+         -- TPD_G        => TPD_G,
+         -- PERIOD_IN_G  => 5.425E-9,
+         -- PERIOD_OUT_G => 1.0)
+      -- port map (
+         -- clk => jesdClk,
+         -- o   => leds(4));
          
-   leds(5) <= qPllLock;
-   leds(6) <= s_syncAllLED;
-   leds(7) <= s_validAllLED;
+   -- leds(5) <= qPllLock;
+   -- leds(6) <= s_syncAllLED;
+   -- leds(7) <= s_validAllLED;
       
-   -- Debug output pins
-   OBUF_sysref_inst : OBUF
-   port map (
-      I => s_sysRefOut,
-      O =>  sysrefDbg 
-   );
+   -- -- Debug output pins
+   -- OBUF_sysref_inst : OBUF
+   -- port map (
+      -- I => s_sysRefOut,
+      -- O =>  sysrefDbg 
+   -- );
      
-   -- Debug output pins
-   OBUF_rePulse_0_inst : OBUF
-   port map (
-      I => s_rePulse(0),
-      O => rePulseDbg(0)
-   );
+   -- -- Debug output pins
+   -- OBUF_rePulse_0_inst : OBUF
+   -- port map (
+      -- I => s_rePulse(0),
+      -- O => rePulseDbg(0)
+   -- );
    
-   -- Debug output pins
-   OBUF_rePulse_1_inst : OBUF
-   port map (
-      I => s_rePulse(1),
-      O => rePulseDbg(1)
-   );
+   -- -- Debug output pins
+   -- OBUF_rePulse_1_inst : OBUF
+   -- port map (
+      -- I => s_rePulse(1),
+      -- O => rePulseDbg(1)
+   -- );
    
-   -- Output user clock for single ended reference
-   UserClkBufSingle_INST: entity work.ClkOutBufSingle
-   generic map (
-      XIL_DEVICE_G   => "ULTRASCALE",
-      RST_POLARITY_G => '1',
-      INVERT_G       => false)
-   port map (
-      clkIn  => jesdClk,
-      rstIn  => jesdClkRst,
-      clkOut => gpioClk);
+   -- -- Output user clock for single ended reference
+   -- UserClkBufSingle_INST: entity work.ClkOutBufSingle
+   -- generic map (
+      -- XIL_DEVICE_G   => "ULTRASCALE",
+      -- RST_POLARITY_G => '1',
+      -- INVERT_G       => false)
+   -- port map (
+      -- clkIn  => jesdClk,
+      -- rstIn  => jesdClkRst,
+      -- clkOut => gpioClk);
+      
+   
    
 end architecture rtl;

@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------
 // File          : SigGenRam.h
-// Author        : Larry Ruckman  <ruckman@slac.stanford.edu>
-// Created       : 04/18/2014
-// Project       : 
+// Author        : Uros legat <ulegat@slac.stanford.edu>
+//                            <uros.legat@cosylab.com>
+// Created       : 07/10/2015
 //-----------------------------------------------------------------------------
 // Description :
-// DAQ Device Driver for the AD5780 DAC IC
+//    Signal generator RAM. Defining a period of generated signal.
 //
 //-----------------------------------------------------------------------------
 // Copyright (c) 2014 by SLAC. All rights reserved.

@@ -28,25 +28,23 @@ using namespace std;
 // Constructor
 Lmk04828::Lmk04828 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize ) : 
                         Device(linkConfig,baseAddress,"Lmk04828",index,parent) {
-
-   // Description
-   desc_ = "ADC data acquisition control";
-
-   // Create Registers: name, address
+   uint32_t i;
    RegisterLink *rl;
+   stringstream tmp; 
    
-   addRegisterLink(rl = new RegisterLink("CONFIG_0", baseAddress_ + (0x00*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Reset etc.");
+  // Description
+   desc_ = "LMK data acquisition control";
    
-   addRegisterLink(rl = new RegisterLink("CONFIG_1", baseAddress_ + (0x02*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Powerdown");
-   
-   addRegisterLink(rl = new RegisterLink("CONFIG_2", baseAddress_ + (0x03*addrSize), Variable::Status));
-   rl->getVariable()->setDescription("Device Type");
-   
+   for (i=START_ADDR;i<=END_ADDR;i++) {
+      tmp.str("");
+      tmp << "LmkReg" << hex << setw(4) << setfill('0') << hex << i;
+      addRegisterLink(rl = new RegisterLink(tmp.str(), (baseAddress_+ (i*addrSize)), Variable::Configuration));
+      rl->getVariable()->setPerInstance(true);                                                                              
+   }  
+
    // Variables
    getVariable("Enabled")->setHidden(true);
-      
+   
    //Commands
 }
 

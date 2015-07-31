@@ -51,7 +51,8 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
   
    addDevice(new JesdTxGen  ( linkConfig, baseAddress | ((0x00400000>>2) * (addrSize)), 0, this, addrSize));
    addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00410000>>2) * (addrSize)), 0, this, addrSize));
-    
+   addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00420000>>2) * (addrSize)), 1, this, addrSize));
+   
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00500000>>2) * (addrSize)), 0, this, addrSize));
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00600000>>2) * (addrSize)), 1, this, addrSize));
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00700000>>2) * (addrSize)), 2, this, addrSize));

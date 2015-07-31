@@ -153,7 +153,7 @@ begin
    s_kStable   <= s_kDetected and r.kDetectRegD1 and r.kDetectRegD2 and r.kDetectRegD3;
    
    -- State machine
-   comb : process (rst, r, enable_i,sysRef_i, dataRx_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, gtReady_i, s_kDetected, s_kStable) is
+   comb : process (rst, r, enable_i,sysRef_i, dataRx_i,subClass_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, gtReady_i, s_kDetected, s_kStable) is
       variable v : RegType;
    begin
       -- Latch the current value
