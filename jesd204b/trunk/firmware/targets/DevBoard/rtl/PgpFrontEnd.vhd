@@ -115,10 +115,10 @@ architecture rtl of PgpFrontEnd is
    signal pgpTxOut     : Pgp2bTxOutType;
    signal pgpRxIn      : Pgp2bRxInType;
    signal pgpRxOut     : Pgp2bRxOutType;
-   signal pgpTxMasters : AxiStreamMasterArray(3 downto 0);
-   signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0);
-   signal pgpRxMasters : AxiStreamMasterArray(3 downto 0);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(3 downto 0);
+   signal pgpTxMasters : AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others=>AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxMasters : AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxCtrl    : AxiStreamCtrlArray(3 downto 0)   := (others=>AXI_STREAM_CTRL_UNUSED_C);
    
 begin
 
@@ -126,40 +126,40 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP / MGT
    -------------------------------------------------------------------------------------------------
-   REAL_PGP : if (not SIMULATION_G) generate
+   --REAL_PGP : if (not SIMULATION_G) generate
       
-      Pgp2bGthUltra_1 : entity work.Pgp2bGthUltra
-         generic map (
-            TPD_G             => TPD_G,
-            PAYLOAD_CNT_TOP_G => 7,
-            VC_INTERLEAVE_G   => 0,
-            NUM_VC_EN_G       => 3)
-         port map (
-            stableClk        => stableClk,
-            gtRefClk         => pgpRefClk,
-            pgpGtTxP         => pgpGtTxP,
-            pgpGtTxN         => pgpGtTxN,
-            pgpGtRxP         => pgpGtRxP,
-            pgpGtRxN         => pgpGtRxN,
-            pgpTxReset       => pgpClkRst,
-            pgpTxRecClk      => open,
-            pgpTxClk         => pgpClk,
-            pgpTxMmcmLocked  => '1',
-            pgpRxReset       => pgpClkRst,
-            pgpRxRecClk      => open,
-            pgpRxClk         => pgpClk,
-            pgpRxMmcmLocked  => '1',
-            pgpRxIn          => pgpRxIn,
-            pgpRxOut         => pgpRxOut,
-            pgpTxIn          => pgpTxIn,
-            pgpTxOut         => pgpTxOut,
-            pgpTxMasters     => pgpTxMasters,
-            pgpTxSlaves      => pgpTxSlaves,
-            pgpRxMasters     => pgpRxMasters,
-            pgpRxMasterMuxed => open,
-            pgpRxCtrl        => pgpRxCtrl);
+   --   Pgp2bGthUltra_1 : entity work.Pgp2bGthUltra
+   --      generic map (
+   --         TPD_G             => TPD_G,
+   --         PAYLOAD_CNT_TOP_G => 7,
+   --         VC_INTERLEAVE_G   => 0,
+   --         NUM_VC_EN_G       => 3)
+   --      port map (
+   --         stableClk        => stableClk,
+   --         gtRefClk         => pgpRefClk,
+   --         pgpGtTxP         => pgpGtTxP,
+   --         pgpGtTxN         => pgpGtTxN,
+   --        pgpGtRxP         => pgpGtRxP,
+   --        pgpGtRxN         => pgpGtRxN,
+   --         pgpTxReset       => pgpClkRst,
+    --        pgpTxRecClk      => open,
+   --         pgpTxClk         => pgpClk,
+   --         pgpTxMmcmLocked  => '1',
+    --        pgpRxReset       => pgpClkRst,
+   --         pgpRxRecClk      => open,
+    --        pgpRxClk         => pgpClk,
+   --         pgpRxMmcmLocked  => '1',
+    --        pgpRxIn          => pgpRxIn,
+   ---         pgpRxOut         => pgpRxOut,
+   ---         pgpTxIn          => pgpTxIn,
+   --         pgpTxOut         => pgpTxOut,
+   --         pgpTxMasters     => pgpTxMasters,
+   --         pgpTxSlaves      => pgpTxSlaves,
+   --         pgpRxMasters     => pgpRxMasters,
+   --         pgpRxMasterMuxed => open,
+   --         pgpRxCtrl        => pgpRxCtrl);
 
-   end generate REAL_PGP;
+   --end generate REAL_PGP;
 
    SIM_PGP : if (SIMULATION_G) generate
       PgpSimModel_1 : entity work.PgpSimModel
@@ -188,12 +188,13 @@ begin
    SsiAxiLiteMaster_1 : entity work.SsiAxiLiteMaster
       generic map (
          TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
          EN_32BIT_ADDR_G     => false,
          BRAM_EN_G           => true,
          USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => (PGP_CLK_FREQ_G = AXIL_CLK_FREQ_G),
+         GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_PAUSE_THRESH_G => 2**9-32,
+         FIFO_PAUSE_THRESH_G => 2**8,
          AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C)
       port map (
          sAxisClk            => pgpClk,
@@ -289,7 +290,7 @@ begin
 --            CASCADE_SIZE_G      => CASCADE_SIZE_G,
             FIFO_ADDR_WIDTH_G   => AXIS_FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 1,--2**AXIS_FIFO_ADDR_WIDTH_G-300,
+            FIFO_PAUSE_THRESH_G => 1, --2**(AXIS_FIFO_ADDR_WIDTH_G-1),
 --            CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
             SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
             MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)

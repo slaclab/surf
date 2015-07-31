@@ -18,7 +18,7 @@ package Version is
 
 constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000011"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "DevBoard: Vivado v2015.1 (x86_64) Built Mon Jul 20 17:47:09 PDT 2015 by ulegat";
+constant BUILD_STAMP_C : string := "DevBoard: Vivado v2015.2 (x86_64) Built Mon Jul 27 15:27:55 PDT 2015 by ulegat";
 
 end Version;
  

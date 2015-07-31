@@ -91,7 +91,7 @@ entity Jesd204bRx is
       
       -- Data and character inputs from GT (transceivers)
       r_jesdGtRxArr  : in   jesdGtRxLaneTypeArray(L_G-1 downto 0);
-      gt_reset_o     : out  slv(L_G-1 downto 0);    
+      gtRxReset_o     : out  slv(L_G-1 downto 0);    
 
       -- Synchronisation output combined from all receivers 
       nSync_o        : out   sl;
@@ -419,7 +419,7 @@ begin
 
    -- Output assignment
    nSync_o     <= r.nSyncAnyD1;
-   gt_reset_o  <= (others=> s_gtReset);
+   gtRxReset_o  <= (others=> s_gtReset);
    leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    sysRefDbg_o <= s_sysrefD;
    sampleDataArr_o <= s_sampleDataArr;

@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------
 // File          : SigGenRam.cpp
-// Author        : Larry Ruckman  <ruckman@slac.stanford.edu>
-// Created       : 09/05/2013
-// Project       : Generic 
+// Author        : Uros legat <ulegat@slac.stanford.edu>
+//                            <uros.legat@cosylab.com>
+// Created       : 07/10/2015
 //-----------------------------------------------------------------------------
 // Description :
-// DAQ Device Driver for the DAC7654 IC
+//    Signal generator RAM. Defining a period of generated signal.
 //
 //-----------------------------------------------------------------------------
 // Copyright (c) 2013 by SLAC. All rights reserved.
@@ -42,7 +42,7 @@ SigGenRam::SigGenRam ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index
    
    for (i=0;i<RAM_SAMPLE_SIZE/2;i++) {
       tmp.str("");
-      tmp << "RAM" << dec << setw(1) << setfill('0') << i;// RAM[0:1023]
+      tmp << "RAM" << dec << setw(4) << setfill('0') << i;// RAM[0:1023]
       addRegisterLink(rl = new RegisterLink(tmp.str(), (baseAddress_+ (i*addrSize)), Variable::Configuration));
       rl->getVariable()->setPerInstance(true);                                                                                  
    }   

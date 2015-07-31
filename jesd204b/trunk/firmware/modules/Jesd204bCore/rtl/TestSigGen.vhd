@@ -71,7 +71,7 @@ begin
    -- output a pulse.
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-   comb : process (r, rst,s_sampleDataBr, thresoldLow_i, thresoldHigh_i) is
+   comb : process (r, rst,s_sampleDataBr, thresoldLow_i, thresoldHigh_i, enable_i) is
       variable v : RegType;
    begin
       v := r;

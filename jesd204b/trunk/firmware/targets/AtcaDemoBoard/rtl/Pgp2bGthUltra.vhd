@@ -157,8 +157,9 @@ begin
          txResetDone    => phyTxReady,
          txData         => phyTxLaneOut.data,
          txDataK        => phyTxLaneOut.dataK,
-         txOutClk       => pgpTxRecClk,
-         loopback       => pgpRxIn.loopback);
+         --loopback       => pgpRxIn.loopback,
+         txOutClk       => pgpTxRecClk);
+
 
 
 end rtl;

@@ -6,7 +6,7 @@
 // Project       : 
 //-----------------------------------------------------------------------------
 // Description :
-//    Device Driver for Adc16Dx370
+//    Device driver for Adc16Dx370
 //-----------------------------------------------------------------------------
 // Copyright (c) 2015 by SLAC. All rights reserved.
 // Proprietary and confidential to SLAC.
@@ -25,7 +25,10 @@ using namespace std;
 class Adc16Dx370 : public Device {
 
    public:
-
+      //! Device configuration address range constants
+      #define START_ADDR 0x0       
+      #define END_ADDR   0x78
+      
       //! Constructor
       /*! 
        * \param linkConfig Device linkConfig

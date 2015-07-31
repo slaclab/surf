@@ -25,7 +25,10 @@ using namespace std;
 class Dac38J84 : public Device {
 
    public:
-
+      //! Device configuration address range constants
+      #define START_ADDR 0x0      
+      #define END_ADDR   0x7D
+      
       //! Constructor
       /*! 
        * \param linkConfig Device linkConfig

@@ -127,6 +127,6 @@ begin
    end process seq; 
       
    -- Output assignment
-   s_sampleData <= s_ramData when enable_i = '1' else outSampleZero(2, GT_WORD_SIZE_C);
-   sampleData_o <= byteSwapSlv(s_sampleData, GT_WORD_SIZE_C);
+   s_sampleData <= byteSwapSlv(s_ramData, GT_WORD_SIZE_C) when enable_i = '1' else outSampleZero(2, GT_WORD_SIZE_C);
+   sampleData_o <= s_sampleData;
 end rtl;
