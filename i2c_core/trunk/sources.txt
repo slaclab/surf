@@ -8,3 +8,4 @@ vhdl    work rtl/I2cMaster.vhd
 vhdl    work rtl/I2cRegMaster.vhd
 vhdl    work rtl/I2cRegMasterMux.vhd
 vhdl    work rtl/I2cRegMasterAxiBridge.vhd
+vhdl    work rtl/AxiI2cRegMaster.vhd
