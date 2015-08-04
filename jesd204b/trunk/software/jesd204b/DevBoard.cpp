@@ -45,13 +45,13 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
 
    addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x01000000>>2) * (addrSize)), 0, this, addrSize)); 
    addDevice(new AxiVersion ( linkConfig, baseAddress | ((0x00000000>>2) * (addrSize)), 0, this, addrSize));
-   addDevice(new JesdRx     ( linkConfig, baseAddress | ((0x00100000>>2) * (addrSize)), 0, this, addrSize)); 
-   addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00200000>>2) * (addrSize)), 0, this, addrSize));
-   addDevice(new JesdRxDaq  ( linkConfig, baseAddress | ((0x00300000>>2) * (addrSize)), 0, this, addrSize));
+   // addDevice(new JesdRx     ( linkConfig, baseAddress | ((0x00100000>>2) * (addrSize)), 0, this, addrSize)); 
+   // addDevice(new JesdTx     ( linkConfig, baseAddress | ((0x00200000>>2) * (addrSize)), 0, this, addrSize));
+   // addDevice(new JesdRxDaq  ( linkConfig, baseAddress | ((0x00300000>>2) * (addrSize)), 0, this, addrSize));
   
-   addDevice(new JesdTxGen  ( linkConfig, baseAddress | ((0x00400000>>2) * (addrSize)), 0, this, addrSize));
-   addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00410000>>2) * (addrSize)), 0, this, addrSize));
-   addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00420000>>2) * (addrSize)), 1, this, addrSize));
+   // addDevice(new JesdTxGen  ( linkConfig, baseAddress | ((0x00400000>>2) * (addrSize)), 0, this, addrSize));
+   // addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00410000>>2) * (addrSize)), 0, this, addrSize));
+   // addDevice(new SigGenRam  ( linkConfig, baseAddress | ((0x00420000>>2) * (addrSize)), 1, this, addrSize));
    
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00500000>>2) * (addrSize)), 0, this, addrSize));
    addDevice(new Adc16Dx370 ( linkConfig, baseAddress | ((0x00600000>>2) * (addrSize)), 1, this, addrSize));
