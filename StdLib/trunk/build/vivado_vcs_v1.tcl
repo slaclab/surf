@@ -18,6 +18,29 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 open_project -quiet ${VIVADO_PROJECT}
 
 ########################################################
+## Generate Verilog simulation models 
+## for all .DCP files in the source tree
+########################################################
+foreach filePntr ${RTL_FILES} {
+   if { [file extension ${filePntr}] == ".dcp" } {
+      ## Open the check point
+      open_checkpoint ${filePntr}     
+      ## Generate the output file path
+      set simName [file tail ${filePntr}]
+      set simName [string map {".dcp" "_sim.v"} ${simName}] 
+      set simFile ${OUT_DIR}/${PROJECT}_project.sim/${simName}
+      ## Write the simulation model to the build tree
+      write_verilog -force -mode funcsim -file ${simFile}     
+      ## close the check point
+      close_design
+      # Add the Simulation Files
+      add_files -quiet -fileset sim_1 ${simFile} 
+      # Force Absolute Path (not relative to project)
+      set_property PATH_MODE AbsoluteFirst [get_files ${simFile}]
+   } 
+}
+
+########################################################
 ## Check if we re-synthesis any of the IP cores
 ########################################################
 BuildIpCores
