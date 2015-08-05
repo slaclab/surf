@@ -8,11 +8,9 @@ vhdl work fifo/tb/FifoFwftTbSubModule.vhd
 
 vhdl work sync/tb/SynchronizerFifoTb.vhd
 
-vhdl work axi/tb/SsiPrbsTb.vhd
 vhdl work axi/tb/AxiStreamPipelineTb.vhd
 vhdl work axi/tb/vcs_tb.vhd
 vhdl work axi/tb/fifo_tb.vhd
-vhdl work axi/tb/SsiFifoTb.vhd
 vhdl work axi/simlink/rtl/AxiSimMaster.vhd
 vhdl work axi/simlink/rtl/AxiSimMasterWrap.vhd
 vhdl work axi/simlink/rtl/AxiSimSlave.vhd
@@ -21,3 +19,6 @@ vhdl work axi/simlink/rtl/AxiStreamSimWrap.vhd
 vhdl work axi/simlink/rtl/AxiStreamSim.vhd
 vhdl work axi/simlink/rtl/AxiStreamSimIb.vhd
 vhdl work axi/simlink/rtl/AxiStreamSimOb.vhd
+
+vhdl work ssi/tb/SsiFifoTb.vhd
+vhdl work ssi/tb/SsiPrbsTb.vhd

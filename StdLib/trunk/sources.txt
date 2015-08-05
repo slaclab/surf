@@ -90,16 +90,16 @@ vhdl work axi/rtl/AxiVersion.vhd
 vhdl work axi/rtl/AxiWritePathFifo.vhd
 vhdl work axi/rtl/AxiWritePathMux.vhd
 
-vhdl work axi/rtl/SsiAxiLiteMaster.vhd
-vhdl work axi/rtl/SsiCmdMaster.vhd
-vhdl work axi/rtl/SsiCmdMasterPkg.vhd
-vhdl work axi/rtl/SsiCmdMasterPulser.vhd
-vhdl work axi/rtl/SsiFifo.vhd
-vhdl work axi/rtl/SsiFrameFilter.vhd
-vhdl work axi/rtl/SsiPkg.vhd
-vhdl work axi/rtl/SsiPrbsRx.vhd
-vhdl work axi/rtl/SsiPrbsTx.vhd
-vhdl work axi/rtl/SsiPrbsTxOld.vhd
+vhdl work ssi/rtl/SsiAxiLiteMaster.vhd
+vhdl work ssi/rtl/SsiCmdMaster.vhd
+vhdl work ssi/rtl/SsiCmdMasterPkg.vhd
+vhdl work ssi/rtl/SsiCmdMasterPulser.vhd
+vhdl work ssi/rtl/SsiFifo.vhd
+vhdl work ssi/rtl/SsiFrameFilter.vhd
+vhdl work ssi/rtl/SsiPkg.vhd
+vhdl work ssi/rtl/SsiPrbsRx.vhd
+vhdl work ssi/rtl/SsiPrbsTx.vhd
+vhdl work ssi/rtl/SsiPrbsTxOld.vhd
 
 vhdl work spi/rtl/SpiMaster.vhd
 vhdl work spi/rtl/SpiSlave.vhd

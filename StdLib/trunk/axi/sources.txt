@@ -15,12 +15,3 @@ vhdl work rtl/AxiStreamPipeline.vhd
 vhdl work rtl/AxiStreamMux.vhd
 vhdl work rtl/AxiStreamDeMux.vhd
 vhdl work rtl/AxiStreamDmaWrite.vhd
-vhdl work rtl/SsiPkg.vhd
-vhdl work rtl/SsiCmdMasterPkg.vhd
-vhdl work rtl/SsiCmdMaster.vhd
-vhdl work rtl/SsiAxiLiteMaster.vhd
-vhdl work rtl/SsiPrbsRx.vhd
-vhdl work rtl/SsiPrbsTx.vhd
-vhdl work rtl/SsiPrbsTxOld.vhd
-vhdl work rtl/SsiIncrementingTx.vhd
-vhdl work rtl/AxiTdc.vhd
