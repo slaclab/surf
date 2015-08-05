@@ -1,3 +1,2 @@
-tb/Vc64FifoTb.vhd
-tb/Vc64FifoTbSubModule.vhd
-tb/Vc64PrbsTb.vhd
+vhdl work tb/SsiPrbsTb.vhd
+vhdl work tb/SsiFifoTb.vhd
