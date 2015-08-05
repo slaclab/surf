@@ -1,0 +1,2 @@
+vhdl work rtl/AxiTdc.vhd
+vhdl work rtl/TdcCoarse.vhd
