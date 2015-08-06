@@ -21,7 +21,7 @@ open_project -quiet ${VIVADO_PROJECT}
 ## Generate Verilog simulation models 
 ## for all .DCP files in the source tree
 ########################################################
-foreach filePntr ${RTL_FILES} {
+foreach filePntr [get_files {*.dcp}] {
    if { [file extension ${filePntr}] == ".dcp" } {
       ## Open the check point
       open_checkpoint ${filePntr}     
@@ -41,9 +41,10 @@ foreach filePntr ${RTL_FILES} {
 }
 
 ########################################################
-## Check if we re-synthesis any of the IP cores
+## Update the complie order
 ########################################################
-BuildIpCores
+update_compile_order -quiet -fileset sources_1
+update_compile_order -quiet -fileset sim_1
 
 ########################################################
 ## Compile the libraries for VCS
