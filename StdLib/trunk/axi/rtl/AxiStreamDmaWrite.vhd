@@ -182,11 +182,11 @@ begin
 
          -- First
          when S_FIRST_C =>
-            v.wMaster.awaddr := r.dmaReq.address;
+            v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address;
 
             -- Determine transfer size to align address to 16-transfer boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.wMaster.awlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            v.wMaster.awlen(3 downto 0) := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
             -- DMA request has dropped. Abort. This is needed to disable engine while it
             -- is still waiting for an inbound frame.
@@ -202,8 +202,8 @@ begin
 
          -- Next Write
          when S_NEXT_C =>
-            v.wMaster.awaddr := r.dmaReq.address;
-            v.wMaster.awlen  := x"F";
+            v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address;
+            v.wMaster.awlen(3 downto 0)                            := x"F";
 
             -- There is enough room in the FIFO for a burst
             if selPause = '0' then
@@ -254,12 +254,12 @@ begin
                end if;
 
                -- Last in transfer
-               if r.wMaster.awlen = 0 then
+               if r.wMaster.awlen(3 downto 0) = 0 then
                   v.wMaster.wlast := '1';
                   v.state         := S_LAST_C;
                else
                   v.wMaster.wlast := '0';
-                  v.wMaster.awlen := r.wMaster.awlen - 1;
+                  v.wMaster.awlen(3 downto 0) := r.wMaster.awlen(3 downto 0) - 1;
                end if;
 
                -- Done

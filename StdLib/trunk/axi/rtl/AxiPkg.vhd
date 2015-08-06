@@ -1,276 +1,175 @@
 -------------------------------------------------------------------------------
--- Title         : AXI-4 Package File
--- File          : AxiPkg.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 04/02/2013
+-- Title      : AXI-4 Package File
 -------------------------------------------------------------------------------
--- Description:
--- Package file for AXI Busses
+-- File       : AxiPkg.vhd
+-- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-04-02
+-- Last update: 2015-08-06
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 by Ryan Herbst. All rights reserved.
+-- Description: Package file for AXI Busses
 -------------------------------------------------------------------------------
--- Modification history:
--- 04/02/2013: created.
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 use work.StdRtlPkg.all;
 
 package AxiPkg is
 
-   --------------------------------------------------------
+   -------------------------------------
    -- AXI bus, read master signal record
-   --------------------------------------------------------
-
-   -- Base Record
+   -------------------------------------
    type AxiReadMasterType is record
-
       -- Read Address channel
-      arvalid        : sl;               -- Address valid
-      araddr         : slv(31 downto 0); -- Address
-      arid           : slv(11 downto 0); -- Channel ID
-                                         -- 12 bits for master GP
-                                         -- 6  bits for slave GP
-                                         -- 3  bits for ACP
-                                         -- 6  bits for HP
-      arlen          : slv(3  downto 0); -- Transfer count, 0x0=1, 0xF=16
-      arsize         : slv(2  downto 0); -- Bytes per transfer, 0x0=1, 0x7=8
-      arburst        : slv(1  downto 0); -- Burst Type
-                                         -- 0x0 = Fixed address
-                                         -- 0x1 = Incrementing address
-                                         -- 0x2 = Wrap at cache boundary
-      arlock         : slv(1  downto 0); -- Lock control
-                                         -- 0x0 = Normal access
-                                         -- 0x1 = Exclusive access
-                                         -- 0x2 = Locked access
-      arprot         : slv(2  downto 0); -- Protection control
-                                         -- Bit 0 : 0 = Normal, 1 = Priveleged
-                                         -- Bit 1 : 0 = Secure, 1 = Non-secure
-                                         -- Bit 2 : 0 = Data access, 1 = Instruction
-      arcache        : slv(3  downto 0); -- Cache control
-                                         -- Bit 0 : Bufferable
-                                         -- Bit 1 : Cachable  
-                                         -- Bit 2 : Read allocate enable
-                                         -- Bit 3 : Write allocate enable
-
+      arvalid  : sl;                    -- Address valid
+      araddr   : slv(63 downto 0);      -- Address
+      arid     : slv(31 downto 0);      -- Address ID
+      arlen    : slv(7 downto 0);       -- Transfer count
+      arsize   : slv(2 downto 0);       -- Bytes per transfer
+      arburst  : slv(1 downto 0);       -- Burst Type
+      arlock   : slv(1 downto 0);       -- Lock control
+      arprot   : slv(2 downto 0);       -- Protection control
+      arcache  : slv(3 downto 0);       -- Cache control
+      arqos    : slv(3 downto 0);       -- QoS value                                        
+      arregion : slv(3 downto 0);       -- Region identifier                                       
       -- Read data channel
-      rready         : sl;               -- Master is ready for data
-
+      rready   : sl;                    -- Master is ready for data
    end record;
-
-   -- Initialization constants
-   constant AXI_READ_MASTER_INIT_C : AxiReadMasterType := ( 
-      arvalid        => '0',
-      araddr         => x"00000000",
-      arid           => x"000",
-      arlen          => "0000",
-      arsize         => "000",
-      arburst        => "00",
-      arlock         => "00",
-      arprot         => "000",
-      arcache        => "0000",
-      rready         => '0'
-   );
-
-   -- Array
    type AxiReadMasterArray is array (natural range<>) of AxiReadMasterType;
+   constant AXI_READ_MASTER_INIT_C : AxiReadMasterType := (
+      arvalid  => '0',
+      araddr   => (others => '0'),
+      arid     => (others => '0'),
+      arlen    => (others => '0'),
+      arsize   => (others => '0'),
+      arburst  => (others => '0'),
+      arlock   => (others => '0'),
+      arprot   => (others => '0'),
+      arcache  => (others => '0'),
+      arqos    => (others => '0'),
+      arregion => (others => '0'),
+      rready   => '0');
 
-
-   --------------------------------------------------------
+   ------------------------------------
    -- AXI bus, read slave signal record
-   --------------------------------------------------------
-
-   -- Base Record
+   ------------------------------------
    type AxiReadSlaveType is record
-
       -- Read Address channel
-      arready : sl;               -- Slave is ready for address
-
+      arready : sl;                     -- Slave is ready for address
       -- Read data channel
-      rdata   : slv(63 downto 0); -- Read data from slave
-                                  -- 32 bits for GP ports
-                                  -- 64 bits for other ports
-      rlast   : sl;               -- Read data last strobe
-      rvalid  : sl;               -- Read data is valid
-      rid     : slv(11 downto 0); -- Read data ID
-                                  -- 12 for master GP 
-                                  -- 6 for slave GP 
-                                  -- 3 for ACP 
-                                  -- 6 for HP
-      rresp   : slv(1  downto 0); -- Read data result
-                                  -- 0x0 = Okay
-                                  -- 0x1 = Exclusive access okay
-                                  -- 0x2 = Slave indicated error 
-                                  -- 0x3 = Decode error
-
+      rdata   : slv(1023 downto 0);     -- Read data from slave
+      rlast   : sl;                     -- Read data last strobe
+      rvalid  : sl;                     -- Read data is valid
+      rid     : slv(31 downto 0);       -- Read ID tag
+      rresp   : slv(1 downto 0);        -- Read data result
    end record;
-
-   -- Initialization constants
-   constant AXI_READ_SLAVE_INIT_C : AxiReadSlaveType := ( 
+   type AxiReadSlaveArray is array (natural range<>) of AxiReadSlaveType;
+   constant AXI_READ_SLAVE_INIT_C : AxiReadSlaveType := (
       arready => '0',
-      rdata   => x"0000000000000000",
+      rdata   => (others => '0'),
       rlast   => '0',
       rvalid  => '0',
-      rid     => x"000",
-      rresp   => "00"
-   );
+      rid     => (others => '0'),
+      rresp   => (others => '0'));
 
-   -- Array
-   type AxiReadSlaveArray is array (natural range<>) of AxiReadSlaveType;
-
-
-   --------------------------------------------------------
+   --------------------------------------
    -- AXI bus, write master signal record
-   --------------------------------------------------------
-
-   -- Base Record
+   --------------------------------------
    type AxiWriteMasterType is record
-
       -- Write address channel
-      awvalid        : sl;               -- Write address is valid
-      awaddr         : slv(31 downto 0); -- Write address
-      awid           : slv(11 downto 0); -- Channel ID
-                                         -- 12 bits for master GP
-                                         -- 6  bits for slave GP
-                                         -- 3  bits for ACP
-                                         -- 6  bits for HP
-      awlen          : slv(3  downto 0); -- Transfer count, 0x0=1, 0xF=16
-      awsize         : slv(2  downto 0); -- Bytes per transfer, 0x0=1, 0x7=8
-      awburst        : slv(1  downto 0); -- Burst Type
-                                         -- 0x0 = Fixed address
-                                         -- 0x1 = Incrementing address
-                                         -- 0x2 = Wrap at cache boundary
-      awlock         : slv(1  downto 0); -- Lock control
-                                         -- 0x0 = Normal access
-                                         -- 0x1 = Exclusive access
-                                         -- 0x2 = Locked access
-      awprot         : slv(2  downto 0); -- Protection control
-                                         -- Bit 0 : 0 = Normal, 1 = Priveleged
-                                         -- Bit 1 : 0 = Secure, 1 = Non-secure
-                                         -- Bit 2 : 0 = Data access, 1 = Instruction
-      awcache        : slv(3  downto 0); -- Cache control
-                                         -- Bit 0 : Bufferable
-                                         -- Bit 1 : Cachable  
-                                         -- Bit 2 : Read allocate enable
-                                         -- Bit 3 : Write allocate enable
-
+      awvalid  : sl;                    -- Address valid
+      awaddr   : slv(63 downto 0);      -- Address
+      awid     : slv(31 downto 0);      -- Address ID
+      awlen    : slv(7 downto 0);       -- Transfer count
+      awsize   : slv(2 downto 0);       -- Bytes per transfer
+      awburst  : slv(1 downto 0);       -- Burst Type
+      awlock   : slv(1 downto 0);       -- Lock control
+      awprot   : slv(2 downto 0);       -- Protection control
+      awcache  : slv(3 downto 0);       -- Cache control
+      awqos    : slv(3 downto 0);       -- QoS value                                        
+      awregion : slv(3 downto 0);       -- Region identifier                                       
       -- Write data channel
-      wdata          : slv(63 downto 0); -- Write data
-                                         -- 32-bits for master and slave GP
-                                         -- 64-bit for others
-      wlast          : sl;               -- Write data is last
-      wvalid         : sl;               -- Write data is valid
-      wstrb          : slv(7  downto 0); -- Write enable strobes, 1 per byte
-                                         -- 4-bits for master and slave GP
-                                         -- 8-bits for others
-      wid            : slv(11 downto 0); -- Channel ID
-                                         -- 12 bits for master GP
-                                         -- 6  bits for slave GP
-                                         -- 3  bits for ACP
-                                         -- 6  bits for HP
-
+      wdata    : slv(1023 downto 0);    -- Write data
+      wlast    : sl;                    -- Write data is last
+      wvalid   : sl;                    -- Write data is valid
+      wid      : slv(31 downto 0);      -- Write ID tag
+      wstrb    : slv(127 downto 0);     -- Write enable strobes, 1 per byte
       -- Write ack channel
-      bready         : sl;               -- Write master is ready for status
-
+      bready   : sl;                    -- Write master is ready for status
    end record;
-
-   -- Initialization constants
-   constant AXI_WRITE_MASTER_INIT_C : AxiWriteMasterType := ( 
-      awvalid        => '0',
-      awaddr         => x"00000000",
-      awid           => x"000",
-      awlen          => "0000",
-      awsize         => "000",
-      awburst        => "00",
-      awlock         => "00",
-      awcache        => "0000",
-      awprot         => "000",
-      wdata          => x"0000000000000000",
-      wlast          => '0',
-      wvalid         => '0',
-      wid            => x"000",
-      wstrb          => "00000000",
-      bready         => '0'
-   );
-
-   -- Array
    type AxiWriteMasterArray is array (natural range<>) of AxiWriteMasterType;
+   constant AXI_WRITE_MASTER_INIT_C : AxiWriteMasterType := (
+      awvalid  => '0',
+      awaddr   => (others => '0'),
+      awid     => (others => '0'),
+      awlen    => (others => '0'),
+      awsize   => (others => '0'),
+      awburst  => (others => '0'),
+      awlock   => (others => '0'),
+      awprot   => (others => '0'),
+      awcache  => (others => '0'),
+      awqos    => (others => '0'),
+      awregion => (others => '0'),
+      wdata    => (others => '0'),
+      wlast    => '0',
+      wvalid   => '0',
+      wid      => (others => '0'),
+      wstrb    => (others => '0'),
+      bready   => '0');
 
-
-   --------------------------------------------------------
+   -------------------------------------
    -- AXI bus, write slave signal record
-   --------------------------------------------------------
-
-   -- Base Record
+   -------------------------------------
    type AxiWriteSlaveType is record
-
       -- Write address channel
-      awready : sl;               -- Write slave is ready for address
-
+      awready : sl;                     -- Write slave is ready for address
       -- Write data channel
-      wready  : sl;               -- Write slave is ready for data
-
+      wready  : sl;                     -- Write slave is ready for data
       -- Write ack channel
-      bresp   : slv(1  downto 0); -- Write acess status
-                                  -- 0x0 = Okay
-                                  -- 0x1 = Exclusive access okay
-                                  -- 0x2 = Slave indicated error 
-                                  -- 0x3 = Decode error
-      bvalid  : sl;               -- Write status valid
-      bid     : slv(11 downto 0); -- Channel ID
-                                  -- 12 bits for master GP
-                                  -- 6  bits for slave GP
-                                  -- 3  bits for ACP
-                                  -- 6  bits for HP
-
+      bresp   : slv(1 downto 0);        -- Write access status
+      bvalid  : sl;                     -- Write status valid
+      bid     : slv(31 downto 0);       -- Channel ID
    end record;
-
-   -- Initialization constants
-   constant AXI_WRITE_SLAVE_INIT_C : AxiWriteSlaveType := ( 
+   type AxiWriteSlaveArray is array (natural range<>) of AxiWriteSlaveType;
+   constant AXI_WRITE_SLAVE_INIT_C : AxiWriteSlaveType := (
       awready => '0',
       wready  => '0',
-      bresp   => "00",
+      bresp   => (others => '0'),
       bvalid  => '0',
-      bid     => x"000"
-   );
+      bid     => (others => '0'));
 
-   -- Array
-   type AxiWriteSlaveArray is array (natural range<>) of AxiWriteSlaveType;
-
-
-   --------------------------------------------------------
+   ------------------------
    -- AXI bus, fifo control
-   --------------------------------------------------------
-
+   ------------------------
    type AxiCtrlType is record
       pause    : sl;
       overflow : sl;
    end record AxiCtrlType;
-
+   type AxiCtrlArray is array (natural range<>) of AxiCtrlType;
    constant AXI_CTRL_INIT_C : AxiCtrlType := (
       pause    => '1',
       overflow => '0');
-
    constant AXI_CTRL_UNUSED_C : AxiCtrlType := (
       pause    => '0',
       overflow => '0');
 
-   type AxiCtrlArray is array (natural range<>) of AxiCtrlType;
-
-   --------------------------------------------------------
+   ------------------------
    -- AXI bus configuration
-   --------------------------------------------------------
-
+   ------------------------
    type AxiConfigType is record
-      DATA_BYTES_C      : natural range 1 to 8;
-      ID_BITS_C         : natural range 0 to 12;
+      ADDR_WIDTH_C : positive range 12 to 64;
+      DATA_BYTES_C : positive range 1 to 128;
+      ID_BITS_C    : positive range 1 to 32;
    end record AxiConfigType;
 
    constant AXI_CONFIG_INIT_C : AxiConfigType := (
-      DATA_BYTES_C      => 4,
-      ID_BITS_C         => 12);
+      ADDR_WIDTH_C => 32,
+      DATA_BYTES_C => 4,
+      ID_BITS_C    => 12);
 
 end AxiPkg;
-
