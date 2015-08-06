@@ -172,4 +172,15 @@ package AxiPkg is
       DATA_BYTES_C => 4,
       ID_BITS_C    => 12);
 
-end AxiPkg;
+   function ite(i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType;
+
+end package AxiPkg;
+
+package body AxiPkg is
+
+   function ite (i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+end package body AxiPkg;
