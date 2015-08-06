@@ -148,16 +148,16 @@ begin
 
          -- First
          when S_FIRST_C =>
-            v.first          := '1';
-            v.rMaster.araddr := r.dmaReq.address;
+            v.first                                                := '1';
+            v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address;
 
             -- Determine transfer size to align address to 16-transfer boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.rMaster.arlen := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            v.rMaster.arlen(3 downto 0) := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
 
             -- Limit read burst size
-            if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen then
-               v.rMaster.arlen := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen(3 downto 0) then
+               v.rMaster.arlen(3 downto 0) := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
             end if;
 
             -- There is enough room in the FIFO for a burst
@@ -168,13 +168,13 @@ begin
 
          -- Next Write
          when S_NEXT_C =>
-            v.rMaster.araddr := r.dmaReq.address;
+            v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address;
 
             -- Limit read burst size
             if r.dmaReq.size(31 downto ADDR_LSB_C) >= 16 then
-               v.rMaster.arlen := x"F";
+               v.rMaster.arlen(3 downto 0) := x"F";
             else
-               v.rMaster.arlen := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
+               v.rMaster.arlen(3 downto 0) := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
             end if;
 
             -- There is enough room in the FIFO for a burst and address is ready

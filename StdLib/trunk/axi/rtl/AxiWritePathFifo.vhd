@@ -86,7 +86,7 @@ end AxiWritePathFifo;
 
 architecture rtl of AxiWritePathFifo is
 
-   constant ADDR_BITS_C  : integer := 32 - ADDR_LSB_G;
+   constant ADDR_BITS_C  : integer := AXI_CONFIG_G.ADDR_WIDTH_C - ADDR_LSB_G;
    constant ID_BITS_C    : integer := ite(ID_FIXED_EN_G,0,AXI_CONFIG_G.ID_BITS_C);
    constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G,0,4);
    constant SIZE_BITS_C  : integer := ite(SIZE_FIXED_EN_G,0,3);
@@ -111,7 +111,7 @@ architecture rtl of AxiWritePathFifo is
       variable i        : integer;
    begin
 
-      retValue(ADDR_BITS_C-1 downto 0) := din.awaddr(31 downto ADDR_LSB_G);
+      retValue(ADDR_BITS_C-1 downto 0) := din.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto ADDR_LSB_G);
       i := ADDR_BITS_C;
 
       if ID_FIXED_EN_G = false then
@@ -165,7 +165,7 @@ architecture rtl of AxiWritePathFifo is
       master.awvalid := valid;
 
       master.awaddr := (others=>'0');
-      master.awaddr(31 downto ADDR_LSB_G) := din(ADDR_BITS_C-1 downto 0);
+      master.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto ADDR_LSB_G) := din(ADDR_BITS_C-1 downto 0);
       i := ADDR_BITS_C;
 
       if ID_FIXED_EN_G then

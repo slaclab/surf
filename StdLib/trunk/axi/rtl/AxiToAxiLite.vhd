@@ -50,7 +50,7 @@ architecture structure of AxiToAxiLite is
 
 begin
 
-   axilWriteMaster.awaddr  <= axiWriteMaster.awaddr;
+   axilWriteMaster.awaddr  <= axiWriteMaster.awaddr(31 downto 0);
    axilWriteMaster.awprot  <= axiWriteMaster.awprot;
    axilWriteMaster.awvalid <= axiWriteMaster.awvalid;
    axilWriteMaster.wdata   <= axiWriteMaster.wdata(31 downto 0);
@@ -63,7 +63,7 @@ begin
    axiWriteSlave.bvalid  <= axilWriteSlave.bvalid;
    axiWriteSlave.wready  <= axilWriteSlave.wready;
 
-   axilReadMaster.araddr  <= axiReadMaster.araddr;
+   axilReadMaster.araddr  <= axiReadMaster.araddr(31 downto 0);
    axilReadMaster.arprot  <= axiReadMaster.arprot;
    axilReadMaster.arvalid <= axiReadMaster.arvalid;
    axilReadMaster.rready  <= axiReadMaster.rready;
