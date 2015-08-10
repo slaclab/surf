@@ -38,8 +38,8 @@ JesdTxGen::JesdTxGen ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index
    addRegisterLink(rl = new RegisterLink("Enable", baseAddress_ + (0x00*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Enable/turn on the corresponding waveform");
 
-   addRegisterLink(rl = new RegisterLink("DisplayRateDiv", baseAddress_ + (0x01*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Divides the display rate (0 - DR, 1 - DR/2, 2 - DR/4, 2 - DR/6 etc)");
+   //addRegisterLink(rl = new RegisterLink("DisplayRateDiv", baseAddress_ + (0x01*addrSize), Variable::Configuration));
+   //rl->getVariable()->setDescription("Divides the display rate (0 - DR, 1 - DR/2, 2 - DR/4, 2 - DR/6 etc)");
 
    addRegisterLink(rl = new RegisterLink("PeriodSize", baseAddress_ + (0x02*addrSize), Variable::Configuration));
    rl->getVariable()->setDescription("Size of a generated signal period buffer. NOTE: The data in the buffer has to be properly defined");    

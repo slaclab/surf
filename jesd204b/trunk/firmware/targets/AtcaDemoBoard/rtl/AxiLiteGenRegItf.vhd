@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : Axi-lite interface for DAQ register access  
+-- Title      : Axi-lite interface for Signal generator control  
 -------------------------------------------------------------------------------
--- File       : AxiLiteDaqRegItf.vhd
+-- File       : AxiLiteGenRegItf.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-15
@@ -22,51 +22,50 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.Jesd204bPkg.all;
 
-entity AxiLiteDaqRegItf is
+entity AxiLiteGenRegItf is
    generic (
    -- General Configurations
       TPD_G                      : time                       := 1 ns;
 
       AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;  
-
+      
+      ADDR_WIDTH_G : integer range 1 to (2**24) := 9;
+      
       -- Number of Axi lanes (0 to 1)
-      L_AXI_G : positive := 2 
+      L_G : positive := 2 
    );    
    port (
-     -- AXI Clk
-     axiClk_i : in sl;
-     axiRst_i : in sl;
+    -- AXI Clk
+      axiClk_i : in sl;
+      axiRst_i : in sl;
 
     -- Axi-Lite Register Interface (locClk domain)
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      
+ 
     -- JESD devClk
       devClk_i          : in  sl;
-      devRst_i          : in  sl;    
-      
-   -- JESD registers
-      -- Busy
-      busy_i          : in  sl;            
-   
-      -- Control
-      trigSw_o          : out  sl;
-      axisPacketSize_o  : out  slv(23 downto 0);
-      rateDiv_o         : out  slv(15 downto 0);
-      muxSel_o          : out  Slv4Array(L_AXI_G-1 downto 0)
-   );   
-end AxiLiteDaqRegItf;
+      devRst_i          : in  sl;
 
-architecture rtl of AxiLiteDaqRegItf is
+   -- JESD registers
+      -- Busy      
+      enable_o         : out slv(L_G-1 downto 0);
+      
+      -- Control
+      periodSize_o     : out  slv(ADDR_WIDTH_G-1 downto 0);
+      dspDiv_o         : out  slv(15 downto 0)
+   );   
+end AxiLiteGenRegItf;
+
+architecture rtl of AxiLiteGenRegItf is
 
    type RegType is record
       -- JESD Control (RW)
-      commonCtrl     : slv(0 downto 0);
-      axisPacketSize : slv(23 downto 0);
-      rateDiv        : slv(15 downto 0);
-      muxSel         : Slv4Array(L_AXI_G-1 downto 0);
+      enable     : slv(L_G-1 downto 0);
+      periodSize : slv(ADDR_WIDTH_G-1 downto 0);
+      dspDiv     : slv(15 downto 0);
       
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -74,10 +73,9 @@ architecture rtl of AxiLiteDaqRegItf is
    end record;
    
    constant REG_INIT_C : RegType := (
-      commonCtrl       => "0",
-      axisPacketSize   => x"00_01_00",
-      rateDiv          => x"0000",
-      muxSel           => (x"2", x"1"),
+      enable       => (others=> '0'),
+      periodSize   => intToSlv(16, ADDR_WIDTH_G),
+      dspDiv       => x"0001",
  
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -87,17 +85,15 @@ architecture rtl of AxiLiteDaqRegItf is
    
    -- Integer address
    signal s_RdAddr: natural := 0;
-   signal s_WrAddr: natural := 0;
-   
-   signal s_busy : sl; 
+   signal s_WrAddr: natural := 0; 
    
 begin
    
    -- Convert address to integer (lower two bits of address are always '0')
-   s_RdAddr <= slvToInt( axilReadMaster.araddr(9 downto 2) );
-   s_WrAddr <= slvToInt( axilWriteMaster.awaddr(9 downto 2) ); 
+   s_RdAddr <= slvToInt( axilReadMaster.araddr(9 downto 2));
+   s_WrAddr <= slvToInt( axilWriteMaster.awaddr(9 downto 2)); 
    
-   comb : process (axilReadMaster, axilWriteMaster, r, axiRst_i, s_RdAddr, s_WrAddr, s_busy) is
+   comb : process (axilReadMaster, axilWriteMaster, r, axiRst_i, s_RdAddr, s_WrAddr) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -106,8 +102,6 @@ begin
       -- Latch the current value
       v := r;
       
-      -- Auto clear (trigger register) TODO check in simulation
-      v.commonCtrl := "0";
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite interface
       ----------------------------------------------------------------------------------------------
@@ -117,17 +111,11 @@ begin
          axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          case (s_WrAddr) is
             when 16#00# => -- ADDR (0)
-               v.commonCtrl      := axilWriteMaster.wdata(0 downto 0); 
-            when 16#02# => -- ADDR (8)
-               v.rateDiv  := axilWriteMaster.wdata(15 downto 0);                
-            when 16#03# => -- ADDR (12)
-               v.axisPacketSize  := axilWriteMaster.wdata(23 downto 0);
-            when 16#10# to 16#1F# =>               
-               for I in (L_AXI_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
-                     v.muxSel(I)  := axilWriteMaster.wdata(3 downto 0);
-                  end if;
-               end loop;
+               v.enable      := axilWriteMaster.wdata(L_G-1 downto 0);
+            when 16#01# => -- ADDR (8)
+               v.dspDiv  := axilWriteMaster.wdata(15 downto 0);                
+            when 16#02# => -- ADDR (12)
+               v.periodSize  := axilWriteMaster.wdata(ADDR_WIDTH_G-1 downto 0);
             when others =>
                axilWriteResp     := AXI_ERROR_RESP_G;
          end case;
@@ -139,19 +127,11 @@ begin
          v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
             when 16#00# =>  -- ADDR (0)
-               v.axilReadSlave.rdata(0 downto 0)                 := r.commonCtrl;
-            when 16#01# =>  -- ADDR (4)
-               v.axilReadSlave.rdata(0)                          := s_busy;
-            when 16#02# =>  -- ADDR (8)
-               v.axilReadSlave.rdata(15 downto 0)                := r.rateDiv;               
-            when 16#03# =>  -- ADDR (12)
-               v.axilReadSlave.rdata(23 downto 0)                := r.axisPacketSize;
-            when 16#10# to 16#1F# => 
-               for I in (L_AXI_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(3 downto 0)     := r.muxSel(I);
-                  end if;
-               end loop;
+               v.axilReadSlave.rdata(L_G-1 downto 0)             := r.enable;
+            when 16#01# =>  -- ADDR (8)
+               v.axilReadSlave.rdata(15 downto 0)                := r.dspDiv;               
+            when 16#02# =>  -- ADDR (12)
+               v.axilReadSlave.rdata(ADDR_WIDTH_G-1 downto 0)                := r.periodSize;
             when others =>
                axilReadResp    := AXI_ERROR_RESP_G;
          end case;
@@ -179,40 +159,29 @@ begin
       end if;
    end process seq;
    
-   -- Input assignment and synchronisation
-   Sync_IN0 : entity work.Synchronizer
-   generic map (
-      TPD_G => TPD_G
-   )
-   port map (
-      clk     => axiClk_i,
-      rst     => axiRst_i,
-      dataIn  => busy_i,
-      dataOut => s_busy
-   );
-   
    -- Output assignment and synchronisation
-   Sync_OUT1 : entity work.Synchronizer
+   SyncFifo_OUT1 : entity work.SynchronizerFifo
    generic map (
-      TPD_G => TPD_G
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => L_G
    )
    port map (
-      clk     => devClk_i,
-      rst     => devRst_i,
-      dataIn  => r.commonCtrl(0),
-      dataOut => trigSw_o
+      wr_clk => axiClk_i,
+      din    => r.enable,
+      rd_clk => devClk_i,
+      dout   => enable_o
    );
    
    SyncFifo_OUT2 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
-      DATA_WIDTH_G => 24
+      DATA_WIDTH_G => ADDR_WIDTH_G
    )
    port map (
       wr_clk => axiClk_i,
-      din    => r.axisPacketSize,
+      din    => r.periodSize,
       rd_clk => devClk_i,
-      dout   => axisPacketSize_o
+      dout   => periodSize_o
    );
    
    SyncFifo_OUT3 : entity work.SynchronizerFifo
@@ -222,23 +191,9 @@ begin
    )
    port map (
       wr_clk => axiClk_i,
-      din    => r.rateDiv,
+      din    => r.dspDiv,
       rd_clk => devClk_i,
-      dout   => rateDiv_o
+      dout   => dspDiv_o
    );
-   
-   GEN_1 : for I in L_AXI_G-1 downto 0 generate
-       SyncFifo_OUT0 : entity work.SynchronizerFifo
-      generic map (
-        TPD_G        => TPD_G,
-        DATA_WIDTH_G => 4
-        )
-      port map (
-        wr_clk => axiClk_i,
-        din    => r.muxSel(I),
-        rd_clk => devClk_i,
-        dout   => muxSel_o(I) 
-        );
-   end generate GEN_1;   
 ---------------------------------------------------------------------
 end rtl;

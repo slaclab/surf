@@ -46,25 +46,14 @@ class Dac38J84 : public Device {
        * \param name     Command name
        * \param arg      Optional arg
       */
-      //void command ( string name, string arg );
+      void command ( string name, string arg );
 
-      //! Method to read status registers and update variables
-      //void readStatus ( );
+      //! Clear alarms
+      void clrAlarms ();
 
-      //! Method to read configuration registers and update variables
-      /*!
-       * Throws string error.
-       */
-      //void readConfig ( );
+      //! Initialisation process
+      void initDac ();
 
-      //! Method to write configuration registers
-      /*! 
-       * Throws string on error.
-       * \param force Write all registers if true, only stale if false
-      */
-      //void writeConfig ( bool force );
-
-    
 };
 
 #endif

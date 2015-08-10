@@ -91,12 +91,6 @@ architecture rtl of AxisDaqMux is
    signal s_muxSel  : Slv4Array(L_AXI_G-1 downto 0);
    signal s_rateDiv : slv(15 downto 0);
 
-   -- Axi Lite interface synced to devClk
-   signal sAxiReadMasterDev : AxiLiteReadMasterType;
-   signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
-   signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
-   signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
-
    -- Axi Stream
 
    -- Trigger conditioning
@@ -117,30 +111,6 @@ begin
    -- AXI lite
    ----------------------------------------------------------- 
 
-   -- Synchronise axiLite interface to devClk
-   AxiLiteAsync_INST: entity work.AxiLiteAsync
-   generic map (
-      TPD_G           => TPD_G,
-      NUM_ADDR_BITS_G => 32
-   )
-   port map (
-      -- In
-      sAxiClk         => axiClk,
-      sAxiClkRst      => axiRst,
-      sAxiReadMaster  => axilReadMaster,
-      sAxiReadSlave   => axilReadSlave,
-      sAxiWriteMaster => axilWriteMaster,
-      sAxiWriteSlave  => axilWriteSlave,
-      
-      -- Out
-      mAxiClk         => devClk_i,
-      mAxiClkRst      => devRst_i,
-      mAxiReadMaster  => sAxiReadMasterDev,
-      mAxiReadSlave   => sAxiReadSlaveDev,
-      mAxiWriteMaster => sAxiWriteMasterDev,
-      mAxiWriteSlave  => sAxiWriteSlaveDev
-   );
-
    -- axiLite register interface
    AxiLiteRegItf_INST: entity work.AxiLiteDaqRegItf
    generic map (
@@ -148,14 +118,20 @@ begin
       AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       L_AXI_G          => L_AXI_G)
    port map (
-      devClk_i        => devClk_i,
-      devRst_i        => devRst_i,
-      axilReadMaster  => sAxiReadMasterDev,
-      axilReadSlave   => sAxiReadSlaveDev,
-      axilWriteMaster => sAxiWriteMasterDev,
-      axilWriteSlave  => sAxiWriteSlaveDev,
+      axiClk_i        => axiClk,
+      axiRst_i        => axiRst,
       
-      busy_i          => s_pause,
+      axilReadMaster  => axilReadMaster,
+      axilReadSlave   => axilReadSlave,
+      axilWriteMaster => axilWriteMaster,
+      axilWriteSlave  => axilWriteSlave,
+      
+      
+      -- DevClk domain
+	   devClk_i        => devClk_i,
+	   devRst_i        => devClk_i,
+      
+      busy_i           => s_pause,
       
       trigSw_o         => s_trigSw,
       rateDiv_o        => s_rateDiv,

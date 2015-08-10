@@ -99,7 +99,7 @@ architecture rtl of Jesd204bTx is
    -- Local Multi Frame Clock 
    signal s_lmfc   : sl;
 
-   -- Control and status from AxiLie
+   -- Control and status from AxiLite
    ------------------------------------------------------------
    signal s_sysrefDlyTx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
    signal s_enableTx     : slv(L_G-1 downto 0);
@@ -107,13 +107,12 @@ architecture rtl of Jesd204bTx is
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
    signal s_dataValid   : slv(L_G-1 downto 0);
    signal s_swTriggerReg: slv(L_G-1 downto 0);
+   
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
    -- User reset (from AXI lite register)
    signal s_gtReset     : sl;
    signal s_clearErr    : sl;
-   signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
-   
    signal s_sigTypeArr  : Slv2Array(L_G-1 downto 0);
    -- Test signal control
    signal  s_rampStep      : slv(PER_STEP_WIDTH_C-1 downto 0);
@@ -124,12 +123,6 @@ architecture rtl of Jesd204bTx is
    signal s_posAmplitude: slv(F_G*8-1 downto 0);   
    signal s_negAmplitude: slv(F_G*8-1 downto 0);
    
-   -- Axi Lite interface synced to devClk
-   signal sAxiReadMasterDev : AxiLiteReadMasterType;
-   signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
-   signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
-   signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
-
    -- Data out multiplexer
    signal s_testDataArr   : sampleDataArray(L_G-1 downto 0);
    signal s_axiDataArr    : sampleDataArray(L_G-1 downto 0);
@@ -138,10 +131,14 @@ architecture rtl of Jesd204bTx is
 
    -- Sysref conditioning
    signal  s_sysrefSync : sl;
-   signal  s_nSyncSync  : sl;
    signal  s_sysrefRe   : sl;
    signal  s_sysrefD    : sl;
-  
+   
+   -- Sync conditioning
+   signal  s_nSync : sl;   
+   signal  s_invertSync : sl;
+   signal  s_nSyncSync  : sl;
+   
    -- Select output 
    signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
    signal  s_testEn : slv(L_G-1 downto 0);
@@ -157,30 +154,6 @@ begin
    -----------------------------------------------------------
    -- AXI lite registers
    -----------------------------------------------------------  
-   -- Synchronise axiLite interface to devClk
-   AxiLiteAsync_INST: entity work.AxiLiteAsync
-   generic map (
-      TPD_G           => TPD_G,
-      NUM_ADDR_BITS_G => 32
-   )
-   port map (
-      -- In
-      sAxiClk         => axiClk,
-      sAxiClkRst      => axiRst,
-      sAxiReadMaster  => axilReadMaster,
-      sAxiReadSlave   => axilReadSlave,
-      sAxiWriteMaster => axilWriteMaster,
-      sAxiWriteSlave  => axilWriteSlave,
-      
-      -- Out
-      mAxiClk         => devClk_i,
-      mAxiClkRst      => devRst_i,
-      mAxiReadMaster  => sAxiReadMasterDev,
-      mAxiReadSlave   => sAxiReadSlaveDev,
-      mAxiWriteMaster => sAxiWriteMasterDev,
-      mAxiWriteSlave  => sAxiWriteSlaveDev
-   );
-
    -- axiLite register interface
    AxiLiteRegItf_INST: entity work.AxiLiteTxRegItf
    generic map (
@@ -189,14 +162,16 @@ begin
       L_G              => L_G,
       F_G   => F_G)
    port map (
-      devClk_i        => devClk_i,
-      devRst_i        => devRst_i,
-      axilReadMaster  => sAxiReadMasterDev,
-      axilReadSlave   => sAxiReadSlaveDev,
-      axilWriteMaster => sAxiWriteMasterDev,
-      axilWriteSlave  => sAxiWriteSlaveDev,
+      axiClk_i        => axiClk,
+      axiRst_i        => axiRst,
+      axilReadMaster  => axilReadMaster,
+      axilReadSlave   => axilReadSlave,
+      axilWriteMaster => axilWriteMaster,
+      axilWriteSlave  => axilWriteSlave,
       
-      -- Registers
+      -- DevClk domain
+	   devClk_i        => devClk_i,
+	   devRst_i        => devClk_i,
       statusTxArr_i   => s_statusTxArr,
       muxOutSelArr_o  => s_muxOutSelArr,
       sysrefDlyTx_o   => s_sysrefDlyTx,
@@ -212,6 +187,7 @@ begin
       rampStep_o      => s_rampStep,
       squarePeriod_o  => s_squarePeriod,
       enableTestSig_o => s_enableTestSig,
+      invertSync_o    => s_invertSync,
       axisPacketSize_o=> open
    );
    
@@ -219,9 +195,9 @@ begin
    -- Data sources
    -----------------------------------------------------------
    
-   -- AXI stream rx interface one module per lane
+   -- AXI stream tx interface one module per lane
    generateAxiStreamLanes : for I in L_G-1 downto 0 generate
-      AxiStreamLaneRx_INST: entity work.AxiStreamLaneTx
+      AxiStreamLaneTx_INST: entity work.AxiStreamLaneTx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -287,7 +263,10 @@ begin
       dataIn  => sysref_i,
       dataOut => s_sysrefSync
    );
-       
+   
+   -- Invert/or not nSync signal (control from axil) 
+   s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
+   
    -- Synchronise nSync input to devClk_i
    Synchronizer_nsync_INST: entity work.Synchronizer
    generic map (
@@ -301,7 +280,7 @@ begin
    port map (
       clk     => devClk_i,
       rst     => devRst_i,
-      dataIn  => nSync_i,
+      dataIn  => s_nSync,
       dataOut => s_nSyncSync
    );  
    

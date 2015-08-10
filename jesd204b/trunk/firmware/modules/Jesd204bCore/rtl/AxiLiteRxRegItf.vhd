@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Last update: 2015-08-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -18,7 +18,8 @@
 --                   bit 0: JESD Subclass (Default '1')
 --                   bit 1: Enable control character replacement(Default '1')
 --                   bit 2: Reset MGTs (Default '0')
---                   bit 3: Clear Registered errors (Default '0')                        
+--                   bit 3: Clear Registered errors (Default '0')
+--                   bit 4: Invert nSync (Default '1'-inverted)                        
 --               0x1X (R) - Lane X status
 --                   bit 0: GT Reset done
 --                   bit 1: Received data valid
@@ -51,207 +52,372 @@ use work.AxiLitePkg.all;
 use work.Jesd204bPkg.all;
 
 entity AxiLiteRxRegItf is
-   generic (
-   -- General Configurations
-      TPD_G                      : time                       := 1 ns;
-      AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;  
-   -- JESD 
-      -- Number of RX lanes (1 to 8)
-      L_G : positive := 2
-   );    
-   port (
-    -- JESD devClk
-      devClk_i          : in  sl;
-      devRst_i          : in  sl;
+  generic (
+    -- General Configurations
+    TPD_G            : time            := 1 ns;
+    AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+    -- JESD 
+    -- Number of RX lanes (1 to 8)
+    L_G              : positive        := 2
+    );    
+  port (
+    -- AXI Clk
+    axiClk_i : in sl;
+    axiRst_i : in sl;
 
     -- Axi-Lite Register Interface (locClk domain)
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
-      
-   -- JESD registers
-      -- Status
-      statusRxArr_i   : in   rxStatuRegisterArray(L_G-1 downto 0);
-      
-      -- Control
-      sysrefDlyRx_o     : out  slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
-      enableRx_o        : out  slv(L_G-1 downto 0);
-      replEnable_o      : out  sl;
-      dlyTxArr_o        : out  Slv4Array(L_G-1 downto 0); -- 1 to 16 clock cycles
-      alignTxArr_o      : out  alignTxArray(L_G-1 downto 0); -- 0001, 0010, 0100, 1000
-      thresoldLowArr_o  : out  Slv16Array(L_G-1 downto 0); -- Test signal threshold low
-      thresoldHighArr_o : out  Slv16Array(L_G-1 downto 0); -- Test signal threshold high  
-      axisTrigger_o     : out  slv(L_G-1 downto 0);
-      subClass_o        : out  sl;
-      gtReset_o         : out  sl;
-      clearErr_o        : out  sl;      
-      axisPacketSize_o  : out  slv(23 downto 0) 
-   );   
+    axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+    axilReadSlave   : out AxiLiteReadSlaveType;
+    axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+    axilWriteSlave  : out AxiLiteWriteSlaveType;
+
+    -- JESD devClk
+    devClk_i : in sl;
+    devRst_i : in sl;
+
+
+    -- JESD registers
+    -- Status
+    statusRxArr_i : in rxStatuRegisterArray(L_G-1 downto 0);
+
+    -- Control
+    sysrefDlyRx_o     : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
+    enableRx_o        : out slv(L_G-1 downto 0);
+    replEnable_o      : out sl;
+    dlyTxArr_o        : out Slv4Array(L_G-1 downto 0);  -- 1 to 16 clock cycles
+    alignTxArr_o      : out alignTxArray(L_G-1 downto 0);  -- 0001, 0010, 0100, 1000
+    thresoldLowArr_o  : out Slv16Array(L_G-1 downto 0);  -- Test signal threshold low
+    thresoldHighArr_o : out Slv16Array(L_G-1 downto 0);  -- Test signal threshold high  
+    axisTrigger_o     : out slv(L_G-1 downto 0);
+    subClass_o        : out sl;
+    gtReset_o         : out sl;
+    clearErr_o        : out sl;
+    invertSync_o      : out sl;
+    axisPacketSize_o  : out slv(23 downto 0) 
+    );   
 end AxiLiteRxRegItf;
 
 architecture rtl of AxiLiteRxRegItf is
 
-   type RegType is record
-      -- JESD Control (RW)
-      enableRx       : slv(L_G-1 downto 0);
-      commonCtrl     : slv(3 downto 0);
-      sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
-      testTXItf      : Slv16Array(L_G-1 downto 0);
-      testSigThr     : Slv32Array(L_G-1 downto 0);      
-      axisTrigger    : slv(L_G-1 downto 0);
-      axisPacketSize : slv(23 downto 0);
-      
-      -- AXI lite
-      axilReadSlave  : AxiLiteReadSlaveType;
-      axilWriteSlave : AxiLiteWriteSlaveType;
-   end record;
-   
-   constant REG_INIT_C : RegType := (
-      enableRx       => (others => '1'),
-      commonCtrl     => "0011",
-      sysrefDlyRx    => (others => '0'),
-      testTXItf      => (others => x"0000"),
-      testSigThr     => (others => x"C340_4E20"),
-      axisTrigger    => (others => '0'),
-      axisPacketSize =>  AXI_PACKET_SIZE_DEFAULT_C,
- 
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+  type RegType is record
+    -- JESD Control (RW)
+    enableRx       : slv(L_G-1 downto 0);
+    commonCtrl     : slv(4 downto 0);
+    sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
+    testTXItf      : Slv16Array(L_G-1 downto 0);
+    testSigThr     : Slv32Array(L_G-1 downto 0);
+    axisTrigger    : slv(L_G-1 downto 0);
+    axisPacketSize : slv(23 downto 0);
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-   
-   -- Integer address
-   signal s_RdAddr: natural := 0;
-   signal s_WrAddr: natural := 0; 
-   
+    -- AXI lite
+    axilReadSlave  : AxiLiteReadSlaveType;
+    axilWriteSlave : AxiLiteWriteSlaveType;
+  end record;
+  
+  constant REG_INIT_C : RegType := (
+    enableRx       => (others => '0'),
+    commonCtrl     => "10011",
+    sysrefDlyRx    => (others => '0'),
+    testTXItf      => (others => x"0000"),
+    testSigThr     => (others => x"C340_4E20"),
+    axisTrigger    => (others => '0'),
+    axisPacketSize => AXI_PACKET_SIZE_DEFAULT_C,
+
+    axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+    axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+
+  signal r   : RegType := REG_INIT_C;
+  signal rin : RegType;
+
+  -- Integer address
+  signal s_RdAddr : natural := 0;
+  signal s_WrAddr : natural := 0;
+
+  -- Synced status signals
+  signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
+  
 begin
+
+  -- Convert address to integer (lower two bits of address are always '0')
+  s_RdAddr <= slvToInt(axilReadMaster.araddr(9 downto 2));
+  s_WrAddr <= slvToInt(axilWriteMaster.awaddr(9 downto 2));
+
+  comb : process (axiRst_i, axilReadMaster, axilWriteMaster,
+                  r, s_RdAddr, s_WrAddr, s_statusRxArr) is
+    variable v             : RegType;
+    variable axilStatus    : AxiLiteStatusType;
+    variable axilWriteResp : slv(1 downto 0);
+    variable axilReadResp  : slv(1 downto 0);
+  begin
+    -- Latch the current value
+    v := r;
+
+    ----------------------------------------------------------------------------------------------
+    -- Axi-Lite interface
+    ----------------------------------------------------------------------------------------------
+    axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+
+    if (axilStatus.writeEnable = '1') then
+      axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+      case (s_WrAddr) is
+        when 16#00# =>                  -- ADDR (0)
+          v.enableRx := axilWriteMaster.wdata(L_G-1 downto 0);
+        when 16#01# =>                  -- ADDR (4)
+          v.sysrefDlyRx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
+        when 16#02# =>                  -- ADDR (8)
+          v.axisTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
+        when 16#03# =>                  -- ADDR (12)
+          v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
+        when 16#04# =>                  -- ADDR (16)
+          v.commonCtrl := axilWriteMaster.wdata(4 downto 0);
+        when 16#20# to 16#2F# =>
+          for I in (L_G-1) downto 0 loop
+            if (axilWriteMaster.awaddr(5 downto 2) = I) then
+              v.testTXItf(I) := axilWriteMaster.wdata(15 downto 0);
+            end if;
+          end loop;
+        when 16#30# to 16#3F# =>
+          for I in (L_G-1) downto 0 loop
+            if (axilWriteMaster.awaddr(5 downto 2) = I) then
+              v.testSigThr(I) := axilWriteMaster.wdata(31 downto 0);
+            end if;
+          end loop;
+        when others =>
+          axilWriteResp := AXI_ERROR_RESP_G;
+      end case;
+      axiSlaveWriteResponse(v.axilWriteSlave);
+    end if;
+
+    if (axilStatus.readEnable = '1') then
+      axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+      v.axilReadSlave.rdata := (others => '0');
+      case (s_RdAddr) is
+        when 16#00# =>                  -- ADDR (0)
+          v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableRx;
+        when 16#01# =>                  -- ADDR (4)
+          v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyRx;
+        when 16#02# =>                  -- ADDR (8)
+          v.axilReadSlave.rdata(L_G-1 downto 0) := r.axisTrigger;
+        when 16#03# =>                  -- ADDR (12)
+          v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
+        when 16#04# =>                  -- ADDR (16)
+          v.axilReadSlave.rdata(4 downto 0) := r.commonCtrl;
+        when 16#10# to 16#1F# =>
+          for I in (L_G-1) downto 0 loop
+            if (axilReadMaster.araddr(5 downto 2) = I) then
+              v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := s_statusRxArr(I);
+            end if;
+          end loop;
+        when 16#20# to 16#2F# =>
+          for I in (L_G-1) downto 0 loop
+            if (axilReadMaster.araddr(5 downto 2) = I) then
+              v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(I);
+            end if;
+          end loop;
+        when 16#30# to 16#3F# =>
+          for I in (L_G-1) downto 0 loop
+            if (axilReadMaster.araddr(5 downto 2) = I) then
+              v.axilReadSlave.rdata(31 downto 0) := r.testSigThr(I);
+            end if;
+          end loop;
+        when others =>
+          axilReadResp := AXI_ERROR_RESP_G;
+      end case;
+      axiSlaveReadResponse(v.axilReadSlave);
+    end if;
+
+    -- Reset
+    if (axiRst_i = '1') then
+      v := REG_INIT_C;
+    end if;
+
+    -- Register the variable for next clock cycle
+    rin <= v;
+
+    -- Outputs
+    axilReadSlave  <= r.axilReadSlave;
+    axilWriteSlave <= r.axilWriteSlave;
+    
+  end process comb;
+
+  seq : process (axiClk_i) is
+  begin
+    if rising_edge(axiClk_i) then
+      r <= rin after TPD_G;
+    end if;
+  end process seq; 
+
+    -- Input assignment and synchronisation
+    GEN_0 : for I in L_G-1 downto 0 generate
+      SyncFifo_IN0 : entity work.SynchronizerFifo
+        generic map (
+          TPD_G        => TPD_G,
+          DATA_WIDTH_G => RX_STAT_WIDTH_C
+          )
+        port map (
+          wr_clk => devClk_i,
+          din    => statusRxArr_i(I),
+          rd_clk => axiClk_i,
+          dout   => s_statusRxArr(I)
+          );  
+    end generate GEN_0;
+
+  -- Output assignment and synchronisation
+
+  SyncFifo_OUT0 : entity work.SynchronizerFifo
+    generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => SYSRF_DLY_WIDTH_C
+      )
+    port map (
+      wr_clk => axiClk_i,
+      din    => r.sysrefDlyRx,
+      rd_clk => devClk_i,
+      dout   => sysrefDlyRx_o
+      );
+
+  SyncFifo_OUT1 : entity work.SynchronizerFifo
+    generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => L_G
+      )
+    port map (
+      wr_clk => axiClk_i,
+      din    => r.enableRx,
+      rd_clk => devClk_i,
+      dout   => enableRx_o
+      );
+
+  
+  SyncFifo_OUT2 : entity work.SynchronizerFifo
+    generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => 24
+      )
+    port map (
+      wr_clk => axiClk_i,
+      din    => r.axisPacketSize,
+      rd_clk => devClk_i,
+      dout   => axisPacketSize_o
+      );
+
+  Sync_OUT3 : entity work.Synchronizer
+    generic map (
+      TPD_G => TPD_G
+      )
+    port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => r.commonCtrl(0),
+      dataOut => subClass_o
+      );
+
+  Sync_OUT4 : entity work.Synchronizer
+    generic map (
+      TPD_G => TPD_G
+      )
+    port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => r.commonCtrl(1),
+      dataOut => replEnable_o
+      );
+
+  Sync_OUT5 : entity work.Synchronizer
+    generic map (
+      TPD_G => TPD_G
+      )
+    port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => r.commonCtrl(2),
+      dataOut => gtReset_o
+      );
+
+  Sync_OUT6 : entity work.Synchronizer
+    generic map (
+      TPD_G => TPD_G
+      )
+    port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => r.commonCtrl(3),
+      dataOut => clearErr_o
+      );
    
-   -- Convert address to integer (lower two bits of address are always '0')
-   s_RdAddr <= slvToInt( axilReadMaster.araddr(9 downto 2) );
-   s_WrAddr <= slvToInt( axilWriteMaster.awaddr(9 downto 2) ); 
+   Sync_OUT7 : entity work.Synchronizer
+    generic map (
+      TPD_G => TPD_G
+      )
+    port map (
+      clk     => devClk_i,
+      rst     => devRst_i,
+      dataIn  => r.commonCtrl(4),
+      dataOut => invertSync_o
+   );
    
-   comb : process (axilReadMaster, axilWriteMaster, r, devRst_i, statusRxArr_i, s_RdAddr, s_WrAddr) is
-      variable v             : RegType;
-      variable axilStatus    : AxiLiteStatusType;
-      variable axilWriteResp : slv(1 downto 0);
-      variable axilReadResp  : slv(1 downto 0);
-   begin
-      -- Latch the current value
-      v := r;
-
-      ----------------------------------------------------------------------------------------------
-      -- Axi-Lite interface
-      ----------------------------------------------------------------------------------------------
-      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
-
-      if (axilStatus.writeEnable = '1') then
-         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
-         case (s_WrAddr) is
-            when 16#00# => -- ADDR (0)
-               v.enableRx        := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#01# => -- ADDR (4)
-               v.sysrefDlyRx     := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
-            when 16#02# => -- ADDR (8)
-               v.axisTrigger     := axilWriteMaster.wdata(L_G-1 downto 0);   
-            when 16#03# => -- ADDR (12)
-               v.axisPacketSize  := axilWriteMaster.wdata(23 downto 0);
-            when 16#04# => -- ADDR (16)
-               v.commonCtrl      := axilWriteMaster.wdata(3 downto 0);         
-            when 16#20# to 16#2F# =>               
-               for I in (L_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
-                     v.testTXItf(I)  := axilWriteMaster.wdata(15 downto 0);
-                  end if;
-               end loop;
-            when 16#30# to 16#3F# =>               
-               for I in (L_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
-                     v.testSigThr(I)  := axilWriteMaster.wdata(31 downto 0);
-                  end if;
-               end loop; 
-            when others =>
-               axilWriteResp     := AXI_ERROR_RESP_G;
-         end case;
-         axiSlaveWriteResponse(v.axilWriteSlave);
-      end if;
-
-      if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
-         v.axilReadSlave.rdata := (others => '0');
-         case (s_RdAddr) is
-            when 16#00# =>  -- ADDR (0)
-               v.axilReadSlave.rdata(L_G-1 downto 0)                 := r.enableRx;
-            when 16#01# =>  -- ADDR (4)
-               v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0)   := r.sysrefDlyRx;
-            when 16#02# =>  -- ADDR (8)
-               v.axilReadSlave.rdata(L_G-1 downto 0)                 := r.axisTrigger;
-            when 16#03# =>  -- ADDR (12)
-               v.axilReadSlave.rdata(23 downto 0)                    := r.axisPacketSize;
-            when 16#04# =>  -- ADDR (16)
-               v.axilReadSlave.rdata(3 downto 0)                     := r.commonCtrl;               
-            when 16#10# to 16#1F# => 
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0)     := statusRxArr_i(I);
-                  end if;
-               end loop;
-            when 16#20# to 16#2F# =>               
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(15 downto 0)                    := r.testTXItf(I);
-                  end if;
-               end loop; 
-            when 16#30# to 16#3F# =>               
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(31 downto 0)                    := r.testSigThr(I);
-                  end if;
-               end loop; 
-            when others =>
-               axilReadResp                                          := AXI_ERROR_RESP_G;
-         end case;
-         axiSlaveReadResponse(v.axilReadSlave);
-      end if;
-
-      -- Reset
-      if (devRst_i = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-      -- Outputs
-      axilReadSlave  <= r.axilReadSlave;
-      axilWriteSlave <= r.axilWriteSlave;
-      
-   end process comb;
-
-   seq : process (devClk_i) is
-   begin
-      if rising_edge(devClk_i) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
+   SyncFifo_OUT8 : entity work.SynchronizerFifo
+    generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => L_G
+      )
+    port map (
+      wr_clk => axiClk_i,
+      din    => r.axisTrigger,
+      rd_clk => devClk_i,
+      dout   => axisTrigger_o
+   );
    
-   -- Output assignment
-   sysrefDlyRx_o     <= r.sysrefDlyRx;
-   enableRx_o        <= r.enableRx;
-   clearErr_o        <= r.commonCtrl(3);
-   gtReset_o         <= r.commonCtrl(2);
-   replEnable_o      <= r.commonCtrl(1);
-   subClass_o        <= r.commonCtrl(0);
-   axisTrigger_o     <= r.axisTrigger;
-   axisPacketSize_o  <= r.axisPacketSize;
-   
-   TX_LANES_GEN : for I in L_G-1 downto 0 generate 
-      dlyTxArr_o(I)    <=   r.testTXItf(I) (11 downto 8);
-      alignTxArr_o(I)  <=   r.testTXItf(I) (GT_WORD_SIZE_C-1 downto 0);
-      
-      thresoldHighArr_o(I) <=   r.testSigThr(I) (31 downto 16);     
-      thresoldLowArr_o(I)  <=   r.testSigThr(I) (15 downto 0);
-   end generate TX_LANES_GEN;   
+
+  GEN_1 : for I in L_G-1 downto 0 generate
+    SyncFifo_OUT0 : entity work.SynchronizerFifo
+      generic map (
+        TPD_G        => TPD_G,
+        DATA_WIDTH_G => 4
+        )
+      port map (
+        wr_clk => axiClk_i,
+        din    => r.testTXItf(I) (11 downto 8),
+        rd_clk => devClk_i,
+        dout   => dlyTxArr_o(I)
+        );
+
+    SyncFifo_OUT1 : entity work.SynchronizerFifo
+      generic map (
+        TPD_G        => TPD_G,
+        DATA_WIDTH_G => GT_WORD_SIZE_C
+        )
+      port map (
+        wr_clk => axiClk_i,
+        din    => r.testTXItf(I) (GT_WORD_SIZE_C-1 downto 0),
+        rd_clk => devClk_i,
+        dout   => alignTxArr_o(I)
+        );
+
+    SyncFifo_OUT2 : entity work.SynchronizerFifo
+      generic map (
+        TPD_G        => TPD_G,
+        DATA_WIDTH_G => 16
+        )
+      port map (
+        wr_clk => axiClk_i,
+        din    => r.testSigThr(I) (31 downto 16),
+        rd_clk => devClk_i,
+        dout   => thresoldHighArr_o(I)
+        );
+
+    SyncFifo_OUT3 : entity work.SynchronizerFifo
+      generic map (
+        TPD_G        => TPD_G,
+        DATA_WIDTH_G => 16
+        )
+      port map (
+        wr_clk => axiClk_i,
+        din    => r.testSigThr(I) (15 downto 0),
+        rd_clk => devClk_i,
+        dout   => thresoldLowArr_o(I)
+        ); 
+  end generate GEN_1;
+
 ---------------------------------------------------------------------
 end rtl;

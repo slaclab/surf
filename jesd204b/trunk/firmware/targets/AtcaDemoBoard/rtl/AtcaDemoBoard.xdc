@@ -181,22 +181,22 @@ set_property -dict { PACKAGE_PIN AH8  IOSTANDARD LVCMOS25 PULLUP true} [get_port
 # set_property -dict { PACKAGE_PIN AM27 IOSTANDARD LVDS DIFF_TERM TRUE } [get_ports {rtmLsN[22]}] 
 # set_property -dict { PACKAGE_PIN AH26 IOSTANDARD LVDS DIFF_TERM TRUE } [get_ports {rtmLsP[23]}] 
 # set_property -dict { PACKAGE_PIN AJ26 IOSTANDARD LVDS DIFF_TERM TRUE } [get_ports {rtmLsN[23]}] 
-# set_property -dict { PACKAGE_PIN AE27 IOSTANDARD LVDS DIFF_TERM TRUE } [get_ports {rtmLsP[24]}] 
-# set_property -dict { PACKAGE_PIN AF27 IOSTANDARD LVDS DIFF_TERM TRUE } [get_ports {rtmLsN[24]}] 
-# set_property -dict { PACKAGE_PIN AM12 IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[25]}] 
-# set_property -dict { PACKAGE_PIN AN12 IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[25]}] 
-# set_property -dict { PACKAGE_PIN AM11 IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[26]}] 
-# set_property -dict { PACKAGE_PIN AN11 IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[26]}] 
-# set_property -dict { PACKAGE_PIN AN13 IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[27]}] 
-# set_property -dict { PACKAGE_PIN AP13 IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[27]}] 
-# set_property -dict { PACKAGE_PIN K20  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[28]}] 
-# set_property -dict { PACKAGE_PIN K21  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[28]}] 
-# set_property -dict { PACKAGE_PIN N21  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[29]}] 
-# set_property -dict { PACKAGE_PIN M21  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[29]}] 
-# set_property -dict { PACKAGE_PIN M20  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[30]}] 
-# set_property -dict { PACKAGE_PIN L20  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[30]}] 
-# set_property -dict { PACKAGE_PIN R21  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[31]}] 
-# set_property -dict { PACKAGE_PIN R22  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[31]}] 
+set_property -dict { PACKAGE_PIN AE27 IOSTANDARD LVDS } [get_ports {rtmLsP[24]}] 
+set_property -dict { PACKAGE_PIN AF27 IOSTANDARD LVDS } [get_ports {rtmLsN[24]}] 
+set_property -dict { PACKAGE_PIN AM12 IOSTANDARD LVDS_25 } [get_ports {rtmLsP[25]}] 
+set_property -dict { PACKAGE_PIN AN12 IOSTANDARD LVDS_25 } [get_ports {rtmLsN[25]}] 
+set_property -dict { PACKAGE_PIN AM11 IOSTANDARD LVDS_25 } [get_ports {rtmLsP[26]}] 
+set_property -dict { PACKAGE_PIN AN11 IOSTANDARD LVDS_25 } [get_ports {rtmLsN[26]}] 
+set_property -dict { PACKAGE_PIN AN13 IOSTANDARD LVDS_25 } [get_ports {rtmLsP[27]}] 
+set_property -dict { PACKAGE_PIN AP13 IOSTANDARD LVDS_25 } [get_ports {rtmLsN[27]}] 
+set_property -dict { PACKAGE_PIN K20  IOSTANDARD LVDS_25 } [get_ports {rtmLsP[28]}] 
+set_property -dict { PACKAGE_PIN K21  IOSTANDARD LVDS_25 } [get_ports {rtmLsN[28]}] 
+set_property -dict { PACKAGE_PIN N21  IOSTANDARD LVDS_25 } [get_ports {rtmLsP[29]}] 
+set_property -dict { PACKAGE_PIN M21  IOSTANDARD LVDS_25 } [get_ports {rtmLsN[29]}] 
+set_property -dict { PACKAGE_PIN M20  IOSTANDARD LVDS_25 } [get_ports {rtmLsP[30]}] 
+set_property -dict { PACKAGE_PIN L20  IOSTANDARD LVDS_25 } [get_ports {rtmLsN[30]}] 
+set_property -dict { PACKAGE_PIN R21  IOSTANDARD LVDS_25 } [get_ports {rtmLsP[31]}] 
+set_property -dict { PACKAGE_PIN R22  IOSTANDARD LVDS_25 } [get_ports {rtmLsN[31]}] 
 # set_property -dict { PACKAGE_PIN P20  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[32]}] 
 # set_property -dict { PACKAGE_PIN P21  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsN[32]}] 
 # set_property -dict { PACKAGE_PIN N22  IOSTANDARD LVDS_25 DIFF_TERM TRUE } [get_ports {rtmLsP[33]}] 
@@ -287,8 +287,9 @@ create_generated_clock -name jesdClk -divide_by 1 -source [get_ports {jesdClkP[1
 
 set_clock_groups -asynchronous\
  -group [get_clocks -include_generated_clocks pgpRefClk]\
- -group [get_clocks -include_generated_clocks jesdRefClk]
-
+ -group [get_clocks -include_generated_clocks jesdRefClk]\
+ -group [get_clocks -include_generated_clocks jesdClk]
+ 
 #Assure that sychronization registers are placed in the same slice with no logic between each sync stage
 set_property ASYNC_REG true [get_cells -hierarchical *crossDomainSyncReg_reg*]
 
