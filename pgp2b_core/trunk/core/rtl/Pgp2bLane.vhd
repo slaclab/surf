@@ -41,6 +41,7 @@ entity Pgp2bLane is
       ---------------------------------
    
       -- System clock, reset & control
+      pgpTxClkEn        : in  sl := '1';
       pgpTxClk          : in  sl := '0';
       pgpTxClkRst       : in  sl := '0';
 
@@ -61,6 +62,7 @@ entity Pgp2bLane is
       ---------------------------------
 
       -- System clock, reset & control
+      pgpRxClkEn        : in  sl := '1';
       pgpRxClk          : in  sl := '0';
       pgpRxClkRst       : in  sl := '0';
 
@@ -110,6 +112,7 @@ begin
             PAYLOAD_CNT_TOP_G  => PAYLOAD_CNT_TOP_G,
             NUM_VC_EN_G        => NUM_VC_EN_G
          ) port map ( 
+            pgpTxClkEn         => pgpTxClkEn,
             pgpTxClk           => pgpTxClk,
             pgpTxClkRst        => pgpTxClkRst,
             pgpTxIn            => pgpTxIn,
@@ -144,6 +147,7 @@ begin
             RX_LANE_CNT_G      => LANE_CNT_G,
             PAYLOAD_CNT_TOP_G  => PAYLOAD_CNT_TOP_G
          ) port map (
+            pgpRxClkEn        => pgpRxClkEn,
             pgpRxClk          => pgpRxClk,
             pgpRxClkRst       => pgpRxClkRst,
             pgpRxIn           => pgpRxIn,

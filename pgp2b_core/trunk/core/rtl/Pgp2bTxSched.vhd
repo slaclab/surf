@@ -15,6 +15,7 @@
 -- 05/18/2009: created.
 -- 05/18/2012: Added VC transmit timeout
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -33,6 +34,7 @@ entity Pgp2bTxSched is
    port (
 
       -- System clock, reset & control
+      pgpTxClkEn      : in  sl := '1';        -- Master clock Enable
       pgpTxClk        : in sl;                -- Master clock
       pgpTxClkRst     : in sl;                -- Synchronous reset input
 
@@ -112,7 +114,7 @@ begin
             intTxReq     <= '0'      after TPD_G;
             intTxIdle    <= '0'      after TPD_G;
             intTxTimeout <= '0'      after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             -- Force state to select state when link goes down
             if pgpTxLinkReady = '0' then
                curState <= ST_RST_C after TPD_G;
@@ -288,7 +290,7 @@ begin
       if rising_edge(pgpTxClk) then
          if pgpTxClkRst = '1' then
             vcInFrame <= "0000" after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             -- Link is down or flush requested, reset status
             if pgpTxLinkReady = '0' or pgpTxFlush = '1' then
                vcInFrame <= "0000" after TPD_G;
@@ -318,7 +320,7 @@ begin
             vcTimerC  <= (others => '0') after TPD_G;
             vcTimerD  <= (others => '0') after TPD_G;
             vcTimeout <= (others => '0') after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             if vcInFrame(0) = '0' or (currVc = 0 and intTxReq = '1') then
                vcTimerA     <= (others => '0') after TPD_G;
                vcTimeout(0) <= '0'             after TPD_G;

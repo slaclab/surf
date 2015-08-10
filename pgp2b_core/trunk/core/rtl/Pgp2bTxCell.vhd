@@ -18,6 +18,7 @@
 -- 05/18/2012: Added VC transmit timeout
 -- 04/04/2014: Changed to Pgp2b.
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -36,6 +37,7 @@ entity Pgp2bTxCell is
    port ( 
 
       -- System clock, reset & control
+      pgpTxClkEn        : in  sl := '1';                        -- Master clock Enable
       pgpTxClk          : in  sl;                               -- Master clock
       pgpTxClkRst       : in  sl;                               -- Synchronous reset input
 
@@ -253,7 +255,7 @@ begin
             vc3Serial        <= (others=>'0') after TPD_G;
             curTypeLast      <= (others=>'0') after TPD_G;
             intOverflow      <= (others=>'0') after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             -- State control
             if pgpTxLinkReady = '0' then
                curState <= ST_IDLE_C after TPD_G;
@@ -563,7 +565,7 @@ begin
             dly3Type         <= (others=>'0');
             dly4Data         <= (others=>'0');
             dly4Type         <= (others=>'0');
-         else
+         elsif pgpTxClkEn = '1' then
             -- Delay stage 1
             dly0Data  <= nxtData after TPD_G;
             dly0Type  <= nxtType after TPD_G;
@@ -621,7 +623,7 @@ begin
             cellTxEOF    <= '0'           after TPD_G;
             cellTxEOFE   <= '0'           after TPD_G;
             cellTxData   <= (others=>'0') after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             -- Which data type
             case dly2Type is 
                when TX_DATA_C =>

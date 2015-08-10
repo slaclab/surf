@@ -17,6 +17,7 @@
 -- 06/25/2010: Added payload size config as generic.
 -- 04/04/2014: Changed to Pgp2bb. Removed debug.
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -36,6 +37,7 @@ entity Pgp2bRxCell is
    port (
 
       -- System clock, reset & control
+      pgpRxClkEn        : in  sl := '1';                        -- Master clock Enable
       pgpRxClk          : in  sl;                               -- Master clock
       pgpRxClkRst       : in  sl;                               -- Synchronous reset input
 
@@ -235,7 +237,7 @@ begin
             dly7EOFE      <= '0'           after TPD_G;
             dly7Data      <= (others=>'0') after TPD_G;
             intCrcRxValid <= '0'           after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- Shift when not paused
             if cellRxPause = '0' then 
 
@@ -366,7 +368,7 @@ begin
             vc2Valid  <= '0'           after TPD_G;
             vc3Serial <= (others=>'0') after TPD_G;
             vc3Valid  <= '0'           after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- Link is down, init counts
             if pgpRxLinkReady = '0' then
                currVc    <= (others=>'0') after TPD_G;
@@ -467,7 +469,7 @@ begin
             dlyCellError      <= '0'           after TPD_G;
             pgpRxCellError    <= '0'           after TPD_G;
             vcInFrame         <= (others=>'0') after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- Cell error edge generation
             dlyCellError   <= intCellError after TPD_G;
             pgpRxCellError <= intCellError and not dlyCellError after TPD_G;
@@ -631,7 +633,7 @@ begin
             vc1FrameRxValid <= '0'           after TPD_G;
             vc2FrameRxValid <= '0'           after TPD_G;
             vc3FrameRxValid <= '0'           after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- Data abort is enabled
             if abortEn = '1' then
                case abortVc is
@@ -717,7 +719,7 @@ begin
             vc2RemOverflow   <= '0' after TPD_G;
             vc3RemAlmostFull <= '1' after TPD_G;
             vc3RemOverflow   <= '0' after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- Link is not ready, force buffer states to bad
             if pgpRxLinkReady = '0' then
                vc0RemAlmostFull <= '1' after TPD_G;

@@ -19,6 +19,7 @@
 -- 05/18/2012: Added VC transmit timeout
 -- 04/04/2014: Changed to Pgp2b.
 -- 04/25/2014: Changed interface to AxiStream/SSI
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -41,8 +42,9 @@ entity Pgp2bTx is
    port ( 
 
       -- System clock, reset & control
-      pgpTxClk          : in  sl;    -- Master clock
-      pgpTxClkRst       : in  sl;    -- Synchronous reset input
+      pgpTxClkEn        : in  sl := '1';-- Master clock enable
+      pgpTxClk          : in  sl;       -- Master clock
+      pgpTxClkRst       : in  sl;       -- Synchronous reset input
 
       -- Non-VC related IO
       pgpTxIn           : in  Pgp2bTxInType;
@@ -164,7 +166,7 @@ begin
 
    process ( pgpTxClk ) begin
       if rising_edge(pgpTxClk) then
-         if pgpTxCLkRst = '1' then
+         if pgpTxClkRst = '1' then
             pgpTxOut.frameTx    <= '0'           after TPD_G;
             pgpTxOut.frameTxErr <= '0'           after TPD_G;
             gateRemPause        <= (others=>'0') after TPD_G;
@@ -187,6 +189,7 @@ begin
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
       ) port map ( 
+         pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
          pgpTxClkRst       => pgpTxClkRst,
          pgpTxLinkReady    => intTxLinkReady,
@@ -213,6 +216,7 @@ begin
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          NUM_VC_EN_G       => NUM_VC_EN_G
       ) port map ( 
+         pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
          pgpTxClkRst       => pgpTxClkRst,
          pgpTxFlush        => pgpTxIn.flush,
@@ -237,6 +241,7 @@ begin
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
       ) port map ( 
+         pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
          pgpTxClkRst       => pgpTxClkRst,
          pgpTxLinkReady    => intTxLinkReady,
@@ -294,8 +299,8 @@ begin
 
    -- EOFE/Ready/Valid
    U_Vc_Gen: for i in 0 to 3 generate
-      intReady(i)           <= rawReady(i) and (not gateRemPause(i));
-      intValid(i)           <= pgpTxMasters(i).tValid and (not gateRemPause(i));
+      intReady(i)           <= rawReady(i) and (not gateRemPause(i)) and pgpTxClkEn;
+      intValid(i)           <= pgpTxMasters(i).tValid and (not gateRemPause(i)) and pgpTxClkEn;
       intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_EOFE_C);
       intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_SOF_C,0);
       pgpTxSlaves(i).tReady <= intReady(i);
@@ -324,6 +329,7 @@ begin
       port map(
          CRCOUT       => crcTxOut,
          CRCCLK       => pgpTxClk,
+         CRCCLKEN     => pgpTxClkEn,
          CRCDATAVALID => crcTxValid,
          CRCDATAWIDTH => crcTxWidthAdjust,
          CRCIN        => crcTxInAdjust,

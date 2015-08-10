@@ -18,6 +18,7 @@
 -- 06/25/2010: Added payload size config as generic.
 -- 04/04/2014: Changed to Pgp2b. Removed debug. Integrated CRC.
 -- 04/25/2014: Changed interface to AxiStream/SSI
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -38,6 +39,7 @@ entity Pgp2bRx is
    port (
 
       -- System clock, reset & control
+      pgpRxClkEn       : in  sl := '1'; -- Master clock enable
       pgpRxClk         : in  sl;        -- Master clock
       pgpRxClkRst      : in  sl;        -- Synchronous reset input
 
@@ -124,6 +126,7 @@ begin
          TPD_G            => TPD_G,
          RX_LANE_CNT_G    => RX_LANE_CNT_G
       ) port map (
+         pgpRxClkEn       => pgpRxClkEn,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxClkRst,
          pgpRxLinkReady   => intRxLinkReady,
@@ -158,6 +161,7 @@ begin
          EN_SHORT_CELLS_G     => 1,
          PAYLOAD_CNT_TOP_G    => PAYLOAD_CNT_TOP_G
       ) port map (
+         pgpRxClkEn       => pgpRxClkEn,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxClkRst,
          pgpRxFlush       => pgpRxIn.flush,
@@ -209,35 +213,39 @@ begin
       if rising_edge (pgpRxClk ) then
          intMaster := AXI_STREAM_MASTER_INIT_C;
 
-         intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
-         intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
-         intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
+         if pgpRxClkEn = '1' then
+            
+            intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
+            intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
+            intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
 
-         intMaster.tLast := intRxEof;
+            intMaster.tLast := intRxEof;
 
-         axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
-         axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
+            axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
+            axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
 
-         pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
-         pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G; 
+            pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
+            pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G; 
 
-         -- Generate valid and dest values
-         case intRxVcValid is 
-            when "0001" =>
-               intMaster.tValid            := '1';
-               intMaster.tDest(3 downto 0) := "0000";
-            when "0010" =>
-               intMaster.tValid            := '1';
-               intMaster.tDest(3 downto 0) := "0001";
-            when "0100" =>
-               intMaster.tValid            := '1';
-               intMaster.tDest(3 downto 0) := "0010";
-            when "1000" =>
-               intMaster.tValid            := '1';
-               intMaster.tDest(3 downto 0) := "0011";
-            when others =>
-               intMaster.tValid            := '0';
-         end case;
+            -- Generate valid and dest values
+            case intRxVcValid is 
+               when "0001" =>
+                  intMaster.tValid            := '1';
+                  intMaster.tDest(3 downto 0) := "0000";
+               when "0010" =>
+                  intMaster.tValid            := '1';
+                  intMaster.tDest(3 downto 0) := "0001";
+               when "0100" =>
+                  intMaster.tValid            := '1';
+                  intMaster.tDest(3 downto 0) := "0010";
+               when "1000" =>
+                  intMaster.tValid            := '1';
+                  intMaster.tDest(3 downto 0) := "0011";
+               when others =>
+                  intMaster.tValid            := '0';
+            end case;
+         
+         end if;
 
          if pgpRxClkRst = '1' then
             intMaster := AXI_STREAM_MASTER_INIT_C;
@@ -275,6 +283,7 @@ begin
       port map(
          CRCOUT       => crcRxOut,
          CRCCLK       => pgpRxClk,
+         CRCCLKEN     => pgpRxClkEn,
          CRCDATAVALID => crcRxValid,
          CRCDATAWIDTH => crcRxWidthAdjust,
          CRCIN        => crcRxInAdjust,
