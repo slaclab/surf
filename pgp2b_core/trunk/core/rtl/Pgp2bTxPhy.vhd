@@ -16,6 +16,7 @@
 -- 11/23/2009: Renamed package.
 -- 04/04/2014: Changed to Pgp2b.
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -33,6 +34,7 @@ entity Pgp2bTxPhy is
    port ( 
 
       -- System clock, reset & control
+      pgpTxClkEn        : in  sl := '1';                        -- Master clock Enable
       pgpTxClk          : in  sl;                               -- Master clock
       pgpTxClkRst       : in  sl;                               -- Synchronous reset input
 
@@ -124,7 +126,7 @@ begin
             intTxLinkReady   <= '0'           after TPD_G;
             intTxOpCode      <= (others=>'0') after TPD_G;
             intTxOpCodeEn    <= '0'           after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             -- Opcode Transmit
             if pgpTxOpCodeEn = '1' then
                intTxOpCode <= pgpTxOpCode after TPD_G;
@@ -326,7 +328,7 @@ begin
          if pgpTxClkRst = '1' then
             dlySelect <= '0' after TPD_G;
             dlyTxEOC  <= '0' after TPD_G;
-         else
+         elsif pgpTxClkEn = '1' then
             -- Choose delay chain when opcode is transmitted
             if intTxOpCodeEn = '1' then
                dlySelect <= '1' after TPD_G;
@@ -353,7 +355,7 @@ begin
                intTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
                dlyTxData(i*16+15 downto i*16) <= (others=>'0') after TPD_G;
                dlyTxDataK(i*2+1  downto i*2)  <= (others=>'0') after TPD_G;
-            else
+            elsif pgpTxClkEn = '1' then
                -- Delayed copy of data
                dlyTxData(i*16+15 downto i*16) <= nxtTxData(i*16+15 downto i*16) after TPD_G;
                dlyTxDataK(i*2+1  downto i*2)  <= nxtTxDataK(i*2+1  downto i*2)  after TPD_G;

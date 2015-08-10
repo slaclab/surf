@@ -23,6 +23,7 @@
 -- 04/21/2014: Kurtis Nishimura - modified to register the data valid signal.
 --             Using the raw version would have caused errors for dynamically
 --             changing data widths.
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -36,6 +37,7 @@ entity CRC32Rtl is
    port (
       CRCOUT       : out std_logic_vector(31 downto 0);  -- CRC output
       CRCCLK       : in  std_logic;     -- system clock
+      CRCCLKEN     : in  std_logic := '1';-- system clock enable
       CRCDATAVALID : in  std_logic;  -- indicate that new data arrived and CRC can be computed
       CRCDATAWIDTH : in  std_logic_vector(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
       CRCIN        : in  std_logic_vector(31 downto 0);  -- input data for CRC calculation
@@ -69,9 +71,9 @@ begin
       TempXOR(i+1) <= ((TempXOR(i)(30 downto 0) & '0') xor (Polyval and MSBVect(i)));
    end generate MS2;
 
-   process(CRCCLK)
+   process(CRCCLK,CRCCLKEN)
    begin
-      if(rising_edge(CRCCLK)) then
+      if rising_edge(CRCCLK) and (CRCCLKEN = '1') then
          for i in 24 to 31 loop
             data(31 - (i - 24)) <= (CRCIN(i));
          end loop;
@@ -108,7 +110,7 @@ begin
       if rising_edge(CRCCLK) then
          if (CRCRESET = '1') then
             crc <= To_StdLogicVector(CRC_INIT);
-         elsif (CRCDATAVALID_d = '1') then
+         elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
             if (CRCDATAWIDTH_d = "000") then
                crc <= TempXOR(8);
             elsif (CRCDATAWIDTH_d = "001") then

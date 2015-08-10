@@ -19,6 +19,7 @@
 -- 02/01/2011: Rem data and rem link not updated if EOF fields don't match.
 -- 04/04/2014: Changed to Pgp2b. Removed debug.
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
+-- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -36,6 +37,7 @@ entity Pgp2bRxPhy is
    port ( 
 
       -- System clock, reset & control
+      pgpRxClkEn        : in  sl := '1';                        -- Master clock Enable
       pgpRxClk          : in  sl;                               -- Master clock
       pgpRxClkRst       : in  sl;                               -- Synchronous reset input
 
@@ -174,7 +176,7 @@ begin
             intRxInit       <= '0'           after TPD_G;
             pgpRemLinkReady <= '0'           after TPD_G;
             pgpRemData      <= (others=>'0') after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- Sideband data
             if intRxLinkReady = '1' then
                pgpRemLinkReady <= rxDetectRemLink;
@@ -425,7 +427,7 @@ begin
             dly1RxDataK   <= (others=>'0') after TPD_G;
             dly1RxDispErr <= (others=>'0') after TPD_G;
             dly1RxDecErr  <= (others=>'0') after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             dly0RxData    <= phyRxData     after TPD_G;
             dly0RxDataK   <= phyRxDataK    after TPD_G;
             dly0RxDispErr <= phyRxDispErr  after TPD_G;
@@ -454,7 +456,7 @@ begin
             rxDetectEOC       <= '0'           after TPD_G;
             rxDetectEOF       <= '0'           after TPD_G;
             rxDetectEOFE      <= '0'           after TPD_G;
-         else
+         elsif pgpRxClkEn = '1' then
             -- LTS is detected when phy is ready
             if phyRxReady = '1' then
 
