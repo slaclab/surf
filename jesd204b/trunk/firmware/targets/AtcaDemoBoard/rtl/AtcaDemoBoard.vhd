@@ -71,6 +71,7 @@ entity AtcaDemoBoard is
       L_RX_G             : positive := 6;
       L_TX_G             : positive := 2;
       L_AXI_G            : positive := 2;
+      -- DAC Signal generator RAM size 
       GEN_BRAM_ADDR_WIDTH_G  : integer range 1 to (2**24) := 12
    );
    port (
@@ -98,8 +99,8 @@ entity AtcaDemoBoard is
       jesdClkN      : in    Slv1Array(1 downto 1);         
             
       -- AMC's System Reference Ports
-      sysRefP       : inout Slv1Array(1 downto 1);
-      sysRefN       : inout Slv1Array(1 downto 1);           
+      sysRefP       : in Slv1Array(1 downto 1);
+      sysRefN       : in Slv1Array(1 downto 1);           
 
       -- JESD receiver sending sync to ADCs (Used in all subclass modes)
       -- '1' - synchronisation OK
@@ -126,21 +127,12 @@ entity AtcaDemoBoard is
       spiCsLDac_o   : out   sl;
          
       -- External HW Acquisition trigger
-      trigHW: in sl
+      trigHW: in sl;
       
-      -- Debug Signals -- 
+      -- Debug Signals connected to RTM -- 
       -------------------------------------------------------------------
-      -- Onboard LEDs
-      -- leds : out slv(7 downto 0);
-          
-      -- -- Out JESD clock 185MHz
-      -- gpioClk    : out sl;
-      
-      -- -- Sysref output pin      
-      -- sysrefDbg  : out sl;
-      
-      -- -- Digital square wave signal for deterministic latency check (Adjustable by setting the threshold registers)      
-      -- rePulseDbg : out slv(1 downto 0) 
+      rtmLsP : out   slv(31 downto 24);
+      rtmLsN : out   slv(31 downto 24)
       
    );
 end entity AtcaDemoBoard;
@@ -201,6 +193,9 @@ architecture rtl of AtcaDemoBoard is
    signal jesdClkRst     : sl;
    signal jesdMmcmRst    : sl;
 
+   signal jesdMmcmLocked : sl;
+   
+   
    signal powerOnReset : sl;
    signal masterReset  : sl;
    signal fpgaReload   : sl;
@@ -298,21 +293,14 @@ architecture rtl of AtcaDemoBoard is
    signal axisRxMasters : AxiStreamMasterArray(L_AXI_G-1 downto 0);
    signal axisRxSlaves  : AxiStreamSlaveArray(L_AXI_G-1 downto 0);
    signal axisRxCtrl    : AxiStreamCtrlArray(L_AXI_G-1 downto 0);
+    
    
    -------------------------------------------------------------------------------------------------
-   -- PGP Signals and Virtual Channels
-   -------------------------------------------------------------------------------------------------
-   signal s_usrClk : sl;   
-   signal s_usrRst : sl;      
-   
-   -------------------------------------------------------------------------------------------------
-   -- Debug
+   -- Debug RX and TX digital pulses for latency measurements
    -------------------------------------------------------------------------------------------------   
-   signal s_syncAllLED  : sl;
-   signal s_validAllLED : sl;
-   signal s_rePulse     : slv(L_RX_G-1 downto 0);
-   signal rxUserRdyOut  : slv(L_RX_G-1 downto 0);   
-   signal rxMmcmResetOut: slv(L_RX_G-1 downto 0); 
+   signal s_rxPulse     : slv(L_RX_G-1 downto 0);
+   signal s_txPulse     : slv(L_TX_G-1 downto 0);   
+ 
    
 begin
    -------------------------------------------------------------------------------------------------
@@ -349,7 +337,7 @@ begin
          clk    => pgpRefClkG,
          rstOut => powerOnReset);
 
-   pgpMmcmRst <= powerOnReset or masterReset;
+   pgpMmcmRst <= powerOnReset;
 
    ClockManager7_PGP : entity work.ClockManager7
       generic map (
@@ -472,8 +460,16 @@ begin
 
          DIV    => "000",
          O      => jesdRefClkG);
-
-   jesdMmcmRst <= powerOnReset or masterReset;
+         
+   JesdPwrUpRst_1 : entity work.PwrUpRst
+   generic map (
+      TPD_G          => TPD_G,
+      SIM_SPEEDUP_G  => SIMULATION_G,
+      IN_POLARITY_G  => '1',
+      OUT_POLARITY_G => '1')
+   port map (
+      clk    => jesdRefClkG,
+      rstOut => jesdMmcmRst);      
 
    ClockManager7_JESD : entity work.ClockManager7
       generic map (
@@ -492,7 +488,9 @@ begin
          clkIn     => jesdRefClkG,
          rstIn     => jesdMmcmRst,
          clkOut(0) => jesdClk,
-         rstOut(0) => jesdClkRst);
+         rstOut(0) => jesdClkRst,
+         locked    => jesdMmcmLocked
+         );
             
    -------------------------------------------------------------------------------------------------
    -- JESD block
@@ -522,7 +520,9 @@ begin
       
       devClk_i          => jesdClk, -- both same
       devClk2_i         => jesdClk, -- both same
-      devRst_i          => jesdClkRst, 
+      devRst_i          => jesdClkRst,
+      
+      devClkActive_i    => jesdMmcmLocked,
       
       -- Remap the ports to match channel numbers on LLRF board
       gtTxP(0)          => jesdTxP(1)(4),
@@ -580,7 +580,8 @@ begin
       nSync_o           => s_nSyncADC,
       nSync_i           => s_nSyncDAC,
       
-      pulse_o           => s_rePulse,
+      rxPulse_o           => s_rxPulse,
+      txPulse_o           => s_txPulse,
       
       ledsRx_o         => open,
       ledsTx_o         => open,
@@ -696,7 +697,7 @@ begin
    ----------------------------------------------------------------
    -- SPI interface ADCs and LMK 
    ----------------------------------------------------------------
-   adcSpiChips : for I in NUM_COMMON_SPI_CHIPS_C-1 downto 0 generate
+   gen_dcSpiChips : for I in NUM_COMMON_SPI_CHIPS_C-1 downto 0 generate
       AxiSpiMaster_INST: entity work.AxiSpiMaster
       generic map (
          TPD_G             => TPD_G,
@@ -715,7 +716,7 @@ begin
          coreSDin       => muxSDin,
          coreSDout      => coreSDout(I),
          coreCsb        => coreCsb(I));
-   end generate adcSpiChips;
+   end generate gen_dcSpiChips;
    
    -- Input mux from "IO" port if LMK and from "I" port for ADCs 
    muxSDin <= lmkSDin when coreCsb = "0111" else spiSdo_i;
@@ -782,70 +783,35 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Debug outputs
    -------------------------------------------------------------------------------------------------
-   -- -- LED Test Outputs
-   -- Heartbeat_axilClk : entity work.Heartbeat
-      -- generic map (
-         -- TPD_G        => TPD_G,
-         -- PERIOD_IN_G  => 8.0E-9,
-         -- PERIOD_OUT_G => 1.0)
-      -- port map (
-         -- clk => axilClk,
-         -- o   => leds(0));
-
-   -- Heartbeat_pgpClk : entity work.Heartbeat
-      -- generic map (
-         -- TPD_G        => TPD_G,
-         -- PERIOD_IN_G  => 6.4E-9,
-         -- PERIOD_OUT_G => 1.0)
-      -- port map (
-         -- clk => pgpClk,
-         -- o   => leds(1));
-         
-   -- Heartbeat_jesdclk : entity work.Heartbeat
-      -- generic map (
-         -- TPD_G        => TPD_G,
-         -- PERIOD_IN_G  => 5.425E-9,
-         -- PERIOD_OUT_G => 1.0)
-      -- port map (
-         -- clk => jesdClk,
-         -- o   => leds(4));
-         
-   -- leds(5) <= qPllLock;
-   -- leds(6) <= s_syncAllLED;
-   -- leds(7) <= s_validAllLED;
-      
-   -- -- Debug output pins
-   -- OBUF_sysref_inst : OBUF
-   -- port map (
-      -- I => s_sysRefOut,
-      -- O =>  sysrefDbg 
-   -- );
-     
-   -- -- Debug output pins
-   -- OBUF_rePulse_0_inst : OBUF
-   -- port map (
-      -- I => s_rePulse(0),
-      -- O => rePulseDbg(0)
-   -- );
    
-   -- -- Debug output pins
-   -- OBUF_rePulse_1_inst : OBUF
-   -- port map (
-      -- I => s_rePulse(1),
-      -- O => rePulseDbg(1)
-   -- );
+   -- Digital outputs for latency measurements
    
-   -- -- Output user clock for single ended reference
-   -- UserClkBufSingle_INST: entity work.ClkOutBufSingle
-   -- generic map (
-      -- XIL_DEVICE_G   => "ULTRASCALE",
-      -- RST_POLARITY_G => '1',
-      -- INVERT_G       => false)
-   -- port map (
-      -- clkIn  => jesdClk,
-      -- rstIn  => jesdClkRst,
-      -- clkOut => gpioClk);
-      
+   -- 6 Lane RX pulses (generated from comparing thersholds)
+   gen_rxLanes : for I in L_RX_G-1 downto 0 generate
+      OBUFDSPulseOut_rx_INSTX : OBUFDS
+      generic map (
+         IOSTANDARD => "DEFAULT",
+         SLEW => "SLOW"
+      )
+      port map (
+         I =>  s_rxPulse(I),
+         O =>  rtmLsP(24+I), 
+         OB => rtmLsN(24+I) 
+      );
+   end generate gen_rxLanes;
    
-   
+   -- 2 Lane TX pulses (digital square wave signal)
+   gen_txLanes : for I in L_TX_G-1 downto 0 generate
+      OBUFDSPulseOut_tx_INSTX : OBUFDS
+      generic map (
+         IOSTANDARD => "DEFAULT",
+         SLEW => "SLOW"
+      )
+      port map (
+         I =>  s_txPulse(I),
+         O =>  rtmLsP(30+I), 
+         OB => rtmLsN(30+I) 
+      );
+   end generate gen_txLanes; 
+   --
 end architecture rtl;

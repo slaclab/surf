@@ -72,6 +72,8 @@ entity Jesd204bGthWrapper is
       devClk_i       : in    sl; -- Device clock also rxUsrClkIn for MGT
       devClk2_i      : in    sl; -- Device clock divided by 2 also rxUsrClk2In for MGT       
       devRst_i       : in    sl; -- 
+      
+      devClkActive_i : in    sl:= '1';  -- devClk_i MCMM locked
 
    -- AXI interface
    ------------------------------------------------------------------------------------------------   
@@ -121,8 +123,9 @@ entity Jesd204bGthWrapper is
       ledsRx_o    : out   slv(1 downto 0);
       ledsTx_o    : out   slv(1 downto 0);
   
-      -- Rising edge pulses for test
-      pulse_o   : out   slv(L_RX_G-1 downto 0);
+      -- Debug pulses for latency test
+      rxPulse_o   : out   slv(L_RX_G-1 downto 0);
+      txPulse_o   : out   slv(L_TX_G-1 downto 0);
       
       -- Out to led     
       qPllLock_o : out sl      
@@ -256,7 +259,7 @@ begin
       sampleDataArr_o   => sampleDataArr_o,
       dataValidVec_o    => s_dataValidVec,
       nSync_o           => nSync_o,
-      pulse_o           => pulse_o,
+      pulse_o           => rxPulse_o,
       leds_o            => ledsRx_o
    );
 
@@ -288,6 +291,7 @@ begin
       gtTxReady_i       => s_gtTxReady,
       gtTxReset_o       => s_gtTxUserReset,
       r_jesdGtTxArr     => r_jesdGtTxArr,
+      pulse_o           => txPulse_o,
       leds_o            => ledsTx_o
    );
    
@@ -325,7 +329,15 @@ begin
    s_gtTxReset <= devRst_i or uOr(s_gtTxUserReset);
 
    s_txData  <= r_jesdGtTxArr(0).data & r_jesdGtTxArr(1).data & x"00000000_00000000_00000000_00000000";
-   s_txDataK <= x"0" & r_jesdGtTxArr(0).dataK & X"0" & r_jesdGtTxArr(1).dataK & x"00_00_00_00";
+   --s_txData  <=   r_jesdGtTxArr(0).data & r_jesdGtTxArr(1).data & 
+   --               r_jesdGtTxArr(0).data & r_jesdGtTxArr(1).data & 
+   --               r_jesdGtTxArr(0).data & r_jesdGtTxArr(1).data;
+   
+   s_txDataK <= x"0" & r_jesdGtTxArr(0).dataK & X"0" & r_jesdGtTxArr(1).dataK & x"00_00_00_00";   
+   --s_txDataK <= x"0" & r_jesdGtTxArr(0).dataK & X"0" & r_jesdGtTxArr(1).dataK & 
+   --             x"0" & r_jesdGtTxArr(0).dataK & X"0" & r_jesdGtTxArr(1).dataK & 
+   --             x"0" & r_jesdGtTxArr(0).dataK & X"0" & r_jesdGtTxArr(1).dataK;
+                
    s_gtTxReady <= s_txDone & s_txDone;
    
    --------------------------------------------------------------------------------------------------
@@ -370,8 +382,8 @@ begin
       port map (
          -- Clocks
          gtwiz_userclk_tx_reset_in(0)         => s_gtTxReset,
-         gtwiz_userclk_tx_active_in(0)        => '1',
-         gtwiz_userclk_rx_active_in(0)        => '1',
+         gtwiz_userclk_tx_active_in(0)        => devClkActive_i,
+         gtwiz_userclk_rx_active_in(0)        => devClkActive_i,
          
          gtwiz_buffbypass_tx_reset_in(0)      => s_gtTxReset,
          gtwiz_buffbypass_tx_start_user_in(0) => s_gtTxReset,

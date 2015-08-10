@@ -138,6 +138,8 @@ architecture rtl of Jesd204bRx is
    signal s_subClass    : sl;
    -- User reset (from AXI lite register)
    signal s_gtReset     : sl;
+
+   signal s_invertSync  : sl;
    signal s_clearErr    : sl;
    signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
    signal s_thresoldHighArr : Slv16Array(L_G-1 downto 0);
@@ -147,17 +149,11 @@ architecture rtl of Jesd204bRx is
    signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
    signal s_alignTxArr : alignTxArray(L_G-1 downto 0);
 
-   -- Axi Lite interface synced to devClk
-   signal sAxiReadMasterDev : AxiLiteReadMasterType;
-   signal sAxiReadSlaveDev  : AxiLiteReadSlaveType;
-   signal sAxiWriteMasterDev: AxiLiteWriteMasterType;
-   signal sAxiWriteSlaveDev : AxiLiteWriteSlaveType;
-
    -- Axi Stream
    signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);
    signal s_axisPacketSizeReg : slv(23 downto 0);
    signal s_axisTriggerReg    : slv(L_G-1 downto 0);
-
+   
    -- Sysref conditioning
    signal  s_sysrefSync : sl;
    signal  s_sysrefD    : sl;
@@ -177,8 +173,46 @@ begin
    assert (F_G=1 or F_G=2 or (F_G=4 and GT_WORD_SIZE_C=4))  report "F_G setting must be 1,2,or 4*"  severity failure;   
 
    -----------------------------------------------------------
-   -- AXI
-   ----------------------------------------------------------- 
+   -- AXI Lite AXI clock domain crossed
+   -----------------------------------------------------------
+
+   -- axiLite register interface
+   AxiLiteRegItf_INST: entity work.AxiLiteRxRegItf
+   generic map (
+      TPD_G            => TPD_G,
+      AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+      L_G              => L_G)
+   port map (
+      axiClk_i        => axiClk,
+      axiRst_i        => axiRst,
+      axilReadMaster  => axilReadMaster,
+      axilReadSlave   => axilReadSlave,
+      axilWriteMaster => axilWriteMaster,
+      axilWriteSlave  => axilWriteSlave,
+      
+      -- DevClk domain
+	   devClk_i        => devClk_i,
+	   devRst_i        => devClk_i,
+      statusRxArr_i   => s_statusRxArr,
+      sysrefDlyRx_o   => s_sysrefDlyRx,
+      enableRx_o      => s_enableRx,
+      replEnable_o    => s_replEnable,
+      dlyTxArr_o      => s_dlyTxArr,
+      alignTxArr_o    => s_alignTxArr,
+      axisTrigger_o   => s_axisTriggerReg,
+      subClass_o      => s_subClass,
+      gtReset_o       => s_gtReset,
+      clearErr_o      => s_clearErr,
+      invertSync_o    => s_invertSync,
+      thresoldHighArr_o => s_thresoldHighArr,
+      thresoldLowArr_o  => s_thresoldLowArr,
+      axisPacketSize_o  => s_axisPacketSizeReg
+   );
+   
+   -----------------------------------------------------------
+   -- AXI Stream
+   -----------------------------------------------------------   
+
    -- AXI stream interface one module per lane
    generatePauseSignal : for I in L_G-1 downto 0 generate
          s_pauseVec(I) <= rxCtrlArr_i(I).pause;
@@ -206,59 +240,6 @@ begin
          dataReady_i    => s_dataValidVec(I)
       );
    end generate generateAxiStreamLanes;
-
-   -- Synchronise axiLite interface to devClk
-   AxiLiteAsync_INST: entity work.AxiLiteAsync
-   generic map (
-      TPD_G           => TPD_G,
-      NUM_ADDR_BITS_G => 32
-   )
-   port map (
-      -- In
-      sAxiClk         => axiClk,
-      sAxiClkRst      => axiRst,
-      sAxiReadMaster  => axilReadMaster,
-      sAxiReadSlave   => axilReadSlave,
-      sAxiWriteMaster => axilWriteMaster,
-      sAxiWriteSlave  => axilWriteSlave,
-      
-      -- Out
-      mAxiClk         => devClk_i,
-      mAxiClkRst      => devRst_i,
-      mAxiReadMaster  => sAxiReadMasterDev,
-      mAxiReadSlave   => sAxiReadSlaveDev,
-      mAxiWriteMaster => sAxiWriteMasterDev,
-      mAxiWriteSlave  => sAxiWriteSlaveDev
-   );
-
-   -- axiLite register interface
-   AxiLiteRegItf_INST: entity work.AxiLiteRxRegItf
-   generic map (
-      TPD_G            => TPD_G,
-      AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-      L_G              => L_G)
-   port map (
-      devClk_i        => devClk_i,
-      devRst_i        => devRst_i,
-      axilReadMaster  => sAxiReadMasterDev,
-      axilReadSlave   => sAxiReadSlaveDev,
-      axilWriteMaster => sAxiWriteMasterDev,
-      axilWriteSlave  => sAxiWriteSlaveDev,
-      
-      statusRxArr_i   => s_statusRxArr,
-      sysrefDlyRx_o   => s_sysrefDlyRx,
-      enableRx_o      => s_enableRx,
-      replEnable_o    => s_replEnable,
-      dlyTxArr_o      => s_dlyTxArr,     
-      alignTxArr_o    => s_alignTxArr,
-      axisTrigger_o   => s_axisTriggerReg,
-      subClass_o      => s_subClass,
-      gtReset_o       => s_gtReset,
-      clearErr_o      => s_clearErr,
-      thresoldHighArr_o => s_thresoldHighArr,
-      thresoldLowArr_o  => s_thresoldLowArr,
-      axisPacketSize_o  => s_axisPacketSizeReg
-   );
   
    -----------------------------------------------------------
    -- TEST or OPER
@@ -396,7 +377,7 @@ begin
    
    -- Combine nSync signals from all receivers
    s_nSyncAny <= '0' when allBits (s_enableRx, '0')  else uAnd(s_nSyncVecEn);
-
+      
    -- DFF
    comb : process (r, devRst_i, s_nSyncAll, s_nSyncAny) is
       variable v : RegType;
@@ -418,7 +399,9 @@ begin
    end process seq;
 
    -- Output assignment
-   nSync_o     <= r.nSyncAnyD1;
+   
+   -- Invert/or not nSync signal (control from axil)
+   nSync_o     <= r.nSyncAnyD1 when s_invertSync = '0' else not r.nSyncAnyD1;
    gtRxReset_o  <= (others=> s_gtReset);
    leds_o <= uOr(s_dataValidVec) & s_nSyncAny;
    sysRefDbg_o <= s_sysrefD;

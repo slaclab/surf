@@ -82,8 +82,8 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
    //addDevice(new DacBoard(DaclinkConfig, 0x00000000, 0, this, addrSize));
    
    // Add Commands
-   addCommand(new Command("SoftwareTrigger", 0x015A));
-   getCommand("SoftwareTrigger")->setDescription("Send 1 trigger");
+   //addCommand(new Command("SoftwareTrigger", 0x015A));
+   //getCommand("SoftwareTrigger")->setDescription("Send 1 trigger");
 
 }
 
