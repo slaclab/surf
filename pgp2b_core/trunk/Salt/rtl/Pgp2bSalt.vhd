@@ -90,7 +90,7 @@ architecture mapping of Pgp2bSalt is
 begin
 
    pgpRxReset <= phyRxInit or pgpRxRst or pgpRxIn.resetRx;
-   pgpRxClkEn <= rxClkEn or pgpRxReset;
+   pgpRxClkEn <= rxClkEn or pgpRxReset or not(phyRxReady);
    loopback   <= uOr(pgpRxIn.loopback);
 
    U_Pgp2bLane : entity work.Pgp2bLane
