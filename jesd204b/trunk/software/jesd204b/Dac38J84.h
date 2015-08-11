@@ -26,8 +26,8 @@ class Dac38J84 : public Device {
 
    public:
       //! Device configuration address range constants
-      #define START_ADDR 0x0      
-      #define END_ADDR   0x7D
+      #define DAC_START_ADDR 0x0      
+      #define DAC_END_ADDR   0x7F
       
       //! Constructor
       /*! 

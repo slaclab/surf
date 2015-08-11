@@ -26,8 +26,8 @@ class Adc16Dx370 : public Device {
 
    public:
       //! Device configuration address range constants
-      #define START_ADDR 0x0       
-      #define END_ADDR   0x78
+      #define ADC_START_ADDR 0x0       
+      #define ADC_END_ADDR   0x71
       
       //! Constructor
       /*! 
