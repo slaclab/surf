@@ -218,7 +218,7 @@
             <DacReg0048>0x31c3</DacReg0048>
             <DacReg0049>0x0004</DacReg0049>
             <DacReg004a>0x0321</DacReg004a>
-            <DacReg004b>0x0901</DacReg004b>
+            <DacReg004b>0x01</DacReg004b>
             <DacReg004c>0x1F01</DacReg004c>
             <DacReg004d>0x100</DacReg004d>
             <DacReg004e>0xf0f</DacReg004e>
@@ -235,7 +235,7 @@
             <DacReg0059>0x0</DacReg0059>
             <DacReg005a>0xff</DacReg005a>
             <DacReg005b>0xff</DacReg005b>
-            <DacReg005c>0x1122</DacReg005c>
+            <DacReg005c>0x1111</DacReg005c>
             <DacReg005d>0x0</DacReg005d>
             <DacReg005e>0x0</DacReg005e>
             <DacReg005f>0x0123</DacReg005f>
@@ -268,12 +268,9 @@
             <DacReg007a>0x0</DacReg007a>
             <DacReg007b>0x0</DacReg007b>
             <DacReg007c>0x0</DacReg007c>
-            <DacReg007d>0x0</DacReg007d>
-            <Enabled>True</Enabled>
+            <DacReg007d>0x0</DacReg007d>            <Enabled>True</Enabled>
          </Dac38J84>
          <JesdRx>
-            <AXISTrigger>0x0</AXISTrigger>
-            <AXISpacketSize>0x100</AXISpacketSize>
             <ClearErrors>0x0</ClearErrors>
             <Enable>0x3f</Enable>
             <Enabled>True</Enabled>
@@ -1948,7 +1945,7 @@
             <DacReg0048>0x31c3</DacReg0048>
             <DacReg0049>0x0004</DacReg0049>
             <DacReg004a>0x0321</DacReg004a>
-            <DacReg004b>0x0901</DacReg004b>
+            <DacReg004b>0x01</DacReg004b>
             <DacReg004c>0x1F01</DacReg004c>
             <DacReg004d>0x100</DacReg004d>
             <DacReg004e>0xf0f</DacReg004e>
@@ -1965,7 +1962,7 @@
             <DacReg0059>0x0</DacReg0059>
             <DacReg005a>0xff</DacReg005a>
             <DacReg005b>0xff</DacReg005b>
-            <DacReg005c>0x1122</DacReg005c>
+            <DacReg005c>0x1111</DacReg005c>
             <DacReg005d>0x0</DacReg005d>
             <DacReg005e>0x0</DacReg005e>
             <DacReg005f>0x0123</DacReg005f>

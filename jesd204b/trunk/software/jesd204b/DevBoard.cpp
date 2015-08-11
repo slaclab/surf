@@ -82,10 +82,27 @@ DevBoard::~DevBoard ( ) { }
 //    Device::readConfig();
 // }
 
+
+ 
+
 // Method to write configuration registers
 void DevBoard::writeConfig ( bool force ) {
    // Sub devices
-   Device::writeConfig(force);
+   
+   device("AxiVersion", 0) -> writeConfig(force);
+   device("Pgp2bAxi", 0) -> writeConfig(force);
+   device("Lmk04828", 0) -> writeConfig(force);
+   device("JesdTx", 0) -> writeConfig(force);
+   device("Adc16Dx370", 0) -> writeConfig(force);
+   device("Adc16Dx370", 1) -> writeConfig(force);
+   device("Adc16Dx370", 2) -> writeConfig(force);
+   device("Dac38J84", 0) -> writeConfig(force);
+   device("JesdRx", 0) -> writeConfig(force);
+   device("JesdRxDaq", 0) -> writeConfig(force);
+   device("SigGenRam", 0) -> writeConfig(force);
+   device("SigGenRam", 1) -> writeConfig(force);
+   device("JesdTxGen", 0) -> writeConfig(force);
+   
 }
 
 // void DevBoard::verifyConfig() {
