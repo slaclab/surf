@@ -1,5 +1,5 @@
 #include <SimLink.h>
-#include <DevBoardSystem.h>
+#include <AtcaDemoBoardSystem.h>
 #include <ControlServer.h>
 #include <Device.h>
 #include <iomanip>
@@ -23,11 +23,11 @@ int main (int argc, char **argv) {
    uint           shmId;
    int            port;
    stringstream   cmd;
-   DevBoardSystem *sys;
+   AtcaDemoBoardSystem *sys;
    SimLink        simLink;
    
    if ( argc == 1 ) {
-      cout << "Usage: DevBoardSimGui smem_id [default.xml]" << endl;
+      cout << "Usage: AtcaDemoBoardSimGui smem_id [default.xml]" << endl;
       return(1);
    }
    shmId = atoi(argv[1]);
@@ -46,7 +46,7 @@ int main (int argc, char **argv) {
       simLink.setDebug(true);
       simLink.open("axi_stream",shmId);
 
-      sys = new DevBoardSystem(&simLink, defFile, 1);
+      sys = new AtcaDemoBoardSystem(&simLink, defFile, 1);
       sys->setDebug(true);
 
       usleep(100);

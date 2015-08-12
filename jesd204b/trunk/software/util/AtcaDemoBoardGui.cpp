@@ -15,7 +15,7 @@
 //----------------------------------------------------------------------------
 #include <PgpLink.h>
 #include <UdpLink.h>
-#include <DevBoardSystem.h>
+#include <AtcaDemoBoardSystem.h>
 #include <ControlServer.h>
 #include <MultDest.h>
 #include <MultDestPgp.h>
@@ -44,7 +44,7 @@ int main (int argc, char **argv) {
    string         defFile;
    int            port;
    stringstream   cmd;
-   DevBoardSystem *sys;
+   AtcaDemoBoardSystem *sys;
    MultLink       multLink;
    MultDest       *dest;
 
@@ -63,14 +63,14 @@ int main (int argc, char **argv) {
       multLink.setMaxRxTx(0x800000);
       multLink.open(1, dest);
 
-      sys = new DevBoardSystem(&multLink, defFile, 4);
+      sys = new AtcaDemoBoardSystem(&multLink, defFile, 4);
       sys->setDebug(DEBUGGING_C);
    
       usleep(100);
 
       // Setup control server
       cntrlServer.setDebug(DEBUGGING_C);
-      cntrlServer.enableSharedMemory("DevBoard",1);
+      cntrlServer.enableSharedMemory("AtcaDemoBoard",1);
       port = cntrlServer.startListen(0);
       cntrlServer.setSystem(sys);
       
