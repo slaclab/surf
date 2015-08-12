@@ -13,16 +13,11 @@
 -------------------------------------------------------------------------------
 -- Description:
 --    Configured for 4-byte operation: GT_WORD_SIZE_C=4
---    To configure for 2-byte operation: GT_WORD_SIZE_C=2, adjust LANE rate, GTX parameters, JESD clock MGMM 
---    LED indicators:
---    - LED0 - Axi Lite clock HB
---    - LED1 - PGP clock HB
---    - LED2 - PGP Rx link ready
---    - LED3 - PGP Tx link ready
---    - LED4 - JESD clock HB
---    - LED5 - JESD QPLL locked
---    - LED6 - JESD nSync signal
---    - LED7 - JESD Data valid
+--    6 lane JESD receiver
+--    2 lane AXI stream interface DAQ (selectable between 6 ADC channels)
+--    2 lane JESD transmitter
+--    2 lane Signal generator (For DAC outputs)
+--    SPI: 1 LMK chip, 3 ADC chips, and 1 DAC chip
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -51,7 +46,8 @@ entity AtcaDemoBoard is
       AXIL_CLK_FREQ_G        : real    := 156.25E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 12;
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 10;
+	  CASCADE_SIZE_G         : integer range 1 to (2**24) := 256;
       
       --JESD configuration
       -----------------------------------------------------
@@ -375,6 +371,7 @@ begin
          AXIL_CLK_FREQ_G        => AXIL_CLK_FREQ_G,
          AXIS_CLK_FREQ_G        => AXIS_CLK_FREQ_G,
          AXIS_FIFO_ADDR_WIDTH_G => AXIS_FIFO_ADDR_WIDTH_G,
+		 CASCADE_SIZE_G         => CASCADE_SIZE_G,
          AXIS_CONFIG_G          => JESD_SSI_CONFIG_C)
       port map (
          stableClk       => pgpRefClkG,

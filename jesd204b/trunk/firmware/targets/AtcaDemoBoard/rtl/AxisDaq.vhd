@@ -204,7 +204,7 @@ begin
             -- Set the EOF(tlast) bit                
             v.txAxisMaster.tLast := '1';
             
-            -- Set the EOFE bit ERROR bit TODO add JESD error later
+            -- Set the EOFE bit ERROR bit
             ssiSetUserEofe(JESD_SSI_CONFIG_C, v.txAxisMaster, '0');
 
             v.state := IDLE_S;

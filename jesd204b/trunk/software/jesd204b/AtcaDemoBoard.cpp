@@ -40,9 +40,10 @@ using namespace std;
 AtcaDemoBoard::AtcaDemoBoard ( uint linkConfig, uint baseAddress, uint index, Device *parent, uint addrSize) : 
                         Device(linkConfig,baseAddress,"AtcaDemoBoard",index,parent) {
 
+   powerUp = false;
+
    // Description
    desc_ = "LLRF demo Board";
-   powerUp = false;
 
    addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x01000000>>2) * (addrSize)), 0, this, addrSize)); 
    addDevice(new AxiVersion ( linkConfig, baseAddress | ((0x00000000>>2) * (addrSize)), 0, this, addrSize));
