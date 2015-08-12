@@ -22,10 +22,10 @@ using namespace std;
 
 //! Class to contain APV25 
 class DevBoard : public Device {
-      bool lastEnable;
+      bool powerUp;
 
    public:
-
+     
       //! Constructor
       /*! 
        * \param destination Device destination
@@ -57,10 +57,11 @@ class DevBoard : public Device {
 /*       void readConfig ( ); */
 
        void writeConfig ( bool force );
+       
+       // Perform soft reset on powerup
+       void softReset();
 
 /*       //! Verify hardware state of configuration */
 /*       void verifyConfig ( ); */
-
-
 };
 #endif

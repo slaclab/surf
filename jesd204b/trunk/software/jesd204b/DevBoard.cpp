@@ -42,6 +42,7 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
 
    // Description
    desc_ = "LLRF demo Board";
+   powerUp = false;
 
    addDevice(new Pgp2bAxi   ( linkConfig, baseAddress | ((0x01000000>>2) * (addrSize)), 0, this, addrSize)); 
    addDevice(new AxiVersion ( linkConfig, baseAddress | ((0x00000000>>2) * (addrSize)), 0, this, addrSize));
@@ -87,24 +88,71 @@ DevBoard::~DevBoard ( ) { }
 
 // Method to write configuration registers
 void DevBoard::writeConfig ( bool force ) {
-   // Sub devices
    
+   Register *r;  
+    
+   // Write sub devices  
    device("AxiVersion", 0) -> writeConfig(force);
    device("Pgp2bAxi", 0) -> writeConfig(force);
    device("Lmk04828", 0) -> writeConfig(force);
+   
+   if (powerUp == true){ 
+      // Synchronise internal counters at powerup
+      REGISTER_LOCK
+      
+      // Turn on normal SYNC
+      r = device("Lmk04828", 0) -> getRegister("LmkReg0139");
+      r->set(0x0,0,0x3);
+      writeRegister(r, true);
+      
+      // Poweron SYNC
+      r = device("Lmk04828", 0) -> getRegister("LmkReg0144");
+      r->set(0x0,0,0xff);
+      writeRegister(r, true);
+      
+      // Toggle Sync bit
+      r = device("Lmk04828", 0) -> getRegister("LmkReg0143");
+      r->set(0x1,3,0x1);
+      writeRegister(r, true);
+      r = device("Lmk04828", 0) -> getRegister("LmkReg0143");
+      r->set(0x0,3,0x1);
+      writeRegister(r, true);
+      
+      // Turn on normal continuous sysref
+      r = device("Lmk04828", 0) -> getRegister("LmkReg0139");
+      r->set(0x3,0,0x3);
+      writeRegister(r, true);
+      
+      // Poweron down SYNC to not let it interfere
+      r = device("Lmk04828", 0) -> getRegister("LmkReg0144");
+      r->set(0xff,0,0xff);
+      writeRegister(r, true);
+      
+      REGISTER_UNLOCK
+      
+      printf("\n---------------Syncing counters on powerup------------\n");
+      
+      // Put powerup to zero so this SYNC process will not be repeated
+      // during the following writeConfig calls.
+      // Soft reset will powerUp = false, after powerup execute SoftReset to 
+      // Synchronise the counters
+      powerUp = false;
+   }
+     
    device("JesdTx", 0) -> writeConfig(force);
    device("Adc16Dx370", 0) -> writeConfig(force);
    device("Adc16Dx370", 1) -> writeConfig(force);
    device("Adc16Dx370", 2) -> writeConfig(force);
-   device("Dac38J84", 0) -> writeConfig(force);
-   device("JesdRx", 0) -> writeConfig(force);
-   device("JesdRxDaq", 0) -> writeConfig(force);
-   device("SigGenRam", 0) -> writeConfig(force);
-   device("SigGenRam", 1) -> writeConfig(force);
-   device("JesdTxGen", 0) -> writeConfig(force);
+   device("Dac38J84", 0)   -> writeConfig(force);
+   device("JesdRx", 0)     -> writeConfig(force);
+   device("JesdRxDaq", 0)  -> writeConfig(force);
+   device("SigGenRam", 0)  -> writeConfig(force);
+   device("SigGenRam", 1)  -> writeConfig(force);
+   device("JesdTxGen", 0)  -> writeConfig(force);
    
 }
 
-// void DevBoard::verifyConfig() {
-//    Device::verifyConfig();
-// }
+void DevBoard::softReset() {
+   powerUp = true;
+   Device::softReset();
+}
