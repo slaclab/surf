@@ -183,9 +183,9 @@ void JesdRx::clrErrors () {
    REGISTER_LOCK
    r = getRegister("CommonControl");
    r->set(0x1,3,0x1);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r->set(0x0,3,0x1);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    REGISTER_UNLOCK
 
   // Device::clrErrors();
@@ -198,9 +198,9 @@ void JesdRx::rstGts () {
    REGISTER_LOCK
    r = getRegister("CommonControl");
    r->set(0x1,2,0x1);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r->set(0x0,2,0x1);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    REGISTER_UNLOCK
 
    //Device::rstGts();

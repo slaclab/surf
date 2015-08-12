@@ -203,31 +203,31 @@ void Dac38J84::clrAlarms () {
    
    r = getRegister("L1SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L2SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L3SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L4SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L5SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L6SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L7SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("L8SERDES_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    r = getRegister("Syserf_alarm");
    r->set(0x0,0,0xffff);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    
    REGISTER_UNLOCK
 
@@ -243,22 +243,22 @@ void Dac38J84::initDac () {
    // Disable TX
    r = getRegister("DacReg0003");
    r->set(0x0,0,0x1);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    
    // Disable and initialize JESD
    r = getRegister("DacReg004a");
    r->set(0x1E,0,0x1f);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    
    // Enable JESD
    r = getRegister("DacReg004a");
    r->set(0x01,0,0x1f);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    
    // Enable TX
    r = getRegister("DacReg0003");
    r->set(0x1,0,0x1);
-   writeRegister(r, true, false);
+   writeRegister(r, true);
    
    REGISTER_UNLOCK
 
