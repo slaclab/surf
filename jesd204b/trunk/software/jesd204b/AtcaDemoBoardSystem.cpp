@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
-// File          : DevBoardSystem.cpp
-// Author        : Ryan Herbst  <rherbst@slac.stanford.edu>
-// Created       : 04/12/2011
-// Project       : Heavy Photon DevBoardSystem
+// File          : AtcaDemoBoardSystem.cpp
+// Author        : Uros Legat <ulegat@slac.stanford.edu>
+// Created       : 7/10/2015
+// Project       : HPS carrier board and LLRF demo board
 //-----------------------------------------------------------------------------
 // Description :
 // Control FPGA container
@@ -16,10 +16,10 @@
 
 #include <MultLink.h>
 #include <MultDestPgp.h>
-#include <DevBoardSystem.h>
+#include <AtcaDemoBoardSystem.h>
 #include <DacBoard.h>
 #include <AdcBoard.h>
-#include <DevBoard.h>
+#include <AtcaDemoBoard.h>
 
 #include <Register.h>
 #include <Variable.h>
@@ -39,12 +39,12 @@ using namespace std;
 
 
 // Constructor
-DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSize) :
-      System("DevBoardSystem", commLink) {
+AtcaDemoBoardSystem::AtcaDemoBoardSystem (CommLink *commLink, string defFile, uint addrSize) :
+      System("AtcaDemoBoardSystem", commLink) {
 
 
    // Description
-   desc_ = "JESD Dev Board";
+   desc_ = "HPS LRRF demo Board";
    
    // Data mask:
    //   REG  = lane 0, vc 0 (RX and TX)
@@ -77,7 +77,7 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
    v->set("False");
    
    // Add sub-devices
-   addDevice(new DevBoard(linkConfig_, 0x00000000, 0, this, addrSize));
+   addDevice(new AtcaDemoBoard(linkConfig_, 0x00000000, 0, this, addrSize));
    //addDevice(new AdcBoard(AdclinkConfig, 0x00000000, 0, this, addrSize));
    //addDevice(new DacBoard(DaclinkConfig, 0x00000000, 0, this, addrSize));
    
@@ -88,40 +88,40 @@ DevBoardSystem::DevBoardSystem (CommLink *commLink, string defFile, uint addrSiz
 }
 
 // Deconstructor
-DevBoardSystem::~DevBoardSystem ( ) {
+AtcaDemoBoardSystem::~AtcaDemoBoardSystem ( ) {
   //  delete commLink_;
 //    delete dest_;
    // Add dest here later
 }
 
 // Method to process a command
-void DevBoardSystem::command ( string name, string arg ) {
+void AtcaDemoBoardSystem::command ( string name, string arg ) {
 
    System::command(name, arg);
 
 }
 
-void DevBoardSystem::periodState () {
+void AtcaDemoBoardSystem::periodState () {
    allStatusReq_ = getInt("PollStatusEn");
 }
 
 //! Method to return state string
-string DevBoardSystem::localState ( ) {
+string AtcaDemoBoardSystem::localState ( ) {
    return "System is ready to take data.";
 }
 
 //! Method to perform soft reset
-void DevBoardSystem::softReset ( ) {
+void AtcaDemoBoardSystem::softReset ( ) {
    System::softReset();
 }
 
 //! Method to perform hard reset
-void DevBoardSystem::hardReset ( ) {
+void AtcaDemoBoardSystem::hardReset ( ) {
    System::hardReset();
 }
 
 //! Method to set run state
-void DevBoardSystem::setRunState ( string state ) {
+void AtcaDemoBoardSystem::setRunState ( string state ) {
    stringstream err;
    uint         toCount;
    uint         runNumber;
@@ -173,7 +173,7 @@ void DevBoardSystem::setRunState ( string state ) {
 
       // Start thread
       if ( swRunCount_ == 0 || pthread_create(&swRunThread_,NULL,swRunStatic,this) ) {
-         err << "DevBoardSystem::startRun -> Failed to create runThread" << endl;
+         err << "AtcaDemoBoardSystem::startRun -> Failed to create runThread" << endl;
          if ( debug_ ) cout << err.str();
          getVariable("RunState")->set(swRunRetState_);
          throw(err.str());
@@ -186,7 +186,7 @@ void DevBoardSystem::setRunState ( string state ) {
          toCount++;
          if ( toCount > 1000 ) {
             swRunEnable_ = false;
-            err << "DevBoardSystem::startRun -> Timeout waiting for runthread" << endl;
+            err << "AtcaDemoBoardSystem::startRun -> Timeout waiting for runthread" << endl;
             if ( debug_ ) cout << err.str();
             getVariable("RunState")->set(swRunRetState_);
             throw(err.str());
@@ -197,7 +197,7 @@ void DevBoardSystem::setRunState ( string state ) {
 }
 
 
-void DevBoardSystem::swRunThread() {
+void AtcaDemoBoardSystem::swRunThread() {
    struct timespec tme;
    ulong           ctime;
    ulong           ltime;
@@ -221,7 +221,7 @@ void DevBoardSystem::swRunThread() {
 
    // Show start
    if ( debug_ ) {
-      cout << "DevBoardSystem::runThread -> Name: " << name_ 
+      cout << "AtcaDemoBoardSystem::runThread -> Name: " << name_ 
            << ", Run Started"
            << ", RunState=" << dec << getVariable("RunState")->get()
            << ", RunCount=" << dec << swRunCount_
@@ -257,7 +257,7 @@ void DevBoardSystem::swRunThread() {
                ltime = ctime;
 
                gotEvent = false;
-               if ( debug_ ) cout << "DevBoardSystem::runThread -> Missed data event. Retrying" << endl;
+               if ( debug_ ) cout << "AtcaDemoBoardSystem::runThread -> Missed data event. Retrying" << endl;
 
                // Verify and re-configure here
 

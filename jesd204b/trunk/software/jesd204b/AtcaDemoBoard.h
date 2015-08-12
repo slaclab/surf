@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
-// File          : DevBoard.h
-// Author        : Ben Reese <bareese@slac.stanford.edu>
-// Created       : 2/1/2014
-// Project       : HPS
+// File          : AtcaDemoBoard.h
+// Author        : Uros Legat <ulegat@slac.stanford.edu>
+// Created       : 7/10/2015
+// Project       : HPS carrier board and LLRF demo board
 //-----------------------------------------------------------------------------
 // Description :
 // Control FPGA container
@@ -21,7 +21,7 @@
 using namespace std;
 
 //! Class to contain APV25 
-class DevBoard : public Device {
+class AtcaDemoBoard : public Device {
       bool powerUp;
 
    public:
@@ -32,36 +32,17 @@ class DevBoard : public Device {
        * \param index       Device index
        * \param parent      Parent device
       */
-      DevBoard ( uint destination, uint baseAddress, uint index, Device *parent, uint addrSize=1 );
+      AtcaDemoBoard ( uint destination, uint baseAddress, uint index, Device *parent, uint addrSize=1 );
 
       //! Deconstructor
-      ~DevBoard ( );
-
-      //! Method to process a command 
-      /*!
-       * \param name     Command name
-       * \param arg      Optional arg
-      */
-/*       void command ( string name, string arg ); */
-
-/*       //! Method to read status registers and update variables */
-/*       /\*!  */
-/*        * Throws string on error. */
-/*       *\/ */
-/*       void readStatus ( ); */
-
-/*       //! Method to read configuration registers and update variables */
-/*       /\*!  */
-/*        * Throws string on error. */
-/*       *\/ */
-/*       void readConfig ( ); */
+      ~AtcaDemoBoard ( );
 
        void writeConfig ( bool force );
        
-       // Perform soft reset on powerup
+       //! Perform soft or hard reset on powerup and load the defaults
        void softReset();
+       void hardReset();
+       
 
-/*       //! Verify hardware state of configuration */
-/*       void verifyConfig ( ); */
 };
 #endif

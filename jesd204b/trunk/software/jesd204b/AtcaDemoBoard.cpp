@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------
-// File          : DevBoard.cpp
-// Author        : Ben Reese <bareese@slac.stanford.edu>
-// Created       : 11/14/2013
-// Project       : HPS SVT
+// File          : AtcaDemoBoard.cpp
+// Author        : Uros Legat <ulegat@slac.stanford.edu>
+// Created       : 7/10/2015
+// Project       : HPS carrier board and LLRF demo board
 //-----------------------------------------------------------------------------
 // Description :
-// Device container for jesd cores
+// Device container for jesd, ADC, DAC, LMK 
 //-----------------------------------------------------------------------------
 // Copyright (c) 2013 by SLAC. All rights reserved.
 // Proprietary and confidential to SLAC.
@@ -13,7 +13,7 @@
 // Modification history :
 // 11/14/2013: created
 //-----------------------------------------------------------------------------
-#include <DevBoard.h>
+#include <AtcaDemoBoard.h>
 #include <AxiVersion.h>
 #include <Pgp2bAxi.h>
 #include <JesdRxDaq.h>
@@ -37,8 +37,8 @@
 using namespace std;
 
 // Constructor
-DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *parent, uint addrSize) : 
-                        Device(linkConfig,baseAddress,"DevBoard",index,parent) {
+AtcaDemoBoard::AtcaDemoBoard ( uint linkConfig, uint baseAddress, uint index, Device *parent, uint addrSize) : 
+                        Device(linkConfig,baseAddress,"AtcaDemoBoard",index,parent) {
 
    // Description
    desc_ = "LLRF demo Board";
@@ -65,20 +65,20 @@ DevBoard::DevBoard ( uint linkConfig, uint baseAddress, uint index, Device *pare
 }
 
 // Deconstructor
-DevBoard::~DevBoard ( ) { }
+AtcaDemoBoard::~AtcaDemoBoard ( ) { }
 
 // Method to process a command
-// void DevBoard::command ( string name, string arg) {
+// void AtcaDemoBoard::command ( string name, string arg) {
 //    Device::command(name, arg);
 // }
    
 // // Method to read status registers and update variables
-// void DevBoard::readStatus ( ) {
+// void AtcaDemoBoard::readStatus ( ) {
 //      // Sub devices
 //    Device::readStatus();
 // }
 
-// void DevBoard::readConfig ( ) {
+// void AtcaDemoBoard::readConfig ( ) {
 //    // Sub devices
 //    Device::readConfig();
 // }
@@ -87,7 +87,7 @@ DevBoard::~DevBoard ( ) { }
  
 
 // Method to write configuration registers
-void DevBoard::writeConfig ( bool force ) {
+void AtcaDemoBoard::writeConfig ( bool force ) {
    
    Register *r;  
     
@@ -112,10 +112,10 @@ void DevBoard::writeConfig ( bool force ) {
       
       // Toggle Sync bit
       r = device("Lmk04828", 0) -> getRegister("LmkReg0143");
-      r->set(0x1,3,0x1);
+      r->set(0x1,5,0x1);
       writeRegister(r, true);
       r = device("Lmk04828", 0) -> getRegister("LmkReg0143");
-      r->set(0x0,3,0x1);
+      r->set(0x0,5,0x1);
       writeRegister(r, true);
       
       // Turn on normal continuous sysref
@@ -130,7 +130,7 @@ void DevBoard::writeConfig ( bool force ) {
       
       REGISTER_UNLOCK
       
-      printf("\n---------------Syncing counters on powerup------------\n");
+      printf("\n---------------Syncing LMK counters on powerup-------------\n");
       
       // Put powerup to zero so this SYNC process will not be repeated
       // during the following writeConfig calls.
@@ -152,7 +152,12 @@ void DevBoard::writeConfig ( bool force ) {
    
 }
 
-void DevBoard::softReset() {
+void AtcaDemoBoard::softReset() {
    powerUp = true;
    Device::softReset();
+}
+
+void AtcaDemoBoard::hardReset() {
+   powerUp = true;
+   Device::hardReset();
 }

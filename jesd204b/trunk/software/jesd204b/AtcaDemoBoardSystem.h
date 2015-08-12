@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------
-// File          : DevBoardSystem.h
-// Author        : Ryan Herbst  <rherbst@slac.stanford.edu>
-// Created       : 11/20/2011
-// Project       : KPIX Asic
+// File          : AtcaDemoBoardSystem.h
+// Author        : Uros Legat <ulegat@slac.stanford.edu>
+// Created       : 7/10/2015
+// Project       : HPS carrier board and LLRF demo board
 //-----------------------------------------------------------------------------
 // Description :
-// DevBoardSystem Top Device
+// AtcaDemoBoardSystem Top Device
 //-----------------------------------------------------------------------------
 // Copyright (c) 2011 by SLAC. All rights reserved.
 // Proprietary and confidential to SLAC.
@@ -22,7 +22,7 @@ using namespace std;
 
 class CommLink;
 
-class DevBoardSystem : public System {
+class AtcaDemoBoardSystem : public System {
 
    // Software run thread
    void swRunThread();
@@ -34,10 +34,10 @@ class DevBoardSystem : public System {
    public:
 
       //! Constructor
-      DevBoardSystem (CommLink *commLink, string defFile, uint addrSize=1);
+      AtcaDemoBoardSystem (CommLink *commLink, string defFile, uint addrSize=1);
 
       //! Deconstructor
-      ~DevBoardSystem ( );
+      ~AtcaDemoBoardSystem ( );
 
       //! Method to process a command
       /*!
