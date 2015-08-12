@@ -43,23 +43,10 @@ class JesdRxDaq : public Device {
        * \param name     Command name
        * \param arg      Optional arg
       */
-      //void command ( string name, string arg );
+      void command ( string name, string arg );
 
-      //! Method to read status registers and update variables
-      //void readStatus ( );
-
-      //! Method to read configuration registers and update variables
-      /*!
-       * Throws string error.
-       */
-      //void readConfig ( );
-
-      //! Method to write configuration registers
-      /*! 
-       * Throws string on error.
-       * \param force Write all registers if true, only stale if false
-      */
-      //void writeConfig ( bool force );
+      //! Clear errors
+      void trigDaq ();
 
     
 };

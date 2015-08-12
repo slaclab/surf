@@ -26,7 +26,7 @@
             <AdcReg0x000f>0x0</AdcReg0x000f>
             <AdcReg0x0010>0x1</AdcReg0x0010>
             <AdcReg0x0011>0x0</AdcReg0x0011>
-            <AdcReg0x0012>0x85</AdcReg0x0012>
+            <AdcReg0x0012>0x05</AdcReg0x0012>
             <AdcReg0x0013>0x40</AdcReg0x0013>
             <AdcReg0x0014>0x0</AdcReg0x0014>
             <AdcReg0x0015>0x0</AdcReg0x0015>
@@ -141,10 +141,10 @@
             <Enable>0x3f</Enable>
             <Enabled>True</Enabled>
             <InvertSync>0x1</InvertSync>
-            <L1_Threshold_High>0xc340</L1_Threshold_High>
-            <L1_Threshold_Low>0x4e20</L1_Threshold_Low>
-            <L2_Threshold_High>0xc340</L2_Threshold_High>
-            <L2_Threshold_Low>0x4e20</L2_Threshold_Low>
+            <L1_Threshold_High>0xA000</L1_Threshold_High>
+            <L1_Threshold_Low>0x5000</L1_Threshold_Low>
+            <L2_Threshold_High>0xA000</L2_Threshold_High>
+            <L2_Threshold_Low>0x5000</L2_Threshold_Low>
             <ReplaceEnable>0x1</ReplaceEnable>
             <ResetGTs>0x0</ResetGTs>
             <SubClass>0x1</SubClass>
@@ -1372,7 +1372,7 @@
             <AdcReg0x000f>0x0</AdcReg0x000f>
             <AdcReg0x0010>0x1</AdcReg0x0010>
             <AdcReg0x0011>0x0</AdcReg0x0011>
-            <AdcReg0x0012>0x85</AdcReg0x0012>
+            <AdcReg0x0012>0x05</AdcReg0x0012>
             <AdcReg0x0013>0x40</AdcReg0x0013>
             <AdcReg0x0014>0x0</AdcReg0x0014>
             <AdcReg0x0015>0x0</AdcReg0x0015>
@@ -1401,7 +1401,7 @@
             <AdcReg0x000f>0x0</AdcReg0x000f>
             <AdcReg0x0010>0x1</AdcReg0x0010>
             <AdcReg0x0011>0x0</AdcReg0x0011>
-            <AdcReg0x0012>0x85</AdcReg0x0012>
+            <AdcReg0x0012>0x05</AdcReg0x0012>
             <AdcReg0x0013>0x40</AdcReg0x0013>
             <AdcReg0x0014>0x0</AdcReg0x0014>
             <AdcReg0x0015>0x0</AdcReg0x0015>
@@ -1430,7 +1430,7 @@
             <AdcReg0x000f>0x0</AdcReg0x000f>
             <AdcReg0x0010>0x1</AdcReg0x0010>
             <AdcReg0x0011>0x0</AdcReg0x0011>
-            <AdcReg0x0012>0x85</AdcReg0x0012>
+            <AdcReg0x0012>0x05</AdcReg0x0012>
             <AdcReg0x0013>0x40</AdcReg0x0013>
             <AdcReg0x0014>0x0</AdcReg0x0014>
             <AdcReg0x0015>0x0</AdcReg0x0015>

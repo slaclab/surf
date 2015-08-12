@@ -65,13 +65,13 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 // "L2_Align",         Variable::Configuration, 0, 0xf,
                                 // "L2_Delay",         Variable::Configuration, 8, 0xf));
                               
-   //addRegisterLink(rl = new RegisterLink("L1_Test_thr",      baseAddress_ + (0x30*addrSize), 1, 2,
-   //                             "L1_Threshold_Low",         Variable::Configuration, 0,  0xffff,
-    //                            "L1_Threshold_High",        Variable::Configuration, 16, 0xffff));
+   addRegisterLink(rl = new RegisterLink("L1_Test_thr",      baseAddress_ + (0x30*addrSize), 1, 2,
+                                "L1_Threshold_Low",         Variable::Configuration, 0,  0xffff,
+                                "L1_Threshold_High",        Variable::Configuration, 16, 0xffff));
                                 
-   //addRegisterLink(rl = new RegisterLink("L1_Test_thr",      baseAddress_ + (0x31*addrSize), 1, 2,
-   //                             "L2_Threshold_Low",         Variable::Configuration, 0,  0xffff,
-   //                             "L2_Threshold_High",        Variable::Configuration, 16, 0xffff));
+   addRegisterLink(rl = new RegisterLink("L1_Test_thr",      baseAddress_ + (0x31*addrSize), 1, 2,
+                                "L2_Threshold_Low",         Variable::Configuration, 0,  0xffff,
+                                "L2_Threshold_High",        Variable::Configuration, 16, 0xffff));
 
    addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 12,
                                 "L1_GTXReady",       Variable::Status, 0, 0x1,
@@ -188,7 +188,6 @@ void JesdRx::clrErrors () {
    writeRegister(r, true);
    REGISTER_UNLOCK
 
-  // Device::clrErrors();
 }
 
 //! Reset GTs
@@ -203,7 +202,6 @@ void JesdRx::rstGts () {
    writeRegister(r, true);
    REGISTER_UNLOCK
 
-   //Device::rstGts();
 }
 
 

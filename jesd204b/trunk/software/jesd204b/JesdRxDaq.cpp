@@ -28,7 +28,8 @@ using namespace std;
 // Constructor
 JesdRxDaq::JesdRxDaq ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Device *parent, uint32_t addrSize ) : 
                         Device(linkConfig,baseAddress,"JesdRxDaq",index,parent) {
-
+   Command      *c;
+   
    // Description
    desc_ = "ADC data acquisition control";
 
@@ -55,12 +56,33 @@ JesdRxDaq::JesdRxDaq ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index
 
    // Variables
    getVariable("Enabled")->setHidden(true);
+   
    //Commands
+   addCommand(c = new Command("TriggerDAQ"));
+   c->setDescription("Trigger data aquisition.");
+
 }
 
 // Deconstructor
 JesdRxDaq::~JesdRxDaq ( ) { }
 
 // Process Commands
+void JesdRxDaq::command(string name, string arg) {
+   if (name == "TriggerDAQ") trigDaq();
+   else Device::command(name,arg);
+}
 
+//! Clear errors
+void JesdRxDaq::trigDaq () {
+
+   Register *r;
+   REGISTER_LOCK
+   r = getRegister("SwDaqTrigger");
+   r->set(0x1,0,0x1);
+   writeRegister(r, true);
+   r->set(0x0,0,0x1);
+   writeRegister(r, true);
+   REGISTER_UNLOCK
+
+}
 
