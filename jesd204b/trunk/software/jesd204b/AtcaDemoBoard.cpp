@@ -92,6 +92,9 @@ void AtcaDemoBoard::writeConfig ( bool force ) {
    
    Register *r;  
     
+   force = false;
+
+   
    // Write sub devices  
    device("AxiVersion", 0) -> writeConfig(force);
    device("Pgp2bAxi", 0) -> writeConfig(force);
