@@ -43,6 +43,17 @@ class AtcaDemoBoard : public Device {
        void softReset();
        void hardReset();
        
+     //! Method to process a command
+      /*!
+       * \param name     Command name
+       * \param arg      Optional arg
+      */
+       void command ( string name, string arg );
 
+      //! Powerup the sysref lines.
+       void syarefOff ();
+
+     //! Powerdown the sysref lines.
+       void syarefOn ();
 };
 #endif

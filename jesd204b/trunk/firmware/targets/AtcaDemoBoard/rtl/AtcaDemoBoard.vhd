@@ -46,8 +46,8 @@ entity AtcaDemoBoard is
       AXIL_CLK_FREQ_G        : real    := 156.25E6;
       -- AXIS Config
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
-      AXIS_FIFO_ADDR_WIDTH_G : integer := 10;
-	  CASCADE_SIZE_G         : integer range 1 to (2**24) := 256;
+      AXIS_FIFO_ADDR_WIDTH_G : integer := 14;
+	  CASCADE_SIZE_G         : integer range 1 to (2**24) := 12;
       
       --JESD configuration
       -----------------------------------------------------

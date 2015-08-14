@@ -25,7 +25,7 @@ class CommLink;
 class AtcaDemoBoardSystem : public System {
 
    // Software run thread
-   void swRunThread();
+   //void swRunThread();
 
    time_t lastMonitor_;
 
@@ -59,9 +59,5 @@ class AtcaDemoBoardSystem : public System {
 
       //! Method to perform hard reset
       void hardReset ( );
-      
-      //! Method to set run state
-      void setRunState ( string state );      
-
 };
 #endif

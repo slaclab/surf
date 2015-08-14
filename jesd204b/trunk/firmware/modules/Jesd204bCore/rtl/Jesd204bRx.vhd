@@ -191,8 +191,8 @@ begin
       axilWriteSlave  => axilWriteSlave,
       
       -- DevClk domain
-	   devClk_i        => devClk_i,
-	   devRst_i        => devClk_i,
+      devClk_i        => devClk_i,
+      devRst_i        => devClk_i,
       statusRxArr_i   => s_statusRxArr,
       sysrefDlyRx_o   => s_sysrefDlyRx,
       enableRx_o      => s_enableRx,
@@ -318,10 +318,11 @@ begin
    port map (
       clk         => devClk_i,
       rst         => devRst_i,
-      nSync_i     => '0', -- r.nSyncAnyD1,
+      --nSync_i     => '0', -- r.nSyncAnyD1,     
+      nSync_i     => r.nSyncAnyD1,
       sysref_i    => s_sysrefD,  -- Delayed SYSREF IN
-      sysrefRe_o  => s_sysrefRe, -- Rising-edge of SYSREF OUT 
-      lmfc_o      => s_lmfc 
+      sysrefRe_o  => s_sysrefRe, -- Rising-edge of SYSREF OUT
+      lmfc_o      => s_lmfc
    );
    
    -----------------------------------------------------------

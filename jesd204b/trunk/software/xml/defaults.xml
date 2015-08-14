@@ -51,7 +51,7 @@
             <DacReg0000>0x18</DacReg0000>
             <DacReg0001>0x3</DacReg0001>
             <DacReg0002>0x2000</DacReg0002>
-            <DacReg0003>0xA300</DacReg0003>
+            <DacReg0003>0xA301</DacReg0003>
             <DacReg0004>0xfcfc</DacReg0004>
             <DacReg0005>0x000d</DacReg0005>
             <DacReg0006>0xfcfc</DacReg0006>
@@ -114,7 +114,7 @@
             <DacReg0058>0xff</DacReg0058>
             <DacReg005a>0xff</DacReg005a>
             <DacReg005b>0xff</DacReg005b>
-            <DacReg005c>0x1111</DacReg005c>
+            <DacReg005c>0x2222</DacReg005c>
             <DacReg005f>0x0123</DacReg005f>
             <DacReg0060>0x4567</DacReg0060>
             <DacReg0061>0x0211</DacReg0061>
@@ -151,7 +151,7 @@
             <SysrefDelay>0x0</SysrefDelay>
          </JesdRx>
          <JesdRxDaq>
-            <DaqBufferSize>0x100</DaqBufferSize>
+            <DaqBufferSize>0x30000</DaqBufferSize>
             <Enabled>True</Enabled>
             <S1ChannelSelect>0x1</S1ChannelSelect>
             <S2ChannelSelect>0x2</S2ChannelSelect>
@@ -1454,7 +1454,7 @@
             <DacReg0000>0x18</DacReg0000>
             <DacReg0001>0x3</DacReg0001>
             <DacReg0002>0x2000</DacReg0002>
-            <DacReg0003>0xA300</DacReg0003>
+            <DacReg0003>0xA301</DacReg0003>
             <DacReg0004>0xfcfc</DacReg0004>
             <DacReg0005>0x000d</DacReg0005>
             <DacReg0006>0xfcfc</DacReg0006>
@@ -1517,7 +1517,7 @@
             <DacReg0058>0xff</DacReg0058>
             <DacReg005a>0xff</DacReg005a>
             <DacReg005b>0xff</DacReg005b>
-            <DacReg005c>0x1111</DacReg005c>
+            <DacReg005c>0x2222</DacReg005c>
             <DacReg005f>0x0123</DacReg005f>
             <DacReg0060>0x4567</DacReg0060>
             <DacReg0061>0x0211</DacReg0061>

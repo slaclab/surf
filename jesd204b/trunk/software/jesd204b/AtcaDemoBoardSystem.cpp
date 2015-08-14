@@ -120,83 +120,8 @@ void AtcaDemoBoardSystem::hardReset ( ) {
    System::hardReset();
 }
 
-//! Method to set run state
-void AtcaDemoBoardSystem::setRunState ( string state ) {
-   stringstream err;
-   uint         toCount;
-   uint         runNumber;
 
-   // Stopped state is requested
-   if ( state == "Stopped" ) {
-
-      if ( swRunEnable_ ) {
-         swRunEnable_ = false;
-         pthread_join(swRunThread_,NULL);
-      }
-
-      if ( hwRunning_ ) {
-         addRunStop();
-         hwRunning_ = false;
-         getVariable("RunState")->set(state);
-      }
-
-      writeConfig(false);      
-         
-      allStatusReq_ = true;
-      addRunStop();   
-   }
-
-   // Software Driven State is Requested?
-   else if ( !swRunning_ && (state == "Running")) {
-      
-      setRunCommand("SoftwareTrigger");
-      writeConfig(false); 
-
-      // Increment run number
-      runNumber = getVariable("RunNumber")->getInt() + 1;
-      getVariable("RunNumber")->setInt(runNumber);
-      addRunStart();
-
-      swRunRetState_ = "Stopped";
-      swRunEnable_   = true;
-      getVariable("RunState")->set(state);
-
-      // Setup run parameters
-      swRunCount_ = getInt("RunCount");
-      if      ( get("RunRate") == "2000Hz") swRunPeriod_ =     500;
-      else if ( get("RunRate") == "1000Hz") swRunPeriod_ =    1000;
-      else if ( get("RunRate") == "120Hz") swRunPeriod_ =    8333;
-      else if ( get("RunRate") == "100Hz") swRunPeriod_ =   10000;
-      else if ( get("RunRate") ==  "10Hz") swRunPeriod_ =  100000;
-      else if ( get("RunRate") ==   "1Hz") swRunPeriod_ = 1000000;
-      else swRunPeriod_ = 1000000;
-
-      // Start thread
-      if ( swRunCount_ == 0 || pthread_create(&swRunThread_,NULL,swRunStatic,this) ) {
-         err << "AtcaDemoBoardSystem::startRun -> Failed to create runThread" << endl;
-         if ( debug_ ) cout << err.str();
-         getVariable("RunState")->set(swRunRetState_);
-         throw(err.str());
-      }
-
-      // Wait for thread to start
-      toCount = 0;
-      while ( !swRunning_ ) {
-         usleep(100);
-         toCount++;
-         if ( toCount > 1000 ) {
-            swRunEnable_ = false;
-            err << "AtcaDemoBoardSystem::startRun -> Timeout waiting for runthread" << endl;
-            if ( debug_ ) cout << err.str();
-            getVariable("RunState")->set(swRunRetState_);
-            throw(err.str());
-         }
-      }
-   }
-
-}
-
-
+/*
 void AtcaDemoBoardSystem::swRunThread() {
    struct timespec tme;
    ulong           ctime;
@@ -292,3 +217,4 @@ void AtcaDemoBoardSystem::swRunThread() {
    getVariable("RunState")->set(swRunRetState_);
    swRunning_ = false;
 }
+*/

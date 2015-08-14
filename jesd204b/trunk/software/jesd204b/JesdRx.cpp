@@ -73,7 +73,7 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L2_Threshold_Low",         Variable::Configuration, 0,  0xffff,
                                 "L2_Threshold_High",        Variable::Configuration, 16, 0xffff));
 
-   addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 12,
+   addRegisterLink(rl = new RegisterLink("L1_Status",    baseAddress_ + (0x10*addrSize), 1, 13,
                                 "L1_GTXReady",       Variable::Status, 0, 0x1,
                                 "L1_DataValid",     Variable::Status, 1, 0x1, 
                                 "L1_AlignErr",      Variable::Status, 2, 0x1,
@@ -85,9 +85,10 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L1_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L1_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L1_DisparityErr",  Variable::Status, 10,0xF,
-                                "L1_DecErr",        Variable::Status, 14,0xF));                                                      
+                                "L1_DecErr",        Variable::Status, 14,0xF,
+                                "L1_ElBuffLatency", Variable::Status, 18,0xFF));                                                      
                                 
-   addRegisterLink(rl = new RegisterLink("L2_Status",     baseAddress_ + (0x11*addrSize), 1, 12,
+   addRegisterLink(rl = new RegisterLink("L2_Status",     baseAddress_ + (0x11*addrSize), 1, 13,
                                 "L2_GTXRdy",        Variable::Status, 0, 0x1,
                                 "L2_DataValid",     Variable::Status, 1, 0x1, 
                                 "L2_AlignErr",      Variable::Status, 2, 0x1,
@@ -99,8 +100,9 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L2_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L2_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L2_DisparityErr",  Variable::Status, 10,0xF,
-                                "L2_DecErr",        Variable::Status, 14,0xF));
-   addRegisterLink(rl = new RegisterLink("L3_Status",    baseAddress_ + (0x12*addrSize), 1, 12,
+                                "L2_DecErr",        Variable::Status, 14,0xF,
+                                "L2_ElBuffLatency", Variable::Status, 18,0xFF));
+   addRegisterLink(rl = new RegisterLink("L3_Status",    baseAddress_ + (0x12*addrSize), 1, 13,
                                 "L3_GTXReady",       Variable::Status, 0, 0x1,
                                 "L3_DataValid",     Variable::Status, 1, 0x1, 
                                 "L3_AlignErr",      Variable::Status, 2, 0x1,
@@ -112,9 +114,10 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L3_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L3_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L3_DisparityErr",  Variable::Status, 10,0xF,
-                                "L3_DecErr",        Variable::Status, 14,0xF));                                                      
+                                "L3_DecErr",        Variable::Status, 14,0xF,
+                                "L3_ElBuffLatency", Variable::Status, 18,0xFF));                                                      
                                 
-   addRegisterLink(rl = new RegisterLink("L4_Status",     baseAddress_ + (0x13*addrSize), 1, 12,
+   addRegisterLink(rl = new RegisterLink("L4_Status",     baseAddress_ + (0x13*addrSize), 1, 13,
                                 "L4_GTXRdy",        Variable::Status, 0, 0x1,
                                 "L4_DataValid",     Variable::Status, 1, 0x1, 
                                 "L4_AlignErr",      Variable::Status, 2, 0x1,
@@ -126,8 +129,9 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L4_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L4_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L4_DisparityErr",  Variable::Status, 10,0xF,
-                                "L4_DecErr",        Variable::Status, 14,0xF));
-   addRegisterLink(rl = new RegisterLink("L5_Status",    baseAddress_ + (0x14*addrSize), 1, 12,
+                                "L4_DecErr",        Variable::Status, 14,0xF,
+                                "L4_ElBuffLatency", Variable::Status, 18,0xFF)); 
+   addRegisterLink(rl = new RegisterLink("L5_Status",    baseAddress_ + (0x14*addrSize), 1, 13,
                                 "L5_GTXReady",       Variable::Status, 0, 0x1,
                                 "L5_DataValid",     Variable::Status, 1, 0x1, 
                                 "L5_AlignErr",      Variable::Status, 2, 0x1,
@@ -139,9 +143,10 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L5_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L5_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L5_DisparityErr",  Variable::Status, 10,0xF,
-                                "L5_DecErr",        Variable::Status, 14,0xF));                                                      
+                                "L5_DecErr",        Variable::Status, 14,0xF,
+                                "L5_ElBuffLatency", Variable::Status, 18,0xFF));                                                     
                                 
-   addRegisterLink(rl = new RegisterLink("L6_Status",     baseAddress_ + (0x15*addrSize), 1, 12,
+   addRegisterLink(rl = new RegisterLink("L6_Status",     baseAddress_ + (0x15*addrSize), 1, 13,
                                 "L6_GTXRdy",        Variable::Status, 0, 0x1,
                                 "L6_DataValid",     Variable::Status, 1, 0x1, 
                                 "L6_AlignErr",      Variable::Status, 2, 0x1,
@@ -153,7 +158,8 @@ JesdRx::JesdRx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L6_SysRefDetected",Variable::Status, 8, 0x1,
                                 "L6_CommaDetected", Variable::Status, 9, 0x1,                               
                                 "L6_DisparityErr",  Variable::Status, 10,0xF,
-                                "L6_DecErr",        Variable::Status, 14,0xF));
+                                "L6_DecErr",        Variable::Status, 14,0xF,
+                                "L6_ElBuffLatency", Variable::Status, 18,0xFF));
    // Variables
    getVariable("Enabled")->setHidden(true);
    

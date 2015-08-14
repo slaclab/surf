@@ -30,6 +30,7 @@
 #include <Register.h>
 #include <RegisterLink.h>
 #include <Variable.h>
+#include <Command.h>
 #include <sstream>
 #include <iostream>
 #include <string>
@@ -39,7 +40,8 @@ using namespace std;
 // Constructor
 AtcaDemoBoard::AtcaDemoBoard ( uint linkConfig, uint baseAddress, uint index, Device *parent, uint addrSize) : 
                         Device(linkConfig,baseAddress,"AtcaDemoBoard",index,parent) {
-
+   
+   Command      *c;
    powerUp = false;
 
    // Description
@@ -63,16 +65,84 @@ AtcaDemoBoard::AtcaDemoBoard ( uint linkConfig, uint baseAddress, uint index, De
    addDevice(new Dac38J84   ( linkConfig, baseAddress | ((0x00900000>>2) * (addrSize)), 0, this, addrSize));
     
    getVariable("Enabled")->setHidden(true);
+   
+   // Variables
+   getVariable("Enabled")->setHidden(true);
+   
+   //Commands
+   addCommand(c = new Command("TurnSysrefOff"));
+   c->setDescription("Powerdown the sysref lines.");
+   
+   addCommand(c = new Command("TurnSysrefOn"));
+   c->setDescription("Powerup the sysref lines.");
+   
 }
 
 // Deconstructor
 AtcaDemoBoard::~AtcaDemoBoard ( ) { }
 
-// Method to process a command
-// void AtcaDemoBoard::command ( string name, string arg) {
-//    Device::command(name, arg);
-// }
+//! Method to process a command
+ void AtcaDemoBoard::command ( string name, string arg) {
+   if (name == "TurnSysrefOff") syarefOff();
+   else if (name == "TurnSysrefOn") syarefOn();
+   else Device::command(name,arg);
+}
+ 
+//! Powerdown the sysref lines.
+void AtcaDemoBoard::syarefOff () {
+
+   Register *r;
+
+   REGISTER_LOCK
    
+   //! Disable sysref in ADCs
+   r = device("Adc16Dx370", 0) -> getRegister("AdcReg0x0012");
+   r->set(0x0,2,0x1);
+   writeRegister(r, true);   
+   r = device("Adc16Dx370", 1) -> getRegister("AdcReg0x0012");
+   r->set(0x0,2,0x1);
+   writeRegister(r, true);
+   r = device("Adc16Dx370", 2) -> getRegister("AdcReg0x0012");
+   r->set(0x0,2,0x1);
+   writeRegister(r, true); 
+   
+   
+   //! Turn off sysref in LMK  
+   r = device("Lmk04828", 0) -> getRegister("LmkReg0139");
+   r->set(0x0,0,0x3);
+   writeRegister(r, true);
+      
+   REGISTER_UNLOCK
+
+}
+
+//! Powerup the sysref lines.
+void AtcaDemoBoard::syarefOn () {
+
+   Register *r;
+   
+   REGISTER_LOCK
+   
+   //! Enable sysref in ADCs
+   r = device("Adc16Dx370", 0) -> getRegister("AdcReg0x0012");
+   r->set(0x1,2,0x1);
+   writeRegister(r, true);   
+   r = device("Adc16Dx370", 1) -> getRegister("AdcReg0x0012");
+   r->set(0x1,2,0x1);
+   writeRegister(r, true);
+   r = device("Adc16Dx370", 2) -> getRegister("AdcReg0x0012");
+   r->set(0x1,2,0x1);
+   writeRegister(r, true);
+   
+   r = device("Lmk04828", 0) -> getRegister("LmkReg0139");
+   r->set(0x3,0,0x3);
+   writeRegister(r, true);
+     
+   REGISTER_UNLOCK
+}
+
+
+ 
 // // Method to read status registers and update variables
 // void AtcaDemoBoard::readStatus ( ) {
 //      // Sub devices
@@ -91,10 +161,7 @@ AtcaDemoBoard::~AtcaDemoBoard ( ) { }
 void AtcaDemoBoard::writeConfig ( bool force ) {
    
    Register *r;  
-    
-   force = false;
-
-   
+      
    // Write sub devices  
    device("AxiVersion", 0) -> writeConfig(force);
    device("Pgp2bAxi", 0) -> writeConfig(force);

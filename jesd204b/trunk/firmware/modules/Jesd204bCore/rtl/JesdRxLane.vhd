@@ -139,6 +139,7 @@ architecture rtl of JesdRxLane is
    signal s_kDetected  : sl;   
    signal s_refDetected  : sl;     
    signal s_errComb  : slv(ERR_REG_WIDTH_C-1 downto 0);
+   signal s_buffLatency  : slv(7 downto 0);
 
 begin
 
@@ -227,6 +228,7 @@ begin
          linkErr_i    => s_linkErr,
          nSync_o      => s_nSync,
          readBuff_o   => s_readBuff,
+         buffLatency_o=> s_buffLatency,
          alignFrame_o => s_alignFrame,
          ila_o        => s_ila,
          kDetected_o  => s_kDetected,
@@ -288,6 +290,6 @@ begin
    nSync_o      <= s_nSync;
    dataValid_o  <= s_dataValid;
    sampleData_o <= s_sampleData;
-   status_o     <= r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
+   status_o     <= s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

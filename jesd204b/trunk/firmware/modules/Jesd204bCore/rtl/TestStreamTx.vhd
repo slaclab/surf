@@ -10,8 +10,8 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Outputs a saw, ramp, or square wave test signal data stream for testing
---  Saw signal (type_i = 00): Ramp step is determined by rampStep_i.
---  Ramp signal(type_i = 01): Ramp step is determined by rampStep_i.             
+--  Saw signal increment (type_i = 00): Ramp step is determined by rampStep_i.
+--  Saw signal decrement (type_i = 01): Ramp step is determined by rampStep_i.             
 --  Square wave(type_i = 10): Period is squarePeriod_i. Duty cycle is 50%.              
 --                            Amplitude is determined by posAmplitude_i and negAmplitude_i.
 --                            pulse_o is a binary equivalent of the analogue square wave.      
@@ -22,7 +22,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
---use ieee.std_logic_arith.all;
 
 use ieee.numeric_std.all;
 
@@ -68,6 +67,7 @@ architecture rtl of TestStreamTx is
    type RegType is record
       squareCnt    : slv(PER_STEP_WIDTH_C-1 downto 0);
       rampCnt      : signed(F_G*8-1 downto 0);
+      testData     : slv (sampleData_o'range);
       inc          : sl;
       sign         : sl;      
    end record RegType;
@@ -75,6 +75,7 @@ architecture rtl of TestStreamTx is
    constant REG_INIT_C : RegType := (
       squareCnt   => (others => '0'),
       rampCnt     => (others => '0'),
+      testData    => (others => '0'),
       inc         => '1',
       sign        => '0'
    );
@@ -85,31 +86,22 @@ architecture rtl of TestStreamTx is
 begin
 
    comb : process (r, rst,enable_i,rampStep_i,type_i,posAmplitude_i,squarePeriod_i,negAmplitude_i) is
-      variable v : RegType;
-      variable v_rampCntPP : signed(F_G*8 downto 0);
-      variable v_testData  : slv (sampleData_o'range);
+       variable v : RegType;
    begin
       v := r;
      
-      -- Ramp generator      TODO FIX LATCH !!!!!!!!!!
+      -- Ramp generator
       ------------------------------------------------------------- 
       if (type_i = "00" or type_i = "01") then
-         -- Increment/decrement ramp control      
-         if (v.inc = '0') then
-            v_rampCntPP := ('0'&v.rampCnt) - slvToInt(rampStep_i)*SAM_IN_WORD_C;
-            if (v_rampCntPP(F_G*8) = '1') then
-               v.inc := '1';
-            end if;
-         elsif (v.inc = '1') then
-            v_rampCntPP := ('0'&v.rampCnt) + slvToInt(rampStep_i)*SAM_IN_WORD_C;
-            if (v_rampCntPP(F_G*8) = '1') then
-               v.inc := '0';
-            end if;
-         end if;
          
-         -- Saw tooth increment only
+         -- Saw tooth increment
          if (type_i = "00") then
             v.inc := '1';
+         end if;
+		 
+		 -- Saw tooth decrement
+         if (type_i = "01") then
+            v.inc := '0';
          end if;
          
          -- Ramp up or down counter
@@ -119,7 +111,7 @@ begin
             
             -- Increment samples within the word
             for I in (SAM_IN_WORD_C-1) downto 0 loop
-               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
+               v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
             end loop;
          else
             -- Decrement sample base         
@@ -127,7 +119,7 @@ begin
             
             -- Decrement samples within the word
             for I in (SAM_IN_WORD_C-1) downto 0 loop
-               v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
+               v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
             end loop;
          end if;
          
@@ -141,14 +133,12 @@ begin
             v.sign := not r.sign;
             if (r.sign = '0') then
                for I in (SAM_IN_WORD_C-1) downto 0 loop
-                  v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := negAmplitude_i;
+                  v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := negAmplitude_i;
                end loop;
             elsif (r.sign = '1') then
                for I in (SAM_IN_WORD_C-1) downto 0 loop
-                  v_testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := posAmplitude_i;
+                  v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := posAmplitude_i;
                end loop;
-            else
-                  v_testData := v_testData;
             end if;
          end if;
          
@@ -156,7 +146,7 @@ begin
          v.rampCnt := (others=>'0');
          v.inc := '1';
       else
-         v_testData := (others=>'0');
+         v.testData := (others=>'0');
          
          -- Initialize square parameters
          v.squareCnt := (others=>'0');
@@ -175,10 +165,7 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-      
-      -- Output assignment
-      sampleData_o <= byteSwapSlv(v_testData, GT_WORD_SIZE_C);  
+      rin <= v; 
       
    end process comb;
 
@@ -190,6 +177,8 @@ begin
    end process seq;
    
    -- Digital square waveform out 
-   pulse_o <= r.sign;  
+   pulse_o <= r.sign; 
+   -- Output data assignment
+   sampleData_o <= byteSwapSlv(r.testData, GT_WORD_SIZE_C);
 ---------------------------------------   
 end architecture rtl;

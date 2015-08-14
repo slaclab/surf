@@ -89,14 +89,17 @@ JesdTx::JesdTx ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, Devi
                                 "L1_data_out_mux",  Variable::Configuration, 0, 0xf,
                                 "L1_test_out_mux",  Variable::Configuration, 4, 0xf));
                                 
-   rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");                            
-    
+   rl->getVariable(0)->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");                            
+   rl->getVariable(1)->setDescription("Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero ");                            
+   
+   
    addRegisterLink(rl = new RegisterLink("L2_SignalSelect",    baseAddress_ + (0x21*addrSize), 1, 2,
                                 "L2_data_out_mux",  Variable::Configuration, 0, 0xf,
                                 "L2_test_out_mux",  Variable::Configuration, 4, 0xf));
                                 
-   rl->getVariable()->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");     
-                                
+   rl->getVariable(0)->setDescription("Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data ");     
+   rl->getVariable(1)->setDescription("Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero ");                            
+                               
    // Variables
    getVariable("Enabled")->setHidden(true);
 
