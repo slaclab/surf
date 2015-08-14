@@ -57,7 +57,7 @@ entity SyncFsmRx is
       
       -- Local multi frame clock
       lmfc_i         : in    sl;
-     
+          
       -- One or more RX modules requested synchronisation
       nSyncAny_i     : in    sl;
       nSyncAnyD1_i   : in    sl;
@@ -70,13 +70,16 @@ entity SyncFsmRx is
       -- Synchronisation request
       nSync_o        : out   sl;
       
+      -- Elastic buffer latency in clock cycles
+      buffLatency_o      : out   slv(7 downto 0); 
+      
       -- Read enable for Rx Buffer.
       -- Holds buffers between first data and LMFC
-      readBuff_o        : out   sl;
+      readBuff_o     : out   sl;
       
       -- First non comma (K) character detected.
       -- To indicate when to realign sample within the dataRx.
-      alignFrame_o        : out   sl;   
+      alignFrame_o   : out   sl;   
       
       -- Ila frames are being received
       ila_o          : out   sl;
@@ -118,6 +121,7 @@ architecture rtl of SyncFsmRx is
       dataValid   : sl;
       sysref      : sl;
       cnt         : slv(7 downto 0);
+     cntLatency  : slv(7 downto 0);
 
       -- Status Machine
       state       : StateType;
@@ -135,7 +139,8 @@ architecture rtl of SyncFsmRx is
       dataValid    => '0',
       sysref       => '0',
       cnt          =>  (others => '0'),
-
+      cntLatency   =>  (others => '0'),
+     
       -- Status Machine
       state        => IDLE_S
    );
@@ -176,6 +181,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             v.sysref     := '0';
+         v.cntLatency := (others => '0');
             
             -- Next state condition (depending on subclass)
             if  subClass_i = '1' then
@@ -197,6 +203,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             v.sysref     := '1';
+            v.cntLatency := (others => '0');
             
             -- Next state condition            
             if  s_kDetected = '1' and lmfc_i = '1' then
@@ -214,6 +221,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             v.sysref     := '1';
+            v.cntLatency := (others => '0');
             
             -- Next state condition
             if  s_kDetected = '0' then
@@ -231,6 +239,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             v.sysref     := '1';
+            v.cntLatency := r.cntLatency + 1;
             
             -- Next state condition            
             if  lmfc_i = '1' then
@@ -249,6 +258,7 @@ begin
             v.Ila        := '1';
             v.dataValid  := '0';
             v.sysref     := '1';
+            v.cntLatency := r.cntLatency;
             
             -- Put ILA Sequence counter to 0
             v.cnt := (others => '0');
@@ -265,6 +275,7 @@ begin
             v.Ila        := '1';
             v.dataValid  := '0';
             v.sysref     := '1';
+            v.cntLatency := r.cntLatency;
             
             -- Increase lmfc counter.
             if (lmfc_i = '1') then
@@ -287,6 +298,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '1';
             v.sysref     := '1';
+            v.cntLatency := r.cntLatency;
             
             -- Next state condition
             if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kStable = '1' or gtReady_i = '0' then  
@@ -301,6 +313,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             v.sysref     := '0';
+            v.cntLatency := (others => '0');
             
             -- Next state condition            
             v.state   := IDLE_S;            
@@ -332,4 +345,5 @@ begin
    dataValid_o  <= r.dataValid;
    kDetected_o  <= s_kStable;
    sysref_o     <= r.sysref;
+   buffLatency_o<= r.cntLatency;
 end rtl;

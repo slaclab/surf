@@ -32,6 +32,8 @@ Lmk04828::Lmk04828 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, 
    RegisterLink *rl;
    stringstream tmp; 
    
+   Command      *c;
+   
   // Description
    desc_ = "LMK data acquisition control";
    
@@ -46,11 +48,106 @@ Lmk04828::Lmk04828 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, 
    getVariable("Enabled")->setHidden(true);
    
    //Commands
+   // addCommand(c = new Command("TurnSysrefOff"));
+   // c->setDescription("Powerdown the sysref lines.");
+   
+   // addCommand(c = new Command("TurnSysrefOn"));
+   // c->setDescription("Powerup the sysref lines.");
 }
 
 // Deconstructor
 Lmk04828::~Lmk04828 ( ) { }
 
 // Process Commands
+// void Lmk04828::command(string name, string arg) {
+   // if (name == "TurnSysrefOff") syarefOff();
+   // else if (name == "TurnSysrefOn") syarefOn();
+   // else Device::command(name,arg);
+// }
+
+//! Powerdown the sysref lines.
+// void Lmk04828::syarefOff () {
+
+   // Register *r;
+   
+   // REGISTER_LOCK
+   
+   // r = getRegister("LmkReg0139");
+   // r->set(0x0,0,0x3);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0106");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+
+   // r = getRegister("LmkReg010e");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0116");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg011e");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0126");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg012e");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0136");
+   // r->set(0x1,0,0x1);
+   // writeRegister(r, true);
+   
+   // REGISTER_UNLOCK
+
+// }
+
+// //! Powerup the sysref lines.
+// void Lmk04828::syarefOn () {
+
+   // Register *r;
+   
+   // REGISTER_LOCK
+   
+   // r = getRegister("LmkReg0139");
+   // r->set(0x3,0,0x3);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0106");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+
+   // r = getRegister("LmkReg010e");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0116");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg011e");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0126");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg012e");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+   
+   // r = getRegister("LmkReg0136");
+   // r->set(0x0,0,0x1);
+   // writeRegister(r, true);
+   
+   // REGISTER_UNLOCK
+// }
 
 

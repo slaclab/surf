@@ -35,8 +35,8 @@
 --                   bit 5: SysRef detected (active only when the TX lane is enabled)
 --               0x2X (RW) - Lane X signal select (Mux control)
 --                   bit 5-4: Test signal select:
---                         "00" - Saw signal
---                         "01" - Ramp signal
+--                         "00" - Saw signal increment
+--                         "01" - Saw signal decrement
 --                         "10" - Square wave
 --                         "11" - Output zero
 --                   bit 1-0: Signal source select:

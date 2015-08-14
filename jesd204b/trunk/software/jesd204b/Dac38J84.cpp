@@ -237,6 +237,8 @@ void Dac38J84::clrAlarms () {
 void Dac38J84::initDac () {
 
    Register *r;
+   //Variable *v;
+   //uint32_t value;
    
    REGISTER_LOCK
    
@@ -255,10 +257,20 @@ void Dac38J84::initDac () {
    r->set(0x01,0,0x1f);
    writeRegister(r, true);
    
+   // Update variable
+   // value = r->get(0,0xff);
+   // v = getVariable("DacReg004a");
+   // v->setInt(value);
+   
    // Enable TX
    r = getRegister("DacReg0003");
    r->set(0x1,0,0x1);
    writeRegister(r, true);
+   
+   // Update variable
+   // value = r->get(0,0xff);
+   // v = getVariable("DacReg004a");
+   // v->setInt(value);
    
    REGISTER_UNLOCK
 
