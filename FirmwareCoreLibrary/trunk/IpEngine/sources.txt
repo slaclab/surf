@@ -1,0 +1,12 @@
+
+vhdl work rtl/IpV4EnginePkg.vhd
+vhdl work rtl/IpV4Engine.vhd
+
+vhdl work rtl/EthFrameDeMux.vhd
+
+vhdl work rtl/ArpEngine.vhd
+
+vhdl work rtl/IpMacTable.vhd
+
+vhdl work rtl/IpV4EngineRx.vhd
+vhdl work rtl/IpV4EngineTx.vhd
