@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-13
+-- Last update: 2015-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -16,22 +16,24 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpEngineDefPkg.all;
+use work.IpV4EnginePkg.all;
 
 entity EthFrameDeMux is
    generic (
       TPD_G  : time    := 1 ns;
       VLAN_G : boolean := false);    
    port (
+      -- Local Configurations
+      mac          : in  slv(47 downto 0);  --  big-endian configuration   
       -- Slave
-      sEthMaster   : in  AxiStreamMasterType;
-      sEthSlave    : out AxiStreamSlaveType;
+      obMacMaster  : in  AxiStreamMasterType;
+      obMacSlave   : out AxiStreamSlaveType;
       -- Masters
       ibArpMaster  : out AxiStreamMasterType;
       ibArpSlave   : in  AxiStreamSlaveType;
@@ -44,6 +46,8 @@ end EthFrameDeMux;
 
 architecture rtl of EthFrameDeMux is
 
+   constant BROADCAST_MAC_C : slv(47 downto 0) := (others => '1');
+
    type StateType is (
       IDLE_S,
       CHECK_S,
@@ -55,7 +59,7 @@ architecture rtl of EthFrameDeMux is
       dly          : AxiStreamMasterType;
       ibArpMaster  : AxiStreamMasterType;
       ibIpv4Master : AxiStreamMasterType;
-      sEthSlave    : AxiStreamSlaveType;
+      obMacSlave   : AxiStreamSlaveType;
       state        : StateType;
    end record RegType;
    
@@ -65,7 +69,7 @@ architecture rtl of EthFrameDeMux is
       dly          => AXI_STREAM_MASTER_INIT_C,
       ibArpMaster  => AXI_STREAM_MASTER_INIT_C,
       ibIpv4Master => AXI_STREAM_MASTER_INIT_C,
-      sEthSlave    => AXI_STREAM_SLAVE_INIT_C,
+      obMacSlave   => AXI_STREAM_SLAVE_INIT_C,
       state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -73,14 +77,14 @@ architecture rtl of EthFrameDeMux is
 
 begin
 
-   comb : process (ibArpSlave, ibIpv4Slave, r, rst, sEthMaster) is
+   comb : process (ibArpSlave, ibIpv4Slave, mac, obMacMaster, r, rst) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset strobing signals   
-      v.sEthSlave.tReady := '0';
+      v.obMacSlave.tReady := '0';
       if ibArpSlave.tReady = '1' then
          v.ibArpMaster.tValid := '0';
       end if;
@@ -89,33 +93,36 @@ begin
       end if;
 
       -- Check if there is data to move
-      if (sEthMaster.tValid = '1') and (v.ibArpMaster.tValid = '0') and (v.ibIpv4Master.tValid = '0') then
+      if (obMacMaster.tValid = '1') and (v.ibArpMaster.tValid = '0') and (v.ibIpv4Master.tValid = '0') then
          ----------------------------------------------------------------------
          -- Checking for non-VLAN
          ----------------------------------------------------------------------         
          if (VLAN_G = false) then
             -- Accept for data
-            v.sEthSlave.tReady := '1';
+            v.obMacSlave.tReady := '1';
             -- Check for SOF and not EOF
-            if (ssiGetUserSof(IP_ENGINE_CONFIG_C, sEthMaster) = '1') and (sEthMaster.tLast = '0') then
+            if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obMacMaster) = '1') and (obMacMaster.tLast = '0') then
                -- Reset the flags
                v.arpSel  := '0';
                v.ipv4Sel := '0';
                -- Check for a valid ARP EtherType
-               if (sEthMaster.tData(111 downto 96) = ARP_TYPE_C) then
-                  v.arpSel      := '1';
-                  v.ibArpMaster := sEthMaster;
-               -- Check for a valid IPV4 EtherType
-               elsif (sEthMaster.tData(111 downto 96) = IPV4_TYPE_C) and (sEthMaster.tData(47 downto 0) /= BROADCAST_MAC_C) then
+               if (obMacMaster.tData(111 downto 96) = ARP_TYPE_C) then
+                  -- Check the destination MAC address
+                  if(obMacMaster.tData(47 downto 0) = BROADCAST_MAC_C) or (obMacMaster.tData(47 downto 0) = mac) then
+                     v.arpSel      := '1';
+                     v.ibArpMaster := obMacMaster;
+                  end if;
+               -- Check for a valid IPV4 EtherType and matching destination MAC address
+               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) and (obMacMaster.tData(47 downto 0) = mac) then
                   v.ipv4Sel      := '1';
-                  v.ibIpv4Master := sEthMaster;
+                  v.ibIpv4Master := obMacMaster;
                end if;
             elsif r.arpSel = '1' then
-               v.ibArpMaster := sEthMaster;
+               v.ibArpMaster := obMacMaster;
             elsif r.ipv4Sel = '1' then
-               v.ibIpv4Master := sEthMaster;
+               v.ibIpv4Master := obMacMaster;
             end if;
-            if sEthMaster.tLast = '1' then
+            if obMacMaster.tLast = '1' then
                -- Reset the flags
                v.arpSel  := '0';
                v.ipv4Sel := '0';
@@ -129,16 +136,16 @@ begin
                ----------------------------------------------------------------------
                when IDLE_S =>
                   -- Accept for data
-                  v.sEthSlave.tReady := '1';
+                  v.obMacSlave.tReady := '1';
                   -- Check for SOF and not EOF
-                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, sEthMaster) = '1') and (sEthMaster.tLast = '0') then
+                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obMacMaster) = '1') and (obMacMaster.tLast = '0') then
                      -- Check for a valid VLAN EtherType
-                     if (sEthMaster.tData(111 downto 96) = VLAN_TYPE_C) then
+                     if (obMacMaster.tData(111 downto 96) = VLAN_TYPE_C) then
                         -- Reset the flags
                         v.arpSel  := '0';
                         v.ipv4Sel := '0';
                         -- Latch the data bus
-                        v.dly     := sEthMaster;
+                        v.dly     := obMacMaster;
                         -- Next state
                         v.state   := CHECK_S;
                      end if;
@@ -146,11 +153,11 @@ begin
                ----------------------------------------------------------------------
                when CHECK_S =>
                   -- Check for a valid ARP EtherType
-                  if (sEthMaster.tData(15 downto 0) = ARP_TYPE_C) then
+                  if (obMacMaster.tData(15 downto 0) = ARP_TYPE_C) then
                      v.arpSel      := '1';
                      v.ibArpMaster := r.dly;
                   -- Check for a valid IPV4 EtherType
-                  elsif (sEthMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) /= BROADCAST_MAC_C) then
+                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) /= BROADCAST_MAC_C) then
                      v.ipv4Sel      := '1';
                      v.ibIpv4Master := r.dly;
                   end if;
@@ -159,13 +166,13 @@ begin
                ----------------------------------------------------------------------
                when MOVE_S =>
                   -- Accept for data
-                  v.sEthSlave.tReady := '1';
+                  v.obMacSlave.tReady := '1';
                   if r.arpSel = '1' then
-                     v.ibArpMaster := sEthMaster;
+                     v.ibArpMaster := obMacMaster;
                   elsif r.ipv4Sel = '1' then
-                     v.ibIpv4Master := sEthMaster;
+                     v.ibIpv4Master := obMacMaster;
                   end if;
-                  if sEthMaster.tLast = '1' then
+                  if obMacMaster.tLast = '1' then
                      -- Next state
                      v.state := IDLE_S;
                   end if;
@@ -183,7 +190,7 @@ begin
       rin <= v;
 
       -- Outputs
-      sEthSlave    <= v.sEthSlave;
+      obMacSlave   <= v.obMacSlave;
       ibArpMaster  <= r.ibArpMaster;
       ibIpv4Master <= r.ibIpv4Master;
       
