@@ -46,10 +46,10 @@ class Lmk04828 : public Device {
        * \param name     Command name
        * \param arg      Optional arg
       */
-      // void command ( string name, string arg );
+       void command ( string name, string arg );
 
-      // //! Powerup the sysref lines.
-      // void syarefOff ();
+      //! Synchronise internal counters
+       void SyncClks ();
 
       // //! Powerdown the sysref lines.
       // void syarefOn ();
