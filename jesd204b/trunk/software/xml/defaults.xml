@@ -141,14 +141,14 @@
             <Enable>0x3f</Enable>
             <Enabled>True</Enabled>
             <InvertSync>0x1</InvertSync>
-            <L1_Threshold_High>0xA000</L1_Threshold_High>
+            <L1_Threshold_High>0xa000</L1_Threshold_High>
             <L1_Threshold_Low>0x5000</L1_Threshold_Low>
-            <L2_Threshold_High>0xA000</L2_Threshold_High>
+            <L2_Threshold_High>0xa000</L2_Threshold_High>
             <L2_Threshold_Low>0x5000</L2_Threshold_Low>
             <ReplaceEnable>0x1</ReplaceEnable>
             <ResetGTs>0x0</ResetGTs>
             <SubClass>0x1</SubClass>
-            <SysrefDelay>0x0</SysrefDelay>
+            <SysrefDelay>0xb</SysrefDelay>
          </JesdRx>
          <JesdRxDaq>
             <DaqBufferSize>0x30000</DaqBufferSize>
