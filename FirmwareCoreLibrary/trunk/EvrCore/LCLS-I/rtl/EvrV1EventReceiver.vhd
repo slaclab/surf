@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-06-17
+-- Last update: 2015-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -755,6 +755,8 @@ begin
                intFlag(3) <= '0' after TPD_G;
             elsif (config.evrEnable = '1') and (tsFIFOempty = '0') then
                intFlag(3) <= '1' after TPD_G;
+            else
+               intFlag(3) <= '0' after TPD_G;
             end if;
          end if;
       end if;
