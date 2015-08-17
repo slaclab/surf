@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2015-08-06
+-- Last update: 2015-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -201,41 +201,31 @@ package body SsiPciePkg is
       return PcieHdrType is
       variable retVar : PcieHdrType;
    begin
-      retVar.addr  := axisMaster.tdata(95 downto 66);
+      retVar.addr      := axisMaster.tdata(95 downto 66);
       -- PCIe Reserved := axisMaster.tdata(65 downto 64)
-      retVar.ReqId := axisMaster.tdata(63 downto 48);
-      retVar.Tag   := axisMaster.tdata(47 downto 40);
-
-      -- Reorder Byte Enables
-      retVar.FirstDwBe(3) := axisMaster.tdata(32);
-      retVar.FirstDwBe(2) := axisMaster.tdata(33);
-      retVar.FirstDwBe(1) := axisMaster.tdata(34);
-      retVar.FirstDwBe(0) := axisMaster.tdata(35);
-      retVar.LastDwBe(3)  := axisMaster.tdata(36);
-      retVar.LastDwBe(2)  := axisMaster.tdata(37);
-      retVar.LastDwBe(1)  := axisMaster.tdata(38);
-      retVar.LastDwBe(0)  := axisMaster.tdata(39);
-
+      retVar.ReqId     := axisMaster.tdata(63 downto 48);
+      retVar.Tag       := axisMaster.tdata(47 downto 40);
+      retVar.LastDwBe  := axisMaster.tdata(39 downto 36);
+      retVar.FirstDwBe := axisMaster.tdata(35 downto 32);
       -- PCIe Reserved := axisMaster.tdata(31)
-      retVar.fmt     := axisMaster.tdata(30 downto 29);
-      retVar.xType   := axisMaster.tdata(28 downto 24);
+      retVar.fmt       := axisMaster.tdata(30 downto 29);
+      retVar.xType     := axisMaster.tdata(28 downto 24);
       -- PCIe Reserved := axisMaster.tdata(23)
-      retVar.tc      := axisMaster.tdata(22 downto 20);
+      retVar.tc        := axisMaster.tdata(22 downto 20);
       -- PCIe Reserved := axisMaster.tdata(19 downto 16)
-      retVar.td      := axisMaster.tdata(15);
-      retVar.ep      := axisMaster.tdata(14);
-      retVar.attr    := axisMaster.tdata(13 downto 12);
+      retVar.td        := axisMaster.tdata(15);
+      retVar.ep        := axisMaster.tdata(14);
+      retVar.attr      := axisMaster.tdata(13 downto 12);
       -- PCIe Reserved := axisMaster.tdata(11 downto 10)
-      retVar.xLength := axisMaster.tdata(9 downto 0);
+      retVar.xLength   := axisMaster.tdata(9 downto 0);
 
       -- Reorder Data
       retVar.data(31 downto 24) := axisMaster.tdata(103 downto 96);
       retVar.data(23 downto 16) := axisMaster.tdata(111 downto 104);
       retVar.data(15 downto 8)  := axisMaster.tdata(119 downto 112);
       retVar.data(7 downto 0)   := axisMaster.tdata(127 downto 120);
-
       -- BAR encoded in the tDest
-      retVar.bar := axisMaster.tDest(2 downto 0);
+      retVar.bar                := axisMaster.tDest(2 downto 0);
       return(retVar);
    end function;
 

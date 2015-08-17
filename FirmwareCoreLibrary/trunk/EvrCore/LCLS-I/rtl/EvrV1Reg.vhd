@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-06-12
+-- Last update: 2015-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -299,46 +299,76 @@ begin
                when 175 =>
                   v.config.pulseWidth(11) := axiWriteMaster.wdata;
                when 272 =>
-                  if (axiWriteMaster.wstrb = "0011") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(0) := axiWriteMaster.wdata(15 downto 0);
-                  end if;
-                  if (axiWriteMaster.wstrb = "1100") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(1) := axiWriteMaster.wdata(31 downto 16);
+                  if (USE_WSTRB_G = true) then
+                     if (axiWriteMaster.wstrb = x"C") then
+                        v.config.outputMap(0) := axiWriteMaster.wdata(31 downto 16);
+                     end if;
+                     if (axiWriteMaster.wstrb = x"3") then
+                        v.config.outputMap(1) := axiWriteMaster.wdata(15 downto 0);
+                     end if;
+                  else
+                     v.config.outputMap(0) := axiWriteMaster.wdata(31 downto 16);
+                     v.config.outputMap(1) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when 273 =>
-                  if (axiWriteMaster.wstrb = "0011") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(2) := axiWriteMaster.wdata(15 downto 0);
-                  end if;
-                  if (axiWriteMaster.wstrb = "1100") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(3) := axiWriteMaster.wdata(31 downto 16);
+                  if (USE_WSTRB_G = true) then
+                     if (axiWriteMaster.wstrb = x"C") then
+                        v.config.outputMap(2) := axiWriteMaster.wdata(31 downto 16);
+                     end if;
+                     if (axiWriteMaster.wstrb = x"3") then
+                        v.config.outputMap(3) := axiWriteMaster.wdata(15 downto 0);
+                     end if;
+                  else
+                     v.config.outputMap(2) := axiWriteMaster.wdata(31 downto 16);
+                     v.config.outputMap(3) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when 274 =>
-                  if (axiWriteMaster.wstrb = "0011") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(4) := axiWriteMaster.wdata(15 downto 0);
-                  end if;
-                  if (axiWriteMaster.wstrb = "1100") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(5) := axiWriteMaster.wdata(31 downto 16);
+                  if (USE_WSTRB_G = true) then
+                     if (axiWriteMaster.wstrb = x"C") then
+                        v.config.outputMap(4) := axiWriteMaster.wdata(31 downto 16);
+                     end if;
+                     if (axiWriteMaster.wstrb = x"3") then
+                        v.config.outputMap(5) := axiWriteMaster.wdata(15 downto 0);
+                     end if;
+                  else
+                     v.config.outputMap(4) := axiWriteMaster.wdata(31 downto 16);
+                     v.config.outputMap(5) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when 275 =>
-                  if (axiWriteMaster.wstrb = "0011") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(6) := axiWriteMaster.wdata(15 downto 0);
-                  end if;
-                  if (axiWriteMaster.wstrb = "1100") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(7) := axiWriteMaster.wdata(31 downto 16);
+                  if (USE_WSTRB_G = true) then
+                     if (axiWriteMaster.wstrb = x"C") then
+                        v.config.outputMap(6) := axiWriteMaster.wdata(31 downto 16);
+                     end if;
+                     if (axiWriteMaster.wstrb = x"3") then
+                        v.config.outputMap(7) := axiWriteMaster.wdata(15 downto 0);
+                     end if;
+                  else
+                     v.config.outputMap(6) := axiWriteMaster.wdata(31 downto 16);
+                     v.config.outputMap(7) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when 276 =>
-                  if (axiWriteMaster.wstrb = "0011") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(8) := axiWriteMaster.wdata(15 downto 0);
-                  end if;
-                  if (axiWriteMaster.wstrb = "1100") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(9) := axiWriteMaster.wdata(31 downto 16);
+                  if (USE_WSTRB_G = true) then
+                     if (axiWriteMaster.wstrb = x"C") then
+                        v.config.outputMap(8) := axiWriteMaster.wdata(31 downto 16);
+                     end if;
+                     if (axiWriteMaster.wstrb = x"3") then
+                        v.config.outputMap(9) := axiWriteMaster.wdata(15 downto 0);
+                     end if;
+                  else
+                     v.config.outputMap(8) := axiWriteMaster.wdata(31 downto 16);
+                     v.config.outputMap(9) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when 277 =>
-                  if (axiWriteMaster.wstrb = "0011") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(10) := axiWriteMaster.wdata(15 downto 0);
-                  end if;
-                  if (axiWriteMaster.wstrb = "1100") or (USE_WSTRB_G = false) then
-                     v.config.outputMap(11) := axiWriteMaster.wdata(31 downto 16);
+                  if (USE_WSTRB_G = true) then
+                     if (axiWriteMaster.wstrb = x"C") then
+                        v.config.outputMap(10) := axiWriteMaster.wdata(31 downto 16);
+                     end if;
+                     if (axiWriteMaster.wstrb = x"3") then
+                        v.config.outputMap(11) := axiWriteMaster.wdata(15 downto 0);
+                     end if;
+                  else
+                     v.config.outputMap(10) := axiWriteMaster.wdata(31 downto 16);
+                     v.config.outputMap(11) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when others =>
                   null;
@@ -514,23 +544,23 @@ begin
                when 175 =>
                   v.axiReadSlave.rdata := r.config.pulseWidth(11);
                when 272 =>
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(0);
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(1);
+                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(0);
+                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(1);
                when 273 =>
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(2);
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(3);
+                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(2);
+                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(3);
                when 274 =>
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(4);
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(5);
+                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(4);
+                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(5);
                when 275 =>
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(6);
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(7);
+                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(6);
+                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(7);
                when 276 =>
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(8);
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(9);
+                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(8);
+                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(9);
                when 277 =>
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(10);
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(11);
+                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(10);
+                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(11);
                when 512 to 1023 =>
                   v.axiReadSlave.rdata := status.dbData;
                when 4096 to 5119 =>
