@@ -138,7 +138,6 @@
          </Dac38J84>
          <JesdRx>
             <ClearErrors>0x0</ClearErrors>
-            <Enable>0x3f</Enable>
             <Enabled>True</Enabled>
             <InvertSync>0x1</InvertSync>
             <L1_Threshold_High>0xa000</L1_Threshold_High>
@@ -149,6 +148,7 @@
             <ResetGTs>0x0</ResetGTs>
             <SubClass>0x1</SubClass>
             <SysrefDelay>0xb</SysrefDelay>
+            <Enable>0x3f</Enable>
          </JesdRx>
          <JesdRxDaq>
             <DaqBufferSize>0x30000</DaqBufferSize>
@@ -167,17 +167,18 @@
             <Enabled>True</Enabled>
             <HighAmplitudeVal>0xffff</HighAmplitudeVal>
             <InvertSync>0x1</InvertSync>
-            <L1_data_out_mux>0x1</L1_data_out_mux>
+            <L1_data_out_mux>0x3</L1_data_out_mux>
             <L1_test_out_mux>0x2</L1_test_out_mux>
-            <L2_data_out_mux>0x1</L2_data_out_mux>
+            <L2_data_out_mux>0x3</L2_data_out_mux>
             <L2_test_out_mux>0x2</L2_test_out_mux>
             <LowAmplitudeVal>0x0</LowAmplitudeVal>
             <RampStep>0x1</RampStep>
             <ReplaceEnable>0x1</ReplaceEnable>
             <ResetGTs>0x0</ResetGTs>
-            <SquarePeriod>0x1000</SquarePeriod>
+            <SquarePeriod>0x2</SquarePeriod>
             <SubClass>0x1</SubClass>
             <SysrefDelay>0x0</SysrefDelay>
+            <Enable>0x3</Enable>
          </JesdTx>
          <JesdTxGen>
             <DisplayRateDiv>0x1</DisplayRateDiv>

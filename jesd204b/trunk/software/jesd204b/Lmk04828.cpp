@@ -48,8 +48,8 @@ Lmk04828::Lmk04828 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, 
    getVariable("Enabled")->setHidden(true);
    
    //Commands
-   // addCommand(c = new Command("TurnSysrefOff"));
-   // c->setDescription("Powerdown the sysref lines.");
+   addCommand(c = new Command("SyncClks"));
+   c->setDescription("Powerdown the sysref lines.");
    
    // addCommand(c = new Command("TurnSysrefOn"));
    // c->setDescription("Powerup the sysref lines.");
@@ -59,54 +59,52 @@ Lmk04828::Lmk04828 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, 
 Lmk04828::~Lmk04828 ( ) { }
 
 // Process Commands
-// void Lmk04828::command(string name, string arg) {
-   // if (name == "TurnSysrefOff") syarefOff();
-   // else if (name == "TurnSysrefOn") syarefOn();
-   // else Device::command(name,arg);
-// }
+void Lmk04828::command(string name, string arg) {
+   if (name == "SyncClks") SyncClks();
+   //else if (name == "TurnSysrefOn") syarefOn();
+   else Device::command(name,arg);
+}
 
-//! Powerdown the sysref lines.
-// void Lmk04828::syarefOff () {
+//! Synchronise internal counters
+ void Lmk04828::SyncClks () {
 
-   // Register *r;
+   Register *r;
    
-   // REGISTER_LOCK
-   
-   // r = getRegister("LmkReg0139");
-   // r->set(0x0,0,0x3);
-   // writeRegister(r, true);
-   
-   // r = getRegister("LmkReg0106");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
+   REGISTER_LOCK
 
-   // r = getRegister("LmkReg010e");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
+      // Turn on normal SYNC
+      r = getRegister("LmkReg0139");
+      r->set(0x0,0,0x3);
+      writeRegister(r, true);
+      
+      // Poweron SYNC
+      r = getRegister("LmkReg0144");
+      r->set(0x0,0,0xff);
+      writeRegister(r, true);
+      
+      sleep(1);
+      // Toggle Sync bit
+      r = getRegister("LmkReg0143");
+      r->set(0x1,5,0x1);
+      writeRegister(r, true);
+      r = getRegister("LmkReg0143");
+      r->set(0x0,5,0x1);
+      writeRegister(r, true);
+      
+      sleep(1);
+      // Turn on normal continuous sysref
+      r = getRegister("LmkReg0139");
+      r->set(0x3,0,0x3);
+      writeRegister(r, true);
+      
+      // Poweron down SYNC to not let it interfere
+      r = getRegister("LmkReg0144");
+      r->set(0xff,0,0xff);
+      writeRegister(r, true);   
    
-   // r = getRegister("LmkReg0116");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
-   
-   // r = getRegister("LmkReg011e");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
-   
-   // r = getRegister("LmkReg0126");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
-   
-   // r = getRegister("LmkReg012e");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
-   
-   // r = getRegister("LmkReg0136");
-   // r->set(0x1,0,0x1);
-   // writeRegister(r, true);
-   
-   // REGISTER_UNLOCK
+   REGISTER_UNLOCK
 
-// }
+}
 
 // //! Powerup the sysref lines.
 // void Lmk04828::syarefOn () {

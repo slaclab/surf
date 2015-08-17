@@ -166,9 +166,31 @@ void AtcaDemoBoard::writeConfig ( bool force ) {
    device("AxiVersion", 0) -> writeConfig(force);
    device("Pgp2bAxi", 0) -> writeConfig(force);
    device("Lmk04828", 0) -> writeConfig(force);
+       
+   device("JesdTx", 0) -> writeConfig(force);
+   device("Adc16Dx370", 0) -> writeConfig(force);
+   device("Adc16Dx370", 1) -> writeConfig(force);
+   device("Adc16Dx370", 2) -> writeConfig(force);
+   device("Dac38J84", 0)   -> writeConfig(force);
+   
+   // Set sysref delay before enableing RX
+   REGISTER_LOCK
+   r = device("JesdRx", 0) -> getRegister("SysrefDelay");
+   r->set(0xb,0,0xff);
+   writeRegister(r, true);
+   REGISTER_UNLOCK
+   
+   device("JesdRx", 0)     -> writeConfig(force);
+   device("JesdRxDaq", 0)  -> writeConfig(force);
+   device("SigGenRam", 0)  -> writeConfig(force);
+   device("SigGenRam", 1)  -> writeConfig(force);
+   device("JesdTxGen", 0)  -> writeConfig(force);
    
    if (powerUp == true){ 
       // Synchronise internal counters at powerup
+      
+      printf("\n---------------Syncing LMK counters on powerup-------------\n");
+      
       REGISTER_LOCK
       
       // Turn on normal SYNC
@@ -181,6 +203,8 @@ void AtcaDemoBoard::writeConfig ( bool force ) {
       r->set(0x0,0,0xff);
       writeRegister(r, true);
       
+      sleep(1);
+      
       // Toggle Sync bit
       r = device("Lmk04828", 0) -> getRegister("LmkReg0143");
       r->set(0x1,5,0x1);
@@ -188,6 +212,8 @@ void AtcaDemoBoard::writeConfig ( bool force ) {
       r = device("Lmk04828", 0) -> getRegister("LmkReg0143");
       r->set(0x0,5,0x1);
       writeRegister(r, true);
+      
+      sleep(1);
       
       // Turn on normal continuous sysref
       r = device("Lmk04828", 0) -> getRegister("LmkReg0139");
@@ -209,17 +235,6 @@ void AtcaDemoBoard::writeConfig ( bool force ) {
       // Synchronise the counters
       powerUp = false;
    }
-     
-   device("JesdTx", 0) -> writeConfig(force);
-   device("Adc16Dx370", 0) -> writeConfig(force);
-   device("Adc16Dx370", 1) -> writeConfig(force);
-   device("Adc16Dx370", 2) -> writeConfig(force);
-   device("Dac38J84", 0)   -> writeConfig(force);
-   device("JesdRx", 0)     -> writeConfig(force);
-   device("JesdRxDaq", 0)  -> writeConfig(force);
-   device("SigGenRam", 0)  -> writeConfig(force);
-   device("SigGenRam", 1)  -> writeConfig(force);
-   device("JesdTxGen", 0)  -> writeConfig(force);
    
 }
 
