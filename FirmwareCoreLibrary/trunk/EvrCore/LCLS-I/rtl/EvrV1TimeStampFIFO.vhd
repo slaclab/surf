@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-17
--- Last update: 2015-06-11
+-- Last update: 2015-08-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- '1' for active high rst, '0' for active low
          BRAM_EN_G      => true,
-         FWFT_EN_G      => false,
+         FWFT_EN_G      => true,
          DATA_WIDTH_G   => 72,
          ADDR_WIDTH_G   => 9)
       port map (
