@@ -5,3 +5,4 @@ vhdl work rtl/EthFrameDeMux.vhd
 vhdl work rtl/ArpEngine.vhd
 vhdl work rtl/IpV4EngineRx.vhd
 vhdl work rtl/IpV4EngineTx.vhd
+vhdl work rtl/IpV4EngineLoopback.vhd

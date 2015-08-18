@@ -11,7 +11,7 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -274,6 +274,8 @@ begin
          when CHECK_S =>
             -- Default next state
             v.state := IDLE_S;
+            -- Reset the counter
+            v.cnt   := 0;
             ------------------------
             -- Checking for non-VLAN
             ------------------------

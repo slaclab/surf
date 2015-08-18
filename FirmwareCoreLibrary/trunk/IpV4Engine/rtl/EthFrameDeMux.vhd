@@ -154,10 +154,13 @@ begin
                when CHECK_S =>
                   -- Check for a valid ARP EtherType
                   if (obMacMaster.tData(15 downto 0) = ARP_TYPE_C) then
-                     v.arpSel      := '1';
-                     v.ibArpMaster := r.dly;
-                  -- Check for a valid IPV4 EtherType
-                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) /= BROADCAST_MAC_C) then
+                     -- Check the destination MAC address
+                     if(r.dly.tData(47 downto 0) = BROADCAST_MAC_C) or (r.dly.tData(47 downto 0) = mac) then
+                        v.arpSel      := '1';
+                        v.ibArpMaster := r.dly;
+                     end if;
+                  -- Check for a valid IPV4 EtherType and matching destination MAC address
+                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) = mac) then
                      v.ipv4Sel      := '1';
                      v.ibIpv4Master := r.dly;
                   end if;
