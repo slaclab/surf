@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-17
--- Last update: 2015-08-17
+-- Last update: 2015-08-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,8 @@ use work.IpV4EnginePkg.all;
 
 entity IpV4EngineLoopback is
    generic (
-      TPD_G : time := 1 ns);       
+      TPD_G      : time            := 1 ns;
+      PROTOCOL_G : slv(7 downto 0) := UDP_C);
    port (
       -- Interface to IPV4 Enginer
       obProtocolMaster : out AxiStreamMasterType;
@@ -61,6 +62,7 @@ architecture rtl of IpV4EngineLoopback is
       arpAckSlave      : AxiStreamSlaveType;
       done             : sl;
       remoteMac        : slv(47 downto 0);
+      cnt              : slv(3 downto 0);
       state            : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
@@ -70,11 +72,15 @@ architecture rtl of IpV4EngineLoopback is
       arpAckSlave      => AXI_STREAM_SLAVE_INIT_C,
       done             => '0',
       remoteMac        => (others => '0'),
+      cnt              => (others => '0'),
       state            => IDLE_S);  
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "true";
+   
 begin
 
    comb : process (arpAckMaster, arpReqSlave, ibProtocolMaster, obProtocolSlave, r, remoteIp, rst,
@@ -98,13 +104,25 @@ begin
       if (ibProtocolMaster.tValid = '1') and (v.obProtocolMaster.tValid = '0') then
          -- Accept the data
          v.ibProtocolSlave.tReady := '1';
+         -- Increment the counter
+         if r.cnt /= x"F" then
+            v.cnt := r.cnt + 1;
+         end if;
          -- Move the data
-         v.obProtocolMaster       := ibProtocolMaster;
+         v.obProtocolMaster := ibProtocolMaster;
          -- Check if SOF
          if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibProtocolMaster) = '1') then
             -- Swap the source and destination IP addresses in the IPv4 Pseudo Header 
             v.obProtocolMaster.tData(95 downto 64)  := ibProtocolMaster.tData(127 downto 96);
             v.obProtocolMaster.tData(127 downto 96) := ibProtocolMaster.tData(95 downto 64);
+            -- Preset the counter
+            v.cnt                                   := x"1";
+         end if;
+         -- Check if we need to swap the UDP ports
+         if (PROTOCOL_G = UDP_C) and (r.cnt = 1) then
+            -- Swap the source and destination UDP ports in the datagram 
+            v.obProtocolMaster.tData(47 downto 32) := ibProtocolMaster.tData(63 downto 48);
+            v.obProtocolMaster.tData(63 downto 48) := ibProtocolMaster.tData(47 downto 32);
          end if;
       end if;
 
