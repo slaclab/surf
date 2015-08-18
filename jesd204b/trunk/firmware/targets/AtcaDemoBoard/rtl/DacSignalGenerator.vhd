@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Sig Gen for JESD DAC
+-- Title      : Signal Generator for JESD DAC
 -------------------------------------------------------------------------------
 -- File       : DacSignalGenerator.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -9,18 +9,14 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
---              
---              
---              
---              
---              
---              
---              
---              
---              
---              
---              
+-- Description: Signal generator top module.
+--     Currently contains 2 signal generator lanes.          
+--     To change the number of lanes:
+--          - Change L_G,
+--          - adjust uncomment AXI Lite Config and Signals.
+--      
+--     Module has its own AxiLite register interface and access to AXI lite and 
+--     AXIlite RAM modules for each lane.        
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -46,8 +42,8 @@ entity DacSignalGenerator is
       ADDR_WIDTH_G : integer range 1 to (2**24) := 9;
       DATA_WIDTH_G : integer range 1 to 32      := 32;
       
-     --Number of data lanes (Only valid at this point is 6)
-      L_G : positive := 6
+     --Number of data lanes
+      L_G : positive := 2
    );
    port (
      
@@ -133,9 +129,7 @@ architecture rtl of DacSignalGenerator is
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
 begin
-   -- Check JESD generics
-   assert (1 <= L_G and L_G <= 16)                          report "L_G must be between 1 and 16"   severity failure;
-  
+ 
    -----------------------------------------------------------
    -- AXI lite
    ----------------------------------------------------------- 

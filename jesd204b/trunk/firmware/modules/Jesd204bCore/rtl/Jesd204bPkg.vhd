@@ -7,7 +7,7 @@ use work.StdRtlPkg.all;
 package Jesd204bPkg is
 
 -- Constant definitions
-
+--------------------------------------------------------------------------
    -- Number of bytes in MGT word (2 or 4).
    constant GT_WORD_SIZE_C : positive := 4;
    
@@ -34,7 +34,7 @@ package Jesd204bPkg is
    -- Ramp step or square wave period slv width (max 16)
    constant PER_STEP_WIDTH_C   : positive := 16;
 
--- Types 
+-- Sub-types 
 -------------------------------------------------------------------------- 
    type jesdGtRxLaneType is record
       data    : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data

@@ -9,7 +9,11 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:  Register decoding for DAQ
+-- Description:  Register decoding for Signal generator
+--               0x00 (RW)- Enable DAC signal generator lanes (L_G-1 downto 0)
+--               0x01 (RW)- Display rate divider(Not implemented - Reserved): 
+--               0x02 (RW)- Signal period size. In number of Block RAM addresses (two samples per address). Zero inclusive.
+--                          Example for 16 sample period write 7.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

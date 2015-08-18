@@ -9,18 +9,14 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
---              
---              
---              
---              
---              
---              
---              
---              
---              
---              
---              
+-- Description: Data acquisition top module:
+--     Choose 2 out of 6 Channels for DAQ.
+--     Module handles AXI stream data acquisition on two AXI Stream lanes.       
+--     Each AXI stream contains a multiplexer for channel selection.
+--     According to s_muxSel value the multiplexer works as follows:
+--         0 - Disabled, 1 - Ch1, 2 - Ch2, 3 - Ch3, 4 - Ch4, 5 - Ch5, 6 - Ch6    
+--     
+--     Module has its own AxiLite register interface.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
