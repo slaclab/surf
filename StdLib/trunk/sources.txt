@@ -90,6 +90,7 @@ vhdl work axi/rtl/AxiVersion.vhd
 vhdl work axi/rtl/AxiWritePathFifo.vhd
 vhdl work axi/rtl/AxiWritePathMux.vhd
 vhdl work axi/rtl/AxiMemTester.vhd
+vhdl work axi/rtl/AxiLiteEmptyVector.vhd
 
 vhdl work ssi/rtl/SsiAxiLiteMaster.vhd
 vhdl work ssi/rtl/SsiCmdMaster.vhd
@@ -101,6 +102,7 @@ vhdl work ssi/rtl/SsiPkg.vhd
 vhdl work ssi/rtl/SsiPrbsRx.vhd
 vhdl work ssi/rtl/SsiPrbsTx.vhd
 vhdl work ssi/rtl/SsiPrbsTxOld.vhd
+vhdl work ssi/rtl/SsiInsertSof.vhd
 
 vhdl work spi/rtl/SpiMaster.vhd
 vhdl work spi/rtl/SpiSlave.vhd
