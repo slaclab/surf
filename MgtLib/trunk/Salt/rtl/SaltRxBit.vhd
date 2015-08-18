@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2015-08-10
+-- Last update: 2015-08-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,9 +82,8 @@ architecture rtl of SaltRxBit is
    signal rxDly : sl;
    signal smpl  : slv(1 downto 0);
 
-   -- attribute IODELAY_GROUP                  : string;
-   -- attribute IODELAY_GROUP of IDELAYE3_Inst : label is IODELAY_GROUP_G;
-
+   attribute IODELAY_GROUP : string;
+   
 begin
 
    IBUFDS_Inst : IBUFDS
@@ -94,6 +93,8 @@ begin
          O  => rx);
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+      attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;
+   begin
       
       IDELAYE2_inst : IDELAYE2
          generic map (
@@ -134,6 +135,8 @@ begin
    end generate;
 
    GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
+      attribute IODELAY_GROUP of IDELAYE3_Inst : label is IODELAY_GROUP_G;
+   begin
       
       IDELAYE3_Inst : IDELAYE3
          generic map (
