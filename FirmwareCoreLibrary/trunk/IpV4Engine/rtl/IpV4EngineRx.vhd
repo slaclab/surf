@@ -56,6 +56,7 @@ architecture rtl of IpV4EngineRx is
       LAST_S); 
 
    type RegType is record
+      tLast      : sl;
       eofe      : sl;
       length    : slv(15 downto 0);
       tKeep     : slv(15 downto 0);
@@ -72,6 +73,7 @@ architecture rtl of IpV4EngineRx is
       state     : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      tLast      => '0',
       eofe      => '0',
       length    => (others => '0'),
       tKeep     => (others => '0'),
@@ -250,6 +252,8 @@ begin
                   -- Track the leftovers
                   v.tData(111 downto 0) := rxMaster.tData(127 downto 16);
                   v.tKeep(13 downto 0)  := rxMaster.tKeep(15 downto 2);
+                  v.tLast               := rxMaster.tLast;
+                  v.eofe                := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);                  
                else
                   v.hdr(14)            := rxMaster.tData(7 downto 0);    -- Source IP Address
                   v.hdr(15)            := rxMaster.tData(15 downto 8);   -- Source IP Address
@@ -321,8 +325,22 @@ begin
                   v.tData(127 downto 16)                    := (others => '0');
                   v.tKeep(1 downto 0)                       := r.tKeep(13 downto 12);
                   v.tKeep(15 downto 2)                      := (others => '0');
-                  -- Next state
-                  v.state                                   := MOVE_S;
+                  -- Check for tLast
+                  if r.tLast = '1' then
+                     -- Check the leftover tKeep is not empty
+                     if v.tKeep /= 0 then
+                        -- Next state
+                        v.state := LAST_S;
+                     else
+                        v.txMasters(r.index).tLast := '1';
+                        ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMasters(r.index), r.eofe);
+                        -- Next state
+                        v.state                    := IDLE_S;
+                     end if;
+                  else
+                     -- Next state
+                     v.state := MOVE_S;
+                  end if;                  
                else
                   -- Accept the data
                   v.rxSlave.tReady                           := '1';
