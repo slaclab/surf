@@ -11,7 +11,7 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -268,10 +268,10 @@ begin
                   and (v.hdr(19) = ip(31 downto 24))
                   and (r.hdr(0) = x"45") then
                   -- Fill in the reset of the 1st word of IPV4 Pseudo Header
-                  v.txMasters(r.index).tData(71 downto 64)  := r.hdr(12);
-                  v.txMasters(r.index).tData(79 downto 72)  := r.hdr(13);
-                  v.txMasters(r.index).tData(87 downto 80)  := r.hdr(14);
-                  v.txMasters(r.index).tData(95 downto 88)  := r.hdr(15);
+                  v.txMasters(r.index).tData(71 downto 64)  := v.hdr(12);
+                  v.txMasters(r.index).tData(79 downto 72)  := v.hdr(13);
+                  v.txMasters(r.index).tData(87 downto 80)  := v.hdr(14);
+                  v.txMasters(r.index).tData(95 downto 88)  := v.hdr(15);
                   v.txMasters(r.index).tData(127 downto 96) := ip;
                   -- Next state
                   v.state                                   := CHECKSUM_S;
