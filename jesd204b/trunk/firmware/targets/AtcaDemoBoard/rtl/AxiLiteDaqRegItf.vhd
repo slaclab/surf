@@ -10,6 +10,17 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:  Register decoding for DAQ
+--               0x00 (W) - Trigger data acquisition on both AXI stream channels. Note: This is an Auto clear register!
+--               0x01 (R) - DAQ busy status. Another DAQ trigger will be ignored if busy is asserted.
+--               0x02 (RW)- Sample rate divider(Decimator): 
+--                                  0 = Sample rate,
+--                                  1 = Sample rate/2,
+--                                  2 = Sample rate/4,
+--                                  3 = Sample rate/8, etc.
+--               0x03 (RW) - DAQ packet size (24 bit) (max 0x30000)
+--               0x1X (RW) - M
+--                   bit 7-4: Stream 1 Channel select Multiplexer(0 - Disabled, 1 - Ch1, 2 - Ch2, 3 - Ch3, etc.)
+--                   bit 3-0: Stream 0 Channel select Multiplexer(0 - Disabled, 1 - Ch1, 2 - Ch2, 3 - Ch3, etc.)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2013 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

@@ -33,6 +33,7 @@
 --                   bit 9: Comma (K28.5) detected
 --                   bit 10-13: Disparity error
 --                   bit 14-17: Not in table Error
+--                   bit 18-25: Elastic buffer latency (c-c)
 --               0x2X (RW) - Lane X test module control
 --                   bit 11-8: Lane delay (Number of JESD clock cycles)
 --                   bit 3-0:  Lane alignment within one clock cycle (Valid values= "0001", "0010","0100","1000")
@@ -119,7 +120,7 @@ architecture rtl of AxiLiteRxRegItf is
     commonCtrl     => "10011",
     sysrefDlyRx    => (others => '0'),
     testTXItf      => (others => x"0000"),
-    testSigThr     => (others => x"C340_4E20"),
+    testSigThr     => (others => x"A000_5000"),
     axisTrigger    => (others => '0'),
     axisPacketSize => AXI_PACKET_SIZE_DEFAULT_C,
 

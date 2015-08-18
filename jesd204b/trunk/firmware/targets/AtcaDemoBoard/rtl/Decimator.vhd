@@ -10,12 +10,11 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Periodically outputs one clock cycle rateClk (rateClk_o).
---              Synchronises with the rising edge of trig_i.
---              Outputs first rateClk 2 c-c after trig_i='1'
+--              Synchronises the divider counters with with the rising edge of trig_i.
 --              Rate division determined by value of rateDiv_i:
 --                - 0 - rateClkr outputs always '1'
 --                - 1 - Clock frequency/2
---                - 2 - Clock frequency/3
+--                - 2 - Clock frequency/4
 --                - etc.
 --              Outputs rising edge of the trigger for external use.
 -------------------------------------------------------------------------------

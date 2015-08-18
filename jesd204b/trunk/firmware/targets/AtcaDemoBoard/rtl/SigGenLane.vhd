@@ -5,11 +5,18 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2015-04-29
+-- Last update: 2015-08-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   This 
+-- Description:  Single lane arbitrary periodic signal generator
+--               The module contains a AXI-Lite accessible block RAM where the 
+--               signal is defined.
+--               When the module is enabled it periodically reads the block RAM contents 
+--               and outputs the contents.
+--               The signal period is defined in user register.
+--               Signal has to be disabled while the periodSize_i or RAM contents is being changed.
+--               When disabled is outputs signal zero (Offset binary 0x8000) defined in Jesd204bPkg
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
