@@ -350,6 +350,8 @@ begin
                -- Move the data
                v.txMaster.tValid                := '1';
                v.txMaster.tData(127 downto 112) := rxMasters(r.chCntDly).tData(15 downto 0);
+               v.txMaster.tKeep(13 downto 0)    := (others=>'1');
+               v.txMaster.tKeep(15 downto 14)   := rxMasters(r.chCntDly).tKeep(1 downto 0);               
                -- Track the leftovers
                v.tData(111 downto 0)            := rxMasters(r.chCntDly).tData(127 downto 16);
                v.tKeep(13 downto 0)             := rxMasters(r.chCntDly).tKeep(15 downto 2);
