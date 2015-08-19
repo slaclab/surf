@@ -38,21 +38,45 @@ Lmk04828::Lmk04828 ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index, 
    desc_ = "LMK data acquisition control";
    
    for (i=START_ADDR;i<=END_ADDR;i++) {
-      tmp.str("");
-      tmp << "LmkReg" << hex << setw(4) << setfill('0') << hex << i;
-      addRegisterLink(rl = new RegisterLink(tmp.str(), (baseAddress_+ (i*addrSize)), Variable::Configuration));
-      rl->getVariable()->setPerInstance(true);                                                                              
-   }  
+      if      (i==0x102) {
+         // Skip reserved
+      }
+      else if (i==0x10a) {
+         // Skip reserved
+      }
+      else if (i==0x112) {
+         // Skip reserved
+      } 
+      else if (i==0x122) {
+         // Skip reserved
+      } 
+      else if (i==0x12a) {
+         // Skip reserved
+      } 
+      else if (i==0x132) {
+         // Skip reserved
+      }
+      else if (i>=0x16f && i<=0x172) {
+         // Skip reserved
+      }
+      else if (i>=0x175 && i<=0x17b) {
+         // Skip reserved
+      }      
+      else {
+         tmp.str("");
+         tmp << "LmkReg" << hex << setw(4) << setfill('0') << hex << i;
+         addRegisterLink(rl = new RegisterLink(tmp.str(), (baseAddress_+ (i*addrSize)), Variable::Configuration));
+         rl->getVariable()->setPerInstance(true);
+      
+      }
+   }
 
    // Variables
    getVariable("Enabled")->setHidden(true);
    
    //Commands
    addCommand(c = new Command("SyncClks"));
-   c->setDescription("Powerdown the sysref lines.");
-   
-   // addCommand(c = new Command("TurnSysrefOn"));
-   // c->setDescription("Powerup the sysref lines.");
+   c->setDescription("Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks ");
 }
 
 // Deconstructor
@@ -61,11 +85,11 @@ Lmk04828::~Lmk04828 ( ) { }
 // Process Commands
 void Lmk04828::command(string name, string arg) {
    if (name == "SyncClks") SyncClks();
-   //else if (name == "TurnSysrefOn") syarefOn();
    else Device::command(name,arg);
 }
 
 //! Synchronise internal counters
+//! Warning this function will power off and power on all the system clocks 
  void Lmk04828::SyncClks () {
 
    Register *r;
