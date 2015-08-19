@@ -190,43 +190,38 @@
             <Enabled>True</Enabled>
             <LmkReg0100>0x1</LmkReg0100>
             <LmkReg0101>0x55</LmkReg0101>
-            <LmkReg0102>0x55</LmkReg0102>
             <LmkReg0103>0x02</LmkReg0103>
             <LmkReg0104>0x20</LmkReg0104>
             <LmkReg0105>0x0</LmkReg0105>
             <LmkReg0106>0x70</LmkReg0106>
-            <LmkReg0107>0x55</LmkReg0107>
+            <LmkReg0107>0x11</LmkReg0107>
             
             <LmkReg0108>0x1</LmkReg0108>
             <LmkReg0109>0x55</LmkReg0109>
-            <LmkReg010a>0x55</LmkReg010a>
             <LmkReg010b>0x02</LmkReg010b>
             <LmkReg010c>0x20</LmkReg010c>
             <LmkReg010d>0x0</LmkReg010d>
             <LmkReg010e>0x70</LmkReg010e>
-            <LmkReg010f>0x55</LmkReg010f>
+            <LmkReg010f>0x11</LmkReg010f>
             
             <LmkReg0110>0x1</LmkReg0110>
             <LmkReg0111>0x55</LmkReg0111>
-            <LmkReg0112>0x55</LmkReg0112>
             <LmkReg0113>0x02</LmkReg0113>
             <LmkReg0114>0x20</LmkReg0114>
             <LmkReg0115>0x0</LmkReg0115>
             <LmkReg0116>0x70</LmkReg0116>
-            <LmkReg0117>0x55</LmkReg0117>
+            <LmkReg0117>0x11</LmkReg0117>
             
             <LmkReg0118>0x1</LmkReg0118>
             <LmkReg0119>0x55</LmkReg0119>
-            <LmkReg011a>0x55</LmkReg011a>
             <LmkReg011b>0x02</LmkReg011b>
             <LmkReg011c>0x20</LmkReg011c>
             <LmkReg011d>0x0</LmkReg011d>
             <LmkReg011e>0x70</LmkReg011e>
-            <LmkReg011f>0x55</LmkReg011f>
+            <LmkReg011f>0x11</LmkReg011f>
             
             <LmkReg0120>0x02</LmkReg0120>
             <LmkReg0121>0x55</LmkReg0121>
-            <LmkReg0122>0x55</LmkReg0122>
             <LmkReg0123>0x0</LmkReg0123>
             <LmkReg0124>0x20</LmkReg0124>
             <LmkReg0125>0x0</LmkReg0125>
@@ -235,7 +230,6 @@
             
             <LmkReg0128>0x02</LmkReg0128>
             <LmkReg0129>0x55</LmkReg0129>
-            <LmkReg012a>0x55</LmkReg012a>
             <LmkReg012b>0x0</LmkReg012b>
             <LmkReg012c>0x20</LmkReg012c>
             <LmkReg012d>0x0</LmkReg012d>
@@ -244,7 +238,6 @@
             
             <LmkReg0130>0x02</LmkReg0130>
             <LmkReg0131>0x55</LmkReg0131>
-            <LmkReg0132>0x55</LmkReg0132>
             <LmkReg0133>0x0</LmkReg0133>
             <LmkReg0134>0x20</LmkReg0134>
             <LmkReg0135>0x0</LmkReg0135>
@@ -306,19 +299,8 @@
             <LmkReg016c>0x0</LmkReg016c>
             <LmkReg016d>0x0</LmkReg016d>
             <LmkReg016e>0x13</LmkReg016e>
-            <LmkReg016f>0x20</LmkReg016f>
-            <LmkReg0170>0xa8</LmkReg0170>
-            <LmkReg0171>0xa</LmkReg0171>
-            <LmkReg0172>0x0</LmkReg0172>
             <LmkReg0173>0x0</LmkReg0173>
             <LmkReg0174>0x0</LmkReg0174>
-            <LmkReg0175>0x0</LmkReg0175>
-            <LmkReg0176>0x0</LmkReg0176>
-            <LmkReg0177>0x0</LmkReg0177>
-            <LmkReg0178>0x40</LmkReg0178>
-            <LmkReg0179>0x0</LmkReg0179>
-            <LmkReg017a>0x5</LmkReg017a>
-            <LmkReg017b>0x97</LmkReg017b>
             <LmkReg017c>0x15</LmkReg017c>
             <LmkReg017d>0x33</LmkReg017d>
          </Lmk04828>
@@ -1556,7 +1538,6 @@
             <Enabled>True</Enabled>
             <LmkReg0100>0x1</LmkReg0100>
             <LmkReg0101>0x55</LmkReg0101>
-            <LmkReg0102>0x55</LmkReg0102>
             <LmkReg0103>0x02</LmkReg0103>
             <LmkReg0104>0x20</LmkReg0104>
             <LmkReg0105>0x0</LmkReg0105>
@@ -1565,7 +1546,6 @@
             
             <LmkReg0108>0x1</LmkReg0108>
             <LmkReg0109>0x55</LmkReg0109>
-            <LmkReg010a>0x55</LmkReg010a>
             <LmkReg010b>0x02</LmkReg010b>
             <LmkReg010c>0x20</LmkReg010c>
             <LmkReg010d>0x0</LmkReg010d>
@@ -1574,7 +1554,6 @@
             
             <LmkReg0110>0x1</LmkReg0110>
             <LmkReg0111>0x55</LmkReg0111>
-            <LmkReg0112>0x55</LmkReg0112>
             <LmkReg0113>0x02</LmkReg0113>
             <LmkReg0114>0x20</LmkReg0114>
             <LmkReg0115>0x0</LmkReg0115>
@@ -1583,7 +1562,6 @@
             
             <LmkReg0118>0x1</LmkReg0118>
             <LmkReg0119>0x55</LmkReg0119>
-            <LmkReg011a>0x55</LmkReg011a>
             <LmkReg011b>0x02</LmkReg011b>
             <LmkReg011c>0x20</LmkReg011c>
             <LmkReg011d>0x0</LmkReg011d>
@@ -1592,7 +1570,6 @@
             
             <LmkReg0120>0x02</LmkReg0120>
             <LmkReg0121>0x55</LmkReg0121>
-            <LmkReg0122>0x55</LmkReg0122>
             <LmkReg0123>0x0</LmkReg0123>
             <LmkReg0124>0x20</LmkReg0124>
             <LmkReg0125>0x0</LmkReg0125>
@@ -1601,7 +1578,6 @@
             
             <LmkReg0128>0x02</LmkReg0128>
             <LmkReg0129>0x55</LmkReg0129>
-            <LmkReg012a>0x55</LmkReg012a>
             <LmkReg012b>0x0</LmkReg012b>
             <LmkReg012c>0x20</LmkReg012c>
             <LmkReg012d>0x0</LmkReg012d>
@@ -1610,7 +1586,6 @@
             
             <LmkReg0130>0x02</LmkReg0130>
             <LmkReg0131>0x55</LmkReg0131>
-            <LmkReg0132>0x55</LmkReg0132>
             <LmkReg0133>0x0</LmkReg0133>
             <LmkReg0134>0x20</LmkReg0134>
             <LmkReg0135>0x0</LmkReg0135>
@@ -1672,19 +1647,8 @@
             <LmkReg016c>0x0</LmkReg016c>
             <LmkReg016d>0x0</LmkReg016d>
             <LmkReg016e>0x13</LmkReg016e>
-            <LmkReg016f>0x20</LmkReg016f>
-            <LmkReg0170>0xa8</LmkReg0170>
-            <LmkReg0171>0xa</LmkReg0171>
-            <LmkReg0172>0x0</LmkReg0172>
             <LmkReg0173>0x0</LmkReg0173>
             <LmkReg0174>0x0</LmkReg0174>
-            <LmkReg0175>0x0</LmkReg0175>
-            <LmkReg0176>0x0</LmkReg0176>
-            <LmkReg0177>0x0</LmkReg0177>
-            <LmkReg0178>0x40</LmkReg0178>
-            <LmkReg0179>0x0</LmkReg0179>
-            <LmkReg017a>0x5</LmkReg017a>
-            <LmkReg017b>0x97</LmkReg017b>
             <LmkReg017c>0x15</LmkReg017c>
             <LmkReg017d>0x33</LmkReg017d>
          </Lmk04828>

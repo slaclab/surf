@@ -42,7 +42,7 @@ JesdTxGen::JesdTxGen ( uint32_t linkConfig, uint32_t baseAddress, uint32_t index
    //rl->getVariable()->setDescription("Divides the display rate (0 - DR, 1 - DR/2, 2 - DR/4, 2 - DR/6 etc)");
 
    addRegisterLink(rl = new RegisterLink("PeriodSize", baseAddress_ + (0x02*addrSize), Variable::Configuration));
-   rl->getVariable()->setDescription("Size of a generated signal period buffer (n-1). Example: For buffer size 8 write 7");    
+   rl->getVariable()->setDescription("Size of a generated signal period buffer. In number of RAM addresses (Zero inclusive). Example: For the signal period of 16 samples write register value '0x7' (8 RAM addresses and 2 samples per address)");    
 
    // Variables
    getVariable("Enabled")->setHidden(true);
