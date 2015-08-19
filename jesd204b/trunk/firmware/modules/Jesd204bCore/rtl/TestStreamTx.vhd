@@ -98,8 +98,8 @@ begin
          if (type_i = "00") then
             v.inc := '1';
          end if;
-		 
-		 -- Saw tooth decrement
+       
+       -- Saw tooth decrement
          if (type_i = "01") then
             v.inc := '0';
          end if;

@@ -124,8 +124,8 @@ begin
       
       
       -- DevClk domain
-	   devClk_i        => devClk_i,
-	   devRst_i        => devClk_i,
+      devClk_i        => devClk_i,
+      devRst_i        => devClk_i,
       
       busy_i           => s_pause,
       
