@@ -218,7 +218,7 @@ end component;
    signal s_devClk2Vec   : slv(L_RX_G-1 downto 0);
    signal s_stableClkVec : slv(L_RX_G-1 downto 0);
    signal s_gtRefClkVec  : slv(L_RX_G-1 downto 0);   
-   signal s_rxDone 	 : sl;
+   signal s_rxDone     : sl;
    signal s_txDone       : sl;
    signal s_gtTxReady    : slv(L_TX_G-1 downto 0);
 

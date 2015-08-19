@@ -33,7 +33,7 @@ entity PgpFrontEnd is
       AXIL_CLK_FREQ_G        : real    := 156.25E6;
       AXIS_CLK_FREQ_G        : real    := 185.0E6;
       AXIS_FIFO_ADDR_WIDTH_G : integer := 9;
-	  CASCADE_SIZE_G         : integer range 1 to (2**24) := 1;
+     CASCADE_SIZE_G         : integer range 1 to (2**24) := 1;
       AXIS_CONFIG_G          : AxiStreamConfigType
       );
    port (
