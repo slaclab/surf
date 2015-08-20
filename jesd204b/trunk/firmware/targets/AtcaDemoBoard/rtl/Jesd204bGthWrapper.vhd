@@ -425,7 +425,7 @@ begin
          rxcommadeten_in                      => "111111",
          rxmcommaalignen_in                   => s_allignEnVec,
          rxpcommaalignen_in                   => s_allignEnVec,
-         rxpolarity_in                        => "000000",  -- Note: Changing polarity to '0'. Weird data from ADC.
+         rxpolarity_in                        => "111111",  -- Note: Check differential line polarity.
          rxusrclk_in                          => s_devClkVec,
          rxusrclk2_in                         => s_devClk2Vec,
 
