@@ -411,7 +411,8 @@ begin
          txctrl0_in                           => X"0000_0000_0000_0000_0000_0000",
          txctrl1_in                           => X"0000_0000_0000_0000_0000_0000",
          txctrl2_in                           => s_txDataK,
-         txpolarity_in                        => "000000",  -- TODO Check
+         txpolarity_in                        => "000000",  -- Note: One of the DAC Channel polarities on the LLRF board is reversed 
+                                                            -- This was fixed by reversing the polarity in the configuration of DAC
          txusrclk_in                          => s_devClkVec,
          txusrclk2_in                         => s_devClk2Vec,
          gthtxn_out                           => gtTxN,
@@ -424,7 +425,7 @@ begin
          rxcommadeten_in                      => "111111",
          rxmcommaalignen_in                   => s_allignEnVec,
          rxpcommaalignen_in                   => s_allignEnVec,
-         rxpolarity_in                        => "111111",  -- TODO Check
+         rxpolarity_in                        => "000000",  -- Note: Changing polarity to '0'. Weird data from ADC.
          rxusrclk_in                          => s_devClkVec,
          rxusrclk2_in                         => s_devClk2Vec,
 
