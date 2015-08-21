@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-17
+-- Last update: 2015-08-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -182,8 +182,10 @@ begin
                      v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
                      v.txMaster.tData(127 downto 120) := x"00";  --- DSCP and ECN
                   else
+                     -- Set the EtherType = VLAN Type
                      v.txMaster.tData(111 downto 96)  := VLAN_TYPE_C;
-                     v.txMaster.tData(127 downto 112) := rxMasters(r.chCnt).tData(63 downto 48);
+                     -- VID = 0x0 here because it gets overwritten in the MAC                     
+                     v.txMaster.tData(127 downto 112) := (others => '0');
                   end if;
                   -- Start to generate the IPV4 header
                   v.hdr(0)  := x"45";   -- IPVersion = 4,Header length = 5
@@ -350,8 +352,8 @@ begin
                -- Move the data
                v.txMaster.tValid                := '1';
                v.txMaster.tData(127 downto 112) := rxMasters(r.chCntDly).tData(15 downto 0);
-               v.txMaster.tKeep(13 downto 0)    := (others=>'1');
-               v.txMaster.tKeep(15 downto 14)   := rxMasters(r.chCntDly).tKeep(1 downto 0);               
+               v.txMaster.tKeep(13 downto 0)    := (others => '1');
+               v.txMaster.tKeep(15 downto 14)   := rxMasters(r.chCntDly).tKeep(1 downto 0);
                -- Track the leftovers
                v.tData(111 downto 0)            := rxMasters(r.chCntDly).tData(127 downto 16);
                v.tKeep(13 downto 0)             := rxMasters(r.chCntDly).tKeep(15 downto 2);
