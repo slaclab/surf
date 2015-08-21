@@ -149,7 +149,12 @@ begin
       end loop;
 
       -- Process the checksum
-      GetIpV4Checksum(r.hdr, v.sum0, v.sum1, v.sum2, v.sum3, ibValid, checksum);
+      GetIpV4Checksum(r.hdr, 
+         r.sum0, v.sum0, 
+         r.sum1, v.sum1, 
+         r.sum2, v.sum2, 
+         r.sum3, v.sum3, 
+         ibValid, checksum);
 
       -- State Machine
       case r.state is
