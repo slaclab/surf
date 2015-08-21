@@ -38,9 +38,13 @@ package IpV4EnginePkg is
 
    procedure GetIpV4Checksum (
       hdr      : in    Slv8Array(19 downto 0);
+      sum0Reg  : in    Slv32Array(3 downto 0);
       sum0     : inout Slv32Array(3 downto 0);
+      sum1Reg  : in    Slv32Array(1 downto 0);
       sum1     : inout Slv32Array(1 downto 0);
+      sum2Reg  : in    Slv32Array(1 downto 0);
       sum2     : inout Slv32Array(1 downto 0);
+      sum3Reg  : in    slv(31 downto 0);
       sum3     : inout slv(31 downto 0);
       ibValid  : inout sl;
       checksum : inout slv(15 downto 0));  
@@ -51,9 +55,13 @@ package body IpV4EnginePkg is
 
    procedure GetIpV4Checksum (
       hdr      : in    Slv8Array(19 downto 0);
+      sum0Reg  : in    Slv32Array(3 downto 0);
       sum0     : inout Slv32Array(3 downto 0);
+      sum1Reg  : in    Slv32Array(1 downto 0);
       sum1     : inout Slv32Array(1 downto 0);
+      sum2Reg  : in    Slv32Array(1 downto 0);
       sum2     : inout Slv32Array(1 downto 0);
+      sum3Reg  : in    slv(31 downto 0);
       sum3     : inout slv(31 downto 0);
       ibValid  : inout sl;
       checksum : inout slv(15 downto 0)) is
@@ -83,18 +91,18 @@ package body IpV4EnginePkg is
 
       -- Summation: Level1
       for i in 1 downto 0 loop
-         sum1(i) := sum0(2*i+0) + sum0(2*i+1);
+         sum1(i) := sum0Reg(2*i+0) + sum0Reg(2*i+1);
       end loop;
 
       -- Summation: Level2
-      sum2(0) := sum1(0) + sum1(1);
+      sum2(0) := sum1Reg(0) + sum1Reg(1);
       sum2(1) := header(8) + header(9);
 
       -- Summation: Level3
-      sum3 := sum2(0) + sum2(1);
+      sum3 := sum2Reg(0) + sum2Reg(1);
 
       -- Summation: Level4
-      sum4 := sum3(31 downto 16) + sum3(15 downto 0);
+      sum4 := sum3Reg(31 downto 16) + sum3Reg(15 downto 0);
 
       -- Perform 1's complement
       checksum := not(sum4);
