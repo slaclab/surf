@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-17
+-- Last update: 2015-08-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ architecture rtl of IpV4EngineRx is
       LAST_S); 
 
    type RegType is record
-      tLast      : sl;
+      tLast     : sl;
       eofe      : sl;
       length    : slv(15 downto 0);
       tKeep     : slv(15 downto 0);
@@ -73,7 +73,7 @@ architecture rtl of IpV4EngineRx is
       state     : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      tLast      => '0',
+      tLast     => '0',
       eofe      => '0',
       length    => (others => '0'),
       tKeep     => (others => '0'),
@@ -172,8 +172,8 @@ begin
                         v.hdr(0)                           := rxMaster.tData(119 downto 112);  -- IPVersion + Header length
                         v.hdr(1)                           := rxMaster.tData(127 downto 120);  -- DSCP and ECN                     
                      else
-                        -- VLAN's ID
-                        v.txMasters(i).tData(63 downto 48) := rxMaster.tData(127 downto 112);
+                        -- Mask off VLAN's ID
+                        v.txMasters(i).tData(63 downto 48) := (others => '0');
                      end if;
                   end loop;
                   -- Reset the tKeep bus
@@ -253,7 +253,7 @@ begin
                   v.tData(111 downto 0) := rxMaster.tData(127 downto 16);
                   v.tKeep(13 downto 0)  := rxMaster.tKeep(15 downto 2);
                   v.tLast               := rxMaster.tLast;
-                  v.eofe                := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);                  
+                  v.eofe                := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                else
                   v.hdr(14)            := rxMaster.tData(7 downto 0);    -- Source IP Address
                   v.hdr(15)            := rxMaster.tData(15 downto 8);   -- Source IP Address
@@ -340,7 +340,7 @@ begin
                   else
                      -- Next state
                      v.state := MOVE_S;
-                  end if;                  
+                  end if;
                else
                   -- Accept the data
                   v.rxSlave.tReady                           := '1';
