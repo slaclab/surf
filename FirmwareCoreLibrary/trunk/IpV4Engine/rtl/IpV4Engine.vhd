@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-17
+-- Last update: 2015-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ entity IpV4Engine is
       VLAN_G          : boolean   := false);     -- true = VLAN support 
    port (
       -- Local Configurations
-      mac               : in  slv(47 downto 0);  --  big-endian configuration
-      ip                : in  slv(31 downto 0);  --  big-endian configuration
+      localMac          : in  slv(47 downto 0);  --  big-endian configuration
+      localIp           : in  slv(31 downto 0);  --  big-endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster       : in  AxiStreamMasterType;
       obMacSlave        : out AxiStreamSlaveType;
@@ -73,7 +73,7 @@ begin
          VLAN_G => VLAN_G) 
       port map (
          -- Local Configurations
-         mac          => mac,
+         localMac     => localMac,
          -- Slave
          obMacMaster  => obMacMaster,
          obMacSlave   => obMacSlave,
@@ -111,8 +111,8 @@ begin
          VLAN_G        => VLAN_G)
       port map (
          -- Local Configurations
-         mac           => mac,
-         ip            => ip,
+         localMac      => localMac,
+         localIp       => localIp,
          -- Interface to Client Engine(s)
          arpReqMasters => arpReqMasters,
          arpReqSlaves  => arpReqSlaves,
@@ -135,7 +135,7 @@ begin
          VLAN_G          => VLAN_G)    
       port map (
          -- Local Configurations
-         ip                => ip,
+         localIp           => localIp,
          -- Interface to Etherenet Frame MUX/DEMUX 
          ibIpv4Master      => ibIpv4Master,
          ibIpv4Slave       => ibIpv4Slave,
@@ -154,8 +154,8 @@ begin
          VLAN_G          => VLAN_G)    
       port map (
          -- Local Configurations
-         mac               => mac,
-         ip                => ip,
+         localMac          => localMac,
+         localIp           => localIp,
          -- Interface to Etherenet Frame MUX/DEMUX 
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,

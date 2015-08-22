@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-17
+-- Last update: 2015-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,8 +32,8 @@ entity ArpEngine is
       VLAN_G        : boolean  := false);  
    port (
       -- Local Configuration
-      mac           : in  slv(47 downto 0);
-      ip            : in  slv(31 downto 0);
+      localMac      : in  slv(47 downto 0);
+      localIp       : in  slv(31 downto 0);
       -- Interface to Client Engine(s)
       arpReqMasters : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
       arpReqSlaves  : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
@@ -129,7 +129,7 @@ begin
          mAxisMaster => rxArpMaster,
          mAxisSlave  => rxArpSlave);
 
-   comb : process (arpAckSlaves, arpReqMasters, ip, mac, r, rst, rxArpMaster, txArpSlave) is
+   comb : process (arpAckSlaves, arpReqMasters, localIp, localMac, r, rst, rxArpMaster, txArpSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -182,15 +182,15 @@ begin
                   ------------------------
                   if (VLAN_G = false) then
                      v.tData(0)(47 downto 0)    := BROADCAST_MAC_C;
-                     v.tData(0)(95 downto 48)   := mac;
+                     v.tData(0)(95 downto 48)   := localMac;
                      v.tData(0)(111 downto 96)  := ARP_TYPE_C;
                      v.tData(0)(127 downto 112) := HARDWWARE_TYPE_C;
                      v.tData(1)(15 downto 0)    := PROTOCOL_TYPE_C;
                      v.tData(1)(23 downto 16)   := HARDWWARE_LEN_C;
                      v.tData(1)(31 downto 24)   := PROTOCOL_LEN_C;
                      v.tData(1)(47 downto 32)   := ARP_REQ_C;
-                     v.tData(1)(95 downto 48)   := mac;
-                     v.tData(1)(127 downto 96)  := ip;
+                     v.tData(1)(95 downto 48)   := localMac;
+                     v.tData(1)(127 downto 96)  := localIp;
                      v.tData(2)(47 downto 0)    := (others => '0');     -- Sought-after MAC
                      v.tData(2)(79 downto 48)   := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
                      v.tData(2)(127 downto 80)  := (others => '0');
@@ -199,7 +199,7 @@ begin
                   --------------------
                   else
                      v.tData(0)(47 downto 0)    := BROADCAST_MAC_C;
-                     v.tData(0)(95 downto 48)   := mac;
+                     v.tData(0)(95 downto 48)   := localMac;
                      v.tData(0)(111 downto 96)  := VLAN_TYPE_C;
                      v.tData(0)(127 downto 122) := (others => '0');
                      v.tData(1)(15 downto 0)    := ARP_TYPE_C;
@@ -208,8 +208,8 @@ begin
                      v.tData(1)(55 downto 48)   := HARDWWARE_LEN_C;
                      v.tData(1)(63 downto 56)   := PROTOCOL_LEN_C;
                      v.tData(1)(79 downto 64)   := ARP_REQ_C;
-                     v.tData(1)(127 downto 80)  := mac;
-                     v.tData(2)(31 downto 0)    := ip;
+                     v.tData(1)(127 downto 80)  := localMac;
+                     v.tData(2)(31 downto 0)    := localIp;
                      v.tData(2)(79 downto 32)   := (others => '0');     -- Sought-after MAC
                      v.tData(2)(111 downto 80)  := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
                      v.tData(2)(127 downto 112) := (others => '0');
@@ -287,13 +287,13 @@ begin
                   -- Check OP-CODE = ARP Request
                   if (r.tData(1)(47 downto 32) = ARP_REQ_C) then
                      -- Check if the target IP address matches local address
-                     if r.tData(2)(79 downto 48) = ip then
+                     if r.tData(2)(79 downto 48) = localIp then
                         -- Modifed the local buffer to become a reply packet
                         v.tData(0)(47 downto 0)   := r.tData(0)(95 downto 48);
-                        v.tData(0)(95 downto 48)  := mac;
+                        v.tData(0)(95 downto 48)  := localMac;
                         v.tData(1)(47 downto 32)  := ARP_REPLY_C;
-                        v.tData(1)(95 downto 48)  := mac;
-                        v.tData(1)(127 downto 96) := ip;
+                        v.tData(1)(95 downto 48)  := localMac;
+                        v.tData(1)(127 downto 96) := localIp;
                         v.tData(2)(47 downto 0)   := r.tData(1)(95 downto 48);
                         v.tData(2)(79 downto 48)  := r.tData(1)(127 downto 96);
                         v.tData(2)(127 downto 80) := (others => '0');
@@ -303,7 +303,7 @@ begin
                   -- Check OP-CODE = ARP Reply
                   elsif (r.tData(1)(47 downto 32) = ARP_REPLY_C) then
                      -- Check if the target IP + MAC address matches local address
-                     if (r.tData(2)(47 downto 0) = mac) and (r.tData(2)(79 downto 48) = ip) then
+                     if (r.tData(2)(47 downto 0) = localMac) and (r.tData(2)(79 downto 48) = localIp) then
                         -- Next state
                         v.state := SCAN_S;
                      end if;
@@ -320,13 +320,13 @@ begin
                   -- Check OP-CODE = ARP Request
                   if (r.tData(1)(79 downto 64) = ARP_REQ_C) then
                      -- Check if the target IP address matches local address
-                     if r.tData(2)(111 downto 80) = ip then
+                     if r.tData(2)(111 downto 80) = localIp then
                         -- Modifed the local buffer to become a reply packet
                         v.tData(0)(47 downto 0)    := r.tData(0)(95 downto 48);
-                        v.tData(0)(95 downto 48)   := mac;
+                        v.tData(0)(95 downto 48)   := localMac;
                         v.tData(1)(79 downto 64)   := ARP_REPLY_C;
-                        v.tData(1)(127 downto 80)  := mac;
-                        v.tData(2)(31 downto 0)    := ip;
+                        v.tData(1)(127 downto 80)  := localMac;
+                        v.tData(2)(31 downto 0)    := localIp;
                         v.tData(2)(79 downto 32)   := r.tData(1)(127 downto 80);
                         v.tData(2)(111 downto 80)  := r.tData(2)(31 downto 0);
                         v.tData(2)(127 downto 112) := (others => '0');
@@ -336,7 +336,7 @@ begin
                   -- Check OP-CODE = ARP Reply
                   elsif (r.tData(1)(79 downto 64) = ARP_REPLY_C) then
                      -- Check if the target IP + MAC address matches local address
-                     if (r.tData(2)(79 downto 32) = mac) and (r.tData(2)(111 downto 80) = ip) then
+                     if (r.tData(2)(79 downto 32) = localMac) and (r.tData(2)(111 downto 80) = localIp) then
                         -- Next state
                         v.state := SCAN_S;
                      end if;

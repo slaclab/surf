@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-20
+-- Last update: 2015-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,8 +32,8 @@ entity IpV4EngineTx is
       VLAN_G          : boolean   := false);       
    port (
       -- Local Configurations
-      mac               : in  slv(47 downto 0);  --  big-endian configuration
-      ip                : in  slv(31 downto 0);  --  big-endian configuration   
+      localMac          : in  slv(47 downto 0);  --  big-endian configuration
+      localIp           : in  slv(31 downto 0);  --  big-endian configuration   
       -- Interface to Etherenet Frame MUX/DEMUX 
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
@@ -130,7 +130,7 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_VEC;
 
-   comb : process (ip, mac, r, rst, rxMasters, txSlave) is
+   comb : process (localIp, localMac, r, rst, rxMasters, txSlave) is
       variable v        : RegType;
       variable i        : natural;
       variable len      : slv(15 downto 0);
@@ -152,13 +152,13 @@ begin
       end loop;
 
       -- Process the checksum
-      GetIpV4Checksum(r.hdr, 
-         r.sum0, v.sum0, 
-         r.sum1, v.sum1, 
-         r.sum2, v.sum2, 
-         r.sum3, v.sum3, 
-         ibValid, checksum);
-         
+      GetIpV4Checksum(r.hdr,
+                      r.sum0, v.sum0,
+                      r.sum1, v.sum1,
+                      r.sum2, v.sum2,
+                      r.sum3, v.sum3,
+                      ibValid, checksum);
+
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -181,7 +181,7 @@ begin
                   v.txMaster.tValid              := '1';
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.txMaster, '1');
                   v.txMaster.tData(47 downto 0)  := rxMasters(r.chCnt).tData(47 downto 0);
-                  v.txMaster.tData(95 downto 48) := mac;
+                  v.txMaster.tData(95 downto 48) := localMac;
                   if (VLAN_G = false) then
                      v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
                      v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
@@ -205,10 +205,10 @@ begin
                   v.hdr(9)  := PROTOCOL_G(r.chCnt);     -- Protocol
                   v.hdr(10) := x"00";   -- IPV4_Checksum(15 downto 8)  Note: Filled in next state
                   v.hdr(11) := x"00";   -- IPV4_Checksum(7 downto 0)   Note: Filled in next state
-                  v.hdr(12) := ip(7 downto 0);   -- Source IP Address
-                  v.hdr(13) := ip(15 downto 8);  -- Source IP Address
-                  v.hdr(14) := ip(23 downto 16);        -- Source IP Address 
-                  v.hdr(15) := ip(31 downto 24);        -- Source IP Address 
+                  v.hdr(12) := localIp(7 downto 0);     -- Source IP Address
+                  v.hdr(13) := localIp(15 downto 8);    -- Source IP Address
+                  v.hdr(14) := localIp(23 downto 16);   -- Source IP Address 
+                  v.hdr(15) := localIp(31 downto 24);   -- Source IP Address 
                   v.hdr(16) := rxMasters(r.chCnt).tData(103 downto 96);   -- Destination IP Address
                   v.hdr(17) := rxMasters(r.chCnt).tData(111 downto 104);  -- Destination IP Address
                   v.hdr(18) := rxMasters(r.chCnt).tData(119 downto 112);  -- Destination IP Address 

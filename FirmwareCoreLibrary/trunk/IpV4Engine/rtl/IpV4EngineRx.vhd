@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-20
+-- Last update: 2015-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ entity IpV4EngineRx is
       VLAN_G          : boolean   := false);       
    port (
       -- Local Configurations
-      ip                : in  slv(31 downto 0);  --  big-endian configuration   
+      localIp           : in  slv(31 downto 0);  --  big-endian configuration   
       -- Interface to Etherenet Frame MUX/DEMUX 
       ibIpv4Master      : in  AxiStreamMasterType;
       ibIpv4Slave       : out AxiStreamSlaveType;
@@ -127,7 +127,7 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (ip, r, rst, rxMaster, txSlaves) is
+   comb : process (localIp, r, rst, rxMaster, txSlaves) is
       variable v        : RegType;
       variable i        : natural;
       variable len      : slv(15 downto 0);
@@ -149,12 +149,12 @@ begin
       end loop;
 
       -- Process the checksum
-      GetIpV4Checksum(r.hdr, 
-         r.sum0, v.sum0, 
-         r.sum1, v.sum1, 
-         r.sum2, v.sum2, 
-         r.sum3, v.sum3, 
-         ibValid, checksum);
+      GetIpV4Checksum(r.hdr,
+                      r.sum0, v.sum0,
+                      r.sum1, v.sum1,
+                      r.sum2, v.sum2,
+                      r.sum3, v.sum3,
+                      ibValid, checksum);
 
       -- State Machine
       case r.state is
@@ -271,17 +271,17 @@ begin
                   v.tKeep(9 downto 0)  := rxMaster.tKeep(15 downto 6);
                end if;
                -- Check the Destination IP Address and (IPVersion + Header length)
-               if (v.hdr(16) = ip(7 downto 0))
-                  and (v.hdr(17) = ip(15 downto 8))
-                  and (v.hdr(18) = ip(23 downto 16))
-                  and (v.hdr(19) = ip(31 downto 24))
+               if (v.hdr(16) = localIp(7 downto 0))
+                  and (v.hdr(17) = localIp(15 downto 8))
+                  and (v.hdr(18) = localIp(23 downto 16))
+                  and (v.hdr(19) = localIp(31 downto 24))
                   and (r.hdr(0) = x"45") then
                   -- Fill in the reset of the 1st word of IPV4 Pseudo Header
                   v.txMasters(r.index).tData(71 downto 64)  := v.hdr(12);
                   v.txMasters(r.index).tData(79 downto 72)  := v.hdr(13);
                   v.txMasters(r.index).tData(87 downto 80)  := v.hdr(14);
                   v.txMasters(r.index).tData(95 downto 88)  := v.hdr(15);
-                  v.txMasters(r.index).tData(127 downto 96) := ip;
+                  v.txMasters(r.index).tData(127 downto 96) := localIp;
                   -- Next state
                   v.state                                   := CHECKSUM_S;
                else
