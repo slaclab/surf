@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-17
+-- Last update: 2015-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ entity EthFrameDeMux is
       VLAN_G : boolean := false);    
    port (
       -- Local Configurations
-      mac          : in  slv(47 downto 0);  --  big-endian configuration   
+      localMac     : in  slv(47 downto 0);  --  big-endian configuration   
       -- Slave
       obMacMaster  : in  AxiStreamMasterType;
       obMacSlave   : out AxiStreamSlaveType;
@@ -77,7 +77,7 @@ architecture rtl of EthFrameDeMux is
 
 begin
 
-   comb : process (ibArpSlave, ibIpv4Slave, mac, obMacMaster, r, rst) is
+   comb : process (ibArpSlave, ibIpv4Slave, localMac, obMacMaster, r, rst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -108,12 +108,12 @@ begin
                -- Check for a valid ARP EtherType
                if (obMacMaster.tData(111 downto 96) = ARP_TYPE_C) then
                   -- Check the destination MAC address
-                  if(obMacMaster.tData(47 downto 0) = BROADCAST_MAC_C) or (obMacMaster.tData(47 downto 0) = mac) then
+                  if(obMacMaster.tData(47 downto 0) = BROADCAST_MAC_C) or (obMacMaster.tData(47 downto 0) = localMac) then
                      v.arpSel      := '1';
                      v.ibArpMaster := obMacMaster;
                   end if;
                -- Check for a valid IPV4 EtherType and matching destination MAC address
-               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) and (obMacMaster.tData(47 downto 0) = mac) then
+               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) and (obMacMaster.tData(47 downto 0) = localMac) then
                   v.ipv4Sel      := '1';
                   v.ibIpv4Master := obMacMaster;
                end if;
@@ -155,12 +155,12 @@ begin
                   -- Check for a valid ARP EtherType
                   if (obMacMaster.tData(15 downto 0) = ARP_TYPE_C) then
                      -- Check the destination MAC address
-                     if(r.dly.tData(47 downto 0) = BROADCAST_MAC_C) or (r.dly.tData(47 downto 0) = mac) then
+                     if(r.dly.tData(47 downto 0) = BROADCAST_MAC_C) or (r.dly.tData(47 downto 0) = localMac) then
                         v.arpSel      := '1';
                         v.ibArpMaster := r.dly;
                      end if;
                   -- Check for a valid IPV4 EtherType and matching destination MAC address
-                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) = mac) then
+                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) = localMac) then
                      v.ipv4Sel      := '1';
                      v.ibIpv4Master := r.dly;
                   end if;

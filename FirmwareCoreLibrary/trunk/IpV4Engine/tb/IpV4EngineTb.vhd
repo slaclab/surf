@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-17
--- Last update: 2015-08-17
+-- Last update: 2015-08-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -80,8 +80,8 @@ begin
          VLAN_G          => VLAN_C)
       port map (
          -- Local Configurations
-         mac                  => LOCAL_MAC_C,
-         ip                   => LOCAL_IP_C,
+         localMac             => LOCAL_MAC_C,
+         localIp              => LOCAL_IP_C,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster          => obMacMasters(0),
          obMacSlave           => obMacSlaves(0),
@@ -167,8 +167,8 @@ begin
          VLAN_G          => VLAN_C)
       port map (
          -- Local Configurations
-         mac                  => REMOTE_MAC_C,
-         ip                   => REMOTE_IP_C,
+         localMac             => REMOTE_MAC_C,
+         localIp              => REMOTE_IP_C,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster          => obMacMasters(1),
          obMacSlave           => obMacSlaves(1),
