@@ -151,7 +151,11 @@ package AxiStreamPkg is
    function genTKeep (
       bytes : integer range 0 to 16)
       return slv;
-
+      
+   function getTKeep (
+      tKeep : slv(15 downto 0))
+      return natural;      
+      
 end package AxiStreamPkg;
 
 package body AxiStreamPkg is
@@ -284,5 +288,32 @@ package body AxiStreamPkg is
          when 16 => return X"FFFF";
       end case;
    end function genTKeep;
+   
+   function getTKeep (
+      tKeep : slv(15 downto 0))
+      return natural
+   is
+   begin
+      case tKeep is
+         when X"0000" => return 0;
+         when X"0001" => return 1;
+         when X"0003" => return 2;
+         when X"0007" => return 3;
+         when X"000F" => return 4;
+         when X"001F" => return 5;
+         when X"003F" => return 6;
+         when X"007F" => return 7;
+         when X"00FF" => return 8;
+         when X"01FF" => return 9;
+         when X"03FF" => return 10;
+         when X"07FF" => return 11;
+         when X"0FFF" => return 12;
+         when X"1FFF" => return 13;
+         when X"3FFF" => return 14;
+         when X"7FFF" => return 15;
+         when X"FFFF" => return 16;
+         when others  => return 0; 
+      end case;
+   end function getTKeep;   
 
 end package body AxiStreamPkg;
