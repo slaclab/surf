@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-06-02
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,23 +36,15 @@ entity AxiStreamMux is
       TDEST_HIGH_G  : integer range 0 to 7  := 7;
       TDEST_LOW_G   : integer range 0 to 7  := 0);
    port (
-
-      -- Clock and reset
-      axisClk : in sl;
-      axisRst : in sl;
-
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
-
-      -- MUX Address
-      sAxisAuto : in sl                                      := '1';  -- '1' for AUTO MUX, '0' for manual MUX
-      sAxisAddr : in slv(bitSize(NUM_SLAVES_G-1)-1 downto 0) := (others => '0');  -- manual MUX address
-
       -- Master
-      mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType
-      );
+      mAxisMaster  : out AxiStreamMasterType;
+      mAxisSlave   : in  AxiStreamSlaveType;
+      -- Clock and reset
+      axisClk      : in  sl;
+      axisRst      : in  sl);      
 end AxiStreamMux;
 
 architecture structure of AxiStreamMux is
@@ -60,7 +52,9 @@ architecture structure of AxiStreamMux is
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
    constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
 
-   type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C);
+   type StateType is (
+      IDLE_S,
+      MOVE_S); 
 
    type RegType is record
       state  : StateType;
@@ -72,13 +66,12 @@ architecture structure of AxiStreamMux is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state  => S_IDLE_C,
+      state  => IDLE_S,
       acks   => (others => '0'),
       ackNum => (others => '0'),
       valid  => '0',
       slaves => (others => AXI_STREAM_SLAVE_INIT_C),
-      master => AXI_STREAM_MASTER_INIT_C
-      );
+      master => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -92,90 +85,85 @@ begin
       report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
    
-   comb : process (axisRst, pipeAxisSlave, r, sAxisAddr, sAxisAuto, sAxisMasters) is
+   comb : process (axisRst, pipeAxisSlave, r, sAxisMasters) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
    begin
+      -- Latch the current value   
       v := r;
 
-      -- Init Ready
+      -- Reset the flags
       for i in 0 to (NUM_SLAVES_G-1) loop
          v.slaves(i).tReady := '0';
       end loop;
+      if pipeAxisSlave.tReady = '1' then
+         v.master.tValid := '0';
+      end if;
 
       -- Select source
-      selData                             := sAxisMasters(conv_integer(r.ackNum));
-      selData.tDest(7 downto TDEST_LOW_G) := (others => '0');
-
+      selData                                                     := sAxisMasters(conv_integer(r.ackNum));
+      selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
       selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
 
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
-         -- Check for automatic MUX'ing
-         if sAxisAuto = '1' then
-            requests(i) := sAxisMasters(i).tValid;
-         else
-            -- While in manual MUX'ing mode,
-            -- only pass requests from respective address pointer
-            if i = conv_integer(sAxisAddr) then
-               requests(i) := sAxisMasters(i).tValid;
-            else
-               requests(i) := '0';
-            end if;
-         end if;
+         requests(i) := sAxisMasters(i).tValid;
       end loop;
 
       -- State machine
       case r.state is
-
-         -- IDLE
-         when S_IDLE_C =>
-            v.master.tValid := '0';
-
+         ----------------------------------------------------------------------
+         when IDLE_S =>
             -- Aribrate between requesters
             if r.valid = '0' then
                arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
-            end if;
-
-            -- Valid request
-            if r.valid = '1' then
-               v.state := S_MOVE_C;
-            end if;
-
-         -- Move a frame until tLast
-         when S_MOVE_C =>
-            v.valid := '0';
-
-            -- Pass ready
-            v.slaves(conv_integer(r.ackNum)).tReady := pipeAxisSlave.tReady;
-
-            -- Advance pipeline 
-            if r.master.tValid = '0' or pipeAxisSlave.tReady = '1' then
-               v.master := selData;
-
-               -- tLast to be presented
-               if selData.tLast = '1' and selData.tValid = '1' then
-                  v.state := S_LAST_C;
+            else
+               -- Reset the Aribration flag
+               v.valid := '0';
+               -- Check if need to move data
+               if (v.master.tValid = '0') and (selData.tValid = '1') then
+                  -- Accept the data
+                  v.slaves(conv_integer(r.ackNum)).tReady := '1';
+                  -- Move the AXIS data
+                  v.master                                := selData;
+                  -- Check for no-tLast
+                  if selData.tLast = '0' then
+                     -- Next state
+                     v.state := MOVE_S;
+                  end if;
+               else
+                  -- Next state
+                  v.state := MOVE_S;
                end if;
             end if;
-
-         -- Laster transfer
-         when S_LAST_C =>
-            if pipeAxisSlave.tReady = '1' then
-               v.master.tValid := '0';
-               v.state         := S_IDLE_C;
+         ----------------------------------------------------------------------
+         when MOVE_S =>
+            -- Check if need to move data
+            if (v.master.tValid = '0') and (selData.tValid = '1') then
+               -- Accept the data
+               v.slaves(conv_integer(r.ackNum)).tReady := '1';
+               -- Move the AXIS data
+               v.master                                := selData;
+               -- Check for tLast
+               if selData.tLast = '1' then
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
             end if;
-
+      ----------------------------------------------------------------------
       end case;
 
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Outputs  
       sAxisSlaves    <= v.slaves;
       pipeAxisMaster <= r.master;
 
