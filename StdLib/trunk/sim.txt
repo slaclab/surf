@@ -9,6 +9,7 @@ vhdl work fifo/tb/FifoFwftTbSubModule.vhd
 vhdl work sync/tb/SynchronizerFifoTb.vhd
 
 vhdl work axi/tb/AxiStreamPipelineTb.vhd
+vhdl work axi/tb/AxiStreamMuxTb.vhd
 vhdl work axi/tb/vcs_tb.vhd
 vhdl work axi/tb/fifo_tb.vhd
 vhdl work axi/simlink/rtl/AxiSimMaster.vhd

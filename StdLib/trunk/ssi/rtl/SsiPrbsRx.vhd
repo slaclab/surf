@@ -70,6 +70,7 @@ entity SsiPrbsRx is
       axiWriteSlave   : out AxiLiteWriteSlaveType;
       -- Error Detection Signals (sAxisClk domain)
       updatedResults  : out sl;
+      errorDet        : out sl;-- '1' if any error detected
       busy            : out sl;
       errMissedPacket : out sl;
       errLength       : out sl;
@@ -98,6 +99,7 @@ architecture rtl of SsiPrbsRx is
    type RegType is record
       busy            : sl;
       packetLength    : slv(31 downto 0);
+      errorDet        : sl;
       eof             : sl;
       eofe            : sl;
       errLength       : sl;
@@ -125,6 +127,7 @@ architecture rtl of SsiPrbsRx is
    constant REG_INIT_C : RegType := (
       '1',
       toSlv(2, 32),
+      '0',
       '0',
       '0',
       '0',
@@ -278,8 +281,9 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset the busy flag
+            -- Reset the flags
             v.busy               := '0';
+            v.errorDet           := '0';
             -- Ready to receive data
             v.rxAxisSlave.tReady := '1';
             -- Check for a FIFO read
@@ -300,8 +304,9 @@ begin
                v.eofe            := '0';
                -- Check if we have missed a packet 
                if rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) /= r.eventCnt then
-                  -- Set the error flag
+                  -- Set the error flags
                   v.errMissedPacket := '1';
+                  v.errorDet        := '1';
                end if;
                -- Align the event counter to the next packet
                v.eventCnt   := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) + 1;
@@ -311,6 +316,7 @@ begin
 --               for i in 4 to AXI_STREAM_CONFIG_G.TDATA_BYTES_C-1 loop
 --                  if anyBits(rxAxisMaster.tData(i*8+7 downto i*8), '1') then
 --                     v.errDataBus := '1';
+--                     v.errorDet   := '1';
 --                  end if;
 --               end loop;
                -- Set the busy flag
@@ -332,6 +338,7 @@ begin
                for i in 4 to SLAVE_PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
                   if not allBits(rxAxisMaster.tData(i*8+7 downto i*8), '0') then
                      v.errDataBus := '1';
+                     v.errorDet   := '1';
                   end if;
                end loop;
                -- Increment the counter
@@ -347,6 +354,7 @@ begin
 --               for i in 0 to (AXI_STREAM_CONFIG_G.TDATA_BYTES_C/4)-1 loop
 --                  if rxAxisMaster.tData(31 downto 0) /= rxAxisMaster.tData(i*32+31 downto i*32) then
 --                     v.errDataBus := '1';
+--                     v.errorDet   := '1';
 --                  end if;
 --               end loop;
                -- Calculate the next data word
@@ -357,6 +365,10 @@ begin
                   v.eof  := '1';
                   -- Latch the packets eofe flag
                   v.eofe := ssiGetUserEofe(SLAVE_PRBS_SSI_CONFIG_C, rxAxisMaster);
+                  -- Check for EOFE
+                  if v.eofe = '1' then
+                     v.errorDet := '1';
+                  end if;                  
                   -- Check the data packet length
                   if r.dataCnt /= r.packetLength then
                      -- Wrong length detected
@@ -378,6 +390,7 @@ begin
                   if r.errWordCnt /= MAX_CNT_C then
                      -- Error strobe
                      v.errWordStrb := '1';
+                     v.errorDet    := '1';
                      -- Increment the word error counter
                      v.errWordCnt  := r.errWordCnt + 1;
                   end if;
@@ -399,6 +412,7 @@ begin
                if r.errbitCnt /= MAX_CNT_C then
                   -- Error strobe
                   v.errBitStrb := '1';
+                  v.errorDet   := '1';
                   -- Increment the bit error counter
                   v.errbitCnt  := r.errbitCnt + 1;
                end if;
@@ -484,6 +498,7 @@ begin
       packetRate      <= r.packetRate;
       busy            <= r.busy;
       packetLength    <= r.packetLength;
+      errorDet        <= r.errorDet;
       
    end process comb;
 
