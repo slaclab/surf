@@ -119,6 +119,15 @@ architecture rtl of UdpEngineTx is
    signal mSlave   : AxiStreamSlaveType;
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
+
+   -- attribute dont_touch             : string;
+   -- attribute dont_touch of r        : signal is "TRUE";
+   -- attribute dont_touch of sMaster  : signal is "TRUE";
+   -- attribute dont_touch of sSlave   : signal is "TRUE";
+   -- attribute dont_touch of mMaster  : signal is "TRUE";
+   -- attribute dont_touch of mSlave   : signal is "TRUE";
+   -- attribute dont_touch of txMaster : signal is "TRUE";
+   -- attribute dont_touch of txSlave  : signal is "TRUE";
    
 begin
 
