@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,11 @@ use work.IpV4EnginePkg.all;
 
 entity IpV4EngineRx is
    generic (
-      TPD_G           : time      := 1 ns;
-      PROTOCOL_SIZE_G : positive  := 1;
-      PROTOCOL_G      : Slv8Array := (0 => UDP_C);
-      VLAN_G          : boolean   := false);       
+      TPD_G            : time      := 1 ns;
+      SIM_ERROR_HALT_G : boolean   := false;
+      PROTOCOL_SIZE_G  : positive  := 1;
+      PROTOCOL_G       : Slv8Array := (0 => UDP_C);
+      VLAN_G           : boolean   := false);       
    port (
       -- Local Configurations
       localIp           : in  slv(31 downto 0);  --  big-endian configuration   
@@ -133,11 +134,13 @@ begin
       variable len      : slv(15 downto 0);
       variable ibValid  : sl;
       variable checksum : slv(15 downto 0);
+      variable tReady   : sl;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the flags
+      tReady    := '1';
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
       for i in PROTOCOL_SIZE_G-1 downto 0 loop
          if txSlaves(i).tReady = '1' then
@@ -145,6 +148,9 @@ begin
             v.txMasters(i).tLast  := '0';
             v.txMasters(i).tUser  := (others => '0');
             v.txMasters(i).tKeep  := (others => '1');
+         end if;
+         if v.txMasters(i).tValid = '1' then
+            tReady := '0';
          end if;
       end loop;
 
@@ -161,7 +167,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for data
-            if (rxMaster.tValid = '1') then
+            if (rxMaster.tValid = '1') and (tReady = '1') then
                -- Accept the data
                v.rxSlave.tReady := '1';
                -- Check for SOF with no EOF
@@ -244,6 +250,10 @@ begin
                      v.state := IPV4_HDR1_S;
                   end if;
                end loop;
+               -- Check the simulation error printing
+               if (v.state = IDLE_S) then
+                  v.eofe := '1';
+               end if;
             end if;
          ----------------------------------------------------------------------
          when IPV4_HDR1_S =>
@@ -260,15 +270,19 @@ begin
                   v.tLast               := rxMaster.tLast;
                   v.eofe                := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                else
-                  v.hdr(14)            := rxMaster.tData(7 downto 0);    -- Source IP Address
-                  v.hdr(15)            := rxMaster.tData(15 downto 8);   -- Source IP Address
-                  v.hdr(16)            := rxMaster.tData(23 downto 16);  -- Destination IP Address
-                  v.hdr(17)            := rxMaster.tData(31 downto 24);  -- Destination IP Address               
-                  v.hdr(18)            := rxMaster.tData(39 downto 32);  -- Destination IP Address
-                  v.hdr(19)            := rxMaster.tData(47 downto 40);  -- Destination IP Address                
+                  v.hdr(14)              := rxMaster.tData(7 downto 0);  -- Source IP Address
+                  v.hdr(15)              := rxMaster.tData(15 downto 8);   -- Source IP Address
+                  v.hdr(16)              := rxMaster.tData(23 downto 16);  -- Destination IP Address
+                  v.hdr(17)              := rxMaster.tData(31 downto 24);  -- Destination IP Address               
+                  v.hdr(18)              := rxMaster.tData(39 downto 32);  -- Destination IP Address
+                  v.hdr(19)              := rxMaster.tData(47 downto 40);  -- Destination IP Address                
                   -- Track the leftovers                  
-                  v.tData(79 downto 0) := rxMaster.tData(127 downto 48);
-                  v.tKeep(9 downto 0)  := rxMaster.tKeep(15 downto 6);
+                  v.tData(79 downto 0)   := rxMaster.tData(127 downto 48);
+                  v.tData(127 downto 80) := (others => '0');
+                  v.tKeep(9 downto 0)    := rxMaster.tKeep(15 downto 6);
+                  v.tKeep(15 downto 10)  := (others => '0');
+                  v.tLast                := rxMaster.tLast;
+                  v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                end if;
                -- Check the Destination IP Address and (IPVersion + Header length)
                if (v.hdr(16) = localIp(7 downto 0))
@@ -285,6 +299,7 @@ begin
                   -- Next state
                   v.state                                   := CHECKSUM_S;
                else
+                  v.eofe  := '1';
                   -- Next state
                   v.state := IDLE_S;
                end if;
@@ -296,7 +311,7 @@ begin
                -- Increment the counter
                v.cnt := r.cnt + 1;
                -- Check the counter
-               if r.cnt = 5 then
+               if r.cnt = 4 then        -- Simulation Optimized to 4 Minimum (25AUG2015)
                   -- Reset the counter
                   v.cnt := 0;
                   -- Check if received valid checksum value
@@ -307,6 +322,7 @@ begin
                      -- Next state
                      v.state                     := IPV4_HDR2_S;
                   else
+                     v.eofe  := '1';
                      -- Next state
                      v.state := IDLE_S;
                   end if;
@@ -315,7 +331,7 @@ begin
          ----------------------------------------------------------------------
          when IPV4_HDR2_S =>
             -- Check for data
-            if (rxMaster.tValid = '1') and (v.txMasters(r.index).tValid = '0') then
+            if ((rxMaster.tValid = '1') or (r.tLast = '1')) and (v.txMasters(r.index).tValid = '0') then
                -- Complete the IPV4 Pseudo Header 
                v.txMasters(r.index).tValid              := '1';
                v.txMasters(r.index).tData(7 downto 0)   := (others => '0');
@@ -347,35 +363,49 @@ begin
                      v.state := MOVE_S;
                   end if;
                else
-                  -- Accept the data
-                  v.rxSlave.tReady                           := '1';
-                  -- Move the data
-                  v.txMasters(r.index).tData(111 downto 32)  := r.tData(79 downto 0);
-                  v.txMasters(r.index).tData(127 downto 112) := rxMaster.tData(15 downto 0);
-                  v.txMasters(r.index).tKeep(13 downto 0)    := r.tKeep(9 downto 0) & "1111";
-                  v.txMasters(r.index).tKeep(15 downto 14)   := rxMaster.tKeep(1 downto 0);
-                  -- Track the leftovers
-                  v.tData(111 downto 0)                      := rxMaster.tData(127 downto 16);
-                  v.tKeep(13 downto 0)                       := rxMaster.tKeep(15 downto 2);
-                  -- Check for tLast
-                  if rxMaster.tLast = '1' then
-                     -- Zero out unused data field
-                     v.tData(127 downto 112) := (others => '0');
-                     -- Update the EOFE bit
-                     v.eofe                  := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
-                     -- Check the leftover tKeep is not empty
-                     if v.tKeep /= 0 then
-                        -- Next state
-                        v.state := LAST_S;
-                     else
-                        v.txMasters(r.index).tLast := '1';
-                        ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMasters(r.index), v.eofe);
-                        -- Next state
-                        v.state                    := IDLE_S;
-                     end if;
-                  else
+                  -- Check for tLast during IPV4_HDR1_S
+                  if (r.tLast = '1') then
+                     -- Move the data
+                     v.txMasters(r.index).tData(111 downto 32)  := r.tData(79 downto 0);
+                     v.txMasters(r.index).tData(127 downto 112) := (others => '0');
+                     v.txMasters(r.index).tKeep(13 downto 0)    := r.tKeep(9 downto 0) & "1111";
+                     v.txMasters(r.index).tKeep(15 downto 14)   := (others => '0');
+                     -- Set tLast and EOFE
+                     v.txMasters(r.index).tLast                 := '1';
+                     ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMasters(r.index), r.eofe);
                      -- Next state
-                     v.state := MOVE_S;
+                     v.state                                    := IDLE_S;
+                  else
+                     -- Accept the data
+                     v.rxSlave.tReady                           := '1';
+                     -- Move the data
+                     v.txMasters(r.index).tData(111 downto 32)  := r.tData(79 downto 0);
+                     v.txMasters(r.index).tData(127 downto 112) := rxMaster.tData(15 downto 0);
+                     v.txMasters(r.index).tKeep(13 downto 0)    := r.tKeep(9 downto 0) & "1111";
+                     v.txMasters(r.index).tKeep(15 downto 14)   := rxMaster.tKeep(1 downto 0);
+                     -- Track the leftovers
+                     v.tData(111 downto 0)                      := rxMaster.tData(127 downto 16);
+                     v.tKeep(13 downto 0)                       := rxMaster.tKeep(15 downto 2);
+                     -- Check for tLast
+                     if rxMaster.tLast = '1' then
+                        -- Zero out unused data field
+                        v.tData(127 downto 112) := (others => '0');
+                        -- Update the EOFE bit
+                        v.eofe                  := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
+                        -- Check the leftover tKeep is not empty
+                        if v.tKeep /= 0 then
+                           -- Next state
+                           v.state := LAST_S;
+                        else
+                           v.txMasters(r.index).tLast := '1';
+                           ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMasters(r.index), v.eofe);
+                           -- Next state
+                           v.state                    := IDLE_S;
+                        end if;
+                     else
+                        -- Next state
+                        v.state := MOVE_S;
+                     end if;
                   end if;
                end if;
             end if;
@@ -456,6 +486,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check the simulation error printing
+      if SIM_ERROR_HALT_G and (r.eofe = '1') then
+         report "IpV4EngineRx: Error Detected" severity failure;
+      end if;
 
       -- Reset
       if (rst = '1') then

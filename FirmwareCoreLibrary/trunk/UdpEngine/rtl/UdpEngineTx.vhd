@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,9 +29,11 @@ entity UdpEngineTx is
    generic (
       -- Simulation Generics
       TPD_G               : time     := 1 ns;
+      SIM_ERROR_HALT_G    : boolean  := false;
       -- UDP General Generic
       MAX_DATAGRAM_SIZE_G : positive := 1440;
       TX_FORWARD_EOFE_G   : boolean  := false;
+      TX_CALC_CHECKSUM_G  : boolean  := true;
       PORT_G              : natural  := 8192);
    port (
       -- Interface to IPV4 Engine  
@@ -201,8 +203,8 @@ begin
             v.sum1        := (others => (others => '0'));
             v.sum2        := (others => '0');
             v.accum       := (others => '0');
-            -- Check for data and accumulators has reseted
-            if (ibMaster.tValid = '1') then
+            -- Check for data and remote MAC is non-zero
+            if (ibMaster.tValid = '1') and (remoteMac /= 0) and (r.flushBuffer = '1') then
                -- Check for SOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibMaster) = '1') then
                   -- Next state
@@ -383,9 +385,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ADD_LEN_S =>
-            v.tData(15 downto 0) := udpLength;
-            v.tKeep(1 downto 0)  := (others => '1');
-            v.tKeep(15 downto 2) := (others => '0');
+            v.tData(15 downto 0)  := udpLength;             -- IPv4 Pseudoheader length
+            v.tData(31 downto 16) := udpLength;             -- UDP length
+            v.tKeep(3 downto 0)   := (others => '1');
+            v.tKeep(15 downto 4)  := (others => '0');
             -- Process checksum
             GetUdpChecksum (
                -- Inbound tKeep and tData
@@ -399,9 +402,23 @@ begin
                -- Checksum generation and comparsion
                v.ibValid,
                r.ibChecksum,
-               v.checksum);           
-            -- Next state
-            v.state := CHECKSUM_S;
+               v.checksum);     
+            -- Check if we need to generate a check sum
+            if (TX_CALC_CHECKSUM_G = true) then
+               -- Next state
+               v.state := CHECKSUM_S;
+            else
+               -- Send a zero checksum
+               v.checksum := (others => '0');
+               -- Check for errors
+               if (r.eofe = '1') and (TX_FORWARD_EOFE_G = false) then
+                  -- Next state
+                  v.state := IDLE_S;
+               else
+                  -- Next state
+                  v.state := MOVE_S;
+               end if;
+            end if;
          ----------------------------------------------------------------------
          when CHECKSUM_S =>
             -- Process checksum
@@ -419,11 +436,11 @@ begin
                r.ibChecksum,
                v.checksum);       
             -- Check the counter
-            if r.cnt = 5 then
+            if r.cnt = 3 then           -- Simulation Optimized to 3 Minimum (25AUG2015)
                -- Reset the counter
                v.cnt := 0;
                -- Check for errors
-               if (v.eofe = '1') and (TX_FORWARD_EOFE_G = false) then
+               if (r.eofe = '1') and (TX_FORWARD_EOFE_G = false) then
                   -- Next state
                   v.state := IDLE_S;
                else
@@ -447,6 +464,10 @@ begin
                   -- Increment the counter
                   v.cnt := r.cnt + 1;
                end if;
+               -- Check for first header
+               if r.cnt = 0 then
+                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.txMaster, '1');
+               end if;
                -- Check for second header
                if r.cnt = 1 then
                   -- Overwrite the TBD header fields
@@ -468,6 +489,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check the simulation error printing
+      if SIM_ERROR_HALT_G and (r.eofe = '1') then
+         report "UdpEngineTx: Error Detected" severity failure;
+      end if;
 
       -- Reset
       if (rst = '1') then

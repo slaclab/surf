@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -140,11 +140,11 @@ package body UdpEnginePkg is
          data(i) := x"00000000";
          -- Check tKeep for big endian upper byte of 16-bit word
          if tKeep((2*i)+0) = '1' then
-            data(i)(15 downto 8) := tData((8*(i+0))+7 downto (8*(i+0))+0);
+            data(i)(15 downto 8) := tData((8*((2*i)+0))+7 downto (8*((2*i)+0))+0);
          end if;
          -- Check tKeep for big endian lower byte of 16-bit word 
          if tKeep((2*i)+1) = '1' then
-            data(i)(7 downto 0) := tData((8*(i+1))+7 downto (8*(i+1))+0);
+            data(i)(7 downto 0) := tData((8*((2*i)+1))+7 downto (8*((2*i)+1))+0);
          end if;
       end loop;
 
