@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ entity UdpEngineRx is
    generic (
       -- Simulation Generics
       TPD_G               : time         := 1 ns;
+      SIM_ERROR_HALT_G    : boolean      := false;
       -- UDP General Generic
       MAX_DATAGRAM_SIZE_G : positive     := 1440;
       RX_FORWARD_EOFE_G   : boolean      := false;
@@ -65,6 +66,7 @@ architecture rtl of UdpEngineRx is
    -- Divide by 16 because 16 bytes per 128-bit word
    constant FIFO_ADDR_SIZE_C  : natural  := (MAX_DATAGRAM_SIZE_G+128)/16;
    constant FIFO_ADDR_WIDTH_C : positive := bitSize(FIFO_ADDR_SIZE_C-1);
+   constant UDP_HDR_OFFSET_C  : positive := 8;
 
    type StateType is (
       IDLE_S,
@@ -76,64 +78,78 @@ architecture rtl of UdpEngineRx is
       CLIENT_MOVE_S); 
 
    type RegType is record
-      flushBuffer     : sl;
-      eofe            : sl;
-      rxByteCnt       : natural range 0 to FIFO_ADDR_SIZE_C;
+      flushBuffer      : sl;
+      udpPortDet       : sl;
+      eofe             : sl;
+      rxByteCnt        : natural range 0 to FIFO_ADDR_SIZE_C;
       serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
       serverRemoteIp   : Slv32Array(SERVER_SIZE_G-1 downto 0);
       serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
-      clientRemoteDet : slv(CLIENT_SIZE_G-1 downto 0);
-      tKeep           : slv(15 downto 0);
-      tData           : slv(127 downto 0);
-      tLast           : sl;
-      sum0            : Slv32Array(3 downto 0);
-      sum1            : Slv32Array(1 downto 0);
-      sum2            : slv(31 downto 0);
-      accum           : slv(31 downto 0);
-      cnt             : natural range 0 to 5;
-      ibValid         : sl;
-      ibChecksum      : slv(15 downto 0);
-      checksum        : slv(15 downto 0);
-      udpLength       : slv(15 downto 0);
-      destSel         : sl;
-      serverId        : natural range 0 to SERVER_SIZE_G-1;
-      clientId        : natural range 0 to CLIENT_SIZE_G-1;
-      rxSlave         : AxiStreamSlaveType;
-      mSlave          : AxiStreamSlaveType;
-      sMaster         : AxiStreamMasterType;
-      obServerMasters : AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
-      obClientMasters : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      state           : StateType;
+      clientRemoteDet  : slv(CLIENT_SIZE_G-1 downto 0);
+      ipv4Length       : slv(15 downto 0);
+      sPorts           : Slv16Array(SERVER_SIZE_G-1 downto 0);
+      serverPorts      : Slv16Array(SERVER_SIZE_G-1 downto 0);
+      cPorts           : Slv16Array(CLIENT_SIZE_G-1 downto 0);
+      clientPorts      : Slv16Array(CLIENT_SIZE_G-1 downto 0);
+      tKeepMask        : slv(15 downto 0);
+      tKeep            : slv(15 downto 0);
+      tData            : slv(127 downto 0);
+      tLast            : sl;
+      sum0             : Slv32Array(3 downto 0);
+      sum1             : Slv32Array(1 downto 0);
+      sum2             : slv(31 downto 0);
+      accum            : slv(31 downto 0);
+      cnt              : natural range 0 to 5;
+      ibValid          : sl;
+      ibChecksum       : slv(15 downto 0);
+      checksum         : slv(15 downto 0);
+      udpLength        : slv(15 downto 0);
+      destSel          : sl;
+      serverId         : natural range 0 to SERVER_SIZE_G-1;
+      clientId         : natural range 0 to CLIENT_SIZE_G-1;
+      rxSlave          : AxiStreamSlaveType;
+      mSlave           : AxiStreamSlaveType;
+      sMaster          : AxiStreamMasterType;
+      obServerMasters  : AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
+      obClientMasters  : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
+      state            : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      flushBuffer     => '1',
-      eofe            => '0',
-      serverRemotePort=> (others => (others => '0')),
-      serverRemoteIp  => (others => (others => '0')),
-      serverRemoteMac => (others => (others => '0')),
-      clientRemoteDet => (others => '0'),
-      rxByteCnt       => 4,             -- UDP header offset
-      tKeep           => (others => '0'),
-      tData           => (others => '0'),
-      tLast           => '0',
-      sum0            => (others => (others => '0')),
-      sum1            => (others => (others => '0')),
-      sum2            => (others => '0'),
-      accum           => (others => '0'),
-      cnt             => 0,
-      ibValid         => '0',
-      ibChecksum      => (others => '0'),
-      checksum        => (others => '0'),
-      udpLength       => (others => '0'),
-      destSel         => '0',
-      serverId        => 0,
-      clientId        => 0,
-      rxSlave         => AXI_STREAM_SLAVE_INIT_C,
-      mSlave          => AXI_STREAM_SLAVE_INIT_C,
-      sMaster         => AXI_STREAM_MASTER_INIT_C,
-      obServerMasters => (others => AXI_STREAM_MASTER_INIT_C),
-      obClientMasters => (others => AXI_STREAM_MASTER_INIT_C),
-      state           => IDLE_S);      
+      flushBuffer      => '1',
+      udpPortDet       => '0',
+      eofe             => '0',
+      rxByteCnt        => UDP_HDR_OFFSET_C,
+      serverRemotePort => (others => (others => '0')),
+      serverRemoteIp   => (others => (others => '0')),
+      serverRemoteMac  => (others => (others => '0')),
+      clientRemoteDet  => (others => '0'),
+      ipv4Length       => (others => '0'),
+      sPorts           => (others => (others => '0')),
+      serverPorts      => (others => (others => '0')),
+      cPorts           => (others => (others => '0')),
+      clientPorts      => (others => (others => '0')),
+      tKeepMask        => (others => '0'),
+      tKeep            => (others => '0'),
+      tData            => (others => '0'),
+      tLast            => '0',
+      sum0             => (others => (others => '0')),
+      sum1             => (others => (others => '0')),
+      sum2             => (others => '0'),
+      accum            => (others => '0'),
+      cnt              => 0,
+      ibValid          => '0',
+      ibChecksum       => (others => '0'),
+      checksum         => (others => '0'),
+      udpLength        => (others => '0'),
+      destSel          => '0',
+      serverId         => 0,
+      clientId         => 0,
+      rxSlave          => AXI_STREAM_SLAVE_INIT_C,
+      mSlave           => AXI_STREAM_SLAVE_INIT_C,
+      sMaster          => AXI_STREAM_MASTER_INIT_C,
+      obServerMasters  => (others => AXI_STREAM_MASTER_INIT_C),
+      obClientMasters  => (others => AXI_STREAM_MASTER_INIT_C),
+      state            => IDLE_S);      
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -159,7 +175,7 @@ begin
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => (FIFO_ADDR_WIDTH_C+1),-- 2x bigger than DATAGRAM_BUFFER
+         FIFO_ADDR_WIDTH_G   => (FIFO_ADDR_WIDTH_C+1),  -- 2x bigger than DATAGRAM_BUFFER
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => IP_ENGINE_CONFIG_C,
          MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)            
@@ -204,25 +220,18 @@ begin
          mAxisSlave  => mSlave);   
 
    comb : process (mMaster, obClientSlaves, obServerSlaves, r, rst, rxMaster, sSlave) is
-      variable v           : RegType;
-      variable i           : natural;
-      variable udpPortDet  : sl;
-      variable tKeepMask   : slv(15 downto 0);
-      variable ipv4Length  : slv(15 downto 0);
-      variable sPorts      : Slv16Array(SERVER_SIZE_G-1 downto 0);
-      variable serverPorts : Slv16Array(SERVER_SIZE_G-1 downto 0);
-      variable cPorts      : Slv16Array(CLIENT_SIZE_G-1 downto 0);
-      variable clientPorts : Slv16Array(CLIENT_SIZE_G-1 downto 0);
+      variable v : RegType;
+      variable i : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the flags
-      udpPortDet        := '0';
       v.flushBuffer     := '0';
+      v.udpPortDet      := '0';
       v.clientRemoteDet := (others => '0');
-      tKeepMask         := (others => '0');
-      ipv4Length        := (others => '0');
+      v.tKeepMask       := (others => '0');
+      v.ipv4Length      := (others => '0');
       v.rxSlave         := AXI_STREAM_SLAVE_INIT_C;
       v.mSlave          := AXI_STREAM_SLAVE_INIT_C;
       if sSlave.tReady = '1' then
@@ -250,16 +259,16 @@ begin
 
       -- Convert the NaturalArray into Slv48Array
       for i in SERVER_SIZE_G-1 downto 0 loop
-         serverPorts(i)         := toSlv(SERVER_PORTS_G(i), 16);
+         v.serverPorts(i)         := toSlv(SERVER_PORTS_G(i), 16);
          -- Convert to big endian
-         sPorts(i)(15 downto 8) := serverPorts(i)(7 downto 0);
-         sPorts(i)(7 downto 0)  := serverPorts(i)(15 downto 8);
+         v.sPorts(i)(15 downto 8) := v.serverPorts(i)(7 downto 0);
+         v.sPorts(i)(7 downto 0)  := v.serverPorts(i)(15 downto 8);
       end loop;
       for i in CLIENT_SIZE_G-1 downto 0 loop
-         clientPorts(i)         := toSlv(CLIENT_PORTS_G(i), 16);
+         v.clientPorts(i)         := toSlv(CLIENT_PORTS_G(i), 16);
          -- Convert to big endian
-         cPorts(i)(15 downto 8) := clientPorts(i)(7 downto 0);
-         cPorts(i)(7 downto 0)  := clientPorts(i)(15 downto 8);
+         v.cPorts(i)(15 downto 8) := v.clientPorts(i)(7 downto 0);
+         v.cPorts(i)(7 downto 0)  := v.clientPorts(i)(15 downto 8);
       end loop;
 
       -- State Machine
@@ -269,13 +278,13 @@ begin
             -- Reset flags/accumulators
             v.flushBuffer := '1';
             v.eofe        := '0';
-            v.rxByteCnt   := 4;         -- UDP header offset
+            v.rxByteCnt   := UDP_HDR_OFFSET_C;
             v.sum0        := (others => (others => '0'));
             v.sum1        := (others => (others => '0'));
             v.sum2        := (others => '0');
             v.accum       := (others => '0');
             -- Check for data and accumulator has reseted
-            if (rxMaster.tValid = '1') and (r.accum = 0) then
+            if (rxMaster.tValid = '1') and (r.accum = 0) and (r.flushBuffer = '1') then
                -- Accept the data
                v.rxSlave.tReady := '1';
                -- Check for SOF with no EOF
@@ -307,8 +316,8 @@ begin
                -- Accept the data
                v.rxSlave.tReady          := '1';
                -- Latch the length value (in little endian)
-               ipv4Length(15 downto 8)   := rxMaster.tData(23 downto 16);
-               ipv4Length(7 downto 0)    := rxMaster.tData(31 downto 24);
+               v.ipv4Length(15 downto 8) := rxMaster.tData(23 downto 16);
+               v.ipv4Length(7 downto 0)  := rxMaster.tData(31 downto 24);
                v.udpLength(15 downto 8)  := rxMaster.tData(71 downto 64);
                v.udpLength(7 downto 0)   := rxMaster.tData(79 downto 72);
                -- Latch the checksum value (in little endian)
@@ -322,12 +331,13 @@ begin
                v.tLast                   := rxMaster.tLast;
                v.eofe                    := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                -- Mask off the inbound checksum data field
-               tKeepMask(15 downto 12)   := rxMaster.tKeep(15 downto 12);
-               tKeepMask(9 downto 0)     := rxMaster.tKeep(9 downto 0);
+               v.tKeepMask(15 downto 12) := rxMaster.tKeep(15 downto 12);
+               v.tKeepMask(11 downto 10) := (others => '0');
+               v.tKeepMask(9 downto 0)   := rxMaster.tKeep(9 downto 0);
                -- Process checksum
                GetUdpChecksum (
                   -- Inbound tKeep and tData
-                  tKeepMask,
+                  v.tKeepMask,
                   rxMaster.tData,
                   -- Summation Signals
                   r.sum0, v.sum0,
@@ -342,8 +352,8 @@ begin
                if (SERVER_EN_G = true) then
                   for i in SERVER_SIZE_G-1 downto 0 loop
                      -- Check if port is defined
-                     if (udpPortDet = '0') and (rxMaster.tData(63 downto 48) = sPorts(i)) then
-                        udpPortDet            := '1';
+                     if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.sPorts(i)) then
+                        v.udpPortDet          := '1';
                         v.destSel             := '0';
                         v.serverId            := i;
                         v.serverRemotePort(i) := rxMaster.tData(47 downto 32);
@@ -356,8 +366,8 @@ begin
                if (CLIENT_EN_G = true) then
                   for i in CLIENT_SIZE_G-1 downto 0 loop
                      -- Check if port is defined
-                     if (udpPortDet = '0') and (rxMaster.tData(63 downto 48) = cPorts(i)) then
-                        udpPortDet           := '1';
+                     if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.cPorts(i)) then
+                        v.udpPortDet         := '1';
                         v.destSel            := '1';
                         v.clientId           := i;
                         v.clientRemoteDet(i) := '1';
@@ -365,9 +375,12 @@ begin
                   end loop;
                end if;
                -- Check for the following errors
-               if (udpPortDet = '0')    -- UDP port was not detected 
-                             or (v.udpLength /= ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
-                             or (v.udpLength = 0) then  -- zero length detected                 
+               if (v.udpPortDet = '0')  -- UDP port was not detected 
+                            or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
+                            or (v.udpLength = 0)              -- zero length detected
+                            or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
+                            or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
+                  v.eofe  := '1';
                   -- Next state
                   v.state := IDLE_S;
                else
@@ -408,6 +421,7 @@ begin
                   r.ibChecksum,
                   v.checksum);                 
                -- Move the data
+               v.sMaster.tValid               := '1';
                v.sMaster.tData(31 downto 0)   := r.tData(31 downto 0);
                v.sMaster.tData(127 downto 32) := rxMaster.tData(95 downto 0);
                v.sMaster.tKeep(3 downto 0)    := r.tKeep(3 downto 0);
@@ -416,7 +430,7 @@ begin
                v.tData(31 downto 0)           := rxMaster.tData(127 downto 96);
                v.tKeep(3 downto 0)            := rxMaster.tKeep(15 downto 12);
                -- Check for SOF
-               if r.rxByteCnt = 0 then
+               if r.rxByteCnt = UDP_HDR_OFFSET_C then
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                end if;
                -- Track the number of bytes receivced
@@ -452,7 +466,7 @@ begin
                v.sMaster.tKeep  := r.tKeep;
                v.sMaster.tLast  := '1';
                -- Check for SOF
-               if r.rxByteCnt = 0 then
+               if r.rxByteCnt = UDP_HDR_OFFSET_C then
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                end if;
                -- Track the number of bytes receivced
@@ -497,7 +511,7 @@ begin
             -- Increment the counter
             v.cnt := r.cnt + 1;
             -- Check the counter
-            if r.cnt = 5 then
+            if r.cnt = 3 then           -- Simulation Optimized to 3 Minimum (25AUG2015)
                -- Reset the counter
                v.cnt := 0;
                -- Check for checksum 
@@ -537,7 +551,7 @@ begin
                   -- Set EOFE
                   if r.eofe = '1' then
                      ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obServerMasters(r.serverId), '1');
-                  end if;                  
+                  end if;
                   -- Next state
                   v.state := IDLE_S;
                end if;
@@ -562,6 +576,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check the simulation error printing
+      if SIM_ERROR_HALT_G and (r.eofe = '1') then
+         report "UdpEngineRx: Error Detected" severity failure;
+      end if;
 
       -- Reset
       if (rst = '1') then

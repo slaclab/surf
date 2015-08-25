@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,10 +24,12 @@ entity UdpEngine is
    generic (
       -- Simulation Generics
       TPD_G               : time         := 1 ns;
+      SIM_ERROR_HALT_G    : boolean      := false;
       -- UDP General Generic
       MAX_DATAGRAM_SIZE_G : positive     := 1440;  -- In units of bytes
       RX_FORWARD_EOFE_G   : boolean      := false;
       TX_FORWARD_EOFE_G   : boolean      := false;
+      TX_CALC_CHECKSUM_G  : boolean      := true;
       -- UDP Server Generics
       SERVER_EN_G         : boolean      := true;
       SERVER_SIZE_G       : positive     := 1;
@@ -96,6 +98,7 @@ begin
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
          TPD_G               => TPD_G,
+         SIM_ERROR_HALT_G    => SIM_ERROR_HALT_G,
          MAX_DATAGRAM_SIZE_G => MAX_DATAGRAM_SIZE_G,
          RX_FORWARD_EOFE_G   => RX_FORWARD_EOFE_G,
          SERVER_EN_G         => SERVER_EN_G,
@@ -129,8 +132,10 @@ begin
          U_UdpEngineTx : entity work.UdpEngineTx
             generic map (
                TPD_G               => TPD_G,
+               SIM_ERROR_HALT_G    => SIM_ERROR_HALT_G,
                MAX_DATAGRAM_SIZE_G => MAX_DATAGRAM_SIZE_G,
                TX_FORWARD_EOFE_G   => TX_FORWARD_EOFE_G,
+               TX_CALC_CHECKSUM_G  => TX_CALC_CHECKSUM_G,
                PORT_G              => SERVER_PORTS_G(i))    
             port map (
                -- Interface to IPV4 Engine  
@@ -201,8 +206,10 @@ begin
          U_UdpEngineTx : entity work.UdpEngineTx
             generic map (
                TPD_G               => TPD_G,
+               SIM_ERROR_HALT_G    => SIM_ERROR_HALT_G,
                MAX_DATAGRAM_SIZE_G => MAX_DATAGRAM_SIZE_G,
                TX_FORWARD_EOFE_G   => TX_FORWARD_EOFE_G,
+               TX_CALC_CHECKSUM_G  => TX_CALC_CHECKSUM_G,
                PORT_G              => CLIENT_PORTS_G(i))    
             port map (
                -- Interface to IPV4 Engine  

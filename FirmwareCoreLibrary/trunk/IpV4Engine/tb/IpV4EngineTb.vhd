@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-17
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,17 +28,20 @@ entity IpV4EngineTb is end IpV4EngineTb;
 
 architecture testbed of IpV4EngineTb is
 
-   constant CLK_PERIOD_C : time                  := 6.4 ns;
-   constant TPD_C        : time                  := (CLK_PERIOD_C/4);
-   constant LOCAL_MAC_C  : slv(47 downto 0)      := x"123456789ABC";
-   constant LOCAL_IP_C   : slv(31 downto 0)      := x"12345678";
-   constant REMOTE_MAC_C : slv(47 downto 0)      := x"DEADBEEFCAFE";
-   constant REMOTE_IP_C  : slv(31 downto 0)      := x"ABCDEFFF";
-   constant VLAN_C       : boolean               := false;
-   constant VID_C        : slv(15 downto 0)      := x"0000";
-   constant PROTOCOL_C   : Slv8Array(0 downto 0) := (0 => UDP_C);
-   constant MAX_CNT_C    : natural               := 256;
-   constant UDP_LEN_C    : natural               := 16*MAX_CNT_C;
+   constant CLK_PERIOD_C : time             := 6.4 ns;
+   constant TPD_C        : time             := (CLK_PERIOD_C/4);
+   constant LOCAL_MAC_C  : slv(47 downto 0) := x"123456789ABC";
+   constant LOCAL_IP_C   : slv(31 downto 0) := x"12345678";
+   constant REMOTE_MAC_C : slv(47 downto 0) := x"DEADBEEFCAFE";
+   constant REMOTE_IP_C  : slv(31 downto 0) := x"ABCDEFFF";
+
+   constant VLAN_C : boolean          := false;
+   constant VID_C  : slv(15 downto 0) := x"0000";
+
+   constant PROTOCOL_C       : Slv8Array(0 downto 0) := (0 => UDP_C);
+   constant MAX_CNT_C        : natural               := 256;
+   constant UDP_LEN_C        : natural               := 16*MAX_CNT_C;
+   constant SIM_ERROR_HALT_C : boolean               := true;
 
    signal clk               : sl                               := '0';
    signal rst               : sl                               := '0';
@@ -72,12 +75,13 @@ begin
 
    IpV4Engine_Local : entity work.IpV4Engine
       generic map (
-         TPD_G           => TPD_C,
-         PROTOCOL_SIZE_G => 1,
-         PROTOCOL_G      => PROTOCOL_C,
-         CLIENT_SIZE_G   => 1,
-         ARP_TIMEOUT_G   => 156250000,
-         VLAN_G          => VLAN_C)
+         TPD_G            => TPD_C,
+         SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
+         PROTOCOL_SIZE_G  => 1,
+         PROTOCOL_G       => PROTOCOL_C,
+         CLIENT_SIZE_G    => 1,
+         ARP_TIMEOUT_G    => 156250000,
+         VLAN_G           => VLAN_C)
       port map (
          -- Local Configurations
          localMac             => LOCAL_MAC_C,
@@ -159,12 +163,13 @@ begin
 
    IpV4Engine_Remote : entity work.IpV4Engine
       generic map (
-         TPD_G           => TPD_C,
-         PROTOCOL_SIZE_G => 1,
-         PROTOCOL_G      => PROTOCOL_C,
-         CLIENT_SIZE_G   => 1,
-         ARP_TIMEOUT_G   => 156250000,
-         VLAN_G          => VLAN_C)
+         TPD_G            => TPD_C,
+         SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
+         PROTOCOL_SIZE_G  => 1,
+         PROTOCOL_G       => PROTOCOL_C,
+         CLIENT_SIZE_G    => 1,
+         ARP_TIMEOUT_G    => 156250000,
+         VLAN_G           => VLAN_C)
       port map (
          -- Local Configurations
          localMac             => REMOTE_MAC_C,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,10 +26,11 @@ use work.IpV4EnginePkg.all;
 
 entity IpV4EngineTx is
    generic (
-      TPD_G           : time      := 1 ns;
-      PROTOCOL_SIZE_G : positive  := 1;
-      PROTOCOL_G      : Slv8Array := (0 => UDP_C);
-      VLAN_G          : boolean   := false);       
+      TPD_G            : time      := 1 ns;
+      SIM_ERROR_HALT_G : boolean   := false;
+      PROTOCOL_SIZE_G  : positive  := 1;
+      PROTOCOL_G       : Slv8Array := (0 => UDP_C);
+      VLAN_G           : boolean   := false);       
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);  --  big-endian configuration
@@ -248,7 +249,7 @@ begin
             -- Increment the counter
             v.cnt := r.cnt + 1;
             -- Check the counter
-            if r.cnt = 5 then
+            if r.cnt = 4 then           -- Simulation Optimized to 4 Minimum (25AUG2015)
                -- Reset the counter
                v.cnt     := 0;
                -- Load the calucated checksum into the IPV4 header
@@ -311,10 +312,27 @@ begin
                   v.txMaster.tData(7 downto 0)    := r.hdr(18);
                   v.txMaster.tData(15 downto 8)   := r.hdr(19);
                   v.txMaster.tData(111 downto 16) := rxMasters(r.chCntDly).tData(127 downto 32);
-                  -- Next state
-                  v.state                         := IPV4_HDR2_S;
+                  -- Update the tKeep bus
+                  v.txMaster.tKeep(1 downto 0)    := (others => '1');
+                  v.txMaster.tKeep(13 downto 2)   := rxMasters(r.chCntDly).tKeep(15 downto 4);
+                  v.txMaster.tKeep(15 downto 14)  := (others => '0');
+                  -- Check for tLast
+                  if rxMasters(r.chCntDly).tLast = '1' then
+                     -- Move the data
+                     v.txMaster.tValid := '1';
+                     -- Set the tLast flag
+                     v.txMaster.tLast  := '1';
+                     -- Update the EOFE bit
+                     v.eofe            := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMasters(r.chCntDly));
+                     ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMaster, v.eofe);
+                     -- Next state
+                     v.state           := IDLE_S;
+                  else
+                     -- Next state
+                     v.state := IPV4_HDR2_S;
+                  end if;
                else
-                  -- Move the data
+                  -- Update the tData bus
                   v.txMaster.tValid               := '1';
                   v.txMaster.tData(7 downto 0)    := r.hdr(14);
                   v.txMaster.tData(15 downto 8)   := r.hdr(15);
@@ -323,6 +341,9 @@ begin
                   v.txMaster.tData(39 downto 32)  := r.hdr(18);
                   v.txMaster.tData(47 downto 40)  := r.hdr(19);
                   v.txMaster.tData(127 downto 48) := rxMasters(r.chCntDly).tData(111 downto 32);
+                  -- Update the tKeep bus
+                  v.txMaster.tKeep(5 downto 0)    := (others => '1');
+                  v.txMaster.tKeep(15 downto 6)   := rxMasters(r.chCntDly).tKeep(13 downto 4);
                   -- Track the leftovers
                   v.tData(15 downto 0)            := rxMasters(r.chCntDly).tData(127 downto 112);
                   v.tKeep(1 downto 0)             := rxMasters(r.chCntDly).tKeep(15 downto 14);
@@ -337,7 +358,9 @@ begin
                         -- Next state
                         v.state := LAST_S;
                      else
+                        -- Set the tLast flag
                         v.txMaster.tLast := '1';
+                        -- Update the EOFE bit
                         ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMaster, v.eofe);
                         -- Next state
                         v.state          := IDLE_S;
@@ -460,6 +483,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check the simulation error printing
+      if SIM_ERROR_HALT_G and (r.eofe = '1') then
+         report "IpV4EngineTx: Error Detected" severity failure;
+      end if;
 
       -- Reset
       if (rst = '1') then
