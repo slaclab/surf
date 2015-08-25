@@ -160,6 +160,15 @@ architecture rtl of UdpEngineRx is
    signal sSlave   : AxiStreamSlaveType;
    signal mMaster  : AxiStreamMasterType;
    signal mSlave   : AxiStreamSlaveType;
+
+   -- attribute dont_touch             : string;
+   -- attribute dont_touch of r        : signal is "TRUE";
+   -- attribute dont_touch of rxMaster : signal is "TRUE";
+   -- attribute dont_touch of rxSlave  : signal is "TRUE";   
+   -- attribute dont_touch of sMaster  : signal is "TRUE";
+   -- attribute dont_touch of sSlave   : signal is "TRUE";
+   -- attribute dont_touch of mMaster  : signal is "TRUE";
+   -- attribute dont_touch of mSlave   : signal is "TRUE";
    
 begin
 
@@ -376,10 +385,10 @@ begin
                end if;
                -- Check for the following errors
                if (v.udpPortDet = '0')  -- UDP port was not detected 
-                            or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
-                            or (v.udpLength = 0)              -- zero length detected
-                            or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
-                            or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
+                             or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
+                             or (v.udpLength = 0)              -- zero length detected
+                             or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
+                             or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
                   v.eofe  := '1';
                   -- Next state
                   v.state := IDLE_S;
@@ -519,15 +528,13 @@ begin
                if (r.ibChecksum /= 0) and (r.ibValid = '0') then
                   v.eofe := '1';
                end if;
-               -- Check the length
-               if (r.udpLength /= toSlv(r.rxByteCnt, 16)) then
-                  v.eofe := '1';
-               end if;
                -- Check for errors
                if (v.eofe = '1') and (RX_FORWARD_EOFE_G = false) then
                   -- Next state
                   v.state := IDLE_S;
                else
+                  -- Remove the header IPv4 and UDP header offset
+                  v.udpLength := r.udpLength - UDP_HDR_OFFSET_C;
                   -- Select the data destination
                   if r.destSel = '0' then
                      -- Next state
@@ -543,11 +550,19 @@ begin
             -- Check for data
             if (mMaster.tValid = '1') and (v.obServerMasters(r.serverId).tValid = '0') then
                -- Accept the data
-               v.mSlave.tReady               := '1';
+               v.mSlave.tReady                          := '1';
                -- Move data
-               v.obServerMasters(r.serverId) := mMaster;
+               v.obServerMasters(r.serverId)            := mMaster;
+               -- Decrement the counter
+               v.udpLength                              := r.udpLength - 16;
                -- Check for EOF
-               if mMaster.tLast = '1' then
+               if (mMaster.tLast = '1') or (r.udpLength <= 16) then
+                  -- Update the tKeep
+                  if (r.udpLength <= 16) then
+                     v.obServerMasters(r.serverId).tKeep := genTKeep(conv_integer(r.udpLength));
+                  end if;
+                  -- Force the tLast
+                  v.obServerMasters(r.serverId).tLast := '1';
                   -- Set EOFE
                   if r.eofe = '1' then
                      ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obServerMasters(r.serverId), '1');
@@ -561,11 +576,19 @@ begin
             -- Check for data
             if (mMaster.tValid = '1') and (v.obClientMasters(r.clientId).tValid = '0') then
                -- Accept the data
-               v.mSlave.tReady               := '1';
+               v.mSlave.tReady                          := '1';
                -- Move data
-               v.obClientMasters(r.clientId) := mMaster;
+               v.obClientMasters(r.clientId)            := mMaster;
+               -- Decrement the counter
+               v.udpLength                              := r.udpLength - 16;
                -- Check for EOF
-               if mMaster.tLast = '1' then
+               if (mMaster.tLast = '1') or (r.udpLength <= 16) then
+                  -- Update the tKeep
+                  if (r.udpLength <= 16) then
+                     v.obClientMasters(r.clientId).tKeep := genTKeep(conv_integer(r.udpLength));
+                  end if;
+                  -- Force the tLast
+                  v.obClientMasters(r.clientId).tLast := '1';
                   -- Set EOFE
                   if r.eofe = '1' then
                      ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obClientMasters(r.clientId), '1');
