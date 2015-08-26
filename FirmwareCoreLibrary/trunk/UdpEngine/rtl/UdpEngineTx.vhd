@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-25
+-- Last update: 2015-08-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ architecture rtl of UdpEngineTx is
    type RegType is record
       flushBuffer : sl;
       eofe        : sl;
-      rxByteCnt   : natural range 0 to FIFO_ADDR_SIZE_C;
+      rxByteCnt   : natural range 0 to 2*MAX_DATAGRAM_SIZE_G;
       tKeep       : slv(15 downto 0);
       tData       : slv(127 downto 0);
       tLast       : sl;
@@ -445,7 +445,7 @@ begin
                r.ibChecksum,
                v.checksum);       
             -- Check the counter
-            if r.cnt = 3 then           -- Simulation Optimized to 3 Minimum (25AUG2015)
+            if r.cnt = 4 then           -- Simulation/Hardware Optimized to 4 Minimum (26AUG2015)
                -- Reset the counter
                v.cnt := 0;
                -- Check for errors
