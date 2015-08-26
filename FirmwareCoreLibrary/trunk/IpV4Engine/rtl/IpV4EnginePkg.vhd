@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-08-17
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ package body IpV4EnginePkg is
       variable header     : Slv32Array(9 downto 0);
       variable sum4       : slv(15 downto 0);
    begin
-      -- Convert to 32-bit (little endian) words
+      -- Convert to 32-bit (little Endian) words
       for i in 9 downto 0 loop
          header(i)(31 downto 16) := x"0000";
          -- Check for inbound checksum

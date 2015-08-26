@@ -33,9 +33,9 @@ entity IpV4EngineTx is
       VLAN_G           : boolean   := false);       
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);  --  big-endian configuration
-      localIp           : in  slv(31 downto 0);  --  big-endian configuration   
-      -- Interface to Etherenet Frame MUX/DEMUX 
+      localMac          : in  slv(47 downto 0);  --  big-Endian configuration
+      localIp           : in  slv(31 downto 0);  --  big-Endian configuration   
+      -- Interface to Ethernet Frame MUX/DEMUX 
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
       -- Interface to Protocol Engine  
@@ -226,14 +226,14 @@ begin
             if (rxMasters(r.chCntDly).tValid = '1') and (v.txMaster.tValid = '0') then
                -- Check for wrong protocol type
                if rxMasters(r.chCntDly).tData(15 downto 8) /= PROTOCOL_G(r.chCntDly) then
-                  -- Terminated the fram
+                  -- Terminated the frame
                   v.txMaster.tValid := '1';
                   v.txMaster.tLast  := '1';
                   ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.txMaster, '1');
                   -- Next state
                   v.state           := IDLE_S;
                else
-                  -- Calculate the IPV4 Header length (in little endian)
+                  -- Calculate the IPV4 Header length (in little Endian)
                   len(15 downto 8) := rxMasters(r.chCntDly).tData(23 downto 16);
                   len(7 downto 0)  := rxMasters(r.chCntDly).tData(31 downto 24);
                   len              := len + 20;  -- IPV4 Header's length = protocol length + 20 Bytes
@@ -252,7 +252,7 @@ begin
             if r.cnt = 4 then           -- Simulation Optimized to 4 Minimum (25AUG2015)
                -- Reset the counter
                v.cnt     := 0;
-               -- Load the calucated checksum into the IPV4 header
+               -- Load the calculated checksum into the IPV4 header
                v.hdr(10) := checksum(15 downto 8);
                v.hdr(11) := checksum(7 downto 0);
                -- Next state

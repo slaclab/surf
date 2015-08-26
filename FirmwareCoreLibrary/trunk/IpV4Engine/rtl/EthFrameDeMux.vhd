@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ entity EthFrameDeMux is
       VLAN_G : boolean := false);    
    port (
       -- Local Configurations
-      localMac     : in  slv(47 downto 0);  --  big-endian configuration   
+      localMac     : in  slv(47 downto 0);  --  big-Endian configuration   
       -- Slave
       obMacMaster  : in  AxiStreamMasterType;
       obMacSlave   : out AxiStreamSlaveType;

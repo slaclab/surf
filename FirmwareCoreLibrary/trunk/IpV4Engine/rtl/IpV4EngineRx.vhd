@@ -33,8 +33,8 @@ entity IpV4EngineRx is
       VLAN_G           : boolean   := false);       
    port (
       -- Local Configurations
-      localIp           : in  slv(31 downto 0);  --  big-endian configuration   
-      -- Interface to Etherenet Frame MUX/DEMUX 
+      localIp           : in  slv(31 downto 0);  --  big-Endian configuration   
+      -- Interface to Ethernet Frame MUX/DEMUX 
       ibIpv4Master      : in  AxiStreamMasterType;
       ibIpv4Slave       : out AxiStreamSlaveType;
       -- Interface to Protocol Engine  
@@ -232,11 +232,11 @@ begin
                   v.hdr(12) := rxMaster.tData(119 downto 112);  -- Source IP Address
                   v.hdr(13) := rxMaster.tData(127 downto 120);  -- Source IP Address               
                end if;
-               -- Calculate the IPV4 Pseudo Header length (in little endian)
+               -- Calculate the IPV4 Pseudo Header length (in little Endian)
                len(15 downto 8)      := v.hdr(2);
                len(7 downto 0)       := v.hdr(3);
                len                   := len - 20;  -- IPV4 Pseudo Header's length = protocol length - 20 Bytes
-               -- Save the result in big endian
+               -- Save the result in big Endian
                v.length(7 downto 0)  := len(15 downto 8);
                v.length(15 downto 8) := len(7 downto 0);
                -- Next state if protocol not detected during the "for loop"

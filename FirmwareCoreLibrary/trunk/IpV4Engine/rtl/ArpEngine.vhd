@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-21
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ entity ArpEngine is
       arpReqSlaves  : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       arpAckMasters : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
       arpAckSlaves  : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      -- Interface to Etherenet Frame MUX/DEMUX 
+      -- Interface to Ethernet Frame MUX/DEMUX 
       ibArpMaster   : in  AxiStreamMasterType;
       ibArpSlave    : out AxiStreamSlaveType;
       obArpMaster   : out AxiStreamMasterType;
@@ -288,7 +288,7 @@ begin
                   if (r.tData(1)(47 downto 32) = ARP_REQ_C) then
                      -- Check if the target IP address matches local address
                      if r.tData(2)(79 downto 48) = localIp then
-                        -- Modifed the local buffer to become a reply packet
+                        -- Modified the local buffer to become a reply packet
                         v.tData(0)(47 downto 0)   := r.tData(0)(95 downto 48);
                         v.tData(0)(95 downto 48)  := localMac;
                         v.tData(1)(47 downto 32)  := ARP_REPLY_C;
@@ -321,7 +321,7 @@ begin
                   if (r.tData(1)(79 downto 64) = ARP_REQ_C) then
                      -- Check if the target IP address matches local address
                      if r.tData(2)(111 downto 80) = localIp then
-                        -- Modifed the local buffer to become a reply packet
+                        -- Modified the local buffer to become a reply packet
                         v.tData(0)(47 downto 0)    := r.tData(0)(95 downto 48);
                         v.tData(0)(95 downto 48)   := localMac;
                         v.tData(1)(79 downto 64)   := ARP_REPLY_C;
