@@ -68,6 +68,9 @@ echo $UDPLIB   >> temp.txt
 svn propset svn:externals -F temp.txt $MODULES 
 svn propset svn:externals "^/ExampleProject/trunk/firmware/targets/EmptyTarget EmptyTarget" $TARGETS 
 svn propset svn:externals "^/ExampleProject/trunk/firmware/setup_env.csh setup_env.csh"     $FIRMWARE 
+
+rm -f temp.txt
+
 svn update $PROJ
 svn commit $PROJ -m "Adding common external to new project: $1"
 echo "---------------------------------------"
