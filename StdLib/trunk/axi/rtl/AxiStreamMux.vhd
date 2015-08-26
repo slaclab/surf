@@ -116,11 +116,11 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Aribrate between requesters
+            -- Arbitrate between requesters
             if r.valid = '0' then
                arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
             else
-               -- Reset the Aribration flag
+               -- Reset the Arbitration flag
                v.valid := '0';
                -- Check if need to move data
                if (v.master.tValid = '0') and (selData.tValid = '1') then
