@@ -26,7 +26,7 @@ entity UdpEngine is
       TPD_G               : time         := 1 ns;
       SIM_ERROR_HALT_G    : boolean      := false;
       -- UDP General Generic
-      MAX_DATAGRAM_SIZE_G : positive     := 1440;  -- In units of bytes
+      MAX_DATAGRAM_SIZE_G : positive     := 1472;  -- Default = MAX Payload of 1500 Bytes - 20 Byte IPv4 header - 4 byte UDP header
       RX_FORWARD_EOFE_G   : boolean      := false;
       TX_FORWARD_EOFE_G   : boolean      := false;
       TX_CALC_CHECKSUM_G  : boolean      := true;

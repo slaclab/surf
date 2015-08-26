@@ -31,7 +31,7 @@ entity UdpEngineRx is
       TPD_G               : time         := 1 ns;
       SIM_ERROR_HALT_G    : boolean      := false;
       -- UDP General Generic
-      MAX_DATAGRAM_SIZE_G : positive     := 1440;
+      MAX_DATAGRAM_SIZE_G : positive     := 1472;
       RX_FORWARD_EOFE_G   : boolean      := false;
       -- UDP Server Generics
       SERVER_EN_G         : boolean      := true;
