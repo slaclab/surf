@@ -53,7 +53,7 @@ end UdpEngineTx;
 
 architecture rtl of UdpEngineTx is
 
-   -- Add a padding of 128 bytes to prevent buffer backpressuring
+   -- Add a padding of 128 bytes to prevent buffer back pressuring
    -- Divide by 16 because 16 bytes per 128-bit word
    constant FIFO_ADDR_SIZE_C  : natural  := (MAX_DATAGRAM_SIZE_G+128)/16;
    constant FIFO_ADDR_WIDTH_C : positive := bitSize(FIFO_ADDR_SIZE_C-1);
@@ -191,7 +191,7 @@ begin
          v.sMaster.tKeep  := (others => '1');
       end if;
 
-      -- Convert into a big endian SLVs
+      -- Convert into a big Endian SLVs
       lPort                    := toSlv(PORT_G, 16);
       localPort(15 downto 8)   := lPort(7 downto 0);
       localPort(7 downto 0)    := lPort(15 downto 8);
@@ -244,7 +244,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);                 
@@ -261,7 +261,7 @@ begin
                v.sMaster.tValid               := '1';
                v.sMaster.tData(7 downto 0)    := x"00";     -- All 0s
                v.sMaster.tData(15 downto 8)   := UDP_C;     -- Protocol Type = UDP
-               v.sMaster.tData(31 downto 16)  := x"0000";   -- IPv4 Pseudoheader length = TBD
+               v.sMaster.tData(31 downto 16)  := x"0000";   -- IPv4 Pseudo header length = TBD
                v.sMaster.tData(47 downto 32)  := localPort;     -- Source port
                v.sMaster.tData(63 downto 48)  := remotePort;    -- Destination port
                v.sMaster.tData(79 downto 64)  := x"0000";   -- UDP length = TBD
@@ -269,7 +269,7 @@ begin
                v.sMaster.tData(127 downto 96) := ibMaster.tData(31 downto 0);  -- UDP Datagram     
                v.sMaster.tKeep(11 downto 0)   := x"FFF";
                v.sMaster.tKeep(15 downto 12)  := ibMaster.tKeep(3 downto 0);   -- UDP Datagram  
-               -- Track the number of bytes receivced
+               -- Track the number of bytes received
                tKeepMask                      := x"0" & v.sMaster.tKeep(15 downto 4);
                v.rxByteCnt                    := getTKeep(tKeepMask);
                -- Process checksum
@@ -282,7 +282,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);  
@@ -325,7 +325,7 @@ begin
                -- Track the leftovers                                 
                v.tData(95 downto 0)           := ibMaster.tData(127 downto 32);
                v.tKeep(11 downto 0)           := ibMaster.tKeep(15 downto 4);
-               -- Track the number of bytes receivced
+               -- Track the number of bytes received
                v.rxByteCnt                    := r.rxByteCnt + getTKeep(v.sMaster.tKeep);
                -- Process checksum
                GetUdpChecksum (
@@ -337,7 +337,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);                 
@@ -369,7 +369,7 @@ begin
                v.sMaster.tData  := r.tData;
                v.sMaster.tKeep  := r.tKeep;
                v.sMaster.tLast  := '1';
-               -- Track the number of bytes receivced
+               -- Track the number of bytes received
                v.rxByteCnt      := r.rxByteCnt + getTKeep(v.sMaster.tKeep);
                -- Process checksum
                GetUdpChecksum (
@@ -381,7 +381,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);   
@@ -394,7 +394,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ADD_LEN_S =>
-            v.tData(15 downto 0)  := udpLength;             -- IPv4 Pseudoheader length
+            v.tData(15 downto 0)  := udpLength;             -- IPv4 Pseudo header length
             v.tData(31 downto 16) := udpLength;             -- UDP length
             v.tKeep(3 downto 0)   := (others => '1');
             v.tKeep(15 downto 4)  := (others => '0');
@@ -408,7 +408,7 @@ begin
                r.sum1, v.sum1,
                r.sum2, v.sum2,
                r.accum, v.accum,
-               -- Checksum generation and comparsion
+               -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
                v.checksum);     
@@ -440,7 +440,7 @@ begin
                r.sum1, v.sum1,
                r.sum2, v.sum2,
                r.accum, v.accum,
-               -- Checksum generation and comparsion
+               -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
                v.checksum);       
@@ -480,7 +480,7 @@ begin
                -- Check for second header
                if r.cnt = 1 then
                   -- Overwrite the TBD header fields
-                  v.txMaster.tData(31 downto 16) := udpLength;  -- IPv4 Pseudoheader length
+                  v.txMaster.tData(31 downto 16) := udpLength;  -- IPv4 Pseudo header length
                   v.txMaster.tData(79 downto 64) := udpLength;  -- UDP length
                   v.txMaster.tData(95 downto 80) := udpChecksum;               -- UDP checksum
                end if;

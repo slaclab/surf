@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-17
--- Last update: 2015-08-18
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ entity IpV4EngineLoopback is
       TPD_G      : time            := 1 ns;
       PROTOCOL_G : slv(7 downto 0) := UDP_C);
    port (
-      -- Interface to IPV4 Enginer
+      -- Interface to IPV4 Engine
       obProtocolMaster : out AxiStreamMasterType;
       obProtocolSlave  : in  AxiStreamSlaveType;
       ibProtocolMaster : in  AxiStreamMasterType;

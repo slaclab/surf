@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-20
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ begin
             v.arpTimers(i) := r.arpTimers(i) - 1;
          end if;
 
-         -- Update the IP adress 
+         -- Update the IP address 
          v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
 
          -- Check for dynamic change in IP address

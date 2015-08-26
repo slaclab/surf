@@ -41,10 +41,10 @@ entity UdpEngine is
       -- UDP ARP Generics
       CLK_FREQ_G          : real         := 156.25E+06;             -- In units of Hz
       COMM_TIMEOUT_EN_G   : boolean      := true;  -- Disable the timeout by setting to false
-      COMM_TIMEOUT_G      : positive     := 30);  -- In units of seconds, Client's Commmunication timeout before re-ARPing
+      COMM_TIMEOUT_G      : positive     := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing
    port (
       -- Local Configurations
-      localIp          : in  slv(31 downto 0);    --  big-endian configuration
+      localIp          : in  slv(31 downto 0);    --  big-Endian configuration
       -- Interface to IPV4 Engine  
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
@@ -56,17 +56,17 @@ entity UdpEngine is
       arpAckMasters    : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
       arpAckSlaves     : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       -- Interface to UDP Server engine(s)
-      obServerMasters  : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-endian configuration
+      obServerMasters  : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
       ibServerMasters  : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
-      ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-endian configuration
+      ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       -- Interface to UDP Client engine(s)
-      clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0);  --  big-endian configuration
-      clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);  --  big-endian configuration
-      obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-endian configuration
+      clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
+      clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
+      obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-endian configuration
+      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl);

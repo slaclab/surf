@@ -112,7 +112,7 @@ begin
          -- UDP ARP Generics
          CLK_FREQ_G          => 156.25E+06,  -- In units of Hz
          COMM_TIMEOUT_EN_G   => true,   -- Disable the timeout by setting to false
-         COMM_TIMEOUT_G      => 30)  -- In units of seconds, Client's Commmunication timeout before re-ARPing
+         COMM_TIMEOUT_G      => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
       port map (
          -- Local Configurations
          localIp            => REMOTE_IP_C,
@@ -283,7 +283,7 @@ begin
          -- UDP ARP Generics
          CLK_FREQ_G          => 156.25E+06,  -- In units of Hz
          COMM_TIMEOUT_EN_G   => true,   -- Disable the timeout by setting to false
-         COMM_TIMEOUT_G      => 30)  -- In units of seconds, Client's Commmunication timeout before re-ARPing
+         COMM_TIMEOUT_G      => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
       port map (
          -- Local Configurations
          localIp            => LOCAL_IP_C,

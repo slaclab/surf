@@ -62,7 +62,7 @@ end UdpEngineRx;
 
 architecture rtl of UdpEngineRx is
 
-   -- Add a padding of 128 bytes to prevent buffer backpressuring
+   -- Add a padding of 128 bytes to prevent buffer back pressuring
    -- Divide by 16 because 16 bytes per 128-bit word
    constant FIFO_ADDR_SIZE_C  : natural  := (MAX_DATAGRAM_SIZE_G+128)/16;
    constant FIFO_ADDR_WIDTH_C : positive := bitSize(FIFO_ADDR_SIZE_C-1);
@@ -269,13 +269,13 @@ begin
       -- Convert the NaturalArray into Slv48Array
       for i in SERVER_SIZE_G-1 downto 0 loop
          v.serverPorts(i)         := toSlv(SERVER_PORTS_G(i), 16);
-         -- Convert to big endian
+         -- Convert to big Endian
          v.sPorts(i)(15 downto 8) := v.serverPorts(i)(7 downto 0);
          v.sPorts(i)(7 downto 0)  := v.serverPorts(i)(15 downto 8);
       end loop;
       for i in CLIENT_SIZE_G-1 downto 0 loop
          v.clientPorts(i)         := toSlv(CLIENT_PORTS_G(i), 16);
-         -- Convert to big endian
+         -- Convert to big Endian
          v.cPorts(i)(15 downto 8) := v.clientPorts(i)(7 downto 0);
          v.cPorts(i)(7 downto 0)  := v.clientPorts(i)(15 downto 8);
       end loop;
@@ -292,7 +292,7 @@ begin
             v.sum1        := (others => (others => '0'));
             v.sum2        := (others => '0');
             v.accum       := (others => '0');
-            -- Check for data and accumulator has reseted
+            -- Check for data and accumulator has resetted
             if (rxMaster.tValid = '1') and (r.accum = 0) and (r.flushBuffer = '1') then
                -- Accept the data
                v.rxSlave.tReady := '1';
@@ -310,7 +310,7 @@ begin
                      r.sum1, v.sum1,
                      r.sum2, v.sum2,
                      r.accum, v.accum,
-                     -- Checksum generation and comparsion
+                     -- Checksum generation and comparison
                      v.ibValid,
                      r.ibChecksum,
                      v.checksum);                   
@@ -324,12 +324,12 @@ begin
             if (rxMaster.tValid = '1') then
                -- Accept the data
                v.rxSlave.tReady          := '1';
-               -- Latch the length value (in little endian)
+               -- Latch the length value (in little Endian)
                v.ipv4Length(15 downto 8) := rxMaster.tData(23 downto 16);
                v.ipv4Length(7 downto 0)  := rxMaster.tData(31 downto 24);
                v.udpLength(15 downto 8)  := rxMaster.tData(71 downto 64);
                v.udpLength(7 downto 0)   := rxMaster.tData(79 downto 72);
-               -- Latch the checksum value (in little endian)
+               -- Latch the checksum value (in little Endian)
                v.ibChecksum(15 downto 8) := rxMaster.tData(87 downto 80);
                v.ibChecksum(7 downto 0)  := rxMaster.tData(95 downto 88);
                -- Track the leftovers
@@ -353,7 +353,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);                
@@ -425,7 +425,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);                 
@@ -442,7 +442,7 @@ begin
                if r.rxByteCnt = UDP_HDR_OFFSET_C then
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                end if;
-               -- Track the number of bytes receivced
+               -- Track the number of bytes received
                v.rxByteCnt := r.rxByteCnt + getTKeep(v.sMaster.tKeep);
                -- Check for tLast
                if (rxMaster.tLast = '1') or (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
@@ -478,7 +478,7 @@ begin
                if r.rxByteCnt = UDP_HDR_OFFSET_C then
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                end if;
-               -- Track the number of bytes receivced
+               -- Track the number of bytes received
                v.rxByteCnt := r.rxByteCnt + getTKeep(v.tKeep);
                -- Check for overflow
                if (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
@@ -494,7 +494,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
-                  -- Checksum generation and comparsion
+                  -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);                
@@ -513,7 +513,7 @@ begin
                r.sum1, v.sum1,
                r.sum2, v.sum2,
                r.accum, v.accum,
-               -- Checksum generation and comparsion
+               -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
                v.checksum);       

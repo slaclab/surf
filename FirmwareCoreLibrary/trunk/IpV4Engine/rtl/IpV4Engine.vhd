@@ -32,8 +32,8 @@ entity IpV4Engine is
       VLAN_G           : boolean   := false);     -- true = VLAN support 
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);   --  big-endian configuration
-      localIp           : in  slv(31 downto 0);   --  big-endian configuration
+      localMac          : in  slv(47 downto 0);   --  big-Endian configuration
+      localIp           : in  slv(31 downto 0);   --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster       : in  AxiStreamMasterType;
       obMacSlave        : out AxiStreamSlaveType;
@@ -119,7 +119,7 @@ begin
          arpReqSlaves  => arpReqSlaves,
          arpAckMasters => arpAckMasters,
          arpAckSlaves  => arpAckSlaves,
-         -- Interface to Etherenet Frame MUX/DEMUX 
+         -- Interface to Ethernet Frame MUX/DEMUX 
          ibArpMaster   => ibArpMaster,
          ibArpSlave    => ibArpSlave,
          obArpMaster   => obArpMaster,
@@ -138,7 +138,7 @@ begin
       port map (
          -- Local Configurations
          localIp           => localIp,
-         -- Interface to Etherenet Frame MUX/DEMUX 
+         -- Interface to Ethernet Frame MUX/DEMUX 
          ibIpv4Master      => ibIpv4Master,
          ibIpv4Slave       => ibIpv4Slave,
          -- Interface to Protocol Engine  
@@ -159,7 +159,7 @@ begin
          -- Local Configurations
          localMac          => localMac,
          localIp           => localIp,
-         -- Interface to Etherenet Frame MUX/DEMUX 
+         -- Interface to Ethernet Frame MUX/DEMUX 
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,
          -- Interface to Protocol Engine  

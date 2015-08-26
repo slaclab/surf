@@ -43,7 +43,7 @@ package UdpEnginePkg is
       -- Accumulation Signals
       accumReg   : in    slv(31 downto 0);
       accum      : inout slv(31 downto 0);
-      -- Checksum generation and comparsion
+      -- Checksum generation and comparison
       ibValid    : inout sl;
       ibChecksum : in    slv(15 downto 0);
       checksum   : inout slv(15 downto 0));  
@@ -127,7 +127,7 @@ package body UdpEnginePkg is
       -- Accumulation Signals
       accumReg   : in    slv(31 downto 0);
       accum      : inout slv(31 downto 0);
-      -- Checksum generation and comparsion
+      -- Checksum generation and comparison
       ibValid    : inout sl;
       ibChecksum : in    slv(15 downto 0);
       checksum   : inout slv(15 downto 0)) is
@@ -135,14 +135,14 @@ package body UdpEnginePkg is
       variable data : Slv32Array(7 downto 0);
       variable sum4 : slv(15 downto 0);
    begin
-      -- Convert to 32-bit (little endian) words
+      -- Convert to 32-bit (little Endian) words
       for i in 7 downto 0 loop
          data(i) := x"00000000";
-         -- Check tKeep for big endian upper byte of 16-bit word
+         -- Check tKeep for big Endian upper byte of 16-bit word
          if tKeep((2*i)+0) = '1' then
             data(i)(15 downto 8) := tData((8*((2*i)+0))+7 downto (8*((2*i)+0))+0);
          end if;
-         -- Check tKeep for big endian lower byte of 16-bit word 
+         -- Check tKeep for big Endian lower byte of 16-bit word 
          if tKeep((2*i)+1) = '1' then
             data(i)(7 downto 0) := tData((8*((2*i)+1))+7 downto (8*((2*i)+1))+0);
          end if;
