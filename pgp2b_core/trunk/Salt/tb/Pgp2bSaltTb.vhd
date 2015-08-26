@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-10
--- Last update: 2015-08-10
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -191,10 +191,10 @@ begin
          -- RX Serial Stream
          rxP           => loopBackP,
          rxN           => loopBackN,
-         -- Tx Clocking
+         -- TX Clocking
          pgpTxClk      => clk,
          pgpTxRst      => Rst,
-         -- Rx clocking
+         -- RX clocking
          pgpRxClk      => clk,
          pgpRxClk2x    => clk2x,
          pgpRxClk2xInv => clk2xInv,
@@ -202,10 +202,10 @@ begin
          -- IODELAY Ref. Clock and Reset
          refClk        => clk2x,
          refRst        => clk2xRst,
-         -- Non VC Rx Signals
+         -- Non VC RX Signals
          pgpRxIn       => PGP2B_RX_IN_INIT_C,
          pgpRxOut      => pgpRxOut,
-         -- Non VC Tx Signals
+         -- Non VC TX Signals
          pgpTxIn       => PGP2B_TX_IN_INIT_C,
          pgpTxOut      => pgpTxOut,
          -- Frame Transmit Interface - Array of 4 VCs

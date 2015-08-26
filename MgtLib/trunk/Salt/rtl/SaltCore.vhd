@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2015-08-10
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,9 +58,9 @@ entity SaltCore is
       txClk      : in  sl;
       txRst      : in  sl;
       rxClkEn    : out sl;
-      rxClk      : in  sl;              -- Equal frequecy of txClk (independent of txClk phase)
-      rxClk2x    : in  sl;              -- Twice the frequecy of rxClk (independent of rxClk phase)
-      rxClk2xInv : in  sl;              -- Twice the frequecy of rxClk (180 phase of rxClk2x)
+      rxClk      : in  sl;              -- Equal frequency of txClk (independent of txClk phase)
+      rxClk2x    : in  sl;              -- Twice the frequency of rxClk (independent of rxClk phase)
+      rxClk2xInv : in  sl;              -- Twice the frequency of rxClk (180 phase of rxClk2x)
       rxRst      : in  sl);
 end SaltCore;
 

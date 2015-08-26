@@ -5,11 +5,11 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-10
--- Last update: 2015-08-10
+-- Last update: 2015-08-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: PGP wraper for SALT
+-- Description: PGP wrapper for SALT
 -------------------------------------------------------------------------------
 -- Copyright (c) 2014 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -45,21 +45,21 @@ entity Pgp2bSalt is
       -- RX Serial Stream
       rxP              : in  sl;
       rxN              : in  sl;
-      -- Tx Clocking
+      -- TX Clocking
       pgpTxClk         : in  sl;
       pgpTxRst         : in  sl;
-      -- Rx clocking
-      pgpRxClk         : in  sl;  -- Equal frequecy of pgpTxClk (independent of pgpTxClk phase)
-      pgpRxClk2x       : in  sl;  -- Twice the frequecy of pgpRxClk (independent of pgpRxClk phase)
-      pgpRxClk2xInv    : in  sl;        -- Twice the frequecy of pgpRxClk (180 phase of pgpRxClk2x)
+      -- RX clocking
+      pgpRxClk         : in  sl;  -- Equal frequency of pgpTxClk (independent of pgpTxClk phase)
+      pgpRxClk2x       : in  sl;  -- Twice the frequency of pgpRxClk (independent of pgpRxClk phase)
+      pgpRxClk2xInv    : in  sl;        -- Twice the frequency of pgpRxClk (180 phase of pgpRxClk2x)
       pgpRxRst         : in  sl;
       -- IODELAY Ref. Clock and Reset
       refClk           : in  sl;
       refRst           : in  sl;
-      -- Non VC Rx Signals
+      -- Non VC RX Signals
       pgpRxIn          : in  Pgp2bRxInType;
       pgpRxOut         : out Pgp2bRxOutType;
-      -- Non VC Tx Signals
+      -- Non VC TX Signals
       pgpTxIn          : in  Pgp2bTxInType;
       pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - Array of 4 VCs
