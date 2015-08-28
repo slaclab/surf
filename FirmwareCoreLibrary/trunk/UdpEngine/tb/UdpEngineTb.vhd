@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-17
--- Last update: 2015-08-25
+-- Last update: 2015-08-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,8 +39,8 @@ architecture testbed of UdpEngineTb is
    constant VID_C  : slv(15 downto 0) := x"0000";
 
    constant PROTOCOL_C         : Slv8Array(0 downto 0) := (0 => UDP_C);
-   constant SERVER_PORTS_C     : NaturalArray          := (0 => 8192);
-   constant CLIENT_PORTS_C     : NaturalArray          := (0 => 8193);
+   constant SERVER_PORTS_C     : PositiveArray         := (0 => 8192);
+   constant CLIENT_PORTS_C     : PositiveArray         := (0 => 8193);
    constant SIM_ERROR_HALT_C   : boolean               := true;
    constant TX_CALC_CHECKSUM_C : boolean               := true;
 
@@ -94,25 +94,24 @@ begin
    UdpEngine_Remote : entity work.UdpEngine
       generic map (
          -- Simulation Generics
-         TPD_G               => TPD_C,
-         SIM_ERROR_HALT_G    => SIM_ERROR_HALT_C,
+         TPD_G              => TPD_C,
+         SIM_ERROR_HALT_G   => SIM_ERROR_HALT_C,
          -- UDP General Generic
-         MAX_DATAGRAM_SIZE_G => 1440,   -- In units of bytes
-         RX_FORWARD_EOFE_G   => false,
-         TX_FORWARD_EOFE_G   => false,
-         TX_CALC_CHECKSUM_G  => TX_CALC_CHECKSUM_C,
+         RX_FORWARD_EOFE_G  => false,
+         TX_FORWARD_EOFE_G  => false,
+         TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_C,
          -- UDP Server Generics
-         SERVER_EN_G         => true,
-         SERVER_SIZE_G       => 1,
-         SERVER_PORTS_G      => SERVER_PORTS_C,
+         SERVER_EN_G        => true,
+         SERVER_SIZE_G      => 1,
+         SERVER_PORTS_G     => SERVER_PORTS_C,
          -- UDP Client Generics
-         CLIENT_EN_G         => true,
-         CLIENT_SIZE_G       => 1,
-         CLIENT_PORTS_G      => CLIENT_PORTS_C,
+         CLIENT_EN_G        => true,
+         CLIENT_SIZE_G      => 1,
+         CLIENT_PORTS_G     => CLIENT_PORTS_C,
          -- UDP ARP Generics
-         CLK_FREQ_G          => 156.25E+06,  -- In units of Hz
-         COMM_TIMEOUT_EN_G   => true,   -- Disable the timeout by setting to false
-         COMM_TIMEOUT_G      => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
+         CLK_FREQ_G         => 156.25E+06,  -- In units of Hz
+         COMM_TIMEOUT_EN_G  => true,    -- Disable the timeout by setting to false
+         COMM_TIMEOUT_G     => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
       port map (
          -- Local Configurations
          localIp            => REMOTE_IP_C,
@@ -265,25 +264,24 @@ begin
    UdpEngine_Local : entity work.UdpEngine
       generic map (
          -- Simulation Generics
-         TPD_G               => TPD_C,
-         SIM_ERROR_HALT_G    => SIM_ERROR_HALT_C,
+         TPD_G              => TPD_C,
+         SIM_ERROR_HALT_G   => SIM_ERROR_HALT_C,
          -- UDP General Generic
-         MAX_DATAGRAM_SIZE_G => 1440,   -- In units of bytes
-         RX_FORWARD_EOFE_G   => false,
-         TX_FORWARD_EOFE_G   => false,
-         TX_CALC_CHECKSUM_G  => TX_CALC_CHECKSUM_C,
+         RX_FORWARD_EOFE_G  => false,
+         TX_FORWARD_EOFE_G  => false,
+         TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_C,
          -- UDP Server Generics
-         SERVER_EN_G         => true,
-         SERVER_SIZE_G       => 1,
-         SERVER_PORTS_G      => SERVER_PORTS_C,
+         SERVER_EN_G        => true,
+         SERVER_SIZE_G      => 1,
+         SERVER_PORTS_G     => SERVER_PORTS_C,
          -- UDP Client Generics
-         CLIENT_EN_G         => true,
-         CLIENT_SIZE_G       => 1,
-         CLIENT_PORTS_G      => CLIENT_PORTS_C,
+         CLIENT_EN_G        => true,
+         CLIENT_SIZE_G      => 1,
+         CLIENT_PORTS_G     => CLIENT_PORTS_C,
          -- UDP ARP Generics
-         CLK_FREQ_G          => 156.25E+06,  -- In units of Hz
-         COMM_TIMEOUT_EN_G   => true,   -- Disable the timeout by setting to false
-         COMM_TIMEOUT_G      => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
+         CLK_FREQ_G         => 156.25E+06,  -- In units of Hz
+         COMM_TIMEOUT_EN_G  => true,    -- Disable the timeout by setting to false
+         COMM_TIMEOUT_G     => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
       port map (
          -- Local Configurations
          localIp            => LOCAL_IP_C,
