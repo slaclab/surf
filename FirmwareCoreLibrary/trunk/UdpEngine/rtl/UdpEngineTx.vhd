@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-26
+-- Last update: 2015-08-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,13 +28,13 @@ use work.UdpEnginePkg.all;
 entity UdpEngineTx is
    generic (
       -- Simulation Generics
-      TPD_G               : time     := 1 ns;
-      SIM_ERROR_HALT_G    : boolean  := false;
+      TPD_G              : time     := 1 ns;
+      SIM_ERROR_HALT_G   : boolean  := false;
       -- UDP General Generic
-      MAX_DATAGRAM_SIZE_G : positive := 1472;
-      TX_FORWARD_EOFE_G   : boolean  := false;
-      TX_CALC_CHECKSUM_G  : boolean  := true;
-      PORT_G              : natural  := 8192);
+      TX_MTU_G           : positive := 1500;
+      TX_FORWARD_EOFE_G  : boolean  := false;
+      TX_CALC_CHECKSUM_G : boolean  := true;
+      PORT_G             : natural  := 8192);
    port (
       -- Interface to IPV4 Engine  
       obUdpMaster : out AxiStreamMasterType;
@@ -55,8 +55,9 @@ architecture rtl of UdpEngineTx is
 
    -- Add a padding of 128 bytes to prevent buffer back pressuring
    -- Divide by 16 because 16 bytes per 128-bit word
-   constant FIFO_ADDR_SIZE_C  : natural  := (MAX_DATAGRAM_SIZE_G+128)/16;
-   constant FIFO_ADDR_WIDTH_C : positive := bitSize(FIFO_ADDR_SIZE_C-1);
+   constant MAX_DATAGRAM_SIZE_C : positive := TX_MTU_G-40;
+   constant FIFO_ADDR_SIZE_C    : natural  := (MAX_DATAGRAM_SIZE_C+128)/16;
+   constant FIFO_ADDR_WIDTH_C   : positive := bitSize(FIFO_ADDR_SIZE_C-1);
 
    type StateType is (
       IDLE_S,
@@ -71,7 +72,7 @@ architecture rtl of UdpEngineTx is
    type RegType is record
       flushBuffer : sl;
       eofe        : sl;
-      rxByteCnt   : natural range 0 to 2*MAX_DATAGRAM_SIZE_G;
+      rxByteCnt   : natural range 0 to 2*MAX_DATAGRAM_SIZE_C;
       tKeep       : slv(15 downto 0);
       tData       : slv(127 downto 0);
       tLast       : sl;
@@ -342,11 +343,11 @@ begin
                   r.ibChecksum,
                   v.checksum);                 
                -- Check for tLast
-               if (ibMaster.tLast = '1') or (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
+               if (ibMaster.tLast = '1') or (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
                   -- Update the EOFE bit
                   v.eofe := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibMaster);
                   -- Check for overflow
-                  if (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
+                  if (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
                      v.eofe := '1';
                   end if;
                   -- Check the leftover tKeep is not empty
@@ -386,7 +387,7 @@ begin
                   r.ibChecksum,
                   v.checksum);   
                -- Check for overflow
-               if (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
+               if (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
                   v.eofe := '1';
                end if;
                -- Next state

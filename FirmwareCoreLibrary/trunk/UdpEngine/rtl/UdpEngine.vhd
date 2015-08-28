@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-25
+-- Last update: 2015-08-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,25 +23,27 @@ use work.AxiStreamPkg.all;
 entity UdpEngine is
    generic (
       -- Simulation Generics
-      TPD_G               : time         := 1 ns;
-      SIM_ERROR_HALT_G    : boolean      := false;
+      TPD_G              : time          := 1 ns;
+      SIM_ERROR_HALT_G   : boolean       := false;
       -- UDP General Generic
-      MAX_DATAGRAM_SIZE_G : positive     := 1472;  -- Default = MAX Payload of 1500 Bytes - 20 Byte IPv4 header - 4 byte UDP header
-      RX_FORWARD_EOFE_G   : boolean      := false;
-      TX_FORWARD_EOFE_G   : boolean      := false;
-      TX_CALC_CHECKSUM_G  : boolean      := true;
+      RX_MTU_G           : positive      := 1500;
+      RX_FORWARD_EOFE_G  : boolean       := false;
+      TX_FORWARD_EOFE_G  : boolean       := false;
+      TX_CALC_CHECKSUM_G : boolean       := true;
       -- UDP Server Generics
-      SERVER_EN_G         : boolean      := true;
-      SERVER_SIZE_G       : positive     := 1;
-      SERVER_PORTS_G      : NaturalArray := (0 => 8192);
+      SERVER_EN_G        : boolean       := true;
+      SERVER_SIZE_G      : positive      := 1;
+      SERVER_PORTS_G     : PositiveArray := (0 => 8192);
+      SERVER_MTU_G       : PositiveArray := (0 => 1500);
       -- UDP Client Generics
-      CLIENT_EN_G         : boolean      := true;
-      CLIENT_SIZE_G       : positive     := 1;
-      CLIENT_PORTS_G      : NaturalArray := (0 => 8193);
+      CLIENT_EN_G        : boolean       := true;
+      CLIENT_SIZE_G      : positive      := 1;
+      CLIENT_PORTS_G     : PositiveArray := (0 => 8193);
+      CLIENT_MTU_G       : PositiveArray := (0 => 1500);
       -- UDP ARP Generics
-      CLK_FREQ_G          : real         := 156.25E+06;             -- In units of Hz
-      COMM_TIMEOUT_EN_G   : boolean      := true;  -- Disable the timeout by setting to false
-      COMM_TIMEOUT_G      : positive     := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing
+      CLK_FREQ_G         : real          := 156.25E+06;             -- In units of Hz
+      COMM_TIMEOUT_EN_G  : boolean       := true;  -- Disable the timeout by setting to false
+      COMM_TIMEOUT_G     : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing
    port (
       -- Local Configurations
       localIp          : in  slv(31 downto 0);    --  big-Endian configuration
@@ -97,16 +99,16 @@ begin
 
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
-         TPD_G               => TPD_G,
-         SIM_ERROR_HALT_G    => SIM_ERROR_HALT_G,
-         MAX_DATAGRAM_SIZE_G => MAX_DATAGRAM_SIZE_G,
-         RX_FORWARD_EOFE_G   => RX_FORWARD_EOFE_G,
-         SERVER_EN_G         => SERVER_EN_G,
-         SERVER_SIZE_G       => SERVER_SIZE_G,
-         SERVER_PORTS_G      => SERVER_PORTS_G,
-         CLIENT_EN_G         => CLIENT_EN_G,
-         CLIENT_SIZE_G       => CLIENT_SIZE_G,
-         CLIENT_PORTS_G      => CLIENT_PORTS_G) 
+         TPD_G             => TPD_G,
+         SIM_ERROR_HALT_G  => SIM_ERROR_HALT_G,
+         RX_MTU_G          => RX_MTU_G,
+         RX_FORWARD_EOFE_G => RX_FORWARD_EOFE_G,
+         SERVER_EN_G       => SERVER_EN_G,
+         SERVER_SIZE_G     => SERVER_SIZE_G,
+         SERVER_PORTS_G    => SERVER_PORTS_G,
+         CLIENT_EN_G       => CLIENT_EN_G,
+         CLIENT_SIZE_G     => CLIENT_SIZE_G,
+         CLIENT_PORTS_G    => CLIENT_PORTS_G) 
       port map (
          -- Interface to IPV4 Engine  
          ibUdpMaster      => ibUdpMaster,
@@ -131,12 +133,12 @@ begin
       for i in (SERVER_SIZE_G-1) downto 0 generate
          U_UdpEngineTx : entity work.UdpEngineTx
             generic map (
-               TPD_G               => TPD_G,
-               SIM_ERROR_HALT_G    => SIM_ERROR_HALT_G,
-               MAX_DATAGRAM_SIZE_G => MAX_DATAGRAM_SIZE_G,
-               TX_FORWARD_EOFE_G   => TX_FORWARD_EOFE_G,
-               TX_CALC_CHECKSUM_G  => TX_CALC_CHECKSUM_G,
-               PORT_G              => SERVER_PORTS_G(i))    
+               TPD_G              => TPD_G,
+               SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
+               TX_MTU_G           => SERVER_MTU_G(i),
+               TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
+               TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+               PORT_G             => SERVER_PORTS_G(i))    
             port map (
                -- Interface to IPV4 Engine  
                obUdpMaster => serverMasters(i),
@@ -161,9 +163,8 @@ begin
       MULTI_SERVER : if (SERVER_SIZE_G > 1) generate
          U_AxiStreamMux : entity work.AxiStreamMux
             generic map (
-               TPD_G         => TPD_G,
-               NUM_SLAVES_G  => SERVER_SIZE_G,
-               PIPE_STAGES_G => 2)      -- mux be > 1 if cascading muxes
+               TPD_G        => TPD_G,
+               NUM_SLAVES_G => SERVER_SIZE_G)
             port map (
                -- Clock and reset
                axisClk      => clk,
@@ -205,12 +206,12 @@ begin
       for i in (CLIENT_SIZE_G-1) downto 0 generate
          U_UdpEngineTx : entity work.UdpEngineTx
             generic map (
-               TPD_G               => TPD_G,
-               SIM_ERROR_HALT_G    => SIM_ERROR_HALT_G,
-               MAX_DATAGRAM_SIZE_G => MAX_DATAGRAM_SIZE_G,
-               TX_FORWARD_EOFE_G   => TX_FORWARD_EOFE_G,
-               TX_CALC_CHECKSUM_G  => TX_CALC_CHECKSUM_G,
-               PORT_G              => CLIENT_PORTS_G(i))    
+               TPD_G              => TPD_G,
+               SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
+               TX_MTU_G           => CLIENT_MTU_G(i),
+               TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
+               TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+               PORT_G             => CLIENT_PORTS_G(i))    
             port map (
                -- Interface to IPV4 Engine  
                obUdpMaster => clientMasters(i),
@@ -235,9 +236,8 @@ begin
       MULTI_CLIENT : if (CLIENT_SIZE_G > 1) generate
          U_AxiStreamMux : entity work.AxiStreamMux
             generic map (
-               TPD_G         => TPD_G,
-               NUM_SLAVES_G  => CLIENT_SIZE_G,
-               PIPE_STAGES_G => 2)      -- mux be > 1 if cascading muxes
+               TPD_G        => TPD_G,
+               NUM_SLAVES_G => CLIENT_SIZE_G)
             port map (
                -- Clock and reset
                axisClk      => clk,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-26
+-- Last update: 2015-08-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,19 +28,19 @@ use work.UdpEnginePkg.all;
 entity UdpEngineRx is
    generic (
       -- Simulation Generics
-      TPD_G               : time         := 1 ns;
-      SIM_ERROR_HALT_G    : boolean      := false;
+      TPD_G             : time          := 1 ns;
+      SIM_ERROR_HALT_G  : boolean       := false;
       -- UDP General Generic
-      MAX_DATAGRAM_SIZE_G : positive     := 1472;
-      RX_FORWARD_EOFE_G   : boolean      := false;
+      RX_MTU_G          : positive      := 1500;
+      RX_FORWARD_EOFE_G : boolean       := false;
       -- UDP Server Generics
-      SERVER_EN_G         : boolean      := true;
-      SERVER_SIZE_G       : positive     := 1;
-      SERVER_PORTS_G      : NaturalArray := (0 => 8192);
+      SERVER_EN_G       : boolean       := true;
+      SERVER_SIZE_G     : positive      := 1;
+      SERVER_PORTS_G    : PositiveArray := (0 => 8192);
       -- UDP Client Generics
-      CLIENT_EN_G         : boolean      := true;
-      CLIENT_SIZE_G       : positive     := 1;
-      CLIENT_PORTS_G      : NaturalArray := (0 => 8193));
+      CLIENT_EN_G       : boolean       := true;
+      CLIENT_SIZE_G     : positive      := 1;
+      CLIENT_PORTS_G    : PositiveArray := (0 => 8193));
    port (
       -- Interface to IPV4 Engine  
       ibUdpMaster      : in  AxiStreamMasterType;
@@ -64,9 +64,10 @@ architecture rtl of UdpEngineRx is
 
    -- Add a padding of 128 bytes to prevent buffer back pressuring
    -- Divide by 16 because 16 bytes per 128-bit word
-   constant FIFO_ADDR_SIZE_C  : natural  := (MAX_DATAGRAM_SIZE_G+128)/16;
-   constant FIFO_ADDR_WIDTH_C : positive := bitSize(FIFO_ADDR_SIZE_C-1);
-   constant UDP_HDR_OFFSET_C  : positive := 8;
+   constant MAX_DATAGRAM_SIZE_C : positive := RX_MTU_G-40;
+   constant FIFO_ADDR_SIZE_C    : natural  := (MAX_DATAGRAM_SIZE_C+128)/16;
+   constant FIFO_ADDR_WIDTH_C   : positive := bitSize(FIFO_ADDR_SIZE_C-1);
+   constant UDP_HDR_OFFSET_C    : positive := 8;
 
    type StateType is (
       IDLE_S,
@@ -81,7 +82,7 @@ architecture rtl of UdpEngineRx is
       flushBuffer      : sl;
       udpPortDet       : sl;
       eofe             : sl;
-      rxByteCnt        : natural range 0 to 2*MAX_DATAGRAM_SIZE_G;
+      rxByteCnt        : natural range 0 to 2*MAX_DATAGRAM_SIZE_C;
       serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
       serverRemoteIp   : Slv32Array(SERVER_SIZE_G-1 downto 0);
       serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
@@ -445,13 +446,13 @@ begin
                -- Track the number of bytes received
                v.rxByteCnt := r.rxByteCnt + getTKeep(v.sMaster.tKeep);
                -- Check for tLast
-               if (rxMaster.tLast = '1') or (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
+               if (rxMaster.tLast = '1') or (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
                   -- Zero out unused data field
                   v.tData(127 downto 32) := (others => '0');
                   -- Update the EOFE bit
                   v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                   -- Check for overflow
-                  if (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
+                  if (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
                      v.eofe := '1';
                   end if;
                   -- Check the leftover tKeep is not empty
@@ -481,7 +482,7 @@ begin
                -- Track the number of bytes received
                v.rxByteCnt := r.rxByteCnt + getTKeep(v.tKeep);
                -- Check for overflow
-               if (v.rxByteCnt > MAX_DATAGRAM_SIZE_G) then
+               if (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
                   v.eofe := '1';
                end if;
                -- Process checksum
