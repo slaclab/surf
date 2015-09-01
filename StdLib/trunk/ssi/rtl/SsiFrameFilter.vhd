@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-03-24
+-- Last update: 2015-09-01
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -96,69 +96,64 @@ begin
          -- Reset strobe Signals
          v.wordDropped  := '0';
          v.frameDropped := '0';
-
-         -- Check if target is ready
+         v.slave        := AXI_STREAM_SLAVE_INIT_C;
          if mAxisSlave.tReady = '1' then
+            v.master.tValid := '0';
+         end if;
 
-            --  Move the data bus
+         -- Check if ready to move data
+         if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+            -- Accept the data
             v.slave.tReady := '1';
+            -- Move the data bus
             v.master       := sAxisMaster;
-
-            -- Check for data being moved
-            if sAxisMaster.tValid = '1' then
-
-               -- State Machine
-               case (r.state) is
-                  ----------------------------------------------------------------------
-                  when IDLE_S =>
-                     -- Check for SOF
-                     if ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1' then
-                        -- Latch tDest
-                        v.tDest := sAxisMaster.tDest;
-                        -- Check for no EOF
-                        if sAxisMaster.tLast = '0' then
-                           -- Next state
-                           v.state := MOVE_S;
-                        end if;
-                     else
-                        -- Blow off the data
-                        v.master.tValid := '0';
-                        -- Strobe the error flags
-                        v.wordDropped   := '1';
-                        -- Check for EOF flag 
-                        if sAxisMaster.tLast = '1' then
-                           v.frameDropped := '1';
-                        end if;
-                     end if;
-                  ----------------------------------------------------------------------
-                  when MOVE_S =>
-                     -- Force the tDest
-                     v.master.tDest := r.tDest;
-                     -- Check for EOF   
-                     if sAxisMaster.tLast = '1' then
-                        -- Next state
-                        v.state := IDLE_S;
-                     end if;
-                     -- Check for SSI framing errors
-                     if (ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1') or  -- Check for invalid SOF
-                                          (r.tDest /= sAxisMaster.tDest) then  -- Check for change in tDest
-                        -- Set the EOF flag
-                        v.master.tLast := '1';
-                        -- Set the EOFE flag
-                        ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
-                        -- Strobe the error flags
-                        v.wordDropped  := '1';
-                        v.frameDropped := sAxisMaster.tLast;
-                        -- Next state
-                        v.state        := IDLE_S;
-                     end if;
+            -- State Machine
+            case (r.state) is
                ----------------------------------------------------------------------
-               end case;
-            end if;
-
-         else
-            -- Halt the data bus
-            v.slave.tReady := '0';
+               when IDLE_S =>
+                  -- Check for SOF
+                  if ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1' then
+                     -- Latch tDest
+                     v.tDest := sAxisMaster.tDest;
+                     -- Check for no EOF
+                     if sAxisMaster.tLast = '0' then
+                        -- Next state
+                        v.state := MOVE_S;
+                     end if;
+                  else
+                     -- Blow off the data
+                     v.master.tValid := '0';
+                     -- Strobe the error flags
+                     v.wordDropped   := '1';
+                     -- Check for EOF flag 
+                     if sAxisMaster.tLast = '1' then
+                        v.frameDropped := '1';
+                     end if;
+                  end if;
+               ----------------------------------------------------------------------
+               when MOVE_S =>
+                  -- Force the tDest
+                  v.master.tDest := r.tDest;
+                  -- Check for EOF   
+                  if sAxisMaster.tLast = '1' then
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
+                  -- Check for SSI framing errors
+                  if (ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1') or   -- Check for invalid SOF
+                                       (r.tDest /= sAxisMaster.tDest) then  -- Check for change in tDest
+                     -- Set the EOF flag
+                     v.master.tLast := '1';
+                     -- Set the EOFE flag
+                     ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+                     -- Strobe the error flags
+                     v.wordDropped  := '1';
+                     v.frameDropped := sAxisMaster.tLast;
+                     -- Next state
+                     v.state        := IDLE_S;
+                  end if;
+            ----------------------------------------------------------------------
+            end case;
          end if;
 
          -- Synchronous Reset
