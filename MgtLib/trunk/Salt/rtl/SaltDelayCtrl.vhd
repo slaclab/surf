@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-16
--- Last update: 2015-08-10
+-- Last update: 2015-09-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,22 +27,22 @@ entity SaltDelayCtrl is
       TPD_G           : time   := 1 ns;
       IODELAY_GROUP_G : string := "SALT_IODELAY_GRP");   
    port (
-      ready  : out sl;
-      refclk : in  sl;
-      refRst : in  sl);      
+      iDelayCtrlRdy : out sl;
+      clk5x         : in  sl;
+      clk5xRst      : in  sl);      
 end SaltDelayCtrl;
 
 architecture mapping of SaltDelayCtrl is
    
-   attribute IODELAY_GROUP                    : string;
-   attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
+   attribute IODELAY_GROUP                          : string;
+   attribute IODELAY_GROUP of SALT_IDELAY_CTRL_Inst : label is IODELAY_GROUP_G;
    
 begin
    
-   IDELAYCTRL_Inst : IDELAYCTRL
+   SALT_IDELAY_CTRL_Inst : IDELAYCTRL
       port map (
-         RDY    => ready,               -- 1-bit output: Ready output
-         REFCLK => refclk,              -- 1-bit input: Reference clock input
-         RST    => refRst);             -- 1-bit input: Active high reset input
+         RDY    => iDelayCtrlRdy,       -- 1-bit output: Ready output
+         REFCLK => clk5x,               -- 1-bit input: Reference clock input
+         RST    => clk5xRst);           -- 1-bit input: Active high reset input
 
 end mapping;
