@@ -79,6 +79,9 @@ end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
 
+   constant WR_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
+   constant RD_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
+
    -- Use wider of two interfaces
    constant DATA_BYTES_C : integer := maximum(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
    constant DATA_BITS_C  : integer := (DATA_BYTES_C * 8);
@@ -89,7 +92,7 @@ architecture rtl of AxiStreamFifo is
                                            ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
 
    -- User user bit mode of slave
-   constant USER_MODE_C : TUserModeType := SLAVE_AXI_CONFIG_G.TUSER_MODE_C;
+   constant USER_MODE_C : TUserModeType := ite( ((WR_BYTES_C = 1) or (RD_BYTES_C = 1)), TUSER_NORMAL_C ,SLAVE_AXI_CONFIG_G.TUSER_MODE_C);
 
    -- Use whichever interface has the least number of user bits
    constant SLAVE_USER_BITS_C  : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
@@ -107,8 +110,7 @@ architecture rtl of AxiStreamFifo is
 
    constant FIFO_BITS_C : integer := 1 + DATA_BITS_C + KEEP_BITS_C + FIFO_USER_TOT_C + STRB_BITS_C + DEST_BITS_C + ID_BITS_C;
 
-   constant WR_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
-   constant RD_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
+
 
    -- Convert record to slv
    function iAxiToSlv (din : AxiStreamMasterType) return slv is

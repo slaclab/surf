@@ -147,6 +147,7 @@ package AxiStreamPkg is
       bytePos    : in    integer := -1);  -- -1 = last
 
    function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;
+   function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
 
    function genTKeep (
       bytes : integer range 0 to 16)
@@ -263,6 +264,11 @@ package body AxiStreamPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
+   function ite (i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;   
+   
    function genTKeep (
       bytes : integer range 0 to 16)
       return slv
