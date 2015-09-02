@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2015-08-10
+-- Last update: 2015-09-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -16,137 +16,88 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
-
-library UNISIM;
-use UNISIM.vcomponents.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 
 entity SaltTx is
    generic (
-      TPD_G       : time     := 1 ns;
-      NUM_BYTES_G : positive := 2);
+      TPD_G              : time                := 1 ns;
+      COMMON_TX_CLK_G    : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
+      SLAVE_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
    port (
       -- TX Serial Stream
-      txP        : out sl;
-      txN        : out sl;
-      txInv      : in  sl := '0';
-      -- TX Parallel 8B/10B data bus
-      txDataIn   : in  slv(NUM_BYTES_G*8-1 downto 0);
-      txDataKIn  : in  slv(NUM_BYTES_G-1 downto 0);
-      txPhyReady : out sl;
-      -- Clock and Reset
-      txClkEn    : out sl;
-      txClk      : in  sl;
-      txRst      : in  sl);
+      txP         : out sl;
+      txN         : out sl;
+      -- Reference Signals
+      clk         : in  sl;
+      clk2p5x     : in  sl;
+      clk5x       : in  sl;
+      rst         : in  sl;
+      -- Slave Port
+      sAxisClk    : in  sl;
+      sAxisRst    : in  sl;
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType);
 end SaltTx;
 
-architecture rtl of SaltTx is
-   constant MAX_CNT_C : natural := NUM_BYTES_G*10-1;
+architecture mapping of SaltTx is
 
-   type RegType is record
-      txPhyReady : sl;
-      txClkEn    : sl;
-      tx         : sl;
-      cnt        : natural range 0 to MAX_CNT_C;
-      txData     : slv(MAX_CNT_C downto 0);
-   end record RegType;
-   
-   constant REG_INIT_C : RegType := (
-      txPhyReady => '0',
-      txClkEn    => '0',
-      tx         => '0',
-      cnt        => 0,
-      txData     => (others => '0'));
+   signal dataK   : sl;
+   signal data8B  : slv(7 downto 0);
+   signal data10B : slv(9 downto 0);
 
-   signal r      : RegType := REG_INIT_C;
-   signal rin    : RegType;
-   signal txData : slv(MAX_CNT_C downto 0);
+   component SaltTxSerdes
+      port (
+         dataout_p  : out sl;
+         dataout_n  : out sl;
+         datain     : in  slv(9 downto 0);
+         txclk      : in  sl;
+         inter_clk  : in  sl;
+         system_clk : in  sl;
+         reset      : in  sl);
+   end component;
    
 begin
 
-   OBUFDS_Inst : OBUFDS
+   SaltTxFifo_Inst : entity work.SaltTxFifo
+      generic map (
+         TPD_G              => TPD_G,
+         COMMON_TX_CLK_G    => COMMON_TX_CLK_G,
+         SLAVE_AXI_CONFIG_G => SLAVE_AXI_CONFIG_G)
       port map (
-         I  => r.tx,
-         O  => txP,
-         OB => txN);
+         -- TX Parallel Stream
+         dataK       => dataK,
+         data8B      => data8B,
+         -- Reference Signals
+         clk         => clk,
+         rst         => rst,
+         -- Slave Port
+         sAxisClk    => sAxisClk,
+         sAxisRst    => sAxisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave);
 
    Encoder8b10b_Inst : entity work.Encoder8b10b
       generic map (
          TPD_G       => TPD_G,
-         NUM_BYTES_G => NUM_BYTES_G)
+         NUM_BYTES_G => 1)
       port map (
-         clkEn   => r.txClkEn,
-         clk     => txClk,
-         rst     => txRst,
-         dataIn  => txDataIn,
-         dataKIn => txDataKIn,
-         dataOut => txData); 
+         clk        => clk,
+         rst        => rst,
+         dataIn     => data8B,
+         dataKIn(0) => dataK,
+         dataOut    => data10B); 
 
-   comb : process (r, txData, txInv, txRst) is
-      variable v : RegType;
-      variable i : natural;
-   begin
-      -- Latch the current value
-      v := r;
+   SERDES_Inst : SaltTxSerdes
+      port map (
+         dataout_p  => txP,
+         dataout_n  => txN,
+         datain     => data10B,
+         txclk      => clk5x,           -- 625 MHz
+         inter_clk  => clk2p5x,         -- 312.5 MHz
+         system_clk => clk,             -- 125 MHz       
+         reset      => rst); 
 
-      -- Reset the flags
-      v.txClkEn := '0';
-
-      -- Increment the counter
-      v.cnt := r.cnt + 1;
-
-      -- Check the counter
-      if r.cnt = MAX_CNT_C then
-         -- Set the flag
-         v.txClkEn := '1';
-         -- Reset the counter
-         v.cnt     := 0;
-         -- Check for Synchronous Reset      
-         if txRst = '1' then
-            v.txPhyReady := '0';
-            -- Generate clock pattern (DC balancing during reset)
-            for i in MAX_CNT_C downto 0 loop
-               if ((i mod 2) = 0) then
-                  v.txData(i) := '0';
-               else
-                  v.txData(i) := '1';
-               end if;
-            end loop;
-         else
-            v.txPhyReady := '1';
-            v.txData     := txData;
-         end if;
-      end if;
-
-      -- Serialize the data (LSB first)
-      if txInv = '0' then
-         v.tx := r.txData(r.cnt);
-      else
-         v.tx := not(r.txData(r.cnt));
-      end if;
-
-      -- Synchronous Reset      
-      if txRst = '1' then
-         v.txPhyReady := '0';
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-      -- Outputs 
-      txPhyReady <= r.txPhyReady;
-      txClkEn    <= r.txClkEn;
-      
-   end process comb;
-
-   seq : process (txClk) is
-   begin
-      if rising_edge(txClk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
-end rtl;
+end mapping;
