@@ -1,3 +1,0 @@
-coregen/AtlasTtcTxEmuPll.xci
-coregen/AtlasTtcTxEncoder5Bits.xci
-coregen/AtlasTtcTxEncoder7Bits.xci

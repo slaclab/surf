@@ -1,7 +1,0 @@
-vhdl work rtl/AtlasTtcTxEmuV2.vhd
-vhdl work rtl/AtlasTtcTxEmuV2EngineA.vhd
-vhdl work rtl/AtlasTtcTxEmuV2EngineB.vhd
-vhdl work rtl/AtlasTtcTxEmuV2Pkg.vhd
-vhdl work rtl/AtlasTtcTxEmuV2Reg.vhd
-vhdl work rtl/AtlasTtcTxEmuV2TimeMux.vhd
-vhdl work rtl/AtlasTtcTxEncoder5BitsV2Wrapper.vhd
