@@ -2,3 +2,4 @@ vhdl work rtl/XMacCore.vhd
 vhdl work rtl/XMacPkg.vhd
 vhdl work rtl/XMacExport.vhd
 vhdl work rtl/XMacImport.vhd 
+vhdl work rtl/RawEthLoopBack.vhd 
