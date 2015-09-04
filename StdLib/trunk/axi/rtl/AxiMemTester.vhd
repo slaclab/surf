@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2015-08-06
+-- Last update: 2015-09-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,30 +31,30 @@ entity AxiMemTester is
       AXI_CONFIG_G : AxiConfigType);
    port (
       -- AXI-Lite Interface
-      axiLiteClk         : in  sl;
-      axiLiteRst         : in  sl;
-      axiLiteReadMaster  : in  AxiLiteReadMasterType;
-      axiLiteReadSlave   : out AxiLiteReadSlaveType;
-      axiLiteWriteMaster : in  AxiLiteWriteMasterType;
-      axiLiteWriteSlave  : out AxiLiteWriteSlaveType;
-      memReady           : out sl;
-      memError           : out sl;
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      memReady        : out sl;
+      memError        : out sl;
       -- DDR Memory Interface
-      axiClk             : in  sl;
-      axiRst             : in  sl;
-      start              : in  sl;
-      axiWriteMaster     : out AxiWriteMasterType;
-      axiWriteSlave      : in  AxiWriteSlaveType;
-      axiReadMaster      : out AxiReadMasterType;
-      axiReadSlave       : in  AxiReadSlaveType);
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      start           : in  sl;
+      axiWriteMaster  : out AxiWriteMasterType;
+      axiWriteSlave   : in  AxiWriteSlaveType;
+      axiReadMaster   : out AxiReadMasterType;
+      axiReadSlave    : in  AxiReadSlaveType);
 end AxiMemTester;
 
 architecture rtl of AxiMemTester is
 
-   constant START_C         : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := START_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-   constant START_ADDR_C    : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
-   constant STOP_C          : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-   constant STOP_ADDR_C     : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
+   constant START_C      : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := START_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
+   constant START_ADDR_C : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
+   constant STOP_C       : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
+   constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
    constant DATA_BITS_C : natural := 8*AXI_CONFIG_G.DATA_BYTES_C;
    constant BURST_LEN_C : natural := (4096/AXI_CONFIG_G.DATA_BYTES_C);  -- 4kB boundary
@@ -196,7 +196,7 @@ begin
                   -- Check for max. address 
                   if r.address = STOP_ADDR_C then
                      -- Reset the start address
-                     v.address                                       := (others=>'0');
+                     v.address                                       := (others => '0');
                      v.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := START_ADDR_C;
                      -- Set the flags
                      v.wTimerEn                                      := '0';
@@ -323,18 +323,18 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         axiClk         => axiLiteClk,
-         axiClkRst      => axiLiteRst,
-         axiReadMaster  => axiLiteReadMaster,
-         axiReadSlave   => axiLiteReadSlave,
-         axiWriteMaster => axiLiteWriteMaster,
-         axiWriteSlave  => axiLiteWriteSlave);  
+         axiClk         => axilClk,
+         axiClkRst      => axilRst,
+         axiReadMaster  => axilReadMaster,
+         axiReadSlave   => axilReadSlave,
+         axiWriteMaster => axilWriteMaster,
+         axiWriteSlave  => axilWriteSlave);  
 
    Sync_0 : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => axiLiteClk,
+         clk     => axilClk,
          dataIn  => r.done,
          dataOut => memReady);
 
@@ -342,7 +342,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => axiLiteClk,
+         clk     => axilClk,
          dataIn  => r.error,
          dataOut => memError);         
 
