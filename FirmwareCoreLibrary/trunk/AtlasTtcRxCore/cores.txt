@@ -1,0 +1,2 @@
+coregen/AtlasTtcRxDecoder5Bits.xci
+coregen/AtlasTtcRxDecoder7Bits.xci

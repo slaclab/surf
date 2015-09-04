@@ -1,0 +1,1 @@
+tb/core_holalsc_tb.vhd 

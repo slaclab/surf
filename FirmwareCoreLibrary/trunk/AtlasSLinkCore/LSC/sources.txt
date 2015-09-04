@@ -1,0 +1,8 @@
+vhdl work rtl/AtlasSLinkLsc.vhd
+vhdl work rtl/AtlasSLinkLscDmaMon.vhd
+vhdl work rtl/AtlasSLinkLscGtx7.vhd
+vhdl work rtl/AtlasSLinkLscPkg.vhd
+vhdl work rtl/AtlasSLinkLscReg.vhd
+vhdl work rtl/core_holalsc.vhd
+vhdl work rtl/tlk_gtx_interface.vhd
+vhdl work rtl/xfifolsc.vhd
