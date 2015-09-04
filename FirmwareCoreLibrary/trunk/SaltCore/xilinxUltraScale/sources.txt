@@ -1,0 +1,2 @@
+vhdl work rtl/SaltUltraScale.vhd
+vhdl work coregen/SaltUltraScaleCore.dcp 
