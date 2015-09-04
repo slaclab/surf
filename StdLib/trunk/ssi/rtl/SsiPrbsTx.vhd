@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2015-07-14
+-- Last update: 2015-09-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,6 +82,7 @@ architecture rtl of SsiPrbsTx is
    type RegType is record
       busy           : sl;
       overflow       : sl;
+      length         : slv(31 downto 0);
       packetLength   : slv(31 downto 0);
       dataCnt        : slv(31 downto 0);
       eventCnt       : slv(PRBS_SEED_SIZE_G-1 downto 0);
@@ -100,6 +101,7 @@ architecture rtl of SsiPrbsTx is
    constant REG_INIT_C : RegType := (
       busy           => '1',
       overflow       => '0',
+      length         => (others => '0'),
       packetLength   => (others => '0'),
       dataCnt        => (others => '0'),
       eventCnt       => (others => '0'),
@@ -170,7 +172,7 @@ begin
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved for oneShot
+            -- BIT4 reserved for oneShot
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
             when X"08" =>
@@ -226,10 +228,12 @@ begin
                -- Check the packet length request value
                if r.packetLength = 0 then
                   -- Force minimum packet length of 2 (+1)
-                  v.packetLength := toSlv(2, 32);
+                  v.length := toSlv(2, 32);
                elsif r.packetLength = 1 then
                   -- Force minimum packet length of 2 (+1)
-                  v.packetLength := toSlv(2, 32);
+                  v.length := toSlv(2, 32);
+               else
+                  v.length := r.packetLength;
                end if;
                -- Next State
                v.state := SEED_RAND_S;
@@ -259,7 +263,7 @@ begin
             if txCtrl.pause = '0' then
                -- Send the upper packetLength value
                v.txAxisMaster.tvalid             := '1';
-               v.txAxisMaster.tData(31 downto 0) := r.packetLength;
+               v.txAxisMaster.tData(31 downto 0) := r.length;
 
                -- Increment the counter
                v.dataCnt := r.dataCnt + 1;
@@ -279,7 +283,7 @@ begin
                -- Increment the counter
                v.dataCnt    := r.dataCnt + 1;
                -- Check the counter
-               if r.dataCnt = r.packetLength then
+               if r.dataCnt = r.length then
                   -- Reset the counter
                   v.dataCnt            := (others => '0');
                   -- Set the EOF bit                
