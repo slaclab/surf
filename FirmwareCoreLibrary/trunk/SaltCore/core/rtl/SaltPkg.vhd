@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-02
+-- Last update: 2015-09-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,14 +22,18 @@ use work.SsiPkg.all;
 
 package SaltPkg is
 
-   constant SSI_SALT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1);
+   constant SSI_GMII_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1);
+   constant SSI_SALT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
+   constant SALT_MAX_WORDS_C  : natural             := (1500/4);
+   constant INTER_GAP_SIZE_C  : natural             := 12;
 
-   -- 8B10B Characters
-   constant K_COM_C  : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC = Communication comma
-   constant K_SOC_C  : slv(7 downto 0) := "11111011";  -- K27.7, 0xFB = start of continuation (no SOF bit)
-   constant K_SOF_C  : slv(7 downto 0) := "11110111";  -- K23.7, 0xF7 = start of frame
-   constant K_EOF_C  : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD = end of frame
-   constant K_EOFE_C : slv(7 downto 0) := "11111110";  -- K30.7, 0xFE = end of frame w/ errors
-   constant K_EOC_C  : slv(7 downto 0) := "01011100";  -- K28.2, 0x5C = end of continuation (no EOF bit)  
+   constant SOF_C  : slv(31 downto 0) := x"BBBBBBBB";  -- SOF  = start of frame
+   constant SOC_C  : slv(31 downto 0) := x"CCCCCCCC";  -- SOC  = start of continuation
+   constant EOC_C  : slv(31 downto 0) := x"DDDDDDDD";  -- EOC  = end of continuation
+   constant EOF_C  : slv(31 downto 0) := x"EEEEEEEE";  -- EOF  = end of frame w/out errors
+   constant EOFE_C : slv(31 downto 0) := x"FFFFFFFF";  -- EOFE = end of frame w/ errors
+
+   constant PREAMBLE_C : slv(31 downto 0) := x"55555555";
+   constant SFD_C      : slv(31 downto 0) := x"D5555555";
    
 end package;

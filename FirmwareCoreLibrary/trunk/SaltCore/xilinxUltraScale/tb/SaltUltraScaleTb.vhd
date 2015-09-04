@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : SaltTb.vhd
+-- File       : SaltUltraScaleTb.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-10
--- Last update: 2015-08-25
+-- Created    : 2015-09-03
+-- Last update: 2015-09-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,19 +23,18 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.Pgp2bPkg.all;
 
-entity SaltTb is end SaltTb;
+entity SaltUltraScaleTb is end SaltUltraScaleTb;
 
-architecture testbed of SaltTb is
+architecture testbed of SaltUltraScaleTb is
 
    -- General Configurations
    constant CLK_PERIOD_C       : time             := 8 ns;
    constant TPD_C              : time             := 1 ns;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
    constant AXI_ERROR_RESP_C   : slv(1 downto 0)  := AXI_RESP_SLVERR_C;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(69, 32);
-   constant NUMBER_PACKET_C    : slv(31 downto 0) := x"000000FF";
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(1501, 32);
+   constant NUMBER_PACKET_C    : slv(31 downto 0) := x"0000001F";
 
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
@@ -57,12 +56,14 @@ architecture testbed of SaltTb is
    constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
    constant AXI_PIPE_STAGES_C   : natural             := 1;
 
-   signal clk      : sl := '0';
-   signal rst      : sl := '0';
-   signal clk2p5x    : sl := '0';
-   signal clk5x    : sl := '0';
-   signal clk5xRst    : sl := '0';
-   signal iDelayCtrlRdy    : sl := '0';
+   signal clk           : sl := '0';
+   signal rst           : sl := '0';
+   signal clk2p5x       : sl := '0';
+   signal clk5x         : sl := '0';
+   signal clk5xRst      : sl := '0';
+   signal iDelayCtrlRdy : sl := '0';
+   signal linkUp        : sl := '0';
+   signal mmcmLocked    : sl := '0';
 
    signal passed    : sl := '0';
    signal failed    : sl := '0';
@@ -76,6 +77,7 @@ architecture testbed of SaltTb is
    signal errDataBus      : sl := '0';
    signal errEofe         : sl := '0';
    signal updated         : sl := '0';
+   signal linkUpL         : sl := '0';
 
    signal errWordCnt : slv(31 downto 0) := (others => '0');
    signal errbitCnt  : slv(31 downto 0) := (others => '0');
@@ -131,8 +133,8 @@ begin
          IODELAY_GROUP_G => "SALT_IODELAY_GRP")
       port map (
          iDelayCtrlRdy => iDelayCtrlRdy,
-         clk5x         => clk5x,
-         clk5xRst      => clk5xRst);         
+         refClk        => clk5x,
+         refRst        => clk5xRst);         
 
    -----------------
    -- Data Generator
@@ -160,12 +162,12 @@ begin
       port map (
          -- Master Port (mAxisClk)
          mAxisClk     => clk,
-         mAxisRst     => rst,
+         mAxisRst     => linkUpL,
          mAxisMaster  => ibSaltMaster,
          mAxisSlave   => ibSaltSlave,
          -- Trigger Signal (locClk domain)
          locClk       => clk,
-         locRst       => rst,
+         locRst       => linkUpL,
          trig         => iDelayCtrlRdy,
          packetLength => TX_PACKET_LENGTH_C,
          forceEofe    => FORCE_EOFE_C,
@@ -173,10 +175,12 @@ begin
          tDest        => (others => '0'),
          tId          => (others => '0'));    
 
+   linkUpL <= not(linkUp);
+
    ----------------------         
    -- Module to be tested
    ----------------------   
-   SaltCore_Inst : entity work.SaltCore
+   SaltUltraScale_Inst : entity work.SaltUltraScale
       generic map (
          TPD_G               => TPD_C,
          TX_ENABLE_G         => true,
@@ -184,10 +188,7 @@ begin
          COMMON_TX_CLK_G     => true,   -- Set to true if sAxisClk and clk are the same clock
          COMMON_RX_CLK_G     => true,   -- Set to true if mAxisClk and clk are the same clock      
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4),
-         IODELAY_GROUP_G     => "SALT_IODELAY_GRP",
-         RXCLK5X_FREQ_G      => 625.0,  -- In units of MHz
-         XIL_DEVICE_G        => "ULTRASCALE")
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
          -- TX Serial Stream
          txP           => loopBackP,
@@ -196,11 +197,12 @@ begin
          rxP           => loopBackP,
          rxN           => loopBackN,
          -- Reference Signals
-         clk           => clk,
-         clk2p5x       => clk2p5x,
-         clk5x         => clk5x,
-         rst           => rst,
+         clk125MHz     => clk,
+         rst125MHz     => rst,
+         clk312MHz     => clk2p5x,
+         clk625MHz     => clk5x,
          iDelayCtrlRdy => iDelayCtrlRdy,
+         linkUp        => linkUp,
          -- Slave Port
          sAxisClk      => clk,
          sAxisRst      => rst,
@@ -210,7 +212,7 @@ begin
          mAxisClk      => clk,
          mAxisRst      => rst,
          mAxisMaster   => obSaltMaster,
-         mAxisSlave    => obSaltSlave);      
+         mAxisSlave    => obSaltSlave);    
 
    ---------------
    -- Data Checker
@@ -243,8 +245,8 @@ begin
          -- Streaming RX Data Interface (sAxisClk domain) 
          sAxisClk        => clk,
          sAxisRst        => rst,
-         sAxisMaster    => obSaltMaster,
-         sAxisSlave     => obSaltSlave,
+         sAxisMaster     => obSaltMaster,
+         sAxisSlave      => obSaltSlave,
          -- Optional: Streaming TX Data Interface (mAxisClk domain)
          mAxisClk        => clk,
          mAxisRst        => rst,

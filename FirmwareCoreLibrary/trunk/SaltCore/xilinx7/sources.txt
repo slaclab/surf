@@ -1,0 +1,2 @@
+vhdl work rtl/Salt7Series.vhd
+vhdl work coregen/Salt7SeriesCore.dcp 

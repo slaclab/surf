@@ -1,0 +1,4 @@
+vhdl work rtl/SaltDelayCtrl.vhd 
+vhdl work rtl/SaltPkg.vhd 
+vhdl work rtl/SaltRx.vhd 
+vhdl work rtl/SaltTx.vhd 
