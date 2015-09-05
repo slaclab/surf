@@ -67,7 +67,7 @@ entity SsiAxiLiteMaster is
       EN_32BIT_ADDR_G     : boolean                    := false;
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G      : boolean                    := true;  --if set to true, this module is only Xilinx compatible only!!!
+      USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       ALTERA_SYN_G        : boolean                    := false;
       ALTERA_RAM_G        : string                     := "M9K";
       GEN_SYNC_FIFO_G     : boolean                    := false;
