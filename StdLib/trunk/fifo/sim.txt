@@ -1,4 +1,0 @@
-tb/FifoAsyncBuiltInTb.vhd
-tb/FifoAsyncTb.vhd
-tb/FifoSyncBuiltInTb.vhd
-tb/FifoSyncTb.vhd

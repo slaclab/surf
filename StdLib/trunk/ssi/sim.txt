@@ -1,2 +1,0 @@
-vhdl work tb/SsiPrbsTb.vhd
-vhdl work tb/SsiFifoTb.vhd
