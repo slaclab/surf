@@ -1,2 +1,0 @@
-tb/SynchronizerFifoTb.vhd
-tb/SynchronizerOneShotTb.vhd
