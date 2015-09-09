@@ -1,4 +1,5 @@
 
+vhdl work rtl/UdpEngineWrapper.vhd
 vhdl work rtl/UdpEngine.vhd
 vhdl work rtl/UdpEnginePkg.vhd
 vhdl work rtl/UdpEngineRx.vhd
