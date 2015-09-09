@@ -86,13 +86,16 @@ set_msg_config -id {Timing 38-3} -new_severity INFO; #User defined clocks are co
 ## ********************************************************
 ## ********************************************************
 
-# Messages: Change from ERROR to WARNING
+# DRC: Change from ERROR to WARNING
 set_property SEVERITY {Warning} [get_drc_checks {REQP-52}]; # DRC: using the GTGREFCLK port on a MGT  (GTP7 & GTX7)
 set_property SEVERITY {Warning} [get_drc_checks {REQP-44}]; # DRC: using the GTGREFCLK port on a MGT  (GTH7)
 set_property SEVERITY {Warning} [get_drc_checks {REQP-46}]; # DRC: using the GTGREFCLK port on a QPLL (GTH7)
 set_property SEVERITY {Warning} [get_drc_checks {REQP-56}]; # DRC: using the GTGREFCLK port on a QPLL (GTX7)
 set_property SEVERITY {Warning} [get_drc_checks {REQP-49}]; # DRC: using the GTGREFCLK port on a QPLL (GTP7)
 set_property SEVERITY {Warning} [get_drc_checks {UCIO-1}];  # DRC: using the XADC's VP/VN ports
+
+# DRC: Change from CRITICAL_WARNING to WARNING
+set_property SEVERITY {Warning} [get_drc_checks NSTD-1];  # DRC: I/O standard (IOSTANDARD) value 'DEFAULT', instead of a user assigned specific value
 
 # Messages: Change from ERROR to CRITICAL_WARNING
 # TBD Place holder
