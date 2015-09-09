@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-07
--- Last update: 2015-04-28
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ entity ClkOutBufSingle is
       INVERT_G       : boolean := false);
    port (
       rstIn  : in  sl := not RST_POLARITY_G;  -- Optional reset
+      outEnL : in  sl := '0';                 -- optional tristate (0 = enabled, 1 = high z output)
       clkIn  : in  sl;
       clkOut : out sl);                       -- Single ended output buffer
 end ClkOutBufSingle;
@@ -65,9 +66,10 @@ begin
    end generate;
 
    -- Single ended output buffer
-   OBUF_I : OBUF
+   OBUFT_I : OBUFT
       port map (
          I => clkDdr,
+         T => outEnL,
          O => clkOut);
 
 end rtl;
