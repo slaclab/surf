@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-07-10
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ entity XauiGthUltraScaleWrapper is
       ERR_BIT_G        : natural             := 1;
       HEADER_SIZE_G    : natural             := 16;
       SHIFT_EN_G       : boolean             := false;
-      MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
       -- XAUI Configurations
       XAUI_20GIGE_G    : boolean             := false;
       REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
@@ -51,6 +50,8 @@ entity XauiGthUltraScaleWrapper is
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
+      -- Local Configurations
+      localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
       -- Streaming DMA Interface 
       dmaClk             : in  sl;
       dmaRst             : in  sl;
@@ -109,7 +110,6 @@ begin
          ERR_BIT_G        => ERR_BIT_G,
          HEADER_SIZE_G    => HEADER_SIZE_G,
          SHIFT_EN_G       => SHIFT_EN_G,
-         MAC_ADDR_G       => MAC_ADDR_G,
          -- XAUI Configurations
          XAUI_20GIGE_G    => XAUI_20GIGE_G,
          REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
@@ -118,7 +118,9 @@ begin
          -- AXI Streaming Configurations
          AXIS_CONFIG_G    => AXIS_CONFIG_G)       
       port map (
-         -- Streaming DMA Interface 
+         -- Local Configurations
+         localMac           => localMac,
+         -- Clocks and resets
          dmaClk             => dmaClk,
          dmaRst             => dmaRst,
          dmaIbMaster        => dmaIbMaster,

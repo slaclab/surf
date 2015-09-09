@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-04-06
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,28 +29,30 @@ entity TenGigEthGth7Wrapper is
    -- 255 x 8 = 2kbytes (not enough for pause)
    -- 11 bits = 16kbytes 
    generic (
-      TPD_G              : time                             := 1 ns;
+      TPD_G             : time                                        := 1 ns;
       -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G    : NaturalArray(3 downto 0)         := (others => 11);
-      OB_ADDR_WIDTH_G    : NaturalArray(3 downto 0)         := (others => 9);
-      PAUSE_THOLD_G      : NaturalArray(3 downto 0)         := (others => 512);
-      VALID_THOLD_G      : NaturalArray(3 downto 0)         := (others => 255);
-      EOH_BIT_G          : NaturalArray(3 downto 0)         := (others => 0);
-      ERR_BIT_G          : NaturalArray(3 downto 0)         := (others => 1);
-      HEADER_SIZE_G      : NaturalArray(3 downto 0)         := (others => 16);
-      SHIFT_EN_G         : BooleanArray(3 downto 0)         := (others => false);
-      MAC_ADDR_G         : Slv48Array(3 downto 0)           := (others => MAC_ADDR_INIT_C);
-      NUM_LANE_G         : natural range 1 to 4             := 1;
+      IB_ADDR_WIDTH_G   : NaturalArray(3 downto 0)                    := (others => 11);
+      OB_ADDR_WIDTH_G   : NaturalArray(3 downto 0)                    := (others => 9);
+      PAUSE_THOLD_G     : NaturalArray(3 downto 0)                    := (others => 512);
+      VALID_THOLD_G     : NaturalArray(3 downto 0)                    := (others => 255);
+      EOH_BIT_G         : NaturalArray(3 downto 0)                    := (others => 0);
+      ERR_BIT_G         : NaturalArray(3 downto 0)                    := (others => 1);
+      HEADER_SIZE_G     : NaturalArray(3 downto 0)                    := (others => 16);
+      SHIFT_EN_G        : BooleanArray(3 downto 0)                    := (others => false);
+      MAC_ADDR_G        : Slv48Array(3 downto 0)                      := (others => MAC_ADDR_INIT_C);
+      NUM_LANE_G        : natural range 1 to 4                        := 1;
       -- QUAD PLL Configurations
-      USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
-      REFCLK_DIV2_G      : boolean                          := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
-      QPLL_REFCLK_SEL_G  : bit_vector                       := "001";
+      USE_GTREFCLK_G    : boolean                                     := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
+      REFCLK_DIV2_G     : boolean                                     := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
+      QPLL_REFCLK_SEL_G : bit_vector                                  := "001";
       -- AXI-Lite Configurations
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
+      AXI_ERROR_RESP_G  : slv(1 downto 0)                             := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
-      AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
+      AXIS_CONFIG_G     : AxiStreamConfigArray(NUM_LANE_G-1 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
    port (
+      -- Local Configurations
+      localMac            : in  Slv48Array(47 downto 0)                        := (others => MAC_ADDR_INIT_C);
       -- Streaming DMA Interface 
       dmaClk              : in  slv(NUM_LANE_G-1 downto 0);
       dmaRst              : in  slv(NUM_LANE_G-1 downto 0);
@@ -136,22 +138,23 @@ begin
       
       TenGigEthGth7_Inst : entity work.TenGigEthGth7
          generic map (
-            TPD_G              => TPD_G,
+            TPD_G            => TPD_G,
             -- DMA/MAC Configurations
-            IB_ADDR_WIDTH_G    => IB_ADDR_WIDTH_G(i),
-            OB_ADDR_WIDTH_G    => OB_ADDR_WIDTH_G(i),
-            PAUSE_THOLD_G      => PAUSE_THOLD_G(i),
-            VALID_THOLD_G      => VALID_THOLD_G(i),
-            EOH_BIT_G          => EOH_BIT_G(i),
-            ERR_BIT_G          => ERR_BIT_G(i),
-            HEADER_SIZE_G      => HEADER_SIZE_G(i),
-            SHIFT_EN_G         => SHIFT_EN_G(i),
-            MAC_ADDR_G         => MAC_ADDR_G(i),
+            IB_ADDR_WIDTH_G  => IB_ADDR_WIDTH_G(i),
+            OB_ADDR_WIDTH_G  => OB_ADDR_WIDTH_G(i),
+            PAUSE_THOLD_G    => PAUSE_THOLD_G(i),
+            VALID_THOLD_G    => VALID_THOLD_G(i),
+            EOH_BIT_G        => EOH_BIT_G(i),
+            ERR_BIT_G        => ERR_BIT_G(i),
+            HEADER_SIZE_G    => HEADER_SIZE_G(i),
+            SHIFT_EN_G       => SHIFT_EN_G(i),
             -- AXI-Lite Configurations
-            AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G,
+            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G      => AXIS_CONFIG_G(i))       
+            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))       
          port map (
+            -- Local Configurations
+            localMac           => localMac(i),
             -- Streaming DMA Interface 
             dmaClk             => dmaClk(i),
             dmaRst             => dmaRst(i),

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-05-04
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,6 @@ entity TenGigEthGthUltraScaleWrapper is
       ERR_BIT_G         : NaturalArray(3 downto 0)         := (others => 1);
       HEADER_SIZE_G     : NaturalArray(3 downto 0)         := (others => 16);
       SHIFT_EN_G        : BooleanArray(3 downto 0)         := (others => false);
-      MAC_ADDR_G        : Slv48Array(3 downto 0)           := (others => MAC_ADDR_INIT_C);
       NUM_LANE_G        : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
@@ -50,6 +49,8 @@ entity TenGigEthGthUltraScaleWrapper is
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
    port (
+      -- Local Configurations
+      localMac            : in  Slv48Array(47 downto 0)                        := (others => MAC_ADDR_INIT_C);
       -- Streaming DMA Interface 
       dmaClk              : in  slv(NUM_LANE_G-1 downto 0);
       dmaRst              : in  slv(NUM_LANE_G-1 downto 0);
@@ -141,12 +142,13 @@ begin
             ERR_BIT_G        => ERR_BIT_G(i),
             HEADER_SIZE_G    => HEADER_SIZE_G(i),
             SHIFT_EN_G       => SHIFT_EN_G(i),
-            MAC_ADDR_G       => MAC_ADDR_G(i),
             -- AXI-Lite Configurations
             AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
             -- AXI Streaming Configurations
             AXIS_CONFIG_G    => AXIS_CONFIG_G(i))       
          port map (
+            -- Local Configurations
+            localMac           => localMac(i),
             -- Streaming DMA Interface 
             dmaClk             => dmaClk(i),
             dmaRst             => dmaRst(i),

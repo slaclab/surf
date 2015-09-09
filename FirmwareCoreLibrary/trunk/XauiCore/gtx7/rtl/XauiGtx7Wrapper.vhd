@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2015-04-07
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ entity XauiGtx7Wrapper is
       ERR_BIT_G        : natural             := 1;
       HEADER_SIZE_G    : natural             := 16;
       SHIFT_EN_G       : boolean             := false;
-      MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G   : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       REFCLK_DIV2_G    : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
@@ -51,6 +50,8 @@ entity XauiGtx7Wrapper is
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
+      -- Local Configurations
+      localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
       -- Streaming DMA Interface 
       dmaClk             : in  sl;
       dmaRst             : in  sl;
@@ -121,7 +122,9 @@ begin
          -- AXI Streaming Configurations
          AXIS_CONFIG_G    => AXIS_CONFIG_G)       
       port map (
-         -- Streaming DMA Interface 
+         -- Local Configurations
+         localMac           => localMac,
+         -- Clocks and resets
          dmaClk             => dmaClk,
          dmaRst             => dmaRst,
          dmaIbMaster        => dmaIbMaster,

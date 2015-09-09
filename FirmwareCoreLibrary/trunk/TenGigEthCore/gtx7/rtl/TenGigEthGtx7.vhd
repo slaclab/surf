@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-03-30
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,22 +28,23 @@ entity TenGigEthGtx7 is
    -- 255 x 8 = 2kbytes (not enough for pause)
    -- 11 bits = 16kbytes 
    generic (
-      TPD_G              : time                  := 1 ns;
+      TPD_G            : time                := 1 ns;
       -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G    : integer               := 11;
-      OB_ADDR_WIDTH_G    : integer               := 9;
-      PAUSE_THOLD_G      : integer               := 512;
-      VALID_THOLD_G      : integer               := 255;
-      EOH_BIT_G          : integer               := 0;
-      ERR_BIT_G          : integer               := 1;
-      HEADER_SIZE_G      : integer               := 16;
-      SHIFT_EN_G         : boolean               := false;
-      MAC_ADDR_G         : slv(47 downto 0)      := MAC_ADDR_INIT_C;
+      IB_ADDR_WIDTH_G  : integer             := 11;
+      OB_ADDR_WIDTH_G  : integer             := 9;
+      PAUSE_THOLD_G    : integer             := 512;
+      VALID_THOLD_G    : integer             := 255;
+      EOH_BIT_G        : integer             := 0;
+      ERR_BIT_G        : integer             := 1;
+      HEADER_SIZE_G    : integer             := 16;
+      SHIFT_EN_G       : boolean             := false;
       -- AXI-Lite Configurations
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
+      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);  -- Note: Only support 64-bit AXIS configurations
+      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);  -- Note: Only support 64-bit AXIS configurations
    port (
+      -- Local Configurations
+      localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
       -- Streaming DMA Interface 
       dmaClk             : in  sl;
       dmaRst             : in  sl;
@@ -277,8 +278,8 @@ begin
    configurationVector(0)              <= config.pma_loopback;
    configurationVector(15)             <= config.pma_reset;
    configurationVector(110)            <= config.pcs_loopback;
-   configurationVector(111)            <= config.pcs_reset;   
-   configurationVector(399 downto 384) <= x"4C4B";-- timer_ctrl = 0x4C4B (default)
+   configurationVector(111)            <= config.pcs_reset;
+   configurationVector(399 downto 384) <= x"4C4B";  -- timer_ctrl = 0x4C4B (default)
 
    ----------------------
    -- Core Status Mapping
@@ -290,10 +291,11 @@ begin
    --------------------------------     
    U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
-         TPD_G              => TPD_G,
-         MAC_ADDR_G         => MAC_ADDR_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
+         -- Local Configurations
+         localMac       => localMac,
          -- Clocks and resets
          clk            => phyClk,
          rst            => phyRst,

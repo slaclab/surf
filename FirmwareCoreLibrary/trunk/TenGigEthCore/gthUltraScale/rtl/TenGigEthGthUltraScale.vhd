@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-05-04
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,12 +39,13 @@ entity TenGigEthGthUltraScale is
       ERR_BIT_G        : integer             := 1;
       HEADER_SIZE_G    : integer             := 16;
       SHIFT_EN_G       : boolean             := false;
-      MAC_ADDR_G       : slv(47 downto 0)    := MAC_ADDR_INIT_C;
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);  -- Note: Only support 64-bit AXIS configurations
    port (
+      -- Local Configurations
+      localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
       -- Streaming DMA Interface 
       dmaClk             : in  sl;
       dmaRst             : in  sl;
@@ -365,9 +366,10 @@ begin
    U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
          TPD_G            => TPD_G,
-         MAC_ADDR_G       => MAC_ADDR_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
+         -- Local Configurations
+         localMac       => localMac,
          -- Clocks and resets
          clk            => phyClock,
          rst            => phyReset,

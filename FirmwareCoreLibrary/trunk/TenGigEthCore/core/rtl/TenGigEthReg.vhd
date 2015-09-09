@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2015-04-07
+-- Last update: 2015-09-08
 -- Platform   : Vivado 2014.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,10 +25,11 @@ use work.TenGigEthPkg.all;
 
 entity TenGigEthReg is
    generic (
-      TPD_G            : time             := 1 ns;
-      MAC_ADDR_G       : slv(47 downto 0) := MAC_ADDR_INIT_C;
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);
+      TPD_G            : time            := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
    port (
+      -- Local Configurations
+      localMac       : in  slv(47 downto 0) := MAC_ADDR_INIT_C;
       -- Clocks and resets
       clk            : in  sl;
       rst            : in  sl;
@@ -113,7 +114,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiWriteMaster, cntOut, r, rst, status, statusOut) is
+   comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst, status, statusOut) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
       variable rdPntr    : natural;
@@ -193,15 +194,17 @@ begin
 
       -- Synchronous Reset
       if (rst = '1') or (v.hardRst = '1') then
-         v.cntRst                      := '1';
-         v.rollOverEn                  := (others => '0');
-         v.config                      := TEN_GIG_ETH_CONFIG_INIT_C;
-         v.config.phyConfig.macAddress := MAC_ADDR_G;
+         v.cntRst     := '1';
+         v.rollOverEn := (others => '0');
+         v.config     := TEN_GIG_ETH_CONFIG_INIT_C;
          if (rst = '1') then
             v.axiReadSlave  := AXI_LITE_READ_SLAVE_INIT_C;
             v.axiWriteSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
          end if;
       end if;
+
+      -- Update the MAC address
+      v.config.phyConfig.macAddress := localMac;
 
       -- Register the variable for next clock cycle
       rin <= v;
