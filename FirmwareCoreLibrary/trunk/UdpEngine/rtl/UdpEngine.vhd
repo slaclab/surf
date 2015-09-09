@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-28
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -62,6 +62,7 @@ entity UdpEngine is
       obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
       ibServerMasters  : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
       ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to UDP Client engine(s)
       clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
       clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
@@ -80,7 +81,7 @@ architecture mapping of UdpEngine is
    signal clientRemoteMac : Slv48Array(CLIENT_SIZE_G-1 downto 0);
 
    signal serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
-   signal serverRemoteIp   : Slv32Array(SERVER_SIZE_G-1 downto 0);
+   signal remoteIp         : Slv32Array(SERVER_SIZE_G-1 downto 0);
    signal serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
 
    signal serverMasters : AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
@@ -96,6 +97,8 @@ begin
 
    assert ((SERVER_EN_G = true) or (CLIENT_EN_G = true)) report
       "UdpEngine: Either SERVER_EN_G or CLIENT_EN_G must be true" severity failure;
+   
+   serverRemoteIp <= remoteIp;
 
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
@@ -115,7 +118,7 @@ begin
          ibUdpSlave       => ibUdpSlave,
          -- Interface to UDP Server engine(s)
          serverRemotePort => serverRemotePort,
-         serverRemoteIp   => serverRemoteIp,
+         serverRemoteIp   => remoteIp,
          serverRemoteMac  => serverRemoteMac,
          obServerMasters  => obServerMasters,
          obServerSlaves   => obServerSlaves,
@@ -146,7 +149,7 @@ begin
                -- Interface to User Application
                localIp     => localIp,
                remotePort  => serverRemotePort(i),
-               remoteIp    => serverRemoteIp(i),
+               remoteIp    => remoteIp(i),
                remoteMac   => serverRemoteMac(i),
                ibMaster    => ibServerMasters(i),
                ibSlave     => ibServerSlaves(i),
