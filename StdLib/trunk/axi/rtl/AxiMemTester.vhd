@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2015-09-04
+-- Last update: 2015-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,10 +25,11 @@ use work.AxiPkg.all;
 
 entity AxiMemTester is
    generic (
-      TPD_G        : time := 1 ns;
-      START_ADDR_G : slv;
-      STOP_ADDR_G  : slv;
-      AXI_CONFIG_G : AxiConfigType);
+      TPD_G            : time            := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      START_ADDR_G     : slv;
+      STOP_ADDR_G      : slv;
+      AXI_CONFIG_G     : AxiConfigType);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -110,8 +111,30 @@ architecture rtl of AxiMemTester is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";
+   signal done   : sl;
+   signal error  : sl;
+   signal wTimer : slv(31 downto 0);
+   signal rTimer : slv(31 downto 0);
+
+   type RegLiteType is record
+      memReady       : sl;
+      memError       : sl;
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+   end record;
+
+   constant REG_LITE_INIT_C : RegLiteType := (
+      memReady       => '0',
+      memError       => '0',
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+
+   signal rLite   : RegLiteType := REG_LITE_INIT_C;
+   signal rinLite : RegLiteType;
+
+   -- attribute dont_touch          : string;
+   -- attribute dont_touch of r     : signal is "true";
+   -- attribute dont_touch of rLite : signal is "true";
    
 begin
 
@@ -319,24 +342,13 @@ begin
       end if;
    end process seq;
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         axiClk         => axilClk,
-         axiClkRst      => axilRst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);  
-
    Sync_0 : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => axilClk,
          dataIn  => r.done,
-         dataOut => memReady);
+         dataOut => done);
 
    Sync_1 : entity work.Synchronizer
       generic map (
@@ -344,6 +356,118 @@ begin
       port map (
          clk     => axilClk,
          dataIn  => r.error,
-         dataOut => memError);         
+         dataOut => error);      
 
+   Sync_2 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 32)
+      port map (
+         -- Write Ports (wr_clk domain)
+         wr_clk => axiClk,
+         din    => r.wTimer,
+         -- Read Ports (rd_clk domain)
+         rd_clk => axilClk,
+         dout   => wTimer);
+
+   Sync_3 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 32)
+      port map (
+         -- Write Ports (wr_clk domain)
+         wr_clk => axiClk,
+         din    => r.rTimer,
+         -- Read Ports (rd_clk domain)
+         rd_clk => axilClk,
+         dout   => rTimer);         
+
+   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, rLite, rTimer, wTimer) is
+      variable v         : RegLiteType;
+      variable axiStatus : AxiLiteStatusType;
+
+      -- Wrapper procedures to make calls cleaner.
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
+      begin
+         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg, cA, cV);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
+      begin
+         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
+      begin
+         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
+      begin
+         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveDefault (
+         axiResp : in slv(1 downto 0)) is
+      begin
+         axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, axiResp);
+      end procedure;
+
+   begin
+      -- Latch the current value
+      v := rLite;
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+
+      -- Map the registers
+      axiSlaveRegisterR(x"100", 0, rLite.memReady);
+      axiSlaveRegisterR(x"104", 0, rLite.memError);
+      axiSlaveRegisterR(x"108", 0, wTimer);
+      axiSlaveRegisterR(x"10C", 0, rTimer);
+      if (AXI_CONFIG_G.ADDR_WIDTH_C <= 32) then
+         axiSlaveRegisterR(x"110", 0, x"00000000");
+         axiSlaveRegisterR(x"114", 0, START_C);
+         axiSlaveRegisterR(x"118", 0, x"00000000");
+         axiSlaveRegisterR(x"11C", 0, STOP_C);
+      else
+         axiSlaveRegisterR(x"110", 0, START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
+         axiSlaveRegisterR(x"114", 0, START_C(31 downto 0));
+         axiSlaveRegisterR(x"118", 0, STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
+         axiSlaveRegisterR(x"11C", 0, STOP_C(31 downto 0));
+      end if;
+      axiSlaveRegisterR(x"120", 0, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 32));
+      axiSlaveRegisterR(x"124", 0, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 32));
+      axiSlaveRegisterR(x"128", 0, toSlv(AXI_CONFIG_G.ID_BITS_C, 32));
+
+      -- Set the Slave's response
+      axiSlaveDefault(AXI_ERROR_RESP_G);
+
+      -- Latch the values from Synchronizers
+      v.memReady := done;
+      v.memError := error;
+
+      -- Synchronous Reset
+      if (axilRst = '1') then
+         v := REG_LITE_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rinLite <= v;
+
+      -- Outputs
+      axilWriteSlave <= rLite.axilWriteSlave;
+      axilReadSlave  <= rLite.axilReadSlave;
+      memReady       <= rLite.memReady;
+      memError       <= rLite.memError;
+      
+   end process combLite;
+
+   seqLite : process (axilClk) is
+   begin
+      if (rising_edge(axilClk)) then
+         rLite <= rinLite after TPD_G;
+      end if;
+   end process seqLite;
+   
 end rtl;
