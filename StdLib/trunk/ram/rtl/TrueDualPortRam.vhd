@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-12-18
+-- Last update: 2015-09-11
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ architecture rtl of TrueDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : signal is "TRUE";
 
-   attribute keep        : boolean;     --"keep" is same for XST and Altera
+   attribute keep        : boolean;         --"keep" is same for XST and Altera
    attribute keep of mem : signal is true;  --"keep" is same for XST and Altera
 
    -- Attribute for Synplicity Synthesizer 
@@ -96,7 +96,7 @@ begin
            or (ALTERA_RAM_G = "M-RAM"))
       report "Invalid ALTERA_RAM_G string"
       severity failure;
-      
+   
    NO_CHANGE_MODE : if MODE_G = "no-change" generate
       -- Port A
       process(clka)
@@ -189,7 +189,7 @@ begin
                doutb <= INIT_C after TPD_G;
             else
                if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) <= dina after TPD_G;
+                  mem(conv_integer(addrb)) <= dinb after TPD_G;
                end if;
                doutb <= mem(conv_integer(addrb)) after TPD_G;
             end if;
