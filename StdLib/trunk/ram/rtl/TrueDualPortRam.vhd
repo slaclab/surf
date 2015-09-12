@@ -6,7 +6,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
 -- Last update: 2015-09-11
--- Platform   : ISE 14.5
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as Block RAM only
@@ -175,6 +175,7 @@ begin
             else
                if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) <= dina after TPD_G;
+                  douta                    <= dina after TPD_G;
                end if;
                douta <= mem(conv_integer(addra)) after TPD_G;
             end if;
@@ -190,6 +191,7 @@ begin
             else
                if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) <= dinb after TPD_G;
+                  doutb                    <= dinb after TPD_G;
                end if;
                doutb <= mem(conv_integer(addrb)) after TPD_G;
             end if;
