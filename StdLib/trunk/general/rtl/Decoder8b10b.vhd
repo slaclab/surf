@@ -28,8 +28,8 @@ entity Decoder8b10b is
       RST_ASYNC_G    : boolean  := false);
    port (
       clk      : in  sl;
-      clkEn    : in  sl := '1';
-      rst      : in  sl;
+      clkEn    : in  sl := '1';  -- Optional Clock Enable
+      rst      : in  sl := not RST_POLARITY_G;  -- Optional Reset
       dataIn   : in  slv(NUM_BYTES_G*10-1 downto 0);
       dataOut  : out slv(NUM_BYTES_G*8-1 downto 0);
       dataKOut : out slv(NUM_BYTES_G-1 downto 0);
