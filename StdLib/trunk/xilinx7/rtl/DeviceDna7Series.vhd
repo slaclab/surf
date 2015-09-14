@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-25
--- Last update: 2015-06-18
+-- Last update: 2015-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ entity DeviceDna7Series is
 end DeviceDna7Series;
 
 architecture rtl of DeviceDna7Series is
-   
+
    constant DNA_SHIFT_LENGTH_C : natural := 64;
 
    type StateType is (READ_S, SHIFT_S, DONE_S);
@@ -90,7 +90,7 @@ begin
       port map (
          clk      => locClk,
          asyncRst => rst,
-         syncRst  => locRst); 
+         syncRst  => locRst);
 
    comb : process (dnaDout, locRst, r) is
       variable v : RegType;
@@ -143,7 +143,7 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-      
+
    end process comb;
 
    sync : process (locClk) is
@@ -163,17 +163,25 @@ begin
          DIN   => '0',
          DOUT  => dnaDout);
 
-   SyncFifo : entity work.SynchronizerFifo
+   SyncValid : entity work.Synchronizer
       generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 65)
+         TPD_G    => TPD_G,
+         STAGES_G => 3)
       port map (
-         rst               => locRst,
-         wr_clk            => locClk,
-         din(64)           => r.dnaValid,
-         din(63 downto 0)  => r.dnaValue,
-         rd_clk            => clk,
-         dout(64)          => dnaValid,
-         dout(63 downto 0) => dnaValue);                
+         rst     => rst,
+         clk     => clk,
+         dataIn  => r.dnaValid,
+         dataOut => dnaValid);
+
+   SyncData : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2,
+         WIDTH_G  => 64)
+      port map (
+         rst     => rst,
+         clk     => clk,
+         dataIn  => r.dnaValue,
+         dataOut => dnaValue);
 
 end rtl;

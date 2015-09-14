@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-08-25
+-- Last update: 2015-08-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ entity AxiStreamMux is
       NUM_SLAVES_G  : integer range 1 to 32 := 4;
       PIPE_STAGES_G : integer range 0 to 16 := 0;  -- mux be > 1 if cascading muxes
       TDEST_HIGH_G  : integer range 0 to 7  := 7;
-      TDEST_LOW_G   : integer range 0 to 7  := 0);
+      TDEST_LOW_G   : integer range 0 to 7  := 0;
+      KEEP_TDEST_G : boolean := false);
    port (
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
@@ -102,10 +103,13 @@ begin
       end if;
 
       -- Select source
-      selData                                                     := sAxisMasters(conv_integer(r.ackNum));
-      selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
-      selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
+      selData                             := sAxisMasters(conv_integer(r.ackNum));
 
+      if (KEEP_TDEST_G = false) then
+         selData.tDest(7 downto TDEST_LOW_G) := (others => '0');
+         selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
+      end if;
+      
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop

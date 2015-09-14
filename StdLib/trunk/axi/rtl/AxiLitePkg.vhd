@@ -16,6 +16,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
+use work.TextUtilPkg.all;
 
 package AxiLitePkg is
 
@@ -178,6 +179,14 @@ package AxiLitePkg is
 
    type AxiLiteCrossbarMasterConfigArray is array (natural range <>) of AxiLiteCrossbarMasterConfigType;
 
+   -------------------------------------------------------------------------------------------------
+   -- Initilize masters with uppder address bits already set to configuration base address
+   -------------------------------------------------------------------------------------------------
+   function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteWriteMasterArray;
+   function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteWriteMasterType;
+   function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteReadMasterArray;
+   function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType;
+
 
    -------------------------------------------------------------------------------------------------
    -- Slave AXI Processing procedures
@@ -267,7 +276,7 @@ package AxiLitePkg is
    function genAxiLiteConfig (num      : positive;
                               base     : slv(31 downto 0);
                               baseBot  : integer range 0 to 32;
-                              addrBits : integer range 0 to 32) 
+                              addrBits : integer range 0 to 32)
       return AxiLiteCrossbarMasterConfigArray;
 
 
@@ -275,6 +284,40 @@ end AxiLitePkg;
 
 package body AxiLitePkg is
 
+   function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType is
+      variable ret : AxiLiteReadMasterType;
+   begin
+         ret        := AXI_LITE_READ_MASTER_INIT_C;
+         ret.araddr := config.baseAddr;
+      return ret;
+   end function axiReadMasterInit;
+   
+   function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteReadMasterArray is
+      variable ret : AxiLiteReadMasterArray(config'range);
+   begin
+      for i in config'range loop
+         ret(i) := axiReadMasterInit(config(i));
+      end loop;
+      return ret;
+   end function axiReadMasterInit;
+
+   function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteWriteMasterType is
+      variable ret : AxiLiteWriteMasterType;
+   begin
+         ret        := AXI_LITE_WRITE_MASTER_INIT_C;
+         ret.awaddr := config.baseAddr;
+      return ret;
+   end function axiWriteMasterInit;
+
+   function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteWriteMasterArray is
+      variable ret : AxiLiteWriteMasterArray(config'range);
+   begin
+      for i in config'range loop
+         ret(i) := axiWriteMasterInit(config(i));
+      end loop;
+      return ret;
+   end function axiWriteMasterInit;
+   
    procedure axiSlaveWaitWriteTxn (
       signal axiWriteMaster  : in    AxiLiteWriteMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
@@ -446,7 +489,7 @@ package body AxiLitePkg is
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
       variable axiStatus     : in    AxiLiteStatusType;
-      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C)   is
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
       if (axiStatus.writeEnable = '1' and axiWriteSlave.awready = '0') then
          axiSlaveWriteResponse(axiWriteSlave, axiResp);
@@ -487,6 +530,6 @@ package body AxiLitePkg is
    end function;
 
 
-   
+
 end package body AxiLitePkg;
 

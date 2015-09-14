@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2014-11-05
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.ArbiterPkg.all;
---use work.TextUtilPkg.all;
+use work.TextUtilPkg.all;
 
 entity AxiLiteCrossbar is
 
@@ -30,7 +30,8 @@ entity AxiLiteCrossbar is
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16 := 4;
       NUM_MASTER_SLOTS_G : natural range 1 to 16 := 4;
       DEC_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C;
-      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray);
+      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray;
+      DEBUG_G : boolean := false);
    port (
       axiClk    : in sl;
       axiClkRst : in sl;
@@ -114,8 +115,8 @@ architecture rtl of AxiLiteCrossbar is
             rdValid    => '0')),
       sAxiWriteSlaves  => (others => AXI_LITE_WRITE_SLAVE_INIT_C),
       sAxiReadSlaves   => (others => AXI_LITE_READ_SLAVE_INIT_C),
-      mAxiWriteMasters => (others => AXI_LITE_WRITE_MASTER_INIT_C),
-      mAxiReadMasters  => (others => AXI_LITE_READ_MASTER_INIT_C));
+      mAxiWriteMasters => axiWriteMasterInit(MASTERS_CONFIG_G),
+      mAxiReadMasters  => axiReadMasterInit(MASTERS_CONFIG_G));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -124,19 +125,18 @@ architecture rtl of AxiLiteCrossbar is
 
 begin
 
---   assert (false) report "Created new AxiLiteCrossbar:" & LF &
---      "NUM_SLAVE_SLOTS_G: " & integer'image(NUM_SLAVE_SLOTS_G) & LF &
---      "NUM_MASTER_SLOTS_G: " & integer'image(NUM_MASTER_SLOTS_G) & LF &
---      "DEC_ERROR_RESP_G: " & str(DEC_ERROR_RESP_G) & LF &
---      "MASTERS_CONFIG_G:" & LF severity note;
+   print(DEBUG_G, "AXI_LITE_CROSSBAR: " & LF &
+         "NUM_SLAVE_SLOTS_G: " & integer'image(NUM_SLAVE_SLOTS_G) & LF &
+         "NUM_MASTER_SLOTS_G: " & integer'image(NUM_MASTER_SLOTS_G) & LF &
+         "DEC_ERROR_RESP_G: " & str(DEC_ERROR_RESP_G) & LF &
+         "MASTERS_CONFIG_G:");
 
---   printCfg : for i in MASTERS_CONFIG_G'range generate
---      assert (false) report
---         "  baseAddr: " & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
---         "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
---         "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity) & LF
---         severity note;
---   end generate printCfg;
+   printCfg : for i in MASTERS_CONFIG_G'range generate
+      print(DEBUG_G, 
+         "  baseAddr: " & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+         "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
+         "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
+   end generate printCfg;
 
    comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is
       variable v            : RegType;
@@ -310,7 +310,7 @@ begin
 
                -- Keep these in reset state while waiting for requests
                v.master(m).wrAcks    := (others => '0');
-               v.mAxiWriteMasters(m) := AXI_LITE_WRITE_MASTER_INIT_C;
+               v.mAxiWriteMasters(m) := axiWriteMasterInit(MASTERS_CONFIG_G(m));
 
                -- Wait for a request, arbitrate between simultaneous requests
                if (r.master(m).wrValid = '0') then
@@ -340,7 +340,7 @@ begin
                if (v.mAxiWriteMasters(m).awvalid = '0' and v.mAxiWriteMasters(m).wvalid = '0') then
                   v.master(m).wrState := M_WAIT_REQ_FALL_S;
                end if;
-               
+
             when M_WAIT_REQ_FALL_S =>
                -- When slave side deasserts request, clear ack and valid and start waiting for next
                -- request
@@ -349,9 +349,16 @@ begin
                   v.master(m).wrAcks  := (others => '0');
                   v.master(m).wrValid := '0';
                end if;
-               
+
             when others => null;
          end case;
+
+         -- Don't allow baseAddr bits to be overwritten
+         -- They can't be anyway based on the logic above, but Vivado can't figure that out.
+         -- This helps optimization happen properly
+         v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+
 
 
          -- Read path processing
@@ -360,7 +367,7 @@ begin
 
                -- Keep these in reset state while waiting for requests
                v.master(m).rdAcks   := (others => '0');
-               v.mAxiReadMasters(m) := AXI_LITE_READ_MASTER_INIT_C;
+               v.mAxiReadMasters(m) := axiReadMasterInit(MASTERS_CONFIG_G(m));
 
                -- Wait for a request, arbitrate between simultaneous requests
                if (r.master(m).rdValid = '0') then
@@ -387,7 +394,7 @@ begin
                if (v.mAxiReadMasters(m).arvalid = '0') then
                   v.master(m).rdState := M_WAIT_REQ_FALL_S;
                end if;
-               
+
             when M_WAIT_REQ_FALL_S =>
                -- When slave side deasserts request, clear ack and valid and start waiting for next
                -- request
@@ -396,9 +403,16 @@ begin
                   v.master(m).rdAcks  := (others => '0');
                   v.master(m).rdValid := '0';
                end if;
-               
+
             when others => null;
          end case;
+
+         -- Don't allow baseAddr bits to be overwritten
+         -- They can't be anyway based on the logic above, but Vivado can't figure that out.
+         -- This helps optimization happen properly
+         v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+
       end loop;
 
       if (axiClkRst = '1') then
@@ -411,7 +425,7 @@ begin
       sAxiWriteSlaves  <= r.sAxiWriteSlaves;
       mAxiReadMasters  <= r.mAxiReadMasters;
       mAxiWriteMasters <= r.mAxiWriteMasters;
-      
+
    end process comb;
 
    seq : process (axiClk) is

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-18
--- Last update: 2015-06-18
+-- Last update: 2015-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,8 +41,7 @@ begin
       Iprog7Series_Inst : entity work.Iprog7Series
          generic map (
             TPD_G          => TPD_G,
-            USE_SLOWCLK_G  => USE_SLOWCLK_G,
-            RST_POLARITY_G => RST_POLARITY_G)   
+            USE_SLOWCLK_G  => USE_SLOWCLK_G)
          port map (
             clk         => clk,
             rst         => rst,

@@ -130,8 +130,9 @@ package StdRtlPkg is
    procedure assignRecord (i : inout integer; vector : in    slv; value  : inout slv);
    procedure assignRecord (i : inout integer; vector : in    slv; value  : inout sl);   
 
-   -- Resize an SLV, either by trimming or padding upper bits
-   function resizeSlv ( vector : slv; newSize : integer) return slv;
+   -- Resize vector types, either by trimming or padding upper indicies
+   function resize (vec : slv; newSize : integer; pad : sl := '0') return slv;
+   function resize (str : string; newSize : integer; pad : character := nul) return string;
    
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -1247,17 +1248,24 @@ package body StdRtlPkg is
    end procedure assignRecord;
 
    -- Resize an SLV, either by trimming or padding upper bits
-   function resizeSlv ( vector : slv; newSize : integer) return slv is
-      variable retVar : slv(newSize-1 downto 0);
+   function resize ( vec : slv; newSize : integer; pad : sl:='0') return slv is
+      variable ret : slv(newSize-1 downto 0);
       variable top    : integer;
    begin
-      retVar := (others=>'0');
-
-      top := minimum( newSize, vector'length) - 1;
-
-      retVar(top downto 0) := vector(top downto 0);
-
-      return retVar;   
+      ret := (others => pad);
+      top := minimum( newSize, vec'length) - 1;
+      ret(top downto 0) := vec(top downto 0);
+      return ret;   
    end function;
+
+   function resize (str : string; newSize : integer ; pad : character := nul) return string is
+      variable ret : string(1 to newSize);
+      variable top : integer;
+   begin
+      ret := (others => pad);
+      top := minimum( newSize, str'length);
+      ret(1 to top) := str(1 to top);
+      return ret;
+   end function resize;
 
 end package body StdRtlPkg;
