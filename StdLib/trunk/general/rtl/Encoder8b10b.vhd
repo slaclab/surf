@@ -26,11 +26,10 @@ entity Encoder8b10b is
       NUM_BYTES_G    : positive := 2;
       RST_POLARITY_G : sl       := '1';
       RST_ASYNC_G    : boolean  := false);
-
    port (
       clk     : in  sl;
-      clkEn   : in  sl := '1';
-      rst     : in  sl;
+      clkEn   : in  sl := '1';  -- Optional Clock Enable
+      rst     : in  sl := not RST_POLARITY_G;  -- Optional Reset
       dataIn  : in  slv(NUM_BYTES_G*8-1 downto 0);
       dataKIn : in  slv(NUM_BYTES_G-1 downto 0);
       dataOut : out slv(NUM_BYTES_G*10-1 downto 0));
