@@ -21,6 +21,7 @@ vhdl work general/rtl/Encoder8b10b.vhd
 vhdl work general/rtl/Heartbeat.vhd
 vhdl work general/rtl/Iprog.vhd
 vhdl work general/rtl/PwrUpRst.vhd
+vhdl work general/rtl/SlvDelay.vhd
 vhdl work general/rtl/WatchDogRst.vhd
 
 vhdl work general/rtl/CrcPkg.vhd
