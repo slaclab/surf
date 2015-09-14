@@ -1,6 +1,6 @@
 vhdl work general/tb/ClkRst.vhd
 vhdl work general/tb/HeartbeatTb.vhd
-vhdl work general/tb/TextUtilPkg.vhd
+
 vhdl work general/tb/glbl.vhd
 
 vhdl work fifo/tb/FifoFwftTb.vhd

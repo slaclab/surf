@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-09-16
+-- Last update: 2015-09-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -133,15 +133,15 @@ architecture rtl of AxiStreamFifo is
 
       -- Pack user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
-         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,0),FIFO_USER_BITS_C));  -- First byte
-         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,0),FIFO_USER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
-         assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
-            assignSlv(i, retValue, resizeSlv(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,j),FIFO_USER_BITS_C));
+            assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,j),FIFO_USER_BITS_C));
          end loop;
       end if;
 
@@ -201,19 +201,19 @@ architecture rtl of AxiStreamFifo is
       -- get user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), 0); -- First byte
+         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), 0); -- First byte
 
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), -1); -- Last valid byte
+         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), -1); -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), -1); -- Last valid byte
+         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), -1); -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
             assignRecord(i, din, user);
-            axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resizeSlv(user,MASTER_USER_BITS_C), j);
+            axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), j);
          end loop;
       end if;
 

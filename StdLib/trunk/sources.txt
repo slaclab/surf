@@ -1,4 +1,5 @@
 vhdl work general/rtl/StdRtlPkg.vhd
+vhdl work general/rtl/TextUtilPkg.vhd
 vhdl work general/rtl/PrbsPkg.vhd
 vhdl work general/rtl/ArbiterPkg.vhd
 vhdl work general/rtl/Code8b10bPkg.vhd
@@ -41,6 +42,7 @@ vhdl work ram/rtl/TrueDualPortRam.vhd
 
 vhdl work xilinx7/rtl/DeviceDna7Series.vhd
 vhdl work xilinx7/rtl/Iprog7Series.vhd
+vhdl work xilinx7/rtl/Iprog7SeriesCore.vhd
 vhdl work xilinx7/rtl/XadcSimpleCore.vhd
 vhdl work xilinx7/rtl/Dsp48Comparator4x12b.vhd
 vhdl work xilinx7/rtl/ClockManager7Pkg.vhd
@@ -85,6 +87,9 @@ vhdl work axi/rtl/AxiStreamMux.vhd
 vhdl work axi/rtl/AxiStreamPipeline.vhd
 vhdl work axi/rtl/AxiStreamPkg.vhd
 vhdl work axi/rtl/AxiStreamShift.vhd
+vhdl work axi/rtl/AxiStreamPacker.vhd
+vhdl work axi/rtl/AxiStreamUnpacker.vhd
+vhdl work axi/rtl/AxiStreamScatterGather.vhd
 vhdl work axi/rtl/AxiToAxiLite.vhd
 vhdl work axi/rtl/AxiVersion.vhd
 vhdl work axi/rtl/AxiWritePathFifo.vhd

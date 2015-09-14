@@ -58,6 +58,19 @@ package TextUtilPkg is
    -- convert a string to lower case
    function toLower(s : string) return string;
 
+   -- checks if whitespace (JFF)
+   function isWhitespace(c : character) return boolean;
+
+   -- remove leading whitespace (JFF)
+   function strip(s : string) return string;
+
+   -- return first nonwhitespace substring (JFF)
+   function firstString(s : string) return string;
+
+   -- finds the first non-whitespace substring in a string and (JFF)  
+   -- returns both the substring and the original with the substring removed 
+   procedure chomp(variable s : inout string; variable shead : out string);
+
 
    -------------------------------------------------- 
    -- functions to convert strings into other formats
@@ -85,6 +98,8 @@ package TextUtilPkg is
    -- print character to a file and start new line
    procedure print(file out_file :    text;
                    char          : in character);
+
+
 
 end TextUtilPkg;
 
@@ -260,11 +275,12 @@ package body TextUtilPkg is
       variable hex     : string(1 to 16);
       variable fourbit : std_logic_vector(3 downto 0);
    begin
-      hexlen := (slv'left+1)/4;
-      if (slv'left+1) mod 4 /= 0 then
+--      print("HSTR In: " & str(slv));
+      hexlen := (slv'length)/4;
+      if (slv'length) mod 4 /= 0 then
          hexlen := hexlen + 1;
       end if;
-      longslv(slv'left downto 0) := slv;
+      longslv(slv'length-1 downto 0) := slv;
       for i in (hexlen -1) downto 0 loop
          fourbit := longslv(((i*4)+3) downto (i*4));
          case fourbit is
@@ -290,6 +306,7 @@ package body TextUtilPkg is
             when others => hex(hexlen -I) := '?';
          end case;
       end loop;
+--      print("HSTR Out: " & hex(1 to hexlen));      
       return hex(1 to hexlen);
    end hstr;
 
@@ -390,6 +407,110 @@ package body TextUtilPkg is
    end toLower;
 
    ---------------------------------------------------------------------------------------------------------------------
+
+
+   -- checks if whitespace (JFF)
+   function isWhitespace(c : character) return boolean is
+   begin
+      if (c = ' ') or (c = HT) then
+         return true;
+      else return false;
+      end if;
+   end isWhitespace;
+
+
+   -- remove leading whitespace (JFF)
+   function strip(s : string) return string is
+      variable stemp : string (s'range);
+      variable j, k  : positive := 1;
+   begin
+      -- fill stemp with blanks
+      for i in s'range loop
+         stemp(i) := ' ';
+      end loop;
+
+      -- find first non-whitespace in s
+      for i in s'range loop
+         if isWhitespace(s(i)) then
+            j := j + 1;
+         else exit;
+         end if;
+      end loop;
+      -- j points to first non-whitespace
+
+      -- copy remainder of s into stemp
+      -- starting at 1
+      for i in j to s'length loop
+         stemp(k) := s(i);
+         k        := k + 1;
+      end loop;
+
+      return stemp;
+   end strip;
+
+
+
+   -- return first non-whitespacesubstring (JFF)
+   function firstString(s : string) return string is
+      variable stemp : string (s'range);
+      variable s2    : string(s'range);
+   begin
+      -- fill s2 with blanks
+      for i in s'range loop
+         s2(i) := ' ';
+      end loop;
+
+      -- remove leading whitespace
+      stemp := strip(s);
+
+      -- copy until first whitespace
+      for i in stemp'range loop
+         if not isWhitespace(stemp(i)) then
+            s2(i) := stemp(i);
+         else exit;
+         end if;
+      end loop;
+
+      return s2;
+   end firstString;
+
+
+   -- removes first non-whitespace string from a string (JFF)
+   procedure chomp(variable s : inout string; variable shead : out string) is
+      variable stemp  : string (s'range);
+      variable stemp2 : string (s'range);
+      variable j      : positive := 1;
+      variable k      : positive := 1;
+   begin
+      -- fill stemp and stemp2 with blanks
+      for i in s'range loop
+         stemp(i) := ' '; stemp2(i) := ' ';
+      end loop;
+
+      stemp := strip(s);
+      shead := firstString(stemp);
+
+      -- find first whitespace in stemp
+      for i in stemp'range loop
+         if not isWhitespace(stemp(i)) then
+            j := j + 1;
+         else exit;
+         end if;
+      end loop;
+      -- j points to first whitespace
+
+      -- copy remainder of stemp into stemp2
+      -- starting at 1
+      for i in j to stemp'length loop
+         stemp2(k) := stemp(i);
+         k         := k + 1;
+      end loop;
+
+      s := stemp2;
+   end chomp;
+
+
+
    -- functions to convert strings into other types
    ---------------------------------------------------------------------------------------------------------------------
 
@@ -442,7 +563,7 @@ package body TextUtilPkg is
 
    -- read variable length string from input file
    procedure strRead(file in_file :     text;
-                      res_string   : out string) is
+                     res_string   : out string) is
       variable l         : line;
       variable c         : character;
       variable is_string : boolean;
@@ -486,7 +607,7 @@ package body TextUtilPkg is
    -- appends contents of a string to a file until line feed occurs
    -- (LF is considered to be the end of the string)
    procedure strWrite(file out_file :    text;
-                       new_string    : in string) is
+                      new_string    : in string) is
    begin
       for i in new_string'range loop
          print(out_file, new_string(i));
@@ -495,6 +616,7 @@ package body TextUtilPkg is
          end if;
       end loop;
    end strWrite;
+
 
 end TextUtilPkg;
 

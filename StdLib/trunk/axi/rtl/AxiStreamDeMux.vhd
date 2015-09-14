@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-06-01
+-- Last update: 2015-08-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
+use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
 use work.ArbiterPkg.all;
 use work.AxiStreamPkg.all;
@@ -32,8 +32,11 @@ entity AxiStreamDeMux is
    generic (
       TPD_G         : time                  := 1 ns;
       NUM_MASTERS_G : integer range 1 to 32 := 12;
+      MODE_G : string := "INDEXED";     -- Or "ROUTED"
       TDEST_HIGH_G  : integer range 0 to 7  := 7;
-      TDEST_LOW_G   : integer range 0 to 7  := 0);
+      TDEST_LOW_G   : integer range 0 to 7  := 0;
+      TDEST_ROUTES_G : slv8Array := (0 => "--------")  -- Only used in ROUTED mode
+      );
    port (
 
       -- Clock and reset
@@ -67,9 +70,15 @@ architecture structure of AxiStreamDeMux is
 
 begin
 
-   assert (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_MASTERS_G))
-      report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
-      " is too small for NUM_MASTERS_G=" & integer'image(NUM_MASTERS_G) severity error;
+   assert (MODE_G /= "INDEXED" or (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_MASTERS_G)))
+      report "In INDEXED mode, TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
+      " is too small for NUM_MASTERS_G=" & integer'image(NUM_MASTERS_G)
+      severity error;
+
+   assert (MODE_G /= "ROUTED" or (TDEST_ROUTES_G'length = NUM_MASTERS_G))
+      report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
+      " must equal NUM_MASTERS_G: " & integer'image(NUM_MASTERS_G)
+      severity error;
 
    comb : process (axisRst, r, sAxisMaster, mAxisSlaves) is
       variable v   : RegType;
@@ -85,9 +94,22 @@ begin
       end loop;
 
       -- Decode destination
-      idx := conv_integer(sAxisMaster.tDest(TDEST_HIGH_G downto TDEST_LOW_G));
+      if (MODE_G = "INDEXED") then
+         -- TDEST indicates the output port
+         idx := conv_integer(sAxisMaster.tDest(TDEST_HIGH_G downto TDEST_LOW_G));
+      elsif (MODE_G = "ROUTED") then
+         -- Output port determined by TDEST_ROUTES_G
+         -- Set to invalid idx first, if non match then frame will be dumped
+         idx := NUM_MASTERS_G;
+         -- Search for a matching MASK in ascending order of mask array
+         for i in 0 to NUM_MASTERS_G-1 loop
+            if (std_match(sAxisMaster.tDest, TDEST_ROUTES_G(i))) then
+               idx := i;
+            end if;
+         end loop;
+      end if;
 
-      -- Invalid destination
+      -- Invalid destination, dump data
       if idx >= NUM_MASTERS_G then
          v.slave.tReady := '1';
 
