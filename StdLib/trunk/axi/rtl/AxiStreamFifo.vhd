@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-09-08
+-- Last update: 2015-09-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,13 +32,13 @@ entity AxiStreamFifo is
    generic (
 
       -- General Configurations
-      TPD_G            : time                        := 1 ns;
-      INT_PIPE_STAGES_G : natural range 0 to 16      := 1;  -- Internal FIFO setting
-      PIPE_STAGES_G    : natural range 0 to 16       := 0;
-      SLAVE_READY_EN_G : boolean                     := true;
-      VALID_THOLD_G    : integer range 0 to (2**24)  := 1; -- =1 = normal operation
-                                                           -- =0 = only when frame ready
-                                                           -- >1 = only when frame ready or # entries
+      TPD_G               : time                       := 1 ns;
+      INT_PIPE_STAGES_G   : natural range 0 to 16      := 1;  -- Internal FIFO setting
+      PIPE_STAGES_G       : natural range 0 to 16      := 0;
+      SLAVE_READY_EN_G    : boolean                    := true;
+      VALID_THOLD_G       : integer range 0 to (2**24) := 1;  -- =1 = normal operation
+                                                              -- =0 = only when frame ready
+                                                              -- >1 = only when frame ready or # entries
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -74,7 +74,8 @@ entity AxiStreamFifo is
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);
+      mAxisSlave  : in  AxiStreamSlaveType;
+      mTLastTUser : out slv(127 downto 0));  -- when VALID_THOLD_G /= 1, used to look ahead at tLast's tUser
 end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
@@ -88,18 +89,18 @@ architecture rtl of AxiStreamFifo is
 
    -- Use SLAVE TKEEP Mode
    constant KEEP_MODE_C : TKeepModeType := SLAVE_AXI_CONFIG_G.TKEEP_MODE_C;
-   constant KEEP_BITS_C : integer       := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
-                                           ite(KEEP_MODE_C = TKEEP_COMP_C,   bitSize(DATA_BYTES_C-1), 0));
+   constant KEEP_BITS_C : integer := ite(KEEP_MODE_C = TKEEP_NORMAL_C, DATA_BYTES_C,
+                                         ite(KEEP_MODE_C = TKEEP_COMP_C, bitSize(DATA_BYTES_C-1), 0));
 
    -- User user bit mode of slave
-   constant USER_MODE_C : TUserModeType := ite( ((WR_BYTES_C = 1) or (RD_BYTES_C = 1)), TUSER_NORMAL_C ,SLAVE_AXI_CONFIG_G.TUSER_MODE_C);
+   constant USER_MODE_C : TUserModeType := ite(((WR_BYTES_C = 1) or (RD_BYTES_C = 1)), TUSER_NORMAL_C, SLAVE_AXI_CONFIG_G.TUSER_MODE_C);
 
    -- Use whichever interface has the least number of user bits
    constant SLAVE_USER_BITS_C  : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
    constant MASTER_USER_BITS_C : integer := MASTER_AXI_CONFIG_G.TUSER_BITS_C;
-   constant FIFO_USER_BITS_C   : integer := minimum(SLAVE_USER_BITS_C,MASTER_USER_BITS_C);
+   constant FIFO_USER_BITS_C   : integer := minimum(SLAVE_USER_BITS_C, MASTER_USER_BITS_C);
 
-   constant FIFO_USER_TOT_C : integer := ite(USER_MODE_C = TUSER_FIRST_LAST_C, FIFO_USER_BITS_C*2, 
+   constant FIFO_USER_TOT_C : integer := ite(USER_MODE_C = TUSER_FIRST_LAST_C, FIFO_USER_BITS_C*2,
                                              ite(USER_MODE_C = TUSER_LAST_C, FIFO_USER_BITS_C,
                                                  DATA_BYTES_C * FIFO_USER_BITS_C));
 
@@ -114,7 +115,7 @@ architecture rtl of AxiStreamFifo is
 
    -- Convert record to slv
    function iAxiToSlv (din : AxiStreamMasterType) return slv is
-      variable retValue : slv(FIFO_BITS_C-1 downto 0) := (others=>'0');
+      variable retValue : slv(FIFO_BITS_C-1 downto 0) := (others => '0');
       variable i        : integer                     := 0;
    begin
 
@@ -128,20 +129,20 @@ architecture rtl of AxiStreamFifo is
       if KEEP_MODE_C = TKEEP_NORMAL_C then
          assignSlv(i, retValue, din.tKeep(KEEP_BITS_C-1 downto 0));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         assignSlv(i, retValue, onesCount(din.tKeep(DATA_BYTES_C-1 downto 1))); -- Assume lsb is present
+         assignSlv(i, retValue, onesCount(din.tKeep(DATA_BYTES_C-1 downto 1)));  -- Assume lsb is present
       end if;
 
       -- Pack user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,0),FIFO_USER_BITS_C));  -- First byte
-         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, 0), FIFO_USER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,-1),FIFO_USER_BITS_C)); -- Last valid byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
-            assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G,din,j),FIFO_USER_BITS_C));
+            assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, j), FIFO_USER_BITS_C));
          end loop;
       end if;
 
@@ -189,31 +190,31 @@ architecture rtl of AxiStreamFifo is
          assignRecord(i, din, master.tKeep(KEEP_BITS_C-1 downto 0));
          byteCnt := conv_integer(onesCount(master.tKeep(KEEP_BITS_C-1 downto 0)));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         byteCnt := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
+         byteCnt                               := conv_integer(din((KEEP_BITS_C+i)-1 downto i)) + 1;
          master.tKeep(DATA_BYTES_C-1 downto 0) := (others => '0');
          master.tKeep(byteCnt-1 downto 0)      := (others => '1');
-         i := i + KEEP_BITS_C;
+         i                                     := i + KEEP_BITS_C;
       else
          byteCnt := DATA_BYTES_C;
-         i := i + KEEP_BITS_C;
+         i       := i + KEEP_BITS_C;
       end if;
 
       -- get user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), 0); -- First byte
+         axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resize(user, MASTER_USER_BITS_C), 0);  -- First byte
 
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), -1); -- Last valid byte
+         axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resize(user, MASTER_USER_BITS_C), -1);  -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), -1); -- Last valid byte
+         axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resize(user, MASTER_USER_BITS_C), -1);  -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
             assignRecord(i, din, user);
-            axiStreamSetUserField ( MASTER_AXI_CONFIG_G, master, resize(user,MASTER_USER_BITS_C), j);
+            axiStreamSetUserField (MASTER_AXI_CONFIG_G, master, resize(user, MASTER_USER_BITS_C), j);
          end loop;
       end if;
 
@@ -258,6 +259,7 @@ architecture rtl of AxiStreamFifo is
    signal fifoDin       : slv(FIFO_BITS_C-1 downto 0);
    signal fifoWrite     : sl;
    signal fifoWriteLast : sl;
+   signal fifoWriteUser : slv(127 downto 0);
    signal fifoWrCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount   : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull     : sl;
@@ -267,6 +269,7 @@ architecture rtl of AxiStreamFifo is
    signal fifoDout      : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead      : sl;
    signal fifoReadLast  : sl;
+   signal fifoReadUser  : slv(127 downto 0) := (others => '0');
    signal fifoValidInt  : sl;
    signal fifoValid     : sl;
    signal fifoValidLast : sl;
@@ -315,7 +318,7 @@ begin
    -------------------------
    -- Write Logic
    -------------------------
-   wrComb : process (wrR, sAxisMaster, fifoReady) is
+   wrComb : process (fifoReady, sAxisMaster, wrR) is
       variable v   : WrRegType;
       variable idx : integer;
    begin
@@ -365,12 +368,13 @@ begin
          fifoDin       <= iAxiToSlv(wrR.wrMaster);
          fifoWrite     <= wrR.wrMaster.tValid and fifoReady;
          fifoWriteLast <= wrR.wrMaster.tValid and fifoReady and wrR.wrMaster.tLast;
-
+         fifoWriteUser <= wrR.wrMaster.tUser;
       -- Bypass write logic
       else
          fifoDin       <= iAxiToSlv(sAxisMaster);
          fifoWrite     <= sAxisMaster.tValid and fifoReady;
          fifoWriteLast <= sAxisMaster.tValid and fifoReady and sAxisMaster.tLast;
+         fifoWriteUser <= sAxisMaster.tUser;
       end if;
 
       sAxisSlave.tReady <= fifoReady;
@@ -394,7 +398,7 @@ begin
    -------------------------
 
    -- Pause generation
-   process (sAxisClk, fifoPFull, fifoPFullVec) is
+   process (fifoPFullVec, sAxisClk) is
    begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
@@ -476,7 +480,7 @@ begin
             USE_BUILT_IN_G     => false,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
-            DATA_WIDTH_G       => 1,
+            DATA_WIDTH_G       => FIFO_USER_TOT_C,
             ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
             INIT_G             => "0",
             FULL_THRES_G       => 1,
@@ -486,7 +490,7 @@ begin
             rst           => sAxisRst,
             wr_clk        => sAxisClk,
             wr_en         => fifoWriteLast,
-            din           => (others=>'0'),
+            din           => fifoWriteUser(FIFO_USER_TOT_C-1 downto 0),
             wr_data_count => open,
             wr_ack        => open,
             overflow      => open,
@@ -496,7 +500,7 @@ begin
             not_full      => open,
             rd_clk        => mAxisClk,
             rd_en         => fifoReadLast,
-            dout          => open,
+            dout          => fifoReadUser(FIFO_USER_TOT_C-1 downto 0),
             rd_data_count => open,
             valid         => fifoValidLast,
             underflow     => open,
@@ -526,12 +530,13 @@ begin
       fifoInFrame   <= '0';
    end generate;
 
+   mTLastTUser <= fifoReadUser;
 
    -------------------------
    -- Read Logic
    -------------------------
 
-   rdComb : process (rdR, fifoDout, fifoValid, axisSlave) is
+   rdComb : process (axisSlave, fifoDout, fifoValid, rdR) is
       variable v          : RdRegType;
       variable idx        : integer;
       variable byteCnt    : integer;
@@ -553,8 +558,8 @@ begin
          v.rdMaster.tUser((RD_BYTES_C*MASTER_USER_BITS_C)-1 downto 0)
             := fifoMaster.tUser((RD_BYTES_C*MASTER_USER_BITS_C*idx)+((RD_BYTES_C*MASTER_USER_BITS_C)-1) downto (RD_BYTES_C*MASTER_USER_BITS_C*idx));
 
-         v.rdMaster.tDest  := fifoMaster.tDest;
-         v.rdMaster.tId    := fifoMaster.tId;
+         v.rdMaster.tDest := fifoMaster.tDest;
+         v.rdMaster.tId   := fifoMaster.tId;
 
          -- Reached end of fifo data or no more valid bytes in last word
          if fifoMaster.tValid = '1' then
@@ -574,8 +579,8 @@ begin
          -- Drop transfers with no tKeep bits set, except on tLast
          v.rdMaster.tValid := fifoMaster.tValid and
                               (uOr(v.rdMaster.tKeep(RD_BYTES_C-1 downto 0)) or
-                              v.rdMaster.tLast);
-         
+                               v.rdMaster.tLast);
+
       else
          v.ready := '0';
       end if;
@@ -594,7 +599,7 @@ begin
          fifoRead     <= axisSlave.tReady and fifoValid;
          fifoReadLast <= axisSlave.tReady and fifoValid and fifoMaster.tLast;
       end if;
-     
+      
    end process rdComb;
 
    -- If fifo is asynchronous, must use async reset on rd side.
@@ -616,8 +621,8 @@ begin
 
    U_Pipe : entity work.AxiStreamPipeline
       generic map (
-         TPD_G          => TPD_G,
-         PIPE_STAGES_G  => PIPE_STAGES_G
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G
          )
       port map (
          -- Clock and Reset
