@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-16
--- Last update: 2014-04-17
+-- Last update: 2015-09-15
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,19 +23,19 @@ use work.StdRtlPkg.all;
 
 entity SyncTrigRate is
    generic (
-      TPD_G          : time     := 1 ns;    -- Simulation FF output delay
-      COMMON_CLK_G   : boolean  := false;   -- true if locClk & refClk are the same clock
-      IN_POLARITY_G  : sl       := '1';     -- 0 for active LOW, 1 for active HIGH
-      REF_CLK_FREQ_G : real     := 200.0E+6;-- units of Hz
-      REFRESH_RATE_G : real     := 1.0E+0;  -- units of Hz
-      USE_DSP48_G    : string   := "no";    -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
-      CNT_WIDTH_G    : positive := 32);     -- Counters' width
+      TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      COMMON_CLK_G   : boolean  := false;  -- true if locClk & refClk are the same clock
+      IN_POLARITY_G  : sl       := '1';   -- 0 for active LOW, 1 for active HIGH
+      REF_CLK_FREQ_G : real     := 200.0E+6;              -- units of Hz
+      REFRESH_RATE_G : real     := 1.0E+0;                -- units of Hz
+      USE_DSP48_G    : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      CNT_WIDTH_G    : positive := 32);   -- Counters' width
    port (
       -- Trigger Input (locClk domain)
       trigIn          : in  sl;
       -- Trigger Rate Output (locClk domain)
       trigRateUpdated : out sl;
-      trigRateOut     : out slv(CNT_WIDTH_G-1 downto 0);-- units of REFRESH_RATE_G
+      trigRateOut     : out slv(CNT_WIDTH_G-1 downto 0);  -- units of REFRESH_RATE_G
       -- Clocks
       locClkEn        : in  sl := '1';
       locClk          : in  sl;
@@ -47,12 +47,12 @@ architecture rtl of SyncTrigRate is
    constant REFRESH_MAX_CNT_C     : natural                     := getTimeRatio(REF_CLK_FREQ_G, REFRESH_RATE_G);
    constant REFRESH_SLV_MAX_CNT_C : slv(CNT_WIDTH_G-1 downto 0) := toSlv((REFRESH_MAX_CNT_C-1), CNT_WIDTH_G);
 
-   signal updated : sl;
+   signal updated : sl := '0';
    signal trigCnt,
       trigCntSync,
       trigRateCnt,
       trigRateSync,
-      trigCntDly : slv(CNT_WIDTH_G-1 downto 0);
+      trigCntDly : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
 
    -- Attribute for XST
    attribute use_dsp48                 : string;
