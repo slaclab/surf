@@ -17,10 +17,10 @@ csim_design -clean -ldflags ${LDFLAGS} -argv ${ARGV}
 csynth_design
 
 ## Run co-simulation (compares the C/C++ code to the RTL)
-cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl vhdl -tool vcs
+cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl verilog -tool vcs
 
 ## Export the Design
-export_design -evaluate vhdl -format syn_dcp
+export_design -evaluate verilog -format syn_dcp
 
 ## Close the solution
 close_solution
