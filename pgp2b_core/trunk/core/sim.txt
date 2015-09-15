@@ -1,1 +1,2 @@
 vhdl work simlink/rtl/PgpSimModel.vhd
+vhdl work tb/PgpParallelSimModel.vhd
