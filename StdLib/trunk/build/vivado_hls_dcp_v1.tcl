@@ -9,10 +9,10 @@ exec rm -rf ${PROJ_DIR}/ip/
 exec cp -rf ${OUT_DIR}/${PROJECT}_project/solution1/impl/ip ${PROJ_DIR}/.
 
 exec rm -rf ${PROJ_DIR}/rtl/
-exec cp -rf ${OUT_DIR}/${PROJECT}_project/solution1/syn/vhdl ${PROJ_DIR}/rtl
+exec cp -rf ${OUT_DIR}/${PROJECT}_project/solution1/syn/verilog ${PROJ_DIR}/rtl
 
 exec rm -f  [exec ls [glob "${PROJ_DIR}/ip/*.veo"]]
-exec cp -f  [exec ls [glob "${OUT_DIR}/${PROJECT}_project/solution1/impl/report/vhdl/*.rpt"]] ${PROJ_DIR}/ip/.
+exec cp -f  [exec ls [glob "${OUT_DIR}/${PROJECT}_project/solution1/impl/report/verilog/*.rpt"]] ${PROJ_DIR}/ip/.
 
 ## Get the file name and path of the new .dcp file
 set filename [exec ls [glob "${PROJ_DIR}/ip/*.dcp"]]
