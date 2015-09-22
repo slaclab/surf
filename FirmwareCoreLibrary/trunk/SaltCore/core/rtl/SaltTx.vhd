@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-04
+-- Last update: 2015-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,7 +60,6 @@ architecture rtl of SaltTx is
       sof         : sl;
       eof         : sl;
       eofe        : sl;
-      gapDone     : sl;
       gapCnt      : natural range 0 to INTER_GAP_SIZE_C;
       seqCnt      : slv(7 downto 0);
       tDest       : slv(7 downto 0);
@@ -71,6 +70,7 @@ architecture rtl of SaltTx is
       rxSlave     : AxiStreamSlaveType;
       sMaster     : AxiStreamMasterType;
       mSlave      : AxiStreamSlaveType;
+      gmiiSlave   : AxiStreamSlaveType;
       state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
@@ -78,7 +78,6 @@ architecture rtl of SaltTx is
       sof         => '0',
       eof         => '0',
       eofe        => '0',
-      gapDone     => '0',
       gapCnt      => 0,
       seqCnt      => (others => '0'),
       tDest       => (others => '0'),
@@ -89,6 +88,7 @@ architecture rtl of SaltTx is
       rxSlave     => AXI_STREAM_SLAVE_INIT_C,
       sMaster     => AXI_STREAM_MASTER_INIT_C,
       mSlave      => AXI_STREAM_SLAVE_INIT_C,
+      gmiiSlave   => AXI_STREAM_SLAVE_INIT_C,
       state       => IDLE_S);      
 
    signal r   : RegType := REG_INIT_C;
@@ -103,6 +103,7 @@ architecture rtl of SaltTx is
    signal txMaster   : AxiStreamMasterType;
    signal txSlave    : AxiStreamSlaveType;
    signal gmiiMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal gmiiSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -222,6 +223,8 @@ begin
                v.rxSlave.tReady := '1';
                -- Move the data
                v.sMaster        := rxMaster;
+               -- Mask off tLast for intergap monitoring
+               v.sMaster.tLast  := '0';
                -- Increment the counter
                v.length         := r.length + 1;
                -- Check for EOF
@@ -238,8 +241,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when PREAMBLE_S =>
-            -- Check if the Ethernet intergap is done
-            if (r.gapDone = '1') then
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
                -- Write the preamble 
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := PREAMBLE_C;
@@ -320,6 +323,9 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Write the footer
                v.txMaster.tValid := '1';
+               -- Insert tLast for intergap monitoring
+               v.txMaster.tLast  := '1';
+               -- Check for EOF
                if r.eof = '0' then
                   v.txMaster.tData(31 downto 0) := EOC_C;
                else
@@ -335,18 +341,21 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Check the intergap
-      if gmiiMaster.tValid = '1' then
-         -- Reset the flag and counter
-         v.gapDone := '0';
-         v.gapCnt  := 0;
-      else
+      -- Check the current state of gmiiSlave
+      if r.gmiiSlave.tReady = '0' then
          -- Check the intergap counter
          if r.gapCnt = INTER_GAP_SIZE_C then
-            -- Reset the flag
-            v.gapDone := '1';
+            -- Set the flag
+            v.gmiiSlave.tReady := '1';
          else
             v.gapCnt := r.gapCnt + 1;
+         end if;
+      else
+         -- Check for GMII tLast
+         if (gmiiMaster.tValid = '1') and (gmiiMaster.tLast = '1') then
+            -- Reset the flag and counter
+            v.gmiiSlave.tReady := '0';
+            v.gapCnt           := 0;
          end if;
       end if;
 
@@ -359,10 +368,11 @@ begin
       rin <= v;
 
       -- Outputs        
-      mSlave   <= v.mSlave;
-      sMaster  <= r.sMaster;
-      rxSlave  <= v.rxSlave;
-      txMaster <= r.txMaster;
+      mSlave    <= v.mSlave;
+      sMaster   <= r.sMaster;
+      rxSlave   <= v.rxSlave;
+      txMaster  <= r.txMaster;
+      gmiiSlave <= r.gmiiSlave;
 
    end process comb;
 
@@ -399,9 +409,9 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => gmiiMaster,
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);      
+         mAxisSlave  => gmiiSlave);      
 
-   txEn   <= gmiiMaster.tValid;
+   txEn   <= gmiiMaster.tValid and gmiiSlave.tReady;
    txData <= gmiiMaster.tData(7 downto 0);
 
 end rtl;
