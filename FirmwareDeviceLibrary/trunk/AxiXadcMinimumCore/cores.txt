@@ -1,1 +1,2 @@
-coregen/AxiXadcMinimum.xci
+Using the .DCP file instead
+# coregen/AxiXadcMinimum.xci
