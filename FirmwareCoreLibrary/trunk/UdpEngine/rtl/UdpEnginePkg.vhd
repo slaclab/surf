@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-08-25
+-- Last update: 2015-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,9 +25,7 @@ use work.AxiStreamPkg.all;
 package UdpEnginePkg is
 
    -- Note: This function assumes the AXIS bus is IP_ENGINE_CONFIG_C
-   function Axis32BitEndianConvert (
-      master : AxiStreamMasterType)
-      return AxiStreamMasterType;
+   function Axis32BitEndianConvert(master : AxiStreamMasterType; byteSwap : boolean := false) return AxiStreamMasterType;
    
    procedure GetUdpChecksum (
       -- Inbound tKeep and tData
@@ -53,14 +51,14 @@ end package UdpEnginePkg;
 package body UdpEnginePkg is
 
    -- Note: This function assumes the AXIS bus is IP_ENGINE_CONFIG_C
-   function Axis32BitEndianConvert (
-      master : AxiStreamMasterType)
+   function Axis32BitEndianConvert (master : AxiStreamMasterType; byteSwap : boolean := false)
       return AxiStreamMasterType
    is
       variable i    : natural;
       variable swap : AxiStreamMasterType;
       variable ret  : AxiStreamMasterType;
    begin
+      -- Pass the non-tData dna non-tKeep through
       ret.tValid := master.tValid;
       ret.tStrb  := master.tStrb;
       ret.tLast  := master.tLast;
@@ -69,16 +67,21 @@ package body UdpEnginePkg is
       ret.tUser  := master.tUser;
       -- Byte Swapping
       for i in 3 downto 0 loop
-         swap.tKeep((4*i)+0)                    := master.tKeep(4*i);
-         swap.tKeep((4*i)+1)                    := master.tKeep(4*i);
-         swap.tKeep((4*i)+2)                    := master.tKeep(4*i);
-         swap.tKeep((4*i)+3)                    := master.tKeep(4*i);
-         swap.tData((32*i)+31 downto (32*i)+24) := master.tData((32*i)+7 downto (32*i)+0);
-         swap.tData((32*i)+23 downto (32*i)+16) := master.tData((32*i)+15 downto (32*i)+8);
-         swap.tData((32*i)+15 downto (32*i)+8)  := master.tData((32*i)+23 downto (32*i)+16);
-         swap.tData((32*i)+7 downto (32*i)+0)   := master.tData((32*i)+31 downto (32*i)+24);
+         swap.tKeep((4*i)+0) := master.tKeep(4*i);
+         swap.tKeep((4*i)+1) := master.tKeep(4*i);
+         swap.tKeep((4*i)+2) := master.tKeep(4*i);
+         swap.tKeep((4*i)+3) := master.tKeep(4*i);
+         if byteSwap then
+            swap.tData((32*i)+31 downto (32*i)+24) := master.tData((32*i)+7 downto (32*i)+0);
+            swap.tData((32*i)+23 downto (32*i)+16) := master.tData((32*i)+15 downto (32*i)+8);
+            swap.tData((32*i)+15 downto (32*i)+8)  := master.tData((32*i)+23 downto (32*i)+16);
+            swap.tData((32*i)+7 downto (32*i)+0)   := master.tData((32*i)+31 downto (32*i)+24);
+         else
+            -- Don't swap because already swapped in software via htonl() function
+            swap.tData((32*i)+31 downto (32*i)) := master.tData((32*i)+31 downto (32*i));
+         end if;
       end loop;
-      -- Word Swapping
+      -- 32-Bit Word Endian Swapping
       if swap.tKeep(12) = '1' then
          ret.tKeep(15 downto 12)  := swap.tKeep(3 downto 0);
          ret.tKeep(11 downto 8)   := swap.tKeep(7 downto 4);
@@ -110,6 +113,7 @@ package body UdpEnginePkg is
          ret.tData(127 downto 32) := (others => '0');
          ret.tData(31 downto 0)   := swap.tData(31 downto 0);
       end if;
+
       return ret;
    end function;
    
