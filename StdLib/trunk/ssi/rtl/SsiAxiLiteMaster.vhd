@@ -150,6 +150,13 @@ architecture rtl of SsiAxiLiteMaster is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute dont_touch                    : string;
+   -- attribute dont_touch of r               : signal is "TRUE";
+   -- attribute dont_touch of sFifoAxisMaster : signal is "TRUE";
+   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of mFifoAxisMaster : signal is "TRUE";
+   -- attribute dont_touch of mFifoAxisSlave  : signal is "TRUE";
+   -- attribute dont_touch of mFifoAxisCtrl   : signal is "TRUE";
 
 begin
 
@@ -226,6 +233,7 @@ begin
                if sFifoAxisMaster.tLast = '0' then
                   v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
                   v.mFifoAxisMaster.tUser  := sFifoAxisMaster.tUser;
+                  v.mFifoAxisMaster.tData  := sFifoAxisMaster.tData;
                   v.state                  := S_ADDR_C;
                end if;
             end if;
