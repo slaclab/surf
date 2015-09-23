@@ -1,2 +1,0 @@
-#cores/PgpGthCore/PgpGthCore.xci
-#cores/GthUltrascaleJesdCoregen/GthUltrascaleJesdCoregen.xci
