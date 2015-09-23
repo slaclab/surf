@@ -1,1 +1,2 @@
 vhdl work rtl/AxiXadcMinimumCore.vhd
+vhdl work coregen/AxiXadcMinimum.dcp
