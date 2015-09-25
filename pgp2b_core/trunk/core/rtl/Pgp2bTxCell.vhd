@@ -19,6 +19,7 @@
 -- 04/04/2014: Changed to Pgp2b.
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
 -- 08/10/2015: Added clock enable support
+-- 09/17/2015: Added almost full provisions
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -68,8 +69,9 @@ entity Pgp2bTxCell is
       vc0FrameTxEOF     : in  sl;                               -- User frame data end of frame
       vc0FrameTxEOFE    : in  sl;                               -- User frame data error
       vc0FrameTxData    : in  slv(TX_LANE_CNT_G*16-1 downto 0); -- User frame data
-      vc0LocAlmostFull  : in  sl;                               -- Remote buffer almost full
-      vc0LocOverflow    : in  sl;                               -- Remote buffer full
+      vc0LocAlmostFull  : in  sl;                               -- Local buffer almost full
+      vc0LocOverflow    : in  sl;                               -- Local buffer full
+      vc0RemAlmostFull  : in  sl;                               -- Remote buffer almost full
 
       -- Frame Transmit Interface, VC 1
       vc1FrameTxValid   : in  sl;                               -- User frame data is valid
@@ -78,8 +80,9 @@ entity Pgp2bTxCell is
       vc1FrameTxEOF     : in  sl;                               -- User frame data end of frame
       vc1FrameTxEOFE    : in  sl;                               -- User frame data error
       vc1FrameTxData    : in  slv(TX_LANE_CNT_G*16-1 downto 0); -- User frame data
-      vc1LocAlmostFull  : in  sl;                               -- Remote buffer almost full
-      vc1LocOverflow    : in  sl;                               -- Remote buffer full
+      vc1LocAlmostFull  : in  sl;                               -- Local buffer almost full
+      vc1LocOverflow    : in  sl;                               -- Local buffer full
+      vc1RemAlmostFull  : in  sl;                               -- Remote buffer almost full
 
       -- Frame Transmit Interface, VC 2
       vc2FrameTxValid   : in  sl;                               -- User frame data is valid
@@ -88,8 +91,9 @@ entity Pgp2bTxCell is
       vc2FrameTxEOF     : in  sl;                               -- User frame data end of frame
       vc2FrameTxEOFE    : in  sl;                               -- User frame data error
       vc2FrameTxData    : in  slv(TX_LANE_CNT_G*16-1 downto 0); -- User frame data
-      vc2LocAlmostFull  : in  sl;                               -- Remote buffer almost full
-      vc2LocOverflow    : in  sl;                               -- Remote buffer full
+      vc2LocAlmostFull  : in  sl;                               -- Local buffer almost full
+      vc2LocOverflow    : in  sl;                               -- Local buffer full
+      vc2RemAlmostFull  : in  sl;                               -- Remote buffer almost full
 
       -- Frame Transmit Interface, VC 3
       vc3FrameTxValid   : in  sl;                               -- User frame data is valid
@@ -98,8 +102,9 @@ entity Pgp2bTxCell is
       vc3FrameTxEOF     : in  sl;                               -- User frame data end of frame
       vc3FrameTxEOFE    : in  sl;                               -- User frame data error
       vc3FrameTxData    : in  slv(TX_LANE_CNT_G*16-1 downto 0); -- User frame data
-      vc3LocAlmostFull  : in  sl;                               -- Remote buffer almost full
-      vc3LocOverflow    : in  sl;                               -- Remote buffer full
+      vc3LocAlmostFull  : in  sl;                               -- Local buffer almost full
+      vc3LocOverflow    : in  sl;                               -- Local buffer full
+      vc3RemAlmostFull  : in  sl;                               -- Remote buffer almost full
 
       -- Transmit CRC Interface
       crcTxIn           : out slv(TX_LANE_CNT_G*16-1 downto 0); -- Transmit data for CRC
@@ -120,6 +125,7 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    signal muxFrameTxEOF      : sl;
    signal muxFrameTxEOFE     : sl;
    signal muxFrameTxData     : slv(TX_LANE_CNT_G*16-1 downto 0);
+   signal muxRemAlmostFull   : sl;
    signal cellCnt            : slv(PAYLOAD_CNT_TOP_G downto 0);
    signal cellCntRst         : sl;
    signal nxtFrameTxReady    : sl;
@@ -182,10 +188,10 @@ begin
 
 
    -- Mux incoming data
-   process ( vc0FrameTxValid, vc0FrameTxSOF, vc0FrameTxEOF, vc0FrameTxEOFE, vc0FrameTxData, 
-             vc1FrameTxValid, vc1FrameTxSOF, vc1FrameTxEOF, vc1FrameTxEOFE, vc1FrameTxData, 
-             vc2FrameTxValid, vc2FrameTxSOF, vc2FrameTxEOF, vc2FrameTxEOFE, vc2FrameTxData, 
-             vc3FrameTxValid, vc3FrameTxSOF, vc3FrameTxEOF, vc3FrameTxEOFE, vc3FrameTxData, 
+   process ( vc0FrameTxValid, vc0FrameTxSOF, vc0FrameTxEOF, vc0FrameTxEOFE, vc0FrameTxData, vc0RemAlmostFull,
+             vc1FrameTxValid, vc1FrameTxSOF, vc1FrameTxEOF, vc1FrameTxEOFE, vc1FrameTxData, Vc1RemAlmostFull,
+             vc2FrameTxValid, vc2FrameTxSOF, vc2FrameTxEOF, vc2FrameTxEOFE, vc2FrameTxData, Vc2RemAlmostFull,
+             vc3FrameTxValid, vc3FrameTxSOF, vc3FrameTxEOF, vc3FrameTxEOFE, vc3FrameTxData, Vc3RemAlmostFull,
              vc0Serial, vc1Serial, vc2Serial, vc3Serial, schTxDataVc ) begin
       case schTxDataVc is
          when "00" =>
@@ -194,6 +200,7 @@ begin
             muxFrameTxEOF   <= vc0FrameTxEOF;
             muxFrameTxEOFE  <= vc0FrameTxEOFE;
             muxFrameTxData  <= vc0FrameTxData;
+            muxRemAlmostFull <= vc0RemAlmostFull;
             muxSerial       <= vc0Serial;
          when "01" =>
             muxFrameTxValid <= vc1FrameTxValid;
@@ -201,6 +208,7 @@ begin
             muxFrameTxEOF   <= vc1FrameTxEOF;
             muxFrameTxEOFE  <= vc1FrameTxEOFE;
             muxFrameTxData  <= vc1FrameTxData;
+            muxRemAlmostFull <= vc1RemAlmostFull;
             muxSerial       <= vc1Serial;
          when "10" =>
             muxFrameTxValid <= vc2FrameTxValid;
@@ -208,6 +216,7 @@ begin
             muxFrameTxEOF   <= vc2FrameTxEOF;
             muxFrameTxEOFE  <= vc2FrameTxEOFE;
             muxFrameTxData  <= vc2FrameTxData;
+            muxRemAlmostFull <= vc2RemAlmostFull;
             muxSerial       <= vc2Serial;
          when others =>
             muxFrameTxValid <= vc3FrameTxValid;
@@ -215,6 +224,7 @@ begin
             muxFrameTxEOF   <= vc3FrameTxEOF;
             muxFrameTxEOFE  <= vc3FrameTxEOFE;
             muxFrameTxData  <= vc3FrameTxData;
+            muxRemAlmostFull <= vc3RemAlmostFull;
             muxSerial       <= vc3Serial;
       end case;
    end process;
@@ -360,7 +370,8 @@ begin
 
    -- Async state control
    process ( curState, schTxIdle, schTxReq, intTimeout, cellCnt, eocWord, socWord, curTypeLast,
-            muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData ) begin
+            muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData,
+            muxRemAlmostFull ) begin
       case curState is 
 
          -- Idle
@@ -466,6 +477,12 @@ begin
                -- EOF is asserted
                elsif muxFrameTxEOF = '1' then
                   nxtTypeLast     <= TX_EOF_C;
+                  nxtState        <= ST_CRCA_C;
+                  nxtFrameTxReady <= '0';
+
+               -- Pause is asserted
+               elsif muxRemAlmostFull = '1' then
+                  nxtTypeLast     <= TX_EOC_C;
                   nxtState        <= ST_CRCA_C;
                   nxtFrameTxReady <= '0';
 

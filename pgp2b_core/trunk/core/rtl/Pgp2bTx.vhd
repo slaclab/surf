@@ -96,13 +96,14 @@ architecture Pgp2bTx of Pgp2bTx is
    signal intTxSof         : slv(3 downto 0);
    signal intTxEofe        : slv(3 downto 0);
    signal intvalid         : slv(3 downto 0);
-   signal intReady         : slv(3 downto 0);
    signal rawReady         : slv(3 downto 0);
    signal syncLocPause     : slv(3 downto 0);
    signal syncLocOverFlow  : slv(3 downto 0);
    signal syncRemPause     : slv(3 downto 0);
    signal gateRemPause     : slv(3 downto 0);
    signal syncLocLinkReady : sl;
+   signal intTxMasters     : AxiStreamMasterArray(3 downto 0);
+   signal intTxSlaves      : AxiStreamSlaveArray(3 downto 0);
 
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of 
@@ -231,7 +232,11 @@ begin
          vc0FrameTxValid   => intValid(0),
          vc1FrameTxValid   => intValid(1),
          vc2FrameTxValid   => intValid(2),
-         vc3FrameTxValid   => intValid(3)
+         vc3FrameTxValid   => intValid(3),
+         vc0RemAlmostFull  => gateRemPause(0),
+         vc1RemAlmostFull  => gateRemPause(1),
+         vc2RemAlmostFull  => gateRemPause(2),
+         vc3RemAlmostFull  => gateRemPause(3)
       );
 
 
@@ -261,35 +266,39 @@ begin
          vc0FrameTxValid   => intValid(0),
          vc0FrameTxReady   => rawReady(0),
          vc0FrameTxSOF     => intTxSof(0),
-         vc0FrameTxEOF     => pgpTxMasters(0).tLast,
+         vc0FrameTxEOF     => intTxMasters(0).tLast,
          vc0FrameTxEOFE    => intTxEofe(0),
-         vc0FrameTxData    => pgpTxMasters(0).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc0FrameTxData    => intTxMasters(0).tData((TX_LANE_CNT_G*16)-1 downto 0),
          vc0LocAlmostFull  => syncLocPause(0),
          vc0LocOverflow    => syncLocOverFlow(0),
+         vc0RemAlmostFull  => gateRemPause(0),
          vc1FrameTxValid   => intValid(1),
          vc1FrameTxReady   => rawReady(1),
          vc1FrameTxSOF     => intTxSof(1),
-         vc1FrameTxEOF     => pgpTxMasters(1).tLast,
+         vc1FrameTxEOF     => intTxMasters(1).tLast,
          vc1FrameTxEOFE    => intTxEofe(1),
-         vc1FrameTxData    => pgpTxMasters(1).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc1FrameTxData    => intTxMasters(1).tData((TX_LANE_CNT_G*16)-1 downto 0),
          vc1LocAlmostFull  => syncLocPause(1),
          vc1LocOverflow    => syncLocOverFlow(1),
+         vc1RemAlmostFull  => gateRemPause(1),
          vc2FrameTxValid   => intValid(2),
          vc2FrameTxReady   => rawReady(2),
          vc2FrameTxSOF     => intTxSof(2),
-         vc2FrameTxEOF     => pgpTxMasters(2).tLast,
+         vc2FrameTxEOF     => intTxMasters(2).tLast,
          vc2FrameTxEOFE    => intTxEofe(2),
-         vc2FrameTxData    => pgpTxMasters(2).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc2FrameTxData    => intTxMasters(2).tData((TX_LANE_CNT_G*16)-1 downto 0),
          vc2LocAlmostFull  => syncLocPause(2),
          vc2LocOverflow    => syncLocOverFlow(2),
+         vc2RemAlmostFull  => gateRemPause(2),
          vc3FrameTxValid   => intValid(3),
          vc3FrameTxReady   => rawReady(3),
          vc3FrameTxSOF     => intTxSof(3),
-         vc3FrameTxEOF     => pgpTxMasters(3).tLast,
+         vc3FrameTxEOF     => intTxMasters(3).tLast,
          vc3FrameTxEOFE    => intTxEofe(3),
-         vc3FrameTxData    => pgpTxMasters(3).tData((TX_LANE_CNT_G*16)-1 downto 0),
+         vc3FrameTxData    => intTxMasters(3).tData((TX_LANE_CNT_G*16)-1 downto 0),
          vc3LocAlmostFull  => syncLocPause(3),
          vc3LocOverflow    => syncLocOverFlow(3),
+         vc3RemAlmostFull  => gateRemPause(3),
          crcTxIn           => crcTxIn,
          crcTxInit         => crcTxInit,
          crcTxValid        => crcTxValid,
@@ -299,11 +308,26 @@ begin
 
    -- EOFE/Ready/Valid
    U_Vc_Gen: for i in 0 to 3 generate
-      intReady(i)           <= rawReady(i) and (not gateRemPause(i)) and pgpTxClkEn;
-      intValid(i)           <= pgpTxMasters(i).tValid and (not gateRemPause(i)) and pgpTxClkEn;
-      intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_EOFE_C);
-      intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,pgpTxMasters(i),SSI_SOF_C,0);
-      pgpTxSlaves(i).tReady <= intReady(i);
+
+      -- Add pipeline stages to ensure ready stays asserted
+      U_InputPipe: entity work.AxiStreamPipeline 
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => 0
+         ) port map (
+            axisClk     => pgpTxClk,
+            axisRst     => pgpTxClkRst,
+            sAxisMaster => pgpTxMasters(i),
+            sAxisSlave  => pgpTxSlaves(i),
+            mAxisMaster => intTxMasters(i),
+            mAxisSlave  => intTxSlaves(i)
+         );
+
+      intValid(i)           <= intTxMasters(i).tValid;
+      intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,intTxMasters(i),SSI_EOFE_C);
+      intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2B_CONFIG_C,intTxMasters(i),SSI_SOF_C,0);
+      intTxSlaves(i).tReady <= rawReady(i);
+
    end generate;
 
    -- TX CRC BLock

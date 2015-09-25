@@ -16,6 +16,7 @@
 -- 05/18/2012: Added VC transmit timeout
 -- 07/10/2014: Change all ASYNC resets to SYNC resets.
 -- 08/10/2015: Added clock enable support
+-- 09/17/2015: Added flow control support
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -57,7 +58,13 @@ entity Pgp2bTxSched is
       vc0FrameTxValid : in sl;                -- User frame data is valid
       vc1FrameTxValid : in sl;                -- User frame data is valid
       vc2FrameTxValid : in sl;                -- User frame data is valid
-      vc3FrameTxValid : in sl                 -- User frame data is valid
+      vc3FrameTxValid  : in sl;                -- User frame data is valid
+
+      -- VC Flow Control Signals
+      vc0RemAlmostFull : in sl;                -- Remote flow control
+      vc1RemAlmostFull : in sl;                -- Remote flow control
+      vc2RemAlmostFull : in sl;                -- Remote flow control
+      vc3RemAlmostFull : in sl                 -- Remote flow control
    );
 
 end Pgp2bTxSched;
@@ -84,6 +91,7 @@ architecture Pgp2bTxSched of Pgp2bTxSched is
    signal vcTimerC     : slv(23 downto 0);
    signal vcTimerD     : slv(23 downto 0);
    signal vcTimeout    : slv(3 downto 0);
+   signal gateTxValid  : slv(3 downto 0);
 
    -- Schedular state
    constant ST_RST_C   : slv(2 downto 0) := "001";
@@ -241,42 +249,47 @@ begin
       end case;
    end process;
 
+   -- Gate valid signals based upon flow control
+   gateTxValid(0) <= vc0FrameTxvalid and (not vc0RemAlmostFull);
+   gateTxValid(1) <= vc1FrameTxvalid and (not vc1RemAlmostFull);
+   gateTxValid(2) <= vc2FrameTxvalid and (not vc2RemAlmostFull);
+   gateTxValid(3) <= vc3FrameTxvalid and (not vc3RemAlmostFull);
 
    -- Current owner has valid asserted
-   currValid <= vc0FrameTxValid when currVc = "00" else
-                vc1FrameTxValid when currVc = "01" and NUM_VC_EN_G > 1 else
-                vc2FrameTxValid when currVc = "10" and NUM_VC_EN_G > 2 else
-                vc3FrameTxValid when currVc = "11" and NUM_VC_EN_G > 3 else
+   currValid <= gateTxValid(0) when currVc = "00" else
+                gateTxValid(1) when currVc = "01" and NUM_VC_EN_G > 1 else
+                gateTxValid(2) when currVc = "10" and NUM_VC_EN_G > 2 else
+                gateTxValid(3) when currVc = "11" and NUM_VC_EN_G > 3 else
                 '0';
 
 
    -- Arbitrate for the next VC value based upon current VC value and status of valid inputs
-   process (currVc, vc0FrameTxValid, vc1FrameTxValid, vc2FrameTxValid, vc3FrameTxValid)
+   process (currVc, gateTxValid)
    begin
       case currVc is
          when "00" =>
-            if    vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
-            elsif vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
-            elsif vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
-            elsif vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
+            if    gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            elsif gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            elsif gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            elsif gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
             else arbVc                                                 <= "00"; arbValid <= '0'; end if;
          when "01" =>
-            if    vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
-            elsif vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
-            elsif vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
-            elsif vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            if    gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            elsif gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            elsif gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
+            elsif gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
             else arbVc                                                 <= "01"; arbValid <= '0'; end if;
          when "10" =>
-            if    vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
-            elsif vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
-            elsif vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
-            elsif vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            if    gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            elsif gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
+            elsif gateTxvalid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            elsif gateTxvalid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
             else arbVc                                                 <= "10"; arbValid <= '0'; end if;
          when "11" =>
-            if    vc0FrameTxValid = '1' then arbVc                     <= "00"; arbValid <= '1';
-            elsif vc1FrameTxValid = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
-            elsif vc2FrameTxValid = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
-            elsif vc3FrameTxValid = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            if    gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
+            elsif gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            elsif gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            elsif gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
             else arbVc                                                 <= "11"; arbValid <= '0'; end if;
          when others =>
             arbVc <= "00"; arbValid <= '0';
@@ -310,11 +323,11 @@ begin
       end if;
    end process;
 
-   -- Detect frame transmit timeout
+   -- Detect frame transmit timeout, enabled only in VC non interleave mode
    process (pgpTxClk)
    begin
       if rising_edge(pgpTxClk) then
-         if pgpTxClkRst = '1' then
+         if pgpTxClkRst = '1' or VC_INTERLEAVE_G = 1 then
             vcTimerA  <= (others => '0') after TPD_G;
             vcTimerB  <= (others => '0') after TPD_G;
             vcTimerC  <= (others => '0') after TPD_G;
