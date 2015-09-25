@@ -20,9 +20,27 @@ csynth_design
 cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl verilog -tool vcs
 
 ## Export the Design
-export_design -evaluate verilog -format syn_dcp
+export_design -evaluate verilog -format syn_dcp 
 
-## Close the solution
+## Copy the IP directory to module source tree
+exec rm -rf ${PROJ_DIR}/ip/
+exec cp -rf ${OUT_DIR}/${PROJECT}_project/solution1/impl/ip ${PROJ_DIR}/.
+
+exec rm -f  [exec ls [glob "${PROJ_DIR}/ip/*.veo"]]
+exec cp -f  [exec ls [glob "${OUT_DIR}/${PROJECT}_project/solution1/impl/report/verilog/*.rpt"]] ${PROJ_DIR}/ip/.
+
+## Export the Design
+export_design -evaluate verilog -format ip_catalog
+
+## Copy the driver to module source tree
+set DRIVER ${OUT_DIR}/${PROJECT}_project/solution1/impl/ip/drivers
+if { [file exist  ${DRIVER}] } {
+   set DRIVER ${DRIVER}/[exec ls ${DRIVER}]/src
+   set DRIVER [glob ${DRIVER}/*_hw.h]
+   exec cp -f ${DRIVER} ${PROJ_DIR}/ip/.
+}
+
+## Close current solution
 close_solution
 
 ## Close the project
