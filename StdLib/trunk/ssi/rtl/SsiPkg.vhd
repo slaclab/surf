@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2015-06-15
+-- Last update: 2015-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,16 @@ package SsiPkg is
    constant SSI_TDEST_BITS_C : integer := 4;
    constant SSI_TID_BITS_C   : integer := 0;
    constant SSI_TSTRB_EN_C   : boolean := false;
+   
+   constant SSI_MASTER_FORCE_EOFE_C : AxiStreamMasterType := (
+      tValid => '1',                                   -- Force
+      tData  => (others => '0'),
+      tStrb  => (others => '1'),
+      tKeep  => (others => '1'),
+      tLast  => '1',                                   -- EOF
+      tDest  => (others => '0'),
+      tId    => (others => '0'),
+      tUser  => x"01010101010101010101010101010101");  -- EOFE   
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration
@@ -138,13 +148,13 @@ package body SsiPkg is
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
-      ret.TDATA_BYTES_C := dataBytes;           -- Configurable data size
-      ret.TUSER_BITS_C  := SSI_TUSER_BITS_C;    -- 2 TUSER: EOFE, SOF
-      ret.TDEST_BITS_C  := SSI_TDEST_BITS_C;    -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := SSI_TID_BITS_C;      -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;           -- 
-      ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;      -- No TSTRB support in SSI
-      ret.TUSER_MODE_C  := tUserMode;  -- User field valid on last only
+      ret.TDATA_BYTES_C := dataBytes;         -- Configurable data size
+      ret.TUSER_BITS_C  := SSI_TUSER_BITS_C;  -- 2 TUSER: EOFE, SOF
+      ret.TDEST_BITS_C  := SSI_TDEST_BITS_C;  -- 4 TDEST bits for VC
+      ret.TID_BITS_C    := SSI_TID_BITS_C;    -- TID not used
+      ret.TKEEP_MODE_C  := tKeepMode;         -- 
+      ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;    -- No TSTRB support in SSI
+      ret.TUSER_MODE_C  := tUserMode;         -- User field valid on last only
       return ret;
    end function ssiAxiStreamConfig;
 
