@@ -171,7 +171,7 @@ begin
       
       -- DevClk domain
       devClk_i        => devClk_i,
-      devRst_i        => devClk_i,
+      devRst_i        => devRst_i,
       statusTxArr_i   => s_statusTxArr,
       muxOutSelArr_o  => s_muxOutSelArr,
       sysrefDlyTx_o   => s_sysrefDlyTx,
