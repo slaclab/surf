@@ -192,7 +192,7 @@ begin
       
       -- DevClk domain
       devClk_i        => devClk_i,
-      devRst_i        => devClk_i,
+      devRst_i        => devRst_i,
       statusRxArr_i   => s_statusRxArr,
       sysrefDlyRx_o   => s_sysrefDlyRx,
       enableRx_o      => s_enableRx,
