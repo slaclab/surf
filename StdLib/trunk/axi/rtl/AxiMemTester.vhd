@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2015-09-09
+-- Last update: 2015-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,10 +25,11 @@ use work.AxiPkg.all;
 
 entity AxiMemTester is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      TPD_G            : time                     := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0)          := AXI_RESP_DECERR_C;
       START_ADDR_G     : slv;
       STOP_ADDR_G      : slv;
+      BURST_LEN_G      : positive range 1 to 4096 := 4096;
       AXI_CONFIG_G     : AxiConfigType);
    port (
       -- AXI-Lite Interface
@@ -58,7 +59,7 @@ architecture rtl of AxiMemTester is
    constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
    constant DATA_BITS_C : natural := 8*AXI_CONFIG_G.DATA_BYTES_C;
-   constant BURST_LEN_C : natural := (4096/AXI_CONFIG_G.DATA_BYTES_C);  -- 4kB boundary
+   constant BURST_LEN_C : natural := (BURST_LEN_G/AXI_CONFIG_G.DATA_BYTES_C);  -- 4kB boundary
 
    constant PRBS_TAPS_C : NaturalArray       := (0 => 1023, 1 => 257, 2 => 113, 3 => 61, 4 => 29, 5 => 17, 6 => 7);
    constant PRBS_SEED_C : slv(1023 downto 0) := x"AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55";
@@ -230,7 +231,7 @@ begin
                      v.state                                         := READ_ADDR_S;
                   else
                      -- Increment the counter
-                     v.address := r.address + 4096;
+                     v.address := r.address + BURST_LEN_G;
                      -- Next State
                      v.state   := WRITE_ADDR_S;
                   end if;
@@ -267,11 +268,14 @@ begin
                   if axiReadSlave.rresp = "00" then
                      -- Check for max. address 
                      if r.address = STOP_ADDR_C then
+                        report "AxiMemTester: Passed Test!";
+                        report "wTimer = " & integer'image(conv_integer(v.wTimer));
+                        report "rTimer = " & integer'image(conv_integer(v.rTimer));
                         -- Next State
                         v.state := DONE_S;
                      else
                         -- Increment the counter
-                        v.address := r.address + 4096;
+                        v.address := r.address + BURST_LEN_G;
                         -- Next State
                         v.state   := READ_ADDR_S;
                      end if;
