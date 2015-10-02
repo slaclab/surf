@@ -1,2 +1,1 @@
-vhdl work rtl/Jesd204bSim.vhd
 vhdl work sim/Chksum_tb.vhd
