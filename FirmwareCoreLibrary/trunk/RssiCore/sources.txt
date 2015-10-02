@@ -1,1 +1,3 @@
 vhdl work rtl/Chksum.vhd
+vhdl work rtl/HeaderReg.vhd
+vhdl work rtl/RssiPkg.vhd
