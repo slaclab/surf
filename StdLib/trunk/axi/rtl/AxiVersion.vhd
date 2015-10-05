@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-06-10
+-- Last update: 2015-10-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,26 +38,26 @@ entity AxiVersion is
       AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;       -- units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
    port (
-      axiClk : in sl;
-      axiRst : in sl;
-
-      axiReadMaster  : in  AxiLiteReadMasterType;
-      axiReadSlave   : out AxiLiteReadSlaveType;
-      axiWriteMaster : in  AxiLiteWriteMasterType;
-      axiWriteSlave  : out AxiLiteWriteSlaveType;
-
-      masterReset    : out sl;
-      fpgaReload     : out sl;
-      fpgaReloadAddr : out slv(31 downto 0);
-
-      dnaValueOut : out slv(63 downto 0);
-      fdSerialOut : out slv(63 downto 0);
-
-      -- Optional user values
-      userValues : in Slv32Array(0 to 63) := (others => X"00000000");
-
-      -- Optional DS2411 interface
-      fdSerSdio : inout sl := 'Z');
+      -- AXI-Lite Interface
+      axiClk         : in    sl;
+      axiRst         : in    sl;
+      axiReadMaster  : in    AxiLiteReadMasterType;
+      axiReadSlave   : out   AxiLiteReadSlaveType;
+      axiWriteMaster : in    AxiLiteWriteMasterType;
+      axiWriteSlave  : out   AxiLiteWriteSlaveType;
+      -- Optional: Master Reset
+      masterReset    : out   sl;
+      -- Optional: FPGA Reloading Interface
+      fpgaEnReload   : in    sl                  := '1';
+      fpgaReload     : out   sl;
+      fpgaReloadAddr : out   slv(31 downto 0);
+      -- Optional: Serial Number outputs
+      dnaValueOut    : out   slv(63 downto 0);
+      fdSerialOut    : out   slv(63 downto 0);
+      -- Optional: user values
+      userValues     : in    Slv32Array(0 to 63) := (others => X"00000000");
+      -- Optional: DS2411 interface
+      fdSerSdio      : inout sl                  := 'Z');
 end AxiVersion;
 
 architecture rtl of AxiVersion is
@@ -87,6 +87,7 @@ architecture rtl of AxiVersion is
       counterRst     : sl;
       masterReset    : sl;
       fpgaReload     : sl;
+      haltReload     : sl;
       fpgaReloadAddr : slv(31 downto 0);
       axiReadSlave   : AxiLiteReadSlaveType;
       axiWriteSlave  : AxiLiteWriteSlaveType;
@@ -98,6 +99,7 @@ architecture rtl of AxiVersion is
       counterRst     => '0',
       masterReset    => '0',
       fpgaReload     => '0',
+      haltReload     => '0',
       fpgaReloadAddr => AUTO_RELOAD_ADDR_G,
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -106,10 +108,12 @@ architecture rtl of AxiVersion is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaValid : sl               := '0';
-   signal dnaValue : slv(63 downto 0) := (others => '0');
-   signal fdValid  : sl               := '0';
-   signal fdSerial : slv(63 downto 0) := (others => '0');
+   signal dnaValid     : sl               := '0';
+   signal dnaValue     : slv(63 downto 0) := (others => '0');
+   signal fdValid      : sl               := '0';
+   signal fdSerial     : slv(63 downto 0) := (others => '0');
+   signal masterRstDet : sl               := '0';
+   signal asyncRst     : sl               := '0';
    
 begin
 
@@ -153,8 +157,8 @@ begin
             bootAddress => r.fpgaReloadAddr);
    end generate;
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid, r,
-                   stringRom, userValues) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
+                   fpgaEnReload, r, stringRom, userValues) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
 
@@ -190,7 +194,12 @@ begin
       -- Latch the current value
       v := r;
 
-      v.counter := r.counter + 1;
+      -- Reset strobes
+      v.masterReset := '0';
+
+      ------------------------      
+      -- AXI-Lite Transactions
+      ------------------------      
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
@@ -206,42 +215,43 @@ begin
       axiSlaveRegisterW(X"01C", 0, v.fpgaReload);
       axiSlaveRegisterW(X"020", 0, v.fpgaReloadAddr);
       axiSlaveRegisterW(X"024", 0, v.counter, true, X"00000000");
-
+      axiSlaveRegisterW(X"028", 0, v.haltReload);
 
       axiSlaveRegisterR("01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
       axiSlaveRegisterR("10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
 
       axiSlaveDefault(AXI_ERROR_RESP_G);
 
-      ----------------------------------------------------------------------------------------------
-      -- Increment the counter every clock
-      ----------------------------------------------------------------------------------------------
---      v.counter := r.counter + 1;
---      if (r.counterRst = '1') then
---         v.counter := (others => '0');
---      end if;
+      ---------------------------------
+      -- First Stage Boot Loader (FSBL)
+      ---------------------------------
 
-      ----------------------------------------------------------------------------------------------
-      -- If counter reaches RELOAD_COUNT_C and AUTO_RELOAD_EN_G is true then trigger a reload
-      ----------------------------------------------------------------------------------------------
-      if (r.counter = RELOAD_COUNT_C and AUTO_RELOAD_EN_G) then
+      -- Check if timer enabled
+      if fpgaEnReload = '1' then
+         v.counter := r.counter + 1;
+      end if;
+
+      -- Check for reload condition
+      if AUTO_RELOAD_EN_G and (r.counter = RELOAD_COUNT_C) and (fpgaEnReload = '1') and (r.haltReload = '0') then
          v.fpgaReload := '1';
       end if;
 
-      ----------------------------------------------------------------------------------------------
+      --------
       -- Reset
-      ----------------------------------------------------------------------------------------------
+      --------
       if (axiRst = '1') then
-         v             := REG_INIT_C;
-         v.masterReset := r.masterReset;
+         v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      fpgaReload     <= r.fpgaReload;
-      fpgaReloadAddr <= r.fpgaReloadAddr;
+      -- Outputs 
       axiReadSlave   <= r.axiReadSlave;
       axiWriteSlave  <= r.axiWriteSlave;
+      fpgaReload     <= r.fpgaReload;
+      fpgaReloadAddr <= r.fpgaReloadAddr;
+      masterRstDet   <= v.masterReset;
       
    end process comb;
 
@@ -252,19 +262,14 @@ begin
       end if;
    end process seq;
 
-   -- masterReset output needs asynchronous reset and this is the easiest way to do it
-   Synchronizer_1 : entity work.Synchronizer
+   asyncRst <= axiRst or masterRstDet;
+
+   U_RstSync : entity work.RstSync
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => true,
-         STAGES_G       => 2,
-         INIT_G         => "00")
+         TPD_G => TPD_G)  
       port map (
-         clk     => axiClk,
-         rst     => axiRst,
-         dataIn  => r.masterReset,
-         dataOut => masterReset);
+         clk      => axiClk,
+         asyncRst => asyncRst,
+         syncRst  => masterReset);
 
 end architecture rtl;
