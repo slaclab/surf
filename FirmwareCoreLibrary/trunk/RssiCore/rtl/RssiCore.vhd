@@ -53,12 +53,14 @@ entity RssiCore is
    );
    port (
       clk_i      : in  sl;
-      rst_i      : in  sl;
+      rst_i      : in  sl
       
 
    );
 end entity RssiCore;
 
 architecture rtl of RssiCore is
-   
+
+begin
+ 
 end architecture rtl;
