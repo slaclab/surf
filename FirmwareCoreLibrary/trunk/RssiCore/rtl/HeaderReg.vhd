@@ -99,7 +99,7 @@ begin
    -- Convert address to integer
    addrInt <= conv_integer(addr_i);
    
-   -- Hearer value holder
+   -- 
    comb : process (r, rst_i, headerValues_i, strobe_i, addrInt, eackN_i, eackSeqnArr_i, txSeqN_i, rxAckN_i, 
                    synHeadSt_i, rstHeadSt_i, dataHeadSt_i, nullHeadSt_i, ackHeadSt_i, eackHeadSt_i, ack_i ) is
       
