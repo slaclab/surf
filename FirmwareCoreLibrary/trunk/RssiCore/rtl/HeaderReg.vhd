@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Combines and decodes the header values
---                     
+--    TODO Remove the commented out EACK stuff if argument accepted                 
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ entity HeaderReg is
       dataHeadSt_i : in  sl;
       nullHeadSt_i : in  sl;
       ackHeadSt_i  : in  sl;
-      eackHeadSt_i : in  sl;
+      --eackHeadSt_i : in  sl;
 
       -- Register input header values on strobe
       -- (DFF if unconnected)
@@ -63,8 +63,8 @@ entity HeaderReg is
       headerValues_i : in  headerValuesType;
       
       -- Out of order sequence numbers from received EACK packet
-      eackSeqnArr_i  : in Slv16Array(0 to integer(ceil(real(MAX_OUT_OF_SEQUENCE_G)/2.0))-1);
-      eackN_i        : in natural;
+      --eackSeqnArr_i  : in Slv16Array(0 to integer(ceil(real(MAX_OUT_OF_SEQUENCE_G)/2.0))-1);
+      --eackN_i        : in natural;
       -- 
       addr_i        : in  slv(7  downto 0);
       headerData_o  : out slv(15 downto 0)
@@ -183,17 +183,17 @@ begin
             when others =>
               vHeaderData := (others=> '0');       
          end case;
-      elsif (eackHeadSt_i = '1') then
-         case addrInt is
-            when 16#00# =>
-              vHeaderData := "01100000" & toSlv(EACK_HEADER_SIZE_G+r.eackN, 8);
-            when 16#01# =>
-              vHeaderData := r.txSeqN & r.rxAckN;
-            when 16#02# to (2+MAX_OUT_OF_ORDER_G-1) =>
-              vHeaderData := r.eackSeqnArr(addrInt-2);
-            when others =>
-              vHeaderData := (others=> '0');
-         end case;
+     -- elsif (eackHeadSt_i = '1') then
+     --    case addrInt is
+     --       when 16#00# =>
+     --         vHeaderData := "01100000" & toSlv(EACK_HEADER_SIZE_G+r.eackN, 8);
+     --       when 16#01# =>
+     --         vHeaderData := r.txSeqN & r.rxAckN;
+     --       when 16#02# to (2+MAX_OUT_OF_ORDER_G-1) =>
+     --         vHeaderData := r.eackSeqnArr(addrInt-2);
+     --       when others =>
+     --         vHeaderData := (others=> '0');
+     --    end case;
       else
          vHeaderData := (others=> '0'); 
       end if;
