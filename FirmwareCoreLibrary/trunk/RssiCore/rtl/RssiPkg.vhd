@@ -36,18 +36,16 @@ package RssiPkg is
       tDest                 :  slv(SSI_TDEST_BITS_C-1 downto 0);  
       --eacked                :  sl;
       eofe                  :  sl;
-      sent                  :  sl;
    end record WindowType;
    
    constant WINDOW_INIT_C : WindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
-      acked                 => '0',  
-      eacked                => '0',
-      sent                  => '0');
+      tDest                 => (others => '0'), 
+      eofe                  => '0');
    
    
-   type WindowTypeArray is array (0 to 255) of WindowType;
+   type WindowTypeArray is array (natural range<>) of WindowType;
       
    -- Arrays
    

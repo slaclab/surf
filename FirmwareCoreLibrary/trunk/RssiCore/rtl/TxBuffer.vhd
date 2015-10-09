@@ -9,8 +9,8 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
---                     
+-- Description:
+--       TODO Remove the commented out EACK stuff if argument accepted       
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -21,17 +21,18 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
-use ieee.math_real.all;
+use work.SsiPkg.all;
+use work.AxiStreamPkg.all;
 
 entity TxBuffer is
    generic (
       TPD_G                   : time     := 1 ns;
-      AXI_CONFIG_G      : AxiStreamConfigType := ssiAxiStreamConfig(2));
+      AXI_CONFIG_G      : AxiStreamConfigType := ssiAxiStreamConfig(2);
       
       MAX_SEGMENT_SIZE_G      : positive := 10;     -- 2^MAX_SEGMENT_SIZE_G = Number of 16bit wide data words
-      MAX_WINDOW_SIZE_G       : positive := 7;    -- 2^MAX_WINDOW_SIZE_G  = Number of segments
+      MAX_WINDOW_SIZE_G       : positive := 7;      -- 2^MAX_WINDOW_SIZE_G  = Number of segments
       -- MAX_RX_NUM_OUTS_SEG_G   : positive := 128; -- Max number out of sequence segments (EACK)
-      AXIS_DATA_WIDTH_G       : positive := 16   -- 
+      AXIS_DATA_WIDTH_G       : positive := 16      -- 
    );
    port (
       clk_i      : in  sl;
@@ -58,50 +59,69 @@ entity TxBuffer is
       nullHeadSt_i : in  sl;
 
       -- Window buff size (Depends on the number of outstanding segments)
-      windowSize_i   : in integer range 0 to MAX_WINDOW_SIZE_G-1; -- 
+      windowSize_i   : in integer range 0 to 2 ** (MAX_WINDOW_SIZE_G-1); -- 
       
-      -- Sequence next sequence number
-      seqN_i     : in slv(7 downto 0);    
+      -- Next sequence number
+      nextSeqN_i     : in slv(7 downto 0);    
      
       -- Acknowledge mechanism
-      ack_i         : in sl;                   -- From receiver module when a packet with valid ACK is received
+      ack_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
       ackN_i        : in slv(7 downto 0);      -- Number being ACKed
-      --eack_i        : in sl;                   -- From receiver module when a packet with valid EACK is received
+      --eack_i        : in sl;                 -- From receiver module when a segment with valid EACK is received
       --eackSeqnArr_i : in Slv8Array(0 to MAX_RX_NUM_OUTS_SEG_G-1); -- Array of sequence numbers received out of order
       
-      -- 
-      windowArray_o    : out WindowTypeArray;
+      -- Output to TxFSM
+      txData_o         : out sl;
+      windowArray_o    : out WindowTypeArray(0 to 2 ** (MAX_WINDOW_SIZE_G)-1);
       bufferFull_o     : out sl;
       firstUnackAddr_o : out slv(MAX_WINDOW_SIZE_G-1 downto 0);
-      lastSentAddr_o   : out slv(MAX_WINDOW_SIZE_G-1 downto 0)
+      lastSentAddr_o   : out slv(MAX_WINDOW_SIZE_G-1 downto 0);
+      ssiBusy_o        : out sl;
       
+      -- Errors (1 cc pulse)
+      lenErr_o         : out sl;
+      ackErr_o         : out sl
    );
 end entity TxBuffer;
 
 architecture rtl of TxBuffer is
    
+   -- Init SSI bus
+   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(AXI_CONFIG_G, AXI_STREAM_MASTER_INIT_C);
+   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_CONFIG_G, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
+   
+   
    type stateType is (
       IDLE_S,
       ACK_S,
       --EACK_S,
-      ERR_S      
+      ERR_S,
+      WAIT_SOF_S,
+      SEG_RCV_S,
+      SEG_RDY,
+      SEG_LEN_ERR,
+      WAIT_TX_S
    );
    
    type RegType is record
       -- Window control
-      firstUnackAddr : slv(7  downto 0);
-      lastSentAddr   : slv(7  downto 0);
-      eackAddr       : slv(7  downto 0);
-      eackIndex      : integer;      
+      firstUnackAddr : slv(MAX_WINDOW_SIZE_G-1 downto 0);
+      lastSentAddr   : slv(MAX_WINDOW_SIZE_G-1 downto 0);
+      --eackAddr       : slv(MAX_WINDOW_SIZE_G-1 downto 0);
+      --eackIndex      : integer;      
       bufferFull     : sl;
-      windowArray    : WindowTypeArray;
+      windowArray    : WindowTypeArray(0 to 2 ** (MAX_WINDOW_SIZE_G)-1);
       ackErr         : sl;
       
       -- SSI data RX      
-      packetAddr     : slv(7  downto 0);
-      packetWe       : sl;
+      segmentAddr    : slv(MAX_SEGMENT_SIZE_G downto 0); -- One address bit more to check the overflow
+      segmentWe      : sl;
+      txData         : sl;
+      lenErr         : sl;
+      ssiBusy        : sl;
+      
       ssiMaster      : SsiMasterType;
-      ssiSlave       : SsiMasterType; 
+      ssiSlave       : SsiSlaveType; 
       
       -- State Machine
       ackState       : StateType;
@@ -113,18 +133,21 @@ architecture rtl of TxBuffer is
       -- Window control   
       firstUnackAddr => (others => '0'),
       lastSentAddr   => (others => '0'),
-      eackAddr       => (others => '0'),
-      eackIndex      => 0,
+      --eackAddr       => (others => '0'),
+      --eackIndex      => 0,
       bufferFull     => '0',
-      windowArray    => (others => WINDOW_INIT_C),
+      windowArray    => (0 to 127 => WINDOW_INIT_C),
       ackErr         => '0',
       
       -- SSI data RX        
-      packetAddr     => (others => '0'),
-      packetWe       => '0',
+      segmentAddr     => (others => '0'),
+      segmentWe       => '0',
+      txData          => '0',
+      lenErr          => '0',
+      ssiBusy         => '0',
       
-      ssiMaster      => axis2SsiMaster(SSI_CONFIG_INIT_C, AXI_STREAM_MASTER_INIT_C);     
-      ssiSlave       => axis2SsiSlave(AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
+      ssiMaster      => SSI_MASTER_INIT_C,     
+      ssiSlave       => SSI_SLAVE_INIT_C,
       
       -- State Machine
       ackState        => IDLE_S,
@@ -143,18 +166,22 @@ begin
    -- Convert from SSI to Axis and back
    appAxisSlave_o <= ssi2AxisSlave(r.ssiSlave);
    appAxisCtrl_o  <= ssi2AxisCtrl(r.ssiSlave);
-   
-   ----------------------------------------------------------------------------------------------   
+   ----------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------
+   -- Combine ram write address
+   s_buffWAddr <= r.lastSentAddr & r.segmentAddr(MAX_SEGMENT_SIZE_G-1 downto 0);
+   ----------------------------------------------------------------------------------------------      
    -- Buffer memory 
    SimpleDualPortRam_INST: entity work.SimpleDualPortRam
    generic map (
       TPD_G          => TPD_G,
       DATA_WIDTH_G   => AXIS_DATA_WIDTH_G,
       ADDR_WIDTH_G   => (MAX_SEGMENT_SIZE_G+MAX_WINDOW_SIZE_G)
+   )
    port map (
       -- Port A - Write only
       clka  => clk_i,
-      wea   => r.packetWe,
+      wea   => r.segmentWe,
       addra => s_buffWAddr,
       dina  => r.ssiMaster.data(AXIS_DATA_WIDTH_G-1 downto 0),
       
@@ -165,8 +192,8 @@ begin
       doutb => rdData_o);
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, we_i, ack_i, windowSize_i, seqN_i, rstHeadSt_i, dataHeadSt_i, 
-                  nullHeadSt_i, ackN_i, eack_i, eackSeqnArr_i, init_i, txRdy_i) is
+   comb : process (r, rst_i, we_i, ack_i, windowSize_i, nextSeqN_i, rstHeadSt_i, dataHeadSt_i, 
+                  nullHeadSt_i, ackN_i, init_i, txRdy_i, appAxisMaster_i) is
       
       variable v : RegType;
 
@@ -181,15 +208,14 @@ begin
       end if;
       
       ------------------------------------------------------------
-      -- Write to window array and increase lastSentAddr
+      -- Write sequence and to window array and increase lastSentAddr
       ------------------------------------------------------------
       if (we_i = '1' and r.bufferFull='0') then
-         v.windowArray(conv_integer(r.lastSentAddr)).seqN    := seqN_i;
+         v.windowArray(conv_integer(r.lastSentAddr)).seqN    := nextSeqN_i;
          v.windowArray(conv_integer(r.lastSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;
-         v.windowArray(conv_integer(r.lastSentAddr)).tDest   := (others => '0');
+         --v.windowArray(conv_integer(r.lastSentAddr)).tDest   := (others => '0');
          --v.windowArray(conv_integer(r.lastSentAddr)).eofe    := '0';        
          --v.windowArray(conv_integer(r.lastSentAddr)).eacked  := '0';
-         --v.windowArray(conv_integer(r.lastSentAddr)).sent    := '1';
 
          if r.lastSentAddr < windowSize_i then 
             v.lastSentAddr := r.lastSentAddr +1;
@@ -213,8 +239,8 @@ begin
          
             -- Hold ACK address
             v.firstUnackAddr := r.firstUnackAddr;
-            v.eackAddr       := r.firstUnackAddr;
-            v.eackIndex      := 0;
+            --v.eackAddr       := r.firstUnackAddr;
+            --v.eackIndex      := 0;
             v.ackErr         := '0';
             
             
@@ -232,19 +258,19 @@ begin
                   v.firstUnackAddr  := (others => '0');
             end if;
             
-            v.eackAddr       := r.firstUnackAddr;
-            v.eackIndex      := 0;
+            --v.eackAddr       := r.firstUnackAddr;
+           -- v.eackIndex      := 0;
             v.ackErr         := '0';
             
             -- Next state condition            
             if  r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i  then
-               if eack_i = '1' then
+               --if eack_i = '1' then
                   -- Go back to init when the acked seqN is found            
-                  v.ackState   := EACK_S;               
-               else
+               --   v.ackState   := EACK_S;               
+               --else
                   -- Go back to init when the acked seqN is found            
                   v.ackState   := IDLE_S;
-               end if;
+               --end if;
             elsif (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i) then  
                -- If the acked seqN is not found go to error state
                v.ackState   := ERR_S;            
@@ -278,8 +304,8 @@ begin
          when ERR_S =>
             -- Outputs
             v.firstUnackAddr := r.firstUnackAddr;
-            v.eackAddr       := r.firstUnackAddr;
-            v.eackIndex      := 0;
+            --v.eackAddr       := r.firstUnackAddr;
+            --v.eackIndex      := 0;
             v.ackErr         := '1';
             
             -- Next state condition            
@@ -288,6 +314,9 @@ begin
          when others =>
              -- Outputs
             v.firstUnackAddr := r.firstUnackAddr;
+            -- v.eackAddr       := r.firstUnackAddr;
+            -- v.eackIndex      := 0;
+            v.ackErr         := '1';
 
             -- Next state condition            
             v.ackState   := IDLE_S;            
@@ -299,7 +328,7 @@ begin
       -- 
       ------------------------------------------------------------
       -- Convert AXIS to SSI master
-      v.ssiMaster    := axis2SsiMaster(appAxisMaster_i, AXI_CONFIG_G);
+      v.ssiMaster    := axis2SsiMaster(AXI_CONFIG_G, appAxisMaster_i);
       ------------------------------------------------------------
       case r.ssiState is
          ----------------------------------------------------------------------
@@ -310,8 +339,14 @@ begin
             v.ssiSlave.pause      := '1';       
             v.ssiSlave.overflow   := '0';
             
-            v.packetAddr := (others =>'0');
-            v.packetWe   := '0';
+            -- Buffer write ctl
+            v.segmentAddr := (others =>'0');
+            v.segmentWe   := '0';
+
+            -- txFSM
+            v.txData      := '0';
+            v.lenErr      := '0';
+            v.ssiBusy     := '0';
             
             -- Wait until buffer is full
             if (r.bufferFull = '0') then
@@ -320,48 +355,143 @@ begin
          ----------------------------------------------------------------------
          when WAIT_SOF_S =>
          
-            -- SSI
+            -- SSI Ready to receive data from APP
             v.ssiSlave.ready      := '1';
             v.ssiSlave.pause      := '0';       
             v.ssiSlave.overflow   := '0';
+                        
+            -- Buffer write ctl
+            v.segmentAddr := (others =>'0');
+            v.segmentWe   := '0';
             
-            v.packetAddr := (others =>'0');
-            v.packetWe   := '0';
+            -- txFSM
+            v.txData      := '0';
+            v.lenErr      := '0';
+            v.ssiBusy     := '0';
             
             -- Wait until receiving the first data
-            
             if (r.ssiMaster.sof = '1') then
-               v.ssiState    := PCT_RCV_S;
+               v.ssiState    := SEG_RCV_S;
                
-               -- Save 
+               -- Save tDest
+               v.windowArray(conv_integer(r.lastSentAddr)).tDest := r.ssiMaster.dest;
                
+            -- If other segment (NULL, or RST) is requested return to IDLE_S to
+            -- check if buffer is still available (not full)
+            elsif (we_i = '1') then
+               v.ssiState    := IDLE_S;              
             end if;
-
-         when PCT_RCV_S =>
+         ----------------------------------------------------------------------
+         when SEG_RCV_S =>
          
             -- SSI
             v.ssiSlave.ready      := '1';
             v.ssiSlave.pause      := '0';       
             v.ssiSlave.overflow   := '0';
             
+            -- Buffer write ctl
             if (r.ssiMaster.valid = '1') then          
-               v.packetAddr := r.packetAddr + 1 ;
-               v.packetWe   := '1';
+               v.segmentAddr := r.segmentAddr + 1 ;
+               v.segmentWe   := '1';
             else
-               v.packetAddr := r.packetAddr;
-               v.packetWe   := '0';            
+               v.segmentAddr := r.segmentAddr;
+               v.segmentWe   := '0';            
             end if;   
             
-            -- Wait until receiving EOF
-            if (r.ssiMaster.sof = '1') then
-               v.ssiState    := EOF_S;
-            end if;
-
+            -- txFSM
+            v.txData      := '0';
+            v.lenErr      := '0';
+            v.ssiBusy     := '1';            
             
+            -- Wait until receiving EOF 
+            if (r.ssiMaster.eofe = '1' ) then
+               v.ssiState    := SEG_RDY;
+            
+               -- Save packet eofe (error)
+               v.windowArray(conv_integer(r.lastSentAddr)).eofe := '1';
+              
+            elsif (r.ssiMaster.eof = '1' ) then
+            
+               -- Save packet eofe (no error)
+               v.windowArray(conv_integer(r.lastSentAddr)).eofe := '0';
+            
+               v.ssiState    := SEG_RDY;        
+            elsif (r.segmentAddr(MAX_SEGMENT_SIZE_G) = '1' ) then
+               v.ssiState    := SEG_LEN_ERR;           
+            end if;
+         ----------------------------------------------------------------------            
+         when SEG_RDY =>
+         
+            -- SSI
+            v.ssiSlave.ready      := '0';
+            v.ssiSlave.pause      := '1';       
+            v.ssiSlave.overflow   := '0';
+            
+            v.segmentAddr := (others =>'0');
+            v.segmentWe   := '0';
+            
+            -- Request data at txFSM
+            v.txData      := '1';
+            v.lenErr      := '0';
+            v.ssiBusy     := '1';
+            
+            -- Hold request until accepted
+            if (dataHeadSt_i = '1') then
+               v.ssiState    := WAIT_TX_S;
+            end if;
+         ----------------------------------------------------------------------
+         when WAIT_TX_S => 
+         
+            -- SSI
+            v.ssiSlave.ready      := '0';
+            v.ssiSlave.pause      := '1';       
+            v.ssiSlave.overflow   := '0';
+            
+            v.segmentAddr := (others =>'0');
+            v.segmentWe   := '0';
+            
+            -- Request data at txFSM
+            v.txData      := '0';
+            v.lenErr      := '0';
+            v.ssiBusy     := '1';
+            
+            -- Wait until txFSM sends the packet 
+            if (txRdy_i = '1') then
+               v.ssiState    := IDLE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when SEG_LEN_ERR => 
+         
+            -- SSI
+            v.ssiSlave.ready      := '0';
+            v.ssiSlave.pause      := '1';
+            -- Overflow happened (packet too big)            
+            v.ssiSlave.overflow   := '1';
+            
+            v.segmentAddr := (others =>'0');
+            v.segmentWe   := '0';
+            
+            -- Request data at txFSM
+            v.txData      := '0';
+            v.lenErr      := '1';
+            v.ssiBusy     := '1';
+            
+            -- Go back to idle 
+            v.ssiState    := IDLE_S;
          ----------------------------------------------------------------------
          when others =>
-             -- Outputs
-            v.firstUnackAddr := r.firstUnackAddr;
+            -- SSI
+            v.ssiSlave.ready      := '0';
+            v.ssiSlave.pause      := '1';       
+            v.ssiSlave.overflow   := '1';
+            
+            v.segmentAddr := (others =>'0');
+            v.segmentWe   := '0';
+            
+            -- Request data at txFSM
+            v.txData      := '0';
+            v.lenErr      := '1';
+            v.ssiBusy     := '1';
 
             -- Next state condition            
             v.ssiState   := IDLE_S;            
@@ -383,11 +513,17 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   ---------------------------------------------------------------------
+ 
+   
    -- Output assignment
    windowArray_o     <= r.windowArray;
    bufferFull_o      <= r.bufferFull;
    firstUnackAddr_o  <= r.firstUnackAddr;
    lastSentAddr_o    <= r.lastSentAddr;
+   txData_o          <= r.txData;
+   
+   ssiBusy_o         <= r.ssiBusy;
+   lenErr_o          <= r.lenErr;
+   ackErr_o          <= r.ackErr;
    ---------------------------------------------------------------------
 end architecture rtl;
