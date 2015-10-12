@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-09
--- Last update: 2015-07-10
+-- Last update: 2015-10-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -124,7 +124,6 @@ begin
          generic map (
             BANDWIDTH          => BANDWIDTH_G,
             CLKOUT4_CASCADE    => "FALSE",
-            SIM_DEVICE         => "ULTRASCALE",
             STARTUP_WAIT       => "FALSE",
             CLKIN1_PERIOD      => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE      => DIVCLK_DIVIDE_G,
@@ -169,7 +168,6 @@ begin
    PllGen : if (TYPE_G = "PLL") generate
       U_Pll : PLLE3_BASE
          generic map (
-            SIM_DEVICE         => "ULTRASCALE",
             STARTUP_WAIT       => "FALSE",
             CLKIN_PERIOD       => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE      => DIVCLK_DIVIDE_G,
