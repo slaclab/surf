@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2015-05-14
+-- Last update: 2015-10-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ package AxiStreamPkg is
    type AxiStreamSlaveVectorArray is array (natural range<>, natural range<>) of AxiStreamSlaveType;
    subtype AxiStreamQuadSlaveType is AxiStreamSlaveArray(3 downto 0);
    type AxiStreamQuadSlaveArray is array (natural range <>) of AxiStreamSlaveArray(3 downto 0);
-   
+
    constant AXI_STREAM_SLAVE_INIT_C : AxiStreamSlaveType := (
       tReady => '0');
 
@@ -88,18 +88,24 @@ package AxiStreamPkg is
    type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
    type AxiStreamConfigVectorArray is array (natural range<>, natural range<>) of AxiStreamConfigType;
 
+   -------------------------------------------------------------------------------------------------
+   -- Special control backpressure interface for use with stream fifos
+   -------------------------------------------------------------------------------------------------
    type AxiStreamCtrlType is record
       pause    : sl;
       overflow : sl;
+      idle     : sl;
    end record AxiStreamCtrlType;
 
    constant AXI_STREAM_CTRL_INIT_C : AxiStreamCtrlType := (
       pause    => '1',
-      overflow => '0');
+      overflow => '0',
+      idle     => '0');
 
    constant AXI_STREAM_CTRL_UNUSED_C : AxiStreamCtrlType := (
       pause    => '0',
-      overflow => '0');
+      overflow => '0',
+      idle     => '1');
 
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
    type AxiStreamCtrlVectorArray is array (natural range<>, natural range<>) of AxiStreamCtrlType;
@@ -152,11 +158,11 @@ package AxiStreamPkg is
    function genTKeep (
       bytes : integer range 0 to 16)
       return slv;
-      
+
    function getTKeep (
       tKeep : slv(15 downto 0))
-      return natural;      
-      
+      return natural;
+
 end package AxiStreamPkg;
 
 package body AxiStreamPkg is
@@ -256,7 +262,7 @@ package body AxiStreamPkg is
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
 
       axisMaster.tUser((axisConfig.TUSER_BITS_C*pos) + bitPos) := bitValue;
-      
+
    end procedure;
 
    function ite (i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType is
@@ -267,8 +273,8 @@ package body AxiStreamPkg is
    function ite (i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType is
    begin
       if (i) then return t; else return e; end if;
-   end function ite;   
-   
+   end function ite;
+
    function genTKeep (
       bytes : integer range 0 to 16)
       return slv
@@ -294,7 +300,7 @@ package body AxiStreamPkg is
          when 16 => return X"FFFF";
       end case;
    end function genTKeep;
-   
+
    function getTKeep (
       tKeep : slv(15 downto 0))
       return natural
@@ -318,8 +324,8 @@ package body AxiStreamPkg is
          when X"3FFF" => return 14;
          when X"7FFF" => return 15;
          when X"FFFF" => return 16;
-         when others  => return 0; 
+         when others  => return 0;
       end case;
-   end function getTKeep;   
+   end function getTKeep;
 
 end package body AxiStreamPkg;
