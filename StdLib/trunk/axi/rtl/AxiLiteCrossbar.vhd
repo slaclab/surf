@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2015-09-08
+-- Last update: 2015-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ entity AxiLiteCrossbar is
    generic (
       TPD_G              : time                  := 1 ns;
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16 := 4;
-      NUM_MASTER_SLOTS_G : natural range 1 to 16 := 4;
+      NUM_MASTER_SLOTS_G : natural range 1 to 64 := 4;
       DEC_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C;
       MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray;
       DEBUG_G : boolean := false);
