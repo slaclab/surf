@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2015-08-06
+-- Last update: 2015-10-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ package AxiPkg is
       awvalid  : sl;                    -- Address valid
       awaddr   : slv(63 downto 0);      -- Address
       awid     : slv(31 downto 0);      -- Address ID
-      awlen    : slv(7 downto 0);       -- Transfer count
+      awlen    : slv(7 downto 0);       -- Transfer count (burst length)
       awsize   : slv(2 downto 0);       -- Bytes per transfer
       awburst  : slv(1 downto 0);       -- Burst Type
       awlock   : slv(1 downto 0);       -- Lock control
