@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-09-15
+-- Last update: 2015-10-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -613,6 +613,18 @@ begin
          end if;
       end if;
    end process rdSeq;
+
+   -- Synchronize master side tvalid back to slave side ctrl.idle
+   -- This is a total hack
+   Synchronizer_1: entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G,
+         OUT_POLARITY_G => '0')         -- invert
+      port map (
+         clk     => sAxisClk,
+         rst     => sAxisRst,
+         dataIn  => axisMaster.tValid,
+         dataOut => sAxisCtrl.idle);
 
 
    -------------------------
