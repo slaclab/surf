@@ -26,11 +26,10 @@ use work.AxiStreamPkg.all;
 
 entity TxFSM is
    generic (
-      TPD_G                   : time     := 1 ns;
-      AXI_CONFIG_G      : AxiStreamConfigType := ssiAxiStreamConfig(2);
+      TPD_G              : time     := 1 ns;
+      AXI_CONFIG_G       : AxiStreamConfigType := ssiAxiStreamConfig(2);
       
-      MAX_SEGMENT_SIZE_G      : positive := 10;     -- 2^MAX_SEGMENT_SIZE_G = Number of 16bit wide data words
-      MAX_WINDOW_SIZE_G       : positive := 7;      -- 2^MAX_WINDOW_SIZE_G  = Number of segments
+      MAX_WINDOW_SIZE_G  : positive := 7;      -- 2^MAX_WINDOW_SIZE_G  = Number of segments
  
       SYN_HEADER_SIZE_G  : natural := 28;
       ACK_HEADER_SIZE_G  : natural := 6;
@@ -56,10 +55,11 @@ entity TxFSM is
       
   
       -- Data buffer read port
-      rdAddr_o     : in  slv( (MAX_SEGMENT_SIZE_G+MAX_WINDOW_SIZE_G)-1 downto 0);
+      rdAddr_o     : in  slv( (MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)-1 downto 0);
       
-      -- Buffer window array input
+      -- Buffer window array control input
       we_o         : out sl; -- must be one cc long
+      sent_o       : out sl; -- must be one cc long
       
       -- Indicating that the FSM is ready to send new segment
       txRdy_o      : out sl;
@@ -78,30 +78,47 @@ entity TxFSM is
       lastSentAddr_i   : in slv(MAX_WINDOW_SIZE_G-1 downto 0);
       ssiBusy_i        : in sl;
       
+      -- Tx RSSI data 
+      txSeqN_o     : out slv(7 downto 0);
+      txDest_o     : out slv(SSI_TDEST_BITS_C-1 downto 0);
+      txEofe_o     : out sl;
+      
       -- FSM outs for header and data flow control
       synHeadSt_o  : out  sl;
       ackHeadSt_o  : out  sl;
       dataHeadSt_o : out  sl;
       dataSt_o     : out  sl;
       rstHeadSt_o  : out  sl;
-      nullHeadSt_o : out  sl
+      nullHeadSt_o : out  sl;
+      
+      -- Data mux sources
+      headerData_i : in slv(15 downto 0);
+      chksumData_i : in slv(15 downto 0);      
+      bufferData_i : in slv(15 downto 0);
+      
+      -- SSI Transport side interface
+      tspSsiSlave_i  : in sl;
+      tspSsiMaster_o : out  sl;
       
    );
 end entity TxFSM;
 
 architecture rtl of TxFSM is
+   -- Init SSI bus
+   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(AXI_CONFIG_G, AXI_STREAM_MASTER_INIT_C);
    
    type stateType is (
       INIT_S,
-      CONN_ACT_S
+      CONN_S
    );
    
    type RegType is record
       -- Counters
       nextSeqN       : slv(7 downto 0);
+      seqN           : slv(7 downto 0);
       headerAddr     : slv(7 downto 0);
-      segmentAddr    : slv(MAX_SEGMENT_SIZE_G-1 downto 0);
-      bufferAddr    : slv(MAX_WINDOW_SIZE_G-1  downto 0);
+      segmentAddr    : slv(MAX_SEGMENT_SIZE_C-1 downto 0);
+      bufferAddr     : slv(MAX_WINDOW_SIZE_G-1  downto 0);
       
       -- Data mux flags
       synH  : sl;
@@ -114,6 +131,10 @@ architecture rtl of TxFSM is
       chSum : sl;
       txRdy : sl;
       buffWe: sl;
+      buffSent: sl;
+
+      -- SSI master
+      ssiMaster      : SsiMasterType;            
       
       -- State Machine
       State       : StateType;    
@@ -122,12 +143,13 @@ architecture rtl of TxFSM is
    constant REG_INIT_C : RegType := (
       --   
       nextSeqN    => (others => '0'),
+      seqN        => (others => '0'),
       headerAddr  => (others => '0'),
       segmentAddr => (others => '0'),
-      bufferAddr => (others => '0'),
+      bufferAddr  => (others => '0'),
       
       --
-      synH     => '0',    
+      synH     => '0',      
       ackH     => '0',
       rstH     => '0',
       nullH    => '0',
@@ -137,6 +159,10 @@ architecture rtl of TxFSM is
       chSum    => '0',
       txRdy    => '0',      
       buffWe   => '0',
+      buffSent => '0',
+      
+      -- SSI master 
+      ssiMaster      => SSI_MASTER_INIT_C,
       
       -- State Machine
       State    => INIT_S
@@ -163,6 +189,8 @@ begin
          when INIT_S =>
             -- 
             v.nextSeqN    := initSeqN_i;
+            v.seqN        := r.nextSeqN;
+            
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
@@ -178,7 +206,9 @@ begin
             v.chSum    := '0';
             v.txRdy    := '1';
             v.buffWe   := '0';
-            
+            v.buffSent := '0';
+
+            v.ssiMaster:= SSI_MASTER_INIT_C;          
             
             -- Next state condition   
             if    (txSyn_i = '1') then
@@ -186,12 +216,17 @@ begin
             elsif (txAck_i = '1') then
                v.state    := ACK_H_S;
             elsif (connActive_i = '1') then
-               v.state    := CONN_S;
+               v.state      := CONN_S;
+               -- Increase the sequence number to point to next seqN.
+               --(This seqn will belong to the next Data, Null, or Rst segment).
+               v.nextSeqN   := r.nextSeqN + 1;
             end if;
          ----------------------------------------------------------------------
          when CONN_S =>
             -- 
             v.nextSeqN    := r.nextSeqN;
+            v.seqN        := r.nextSeqN;
+            
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
@@ -207,30 +242,33 @@ begin
             v.chSum    := '0';
             v.txRdy    := '1';
             v.buffWe   := '0';          
+            v.buffSent := '0';
+            
+            v.ssiMaster:=SSI_MASTER_INIT_C;
             
             -- Next state condition   
-            if    (txRst_i = '1'  and ssiBusy_i = '0') then
+            if    (txRst_i = '1'  and ssiBusy_i = '0' and bufferFull_i = '0') then
                v.state    := RST_SEQ_S;
-            elsif (txData_i = '1' and ssiBusy_i = '0') then
+            elsif (txData_i = '1' and ssiBusy_i = '0' and bufferFull_i = '0') then
                v.state    := DATA_SEQ_S;
             elsif (txBuffResend_i = '1') then               
                v.state    := BUF_RES_S;
             elsif (txAck_i = '1') then               
                v.state    := ACK_H_S;         
-            elsif (txNull_i = '1' and ssiBusy_i = '0') then              
-               v.state    := NULL_SEQ_S;           
+            elsif (txNull_i = '1' and ssiBusy_i = '0' and bufferFull_i = '0') then              
+               v.state    := NULL_SEQ_S;         
             elsif (connActive_i = '0') then
                v.state    := INIT_S;
             end if;
          ----------------------------------------------------------------------
          -- SYN packet
-         ----------------------------------------------------------------------         
+         ----------------------------------------------------------------------
          when SYN_H_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN;
-            v.headerAddr  := r.headerAddr + 1;
+            v.seqN        := r.nextSeqN;
+            
             v.segmentAddr := (others => '0');
-             
             v.bufferAddr := lastSentAddr_i;
             --
             v.synH     := '1';
@@ -243,16 +281,50 @@ begin
             v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
+            v.buffSent := '0';
             
+            -- SSI Control
+             
+            -- Increment address only when Slave is ready
+            if (tspSsiSlave_i.ready = '1') then
+               v.headerAddr       := r.headerAddr + 1;
+               v.ssiMaster.valid  := '1';
+            else 
+               v.headerAddr       := r.headerAddr;
+               v.ssiMaster.valid  := '0';              
+            end if;
+
+            -- Send SOF with header address 0
+            if (r.headerAddr = (r.headerAddr'range <= '0')) then
+               v.ssiMaster.sof  := '1';
+            else
+               v.ssiMaster.sof  := '0';
+            end if;
+
+            -- Other SSI parameters
+            v.ssiMaster.strb   := (others => '1');
+            v.ssiMaster.keep   := (others => '1');
+            v.ssiMaster.dest   := (others => '0');
+            v.ssiMaster.packed := '0';
+            v.ssiMaster.eof    := '0';
+            v.ssiMaster.eofe   := '0';
             
+            -- SSI data (send header part)
+            v.ssiMaster.data := headerData_i;
+
             -- Next state condition
-            if    (r.headerAddr >= SYN_HEADER_SIZE_G) then            
-                v.state   := SYN_CH_S;
+            if    (r.headerAddr >= SYN_HEADER_SIZE_G) then                                      
+               v.state   := SYN_CH_S;
             end if;
          ----------------------------------------------------------------------
          when SYN_CH_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN;
+            v.seqN        := r.nextSeqN;
+            
+            v.ssiMaster.eof    := '1';
+            
+            
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
@@ -267,8 +339,21 @@ begin
             --
             v.chSum    := '1';
             v.txRdy    := '0';
-            v.buffWe   := '0';         
+            v.buffWe   := '0';      
+            v.buffSent := '0';
             
+            -- SSI parameters (Send EOF with chksum)
+            v.ssiMaster.valid  := '1';
+            v.ssiMaster.sof    := '0';
+            v.ssiMaster.strb   := (others => '1');
+            v.ssiMaster.keep   := (others => '1');
+            v.ssiMaster.dest   := (others => '0');
+            v.ssiMaster.packed := '0';
+            v.ssiMaster.eof    := '1';
+            v.ssiMaster.eofe   := '0';
+            
+            -- SSI data (send chksum part)
+            v.ssiMaster.data  := chksumData_i;
             
             -- Next state            
             v.state   := INIT_S;       
@@ -278,6 +363,8 @@ begin
          when ACK_H_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN;
+            v.seqN        := r.nextSeqN;
+            
             v.headerAddr  := r.headerAddr + 1;
             v.segmentAddr := (others => '0');
              
@@ -293,13 +380,95 @@ begin
             v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';
-
+            v.buffSent := '0';
+            
             -- Next state condition
             if    (r.headerAddr >= ACK_HEADER_SIZE_G) then            
                 v.state   := ACK_CH_S;
             end if;
          ----------------------------------------------------------------------
          when ACK_CH_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN;
+            v.seqN        := r.nextSeqN;
+
+            v.headerAddr  := (others => '0');
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '0';
+            --
+            v.chSum    := '1';
+            v.txRdy    := '0';
+            v.buffWe   := '0';
+            v.buffSent := '0';            
+
+            -- Next state
+            if  connActive_i = '0' then            
+               v.state   := INIT_S; 
+            else
+               v.state   := CONN_S;  
+            end if;
+         ----------------------------------------------------------------------
+         -- RST packet
+         ----------------------------------------------------------------------         
+         when RST_SEQ_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN + 1;
+            v.seqN        := windowArray_i(r.bufferAddr).seqN;
+            
+            v.headerAddr  := (others => '0');
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '0';
+            --
+            v.chSum    := '0';
+            v.txRdy    := '0';
+            v.buffWe   := '1';
+            v.buffSent := '0';
+
+            -- Next state condition
+            v.state   := RST_H_S;
+         ----------------------------------------------------------------------
+         when RST_H_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN;
+            v.headerAddr  := r.headerAddr + 1;
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '1';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '0';
+            --
+            v.chSum    := '0';
+            v.txRdy    := '0';
+            v.buffWe   := '0';
+            v.buffSent := '0';
+
+            -- Next state condition
+            if    (r.headerAddr >= RST_HEADER_SIZE_G) then            
+                v.state   := RST_CH_S;
+            end if;            
+         ----------------------------------------------------------------------
+         when RST_CH_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN;
             v.headerAddr  := (others => '0');
@@ -316,18 +485,16 @@ begin
             --
             v.chSum    := '1';
             v.txRdy    := '0';
-            v.buffWe   := '0';         
+            v.buffWe   := '0';
+            v.buffSent := '1';          
 
             -- Next state
-            if  connActive_i = '0' then            
-               v.state   := INIT_S; 
-            else
-               v.state   := CONN_S;  
-            end if;
+            v.state   := CONN_S;
+            
          ----------------------------------------------------------------------
-         -- RST packet
+         -- NULL packet
          ----------------------------------------------------------------------         
-         when RST_SEQ_S =>
+         when NULL_SEQ_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN + 1;
             v.headerAddr  := r.headerAddr;
@@ -345,10 +512,12 @@ begin
             v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '1';
+            v.buffSent := '0';
 
             -- Next state condition
-            v.state   := RST_H_S;
-         when RST_H_S =>
+            v.state   := NULL_H_S;
+         ----------------------------------------------------------------------
+         when NULL_H_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN;
             v.headerAddr  := r.headerAddr + 1;
@@ -357,22 +526,23 @@ begin
             v.bufferAddr := lastSentAddr_i;
             --
             v.synH     := '0';
-            v.ackH     := '1';
+            v.ackH     := '0';
             v.rstH     := '0';
-            v.nullH    := '0';       
+            v.nullH    := '1';       
             v.dataH    := '0';
             v.dataD    := '0';
             --
             v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';
-
+            v.buffSent := '0';
+            
             -- Next state condition
-            if    (r.headerAddr >= ACK_HEADER_SIZE_G) then            
-                v.state   := ACK_CH_S;
-            end if;            
+            if    (r.headerAddr >= NULL_HEADER_SIZE_G) then            
+                v.state   := NULL_CH_S;
+            end if;        
          ----------------------------------------------------------------------
-         when ACK_CH_S =>
+         when NULL_CH_S =>
              -- Outputs
             v.nextSeqN    := r.nextSeqN;
             v.headerAddr  := (others => '0');
@@ -390,26 +560,141 @@ begin
             v.chSum    := '1';
             v.txRdy    := '0';
             v.buffWe   := '0';         
-
+            v.buffSent := '1';
+   
             -- Next state
-            if  connActive_i = '0' then            
-               v.state   := INIT_S; 
-            else
-               v.state   := CONN_S;  
-            end if;
+            v.state   := CONN_S; 
 
-
-            
-         when others =>
+         ----------------------------------------------------------------------
+         -- DATA packet
+         ----------------------------------------------------------------------         
+         when DATA_SEQ_S =>
              -- Outputs
-            v.firstUnackAddr := ;
+            v.nextSeqN    := r.nextSeqN + 1;
+            v.headerAddr  := r.headerAddr;
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '0';
+            --
+            v.chSum    := '0';
+            v.txRdy    := '0';
+            v.buffWe   := '1';
+            v.buffSent := '0';
+
+            -- Next state condition
+            v.state   := DATA_H_S;
+         ----------------------------------------------------------------------
+         when DATA_H_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN;
+            v.headerAddr  := r.headerAddr + 1;
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '1';
+            v.dataD    := '0';
+            --
+            v.chSum    := '0';
+            v.txRdy    := '0';
+            v.buffWe   := '0';
+            v.buffSent := '0';
             
+            -- Next state condition
+            if    (r.headerAddr >= DATA_HEADER_SIZE_G) then            
+                v.state   := DATA_CH_S;
+            end if;            
+         ----------------------------------------------------------------------
+         when DATA_CH_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN;
+            v.headerAddr  := (others => '0');
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '0';
+            --
+            v.chSum    := '1';
+            v.txRdy    := '0';
+            v.buffWe   := '0';         
+            v.buffSent := '0';
+   
+            -- Next state
+            v.state   := DATA_S;    
+         ----------------------------------------------------------------------
+         when DATA_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN;
+            v.headerAddr  := (others => '0');
+            v.segmentAddr := r.segmentAddr+1;
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '1';
+            --
+            v.chSum    := '0';
+            v.txRdy    := '0';
+            v.buffWe   := '0';         
+            v.buffSent := '0';
+   
+            -- Next state
+            v.state   := DATA_SENT_S;
+            
+         when DATA_SENT_S =>
+             -- Outputs
+            v.nextSeqN    := r.nextSeqN;
+            v.headerAddr  := (others => '0');
+            v.segmentAddr := (others => '0');
+             
+            v.bufferAddr := lastSentAddr_i;
+            --
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := '0';
+            v.nullH    := '0';       
+            v.dataH    := '0';
+            v.dataD    := '0';
+            --
+            v.chSum    := '0';
+            v.txRdy    := '0';
+            v.buffWe   := '0';         
+            v.buffSent := '1';
+   
+            -- Next state
+            v.state   := CONN_S;            
+
+         when others =>
+            -- Outputs
+            v := REG_INIT_C;
+         
             -- Next state condition            
             v.state   := INIT_S;            
       ----------------------------------------------------------------------
       end case;
       
-      -- Synchronous Reset and Init
+      -- Synchronous Reset
       if (rst_i = '1') then
          v := REG_INIT_C;
       end if;
@@ -425,10 +710,26 @@ begin
       end if;
    end process seq;
  
-   ----------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------
-   -- Combine ram write address
+   -- Combine ram read address
+   rdAddr_o     <= r.bufferAddr & r.segmentAddr;
+   
    -- Output assignment
+   synHeadSt_o  <= r.synH;
+   ackHeadSt_o  <= r.ackH; 
+   dataHeadSt_o <= r.dataH; 
+   dataSt_o     <= r.dataD;
+   rstHeadSt_o  <= r.rstH;
+   nullHeadSt_o <= r.nullH;
+   
+   -- Next packet 
+   nextSeqN_o   <= r.nextSeqN;
+
+   we_o         <= v.buffWe; 
+   sent_o       <= v.buffSent;
+   
+   -- Sequence number from buffer
+   txSeqN_o     <= r.seqN;
 
    ---------------------------------------------------------------------
 end architecture rtl;

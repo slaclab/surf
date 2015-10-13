@@ -29,7 +29,6 @@ entity TxBuffer is
       TPD_G                   : time     := 1 ns;
       AXI_CONFIG_G      : AxiStreamConfigType := ssiAxiStreamConfig(2);
       
-      MAX_SEGMENT_SIZE_G      : positive := 10;     -- 2^MAX_SEGMENT_SIZE_G = Number of 16bit wide data words
       MAX_WINDOW_SIZE_G       : positive := 7;      -- 2^MAX_WINDOW_SIZE_G  = Number of segments
       -- MAX_RX_NUM_OUTS_SEG_G   : positive := 128; -- Max number out of sequence segments (EACK)
       AXIS_DATA_WIDTH_G       : positive := 16      -- 
@@ -42,16 +41,17 @@ entity TxBuffer is
       init_i     : in  sl;
       
       -- SSI input from the Application side
-      appAxisMaster_i : in  AxiStreamMasterType;
-      appAxisSlave_o  : out AxiStreamSlaveType;
-      appAxisCtrl_o   : out AxiStreamCtrlType;
+      appSsiMaster_i : in  SsiMasterType;
+      appSsiSlave_o  : out SsiSlaveType;
+
       
       -- Data buffer read port
-      rdAddr_i     : in  slv( (MAX_SEGMENT_SIZE_G+MAX_WINDOW_SIZE_G)-1 downto 0);
+      rdAddr_i     : in  slv( (MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)-1 downto 0);
       rdData_o     : out slv(15 downto 0);
       
       -- Buffer window array input
       we_i         : in sl; -- must be one cc long
+      sent_i       : in sl; -- must be one cc long
       txRdy_i      : in sl;
       
       rstHeadSt_i  : in  sl;
@@ -90,7 +90,6 @@ architecture rtl of TxBuffer is
    constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(AXI_CONFIG_G, AXI_STREAM_MASTER_INIT_C);
    constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_CONFIG_G, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
    
-   
    type stateType is (
       IDLE_S,
       ACK_S,
@@ -98,7 +97,7 @@ architecture rtl of TxBuffer is
       ERR_S,
       WAIT_SOF_S,
       SEG_RCV_S,
-      SEG_RDY,
+      SEG_RDY_S,
       SEG_LEN_ERR,
       WAIT_TX_S
    );
@@ -114,7 +113,7 @@ architecture rtl of TxBuffer is
       ackErr         : sl;
       
       -- SSI data RX      
-      segmentAddr    : slv(MAX_SEGMENT_SIZE_G downto 0); -- One address bit more to check the overflow
+      segmentAddr    : slv(MAX_SEGMENT_SIZE_C downto 0); -- One address bit more to check the overflow
       segmentWe      : sl;
       txData         : sl;
       lenErr         : sl;
@@ -157,26 +156,22 @@ architecture rtl of TxBuffer is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
-   signal s_buffWAddr : slv((MAX_SEGMENT_SIZE_G+MAX_WINDOW_SIZE_G)-1  downto 0);
-   signal s_ssiMaster : SsiMasterType;
+   signal s_buffWAddr : slv((MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)-1  downto 0);
      
 begin
    
-   ---------------------------------------------------------------------------------------------- 
-   -- Convert from SSI to Axis and back
-   appAxisSlave_o <= ssi2AxisSlave(r.ssiSlave);
-   appAxisCtrl_o  <= ssi2AxisCtrl(r.ssiSlave);
+
    ----------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------
    -- Combine ram write address
-   s_buffWAddr <= r.lastSentAddr & r.segmentAddr(MAX_SEGMENT_SIZE_G-1 downto 0);
+   s_buffWAddr <= r.lastSentAddr & r.segmentAddr(MAX_SEGMENT_SIZE_C-1 downto 0);
    ----------------------------------------------------------------------------------------------      
    -- Buffer memory 
    SimpleDualPortRam_INST: entity work.SimpleDualPortRam
    generic map (
       TPD_G          => TPD_G,
       DATA_WIDTH_G   => AXIS_DATA_WIDTH_G,
-      ADDR_WIDTH_G   => (MAX_SEGMENT_SIZE_G+MAX_WINDOW_SIZE_G)
+      ADDR_WIDTH_G   => (MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)
    )
    port map (
       -- Port A - Write only
@@ -193,7 +188,7 @@ begin
 
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, we_i, ack_i, windowSize_i, nextSeqN_i, rstHeadSt_i, dataHeadSt_i, 
-                  nullHeadSt_i, ackN_i, init_i, txRdy_i, appAxisMaster_i) is
+                  nullHeadSt_i, ackN_i, init_i, txRdy_i, appSsiMaster_i, sent_i) is
       
       variable v : RegType;
 
@@ -208,14 +203,22 @@ begin
       end if;
       
       ------------------------------------------------------------
-      -- Write sequence and to window array and increase lastSentAddr
+      -- Write sequence and to window array
       ------------------------------------------------------------
-      if (we_i = '1' and r.bufferFull='0') then
+      if (we_i = '1') then
          v.windowArray(conv_integer(r.lastSentAddr)).seqN    := nextSeqN_i;
          v.windowArray(conv_integer(r.lastSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;
          --v.windowArray(conv_integer(r.lastSentAddr)).tDest   := (others => '0');
          --v.windowArray(conv_integer(r.lastSentAddr)).eofe    := '0';        
-         --v.windowArray(conv_integer(r.lastSentAddr)).eacked  := '0';
+         --v.windowArray(conv_integer(r.lastSentAddr)).eacked  := '0';          
+      else 
+         v.windowArray      := r.windowArray;
+      end if;
+      
+      ------------------------------------------------------------
+      -- When buffer is sent increase lastSentAddr
+      ------------------------------------------------------------
+      if (sent_i = '1') then
 
          if r.lastSentAddr < windowSize_i then 
             v.lastSentAddr := r.lastSentAddr +1;
@@ -224,9 +227,9 @@ begin
          end if;
             
       else 
-         v.windowArray      := r.windowArray;
          v.lastSentAddr     := r.lastSentAddr;
       end if;
+      
       
       ------------------------------------------------------------
       -- ACK FSM
@@ -327,8 +330,8 @@ begin
       -- SSI RX FSM
       -- 
       ------------------------------------------------------------
-      -- Convert AXIS to SSI master
-      v.ssiMaster    := axis2SsiMaster(AXI_CONFIG_G, appAxisMaster_i);
+      -- Delay Master (DFF)
+      v.ssiMaster    := appSsiMaster_i;
       ------------------------------------------------------------
       case r.ssiState is
          ----------------------------------------------------------------------
@@ -369,17 +372,44 @@ begin
             v.lenErr      := '0';
             v.ssiBusy     := '0';
             
-            -- Wait until receiving the first data
-            if (r.ssiMaster.sof = '1') then
-               v.ssiState    := SEG_RCV_S;
-               
-               -- Save tDest
-               v.windowArray(conv_integer(r.lastSentAddr)).tDest := r.ssiMaster.dest;
-               
             -- If other segment (NULL, or RST) is requested return to IDLE_S to
             -- check if buffer is still available (not full)
-            elsif (we_i = '1') then
-               v.ssiState    := IDLE_S;              
+            if (we_i = '1') then
+               v.ssiState    := IDLE_S;
+            -- Wait until receiving the first data            
+            elsif (r.ssiMaster.sof = '1' and r.ssiMaster.valid = '1') then
+               
+               -- First data already received at this point
+               v.segmentAddr := r.segmentAddr + 1 ;
+               v.ssiBusy     := '1';
+               
+               -- Save SSI parameters
+               v.windowArray(conv_integer(r.lastSentAddr)).dest   := r.ssiMaster.dest;
+               v.windowArray(conv_integer(r.lastSentAddr)).strb   := r.ssiMaster.strb;
+               v.windowArray(conv_integer(r.lastSentAddr)).keep   := r.ssiMaster.keep;
+               v.windowArray(conv_integer(r.lastSentAddr)).packed := r.ssiMaster.packed;
+            
+               v.ssiState    := SEG_RCV_S;
+               
+            -- If only one SSI word received (go directly to ready!)
+            -- This is the case when both SOF and EOF are asserted.
+            elsif (r.ssiMaster.sof = '1' and r.ssiMaster.valid = '1' and r.ssiMaster.eof = '1' ) then
+            
+               -- First data already received at this point
+               v.segmentAddr := r.segmentAddr;  -- TODO check if it should be incremented or not
+               v.ssiBusy     := '1';
+            
+               -- Save SSI parameters
+               v.windowArray(conv_integer(r.lastSentAddr)).dest   := r.ssiMaster.dest;
+               v.windowArray(conv_integer(r.lastSentAddr)).strb   := r.ssiMaster.strb;
+               v.windowArray(conv_integer(r.lastSentAddr)).keep   := r.ssiMaster.keep;
+               v.windowArray(conv_integer(r.lastSentAddr)).packed := r.ssiMaster.packed;
+               
+               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := r.ssiMaster.eofe;
+               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr; 
+            
+               v.ssiState    := SEG_RDY_S;
+                        -- If one SSI word received
             end if;
          ----------------------------------------------------------------------
          when SEG_RCV_S =>
@@ -404,23 +434,18 @@ begin
             v.ssiBusy     := '1';            
             
             -- Wait until receiving EOF 
-            if (r.ssiMaster.eofe = '1' ) then
-               v.ssiState    := SEG_RDY;
+            if (r.ssiMaster.eof = '1' ) then
             
                -- Save packet eofe (error)
-               v.windowArray(conv_integer(r.lastSentAddr)).eofe := '1';
-              
-            elsif (r.ssiMaster.eof = '1' ) then
-            
-               -- Save packet eofe (no error)
-               v.windowArray(conv_integer(r.lastSentAddr)).eofe := '0';
-            
-               v.ssiState    := SEG_RDY;        
-            elsif (r.segmentAddr(MAX_SEGMENT_SIZE_G) = '1' ) then
+               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := r.ssiMaster.eofe;
+               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr;
+                         
+               v.ssiState    := SEG_RDY_S;        
+            elsif (r.segmentAddr(MAX_SEGMENT_SIZE_C) = '1' ) then
                v.ssiState    := SEG_LEN_ERR;           
             end if;
          ----------------------------------------------------------------------            
-         when SEG_RDY =>
+         when SEG_RDY_S =>
          
             -- SSI
             v.ssiSlave.ready      := '0';
@@ -480,18 +505,8 @@ begin
             v.ssiState    := IDLE_S;
          ----------------------------------------------------------------------
          when others =>
-            -- SSI
-            v.ssiSlave.ready      := '0';
-            v.ssiSlave.pause      := '1';       
-            v.ssiSlave.overflow   := '1';
-            
-            v.segmentAddr := (others =>'0');
-            v.segmentWe   := '0';
-            
-            -- Request data at txFSM
-            v.txData      := '0';
-            v.lenErr      := '1';
-            v.ssiBusy     := '1';
+            -- Outs
+            v := REG_INIT_C;
 
             -- Next state condition            
             v.ssiState   := IDLE_S;            
@@ -504,7 +519,7 @@ begin
       end if;
       
       rin <= v;
-      -----------------------------------------------------------
+      -----------------------------------------------------------------------
    end process comb;
 
    seq : process (clk_i) is
@@ -514,7 +529,7 @@ begin
       end if;
    end process seq;
  
-   
+   ---------------------------------------------------------------------   
    -- Output assignment
    windowArray_o     <= r.windowArray;
    bufferFull_o      <= r.bufferFull;
@@ -525,5 +540,7 @@ begin
    ssiBusy_o         <= r.ssiBusy;
    lenErr_o          <= r.lenErr;
    ackErr_o          <= r.ackErr;
+
+   appSsiSlave_o     <= r.ssiSlave;
    ---------------------------------------------------------------------
 end architecture rtl;

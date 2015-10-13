@@ -8,7 +8,7 @@ package RssiPkg is
 
 -- Constant definitions
 --------------------------------------------------------------------------
-
+constant MAX_SEGMENT_SIZE_C      : positive := 10;     -- 2^MAX_SEGMENT_SIZE_G = Number of 16bit wide data words
 
 -- Sub-types 
 -------------------------------------------------------------------------- 
@@ -33,16 +33,29 @@ package RssiPkg is
    type WindowType is record
       seqN                  :  slv(7  downto 0);
       segType               :  slv(2  downto 0);
-      tDest                 :  slv(SSI_TDEST_BITS_C-1 downto 0);  
+      
+      -- SSI
       --eacked                :  sl;
-      eofe                  :  sl;
+      eofe                  : sl;
+      strb                  : slv(15 downto 0);
+      keep                  : slv(15 downto 0);
+      dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
+      packed                : sl;
+      
+      segSize               :  slv(MAX_SEGMENT_SIZE_C-1 downto 0);
    end record WindowType;
    
    constant WINDOW_INIT_C : WindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
-      tDest                 => (others => '0'), 
-      eofe                  => '0');
+ 
+      eofe                  => '0',
+      strb                  => (others => '1'), 
+      keep                  => (others => '1'), 
+      dest                  => (others => '0'), 
+      packed                => '0', 
+      segSize               => (others => '0')
+   ); 
    
    
    type WindowTypeArray is array (natural range<>) of WindowType;
