@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-09-08
+-- Last update: 2015-10-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -79,6 +79,7 @@ entity TenGigEthGtx7Wrapper is
       gtRefClk            : in  sl                                             := '0';  -- 156.25 MHz only
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
+      gtClk               : out sl;
       -- MGT Ports
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
@@ -121,6 +122,7 @@ begin
          gtRefClk      => gtRefClk,
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
+         gtClk         => gtClk,
          -- Quad PLL Ports
          qplllock      => qplllock,
          qplloutclk    => qplloutclk,
