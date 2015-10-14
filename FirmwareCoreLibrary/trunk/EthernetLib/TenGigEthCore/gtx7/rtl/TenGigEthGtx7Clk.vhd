@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-03-30
+-- Last update: 2015-10-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ entity TenGigEthGtx7Clk is
       gtRefClk      : in  sl := '0';    -- 156.25 MHz only
       gtClkP        : in  sl := '1';
       gtClkN        : in  sl := '0';
+      gtClk         : out sl;
       -- Quad PLL Ports
       qplllock      : out sl;
       qplloutclk    : out sl;
@@ -46,7 +47,7 @@ end TenGigEthGtx7Clk;
 
 architecture mapping of TenGigEthGtx7Clk is
 
-   constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G,"111",QPLL_REFCLK_SEL_G);
+   constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G, "111", QPLL_REFCLK_SEL_G);
 
    signal refClockDiv2 : sl;
    signal refClock     : sl;
@@ -55,7 +56,8 @@ architecture mapping of TenGigEthGtx7Clk is
    signal phyReset     : sl;
    
 begin
-
+   
+   gtClk  <= refClk;
    phyClk <= phyClock;
    phyRst <= phyReset;
 
