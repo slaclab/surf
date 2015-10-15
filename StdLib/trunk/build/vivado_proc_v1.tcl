@@ -115,7 +115,7 @@ proc CopyIpCores { } {
 }  
 
 # Copies all source code defined cores.txt IP cores from the build tree to source tree
-proc CopyIpCoresAll { } {
+proc CopyIpCoresDebug { } {
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
    source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
