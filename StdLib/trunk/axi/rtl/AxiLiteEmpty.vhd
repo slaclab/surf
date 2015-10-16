@@ -14,6 +14,7 @@
 -- Modification history:
 -- 03/10/2014: created.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -24,99 +25,99 @@ use work.AxiLitePkg.all;
 
 entity AxiLiteEmpty is
    generic (
-      TPD_G           : time                  := 1 ns;
-      NUM_WRITE_REG_G : integer range 1 to 32 := 1;
-      NUM_READ_REG_G  : integer range 1 to 32 := 1
-   );
+      TPD_G            : time                  := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_OK_C;
+      NUM_WRITE_REG_G  : integer range 1 to 32 := 1;
+      NUM_READ_REG_G   : integer range 1 to 32 := 1);
    port (
-
-      -- Local Bus
-      axiClk                   : in  sl;
-      axiClkRst                : in  sl;
-      axiReadMaster            : in  AxiLiteReadMasterType;
-      axiReadSlave             : out AxiLiteReadSlaveType;
-      axiWriteMaster           : in  AxiLiteWriteMasterType;
-      axiWriteSlave            : out AxiLiteWriteSlaveType;
-
-      -- Write registers
-      writeRegister            : out Slv32Array(NUM_WRITE_REG_G-1 downto 0);
-      readRegister             : in  Slv32Array(NUM_READ_REG_G-1 downto 0) := (others=>(others=>'0'))
-   );
+      -- AXI-Lite Bus
+      axiClk         : in  sl;
+      axiClkRst      : in  sl;
+      axiReadMaster  : in  AxiLiteReadMasterType;
+      axiReadSlave   : out AxiLiteReadSlaveType;
+      axiWriteMaster : in  AxiLiteWriteMasterType;
+      axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- User Read/Write registers
+      writeRegister  : out Slv32Array(NUM_WRITE_REG_G-1 downto 0);
+      readRegister   : in  Slv32Array(NUM_READ_REG_G-1 downto 0) := (others => (others => '0')));
 end AxiLiteEmpty;
 
-architecture STRUCTURE of AxiLiteEmpty is
+architecture rtl of AxiLiteEmpty is
 
    type RegType is record
-      writeRegister     : Slv32Array(NUM_WRITE_REG_G-1 downto 0);
-      axiReadSlave      : AxiLiteReadSlaveType;
-      axiWriteSlave     : AxiLiteWriteSlaveType;
+      writeRegister : Slv32Array(NUM_WRITE_REG_G-1 downto 0);
+      axiReadSlave  : AxiLiteReadSlaveType;
+      axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      writeRegister    => (others=>(others=>'0')),
-      axiReadSlave     => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave    => AXI_LITE_WRITE_SLAVE_INIT_C
-   );
+      writeRegister => (others => (others => '0')),
+      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister ) is
+   comb : process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
+      variable i         : natural;
+
+      -- Wrapper procedures to make calls cleaner.
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
+      begin
+         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg, cA, cV);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
+      begin
+         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
+      begin
+         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
+      begin
+         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveDefault (
+         axiResp : in slv(1 downto 0)) is
+      begin
+         axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, axiResp);
+      end procedure;
+
    begin
+      -- Latch the current value
       v := r;
 
+      -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
-      -- Write
-      if (axiStatus.writeEnable = '1') then
+      -- Map the read registers = [0x000:0x0FF]
+      for i in NUM_READ_REG_G-1 downto 0 loop
+         axiSlaveRegisterR(toSlv((i*4)+0, 9), 0, readRegister(i));
+      end loop;
 
-         -- Write registers: 0x100
-         if axiWriteMaster.awaddr(8) = '1' and axiWriteMaster.awaddr(7 downto 2) < NUM_WRITE_REG_G then
-            v.writeRegister(conv_integer(axiWriteMaster.awaddr(7 downto 2))) := axiWriteMaster.wdata;
-         end if;
+      -- Map the write registers = [0x100:0x1FF]
+      for i in NUM_WRITE_REG_G-1 downto 0 loop
+         axiSlaveRegisterW(toSlv((i*4)+256, 9), 0, v.writeRegister(i));
+      end loop;
 
-         -- Send Axi response
-         axiSlaveWriteResponse(v.axiWriteSlave);
+      -- Set the Slave's response
+      axiSlaveDefault(AXI_ERROR_RESP_G);
 
-      end if;
-
-      -- Read
-      if (axiStatus.readEnable = '1') then
-         v.axiReadSlave.rdata := (others => '0');
-
-         -- Write registers: 0x100
-         if axiReadMaster.araddr(8) = '1' and axiReadMaster.araddr(7 downto 2) < NUM_WRITE_REG_G then
-            v.axiReadSlave.rdata := r.writeRegister(conv_integer(axiReadMaster.araddr(7 downto 2)));
-
-         -- Read Registers: 0x000
-         elsif axiReadMaster.araddr(8) = '0' and axiReadMaster.araddr(7 downto 2) < NUM_READ_REG_G then
-            v.axiReadSlave.rdata := readRegister(conv_integer(axiReadMaster.araddr(7 downto 2)));
-         end if;
-
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axiReadSlave);
-
-      end if;
-
-      -- Reset
+      -- Synchronous Reset
       if (axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Next register assignment
+      -- Register the variable for next clock cycle
       rin <= v;
 
       -- Outputs
@@ -124,7 +125,13 @@ begin
       axiWriteSlave <= r.axiWriteSlave;
       writeRegister <= r.writeRegister;
       
-   end process;
+   end process comb;
 
-end architecture STRUCTURE;
+   seq : process (axiClk) is
+   begin
+      if (rising_edge(axiClk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
+end architecture rtl;
