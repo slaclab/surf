@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-09-08
+-- Last update: 2015-10-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -81,6 +81,56 @@ entity TenGigEthGtx7 is
 end TenGigEthGtx7;
 
 architecture mapping of TenGigEthGtx7 is
+
+   component TenGigEthGtx7Core
+      port (
+         clk156               : in  std_logic;
+         dclk                 : in  std_logic;
+         txusrclk             : in  std_logic;
+         txusrclk2            : in  std_logic;
+         areset               : in  std_logic;
+         txclk322             : out std_logic;
+         areset_clk156        : in  std_logic;
+         gttxreset            : in  std_logic;
+         gtrxreset            : in  std_logic;
+         txuserrdy            : in  std_logic;
+         qplllock             : in  std_logic;
+         qplloutclk           : in  std_logic;
+         qplloutrefclk        : in  std_logic;
+         reset_counter_done   : in  std_logic;
+         txp                  : out std_logic;
+         txn                  : out std_logic;
+         rxp                  : in  std_logic;
+         rxn                  : in  std_logic;
+         sim_speedup_control  : in  std_logic;
+         xgmii_txd            : in  std_logic_vector(63 downto 0);
+         xgmii_txc            : in  std_logic_vector(7 downto 0);
+         xgmii_rxd            : out std_logic_vector(63 downto 0);
+         xgmii_rxc            : out std_logic_vector(7 downto 0);
+         configuration_vector : in  std_logic_vector(535 downto 0);
+         status_vector        : out std_logic_vector(447 downto 0);
+         core_status          : out std_logic_vector(7 downto 0);
+         tx_resetdone         : out std_logic;
+         rx_resetdone         : out std_logic;
+         signal_detect        : in  std_logic;
+         tx_fault             : in  std_logic;
+         drp_req              : out std_logic;
+         drp_gnt              : in  std_logic;
+         drp_den_o            : out std_logic;
+         drp_dwe_o            : out std_logic;
+         drp_daddr_o          : out std_logic_vector(15 downto 0);
+         drp_di_o             : out std_logic_vector(15 downto 0);
+         drp_drdy_o           : out std_logic;
+         drp_drpdo_o          : out std_logic_vector(15 downto 0);
+         drp_den_i            : in  std_logic;
+         drp_dwe_i            : in  std_logic;
+         drp_daddr_i          : in  std_logic_vector(15 downto 0);
+         drp_di_i             : in  std_logic_vector(15 downto 0);
+         drp_drdy_i           : in  std_logic;
+         drp_drpdo_i          : in  std_logic_vector(15 downto 0);
+         tx_disable           : out std_logic;
+         pma_pmd_type         : in  std_logic_vector(2 downto 0));
+   end component;
 
    signal mAxiReadMaster  : AxiLiteReadMasterType;
    signal mAxiReadSlave   : AxiLiteReadSlaveType;
@@ -193,7 +243,7 @@ begin
    -----------------
    -- 10GBASE-R core
    -----------------
-   U_TenGigEthGtx7Core : entity work.TenGigEthGtx7Core
+   U_TenGigEthGtx7Core : TenGigEthGtx7Core
       port map (
          -- Clocks and Resets
          clk156               => phyClk,
