@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-05-04
+-- Last update: 2015-10-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ entity TenGigEthGthUltraScaleClk is
       gtClkP        : in  sl := '1';
       gtClkN        : in  sl := '0';
       coreClk       : out sl;
+      gtClk         : out sl;
       -- Quad PLL Ports
       qplllock      : out sl;
       qplloutclk    : out sl;
@@ -50,6 +51,8 @@ architecture mapping of TenGigEthGthUltraScaleClk is
    signal coreClock  : sl;
 
 begin
+   
+   gtClk <= refClock;
 
    IBUFDS_GTE3_Inst : IBUFDS_GTE3
       generic map (

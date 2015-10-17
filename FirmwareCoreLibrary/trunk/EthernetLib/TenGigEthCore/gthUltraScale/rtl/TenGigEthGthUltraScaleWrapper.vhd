@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-09-08
+-- Last update: 2015-10-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -75,6 +75,7 @@ entity TenGigEthGthUltraScaleWrapper is
       phyClk              : out slv(NUM_LANE_G-1 downto 0);
       phyRst              : out slv(NUM_LANE_G-1 downto 0);
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
+      gtClk               : out sl;
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
@@ -115,6 +116,7 @@ begin
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
          coreClk       => coreClock,
+         gtClk         => gtClk,
          -- Quad PLL Ports
          qplllock      => qplllock,
          qplloutclk    => qplloutclk,
