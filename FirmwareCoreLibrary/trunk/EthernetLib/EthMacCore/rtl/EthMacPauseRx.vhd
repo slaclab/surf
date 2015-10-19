@@ -2,7 +2,7 @@
 -- Title         : Generic Ethernet Pause Frame Detector
 -- Project       : Ethernet MAC
 -------------------------------------------------------------------------------
--- File          : EthPauseRx.vhd
+-- File          : EthMacPauseRx.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 09/21/2015
 -------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ use ieee.std_logic_unsigned.all;
 
 use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
-use work.EthPkg.all;
+use work.EthMacPkg.all;
 
-entity EthPauseRx is 
+entity EthMacPauseRx is 
    generic (
       TPD_G : time := 1 ns
    );
@@ -45,11 +45,11 @@ entity EthPauseRx is
       rxPauseReq       : out sl;
       rxPauseValue     : out slv(15 downto 0)
    );
-end EthPauseRx;
+end EthMacPauseRx;
 
 
 -- Define architecture
-architecture EthPauseRx of EthPauseRx is
+architecture EthMacPauseRx of EthMacPauseRx is
 
    type StateType is ( FILL_S, PAUSE_S, PASS_S);
 
@@ -85,6 +85,7 @@ begin
       v := r;
 
       v.r0Master := sAxisMaster;
+      v.pauseEn  := '0';
 
       -- State
       case r.state is
@@ -94,11 +95,11 @@ begin
 
             v.outMaster.tValid := '0';
 
-            if r.r1Master.tValid != '1' then
+            if r.r1Master.tValid /= '1' then
                v.r1Master := r.r0Master;
             end if;
 
-            if r.r2Master.tValid != '1' then
+            if r.r2Master.tValid /= '1' then
                v.r1Master := r.r0Master;
                v.r2Master := r.r1Master;
             end if;
@@ -110,8 +111,8 @@ begin
                if r.r2Master.tData(47 downto  0) = x"010000c28001" and -- Det MAC
                   r.r1Master.tData(63 downto 32) = x"01000888" then    -- Mac Type, Mac OpCode
 
-                  v.pauseVal(7  downto 0) := r.r0Master.tData(15 downto 8);
-                  v.pauseVal(15 downto 8) := r.r0Master.tData(7  downto 0);
+                  v.pauseValue(7  downto 0) := r.r0Master.tData(15 downto 8);
+                  v.pauseValue(15 downto 8) := r.r0Master.tData(7  downto 0);
 
                   v.r1Master.tValid := '0';
                   v.r2Master.tValid := '0';
@@ -125,18 +126,18 @@ begin
             end if;
 
          -- Pause frame dump
-         case PAUSE_S =>
+         when PAUSE_S =>
             v.r1Master.tValid  := '0';
             v.r2Master.tValid  := '0';
             v.outMaster.tValid := '0';
 
             if r.r0Master.tValid = '1' and r.r0Master.tLast = '1' then
-               v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, r.r0Master, EMAC_EOFE_BIT_G);
+               v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, r.r0Master, EMAC_EOFE_BIT_C);
                v.state   := FILL_S;
             end if;
 
          -- Frame pass
-         case PASS_S =>
+         when PASS_S =>
             v.r1Master  := r.r0Master;
             v.r2Master  := r.r1Master;
             v.outMaster := r.r2Master;
@@ -159,7 +160,7 @@ begin
 
       mAxisMaster  <= r.outMaster;
       rxPauseReq   <= r.pauseEn;
-      rxPauseValue <= r.pauseVal;
+      rxPauseValue <= r.pauseValue;
 
    end process;
 
@@ -171,5 +172,5 @@ begin
       end if;
    end process seq;
 
-end EthPauseRx;
+end EthMacPauseRx;
 

@@ -34,7 +34,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
-use work.EthPkg.all;
+use work.EthMacPkg.all;
 
 entity EthMacImport is 
    generic (
@@ -158,7 +158,7 @@ begin
             varMaster.tKeep(conv_integer(macSize) downto 0) := (others=>'1');
 
             if intLastLine = '1' then
-               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, varMaster, EMAC_EOFE_BIT_G, not crcGood);
+               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, varMaster, EMAC_EOFE_BIT_C, not crcGood);
             end if;
 
          end if;

@@ -34,7 +34,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
-use work.EthPkg.all;
+use work.EthMacPkg.all;
 
 entity EthMacExport is 
    generic (
@@ -57,6 +57,7 @@ entity EthMacExport is
 
       -- Configuration
       interFrameGap    : in  slv(3  downto 0);
+      macAddress       : in  slv(47 downto 0);
 
       -- Errors
       txCountEn        : out sl;
@@ -238,14 +239,14 @@ begin
             if macObMaster.tLast = '1' and intRunt = '1' then
                nxtState   <= ST_PAD_C;
                txCountEn  <= '1';
-               nxtError   <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macObMaster, EMAC_EOFE_BIT_G);
+               nxtError   <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macObMaster, EMAC_EOFE_BIT_C);
 
             elsif macObMaster.tLast ='1' and intRunt = '0' then
                intLastLine   <= '1';
                nxtState      <= ST_WAIT_C;
                txCountEn     <= '1';
                stateCountRst <= '1';
-               nxtError      <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macObMaster, EMAC_EOFE_BIT_G);
+               nxtError      <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macObMaster, EMAC_EOFE_BIT_C);
 
             -- Detect underflow
             elsif macObMaster.tValid = '0' then
@@ -360,8 +361,24 @@ begin
             -- CRC Valid
             crcDataValid <= intAdvance after TPD_G;
 
-            -- CRC Input
-            crcIn <= intData after TPD_G;
+            -- Word 0, set source mac address
+            if exportWordCnt = 0 then
+               crcIn(63 downto 56) <= macAddress(39 downto 32) after TPD_G;
+               crcIn(55 downto 48) <= macAddress(47 downto 40) after TPD_G;
+               crcIn(47 downto  0) <= intData(47 downto 0)     after TPD_G;
+
+            -- Word 1, set source mac address
+            elsif exportWordCnt = 1 then
+               crcIn(63 downto 32) <= intData(63 downto 32)    after TPD_G;
+               crcIn(31 downto 24) <= macAddress(7  downto  0) after TPD_G;
+               crcIn(23 downto 16) <= macAddress(15 downto  8) after TPD_G;
+               crcIn(15 downto  8) <= macAddress(23 downto 16) after TPD_G;
+               crcIn(7  downto  0) <= macAddress(31 downto 24) after TPD_G;
+
+            -- Normal data
+            else
+               crcIn <= intData after TPD_G;
+            end if;
 
             -- Last line
             if intLastLine = '1' then
