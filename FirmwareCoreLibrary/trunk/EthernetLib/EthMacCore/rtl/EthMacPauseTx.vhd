@@ -2,7 +2,7 @@
 -- Title         : Generic Ethernet Pause Frame Generation
 -- Project       : Ethernet MAC
 -------------------------------------------------------------------------------
--- File          : EthPauseTx.vhd
+-- File          : EthMacPauseTx.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 09/22/2015
 -------------------------------------------------------------------------------
@@ -23,12 +23,12 @@ use ieee.std_logic_unsigned.all;
 
 use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
-use work.EthPkg.all;
+use work.EthMacPkg.all;
 
-entity EthPauseTx is 
+entity EthMacPauseTx is 
    generic (
-      TPD_G           : time := 1 ns
-      PAUSE_512BITS_G : integer range 1 to (2**32) := 8
+      TPD_G           : time := 1 ns;
+      PAUSE_512BITS_G : natural range 1 to 1024 := 8
    );
    port ( 
 
@@ -57,13 +57,13 @@ entity EthPauseTx is
       macAddress   : in  slv(47 downto 0);
       pauseTx      : out sl
    );
-end EthPauseTx;
+end EthMacPauseTx;
 
 
 -- Define architecture
-architecture EthPauseTx of EthPauseTx is
+architecture EthMacPauseTx of EthMacPauseTx is
 
-   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_C);
+   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G);
 
    type StateType is ( IDLE_S, PASS_S, TX_S, LAST_S);
 
@@ -72,7 +72,7 @@ architecture EthPauseTx of EthPauseTx is
       locPauseCnt : slv(15 downto 0);
       remPauseCnt : slv(15 downto 0);
       txCount     : slv(1  downto 0);
-      pausePreCnt : slv(PAUSE_512BITS_C-1 downto 0);
+      pausePreCnt : slv(CNT_BITS_C-1 downto 0);
       pauseTx     : sl;
       outMaster   : AxiStreamMasterType;
       outSlave    : AxiStreamSlaveType;
@@ -108,39 +108,38 @@ begin
       -- Local pause count tracking
       if rxPauseReq = '1' and pauseEnable = '1' then
          v.locPauseCnt := rxPauseValue;
-      elsif r.txPerCount /= 0 and r.pausePreCnt = 0 then
-         v.txPerCount := r.txPerCount - 1;
+      elsif r.locPauseCnt /= 0 and r.pausePreCnt = 0 then
+         v.locPauseCnt := r.locPauseCnt - 1;
       end if;
 
       -- Remote pause count tracking
-      if r.remPauseCount /= 0 and r.pausePreCnt = 0 then
-         v.remPauseCount := r.remPauseCount - 1;
+      if r.remPauseCnt /= 0 and r.pausePreCnt = 0 then
+         v.remPauseCnt := r.remPauseCnt - 1;
       end if;
 
       -- State
       case r.state is
 
          -- IDLE, wait for frame
-         when WAIT_S =>
+         when IDLE_S =>
             v.outSlave.tReady  := '0';
             v.outMaster.tValid := '0';
             v.txCount          := (others=>'0');
 
             -- Pause transmit needed
-            if clientPause = '1' and r.remPauseCount = 0 and pauseEnable = '1' then
+            if clientPause = '1' and r.remPauseCnt = 0 and pauseEnable = '1' then
                v.state := TX_S;
 
             -- Transmit required and not paused by received pause count
-            elsif sAxisMaster.tValid = '1' and r.locPauseCount = 0 then
+            elsif sAxisMaster.tValid = '1' and r.locPauseCnt = 0 then
                v.state := PASS_S;
             end if;
 
 
          -- Pause transmit
          when TX_S =>
-            v.txReq := '0';
 
-            if r.outMaster.tValid = '0' or sAxisSlave.tReady = '1' then
+            if r.outMaster.tValid = '0' or mAxisSlave.tReady = '1' then
                v.outMaster        := AXI_STREAM_MASTER_INIT_C;
                v.outMaster.tValid := '1';
                v.txCount          := r.txCount + 1;
@@ -170,37 +169,38 @@ begin
                      v.outMaster.tData(7  downto  0) := pauseTime(15 downto 8);
 
                   -- padding
-                  when "11" =>
+                  when others =>
                      v.outMaster.tLast := '1';
-                     v.remPauseCount   := pauseTime;
+                     v.remPauseCnt     := pauseTime;
                      v.pauseTx         := '1';
                      v.state           := LAST_S;
+
                end case;
             end if;
 
 
          -- Passing data
-         wait PASS_S =>
+         when PASS_S =>
 
             -- Fill chain
-            if r.outMaster.tValid = '0' then
+            if r.outMaster.tValid = '0' or mAxisSlave.tReady = '1' then
                v.outSlave.tReady := '1';
                v.outMaster       := sAxisMaster;
-            else
-               v.outSlave.tReady := mAxisSlave.tReady;
-               v.outMaster       := sAxisMaster;
-            end if;
 
-            if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' and v.outSlave.tReady = '1' then
-               v.state := LAST_S;
+               if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
+                  v.state := LAST_S;
+               end if;
+
+            else
+               v.outSlave.tReady :='0';
             end if;
 
 
          -- Last Data wait for ready
-         wait LAST_S =>
+         when LAST_S =>
             if mAxisSlave.tReady = '1' then
                v.outMaster.tValid := '0';
-               v.state            := WAIT_S;
+               v.state            := IDLE_S;
             end if;
 
       end case;
@@ -213,6 +213,7 @@ begin
 
       mAxisMaster <= r.outMaster;
       sAxisSlave  <= v.outSlave;
+      pauseTx     <= r.pauseTx;
 
    end process;
 
@@ -223,5 +224,5 @@ begin
       end if;
    end process seq;
 
-end EthPauseTx;
+end EthMacPauseTx;
 

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : EthPkg.vhd
+-- File       : EthMacPkg.vhd
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
@@ -22,7 +22,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-package EthPkg is
+package EthMacPkg is
 
    -- EOF Bit
    constant EMAC_EOFE_BIT_C : integer := 0;
@@ -38,15 +38,15 @@ package EthPkg is
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
    -- Generic XMAC Configuration
-   type EthConfig is record
+   type EthMacConfigType is record
       macAddress    : slv(47 downto 0);
       filtEnable    : sl;
       pauseEnable   : sl;
       pauseTime     : slv(15 downto 0);
       interFrameGap : slv(3  downto 0);
-   end record EthConfig;
+   end record EthMacConfigType;
 
-   constant ETH_CONFIG_INIT_C : EthConfig := (
+   constant ETH_MAC_CONFIG_INIT_C : EthMacConfigType := (
       macAddress    => (others=>'0'),
       filtEnable    => '0',
       pauseEnable   => '0',
@@ -54,8 +54,11 @@ package EthPkg is
       interFrameGap => (others=>'0')
    );
 
+   type EthMacConfigArray is array (natural range<>) of EthMacConfigType;
+
+
    -- Generic XMAC Status
-   type EthStatus is record
+   type EthMacStatusType is record
       rxPauseCnt    : sl;
       txPauseCnt    : sl;
       rxCountEn     : sl;
@@ -63,17 +66,19 @@ package EthPkg is
       txCountEn     : sl;
       txUnderRunCnt : sl;
       txNotReadyCnt : sl;
-   end record EthConfig;
+   end record EthMacStatusType;
 
-   constant ETH_STATUS_INIT_C : EthStatus := (
+   constant ETH_MAC_STATUS_INIT_C : EthMacStatusType := (
       rxPauseCnt    => '0',
       txPauseCnt    => '0',
       rxCountEn     => '0',
       rxCrcErrorCnt => '0',
       txCountEn     => '0',
       txUnderRunCnt => '0',
-      txNotReadyCnt => '0',
+      txNotReadyCnt => '0'
    );
 
-end package EthPkg;
+   type EthMacStatusArray is array (natural range<>) of EthMacStatusType;
+
+end package EthMacPkg;
 

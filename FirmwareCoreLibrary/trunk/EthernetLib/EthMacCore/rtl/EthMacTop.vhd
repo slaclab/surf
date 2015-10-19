@@ -2,7 +2,7 @@
 -- Title         : Generic Ethernet MAC
 -- Project       : Ethernet MAC
 -------------------------------------------------------------------------------
--- File          : EthMac.vhd
+-- File          : EthMacTop.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 09/22/2015
 -------------------------------------------------------------------------------
@@ -22,12 +22,12 @@ use ieee.std_logic_unsigned.all;
 
 use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
-use work.EthPkg.all;
+use work.EthMacPkg.all;
 
-entity EthMac is 
+entity EthMacTop is 
    generic (
-      TPD_G           : time := 1 ns,
-      PAUSE_512BITS_G : integer range 1 to (2**32) := 8
+      TPD_G           : time := 1 ns;
+      PAUSE_512BITS_G : natural range 1 to 1024 := 8
    );
    port ( 
 
@@ -41,7 +41,7 @@ entity EthMac is
 
       -- Client Interface, RX
       mAxisMaster  : out AxiStreamMasterType;
-      mAxisCtrl    : in  sl;
+      mAxisCtrl    : in  AxiStreamCtrlType;
 
       -- PHY Interface
       phyTxd       : out slv(63 downto 0);
@@ -51,14 +51,14 @@ entity EthMac is
       phyReady     : in  sl;
 
       -- Configuration and status
-      ethConfig    : in  EthConfig;
-      ethStatus    : out EthStatus
+      ethConfig    : in  EthMacConfigType;
+      ethStatus    : out EthMacStatusType
    );
-end EthMac;
+end EthMacTop;
 
 
 -- Define architecture
-architecture EthMac of EthMac is
+architecture EthMacTop of EthMacTop is
 
    signal rxPauseReq    : sl;
    signal rxPauseValue  : slv(15 downto 0);
@@ -75,7 +75,7 @@ begin
    -- TX Path
    ---------------------------------
 
-   U_EthPauseTx : entity work.EthPauseTx is 
+   U_EthMacPauseTx : entity work.EthMacPauseTx 
       generic map (
          TPD_G           => TPD_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G 
@@ -107,6 +107,7 @@ begin
          phyTxc         => phyTxc,
          phyReady       => phyReady,
          interFrameGap  => ethConfig.interFramegap,
+         macAddress     => ethConfig.macAddress,
          txCountEn      => ethStatus.txCountEn,
          txUnderRun     => ethStatus.txUnderRunCnt,
          txLinkNotReady => ethStatus.txNotReadyCnt
@@ -131,7 +132,7 @@ begin
          rxCrcError  => ethStatus.rxCrcErrorCnt
       );
 
-   U_EthPauseRx : entity work.EthPauseRx 
+   U_EthMacPauseRx : entity work.EthMacPauseRx 
       generic map (
          TPD_G => TPD_G
       ) port map ( 
@@ -143,7 +144,7 @@ begin
          rxPauseValue => rxPauseValue
       );
 
-   U_EthFilter : entity work.EthFilter
+   U_EthMacFilter : entity work.EthMacFilter
       generic map (
          TPD_G => TPD_G
       ) port map ( 
@@ -155,5 +156,5 @@ begin
          filtEnable   => ethConfig.filtEnable
       );
 
-end EthMac;
+end EthMacTop;
 

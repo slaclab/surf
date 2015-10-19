@@ -2,7 +2,7 @@
 -- Title         : Generic Ethernet Filter
 -- Project       : Ethernet MAC
 -------------------------------------------------------------------------------
--- File          : EthFilter.vhd
+-- File          : EthMacFilter.vhd
 -- Author        : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created       : 09/21/2015
 -------------------------------------------------------------------------------
@@ -22,9 +22,9 @@ use ieee.std_logic_unsigned.all;
 
 use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
-use work.EthPkg.all;
+use work.EthMacPkg.all;
 
-entity EthFilter is 
+entity EthMacFilter is 
    generic (
       TPD_G : time := 1 ns
    );
@@ -44,11 +44,11 @@ entity EthFilter is
       macAddress       : in  slv(47 downto 0);
       filtEnable       : in  sl
    );
-end EthFilter;
+end EthMacFilter;
 
 
 -- Define architecture
-architecture EthFilter of EthFilter is
+architecture EthMacFilter of EthMacFilter is
 
    type StateType is ( HEAD_S, DROP_S, PASS_S);
 
@@ -71,12 +71,12 @@ architecture EthFilter of EthFilter is
 begin
 
    -- Convert MAC for match
-   intMac(47 downto 40) <= intMac(7  downto  0);
-   intMac(39 downto 32) <= intMac(15 downto  8);
-   intMac(31 downto 24) <= intMac(23 downto 16);
-   intMac(23 downto 16) <= intMac(31 downto 24);
-   intMac(15 downto  8) <= intMac(39 downto 32);
-   intMac(7  downto  0) <= intMac(47 downto 40);
+   intMac(47 downto 40) <= macAddress(7  downto  0);
+   intMac(39 downto 32) <= macAddress(15 downto  8);
+   intMac(31 downto 24) <= macAddress(23 downto 16);
+   intMac(23 downto 16) <= macAddress(31 downto 24);
+   intMac(15 downto  8) <= macAddress(39 downto 32);
+   intMac(7  downto  0) <= macAddress(47 downto 40);
 
    comb : process (ethClkRst, sAxisMaster, r, filtEnable, intMac) is
       variable v : RegType;
@@ -101,34 +101,34 @@ begin
                if filtEnable = '0' or 
                   r.regMaster.tData(47 downto  0) = intMac          or     -- Local
                   r.regMaster.tData(40)           = '1'             or     -- Multicast
-                  r.regMaster.tData(47 downto  0) = x"FFFFFFFFFFFF" ) then -- Broadcast
+                  r.regMaster.tData(47 downto  0) = x"FFFFFFFFFFFF"  then  -- Broadcast
 
-                  v.state := S_PASS;
+                  v.state := PASS_S;
 
                -- Drop frame
                else
-                  v.state            := S_DROP;
+                  v.state            := DROP_S;
                   v.outMaster.tValid := '0';
                end if;
             end if;
 
          -- Dropping frame
-         when HEAD_S =>
+         when DROP_S =>
             v.outMaster.tValid := '0';
 
             if r.regMaster.tValid = '1' and r.regMaster.tLast = '1' then
-               v.state := S_HEAD;
+               v.state := HEAD_S;
             end if;
 
          -- Pass frame
          when PASS_S =>
             if r.regMaster.tValid = '1' and r.regMaster.tLast = '1' then
-               v.state := S_HEAD;
+               v.state := HEAD_S;
             end if;
 
          -- Default
          when others =>
-            v.state := FILL_S;
+            v.state := HEAD_S;
 
       end case;
 
@@ -149,5 +149,5 @@ begin
       end if;
    end process seq;
 
-end EthFilter;
+end EthMacFilter;
 
