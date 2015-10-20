@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2015-10-16
+-- Last update: 2015-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -84,13 +84,14 @@ architecture mapping of TenGigEthGtx7 is
 
    component TenGigEthGtx7Core
       port (
-         clk156               : in  std_logic;
+         rxrecclk_out         : out std_logic;
+         coreclk              : in  std_logic;
          dclk                 : in  std_logic;
          txusrclk             : in  std_logic;
          txusrclk2            : in  std_logic;
          areset               : in  std_logic;
-         txclk322             : out std_logic;
-         areset_clk156        : in  std_logic;
+         txoutclk             : out std_logic;
+         areset_coreclk       : in  std_logic;
          gttxreset            : in  std_logic;
          gtrxreset            : in  std_logic;
          txuserrdy            : in  std_logic;
@@ -246,13 +247,14 @@ begin
    U_TenGigEthGtx7Core : TenGigEthGtx7Core
       port map (
          -- Clocks and Resets
-         clk156               => phyClk,
+         rxrecclk_out         => open,
+         coreclk              => phyClk,
+         txoutclk             => txClk322,
+         areset_coreclk       => phyRst,
          dclk                 => phyClk,
          txusrclk             => txUsrClk,
          txusrclk2            => txUsrClk2,
          areset               => areset,
-         txclk322             => txClk322,
-         areset_clk156        => phyRst,
          gttxreset            => status.gtTxRst,
          gtrxreset            => status.gtRxRst,
          txuserrdy            => txUsrRdy,
