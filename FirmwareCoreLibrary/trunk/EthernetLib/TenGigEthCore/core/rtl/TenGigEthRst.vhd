@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-05-04
+-- Last update: 2015-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ architecture rtl of TenGigEthRst is
    signal txReset : sl;
    signal txReady : sl;
 
-   signal rstCnt   : slv(7 downto 0) := x"00";
+   signal rstCnt   : slv(8 downto 0) := "000000000";
    signal rstPulse : slv(3 downto 0) := "1110";
 
 begin
@@ -59,7 +59,7 @@ begin
    txUsrClk  <= txClock;
    txUsrClk2 <= txClock;
 
-   rstCntDone <= rstCnt(7);
+   rstCntDone <= rstCnt(8);
    gtTxRst    <= rstPulse(0);
    gtRxRst    <= rstPulse(0);
    qpllRst    <= rstPulse(0) and not(gtPowerGood);
@@ -74,8 +74,8 @@ begin
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
          RST_POLARITY_G => '0',
-         STAGES_G       => 4,
-         INIT_G         => "0000")
+         STAGES_G       => 5,
+         INIT_G         => "00000")
       port map (
          clk     => txClock,
          rst     => qPllLock,
@@ -87,8 +87,8 @@ begin
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
          RST_POLARITY_G => '1',
-         STAGES_G       => 4,
-         INIT_G         => "1111")
+         STAGES_G       => 5,
+         INIT_G         => "11111")
       port map (
          clk     => txClock,
          rst     => rstPulse(0),
@@ -99,8 +99,8 @@ begin
    begin
       if rising_edge(phyClk) then
          -- Hold off release the GT resets until 500ns after configuration.
-         -- 128 ticks at 6.4ns period will be >> 500 ns.
-         if rstCnt(7) = '0' then
+         -- 256 ticks at the minimum possible 2.56ns period (390MHz) will be >> 500 ns.
+         if rstCnt(8) = '0' then
             rstCnt <= rstCnt + 1 after TPD_G;
          else
             rstCnt <= rstCnt after TPD_G;
@@ -108,7 +108,7 @@ begin
          -- Check for reset
          if phyRst = '1' then
             rstPulse <= "1110" after TPD_G;
-         elsif rstCnt(7) = '1' then
+         elsif rstCnt(8) = '1' then
             rstPulse(3)          <= '0'                  after TPD_G;
             rstPulse(2 downto 0) <= rstPulse(3 downto 1) after TPD_G;
          end if;
