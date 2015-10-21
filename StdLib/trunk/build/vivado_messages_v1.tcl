@@ -50,6 +50,9 @@ set_msg_config -id {Synth 8-3330}  -new_severity "CRITICAL WARNING";# SYNTH: an 
 set_msg_config -id {Synth 8-3919}  -new_severity "CRITICAL WARNING";# SYNTH: Null Assignment in logic
 
 # Messages: Change from CRITICAL_WARNING to WARNING
+set_msg_config -id {Vivado 12-4430} -new_severity {Warning};# Modifying [get_drc_checks REQP-52]
+set_msg_config -id {Vivado 12-1387} -new_severity {Warning};# No valid object(s) found for set_false_path constraint
+
 # TBD Place holder
 
 # Messages: Change from CRITICAL_WARNING to ERROR
