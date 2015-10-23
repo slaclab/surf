@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-18
--- Last update: 2015-08-18
+-- Last update: 2015-10-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ entity SsiInsertSof is
       TPD_G               : time                := 1 ns;
       TUSER_MASK_G        : slv(127 downto 0)   := (others => '1');  -- '1' = masked off bit
       COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
+      INSERT_USER_HDR_G   : boolean             := false;
       SLAVE_FIFO_G        : boolean             := true;
       MASTER_FIFO_G       : boolean             := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -41,6 +42,7 @@ entity SsiInsertSof is
       -- Master Port
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
+      mUserHdr    : in  slv(127 downto 0) := (others => '0');
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);      
 end SsiInsertSof;
@@ -108,7 +110,7 @@ begin
    end generate;
 
 
-   comb : process (mAxisRst, r, rxMaster, txSlave) is
+   comb : process (mAxisRst, mUserHdr, r, rxMaster, txSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -127,22 +129,33 @@ begin
          when IDLE_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') and (rxMaster.tValid = '1') then
-               -- Accept the data
-               v.rxSlave.tReady := '1';
-               -- Move the data
-               v.txMaster       := rxMaster;
-               -- Mask off the TUSER bits
-               for i in 127 downto 0 loop
-                  if TUSER_MASK_G(i) = '1' then
-                     v.txMaster.tUser(i) := '0';
+               if INSERT_USER_HDR_G = false then
+                  -- Accept the data
+                  v.rxSlave.tReady := '1';
+                  -- Move the data
+                  v.txMaster       := rxMaster;
+                  -- Mask off the TUSER bits
+                  for i in 127 downto 0 loop
+                     if TUSER_MASK_G(i) = '1' then
+                        v.txMaster.tUser(i) := '0';
+                     end if;
+                  end loop;
+                  -- Insert the SOF bit
+                  ssiSetUserSof(MASTER_AXI_CONFIG_G, v.txMaster, '1');
+                  -- Check for no EOF
+                  if (rxMaster.tLast = '0') then
+                     -- Next state
+                     v.state := MOVE_S;
                   end if;
-               end loop;
-               -- Insert the SOF bit
-               ssiSetUserSof(MASTER_AXI_CONFIG_G, v.txMaster, '1');
-               -- Check for no EOF
-               if (rxMaster.tLast = '0') then
+               else
+                  -- Insert User Header
+                  v.txMaster        := AXI_STREAM_MASTER_INIT_C;
+                  v.txMaster.tValid := '1';
+                  v.txMaster.tData  := mUserHdr;
+                  -- Insert the SOF bit
+                  ssiSetUserSof(MASTER_AXI_CONFIG_G, v.txMaster, '1');
                   -- Next state
-                  v.state := MOVE_S;
+                  v.state           := MOVE_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -159,6 +172,8 @@ begin
                      v.txMaster.tUser(i) := '0';
                   end if;
                end loop;
+               -- Mask off the SOF bits
+               ssiSetUserSof(MASTER_AXI_CONFIG_G, v.txMaster, '0');
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Next state
