@@ -38,4 +38,5 @@ if { ${loaddata} != "" } {
       -file ${outputFile}   
 }
 
+# Note: We still need to add copy support for -interface = SPIx8
 exec cp ${outputFile} ${imagesFile}
