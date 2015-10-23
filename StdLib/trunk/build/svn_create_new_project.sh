@@ -55,15 +55,13 @@ STDLIB="^/StdLib/trunk StdLib"
 I2CLIB="^/i2c_core/trunk i2c_core"
 MGTLIB="^/MgtLib/trunk MgtLib"
 PGP2BLIB="^/pgp2b_core/trunk pgp2b"
-IPV4LIB="^/FirmwareCoreLibrary/trunk/IpV4Engine IpV4Engine"
-UDPLIB="^/FirmwareCoreLibrary/trunk/UdpEngine UdpEngine"
+ETHLIB="^/FirmwareCoreLibrary/trunk/EthernetLib EthernetLib"
 
 echo $STDLIB   >  temp.txt
 echo $I2CLIB   >> temp.txt
 echo $MGTLIB   >> temp.txt
 echo $PGP2BLIB >> temp.txt
-echo $IPV4LIB  >> temp.txt
-echo $UDPLIB   >> temp.txt
+echo $ETHLIB   >> temp.txt
 
 svn propset svn:externals -F temp.txt $MODULES 
 svn propset svn:externals "^/ExampleProject/trunk/firmware/targets/EmptyTarget EmptyTarget" $TARGETS 
