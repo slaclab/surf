@@ -28,7 +28,7 @@ entity SsiInsertSof is
       TPD_G               : time                := 1 ns;
       TUSER_MASK_G        : slv(127 downto 0)   := (others => '1');  -- '1' = masked off bit
       COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
-      INSERT_USER_HDR_G   : boolean             := false;
+      INSERT_USER_HDR_G   : boolean             := false;  -- If True the module adds one user header word (mUserHdr = user header data)
       SLAVE_FIFO_G        : boolean             := true;
       MASTER_FIFO_G       : boolean             := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -152,6 +152,7 @@ begin
                   v.txMaster        := AXI_STREAM_MASTER_INIT_C;
                   v.txMaster.tValid := '1';
                   v.txMaster.tData  := mUserHdr;
+                  v.txMaster.tDest  := rxMaster.tDest;
                   -- Insert the SOF bit
                   ssiSetUserSof(MASTER_AXI_CONFIG_G, v.txMaster, '1');
                   -- Next state
