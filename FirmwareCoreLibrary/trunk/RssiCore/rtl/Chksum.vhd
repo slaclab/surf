@@ -33,7 +33,7 @@ entity Chksum is
       
       -- Enables and initialises the calculations.
       -- enable_i <= '1' enables the calculation.
-      -- enable_i <= '0' initialises the calculation, registers (holds) 
+      -- enable_i <= '0' initialises the calculation, registers hold
       -- the checksum value until the next calculation.
       enable_i   : in  sl;
       

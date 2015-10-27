@@ -27,11 +27,11 @@ use work.AxiStreamPkg.all;
 entity TxBuffer is
    generic (
       TPD_G                   : time     := 1 ns;
-      AXI_CONFIG_G      : AxiStreamConfigType := ssiAxiStreamConfig(2);
+      AXI_CONFIG_G            : AxiStreamConfigType := ssiAxiStreamConfig(2);
       
-      MAX_WINDOW_SIZE_G       : positive := 7;      -- 2^MAX_WINDOW_SIZE_G  = Number of segments
+      WINDOW_ADDR_SIZE_G       : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       -- MAX_RX_NUM_OUTS_SEG_G   : positive := 128; -- Max number out of sequence segments (EACK)
-      AXIS_DATA_WIDTH_G       : positive := 16      -- 
+      APP_SSI_WIDTH_G         : positive := 16      -- 
    );
    port (
       clk_i      : in  sl;
@@ -46,7 +46,7 @@ entity TxBuffer is
 
       
       -- Data buffer read port
-      rdAddr_i     : in  slv( (MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)-1 downto 0);
+      rdAddr_i     : in  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
       rdData_o     : out slv(15 downto 0);
       
       -- Buffer window array input
@@ -59,7 +59,7 @@ entity TxBuffer is
       nullHeadSt_i : in  sl;
 
       -- Window buff size (Depends on the number of outstanding segments)
-      windowSize_i   : in integer range 0 to 2 ** (MAX_WINDOW_SIZE_G-1); -- 
+      windowSize_i   : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1); -- 
       
       -- Next sequence number
       nextSeqN_i     : in slv(7 downto 0);    
@@ -72,10 +72,10 @@ entity TxBuffer is
       
       -- Output to TxFSM
       txData_o         : out sl;
-      windowArray_o    : out WindowTypeArray(0 to 2 ** (MAX_WINDOW_SIZE_G)-1);
+      windowArray_o    : out WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
       bufferFull_o     : out sl;
-      firstUnackAddr_o : out slv(MAX_WINDOW_SIZE_G-1 downto 0);
-      lastSentAddr_o   : out slv(MAX_WINDOW_SIZE_G-1 downto 0);
+      firstUnackAddr_o : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      lastSentAddr_o   : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       ssiBusy_o        : out sl;
       
       -- Errors (1 cc pulse)
@@ -104,16 +104,16 @@ architecture rtl of TxBuffer is
    
    type RegType is record
       -- Window control
-      firstUnackAddr : slv(MAX_WINDOW_SIZE_G-1 downto 0);
-      lastSentAddr   : slv(MAX_WINDOW_SIZE_G-1 downto 0);
-      --eackAddr       : slv(MAX_WINDOW_SIZE_G-1 downto 0);
+      firstUnackAddr : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;      
       bufferFull     : sl;
-      windowArray    : WindowTypeArray(0 to 2 ** (MAX_WINDOW_SIZE_G)-1);
+      windowArray    : WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
       ackErr         : sl;
       
       -- SSI data RX      
-      segmentAddr    : slv(MAX_SEGMENT_SIZE_C downto 0); -- One address bit more to check the overflow
+      segmentAddr    : slv(SEGMENT_ADDR_SIZE_C downto 0); -- One address bit more to check the overflow
       segmentWe      : sl;
       txData         : sl;
       lenErr         : sl;
@@ -156,7 +156,7 @@ architecture rtl of TxBuffer is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
-   signal s_buffWAddr : slv((MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)-1  downto 0);
+   signal s_buffWAddr : slv((SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1  downto 0);
      
 begin
    
@@ -164,21 +164,21 @@ begin
    ----------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------
    -- Combine ram write address
-   s_buffWAddr <= r.lastSentAddr & r.segmentAddr(MAX_SEGMENT_SIZE_C-1 downto 0);
+   s_buffWAddr <= r.lastSentAddr & r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
    ----------------------------------------------------------------------------------------------      
    -- Buffer memory 
    SimpleDualPortRam_INST: entity work.SimpleDualPortRam
    generic map (
       TPD_G          => TPD_G,
-      DATA_WIDTH_G   => AXIS_DATA_WIDTH_G,
-      ADDR_WIDTH_G   => (MAX_SEGMENT_SIZE_C+MAX_WINDOW_SIZE_G)
+      DATA_WIDTH_G   => APP_SSI_WIDTH_G,
+      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)
    )
    port map (
       -- Port A - Write only
       clka  => clk_i,
       wea   => r.segmentWe,
       addra => s_buffWAddr,
-      dina  => r.ssiMaster.data(AXIS_DATA_WIDTH_G-1 downto 0),
+      dina  => r.ssiMaster.data(APP_SSI_WIDTH_G-1 downto 0),
       
       -- Port B - Read only 
       clkb  => clk_i,
@@ -387,7 +387,6 @@ begin
                v.windowArray(conv_integer(r.lastSentAddr)).dest   := r.ssiMaster.dest;
                v.windowArray(conv_integer(r.lastSentAddr)).strb   := r.ssiMaster.strb;
                v.windowArray(conv_integer(r.lastSentAddr)).keep   := r.ssiMaster.keep;
-               v.windowArray(conv_integer(r.lastSentAddr)).packed := r.ssiMaster.packed;
             
                v.ssiState    := SEG_RCV_S;
                
@@ -403,7 +402,6 @@ begin
                v.windowArray(conv_integer(r.lastSentAddr)).dest   := r.ssiMaster.dest;
                v.windowArray(conv_integer(r.lastSentAddr)).strb   := r.ssiMaster.strb;
                v.windowArray(conv_integer(r.lastSentAddr)).keep   := r.ssiMaster.keep;
-               v.windowArray(conv_integer(r.lastSentAddr)).packed := r.ssiMaster.packed;
                
                v.windowArray(conv_integer(r.lastSentAddr)).eofe    := r.ssiMaster.eofe;
                v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr; 
@@ -441,7 +439,7 @@ begin
                v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr;
                          
                v.ssiState    := SEG_RDY_S;        
-            elsif (r.segmentAddr(MAX_SEGMENT_SIZE_C) = '1' ) then
+            elsif (r.segmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
                v.ssiState    := SEG_LEN_ERR;           
             end if;
          ----------------------------------------------------------------------            
