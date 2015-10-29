@@ -31,9 +31,9 @@ entity Chksum is
       clk_i      : in  sl;
       rst_i      : in  sl;
       
-      -- Enables and initialises the calculations.
+      -- Enables and initializes the calculations.
       -- enable_i <= '1' enables the calculation.
-      -- enable_i <= '0' initialises the calculation, registers hold
+      -- enable_i <= '0' initializes the calculation, registers hold
       -- the checksum value until the next calculation.
       enable_i   : in  sl;
       

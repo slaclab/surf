@@ -70,14 +70,16 @@ entity RssiCore is
       rst_i      : in  sl;
       
       -- Temporarty inputs (Later this will be done by RX module, connectionFSM, and timers)
-      ack_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
-      ackN_i        : in slv(7 downto 0);      -- Number being ACKed
-      connActive_i  : in sl; 
-      txSyn_i        : in  sl;
-      txAck_i        : in  sl;
-      txRst_i        : in  sl;
-      txResend_i     : in  sl;
-      txNull_i       : in  sl; 
+      txAck_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
+      txAckN_i        : in slv(7 downto 0);      -- Number being ACKed
+      rxAckN_i        : in slv(7 downto 0);      -- SeqN received by onboard receiver (This value is sent in the header).
+      
+      connActive_i    : in sl; 
+      sndSyn_i        : in  sl;
+      sndAck_i        : in  sl;
+      sndRst_i        : in  sl;
+      sndResend_i     : in  sl;
+      sndNull_i       : in  sl; 
       
       
       -- Temporaty outputs Errors (1 cc pulse)
@@ -108,7 +110,6 @@ architecture rtl of RssiCore is
    signal s_ackHeadSt    : sl;
    
    signal s_txSeqN    : slv(7  downto 0);
-   signal s_rxAckN    : slv(7  downto 0);
    
    -- Buffer
    signal s_nextRxSeqN : slv(7  downto 0);
@@ -132,7 +133,7 @@ architecture rtl of RssiCore is
    signal s_chksumData   : slv(15  downto 0);
    
    -- TX FSM
-   signal s_txData    : sl;
+   signal s_sndData    : sl;
    signal s_initSeqN  : slv(7  downto 0);
 
    -- Checksum 
@@ -181,7 +182,7 @@ begin
 
       ack_i          => '1', -- Always send acknowledge with data packet
       txSeqN_i       => s_txSeqN,
-      rxAckN_i       => s_rxAckN,
+      rxAckN_i       => rxAckN_i,
       headerValues_i => s_headerValues,
       addr_i         => s_headerAddr,
       headerData_o   => s_headerData);
@@ -209,9 +210,9 @@ begin
       nullHeadSt_i     => s_nullHeadSt,
       windowSize_i     => s_windowSize,
       nextSeqN_i       => s_nextRxSeqN,
-      ack_i            => ack_i,
-      ackN_i           => ackN_i,
-      txData_o         => s_txData,
+      ack_i            => txAck_i,
+      ackN_i           => txAckN_i,
+      txData_o         => s_sndData,
       windowArray_o    => s_windowArray,
       bufferFull_o     => s_bufferFull,
       firstUnackAddr_o => s_firstUnackAddr,
@@ -235,12 +236,12 @@ begin
       clk_i            => clk_i,
       rst_i            => rst_i,
       connActive_i     => connActive_i,
-      txSyn_i          => txSyn_i,
-      txAck_i          => txAck_i,
-      txRst_i          => txRst_i,
-      txData_i         => s_txData,
-      txResend_i       => txResend_i,
-      txNull_i         => txNull_i,
+      txSyn_i          => sndSyn_i,
+      txAck_i          => sndAck_i,
+      txRst_i          => sndRst_i,
+      txData_i         => s_sndData,
+      txResend_i       => sndResend_i,
+      txNull_i         => sndNull_i,
       rdDataAddr_o     => s_bufferAddr,
       rdHeaderAddr_o   => s_headerAddr,
       we_o             => s_bufferWe,
@@ -258,7 +259,7 @@ begin
       synHeadSt_o      => s_synHeadSt,
       ackHeadSt_o      => s_ackHeadSt,
       dataHeadSt_o     => s_dataHeadSt,
-      dataSt_o         => open,
+      dataSt_o         => open, -- may be used in the future otherwise remove
       rstHeadSt_o      => s_rstHeadSt,
       nullHeadSt_o     => s_nullHeadSt,
       headerData_i     => s_headerData,

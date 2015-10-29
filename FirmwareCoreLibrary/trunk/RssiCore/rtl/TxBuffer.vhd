@@ -88,7 +88,7 @@ architecture rtl of TxBuffer is
    
    -- Init SSI bus
    constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(AXI_CONFIG_G, AXI_STREAM_MASTER_INIT_C);
-   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_CONFIG_G, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
+   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_CONFIG_G, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
    
    type stateType is (
       IDLE_S,
@@ -178,7 +178,7 @@ begin
       clka  => clk_i,
       wea   => r.segmentWe,
       addra => s_buffWAddr,
-      dina  => r.ssiMaster.data(APP_SSI_WIDTH_G-1 downto 0),
+      dina  => appSsiMaster_i.data(APP_SSI_WIDTH_G-1 downto 0),
       
       -- Port B - Read only 
       clkb  => clk_i,
@@ -377,34 +377,36 @@ begin
             if (we_i = '1') then
                v.ssiState    := IDLE_S;
             -- Wait until receiving the first data            
-            elsif (r.ssiMaster.sof = '1' and r.ssiMaster.valid = '1') then
+            elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1') then
                
                -- First data already received at this point
-               v.segmentAddr := r.segmentAddr + 1 ;
+               v.segmentAddr := r.segmentAddr;
                v.ssiBusy     := '1';
+               v.segmentWe   := '1';
                
                -- Save SSI parameters
-               v.windowArray(conv_integer(r.lastSentAddr)).dest   := r.ssiMaster.dest;
-               v.windowArray(conv_integer(r.lastSentAddr)).strb   := r.ssiMaster.strb;
-               v.windowArray(conv_integer(r.lastSentAddr)).keep   := r.ssiMaster.keep;
+               v.windowArray(conv_integer(r.lastSentAddr)).dest   := appSsiMaster_i.dest;
+               v.windowArray(conv_integer(r.lastSentAddr)).strb   := appSsiMaster_i.strb;
+               v.windowArray(conv_integer(r.lastSentAddr)).keep   := appSsiMaster_i.keep;
             
                v.ssiState    := SEG_RCV_S;
                
             -- If only one SSI word received (go directly to ready!)
             -- This is the case when both SOF and EOF are asserted.
-            elsif (r.ssiMaster.sof = '1' and r.ssiMaster.valid = '1' and r.ssiMaster.eof = '1' ) then
+            elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1' and appSsiMaster_i.eof = '1' ) then
             
                -- First data already received at this point
-               v.segmentAddr := r.segmentAddr;  -- TODO check if it should be incremented or not
+               v.segmentAddr := r.segmentAddr;
                v.ssiBusy     := '1';
+               v.segmentWe   := '1';
             
                -- Save SSI parameters
-               v.windowArray(conv_integer(r.lastSentAddr)).dest   := r.ssiMaster.dest;
-               v.windowArray(conv_integer(r.lastSentAddr)).strb   := r.ssiMaster.strb;
-               v.windowArray(conv_integer(r.lastSentAddr)).keep   := r.ssiMaster.keep;
+               v.windowArray(conv_integer(r.lastSentAddr)).dest   := appSsiMaster_i.dest;
+               v.windowArray(conv_integer(r.lastSentAddr)).strb   := appSsiMaster_i.strb;
+               v.windowArray(conv_integer(r.lastSentAddr)).keep   := appSsiMaster_i.keep;
                
-               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := r.ssiMaster.eofe;
-               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr; 
+               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := appSsiMaster_i.eofe;
+               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0); 
             
                v.ssiState    := SEG_RDY_S;
                         -- If one SSI word received
@@ -418,13 +420,13 @@ begin
             v.ssiSlave.overflow   := '0';
             
             -- Buffer write ctl
-            if (r.ssiMaster.valid = '1') then          
-               v.segmentAddr := r.segmentAddr + 1 ;
+            if (appSsiMaster_i.valid = '1') then          
+               v.segmentAddr := r.segmentAddr + 1;
                v.segmentWe   := '1';
             else
                v.segmentAddr := r.segmentAddr;
                v.segmentWe   := '0';            
-            end if;   
+            end if;
             
             -- txFSM
             v.txData      := '0';
@@ -432,12 +434,15 @@ begin
             v.ssiBusy     := '1';            
             
             -- Wait until receiving EOF 
-            if (r.ssiMaster.eof = '1' ) then
+            if (appSsiMaster_i.eof = '1' ) then
             
                -- Save packet eofe (error)
-               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := r.ssiMaster.eofe;
-               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr;
-                         
+               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := appSsiMaster_i.eofe;
+               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+               v.ssiSlave.ready      := '0';
+               v.ssiSlave.pause      := '1';       
+               v.ssiSlave.overflow   := '0';              
+
                v.ssiState    := SEG_RDY_S;        
             elsif (r.segmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
                v.ssiState    := SEG_LEN_ERR;           
