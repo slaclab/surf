@@ -43,7 +43,7 @@ entity TxFSM is
       rst_i      : in  sl;
       
       -- Connection FSM indicating active connection
-      connActive_i : in  sl;
+      connActive_i   : in  sl;
       
       -- Various segment requests
       txSyn_i        : in  sl;
@@ -51,7 +51,7 @@ entity TxFSM is
       txRst_i        : in  sl;
       txData_i       : in  sl;
       txResend_i     : in  sl;
-      txNull_i       : in  sl;     
+      txNull_i       : in  sl;   
       
   
       -- Data buffer read port
@@ -69,7 +69,7 @@ entity TxFSM is
       initSeqN_i   : in slv(7 downto 0);
 
       -- Next sequence number
-      nextSeqN_o   : out slv(7 downto 0);      
+      nextSeqN_o   : out slv(7 downto 0);
      
       -- Inputs from txBuffer
       windowArray_i    : in WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
@@ -92,7 +92,7 @@ entity TxFSM is
       
       -- Data mux sources
       headerData_i : in slv(15 downto 0);
-      chksumData_i : in slv(15 downto 0);      
+      chksumData_i : in slv(15 downto 0);
       bufferData_i : in slv(15 downto 0);
       
       -- SSI Transport side interface
@@ -141,7 +141,7 @@ architecture rtl of TxFSM is
       nextSeqN       : slv(7 downto 0);
       seqN           : slv(7 downto 0);
       headerAddr     : slv(7 downto 0);
-      segmentAddr    : slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      segmentAddr    : slv(SEGMENT_ADDR_SIZE_C downto 0);
       bufferAddr     : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       
       -- Data mux flags
@@ -151,6 +151,7 @@ architecture rtl of TxFSM is
       nullH : sl;
       dataH : sl;
       dataD : sl;
+      
       -- Varionus controls
       chSum : sl;
       txRdy : sl;
@@ -272,15 +273,15 @@ begin
             v.ssiMaster:=SSI_MASTER_INIT_C;
             
             -- Next state condition   
-            if    (txRst_i = '1'  and ssiBusy_i = '0' and bufferFull_i = '0') then
+            if    (txRst_i = '1' and bufferFull_i = '0' and ssiBusy_i = '0') then
                v.state    := RST_WE_S;
-            elsif (txData_i = '1' and ssiBusy_i = '0' and bufferFull_i = '0') then
+            elsif (txData_i = '1' and bufferFull_i = '0') then
                v.state    := DATA_WE_S;
             elsif (txResend_i = '1') then               
                v.state    := RESEND_S;
             elsif (txAck_i = '1') then               
                v.state    := ACK_H_S;         
-            elsif (txNull_i = '1' and ssiBusy_i = '0' and bufferFull_i = '0') then              
+            elsif (txNull_i = '1' and bufferFull_i = '0' and ssiBusy_i = '0') then              
                v.state    := NULL_WE_S;         
             elsif (connActive_i = '0') then
                v.state    := INIT_S;
@@ -797,7 +798,7 @@ begin
             v.ssiMaster.data(15 downto 0)  := headerData_i;
             
             -- Next state condition
-            if    (r.headerAddr >= DATA_HEADER_SIZE_G) then            
+            if    (r.headerAddr >= DATA_HEADER_SIZE_G/2-2) then            
                 v.state   := DATA_CSUM_S;
             end if;            
          ----------------------------------------------------------------------
@@ -836,7 +837,10 @@ begin
             v.ssiMaster.data(15 downto 0)   := chksumData_i;        
 
             -- Next state
-            v.state   := DATA_S;  
+            if (tspSsiSlave_i.ready = '1') then
+               v.segmentAddr  := r.segmentAddr + 1;
+               v.state        := DATA_S;
+            end if;              
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Counters
@@ -875,12 +879,11 @@ begin
             v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
             v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
 
-            
             -- SSI data (send tx budffer data)
             v.ssiMaster.data(15 downto 0)  := bufferData_i;
             
             -- Next state condition
-            if  (r.segmentAddr >= windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
+            if  (r.segmentAddr > windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
                -- Send EOF at the end of the segment
                v.ssiMaster.eof    := '1';
                v.ssiMaster.eofe   := windowArray_i(conv_integer(r.bufferAddr)).eofe;
@@ -1170,7 +1173,7 @@ begin
  
    ---------------------------------------------------------------------
    -- Combine ram read address
-   rdDataAddr_o     <= r.bufferAddr & r.segmentAddr;
+   rdDataAddr_o     <= r.bufferAddr & r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
    rdHeaderAddr_o   <= r.headerAddr;
    
    -- Output assignment
