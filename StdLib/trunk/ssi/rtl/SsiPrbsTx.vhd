@@ -110,7 +110,7 @@ architecture rtl of SsiPrbsTx is
       state          => IDLE_S,
       axiEn          => '0',
       oneShot        => '0',
-      trig           => '1',
+      trig           => '0',
       tDest          => X"00",
       tId            => X"00",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
