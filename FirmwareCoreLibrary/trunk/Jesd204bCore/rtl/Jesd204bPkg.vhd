@@ -53,6 +53,7 @@ package Jesd204bPkg is
    type jesdGtTxLaneTypeArray is array (natural range <>) of jesdGtTxLaneType;
    type fixLatDataArray       is array (natural range <>) of slv( (GT_WORD_SIZE_C*8+GT_WORD_SIZE_C*2)-1 downto 0);
    type sampleDataArray       is array (natural range <>) of slv( (GT_WORD_SIZE_C*8)-1 downto 0);
+   type sampleDataVectorArray is array (natural range<>, natural range<>) of slv( (GT_WORD_SIZE_C*8)-1 downto 0);
    type rxStatuRegisterArray  is array (natural range <>) of slv( (RX_STAT_WIDTH_C)-1  downto 0);
    type txStatuRegisterArray  is array (natural range <>) of slv( (TX_STAT_WIDTH_C)-1  downto 0);
    type alignTxArray          is array (natural range <>) of slv( (GT_WORD_SIZE_C)-1   downto 0);
