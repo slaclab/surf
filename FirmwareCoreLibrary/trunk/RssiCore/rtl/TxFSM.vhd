@@ -27,7 +27,6 @@ use work.AxiStreamPkg.all;
 entity TxFSM is
    generic (
       TPD_G              : time     := 1 ns;
-      AXI_CONFIG_G       : AxiStreamConfigType := ssiAxiStreamConfig(2);
       
       WINDOW_ADDR_SIZE_G  : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
  
@@ -91,9 +90,9 @@ entity TxFSM is
       nullHeadSt_o : out  sl;
       
       -- Data mux sources
-      headerData_i : in slv(15 downto 0);
+      headerData_i : in slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       chksumData_i : in slv(15 downto 0);
-      bufferData_i : in slv(15 downto 0);
+      bufferData_i : in slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
       -- SSI Transport side interface
       tspSsiSlave_i  : in   SsiSlaveType;
@@ -104,7 +103,7 @@ end entity TxFSM;
 
 architecture rtl of TxFSM is
    -- Init SSI bus
-   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(AXI_CONFIG_G, AXI_STREAM_MASTER_INIT_C);
+   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
    
    type stateType is (
       --
@@ -123,15 +122,9 @@ architecture rtl of TxFSM is
       DATA_WE_S,
       NULL_WE_S,
       --
-      SYN_CSUM_S,
-      ACK_CSUM_S,
-      RST_CSUM_S,
-      NULL_CSUM_S,
-      DATA_CSUM_S,
-      --
+      RESEND_INIT_S,
       RESEND_S,
       RESEND_H_S,
-      RESEND_CSUM_S,
       RESEND_DATA_S,
       RESEND_PP_S
    );
@@ -153,7 +146,6 @@ architecture rtl of TxFSM is
       dataD : sl;
       
       -- Varionus controls
-      chSum : sl;
       txRdy : sl;
       buffWe: sl;
       buffSent: sl;
@@ -181,7 +173,6 @@ architecture rtl of TxFSM is
       dataH    => '0',
       dataD    => '0',
       --
-      chSum    => '0',
       txRdy    => '0',      
       buffWe   => '0',
       buffSent => '0',
@@ -225,11 +216,10 @@ begin
             v.synH     := '0';
             v.ackH     := '0';
             v.rstH     := '0';
-            v.nullH    := '0';       
+            v.nullH    := '0';
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '1';
             v.buffWe   := '0';
             v.buffSent := '0';
@@ -239,12 +229,14 @@ begin
             -- Next state condition   
             if    (txSyn_i = '1') then
                v.state    := SYN_H_S;
+               v.synH     := '1';
             elsif (txAck_i = '1') then
                v.state    := ACK_H_S;
+               v.ackH     := '1';
             elsif (connActive_i = '1') then
                v.state      := CONN_S;
                -- Increase the sequence number to point to next seqN.
-               --(This seqn will belong to the next Data, Null, or Rst segment).
+               --(This seqN will belong to the next Data, Null, or Rst segment).
                v.nextSeqN   := r.nextSeqN + 1;
             end if;
          ----------------------------------------------------------------------
@@ -265,7 +257,6 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '1';
             v.buffWe   := '0';          
             v.buffSent := '0';
@@ -278,10 +269,12 @@ begin
             elsif (txData_i = '1' and bufferFull_i = '0') then
                v.state    := DATA_WE_S;
             elsif (txResend_i = '1') then               
-               v.state    := RESEND_S;
-            elsif (txAck_i = '1') then               
-               v.state    := ACK_H_S;         
-            elsif (txNull_i = '1' and bufferFull_i = '0' and ssiBusy_i = '0') then              
+               v.state    := RESEND_INIT_S;
+            elsif (txAck_i = '1') then
+               v.txRdy    := '0';
+               v.ackH     := '1';          
+               v.state    := ACK_H_S;      
+            elsif (txNull_i = '1' and bufferFull_i = '0' and ssiBusy_i = '0') then   
                v.state    := NULL_WE_S;         
             elsif (connActive_i = '0') then
                v.state    := INIT_S;
@@ -304,7 +297,6 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';
             v.buffSent := '0';
@@ -335,49 +327,18 @@ begin
             v.ssiMaster.eofe   := '0';
             
             -- SSI data (send header part)
-            v.ssiMaster.data(15 downto 0) := headerData_i;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
 
             -- Next state condition
-            if    (r.headerAddr >= SYN_HEADER_SIZE_G) then                                      
-               v.state   := SYN_CSUM_S;
-            end if;
-         ----------------------------------------------------------------------
-         when SYN_CSUM_S =>
-            -- Counters
-            v.nextSeqN    := r.nextSeqN;
-            v.seqN        := r.nextSeqN;
-            
-            v.headerAddr  := (others => '0');
-            v.segmentAddr := (others => '0');
-             
-            v.bufferAddr := lastSentAddr_i;
-            --
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';
-            v.nullH    := '0';       
-            v.dataH    := '0';
-            v.dataD    := '0';
-            --
-            v.chSum    := '1'; -- Send checksum
-            v.txRdy    := '0';
-            v.buffWe   := '0';      
-            v.buffSent := '0'; -- Note: Do not increase buffer addr because the SYN is not buffered
-            
-            -- SSI parameters (Send EOF with chksum)
-            v.ssiMaster.valid  := '1';
-            v.ssiMaster.sof    := '0';
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '1';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send chksum part)
-            v.ssiMaster.data(15 downto 0)  := chksumData_i;
-            
-            -- Next state            
-            v.state   := INIT_S;       
+            -- End of header
+            if    (r.headerAddr = 2) then
+               v.ssiMaster.data(15 downto 0) := chksumData_i;               
+               v.ssiMaster.eof    := '1';
+               v.ssiMaster.eofe   := '0';
+
+               -- Next state            
+               v.state   := INIT_S; 
+            end if;     
          ----------------------------------------------------------------------
          -- ACK packet
          ----------------------------------------------------------------------         
@@ -387,7 +348,9 @@ begin
             v.seqN        := r.nextSeqN;
             
             v.segmentAddr := (others => '0');
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr  := lastSentAddr_i;
+            v.headerAddr  := (others => '0');
+            
             --
             v.synH     := '0';
             v.ackH     := '1';  -- Send ack header
@@ -396,83 +359,31 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';  
             
-            -- SSI Control
-             
-            -- Increment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1') then
-               v.headerAddr       := r.headerAddr + 1;
-               v.ssiMaster.valid  := '1';
-            else 
-               v.headerAddr       := r.headerAddr;
-               v.ssiMaster.valid  := '0';              
-            end if;
-
-            -- Send SOF with header address 0
-            if (r.headerAddr = (r.headerAddr'range => '0')) then
-               v.ssiMaster.sof  := '1';
-            else
-               v.ssiMaster.sof  := '0';
-            end if;
-
-            -- Other SSI parameters
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send header part)
-            v.ssiMaster.data(15 downto 0) := headerData_i;
+            -- SSI Master init (if not ready)
+            v.ssiMaster := SSI_MASTER_INIT_C;
 
             -- Next state condition
-            if    (r.headerAddr >= ACK_HEADER_SIZE_G) then                                      
-               v.state   := ACK_CSUM_S;
-            end if;
-         ----------------------------------------------------------------------
-         when ACK_CSUM_S =>
-            -- Counters
-            v.nextSeqN    := r.nextSeqN;
-            v.seqN        := r.nextSeqN;
+            if    (tspSsiSlave_i.ready = '1') then -- Frame size is one word
 
-            v.headerAddr  := (others => '0');
-            v.segmentAddr := (others => '0');
-             
-            v.bufferAddr := lastSentAddr_i;
-            --
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';
-            v.nullH    := '0';       
-            v.dataH    := '0';
-            v.dataD    := '0';
-            --
-            v.chSum    := '1';   -- Send checksum
-            v.txRdy    := '0';
-            v.buffWe   := '0';      
-            v.buffSent := '0';   -- Note: Do not increase buffer addr because the ACK is not buffered
+               v.ssiMaster.sof    := '1';
+               v.ssiMaster.valid  := '1';
+               v.ssiMaster.strb   := (others => '1');
+               v.ssiMaster.keep   := (others => '1');
+               v.ssiMaster.dest   := (others => '0');
+               v.ssiMaster.eof    := '1';
+               v.ssiMaster.eofe   := '0';
+               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
             
-            -- SSI parameters (Send EOF with chksum)
-            v.ssiMaster.valid  := '1';
-            v.ssiMaster.sof    := '0';
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '1';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send chksum part)
-            v.ssiMaster.data(15 downto 0)  := chksumData_i;
-            
-            -- Next state
-            if  connActive_i = '0' then            
-               v.state   := INIT_S; 
-            else
-               v.state   := CONN_S;  
+               if  connActive_i = '0' then          
+                  v.state   := INIT_S; 
+               else
+                  v.state   := CONN_S; 
+               end if;
             end if;
          ----------------------------------------------------------------------
          -- RST packet
@@ -494,7 +405,6 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             -- 
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '1';  -- Update buffer seqN and Type
             v.buffSent := '0';
@@ -509,10 +419,12 @@ begin
           -- 
             v.nextSeqN    := r.nextSeqN;
             v.seqN        := r.nextSeqN;
+            v.headerAddr  := (others => '0');
             
             v.segmentAddr := (others => '0');
             v.bufferAddr := lastSentAddr_i;
-            --
+            
+            -- Flags
             v.synH     := '0';
             v.ackH     := '0';
             v.rstH     := '1';  -- Send reset header 
@@ -520,81 +432,35 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';
             
-            -- SSI Control
-             
-            -- Increment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1') then
-               v.headerAddr       := r.headerAddr + 1;
-               v.ssiMaster.valid  := '1';
-            else 
-               v.headerAddr       := r.headerAddr;
-               v.ssiMaster.valid  := '0';              
-            end if;
-
-            -- Send SOF with header address 0
-            if (r.headerAddr = (r.headerAddr'range => '0')) then
-               v.ssiMaster.sof  := '1';
-            else
-               v.ssiMaster.sof  := '0';
-            end if;
-
-            -- Other SSI parameters
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send header part)
-            v.ssiMaster.data(15 downto 0)  := headerData_i;
+            -- SSI Master init (if not ready)
+            v.ssiMaster := SSI_MASTER_INIT_C;
 
             -- Next state condition
-            if    (r.headerAddr >= RST_HEADER_SIZE_G) then            
-                v.state   := RST_CSUM_S;
-            end if;            
-         ----------------------------------------------------------------------
-         when RST_CSUM_S =>
-            -- Outputs
-            v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
-            v.seqN        := r.nextSeqN+1;
-
-            v.headerAddr  := (others => '0');
-            v.segmentAddr := (others => '0');
-             
-            v.bufferAddr := lastSentAddr_i;
-            --
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';
-            v.nullH    := '0';       
-            v.dataH    := '0';
-            v.dataD    := '0';
-            --
-            v.chSum    := '1';   -- Send checksum
-            v.txRdy    := '0';
-            v.buffWe   := '0';      
-            v.buffSent := '1';   -- Increment buffer last sent address(txBuffer)
+            if (tspSsiSlave_i.ready = '1') then -- Frame size is one word
+               
+               -- Increment seqN
+               v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
+               v.seqN        := r.nextSeqN+1;
+               v.buffSent    := '1';          -- Increment the sent buffer
+               
+               v.ssiMaster.sof    := '1';
+               v.ssiMaster.valid  := '1';
+               v.ssiMaster.strb   := (others => '1');
+               v.ssiMaster.keep   := (others => '1');
+               v.ssiMaster.dest   := (others => '0');
+               v.ssiMaster.eof    := '1';
+               v.ssiMaster.eofe   := '0';
+               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
             
-            -- SSI parameters (Send EOF with chksum)
-            v.ssiMaster.valid  := '1';
-            v.ssiMaster.sof    := '0';
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '1';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send chksum part)
-            v.ssiMaster.data(15 downto 0)   := chksumData_i;        
-
-            -- Next state
-            v.state   := CONN_S;
-            
+               v.state   := CONN_S;
+               
+            end if;           
+  
          ----------------------------------------------------------------------
          -- NULL packet
          ----------------------------------------------------------------------         
@@ -616,7 +482,6 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             -- 
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '1';  -- Update buffer seqN and Type 
             v.buffSent := '0';
@@ -631,10 +496,12 @@ begin
             -- Counters
             v.nextSeqN    := r.nextSeqN;
             v.seqN        := r.nextSeqN;
+            v.headerAddr  := (others => '0');
             
             v.segmentAddr := (others => '0');
             v.bufferAddr := lastSentAddr_i;
-            --
+            
+            -- Flags
             v.synH     := '0';
             v.ackH     := '0';
             v.rstH     := '0';  
@@ -642,81 +509,34 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';
             
-            -- SSI Control
-             
-            -- Increment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1') then
-               v.headerAddr       := r.headerAddr + 1;
-               v.ssiMaster.valid  := '1';
-            else 
-               v.headerAddr       := r.headerAddr;
-               v.ssiMaster.valid  := '0';              
-            end if;
+            -- SSI Master init (if not ready)
+            v.ssiMaster := SSI_MASTER_INIT_C;
 
-            -- Send SOF with header address 0
-            if (r.headerAddr = (r.headerAddr'range => '0')) then
-               v.ssiMaster.sof  := '1';
-            else
-               v.ssiMaster.sof  := '0';
-            end if;
-
-            -- Other SSI parameters
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send header part)
-            v.ssiMaster.data(15 downto 0)  := headerData_i;
-            
             -- Next state condition
-            if    (r.headerAddr >= NULL_HEADER_SIZE_G) then            
-                v.state   := NULL_CSUM_S;
-            end if;        
-         ----------------------------------------------------------------------
-         when NULL_CSUM_S =>
-            -- Counters
-            v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
-            v.seqN        := r.nextSeqN+1;
-
-            v.headerAddr  := (others => '0');
-            v.segmentAddr := (others => '0');
-             
-            v.bufferAddr := lastSentAddr_i;
-            --
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';
-            v.nullH    := '0';       
-            v.dataH    := '0';
-            v.dataD    := '0';
-            --
-            v.chSum    := '1';   -- Send checksum
-            v.txRdy    := '0';
-            v.buffWe   := '0';      
-            v.buffSent := '1';   -- Increment buffer last sent address(txBuffer)
+            if (tspSsiSlave_i.ready = '1') then -- Frame size is one word
+               
+               -- Increment seqN
+               v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
+               v.seqN        := r.nextSeqN+1;
+               v.buffSent    := '1';          -- Increment the sent buffer
+               
+               v.ssiMaster.sof    := '1';
+               v.ssiMaster.valid  := '1';
+               v.ssiMaster.strb   := (others => '1');
+               v.ssiMaster.keep   := (others => '1');
+               v.ssiMaster.dest   := (others => '0');
+               v.ssiMaster.eof    := '1';
+               v.ssiMaster.eofe   := '0';
+               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
             
-            -- SSI parameters (Send EOF with chksum)
-            v.ssiMaster.valid  := '1';
-            v.ssiMaster.sof    := '0';
-            v.ssiMaster.strb   := (others => '1');
-            v.ssiMaster.keep   := (others => '1');
-            v.ssiMaster.dest   := (others => '0');
-            v.ssiMaster.eof    := '1';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send chksum part)
-            v.ssiMaster.data(15 downto 0)   := chksumData_i;        
-
-            -- Next state
-            v.state   := CONN_S; 
-
+               v.state   := CONN_S;
+               
+            end if;           
          ----------------------------------------------------------------------
          -- DATA packet
          ----------------------------------------------------------------------         
@@ -738,7 +558,6 @@ begin
             v.dataH    := '1';  -- Send data header 
             v.dataD    := '0';
             -- 
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '1';  -- Update buffer seqN and Type 
             v.buffSent := '0';
@@ -764,83 +583,32 @@ begin
             v.dataH    := '1';  -- Send data header 
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';
             
-            -- SSI Control
-             
-            -- Increment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1') then
-               v.headerAddr       := r.headerAddr + 1;
-               v.ssiMaster.valid  := '1';
-            else 
-               v.headerAddr       := r.headerAddr;
-               v.ssiMaster.valid  := '0';              
-            end if;
+            -- SSI Master init (if not ready)
+            v.ssiMaster := SSI_MASTER_INIT_C;
 
-            -- Send SOF with header address 0
-            if (r.headerAddr = (r.headerAddr'range => '0')) then
-               v.ssiMaster.sof  := '1';
-            else
-               v.ssiMaster.sof  := '0';
-            end if;
-
-            -- Other SSI parameters
-            v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-            v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
-            v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send header part)
-            v.ssiMaster.data(15 downto 0)  := headerData_i;
-            
             -- Next state condition
-            if    (r.headerAddr >= DATA_HEADER_SIZE_G/2-2) then            
-                v.state   := DATA_CSUM_S;
-            end if;            
-         ----------------------------------------------------------------------
-         when DATA_CSUM_S =>
-            -- Counters
-            v.nextSeqN    := r.nextSeqN;
-            v.seqN        := r.nextSeqN;
-
-            v.headerAddr  := (others => '0');
-            v.segmentAddr := (others => '0');
-             
-            v.bufferAddr := lastSentAddr_i;
-            --
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';
-            v.nullH    := '0';       
-            v.dataH    := '0';
-            v.dataD    := '0';
-            --
-            v.chSum    := '1';   -- Send checksum
-            v.txRdy    := '0';
-            v.buffWe   := '0';      
-            v.buffSent := '0';   -- do not Increment buffer last sent address do it after data is sent
-            
-            -- SSI parameters
-            v.ssiMaster.valid  := '1';
-            v.ssiMaster.sof    := '0';
-            v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-            v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
-            v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send chksum part)
-            v.ssiMaster.data(15 downto 0)   := chksumData_i;        
-
-            -- Next state
-            if (tspSsiSlave_i.ready = '1') then
+            if (tspSsiSlave_i.ready = '1') then -- Frame size is one word
+                             
+               v.ssiMaster.sof    := '1';
+               v.ssiMaster.valid  := '1';
+               v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
+               v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
+               v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
+               v.ssiMaster.eof    := '0';
+               v.ssiMaster.eofe   := '0';
+               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+               
+               -- Increment the RAM address here so the data will be ready next clock cycle
                v.segmentAddr  := r.segmentAddr + 1;
+               
                v.state        := DATA_S;
-            end if;              
+               
+            end if;            
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Counters
@@ -857,7 +625,6 @@ begin
             v.dataH    := '0';   
             v.dataD    := '1';  -- Send data
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';
@@ -880,7 +647,7 @@ begin
             v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
 
             -- SSI data (send tx budffer data)
-            v.ssiMaster.data(15 downto 0)  := bufferData_i;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
             
             -- Next state condition
             if  (r.segmentAddr > windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
@@ -910,7 +677,6 @@ begin
             v.dataH    := '0';
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';         
             v.buffSent := '1';     -- Increment buffer last sent address(txBuffer)
@@ -925,26 +691,25 @@ begin
          -- Resend all packets from the buffer
          -- Packets between firstUnackAddr_i and lastSentAddr_i
          ----------------------------------------------------------------------            
-         when RESEND_S =>
+         when RESEND_INIT_S =>
+            -- Start from first unack address 
+            v.bufferAddr := firstUnackAddr_i;
+
             -- Counters
             v.nextSeqN    := r.nextSeqN; -- Never increment seqN while resending 
             v.seqN        := windowArray_i(conv_integer(r.bufferAddr)).seqN;
             
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
-            
-            -- Start from first unack address 
-            v.bufferAddr := firstUnackAddr_i; 
-            
+
             -- State control signals 
             v.synH     := '0';
             v.ackH     := '0';
-            v.rstH     := '0';   
-            v.nullH    := '0';      
-            v.dataH    := '0'; 
+            v.rstH     := '0';
+            v.nullH    := '0';
+            v.dataH    := '0';
             v.dataD    := '0';
             -- 
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0'; 
             v.buffSent := '0';
@@ -953,7 +718,37 @@ begin
             v.ssiMaster := SSI_MASTER_INIT_C;
             
             -- Next state condition
-            v.state   := RESEND_H_S;
+            v.state   := RESEND_S;
+           
+         when RESEND_S =>
+            -- Start from first unack address 
+            v.bufferAddr := r.bufferAddr;
+
+            -- Counters
+            v.nextSeqN    := r.nextSeqN; -- Never increment seqN while resending 
+            v.seqN        := windowArray_i(conv_integer(r.bufferAddr)).seqN;
+            
+            v.headerAddr  := (others => '0');
+            v.segmentAddr := (others => '0');
+
+            -- State control signals 
+            v.synH     := '0';
+            v.ackH     := '0';
+            v.rstH     := windowArray_i(conv_integer(r.bufferAddr)).segType(2);  
+            v.nullH    := windowArray_i(conv_integer(r.bufferAddr)).segType(1);  
+            v.dataH    := windowArray_i(conv_integer(r.bufferAddr)).segType(0);
+            v.dataD    := '0';
+            -- 
+            v.txRdy    := '0';
+            v.buffWe   := '0'; 
+            v.buffSent := '0';
+
+            -- SSI master 
+            v.ssiMaster := SSI_MASTER_INIT_C;
+            
+            -- Next state condition
+            v.state   := RESEND_H_S;   
+   
          ----------------------------------------------------------------------
          when RESEND_H_S =>
             -- Counters
@@ -970,94 +765,41 @@ begin
             v.dataH    := windowArray_i(conv_integer(r.bufferAddr)).segType(0); 
             v.dataD    := '0';
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';
             
-            -- SSI Control
-             
-            -- Increment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1') then
-               v.headerAddr       := r.headerAddr + 1;
-               v.ssiMaster.valid  := '1';
-            else 
-               v.headerAddr       := r.headerAddr;
-               v.ssiMaster.valid  := '0';              
-            end if;
+            -- SSI Master init (if not ready)
+            v.ssiMaster := SSI_MASTER_INIT_C;
 
-            -- Send SOF with header address 0
-            if (r.headerAddr = (r.headerAddr'range => '0')) then
-               v.ssiMaster.sof  := '1';
-            else
-               v.ssiMaster.sof  := '0';
-            end if;
-
-            -- Other SSI parameters
-            v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-            v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
-            v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send header part)
-            v.ssiMaster.data(15 downto 0)  := headerData_i;
-            
             -- Next state condition
-            -- Note: Works only if DATA_HEADER_SIZE_G = NULL_HEADER_SIZE_G = RST_HEADER_SIZE_G
-            -- TODO if above is not true make additional conditions depening on segType 
-            if    (r.headerAddr >= DATA_HEADER_SIZE_G) then            
-                v.state   := RESEND_CSUM_S;
-            end if;            
-         ----------------------------------------------------------------------
-         when RESEND_CSUM_S =>
-            -- Counters
-            v.nextSeqN    := r.nextSeqN; -- Never increment seqN while resending
-            v.seqN        := windowArray_i(conv_integer(r.bufferAddr)).seqN;
-
-            v.headerAddr  := (others => '0');
-            v.segmentAddr := (others => '0');
-             
-            v.bufferAddr := r.bufferAddr;
-            --
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';
-            v.nullH    := '0';       
-            v.dataH    := '0';
-            v.dataD    := '0';
-            --
-            v.chSum    := '1';   -- Send checksum
-            v.txRdy    := '0';
-            v.buffWe   := '0';      
-            v.buffSent := '0';
-            
-            -- SSI parameters
-            v.ssiMaster.valid  := '1';
-            v.ssiMaster.sof    := '0';
-            v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-            v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
-            v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
-            v.ssiMaster.eof    := '0';
-            v.ssiMaster.eofe   := '0';
-            
-            -- SSI data (send chksum part)
-            v.ssiMaster.data(15 downto 0)   := chksumData_i;        
-
-            -- Next state
-            -- If NULL or RST packet 
-            if    (windowArray_i(conv_integer(r.bufferAddr)).segType(2) = '1' or
-                   windowArray_i(conv_integer(r.bufferAddr)).segType(1) = '1'
-            ) then
-               -- Send EOF and start sending next packet
-               v.ssiMaster.eof    := '1';
+            if (tspSsiSlave_i.ready = '1') then -- Frame size is one word
+                             
+               v.ssiMaster.sof    := '1';
+               v.ssiMaster.valid  := '1';
+               v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
+               v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
+               v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
+               v.ssiMaster.eof    := '0';
                v.ssiMaster.eofe   := '0';
-               --
-               v.state   := RESEND_PP_S;
-            -- If DATA packet start sending data
-            else 
-               v.state   := RESEND_DATA_S;
-            end if;
+               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+
+               if    (windowArray_i(conv_integer(r.bufferAddr)).segType(2) = '1' or
+                      windowArray_i(conv_integer(r.bufferAddr)).segType(1) = '1'
+               ) then
+                  -- Send EOF and start sending next packet
+                  v.ssiMaster.eof    := '1';
+                  v.ssiMaster.eofe   := '0';
+                  --
+                  v.state   := RESEND_PP_S;
+               -- If DATA packet start sending data
+               else
+                  -- Increment the RAM address here so the data will be ready next clock cycle
+                  v.segmentAddr  := r.segmentAddr + 1;
+                  v.state        := RESEND_DATA_S;
+               end if;
+            end if;               
          ----------------------------------------------------------------------         
          when RESEND_DATA_S =>
             -- Counters
@@ -1074,7 +816,6 @@ begin
             v.dataH    := '0';   
             v.dataD    := '1';  -- Send data
             --
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0';          
             v.buffSent := '0';
@@ -1098,14 +839,13 @@ begin
 
             
             -- SSI data (send tx budffer data)
-            v.ssiMaster.data(15 downto 0)  := bufferData_i;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
             
             -- Next state condition
-            if  (r.segmentAddr >= windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
+            if  (r.segmentAddr > windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
                -- Send EOF at the end of the segment
                v.ssiMaster.eof    := '1';
                v.ssiMaster.eofe   := windowArray_i(conv_integer(r.bufferAddr)).eofe;
-               
                -- 
                v.state   := RESEND_PP_S;                
                 
@@ -1120,21 +860,20 @@ begin
             v.segmentAddr := (others => '0');
             
             -- Increment buffer address (circulary)
-            if r.bufferAddr < windowSize_i then
+            if r.bufferAddr < (windowSize_i-1) then
                v.bufferAddr := r.bufferAddr+1;
             else
                v.bufferAddr := (others => '0');
             end if;
             
             -- State control signals 
-            v.synH     := '0';
-            v.ackH     := '0';
-            v.rstH     := '0';   
+            v.rstH     := '0'; 
+            v.nullH    := '0';  
+            v.dataH    := '0';  
             v.nullH    := '0';      
             v.dataH    := '0'; 
             v.dataD    := '0';
             -- 
-            v.chSum    := '0';
             v.txRdy    := '0';
             v.buffWe   := '0'; 
             v.buffSent := '0';
@@ -1143,10 +882,11 @@ begin
             v.ssiMaster := SSI_MASTER_INIT_C;
             
             -- Next state condition
+            -- Go back to CONN_S when the last sent address reached 
             if (r.bufferAddr = lastSentAddr_i) then
                v.state   := CONN_S;           
             else
-               v.state   := RESEND_H_S;
+               v.state   := RESEND_S;
             end if;
          ----------------------------------------------------------------------
          when others =>
@@ -1178,8 +918,8 @@ begin
    
    -- Output assignment
    synHeadSt_o  <= r.synH;
-   ackHeadSt_o  <= r.ackH; 
-   dataHeadSt_o <= r.dataH; 
+   ackHeadSt_o  <= r.ackH;
+   dataHeadSt_o <= r.dataH;
    dataSt_o     <= r.dataD;
    rstHeadSt_o  <= r.rstH;
    nullHeadSt_o <= r.nullH;

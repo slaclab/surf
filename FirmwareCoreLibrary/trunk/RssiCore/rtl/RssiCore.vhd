@@ -28,22 +28,18 @@ entity RssiCore is
    generic (
       TPD_G        : time     := 1 ns;
       SERVER_G     : boolean  := true;
-      
-      -- First prototype will accept 16 bit word (2 - bytes)
-      -- If you have a bus of different size you should insert AxiStreamFifo
-      APP_SSI_WIDTH_G : positive := 2;
-      
+ 
       WINDOW_ADDR_SIZE_G       : positive := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       
       -- Adjustible parameters
       
       -- Transmitter
-      MAX_TX_NUM_OUTS_SEG_G  : positive := 32;
-      MAX_TX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*2; -- Number of bytes
+      MAX_TX_NUM_OUTS_SEG_G  : positive := 8;
+      MAX_TX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
       
       -- Receiver
-      MAX_RX_NUM_OUTS_SEG_G  : positive := 32;
-      MAX_RX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*2; -- Number of bytes
+      MAX_RX_NUM_OUTS_SEG_G  : positive := 8;
+      MAX_RX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
 
       -- Timeouts
       RETRANS_TOUT_G         : positive := 60;  -- ms
@@ -127,9 +123,9 @@ architecture rtl of RssiCore is
     
    -- TX Data sources
    signal s_headerAddr   : slv(7  downto 0);
-   signal s_headerData   : slv(15  downto 0);
+   signal s_headerData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
    signal s_bufferAddr   : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
-   signal s_bufferData   : slv(15  downto 0);
+   signal s_bufferData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
    signal s_chksumData   : slv(15  downto 0);
    
    -- TX FSM
@@ -154,12 +150,13 @@ begin
    s_headerValues.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
    s_headerValues.maxAutoRst      <= toSlv(MAX_AUTO_RST_CNT_G, 8);
    
-   s_headerValues.connectionId    <= x"DEADBEEF";
+   s_headerValues.connectionId    <= x"BEEF"; -- TODO bring from connection negotiation Debug
    
    -- later will connect to parameter negotiation module   
    s_windowSize <= MAX_RX_NUM_OUTS_SEG_G;
    s_initSeqN   <= x"80";
    s_init       <= not connActive_i;
+   
    -- Header decoder module
    HeaderReg_INST: entity work.HeaderReg
    generic map (
@@ -190,10 +187,7 @@ begin
    TxBuffer_INST: entity work.TxBuffer
    generic map (
       TPD_G             => TPD_G,
-      AXI_CONFIG_G      => ssiAxiStreamConfig(APP_SSI_WIDTH_G),
-      WINDOW_ADDR_SIZE_G=> WINDOW_ADDR_SIZE_G, 
-      APP_SSI_WIDTH_G   => (APP_SSI_WIDTH_G * 8)
-   )
+      WINDOW_ADDR_SIZE_G=> WINDOW_ADDR_SIZE_G)
    port map (
       clk_i            => clk_i,
       rst_i            => rst_i,
@@ -224,7 +218,6 @@ begin
    TxFSM_INST: entity work.TxFSM
    generic map (
       TPD_G              => TPD_G,
-      AXI_CONFIG_G       => ssiAxiStreamConfig(APP_SSI_WIDTH_G),
       WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
       SYN_HEADER_SIZE_G  => SYN_HEADER_SIZE_G,
       ACK_HEADER_SIZE_G  => ACK_HEADER_SIZE_G,
@@ -275,14 +268,14 @@ begin
    Chksum_INST: entity work.Chksum
    generic map (
       TPD_G        => TPD_G,
-      DATA_WIDTH_G => (APP_SSI_WIDTH_G * 8))
+      DATA_WIDTH_G => 16) -- TODO Change to 64 input data width (Chksum is still 16-bit)
    port map (
       clk_i    => clk_i,
       rst_i    => rst_i,
       enable_i => s_enable,
       strobe_i => '1', -- Todo add strobe according to tspSsiSlave_i.ready signal 
       init_i   => x"0000",
-      data_i   => s_headerData,
+      data_i   => s_headerData(15 downto 0),-- TODO Change to 64 input data width (Chksum is still 16-bit)
       chksum_o => s_chksumData,
       valid_o  => open,
       check_o  => open);

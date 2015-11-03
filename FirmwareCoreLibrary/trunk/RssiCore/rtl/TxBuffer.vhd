@@ -27,11 +27,8 @@ use work.AxiStreamPkg.all;
 entity TxBuffer is
    generic (
       TPD_G                   : time     := 1 ns;
-      AXI_CONFIG_G            : AxiStreamConfigType := ssiAxiStreamConfig(2);
-      
-      WINDOW_ADDR_SIZE_G       : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
-      -- MAX_RX_NUM_OUTS_SEG_G   : positive := 128; -- Max number out of sequence segments (EACK)
-      APP_SSI_WIDTH_G         : positive := 16      -- 
+      WINDOW_ADDR_SIZE_G      : positive := 7      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
+
    );
    port (
       clk_i      : in  sl;
@@ -47,7 +44,7 @@ entity TxBuffer is
       
       -- Data buffer read port
       rdAddr_i     : in  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
-      rdData_o     : out slv(15 downto 0);
+      rdData_o     : out slv( (RSSI_WORD_WIDTH_C*8)-1 downto 0);
       
       -- Buffer window array input
       we_i         : in sl; -- must be one cc long
@@ -87,8 +84,8 @@ end entity TxBuffer;
 architecture rtl of TxBuffer is
    
    -- Init SSI bus
-   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(AXI_CONFIG_G, AXI_STREAM_MASTER_INIT_C);
-   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_CONFIG_G, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
+   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
+   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
    
    type stateType is (
       IDLE_S,
@@ -109,7 +106,7 @@ architecture rtl of TxBuffer is
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;      
       bufferFull     : sl;
-      windowArray    : WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
+      windowArray    : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
       ackErr         : sl;
       
       -- SSI data RX      
@@ -135,7 +132,7 @@ architecture rtl of TxBuffer is
       --eackAddr       => (others => '0'),
       --eackIndex      => 0,
       bufferFull     => '0',
-      windowArray    => (0 to 127 => WINDOW_INIT_C),
+      windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
       ackErr         => '0',
       
       -- SSI data RX        
@@ -170,7 +167,7 @@ begin
    SimpleDualPortRam_INST: entity work.SimpleDualPortRam
    generic map (
       TPD_G          => TPD_G,
-      DATA_WIDTH_G   => APP_SSI_WIDTH_G,
+      DATA_WIDTH_G   => RSSI_WORD_WIDTH_C*8,
       ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)
    )
    port map (
@@ -178,9 +175,9 @@ begin
       clka  => clk_i,
       wea   => r.segmentWe,
       addra => s_buffWAddr,
-      dina  => appSsiMaster_i.data(APP_SSI_WIDTH_G-1 downto 0),
+      dina  => r.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0),
       
-      -- Port B - Read only 
+      -- Port B - Read only
       clkb  => clk_i,
       rstb  => rst_i,
       addrb => rdAddr_i,
@@ -195,8 +192,13 @@ begin
    begin
       v := r;
       ------------------------------------------------------------
-      -- Buffer full condition
-      if (  (r.lastSentAddr - r.firstUnackAddr) >= (windowSize_i-1) ) then
+      -- Buffer full condition buffer is full if absolute difference is
+      -- 
+      if ( r.lastSentAddr > r.firstUnackAddr and
+          (r.lastSentAddr - r.firstUnackAddr) >= (windowSize_i-1) ) then
+         v.bufferFull := '1';
+      elsif ( r.lastSentAddr < r.firstUnackAddr and
+          ((windowSize_i) + r.lastSentAddr - r.firstUnackAddr) >= (windowSize_i-1) ) then
          v.bufferFull := '1';
       else
          v.bufferFull := '0';
@@ -207,10 +209,7 @@ begin
       ------------------------------------------------------------
       if (we_i = '1') then
          v.windowArray(conv_integer(r.lastSentAddr)).seqN    := nextSeqN_i;
-         v.windowArray(conv_integer(r.lastSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;
-         --v.windowArray(conv_integer(r.lastSentAddr)).tDest   := (others => '0');
-         --v.windowArray(conv_integer(r.lastSentAddr)).eofe    := '0';        
-         --v.windowArray(conv_integer(r.lastSentAddr)).eacked  := '0';          
+         v.windowArray(conv_integer(r.lastSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;        
       else 
          v.windowArray      := r.windowArray;
       end if;
@@ -220,7 +219,7 @@ begin
       ------------------------------------------------------------
       if (sent_i = '1') then
 
-         if r.lastSentAddr < windowSize_i then 
+         if r.lastSentAddr < (windowSize_i-1) then 
             v.lastSentAddr := r.lastSentAddr +1;
          else
             v.lastSentAddr := (others => '0');
@@ -255,7 +254,7 @@ begin
          when ACK_S =>
          
             -- Increment ACK address
-            if r.firstUnackAddr < windowSize_i then 
+            if r.firstUnackAddr < (windowSize_i-1) then 
                   v.firstUnackAddr  := r.firstUnackAddr+1;
             else
                   v.firstUnackAddr  := (others => '0');
@@ -266,23 +265,23 @@ begin
             v.ackErr         := '0';
             
             -- Next state condition            
-            if  r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i  then
+            if (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN /= ackN_i) then  
+               -- If the acked seqN is not found go to error state
+               v.ackState   := ERR_S;             
+            elsif  r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i  then
                --if eack_i = '1' then
                   -- Go back to init when the acked seqN is found            
                --   v.ackState   := EACK_S;               
                --else
                   -- Go back to init when the acked seqN is found            
-                  v.ackState   := IDLE_S;
+               v.ackState   := IDLE_S;
                --end if;
-            elsif (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i) then  
-               -- If the acked seqN is not found go to error state
-               v.ackState   := ERR_S;            
             end if;
          ----------------------------------------------------------------------
          -- when EACK_S =>
          
             -- -- Increment EACK address from firstUnackAddr to lastSentAddr
-            -- if r.eackAddr < windowSize_i then 
+            -- if r.eackAddr < (windowSize_i-1) then 
                -- v.eackAddr  := r.eackAddr+1;
             -- else
                -- v.eackAddr  := (others => '0');
@@ -418,14 +417,14 @@ begin
             v.ssiSlave.ready      := '1';
             v.ssiSlave.pause      := '0';       
             v.ssiSlave.overflow   := '0';
-            
+                        
             -- Buffer write ctl
             if (appSsiMaster_i.valid = '1') then          
                v.segmentAddr := r.segmentAddr + 1;
-               v.segmentWe   := '1';
+               v.segmentWe           := '1';
             else
-               v.segmentAddr := r.segmentAddr;
-               v.segmentWe   := '0';            
+               v.segmentAddr := r.segmentAddr; 
+               v.segmentWe           := '0';             
             end if;
             
             -- txFSM
@@ -434,7 +433,7 @@ begin
             v.ssiBusy     := '1';            
             
             -- Wait until receiving EOF 
-            if (appSsiMaster_i.eof = '1' ) then
+            if (appSsiMaster_i.eof = '1' and appSsiMaster_i.valid = '1') then
             
                -- Save packet eofe (error)
                v.windowArray(conv_integer(r.lastSentAddr)).eofe    := appSsiMaster_i.eofe;
@@ -445,6 +444,7 @@ begin
 
                v.ssiState    := SEG_RDY_S;        
             elsif (r.segmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
+               v.segmentWe           := '0';
                v.ssiState    := SEG_LEN_ERR;           
             end if;
          ----------------------------------------------------------------------            

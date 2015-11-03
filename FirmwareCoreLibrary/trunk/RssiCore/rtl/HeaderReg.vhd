@@ -34,7 +34,7 @@ entity HeaderReg is
       EACK_HEADER_SIZE_G : natural := 6;      
       RST_HEADER_SIZE_G  : natural := 6;      
       NULL_HEADER_SIZE_G : natural := 6;
-      DATA_HEADER_SIZE_G : natural := 6
+      DATA_HEADER_SIZE_G : natural := 6     
    );
    port (
       clk_i      : in  sl;
@@ -47,11 +47,7 @@ entity HeaderReg is
       nullHeadSt_i : in  sl;
       ackHeadSt_i  : in  sl;
       --eackHeadSt_i : in  sl;
-
-      -- Register input header values on strobe
-      -- (DFF if unconnected)
-      strobe_i : in sl :='1';
-         
+        
       -- Ack sequence number valid
       ack_i : in sl;
       
@@ -67,31 +63,12 @@ entity HeaderReg is
       --eackN_i        : in natural;
 
       addr_i        : in  slv(7  downto 0);
-      headerData_o  : out slv(15 downto 0)
+      headerData_o  : out slv( (RSSI_WORD_WIDTH_C * 8)-1 downto 0)
    );
 end entity HeaderReg;
 
 architecture rtl of HeaderReg is
   
-   type RegType is record
-      txSeqN      : slv(7  downto 0);
-      rxAckN      : slv(7  downto 0);
-      --eackSeqnArr : Slv16Array(eackSeqnArr_i'range);
-      ack         : sl;
-     -- eackN       : natural;
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      txSeqN      => (others =>'0'),
-      rxAckN      => (others =>'0'),
-      --eackSeqnArr => (others => x"0000"),
-      ack         => '0'
-     -- eackN       => 0
-   );
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-   
    signal addrInt : integer;
    
 begin
@@ -99,120 +76,83 @@ begin
    -- Convert address to integer
    addrInt <= conv_integer(addr_i);
    
-   -- 
-   comb : process (r, rst_i, headerValues_i, strobe_i, addrInt, txSeqN_i, rxAckN_i, 
+   -- Note! Only combinatorial logic 
+   comb : process (rst_i, headerValues_i, addrInt, txSeqN_i, rxAckN_i, 
                    synHeadSt_i, rstHeadSt_i, dataHeadSt_i, nullHeadSt_i, ackHeadSt_i, ack_i ) is
       
-      variable v : RegType;
-      variable vHeaderData : slv(15 downto 0);
-   begin
-      v := r;
-      
-      if strobe_i = '1' then
-         -- Register inputs         
-         v.txSeqN      := txSeqN_i;
-         v.rxAckN      := rxAckN_i;
-         --v.eackSeqnArr := eackSeqnArr_i;
-        -- v.eackN       := eackN_i;
-         v.ack         := ack_i;
-      else
-         -- Hold values constant
-         v.txSeqN      := r.txSeqN;
-         v.rxAckN      := r.rxAckN;
-         --v.eackSeqnArr := r.eackSeqnArr;
-       --  v.eackN       := r.eackN;
-         v.ack         := r.ack;
-      end if;         
+      variable vHeaderData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+   begin   
 
       -- 
       if (synHeadSt_i = '1') then      
          case addrInt is
             when 16#00# =>
-              vHeaderData := "1" & r.ack & "000000" & toSlv(SYN_HEADER_SIZE_G, 8);
+              vHeaderData := "1" & ack_i & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
+                              txSeqN_i & rxAckN_i                                 &
+                              x"1" & x"0" & headerValues_i.maxOutsSegments        &       
+                              x"00" & x"00";
             when 16#01# =>
-              vHeaderData := r.txSeqN & r.rxAckN;
-            when 16#02# => 
-              vHeaderData := x"1" & x"0" & headerValues_i.maxOutsSegments;             
-            when 16#03# =>
-              vHeaderData := x"00" & x"00";
-            when 16#04# =>
-              vHeaderData := headerValues_i.maxSegSize;
-            when 16#05# =>
-              vHeaderData := headerValues_i.retransTout; 
-            when 16#06# => 
-              vHeaderData := headerValues_i.cumulAckTout;             
-            when 16#07# =>
-              vHeaderData := headerValues_i.nullSegTout;
-            when 16#08# =>
-              vHeaderData := headerValues_i.transStateTout;
-            when 16#09# =>
-              vHeaderData := headerValues_i.maxRetrans & headerValues_i.maxCumAck;
-            when 16#0A# => 
-              vHeaderData := headerValues_i.maxOutofseq & headerValues_i.maxAutoRst;             
-            when 16#0B# =>
-              vHeaderData := headerValues_i.connectionId(31 downto 16);
-            when 16#0C# =>
-              vHeaderData := headerValues_i.connectionId(15 downto 0);
+              vHeaderData :=  headerValues_i.maxSegSize   &
+                              headerValues_i.retransTout  &
+                              headerValues_i.cumulAckTout &    
+                              headerValues_i.nullSegTout;
+            when 16#02# =>
+              vHeaderData :=  headerValues_i.maxRetrans & headerValues_i.maxCumAck  &
+                              headerValues_i.maxOutofseq & headerValues_i.maxAutoRst&           
+                              headerValues_i.connectionId(15 downto 0)              &
+                              x"00" & x"00"; -- Place for checksum
             when others =>
-              vHeaderData := (others=> '0');           
+              vHeaderData := (others=> '0');                              
          end case;
       elsif (rstHeadSt_i = '1') then 
          case addrInt is
             when 16#00# =>
-              vHeaderData := "00010000" & toSlv(RST_HEADER_SIZE_G, 8);
-            when 16#01# =>
-              vHeaderData := r.txSeqN & r.rxAckN;
+              vHeaderData := "00010000" & toSlv(RST_HEADER_SIZE_G, 8) &
+                             txSeqN_i & rxAckN_i                      &
+                             x"00" & x"00"                            &  -- Reserved
+                             x"00" & x"00";                              -- Place for checksum
             when others =>
-              vHeaderData := (others=> '0');       
+              vHeaderData := (others=> '0');
          end case;
       elsif (dataHeadSt_i = '1' or ackHeadSt_i = '1') then 
          case addrInt is
             when 16#00# =>
-              vHeaderData := "01000000" & toSlv(DATA_HEADER_SIZE_G, 8);
-            when 16#01# =>
-              vHeaderData := r.txSeqN & r.rxAckN;
+              vHeaderData := "01000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
+                             txSeqN_i & rxAckN_i                       &
+                             x"00" & x"00"                             &  -- Reserved
+                             x"00" & x"00";                               -- Place for checksum
             when others =>
               vHeaderData := (others=> '0');    
          end case;
       elsif (nullHeadSt_i = '1') then
          case addrInt is
             when 16#00# =>
-              vHeaderData := "01001000" & toSlv(NULL_HEADER_SIZE_G, 8);
-            when 16#01# =>
-              vHeaderData := r.txSeqN & r.rxAckN;
+              vHeaderData :=  "01001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
+                              txSeqN_i & rxAckN_i                       &
+                              x"00" & x"00"                             &  -- Reserved
+                              x"00" & x"00";                               -- Place for checksum
             when others =>
-              vHeaderData := (others=> '0');       
+              vHeaderData := (others=> '0');   
          end case;
      -- elsif (eackHeadSt_i = '1') then
      --    case addrInt is
      --       when 16#00# =>
      --         vHeaderData := "01100000" & toSlv(EACK_HEADER_SIZE_G+r.eackN, 8);
      --       when 16#01# =>
-     --         vHeaderData := r.txSeqN & r.rxAckN;
+     --         vHeaderData := txSeqN_i & rxAckN_i;
      --       when 16#02# to (2+MAX_OUT_OF_ORDER_G-1) =>
      --         vHeaderData := r.eackSeqnArr(addrInt-2);
      --       when others =>
      --         vHeaderData := (others=> '0');
      --    end case;
       else
-         vHeaderData := (others=> '0'); 
-      end if;
-           
-      if (rst_i = '1') then
-         v := REG_INIT_C;
+         vHeaderData := (others=> '0');
       end if;
       
       headerData_o <= vHeaderData;
-      rin <= v;
       -----------------------------------------------------------
    end process comb;
 
-   seq : process (clk_i) is
-   begin
-      if (rising_edge(clk_i)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
    ---------------------------------------------------------------------
    -- Output assignment
 
