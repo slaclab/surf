@@ -3,12 +3,15 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.SsiPkg.all;
+use work.AxiStreamPkg.all;
 
 package RssiPkg is
 
--- Constant definitions
+-- Common constant definitions
 --------------------------------------------------------------------------
-constant SEGMENT_ADDR_SIZE_C      : positive := 10;     -- 2^MAX_SEGMENT_SIZE_G = Number of 16bit wide data words
+constant SEGMENT_ADDR_SIZE_C      : positive := 7;     -- 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
+constant RSSI_WORD_WIDTH_C        : positive := 8;     -- 64 bit word (FIXED)
+constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C);  
 
 -- Sub-types 
 -------------------------------------------------------------------------- 
@@ -27,7 +30,7 @@ constant SEGMENT_ADDR_SIZE_C      : positive := 10;     -- 2^MAX_SEGMENT_SIZE_G 
       maxOutofseq           :  slv(7 downto 0);
       maxAutoRst            :  slv(7 downto 0);
 
-      connectionId          :  slv(31 downto 0);
+      connectionId          :  slv(15 downto 0);
    end record HeaderValuesType;
 
    type WindowType is record
