@@ -30,12 +30,12 @@ entity TxFSM is
       
       WINDOW_ADDR_SIZE_G  : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
  
-      SYN_HEADER_SIZE_G  : natural := 28;
-      ACK_HEADER_SIZE_G  : natural := 6;
-      EACK_HEADER_SIZE_G : natural := 6;      
-      RST_HEADER_SIZE_G  : natural := 6;      
-      NULL_HEADER_SIZE_G : natural := 6;
-      DATA_HEADER_SIZE_G : natural := 6
+      SYN_HEADER_SIZE_G  : natural := 24;
+      ACK_HEADER_SIZE_G  : natural := 8;
+      EACK_HEADER_SIZE_G : natural := 8;
+      RST_HEADER_SIZE_G  : natural := 8;
+      NULL_HEADER_SIZE_G : natural := 8;
+      DATA_HEADER_SIZE_G : natural := 8
    );
    port (
       clk_i      : in  sl;
@@ -75,6 +75,7 @@ entity TxFSM is
       windowSize_i     : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
       bufferFull_i     : in sl;
       firstUnackAddr_i : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      nextSentAddr_i   : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastSentAddr_i   : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       ssiBusy_i        : in sl;
       
@@ -151,7 +152,7 @@ architecture rtl of TxFSM is
       buffSent: sl;
 
       -- SSI master
-      ssiMaster      : SsiMasterType;            
+      ssiMaster      : SsiMasterType;
       
       -- State Machine
       State       : StateType;    
@@ -190,7 +191,7 @@ architecture rtl of TxFSM is
 begin
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, lastSentAddr_i, txSyn_i, txAck_i, connActive_i, txRst_i, ssiBusy_i, initSeqN_i, windowSize_i, firstUnackAddr_i,
+   comb : process (r, rst_i, nextSentAddr_i,lastSentAddr_i, txSyn_i, txAck_i, connActive_i, txRst_i, ssiBusy_i, initSeqN_i, windowSize_i, firstUnackAddr_i,
                    bufferFull_i, txData_i, txResend_i, txNull_i, tspSsiSlave_i, headerData_i, chksumData_i, bufferData_i, windowArray_i) is
       
       variable v : RegType;
@@ -211,7 +212,7 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             --
             v.synH     := '0';
             v.ackH     := '0';
@@ -248,7 +249,7 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             --
             v.synH     := '0';
             v.ackH     := '0';
@@ -288,7 +289,7 @@ begin
             v.seqN        := r.nextSeqN;
             
             v.segmentAddr := (others => '0');
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             --
             v.synH     := '1';  -- Send SYN header
             v.ackH     := '0';
@@ -348,7 +349,7 @@ begin
             v.seqN        := r.nextSeqN;
             
             v.segmentAddr := (others => '0');
-            v.bufferAddr  := lastSentAddr_i;
+            v.bufferAddr  := nextSentAddr_i;
             v.headerAddr  := (others => '0');
             
             --
@@ -396,7 +397,7 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             -- State control signals 
             v.synH     := '0';
             v.ackH     := '0';
@@ -422,7 +423,7 @@ begin
             v.headerAddr  := (others => '0');
             
             v.segmentAddr := (others => '0');
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             
             -- Flags
             v.synH     := '0';
@@ -472,7 +473,7 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             
             -- State control signals 
             v.synH     := '0';
@@ -499,7 +500,7 @@ begin
             v.headerAddr  := (others => '0');
             
             v.segmentAddr := (others => '0');
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             
             -- Flags
             v.synH     := '0';
@@ -548,7 +549,7 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             
             -- State control signals 
             v.synH     := '0';
@@ -574,7 +575,7 @@ begin
             v.seqN        := r.nextSeqN;
             
             v.segmentAddr := (others => '0');
-            v.bufferAddr  := lastSentAddr_i;
+            v.bufferAddr  := nextSentAddr_i;
             --
             v.synH     := '0';
             v.ackH     := '0';
@@ -616,7 +617,7 @@ begin
             v.seqN        := r.nextSeqN;
             
             v.headerAddr  := (others => '0');            
-            v.bufferAddr  := lastSentAddr_i;
+            v.bufferAddr  := nextSentAddr_i;
             --
             v.synH     := '0';
             v.ackH     := '0';
@@ -668,7 +669,7 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
              
-            v.bufferAddr := lastSentAddr_i;
+            v.bufferAddr := nextSentAddr_i;
             --
             v.synH     := '0';
             v.ackH     := '0';
@@ -689,7 +690,7 @@ begin
 
          ----------------------------------------------------------------------
          -- Resend all packets from the buffer
-         -- Packets between firstUnackAddr_i and lastSentAddr_i
+         -- Packets between firstUnackAddr_i and nextSentAddr_i
          ----------------------------------------------------------------------            
          when RESEND_INIT_S =>
             -- Start from first unack address 
@@ -884,7 +885,7 @@ begin
             -- Next state condition
             -- Go back to CONN_S when the last sent address reached 
             if (r.bufferAddr = lastSentAddr_i) then
-               v.state   := CONN_S;           
+               v.state   := CONN_S;        
             else
                v.state   := RESEND_S;
             end if;

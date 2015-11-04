@@ -72,6 +72,7 @@ entity TxBuffer is
       windowArray_o    : out WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
       bufferFull_o     : out sl;
       firstUnackAddr_o : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      nextSentAddr_o   : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastSentAddr_o   : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       ssiBusy_o        : out sl;
       
@@ -102,6 +103,7 @@ architecture rtl of TxBuffer is
    type RegType is record
       -- Window control
       firstUnackAddr : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      nextSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;      
@@ -129,6 +131,7 @@ architecture rtl of TxBuffer is
       -- Window control   
       firstUnackAddr => (others => '0'),
       lastSentAddr   => (others => '0'),
+      nextSentAddr   => (others => '0'),
       --eackAddr       => (others => '0'),
       --eackIndex      => 0,
       bufferFull     => '0',
@@ -161,7 +164,7 @@ begin
    ----------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------
    -- Combine ram write address
-   s_buffWAddr <= r.lastSentAddr & r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+   s_buffWAddr <= r.nextSentAddr & r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
    ----------------------------------------------------------------------------------------------      
    -- Buffer memory 
    SimpleDualPortRam_INST: entity work.SimpleDualPortRam
@@ -193,7 +196,7 @@ begin
       v := r;
       ------------------------------------------------------------
       -- Buffer full condition buffer is full if absolute difference is
-      -- 
+      -- buffer size.
       if ( r.lastSentAddr > r.firstUnackAddr and
           (r.lastSentAddr - r.firstUnackAddr) >= (windowSize_i-1) ) then
          v.bufferFull := '1';
@@ -208,25 +211,26 @@ begin
       -- Write sequence and to window array
       ------------------------------------------------------------
       if (we_i = '1') then
-         v.windowArray(conv_integer(r.lastSentAddr)).seqN    := nextSeqN_i;
-         v.windowArray(conv_integer(r.lastSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;        
+         v.windowArray(conv_integer(r.nextSentAddr)).seqN    := nextSeqN_i;
+         v.windowArray(conv_integer(r.nextSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;
+         v.lastSentAddr := r.nextSentAddr;        
       else 
          v.windowArray      := r.windowArray;
       end if;
       
       ------------------------------------------------------------
-      -- When buffer is sent increase lastSentAddr
+      -- When buffer is sent increase nextSentAddr
       ------------------------------------------------------------
       if (sent_i = '1') then
 
-         if r.lastSentAddr < (windowSize_i-1) then 
-            v.lastSentAddr := r.lastSentAddr +1;
+         if r.nextSentAddr < (windowSize_i-1) then 
+            v.nextSentAddr := r.nextSentAddr +1;
          else
-            v.lastSentAddr := (others => '0');
+            v.nextSentAddr := (others => '0');
          end if;
             
       else 
-         v.lastSentAddr     := r.lastSentAddr;
+         v.nextSentAddr     := r.nextSentAddr;
       end if;
       
       
@@ -280,7 +284,7 @@ begin
          ----------------------------------------------------------------------
          -- when EACK_S =>
          
-            -- -- Increment EACK address from firstUnackAddr to lastSentAddr
+            -- -- Increment EACK address from firstUnackAddr to nextSentAddr
             -- if r.eackAddr < (windowSize_i-1) then 
                -- v.eackAddr  := r.eackAddr+1;
             -- else
@@ -298,7 +302,7 @@ begin
             -- v.ackErr          := '0';
             
             -- -- Next state condition 
-            -- if (r.eackAddr = r.lastSentAddr) then
+            -- if (r.eackAddr = r.nextSentAddr) then
                -- -- If the acked seqN is not found go to error state
                -- v.ssiState   := IDLE_S;
             -- end if;
@@ -384,9 +388,9 @@ begin
                v.segmentWe   := '1';
                
                -- Save SSI parameters
-               v.windowArray(conv_integer(r.lastSentAddr)).dest   := appSsiMaster_i.dest;
-               v.windowArray(conv_integer(r.lastSentAddr)).strb   := appSsiMaster_i.strb;
-               v.windowArray(conv_integer(r.lastSentAddr)).keep   := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.nextSentAddr)).dest   := appSsiMaster_i.dest;
+               v.windowArray(conv_integer(r.nextSentAddr)).strb   := appSsiMaster_i.strb;
+               v.windowArray(conv_integer(r.nextSentAddr)).keep   := appSsiMaster_i.keep;
             
                v.ssiState    := SEG_RCV_S;
                
@@ -400,12 +404,12 @@ begin
                v.segmentWe   := '1';
             
                -- Save SSI parameters
-               v.windowArray(conv_integer(r.lastSentAddr)).dest   := appSsiMaster_i.dest;
-               v.windowArray(conv_integer(r.lastSentAddr)).strb   := appSsiMaster_i.strb;
-               v.windowArray(conv_integer(r.lastSentAddr)).keep   := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.nextSentAddr)).dest   := appSsiMaster_i.dest;
+               v.windowArray(conv_integer(r.nextSentAddr)).strb   := appSsiMaster_i.strb;
+               v.windowArray(conv_integer(r.nextSentAddr)).keep   := appSsiMaster_i.keep;
                
-               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := appSsiMaster_i.eofe;
-               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0); 
+               v.windowArray(conv_integer(r.nextSentAddr)).eofe    := appSsiMaster_i.eofe;
+               v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0); 
             
                v.ssiState    := SEG_RDY_S;
                         -- If one SSI word received
@@ -418,12 +422,14 @@ begin
             v.ssiSlave.pause      := '0';       
             v.ssiSlave.overflow   := '0';
                         
-            -- Buffer write ctl
-            if (appSsiMaster_i.valid = '1') then          
+            -- Buffer write if data valid 
+            -- TODO: Check if this condition holds appSsiMaster_i.sof = '0'
+            --       Inserted because the SOF did not drop immediately in HDL sim
+            if (appSsiMaster_i.valid = '1' and appSsiMaster_i.sof = '0') then          
                v.segmentAddr := r.segmentAddr + 1;
                v.segmentWe           := '1';
             else
-               v.segmentAddr := r.segmentAddr; 
+               v.segmentAddr := r.segmentAddr;
                v.segmentWe           := '0';             
             end if;
             
@@ -436,8 +442,9 @@ begin
             if (appSsiMaster_i.eof = '1' and appSsiMaster_i.valid = '1') then
             
                -- Save packet eofe (error)
-               v.windowArray(conv_integer(r.lastSentAddr)).eofe    := appSsiMaster_i.eofe;
-               v.windowArray(conv_integer(r.lastSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+               v.windowArray(conv_integer(r.nextSentAddr)).eofe    := appSsiMaster_i.eofe;
+               -- Save packet length (+1 because it has not incremented for EOF yet)
+               v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0)+1;
                v.ssiSlave.ready      := '0';
                v.ssiSlave.pause      := '1';       
                v.ssiSlave.overflow   := '0';              
@@ -449,7 +456,7 @@ begin
             end if;
          ----------------------------------------------------------------------            
          when SEG_RDY_S =>
-         
+            
             -- SSI
             v.ssiSlave.ready      := '0';
             v.ssiSlave.pause      := '1';       
@@ -537,6 +544,7 @@ begin
    windowArray_o     <= r.windowArray;
    bufferFull_o      <= r.bufferFull;
    firstUnackAddr_o  <= r.firstUnackAddr;
+   nextSentAddr_o    <= r.nextSentAddr;
    lastSentAddr_o    <= r.lastSentAddr;
    txData_o          <= r.txData;
    
