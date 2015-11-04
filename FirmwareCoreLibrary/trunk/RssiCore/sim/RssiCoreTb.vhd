@@ -135,7 +135,7 @@ begin
       locClk          => clk_i,
       locRst          => rst_i,
       trig            => s_trig,
-      packetLength    => X"0000_000f",
+      packetLength    => X"0000_00ff",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
@@ -217,18 +217,37 @@ begin
    -------------------------------------------------------
    
    -- Resend unack
-   wait for CLK_PERIOD_C*15000;
+   wait for CLK_PERIOD_C*5000;
    sndResend_i <= '1';
    wait for CLK_PERIOD_C*1;
    sndResend_i <= '0';
    
-   
    -- Send Acknowledge 0
-   wait for CLK_PERIOD_C*5000;
+   wait for CLK_PERIOD_C*1000;
    txAck_i <= '1';
    txAckN_i <= x"81";
    wait for CLK_PERIOD_C*1;
    txAck_i <= '0';
+   
+   -- Resend unack
+   wait for CLK_PERIOD_C*1000;
+   sndResend_i <= '1';
+   wait for CLK_PERIOD_C*1;
+   sndResend_i <= '0';
+   
+   -- Send Acknowledge 1
+   wait for CLK_PERIOD_C*1000;
+   txAck_i <= '1';
+   txAckN_i <= x"86";
+   wait for CLK_PERIOD_C*1;
+   txAck_i <= '0';
+   
+   -- Resend unack
+   wait for CLK_PERIOD_C*2000;
+   sndResend_i <= '1';
+   wait for CLK_PERIOD_C*1;
+   sndResend_i <= '0';
+ 
    
    -- -- Send acknowledge 1 
    -- wait for CLK_PERIOD_C*15000;

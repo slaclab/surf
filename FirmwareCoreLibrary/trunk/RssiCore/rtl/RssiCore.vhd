@@ -54,12 +54,12 @@ entity RssiCore is
       MAX_AUTO_RST_CNT_G     : positive := 1;
       
       -- Standard parameters
-      SYN_HEADER_SIZE_G   : natural := 28;
-      ACK_HEADER_SIZE_G   : natural := 6;
-      EACK_HEADER_SIZE_G  : natural := 6;      
-      RST_HEADER_SIZE_G   : natural := 6;      
-      NULL_HEADER_SIZE_G  : natural := 6;
-      DATA_HEADER_SIZE_G  : natural := 6     
+      SYN_HEADER_SIZE_G  : natural := 24;
+      ACK_HEADER_SIZE_G  : natural := 8;
+      EACK_HEADER_SIZE_G : natural := 8;
+      RST_HEADER_SIZE_G  : natural := 8;
+      NULL_HEADER_SIZE_G : natural := 8;
+      DATA_HEADER_SIZE_G : natural := 8
    );
    port (
       clk_i      : in  sl;
@@ -120,6 +120,8 @@ architecture rtl of RssiCore is
    
    signal s_firstUnackAddr : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
    signal s_lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);  
+   signal s_nextSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0); 
+    
     
    -- TX Data sources
    signal s_headerAddr   : slv(7  downto 0);
@@ -211,6 +213,7 @@ begin
       bufferFull_o     => s_bufferFull,
       firstUnackAddr_o => s_firstUnackAddr,
       lastSentAddr_o   => s_lastSentAddr,
+      nextSentAddr_o   => s_nextSentAddr,
       ssiBusy_o        => s_ssiBusy,
       lenErr_o         => lenErr_o,
       ackErr_o         => ackErr_o);
@@ -247,6 +250,7 @@ begin
       bufferFull_i     => s_bufferFull,
       firstUnackAddr_i => s_firstUnackAddr,
       lastSentAddr_i   => s_lastSentAddr,
+      nextSentAddr_i   => s_nextSentAddr,
       ssiBusy_i        => s_ssiBusy,
       txSeqN_o         => s_txSeqN,
       synHeadSt_o      => s_synHeadSt,
@@ -260,23 +264,24 @@ begin
       bufferData_i     => s_bufferData,
       tspSsiSlave_i    => tspSsiSlave_i,
       tspSsiMaster_o   => tspSsiMaster_o);
-   
-   
    -- 
    s_enable <= s_synHeadSt or s_rstHeadSt or s_dataHeadSt or s_nullHeadSt or s_ackHeadSt;
    
    Chksum_INST: entity work.Chksum
    generic map (
       TPD_G        => TPD_G,
-      DATA_WIDTH_G => 16) -- TODO Change to 64 input data width (Chksum is still 16-bit)
+      DATA_WIDTH_G => 64,
+      CSUM_WIDTH_G => 16
+   ) 
    port map (
       clk_i    => clk_i,
       rst_i    => rst_i,
       enable_i => s_enable,
-      strobe_i => '1', -- Todo add strobe according to tspSsiSlave_i.ready signal 
+      strobe_i => tspSsiSlave_i.ready, -- Todo check
       init_i   => x"0000",
-      data_i   => s_headerData(15 downto 0),-- TODO Change to 64 input data width (Chksum is still 16-bit)
+      data_i   => s_headerData(RSSI_WORD_WIDTH_C*8-1   downto 0),
       chksum_o => s_chksumData,
+      chksumReg_o => open,
       valid_o  => open,
       check_o  => open);
 ----------------------------------------

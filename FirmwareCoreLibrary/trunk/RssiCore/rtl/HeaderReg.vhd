@@ -29,12 +29,12 @@ entity HeaderReg is
       
       --MAX_OUT_OF_SEQUENCE_G : natural := 16;
 
-      SYN_HEADER_SIZE_G  : natural := 28;
-      ACK_HEADER_SIZE_G  : natural := 6;
-      EACK_HEADER_SIZE_G : natural := 6;      
-      RST_HEADER_SIZE_G  : natural := 6;      
-      NULL_HEADER_SIZE_G : natural := 6;
-      DATA_HEADER_SIZE_G : natural := 6     
+      SYN_HEADER_SIZE_G  : natural := 24;
+      ACK_HEADER_SIZE_G  : natural := 8;
+      EACK_HEADER_SIZE_G : natural := 8;
+      RST_HEADER_SIZE_G  : natural := 8;
+      NULL_HEADER_SIZE_G : natural := 8;
+      DATA_HEADER_SIZE_G : natural := 8    
    );
    port (
       clk_i      : in  sl;

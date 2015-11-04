@@ -25,33 +25,34 @@
 -- to guarantee that the testbench will bind correctly to the post-implementation 
 -- simulation model.
 --------------------------------------------------------------------------------
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
  
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---USE ieee.numeric_std.ALL;
+-- uncomment the following library declaration if using
+-- arithmetic functions with signed or unsigned values
+--use ieee.numeric_std.all;
  
-ENTITY Chksum_tb IS
-END Chksum_tb;
+entity chksum_tb is
+end chksum_tb;
  
-ARCHITECTURE behavior OF Chksum_tb IS 
+architecture behavior of chksum_tb is 
  
-    -- Component Declaration for the Unit Under Test (UUT)
+    -- component declaration for the unit under test (uut)
  
-    COMPONENT Chksum
-    PORT(
-         clk_i : IN  std_logic;
-         rst_i : IN  std_logic;
-         enable_i : IN  std_logic;
-         strobe_i : IN  std_logic;
-         init_i : IN  std_logic_vector(15 downto 0);
-         data_i : IN  std_logic_vector(15 downto 0);
-         chksum_o : OUT  std_logic_vector(15 downto 0);
-         valid_o : OUT  std_logic;
-         check_o : OUT  std_logic
+    component chksum
+    port(
+         clk_i : in  std_logic;
+         rst_i : in  std_logic;
+         enable_i : in  std_logic;
+         strobe_i : in  std_logic;
+         init_i : in  std_logic_vector(15 downto 0);
+         data_i : in  std_logic_vector(63 downto 0);
+         chksum_o : out  std_logic_vector(15 downto 0);
+         chksumreg_o : out  std_logic_vector(15 downto 0);
+         valid_o : out  std_logic;
+         check_o : out  std_logic
         );
-    END COMPONENT;
+    end component;
     
 
    --Inputs
@@ -60,10 +61,11 @@ ARCHITECTURE behavior OF Chksum_tb IS
    signal enable_i : std_logic := '0';
    signal strobe_i : std_logic := '0';
    signal init_i : std_logic_vector(15 downto 0) := (others => '0');
-   signal data_i : std_logic_vector(15 downto 0) := (others => '0');
+   signal data_i : std_logic_vector(63 downto 0) := (others => '0');
 
    --Outputs
    signal chksum_o : std_logic_vector(15 downto 0);
+   signal chksumReg_o : std_logic_vector(15 downto 0);
    signal valid_o : std_logic;
    signal check_o : std_logic;
 
@@ -81,6 +83,7 @@ BEGIN
           init_i => init_i,
           data_i => data_i,
           chksum_o => chksum_o,
+          chksumReg_o => chksumReg_o,
           valid_o => valid_o,
           check_o => check_o
         );
@@ -103,31 +106,16 @@ BEGIN
       wait for 100 ns;	
       rst_i <= '0';
       wait for clk_i_period*10;
-      
+      strobe_i <= '1';
       -- Calculate checksum
       init_i <= x"0000";
-      data_i <= x"4500";
+      data_i <= x"4500" & x"0030" & x"4422" & x"4000";
       enable_i <= '1';
-      wait for clk_i_period;    
-      strobe_i <= '1';
       wait for clk_i_period;
-      data_i <= x"0030";
+      data_i <= x"8006" & x"0000" & x"8c7c" & x"19ac";
       wait for clk_i_period;
-      data_i <= x"4422";
+      data_i <= x"ae24" & x"1e2b" & x"0000" & x"0000";
       wait for clk_i_period;
-      data_i <= x"4000";
-      wait for clk_i_period;
-      data_i <= x"8006";
-      wait for clk_i_period;
-      data_i <= x"0000";
-      wait for clk_i_period;
-      data_i <= x"8c7c";
-      wait for clk_i_period;
-      data_i <= x"19ac";
-      wait for clk_i_period;
-      data_i <= x"ae24";
-      wait for clk_i_period;
-      data_i <= x"1e2b";
       wait for clk_i_period;
       strobe_i <= '0';
       wait for clk_i_period;
@@ -140,28 +128,14 @@ BEGIN
       
       -- Check data
       init_i <= x"442E";
-      data_i <= x"4500";
-      wait for clk_i_period;    
+      wait for clk_i_period;
+      data_i <= x"4500" & x"0030" & x"4422" & x"4000";
       enable_i <= '1';
-      strobe_i <= '1';      
+      strobe_i <= '1';    
       wait for clk_i_period;
-      data_i <= x"0030";
+      data_i <= x"8006" & x"0000" & x"8c7c" & x"19ac";
       wait for clk_i_period;
-      data_i <= x"4422";
-      wait for clk_i_period;
-      data_i <= x"4000";
-      wait for clk_i_period;
-      data_i <= x"8006";
-      wait for clk_i_period;
-      data_i <= x"0000";
-      wait for clk_i_period;
-      data_i <= x"8c7c";
-      wait for clk_i_period;
-      data_i <= x"19ac";
-      wait for clk_i_period;
-      data_i <= x"ae24";
-      wait for clk_i_period;
-      data_i <= x"1e2b";
+      data_i <= x"ae24" & x"1e2b" & x"0000" & x"0000";
       wait for clk_i_period;
       strobe_i <= '0';
       wait for clk_i_period*5;
