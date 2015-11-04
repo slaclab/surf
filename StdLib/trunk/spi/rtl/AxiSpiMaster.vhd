@@ -6,7 +6,7 @@
 --            : Uros Legat Modified <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-01-12
--- Last update: 2015-07-09
+-- Last update: 2015-11-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,12 +36,13 @@ use work.AxiLitePkg.all;
 
 entity AxiSpiMaster is
    generic (
-      TPD_G        : time    := 1 ns;
-      ADDRESS_SIZE_G : natural := 15;
-      DATA_SIZE_G    : natural := 8;    
-      CLK_PERIOD_G      : real := 6.4E-9;
-      SPI_SCLK_PERIOD_G : real := 100.0E-6
-   );
+      TPD_G             : time            := 1 ns;
+      AXI_ERROR_RESP_G  : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      ADDRESS_SIZE_G    : natural         := 15;
+      DATA_SIZE_G       : natural         := 8;
+      CLK_PERIOD_G      : real            := 6.4E-9;
+      SPI_SCLK_PERIOD_G : real            := 100.0E-6
+      );
    port (
       axiClk : in sl;
       axiRst : in sl;
@@ -51,17 +52,17 @@ entity AxiSpiMaster is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
-      coreSclk : out sl;
-      coreSDin : in  sl;
-      coreSDout: out sl;
-      coreCsb  : out sl
-   );
+      coreSclk  : out sl;
+      coreSDin  : in  sl;
+      coreSDout : out sl;
+      coreCsb   : out sl
+      );
 end entity AxiSpiMaster;
 
 architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs
-   constant PACKET_SIZE_C : positive:= 1+ ADDRESS_SIZE_G + DATA_SIZE_G; -- "1+" For R/W command bit
+   constant PACKET_SIZE_C : positive := 1+ ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
 
    signal rdData : slv(PACKET_SIZE_C-1 downto 0);
    signal rdEn   : sl;
@@ -90,7 +91,7 @@ architecture rtl of AxiSpiMaster is
 
 begin
 
-   comb : process (axiRst, axiReadMaster, axiWriteMaster, r, rdData, rdEn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, r, rdData, rdEn) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -103,24 +104,24 @@ begin
 
             if (axiStatus.writeEnable = '1') then
                -- Write bit
-               v.wrData(PACKET_SIZE_C-1)                                  := '0';
+               v.wrData(PACKET_SIZE_C-1)                                 := '0';
                -- Address (make sure that the assigned AXI address in the crossbar is big enough)               
-               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G)  := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
+               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
                -- Data
-               v.wrData(DATA_SIZE_G-1 downto 0)                           := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);       
-               v.wrEn                                                     := '1';
-               v.state                                                    := WAIT_CYCLE_S;
+               v.wrData(DATA_SIZE_G-1 downto 0)                          := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
+               v.wrEn                                                    := '1';
+               v.state                                                   := WAIT_CYCLE_S;
             end if;
 
             if (axiStatus.readEnable = '1') then
                -- Read bit
-               v.wrData(PACKET_SIZE_C-1)                                    := '1';
+               v.wrData(PACKET_SIZE_C-1)                                 := '1';
                -- Address               
-               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G)  := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);
+               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);
                -- Make bus float to Z so slave can drive during data segment
-               v.wrData(DATA_SIZE_G-1 downto 0)                           := (others => '1');  
-               v.wrEn                                                     := '1';
-               v.state                                                    := WAIT_CYCLE_S;
+               v.wrData(DATA_SIZE_G-1 downto 0)                          := (others => '1');
+               v.wrEn                                                    := '1';
+               v.state                                                   := WAIT_CYCLE_S;
             end if;
 
          when WAIT_CYCLE_S =>
@@ -169,10 +170,10 @@ begin
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,
          DATA_SIZE_G       => PACKET_SIZE_C,
-         CPHA_G            => '0',      -- Sample on leading edge
-         CPOL_G            => '0',      -- Sample on rising edge
-         CLK_PERIOD_G      => CLK_PERIOD_G, -- 8.0E-9,
-         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G) --ite(SIMULATION_G, 100.0E-9, 100.0E-6))
+         CPHA_G            => '0',                -- Sample on leading edge
+         CPOL_G            => '0',                -- Sample on rising edge
+         CLK_PERIOD_G      => CLK_PERIOD_G,       -- 8.0E-9,
+         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)  --ite(SIMULATION_G, 100.0E-9, 100.0E-6))
       port map (
          clk       => axiClk,
          sRst      => axiRst,
