@@ -5,13 +5,13 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-24
--- Last update: 2014-03-18
--- Platform   : ISE 14.6
+-- Last update: 2015-11-05
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2013 SLAC National Accelerator Laboratory
+-- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -49,7 +49,7 @@ end SpiMaster;
 
 architecture rtl of SpiMaster is
 
-   constant SPI_CLK_PERIOD_DIV2_CYCLES_C : integer := 2 * integer(SPI_SCLK_PERIOD_G / CLK_PERIOD_G);
+   constant SPI_CLK_PERIOD_DIV2_CYCLES_C : integer := integer(SPI_SCLK_PERIOD_G / (2.0*CLK_PERIOD_G));
    constant SCLK_COUNTER_SIZE_C          : integer := bitSize(SPI_CLK_PERIOD_DIV2_CYCLES_C);
 
 
@@ -105,13 +105,13 @@ begin
             v.spiSdi      := '0';
             v.dataCounter := (others => '0');
             v.sclkCounter := (others => '0');
-            v.rdEn   := '1';         -- rdEn always valid between txns, indicates ready for next txn
-   
+            v.rdEn        := '1';  -- rdEn always valid between txns, indicates ready for next txn
+
             if (wrEn = '1') then
-               v.rdEn        := '0';
-               v.wrData      := wrData;
-               v.rdData      := (others => '0');
-               v.spiCsL      := not (decode(chipSel)(NUM_CHIPS_G-1 downto 0));
+               v.rdEn   := '0';
+               v.wrData := wrData;
+               v.rdData := (others => '0');
+               v.spiCsL := not (decode(chipSel)(NUM_CHIPS_G-1 downto 0));
 
                if (CPHA_G = '0') then
                   -- Sample on first sclk edge so shift here before that happens
@@ -165,7 +165,7 @@ begin
             v.sclkCounter := r.sclkCounter + 1;
             if (r.sclkCounter = SPI_CLK_PERIOD_DIV2_CYCLES_C) then
                v.sclkCounter := (others => '0');
-               v.spiCsL := (others => '1');
+               v.spiCsL      := (others => '1');
 
                if (r.spiCsL = slvOne(NUM_CHIPS_G)) then
                   v.state := IDLE_S;
