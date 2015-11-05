@@ -129,14 +129,17 @@ architecture rtl of RssiCore is
    signal s_bufferAddr   : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_bufferData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
    signal s_chksumData   : slv(15  downto 0);
+  
    
    -- TX FSM
    signal s_sndData    : sl;
-   signal s_initSeqN  : slv(7  downto 0);
+   signal s_initSeqN   : slv(7  downto 0);
 
    -- Checksum 
-   signal s_enable : sl;
-   
+   signal s_chksumEnable : sl;
+   signal s_chksumValid  : sl;
+   signal s_chksumStrobe : sl;
+   signal s_headerLength : positive;
 ----------------------------------------------------------------------
 begin
 
@@ -178,13 +181,15 @@ begin
       dataHeadSt_i   => s_dataHeadSt,
       nullHeadSt_i   => s_nullHeadSt,
       ackHeadSt_i    => s_ackHeadSt,
-
+      
+       
       ack_i          => '1', -- Always send acknowledge with data packet
       txSeqN_i       => s_txSeqN,
       rxAckN_i       => rxAckN_i,
       headerValues_i => s_headerValues,
       addr_i         => s_headerAddr,
-      headerData_o   => s_headerData);
+      headerData_o   => s_headerData,
+      headerLength_o => s_headerLength);
    
    TxBuffer_INST: entity work.TxBuffer
    generic map (
@@ -260,12 +265,14 @@ begin
       rstHeadSt_o      => s_rstHeadSt,
       nullHeadSt_o     => s_nullHeadSt,
       headerData_i     => s_headerData,
-      chksumData_i     => s_chksumData,
       bufferData_i     => s_bufferData,
+      chksumData_i     => s_chksumData,
+      chksumValid_i    => s_chksumValid,
+      chksumEnable_o   => s_chksumEnable,
+      chksumStrobe_o   => s_chksumStrobe,
       tspSsiSlave_i    => tspSsiSlave_i,
-      tspSsiMaster_o   => tspSsiMaster_o);
-   -- 
-   s_enable <= s_synHeadSt or s_rstHeadSt or s_dataHeadSt or s_nullHeadSt or s_ackHeadSt;
+      tspSsiMaster_o   => tspSsiMaster_o,
+      headerLength_i   => s_headerLength);
    
    Chksum_INST: entity work.Chksum
    generic map (
@@ -276,13 +283,13 @@ begin
    port map (
       clk_i    => clk_i,
       rst_i    => rst_i,
-      enable_i => s_enable,
-      strobe_i => tspSsiSlave_i.ready, -- Todo check
+      enable_i => s_chksumEnable,
+      strobe_i => s_chksumStrobe, -- Todo check
       init_i   => x"0000",
-      data_i   => s_headerData(RSSI_WORD_WIDTH_C*8-1   downto 0),
+      length_i => s_headerLength,
+      data_i   => s_headerData,
       chksum_o => s_chksumData,
-      chksumReg_o => open,
-      valid_o  => open,
+      valid_o  => s_chksumValid,
       check_o  => open);
 ----------------------------------------
 end architecture rtl;

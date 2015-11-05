@@ -63,7 +63,8 @@ entity HeaderReg is
       --eackN_i        : in natural;
 
       addr_i        : in  slv(7  downto 0);
-      headerData_o  : out slv( (RSSI_WORD_WIDTH_C * 8)-1 downto 0)
+      headerData_o  : out slv( (RSSI_WORD_WIDTH_C * 8)-1 downto 0);
+      headerLength_o: out positive
    );
 end entity HeaderReg;
 
@@ -84,7 +85,8 @@ begin
    begin   
 
       -- 
-      if (synHeadSt_i = '1') then      
+      if (synHeadSt_i = '1') then
+         headerLength_o  <= SYN_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;    
          case addrInt is
             when 16#00# =>
               vHeaderData := "1" & ack_i & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
@@ -105,7 +107,9 @@ begin
               vHeaderData := (others=> '0');                              
          end case;
       elsif (rstHeadSt_i = '1') then 
+         headerLength_o  <= RST_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
          case addrInt is
+           
             when 16#00# =>
               vHeaderData := "00010000" & toSlv(RST_HEADER_SIZE_G, 8) &
                              txSeqN_i & rxAckN_i                      &
@@ -115,6 +119,7 @@ begin
               vHeaderData := (others=> '0');
          end case;
       elsif (dataHeadSt_i = '1' or ackHeadSt_i = '1') then 
+         headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
               vHeaderData := "01000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
@@ -125,6 +130,7 @@ begin
               vHeaderData := (others=> '0');    
          end case;
       elsif (nullHeadSt_i = '1') then
+         headerLength_o  <= NULL_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
          case addrInt is
             when 16#00# =>
               vHeaderData :=  "01001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
@@ -146,6 +152,7 @@ begin
      --         vHeaderData := (others=> '0');
      --    end case;
       else
+         headerLength_o  <= 1;
          vHeaderData := (others=> '0');
       end if;
       

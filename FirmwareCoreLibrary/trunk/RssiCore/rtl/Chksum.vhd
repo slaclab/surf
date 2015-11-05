@@ -10,7 +10,7 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Calculates and checks the RUDP packet checksum.
---                     
+--              Checksum for IP/UDP/TCP/RUDP.       
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -23,10 +23,10 @@ use work.StdRtlPkg.all;
 
 entity Chksum is
    generic (
-      TPD_G        : time     := 1 ns;
-      -- Data with is 16 for IP/UDP/TCP/RUDP
-      DATA_WIDTH_G : positive := 64;
-      CSUM_WIDTH_G : positive := 16      
+      TPD_G          : time     := 1 ns;
+      -- 
+      DATA_WIDTH_G   : positive := 64;
+      CSUM_WIDTH_G   : positive := 16      
    );
    port (
       clk_i      : in  sl;
@@ -34,12 +34,15 @@ entity Chksum is
       
       -- Enables and initializes the calculations.
       -- enable_i <= '1' enables the calculation.
-      -- enable_i <= '0' initializes the calculation, registers hold
-      -- the checksum value until the next calculation.
+      --                 the checksum value holds as long as enabled.
+      -- enable_i <= '0' initializes the calculation.
       enable_i   : in  sl;
       
       -- Has to indicate valid data and defines the number of calculation clock cycles.
-      strobe_i   : in  sl;      
+      strobe_i   : in  sl;
+      
+      -- Length of checksumed data
+      length_i   : in positive;      
       
       -- Initial value of the sum
       -- Calculation: init_i = (others=>'0')
@@ -48,10 +51,7 @@ entity Chksum is
       
       -- Fixed to 2 octets (standard specification)
       data_i  : in  slv(DATA_WIDTH_G-1 downto 0);
-
-      -- Checksum reg output 2 c-c delay (registered until new value is generated)
-      chksumReg_o  : out slv(CSUM_WIDTH_G-1 downto 0);
-      
+     
       -- Direct out 1 c-c delay
       chksum_o  : out slv(CSUM_WIDTH_G-1 downto 0);
       
@@ -69,11 +69,15 @@ architecture rtl of Chksum is
    type RegType is record
       sum    : slv(CSUM_WIDTH_G+2 downto 0);
       chksum : slv(CSUM_WIDTH_G-1 downto 0);
+      lenCnt : natural;
+      valid  : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       sum      => (others=>'0'),
-      chksum   => (others=>'0')
+      chksum   => (others=>'0'),
+      lenCnt   => 0,
+      valid    => '0'
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -93,31 +97,34 @@ begin
                      
 
 
-   comb : process (r, rst_i, enable_i, init_i, data_i, strobe_i) is
+   comb : process (r, rst_i, enable_i, init_i, data_i, strobe_i, length_i) is
       variable v : RegType;
    begin
       v := r;
       
       -- Cumulative sum of the data_i while enabled
       if ( enable_i = '0')   then
-         v.sum := ("000" & init_i);
+         v.sum    := ("000" & init_i);
+         v.lenCnt := 0;
+         v.valid  := '0';
+      elsif ( r.lenCnt >= length_i)   then
+         v.sum    := r.sum;
+         v.lenCnt := r.lenCnt;
+         v.valid  := '1';         
       elsif ( strobe_i = '1')   then
          -- Add new word sum
-         v.sum := r.sum + s_dataWordSum; 
+         v.sum    := r.sum + s_dataWordSum;
+         v.lenCnt := r.lenCnt +1;
+         v.valid  := '0';          
       else
-         v.sum := r.sum;
+         v.sum    := r.sum;
+         v.lenCnt := r.lenCnt;
+         v.valid  := '0';
       end if;
-            
-      -- Register/keep the checksum when disabled.
-      -- Add carry and calculate the ones complement (bitwise negate) 
-      if ( enable_i = '1')   then
-         v.chksum := not (r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+2 downto CSUM_WIDTH_G) );
-      else
-         v.chksum := r.chksum;
-      end if;
-      
+                
       -- Direct out (calculated with 1 c-c delay towards data)
-      chksum_o  <= not (r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+2 downto CSUM_WIDTH_G) );
+      v.chksum  := not (r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+2 downto CSUM_WIDTH_G) );
+      chksum_o <= v.chksum;
       
       if (rst_i = '1') then
          v := REG_INIT_C;
@@ -135,8 +142,7 @@ begin
    end process seq;
    ---------------------------------------------------------------------
    -- Output assignment
-   chksumReg_o <= r.chksum;
-   valid_o  <= not enable_i;
+   valid_o  <= r.valid;
    check_o  <= '1' when r.chksum = (r.chksum'range => '0') else '0';
    ---------------------------------------------------------------------
 end architecture rtl;
