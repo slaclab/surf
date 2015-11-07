@@ -71,7 +71,7 @@ entity TxFSM is
       nextSeqN_o   : out slv(7 downto 0);
      
       -- Inputs from txBuffer
-      windowArray_i    : in WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
+      windowArray_i    : in TxWindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
       windowSize_i     : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
       bufferFull_i     : in sl;
       firstUnackAddr_i : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
@@ -241,7 +241,8 @@ begin
             v.chkEn    := '0';
             v.chkStb    := '0';
             
-            v.ssiMaster:= SSI_MASTER_INIT_C;          
+            v.ssiMaster:= SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition   
             if    (txSyn_i = '1') then
@@ -281,6 +282,7 @@ begin
             v.chkStb    := '0';
             
             v.ssiMaster:=SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition   
             if    (txRst_i = '1' and bufferFull_i = '0' and ssiBusy_i = '0') then
@@ -297,6 +299,7 @@ begin
             elsif (connActive_i = '0') then
                v.state    := INIT_S;
             end if;
+          
          ----------------------------------------------------------------------
          -- SYN packet
          ----------------------------------------------------------------------
@@ -328,7 +331,7 @@ begin
             v.ssiMaster.eofe   := '0';
             
             -- SSI data (send header part)
-            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+            v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Send SOF with header address 0
             if (r.headerAddr = (r.headerAddr'range => '0')) then
@@ -347,7 +350,7 @@ begin
                -- Wait until checksum is and Transport layer ready
                if (tspSsiSlave_i.ready = '1' and chksumValid_i = '1') then 
                   -- Add checksum to last 16 bits
-                  v.ssiMaster.data(15 downto 0) := chksumData_i;
+                  v.ssiMasterD1.data(15 downto 0) := chksumData_i;
                   v.ssiMaster.valid  := '1';                
                   v.ssiMaster.eof    := '1';
                   v.ssiMaster.eofe   := '0';
@@ -396,7 +399,8 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
-
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
+            
             -- Next state condition
             if (chksumValid_i = '1' and tspSsiSlave_i.ready = '1') then
                -- Frame size is one word SOF and EOF
@@ -407,8 +411,8 @@ begin
                v.ssiMaster.dest   := (others => '0');
                v.ssiMaster.eof    := '1';
                v.ssiMaster.eofe   := '0';
-               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
-               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMasterD1.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
             
                if  connActive_i = '0' then          
                   v.state   := INIT_S; 
@@ -416,6 +420,7 @@ begin
                   v.state   := CONN_S; 
                end if;
             end if;
+
          ----------------------------------------------------------------------
          -- RST packet
          ----------------------------------------------------------------------         
@@ -444,6 +449,7 @@ begin
             
             -- SSI master 
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition
             v.state   := RST_H_S;
@@ -473,6 +479,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
 
             -- Next state condition
             if (chksumValid_i = '1' and tspSsiSlave_i.ready = '1') then -- Frame size is one word
@@ -490,13 +497,13 @@ begin
                v.ssiMaster.dest   := (others => '0');
                v.ssiMaster.eof    := '1';
                v.ssiMaster.eofe   := '0';
-               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
-               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMasterD1.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
             
                v.state   := CONN_S;
                
             end if;           
-  
+
          ----------------------------------------------------------------------
          -- NULL packet
          ----------------------------------------------------------------------         
@@ -526,6 +533,7 @@ begin
             
             -- SSI master 
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := (others => '0');
             
             -- Next state condition
             v.state   := NULL_H_S;
@@ -555,6 +563,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
 
             -- Next state condition
             if (chksumValid_i = '1' and tspSsiSlave_i.ready = '1') then -- Frame size is one word
@@ -571,12 +580,13 @@ begin
                v.ssiMaster.dest   := (others => '0');
                v.ssiMaster.eof    := '1';
                v.ssiMaster.eofe   := '0';
-               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
-               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMasterD1.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
             
                v.state   := CONN_S;
                
-            end if;           
+            end if;
+            
          ----------------------------------------------------------------------
          -- DATA packet
          ----------------------------------------------------------------------         
@@ -606,6 +616,7 @@ begin
             
             -- SSI master 
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition
             v.state   := DATA_H_S;
@@ -633,21 +644,21 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
-
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
+            
             -- Next state condition
             if (chksumValid_i = '1' and tspSsiSlave_i.ready = '1') then -- Frame size is one word
                              
                v.ssiMaster.sof    := '1';
                v.ssiMaster.valid  := '1';
                v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-               v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
                v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
                v.ssiMaster.eof    := '0';
                v.ssiMaster.eofe   := '0';
-               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
-               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMasterD1.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
                
-               v.state        := DATA_S;
+               v.state := DATA_S;
                
             end if;            
          ----------------------------------------------------------------------
@@ -672,32 +683,34 @@ begin
             v.chkEn    := '0';
             v.chkStb   := '0';
             
-            -- SSI Control
-             
-            -- Increment segment address only when Slave is ready
-
-
             -- Other SSI parameters
             v.ssiMaster.sof    := '0';
             v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-            v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
             v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
-
+            
             -- SSI data (send tx budffer data). Assigned to D1 to compensate for BRAM addr data delay
-            v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
+            if (r.segmentAddr = (r.segmentAddr'range =>'0')) then
+               v.ssiMasterD1.data  := r.ssiMasterD1.data;
+            else
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
+            end if;
             
             -- Next state condition
-            if  (tspSsiSlave_i.ready = '1' and r.segmentAddr >= windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
+            if  (tspSsiSlave_i.ready = '1' and r.segmentAddr >= windowArray_i(conv_integer(r.bufferAddr)).segSize) then
+
                -- Send EOF at the end of the segment
                v.ssiMaster.eof    := '1';
+               v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
                v.ssiMaster.eofe   := windowArray_i(conv_integer(r.bufferAddr)).eofe;
+               
                v.ssiMaster.valid  := '1';
-               -- 
+               
                v.state   := DATA_SENT_S;
+            -- Increment segment address only when Slave is ready
             elsif (tspSsiSlave_i.ready = '1') then
                v.segmentAddr       := r.segmentAddr + 1;
                v.ssiMaster.valid  := '1';
-            else 
+            else
                v.segmentAddr       := r.segmentAddr;
                v.ssiMaster.valid  := '0';              
             end if;
@@ -728,7 +741,7 @@ begin
             
             -- SSI master (Initialise - stop transmission) 
             v.ssiMaster         := SSI_MASTER_INIT_C;
-            v.ssiMasterD1.data  := r.ssiMasterD1.data;
+            v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
             
             -- Next state
             v.state   := CONN_S;
@@ -764,6 +777,7 @@ begin
 
             -- SSI master 
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition
             v.state   := RESEND_S;
@@ -795,6 +809,7 @@ begin
 
             -- SSI master 
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition
             v.state   := RESEND_H_S;   
@@ -823,6 +838,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMasterD1.data := r.ssiMasterD1.data;
             
             -- Next state condition
             if (chksumValid_i = '1' and tspSsiSlave_i.ready = '1') then -- Frame size is one word
@@ -830,12 +846,11 @@ begin
                v.ssiMaster.sof    := '1';
                v.ssiMaster.valid  := '1';
                v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-               v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
                v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
                v.ssiMaster.eof    := '0';
                v.ssiMaster.eofe   := '0';
-               v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
-               v.ssiMaster.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
+               v.ssiMasterD1.data(15 downto 0) := chksumData_i; -- Add header to last two bytes
 
                if    (windowArray_i(conv_integer(r.bufferAddr)).segType(2) = '1' or
                       windowArray_i(conv_integer(r.bufferAddr)).segType(1) = '1'
@@ -847,8 +862,6 @@ begin
                   v.state   := RESEND_PP_S;
                -- If DATA packet start sending data
                else
-                  -- Increment the RAM address here so the data will be ready next clock cycle
-                  v.segmentAddr  := r.segmentAddr + 1;
                   v.state        := RESEND_DATA_S;
                end if;
             end if;               
@@ -876,34 +889,36 @@ begin
             
             -- SSI Control
              
-            -- Increment segment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1') then
-               v.segmentAddr       := r.segmentAddr + 1;
-               v.ssiMaster.valid  := '1';
-            else 
-               v.segmentAddr       := r.segmentAddr;
-               v.ssiMaster.valid  := '0';              
-            end if;
-
             -- Other SSI parameters
             v.ssiMaster.sof    := '0';
             v.ssiMaster.strb   := windowArray_i(conv_integer(r.bufferAddr)).strb;
-            v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
             v.ssiMaster.dest   := windowArray_i(conv_integer(r.bufferAddr)).dest;
 
             
-            -- SSI data (send tx budffer data)
-            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
+            -- SSI data (send tx budffer data). Assigned to D1 to compensate for BRAM addr data delay
+            -- With segment address 0 it has to pass through the last header word
+            if (r.segmentAddr = (r.segmentAddr'range =>'0')) then
+               v.ssiMasterD1.data  := r.ssiMasterD1.data;
+            else
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
+            end if;
             
             -- Next state condition
-            if  (tspSsiSlave_i.ready = '1' and r.segmentAddr >= windowArray_i(conv_integer(r.bufferAddr)).segSize) then            
-               -- Send EOF at the end of the segment
+            if  (tspSsiSlave_i.ready = '1' and r.segmentAddr >= windowArray_i(conv_integer(r.bufferAddr)).segSize) then
+
+               -- Send EOF and keep at the end of the segment
                v.ssiMaster.eof    := '1';
                v.ssiMaster.eofe   := windowArray_i(conv_integer(r.bufferAddr)).eofe;
+               v.ssiMaster.keep   := windowArray_i(conv_integer(r.bufferAddr)).keep;
                v.ssiMaster.valid  := '1';
                -- 
-               v.state   := RESEND_PP_S;                
-                
+               v.state   := RESEND_PP_S;
+            elsif (tspSsiSlave_i.ready = '1') then
+               v.segmentAddr       := r.segmentAddr + 1;
+               v.ssiMaster.valid  := '1';
+            else
+               v.segmentAddr       := r.segmentAddr;
+               v.ssiMaster.valid  := '0';              
             end if;
          ----------------------------------------------------------------------            
          when RESEND_PP_S =>
@@ -937,6 +952,13 @@ begin
 
             -- SSI master 
             v.ssiMaster := SSI_MASTER_INIT_C;
+            
+            -- Different if DATA segment is sent or NULL or RST
+            if (windowArray_i(conv_integer(r.bufferAddr)).segType(0) = '1') then
+               v.ssiMasterD1.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := bufferData_i;
+            else
+               v.ssiMasterD1.data  := r.ssiMasterD1.data;
+            end if;
             
             -- Next state condition
             -- Go back to CONN_S when the last sent address reached 
