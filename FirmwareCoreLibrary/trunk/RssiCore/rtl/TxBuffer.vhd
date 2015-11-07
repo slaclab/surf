@@ -69,7 +69,7 @@ entity TxBuffer is
       
       -- Output to TxFSM
       txData_o         : out sl;
-      windowArray_o    : out WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
+      windowArray_o    : out TxWindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
       bufferFull_o     : out sl;
       firstUnackAddr_o : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       nextSentAddr_o   : out slv(WINDOW_ADDR_SIZE_G-1 downto 0);
@@ -108,7 +108,7 @@ architecture rtl of TxBuffer is
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;      
       bufferFull     : sl;
-      windowArray    : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
+      windowArray    : TxWindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
       ackErr         : sl;
       
       -- SSI data RX      
@@ -135,7 +135,7 @@ architecture rtl of TxBuffer is
       --eackAddr       => (others => '0'),
       --eackIndex      => 0,
       bufferFull     => '0',
-      windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
+      windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => TX_WINDOW_INIT_C),
       ackErr         => '0',
       
       -- SSI data RX        
@@ -213,7 +213,9 @@ begin
       if (we_i = '1') then
          v.windowArray(conv_integer(r.nextSentAddr)).seqN    := nextSeqN_i;
          v.windowArray(conv_integer(r.nextSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;
-         v.lastSentAddr := r.nextSentAddr;        
+         
+         -- Update last sent address when new segment is being sent
+         v.lastSentAddr := r.nextSentAddr;   
       else 
          v.windowArray      := r.windowArray;
       end if;
@@ -363,9 +365,9 @@ begin
          
             -- SSI Ready to receive data from APP
             v.ssiSlave.ready      := '1';
-            v.ssiSlave.pause      := '0';       
+            v.ssiSlave.pause      := '0';
             v.ssiSlave.overflow   := '0';
-                        
+            
             -- Buffer write ctl
             v.segmentAddr := (others =>'0');
             v.segmentWe   := '0';
@@ -390,7 +392,6 @@ begin
                -- Save SSI parameters
                v.windowArray(conv_integer(r.nextSentAddr)).dest   := appSsiMaster_i.dest;
                v.windowArray(conv_integer(r.nextSentAddr)).strb   := appSsiMaster_i.strb;
-               v.windowArray(conv_integer(r.nextSentAddr)).keep   := appSsiMaster_i.keep;
             
                v.ssiState    := SEG_RCV_S;
                
@@ -441,8 +442,10 @@ begin
             -- Wait until receiving EOF 
             if (appSsiMaster_i.eof = '1' and appSsiMaster_i.valid = '1') then
             
-               -- Save packet eofe (error)
-               v.windowArray(conv_integer(r.nextSentAddr)).eofe    := appSsiMaster_i.eofe;
+               -- Save packet eofe (error) and keep of last data word
+               v.windowArray(conv_integer(r.nextSentAddr)).eofe   := appSsiMaster_i.eofe;
+               v.windowArray(conv_integer(r.nextSentAddr)).keep   := appSsiMaster_i.keep;
+               
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0)+1;
                v.ssiSlave.ready      := '0';

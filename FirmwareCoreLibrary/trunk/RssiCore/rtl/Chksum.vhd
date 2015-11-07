@@ -97,7 +97,7 @@ begin
                      
 
 
-   comb : process (r, rst_i, enable_i, init_i, data_i, strobe_i, length_i) is
+   comb : process (r, rst_i, enable_i, init_i, data_i, strobe_i, length_i, s_dataWordSum) is
       variable v : RegType;
    begin
       v := r;
@@ -111,7 +111,7 @@ begin
          v.sum    := r.sum;
          v.lenCnt := r.lenCnt;
          v.valid  := '1';         
-      elsif ( strobe_i = '1')   then
+      elsif ( strobe_i = '1')  then
          -- Add new word sum
          v.sum    := r.sum + s_dataWordSum;
          v.lenCnt := r.lenCnt +1;
@@ -122,9 +122,9 @@ begin
          v.valid  := '0';
       end if;
                 
-      -- Direct out (calculated with 1 c-c delay towards data)
+      -- Direct out (calculated with 2 c-c delay towards data)
       v.chksum  := not (r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+2 downto CSUM_WIDTH_G) );
-      chksum_o <= v.chksum;
+      chksum_o <= r.chksum;
       
       if (rst_i = '1') then
          v := REG_INIT_C;

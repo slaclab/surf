@@ -146,14 +146,15 @@ begin
       --axilWriteSlave  => 
    );
    
-   tspReady : process
-   begin
-      wait for CLK_PERIOD_C*2;
-         tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
-      wait for CLK_PERIOD_C*2;
-         tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
-   end process;
-
+   -- tspReady : process
+   -- begin
+      -- wait for CLK_PERIOD_C*2;
+         -- tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
+      -- wait for CLK_PERIOD_C*2;
+         -- tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
+   -- end process;
+   tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
+   
    --
    StimuliProcess : process
    begin

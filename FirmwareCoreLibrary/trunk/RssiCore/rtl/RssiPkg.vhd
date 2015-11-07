@@ -33,7 +33,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       connectionId          :  slv(15 downto 0);
    end record HeaderValuesType;
 
-   type WindowType is record
+   type TxWindowType is record
       seqN                  :  slv(7  downto 0);
       segType               :  slv(2  downto 0);
       
@@ -45,9 +45,9 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
       
       segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
-   end record WindowType;
+   end record TxWindowType;
    
-   constant WINDOW_INIT_C : WindowType := (
+   constant TX_WINDOW_INIT_C : WindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
  
@@ -56,11 +56,39 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       keep                  => (others => '1'), 
       dest                  => (others => '0'), 
       segSize               => (others => '0')
+   );
+   
+   type RxWindowType is record
+      seqN                  :  slv(7  downto 0);
+      segType               :  slv(2  downto 0);
+      
+      -- SSI
+      --eacked                :  sl;
+      eofe                  : sl;
+      strb                  : slv(15 downto 0);
+      keep                  : slv(15 downto 0);
+      dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
+      
+      segSize               : slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      full                  : sl;
+   end record RxWindowType;
+   
+   constant RX_WINDOW_INIT_C : WindowType := (
+      seqN                  => (others => '0'),
+      segType               => (others => '0'),
+ 
+      eofe                  => '0',
+      strb                  => (others => '1'), 
+      keep                  => (others => '1'), 
+      dest                  => (others => '0'), 
+      segSize               => (others => '0'),
+      full                  => '0'
    ); 
    
    
-   type WindowTypeArray is array (natural range<>) of WindowType;
-      
+   
+   type TxWindowTypeArray is array (natural range<>) of WindowType;
+   type RxWindowTypeArray is array (natural range<>) of WindowType;      
    -- Arrays
    
 -- Function declarations
