@@ -72,7 +72,8 @@ architecture EthMacPauseTx of EthMacPauseTx is
       locPauseCnt : slv(15 downto 0);
       remPauseCnt : slv(15 downto 0);
       txCount     : slv(1  downto 0);
-      pausePreCnt : slv(CNT_BITS_C-1 downto 0);
+      locPreCnt   : slv(CNT_BITS_C-1 downto 0);
+      remPreCnt   : slv(CNT_BITS_C-1 downto 0);
       pauseTx     : sl;
       outMaster   : AxiStreamMasterType;
       outSlave    : AxiStreamSlaveType;
@@ -83,7 +84,8 @@ architecture EthMacPauseTx of EthMacPauseTx is
       locPauseCnt => (others=>'0'),
       remPauseCnt => (others=>'0'),
       txCount     => (others=>'0'),
-      pausePreCnt => (others=>'0'),
+      locPreCnt   => (others=>'0'),
+      remPreCnt   => (others=>'0'),
       pauseTx     => '0',
       outMaster   => AXI_STREAM_MASTER_INIT_C,
       outSlave    => AXI_STREAM_SLAVE_INIT_C
@@ -102,18 +104,22 @@ begin
       v := r;
 
       -- Pre-counter, 8 clocks ~= 512 bit times of 10G
-      v.pausePreCnt := r.pausePreCnt + 1;
+      v.remPreCnt := r.remPreCnt - 1;
+      v.locPreCnt := r.locPreCnt - 1;
       v.pauseTx := '0';
 
       -- Local pause count tracking
-      if rxPauseReq = '1' and pauseEnable = '1' then
+      if pauseEnable = '0' then
+         v.locPauseCnt := (others=>'0');
+      elsif rxPauseReq = '1' then
          v.locPauseCnt := rxPauseValue;
-      elsif r.locPauseCnt /= 0 and r.pausePreCnt = 0 then
+         v.locPreCnt   := (others=>'1');
+      elsif r.locPauseCnt /= 0 and r.locPreCnt = 0 then
          v.locPauseCnt := r.locPauseCnt - 1;
       end if;
 
       -- Remote pause count tracking
-      if r.remPauseCnt /= 0 and r.pausePreCnt = 0 then
+      if r.remPauseCnt /= 0 and r.remPreCnt = 0 then
          v.remPauseCnt := r.remPauseCnt - 1;
       end if;
 
@@ -149,18 +155,14 @@ begin
 
                   -- Src Id, Upper 2 Bytes + Dest Id, All 6 bytes
                   when "00" => 
-                     v.outMaster.tData(63 downto 56) := macAddress(39 downto 32);
-                     v.outMaster.tData(55 downto 48) := macAddress(47 downto 40);
+                     v.outMaster.tData(63 downto 48) := macAddress(15 downto  0);
                      v.outMaster.tData(47 downto  0) := x"010000C28001";
 
                   -- Pause Opcode + Length/Type Field + Src Id, Lower 4 bytes
                   when "01" => 
                      v.outMaster.tData(63 downto 48) := x"0100";
                      v.outMaster.tData(47 downto 32) := x"0888";
-                     v.outMaster.tData(31 downto 24) := macAddress(7  downto  0);
-                     v.outMaster.tData(23 downto 16) := macAddress(15 downto  8);
-                     v.outMaster.tData(15 downto  8) := macAddress(23 downto 16);
-                     v.outMaster.tData(7  downto  0) := macAddress(31 downto 24);
+                     v.outMaster.tData(31 downto  0) := macAddress(47 downto 16);
 
                   -- Pause length and padding
                   when "10" => 
@@ -172,6 +174,7 @@ begin
                   when others =>
                      v.outMaster.tLast := '1';
                      v.remPauseCnt     := pauseTime;
+                     v.remPreCnt       := (others=>'1');
                      v.pauseTx         := '1';
                      v.state           := LAST_S;
 

@@ -363,17 +363,13 @@ begin
 
             -- Word 0, set source mac address
             if exportWordCnt = 0 then
-               crcIn(63 downto 56) <= macAddress(39 downto 32) after TPD_G;
-               crcIn(55 downto 48) <= macAddress(47 downto 40) after TPD_G;
+               crcIn(63 downto 48) <= macAddress(15 downto  0) after TPD_G;
                crcIn(47 downto  0) <= intData(47 downto 0)     after TPD_G;
 
             -- Word 1, set source mac address
             elsif exportWordCnt = 1 then
                crcIn(63 downto 32) <= intData(63 downto 32)    after TPD_G;
-               crcIn(31 downto 24) <= macAddress(7  downto  0) after TPD_G;
-               crcIn(23 downto 16) <= macAddress(15 downto  8) after TPD_G;
-               crcIn(15 downto  8) <= macAddress(23 downto 16) after TPD_G;
-               crcIn(7  downto  0) <= macAddress(31 downto 24) after TPD_G;
+               crcIn(31 downto  0) <= macAddress(47 downto 16) after TPD_G;
 
             -- Normal data
             else

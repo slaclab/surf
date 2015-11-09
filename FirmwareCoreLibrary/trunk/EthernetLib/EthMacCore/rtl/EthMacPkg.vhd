@@ -24,8 +24,14 @@ use work.AxiStreamPkg.all;
 
 package EthMacPkg is
 
+   -- Default MAC is 01:03:00:56:44:00
+   constant EMAC_ADDR_INIT_C : slv(47 downto 0) := x"020300564400";
+
    -- EOF Bit
-   constant EMAC_EOFE_BIT_C : integer := 0;
+   constant EMAC_EOFE_BIT_C   : integer := 0;
+   constant EMAC_IPERR_BIT_C  : integer := 1;
+   constant EMAC_TCPERR_BIT_C : integer := 2;
+   constant EMAC_UDPERR_BIT_C : integer := 3;
 
    -- Ethernet AXI Stream Configuration
    constant EMAC_AXIS_CONFIG_C : AxiStreamConfigType := (
@@ -33,25 +39,31 @@ package EthMacPkg is
       TDATA_BYTES_C => 8,
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_NORMAL_C);
+      TUSER_MODE_C  => TUSER_LAST_C);
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record
       macAddress    : slv(47 downto 0);
       filtEnable    : sl;
-      pauseEnable   : sl;
+      pauseEnable   : slv(7  downto 0);
       pauseTime     : slv(15 downto 0);
       interFrameGap : slv(3  downto 0);
+      ipCsumEn      : slv(7  downto 0);
+      tcpCsumEn     : slv(7  downto 0);
+      udpCsumEn     : slv(7  downto 0);
    end record EthMacConfigType;
 
    constant ETH_MAC_CONFIG_INIT_C : EthMacConfigType := (
-      macAddress    => (others=>'0'),
-      filtEnable    => '0',
-      pauseEnable   => '0',
-      pauseTime     => (others=>'0'),
-      interFrameGap => (others=>'0')
+      macAddress    => EMAC_ADDR_INIT_C,
+      filtEnable    => '1',
+      pauseEnable   => (others=>'1'),
+      pauseTime     => x"00FF",
+      interFrameGap => x"3"
+      ipCsumEn      => (others=>'0'),
+      tcpCsumEn     => (others=>'0'),
+      udpCsumEn     => (others=>'0')
    );
 
    type EthMacConfigArray is array (natural range<>) of EthMacConfigType;
@@ -62,6 +74,7 @@ package EthMacPkg is
       rxPauseCnt    : sl;
       txPauseCnt    : sl;
       rxCountEn     : sl;
+      rxOverFlow    : sl;
       rxCrcErrorCnt : sl;
       txCountEn     : sl;
       txUnderRunCnt : sl;
@@ -72,6 +85,7 @@ package EthMacPkg is
       rxPauseCnt    => '0',
       txPauseCnt    => '0',
       rxCountEn     => '0',
+      rxOverFlow    => '0',
       rxCrcErrorCnt => '0',
       txCountEn     => '0',
       txUnderRunCnt => '0',
