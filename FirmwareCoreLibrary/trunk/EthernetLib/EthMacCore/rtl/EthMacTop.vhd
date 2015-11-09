@@ -28,7 +28,9 @@ entity EthMacTop is
    generic (
       TPD_G           : time := 1 ns;
       PAUSE_512BITS_G : natural range 1 to 1024 := 8;
-      VLAN_CNT_G      : natural range 0 to 7    := 0
+      VLAN_CNT_G      : natural range 0 to 7    := 0;
+      SHIFT_EN_G      : boolean                 := true;
+      FILT_EN_G       : boolean                 := true
    );
    port ( 
 
@@ -52,8 +54,8 @@ entity EthMacTop is
       phyReady     : in  sl;
 
       -- Configuration and status
-      ethConfig    : in  EthMacConfigType;
-      ethStatus    : out EthMacStatusType
+      ethConfig    : in  EthMacConfigArray(VLAN_CNT_G downto 0);
+      ethStatus    : out EthMacStatusArray(VLAN_CNT_G downto 0)
    );
 end EthMacTop;
 
@@ -63,6 +65,9 @@ architecture EthMacTop of EthMacTop is
 
    signal rxPauseReq    : sl;
    signal rxPauseValue  : slv(15 downto 0);
+   signal shiftTxMaster : AxiStreamMasterType;
+   signal shiftTxSlave  : AxiStreamSlaveType;
+   signal shiftRxMaster : AxiStreamMasterType;
    signal pauseTxMaster : AxiStreamMasterType;
    signal pauseTxSlave  : AxiStreamSlaveType;
    signal macIbMaster   : AxiStreamMasterType;
@@ -70,8 +75,61 @@ architecture EthMacTop of EthMacTop is
 
 begin
 
-   ethStatus.rxPauseCnt <= rxPauseReq;
-   ethStatus.rxOverFlow <= mAxisCtrl.overflow;
+   ethStatus(0).rxPauseCnt <= rxPauseReq;
+   ethStatus(0).rxOverFlow <= mAxisCtrl(0).overflow;
+
+   ---------------------------------
+   -- Optional shifters
+   ---------------------------------
+   U_ShiftEnGen: if SHIFT_EN_G = true generate
+
+      -- Shift outbound data n bytes to the right.
+      -- This removes bytes of data at start 
+      -- of the packet. These were added by software
+      -- to create a software friendly alignment of 
+      -- outbound data.
+      U_TxShift : entity work.AxiStreamShift
+         generic map (
+            TPD_G         => TPD_G,
+            AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C
+         ) port map (
+            axisClk     => ethClk,
+            axisRst     => ethClkRst,
+            axiStart    => '1',
+            axiShiftDir => '1', -- 1 = right (msb to lsb)
+            axiShiftCnt => ethConfig(0).txShift,
+            sAxisMaster => sAxisMaster(0),
+            sAxisSlave  => sAxisSlave(0),
+            mAxisMaster => shiftTxMaster,
+            mAxisSlave  => shiftTxSlave
+         );
+
+      -- Shift inbound data n bytes to the left.
+      -- This adds bytes of data at start of the packet. 
+      U_RxShift : entity work.AxiStreamShift
+         generic map (
+            TPD_G          => TPD_G,
+            AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            ADD_VALID_EN_G => true
+         ) port map (
+            axisClk     => ethClk,
+            axisRst     => ethClkRst,
+            axiStart    => '1',
+            axiShiftDir => '0', -- 0 = left (lsb to msb)
+            axiShiftCnt => ethConfig(0).rxShift,
+            sAxisMaster => shiftRxMaster,
+            sAxisSlave  => open,
+            mAxisMaster => mAxisMaster(0),
+            mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C
+         );
+   end generate;
+
+   U_ShiftDisGen: if SHIFT_EN_G = false generate
+      mAxisMaster(0) <= shiftRxMaster;
+      shiftTxMaster  <= sAxisMaster(0);
+      sAxisSlave(0)  <= shiftTxSlave;
+   end generate;
+
 
    ---------------------------------
    -- TX Path
@@ -84,17 +142,17 @@ begin
       ) port map ( 
          ethClk       => ethClk,
          ethClkRst    => ethClkRst,
-         sAxisMaster  => sAxisMaster(0),
-         sAxisSlave   => sAxisSlave(0),
+         sAxisMaster  => shiftTxMaster,
+         sAxisSlave   => shiftTxSlave,
          mAxisMaster  => pauseTxMaster,
          mAxisSlave   => pauseTxSlave,
          clientPause  => mAxisCtrl(0).pause,
          rxPauseReq   => rxPauseReq,
          rxPauseValue => rxPauseValue,
-         pauseEnable  => ethConfig.pauseEnable,
-         pauseTime    => ethConfig.pauseTime,
-         macAddress   => ethConfig.macAddress,
-         pauseTx      => ethStatus.txPauseCnt
+         pauseEnable  => ethConfig(0).pauseEnable,
+         pauseTime    => ethConfig(0).pauseTime,
+         macAddress   => ethConfig(0).macAddress,
+         pauseTx      => ethStatus(0).txPauseCnt
       );
 
    U_EthMacExport: entity work.EthMacExport 
@@ -108,11 +166,11 @@ begin
          phyTxd         => phyTxd,
          phyTxc         => phyTxc,
          phyReady       => phyReady,
-         interFrameGap  => ethConfig.interFramegap,
-         macAddress     => ethConfig.macAddress,
-         txCountEn      => ethStatus.txCountEn,
-         txUnderRun     => ethStatus.txUnderRunCnt,
-         txLinkNotReady => ethStatus.txNotReadyCnt
+         interFrameGap  => ethConfig(0).interFramegap,
+         macAddress     => ethConfig(0).macAddress,
+         txCountEn      => ethStatus(0).txCountEn,
+         txUnderRun     => ethStatus(0).txUnderRunCnt,
+         txLinkNotReady => ethStatus(0).txNotReadyCnt
       );
 
 
@@ -130,8 +188,8 @@ begin
          phyRxd      => phyRxd,
          phyRxc      => phyRxc,
          phyReady    => phyReady,
-         rxCountEn   => ethStatus.rxCountEn,
-         rxCrcError  => ethStatus.rxCrcErrorCnt
+         rxCountEn   => ethStatus(0).rxCountEn,
+         rxCrcError  => ethStatus(0).rxCrcErrorCnt
       );
 
    U_EthMacPauseRx : entity work.EthMacPauseRx 
@@ -146,17 +204,26 @@ begin
          rxPauseValue => rxPauseValue
       );
 
-   U_EthMacFilter : entity work.EthMacFilter
-      generic map (
-         TPD_G => TPD_G
-      ) port map ( 
-         ethClk       => ethClk,
-         ethClkRst    => ethClkRst,
-         sAxisMaster  => pauseRxMaster,
-         mAxisMaster  => mAxisMaster(0),
-         macAddress   => ethConfig.macAddress,
-         filtEnable   => ethConfig.filtEnable
-      );
+   U_FiltEnGen: if FILT_EN_G = true generate
+      U_EthMacFilter : entity work.EthMacFilter
+         generic map (
+            TPD_G => TPD_G
+         ) port map ( 
+            ethClk       => ethClk,
+            ethClkRst    => ethClkRst,
+            sAxisMaster  => pauseRxMaster,
+            mAxisMaster  => shiftRxMaster,
+            macAddress   => ethConfig(0).macAddress,
+            filtEnable   => ethConfig(0).filtEnable
+         );
+   end generate;
+
+   U_FiltDisGen: if FILT_EN_G = false generate
+      mAxisMaster(0) <= shiftRxMaster;
+      shiftTxMaster  <= sAxisMaster(0);
+      sAxisSlave(0)  <= shiftTxSlave;
+   end generate;
+
 
 end EthMacTop;
 

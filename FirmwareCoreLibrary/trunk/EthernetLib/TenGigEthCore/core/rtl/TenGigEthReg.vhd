@@ -83,14 +83,14 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn(0)  => status.phyReady,
-         statusIn(1)  => status.phyStatus.rxPauseReq,
-         statusIn(2)  => status.phyStatus.rxPauseSet,
-         statusIn(3)  => status.phyStatus.rxCountEn,
-         statusIn(4)  => status.phyStatus.rxOverFlow,
-         statusIn(5)  => status.phyStatus.rxCrcError,
-         statusIn(6)  => status.phyStatus.txCountEn,
-         statusIn(7)  => status.phyStatus.txUnderRun,
-         statusIn(8)  => status.phyStatus.txLinkNotReady,
+         statusIn(1)  => status.macStatus.rxPauseCnt,
+         statusIn(2)  => status.macStatus.txPauseCnt,
+         statusIn(3)  => status.macStatus.rxCountEn,
+         statusIn(4)  => status.macStatus.rxOverFlow,
+         statusIn(5)  => status.macStatus.rxCrcErrorCnt,
+         statusIn(6)  => status.macStatus.txCountEn,
+         statusIn(7)  => status.macStatus.txUnderRunCnt,
+         statusIn(8)  => status.macStatus.txNotReadyCnt,
          statusIn(9)  => status.txDisable,
          statusIn(10) => status.sigDet,
          statusIn(11) => status.txFault,
@@ -164,20 +164,22 @@ begin
       -- Register Mapping
       axiSlaveRegisterR("0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
       axiSlaveRegisterR(x"100", 0, statusOut);
-      axiSlaveRegisterR(x"104", 0, status.phyStatus.rxPauseValue);
+      --axiSlaveRegisterR(x"104", 0, status.macStatus.rxPauseValue);
       axiSlaveRegisterR(x"108", 0, status.core_status);
 
-      axiSlaveRegisterW(x"200", 0, v.config.phyConfig.macAddress(31 downto 0));
-      axiSlaveRegisterW(x"204", 0, v.config.phyConfig.macAddress(47 downto 32));
-      axiSlaveRegisterW(x"208", 0, v.config.phyConfig.byteSwap);
+      axiSlaveRegisterW(x"200", 0, v.config.macConfig.macAddress(31 downto 0));
+      axiSlaveRegisterW(x"204", 0, v.config.macConfig.macAddress(47 downto 32));
+      --axiSlaveRegisterW(x"208", 0, v.config.macConfig.byteSwap);
 
-      axiSlaveRegisterW(x"210", 0, v.config.phyConfig.txShift);
-      axiSlaveRegisterW(x"214", 0, v.config.phyConfig.txShiftEn);
-      axiSlaveRegisterW(x"218", 0, v.config.phyConfig.txInterFrameGap);
-      axiSlaveRegisterW(x"21C", 0, v.config.phyConfig.txPauseTime);
+      --axiSlaveRegisterW(x"210", 0, v.config.macConfig.txShift);
+      --axiSlaveRegisterW(x"214", 0, v.config.macConfig.txShiftEn);
+      axiSlaveRegisterW(x"218", 0, v.config.macConfig.interFrameGap);
+      axiSlaveRegisterW(x"21C", 0, v.config.macConfig.pauseTime);
 
-      axiSlaveRegisterW(x"220", 0, v.config.phyConfig.rxShift);
-      axiSlaveRegisterW(x"224", 0, v.config.phyConfig.rxShiftEn);
+      --axiSlaveRegisterW(x"220", 0, v.config.macConfig.rxShift);
+      --axiSlaveRegisterW(x"224", 0, v.config.macConfig.rxShiftEn);
+      axiSlaveRegisterW(x"228", 0, v.config.macConfig.filtEnable);
+      axiSlaveRegisterW(x"22C", 0, v.config.macConfig.pauseEnable);
 
       axiSlaveRegisterW(x"230", 0, v.config.pma_pmd_type);
       axiSlaveRegisterW(x"234", 0, v.config.pma_loopback);
@@ -204,7 +206,7 @@ begin
       end if;
 
       -- Update the MAC address
-      v.config.phyConfig.macAddress := localMac;
+      v.config.macConfig.macAddress := localMac;
 
       -- Register the variable for next clock cycle
       rin <= v;
