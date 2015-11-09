@@ -27,7 +27,8 @@ use work.EthMacPkg.all;
 entity EthMacTop is 
    generic (
       TPD_G           : time := 1 ns;
-      PAUSE_512BITS_G : natural range 1 to 1024 := 8
+      PAUSE_512BITS_G : natural range 1 to 1024 := 8;
+      VLAN_CNT_G      : natural range 0 to 7    := 0
    );
    port ( 
 
@@ -35,13 +36,13 @@ entity EthMacTop is
       ethClk       : in  sl;
       ethClkRst    : in  sl;
 
-      -- Client Interface, TX
-      sAxisMaster  : in  AxiStreamMasterType;
-      sAxisSlave   : out AxiStreamSlaveType;
+      -- Client Interfaces, TX
+      sAxisMaster  : in  AxiStreamMasterArray(VLAN_CNT_G downto 0);
+      sAxisSlave   : out AxiStreamSlaveArray(VLAN_CNT_G downto 0);
 
-      -- Client Interface, RX
-      mAxisMaster  : out AxiStreamMasterType;
-      mAxisCtrl    : in  AxiStreamCtrlType;
+      -- Client Interfaces, RX
+      mAxisMaster  : out AxiStreamMasterArray(VLAN_CNT_G downto 0);
+      mAxisCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G downto 0);
 
       -- PHY Interface
       phyTxd       : out slv(63 downto 0);
@@ -70,6 +71,7 @@ architecture EthMacTop of EthMacTop is
 begin
 
    ethStatus.rxPauseCnt <= rxPauseReq;
+   ethStatus.rxOverFlow <= mAxisCtrl.overflow;
 
    ---------------------------------
    -- TX Path
@@ -82,11 +84,11 @@ begin
       ) port map ( 
          ethClk       => ethClk,
          ethClkRst    => ethClkRst,
-         sAxisMaster  => sAxisMaster,
-         sAxisSlave   => sAxisSlave,
+         sAxisMaster  => sAxisMaster(0),
+         sAxisSlave   => sAxisSlave(0),
          mAxisMaster  => pauseTxMaster,
          mAxisSlave   => pauseTxSlave,
-         clientPause  => mAxisCtrl.pause,
+         clientPause  => mAxisCtrl(0).pause,
          rxPauseReq   => rxPauseReq,
          rxPauseValue => rxPauseValue,
          pauseEnable  => ethConfig.pauseEnable,
@@ -151,7 +153,7 @@ begin
          ethClk       => ethClk,
          ethClkRst    => ethClkRst,
          sAxisMaster  => pauseRxMaster,
-         mAxisMaster  => mAxisMaster,
+         mAxisMaster  => mAxisMaster(0),
          macAddress   => ethConfig.macAddress,
          filtEnable   => ethConfig.filtEnable
       );

@@ -66,19 +66,10 @@ architecture EthMacFilter of EthMacFilter is
 
    signal r      : RegType := REG_INIT_C;
    signal rin    : RegType;
-   signal intMac : slv(47 downto 0);
 
 begin
 
-   -- Convert MAC for match
-   intMac(47 downto 40) <= macAddress(7  downto  0);
-   intMac(39 downto 32) <= macAddress(15 downto  8);
-   intMac(31 downto 24) <= macAddress(23 downto 16);
-   intMac(23 downto 16) <= macAddress(31 downto 24);
-   intMac(15 downto  8) <= macAddress(39 downto 32);
-   intMac(7  downto  0) <= macAddress(47 downto 40);
-
-   comb : process (ethClkRst, sAxisMaster, r, filtEnable, intMac) is
+   comb : process (ethClkRst, sAxisMaster, r, filtEnable, macAddress) is
       variable v : RegType;
    begin
 
@@ -99,7 +90,7 @@ begin
 
                -- Local match, broadcast or multicast
                if filtEnable = '0' or 
-                  r.regMaster.tData(47 downto  0) = intMac          or     -- Local
+                  r.regMaster.tData(47 downto  0) = macAddress      or     -- Local
                   r.regMaster.tData(40)           = '1'             or     -- Multicast
                   r.regMaster.tData(47 downto  0) = x"FFFFFFFFFFFF"  then  -- Broadcast
 
