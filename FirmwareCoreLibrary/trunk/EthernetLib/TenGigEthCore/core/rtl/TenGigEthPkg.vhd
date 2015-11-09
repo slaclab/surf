@@ -18,16 +18,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
-use work.XMacPkg.all;
+use work.EthMacPkg.all;
 
 package TenGigEthPkg is
 
    -- Default MAC is 01:03:00:56:44:00
-   constant MAC_ADDR_INIT_C : slv(47 downto 0) := XMAC_ADDR_INIT_C;
+   constant MAC_ADDR_INIT_C : slv(47 downto 0) := EMAC_ADDR_INIT_C;
 
    type TenGigEthConfig is record
       softRst      : sl;
-      phyConfig    : XMacConfig;
+      macConfig    : EthMacConfigType;
       pma_pmd_type : slv(2 downto 0);
       pma_loopback : sl;
       pma_reset    : sl;
@@ -36,7 +36,7 @@ package TenGigEthPkg is
    end record;
    constant TEN_GIG_ETH_CONFIG_INIT_C : TenGigEthConfig := (
       softRst      => '0',
-      phyConfig    => XMAC_CONFIG_INIT_C,
+      macConfig    => ETH_MAC_CONFIG_INIT_C,
       pma_pmd_type => "111",            --111 = 10GBASE-SR (Wavelength:850 nm & OM3:300m)
       pma_loopback => '0',
       pma_reset    => '0',
@@ -45,7 +45,7 @@ package TenGigEthPkg is
 
    type TenGigEthStatus is record
       phyReady    : sl;
-      phyStatus   : XMacStatus;
+      macStatus   : EthMacStatusType;
       txDisable   : sl;
       sigDet      : sl;
       txFault     : sl;

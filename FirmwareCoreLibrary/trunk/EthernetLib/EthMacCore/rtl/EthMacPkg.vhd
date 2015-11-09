@@ -47,23 +47,27 @@ package EthMacPkg is
    type EthMacConfigType is record
       macAddress    : slv(47 downto 0);
       filtEnable    : sl;
-      pauseEnable   : slv(7  downto 0);
+      pauseEnable   : sl;
       pauseTime     : slv(15 downto 0);
       interFrameGap : slv(3  downto 0);
-      ipCsumEn      : slv(7  downto 0);
-      tcpCsumEn     : slv(7  downto 0);
-      udpCsumEn     : slv(7  downto 0);
+      txShift       : slv(3  downto 0);
+      rxShift       : slv(3  downto 0);
+      ipCsumEn      : sl;
+      tcpCsumEn     : sl;
+      udpCsumEn     : sl;
    end record EthMacConfigType;
 
    constant ETH_MAC_CONFIG_INIT_C : EthMacConfigType := (
       macAddress    => EMAC_ADDR_INIT_C,
       filtEnable    => '1',
-      pauseEnable   => (others=>'1'),
+      pauseEnable   => '1',
       pauseTime     => x"00FF",
-      interFrameGap => x"3"
-      ipCsumEn      => (others=>'0'),
-      tcpCsumEn     => (others=>'0'),
-      udpCsumEn     => (others=>'0')
+      interFrameGap => x"3",
+      txShift       => (others=>'0'),
+      rxShift       => (others=>'0'),
+      ipCsumEn      => '0',
+      tcpCsumEn     => '0',
+      udpCsumEn     => '0'
    );
 
    type EthMacConfigArray is array (natural range<>) of EthMacConfigType;
