@@ -177,20 +177,26 @@ begin
 
          -- IDLE
          when S_IDLE_C =>
-            v.slave  := AXI_STREAM_SLAVE_INIT_C;
-            v.master := AXI_STREAM_MASTER_INIT_C;
-            v.delay  := AXI_STREAM_MASTER_INIT_C;
+            v.slave      := AXI_STREAM_SLAVE_INIT_C;
+            v.master     := AXI_STREAM_MASTER_INIT_C;
+            v.delay      := AXI_STREAM_MASTER_INIT_C;
+            v.shiftDir   := axiShiftDir;
+            v.shiftBytes := axiShiftCnt;
 
             -- Shift start request
             if axiStart = '1' then
-               v.shiftDir   := axiShiftDir;
-               v.shiftBytes := axiShiftCnt;
-               v.state      := S_FIRST_C;
+               v.state := S_FIRST_C;
             end if;
 
          -- First shift
          when S_FIRST_C =>
             v.slave.tReady := '1';
+
+            -- Keep sampling shift configuration if start is held
+            if axiStart = '1' then
+               v.shiftDir     := axiShiftDir;
+               v.shiftBytes   := axiShiftCnt;
+            end if;
 
             if sAxisMaster.tValid = '1' then
                v.delay := sAxisMaster;
