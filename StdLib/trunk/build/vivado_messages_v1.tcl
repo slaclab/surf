@@ -96,6 +96,7 @@ set_property SEVERITY {Warning} [get_drc_checks {REQP-44}]; # DRC: using the GTG
 set_property SEVERITY {Warning} [get_drc_checks {REQP-46}]; # DRC: using the GTGREFCLK port on a QPLL (GTH7)
 set_property SEVERITY {Warning} [get_drc_checks {REQP-56}]; # DRC: using the GTGREFCLK port on a QPLL (GTX7)
 set_property SEVERITY {Warning} [get_drc_checks {REQP-49}]; # DRC: using the GTGREFCLK port on a QPLL (GTP7)
+set_property SEVERITY {Warning} [get_drc_checks {REQP-1753}]; # DRC: using the GTGREFCLK port on CPLL (GTH7)
 set_property SEVERITY {Warning} [get_drc_checks {UCIO-1}];  # DRC: using the XADC's VP/VN ports
 
 # DRC: Change from CRITICAL_WARNING to WARNING
