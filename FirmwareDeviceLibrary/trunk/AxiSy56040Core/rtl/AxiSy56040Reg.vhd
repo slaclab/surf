@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-12
--- Last update: 2015-06-12
+-- Last update: 2015-11-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -111,6 +111,7 @@ begin
             if (axiStatus.readEnable = '1') then
                -- Reset the register
                v.axiReadSlave.rdata := (others => '0');
+               axiReadResp := AXI_RESP_OK_C;
                -- Decode address and assign read data
                case (axiReadMaster.araddr(3 downto 0)) is
                   when x"0" =>          -- OUT[0] Mapping
@@ -128,6 +129,7 @@ begin
                axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
             -- Check for a write request
             elsif (axiStatus.writeEnable = '1') then
+               axiWriteResp := AXI_RESP_OK_C;
                -- Decode address and perform write
                case (axiWriteMaster.awaddr(3 downto 0)) is
                   when x"0" =>          -- OUT[0] Mapping
