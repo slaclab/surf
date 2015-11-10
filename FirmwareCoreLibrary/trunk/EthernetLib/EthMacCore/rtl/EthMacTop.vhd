@@ -30,7 +30,8 @@ entity EthMacTop is
       PAUSE_512BITS_G : natural range 1 to 1024 := 8;
       VLAN_CNT_G      : natural range 0 to 7    := 0;
       SHIFT_EN_G      : boolean                 := false;
-      FILT_EN_G       : boolean                 := false
+      FILT_EN_G       : boolean                 := false;
+      CSUM_EN_G       : boolean                 := false
    );
    port ( 
 
