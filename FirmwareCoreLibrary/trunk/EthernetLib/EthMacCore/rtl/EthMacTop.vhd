@@ -29,8 +29,8 @@ entity EthMacTop is
       TPD_G           : time := 1 ns;
       PAUSE_512BITS_G : natural range 1 to 1024 := 8;
       VLAN_CNT_G      : natural range 0 to 7    := 0;
-      SHIFT_EN_G      : boolean                 := true;
-      FILT_EN_G       : boolean                 := true
+      SHIFT_EN_G      : boolean                 := false;
+      FILT_EN_G       : boolean                 := false
    );
    port ( 
 
@@ -219,9 +219,7 @@ begin
    end generate;
 
    U_FiltDisGen: if FILT_EN_G = false generate
-      mAxisMaster(0) <= shiftRxMaster;
-      shiftTxMaster  <= sAxisMaster(0);
-      sAxisSlave(0)  <= shiftTxSlave;
+      shiftRxMaster <= pauseRxMaster;
    end generate;
 
 
