@@ -15,9 +15,11 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
 
 -- Sub-types 
 -------------------------------------------------------------------------- 
-   type HeaderValuesType is record
-      maxOutsSegments       :  slv(7  downto 0); -- Receiver parameter       
-      maxSegSize            :  slv(15 downto 0); -- Receiver parameter 
+   type RssiParamType is record
+      version               :  slv(3  downto 0);
+      
+      maxOutsSeg            :  slv(7  downto 0); -- Receiver parameter       
+      maxSegSize            :  slv(15 downto 0); -- Receiver parameter
 
       retransTout           :  slv(15 downto 0);
       cumulAckTout          :  slv(15 downto 0);
@@ -31,7 +33,19 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       maxAutoRst            :  slv(7 downto 0);
 
       connectionId          :  slv(15 downto 0);
-   end record HeaderValuesType;
+   end record RssiParamType;
+   
+   type flagsType is record
+      syn  : sl;
+      ack  : sl;
+      eack : sl;
+      rst  : sl;
+      nul  : sl;
+      data : sl;
+      busy : sl;
+      eofe : sl;
+   end record flagsType;
+   
 
    type TxWindowType is record
       seqN                  :  slv(7  downto 0);
@@ -47,7 +61,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
    end record TxWindowType;
    
-   constant TX_WINDOW_INIT_C : WindowType := (
+   constant TX_WINDOW_INIT_C : TxWindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
  
@@ -73,7 +87,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       full                  : sl;
    end record RxWindowType;
    
-   constant RX_WINDOW_INIT_C : WindowType := (
+   constant RX_WINDOW_INIT_C : RxWindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
  
@@ -87,8 +101,8 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
    
    
    
-   type TxWindowTypeArray is array (natural range<>) of WindowType;
-   type RxWindowTypeArray is array (natural range<>) of WindowType;      
+   type TxWindowTypeArray is array (natural range<>) of TxWindowType;
+   type RxWindowTypeArray is array (natural range<>) of RxWindowType;      
    -- Arrays
    
 -- Function declarations

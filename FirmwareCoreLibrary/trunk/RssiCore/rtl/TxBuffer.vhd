@@ -56,11 +56,11 @@ entity TxBuffer is
       nullHeadSt_i : in  sl;
 
       -- Window buff size (Depends on the number of outstanding segments)
-      windowSize_i   : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1); -- 
+      windowSize_i  : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1); -- 
       
       -- Next sequence number
-      nextSeqN_i     : in slv(7 downto 0);    
-     
+      nextSeqN_i    : in  slv(7 downto 0);    
+      nextAckN_o    : out slv(7 downto 0);  
       -- Acknowledge mechanism
       ack_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
       ackN_i        : in slv(7 downto 0);      -- Number being ACKed
@@ -356,7 +356,7 @@ begin
             v.lenErr      := '0';
             v.ssiBusy     := '0';
             
-            -- Wait until buffer is full
+            -- Wait if buffer full
             if (r.bufferFull = '0') then
                v.ssiState    := WAIT_SOF_S;
             end if;
@@ -426,7 +426,8 @@ begin
             -- Buffer write if data valid 
             -- TODO: Check if this condition holds appSsiMaster_i.sof = '0'
             --       Inserted because the SOF did not drop immediately in HDL sim
-            if (appSsiMaster_i.valid = '1' and appSsiMaster_i.sof = '0') then          
+            --if (appSsiMaster_i.valid = '1' and appSsiMaster_i.sof = '0') then
+            if (appSsiMaster_i.valid = '1') then            
                v.segmentAddr := r.segmentAddr + 1;
                v.segmentWe           := '1';
             else
@@ -554,7 +555,8 @@ begin
    ssiBusy_o         <= r.ssiBusy;
    lenErr_o          <= r.lenErr;
    ackErr_o          <= r.ackErr;
-
-   appSsiSlave_o     <= r.ssiSlave;
+   
+   nextAckN_o        <= r.windowArray(conv_integer(r.firstUnackAddr)).SeqN;
+   appSsiSlave_o     <= rin.ssiSlave; -- Slave out immediately 
    ---------------------------------------------------------------------
 end architecture rtl;

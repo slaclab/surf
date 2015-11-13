@@ -4,3 +4,4 @@ vhdl work rtl/RssiPkg.vhd
 vhdl work rtl/RssiCore.vhd
 vhdl work rtl/TxBuffer.vhd
 vhdl work rtl/TxFSM.vhd
+vhdl work rtl/RxFSM.vhd
