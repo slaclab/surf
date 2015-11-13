@@ -41,42 +41,60 @@ architecture testbed of RssiCoreTb is
    signal   rst_i                 : sl := '0';
    
    -- UUT   
-   signal   txAck_i               : sl := '0';
-   signal   txAckN_i              : slv(7 downto 0) := x"00";
-   signal   rxAckN_i              : slv(7 downto 0) := x"20";
-   signal   connActive_i          : sl := '0';
-   signal   sndSyn_i              : sl := '0';
-   signal   sndAck_i              : sl := '0';
-   signal   sndRst_i              : sl := '0';
-   signal   sndResend_i           : sl := '0';
-   signal   sndNull_i             : sl := '0';
-    
-   signal   lenErr_o              : sl;
-   signal   ackErr_o              : sl;
+   signal   s_connActive          : sl := '0';
    
-   signal   appSsiMaster_i        : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
-   signal   appSsiSlave_o         : SsiSlaveType;
-   signal   tspSsiSlave_i         : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
-   signal   tspSsiMaster_o        : SsiMasterType;
+   -- RSSI 0   
+   signal   s_sndSyn0              : sl := '0';
+   signal   s_sndAck0              : sl := '0';
+   signal   s_sndRst0              : sl := '0';
+   signal   s_sndResend0           : sl := '0';
+   signal   s_sndNull0             : sl := '0';
+
+   signal   sAppSsiMaster0       : SsiMasterType;
+   signal   sAppSsiSlave0        : SsiSlaveType;
+   signal   mAppSsiMaster0       : SsiMasterType;
+   signal   mAppSsiSlave0        : SsiSlaveType;
+
+   -- RSSI 1
+   signal   s_sndSyn1              : sl := '0';
+   signal   s_sndAck1              : sl := '0';
+   signal   s_sndRst1              : sl := '0';
+   signal   s_sndResend1           : sl := '0';
+   signal   s_sndNull1             : sl := '0';
+
    
+   signal   sAppSsiMaster1       : SsiMasterType;
+   signal   sAppSsiSlave1        : SsiSlaveType;
+   signal   mAppSsiMaster1       : SsiMasterType;
+   signal   mAppSsiSlave1        : SsiSlaveType;
    
-   -- Internal 
-   signal mAxisMaster : AxiStreamMasterType; 
-   signal mAxisSlave  : AxiStreamSlaveType;
+   -- Transport
+   signal   sTspSsiMaster       : SsiMasterType;
+   signal   sTspSsiSlave        : SsiSlaveType;
+   signal   mTspSsiMaster       : SsiMasterType;
+   signal   mTspSsiSlave        : SsiSlaveType;
+
+   -- Internal AXIStream
+   signal   mAxisMaster    : AxiStreamMasterType; 
+   signal   mAxisSlave     : AxiStreamSlaveType;
    
    signal   s_trig : sl := '0';
    
-   
+   -- Constants
+   constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
+   constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave (RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
+   constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave (RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);   
+------
 begin
    -- 
-   appSsiMaster_i <= axis2SsiMaster(RSSI_AXI_CONFIG_C, mAxisMaster);
-   mAxisSlave     <= ssi2AxisSlave(appSsiSlave_o);
+   sAppSsiMaster0 <= axis2SsiMaster(RSSI_AXI_CONFIG_C, mAxisMaster);
+   mAxisSlave     <= ssi2AxisSlave(sAppSsiSlave0);
    
    -- Generate clocks and resets
    DDR_ClkRst_Inst : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 1 ns,     -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk_i,
@@ -87,31 +105,75 @@ begin
   -----------------------------
   -- component instantiation 
   -----------------------------
-  RssiCore_INST: entity work.RssiCore
+   RssiCore0_INST: entity work.RssiCore
    generic map (
       TPD_G          => TPD_C
    )
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
-      txAck_i        => txAck_i,
-      txAckN_i       => txAckN_i,
-      rxAckN_i       => rxAckN_i,
-      connActive_i   => connActive_i,
-      sndSyn_i       => sndSyn_i,
-      sndAck_i       => sndAck_i,
-      sndRst_i       => sndRst_i,
-      sndResend_i    => sndResend_i,
-      sndNull_i      => sndNull_i,
-      lenErr_o       => lenErr_o,
-      ackErr_o       => ackErr_o,
-      appSsiMaster_i => appSsiMaster_i,
-      appSsiSlave_o  => appSsiSlave_o,
-      tspSsiSlave_i  => tspSsiSlave_i,
-      tspSsiMaster_o => tspSsiMaster_o);
+      connActive_i   => s_connActive,
+      sndSyn_i       => s_sndSyn0,
+      sndAck_i       => s_sndAck0,
+      sndRst_i       => s_sndRst0,
+      sndResend_i    => s_sndResend0,
+      sndNull_i      => s_sndNull0,
+      initSeqN_i     => x"40",
+      
+      -- PRBS TX
+      sAppSsiMaster_i => sAppSsiMaster0,
+      sAppSsiSlave_o  => sAppSsiSlave0,
+      
+      -- PRBS RX 
+      mAppSsiMaster_o => mAppSsiMaster0, -- Open for now
+      mAppSsiSlave_i  => mAppSsiSlave0,  -- Open for now
+      
+      -- 
+      sTspSsiMaster_i => mTspSsiMaster, --<-- From Peer
+      sTspSsiSlave_o  => mTspSsiSlave,  --<-- From Peer
+      
+      -- 
+      mTspSsiMaster_o => sTspSsiMaster, -->-- To Peer 
+      mTspSsiSlave_i  => sTspSsiSlave); -->-- To Peer
    
+   mAppSsiSlave0 <= SSI_SLAVE_RDY_C;   
+      
+   RssiCore1_INST: entity work.RssiCore
+   generic map (
+      TPD_G          => TPD_C
+   )
+   port map (
+      clk_i          => clk_i,
+      rst_i          => rst_i,
+      connActive_i   => s_connActive,
+      sndSyn_i       => s_sndSyn1,
+      sndAck_i       => s_sndAck1,
+      sndRst_i       => s_sndRst1,
+      sndResend_i    => s_sndResend1,
+      sndNull_i      => s_sndNull1,
+      initSeqN_i     => x"80",
+      
+      -- PRBS TX
+      sAppSsiMaster_i => sAppSsiMaster1, -- Loopback
+      sAppSsiSlave_o  => sAppSsiSlave1,  -- Loopback
+      
+      -- PRBS RX 
+      mAppSsiMaster_o => mAppSsiMaster1, -- Loopback
+      mAppSsiSlave_i  => mAppSsiSlave1,  -- Loopback
+      
+      -- 
+      sTspSsiMaster_i => sTspSsiMaster, --<-- From Peer
+      sTspSsiSlave_o  => open,--sTspSsiSlave,  --<-- From Peer
+      
+      -- 
+      mTspSsiMaster_o => mTspSsiMaster, -->-- To Peer 
+      mTspSsiSlave_i  => mTspSsiSlave); -->-- To Peer
+
    ---------------------------------------
-   
+   -- RSSI 1 Loopback connection
+   sAppSsiMaster1 <= mAppSsiMaster1;
+   mAppSsiSlave1  <= sAppSsiSlave1;
+
    ------Application side data PRBS---------------------------
     
    SsiPrbsTx_INST: entity work.SsiPrbsTx
@@ -146,140 +208,71 @@ begin
       --axilWriteSlave  => 
    );
    
-   -- tspReady : process
-   -- begin
-      -- wait for CLK_PERIOD_C*2;
-         -- tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
-      -- wait for CLK_PERIOD_C*2;
-         -- tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
-   -- end process;
-   tspSsiSlave_i <= axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
+   tspReady : process
+   begin  
+      wait for CLK_PERIOD_C*1;
+      sTspSsiSlave <= SSI_SLAVE_RDY_C;
+      wait for CLK_PERIOD_C*2;
+      sTspSsiSlave <= SSI_SLAVE_NOTRDY_C;
+   end process;
    
-   --
+
    StimuliProcess : process
    begin
    
-   wait until rst_i = '0';
+      wait until rst_i = '0';
 
-   wait for CLK_PERIOD_C*200;
-   
-   -- Request Syn package 0
-   wait for CLK_PERIOD_C*100;
-   sndSyn_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndSyn_i <= '0';
-   
-   -- Request Syn package 1
-   wait for CLK_PERIOD_C*100;
-   sndSyn_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndSyn_i <= '0';
-   
-   -- Request Ack package 0
-   wait for CLK_PERIOD_C*100;
-   sndAck_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndAck_i <= '0';
-   
-   -- Connection active from here on
-   -----------------------------------------------------------
-   wait for CLK_PERIOD_C*100;
-   -- Open Connection
-   connActive_i <= '1';
-   -----------------------------------------------------------
-   
-   -- Request Ack package 1
-   wait for CLK_PERIOD_C*100;
-   sndAck_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndAck_i <= '0';
-   
-   -- Request Null package 0
-   wait for CLK_PERIOD_C*100;
-   sndNull_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndNull_i <= '0';
-   
-   -- Request Rst package 0
-   wait for CLK_PERIOD_C*100;
-   sndRst_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndRst_i <= '0';
-   
-   -- Request Null package 1
-   wait for CLK_PERIOD_C*100;
-   sndNull_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndNull_i <= '0';
-   
-   
-   -- Request Rst package 1
-   wait for CLK_PERIOD_C*100;
-   sndRst_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndRst_i <= '0';
-   
-   -------------------------------------------------------
-   wait for CLK_PERIOD_C*100;
-   -- Enable PRBS
-   s_trig <= '1';
-   -------------------------------------------------------
-   
-   -- Resend unack
-   wait for CLK_PERIOD_C*5000;
-   sndResend_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndResend_i <= '0';
-   
-   -- Send Acknowledge 0
-   wait for CLK_PERIOD_C*1000;
-   txAck_i <= '1';
-   txAckN_i <= x"81";
-   wait for CLK_PERIOD_C*1;
-   txAck_i <= '0';
-   
-   -- Resend unack
-   wait for CLK_PERIOD_C*1000;
-   sndResend_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndResend_i <= '0';
-   
-   -- Send Acknowledge 1
-   wait for CLK_PERIOD_C*1000;
-   txAck_i <= '1';
-   txAckN_i <= x"86";
-   wait for CLK_PERIOD_C*1;
-   txAck_i <= '0';
-   
-   -- Resend unack
-   wait for CLK_PERIOD_C*2000;
-   sndResend_i <= '1';
-   wait for CLK_PERIOD_C*1;
-   sndResend_i <= '0';
- 
-   
-   -- -- Send acknowledge 1 
-   -- wait for CLK_PERIOD_C*15000;
-   -- txAck_i <= '1';
-   -- txAckN_i <= x"85";
-   -- wait for CLK_PERIOD_C*1;
-   -- txAck_i <= '0';
+      wait for CLK_PERIOD_C*200;
+      
+      -- Request Syn package 0
+      wait for CLK_PERIOD_C*100;
+      s_sndSyn0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndSyn0 <= '0';
+      
+      -- Request Ack package 0
+      wait for CLK_PERIOD_C*101;
+      s_sndAck0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndAck0 <= '0';
+           
+      -- Connection active from here on
+      -----------------------------------------------------------
+      wait for CLK_PERIOD_C*100;
+      -- Open Connection
+      s_connActive <= '1';
+      -----------------------------------------------------------
+      
+      -- Request Ack package 0
+      wait for CLK_PERIOD_C*101;
+      s_sndAck0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndAck0 <= '0';
+      
+      -- Request Syn package 0
+      wait for CLK_PERIOD_C*102;
+      s_sndNull0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndNull0 <= '0';
+      
+      -- Request Rst package 0
+      wait for CLK_PERIOD_C*103;
+      s_sndRst0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndRst0 <= '0';
 
-   -- -- Send acknowledge 2 
-   -- wait for CLK_PERIOD_C*15000;
-   -- txAck_i <= '1';
-   -- txAckN_i <= x"86";
-   -- wait for CLK_PERIOD_C*1;
-   -- txAck_i <= '0';
-   
-   
-   -- -- Send Acknowledge 3
-   -- wait for CLK_PERIOD_C*5000;
-   -- txAck_i <= '1';
-   -- txAckN_i <= x"8C";
-   -- wait for CLK_PERIOD_C*1;
-   -- txAck_i <= '0';
-  
+      -------------------------------------------------------
+      wait for CLK_PERIOD_C*100;
+      -- Enable PRBS
+      s_trig <= '1';
+      -------------------------------------------------------
+      
+      -- Resend unack
+      wait for CLK_PERIOD_C*5000;
+      s_sndResend0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndResend0 <= '0';
+
    wait;
 
    

@@ -65,39 +65,32 @@ entity RssiCore is
       clk_i      : in  sl;
       rst_i      : in  sl;
       
-      -- Temporarty inputs (Later this will be done by RX module, connectionFSM, and timers)
-      txAck_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
-      txAckN_i        : in slv(7 downto 0);      -- Number being ACKed
-      rxAckN_i        : in slv(7 downto 0);      -- SeqN received by onboard receiver (This value is sent in the header).
-      
-      connActive_i    : in sl; 
+      connActive_i    : in  sl; 
       sndSyn_i        : in  sl;
       sndAck_i        : in  sl;
       sndRst_i        : in  sl;
       sndResend_i     : in  sl;
-      sndNull_i       : in  sl; 
-      
-      
-      -- Temporaty outputs Errors (1 cc pulse)
-      lenErr_o         : out sl;
-      ackErr_o         : out sl;
-      
-      
-      -- SSI input from the Application side
-      appSsiMaster_i : in  SsiMasterType;
-      appSsiSlave_o  : out SsiSlaveType;
-      
-      -- SSI Transport side interface
-      tspSsiSlave_i  : in   SsiSlaveType;
-      tspSsiMaster_o : out  SsiMasterType
-      
+      sndNull_i       : in  sl;
+      initSeqN_i      : in  slv(7 downto 0);
+
+      -- SSI Application side
+      sAppSsiMaster_i : in  SsiMasterType;
+      sAppSsiSlave_o  : out SsiSlaveType;
+      mAppSsiMaster_o : out SsiMasterType;
+      mAppSsiSlave_i  : in  SsiSlaveType;
+
+      -- SSI Teansport side
+      sTspSsiMaster_i : in  SsiMasterType;
+      sTspSsiSlave_o  : out SsiSlaveType;
+      mTspSsiMaster_o : out SsiMasterType;
+      mTspSsiSlave_i  : in  SsiSlaveType
    );
 end entity RssiCore;
 
 architecture rtl of RssiCore is
    
    -- Header decoder module
-   signal s_headerValues : HeaderValuesType;
+   signal s_headerValues : RssiParamType;
 
    signal s_synHeadSt    : sl;
    signal s_rstHeadSt    : sl;
@@ -105,15 +98,21 @@ architecture rtl of RssiCore is
    signal s_nullHeadSt   : sl;
    signal s_ackHeadSt    : sl;
    
+   -- Current transmitted or received SeqN and AckN   
    signal s_txSeqN    : slv(7  downto 0);
+   signal s_txAckN    : slv(7  downto 0);   
+
+   signal s_rxSeqN    : slv(7  downto 0);
+   signal s_rxAckN    : slv(7  downto 0);
    
    -- Buffer
-   signal s_nextRxSeqN : slv(7  downto 0);
+   signal s_nextSeqN   : slv(7  downto 0);
+   signal s_nextAckN   : slv(7  downto 0);
    signal s_bufferWe   : sl;
    signal s_bufferSent : sl;
    signal s_txRdy      : sl;
    signal s_windowSize : integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
-   signal s_windowArray: WindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
+   signal s_windowArray: TxWindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
    signal s_bufferFull : sl;
    signal s_ssiBusy    : sl;
    signal s_init       : sl;
@@ -126,25 +125,55 @@ architecture rtl of RssiCore is
    -- TX Data sources
    signal s_headerAddr   : slv(7  downto 0);
    signal s_headerData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
+   signal s_headerRdy    : sl;
    signal s_bufferAddr   : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_bufferData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
    signal s_chksumData   : slv(15  downto 0);
-  
    
    -- TX FSM
    signal s_sndData    : sl;
    signal s_initSeqN   : slv(7  downto 0);
 
-   -- Checksum 
-   signal s_chksumEnable : sl;
-   signal s_chksumValid  : sl;
-   signal s_chksumStrobe : sl;
-   signal s_headerLength : positive;
+   -- Tx Checksum 
+   signal s_txChkEnable : sl;
+   signal s_txChkValid  : sl;
+   signal s_txChkStrobe : sl;
+   signal s_txChkLength : positive;
+   
+   -- Rx Checksum 
+   signal s_rxChkEnable : sl;
+   signal s_rxChkValid  : sl;
+   signal s_rxChkCheck  : sl;
+   signal s_rxChkStrobe : sl;
+   signal s_rxChkLength : positive;
+   
+   -- Rx Statuses
+   signal s_rxValidSeg : sl;
+   signal s_rxDropSeg  : sl;
+   signal s_rxFlags    : flagsType;
+   signal s_rxParam    : RssiParamType;
+   
+   -- Rx segment buffer
+   signal s_rxWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);      
+   signal s_rxRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+                       
+   -- Internal signals 
+   
+   -- Acknowledge pulse when valid segment 
+   -- with acknowledge flag received
+   signal s_rxAck : sl;
+   
+   --
+   signal s_lenErr : sl;
+   signal s_ackErr : sl;
+   
 ----------------------------------------------------------------------
 begin
 
    -- Assign header values (later will connect to parameter negotiation module)
-   s_headerValues.maxOutsSegments <= toSlv(MAX_TX_NUM_OUTS_SEG_G, 8);
+   s_headerValues.maxOutsSeg      <= toSlv(MAX_TX_NUM_OUTS_SEG_G, 8);
    s_headerValues.maxSegSize      <= toSlv(MAX_TX_SEG_SIZE_G, 16);
    s_headerValues.retransTout     <= toSlv(RETRANS_TOUT_G, 16);
    s_headerValues.cumulAckTout    <= toSlv(ACK_TOUT_G, 16);
@@ -159,7 +188,6 @@ begin
    
    -- later will connect to parameter negotiation module   
    s_windowSize <= MAX_RX_NUM_OUTS_SEG_G;
-   s_initSeqN   <= x"80";
    s_init       <= not connActive_i;
    
    -- Header decoder module
@@ -182,15 +210,15 @@ begin
       nullHeadSt_i   => s_nullHeadSt,
       ackHeadSt_i    => s_ackHeadSt,
       
-       
-      ack_i          => '1', -- Always send acknowledge with data packet
+      ack_i          => s_rxFlags.ack,
       txSeqN_i       => s_txSeqN,
-      rxAckN_i       => rxAckN_i,
+      rxAckN_i       => s_rxSeqN,
       headerValues_i => s_headerValues,
       addr_i         => s_headerAddr,
       headerData_o   => s_headerData,
-      headerLength_o => s_headerLength);
-   
+      ready_o        => s_headerRdy,
+      headerLength_o => s_txChkLength);
+
    TxBuffer_INST: entity work.TxBuffer
    generic map (
       TPD_G             => TPD_G,
@@ -199,8 +227,8 @@ begin
       clk_i            => clk_i,
       rst_i            => rst_i,
       init_i           => s_init,
-      appSsiMaster_i   => appSsiMaster_i,
-      appSsiSlave_o    => appSsiSlave_o,
+      appSsiMaster_i   => sAppSsiMaster_i,
+      appSsiSlave_o    => sAppSsiSlave_o,
       rdAddr_i         => s_bufferAddr,
       rdData_o         => s_bufferData,
       we_i             => s_bufferWe,
@@ -210,9 +238,10 @@ begin
       dataHeadSt_i     => s_dataHeadSt,
       nullHeadSt_i     => s_nullHeadSt,
       windowSize_i     => s_windowSize,
-      nextSeqN_i       => s_nextRxSeqN,
-      ack_i            => txAck_i,
-      ackN_i           => txAckN_i,
+      nextSeqN_i       => s_nextSeqN,
+      nextAckN_o       => s_nextAckN,
+      ack_i            => s_rxAck,
+      ackN_i           => s_rxAckN,
       txData_o         => s_sndData,
       windowArray_o    => s_windowArray,
       bufferFull_o     => s_bufferFull,
@@ -220,8 +249,8 @@ begin
       lastSentAddr_o   => s_lastSentAddr,
       nextSentAddr_o   => s_nextSentAddr,
       ssiBusy_o        => s_ssiBusy,
-      lenErr_o         => lenErr_o,
-      ackErr_o         => ackErr_o);
+      lenErr_o         => s_lenErr,
+      ackErr_o         => s_ackErr);
 
    TxFSM_INST: entity work.TxFSM
    generic map (
@@ -248,8 +277,8 @@ begin
       we_o             => s_bufferWe,
       sent_o           => s_bufferSent,
       txRdy_o          => s_txRdy,
-      initSeqN_i       => s_initSeqN,
-      nextSeqN_o       => s_nextRxSeqN,
+      initSeqN_i       => initSeqN_i,
+      nextSeqN_o       => s_nextSeqN,
       windowArray_i    => s_windowArray,
       windowSize_i     => s_windowSize,
       bufferFull_i     => s_bufferFull,
@@ -265,16 +294,51 @@ begin
       rstHeadSt_o      => s_rstHeadSt,
       nullHeadSt_o     => s_nullHeadSt,
       headerData_i     => s_headerData,
+      headerRdy_i      => s_headerRdy,
       bufferData_i     => s_bufferData,
       chksumData_i     => s_chksumData,
-      chksumValid_i    => s_chksumValid,
-      chksumEnable_o   => s_chksumEnable,
-      chksumStrobe_o   => s_chksumStrobe,
-      tspSsiSlave_i    => tspSsiSlave_i,
-      tspSsiMaster_o   => tspSsiMaster_o,
-      headerLength_i   => s_headerLength);
+      chksumValid_i    => s_txChkValid,
+      chksumEnable_o   => s_txChkEnable,
+      chksumStrobe_o   => s_txChkStrobe,
+      tspSsiSlave_i    => mTspSsiSlave_i,
+      tspSsiMaster_o   => mTspSsiMaster_o,
+      headerLength_i   => s_txChkLength);
    
-   Chksum_INST: entity work.Chksum
+   RxFSM_INST: entity work.RxFSM
+   generic map (
+      TPD_G              => TPD_G,
+      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
+   port map (
+      clk_i          => clk_i,
+      rst_i          => rst_i,
+      connActive_i   => connActive_i,
+      rxWindowSize_i => s_windowSize,
+      txWindowSize_i => s_windowSize,
+      nextAckN_i     => s_nextAckN,--
+      rxSeqN_o       => s_rxSeqN,
+      rxAckN_o       => s_rxAckN,
+      rxValidSeg_o   => s_rxValidSeg,
+      rxDropSeg_o    => s_rxDropSeg,
+      rxFlags_o      => s_rxFlags,
+      rxParam_o      => s_rxParam,
+      chksumValid_i  => s_rxChkValid,
+      chksumOk_i     => s_rxChkCheck,
+      chksumEnable_o => s_rxChkEnable,
+      chksumStrobe_o => s_rxChkStrobe,
+      chksumLength_o => s_rxChkLength,
+      wrBuffAddr_o   => s_rxWrBuffAddr,
+      wrBuffData_o   => s_rxWrBuffData,
+      rdBuffAddr_o   => s_rxRdBuffAddr,
+      rdBuffData_i   => s_rxRdBuffData,
+      tspSsiMaster_i => sTspSsiMaster_i,
+      tspSsiSlave_o  => sTspSsiSlave_o,
+      appSsiMaster_o => mAppSsiMaster_o,
+      appSsiSlave_i  => mAppSsiSlave_i);
+   
+   -- Acknowledge valid
+   s_rxAck <= s_rxValidSeg and s_rxFlags.ack;
+   
+   tx_Chksum_INST: entity work.Chksum
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 64,
@@ -283,13 +347,32 @@ begin
    port map (
       clk_i    => clk_i,
       rst_i    => rst_i,
-      enable_i => s_chksumEnable,
-      strobe_i => s_chksumStrobe, -- Todo check
+      enable_i => s_txChkEnable,
+      strobe_i => s_txChkStrobe,
       init_i   => x"0000",
-      length_i => s_headerLength,
+      length_i => s_txChkLength,
       data_i   => s_headerData,
       chksum_o => s_chksumData,
-      valid_o  => s_chksumValid,
+      valid_o  => s_txChkValid,
       check_o  => open);
+   
+   
+   rx_Chksum_INST: entity work.Chksum
+   generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => 64,
+      CSUM_WIDTH_G => 16
+   ) 
+   port map (
+      clk_i    => clk_i,
+      rst_i    => rst_i,
+      enable_i => s_rxChkEnable,
+      strobe_i => s_rxChkStrobe,
+      init_i   => x"0000",
+      length_i => s_rxChkLength,
+      data_i   => sTspSsiMaster_i.data(RSSI_WORD_WIDTH_C*8-1 downto 0),
+      chksum_o => open,
+      valid_o  => s_rxChkValid,
+      check_o  => s_rxChkCheck);
 ----------------------------------------
 end architecture rtl;
