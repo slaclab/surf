@@ -163,7 +163,7 @@ begin
       
       -- 
       sTspSsiMaster_i => sTspSsiMaster, --<-- From Peer
-      sTspSsiSlave_o  => open,--sTspSsiSlave,  --<-- From Peer
+      sTspSsiSlave_o  => sTspSsiSlave,  --<-- From Peer
       
       -- 
       mTspSsiMaster_o => mTspSsiMaster, -->-- To Peer 
@@ -208,13 +208,13 @@ begin
       --axilWriteSlave  => 
    );
    
-   tspReady : process
-   begin  
-      wait for CLK_PERIOD_C*1;
-      sTspSsiSlave <= SSI_SLAVE_RDY_C;
-      wait for CLK_PERIOD_C*2;
-      sTspSsiSlave <= SSI_SLAVE_NOTRDY_C;
-   end process;
+   -- tspReady : process
+   -- begin  
+      -- wait for CLK_PERIOD_C*1;
+      -- sTspSsiSlave <= SSI_SLAVE_RDY_C;
+      -- wait for CLK_PERIOD_C*2;
+      -- sTspSsiSlave <= SSI_SLAVE_NOTRDY_C;
+   -- end process;
    
 
    StimuliProcess : process
@@ -232,6 +232,12 @@ begin
       
       -- Request Ack package 0
       wait for CLK_PERIOD_C*101;
+      s_sndSyn1 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndSyn1 <= '0';
+      
+      -- Request Ack package 0
+      wait for CLK_PERIOD_C*101;
       s_sndAck0 <= '1';
       wait for CLK_PERIOD_C*1;
       s_sndAck0 <= '0';
@@ -243,18 +249,24 @@ begin
       s_connActive <= '1';
       -----------------------------------------------------------
       
-      -- Request Ack package 0
-      wait for CLK_PERIOD_C*101;
-      s_sndAck0 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndAck0 <= '0';
-      
-      -- Request Syn package 0
+      -- Request Null package 0
       wait for CLK_PERIOD_C*102;
       s_sndNull0 <= '1';
       wait for CLK_PERIOD_C*1;
       s_sndNull0 <= '0';
       
+      -- Request Null package 1
+      wait for CLK_PERIOD_C*102;
+      s_sndNull0 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndNull0 <= '0';
+      
+      -- Request Ack package 0
+      wait for CLK_PERIOD_C*101;
+      s_sndAck1 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndAck1 <= '0';
+
       -- Request Rst package 0
       wait for CLK_PERIOD_C*103;
       s_sndRst0 <= '1';

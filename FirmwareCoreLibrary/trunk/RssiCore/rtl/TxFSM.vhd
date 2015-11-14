@@ -74,6 +74,7 @@ entity TxFSM is
       windowArray_i    : in TxWindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
       windowSize_i     : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
       bufferFull_i     : in sl;
+      bufferEmpty_i    : in sl;
       firstUnackAddr_i : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       nextSentAddr_i   : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastSentAddr_i   : in slv(WINDOW_ADDR_SIZE_G-1 downto 0);
@@ -206,7 +207,7 @@ begin
 
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, nextSentAddr_i,lastSentAddr_i, txSyn_i, txAck_i, connActive_i, txRst_i, ssiBusy_i, initSeqN_i, windowSize_i, firstUnackAddr_i,headerRdy_i,
-                   bufferFull_i, txData_i, txResend_i, txNull_i, tspSsiSlave_i, headerData_i, chksumData_i, bufferData_i, windowArray_i, chksumValid_i, headerLength_i) is
+                   bufferFull_i,bufferEmpty_i, txData_i, txResend_i, txNull_i, tspSsiSlave_i, headerData_i, chksumData_i, bufferData_i, windowArray_i, chksumValid_i, headerLength_i) is
       
       variable v : RegType;
 
@@ -288,7 +289,7 @@ begin
                v.state    := RST_WE_S;
             elsif (txData_i = '1' and bufferFull_i = '0') then
                v.state    := DATA_WE_S;
-            elsif (txResend_i = '1') then               
+            elsif (txResend_i = '1' and bufferEmpty_i = '0') then               
                v.state    := RESEND_INIT_S;
             elsif (txAck_i = '1') then
                v.state    := ACK_H_S;  
@@ -328,45 +329,45 @@ begin
             
             -- Peer not ready
             v.ssiMaster.sof   := '0';
-            v.ssiMaster.valid := '0';
             v.ssiMaster.eof   := '0';
             v.ssiMaster.eofe  := '0';                  
             v.chkStb          := '0';
             v.headerAddr      := r.headerAddr;
-            v.ssiMaster.valid := '1';
             
+            -- if header data ready than
+            -- strobe the checksum       
+            if (headerRdy_i = '1') then
+               v.ssiMaster.valid  := '1';
+
+               -- Increment address only when Slave is ready
+               if (r.headerAddr = x"02") then
+                  v.headerAddr       := r.headerAddr;
+                  v.chkStb           := '1';            
+               elsif (tspSsiSlave_i.ready = '1' ) then
+                  v.headerAddr       := r.headerAddr + 1;
+                  v.chkStb           := '1';
+               else 
+                  v.headerAddr       := r.headerAddr;
+                  v.chkStb           := '0';  
+               end if;
+            end if;
             -- SSI data (send header part)
             v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Send SOF with header address 0
-            if (r.headerAddr = (r.headerAddr'range => '0')) then
+            if   (v.headerAddr = x"00" ) then
                v.ssiMaster.sof   := '1';
-            else
+            elsif (v.headerAddr = x"01") then
                v.ssiMaster.sof   := '0';
-            end if;
-
-            -- Increment address only when Slave is ready
-            if (tspSsiSlave_i.ready = '1' and headerRdy_i = '1') then
-               v.headerAddr       := r.headerAddr + 1;
-               v.chkStb           := '1';
-            else 
-               v.headerAddr       := r.headerAddr;
-               v.chkStb           := '0';  
-            end if; 
-            
-            -- Next state condition
-            -- End of header
-            if (r.headerAddr = headerLength_i-1) then
-               
-               -- Stop until checksum ready
-               v.ssiMaster.valid  := '0';
-               v.headerAddr       := r.headerAddr;
-               
+            elsif (v.headerAddr = x"02") then
                -- Wait until checksum and Transport layer ready
-               if (chksumValid_i = '1') then 
+               v.ssiMaster.sof   := '0';
+               v.ssiMaster.valid := '0';
+                                              
+               if (chksumValid_i = '1') then             
                   v.ssiMaster.valid  := '1';
        
-                  v.ssiMaster.sof    := '1';
+                  v.ssiMaster.sof    := '0';
                   v.ssiMaster.strb   := (others => '1');
                   v.ssiMaster.keep   := (others => '1');
                   v.ssiMaster.dest   := (others => '0');
@@ -417,6 +418,7 @@ begin
             
              -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Next state condition
             if (chksumValid_i = '1') then -- Frame size is one word
@@ -504,6 +506,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Next state condition
             if (chksumValid_i = '1') then -- Frame size is one word
@@ -592,6 +595,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster := SSI_MASTER_INIT_C;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Next state condition
             if (chksumValid_i = '1') then -- Frame size is one word
@@ -680,6 +684,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster        := SSI_MASTER_INIT_C;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Next state condition
             -- Frame size is one word
@@ -876,6 +881,7 @@ begin
             
             -- SSI Master init (if not ready)
             v.ssiMaster        := SSI_MASTER_INIT_C;
+            v.ssiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := headerData_i;
             
             -- Next state condition
             if (chksumValid_i = '1') then
