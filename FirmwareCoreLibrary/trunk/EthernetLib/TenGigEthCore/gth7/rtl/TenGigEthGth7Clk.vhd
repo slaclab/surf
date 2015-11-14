@@ -48,11 +48,11 @@ architecture mapping of TenGigEthGth7Clk is
 
    constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G,"111",QPLL_REFCLK_SEL_G);
 
-   signal refClockDiv2 : sl;
-   signal refClock     : sl;
-   signal refClk       : sl;
-   signal phyClock     : sl;
-   signal phyReset     : sl;
+   signal refClockDiv2 : sl := '0';
+   signal refClock     : sl := '0';
+   signal refClk       : sl := '0';
+   signal phyClock     : sl := '0';
+   signal phyReset     : sl := '0';
    
 begin
 
@@ -71,14 +71,16 @@ begin
          rst     => extRst,
          dataIn  => '0',
          dataOut => phyReset);    
-
-   IBUFDS_GTE2_Inst : IBUFDS_GTE2
-      port map (
-         I     => gtClkP,
-         IB    => gtClkN,
-         CEB   => '0',
-         ODIV2 => refClockDiv2,
-         O     => refClock);  
+         
+   GEN_IBUFDS_GTE2 : if (USE_GTREFCLK_G = false) generate
+      IBUFDS_GTE2_Inst : IBUFDS_GTE2
+         port map (
+            I     => gtClkP,
+            IB    => gtClkN,
+            CEB   => '0',
+            ODIV2 => refClockDiv2,
+            O     => refClock);
+   end generate;
 
    refClk <= gtRefClk when (USE_GTREFCLK_G) else refClockDiv2 when(REFCLK_DIV2_G) else refClock;
 

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2015-09-08
+-- Last update: 2015-11-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -84,14 +84,14 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn(0)            => status.phyReady,
-         statusIn(1)            => status.phyStatus.rxPauseReq,
-         statusIn(2)            => status.phyStatus.rxPauseSet,
-         statusIn(3)            => status.phyStatus.rxCountEn,
-         statusIn(4)            => status.phyStatus.rxOverFlow,
-         statusIn(5)            => status.phyStatus.rxCrcError,
-         statusIn(6)            => status.phyStatus.txCountEn,
-         statusIn(7)            => status.phyStatus.txUnderRun,
-         statusIn(8)            => status.phyStatus.txLinkNotReady,
+         statusIn(1)            => status.macStatus.rxPauseCnt,
+         statusIn(2)            => status.macStatus.txPauseCnt,
+         statusIn(3)            => status.macStatus.rxCountEn,
+         statusIn(4)            => status.macStatus.rxOverFlow,
+         statusIn(5)            => status.macStatus.rxCrcErrorCnt,
+         statusIn(6)            => status.macStatus.txCountEn,
+         statusIn(7)            => status.macStatus.txUnderRunCnt,
+         statusIn(8)            => status.macStatus.txNotReadyCnt,
          statusIn(9)            => status.areset,
          statusIn(10)           => status.clkLock,
          statusIn(18 downto 11) => status.statusVector,
@@ -109,7 +109,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac, r, status, statusOut) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac, r, statusOut) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
       variable rdPntr    : natural;
@@ -159,19 +159,21 @@ begin
       -- Register Mapping
       axiSlaveRegisterR("0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
       axiSlaveRegisterR(x"100", 0, statusOut);
-      axiSlaveRegisterR(x"104", 0, status.phyStatus.rxPauseValue);
+      --axiSlaveRegisterR(x"104", 0, status.macStatus.rxPauseValue);
 
-      axiSlaveRegisterW(x"200", 0, v.config.phyConfig.macAddress(31 downto 0));
-      axiSlaveRegisterW(x"204", 0, v.config.phyConfig.macAddress(47 downto 32));
-      axiSlaveRegisterW(x"208", 0, v.config.phyConfig.byteSwap);
+      axiSlaveRegisterW(x"200", 0, v.config.macConfig.macAddress(31 downto 0));
+      axiSlaveRegisterW(x"204", 0, v.config.macConfig.macAddress(47 downto 32));
+      --axiSlaveRegisterW(x"208", 0, v.config.macConfig.byteSwap);
 
-      axiSlaveRegisterW(x"210", 0, v.config.phyConfig.txShift);
-      axiSlaveRegisterW(x"214", 0, v.config.phyConfig.txShiftEn);
-      axiSlaveRegisterW(x"218", 0, v.config.phyConfig.txInterFrameGap);
-      axiSlaveRegisterW(x"21C", 0, v.config.phyConfig.txPauseTime);
+      --axiSlaveRegisterW(x"210", 0, v.config.macConfig.txShift);
+      --axiSlaveRegisterW(x"214", 0, v.config.macConfig.txShiftEn);
+      axiSlaveRegisterW(x"218", 0, v.config.macConfig.interFrameGap);
+      axiSlaveRegisterW(x"21C", 0, v.config.macConfig.pauseTime);
 
-      axiSlaveRegisterW(x"220", 0, v.config.phyConfig.rxShift);
-      axiSlaveRegisterW(x"224", 0, v.config.phyConfig.rxShiftEn);
+      --axiSlaveRegisterW(x"220", 0, v.config.macConfig.rxShift);
+      --axiSlaveRegisterW(x"224", 0, v.config.macConfig.rxShiftEn);
+      axiSlaveRegisterW(x"228", 0, v.config.macConfig.filtEnable);
+      axiSlaveRegisterW(x"22C", 0, v.config.macConfig.pauseEnable);
 
       axiSlaveRegisterW(x"230", 0, v.config.configVector);
 
@@ -194,7 +196,7 @@ begin
       end if;
 
       -- Update the MAC address
-      v.config.phyConfig.macAddress := localMac;
+      v.config.macConfig.macAddress := localMac;
 
       -- Register the variable for next clock cycle
       rin <= v;
@@ -221,31 +223,43 @@ begin
          DATA_WIDTH_G => 48)
       port map (
          wr_clk => axiClk,
-         din    => r.config.phyConfig.macAddress,
+         din    => r.config.macConfig.macAddress,
          rd_clk => phyClk,
-         dout   => config.phyConfig.macAddress); 
+         dout   => config.macConfig.macAddress); 
 
-   SyncIn_phyConfig : entity work.SynchronizerFifo
+   SyncIn_pauseTime : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 31)
+         DATA_WIDTH_G => 16)
       port map (
-         wr_clk             => axiClk,
-         din(0)             => r.config.phyConfig.byteSwap,
-         din(4 downto 1)    => r.config.phyConfig.txShift,
-         din(5)             => r.config.phyConfig.txShiftEn,
-         din(9 downto 6)    => r.config.phyConfig.txInterFrameGap,
-         din(25 downto 10)  => r.config.phyConfig.txPauseTime,
-         din(29 downto 26)  => r.config.phyConfig.rxShift,
-         din(30)            => r.config.phyConfig.rxShiftEn,
-         rd_clk             => phyClk,
-         dout(0)            => config.phyConfig.byteSwap,
-         dout(4 downto 1)   => config.phyConfig.txShift,
-         dout(5)            => config.phyConfig.txShiftEn,
-         dout(9 downto 6)   => config.phyConfig.txInterFrameGap,
-         dout(25 downto 10) => config.phyConfig.txPauseTime,
-         dout(29 downto 26) => config.phyConfig.rxShift,
-         dout(30)           => config.phyConfig.rxShiftEn);            
+         wr_clk => axiClk,
+         din    => r.config.macConfig.pauseTime,
+         rd_clk => phyClk,
+         dout   => config.macConfig.pauseTime);          
+
+   SyncIn_macConfig : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 17)
+      port map (
+         wr_clk            => axiClk,
+         din(3 downto 0)   => r.config.macConfig.interFrameGap,
+         din(7 downto 4)   => r.config.macConfig.txShift,
+         din(11 downto 8)  => r.config.macConfig.rxShift,
+         din(12)           => r.config.macConfig.filtEnable,
+         din(13)           => r.config.macConfig.pauseEnable,
+         din(14)           => r.config.macConfig.ipCsumEn,
+         din(15)           => r.config.macConfig.tcpCsumEn,
+         din(16)           => r.config.macConfig.udpCsumEn,
+         rd_clk            => phyClk,
+         dout(3 downto 0)  => config.macConfig.interFrameGap,
+         dout(7 downto 4)  => config.macConfig.txShift,
+         dout(11 downto 8) => config.macConfig.rxShift,
+         dout(12)          => config.macConfig.filtEnable,
+         dout(13)          => config.macConfig.pauseEnable,
+         dout(14)          => config.macConfig.ipCsumEn,
+         dout(15)          => config.macConfig.tcpCsumEn,
+         dout(16)          => config.macConfig.udpCsumEn);
 
    SyncIn_configVector : entity work.SynchronizerFifo
       generic map (

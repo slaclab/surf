@@ -116,7 +116,6 @@ begin
          ERR_BIT_G        => ERR_BIT_G,
          HEADER_SIZE_G    => HEADER_SIZE_G,
          SHIFT_EN_G       => SHIFT_EN_G,
-         MAC_ADDR_G       => MAC_ADDR_G,
          -- AXI-Lite Configurations
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          -- AXI Streaming Configurations
