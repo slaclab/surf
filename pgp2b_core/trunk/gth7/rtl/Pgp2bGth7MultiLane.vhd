@@ -150,11 +150,6 @@ architecture rtl of Pgp2bGth7MultiLane is
    signal gtTxUserResetIn : sl;
    signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
-
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      U_Pgp2bLane,
-      Gth7Core_Inst : label is "TRUE";
    
 begin
 
@@ -204,7 +199,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Generate the GTX channels
    --------------------------------------------------------------------------------------------------
-   GTX7_CORE_GEN : for i in (LANE_CNT_G-1) downto 0 generate
+   GTH7_CORE_GEN : for i in (LANE_CNT_G-1) downto 0 generate
       -- Channel Bonding
 --      gtx(i).rxChBondLevel         <= conv_std_logic_vector((LANE_CNT_G-1-i), 3);
       Bond_Master : if (i = 0) generate
@@ -352,5 +347,5 @@ begin
             loopbackIn       => pgpRxIn.loopback);
 
 
-   end generate GTX7_CORE_GEN;
+   end generate GTH7_CORE_GEN;
 end rtl;

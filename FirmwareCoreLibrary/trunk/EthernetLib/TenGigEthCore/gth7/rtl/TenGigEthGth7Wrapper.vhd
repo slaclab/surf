@@ -49,7 +49,7 @@ entity TenGigEthGth7Wrapper is
       AXI_ERROR_RESP_G  : slv(1 downto 0)                             := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       -- Note: Only support 64-bit AXIS configurations on the XMAC module
-      AXIS_CONFIG_G     : AxiStreamConfigArray(NUM_LANE_G-1 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
+      AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(47 downto 0)                        := (others => MAC_ADDR_INIT_C);

@@ -18,26 +18,26 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
-use work.XMacPkg.all;
+use work.EthMacPkg.all;
 
 package XauiPkg is
 
    -- Default MAC is 01:03:00:56:44:00
-   constant MAC_ADDR_INIT_C : slv(47 downto 0) := XMAC_ADDR_INIT_C;
+   constant MAC_ADDR_INIT_C : slv(47 downto 0) := EMAC_ADDR_INIT_C;
 
    type XauiConfig is record
       softRst      : sl;
-      phyConfig    : XMacConfig;
+      macConfig    : EthMacConfigType;
       configVector : slv(6 downto 0);
    end record;
    constant XAUI_CONFIG_INIT_C : XauiConfig := (
       softRst      => '0',
-      phyConfig    => XMAC_CONFIG_INIT_C,
+      macConfig    => ETH_MAC_CONFIG_INIT_C,
       configVector => (others => '0'));
 
    type XauiStatus is record
       phyReady     : sl;
-      phyStatus    : XMacStatus;
+      macStatus    : EthMacStatusType;
       areset       : sl;
       clkLock      : sl;
       statusVector : slv(7 downto 0);

@@ -328,18 +328,6 @@ architecture rtl of Gth7Core is
    signal txCharIsKFull,
       txCharDispMode,
       txCharDispVal : slv(7 downto 0) := (others => '0');
-   
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      Gth7RxRst_Inst,
-      RstSync_RxResetDone,
-      Gth7RecClkMonitor_Inst,
-      Gth7AutoPhaseAligner_Rx,
-      Gth7RxFixedLatPhaseAligner_Inst,
-      Gth7TxRst_Inst,
-      RstSync_Tx,
-      PhaseAlign_Tx,
-      Gth7TxManualPhaseAligner_1 : label is "TRUE";
 
    -- DRP Signals
    signal drpAddr : slv(8 downto 0);
