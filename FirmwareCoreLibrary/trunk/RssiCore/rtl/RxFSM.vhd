@@ -49,6 +49,10 @@ entity RxFSM is
       -- Current received ackN
       rxAckN_o     : out slv(7 downto 0);
       
+      -- Last seqN receeived in order
+      inorderSeqN_o : out slv(7 downto 0);
+      
+      
       -- Valid Segment received (1 c-c)
       rxValidSeg_o : out sl;
       
@@ -108,7 +112,7 @@ architecture rtl of RxFSM is
       -- Transport side FSM (Receive and check segments)
       
       -- Counters
-      nextSeqN       : slv(7 downto 0); -- Next expected seqN
+      inorderSeqN    : slv(7 downto 0); -- Next expected seqN
       headerAddr     : slv(7 downto 0); 
       segmentAddr    : slv(SEGMENT_ADDR_SIZE_C downto 0);
       bufferAddr     : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
@@ -133,6 +137,7 @@ architecture rtl of RxFSM is
       
       -- SSI master
       tspSsiMaster   : SsiMasterType;
+      tspSsiSlave    : SsiSlaveType;
             
       -- State Machine
       tspState       : TspStateType;    
@@ -140,7 +145,7 @@ architecture rtl of RxFSM is
 
    constant REG_INIT_C : RegType := (
       --   
-      nextSeqN    => (others => '0'), -- Next expected seqN
+      inorderSeqN    => (others => '0'), -- Next expected seqN
       headerAddr  => (others => '0'),
       segmentAddr => (others => '0'),
       bufferAddr  => (others => '0'),
@@ -165,6 +170,7 @@ architecture rtl of RxFSM is
 
       -- SSI master 
       tspSsiMaster => SSI_MASTER_INIT_C,
+      tspSsiSlave  => SSI_SLAVE_NOTRDY_C,
 
       -- State Machine
       tspState => WAIT_SOF_S
@@ -203,17 +209,9 @@ begin
             v.headerAddr  := (others => '0');
             v.segmentAddr := (others => '0');
             v.bufferAddr  := (others => '0');
-            
-            -- Set the initial sequence number
-            -- when SYN segment received
-            if (connActive_i = '0') then
-               v.nextSeqN    := r.rxSeqN+1;
-            else
-               v.nextSeqN    := r.nextSeqN;
-            end if;
-            
+                        
             -- Ready until SOF received
-            tspSsiSlave_o <= SSI_SLAVE_RDY_C;
+            v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
             
             -- Checksum commands
             v.chkEn    := '0';
@@ -229,7 +227,7 @@ begin
                v.chkStb      := '1';
 
                -- When SOF has been received dessert ready until package is checked 
-               tspSsiSlave_o <= SSI_SLAVE_NOTRDY_C;
+               v.tspSsiSlave := SSI_SLAVE_RDY_C;
                
                -- If the packet is longer than one set the data flag
                if (tspSsiMaster_i.eof = '1') then
@@ -248,19 +246,21 @@ begin
             v.segDrop    := '0';
             
             -- Hold incoming AXI stream
-            tspSsiSlave_o <= SSI_SLAVE_NOTRDY_C;
-         
-            -- Register flags, header length and SEQn
-            v.rxF.syn  := r.tspSsiMaster.data (63);
-            v.rxF.ack  := r.tspSsiMaster.data (62);
-            v.rxF.eack := r.tspSsiMaster.data (61);
-            v.rxF.rst  := r.tspSsiMaster.data (60);
-            v.rxF.nul  := r.tspSsiMaster.data (59);
-            v.rxF.busy := r.tspSsiMaster.data (56);
+            v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
             
-            v.rxHeadLen := r.tspSsiMaster.data (55 downto 48);
-            v.rxSeqN    := r.tspSsiMaster.data (47 downto 40);
-            v.rxAckN    := r.tspSsiMaster.data (39 downto 32);
+            if (r.tspSsiMaster.valid = '1') then
+               -- Register flags, header length and SEQn
+               v.rxF.syn  := r.tspSsiMaster.data (63);
+               v.rxF.ack  := r.tspSsiMaster.data (62);
+               v.rxF.eack := r.tspSsiMaster.data (61);
+               v.rxF.rst  := r.tspSsiMaster.data (60);
+               v.rxF.nul  := r.tspSsiMaster.data (59);
+               v.rxF.busy := r.tspSsiMaster.data (56);
+               
+               v.rxHeadLen := r.tspSsiMaster.data (55 downto 48);
+               v.rxSeqN    := r.tspSsiMaster.data (47 downto 40);
+               v.rxAckN    := r.tspSsiMaster.data (39 downto 32);
+            end if;
             
             -- Checksum commands
             v.chkEn    := '1';
@@ -287,9 +287,9 @@ begin
                   -- Check length
                   r.rxHeadLen = toSlv(8, 8)                  and
                   -- Check SeqN AckN range
-                  r.rxSeqN    >= r.nextSeqN                  and 
-                  r.rxSeqN    <  r.nextSeqN + rxWindowSize_i and
-                  r.rxAckN    >= nextAckN_i                  and
+                  r.rxSeqN    >= r.inOrderSeqN                  and 
+                  r.rxSeqN    <  r.inOrderSeqN + rxWindowSize_i and
+                  r.rxAckN    >= nextAckN_i -1                  and
                   r.rxAckN    <  nextAckN_i + txWindowSize_i
                ) then
                   -- Header is valid                
@@ -305,15 +305,15 @@ begin
                      --
             v.segValid   := '0';
             v.segDrop    := '0';
-            
+                        
             -- Get the rest of the SYN header
-            tspSsiSlave_o <= SSI_SLAVE_RDY_C;
-            
             if (tspSsiMaster_i.valid = '1') then
                v.chkStb      := '1';
+               v.tspSsiSlave := SSI_SLAVE_RDY_C;
                v.headerAddr  := r.headerAddr + 1;
             else
                v.chkStb      := '0';
+               v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
                v.headerAddr  := r.headerAddr;
             end if;
             
@@ -330,15 +330,19 @@ begin
             if (r.headerAddr = x"02" ) then
                v.chkStb      := '0';
                v.headerAddr  := r.headerAddr;
-               tspSsiSlave_o <= SSI_SLAVE_NOTRDY_C;
-               
+                              
                if (r.tspSsiMaster.valid = '1') then
+                 
                   -- Syn parameters
                   v.rxParam.maxRetrans  := r.tspSsiMaster.data (63 downto 56);
                   v.rxParam.maxCumAck   := r.tspSsiMaster.data (55 downto 48);
                   v.rxParam.maxOutofseq := r.tspSsiMaster.data (47 downto 40);
                   v.rxParam.maxAutoRst  := r.tspSsiMaster.data (39 downto 32);
                   v.rxParam.connectionId:= r.tspSsiMaster.data (31 downto 16);
+                  
+                  v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
+               else
+                  v.tspSsiSlave := r.tspSsiSlave;
                end if;
                
                -- Wait for checksum
@@ -367,7 +371,19 @@ begin
             v.chkEn    := '0';
             v.chkStb   := '0';
             --
-            tspSsiSlave_o <= SSI_SLAVE_NOTRDY_C;
+            v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
+            
+            
+            -- Set the initial sequence number
+            -- when SYN segment received
+            if (connActive_i = '0' and  r.rxF.syn = '1') then
+               v.inOrderSeqN    := r.rxSeqN;
+            -- Check if next valid SEQn is received and increment the 
+            elsif (r.rxSeqN  = r.inOrderSeqN+1) then
+               v.inOrderSeqN := r.inOrderSeqN+1;
+            else
+               v.inOrderSeqN := r.inOrderSeqN;
+            end if;
             
             -- Next state condition
             if (r.rxF.syn = '0' and r.rxF.eack = '0' and r.rxF.data = '1') then
@@ -387,7 +403,7 @@ begin
             v.chkEn    := '0';
             v.chkStb   := '0';
             --
-            tspSsiSlave_o <= SSI_SLAVE_NOTRDY_C;
+            v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
             
             -- Get ready to receive new packet
             v.tspState    := WAIT_SOF_S;
@@ -396,8 +412,7 @@ begin
          when others =>
             --
             v := REG_INIT_C;
-            --
-            tspSsiSlave_o <= SSI_SLAVE_NOTRDY_C;            
+           
       ----------------------------------------------------------------------
       end case;
       
@@ -407,6 +422,8 @@ begin
       end if;
       
       rin <= v;
+      
+      tspSsiSlave_o <= v.tspSsiSlave;
       -----------------------------------------------------------
    end process comb;
 
@@ -420,12 +437,13 @@ begin
    ---------------------------------------------------------------------
    -- Write and read ports
    wrBuffAddr_o   <= r.bufferAddr & r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
-   wrBuffData_o   <= (others =>'0');
+   wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
    rdBuffAddr_o   <= (others =>'0');
    
    -- Assign outputs
    rxFlags_o      <= r.rxF;
    rxSeqN_o       <= r.rxSeqN;
+   inOrderSeqN_o  <= r.inOrderSeqN;
    rxAckN_o       <= r.rxAckN;
    rxValidSeg_o   <= r.segValid;
    rxDropSeg_o    <= r.segDrop;
