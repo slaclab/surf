@@ -86,8 +86,9 @@ end entity TxBuffer;
 architecture rtl of TxBuffer is
    
    -- Init SSI bus
-   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
-   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
+   constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
+   constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
+   constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
    
    type stateType is (
       IDLE_S,
@@ -150,7 +151,7 @@ architecture rtl of TxBuffer is
       ssiBusy         => '0',
       
       ssiMaster      => SSI_MASTER_INIT_C,     
-      ssiSlave       => SSI_SLAVE_INIT_C,
+      ssiSlave       => SSI_SLAVE_NOTRDY_C,
       
       -- State Machine
       ackState        => IDLE_S,
@@ -352,9 +353,7 @@ begin
          when IDLE_S =>
          
             -- SSI
-            v.ssiSlave.ready      := '0';
-            v.ssiSlave.pause      := '1';       
-            v.ssiSlave.overflow   := '0';
+            v.ssiSlave := SSI_SLAVE_NOTRDY_C;
             
             -- Buffer write ctl
             v.segmentAddr := (others =>'0');
@@ -373,9 +372,7 @@ begin
          when WAIT_SOF_S =>
          
             -- SSI Ready to receive data from APP
-            v.ssiSlave.ready      := '1';
-            v.ssiSlave.pause      := '0';
-            v.ssiSlave.overflow   := '0';
+            v.ssiSlave := SSI_SLAVE_RDY_C;
             
             -- Buffer write ctl
             v.segmentAddr := (others =>'0');
@@ -428,14 +425,9 @@ begin
          when SEG_RCV_S =>
          
             -- SSI
-            v.ssiSlave.ready      := '1';
-            v.ssiSlave.pause      := '0';
-            v.ssiSlave.overflow   := '0';
+            v.ssiSlave := SSI_SLAVE_RDY_C;
                         
             -- Buffer write if data valid 
-            -- TODO: Check if this condition holds appSsiMaster_i.sof = '0'
-            --       Inserted because the SOF did not drop immediately in HDL sim
-            --if (appSsiMaster_i.valid = '1' and appSsiMaster_i.sof = '0') then
             if (appSsiMaster_i.valid = '1') then            
                v.segmentAddr := r.segmentAddr + 1;
                v.segmentWe           := '1';
@@ -458,9 +450,7 @@ begin
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.segmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0)+1;
-               v.ssiSlave.ready      := '0';
-               v.ssiSlave.pause      := '1';       
-               v.ssiSlave.overflow   := '0';              
+               v.ssiSlave := SSI_SLAVE_NOTRDY_C;              
 
                v.ssiState    := SEG_RDY_S;        
             elsif (r.segmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
@@ -471,9 +461,7 @@ begin
          when SEG_RDY_S =>
             
             -- SSI
-            v.ssiSlave.ready      := '0';
-            v.ssiSlave.pause      := '1';       
-            v.ssiSlave.overflow   := '0';
+            v.ssiSlave := SSI_SLAVE_NOTRDY_C;
             
             v.segmentAddr := (others =>'0');
             v.segmentWe   := '0';
@@ -491,9 +479,7 @@ begin
          when WAIT_TX_S => 
          
             -- SSI
-            v.ssiSlave.ready      := '0';
-            v.ssiSlave.pause      := '1';       
-            v.ssiSlave.overflow   := '0';
+            v.ssiSlave := SSI_SLAVE_NOTRDY_C;
             
             v.segmentAddr := (others =>'0');
             v.segmentWe   := '0';
@@ -511,8 +497,7 @@ begin
          when SEG_LEN_ERR => 
          
             -- SSI
-            v.ssiSlave.ready      := '0';
-            v.ssiSlave.pause      := '1';
+            v.ssiSlave := SSI_SLAVE_NOTRDY_C;
             -- Overflow happened (packet too big)            
             v.ssiSlave.overflow   := '1';
             

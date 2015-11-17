@@ -77,6 +77,8 @@ architecture testbed of RssiCoreTb is
    -- Internal AXIStream
    signal   mAxisMaster    : AxiStreamMasterType; 
    signal   mAxisSlave     : AxiStreamSlaveType;
+   signal   sAxisMaster    : AxiStreamMasterType; 
+   signal   sAxisSlave     : AxiStreamSlaveType;
    
    signal   s_trig : sl := '0';
    
@@ -86,9 +88,13 @@ architecture testbed of RssiCoreTb is
    constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave (RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);   
 ------
 begin
-   -- 
+   -- Prbs TX
    sAppSsiMaster0 <= axis2SsiMaster(RSSI_AXI_CONFIG_C, mAxisMaster);
    mAxisSlave     <= ssi2AxisSlave(sAppSsiSlave0);
+   
+   -- Prbs RX
+   sAxisMaster    <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, mAppSsiMaster1);
+   mAppSsiSlave1  <= axis2SsiSlave(RSSI_AXI_CONFIG_C, sAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
    
    -- Generate clocks and resets
    DDR_ClkRst_Inst : entity work.ClkRst
@@ -153,13 +159,13 @@ begin
       sndNull_i      => s_sndNull1,
       initSeqN_i     => x"80",
       
-      -- PRBS TX
-      sAppSsiMaster_i => sAppSsiMaster1, -- Loopback
-      sAppSsiSlave_o  => sAppSsiSlave1,  -- Loopback
+      -- 
+      sAppSsiMaster_i => sAppSsiMaster1, -- Loopback -- open
+      sAppSsiSlave_o  => sAppSsiSlave1,  -- Loopback -- open
       
-      -- PRBS RX 
-      mAppSsiMaster_o => mAppSsiMaster1, -- Loopback
-      mAppSsiSlave_i  => mAppSsiSlave1,  -- Loopback
+      -- 
+      mAppSsiMaster_o => mAppSsiMaster1, -- Loopback -- prbs rx
+      mAppSsiSlave_i  => mAppSsiSlave1,  -- Loopback -- prbs rx
       
       -- 
       sTspSsiMaster_i => sTspSsiMaster, --<-- From Peer
@@ -171,10 +177,11 @@ begin
 
    ---------------------------------------
    -- RSSI 1 Loopback connection
-   sAppSsiMaster1 <= mAppSsiMaster1;
-   mAppSsiSlave1  <= sAppSsiSlave1;
+   --sAppSsiMaster1 <= mAppSsiMaster1;
+   --mAppSsiSlave1  <= sAppSsiSlave1;
+   sAppSsiMaster1 <= SSI_MASTER_INIT_C;
 
-   ------Application side data PRBS---------------------------
+   ------Application side data PRBS Tx---------------------------
     
    SsiPrbsTx_INST: entity work.SsiPrbsTx
    generic map (
@@ -207,6 +214,53 @@ begin
       --axilWriteMaster => ,
       --axilWriteSlave  => 
    );
+   
+   ------Application side data PRBS Rx---------------------------
+   SsiPrbsRx_INST: entity work.SsiPrbsRx
+   generic map (
+      TPD_G                      => TPD_C,
+
+      XIL_DEVICE_G               => "ULTRASCALE",
+      CASCADE_SIZE_G             => 1,
+      FIFO_ADDR_WIDTH_G          => 9,
+      FIFO_PAUSE_THRESH_G        => 2**8,
+      PRBS_SEED_SIZE_G           => 32,
+      PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
+      SLAVE_AXI_STREAM_CONFIG_G  => RSSI_AXI_CONFIG_C,
+      SLAVE_AXI_PIPE_STAGES_G    => 1)
+   port map (
+      sAxisClk        => clk_i,
+      sAxisRst        => rst_i,
+      sAxisMaster     => sAxisMaster,
+      sAxisSlave      => sAxisSlave,
+      sAxisCtrl       => open,
+      mAxisClk        => clk_i,
+      mAxisRst        => rst_i,
+      --mAxisMaster     => mAxisMaster,
+      --mAxisSlave      => mAxisSlave,
+      --axiClk          => clk_i,
+      --axiRst          => rst_i,
+      --axiReadMaster   => axiReadMaster,
+      --axiReadSlave    => axiReadSlave,
+      --axiWriteMaster  => axiWriteMaster,
+      --axiWriteSlave   => axiWriteSlave,
+      updatedResults  => open,
+      errorDet        => open,
+      busy            => open,
+      errMissedPacket => open,
+      errLength       => open,
+      errDataBus      => open,
+      errEofe         => open,
+      errWordCnt      => open,
+      errbitCnt       => open,
+      packetRate      => open,
+      packetLength    => open);
+ 
+   
+   
+   
+   
+   
    
    -- tspReady : process
    -- begin  

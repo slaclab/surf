@@ -430,20 +430,28 @@ begin
             v.chkEn    := '0';
             v.chkStb   := '0';
             
-            --
+            -- Slave ready
             if (tspSsiMaster_i.valid = '1') then            
-               v.rxSegmentAddr := r.rxSegmentAddr + 1;
-               v.segmentWe   := '1';
                v.tspSsiSlave := SSI_SLAVE_RDY_C;
             else
-               v.rxSegmentAddr := r.rxSegmentAddr;
-               v.segmentWe   := '0';
                v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;               
+            end if;
+            
+            -- Write enable and segment address
+            if (tspSsiMaster_i.valid = '1' and r.tspSsiSlave.ready = '1') then            
+               v.rxSegmentAddr := r.rxSegmentAddr + 1;
+               v.segmentWe   := '1';
+            else
+               v.rxSegmentAddr := r.rxSegmentAddr;
+               v.segmentWe   := '0';             
             end if;
             
             -- Wait until receiving EOF 
             if (tspSsiMaster_i.eof = '1' and tspSsiMaster_i.valid = '1') then
-            
+               --
+               v.rxSegmentAddr := r.rxSegmentAddr;
+               v.tspSsiSlave   := SSI_SLAVE_NOTRDY_C;
+               
                -- Save SSI parameters
                v.windowArray(conv_integer(r.rxBufferAddr)).dest   := tspSsiMaster_i.dest;
                v.windowArray(conv_integer(r.rxBufferAddr)).strb   := tspSsiMaster_i.strb;
@@ -567,7 +575,7 @@ begin
                v.appSsiMaster.eofe   := '0';
                v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
                
-               if (appSsiSlave_i.ready = '1' and r.appSsiMaster.valid = '1') then
+               if (appSsiSlave_i.ready = '1') then
                   v.appState  := DATA_S;              
                end if;
                
@@ -616,9 +624,17 @@ begin
          ----------------------------------------------------------------------
          when SENT_S =>
          
-            -- Counters 
-            v.txBufferAddr  := r.txBufferAddr+1; -- Increment once
+            -- Counters
+            if r.txBufferAddr < (rxWindowSize_i-1) then
+               v.txBufferAddr  := r.txBufferAddr+1; -- Increment once
+            else
+               v.txBufferAddr := (others => '0');
+            end if;
+
+            v.windowArray(conv_integer(r.txBufferAddr)).occupied := '0'; -- Release buffer
+            
             v.txSegmentAddr := (others => '0');
+            
             
             -- SSI parameters
             -- Init the master no SSI communication
