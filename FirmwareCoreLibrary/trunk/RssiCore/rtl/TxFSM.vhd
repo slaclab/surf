@@ -367,7 +367,6 @@ begin
                if (chksumValid_i = '1') then             
                   v.ssiMaster.valid  := '1';
        
-                  v.ssiMaster.sof    := '0';
                   v.ssiMaster.strb   := (others => '1');
                   v.ssiMaster.keep   := (others => '1');
                   v.ssiMaster.dest   := (others => '0');
@@ -378,7 +377,7 @@ begin
                   
                   -- Wait for the peer to be ready
                   if (tspSsiSlave_i.ready = '1' and r.ssiMaster.valid  = '1') then
-                     -- SSI Master init (if not ready)
+                     -- SSI Master init
                      v.ssiMaster := SSI_MASTER_INIT_C;
                      -- Next state            
                      v.state   := INIT_S;

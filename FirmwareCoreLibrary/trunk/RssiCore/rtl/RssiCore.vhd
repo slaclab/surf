@@ -157,7 +157,8 @@ architecture rtl of RssiCore is
    
    -- Rx segment buffer
    signal s_rxWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
-   signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);      
+   signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+   signal s_rxWrBuffWe   : sl;
    signal s_rxRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
                        
@@ -336,6 +337,7 @@ begin
       chksumEnable_o => s_rxChkEnable,
       chksumStrobe_o => s_rxChkStrobe,
       chksumLength_o => s_rxChkLength,
+      wrBuffWe_o     => s_rxWrBuffWe,
       wrBuffAddr_o   => s_rxWrBuffAddr,
       wrBuffData_o   => s_rxWrBuffData,
       rdBuffAddr_o   => s_rxRdBuffAddr,
@@ -344,7 +346,27 @@ begin
       tspSsiSlave_o  => sTspSsiSlave_o,
       appSsiMaster_o => mAppSsiMaster_o,
       appSsiSlave_i  => mAppSsiSlave_i);
-   
+      
+   -- Rx buffer RAM 
+   RxBuffer_INST: entity work.SimpleDualPortRam
+   generic map (
+      TPD_G          => TPD_G,
+      DATA_WIDTH_G   => RSSI_WORD_WIDTH_C*8,
+      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)
+   )
+   port map (
+      -- Port A - Write only
+      clka  => clk_i,
+      wea   => s_rxWrBuffWe,
+      addra => s_rxWrBuffAddr,
+      dina  => s_rxWrBuffData,
+      
+      -- Port B - Read only
+      clkb  => clk_i,
+      rstb  => rst_i,
+      addrb => s_rxRdBuffAddr,
+      doutb => s_rxRdBuffData);
+
    -- Acknowledge valid packet
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and connActive_i;
    
