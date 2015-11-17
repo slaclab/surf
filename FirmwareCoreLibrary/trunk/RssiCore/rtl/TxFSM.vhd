@@ -112,9 +112,10 @@ entity TxFSM is
 end entity TxFSM;
 
 architecture rtl of TxFSM is
+
    -- Init SSI bus
    constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
-   
+  
    type stateType is (
       --
       INIT_S,
@@ -213,10 +214,7 @@ begin
 
    begin
       v := r;
-      
-      -- Pipeline header address
-      v.segmentAddrD1 := r.segmentAddr;
-      
+     
       ------------------------------------------------------------
       -- TX FSM
       ------------------------------------------------------------      
