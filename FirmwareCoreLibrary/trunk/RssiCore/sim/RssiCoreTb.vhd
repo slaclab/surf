@@ -261,12 +261,6 @@ begin
       wait for CLK_PERIOD_C*1;
       s_sndNull0 <= '0';
       
-      -- Request Ack package 0
-      wait for CLK_PERIOD_C*101;
-      s_sndAck1 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndAck1 <= '0';
-
       -- Request Rst package 0
       wait for CLK_PERIOD_C*103;
       s_sndRst0 <= '1';
@@ -278,6 +272,12 @@ begin
       -- Enable PRBS
       s_trig <= '1';
       -------------------------------------------------------
+      
+      -- Request Ack package 0
+      wait for CLK_PERIOD_C*5000;
+      s_sndAck1 <= '1';
+      wait for CLK_PERIOD_C*1;
+      s_sndAck1 <= '0';
       
       -- Resend unack
       wait for CLK_PERIOD_C*5000;

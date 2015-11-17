@@ -59,7 +59,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
       
       segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
-      ocupied               : sl;
+      occupied              : sl;
    end record TxWindowType;
    
    constant TX_WINDOW_INIT_C : TxWindowType := (
@@ -71,7 +71,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       keep                  => (others => '1'), 
       dest                  => (others => '0'), 
       segSize               => (others => '0'),
-      ocupied               => '0'
+      occupied              => '0'
    );
    
    type RxWindowType is record
@@ -86,7 +86,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
       
       segSize               : slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
-      ocupied               : sl;
+      occupied              : sl;
    end record RxWindowType;
    
    constant RX_WINDOW_INIT_C : RxWindowType := (
@@ -98,7 +98,7 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       keep                  => (others => '1'), 
       dest                  => (others => '0'), 
       segSize               => (others => '0'),
-      ocupied               => '0'
+      occupied              => '0'
    ); 
 
    type TxWindowTypeArray is array (natural range<>) of TxWindowType;

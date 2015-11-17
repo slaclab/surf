@@ -106,7 +106,6 @@ architecture rtl of TxBuffer is
       firstUnackAddr : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       nextSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
-      nextAckN       : slv(7 downto 0);
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;      
       bufferFull     : sl;
@@ -135,7 +134,6 @@ architecture rtl of TxBuffer is
       firstUnackAddr => (others => '0'),
       lastSentAddr   => (others => '0'),
       nextSentAddr   => (others => '0'),
-      nextAckN       =>  nextSeqN_i,
       
       --eackAddr       => (others => '0'),
       --eackIndex      => 0,
@@ -202,7 +200,7 @@ begin
       v := r;
       ------------------------------------------------------------
       -- Buffer full if next slot is occupied
-      if ( r.windowArray(conv_integer(r.nextSentAddr)).ocupied = '1') then
+      if ( r.windowArray(conv_integer(r.nextSentAddr)).occupied = '1') then
          v.bufferFull := '1';
       else
          v.bufferFull := '0';
@@ -210,7 +208,7 @@ begin
       
       ------------------------------------------------------------
       -- Buffer empty if next unacknowledged slot is unoccupied
-      if ( r.windowArray(conv_integer(r.firstUnackAddr)).ocupied = '0') then
+      if ( r.windowArray(conv_integer(r.firstUnackAddr)).occupied = '0') then
          v.bufferEmpty := '1';
       else
          v.bufferEmpty := '0';
@@ -222,7 +220,7 @@ begin
       if (we_i = '1') then
          v.windowArray(conv_integer(r.nextSentAddr)).seqN    := nextSeqN_i;
          v.windowArray(conv_integer(r.nextSentAddr)).segType := rstHeadSt_i & nullHeadSt_i & dataHeadSt_i;
-         v.windowArray(conv_integer(r.nextSentAddr)).ocupied := '1';
+         v.windowArray(conv_integer(r.nextSentAddr)).occupied := '1';
          
          -- Update last sent address when new segment is being sent
          v.lastSentAddr := r.nextSentAddr;   
@@ -279,7 +277,7 @@ begin
             -- v.eackIndex      := 0;
             v.ackErr         := '0';
             
-            v.windowArray(conv_integer(r.firstUnackAddr)).ocupied := '0';
+            v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';
             
             -- Next state condition            
             if (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN /= ackN_i) then  
@@ -431,7 +429,7 @@ begin
          
             -- SSI
             v.ssiSlave.ready      := '1';
-            v.ssiSlave.pause      := '0';       
+            v.ssiSlave.pause      := '0';
             v.ssiSlave.overflow   := '0';
                         
             -- Buffer write if data valid 
