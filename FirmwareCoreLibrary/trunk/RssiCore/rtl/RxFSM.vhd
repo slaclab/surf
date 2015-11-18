@@ -108,19 +108,17 @@ architecture rtl of RxFSM is
       DATA_S
    );
    
-   
    type AppStateType is (
       --
       CHECK_BUFFER_S,
       DATA_S,
       SENT_S
-   );   
-   
-   
+   );  
+
    type RegType is record
       
       -- Resception buffer window
-      windowArray    : RxWindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);      
+      windowArray    : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);      
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------
@@ -174,7 +172,7 @@ architecture rtl of RxFSM is
    constant REG_INIT_C : RegType := (
       
       -- Rx buffer window
-      windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => RX_WINDOW_INIT_C),
+      windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------   
@@ -231,7 +229,7 @@ begin
 
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, nextAckN_i, 
-                  txWindowSize_i, tspSsiMaster_i, connActive_i) is
+                  txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i) is
       
       variable v : RegType;
 
@@ -344,18 +342,23 @@ begin
                   r.rxAckN    <  nextAckN_i + txWindowSize_i
                ) then
                
-                  -- Wait if the buffer is free
-                  -- Note: Deadlock possibility!
-                  if (r.rxF.data = '1' and r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
-                      -- Go to data segment               
-                     v.tspState    := DATA_S;
+                  if (r.rxF.data = '1' ) then
+                     -- Wait if the buffer full
+                     -- Note: Deadlock possibility!
+                     if (r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
+                        -- Go to data segment               
+                        v.tspState    := DATA_S;
+                     else
+                        -- Wait for buffer to free
+                        v.tspState    := CHECK_S;                        
+                     end if;                         
                   else
                      -- Valid non data segment               
                      v.tspState    := VALID_S;
                   end if;
                else
-                  -- Header not valid                
-                  v.tspState    := DROP_S;               
+                  -- Header not valid
+                  v.tspState    := DROP_S;              
                end if;           
             end if;
             

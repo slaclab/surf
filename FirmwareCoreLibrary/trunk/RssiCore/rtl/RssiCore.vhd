@@ -98,6 +98,8 @@ architecture rtl of RssiCore is
    signal s_nullHeadSt   : sl;
    signal s_ackHeadSt    : sl;
    
+   signal s_windowSize : integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
+   
    -- Current transmitted or received SeqN and AckN   
    signal s_txSeqN    : slv(7  downto 0);
    signal s_txAckN    : slv(7  downto 0);   
@@ -105,42 +107,19 @@ architecture rtl of RssiCore is
    signal s_rxSeqN    : slv(7  downto 0);
    signal s_rxLastSeqN: slv(7  downto 0);   
    signal s_rxAckN    : slv(7  downto 0);
-   
-   -- Buffer
-   signal s_nextSeqN   : slv(7  downto 0);
-   signal s_nextAckN   : slv(7  downto 0);
-   signal s_bufferWe   : sl;
-   signal s_bufferSent : sl;
-   signal s_txRdy      : sl;
-   signal s_windowSize : integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
-   signal s_windowArray: TxWindowTypeArray(0 to 2 ** (WINDOW_ADDR_SIZE_G)-1);
-   signal s_bufferFull : sl;
-   signal s_bufferEmpty : sl;
-   signal s_ssiBusy    : sl;
-   signal s_init       : sl;
-   
-   signal s_firstUnackAddr : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
-   signal s_lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);  
-   signal s_nextSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0); 
-    
-    
-   -- TX Data sources
+   signal s_rxNextAckN: slv(7  downto 0);
+
+   -- TX Header
    signal s_headerAddr   : slv(7  downto 0);
    signal s_headerData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
    signal s_headerRdy    : sl;
-   signal s_bufferAddr   : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
-   signal s_bufferData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
-   signal s_chksumData   : slv(15  downto 0);
-   
-   -- TX FSM
-   signal s_sndData    : sl;
-   signal s_initSeqN   : slv(7  downto 0);
 
    -- Tx Checksum 
    signal s_txChkEnable : sl;
    signal s_txChkValid  : sl;
    signal s_txChkStrobe : sl;
    signal s_txChkLength : positive;
+   signal s_txChksum   : slv(15  downto 0);
    
    -- Rx Checksum 
    signal s_rxChkEnable : sl;
@@ -161,7 +140,14 @@ architecture rtl of RssiCore is
    signal s_rxWrBuffWe   : sl;
    signal s_rxRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
-                       
+   
+   -- Tx segment buffer
+   signal s_txWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+   signal s_txWrBuffWe   : sl;
+   signal s_txRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+
    -- Internal signals 
    
    -- Acknowledge pulse when valid segment 
@@ -189,12 +175,17 @@ begin
    s_headerValues.maxCumAck       <= toSlv(MAX_CUM_ACK_CNT_G, 8);
    s_headerValues.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
    s_headerValues.maxAutoRst      <= toSlv(MAX_AUTO_RST_CNT_G, 8);
-   
+   s_headerValues.version         <= toSlv(1, 4);
    s_headerValues.connectionId    <= x"BEEF"; -- TODO bring from connection negotiation Debug
    
    -- later will connect to parameter negotiation module   
    s_windowSize <= MAX_RX_NUM_OUTS_SEG_G;
-   s_init       <= not connActive_i;
+
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- TX part
+   ------------------------------------------------------------   
+   -- /////////////////////////////////////////////////////////       
    
    -- Header decoder module
    HeaderReg_INST: entity work.HeaderReg
@@ -224,41 +215,9 @@ begin
       headerData_o   => s_headerData,
       ready_o        => s_headerRdy,
       headerLength_o => s_txChkLength);
-
-   TxBuffer_INST: entity work.TxBuffer
-   generic map (
-      TPD_G             => TPD_G,
-      WINDOW_ADDR_SIZE_G=> WINDOW_ADDR_SIZE_G)
-   port map (
-      clk_i            => clk_i,
-      rst_i            => rst_i,
-      init_i           => s_init,
-      appSsiMaster_i   => sAppSsiMaster_i,
-      appSsiSlave_o    => sAppSsiSlave_o,
-      rdAddr_i         => s_bufferAddr,
-      rdData_o         => s_bufferData,
-      we_i             => s_bufferWe,
-      sent_i           => s_bufferSent,
-      txRdy_i          => s_txRdy,
-      rstHeadSt_i      => s_rstHeadSt,
-      dataHeadSt_i     => s_dataHeadSt,
-      nullHeadSt_i     => s_nullHeadSt,
-      windowSize_i     => s_windowSize,
-      nextSeqN_i       => s_nextSeqN,
-      nextAckN_o       => s_nextAckN,
-      ack_i            => s_rxAck,
-      ackN_i           => s_rxAckN,
-      txData_o         => s_sndData,
-      windowArray_o    => s_windowArray,
-      bufferFull_o     => s_bufferFull,
-      bufferEmpty_o    => s_bufferEmpty,
-      firstUnackAddr_o => s_firstUnackAddr,
-      lastSentAddr_o   => s_lastSentAddr,
-      nextSentAddr_o   => s_nextSentAddr,
-      ssiBusy_o        => s_ssiBusy,
-      lenErr_o         => s_lenErr,
-      ackErr_o         => s_ackErr);
-
+   
+   -- TX FSM
+   -----------------------------------------
    TxFSM_INST: entity work.TxFSM
    generic map (
       TPD_G              => TPD_G,
@@ -270,49 +229,103 @@ begin
       NULL_HEADER_SIZE_G => NULL_HEADER_SIZE_G,
       DATA_HEADER_SIZE_G => DATA_HEADER_SIZE_G)
    port map (
-      clk_i            => clk_i,
-      rst_i            => rst_i,
-      connActive_i     => connActive_i,
-      txSyn_i          => sndSyn_i,
-      txAck_i          => sndAck_i,
-      txRst_i          => sndRst_i,
-      txData_i         => s_sndData,
-      txResend_i       => sndResend_i,
-      txNull_i         => sndNull_i,
-      rdDataAddr_o     => s_bufferAddr,
-      rdHeaderAddr_o   => s_headerAddr,
-      we_o             => s_bufferWe,
-      sent_o           => s_bufferSent,
-      txRdy_o          => s_txRdy,
-      initSeqN_i       => initSeqN_i,
-      nextSeqN_o       => s_nextSeqN,
-      windowArray_i    => s_windowArray,
-      windowSize_i     => s_windowSize,
-      bufferFull_i     => s_bufferFull,
-      bufferEmpty_i    => s_bufferEmpty,
-      firstUnackAddr_i => s_firstUnackAddr,
-      lastSentAddr_i   => s_lastSentAddr,
-      nextSentAddr_i   => s_nextSentAddr,
-      ssiBusy_i        => s_ssiBusy,
-      txSeqN_o         => s_txSeqN,
-      synHeadSt_o      => s_synHeadSt,
-      ackHeadSt_o      => s_ackHeadSt,
-      dataHeadSt_o     => s_dataHeadSt,
-      dataSt_o         => open, -- may be used in the future otherwise remove
-      rstHeadSt_o      => s_rstHeadSt,
-      nullHeadSt_o     => s_nullHeadSt,
-      headerData_i     => s_headerData,
-      headerRdy_i      => s_headerRdy,
-      bufferData_i     => s_bufferData,
-      chksumData_i     => s_chksumData,
-      chksumValid_i    => s_txChkValid,
-      chksumEnable_o   => s_txChkEnable,
-      chksumStrobe_o   => s_txChkStrobe,
-      tspSsiSlave_i    => mTspSsiSlave_i,
-      tspSsiMaster_o   => s_mTspSsiMaster,
-      headerLength_i   => s_txChkLength);
+      clk_i          => clk_i,
+      rst_i          => rst_i,
+      connActive_i   => connActive_i,
+      sndSyn_i       => sndSyn_i,
+      sndAck_i       => sndAck_i,
+      sndRst_i       => sndRst_i,
+      sndResend_i    => sndResend_i,
+      sndNull_i      => sndNull_i,
+
+      windowSize_i   => s_windowSize,
+
+      wrBuffWe_o     => s_txWrBuffWe,
+      wrBuffAddr_o   => s_txWrBuffAddr,
+      wrBuffData_o   => s_txWrBuffData,
+      rdBuffAddr_o   => s_txRdBuffAddr,
+      rdBuffData_i   => s_txRdBuffData,
+
+      rdHeaderAddr_o => s_headerAddr,
+      rdHeaderData_i => s_headerData,
+      headerRdy_i    => s_headerRdy,
+      headerLength_i => s_txChkLength,
+                 
+      chksumValid_i  => s_txChkValid,
+      chksumEnable_o => s_txChkEnable,
+      chksumStrobe_o => s_txChkStrobe,
+      chksum_i       => s_txChksum,
+      
+      initSeqN_i     => initSeqN_i,
+
+      txSeqN_o       => s_txSeqN,
+      synHeadSt_o    => s_synHeadSt,
+      ackHeadSt_o    => s_ackHeadSt,
+      dataHeadSt_o   => s_dataHeadSt,
+      dataSt_o       => open, -- may be used in the future otherwise remove
+      rstHeadSt_o    => s_rstHeadSt,
+      nullHeadSt_o   => s_nullHeadSt,
+
+      nextAckN_o     => s_rxNextAckN,
+      ack_i          => s_rxAck,
+      ackN_i         => s_rxAckN,
+
+      appSsiMaster_i => sAppSsiMaster_i,
+      appSsiSlave_o  => sAppSsiSlave_o,
+      
+      tspSsiSlave_i  => mTspSsiSlave_i,
+      tspSsiMaster_o => s_mTspSsiMaster,
+      
+      lenErr_o       => s_lenErr,
+      ackErr_o       => s_ackErr);
    
-   mTspSsiMaster_o <= s_mTspSsiMaster;
+   -----------------------------------------------   
+   mTspSsiMaster_o <= s_mTspSsiMaster;  
+
+   -- Tx buffer RAM 
+   TxBuffer_INST: entity work.SimpleDualPortRam
+   generic map (
+      TPD_G          => TPD_G,
+      DATA_WIDTH_G   => RSSI_WORD_WIDTH_C*8,
+      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)
+   )
+   port map (
+      -- Port A - Write only
+      clka  => clk_i,
+      wea   => s_txWrBuffWe,
+      addra => s_txWrBuffAddr,
+      dina  => s_txWrBuffData,
+      
+      -- Port B - Read only
+      clkb  => clk_i,
+      rstb  => rst_i,
+      addrb => s_txRdBuffAddr,
+      doutb => s_txRdBuffData);
+      
+   tx_Chksum_INST: entity work.Chksum
+   generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => 64,
+      CSUM_WIDTH_G => 16
+   ) 
+   port map (
+      clk_i    => clk_i,
+      rst_i    => rst_i,
+      enable_i => s_txChkEnable,
+      strobe_i => s_txChkStrobe,
+      init_i   => x"0000",
+      length_i => s_txChkLength,
+      data_i   => s_mTspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0),
+      chksum_o => s_txChksum,
+      valid_o  => s_txChkValid,
+      check_o  => open);   
+
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- RX part
+   ------------------------------------------------------------   
+   -- /////////////////////////////////////////////////////////
+
    
    RxFSM_INST: entity work.RxFSM
    generic map (
@@ -324,7 +337,7 @@ begin
       connActive_i   => connActive_i,
       rxWindowSize_i => s_windowSize,
       txWindowSize_i => s_windowSize,
-      nextAckN_i     => s_nextAckN,--
+      nextAckN_i     => s_rxNextAckN,--
       rxSeqN_o       => s_rxSeqN,
       inOrderSeqN_o  => s_rxLastSeqN,
       rxAckN_o       => s_rxAckN,
@@ -369,26 +382,7 @@ begin
 
    -- Acknowledge valid packet
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and connActive_i;
-   
-   tx_Chksum_INST: entity work.Chksum
-   generic map (
-      TPD_G        => TPD_G,
-      DATA_WIDTH_G => 64,
-      CSUM_WIDTH_G => 16
-   ) 
-   port map (
-      clk_i    => clk_i,
-      rst_i    => rst_i,
-      enable_i => s_txChkEnable,
-      strobe_i => s_txChkStrobe,
-      init_i   => x"0000",
-      length_i => s_txChkLength,
-      data_i   => s_mTspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0),
-      chksum_o => s_chksumData,
-      valid_o  => s_txChkValid,
-      check_o  => open);
-   
-   
+
    rx_Chksum_INST: entity work.Chksum
    generic map (
       TPD_G        => TPD_G,
