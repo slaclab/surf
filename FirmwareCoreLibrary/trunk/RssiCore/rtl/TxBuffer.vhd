@@ -60,7 +60,9 @@ entity TxBuffer is
       
       -- Next sequence number
       nextSeqN_i    : in  slv(7 downto 0);    
-      nextAckN_o    : out slv(7 downto 0);  
+      nextAckN_o    : out slv(7 downto 0);
+
+      
       -- Acknowledge mechanism
       ack_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
       ackN_i        : in slv(7 downto 0);      -- Number being ACKed
