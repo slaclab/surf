@@ -239,6 +239,8 @@ begin
 
    -- Error that stops 
    s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf or s_alignErr;
+   
+   -- Note: Apply this line if dispErr and decErr also affect the reconfiguration
    -- s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf or uOr(r_jesdGtRx.dispErr) or uOr(r_jesdGtRx.decErr) or s_alignErr;
 
    -- Combine errors that need registering
