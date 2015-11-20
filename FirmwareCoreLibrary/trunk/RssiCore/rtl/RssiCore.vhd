@@ -42,7 +42,7 @@ entity RssiCore is
       MAX_RX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
 
       -- Timeouts
-      RETRANS_TOUT_G         : positive := 60;  -- ms
+      RETRANS_TOUT_G         : positive := 5000;  -- ms temp
       ACK_TOUT_G             : positive := 30;  -- ms
       NULL_TOUT_G            : positive := 200; -- ms
       TRANS_STATE_TOUT_G     : positive := 500; -- ms
@@ -69,7 +69,6 @@ entity RssiCore is
       sndSyn_i        : in  sl;
       sndAck_i        : in  sl;
       sndRst_i        : in  sl;
-      sndResend_i     : in  sl;
       sndNull_i       : in  sl;
       initSeqN_i      : in  slv(7 downto 0);
 
@@ -88,6 +87,9 @@ entity RssiCore is
 end entity RssiCore;
 
 architecture rtl of RssiCore is
+   
+   -- Tout 
+   signal s_sndResend    : sl;   
    
    -- Header decoder module
    signal s_headerValues : RssiParamType;
@@ -163,7 +165,7 @@ architecture rtl of RssiCore is
    
 ----------------------------------------------------------------------
 begin
-
+   
    -- Assign header values (later will connect to parameter negotiation module)
    s_headerValues.maxOutsSeg      <= toSlv(MAX_TX_NUM_OUTS_SEG_G, 8);
    s_headerValues.maxSegSize      <= toSlv(MAX_TX_SEG_SIZE_G, 16);
@@ -181,10 +183,28 @@ begin
    -- later will connect to parameter negotiation module   
    s_windowSize <= MAX_RX_NUM_OUTS_SEG_G;
 
+   
+   ToutErrHandler_INST: entity work.ToutErrHandler
+   generic map (
+      TPD_G => TPD_G)
+   port map (
+      clk_i        => clk_i,
+      rst_i        => rst_i,
+      connActive_i => connActive_i,
+      rssiParam_i  => s_headerValues,
+      rxFlags_i    => s_rxFlags,
+      rxValid_i    => s_rxValidSeg,
+      rstHeadSt_i  => s_rstHeadSt,
+      dataHeadSt_i => s_dataHeadSt,
+      nullHeadSt_i => s_nullHeadSt,
+      sndResend_o  => s_sndResend,
+      sndNull_o    => open);
+
+   
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
    -- TX part
-   ------------------------------------------------------------   
+   ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////       
    
    -- Header decoder module
@@ -235,7 +255,7 @@ begin
       sndSyn_i       => sndSyn_i,
       sndAck_i       => sndAck_i,
       sndRst_i       => sndRst_i,
-      sndResend_i    => sndResend_i,
+      sndResend_i    => s_sndResend,
       sndNull_i      => sndNull_i,
 
       windowSize_i   => s_windowSize,
@@ -324,9 +344,7 @@ begin
    ------------------------------------------------------------
    -- RX part
    ------------------------------------------------------------   
-   -- /////////////////////////////////////////////////////////
-
-   
+   -- /////////////////////////////////////////////////////////  
    RxFSM_INST: entity work.RxFSM
    generic map (
       TPD_G              => TPD_G,

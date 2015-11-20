@@ -93,8 +93,8 @@ begin
    mAxisSlave     <= ssi2AxisSlave(sAppSsiSlave0);
    
    -- Prbs RX
-   sAxisMaster    <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, mAppSsiMaster1);
-   mAppSsiSlave1  <= axis2SsiSlave(RSSI_AXI_CONFIG_C, sAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
+   sAxisMaster    <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, mAppSsiMaster0);
+   mAppSsiSlave0  <= axis2SsiSlave(RSSI_AXI_CONFIG_C, sAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
    
    -- Generate clocks and resets
    DDR_ClkRst_Inst : entity work.ClkRst
@@ -122,17 +122,17 @@ begin
       sndSyn_i       => s_sndSyn0,
       sndAck_i       => s_sndAck0,
       sndRst_i       => s_sndRst0,
-      sndResend_i    => s_sndResend0,
+      --sndResend_i    => s_sndResend0,
       sndNull_i      => s_sndNull0,
       initSeqN_i     => x"40",
       
-      -- PRBS TX
-      sAppSsiMaster_i => sAppSsiMaster0,
-      sAppSsiSlave_o  => sAppSsiSlave0,
+      -- 
+      sAppSsiMaster_i => sAppSsiMaster0, -- prbs tx
+      sAppSsiSlave_o  => sAppSsiSlave0,  -- prbs tx
       
-      -- PRBS RX 
-      mAppSsiMaster_o => mAppSsiMaster0, -- Open for now
-      mAppSsiSlave_i  => mAppSsiSlave0,  -- Open for now
+      --  
+      mAppSsiMaster_o => mAppSsiMaster0, -- prbs rx
+      mAppSsiSlave_i  => mAppSsiSlave0,  -- prbs rx
       
       -- 
       sTspSsiMaster_i => mTspSsiMaster, --<-- From Peer
@@ -155,17 +155,17 @@ begin
       sndSyn_i       => s_sndSyn1,
       sndAck_i       => s_sndAck1,
       sndRst_i       => s_sndRst1,
-      sndResend_i    => s_sndResend1,
+      --sndResend_i    => s_sndResend1,
       sndNull_i      => s_sndNull1,
       initSeqN_i     => x"80",
       
       -- 
-      sAppSsiMaster_i => sAppSsiMaster1, -- Loopback -- open
-      sAppSsiSlave_o  => sAppSsiSlave1,  -- Loopback -- open
+      sAppSsiMaster_i => sAppSsiMaster1, -- Loopback
+      sAppSsiSlave_o  => sAppSsiSlave1,  -- Loopback
       
       -- 
-      mAppSsiMaster_o => mAppSsiMaster1, -- Loopback -- prbs rx
-      mAppSsiSlave_i  => mAppSsiSlave1,  -- Loopback -- prbs rx
+      mAppSsiMaster_o => mAppSsiMaster1, -- Loopback 
+      mAppSsiSlave_i  => mAppSsiSlave1,  -- Loopback 
       
       -- 
       sTspSsiMaster_i => sTspSsiMaster, --<-- From Peer
@@ -177,9 +177,9 @@ begin
 
    ---------------------------------------
    -- RSSI 1 Loopback connection
-   --sAppSsiMaster1 <= mAppSsiMaster1;
-   --mAppSsiSlave1  <= sAppSsiSlave1;
-   sAppSsiMaster1 <= SSI_MASTER_INIT_C;
+   sAppSsiMaster1 <= mAppSsiMaster1;
+   mAppSsiSlave1  <= sAppSsiSlave1;
+   --sAppSsiMaster1 <= SSI_MASTER_INIT_C;
 
    ------Application side data PRBS Tx---------------------------
     
@@ -255,20 +255,18 @@ begin
       errbitCnt       => open,
       packetRate      => open,
       packetLength    => open);
- 
-   
-   
-   
-   
-   
-   
+
    -- tspReady : process
-   -- begin  
-      -- wait for CLK_PERIOD_C*1;
-      -- sTspSsiSlave <= SSI_SLAVE_RDY_C;
-      -- wait for CLK_PERIOD_C*2;
-      -- sTspSsiSlave <= SSI_SLAVE_NOTRDY_C;
-   -- end process;
+   -- begin
+      -- wait for TPD_C;
+      
+      -- loop
+         -- wait for CLK_PERIOD_C*5;
+         -- sTspSsiSlave <= SSI_SLAVE_RDY_C;
+         -- wait for CLK_PERIOD_C*2;
+         -- sTspSsiSlave <= SSI_SLAVE_NOTRDY_C;
+      -- end loop;
+   --end process;
    
 
    StimuliProcess : process
@@ -328,16 +326,11 @@ begin
       -------------------------------------------------------
       
       -- Request Ack package 0
-      wait for CLK_PERIOD_C*5000;
-      s_sndAck1 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndAck1 <= '0';
+--      wait for CLK_PERIOD_C*5000;
+--      s_sndAck1 <= '1';
+--      wait for CLK_PERIOD_C*1;
+--      s_sndAck1 <= '0';
       
-      -- Resend unack
-      wait for CLK_PERIOD_C*5000;
-      s_sndResend0 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndResend0 <= '0';
 
    wait;
 
