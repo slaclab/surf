@@ -181,7 +181,7 @@ begin
             v.Ila        := '0';
             v.dataValid  := '0';
             v.sysref     := '0';
-         v.cntLatency := (others => '0');
+            v.cntLatency := (others => '0');
             
             -- Next state condition (depending on subclass)
             if  subClass_i = '1' then
