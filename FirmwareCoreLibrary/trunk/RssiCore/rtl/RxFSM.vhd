@@ -40,8 +40,8 @@ entity RxFSM is
       rxWindowSize_i   : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
       txWindowSize_i   : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
       
-      -- Last unacknowledged Sequence number connected to TX module
-      nextAckN_i   : in slv(7 downto 0);
+      -- Last acknowledged Sequence number connected to TX module
+      lastAckN_i   : in slv(7 downto 0);
           
       -- Current received seqN
       rxSeqN_o     : out slv(7 downto 0);
@@ -230,7 +230,7 @@ architecture rtl of RxFSM is
 begin
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, nextAckN_i, 
+   comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, lastAckN_i, 
                   txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i) is
       
       variable v : RegType;
@@ -338,12 +338,10 @@ begin
                   chksumOk_i = '1'                           and
                   -- Check length
                   r.rxHeadLen = toSlv(8, 8)                  and
-                  -- Check SeqN AckN range
-                  r.rxSeqN    >= r.inOrderSeqN                  and 
-                  --r.rxSeqN    <  r.inOrderSeqN + rxWindowSize_i and
-                  r.rxSeqN    <=  r.inOrderSeqN + 1             and    -- only in order TODO add EACK
-                  r.rxAckN    >= nextAckN_i-1                   and
-                  r.rxAckN    <  nextAckN_i + txWindowSize_i
+                  -- Check SeqN range
+                  (r.rxSeqN - r.inOrderSeqN) <= 1              and
+                  -- Check AckN range                  
+                  (r.rxAckN - lastAckN_i)  < txWindowSize_i
                ) then
                
                   if (r.rxF.data = '1' ) then
@@ -497,8 +495,10 @@ begin
             -- 1. increment the in order SEQn
             -- 2. save seqN, type, and occupied to the current buffer address
             -- 3. increase buffer
-            elsif ( (r.rxF.data = '1' or r.rxF.nul = '1' or r.rxF.rst = '1' ) 
-                    and r.rxSeqN  = r.inOrderSeqN+1) then
+            elsif ( (r.rxF.data = '1' or r.rxF.nul = '1' or r.rxF.rst = '1' ) and
+                     -- Next seqN absolute difference is one
+                     r.rxSeqN - r.inOrderSeqN = 1 
+                  ) then
                --
                v.windowArray(conv_integer(r.rxBufferAddr)).seqN       := r.rxSeqN;
                v.windowArray(conv_integer(r.rxBufferAddr)).segType(0) := r.rxF.data;               
@@ -580,7 +580,7 @@ begin
                --
                v.txBufferAddr        := r.txBufferAddr;
                
-               if (v.appSsiMaster.valid = '0' and r.appSsiSlave.ready = '1') then
+               if (v.appSsiMaster.valid = '0' and appSsiSlave_i.ready = '1') then
                
                   v.appSsiMaster.sof    := '1';
                   v.appSsiMaster.valid  := '1';
@@ -696,7 +696,7 @@ begin
       chksumEnable_o <= r.chkEn;
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
-      rxParam_o      <= r.rxParam;      
+      rxParam_o      <= r.rxParam;    
       
       -- Transport side SSI output
       tspSsiSlave_o <= v.tspSsiSlave;

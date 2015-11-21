@@ -91,8 +91,8 @@ entity TxFSM is
       rstHeadSt_o  : out  sl;
       nullHeadSt_o : out  sl;
       
-      -- Next expected ack number (Used in Rx FSM to determine if AcnN is valid)
-      nextAckN_o    : out slv(7 downto 0);
+      -- Last acked number (Used in Rx FSM to determine if AcnN is valid)
+      lastAckN_o    : out slv(7 downto 0);
       
       -- Acknowledge mechanism
       ack_i         : in sl;                   -- From receiver module when a segment with valid ACK is received
@@ -170,6 +170,8 @@ architecture rtl of TxFSM is
       firstUnackAddr : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       nextSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      
+      lastAckSeqN    : slv(7 downto 0);
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;      
       bufferFull     : sl;
@@ -235,6 +237,7 @@ architecture rtl of TxFSM is
       lastSentAddr   => (others => '0'),
       nextSentAddr   => (others => '0'),
       
+      lastAckSeqN    => (others => '0'),
       --eackAddr       => (others => '0'),
       --eackIndex      => 0,
       bufferFull     => '0',
@@ -260,7 +263,7 @@ architecture rtl of TxFSM is
       -- Transport side FSM
       -----------------------------------------  
       nextSeqN    => (others => '0'),
-      seqN        => (others => '0'),
+      seqN          => (others => '0'),
       txHeaderAddr  => (others => '0'),
       txSegmentAddr => (others => '0'),
       txBufferAddr  => (others => '0'),
@@ -370,6 +373,7 @@ begin
          
             -- Hold ACK address
             v.firstUnackAddr := r.firstUnackAddr;
+            v.lastAckSeqN    := r.lastAckSeqN;
             --v.eackAddr       := r.firstUnackAddr;
             --v.eackIndex      := 0;
             v.ackErr         := '0';
@@ -382,24 +386,37 @@ begin
          ----------------------------------------------------------------------
          when ACK_S =>
          
-            -- Increment ACK address
-            if r.firstUnackAddr < (windowSize_i-1) then 
-                  v.firstUnackAddr  := r.firstUnackAddr+1;
+            -- If the same ackN received do nothing
+            if  (r.lastAckSeqN = ackN_i) then
+                v.firstUnackAddr  := r.firstUnackAddr;             
+            -- Increment ACK address until seqN is found next received
+            elsif r.firstUnackAddr < (windowSize_i-1) then
+               v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';            
+               v.firstUnackAddr  := r.firstUnackAddr+1;
             else
-                  v.firstUnackAddr  := (others => '0');
+               v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';
+               v.firstUnackAddr  := (others => '0');
             end if;
-            
+                       
             --v.eackAddr       := r.firstUnackAddr;
             -- v.eackIndex      := 0;
             v.ackErr         := '0';
             
-            v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';
+
             
             -- Next state condition            
-            if (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN /= ackN_i) then  
+
+            -- If the same ackN received
+            if  (r.lastAckSeqN = ackN_i) then
+           
+                -- Go back to IDLE
+                v.ackState   := IDLE_S;
+            
+            elsif (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN /= ackN_i) then  
                -- If the acked seqN is not found go to error state
                v.ackState   := ERR_S;             
             elsif  (r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i)  then
+               v.lastAckSeqN := ackN_i; -- Save the last Acked seqN
                --if eack_i = '1' then
                   -- Go back to init when the acked seqN is found            
                --   v.ackState   := EACK_S;               
@@ -650,7 +667,9 @@ begin
          v.bufferFull     := REG_INIT_C.bufferFull;
          v.bufferEmpty    := REG_INIT_C.bufferEmpty;
          v.windowArray    := REG_INIT_C.windowArray;
-
+         
+         v.lastAckSeqN    := initSeqN_i;
+         
          v.ackState    := REG_INIT_C.ackState;
          v.appState    := REG_INIT_C.appState;
       end if;
@@ -1481,7 +1500,9 @@ begin
       -- Sequence number from buffer
       txSeqN_o       <= r.seqN;
       tspSsiMaster_o <= r.tspSsiMaster;
-   
+      
+      -- 
+      lastAckN_o <= r.lastAckSeqN;
    --------------------------------------------------------------------- 
    end process comb;
 
@@ -1492,9 +1513,7 @@ begin
       end if;
    end process seq;
  
-   -- 
-   nextAckN_o <= r.nextSeqN when r.bufferEmpty = '1' else 
-                 r.windowArray(conv_integer(r.firstUnackAddr)).seqN;
+
  
    
    ---------------------------------------------------------------------

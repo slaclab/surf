@@ -109,7 +109,7 @@ architecture rtl of RssiCore is
    signal s_rxSeqN    : slv(7  downto 0);
    signal s_rxLastSeqN: slv(7  downto 0);   
    signal s_rxAckN    : slv(7  downto 0);
-   signal s_rxNextAckN: slv(7  downto 0);
+   signal s_rxLastAckN: slv(7  downto 0);
 
    -- TX Header
    signal s_headerAddr   : slv(7  downto 0);
@@ -227,7 +227,7 @@ begin
       nullHeadSt_i   => s_nullHeadSt,
       ackHeadSt_i    => s_ackHeadSt,
       
-      ack_i          => s_rxFlags.ack,
+      ack_i          => '1', -- Connect to ConnectFSM after 
       txSeqN_i       => s_txSeqN,
       rxAckN_i       => s_rxLastSeqN,
       headerValues_i => s_headerValues,
@@ -286,7 +286,7 @@ begin
       rstHeadSt_o    => s_rstHeadSt,
       nullHeadSt_o   => s_nullHeadSt,
 
-      nextAckN_o     => s_rxNextAckN,
+      lastAckN_o     => s_rxLastAckN,
       ack_i          => s_rxAck,
       ackN_i         => s_rxAckN,
 
@@ -355,7 +355,7 @@ begin
       connActive_i   => connActive_i,
       rxWindowSize_i => s_windowSize,
       txWindowSize_i => s_windowSize,
-      nextAckN_i     => s_rxNextAckN,--
+      lastAckN_i     => s_rxLastAckN,--
       rxSeqN_o       => s_rxSeqN,
       inOrderSeqN_o  => s_rxLastSeqN,
       rxAckN_o       => s_rxAckN,

@@ -77,11 +77,13 @@ architecture rtl of HeaderReg is
   
    type RegType is record
       headerData :  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      ack        :  sl;
       rdy        :  sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       headerData  => (others =>'0'),
+      ack         => '0',
       rdy         => '0'
    );
 
@@ -103,8 +105,8 @@ begin
       
    begin
       v := r;
-
-       -- 
+ 
+      -- 
       if (synHeadSt_i = '1') then
          headerLength_o  <= SYN_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;    
          case addrInt is
@@ -144,7 +146,20 @@ begin
               v.headerData := (others=> '0');
               v.rdy := '0';
          end case;
-      elsif (dataHeadSt_i = '1' or ackHeadSt_i = '1') then 
+      elsif (dataHeadSt_i = '1') then 
+         headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
+         case addrInt is
+            when 16#00# =>
+               v.headerData := "0" & ack_i & "000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
+                               txSeqN_i & rxAckN_i                       &
+                               x"00" & x"00"                             &  -- Reserved
+                               x"00" & x"00";                               -- Place for checksum
+               v.rdy := '1';
+            when others =>
+               v.rdy := '0';
+               v.headerData := (others=> '0');    
+         end case;
+      elsif (ackHeadSt_i = '1') then 
          headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
@@ -156,12 +171,14 @@ begin
             when others =>
                v.rdy := '0';
                v.headerData := (others=> '0');    
-         end case;
+         end case;    
+         
+     
       elsif (nullHeadSt_i = '1') then
          headerLength_o  <= NULL_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
          case addrInt is
             when 16#00# =>
-               v.headerData :=  "01001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
+               v.headerData :="0" & ack_i & "001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
                               txSeqN_i & rxAckN_i                       &
                               x"00" & x"00"                             &  -- Reserved
                               x"00" & x"00";                               -- Place for checksum
