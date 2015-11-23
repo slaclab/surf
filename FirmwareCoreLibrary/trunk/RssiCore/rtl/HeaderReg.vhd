@@ -47,10 +47,6 @@ entity HeaderReg is
       nullHeadSt_i : in  sl;
       ackHeadSt_i  : in  sl;
       --eackHeadSt_i : in  sl;
-
-      -- Register input header values on strobe
-      -- (DFF if unconnected)
-      strobe_i : in sl :='1';
          
       -- Ack sequence number valid
       ack_i : in sl;
