@@ -1396,7 +1396,7 @@ begin
                -- 
                v.tspState   := RESEND_PP_S;
                
-            -- Increment segment address only when Slave is ready
+            -- Increment segment address only when Slave is ready do not increase address first time
             elsif (r.tspSsiMaster.sof = '0' and tspSsiSlave_i.ready = '1') then
                v.txSegmentAddr       := r.txSegmentAddr + 1;
             end if;
@@ -1434,13 +1434,6 @@ begin
 
             -- SSI master 
             v.tspSsiMaster := SSI_MASTER_INIT_C;
-            
-            -- Different if DATA segment is sent or NULL or RST
-            if (r.windowArray(conv_integer(r.txBufferAddr)).segType(0) = '1') then
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := rdBuffData_i;
-            else
-               v.tspSsiMaster.data  := r.tspSsiMaster.data;
-            end if;
             
             -- Next state condition
             -- Go back to CONN_S when the last sent address reached 
