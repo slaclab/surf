@@ -1,0 +1,3 @@
+vhdl work Decoder8b10b.vhd
+vhdl work Encoder8b10b.vhd
+
