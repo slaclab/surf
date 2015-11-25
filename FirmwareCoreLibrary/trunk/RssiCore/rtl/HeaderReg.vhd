@@ -94,7 +94,7 @@ begin
    addrInt <= conv_integer(addr_i);
    
    -- 
-   comb : process (r, rst_i, headerValues_i, strobe_i, addrInt, txSeqN_i, rxAckN_i, 
+   comb : process (r, rst_i, headerValues_i, addrInt, txSeqN_i, rxAckN_i, 
                    synHeadSt_i, rstHeadSt_i, dataHeadSt_i, nullHeadSt_i, ackHeadSt_i, ack_i ) is
       
       variable v : RegType;

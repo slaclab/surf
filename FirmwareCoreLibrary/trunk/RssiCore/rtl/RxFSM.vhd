@@ -46,10 +46,13 @@ entity RxFSM is
       -- Current received seqN
       rxSeqN_o     : out slv(7 downto 0);
       
+      -- Initial seQn seqN
+      initAckN_i   : in slv(7 downto 0);
+      
       -- Current received ackN
       rxAckN_o     : out slv(7 downto 0);
       
-      -- Last seqN receeived in order
+      -- Last seqN received in order
       inorderSeqN_o : out slv(7 downto 0);
       
       
@@ -231,7 +234,7 @@ begin
 
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, lastAckN_i, 
-                  txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i) is
+                  txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i, initAckN_i) is
       
       variable v : RegType;
 
@@ -326,8 +329,13 @@ begin
                v.rxParam.version    := r.tspSsiMaster.data (31 downto 28);
                v.rxParam.maxOutsSeg := r.tspSsiMaster.data (23 downto 16);
                
-               -- Go to SYN_CHECK_S
-               v.tspState    := SYN_CHECK_S;
+               if (v.rxF.ack = '1' and v.rxAckN /= initAckN_i) then
+                  -- Acknowledgment not valid
+                  v.tspState    := DROP_S;
+               else
+                  -- Go to SYN_CHECK_S
+                  v.tspState    := SYN_CHECK_S;
+               end if;
                
             -- Segment is ACK, DATA, RST, or NULL
             elsif (v.rxF.syn = '0' and v.rxF.eack = '0' and chksumValid_i = '1') then   --              
@@ -339,7 +347,7 @@ begin
                   -- Check length
                   r.rxHeadLen = toSlv(8, 8)                  and
                   -- Check SeqN range
-                  (r.rxSeqN - r.inOrderSeqN) <= 1              and
+                  (r.rxSeqN - r.inOrderSeqN) <= 1            and
                   -- Check AckN range                  
                   (r.rxAckN - lastAckN_i)  < txWindowSize_i
                ) then
