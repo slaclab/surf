@@ -184,7 +184,7 @@ begin
    s_windowSize <= MAX_RX_NUM_OUTS_SEG_G;
 
    
-   ToutErrHandler_INST: entity work.ToutErrHandler
+   ToutErrHandler_INST: entity work.Monitor
    generic map (
       TPD_G => TPD_G)
    port map (

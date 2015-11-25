@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Handels RSSI counters and timeouts.
 -------------------------------------------------------------------------------
--- File       : ToutErrHandler.vhd
+-- File       : Monitor.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
@@ -22,7 +22,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
 
-entity ToutErrHandler is
+entity Monitor is
    generic (
       TPD_G          : time     := 1 ns
       -- 
@@ -51,9 +51,9 @@ entity ToutErrHandler is
       sndResend_o     : out  sl;
       sndNull_o       : out  sl    
    );
-end entity ToutErrHandler;
+end entity Monitor;
 
-architecture rtl of ToutErrHandler is
+architecture rtl of Monitor is
 
      
    type RegType is record
