@@ -52,8 +52,9 @@ entity TxFSM is
       sndNull_i       : in  sl;   
       
       -- Window buff size (Depends on the number of outstanding segments)
-      windowSize_i  : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
-  
+      windowSize_i  : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      bufferSize_i  : in integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      
       -- Buffer write
       wrBuffWe_o     : out  sl;      
       wrBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
@@ -275,7 +276,7 @@ architecture rtl of TxFSM is
       nullH    => '0',
       dataH    => '0',
       dataD    => '0',
-      resend    => '0',
+      resend   => '0',
       
       --
       txRdy    => '0',      
@@ -298,7 +299,7 @@ architecture rtl of TxFSM is
 begin
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i,
+   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
                    sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, chksum_i, rdBuffData_i, chksumValid_i, headerLength_i) is
       
       variable v : RegType;
@@ -585,10 +586,14 @@ begin
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0)+1;           
 
-               v.appState    := SEG_RDY_S;        
+               v.appState    := SEG_RDY_S;
+               --
+            elsif (r.rxSegmentAddr > bufferSize_i ) then
+               v.rxSegmentWe := '0';
+               v.appState    := SEG_LEN_ERR; 
             elsif (r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
                v.rxSegmentWe := '0';
-               v.appState    := SEG_LEN_ERR;           
+               v.appState    := SEG_LEN_ERR;     
             end if;
          ----------------------------------------------------------------------            
          when SEG_RDY_S =>
@@ -727,6 +732,8 @@ begin
                v.tspState    := SYN_H_S;
             elsif (sndAck_i = '1') then
                v.tspState    := ACK_H_S;
+            elsif (sndRst_i = '1') then
+               v.tspState    := RST_WE_S;
             elsif (connActive_i = '1') then
                v.tspState      := CONN_S;
                -- Increase the sequence number to point to next seqN.

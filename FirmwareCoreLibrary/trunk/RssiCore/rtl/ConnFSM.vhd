@@ -26,18 +26,8 @@ entity ConnFSM is
    generic (
       TPD_G        : time     := 1 ns;
       SERVER_G     : boolean  := true;
-      
-      WINDOW_ADDR_SIZE_G  : positive := 7;
-      
-      -- Adjustible parameters
-      
-      -- Transmitter
-      MAX_TX_NUM_OUTS_SEG_G  : positive := 8;
-      MAX_TX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
-      
-      -- Receiver
-      MAX_RX_NUM_OUTS_SEG_G  : positive := 8;
-      MAX_RX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8  -- Number of bytes
+      --
+      WINDOW_ADDR_SIZE_G  : positive := 7
    );
    port (
       clk_i      : in  sl;
@@ -54,7 +44,7 @@ entity ConnFSM is
       appRssiParam_i  : in  RssiParamType;
       
       -- Negotiated parameters
-      rssiParam_o  : in  RssiParamType;      
+      rssiParam_o  : out  RssiParamType;      
 
       -- Flags from Rx module
       rxFlags_i    : in FlagsType;
@@ -78,14 +68,11 @@ entity ConnFSM is
       --
       
       -- Window size and buffer size different for Rx and Tx
-      rxBufferSize_o   : out integer range 0 to 2 ** (SEGMENT_ADDR_SIZE_C-1);
-      rxWindowSize_o   : out integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
+      rxBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      rxWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
-      txBufferSize_o   : out integer range 0 to 2 ** (SEGMENT_ADDR_SIZE_C-1);
-      txWindowSize_o   : out integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
-      
-      
-      
+      txBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      txWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G)
    );
 end entity ConnFSM;
 
@@ -97,8 +84,9 @@ architecture rtl of ConnFSM is
       WAIT_SYN_S,
       LISTEN_S,
       SEND_ACK_S,
-      SEND_SVN_ACK_S,
+      SEND_SYN_ACK_S,
       WAIT_ACK_S,
+      SEND_RST_S,
       OPEN_S
    );
      
@@ -111,7 +99,9 @@ architecture rtl of ConnFSM is
       
       rssiParam   : RssiParamType;
       
-      rxWindowSize : 
+      --
+      txBufferSize   : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      txWindowSize   : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       
       ---
       state       : StateType;
@@ -125,7 +115,11 @@ architecture rtl of ConnFSM is
       sndRst      => '0',
       txAckF      => '0',
       
-      rssiParam   => (others => '0'),
+      rssiParam   => (others => (others =>'0')),
+      
+      --
+      txBufferSize=> 1,
+      txWindowSize=> 1,
       
       ---
       state  => CLOSED_S
@@ -139,7 +133,8 @@ architecture rtl of ConnFSM is
    
 begin
 
-   comb : process (r, rst_i, connRq_i, rxRssiParam_i, synHeadSt_i, ackHeadSt_i, rstHeadSt_i) is
+   comb : process (r, rst_i, connRq_i, rxRssiParam_i, synHeadSt_i, rxFlags_i, 
+                   ackHeadSt_i, rstHeadSt_i, appRssiParam_i, rxValid_i, closeRq_i) is
       variable v : RegType;
    begin
       v := r;
@@ -194,17 +189,20 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '0';
-                        
+            
+            --            
             if (rxValid_i = '1' and rxFlags_i.syn = '1' and rxFlags_i.ack = '1') then
                -- Check parameters
                if (
                   rxRssiParam_i.version    = appRssiParam_i.version     and
-                  rxRssiParam_i.maxOutsSeg < (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
-                  rxRssiParam_i.maxSegSize < (2**SEGMENT_ADDR_SIZE_C)*8 and -- Number of bytes
+                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8     -- Number of bytes
                ) then
                
                   -- Accept the parameters from the server                  
                   v.rssiParam := rxRssiParam_i;
+                  v.txBufferSize := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                  v.txWindowSize := conv_integer(rxRssiParam_i.maxOutsSeg);
                   --
                   v.state := SEND_ACK_S;
                else
@@ -213,12 +211,142 @@ begin
                   --
                   v.state := SEND_RST_S;
                end if;
+            elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
+               v.state := CLOSED_S;
+            end if;
+         ----------------------------------------------------------------------
+         when SEND_ACK_S =>
+            --
+            v.connActive   := '0';
+            v.sndSyn       := '0'; 
+            v.sndAck       := '1';
+            v.sndRst       := '0';
+            v.txAckF       := '1';
+            --
+            v.rssiParam := r.rssiParam;
+            
+            -- 
+            if (ackHeadSt_i = '1') then
+               v.state := OPEN_S;
+            end if;
+                        
+         ----------------------------------------------------------------------
+         -- Server
+         -- 
+         --         
+         ----------------------------------------------------------------------      
+          when LISTEN_S =>
+            --
+            v.connActive   := '0';
+            v.sndSyn       := '0'; 
+            v.sndAck       := '0';
+            v.sndRst       := '0';
+            v.txAckF       := '0';          
+            -- 
+            if (rxValid_i = '1' and rxFlags_i.syn = '1') then
+               -- Check parameters
+               if (
+                  rxRssiParam_i.version    = appRssiParam_i.version     and
+                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8     -- Number of bytes
+               ) then
+               
+                  -- Accept the parameters from the client                 
+                  v.rssiParam := rxRssiParam_i;
+                  v.txBufferSize := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                  v.txWindowSize := conv_integer(rxRssiParam_i.maxOutsSeg);
+                  --
+                  v.state := SEND_SYN_ACK_S;
+               else
+                  -- Propose different parameters              
+                  v.rssiParam             := rxRssiParam_i;
+                  v.rssiParam.version     := appRssiParam_i.version;                  
+                  v.rssiParam.maxOutsSeg  := appRssiParam_i.maxOutsSeg;
+                  v.rssiParam.maxSegSize  := appRssiParam_i.maxSegSize;
+                  v.txBufferSize := conv_integer(appRssiParam_i.maxSegSize);
+                  v.txWindowSize := conv_integer(appRssiParam_i.maxOutsSeg);
+                  --
+                  v.state := SEND_SYN_ACK_S;
+               end if;
+            end if;
+         ---------------------------------------------------------------------            
+         when SEND_SYN_ACK_S =>
+            
+            v.connActive   := '0';
+            v.sndSyn       := '1'; 
+            v.sndAck       := '0';
+            v.sndRst       := '0';
+            v.txAckF       := '1';
+            
+            -- Send the Server parameters
+            v.rssiParam    := r.rssiParam;
+
+            if (synHeadSt_i = '1') then
+               v.state    := WAIT_ACK_S;
+            end if;
+ 
+         when WAIT_ACK_S =>
+
+            v.connActive   := '0';
+            v.sndSyn       := '0'; 
+            v.sndAck       := '0';
+            v.sndRst       := '0';
+            v.txAckF       := '0';
+            
+            -- 
+            v.rssiParam    := r.rssiParam;
+            
+            if (rxValid_i = '1' and rxFlags_i.ack = '1') then
+               v.state := OPEN_S;
+            elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
+               v.state := CLOSED_S;
             end if;
 
+         ----------------------------------------------------------------------           
+         -- Open connection
+         --
+         --
          ----------------------------------------------------------------------
-         when others =>
+         when OPEN_S =>
+            --
+            v.connActive   := '1';
+            v.sndSyn       := '0'; 
+            v.sndAck       := '0';
+            v.sndRst       := '0';
+            v.txAckF       := '1';
+            --
+            v.rssiParam := r.rssiParam;
             
-            v   := REG_INIT_C;            
+            -- 
+            if (rxValid_i = '1' and rxFlags_i.rst = '1') then
+               v.state := CLOSED_S;
+            elsif (closeRq_i = '1') then
+               v.state := CLOSED_S;
+            end if;
+         
+         ----------------------------------------------------------------------           
+         -- Reset the connection
+         -- - Send Rst segment 
+         -- - Go to Closed
+         ----------------------------------------------------------------------
+         when SEND_RST_S =>
+            --
+            v.connActive   := '0';
+            v.sndSyn       := '0'; 
+            v.sndAck       := '0';
+            v.sndRst       := '1';
+            v.txAckF       := '0';
+            --
+            v.rssiParam := r.rssiParam;
+            
+            -- 
+            if (rstHeadSt_i = '1') then
+               v.state := CLOSED_S;
+            end if;
+
+         ----------------------------------------------------------------------   
+         when others =>
+            v   := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 
@@ -239,12 +367,18 @@ begin
    
    ------------------------------------------------------------------------------
    -- Output assignment
+   rssiParam_o  <= r.rssiParam;
+   connActive_o <= r.connActive;
+   sndSyn_o     <= r.sndSyn; 
+   sndAck_o     <= r.sndAck;
+   sndRst_o     <= r.sndRst;
+   txAckF_o     <= r.txAckF;
+   
    -- Parameters for receiver (have to be correctly set by the app)
-   rxBufferSize_o <= conv_integer(appRssiParam_i.maxSegSize);
+   rxBufferSize_o <= conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
    rxWindowSize_o <= conv_integer(appRssiParam_i.maxOutsSeg);
    -- Parameters for transmitter are received by the peer and checked by FSM 
-   txBufferSize_o <= conv_integer(r.rssiParam.maxSegSize);
-   txWindowSize_o <= conv_integer(r.rssiParam.maxOutsSeg);   
-
+   txBufferSize_o <= r.txBufferSize;
+   txWindowSize_o <= r.txWindowSize;
    ---------------------------------------------------------------------
 end architecture rtl;

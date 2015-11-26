@@ -26,32 +26,37 @@ use work.AxiStreamPkg.all;
 
 entity RssiCore is
    generic (
-      TPD_G        : time     := 1 ns;
-      SERVER_G     : boolean  := true;
- 
-      WINDOW_ADDR_SIZE_G       : positive := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      TPD_G            : time     := 1 ns;
+      SERVER_G         : boolean  := true; -- Module is server or client 
+      INTERNAL_PARAM_G : boolean  := true; -- Internal true (Rssi parameters from generics) 
+                                           -- External true (Rssi parameters from input)
+
+      WINDOW_ADDR_SIZE_G : positive := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       
-      -- Adjustible parameters
+      -- Generic RSSI parameters
       
-      -- Transmitter
-      MAX_TX_NUM_OUTS_SEG_G  : positive := 8;
-      MAX_TX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
+      -- Version and connection ID
       
-      -- Receiver
-      MAX_RX_NUM_OUTS_SEG_G  : positive := 8;
-      MAX_RX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
+      CONN_ID_G  : positive := 100;
+      VERSION_G  : positive := 1;
+      
+      -- Window parameters of receiver module
+      MAX_NUM_OUTS_SEG_G  : positive := 8;
+      MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
 
       -- Timeouts
-      RETRANS_TOUT_G         : positive := 5000;  -- ms temp
-      ACK_TOUT_G             : positive := 30;  -- ms
-      NULL_TOUT_G            : positive := 200; -- ms
-      TRANS_STATE_TOUT_G     : positive := 500; -- ms
+      RETRANS_TOUT_G        : positive := 5000;  -- ms temp
+      ACK_TOUT_G            : positive := 30;  -- ms
+      NULL_TOUT_G           : positive := 200; -- ms
+      TRANS_STATE_TOUT_G    : positive := 500; -- ms
       
       -- Counters
-      MAX_RETRANS_CNT_G      : positive := 2;
-      MAX_CUM_ACK_CNT_G      : positive := 3;
-      MAX_OUT_OF_SEQUENCE_G  : natural  := 3;
-      MAX_AUTO_RST_CNT_G     : positive := 1;
+      MAX_RETRANS_CNT_G     : positive := 2;
+      MAX_CUM_ACK_CNT_G     : positive := 3;
+      MAX_OUT_OF_SEQUENCE_G : natural  := 3;
+      MAX_AUTO_RST_CNT_G    : positive := 1;
+
+      --
       
       -- Standard parameters
       SYN_HEADER_SIZE_G  : natural := 24;
@@ -64,14 +69,13 @@ entity RssiCore is
    port (
       clk_i      : in  sl;
       rst_i      : in  sl;
+     
+      -- High level  Application side interface and RSSI parameters
+      connRq_i   : in  sl;
+      closeRq_i  : in  sl;
+      initSeqN_i : in  slv(7 downto 0);
+      appRssiParam_i : in RssiParamType:= (others => (others =>'0')); -- Can be disconnected if INTERNAL_PARAM_G=true
       
-      connActive_i    : in  sl; 
-      sndSyn_i        : in  sl;
-      sndAck_i        : in  sl;
-      sndRst_i        : in  sl;
-      sndNull_i       : in  sl;
-      initSeqN_i      : in  slv(7 downto 0);
-
       -- SSI Application side
       sAppSsiMaster_i : in  SsiMasterType;
       sAppSsiSlave_o  : out SsiSlaveType;
@@ -88,20 +92,25 @@ end entity RssiCore;
 
 architecture rtl of RssiCore is
    
-   -- Tout 
-   signal s_sndResend    : sl;   
+   -- RSSI Parameters
+   signal s_appRssiParam  : RssiParamType;
+   signal s_rxRssiParam   : RssiParamType;
+   signal s_rssiParam     : RssiParamType;
    
-   -- Header decoder module
-   signal s_headerValues : RssiParamType;
+   -- Tx Segment requests 
+   signal s_sndResend : sl;
+   signal s_sndSyn    : sl;
+   signal s_sndAck    : sl;
+   signal s_sndRst    : sl;
+   signal s_sndNull   : sl;
 
+   -- Header states
    signal s_synHeadSt    : sl;
    signal s_rstHeadSt    : sl;
    signal s_dataHeadSt   : sl;
    signal s_nullHeadSt   : sl;
    signal s_ackHeadSt    : sl;
-   
-   signal s_windowSize : integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
-   
+      
    -- Current transmitted or received SeqN and AckN   
    signal s_txSeqN    : slv(7  downto 0);
    signal s_txAckN    : slv(7  downto 0);   
@@ -111,7 +120,7 @@ architecture rtl of RssiCore is
    signal s_rxAckN    : slv(7  downto 0);
    signal s_rxLastAckN: slv(7  downto 0);
 
-   -- TX Header
+   -- Tx Header
    signal s_headerAddr   : slv(7  downto 0);
    signal s_headerData   : slv(RSSI_WORD_WIDTH_C*8-1  downto 0);
    signal s_headerRdy    : sl;
@@ -134,9 +143,10 @@ architecture rtl of RssiCore is
    signal s_rxValidSeg : sl;
    signal s_rxDropSeg  : sl;
    signal s_rxFlags    : flagsType;
-   signal s_rxParam    : RssiParamType;
    
    -- Rx segment buffer
+   signal s_rxBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+   signal s_rxWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
    signal s_rxWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_rxWrBuffWe   : sl;
@@ -144,6 +154,8 @@ architecture rtl of RssiCore is
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    
    -- Tx segment buffer
+   signal s_txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+   signal s_txWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
    signal s_txWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_txWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_txWrBuffWe   : sl;
@@ -159,46 +171,86 @@ architecture rtl of RssiCore is
    -- 
    signal s_mTspSsiMaster : SsiMasterType;
    
-   --
+   -- 
    signal s_lenErr : sl;
    signal s_ackErr : sl;
    
+   -- Connection indicator
+   signal s_connActive : sl;
+   signal s_txAckF : sl;
 ----------------------------------------------------------------------
 begin
+   GEN_INTERNAL : if INTERNAL_PARAM_G = true generate
+      -- assign application side Rssi parameters from generics
+      s_appRssiParam.maxOutsSeg      <= toSlv(MAX_NUM_OUTS_SEG_G, 8);
+      s_appRssiParam.maxSegSize      <= toSlv(MAX_SEG_SIZE_G, 16);
+      s_appRssiParam.retransTout     <= toSlv(RETRANS_TOUT_G, 16);
+      s_appRssiParam.cumulAckTout    <= toSlv(ACK_TOUT_G, 16);
+      s_appRssiParam.nullSegTout     <= toSlv(NULL_TOUT_G, 16);
+      s_appRssiParam.transStateTout  <= toSlv(TRANS_STATE_TOUT_G, 16);
+      s_appRssiParam.maxRetrans      <= toSlv(MAX_RETRANS_CNT_G, 8);
+      s_appRssiParam.maxCumAck       <= toSlv(MAX_CUM_ACK_CNT_G, 8);
+      s_appRssiParam.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
+      s_appRssiParam.maxAutoRst      <= toSlv(MAX_AUTO_RST_CNT_G, 8);
+      s_appRssiParam.version         <= toSlv(VERSION_G, 4);
+      s_appRssiParam.connectionId    <= toSlv(CONN_ID_G, 16);
+   end generate GEN_INTERNAL;
    
-   -- Assign header values (later will connect to parameter negotiation module)
-   s_headerValues.maxOutsSeg      <= toSlv(MAX_TX_NUM_OUTS_SEG_G, 8);
-   s_headerValues.maxSegSize      <= toSlv(MAX_TX_SEG_SIZE_G, 16);
-   s_headerValues.retransTout     <= toSlv(RETRANS_TOUT_G, 16);
-   s_headerValues.cumulAckTout    <= toSlv(ACK_TOUT_G, 16);
-   s_headerValues.nullSegTout     <= toSlv(NULL_TOUT_G, 16);
-   s_headerValues.transStateTout  <= toSlv(TRANS_STATE_TOUT_G, 16);
-   s_headerValues.maxRetrans      <= toSlv(MAX_RETRANS_CNT_G, 8);
-   s_headerValues.maxCumAck       <= toSlv(MAX_CUM_ACK_CNT_G, 8);
-   s_headerValues.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
-   s_headerValues.maxAutoRst      <= toSlv(MAX_AUTO_RST_CNT_G, 8);
-   s_headerValues.version         <= toSlv(1, 4);
-   s_headerValues.connectionId    <= x"BEEF"; -- TODO bring from connection negotiation Debug
-   
-   -- later will connect to parameter negotiation module   
-   s_windowSize <= MAX_RX_NUM_OUTS_SEG_G;
+   GEN_EXTERNAL : if INTERNAL_PARAM_G = false generate
+      -- assign application side Rssi parameters from generics
+      s_appRssiParam  <= appRssiParam_i;
+   end generate GEN_EXTERNAL;
 
    
-   ToutErrHandler_INST: entity work.Monitor
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Connection and monitoring part
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+   
+   ConnFSM_INST: entity work.ConnFSM
+   generic map (
+      TPD_G              => TPD_G,
+      SERVER_G           => SERVER_G,
+      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
+   port map (
+      clk_i          => clk_i,
+      rst_i          => rst_i,
+      connRq_i       => connRq_i,
+      closeRq_i      => closeRq_i,
+      rxRssiParam_i  => s_rxRssiParam,
+      appRssiParam_i => s_appRssiParam,
+      rssiParam_o    => s_rssiParam,
+      rxFlags_i      => s_rxFlags,
+      rxValid_i      => s_rxValidSeg,
+      synHeadSt_i    => s_synHeadSt,
+      ackHeadSt_i    => s_ackHeadSt,
+      rstHeadSt_i    => s_rstHeadSt,
+      connActive_o   => s_connActive,
+      sndSyn_o       => s_sndSyn,
+      sndAck_o       => s_sndAck,
+      sndRst_o       => s_sndRst,
+      txAckF_o       => s_txAckF,
+      rxBufferSize_o => s_rxBufferSize,
+      rxWindowSize_o => s_rxWindowSize,
+      txBufferSize_o => s_txBufferSize,
+      txWindowSize_o => s_txWindowSize);
+
+   Monitor_INST: entity work.Monitor
    generic map (
       TPD_G => TPD_G)
    port map (
       clk_i        => clk_i,
       rst_i        => rst_i,
-      connActive_i => connActive_i,
-      rssiParam_i  => s_headerValues,
+      connActive_i => s_connActive,
+      rssiParam_i  => s_rssiParam,
       rxFlags_i    => s_rxFlags,
       rxValid_i    => s_rxValidSeg,
       rstHeadSt_i  => s_rstHeadSt,
       dataHeadSt_i => s_dataHeadSt,
       nullHeadSt_i => s_nullHeadSt,
       sndResend_o  => s_sndResend,
-      sndNull_o    => open);
+      sndNull_o    => s_sndNull);
 
    
    -- /////////////////////////////////////////////////////////
@@ -227,10 +279,10 @@ begin
       nullHeadSt_i   => s_nullHeadSt,
       ackHeadSt_i    => s_ackHeadSt,
       
-      ack_i          => '1', -- Connect to ConnectFSM after 
+      ack_i          => s_txAckF, -- Connected to ConnectFSM
       txSeqN_i       => s_txSeqN,
       rxAckN_i       => s_rxLastSeqN,
-      headerValues_i => s_headerValues,
+      headerValues_i => s_rssiParam,
       addr_i         => s_headerAddr,
       headerData_o   => s_headerData,
       ready_o        => s_headerRdy,
@@ -251,14 +303,15 @@ begin
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
-      connActive_i   => connActive_i,
-      sndSyn_i       => sndSyn_i,
-      sndAck_i       => sndAck_i,
-      sndRst_i       => sndRst_i,
+      connActive_i   => s_connActive,
+      sndSyn_i       => s_sndSyn,
+      sndAck_i       => s_sndAck,
+      sndRst_i       => s_sndRst,
       sndResend_i    => s_sndResend,
-      sndNull_i      => sndNull_i,
+      sndNull_i      => s_sndNull,
 
-      windowSize_i   => s_windowSize,
+      windowSize_i   => s_txWindowSize,
+      bufferSize_i   => s_txBufferSize,
 
       wrBuffWe_o     => s_txWrBuffWe,
       wrBuffAddr_o   => s_txWrBuffAddr,
@@ -352,17 +405,19 @@ begin
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
-      connActive_i   => connActive_i,
-      rxWindowSize_i => s_windowSize,
-      txWindowSize_i => s_windowSize,
+      connActive_i   => s_connActive,
+      rxWindowSize_i => s_rxWindowSize,
+      rxBufferSize_i => s_rxBufferSize,
+      txWindowSize_i => s_txWindowSize,
       lastAckN_i     => s_rxLastAckN,--
+      initAckN_i     => initSeqN_i,
       rxSeqN_o       => s_rxSeqN,
       inOrderSeqN_o  => s_rxLastSeqN,
       rxAckN_o       => s_rxAckN,
       rxValidSeg_o   => s_rxValidSeg,
       rxDropSeg_o    => s_rxDropSeg,
       rxFlags_o      => s_rxFlags,
-      rxParam_o      => s_rxParam,
+      rxParam_o      => s_rxRssiParam,
       chksumValid_i  => s_rxChkValid,
       chksumOk_i     => s_rxChkCheck,
       chksumEnable_o => s_rxChkEnable,
@@ -399,7 +454,7 @@ begin
       doutb => s_rxRdBuffData);
 
    -- Acknowledge valid packet
-   s_rxAck <= s_rxValidSeg and s_rxFlags.ack and connActive_i;
+   s_rxAck <= s_rxValidSeg and s_rxFlags.ack and s_connActive;
 
    rx_Chksum_INST: entity work.Chksum
    generic map (

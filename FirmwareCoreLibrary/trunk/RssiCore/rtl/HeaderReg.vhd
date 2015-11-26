@@ -109,7 +109,7 @@ begin
             when 16#00# =>
                v.headerData := "1" & ack_i & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
                                txSeqN_i & rxAckN_i                                  &
-                               x"1" & x"0" & headerValues_i.maxOutsSeg              &       
+                               headerValues_i.version & x"0" & headerValues_i.maxOutsSeg &       
                                x"00" & x"00";
                v.rdy := '1';
             when 16#01# =>
