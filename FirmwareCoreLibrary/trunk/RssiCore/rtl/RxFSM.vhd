@@ -37,17 +37,20 @@ entity RxFSM is
       connActive_i   : in  sl;
       
       -- Window size different for Rx and Tx
-      rxWindowSize_i   : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
-      txWindowSize_i   : in integer range 0 to 2 ** (WINDOW_ADDR_SIZE_G-1);
+      rxWindowSize_i   : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      rxBufferSize_i   : in integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      txWindowSize_i   : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       
       -- Last acknowledged Sequence number connected to TX module
       lastAckN_i   : in slv(7 downto 0);
-          
-      -- Current received seqN
-      rxSeqN_o     : out slv(7 downto 0);
       
       -- Initial seQn seqN
       initAckN_i   : in slv(7 downto 0);
+      
+      -- Current received seqN
+      rxSeqN_o     : out slv(7 downto 0);
+      
+
       
       -- Current received ackN
       rxAckN_o     : out slv(7 downto 0);
@@ -233,7 +236,7 @@ architecture rtl of RxFSM is
 begin
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, lastAckN_i, 
+   comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, lastAckN_i, rxBufferSize_i,
                   txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i, initAckN_i) is
       
       variable v : RegType;
@@ -474,8 +477,10 @@ begin
                   v.tspState    := VALID_S;
                else
                   v.tspState    := DROP_S;              
-               end if;               
-            elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
+               end if;
+            elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr > rxBufferSize_i ) then
+               v.tspState    := DROP_S;
+              elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
                v.tspState    := DROP_S;
             end if;
          ----------------------------------------------------------------------
