@@ -47,8 +47,8 @@ entity RssiCore is
       -- Timeouts
       RETRANS_TOUT_G        : positive := 5000;  -- ms temp
       ACK_TOUT_G            : positive := 2501;  -- ms
-      NULL_TOUT_G           : positive := 10000; -- ms
-      TRANS_STATE_TOUT_G    : positive := 500; -- ms
+      NULL_TOUT_G           : positive := 20000; -- ms
+      TRANS_STATE_TOUT_G    : positive := 500;   -- ms
       
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;

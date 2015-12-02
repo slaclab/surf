@@ -143,9 +143,11 @@ begin
       
       -- Resend request SRFF 
       if (connActive_i = '0' or
-          dataHeadSt_i = '1' or 
-          rstHeadSt_i  = '1' or 
-          nullHeadSt_i = '1'
+         (rxValid_i = '1' and rxFlags_i.busy = '1') or
+          dataHeadSt_i = '1' or
+          rstHeadSt_i  = '1' or
+          nullHeadSt_i = '1' or
+          txBufferEmpty_i = '1'
       ) then
          v.sndResend := '0';  
       elsif (r.retransToutCnt >= rssiParam_i.retransTout) then
@@ -200,9 +202,11 @@ begin
       end if;
       
       -- Null request SRFF 
-      if (connActive_i = '0' or 
+      if (connActive_i = '0' or
+          dataHeadSt_i = '1' or
+          rstHeadSt_i  = '1' or
           nullHeadSt_i = '1') then
-         v.sndNull := '0';  
+          v.sndNull := '0'; 
       elsif (r.nullToutCnt >= '0' & rssiParam_i.nullSegTout(rssiParam_i.nullSegTout'left downto 1)) then -- send null segments if timeout/2 reached
          v.sndNull := '1';
       end if;
@@ -273,7 +277,9 @@ begin
    if (connActive_i  = '0' or
        ackHeadSt_i   = '1' or 
        dataHeadSt_i  = '1' or 
-       nullHeadSt_i  = '1'
+       nullHeadSt_i  = '1' or
+       rstHeadSt_i   = '1' or
+      (rxLastSeqN_i - r.lastAckSeqN) = 0
    ) then
       v.sndAck := '0';
       
