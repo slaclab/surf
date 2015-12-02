@@ -34,35 +34,27 @@ end RssiCoreTb;
 architecture testbed of RssiCoreTb is
 
    constant CLK_PERIOD_C : time    := 10   ns;
-   constant TPD_C            : time    := 1 ns; 
+   constant TPD_C        : time    := 1 ns; 
 
    -- Clocking
    signal   clk_i                 : sl := '0';
    signal   rst_i                 : sl := '0';
    
    -- UUT   
-   signal   s_connActive          : sl := '0';
-   
-   -- RSSI 0   
-   signal   s_sndSyn0              : sl := '0';
-   signal   s_sndAck0              : sl := '0';
-   signal   s_sndRst0              : sl := '0';
-   signal   s_sndResend0           : sl := '0';
-   signal   s_sndNull0             : sl := '0';
 
-   signal   sAppSsiMaster0       : SsiMasterType;
-   signal   sAppSsiSlave0        : SsiSlaveType;
-   signal   mAppSsiMaster0       : SsiMasterType;
-   signal   mAppSsiSlave0        : SsiSlaveType;
+   -- RSSI 0   
+   signal   connRq0_i     : sl := '0';
+   signal   closeRq0_i    : sl := '0';
+       
+   signal   sAppSsiMaster0   : SsiMasterType;
+   signal   sAppSsiSlave0    : SsiSlaveType;
+   signal   mAppSsiMaster0   : SsiMasterType;
+   signal   mAppSsiSlave0    : SsiSlaveType;
 
    -- RSSI 1
-   signal   s_sndSyn1              : sl := '0';
-   signal   s_sndAck1              : sl := '0';
-   signal   s_sndRst1              : sl := '0';
-   signal   s_sndResend1           : sl := '0';
-   signal   s_sndNull1             : sl := '0';
+   signal   connRq1_i     : sl := '0';
+   signal   closeRq1_i    : sl := '0';
 
-   
    signal   sAppSsiMaster1       : SsiMasterType;
    signal   sAppSsiSlave1        : SsiSlaveType;
    signal   mAppSsiMaster1       : SsiMasterType;
@@ -111,20 +103,19 @@ begin
   -----------------------------
   -- component instantiation 
   -----------------------------
+  
+   -- RSSI 0 Server
    RssiCore0_INST: entity work.RssiCore
    generic map (
-      TPD_G          => TPD_C
+      TPD_G          => TPD_C,
+      SERVER_G       => true
    )
    port map (
-      clk_i          => clk_i,
-      rst_i          => rst_i,
-      connActive_i   => s_connActive,
-      sndSyn_i       => s_sndSyn0,
-      sndAck_i       => s_sndAck0,
-      sndRst_i       => s_sndRst0,
-      --sndResend_i    => s_sndResend0,
-      sndNull_i      => s_sndNull0,
-      initSeqN_i     => x"40",
+      clk_i       => clk_i,
+      rst_i       => rst_i,
+      connRq_i    => connRq0_i, 
+      closeRq_i   => closeRq0_i,
+      initSeqN_i  => x"40",
       
       -- 
       sAppSsiMaster_i => sAppSsiMaster0, -- prbs tx
@@ -142,22 +133,22 @@ begin
       mTspSsiMaster_o => sTspSsiMaster, -->-- To Peer 
       mTspSsiSlave_i  => sTspSsiSlave); -->-- To Peer
    
-   mAppSsiSlave0 <= SSI_SLAVE_RDY_C;   
-      
+   ---------------------------------------
+   --mAppSsiSlave0 <= SSI_SLAVE_RDY_C;   
+   
+
+   -- RSSI 1 Client      
    RssiCore1_INST: entity work.RssiCore
    generic map (
-      TPD_G          => TPD_C
+      TPD_G          => TPD_C,
+      SERVER_G       => false      
    )
    port map (
-      clk_i          => clk_i,
-      rst_i          => rst_i,
-      connActive_i   => s_connActive,
-      sndSyn_i       => s_sndSyn1,
-      sndAck_i       => s_sndAck1,
-      sndRst_i       => s_sndRst1,
-      --sndResend_i    => s_sndResend1,
-      sndNull_i      => s_sndNull1,
-      initSeqN_i     => x"80",
+      clk_i       => clk_i,
+      rst_i       => rst_i,
+      connRq_i    => connRq1_i, 
+      closeRq_i   => closeRq1_i,
+      initSeqN_i  => x"80",
       
       -- 
       sAppSsiMaster_i => sAppSsiMaster1, -- Loopback
@@ -179,6 +170,8 @@ begin
    -- RSSI 1 Loopback connection
    sAppSsiMaster1 <= mAppSsiMaster1;
    mAppSsiSlave1  <= sAppSsiSlave1;
+   
+   --mAppSsiSlave1  <= SSI_SLAVE_RDY_C;
    --sAppSsiMaster1 <= SSI_MASTER_INIT_C;
 
    ------Application side data PRBS Tx---------------------------
@@ -204,7 +197,7 @@ begin
       locClk          => clk_i,
       locRst          => rst_i,
       trig            => s_trig,
-      packetLength    => X"0000_00ff",
+      packetLength    => X"0000_00fe",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
@@ -276,65 +269,59 @@ begin
 
       wait for CLK_PERIOD_C*200;
       
-      -- Request Syn package 0
+      
+      -- Connection request 0
       wait for CLK_PERIOD_C*100;
-      s_sndSyn0 <= '1';
+      connRq0_i <= '1';
       wait for CLK_PERIOD_C*1;
-      s_sndSyn0 <= '0';
+      connRq0_i <= '0';
       
-      -- Request Ack package 0
-      wait for CLK_PERIOD_C*101;
-      s_sndSyn1 <= '1';
+      -- Connection request 1
+      connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      s_sndSyn1 <= '0';
-      
-      -- Request Ack package 0
-      wait for CLK_PERIOD_C*101;
-      s_sndAck0 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndAck0 <= '0';
-           
-      -- Connection active from here on
-      -----------------------------------------------------------
-      wait for CLK_PERIOD_C*100;
-      -- Open Connection
-      s_connActive <= '1';
-      -----------------------------------------------------------
-      
-      -- Request Null package 0
-      wait for CLK_PERIOD_C*102;
-      s_sndNull0 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndNull0 <= '0';
-      
-      -- Request Null package 1
-      wait for CLK_PERIOD_C*102;
-      s_sndNull0 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndNull0 <= '0';
-      
-      -- Request Rst package 0
-      wait for CLK_PERIOD_C*103;
-      s_sndRst0 <= '1';
-      wait for CLK_PERIOD_C*1;
-      s_sndRst0 <= '0';
+      connRq1_i <= '0';
 
       -------------------------------------------------------
-      wait for CLK_PERIOD_C*100;
+      wait for CLK_PERIOD_C*1000;
       -- Enable PRBS
       s_trig <= '1';
       -------------------------------------------------------
       
       -- Request Ack package 0
---      wait for CLK_PERIOD_C*5000;
---      s_sndAck1 <= '1';
---      wait for CLK_PERIOD_C*1;
---      s_sndAck1 <= '0';
+      wait for CLK_PERIOD_C*15000;
+      closeRq1_i <= '1';
+      wait for CLK_PERIOD_C*1;
+      closeRq1_i <= '0';
       
+      -- Reconnect
 
-   wait;
+      -- Connection request 0
+      wait for CLK_PERIOD_C*2000;
+      connRq0_i <= '1';
+      wait for CLK_PERIOD_C*1;
+      connRq0_i <= '0';
 
-   
+      wait for CLK_PERIOD_C*100;      
+      -- Connection request 1
+      connRq1_i <= '1';
+      wait for CLK_PERIOD_C*1;
+      connRq1_i <= '0';
+      
+      -------------------------------------------------------
+      wait for CLK_PERIOD_C*50000;
+      -- Stop PRBS
+      s_trig <= '0';
+      -------------------------------------------------------     
+      
+      
+      -------------------------------------------------------
+      wait for CLK_PERIOD_C*50000;
+      -- Stop PRBS
+      s_trig <= '1';
+      -------------------------------------------------------
+
+      wait;
+   ------------------------------
    end process StimuliProcess;   
       
 end testbed;

@@ -52,11 +52,11 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       segType               :  slv(2  downto 0);
       
       -- SSI
-      --eacked                :  sl;
-      eofe                  : sl;
-      strb                  : slv(15 downto 0);
+
+ --     eofe                  : sl;
+--      strb                  : slv(15 downto 0);
       keep                  : slv(15 downto 0);
-      dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
+--      dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
       
       segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
       occupied              : sl;
@@ -65,11 +65,11 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
    constant WINDOW_INIT_C : WindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
- 
-      eofe                  => '0',
-      strb                  => (others => '1'), 
+
+--      eofe                  => '0',
+--      strb                  => (others => '1'), 
       keep                  => (others => '1'), 
-      dest                  => (others => '0'), 
+--      dest                  => (others => '0'), 
       segSize               => (others => '0'),
       occupied              => '0'
    );

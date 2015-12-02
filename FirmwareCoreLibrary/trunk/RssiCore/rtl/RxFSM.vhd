@@ -49,16 +49,13 @@ entity RxFSM is
       
       -- Current received seqN
       rxSeqN_o     : out slv(7 downto 0);
-      
 
-      
       -- Current received ackN
       rxAckN_o     : out slv(7 downto 0);
       
       -- Last seqN received in order
       inorderSeqN_o : out slv(7 downto 0);
-      
-      
+
       -- Valid Segment received (1 c-c)
       rxValidSeg_o : out sl;
       
@@ -352,7 +349,7 @@ begin
                   -- Check SeqN range
                   (r.rxSeqN - r.inOrderSeqN) <= 1            and
                   -- Check AckN range                  
-                  (r.rxAckN - lastAckN_i)  < txWindowSize_i
+                  (r.rxAckN - lastAckN_i)  <= txWindowSize_i
                ) then
                
                   if (r.rxF.data = '1' ) then
@@ -362,8 +359,8 @@ begin
                         -- Go to data segment               
                         v.tspState    := DATA_S;
                      else
-                        -- Wait for buffer to free
-                        v.tspState    := CHECK_S;                        
+                        -- Buffer is full -> drop segment
+                        v.tspState    := DROP_S;                        
                      end if;                         
                   else
                      -- Valid non data segment               
@@ -377,7 +374,7 @@ begin
             
          ----------------------------------------------------------------------
          when SYN_CHECK_S =>
-                     --
+            --
             v.segValid      := '0';
             v.segDrop       := '0';
             v.rxSegmentAddr := (others => '1');
@@ -464,9 +461,7 @@ begin
             -- Wait until receiving EOF 
             if (tspSsiMaster_i.eof = '1' and tspSsiMaster_i.valid = '1') then
               
-               -- Save SSI parameters
-               v.windowArray(conv_integer(r.rxBufferAddr)).dest   := tspSsiMaster_i.dest;
-               v.windowArray(conv_integer(r.rxBufferAddr)).strb   := tspSsiMaster_i.strb;
+               -- Save tKeep of the last packet
                v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep;
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
@@ -494,12 +489,21 @@ begin
             v.segmentWe:= '0';
             --
             v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
+            
+            -- If the same Ack is received again do not ack
+            --if (r.rxAckN = lastAckN_i and connActive_i = '1') then
+            --   v.rxF.ack  := '0';
+            --else
+            --   v.rxF.ack  := r.rxF.ack;
+            --end if;
 
+            
             -- Initialize when valid SYN segment received
             -- 1. Set the initial SeqN
             -- 2. Initialize the buffer address
-            -- 3. Initialize 
+            -- 3. Initialize window
             if (connActive_i = '0' and  r.rxF.syn = '1') then
+               v.rxF.ack  := r.rxF.ack;
                v.inOrderSeqN  := r.rxSeqN;
                v.rxBufferAddr := (others => '0');
                v.windowArray  := REG_INIT_C.windowArray;
@@ -526,7 +530,7 @@ begin
                else
                   v.rxBufferAddr := (others => '0');
                end if;
-               --
+               --               
             else
                v.rxBufferAddr := r.rxBufferAddr;
                v.inOrderSeqN  := r.inOrderSeqN;
@@ -597,8 +601,8 @@ begin
                
                   v.appSsiMaster.sof    := '1';
                   v.appSsiMaster.valid  := '1';
-                  v.appSsiMaster.strb   := r.windowArray(conv_integer(r.txBufferAddr)).strb;
-                  v.appSsiMaster.dest   := r.windowArray(conv_integer(r.txBufferAddr)).dest;
+                  v.appSsiMaster.strb   := (others => '1');
+                  v.appSsiMaster.dest   := (others => '0');
                   v.appSsiMaster.eof    := '0';
                   v.appSsiMaster.eofe   := '0';
                   v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
@@ -626,8 +630,8 @@ begin
             
             -- SSI parameters
             v.appSsiMaster.sof    := '0';
-            v.appSsiMaster.strb   := r.windowArray(conv_integer(r.txBufferAddr)).strb;
-            v.appSsiMaster.dest   := r.windowArray(conv_integer(r.txBufferAddr)).dest;
+            v.appSsiMaster.strb   := (others => '1');
+            v.appSsiMaster.dest   := (others => '0');
             v.appSsiMaster.eof    := '0';
             v.appSsiMaster.eofe   := '0';
             v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
@@ -654,6 +658,8 @@ begin
             -- Increment segment address only when Slave is ready and master is valid
             elsif (appSsiSlave_i.ready = '1') then
                v.txSegmentAddr       := r.txSegmentAddr + 1;
+            elsif (connActive_i = '0') then
+               v.appState   := CHECK_BUFFER_S;
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>

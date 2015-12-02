@@ -321,7 +321,7 @@ begin
             if (rxValid_i = '1' and rxFlags_i.rst = '1') then
                v.state := CLOSED_S;
             elsif (closeRq_i = '1') then
-               v.state := CLOSED_S;
+               v.state := SEND_RST_S;
             end if;
          
          ----------------------------------------------------------------------           
@@ -331,7 +331,7 @@ begin
          ----------------------------------------------------------------------
          when SEND_RST_S =>
             --
-            v.connActive   := '0';
+            v.connActive   := '1';
             v.sndSyn       := '0'; 
             v.sndAck       := '0';
             v.sndRst       := '1';
