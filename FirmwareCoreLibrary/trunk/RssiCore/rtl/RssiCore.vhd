@@ -46,8 +46,8 @@ entity RssiCore is
 
       -- Timeouts
       RETRANS_TOUT_G        : positive := 5000;  -- ms temp
-      ACK_TOUT_G            : positive := 30;  -- ms
-      NULL_TOUT_G           : positive := 200; -- ms
+      ACK_TOUT_G            : positive := 2501;  -- ms
+      NULL_TOUT_G           : positive := 10000; -- ms
       TRANS_STATE_TOUT_G    : positive := 500; -- ms
       
       -- Counters
@@ -101,6 +101,9 @@ architecture rtl of RssiCore is
    signal s_sndResend : sl;
    signal s_sndSyn    : sl;
    signal s_sndAck    : sl;
+   signal s_sndAckMon : sl;
+   signal s_sndAckCon : sl;
+   
    signal s_sndRst    : sl;
    signal s_sndNull   : sl;
 
@@ -172,11 +175,14 @@ architecture rtl of RssiCore is
    signal s_mTspSsiMaster : SsiMasterType;
    
    -- 
+   signal s_txBufferEmpty : sl;
    signal s_lenErr : sl;
    signal s_ackErr : sl;
    
    -- Connection indicator
    signal s_connActive : sl;
+   signal s_closeRq : sl;
+   signal s_intCloseRq : sl;
    signal s_txAckF : sl;
 ----------------------------------------------------------------------
 begin
@@ -207,6 +213,9 @@ begin
    -- Connection and monitoring part
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
+   -- Connection close request 
+   -- Either requested by high level App or Internal error
+   s_closeRq <= s_intCloseRq or closeRq_i;
    
    ConnFSM_INST: entity work.ConnFSM
    generic map (
@@ -217,7 +226,7 @@ begin
       clk_i          => clk_i,
       rst_i          => rst_i,
       connRq_i       => connRq_i,
-      closeRq_i      => closeRq_i,
+      closeRq_i      => s_closeRq,
       rxRssiParam_i  => s_rxRssiParam,
       appRssiParam_i => s_appRssiParam,
       rssiParam_o    => s_rssiParam,
@@ -228,7 +237,7 @@ begin
       rstHeadSt_i    => s_rstHeadSt,
       connActive_o   => s_connActive,
       sndSyn_o       => s_sndSyn,
-      sndAck_o       => s_sndAck,
+      sndAck_o       => s_sndAckCon,
       sndRst_o       => s_sndRst,
       txAckF_o       => s_txAckF,
       rxBufferSize_o => s_rxBufferSize,
@@ -238,20 +247,27 @@ begin
 
    Monitor_INST: entity work.Monitor
    generic map (
-      TPD_G => TPD_G)
+      TPD_G => TPD_G,
+      SERVER_G => SERVER_G)
    port map (
-      clk_i        => clk_i,
-      rst_i        => rst_i,
-      connActive_i => s_connActive,
-      rssiParam_i  => s_rssiParam,
-      rxFlags_i    => s_rxFlags,
-      rxValid_i    => s_rxValidSeg,
-      rstHeadSt_i  => s_rstHeadSt,
-      dataHeadSt_i => s_dataHeadSt,
-      nullHeadSt_i => s_nullHeadSt,
-      sndResend_o  => s_sndResend,
-      sndNull_o    => s_sndNull);
-
+      clk_i          => clk_i,
+      rst_i          => rst_i,
+      connActive_i   => s_connActive,
+      
+      rssiParam_i    => s_rssiParam,
+      rxFlags_i      => s_rxFlags,
+      rxValid_i      => s_rxValidSeg,
+      ackHeadSt_i    => s_ackHeadSt,
+      rstHeadSt_i    => s_rstHeadSt,
+      dataHeadSt_i   => s_dataHeadSt,
+      nullHeadSt_i   => s_nullHeadSt,
+      rxLastSeqN_i   => s_rxLastSeqN, 
+      rxWindowSize_i => s_rxWindowSize,
+      txBufferEmpty_i=> s_txBufferEmpty,
+      sndResend_o    => s_sndResend,
+      sndAck_o       => s_sndAckMon,
+      sndNull_o      => s_sndNull,
+      closeRq_o      => s_intCloseRq);
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -290,6 +306,10 @@ begin
    
    -- TX FSM
    -----------------------------------------
+   -- Group all ack requests
+   s_sndAck <= s_sndAckCon or s_sndAckMon;
+   
+   --
    TxFSM_INST: entity work.TxFSM
    generic map (
       TPD_G              => TPD_G,
@@ -304,6 +324,8 @@ begin
       clk_i          => clk_i,
       rst_i          => rst_i,
       connActive_i   => s_connActive,
+      connRq_i       => connRq_i,
+      
       sndSyn_i       => s_sndSyn,
       sndAck_i       => s_sndAck,
       sndRst_i       => s_sndRst,
@@ -312,7 +334,8 @@ begin
 
       windowSize_i   => s_txWindowSize,
       bufferSize_i   => s_txBufferSize,
-
+      
+      
       wrBuffWe_o     => s_txWrBuffWe,
       wrBuffAddr_o   => s_txWrBuffAddr,
       wrBuffData_o   => s_txWrBuffData,
@@ -349,6 +372,7 @@ begin
       tspSsiSlave_i  => mTspSsiSlave_i,
       tspSsiMaster_o => s_mTspSsiMaster,
       
+      bufferEmpty_o=> s_txBufferEmpty,
       lenErr_o       => s_lenErr,
       ackErr_o       => s_ackErr);
    
