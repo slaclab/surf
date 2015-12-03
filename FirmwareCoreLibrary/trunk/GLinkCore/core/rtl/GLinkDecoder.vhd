@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2015-06-04
+-- Last update: 2015-12-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ begin
       -- Shift Register
       v.deglitch(3)          := r.gLinkRx.error;
       v.deglitch(2 downto 0) := r.deglitch(3 downto 1);
-      
+
       -- Update the TX and RX MGT ready values
       v.gLinkRx.rxReady := rxReady;
       v.gLinkRx.txReady := txRdy;
@@ -112,21 +112,20 @@ begin
 
          -- Check for data word
          if (isDataWord(glinkWordVar)) then
+            -- Set the gLinkRx bus
+            v.gLinkRx.isIdle := '0';
+            v.gLinkRx.isData := '1';
+            v.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
+            v.gLinkRx.flag   := getFlag(gLinkWordVar);
+            -- Check if FLAG is used for additional error checking
             if FLAGSEL_G then
-               v.gLinkRx.isIdle := '0';
-               v.gLinkRx.isData := '1';
-               v.gLinkRx.data   := getDataPayload(gLinkWordVar);        -- Bit flip done by function
-               v.gLinkRx.flag   := getFlag(gLinkWordVar);
+               -- Set the flag
+               v.gLinkRx.linkUp := '1';
             else
                -- Check for first data frame
                if r.gLinkRx.linkUp = '0' then
                   -- First frame Detected
                   v.gLinkRx.linkUp := '1';
-                  -- Set the gLinkRx bus
-                  v.gLinkRx.isIdle := '0';
-                  v.gLinkRx.isData := '1';
-                  v.gLinkRx.data   := getDataPayload(gLinkWordVar);     -- Bit flip done by function
-                  v.gLinkRx.flag   := getFlag(gLinkWordVar);
                   -- Latch the flag value
                   v.toggle         := getFlag(gLinkWordVar);
                else
@@ -135,13 +134,8 @@ begin
                      -- Invalid flag detected
                      v.gLinkRx.error := '1';
                   else
-                     -- Set the gLinkRx bus
-                     v.gLinkRx.isIdle := '0';
-                     v.gLinkRx.isData := '1';
-                     v.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
-                     v.gLinkRx.flag   := getFlag(gLinkWordVar);
                      -- Latch the flag value
-                     v.toggle         := getFlag(gLinkWordVar);
+                     v.toggle := getFlag(gLinkWordVar);
                   end if;
                end if;
             end if;
