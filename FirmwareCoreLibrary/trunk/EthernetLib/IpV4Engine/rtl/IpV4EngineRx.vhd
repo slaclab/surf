@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-25
+-- Last update: 2015-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -67,9 +67,10 @@ architecture rtl of IpV4EngineRx is
       sum1      : Slv32Array(1 downto 0);
       sum2      : Slv32Array(1 downto 0);
       sum3      : slv(31 downto 0);
+      sum4      : slv(31 downto 0);
       rxSlave   : AxiStreamSlaveType;
       txMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
-      cnt       : natural range 0 to 5;
+      cnt       : natural range 0 to 7;
       index     : natural range 0 to PROTOCOL_SIZE_G-1;
       state     : StateType;
    end record RegType;
@@ -84,6 +85,7 @@ architecture rtl of IpV4EngineRx is
       sum1      => (others => (others => '0')),
       sum2      => (others => (others => '0')),
       sum3      => (others => '0'),
+      sum4      => (others => '0'),
       rxSlave   => AXI_STREAM_SLAVE_INIT_C,
       txMasters => (others => AXI_STREAM_MASTER_INIT_C),
       cnt       => 0,
@@ -97,6 +99,13 @@ architecture rtl of IpV4EngineRx is
    signal rxSlave   : AxiStreamSlaveType;
    signal txMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
    signal txSlaves  : AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
+
+   -- attribute dont_touch              : string;
+   -- attribute dont_touch of r         : signal is "TRUE";
+   -- attribute dont_touch of rxMaster  : signal is "TRUE";
+   -- attribute dont_touch of rxSlave   : signal is "TRUE";
+   -- attribute dont_touch of txMasters : signal is "TRUE";
+   -- attribute dont_touch of txSlaves  : signal is "TRUE";
 
 begin
 
@@ -160,6 +169,7 @@ begin
                       r.sum1, v.sum1,
                       r.sum2, v.sum2,
                       r.sum3, v.sum3,
+                      r.sum4, v.sum4,
                       ibValid, checksum);
 
       -- State Machine
@@ -308,10 +318,8 @@ begin
          when CHECKSUM_S =>
             -- Check if ready to move data
             if (v.txMasters(r.index).tValid = '0') then
-               -- Increment the counter
-               v.cnt := r.cnt + 1;
                -- Check the counter
-               if r.cnt = 4 then        -- Simulation Optimized to 4 Minimum (25AUG2015)
+               if r.cnt = 7 then
                   -- Reset the counter
                   v.cnt := 0;
                   -- Check if received valid checksum value
@@ -326,6 +334,9 @@ begin
                      -- Next state
                      v.state := IDLE_S;
                   end if;
+               else
+                  -- Increment the counter
+                  v.cnt := r.cnt + 1;
                end if;
             end if;
          ----------------------------------------------------------------------

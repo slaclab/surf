@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-25
+-- Last update: 2015-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -67,9 +67,10 @@ architecture rtl of IpV4EngineTx is
       sum1     : Slv32Array(1 downto 0);
       sum2     : Slv32Array(1 downto 0);
       sum3     : slv(31 downto 0);
+      sum4     : slv(31 downto 0);
       rxSlaves : AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
       txMaster : AxiStreamMasterType;
-      cnt      : natural range 0 to 5;
+      cnt      : natural range 0 to 7;
       chCnt    : natural range 0 to PROTOCOL_SIZE_G-1;
       chCntDly : natural range 0 to PROTOCOL_SIZE_G-1;
       state    : StateType;
@@ -83,6 +84,7 @@ architecture rtl of IpV4EngineTx is
       sum1     => (others => (others => '0')),
       sum2     => (others => (others => '0')),
       sum3     => (others => '0'),
+      sum4     => (others => '0'),
       rxSlaves => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster => AXI_STREAM_MASTER_INIT_C,
       cnt      => 0,
@@ -158,6 +160,7 @@ begin
                       r.sum1, v.sum1,
                       r.sum2, v.sum2,
                       r.sum3, v.sum3,
+                      r.sum4, v.sum4,
                       ibValid, checksum);
 
       -- State Machine
@@ -246,10 +249,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CHECKSUM_S =>
-            -- Increment the counter
-            v.cnt := r.cnt + 1;
             -- Check the counter
-            if r.cnt = 4 then           -- Simulation Optimized to 4 Minimum (25AUG2015)
+            if r.cnt = 7 then
                -- Reset the counter
                v.cnt     := 0;
                -- Load the calculated checksum into the IPV4 header
@@ -257,6 +258,9 @@ begin
                v.hdr(11) := checksum(7 downto 0);
                -- Next state
                v.state   := IPV4_HDR0_S;
+            else
+               -- Increment the counter
+               v.cnt := r.cnt + 1;
             end if;
          ----------------------------------------------------------------------
          when IPV4_HDR0_S =>

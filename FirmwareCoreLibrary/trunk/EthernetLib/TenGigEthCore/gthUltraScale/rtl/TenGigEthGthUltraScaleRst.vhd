@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-05-04
--- Last update: 2015-05-04
+-- Last update: 2015-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -53,8 +53,8 @@ architecture rtl of TenGigEthGthUltraScaleRst is
    signal txReset   : sl;
    signal txReady   : sl;
 
-   signal rstCnt   : slv(8 downto 0) := (others => '0');
-   signal rstPulse : slv(3 downto 0) := "1110";
+   signal rstCnt   : slv(15 downto 0) := (others => '0');
+   signal rstPulse : slv(3 downto 0)  := "1110";
 
 begin
 
@@ -65,7 +65,7 @@ begin
    -- Reset Outputs
    coreRst    <= coreReset;
    phyRst     <= txReset;
-   rstCntDone <= rstCnt(8);
+   rstCntDone <= rstCnt(15);
    gtTxRst    <= rstPulse(0);
    gtRxRst    <= rstPulse(0);
 
@@ -138,7 +138,7 @@ begin
       if rising_edge(coreClk) then
          -- Hold off release the GT resets until 500ns after configuration.
          -- 256 ticks at the minimum possible 2.56ns period (390MHz) will be >> 500 ns.
-         if rstCnt(8) = '0' then
+         if rstCnt(15) = '0' then
             rstCnt <= rstCnt + 1 after TPD_G;
          else
             rstCnt <= rstCnt after TPD_G;
@@ -146,7 +146,7 @@ begin
          -- Check for reset
          if coreReset = '1' then
             rstPulse <= "1110" after TPD_G;
-         elsif rstCnt(8) = '1' then
+         elsif rstCnt(15) = '1' then
             rstPulse(3)          <= '0'                  after TPD_G;
             rstPulse(2 downto 0) <= rstPulse(3 downto 1) after TPD_G;
          end if;

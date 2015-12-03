@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-09-22
+-- Last update: 2015-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,8 @@ package UdpEnginePkg is
       sum1       : inout Slv32Array(1 downto 0);
       sum2Reg    : in    slv(31 downto 0);
       sum2       : inout slv(31 downto 0);
+      sum4Reg    : in    slv(31 downto 0);
+      sum4       : inout slv(31 downto 0);
       -- Accumulation Signals
       accumReg   : in    slv(31 downto 0);
       accum      : inout slv(31 downto 0);
@@ -128,6 +130,8 @@ package body UdpEnginePkg is
       sum1       : inout Slv32Array(1 downto 0);
       sum2Reg    : in    slv(31 downto 0);
       sum2       : inout slv(31 downto 0);
+      sum4Reg    : in    slv(31 downto 0);
+      sum4       : inout slv(31 downto 0);
       -- Accumulation Signals
       accumReg   : in    slv(31 downto 0);
       accum      : inout slv(31 downto 0);
@@ -135,9 +139,11 @@ package body UdpEnginePkg is
       ibValid    : inout sl;
       ibChecksum : in    slv(15 downto 0);
       checksum   : inout slv(15 downto 0)) is
-      variable i    : natural;
-      variable data : Slv32Array(7 downto 0);
-      variable sum4 : slv(15 downto 0);
+      variable i        : natural;
+      variable data     : Slv32Array(7 downto 0);
+      variable sum3RegA : slv(31 downto 0);
+      variable sum3RegB : slv(31 downto 0);
+      variable sum5     : slv(15 downto 0);
    begin
       -- Convert to 32-bit (little Endian) words
       for i in 7 downto 0 loop
@@ -165,14 +171,27 @@ package body UdpEnginePkg is
       -- Summation: Level2
       sum2 := sum1Reg(0) + sum1Reg(1);
 
-      -- Accumulation
+      -- Accumulation: Level3
       accum := accumReg + sum2Reg;
 
       -- Summation: Level4
-      sum4 := accumReg(31 downto 16) + accumReg(15 downto 0);
+      sum3RegA(31 downto 16) := x"0000";
+      sum3RegA(15 downto 0)  := accumReg(31 downto 16);
+      sum3RegB(31 downto 16) := x"0000";
+      sum3RegB(15 downto 0)  := accumReg(15 downto 0);
+      sum4                   := sum3RegA + sum3RegB;
+
+      -- Summation: Level5
+      sum5 := sum4Reg(31 downto 16) + sum4Reg(15 downto 0);
 
       -- Perform 1's complement
-      checksum := not(sum4);
+      if sum5 = x"FFFF" then
+         checksum := sum5;
+      -- Note: The UDP checksum is calculated using one's complement arithmetic (RFC 793), 
+      --       and 0xffff is equivalent to 0x0000; they are -0 and +0 respectively.
+      else
+         checksum := not(sum5);
+      end if;
 
       -- Check for valid inbound checksum
       if checksum = ibChecksum then
