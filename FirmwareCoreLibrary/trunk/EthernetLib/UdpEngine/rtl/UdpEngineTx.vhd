@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-28
+-- Last update: 2015-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -80,7 +80,8 @@ architecture rtl of UdpEngineTx is
       sum1        : Slv32Array(1 downto 0);
       sum2        : slv(31 downto 0);
       accum       : slv(31 downto 0);
-      cnt         : natural range 0 to 5;
+      sum4        : slv(31 downto 0);
+      cnt         : natural range 0 to 7;
       ibValid     : sl;
       ibChecksum  : slv(15 downto 0);
       checksum    : slv(15 downto 0);
@@ -101,6 +102,7 @@ architecture rtl of UdpEngineTx is
       sum1        => (others => (others => '0')),
       sum2        => (others => '0'),
       accum       => (others => '0'),
+      sum4        => (others => '0'),
       cnt         => 0,
       ibValid     => '0',
       ibChecksum  => (others => '0'),
@@ -213,6 +215,7 @@ begin
             v.sum1        := (others => (others => '0'));
             v.sum2        := (others => '0');
             v.accum       := (others => '0');
+            v.sum4        := (others => '0');
             -- Check for data and remote MAC is non-zero
             if (ibMaster.tValid = '1') and (remoteMac /= 0) and (r.flushBuffer = '1') then
                -- Check for SOF
@@ -245,6 +248,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
+                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -283,6 +287,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
+                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -338,6 +343,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
+                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -382,6 +388,7 @@ begin
                   r.sum1, v.sum1,
                   r.sum2, v.sum2,
                   r.accum, v.accum,
+                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -409,6 +416,7 @@ begin
                r.sum1, v.sum1,
                r.sum2, v.sum2,
                r.accum, v.accum,
+               r.sum4, v.sum4,
                -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
@@ -441,12 +449,13 @@ begin
                r.sum1, v.sum1,
                r.sum2, v.sum2,
                r.accum, v.accum,
+               r.sum4, v.sum4,
                -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
                v.checksum);       
             -- Check the counter
-            if r.cnt = 4 then           -- Simulation/Hardware Optimized to 4 Minimum (26AUG2015)
+            if r.cnt = 7 then
                -- Reset the counter
                v.cnt := 0;
                -- Check for errors

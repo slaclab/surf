@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-08-25
+-- Last update: 2015-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,6 +46,8 @@ package IpV4EnginePkg is
       sum2     : inout Slv32Array(1 downto 0);
       sum3Reg  : in    slv(31 downto 0);
       sum3     : inout slv(31 downto 0);
+      sum4Reg  : in    slv(31 downto 0);
+      sum4     : inout slv(31 downto 0);
       ibValid  : inout sl;
       checksum : inout slv(15 downto 0));  
 
@@ -63,12 +65,16 @@ package body IpV4EnginePkg is
       sum2     : inout Slv32Array(1 downto 0);
       sum3Reg  : in    slv(31 downto 0);
       sum3     : inout slv(31 downto 0);
+      sum4Reg  : in    slv(31 downto 0);
+      sum4     : inout slv(31 downto 0);
       ibValid  : inout sl;
       checksum : inout slv(15 downto 0)) is
       variable i          : natural;
       variable ibChecksum : slv(15 downto 0);
       variable header     : Slv32Array(9 downto 0);
-      variable sum4       : slv(15 downto 0);
+      variable sum3RegA   : slv(31 downto 0);
+      variable sum3RegB   : slv(31 downto 0);
+      variable sum5       : slv(15 downto 0);
    begin
       -- Convert to 32-bit (little Endian) words
       for i in 9 downto 0 loop
@@ -102,10 +108,17 @@ package body IpV4EnginePkg is
       sum3 := sum2Reg(0) + sum2Reg(1);
 
       -- Summation: Level4
-      sum4 := sum3Reg(31 downto 16) + sum3Reg(15 downto 0);
+      sum3RegA(31 downto 16) := x"0000";
+      sum3RegA(15 downto 0)  := sum3Reg(31 downto 16);
+      sum3RegB(31 downto 16) := x"0000";
+      sum3RegB(15 downto 0)  := sum3Reg(15 downto 0);
+      sum4                   := sum3RegA + sum3RegB;
+
+      -- Summation: Level5
+      sum5 := sum4Reg(31 downto 16) + sum4Reg(15 downto 0);
 
       -- Perform 1's complement
-      checksum := not(sum4);
+      checksum := not(sum5);
 
       -- Check for valid inbound checksum
       if checksum = ibChecksum then
