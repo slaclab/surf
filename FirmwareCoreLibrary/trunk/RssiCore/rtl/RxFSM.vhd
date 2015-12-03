@@ -81,7 +81,6 @@ entity RxFSM is
       wrBuffData_o   : out  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);      
       
       -- Buffer read
-      rdBuffRe_o     : out  sl;
       rdBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
       rdBuffData_i   : in   slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
@@ -99,7 +98,7 @@ end entity RxFSM;
 architecture rtl of RxFSM is
    -- Init SSI bus
    constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
-   constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
+   constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
    constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
    
    type tspStateType is (
@@ -658,9 +657,11 @@ begin
                
                v.appState   := SENT_S;
                
-            -- Increment segment address only when Slave is ready and master is valid      
+            -- Increment segment address only when Slave is ready and master is valid
             elsif (appSsiSlave_i.ready = '1') then
                v.txSegmentAddr       := r.txSegmentAddr + 1;
+            elsif (appSsiSlave_i.ready = '0'  and r.appSsiSlave.ready = '1') then
+               v.txSegmentAddr       := r.txSegmentAddr - 1;
             elsif (connActive_i = '0') then
                v.appState   := CHECK_BUFFER_S;
             end if;
@@ -707,7 +708,7 @@ begin
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
       rdBuffAddr_o   <= r.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
-      rdBuffRe_o     <= appSsiSlave_i.ready;
+      
       -- Assign outputs
       rxFlags_o      <= r.rxF;
       rxSeqN_o       <= r.rxSeqN;

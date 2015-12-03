@@ -24,8 +24,9 @@ use work.RssiPkg.all;
 
 entity Monitor is
    generic (
-      TPD_G          : time     := 1 ns;
-      SERVER_G       : boolean  := true;
+      TPD_G               : time     := 1 ns;
+      CLK_FREQUENCY_G     : real     := 100.0E6; 
+      SERVER_G            : boolean  := true;
       WINDOW_ADDR_SIZE_G  : positive := 7
       -- 
    );
@@ -69,23 +70,25 @@ entity Monitor is
 end entity Monitor;
 
 architecture rtl of Monitor is
-
-     
+   --
+   --constant SAMPLES_PER_TIME_C : integer := integer(1.0E-3 * CLK_FREQUENCY_G);
+   constant SAMPLES_PER_TIME_C : integer := integer(1.0E-6 * CLK_FREQUENCY_G);
+   --  
    type RegType is record
       -- Retransmission
-      retransToutCnt : slv(rssiParam_i.retransTout'range);
+      retransToutCnt : slv(rssiParam_i.retransTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
       sndResend      : sl;
       sndResendD1    : sl;
-      retransCnt     : slv(rssiParam_i.maxRetrans'range);
+      retransCnt     : slv(rssiParam_i.maxRetrans'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
       retransMax     : sl;
       
       -- Null packet send/timeout
-      nullToutCnt : slv(rssiParam_i.nullSegTout'range);      
+      nullToutCnt : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);      
       sndNull     : sl;
       nullTout    : sl;
       
       -- Ack packet cumulative/timeout
-      ackToutCnt  : slv(rssiParam_i.nullSegTout'range);
+      ackToutCnt  : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
       lastAckSeqN : slv(7 downto 0);      
       sndAck      : sl;
       
@@ -113,6 +116,7 @@ architecture rtl of Monitor is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   --
 begin
 
    comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, 
@@ -150,7 +154,7 @@ begin
           txBufferEmpty_i = '1'
       ) then
          v.sndResend := '0';  
-      elsif (r.retransToutCnt >= rssiParam_i.retransTout) then
+      elsif (r.retransToutCnt >= (conv_integer(rssiParam_i.retransTout)*SAMPLES_PER_TIME_C) ) then
          v.sndResend := '1';
       
       end if;
@@ -207,7 +211,7 @@ begin
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1') then
           v.sndNull := '0'; 
-      elsif (r.nullToutCnt >= '0' & rssiParam_i.nullSegTout(rssiParam_i.nullSegTout'left downto 1)) then -- send null segments if timeout/2 reached
+      elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C/2)  ) then -- send null segments if timeout/2 reached
          v.sndNull := '1';
       end if;
       
@@ -229,7 +233,7 @@ begin
       -- Null timeout SRFF
       if (connActive_i = '0') then
          v.nullTout := '0'; 
-      elsif (r.nullToutCnt >= rssiParam_i.nullSegTout) then
+      elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C)  ) then
          v.nullTout := '1';
       end if;
 
@@ -284,7 +288,7 @@ begin
       v.sndAck := '0';
       
    -- Timeout acknowledgment request
-   elsif (r.ackToutCnt >= rssiParam_i.cumulAckTout) then
+   elsif (r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
       v.sndAck := '1';
       
    -- Cumulative acknowledgment request

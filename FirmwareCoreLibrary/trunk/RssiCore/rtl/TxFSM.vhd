@@ -125,7 +125,7 @@ architecture rtl of TxFSM is
    -- Init SSI bus
    constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
    constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
-   constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
+   constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave(RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_INIT_C);
    
    type TspStateType is (
       --
@@ -228,6 +228,7 @@ architecture rtl of TxFSM is
       -- SSI master
       tspSsiMaster      : SsiMasterType;
       tspSsiSlave       : SsiSlaveType;
+      tspSsiMasterSofD1 : sl;
       
       -- State Machine
       tspState       : tspStateType;    
@@ -292,6 +293,7 @@ architecture rtl of TxFSM is
       -- SSI master 
       tspSsiMaster   => SSI_MASTER_INIT_C,
       tspSsiSlave    => SSI_SLAVE_NOTRDY_C,
+      tspSsiMasterSofD1 => '0',
       
       -- State Machine
       tspState     => INIT_S
@@ -691,8 +693,9 @@ begin
       end if;
       
       -- Pipeline incoming slave
-      v.tspSsiSlave:= tspSsiSlave_i;
-
+      v.tspSsiSlave       := tspSsiSlave_i;
+      v.tspSsiMasterSofD1 := r.tspSsiMaster.sof;
+       
       case r.tspState is
          ----------------------------------------------------------------------
          when INIT_S =>
@@ -820,22 +823,11 @@ begin
             end if;
             
             -- Increment address and generate strobe
-            if (r.tspSsiMaster.valid = '1' and tspSsiSlave_i.ready = '1' and headerRdy_i = '1') then
-               v.txHeaderAddr        := r.txHeaderAddr + 1;
-               v.chkStb              := '1';
-            elsif (v.txHeaderAddr = headerLength_i-1 and headerRdy_i = '1') then
-               v.txHeaderAddr        := r.txHeaderAddr;
-               v.chkStb              := '1';
-            else
-               v.txHeaderAddr        := r.txHeaderAddr;
-               v.chkStb              := '0';
-            end if; 
-
-            -- Next state condition
-            -- End of header
-            if (v.txHeaderAddr = headerLength_i-1) then
+            if (r.txHeaderAddr = headerLength_i-1 and headerRdy_i = '1') then
                v.tspSsiMaster.valid  := '0';
-               -- Wait until checksum and Transport layer ready
+               v.txHeaderAddr        := r.txHeaderAddr;
+               v.chkStb              := '1';
+               
                if (tspSsiSlave_i.ready = '1' and headerRdy_i = '1' and chksumValid_i = '1') then 
                   -- Add checksum to last 16 bits
                   v.tspSsiMaster.data(15 downto 0) := chksum_i;
@@ -849,10 +841,15 @@ begin
                   -- Next state            
                   v.tspState   := DISS_CONN_S;
                end if;
-            -- Move data
-            elsif (v.tspSsiMaster.valid = '0' and headerRdy_i = '1') then
+            elsif (tspSsiSlave_i.ready = '1' and headerRdy_i = '1') then
                v.tspSsiMaster.valid  := '1';
-            end if;
+               v.txHeaderAddr        := r.txHeaderAddr + 1;
+               v.chkStb              := '1';
+            else
+               v.tspSsiMaster.valid  := '0';
+               v.txHeaderAddr        := r.txHeaderAddr;
+               v.chkStb              := '0';
+            end if; 
 
          ----------------------------------------------------------------------
          -- ACK packet
@@ -1197,9 +1194,12 @@ begin
                --
                v.tspState   := DATA_SENT_S;
 
-            -- Increment segment address only when Slave do not increase address first time
-            elsif (r.tspSsiMaster.sof = '0' and tspSsiSlave_i.ready = '1') then
+            -- Increment segment address only when Slave is ready 
+            elsif (tspSsiSlave_i.ready = '1') then                               
                v.txSegmentAddr       := r.txSegmentAddr + 1;
+            -- Decrement segment address upon falling edge of ready because it has been already incremented too far
+            elsif (tspSsiSlave_i.ready = '0'  and r.tspSsiSlave.ready = '1') then 
+               v.txSegmentAddr       := r.txSegmentAddr - 1;
             end if;
             
          -----------------------------------------------------------------------------   
@@ -1377,9 +1377,12 @@ begin
                -- 
                v.tspState   := RESEND_PP_S;
                
-            -- Increment segment address only when Slave is ready do not increase address first time
-            elsif (r.tspSsiMaster.sof = '0' and tspSsiSlave_i.ready = '1') then
+            -- Increment segment address only when Slave is ready 
+            elsif (tspSsiSlave_i.ready = '1') then                               
                v.txSegmentAddr       := r.txSegmentAddr + 1;
+            -- Decrement segment address upon falling edge of ready because it has been already incremented too far
+            elsif (tspSsiSlave_i.ready = '0'  and r.tspSsiSlave.ready = '1') then 
+               v.txSegmentAddr       := r.txSegmentAddr - 1;
             end if;
          ----------------------------------------------------------------------            
          when RESEND_PP_S =>
