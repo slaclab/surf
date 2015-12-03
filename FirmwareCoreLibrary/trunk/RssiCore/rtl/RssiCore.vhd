@@ -27,6 +27,8 @@ use work.AxiStreamPkg.all;
 entity RssiCore is
    generic (
       TPD_G            : time     := 1 ns;
+      CLK_FREQUENCY_G  : real     := 100.0E6;
+      
       SERVER_G         : boolean  := true; -- Module is server or client 
       INTERNAL_PARAM_G : boolean  := true; -- Internal true (Rssi parameters from generics) 
                                            -- External true (Rssi parameters from input)
@@ -45,9 +47,9 @@ entity RssiCore is
       MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
 
       -- Timeouts
-      RETRANS_TOUT_G        : positive := 5000;  -- ms temp
-      ACK_TOUT_G            : positive := 2501;  -- ms
-      NULL_TOUT_G           : positive := 20000; -- ms
+      RETRANS_TOUT_G        : positive := 50;  -- ms temp
+      ACK_TOUT_G            : positive := 25;  -- ms
+      NULL_TOUT_G           : positive := 200; -- ms
       
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
@@ -268,7 +270,9 @@ begin
    Monitor_INST: entity work.Monitor
    generic map (
       TPD_G => TPD_G,
-      SERVER_G => SERVER_G)
+      CLK_FREQUENCY_G => CLK_FREQUENCY_G,
+      SERVER_G => SERVER_G,
+      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
@@ -468,7 +472,6 @@ begin
       wrBuffWe_o     => s_rxWrBuffWe,
       wrBuffAddr_o   => s_rxWrBuffAddr,
       wrBuffData_o   => s_rxWrBuffData,
-      rdBuffRe_o     => s_rxRdBuffRe,
       rdBuffAddr_o   => s_rxRdBuffAddr,
       rdBuffData_i   => s_rxRdBuffData,
       tspSsiMaster_i => s_sTspSsiMaster,
@@ -493,7 +496,6 @@ begin
       -- Port B - Read only
       clkb  => clk_i,
       rstb  => rst_i,
-      enb   => '1',--s_rxRdBuffRe, 
       addrb => s_rxRdBuffAddr,
       doutb => s_rxRdBuffData);
 
