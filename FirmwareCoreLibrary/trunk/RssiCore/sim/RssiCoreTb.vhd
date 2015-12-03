@@ -42,52 +42,43 @@ architecture testbed of RssiCoreTb is
    
    -- UUT   
 
+
+   
+   
+   
    -- RSSI 0   
    signal   connRq0_i     : sl := '0';
    signal   closeRq0_i    : sl := '0';
-       
-   signal   sAppSsiMaster0   : SsiMasterType;
-   signal   sAppSsiSlave0    : SsiSlaveType;
-   signal   mAppSsiMaster0   : SsiMasterType;
-   signal   mAppSsiSlave0    : SsiSlaveType;
+   
+   signal   sAppAxisMaster0      : AxiStreamMasterType;
+   signal   sAppAxisSlave0       : AxiStreamSlaveType;
+   signal   mAppAxisMaster0      : AxiStreamMasterType;
+   signal   mAppAxisSlave0       : AxiStreamSlaveType;
+
+   signal   sTspAxisMaster0      : AxiStreamMasterType;
+   signal   sTspAxisSlave0       : AxiStreamSlaveType;
+   signal   mTspAxisMaster0      : AxiStreamMasterType;
+   signal   mTspAxisSlave0       : AxiStreamSlaveType;   
 
    -- RSSI 1
    signal   connRq1_i     : sl := '0';
    signal   closeRq1_i    : sl := '0';
 
-   signal   sAppSsiMaster1       : SsiMasterType;
-   signal   sAppSsiSlave1        : SsiSlaveType;
-   signal   mAppSsiMaster1       : SsiMasterType;
-   signal   mAppSsiSlave1        : SsiSlaveType;
-   
-   -- Transport
-   signal   sTspSsiMaster       : SsiMasterType;
-   signal   sTspSsiSlave        : SsiSlaveType;
-   signal   mTspSsiMaster       : SsiMasterType;
-   signal   mTspSsiSlave        : SsiSlaveType;
+   signal   sAppAxisMaster1      : AxiStreamMasterType;
+   signal   sAppAxisSlave1       : AxiStreamSlaveType;
+   signal   mAppAxisMaster1      : AxiStreamMasterType;
+   signal   mAppAxisSlave1       : AxiStreamSlaveType;
 
-   -- Internal AXIStream
-   signal   mAxisMaster    : AxiStreamMasterType; 
-   signal   mAxisSlave     : AxiStreamSlaveType;
-   signal   sAxisMaster    : AxiStreamMasterType; 
-   signal   sAxisSlave     : AxiStreamSlaveType;
-   
+   signal   sTspAxisMaster1      : AxiStreamMasterType;
+   signal   sTspAxisSlave1       : AxiStreamSlaveType;
+   signal   mTspAxisMaster1      : AxiStreamMasterType;
+   signal   mTspAxisSlave1       : AxiStreamSlaveType;  
+     
    signal   s_trig : sl := '0';
-   
-   -- Constants
-   constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXI_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
-   constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave (RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_INIT_C);
-   constant SSI_SLAVE_RDY_C     : SsiSlaveType  := axis2SsiSlave (RSSI_AXI_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);   
+     
 ------
 begin
-   -- Prbs TX
-   sAppSsiMaster0 <= axis2SsiMaster(RSSI_AXI_CONFIG_C, mAxisMaster);
-   mAxisSlave     <= ssi2AxisSlave(sAppSsiSlave0);
-   
-   -- Prbs RX
-   sAxisMaster    <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, mAppSsiMaster0);
-   mAppSsiSlave0  <= axis2SsiSlave(RSSI_AXI_CONFIG_C, sAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
-   
+  
    -- Generate clocks and resets
    DDR_ClkRst_Inst : entity work.ClkRst
       generic map (
@@ -118,24 +109,30 @@ begin
       initSeqN_i  => x"40",
       
       -- 
-      sAppSsiMaster_i => sAppSsiMaster0, -- prbs tx
-      sAppSsiSlave_o  => sAppSsiSlave0,  -- prbs tx
+      sAppAxisMaster_i => sAppAxisMaster0, -- prbs tx
+      sAppAxisSlave_o  => sAppAxisSlave0,  -- prbs tx
       
       --  
-      mAppSsiMaster_o => mAppSsiMaster0, -- prbs rx
-      mAppSsiSlave_i  => mAppSsiSlave0,  -- prbs rx
+      mAppAxisMaster_o => mAppAxisMaster0, -- prbs rx
+      mAppAxisSlave_i  => mAppAxisSlave0,  -- prbs rx
       
       -- 
-      sTspSsiMaster_i => mTspSsiMaster, --<-- From Peer
-      sTspSsiSlave_o  => mTspSsiSlave,  --<-- From Peer
+      sTspAxisMaster_i => sTspAxisMaster0, --<-- From Peer
+      sTspAxisSlave_o  => sTspAxisSlave0,  --<-- From Peer
       
       -- 
-      mTspSsiMaster_o => sTspSsiMaster, -->-- To Peer 
-      mTspSsiSlave_i  => sTspSsiSlave); -->-- To Peer
+      mTspAxisMaster_o => mTspAxisMaster0, -->-- To Peer 
+      mTspAxisSlave_i  => mTspAxisSlave0); -->-- To Peer
    
    ---------------------------------------
-   --mAppSsiSlave0 <= SSI_SLAVE_RDY_C;   
    
+   -- Transport connection between modules
+   sTspAxisMaster1 <= mTspAxisMaster0;
+   mTspAxisSlave0  <= sTspAxisSlave1; 
+   
+   
+   sTspAxisMaster0 <= mTspAxisMaster1;
+   mTspAxisSlave1  <= sTspAxisSlave0;
 
    -- RSSI 1 Client      
    RssiCore1_INST: entity work.RssiCore
@@ -149,30 +146,30 @@ begin
       connRq_i    => connRq1_i, 
       closeRq_i   => closeRq1_i,
       initSeqN_i  => x"80",
+           
+      -- 
+      sAppAxisMaster_i => sAppAxisMaster1, -- Loopback
+      sAppAxisSlave_o  => sAppAxisSlave1,  -- Loopback
       
       -- 
-      sAppSsiMaster_i => sAppSsiMaster1, -- Loopback
-      sAppSsiSlave_o  => sAppSsiSlave1,  -- Loopback
+      mAppAxisMaster_o => mAppAxisMaster1, -- Loopback 
+      mAppAxisSlave_i  => mAppAxisSlave1,  -- Loopback 
       
       -- 
-      mAppSsiMaster_o => mAppSsiMaster1, -- Loopback 
-      mAppSsiSlave_i  => mAppSsiSlave1,  -- Loopback 
+      sTspAxisMaster_i => sTspAxisMaster1, --<-- From Peer
+      sTspAxisSlave_o  => sTspAxisSlave1,  --<-- From Peer
       
       -- 
-      sTspSsiMaster_i => sTspSsiMaster, --<-- From Peer
-      sTspSsiSlave_o  => sTspSsiSlave,  --<-- From Peer
-      
-      -- 
-      mTspSsiMaster_o => mTspSsiMaster, -->-- To Peer 
-      mTspSsiSlave_i  => mTspSsiSlave); -->-- To Peer
+      mTspAxisMaster_o => mTspAxisMaster1, -->-- To Peer 
+      mTspAxisSlave_i  => mTspAxisSlave1); -->-- To Peer
 
    ---------------------------------------
    -- RSSI 1 Loopback connection
-   sAppSsiMaster1 <= mAppSsiMaster1;
-   mAppSsiSlave1  <= sAppSsiSlave1;
+   sAppAxisMaster1 <= mAppAxisMaster1;
+   mAppAxisSlave1  <= sAppAxisSlave1;
    
-   --mAppSsiSlave1  <= SSI_SLAVE_RDY_C;
-   --sAppSsiMaster1 <= SSI_MASTER_INIT_C;
+   --mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
+   --sAppAxisMaster1 <= AXI_STREAM_MASTER_INIT_C;
 
    ------Application side data PRBS Tx---------------------------
     
@@ -192,12 +189,12 @@ begin
    port map (
       mAxisClk        => clk_i,
       mAxisRst        => rst_i,
-      mAxisMaster     => mAxisMaster,
-      mAxisSlave      => mAxisSlave,
+      mAxisMaster     => sAppAxisMaster0,
+      mAxisSlave      => sAppAxisSlave0,
       locClk          => clk_i,
       locRst          => rst_i,
       trig            => s_trig,
-      packetLength    => X"0000_00fe",
+      packetLength    => X"0000_000f",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
@@ -215,8 +212,8 @@ begin
 
       XIL_DEVICE_G               => "ULTRASCALE",
       CASCADE_SIZE_G             => 1,
-      FIFO_ADDR_WIDTH_G          => 9,
-      FIFO_PAUSE_THRESH_G        => 2**8,
+      FIFO_ADDR_WIDTH_G          => 4,
+      FIFO_PAUSE_THRESH_G        => 1,
       PRBS_SEED_SIZE_G           => 32,
       PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
       SLAVE_AXI_STREAM_CONFIG_G  => RSSI_AXI_CONFIG_C,
@@ -224,8 +221,8 @@ begin
    port map (
       sAxisClk        => clk_i,
       sAxisRst        => rst_i,
-      sAxisMaster     => sAxisMaster,
-      sAxisSlave      => sAxisSlave,
+      sAxisMaster     => mAppAxisMaster0,
+      sAxisSlave      => mAppAxisSlave0,
       sAxisCtrl       => open,
       mAxisClk        => clk_i,
       mAxisRst        => rst_i,

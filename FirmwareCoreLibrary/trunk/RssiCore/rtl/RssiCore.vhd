@@ -36,9 +36,9 @@ entity RssiCore is
       -- Generic RSSI parameters
       
       -- Version and connection ID
-      
-      CONN_ID_G  : positive := 100;
-      VERSION_G  : positive := 1;
+      CONN_ID_G   : positive := 1385;
+      VERSION_G   : positive := 1;
+      HEADER_CHKSUM_EN_G : boolean  := true;
       
       -- Window parameters of receiver module
       MAX_NUM_OUTS_SEG_G  : positive := 8;
@@ -48,23 +48,11 @@ entity RssiCore is
       RETRANS_TOUT_G        : positive := 5000;  -- ms temp
       ACK_TOUT_G            : positive := 2501;  -- ms
       NULL_TOUT_G           : positive := 20000; -- ms
-      TRANS_STATE_TOUT_G    : positive := 500;   -- ms
       
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
       MAX_CUM_ACK_CNT_G     : positive := 3;
-      MAX_OUT_OF_SEQUENCE_G : natural  := 3;
-      MAX_AUTO_RST_CNT_G    : positive := 1;
-
-      --
-      
-      -- Standard parameters
-      SYN_HEADER_SIZE_G  : natural := 24;
-      ACK_HEADER_SIZE_G  : natural := 8;
-      EACK_HEADER_SIZE_G : natural := 8;
-      RST_HEADER_SIZE_G  : natural := 8;
-      NULL_HEADER_SIZE_G : natural := 8;
-      DATA_HEADER_SIZE_G : natural := 8
+      MAX_OUT_OF_SEQUENCE_G : natural  := 3   
    );
    port (
       clk_i      : in  sl;
@@ -77,16 +65,16 @@ entity RssiCore is
       appRssiParam_i : in RssiParamType:= (others => (others =>'0')); -- Can be disconnected if INTERNAL_PARAM_G=true
       
       -- SSI Application side
-      sAppSsiMaster_i : in  SsiMasterType;
-      sAppSsiSlave_o  : out SsiSlaveType;
-      mAppSsiMaster_o : out SsiMasterType;
-      mAppSsiSlave_i  : in  SsiSlaveType;
+      sAppAxisMaster_i : in  AxiStreamMasterType;
+      sAppAxisSlave_o  : out AxiStreamSlaveType;
+      mAppAxisMaster_o : out AxiStreamMasterType;
+      mAppAxisSlave_i  : in  AxiStreamSlaveType;
 
-      -- SSI Teansport side
-      sTspSsiMaster_i : in  SsiMasterType;
-      sTspSsiSlave_o  : out SsiSlaveType;
-      mTspSsiMaster_o : out SsiMasterType;
-      mTspSsiSlave_i  : in  SsiSlaveType
+      -- SSI Transport side
+      sTspAxisMaster_i : in  AxiStreamMasterType;
+      sTspAxisSlave_o  : out AxiStreamSlaveType;
+      mTspAxisMaster_o : out AxiStreamMasterType;
+      mTspAxisSlave_i  : in  AxiStreamSlaveType
    );
 end entity RssiCore;
 
@@ -153,6 +141,7 @@ architecture rtl of RssiCore is
    signal s_rxWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_rxWrBuffWe   : sl;
+   signal s_rxRdBuffRe   : sl;
    signal s_rxRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    
@@ -162,6 +151,7 @@ architecture rtl of RssiCore is
    signal s_txWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_txWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_txWrBuffWe   : sl;
+   signal s_txRdBuffRe   : sl;
    signal s_txRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_txRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
@@ -171,9 +161,18 @@ architecture rtl of RssiCore is
    -- with acknowledge flag received
    signal s_rxAck : sl;
    
-   -- 
+   -- SSI Application side
+   signal s_sAppSsiMaster : SsiMasterType;
+   signal s_sAppSsiSlave  : SsiSlaveType;
+   signal s_mAppSsiMaster : SsiMasterType;
+   signal s_mAppSsiSlave  : SsiSlaveType;
+  
+   -- SSI Teansport side      
+   signal s_sTspSsiMaster : SsiMasterType;
+   signal s_sTspSsiSlave  : SsiSlaveType;
    signal s_mTspSsiMaster : SsiMasterType;
-   
+   signal s_mTspSsiSlave  : SsiSlaveType;
+
    -- 
    signal s_txBufferEmpty : sl;
    signal s_lenErr : sl;
@@ -186,6 +185,29 @@ architecture rtl of RssiCore is
    signal s_txAckF : sl;
 ----------------------------------------------------------------------
 begin
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- SSI to AXIS conversion
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+   
+   -- SSI Application side
+   s_sAppSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, sAppAxisMaster_i); 
+   sAppAxisSlave_o  <= ssi2AxisSlave(s_sAppSsiSlave); 
+   mAppAxisMaster_o <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mAppSsiMaster); 
+   s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, mAppAxisSlave_i, AXI_STREAM_CTRL_UNUSED_C);
+
+   -- SSI Transport side
+   s_sTspSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, sTspAxisMaster_i); 
+   sTspAxisSlave_o  <= ssi2AxisSlave(s_sTspSsiSlave); 
+   mTspAxisMaster_o <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mTspSsiMaster); 
+   s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, mTspAxisSlave_i, AXI_STREAM_CTRL_UNUSED_C);
+
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Parameter assignment
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
    GEN_INTERNAL : if INTERNAL_PARAM_G = true generate
       -- assign application side Rssi parameters from generics
       s_appRssiParam.maxOutsSeg      <= toSlv(MAX_NUM_OUTS_SEG_G, 8);
@@ -193,20 +215,18 @@ begin
       s_appRssiParam.retransTout     <= toSlv(RETRANS_TOUT_G, 16);
       s_appRssiParam.cumulAckTout    <= toSlv(ACK_TOUT_G, 16);
       s_appRssiParam.nullSegTout     <= toSlv(NULL_TOUT_G, 16);
-      s_appRssiParam.transStateTout  <= toSlv(TRANS_STATE_TOUT_G, 16);
       s_appRssiParam.maxRetrans      <= toSlv(MAX_RETRANS_CNT_G, 8);
       s_appRssiParam.maxCumAck       <= toSlv(MAX_CUM_ACK_CNT_G, 8);
       s_appRssiParam.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
-      s_appRssiParam.maxAutoRst      <= toSlv(MAX_AUTO_RST_CNT_G, 8);
       s_appRssiParam.version         <= toSlv(VERSION_G, 4);
-      s_appRssiParam.connectionId    <= toSlv(CONN_ID_G, 16);
+      s_appRssiParam.connectionId    <= toSlv(CONN_ID_G, 32);
+      s_appRssiParam.chksumEn        <= ite(HEADER_CHKSUM_EN_G, "1", "0");
    end generate GEN_INTERNAL;
    
    GEN_EXTERNAL : if INTERNAL_PARAM_G = false generate
       -- assign application side Rssi parameters from generics
       s_appRssiParam  <= appRssiParam_i;
    end generate GEN_EXTERNAL;
-
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -280,12 +300,12 @@ begin
    generic map (
       TPD_G                 => TPD_G,
 
-      SYN_HEADER_SIZE_G     => SYN_HEADER_SIZE_G,
-      ACK_HEADER_SIZE_G     => ACK_HEADER_SIZE_G,
-      EACK_HEADER_SIZE_G    => EACK_HEADER_SIZE_G,
-      RST_HEADER_SIZE_G     => RST_HEADER_SIZE_G,
-      NULL_HEADER_SIZE_G    => NULL_HEADER_SIZE_G,
-      DATA_HEADER_SIZE_G    => DATA_HEADER_SIZE_G)
+      SYN_HEADER_SIZE_G     => SYN_HEADER_SIZE_C,
+      ACK_HEADER_SIZE_G     => ACK_HEADER_SIZE_C,
+      EACK_HEADER_SIZE_G    => EACK_HEADER_SIZE_C,
+      RST_HEADER_SIZE_G     => RST_HEADER_SIZE_C,
+      NULL_HEADER_SIZE_G    => NULL_HEADER_SIZE_C,
+      DATA_HEADER_SIZE_G    => DATA_HEADER_SIZE_C)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
@@ -314,12 +334,12 @@ begin
    generic map (
       TPD_G              => TPD_G,
       WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
-      SYN_HEADER_SIZE_G  => SYN_HEADER_SIZE_G,
-      ACK_HEADER_SIZE_G  => ACK_HEADER_SIZE_G,
-      EACK_HEADER_SIZE_G => EACK_HEADER_SIZE_G,
-      RST_HEADER_SIZE_G  => RST_HEADER_SIZE_G,
-      NULL_HEADER_SIZE_G => NULL_HEADER_SIZE_G,
-      DATA_HEADER_SIZE_G => DATA_HEADER_SIZE_G)
+      SYN_HEADER_SIZE_G  => SYN_HEADER_SIZE_C,
+      ACK_HEADER_SIZE_G  => ACK_HEADER_SIZE_C,
+      EACK_HEADER_SIZE_G => EACK_HEADER_SIZE_C,
+      RST_HEADER_SIZE_G  => RST_HEADER_SIZE_C,
+      NULL_HEADER_SIZE_G => NULL_HEADER_SIZE_C,
+      DATA_HEADER_SIZE_G => DATA_HEADER_SIZE_C)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
@@ -366,10 +386,10 @@ begin
       ack_i          => s_rxAck,
       ackN_i         => s_rxAckN,
 
-      appSsiMaster_i => sAppSsiMaster_i,
-      appSsiSlave_o  => sAppSsiSlave_o,
+      appSsiMaster_i => s_sAppSsiMaster,
+      appSsiSlave_o  => s_sAppSsiSlave,
       
-      tspSsiSlave_i  => mTspSsiSlave_i,
+      tspSsiSlave_i  => s_mTspSsiSlave,
       tspSsiMaster_o => s_mTspSsiMaster,
       
       bufferEmpty_o=> s_txBufferEmpty,
@@ -377,8 +397,6 @@ begin
       ackErr_o       => s_ackErr);
    
    -----------------------------------------------   
-   mTspSsiMaster_o <= s_mTspSsiMaster;  
-
    -- Tx buffer RAM 
    TxBuffer_INST: entity work.SimpleDualPortRam
    generic map (
@@ -450,12 +468,13 @@ begin
       wrBuffWe_o     => s_rxWrBuffWe,
       wrBuffAddr_o   => s_rxWrBuffAddr,
       wrBuffData_o   => s_rxWrBuffData,
+      rdBuffRe_o     => s_rxRdBuffRe,
       rdBuffAddr_o   => s_rxRdBuffAddr,
       rdBuffData_i   => s_rxRdBuffData,
-      tspSsiMaster_i => sTspSsiMaster_i,
-      tspSsiSlave_o  => sTspSsiSlave_o,
-      appSsiMaster_o => mAppSsiMaster_o,
-      appSsiSlave_i  => mAppSsiSlave_i);
+      tspSsiMaster_i => s_sTspSsiMaster,
+      tspSsiSlave_o  => s_sTspSsiSlave,
+      appSsiMaster_o => s_mAppSsiMaster,
+      appSsiSlave_i  => s_mAppSsiSlave);
       
    -- Rx buffer RAM 
    RxBuffer_INST: entity work.SimpleDualPortRam
@@ -474,6 +493,7 @@ begin
       -- Port B - Read only
       clkb  => clk_i,
       rstb  => rst_i,
+      enb   => '1',--s_rxRdBuffRe, 
       addrb => s_rxRdBuffAddr,
       doutb => s_rxRdBuffData);
 

@@ -11,12 +11,21 @@ package RssiPkg is
 --------------------------------------------------------------------------
 constant SEGMENT_ADDR_SIZE_C      : positive := 7;     -- 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
 constant RSSI_WORD_WIDTH_C        : positive := 8;     -- 64 bit word (FIXED)
-constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C);  
+constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C);
 
+-- Header sizes
+constant SYN_HEADER_SIZE_C  : natural := 24;
+constant ACK_HEADER_SIZE_C  : natural := 8;
+constant EACK_HEADER_SIZE_C : natural := 8;
+constant RST_HEADER_SIZE_C  : natural := 8;
+constant NULL_HEADER_SIZE_C : natural := 8;
+constant DATA_HEADER_SIZE_C : natural := 8;
+  
 -- Sub-types 
 -------------------------------------------------------------------------- 
    type RssiParamType is record
       version               :  slv(3  downto 0);
+      chksumEn              :  slv(0 downto 0);
       
       maxOutsSeg            :  slv(7  downto 0); -- Receiver parameter       
       maxSegSize            :  slv(15 downto 0); -- Receiver parameter
@@ -24,15 +33,13 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       retransTout           :  slv(15 downto 0);
       cumulAckTout          :  slv(15 downto 0);
       nullSegTout           :  slv(15 downto 0);      
-      transStateTout        :  slv(15 downto 0);
 
       maxRetrans            :  slv(7 downto 0);
       maxCumAck             :  slv(7 downto 0);
       
       maxOutofseq           :  slv(7 downto 0);
-      maxAutoRst            :  slv(7 downto 0);
 
-      connectionId          :  slv(15 downto 0);
+      connectionId          :  slv(31 downto 0);
    end record RssiParamType;
    
    type flagsType is record
@@ -45,7 +52,6 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       busy : sl;
       eofe : sl;
    end record flagsType;
-   
 
    type WindowType is record
       seqN                  :  slv(7  downto 0);
@@ -53,10 +59,10 @@ constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RS
       
       -- SSI
 
- --     eofe                  : sl;
---      strb                  : slv(15 downto 0);
+--     eofe                  : sl;
+--     strb                  : slv(15 downto 0);
       keep                  : slv(15 downto 0);
---      dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
+--     dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
       
       segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
       occupied              : sl;
