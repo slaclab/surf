@@ -109,19 +109,19 @@ begin
             when 16#00# =>
                v.headerData := "1" & ack_i & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
                                txSeqN_i & rxAckN_i                                  &
-                               headerValues_i.version & x"0" & headerValues_i.maxOutsSeg &       
-                               x"00" & x"00";
+                               headerValues_i.version & '1' & headerValues_i.chksumEn & "00" & headerValues_i.maxOutsSeg &       
+                               headerValues_i.maxSegSize;
                v.rdy := '1';
             when 16#01# =>
-               v.headerData := headerValues_i.maxSegSize   &
-                               headerValues_i.retransTout  &
+               v.headerData := headerValues_i.retransTout  &
                                headerValues_i.cumulAckTout &
-                               headerValues_i.nullSegTout;
+                               headerValues_i.nullSegTout  &
+                               headerValues_i.maxRetrans & headerValues_i.maxCumAck;
                v.rdy := '1';
             when 16#02# =>
-               v.headerData := headerValues_i.maxRetrans & headerValues_i.maxCumAck  &
-                               headerValues_i.maxOutofseq & headerValues_i.maxAutoRst&           
-                               headerValues_i.connectionId                           &
+               v.headerData := headerValues_i.maxOutofseq & x"00"        &           
+                               headerValues_i.connectionId(31 downto 16) &
+                               headerValues_i.connectionId(15 downto 0)  &
                                x"00" & x"00"; -- Place for checksum
                v.rdy := '1';
             when others =>

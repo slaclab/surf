@@ -81,6 +81,7 @@ entity RxFSM is
       wrBuffData_o   : out  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);      
       
       -- Buffer read
+      rdBuffRe_o     : out  sl;
       rdBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
       rdBuffData_i   : in   slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
@@ -327,8 +328,11 @@ begin
                -- Register SYN header word 0 parameters
                v.chkLen     := 3; -- TODO make generic
                v.rxParam.version    := r.tspSsiMaster.data (31 downto 28);
+               v.rxParam.chksumEn   := r.tspSsiMaster.data (26 downto 26);
                v.rxParam.maxOutsSeg := r.tspSsiMaster.data (23 downto 16);
+               v.rxParam.maxSegSize := r.tspSsiMaster.data (15 downto 0);
                
+               --
                if (v.rxF.ack = '1' and v.rxAckN /= initAckN_i) then
                   -- Acknowledgment not valid
                   v.tspState    := DROP_S;
@@ -394,10 +398,12 @@ begin
             -- Register SYN header word 1 parameters
             if (r.rxHeaderAddr = x"01" and r.tspSsiMaster.valid = '1') then
                -- Syn parameters              
-               v.rxParam.maxSegSize  := r.tspSsiMaster.data (63 downto 48);
-               v.rxParam.retransTout := r.tspSsiMaster.data (47 downto 32);
-               v.rxParam.cumulAckTout:= r.tspSsiMaster.data (31 downto 16);
-               v.rxParam.nullSegTout := r.tspSsiMaster.data (15 downto 0);
+               v.rxParam.retransTout := r.tspSsiMaster.data (63 downto 48);
+               v.rxParam.cumulAckTout:= r.tspSsiMaster.data (47 downto 32);
+               v.rxParam.nullSegTout := r.tspSsiMaster.data (31 downto 16);
+               v.rxParam.maxRetrans  := r.tspSsiMaster.data (15 downto 8);
+               v.rxParam.maxCumAck   := r.tspSsiMaster.data ( 7 downto 0);
+               --
             end if;
             
             -- Register SYN header word 2 parameters
@@ -409,12 +415,9 @@ begin
                if (r.tspSsiMaster.valid = '1') then
                  
                   -- Syn parameters
-                  v.rxParam.maxRetrans  := r.tspSsiMaster.data (63 downto 56);
-                  v.rxParam.maxCumAck   := r.tspSsiMaster.data (55 downto 48);
-                  v.rxParam.maxOutofseq := r.tspSsiMaster.data (47 downto 40);
-                  v.rxParam.maxAutoRst  := r.tspSsiMaster.data (39 downto 32);
-                  v.rxParam.connectionId:= r.tspSsiMaster.data (31 downto 16);
-                  
+                  v.rxParam.maxOutofseq              := r.tspSsiMaster.data (63 downto 56);
+                  v.rxParam.connectionId(31 downto 0):= r.tspSsiMaster.data (47 downto 16);
+
                   -- Tsp parameters
                   v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
                end if;
@@ -475,7 +478,7 @@ begin
                end if;
             elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr > rxBufferSize_i ) then
                v.tspState    := DROP_S;
-              elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
+            elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
                v.tspState    := DROP_S;
             end if;
          ----------------------------------------------------------------------
@@ -655,7 +658,7 @@ begin
                
                v.appState   := SENT_S;
                
-            -- Increment segment address only when Slave is ready and master is valid
+            -- Increment segment address only when Slave is ready and master is valid      
             elsif (appSsiSlave_i.ready = '1') then
                v.txSegmentAddr       := r.txSegmentAddr + 1;
             elsif (connActive_i = '0') then
@@ -704,7 +707,7 @@ begin
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
       rdBuffAddr_o   <= r.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
-      
+      rdBuffRe_o     <= appSsiSlave_i.ready;
       -- Assign outputs
       rxFlags_o      <= r.rxF;
       rxSeqN_o       <= r.rxSeqN;
