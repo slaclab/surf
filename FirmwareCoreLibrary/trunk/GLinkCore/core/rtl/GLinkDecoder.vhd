@@ -157,8 +157,18 @@ begin
 
       -- Outputs      
       gLinkRx       <= r.gLinkRx;
+      
+      ----------------------
+      -- Perform deglitching
+      ----------------------
       decoderError  <= uAnd(r.deglitch);
       decoderErrorL <= not(uAnd(r.deglitch));
+      
+      ----------------------------
+      -- Don't perform deglitching
+      ----------------------------
+      -- decoderError  <= r.gLinkRx.error;
+      -- decoderErrorL <= not(r.gLinkRx.error);
       
    end process comb;
 
