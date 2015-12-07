@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2015-10-12
+-- Last update: 2015-11-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -62,9 +62,9 @@ package AxiStreamPkg is
    constant AXI_STREAM_SLAVE_FORCE_C : AxiStreamSlaveType := (
       tReady => '1');
 
-   type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C, TUSER_LAST_C);
+   type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C, TUSER_LAST_C, TUSER_NONE_C);
 
-   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C);
+   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C, TKEEP_FIXED_C);
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
@@ -72,7 +72,7 @@ package AxiStreamPkg is
       TDEST_BITS_C  : natural range 0 to 8;
       TID_BITS_C    : natural range 0 to 8;
       TKEEP_MODE_C  : TkeepModeType;
-      TUSER_BITS_C  : natural range 2 to 8;
+      TUSER_BITS_C  : natural range 0 to 8;
       TUSER_MODE_C  : TUserModeType;
    end record AxiStreamConfigType;
 
@@ -87,6 +87,8 @@ package AxiStreamPkg is
 
    type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
    type AxiStreamConfigVectorArray is array (natural range<>, natural range<>) of AxiStreamConfigType;
+
+   function axiStreamMasterInit (constant config : AxiStreamConfigType) return AxiStreamMasterType;
 
    -------------------------------------------------------------------------------------------------
    -- Special control backpressure interface for use with stream fifos
@@ -154,18 +156,26 @@ package AxiStreamPkg is
 
    function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;
    function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
+   function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;   
 
-   function genTKeep (
-      bytes : integer range 0 to 16)
-      return slv;
+   function genTKeep (bytes           : integer range 0 to 16) return slv;
+   function genTKeep (constant config : AxiStreamConfigType) return slv;
 
-   function getTKeep (
-      tKeep : slv(15 downto 0))
-      return natural;
+   function getTKeep (tKeep : slv(15 downto 0)) return natural;
+
 
 end package AxiStreamPkg;
 
 package body AxiStreamPkg is
+
+   function axiStreamMasterInit (constant config : AxiStreamConfigType) return AxiStreamMasterType is
+      variable ret : AxiStreamMasterType;
+   begin
+      ret       := AXI_STREAM_MASTER_INIT_C;
+      ret.tKeep := genTKeep(config);
+      ret.tStrb := genTKeep(config);
+      return ret;
+   end function axiStreamMasterInit;
 
    function axiStreamPacked (
       constant CONFIG_C : AxiStreamConfigType;
@@ -192,7 +202,7 @@ package body AxiStreamPkg is
    begin
 
       if bytePos = -1 then
-         ret := conv_integer(onesCount(axisMaster.tKeep(axisConfig.TDATA_BYTES_C-1 downto 0))) - 1;
+         ret := getTKeep(axisMaster.tKeep)-1;
          if ret < 0 then
             ret := 0;
          end if;
@@ -275,10 +285,12 @@ package body AxiStreamPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
-   function genTKeep (
-      bytes : integer range 0 to 16)
-      return slv
-   is
+   function ite (i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function genTKeep (bytes : integer range 0 to 16) return slv is
    begin
       case bytes is
          when 0  => return X"0000";
@@ -301,10 +313,12 @@ package body AxiStreamPkg is
       end case;
    end function genTKeep;
 
-   function getTKeep (
-      tKeep : slv(15 downto 0))
-      return natural
-   is
+   function genTKeep (constant config : AxiStreamConfigType) return slv is
+   begin
+      return genTKeep(config.TDATA_BYTES_C);
+   end function genTKeep;
+
+   function getTKeep (tKeep : slv(15 downto 0)) return natural is
    begin
       case tKeep is
          when X"0000" => return 0;
