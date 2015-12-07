@@ -592,7 +592,7 @@ package body AxiLitePkg is
       axilWriteMaster.bready := '0';
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
-      elsif (axilWriteSlave.bready = AXI_RESP_DECERR_C) then
+      elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity error;
       else
          print(debug, "AxiLitePkg::axiLiteBusSimWrite( addr:" & hstr(addr) & ", data: " & hstr(data) & ")");
@@ -632,7 +632,7 @@ package body AxiLitePkg is
       axilReadMaster.rready := '0';
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;
-      elsif (axilReadSlave.rready = AXI_RESP_DECERR_C) then
+      elsif (axilReadSlave.rresp = AXI_RESP_DECERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): RRESP = DECODE_ERROR" severity error;
       else
          data := axilReadSlave.rdata;
