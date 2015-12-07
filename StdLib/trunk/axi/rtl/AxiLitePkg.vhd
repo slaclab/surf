@@ -574,7 +574,7 @@ package body AxiLitePkg is
 
 
       -- Wait for a response
-      while (axilWriteSlave.bvalid = '0') then
+      while (axilWriteSlave.bvalid = '0') loop
          -- Clear control signals when acked
          if axilWriteSlave.awready = '1' then
             axilWriteMaster.awvalid := '0';
@@ -585,7 +585,7 @@ package body AxiLitePkg is
 
 
          wait until axiClk = '1';
-      end if;
+      end loop;
 
       -- Done. Check for errors
       wait until axiClk = '1';
@@ -618,14 +618,14 @@ package body AxiLitePkg is
 
 
       -- Wait for a response
-      while (axilReadSlave.rvalid = '0') then
+      while (axilReadSlave.rvalid = '0') loop
          -- Clear control signals when acked
          if axilReadSlave.arready = '1' then
             axilReadMaster.arvalid := '0';
          end if;
 
          wait until axiClk = '1';
-      end if;
+      end loop;
 
       -- Done. Check for errors
       wait until axiClk = '1';
