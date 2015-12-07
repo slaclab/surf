@@ -368,7 +368,17 @@ begin
             crcWidthDly3 <= (others=>'0') after TPD_G;
             intLastLine  <= '0'           after TPD_G;
             intAdvance   <= '0'           after TPD_G;
+            crcGood      <= '0'           after TPD_G;
          else
+
+            -- Detect good CRC, only on FIFO reads
+            if crcShift1 = '1' then
+               if crcOut = X"1cdf4421" then
+                  crcGood <= '1' after TPD_G;
+               else
+                  crcGood <= '0' after TPD_G;
+               end if;
+            end if;
 
             -- CRC output shift stages
             crcShift0 <= crcDataValid after TPD_G;
@@ -442,9 +452,6 @@ begin
    crcIn(23 downto 16) <= crcFifoIn(47 downto 40);
    crcIn(15 downto  8) <= crcFifoIn(55 downto 48);
    crcIn(7  downto  0) <= crcFifoIn(63 downto 56);
-
-   -- Detect good CRC
-   crcGood <= '1' when crcOut = X"1cdf4421" else '0';
 
    -- CRC
    U_Crc32 : entity work.Crc32Parallel

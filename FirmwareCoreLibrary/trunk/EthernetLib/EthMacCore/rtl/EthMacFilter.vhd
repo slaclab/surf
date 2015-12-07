@@ -91,7 +91,7 @@ begin
                -- Local match, broadcast or multicast
                if filtEnable = '0' or 
                   r.regMaster.tData(47 downto  0) = macAddress      or     -- Local
-                  r.regMaster.tData(40)           = '1'             or     -- Multicast
+                  r.regMaster.tData(0)            = '1'             or     -- Multicast
                   r.regMaster.tData(47 downto  0) = x"FFFFFFFFFFFF"  then  -- Broadcast
 
                   v.state := PASS_S;

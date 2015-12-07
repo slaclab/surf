@@ -148,6 +148,7 @@ begin
          mAxisMaster  => pauseTxMaster,
          mAxisSlave   => pauseTxSlave,
          clientPause  => mAxisCtrl(0).pause,
+         phyReady     => phyReady,
          rxPauseReq   => rxPauseReq,
          rxPauseValue => rxPauseValue,
          pauseEnable  => ethConfig(0).pauseEnable,

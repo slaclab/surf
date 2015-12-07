@@ -52,6 +52,7 @@ entity EthMacPauseTx is
       rxPauseValue : in  slv(15 downto 0);
      
       -- Configuration and status
+      phyReady     : in  sl;
       pauseEnable  : in  sl;
       pauseTime    : in  slv(15 downto 0);
       macAddress   : in  slv(47 downto 0);
@@ -97,7 +98,7 @@ architecture EthMacPauseTx of EthMacPauseTx is
 begin
 
    comb : process (ethClkRst, sAxisMaster, mAxisSlave, r, macAddress, pauseTime, 
-                   rxPauseReq, rxPauseValue, clientPause, pauseEnable ) is
+                   rxPauseReq, rxPauseValue, clientPause, pauseEnable, phyReady ) is
       variable v : RegType;
    begin
 
@@ -133,7 +134,7 @@ begin
             v.txCount          := (others=>'0');
 
             -- Pause transmit needed
-            if clientPause = '1' and r.remPauseCnt = 0 and pauseEnable = '1' then
+            if clientPause = '1' and r.remPauseCnt = 0 and pauseEnable = '1' and phyReady = '1' then
                v.state := TX_S;
 
             -- Transmit required and not paused by received pause count
