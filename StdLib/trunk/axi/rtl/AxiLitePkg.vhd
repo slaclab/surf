@@ -184,8 +184,8 @@ package AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteWriteMasterArray;
    function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteWriteMasterType;
-   function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteReadMasterArray;
-   function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType;
+   function axiReadMasterInit (constant config  : AxiLiteCrossbarMasterConfigArray) return AxiLiteReadMasterArray;
+   function axiReadMasterInit (constant config  : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType;
 
 
    -------------------------------------------------------------------------------------------------
@@ -280,6 +280,26 @@ package AxiLitePkg is
       return AxiLiteCrossbarMasterConfigArray;
 
 
+   -------------------------------------------------------------------------------------------------
+   -- Simulation procedures
+   -------------------------------------------------------------------------------------------------
+   procedure axiLiteBusSimWrite (
+      axiClk          : in  sl;
+      axilWriteMaster : out AxiLiteWriteMasterType;
+      axilWriteSlave  : in  AxiLiteWriteSlaveType;
+      addr            : in  slv(31 downto 0);
+      data            : in  slv(31 downto 0);
+      debug           : in  boolean := false);
+   
+   procedure axiLiteBusSimRead (
+      axiClk         : in  sl;
+      axilReadMaster : out AxiLiteReadMasterType;
+      axilReadSlave  : in  AxiLiteReadSlaveType;
+      addr           : in  slv(31 downto 0);
+      data           : out slv(31 downto 0);
+      debug          : in  boolean := false);
+
+
 end AxiLitePkg;
 
 package body AxiLitePkg is
@@ -287,11 +307,11 @@ package body AxiLitePkg is
    function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType is
       variable ret : AxiLiteReadMasterType;
    begin
-         ret        := AXI_LITE_READ_MASTER_INIT_C;
-         ret.araddr := config.baseAddr;
+      ret        := AXI_LITE_READ_MASTER_INIT_C;
+      ret.araddr := config.baseAddr;
       return ret;
    end function axiReadMasterInit;
-   
+
    function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteReadMasterArray is
       variable ret : AxiLiteReadMasterArray(config'range);
    begin
@@ -304,8 +324,8 @@ package body AxiLitePkg is
    function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteWriteMasterType is
       variable ret : AxiLiteWriteMasterType;
    begin
-         ret        := AXI_LITE_WRITE_MASTER_INIT_C;
-         ret.awaddr := config.baseAddr;
+      ret        := AXI_LITE_WRITE_MASTER_INIT_C;
+      ret.awaddr := config.baseAddr;
       return ret;
    end function axiWriteMasterInit;
 
@@ -317,7 +337,7 @@ package body AxiLitePkg is
       end loop;
       return ret;
    end function axiWriteMasterInit;
-   
+
    procedure axiSlaveWaitWriteTxn (
       signal axiWriteMaster  : in    AxiLiteWriteMasterType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
@@ -482,7 +502,7 @@ package body AxiLitePkg is
       tmp(0) := reg;
       axiSlaveRegister(axiReadMaster, axiReadSlave, axiStatus, addr, offset, tmp);
    end procedure;
-   
+
    procedure axiSlaveDefault (
       signal axiWriteMaster  : in    AxiLiteWriteMasterType;
       signal axiReadMaster   : in    AxiLiteReadMasterType;
@@ -530,6 +550,97 @@ package body AxiLitePkg is
    end function;
 
 
+   -------------------------------------------------------------------------------------------------
+   -- Simulation procedures
+   -------------------------------------------------------------------------------------------------
+   
+   procedure axiLiteBusSimWrite (
+      axiClk          : in  sl;
+      axilWriteMaster : out AxiLiteWriteMasterType;
+      axilWriteSlave  : in  AxiLiteWriteSlaveType;
+      addr            : in  slv(31 downto 0);
+      data            : in  slv(31 downto 0);
+      debug           : in  boolean := false) is
+   begin
+      -- Put the req on the bus
+      wait until axiClk = '1';
+      axilWriteMaster.awaddr  := addr;
+      axilWriteMaster.wdata   := data;
+      axilWriteMaster.awprot  := (others => '0');
+      axilWriteMaster.wstrb   := (others => '1');
+      axilWriteMaster.awvalid := '1';
+      axilWriteMaster.wvalid  := '1';
+      axilWriteMaster.bready  := '1';
+
+
+      -- Wait for a response
+      while (axilWriteSlave.bvalid = '0') then
+         -- Clear control signals when acked
+         if axilWriteSlave.awready = '1' then
+            axilWriteMaster.awvalid := '0';
+         end if;
+         if axilWriteSlave.wready = '1' then
+            axilWriteMaster.wvalid := '0';
+         end if;
+
+
+         wait until axiClk = '1';
+      end if;
+
+      -- Done. Check for errors
+      wait until axiClk = '1';
+      axilWriteMaster.bready := '0';
+      if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
+         report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
+      elsif (axilWriteSlave.bready = AXI_RESP_DECERR_C) then
+         report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity error;
+      else
+         print(debug, "AxiLitePkg::axiLiteBusSimWrite( addr:" & hstr(addr) & ", data: " & hstr(data) & ")");
+      end if;
+
+   end procedure axiLiteBusSimWrite;
+
+
+   procedure axiLiteBusSimRead (
+      axiClk         : in  sl;
+      axilReadMaster : out AxiLiteReadMasterType;
+      axilReadSlave  : in  AxiLiteReadSlaveType;
+      addr           : in  slv(31 downto 0);
+      data           : out slv(31 downto 0);
+      debug          : in  boolean := false) is
+   begin
+      -- Put the write req on the bus
+      wait until axiClk = '1';
+      axilReadMaster.araddr  := addr;
+      axilReadMaster.arprot  := (others => '0');
+      axilReadMaster.arvalid := '1';
+      axilReadMaster.rready  := '1';
+
+
+      -- Wait for a response
+      while (axilReadSlave.rvalid = '0') then
+         -- Clear control signals when acked
+         if axilReadSlave.arready = '1' then
+            axilReadMaster.arvalid := '0';
+         end if;
+
+         wait until axiClk = '1';
+      end if;
+
+      -- Done. Check for errors
+      wait until axiClk = '1';
+      axilReadMaster.rready := '0';
+      if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
+         report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;
+      elsif (axilReadSlave.rready = AXI_RESP_DECERR_C) then
+         report "AxiLitePkg::axiLiteBusSimRead(): RRESP = DECODE_ERROR" severity error;
+      else
+         data := axilReadSlave.rdata;
+         print(debug, "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & ", data: " & hstr(axilReadSlave.rdata) & ")");
+      end if;
+
+
+   end procedure axiLiteBusSimRead;
 
 end package body AxiLitePkg;
 
