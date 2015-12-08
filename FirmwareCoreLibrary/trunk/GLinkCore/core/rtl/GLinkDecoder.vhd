@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-03-12
--- Last update: 2015-12-02
+-- Last update: 2015-12-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -157,18 +157,8 @@ begin
 
       -- Outputs      
       gLinkRx       <= r.gLinkRx;
-      
-      ----------------------
-      -- Perform deglitching
-      ----------------------
-      -- decoderError  <= uAnd(r.deglitch);
-      -- decoderErrorL <= not(uAnd(r.deglitch));
-      
-      ----------------------------
-      -- Don't perform deglitching
-      ----------------------------
-      decoderError  <= r.gLinkRx.error;
-      decoderErrorL <= not(r.gLinkRx.error);
+      decoderError  <= uAnd(r.deglitch);
+      decoderErrorL <= not(uAnd(r.deglitch));
       
    end process comb;
 
