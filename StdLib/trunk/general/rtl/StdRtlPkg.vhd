@@ -1250,11 +1250,13 @@ package body StdRtlPkg is
    -- Resize an SLV, either by trimming or padding upper bits
    function resize ( vec : slv; newSize : integer; pad : sl:='0') return slv is
       variable ret : slv(newSize-1 downto 0);
+      variable tmp : slv(vec'length-1 downto 0);
       variable top    : integer;
    begin
       ret := (others => pad);
+      tmp := vec;                       -- handles ranges that arent x:0
       top := minimum( newSize, vec'length) - 1;
-      ret(top downto 0) := vec(top downto 0);
+      ret(top downto 0) := tmp(top downto 0);
       return ret;   
    end function;
 
