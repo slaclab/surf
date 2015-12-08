@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2015-11-24
+-- Last update: 2015-12-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -161,7 +161,7 @@ package AxiStreamPkg is
    function genTKeep (bytes           : integer range 0 to 16) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
-   function getTKeep (tKeep : slv(15 downto 0)) return natural;
+   function getTKeep (tKeep : slv) return natural;
 
 
 end package AxiStreamPkg;
@@ -318,9 +318,11 @@ package body AxiStreamPkg is
       return genTKeep(config.TDATA_BYTES_C);
    end function genTKeep;
 
-   function getTKeep (tKeep : slv(15 downto 0)) return natural is
+   function getTKeep (tKeep : slv) return natural is
+      variable tKeepFull : slv(15 downto 0);
    begin
-      case tKeep is
+      tKeepFull := resize(tKeep, 16);
+      case tKeepFull is
          when X"0000" => return 0;
          when X"0001" => return 1;
          when X"0003" => return 2;
