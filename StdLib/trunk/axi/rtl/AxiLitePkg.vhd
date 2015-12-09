@@ -564,23 +564,23 @@ package body AxiLitePkg is
    begin
       -- Put the req on the bus
       wait until axiClk = '1';
-      axilWriteMaster.awaddr  := addr;
-      axilWriteMaster.wdata   := data;
-      axilWriteMaster.awprot  := (others => '0');
-      axilWriteMaster.wstrb   := (others => '1');
-      axilWriteMaster.awvalid := '1';
-      axilWriteMaster.wvalid  := '1';
-      axilWriteMaster.bready  := '1';
+      axilWriteMaster.awaddr  <= addr;
+      axilWriteMaster.wdata   <= data;
+      axilWriteMaster.awprot  <= (others => '0');
+      axilWriteMaster.wstrb   <= (others => '1');
+      axilWriteMaster.awvalid <= '1';
+      axilWriteMaster.wvalid  <= '1';
+      axilWriteMaster.bready  <= '1';
 
 
       -- Wait for a response
       while (axilWriteSlave.bvalid = '0') loop
          -- Clear control signals when acked
          if axilWriteSlave.awready = '1' then
-            axilWriteMaster.awvalid := '0';
+            axilWriteMaster.awvalid <= '0';
          end if;
          if axilWriteSlave.wready = '1' then
-            axilWriteMaster.wvalid := '0';
+            axilWriteMaster.wvalid <= '0';
          end if;
 
 
@@ -589,7 +589,7 @@ package body AxiLitePkg is
 
       -- Done. Check for errors
       wait until axiClk = '1';
-      axilWriteMaster.bready := '0';
+      axilWriteMaster.bready <= '0';
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
       elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
@@ -611,17 +611,17 @@ package body AxiLitePkg is
    begin
       -- Put the write req on the bus
       wait until axiClk = '1';
-      axilReadMaster.araddr  := addr;
-      axilReadMaster.arprot  := (others => '0');
-      axilReadMaster.arvalid := '1';
-      axilReadMaster.rready  := '1';
+      axilReadMaster.araddr  <= addr;
+      axilReadMaster.arprot  <= (others => '0');
+      axilReadMaster.arvalid <= '1';
+      axilReadMaster.rready  <= '1';
 
 
       -- Wait for a response
       while (axilReadSlave.rvalid = '0') loop
          -- Clear control signals when acked
          if axilReadSlave.arready = '1' then
-            axilReadMaster.arvalid := '0';
+            axilReadMaster.arvalid <= '0';
          end if;
 
          wait until axiClk = '1';
@@ -629,7 +629,7 @@ package body AxiLitePkg is
 
       -- Done. Check for errors
       wait until axiClk = '1';
-      axilReadMaster.rready := '0';
+      axilReadMaster.rready <= '0';
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;
       elsif (axilReadSlave.rresp = AXI_RESP_DECERR_C) then
