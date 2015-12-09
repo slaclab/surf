@@ -284,17 +284,17 @@ package AxiLitePkg is
    -- Simulation procedures
    -------------------------------------------------------------------------------------------------
    procedure axiLiteBusSimWrite (
-      axiClk          : in  sl;
-      axilWriteMaster : out AxiLiteWriteMasterType;
-      axilWriteSlave  : in  AxiLiteWriteSlaveType;
+      signal axiClk          : in  sl;
+      signal axilWriteMaster : out AxiLiteWriteMasterType;
+      signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
       addr            : in  slv(31 downto 0);
       data            : in  slv(31 downto 0);
       debug           : in  boolean := false);
    
    procedure axiLiteBusSimRead (
-      axiClk         : in  sl;
-      axilReadMaster : out AxiLiteReadMasterType;
-      axilReadSlave  : in  AxiLiteReadSlaveType;
+      signal axiClk         : in  sl;
+      signal axilReadMaster : out AxiLiteReadMasterType;
+      signal axilReadSlave  : in  AxiLiteReadSlaveType;
       addr           : in  slv(31 downto 0);
       data           : out slv(31 downto 0);
       debug          : in  boolean := false);
@@ -555,9 +555,9 @@ package body AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    
    procedure axiLiteBusSimWrite (
-      axiClk          : in  sl;
-      axilWriteMaster : out AxiLiteWriteMasterType;
-      axilWriteSlave  : in  AxiLiteWriteSlaveType;
+      signal axiClk          : in  sl;
+      signal axilWriteMaster : out AxiLiteWriteMasterType;
+      signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
       addr            : in  slv(31 downto 0);
       data            : in  slv(31 downto 0);
       debug           : in  boolean := false) is
@@ -602,9 +602,9 @@ package body AxiLitePkg is
 
 
    procedure axiLiteBusSimRead (
-      axiClk         : in  sl;
-      axilReadMaster : out AxiLiteReadMasterType;
-      axilReadSlave  : in  AxiLiteReadSlaveType;
+      signal axiClk         : in  sl;
+      signal axilReadMaster : out AxiLiteReadMasterType;
+      signal axilReadSlave  : in  AxiLiteReadSlaveType;
       addr           : in  slv(31 downto 0);
       data           : out slv(31 downto 0);
       debug          : in  boolean := false) is
