@@ -88,6 +88,15 @@ dcp : $(SOURCE_DEPEND)
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_hls_dcp_v1.tcl
 
 ###############################################################
+#### Vivado Batch without co-simulation #######################
+###############################################################
+.PHONY : dcp_fast
+dcp_fast : $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Vivado HLS Build without co-simulation")
+	@cd $(OUT_DIR); export FAST_DCP_GEN=1; @cd $(OUT_DIR); vivado_hls -f $(VIVADO_BUILD_DIR)/vivado_hls_build_v1.tcl
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_hls_dcp_v1.tcl
+
+###############################################################
 #### Vivado Interactive #######################################
 ###############################################################
 .PHONY : interactive

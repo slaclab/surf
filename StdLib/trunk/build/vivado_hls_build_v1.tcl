@@ -17,7 +17,9 @@ csim_design -clean -ldflags ${LDFLAGS} -argv ${ARGV}
 csynth_design
 
 ## Run co-simulation (compares the C/C++ code to the RTL)
-cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl verilog -tool vcs
+if { [info exists ::env(FAST_DCP_GEN)] == 0 } {
+   cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl verilog -tool vcs
+}
 
 ## Export the Design
 export_design -evaluate verilog -format syn_dcp 
