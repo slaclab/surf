@@ -10,15 +10,18 @@ open_project ${PROJECT}_project
 ## Create a solution
 open_solution "solution1"
 
+## Get the directives
+source ${OUT_DIR}/${PROJECT}_project/solution1/directives.tcl
+
 ## Run C/C++ simulation testbed
-csim_design -clean -ldflags ${LDFLAGS} -argv ${ARGV}
+csim_design -clean -O -ldflags ${LDFLAGS} -argv ${ARGV}
 
 ## Synthesis C/C++ code into RTL
 csynth_design
 
 ## Run co-simulation (compares the C/C++ code to the RTL)
 if { [info exists ::env(FAST_DCP_GEN)] == 0 } {
-   cosim_design -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl verilog -tool vcs
+   cosim_design -O -ldflags ${LDFLAGS} -argv ${ARGV} -trace_level all -rtl verilog -tool vcs
 }
 
 ## Export the Design
