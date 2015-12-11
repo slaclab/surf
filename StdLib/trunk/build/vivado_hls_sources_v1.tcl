@@ -30,12 +30,12 @@ close_project
 
 ## Check if directives.tcl exists in the source tree
 if { [file exists  ${PROJ_DIR}/directives.tcl] == 0 } {
-   exec echo ' ' > ${PROJ_DIR}/directives.tcl
+   exec echo  > ${PROJ_DIR}/directives.tcl
 }
 
 ## Check if solution1.directive exists in the source tree
 if { [file exists  ${PROJ_DIR}/solution1.directive] == 0 } {
-   exec echo ' ' > ${PROJ_DIR}/solution1.directive
+   exec echo  > ${PROJ_DIR}/solution1.directive
 }
 
 ## Make symbolic links for the directives.tcl file
