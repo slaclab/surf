@@ -589,12 +589,13 @@ begin
          
             -- Counters to 0
             v.txSegmentAddr := (others => '0');
-                               
+            
             --
             if connActive_i = '0' then
                v.txBufferAddr  := (others => '0');
             elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' and
-                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001"   -- Data segment type
+                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001" --and   -- Data segment type
+                   --r.txSegmentAddr = 0  -- Wait one c-c for address to be applied and data ready             
             ) then
                --
                v.txBufferAddr        := r.txBufferAddr;
@@ -613,7 +614,7 @@ begin
                   v.appState  := DATA_S;              
                end if;
                
-            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' -- Non data segment type
+            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' -- None data segment type
             ) then   
                --
                v.txBufferAddr  := r.txBufferAddr;
@@ -660,6 +661,12 @@ begin
             -- Increment segment address only when Slave is ready and master is valid
             elsif (appSsiSlave_i.ready = '1') then
                v.txSegmentAddr       := r.txSegmentAddr + 1;
+            -- If the the ready drops when there is SOF go back to check buffer and start again
+            elsif (appSsiSlave_i.ready = '0'  and r.appSsiMaster.sof = '1') then
+               v.appSsiMaster.valid  := '0'; 
+               v.txSegmentAddr := (others => '0');
+               v.appState   := CHECK_BUFFER_S;
+            -- Decrement segment address upon falling edge of ready because it has been already incremented too far
             elsif (appSsiSlave_i.ready = '0'  and r.appSsiSlave.ready = '1') then
                v.txSegmentAddr       := r.txSegmentAddr - 1;
             elsif (connActive_i = '0') then
@@ -707,7 +714,7 @@ begin
       wrBuffAddr_o   <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
-      rdBuffAddr_o   <= r.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      rdBuffAddr_o   <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
       
       -- Assign outputs
       rxFlags_o      <= r.rxF;
