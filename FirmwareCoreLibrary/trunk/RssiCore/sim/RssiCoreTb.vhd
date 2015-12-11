@@ -140,7 +140,7 @@ begin
       XIL_DEVICE_G        => "ULTRASCALE",
 
       CASCADE_SIZE_G      => 1,
-      FIFO_ADDR_WIDTH_G   => 9,
+      FIFO_ADDR_WIDTH_G   => 4,
       FIFO_FIXED_THRESH_G => true,
       FIFO_PAUSE_THRESH_G => 1,
 
@@ -169,7 +169,7 @@ begin
       XIL_DEVICE_G        => "ULTRASCALE",
 
       CASCADE_SIZE_G      => 1,
-      FIFO_ADDR_WIDTH_G   => 9,
+      FIFO_ADDR_WIDTH_G   => 4,
       FIFO_FIXED_THRESH_G => true,
       FIFO_PAUSE_THRESH_G => 1,
 
@@ -189,12 +189,12 @@ begin
       mTLastTUser     => open);
    
    -- Transport connection between modules
-   --sTspAxisMaster1 <= mTspAxisMaster0;
-   --mTspAxisSlave0  <= sTspAxisSlave1; 
+   -- sTspAxisMaster1 <= mTspAxisMaster0;
+   -- mTspAxisSlave0  <= sTspAxisSlave1; 
    
    
-   --sTspAxisMaster0 <= mTspAxisMaster1;
-   --mTspAxisSlave1  <= sTspAxisSlave0;
+   -- sTspAxisMaster0 <= mTspAxisMaster1;
+   -- mTspAxisSlave1  <= sTspAxisSlave0;
 
    
    
