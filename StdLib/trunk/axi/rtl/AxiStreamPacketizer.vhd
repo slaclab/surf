@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2015-12-04
+-- Last update: 2015-12-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,21 +57,23 @@ architecture rtl of AxiStreamPacketizer is
    type StateType is (IDLE_S, MOVE_S, TAIL_S);
 
    type RegType is record
-      state : StateType;
+      state            : StateType;
       frameNumber      : slv(11 downto 0);
       packetNumber     : slv(23 downto 0);
-      wordCount        : slv(log2(MAX_WORD_COUNT_C)-1 downto 0);
-      eof : sl;
+      wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
+      eof              : sl;
+      tUserLast        : slv(7 downto 0);
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state => IDLE_S,
+      state            => IDLE_S,
       frameNumber      => (others => '0'),
       packetNumber     => (others => '0'),
       wordCount        => (others => '0'),
-      eof => '0',
+      eof              => '0',
+      tUserLast        => (others => '0'),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => axiStreamMasterInit(AXIS_CONFIG_C));
 
@@ -139,12 +141,13 @@ begin
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
                v.outputAxisMaster.tValid              := inputAxisMaster.tValid;
-               v.outputAxisMaster.tData(3 downto 0)  := VERSION_C;
+               v.outputAxisMaster.tData(3 downto 0)   := VERSION_C;
                v.outputAxisMaster.tData(15 downto 4)  := r.frameNumber;
                v.outputAxisMaster.tData(39 downto 16) := r.packetNumber;
                v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
                v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
                v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
+               axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
                v.state                                := MOVE_S;
                v.packetNumber                         := r.packetNumber + 1;
             end if;
@@ -154,8 +157,11 @@ begin
 
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Send data through
-               v.outputAxisMaster := inputAxisMaster;
-   
+               v.outputAxisMaster       := inputAxisMaster;
+               v.outputAxisMaster.tUser := (others => '0');
+               v.outputAxisMaster.tDest := (others => '0');
+               v.outputAxisMaster.tId   := (others => '0');
+               
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
 
@@ -169,39 +175,34 @@ begin
                   -- Increment frame number, clear packetNumber
                   v.frameNumber  := r.frameNumber + 1;
                   v.packetNumber := (others => '0');
+                  v.state        := IDLE_S;
 
                   -- Need to either append tail to current txn or put tail on next txn (TAIL_S)
                   -- depending on tKeep
                   v.outputAxisMaster.tKeep := inputAxisMaster.tKeep(14 downto 0) & '1';
+
                   case (inputAxisMaster.tKeep) is
                      when X"0000" =>
                         v.outputAxisMaster.tData(7 downto 0) := '1' & inputAxisMaster.tUser(6 downto 0);
-                        --v.outputAxisMaster.tKeep             := X"0001";
                      when X"0001" =>
                         v.outputAxisMaster.tData(15 downto 8) := '1' & inputAxisMaster.tUser(14 downto 8);
-                        --v.outputAxisMaster.tKeep              := X"0003";
                      when X"0003" =>
                         v.outputAxisMaster.tData(23 downto 16) := '1' & inputAxisMaster.tUser(22 downto 16);
-                        --v.outputAxisMaster.tKeep               := X"0007";
                      when X"0007" =>
                         v.outputAxisMaster.tData(31 downto 24) := '1' & inputAxisMaster.tUser(30 downto 24);
-                        --v.outputAxisMaster.tKeep               := X"000F";
                      when X"000F" =>
                         v.outputAxisMaster.tData(39 downto 32) := '1' & inputAxisMaster.tUser(38 downto 32);
-                        --v.outputAxisMaster.tKeep               := X"001F";
                      when X"001F" =>
                         v.outputAxisMaster.tData(47 downto 40) := '1' & inputAxisMaster.tUser(46 downto 40);
-                        --v.outputAxisMaster.tKeep               := X"003F";
                      when X"003F" =>
                         v.outputAxisMaster.tData(55 downto 48) := '1' & inputAxisMaster.tUser(54 downto 48);
-                        --v.outputAxisMaster.tKeep               := X"007F";
                      when X"007F" =>
                         v.outputAxisMaster.tData(63 downto 56) := '1' & inputAxisMaster.tUser(62 downto 56);
-                        --v.outputAxisMaster.tKeep               := X"00FF";
-                     when others => --X"0FFF" or anything else
+                     when others =>     --X"0FFF" or anything else
                         -- Full tkeep. Add new word for tail
                         v.outputAxisMaster.tKeep := inputAxisMaster.tKeep;
                         v.state                  := TAIL_S;
+                        v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                         v.eof                    := '1';
                         v.outputAxisMaster.tLast := '0';
                   end case;
@@ -215,12 +216,15 @@ begin
 
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
+               v.outputAxisMaster.tValid            := '1';
                v.outputAxisMaster.tKeep             := X"0001";
                v.outputAxisMaster.tData             := (others => '0');
                v.outputAxisMaster.tData(7)          := r.eof;
-               v.outputAxisMaster.tData(6 downto 0) := r.outputAxisMaster.tUser(6 downto 0);
+               v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);
+               v.outputAxisMaster.tUser             := (others => '0');
                v.outputAxisMaster.tLast             := '1';
                v.eof                                := '0';     -- Clear EOF for next frame
+               v.tUserLast                          := (others => '0');
                v.state                              := IDLE_S;  -- Go to idle and wait for new data
             end if;
 
