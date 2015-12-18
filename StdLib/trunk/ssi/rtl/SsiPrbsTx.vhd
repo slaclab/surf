@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2015-12-09
+-- Last update: 2015-12-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -255,9 +255,7 @@ begin
                v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
 
                -- Generate the next random data word
-               for i in 0 to 31 loop
-                  v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '1');
-               end loop;               
+               v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
                -- Increment the counter
                v.eventCnt   := r.eventCnt + 1;
                -- Increment the counter
@@ -289,9 +287,8 @@ begin
                v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
                -- Generate the next random data word
 
-               for i in 0 to 31 loop
-                  v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '1');
-               end loop;  
+               v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
+
                -- Increment the counter
                v.dataCnt    := r.dataCnt + 1;
                -- Check the counter
