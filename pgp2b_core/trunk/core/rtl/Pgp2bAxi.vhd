@@ -88,7 +88,13 @@
 --       Bits    4  = Local Link Ready
 --       Bits  3:0  = Remote Overflow Status
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 by Ryan Herbst. All rights reserved.
+-- This file is part of 'SLAC PGP2B Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC PGP2B Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 03/21/2014: created.
