@@ -13,7 +13,13 @@
 -- Note: Default generic configurations are for the KC705 development board
 -- Note: Default uses 125 MHz reference clock to generate 3.125 Gbps PGP link
 -------------------------------------------------------------------------------
--- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-- This file is part of 'SLAC PGP2B Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC PGP2B Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
