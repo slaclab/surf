@@ -11,7 +11,13 @@
 // VHDL simulator. The user code can access all bits through bit variables
 // and only has to set the width and the in/out types for each port.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2007 by Ryan Herbst. All rights reserved.
+// This file is part of 'SLAC Firmware Standard Library'.
+// It is subject to the license terms in the LICENSE.txt file found in the 
+// top-level directory of this distribution and at: 
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+// No part of 'SLAC Firmware Standard Library', including this file, 
+// may be copied, modified, propagated, or distributed except according to 
+// the terms contained in the LICENSE.txt file.
 //-----------------------------------------------------------------------------
 // Modification history:
 // 04/03/2007: created.
