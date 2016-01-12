@@ -41,12 +41,12 @@ entity UdpEngineWrapper is
       SERVER_EN_G        : boolean       := true;
       SERVER_SIZE_G      : positive      := 1;
       SERVER_PORTS_G     : PositiveArray := (0 => 8192);
-      SERVER_MTU_G       : PositiveArray := (0 => 1500);
+      SERVER_MTU_G       : positive      := 1500;
       -- UDP Client Generics
       CLIENT_EN_G        : boolean       := true;
       CLIENT_SIZE_G      : positive      := 1;
       CLIENT_PORTS_G     : PositiveArray := (0 => 8193);
-      CLIENT_MTU_G       : PositiveArray := (0 => 1500);
+      CLIENT_MTU_G       : positive      := 1500;
       -- IPv4/ARP Generics
       CLK_FREQ_G         : real          := 156.25E+06;             -- In units of Hz
       COMM_TIMEOUT_EN_G  : boolean       := true;       -- Disable the timeout by setting to false
