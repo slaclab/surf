@@ -37,9 +37,10 @@
 --
 -- Word N-1 Data[31:0]  = ReadData[31:0]/WriteData[31:0]
 --
--- Word N   Data[31:2]  = Don't Care
--- Word N   Data[1]     = Timeout Flag (response data)
--- Word N   Data[0]     = Fail Flag (response data)
+-- Word N   Data[31:18] = Don't Care
+-- Word N   Data[17]    = Timeout Flag (response data)
+-- Word N   Data[16]    = Fail Flag (response data)
+-- Word N   Data[15:00] = Don't Care
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -413,9 +414,9 @@ begin
          when S_STATUS_C =>
             v.mFifoAxisMaster.tValid             := '1';
             v.mFifoAxisMaster.tLast              := '1';
-            v.mFifoAxisMaster.tData(63 downto 2) := (others => '0');
-            v.mFifoAxisMaster.tData(1)           := r.timeout;
-            v.mFifoAxisMaster.tData(0)           := r.fail;
+            v.mFifoAxisMaster.tData(63 downto 0) := (others => '0');
+            v.mFifoAxisMaster.tData(17)          := r.timeout;
+            v.mFifoAxisMaster.tData(16)          := r.fail;
             v.state                              := S_IDLE_C;
 
          when others =>
