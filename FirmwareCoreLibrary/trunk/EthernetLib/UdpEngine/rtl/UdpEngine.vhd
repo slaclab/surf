@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-09-08
+-- Last update: 2016-01-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,12 +40,12 @@ entity UdpEngine is
       SERVER_EN_G        : boolean       := true;
       SERVER_SIZE_G      : positive      := 1;
       SERVER_PORTS_G     : PositiveArray := (0 => 8192);
-      SERVER_MTU_G       : PositiveArray := (0 => 1500);
+      SERVER_MTU_G       : positive      := 1500;
       -- UDP Client Generics
       CLIENT_EN_G        : boolean       := true;
       CLIENT_SIZE_G      : positive      := 1;
       CLIENT_PORTS_G     : PositiveArray := (0 => 8193);
-      CLIENT_MTU_G       : PositiveArray := (0 => 1500);
+      CLIENT_MTU_G       : positive      := 1500;
       -- UDP ARP Generics
       CLK_FREQ_G         : real          := 156.25E+06;             -- In units of Hz
       COMM_TIMEOUT_EN_G  : boolean       := true;  -- Disable the timeout by setting to false
@@ -90,12 +90,6 @@ architecture mapping of UdpEngine is
    signal remoteIp         : Slv32Array(SERVER_SIZE_G-1 downto 0);
    signal serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
 
-   signal serverMasters : AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
-   signal serverSlaves  : AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
-
-   signal clientMasters : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-   signal clientSlaves  : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-
    signal obUdpMasters : AxiStreamMasterArray(1 downto 0);
    signal obUdpSlaves  : AxiStreamSlaveArray(1 downto 0);
 
@@ -104,7 +98,7 @@ begin
    assert ((SERVER_EN_G = true) or (CLIENT_EN_G = true)) report
       "UdpEngine: Either SERVER_EN_G or CLIENT_EN_G must be true" severity failure;
    
-   serverRemoteIp <= remoteIp;
+   serverRemoteIp <= remoteIp;          -- Debug Only
 
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
@@ -138,54 +132,29 @@ begin
 
    GEN_SERVER : if (SERVER_EN_G = true) generate
       
-      GEN_VEC :
-      for i in (SERVER_SIZE_G-1) downto 0 generate
-         U_UdpEngineTx : entity work.UdpEngineTx
-            generic map (
-               TPD_G              => TPD_G,
-               SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
-               TX_MTU_G           => SERVER_MTU_G(i),
-               TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
-               TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
-               PORT_G             => SERVER_PORTS_G(i))    
-            port map (
-               -- Interface to IPV4 Engine  
-               obUdpMaster => serverMasters(i),
-               obUdpSlave  => serverSlaves(i),
-               -- Interface to User Application
-               localIp     => localIp,
-               remotePort  => serverRemotePort(i),
-               remoteIp    => remoteIp(i),
-               remoteMac   => serverRemoteMac(i),
-               ibMaster    => ibServerMasters(i),
-               ibSlave     => ibServerSlaves(i),
-               -- Clock and Reset
-               clk         => clk,
-               rst         => rst);
-      end generate GEN_VEC;
+      U_UdpEngineTx : entity work.UdpEngineTx
+         generic map (
+            TPD_G              => TPD_G,
+            SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
+            TX_MTU_G           => SERVER_MTU_G,
+            TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
+            TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+            PORT_G             => SERVER_PORTS_G)    
+         port map (
+            -- Interface to IPV4 Engine  
+            obUdpMaster => obUdpMasters(0),
+            obUdpSlave  => obUdpSlaves(0),
+            -- Interface to User Application
+            localIp     => localIp,
+            remotePort  => serverRemotePort,
+            remoteIp    => remoteIp,
+            remoteMac   => serverRemoteMac,
+            ibMasters   => ibServerMasters,
+            ibSlaves    => ibServerSlaves,
+            -- Clock and Reset
+            clk         => clk,
+            rst         => rst);
 
-      SINGLE_SERVER : if (SERVER_SIZE_G = 1) generate
-         obUdpMasters(0) <= serverMasters(0);
-         serverSlaves(0) <= obUdpSlaves(0);
-      end generate;
-
-      MULTI_SERVER : if (SERVER_SIZE_G > 1) generate
-         U_AxiStreamMux : entity work.AxiStreamMux
-            generic map (
-               TPD_G        => TPD_G,
-               NUM_SLAVES_G => SERVER_SIZE_G)
-            port map (
-               -- Clock and reset
-               axisClk      => clk,
-               axisRst      => rst,
-               -- Slaves
-               sAxisMasters => serverMasters,
-               sAxisSlaves  => serverSlaves,
-               -- Master
-               mAxisMaster  => obUdpMasters(0),
-               mAxisSlave   => obUdpSlaves(0)); 
-      end generate;
-      
    end generate;
 
    GEN_CLIENT : if (CLIENT_EN_G = true) generate
@@ -211,57 +180,33 @@ begin
             clk             => clk,
             rst             => rst);
 
-      GEN_VEC :
-      for i in (CLIENT_SIZE_G-1) downto 0 generate
-         U_UdpEngineTx : entity work.UdpEngineTx
-            generic map (
-               TPD_G              => TPD_G,
-               SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
-               TX_MTU_G           => CLIENT_MTU_G(i),
-               TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
-               TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
-               PORT_G             => CLIENT_PORTS_G(i))    
-            port map (
-               -- Interface to IPV4 Engine  
-               obUdpMaster => clientMasters(i),
-               obUdpSlave  => clientSlaves(i),
-               -- Interface to User Application
-               localIp     => localIp,
-               remotePort  => clientRemotePort(i),
-               remoteIp    => clientRemoteIp(i),
-               remoteMac   => clientRemoteMac(i),
-               ibMaster    => ibClientMasters(i),
-               ibSlave     => ibClientSlaves(i),
-               -- Clock and Reset
-               clk         => clk,
-               rst         => rst);
-      end generate GEN_VEC;
+      U_UdpEngineTx : entity work.UdpEngineTx
+         generic map (
+            TPD_G              => TPD_G,
+            SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
+            TX_MTU_G           => CLIENT_MTU_G,
+            TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
+            TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+            PORT_G             => CLIENT_PORTS_G)    
+         port map (
+            -- Interface to IPV4 Engine  
+            obUdpMaster => obUdpMasters(1),
+            obUdpSlave  => obUdpSlaves(1),
+            -- Interface to User Application
+            localIp     => localIp,
+            remotePort  => clientRemotePort,
+            remoteIp    => clientRemoteIp,
+            remoteMac   => clientRemoteMac,
+            ibMasters   => ibClientMasters,
+            ibSlaves    => ibClientSlaves,
+            -- Clock and Reset
+            clk         => clk,
+            rst         => rst);
 
-      SINGLE_CLIENT : if (CLIENT_SIZE_G = 1) generate
-         obUdpMasters(1) <= clientMasters(0);
-         clientSlaves(0) <= obUdpSlaves(1);
-      end generate;
-
-      MULTI_CLIENT : if (CLIENT_SIZE_G > 1) generate
-         U_AxiStreamMux : entity work.AxiStreamMux
-            generic map (
-               TPD_G        => TPD_G,
-               NUM_SLAVES_G => CLIENT_SIZE_G)
-            port map (
-               -- Clock and reset
-               axisClk      => clk,
-               axisRst      => rst,
-               -- Slaves
-               sAxisMasters => clientMasters,
-               sAxisSlaves  => clientSlaves,
-               -- Master
-               mAxisMaster  => obUdpMasters(1),
-               mAxisSlave   => obUdpSlaves(1)); 
-      end generate;
-      
    end generate;
 
    GEN_MUX : if ((SERVER_EN_G = true) and (CLIENT_EN_G = true)) generate
+      
       U_AxiStreamMux : entity work.AxiStreamMux
          generic map (
             TPD_G        => TPD_G,
@@ -276,27 +221,34 @@ begin
             -- Master
             mAxisMaster  => obUdpMaster,
             mAxisSlave   => obUdpSlave); 
+
    end generate;
 
    NO_CLIENT : if ((SERVER_EN_G = true) and (CLIENT_EN_G = false)) generate
+
       -- Pass the server buses
-      obUdpMaster     <= obUdpMasters(0);
-      obUdpSlaves(0)  <= obUdpSlave;
+      obUdpMaster    <= obUdpMasters(0);
+      obUdpSlaves(0) <= obUdpSlave;
+
       -- Terminated the client buses
       ibClientSlaves  <= (others => AXI_STREAM_SLAVE_FORCE_C);
       obUdpMasters(1) <= AXI_STREAM_MASTER_INIT_C;
       arpReqMasters   <= (others => AXI_STREAM_MASTER_INIT_C);
       arpAckSlaves    <= (others => AXI_STREAM_SLAVE_FORCE_C);
       clientRemoteMac <= (others => (others => '0'));
+      
    end generate;
 
    NO_SERVER : if ((SERVER_EN_G = false) and (CLIENT_EN_G = true)) generate
+
       -- Pass the client buses
-      obUdpMaster     <= obUdpMasters(1);
-      obUdpSlaves(1)  <= obUdpSlave;
+      obUdpMaster    <= obUdpMasters(1);
+      obUdpSlaves(1) <= obUdpSlave;
+
       -- Terminated the server buses
       ibServerSlaves  <= (others => AXI_STREAM_SLAVE_FORCE_C);
       obUdpMasters(0) <= AXI_STREAM_MASTER_INIT_C;
+      
    end generate;
    
 end mapping;
