@@ -139,6 +139,7 @@ begin
             TX_MTU_G           => SERVER_MTU_G,
             TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
             TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+            SIZE_G             => SERVER_SIZE_G,
             PORT_G             => SERVER_PORTS_G)    
          port map (
             -- Interface to IPV4 Engine  
@@ -187,6 +188,7 @@ begin
             TX_MTU_G           => CLIENT_MTU_G,
             TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
             TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+            SIZE_G             => CLIENT_SIZE_G,
             PORT_G             => CLIENT_PORTS_G)    
          port map (
             -- Interface to IPV4 Engine  
