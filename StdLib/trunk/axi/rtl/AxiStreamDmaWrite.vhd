@@ -81,6 +81,7 @@ architecture structure of AxiStreamDmaWrite is
       last     : sl;
       reqCount : slv(31 downto 0);
       ackCount : slv(31 downto 0);
+      stCount  : slv(15 downto 0);
       wMaster  : AxiWriteMasterType;
       slave    : AxiStreamSlaveType;
    end record RegType;
@@ -94,6 +95,7 @@ architecture structure of AxiStreamDmaWrite is
       last     => '0',
       reqCount => (others=>'0'),
       ackCount => (others=>'0'),
+      stCount  => (others=>'0'),
       wMaster  => AXI_WRITE_MASTER_INIT_C,
       slave    => AXI_STREAM_SLAVE_INIT_C
       );
@@ -168,6 +170,7 @@ begin
             v.last     := '0';
             v.dmaAck   := AXI_WRITE_DMA_ACK_INIT_C;
             v.dmaReq   := dmaReq;
+            v.stCount  := (others=>'0');
    
             -- Align shift and address to transfer size
             if DATA_BYTES_C /= 1 then
@@ -200,7 +203,7 @@ begin
                v.state := S_IDLE_C;
 
             -- There is enough room in the FIFO for a burst and address is ready
-            elsif selPause = '0' and intAxisMaster.tValid = '1' then
+            elsif selPause = '0' and axiWriteSlave.awready = '1' and intAxisMaster.tValid = '1' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
@@ -308,6 +311,12 @@ begin
             if r.ackCount >= r.reqCount then
                v.state       := S_DONE_C;
                v.dmaAck.done := '1';
+            elsif r.stCount = x"FFFF" then
+               v.state             := S_DONE_C;
+               v.dmaAck.done       := '1';
+               v.dmaAck.writeError := '1';
+            else
+               v.stCount := r.stCount + 1;
             end if;
 
          -- Done
@@ -326,7 +335,8 @@ begin
       end if;
 
       -- Constants
-      v.wMaster.awsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
+      v.wMaster.awsize  := "011";
+      --v.wMaster.awsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
       v.wMaster.awburst := AXI_BURST_G;
       v.wMaster.awcache := AXI_CACHE_G;
       v.wMaster.awlock  := "00";   -- Unused
