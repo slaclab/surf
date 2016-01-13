@@ -282,7 +282,8 @@ begin
       end if;
 
       -- Constants
-      v.rMaster.arsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
+      --v.rMaster.arsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
+      v.rMaster.arsize  := "011";
       v.rMaster.arburst := AXI_BURST_G;
       v.rMaster.arcache := AXI_CACHE_G;
       v.rMaster.arlock  := "00";   -- Unused

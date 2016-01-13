@@ -63,17 +63,17 @@ architecture structure of AxiWritePathMux is
    -- Address Path
    --------------------------
 
-   type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C);
+   type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C, S_WAIT_C);
 
    type RegType is record
       addrState  : StateType;
       addrAcks   : slv(ARB_BITS_C-1 downto 0);
       addrAckNum : slv(DEST_SIZE_C-1 downto 0);
       addrValid  : sl;
+      dataReq    : sl;
+      dataAck    : sl;
       dataState  : StateType;
-      dataAcks   : slv(ARB_BITS_C-1 downto 0);
       dataAckNum : slv(DEST_SIZE_C-1 downto 0);
-      dataValid  : sl;
       slaves     : AxiWriteSlaveArray(NUM_SLAVES_G-1 downto 0);
       master     : AxiWriteMasterType;
    end record RegType;
@@ -83,10 +83,10 @@ architecture structure of AxiWritePathMux is
       addrAcks   => (others => '0'),
       addrAckNum => (others => '0'),
       addrValid  => '0',
+      dataReq    => '0',
+      dataAck    => '0',
       dataState  => S_IDLE_C,
-      dataAcks   => (others => '0'),
       dataAckNum => (others => '0'),
-      dataValid  => '0',
       slaves     => (others => AXI_WRITE_SLAVE_INIT_C),
       master     => AXI_WRITE_MASTER_INIT_C
       );
@@ -99,7 +99,6 @@ begin
    comb : process (axiRst, r, sAxiWriteMasters, mAxiWriteSlave) is
       variable v            : RegType;
       variable addrRequests : slv(ARB_BITS_C-1 downto 0);
-      variable dataRequests : slv(ARB_BITS_C-1 downto 0);
       variable selAddr      : AxiWriteMasterType;
       variable selData      : AxiWriteMasterType;
    begin
@@ -132,6 +131,7 @@ begin
          -- IDLE
          when S_IDLE_C =>
             v.master.awvalid := '0';
+            v.dataReq        := '0';
 
             -- Aribrate between requesters
             if r.addrValid = '0' then
@@ -162,11 +162,19 @@ begin
             v.master.awcache := selAddr.awcache;
             v.addrState      := S_LAST_C;
 
-         -- Laster transfer
+         -- Last transfer
          when S_LAST_C =>
             if mAxiWriteSlave.awready = '1' then
                v.master.awvalid := '0';
-               v.addrState      := S_IDLE_C;
+               v.addrState      := S_WAIT_C;
+               v.dataReq        := '1';
+            end if;
+
+         -- Wait for data
+         when S_WAIT_C =>
+            if r.dataAck = '1' then
+               v.dataReq   := '0';
+               v.addrState := S_IDLE_C;
             end if;
       end case;
 
@@ -185,32 +193,23 @@ begin
 
       selData.wid(DEST_SIZE_C-1 downto 0) := r.dataAckNum;
 
-      -- Format requests
-      dataRequests := (others=>'0');
-      for i in 0 to (NUM_SLAVES_G-1) loop
-         dataRequests(i) := sAxiWriteMasters(i).wvalid;
-      end loop;
-
       -- Data State machine
       case r.dataState is
 
          -- IDLE
          when S_IDLE_C =>
             v.master.wvalid := '0';
+            v.dataAck       := '0';
 
-            -- Aribrate between requesters
-            if r.dataValid = '0' then
-               arbitrate(dataRequests, r.dataAckNum, v.dataAckNum, v.dataValid, v.dataAcks);
-            end if;
-
-            -- Valid request
-            if r.dataValid = '1' then
-               v.dataState := S_MOVE_C;
+            if v.dataReq = '1' then
+               v.dataAck    := '1';
+               v.dataAckNum := r.addrAckNum;
+               v.dataState  := S_MOVE_C;
             end if;
 
          -- Move a frame until tLast
          when S_MOVE_C =>
-            v.dataValid := '0';
+            v.dataAck  := '0';
 
             -- Pass ready
             v.slaves(conv_integer(r.dataAckNum)).wready := mAxiWriteSlave.wready;
@@ -235,6 +234,11 @@ begin
                v.master.wvalid := '0';
                v.dataState     := S_IDLE_C;
             end if;
+
+         -- Not valid
+         when S_WAIT_C =>
+            v.dataState := S_IDLE_C;
+
       end case;
 
       ----------------------------
