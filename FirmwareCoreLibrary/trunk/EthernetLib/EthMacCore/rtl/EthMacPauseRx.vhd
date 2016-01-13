@@ -57,7 +57,7 @@ end EthMacPauseRx;
 -- Define architecture
 architecture EthMacPauseRx of EthMacPauseRx is
 
-   type StateType is ( FILL_S, PAUSE_S, PASS_S);
+   type StateType is ( FILL_S, PAUSE_S, PASS_S, DROP_S );
 
    type RegType is record
       state       : StateType;

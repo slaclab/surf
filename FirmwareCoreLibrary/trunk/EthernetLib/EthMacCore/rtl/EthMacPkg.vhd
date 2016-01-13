@@ -61,6 +61,7 @@ package EthMacPkg is
       ipCsumEn      : sl;
       tcpCsumEn     : sl;
       udpCsumEn     : sl;
+      dropOnPause   : sl;
    end record EthMacConfigType;
 
    constant ETH_MAC_CONFIG_INIT_C : EthMacConfigType := (
@@ -73,7 +74,8 @@ package EthMacPkg is
       rxShift       => (others=>'0'),
       ipCsumEn      => '0',
       tcpCsumEn     => '0',
-      udpCsumEn     => '0'
+      udpCsumEn     => '0',
+      dropOnPause   => '0'
    );
 
    type EthMacConfigArray is array (natural range<>) of EthMacConfigType;

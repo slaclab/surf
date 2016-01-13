@@ -4,4 +4,6 @@ vhdl work rtl/EthMacExport.vhd
 vhdl work rtl/EthMacFilter.vhd
 vhdl work rtl/EthMacPauseRx.vhd
 vhdl work rtl/EthMacPauseTx.vhd
+vhdl work rtl/EthMacBypassRx.vhd
+vhdl work rtl/EthMacBypassMux.vhd
 vhdl work rtl/EthMacTop.vhd

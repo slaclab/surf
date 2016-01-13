@@ -45,8 +45,10 @@ entity EthMacFilter is
 
       -- Outgoing data 
       mAxisMaster      : out AxiStreamMasterType;
+      mAxisCtrl        : in  AxiStreamCtrlType;
 
       -- Configuration
+      dropOnPause      : in  sl;
       macAddress       : in  slv(47 downto 0);
       filtEnable       : in  sl
    );
@@ -75,7 +77,7 @@ architecture EthMacFilter of EthMacFilter is
 
 begin
 
-   comb : process (ethClkRst, sAxisMaster, r, filtEnable, macAddress) is
+   comb : process (ethClkRst, sAxisMaster, r, filtEnable, macAddress, mAxisCtrl, dropOnPause) is
       variable v : RegType;
    begin
 
@@ -94,8 +96,13 @@ begin
             -- Frame is present
             if r.regMaster.tValid = '1' then
 
+               -- Drop frames when pause is asserted to avoid downstream errors
+               if mAxisCtrl.pause = '1' and dropOnPause = '1' then
+                  v.state            := DROP_S;
+                  v.outMaster.tValid := '0';
+
                -- Local match, broadcast or multicast
-               if filtEnable = '0' or 
+               elsif filtEnable = '0' or 
                   r.regMaster.tData(47 downto  0) = macAddress      or     -- Local
                   r.regMaster.tData(0)            = '1'             or     -- Multicast
                   r.regMaster.tData(47 downto  0) = x"FFFFFFFFFFFF"  then  -- Broadcast
