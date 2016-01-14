@@ -101,7 +101,7 @@ begin
       
    begin
       v := r;
- 
+      
       -- 
       if (synHeadSt_i = '1') then
          headerLength_o  <= SYN_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;    

@@ -10,7 +10,8 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Calculates and checks the RUDP packet checksum.
---              Checksum for IP/UDP/TCP/RUDP.       
+--              Checksum for IP/UDP/TCP/RUDP.
+--              Works with 64-bit word     
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
