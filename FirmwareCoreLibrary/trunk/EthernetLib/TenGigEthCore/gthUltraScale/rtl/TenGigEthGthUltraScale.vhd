@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-09-08
+-- Last update: 2016-01-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -123,11 +123,11 @@ architecture mapping of TenGigEthGthUltraScale is
 
    signal config : TenGigEthConfig;
    signal status : TenGigEthStatus;
-   
-   signal macRxAxisMaster  : AxiStreamMasterType;
-   signal macRxAxisCtrl    : AxiStreamCtrlType;
-   signal macTxAxisMaster  : AxiStreamMasterType;
-   signal macTxAxisSlave   : AxiStreamSlaveType;
+
+   signal macRxAxisMaster : AxiStreamMasterType;
+   signal macRxAxisCtrl   : AxiStreamCtrlType;
+   signal macTxAxisMaster : AxiStreamMasterType;
+   signal macTxAxisSlave  : AxiStreamSlaveType;
    
 begin
 
@@ -179,46 +179,14 @@ begin
    ---------------------------
    -- 10 Gig Ethernet MAC core
    ---------------------------
---   U_XMacCore : entity work.XMacCore
---      generic map (
---         TPD_G           => TPD_G,
---         IB_ADDR_WIDTH_G => IB_ADDR_WIDTH_G,
---         OB_ADDR_WIDTH_G => OB_ADDR_WIDTH_G,
---         PAUSE_THOLD_G   => PAUSE_THOLD_G,
---         VALID_THOLD_G   => VALID_THOLD_G,
---         EOH_BIT_G       => EOH_BIT_G,
---         ERR_BIT_G       => ERR_BIT_G,
---         HEADER_SIZE_G   => HEADER_SIZE_G,
---         SHIFT_EN_G      => SHIFT_EN_G,
---         AXIS_CONFIG_G   => AXIS_CONFIG_G)    
---      port map (
---         -- Streaming DMA Interface 
---         dmaClk      => dmaClk,
---         dmaRst      => dmaRst,
---         dmaIbMaster => dmaIbMaster,
---         dmaIbSlave  => dmaIbSlave,
---         dmaObMaster => dmaObMaster,
---         dmaObSlave  => dmaObSlave,
---         -- PHY Interface
---         phyClk      => phyClock,
---         phyRst      => phyReset,
---         phyReady    => status.phyReady,
---         phyRxd      => phyRxd,
---         phyRxc      => phyRxc,
---         phyTxd      => phyTxd,
---         phyTxc      => phyTxc,
---         phyConfig   => config.phyConfig,
---         phyStatus   => status.phyStatus);   
-
-
    U_MacTxFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
          FIFO_ADDR_WIDTH_G   => 10,
-         VALID_THOLD_G       => 0, -- Only when full frame is ready
+         VALID_THOLD_G       => 0,      -- Only when full frame is ready
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C
-      ) port map (
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C) 
+      port map (
          sAxisClk    => dmaClk,
          sAxisRst    => dmaRst,
          sAxisMaster => dmaObMaster,
@@ -226,28 +194,33 @@ begin
          mAxisClk    => phyClock,
          mAxisRst    => phyReset,
          mAxisMaster => macTxAxisMaster,
-         mAxisSlave  => macTxAxisSlave
-      );
+         mAxisSlave  => macTxAxisSlave);
 
    U_XMacCore : entity work.EthMacTop
       generic map (
          TPD_G           => TPD_G,
-         PAUSE_512BITS_G => 8
-      ) port map ( 
-         ethClk         => phyClock,
-         ethClkRst      => phyReset,
-         sAxisMaster(0) => macTxAxisMaster,
-         sAxisSlave(0)  => macTxAxisSlave,
-         mAxisMaster(0) => macRxAxisMaster,
-         mAxisCtrl(0)   => macRxAxisCtrl,
-         phyTxd         => phyTxd,
-         phyTxc         => phyTxc,
-         phyRxd         => phyRxd,
-         phyRxc         => phyRxc,
-         phyReady       => status.phyReady,
-         ethConfig(0)   => config.macConfig,
-         ethStatus(0)   => status.macStatus
-      );
+         PAUSE_512BITS_G => 8,
+         VLAN_CNT_G      => 1,
+         VLAN_EN_G       => false,
+         BYP_EN_G        => false,
+         BYP_ETH_TYPE_G  => x"0000",
+         SHIFT_EN_G      => false,
+         FILT_EN_G       => false,
+         CSUM_EN_G       => false) 
+      port map (
+         ethClk      => phyClock,
+         ethClkRst   => phyReset,
+         sPrimMaster => macTxAxisMaster,
+         sPrimSlave  => macTxAxisSlave,
+         mPrimMaster => macRxAxisMaster,
+         mPrimCtrl   => macRxAxisCtrl,
+         phyTxd      => phyTxd,
+         phyTxc      => phyTxc,
+         phyRxd      => phyRxd,
+         phyRxc      => phyRxc,
+         phyReady    => status.phyReady,
+         ethConfig   => config.macConfig,
+         ethStatus   => status.macStatus);
 
    U_MacRxFifo : entity work.AxiStreamFifo
       generic map (
@@ -256,8 +229,8 @@ begin
          SLAVE_READY_EN_G    => false,
          FIFO_PAUSE_THRESH_G => 1024,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G
-      ) port map (
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
+      port map (
          sAxisClk    => phyClock,
          sAxisRst    => phyReset,
          sAxisMaster => macRxAxisMaster,
@@ -265,8 +238,7 @@ begin
          mAxisClk    => dmaClk,
          mAxisRst    => dmaRst,
          mAxisMaster => dmaIbMaster,
-         mAxisSlave  => dmaIbSlave
-      ); 
+         mAxisSlave  => dmaIbSlave); 
 
    -----------------
    -- 10GBASE-R core
