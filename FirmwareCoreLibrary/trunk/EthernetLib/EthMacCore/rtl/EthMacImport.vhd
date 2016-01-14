@@ -31,6 +31,7 @@
 --             in some back to back frame cases.
 -- 04/22/2014: Adapted for AXI Streaming interface.
 -- 09/21/2015: Removed PPI specifc hooks and pause frame reception.
+-- 01/13/2016: Added SOF
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -97,6 +98,7 @@ architecture EthMacImport of EthMacImport is
    signal endShift1        : sl;
    signal crcGood          : sl;
    signal intLastLine      : sl;
+   signal intFirstLine     : sl;
    signal intAdvance       : sl;
    signal lastSOF          : sl;
    signal crcIn            : slv(63 downto 0); 
@@ -135,6 +137,7 @@ architecture EthMacImport of EthMacImport is
    attribute dont_touch of endShift1        : signal is "true";
    attribute dont_touch of crcGood          : signal is "true";
    attribute dont_touch of intLastLine      : signal is "true";
+   attribute dont_touch of intFirstLine     : signal is "true";
    attribute dont_touch of intAdvance       : signal is "true";
    attribute dont_touch of lastSOF          : signal is "true";
    attribute dont_touch of crcIn            : signal is "true";
@@ -162,6 +165,10 @@ begin
             -- Keep
             varMaster.tKeep(7 downto 0)                     := (others=>'0');
             varMaster.tKeep(conv_integer(macSize) downto 0) := (others=>'1');
+
+            if intFirstLine = '1' then
+               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, varMaster, EMAC_SOF_BIT_C, '1');
+            end if;
 
             if intLastLine = '1' then
                axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, varMaster, EMAC_EOFE_BIT_C, not crcGood);
@@ -373,6 +380,7 @@ begin
             crcWidthDly2 <= (others=>'0') after TPD_G;
             crcWidthDly3 <= (others=>'0') after TPD_G;
             intLastLine  <= '0'           after TPD_G;
+            intFirstLine <= '0'           after TPD_G;
             intAdvance   <= '0'           after TPD_G;
             crcGood      <= '0'           after TPD_G;
          else
@@ -405,9 +413,13 @@ begin
 
             -- Determine when data is output
             if frameShift4 = '1' and frameShift5 = '0' then
-               intAdvance <= '1' after TPD_G;
+               intAdvance   <= '1' after TPD_G;
+               intFirstLine <= '1' after TPD_G;
             elsif intLastLine = '1' then
-               intAdvance <= '0' after TPD_G;
+               intAdvance   <= '0' after TPD_G;
+               intFirstLine <= '0' after TPD_G;
+            else
+               intFirstLine <= '0' after TPD_G;
             end if;
 
             -- Determine Last Line

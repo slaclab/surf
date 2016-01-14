@@ -34,6 +34,7 @@ package EthMacPkg is
    constant EMAC_ADDR_INIT_C : slv(47 downto 0) := x"020300564400";
 
    -- EOF Bit
+   constant EMAC_SOF_BIT_C    : integer := 1;
    constant EMAC_EOFE_BIT_C   : integer := 0;
    constant EMAC_IPERR_BIT_C  : integer := 1;
    constant EMAC_TCPERR_BIT_C : integer := 2;
@@ -47,7 +48,7 @@ package EthMacPkg is
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_LAST_C);
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record
