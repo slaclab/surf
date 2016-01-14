@@ -28,11 +28,13 @@ entity RssiCore is
    generic (
       TPD_G            : time     := 1 ns;
       CLK_FREQUENCY_G  : real     := 100.0E6;
-      
+      TIMEOUT_UNIT_G   : real     := 1.0E-6; -- us (Applies to all the timeouts in the core)
+   
       SERVER_G         : boolean  := true; -- Module is server or client 
       INTERNAL_PARAM_G : boolean  := true; -- Internal true (Rssi parameters from generics) 
                                            -- External true (Rssi parameters from input)
-
+      RETRANSMIT_ENABLE_G : boolean := true; -- Enable/Disable retransmissions in tx module
+      
       WINDOW_ADDR_SIZE_G : positive := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       
       -- Generic RSSI parameters
@@ -46,10 +48,13 @@ entity RssiCore is
       MAX_NUM_OUTS_SEG_G  : positive := 8;
       MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
 
-      -- Timeouts
-      RETRANS_TOUT_G        : positive := 50;  -- ms temp
-      ACK_TOUT_G            : positive := 25;  -- ms
-      NULL_TOUT_G           : positive := 200; -- ms
+      -- RSSI Timeouts
+      RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
+      ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
+      NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
+
+      -- Internal Timeouts
+      PEER_CONN_TIMEOUT_G   : positive := 1000; -- unit depends on TIMEOUT_UNIT_G  
       
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
@@ -76,7 +81,12 @@ entity RssiCore is
       sTspAxisMaster_i : in  AxiStreamMasterType;
       sTspAxisSlave_o  : out AxiStreamSlaveType;
       mTspAxisMaster_o : out AxiStreamMasterType;
-      mTspAxisSlave_i  : in  AxiStreamSlaveType
+      mTspAxisSlave_i  : in  AxiStreamSlaveType;
+      
+      -- Internal statuses
+      statusReg_o : out slv(4 downto 0);
+      dropCnt_o   : out slv(31 downto 0);
+      validCnt_o  : out slv(31 downto 0) 
    );
 end entity RssiCore;
 
@@ -103,7 +113,7 @@ architecture rtl of RssiCore is
    signal s_dataHeadSt   : sl;
    signal s_nullHeadSt   : sl;
    signal s_ackHeadSt    : sl;
-      
+  
    -- Current transmitted or received SeqN and AckN   
    signal s_txSeqN    : slv(7  downto 0);
    signal s_txAckN    : slv(7  downto 0);   
@@ -175,10 +185,11 @@ architecture rtl of RssiCore is
    signal s_mTspSsiMaster : SsiMasterType;
    signal s_mTspSsiSlave  : SsiSlaveType;
 
-   -- 
+   -- Monitor input signals
    signal s_txBufferEmpty : sl;
    signal s_lenErr : sl;
    signal s_ackErr : sl;
+   signal s_peerConnTout : sl;
    
    -- Connection indicator
    signal s_connActive : sl;
@@ -187,6 +198,14 @@ architecture rtl of RssiCore is
    signal s_txAckF : sl;
 ----------------------------------------------------------------------
 begin
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- SSI to AXIS conversion
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////   
+
+
+
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
    -- SSI to AXIS conversion
@@ -243,6 +262,10 @@ begin
    generic map (
       TPD_G              => TPD_G,
       SERVER_G           => SERVER_G,
+      TIMEOUT_UNIT_G     => TIMEOUT_UNIT_G,
+      CLK_FREQUENCY_G    => CLK_FREQUENCY_G,
+      PEER_TIMEOUT_G     => PEER_CONN_TIMEOUT_G,
+      
       WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
    port map (
       clk_i          => clk_i,
@@ -265,33 +288,44 @@ begin
       rxBufferSize_o => s_rxBufferSize,
       rxWindowSize_o => s_rxWindowSize,
       txBufferSize_o => s_txBufferSize,
-      txWindowSize_o => s_txWindowSize);
+      txWindowSize_o => s_txWindowSize,
+      peerTout_o     => s_peerConnTout);
 
    Monitor_INST: entity work.Monitor
    generic map (
       TPD_G => TPD_G,
       CLK_FREQUENCY_G => CLK_FREQUENCY_G,
+      TIMEOUT_UNIT_G => TIMEOUT_UNIT_G,
       SERVER_G => SERVER_G,
-      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
+      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
+      RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
+      connRq_i       => connRq_i,     
       connActive_i   => s_connActive,
       
       rssiParam_i    => s_rssiParam,
       rxFlags_i      => s_rxFlags,
       rxValid_i      => s_rxValidSeg,
+      rxDrop_i       => s_rxDropSeg,
       ackHeadSt_i    => s_ackHeadSt,
       rstHeadSt_i    => s_rstHeadSt,
       dataHeadSt_i   => s_dataHeadSt,
       nullHeadSt_i   => s_nullHeadSt,
       rxLastSeqN_i   => s_rxLastSeqN, 
       rxWindowSize_i => s_rxWindowSize,
+      lenErr_i       => s_lenErr,
+      ackErr_i       => s_ackErr,
+      peerConnTout_i => s_peerConnTout,
       txBufferEmpty_i=> s_txBufferEmpty,
       sndResend_o    => s_sndResend,
       sndAck_o       => s_sndAckMon,
       sndNull_o      => s_sndNull,
-      closeRq_o      => s_intCloseRq);
+      closeRq_o      => s_intCloseRq,
+      statusReg_o    => statusReg_o,
+      dropCnt_o      => dropCnt_o,
+      validCnt_o     => validCnt_o);
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -343,7 +377,8 @@ begin
       EACK_HEADER_SIZE_G => EACK_HEADER_SIZE_C,
       RST_HEADER_SIZE_G  => RST_HEADER_SIZE_C,
       NULL_HEADER_SIZE_G => NULL_HEADER_SIZE_C,
-      DATA_HEADER_SIZE_G => DATA_HEADER_SIZE_C)
+      DATA_HEADER_SIZE_G => DATA_HEADER_SIZE_C,
+      HEADER_CHKSUM_EN_G => HEADER_CHKSUM_EN_G)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
@@ -447,7 +482,9 @@ begin
    RxFSM_INST: entity work.RxFSM
    generic map (
       TPD_G              => TPD_G,
-      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
+      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
+      HEADER_CHKSUM_EN_G => HEADER_CHKSUM_EN_G
+   )      
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,

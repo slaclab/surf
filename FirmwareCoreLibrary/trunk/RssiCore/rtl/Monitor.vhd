@@ -9,8 +9,14 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Calculates and checks the RUDP packet checksum.
---              Checksum for IP/UDP/TCP/RUDP.       
+-- Description: 
+--                
+--    statusReg_o(0) : Maximum retransmissions exceeded r.retransMax and
+--    statusReg_o(1) : Null timeout reached (server) r.nullTout;
+--    statusReg_o(2) : Error in acknowledgment mechanism   
+--    statusReg_o(3) : SSI Frame length too long
+--    statusReg_o(4) : Connection to peer timed out
+     
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -25,14 +31,21 @@ use work.RssiPkg.all;
 entity Monitor is
    generic (
       TPD_G               : time     := 1 ns;
+      TIMEOUT_UNIT_G      : real     := 1.0E-6; -- us
       CLK_FREQUENCY_G     : real     := 100.0E6; 
       SERVER_G            : boolean  := true;
-      WINDOW_ADDR_SIZE_G  : positive := 7
+      WINDOW_ADDR_SIZE_G  : positive := 7;
+      STATUS_WIDTH_G      : positive := 5;
+      CNT_WIDTH_G         : positive := 32;
+      RETRANSMIT_ENABLE_G : boolean := true
       -- 
    );
    port (
       clk_i      : in  sl;
       rst_i      : in  sl;
+      
+      -- High level  Application conn request
+      connRq_i   : in  sl;
       
       -- Connection FSM indicating active connection      
       connActive_i : in  sl;
@@ -52,27 +65,38 @@ entity Monitor is
       
       -- Valid received packet
       rxValid_i      : in sl;
+      rxDrop_i       : in sl;
       
       --
       ackHeadSt_i    : in sl;
       rstHeadSt_i    : in sl;
       dataHeadSt_i   : in sl;
-      nullHeadSt_i   : in sl;      
+      nullHeadSt_i   : in sl;
 
+      -- Internal Errors and Timeouts       
+      lenErr_i       : in sl;      
+      ackErr_i       : in sl;      
+      peerConnTout_i : in sl;      
+      
       -- Packet transmission requests
       sndResend_o     : out  sl;
       sndNull_o       : out  sl;
       sndAck_o        : out  sl;
-      
+          
       -- Connection close request
-      closeRq_o    : out  sl   
+      closeRq_o    : out  sl;
+
+      -- Internal statuses
+      statusReg_o : out slv(STATUS_WIDTH_G-1  downto 0);
+      dropCnt_o   : out slv(CNT_WIDTH_G-1  downto 0);
+      validCnt_o  : out slv(CNT_WIDTH_G-1  downto 0)     
    );
 end entity Monitor;
 
 architecture rtl of Monitor is
    --
-   --constant SAMPLES_PER_TIME_C : integer := integer(1.0E-3 * CLK_FREQUENCY_G);
-   constant SAMPLES_PER_TIME_C : integer := integer(1.0E-6 * CLK_FREQUENCY_G);
+   constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
+
    --  
    type RegType is record
       -- Retransmission
@@ -92,6 +116,11 @@ architecture rtl of Monitor is
       lastAckSeqN : slv(7 downto 0);      
       sndAck      : sl;
       
+      --
+      status   : slv(STATUS_WIDTH_G - 1 downto 0);
+      validCnt : slv(CNT_WIDTH_G - 1 downto 0);
+      dropCnt  : slv(CNT_WIDTH_G - 1 downto 0);
+      --
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -110,17 +139,28 @@ architecture rtl of Monitor is
       -- Ack packet cumulative/timeout
       ackToutCnt  => (others=>'0'),     
       lastAckSeqN => (others=>'0'),   
-      sndAck      => '0' 
+      sndAck      => '0',
+      
+      -- Statuses
+      status   => (others=>'0'),
+      validCnt => (others=>'0'),
+      dropCnt  => (others=>'0')
    );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
+   signal s_status : slv(STATUS_WIDTH_G - 1 downto 0); 
    --
 begin
-
+   -- Status assignment
+   s_status(0) <= r.retransMax and r.sndResend and not r.sndResendD1;
+   s_status(1) <= r.nullTout;
+   s_status(2) <= ackErr_i;   
+   s_status(3) <= lenErr_i;
+   s_status(4) <= peerConnTout_i;
+   
    comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, 
-                   connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i) is
+                   connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i, s_status) is
       variable v : RegType;
    begin
       v := r;
@@ -138,7 +178,8 @@ begin
           dataHeadSt_i = '1' or
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1' or
-          txBufferEmpty_i = '1'
+          txBufferEmpty_i = '1' or
+          RETRANSMIT_ENABLE_G = false -- Disable retransmissions
       ) then
          v.retransToutCnt := (others=>'0');
       else
@@ -198,7 +239,8 @@ begin
       if (connActive_i = '0' or
           dataHeadSt_i = '1' or
           rstHeadSt_i  = '1' or
-          nullHeadSt_i = '1'
+          nullHeadSt_i = '1' or
+          RETRANSMIT_ENABLE_G = false -- Disable null packet transmission  
       ) then
          v.nullToutCnt := (others=>'0');
       else
@@ -223,7 +265,8 @@ begin
       -- Null timeout counter
       if (connActive_i = '0' or
          (rxValid_i = '1' and rxFlags_i.data = '1') or 
-         (rxValid_i = '1' and rxFlags_i.nul  = '1')
+         (rxValid_i = '1' and rxFlags_i.nul  = '1') or
+         RETRANSMIT_ENABLE_G = false -- Disable null timeout         
       ) then
          v.nullToutCnt := (others=>'0');
       else
@@ -297,6 +340,34 @@ begin
    end if;
    
    -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Status register and valid and drop counters
+   ------------------------------------------------------------   
+   -- /////////////////////////////////////////////////////////
+   
+   -- Register statuses until new connection is requested
+   if (connRq_i = '1') then
+      v.status := (others=>'0');
+   elsif (s_status /= (s_status'range => '0') ) then       
+      v.status := r.status or s_status;        
+   end if;
+   
+   -- Count valid packets
+   if (connRq_i = '1') then
+      v.validCnt := (others=>'0');
+   elsif (rxValid_i = '1') then       
+      v.validCnt := r.validCnt+1;        
+   end if;
+   
+   -- Count dropped packets
+   if (connRq_i = '1') then
+      v.dropCnt := (others=>'0');
+   elsif (rxDrop_i = '1') then       
+      v.dropCnt := r.dropCnt+1;        
+   end if;
+   
+   
+   -- /////////////////////////////////////////////////////////
    if (rst_i = '1') then
       v := REG_INIT_C;
    end if;
@@ -316,6 +387,11 @@ begin
    sndNull_o   <= r.sndNull;
    sndAck_o    <= r.sndAck;
    closeRq_o   <= (r.retransMax and r.sndResend and not r.sndResendD1) or -- Close connection when exceeded resend is requested
-                  r.nullTout;   -- Close connection when null timeouts
+                  r.nullTout or  -- Close connection when null timeouts
+                  ackErr_i or    -- Close if acknowledgment error occurs
+                  lenErr_i;   -- Close if SSI input frame length error occurs
+   statusReg_o <= r.status;
+   dropCnt_o   <= r.dropCnt;
+   validCnt_o  <= r.validCnt;
    ---------------------------------------------------------------------
 end architecture rtl;

@@ -27,7 +27,12 @@ entity ConnFSM is
       TPD_G        : time     := 1 ns;
       SERVER_G     : boolean  := true;
       --
-      WINDOW_ADDR_SIZE_G  : positive := 7
+      WINDOW_ADDR_SIZE_G  : positive := 7;
+      
+      TIMEOUT_UNIT_G      : real     := 1.0E-6; -- us
+      CLK_FREQUENCY_G     : real     := 100.0E6;
+      -- Number of u sec the module waits for the response from the peer
+      PEER_TIMEOUT_G : positive := 1000
    );
    port (
       clk_i      : in  sl;
@@ -37,10 +42,10 @@ entity ConnFSM is
       connRq_i    : in  sl;
       closeRq_i   : in  sl;
           
-      -- Parameters received from peer      
+      -- Parameters received from peer (Server)    
       rxRssiParam_i  : in  RssiParamType;
       
-      -- Parameters set by high level App
+      -- Parameters set by high level App or generic (Client)
       appRssiParam_i  : in  RssiParamType;
       
       -- Negotiated parameters
@@ -72,12 +77,17 @@ entity ConnFSM is
       rxWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
       txBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
-      txWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G)
+      txWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      
+      -- Timeout status
+      peerTout_o       : out sl
    );
 end entity ConnFSM;
 
 architecture rtl of ConnFSM is
-   
+   --
+   constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
+   --
    type StateType is (
       CLOSED_S,
       SEND_SYN_S,
@@ -96,12 +106,16 @@ architecture rtl of ConnFSM is
       sndAck      : sl;
       sndRst      : sl;
       txAckF      : sl;
+      peerTout    : sl;
       
       rssiParam   : RssiParamType;
       
       --
       txBufferSize   : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
       txWindowSize   : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      --
+      timeoutCntr    : integer range 0 to PEER_TIMEOUT_G * SAMPLES_PER_TIME_C;
+      
       
       ---
       state       : StateType;
@@ -114,9 +128,11 @@ architecture rtl of ConnFSM is
       sndAck      => '0',
       sndRst      => '0',
       txAckF      => '0',
+      peerTout    => '0',
       
       rssiParam   => (others => (others =>'0')),
       
+      timeoutCntr => 0,
       --
       txBufferSize=> 1,
       txWindowSize=> 1,
@@ -173,6 +189,8 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '0';
+            v.peerTout     := '0';
+            v.timeoutCntr  :=  0;
             
             -- Send the Client proposed parameters
             v.rssiParam    := appRssiParam_i;
@@ -189,13 +207,13 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '0';
-            
+            v.timeoutCntr  := r.timeoutCntr + 1;
             --            
             if (rxValid_i = '1' and rxFlags_i.syn = '1' and rxFlags_i.ack = '1') then
                -- Check parameters
                if (
                   rxRssiParam_i.version    = appRssiParam_i.version     and
-                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
+                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)   and -- Number of segments in a window
                   rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8     -- Number of bytes
                ) then
                
@@ -213,6 +231,9 @@ begin
                end if;
             elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
                v.state := CLOSED_S;
+            elsif (r.timeoutCntr = PEER_TIMEOUT_G * SAMPLES_PER_TIME_C) then
+               v.peerTout := '1';
+               v.state    := CLOSED_S;
             end if;
          ----------------------------------------------------------------------
          when SEND_ACK_S =>
@@ -222,6 +243,7 @@ begin
             v.sndAck       := '1';
             v.sndRst       := '0';
             v.txAckF       := '1';
+            v.timeoutCntr  :=  0;
             --
             v.rssiParam := r.rssiParam;
             
@@ -241,14 +263,17 @@ begin
             v.sndSyn       := '0'; 
             v.sndAck       := '0';
             v.sndRst       := '0';
-            v.txAckF       := '0';          
+            v.txAckF       := '0';
+            v.peerTout     := '0';
+            v.timeoutCntr  :=  0;            
             -- 
             if (rxValid_i = '1' and rxFlags_i.syn = '1') then
                -- Check parameters
                if (
-                  rxRssiParam_i.version    = appRssiParam_i.version     and
-                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
-                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8     -- Number of bytes
+                  rxRssiParam_i.version    = appRssiParam_i.version     and   -- Version equality
+                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)   and   -- Number of segments in a window
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8 and  -- Number of bytes
+                  rxRssiParam_i.chksumEn   = rxRssiParam_i.chksumEn           -- Checksum setting equality
                ) then
                
                   -- Accept the parameters from the client                 
@@ -277,6 +302,7 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '1';
+            v.timeoutCntr  :=  0;
             
             -- Send the Server parameters
             v.rssiParam    := r.rssiParam;
@@ -292,6 +318,7 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '0';
+            v.timeoutCntr  := r.timeoutCntr+1;
             
             -- 
             v.rssiParam    := r.rssiParam;
@@ -300,6 +327,9 @@ begin
                v.state := OPEN_S;
             elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
                v.state := CLOSED_S;
+            elsif (r.timeoutCntr = PEER_TIMEOUT_G * SAMPLES_PER_TIME_C) then
+               v.peerTout := '1';
+               v.state    := CLOSED_S;
             end if;
 
          ----------------------------------------------------------------------           
@@ -380,5 +410,8 @@ begin
    -- Parameters for transmitter are received by the peer and checked by FSM 
    txBufferSize_o <= r.txBufferSize;
    txWindowSize_o <= r.txWindowSize;
+   
+   -- 
+   peerTout_o <= r.peerTout; 
    ---------------------------------------------------------------------
 end architecture rtl;

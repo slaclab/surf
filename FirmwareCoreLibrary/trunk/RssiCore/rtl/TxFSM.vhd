@@ -28,14 +28,16 @@ entity TxFSM is
    generic (
       TPD_G              : time     := 1 ns;
       
-      WINDOW_ADDR_SIZE_G  : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
+      WINDOW_ADDR_SIZE_G : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
  
       SYN_HEADER_SIZE_G  : natural := 24;
       ACK_HEADER_SIZE_G  : natural := 8;
       EACK_HEADER_SIZE_G : natural := 8;
       RST_HEADER_SIZE_G  : natural := 8;
       NULL_HEADER_SIZE_G : natural := 8;
-      DATA_HEADER_SIZE_G : natural := 8
+      DATA_HEADER_SIZE_G : natural := 8;
+      
+      HEADER_CHKSUM_EN_G : boolean  := true
    );
    port (
       clk_i      : in  sl;
@@ -301,12 +303,15 @@ architecture rtl of TxFSM is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+   signal s_chksum : slv(chksum_i'range);
 begin
-
+   
+   -- Send all 0 if checksum disabled
+   s_chksum <= ite(HEADER_CHKSUM_EN_G, chksum_i, (chksum_i'range=>'0') );
+   
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, connRq_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
-                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, chksum_i, rdBuffData_i, chksumValid_i, headerLength_i) is
+                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, s_chksum, rdBuffData_i, chksumValid_i, headerLength_i) is
       
       variable v : RegType;
 
@@ -526,18 +531,10 @@ begin
             -- check if buffer is still available (not full)
             if (r.buffWe = '1') then
                v.appState    := IDLE_S;
+            
             -- Wait until receiving the first data            
-            elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1') then
-               
-               -- First data already received at this point
-               v.rxSegmentAddr := r.rxSegmentAddr;
-               v.appBusy     := '1';
-               v.rxSegmentWe   := '1';
-                           
-               v.appState    := SEG_RCV_S;
-               
-            -- If only one SSI word received (go directly to ready!)
-            -- This is the case when both SOF and EOF are asserted.
+            -- SOF and EOF received
+            -- Packet is only one word long go directly to ready!
             elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1' and appSsiMaster_i.eof = '1' ) then
             
                -- First data already received at this point
@@ -550,6 +547,18 @@ begin
                v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0); 
             
                v.appState    := SEG_RDY_S;
+
+            -- SOF received            
+            elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1') then
+               
+               -- First data received
+               v.rxSegmentAddr := r.rxSegmentAddr;
+               v.appBusy     := '1';
+               v.rxSegmentWe   := '1';
+                           
+               v.appState    := SEG_RCV_S;
+               
+
 
             end if;
          ----------------------------------------------------------------------
@@ -732,7 +741,7 @@ begin
             v.buffWe   := '0';
             v.buffSent := '0';
             v.chkEn    := '0';
-            v.chkStb    := '0';
+            v.chkStb   := '0';
             
            v.tspSsiMaster:= SSI_MASTER_INIT_C;  
            
@@ -830,7 +839,7 @@ begin
                
                if (tspSsiSlave_i.ready = '1' and headerRdy_i = '1' and chksumValid_i = '1') then 
                   -- Add checksum to last 16 bits
-                  v.tspSsiMaster.data(15 downto 0) := chksum_i;
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum;
                   v.tspSsiMaster.valid  := '1';                
                   v.tspSsiMaster.eof    := '1';
                   v.tspSsiMaster.eofe   := '0';
@@ -893,7 +902,7 @@ begin
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := chksum_i; -- Add header to last two bytes
+               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
                 
                --                
                if  connActive_i = '0' then          
@@ -975,7 +984,7 @@ begin
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := chksum_i; -- Add header to last two bytes
+               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
                 
                -- Increment seqN
                v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
@@ -1057,7 +1066,7 @@ begin
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := chksum_i; -- Add header to last two bytes
+               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
                
                -- Increment seqN
                v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
@@ -1139,7 +1148,7 @@ begin
                v.tspSsiMaster.eof    := '0';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := chksum_i; -- Add header to last two bytes
+               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
 
                v.tspState := DATA_S;
                --
@@ -1306,7 +1315,7 @@ begin
                v.tspSsiMaster.strb   := (others => '1');
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := chksum_i; -- Add header to last two bytes
+               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
                
                -- Null or Rst packet
                if    (r.windowArray(conv_integer(r.txBufferAddr)).segType(2) = '1' or
@@ -1492,9 +1501,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
- 
 
- 
-   
    ---------------------------------------------------------------------
 end architecture rtl;

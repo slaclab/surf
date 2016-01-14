@@ -27,7 +27,8 @@ use work.AxiStreamPkg.all;
 entity RxFSM is
    generic (
       TPD_G               : time     := 1 ns;
-      WINDOW_ADDR_SIZE_G  : positive := 7     -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
+      WINDOW_ADDR_SIZE_G  : positive := 7;     -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
+      HEADER_CHKSUM_EN_G : boolean  := true
    );
    port (
       clk_i      : in  sl;
@@ -159,7 +160,7 @@ architecture rtl of RxFSM is
       -- State Machine
       tspState       : TspStateType;
       
-      -- Application side FSM (Send segments when received next in odrer received)
+      -- Application side FSM (Send segments when next in order received)
       -----------------------------------------------------------
       txSegmentAddr    : slv(SEGMENT_ADDR_SIZE_C downto 0);
       txBufferAddr     : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
@@ -229,11 +230,15 @@ architecture rtl of RxFSM is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+   signal s_chksumOk : sl;
    
 begin
-
+   
+  -- Override checksum check if checksum disabled
+   s_chksumOk <= ite(HEADER_CHKSUM_EN_G, chksumOk_i, '1');
+   
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, chksumValid_i, chksumOk_i, rxWindowSize_i, lastAckN_i, rxBufferSize_i,
+   comb : process (r, rst_i, chksumValid_i, s_chksumOk, rxWindowSize_i, lastAckN_i, rxBufferSize_i,
                   txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i, initAckN_i) is
       
       variable v : RegType;
@@ -276,7 +281,7 @@ begin
             v.segDrop    := '0';
             
             -- Next state condition
-            if    (tspSsiMaster_i.sof = '1' and tspSsiMaster_i.valid = '1') then
+            if (tspSsiMaster_i.sof = '1' and tspSsiMaster_i.valid = '1') then
                v.chkEn       := '1';
                v.chkStb      := '1';
 
@@ -346,7 +351,7 @@ begin
                -- Check header
                if (
                   -- Checksum
-                  chksumOk_i = '1'                           and
+                  s_chksumOk = '1'                           and
                   -- Check length
                   r.rxHeadLen = toSlv(8, 8)                  and
                   -- Check SeqN range
@@ -427,7 +432,7 @@ begin
                   
                   if (
                      -- Checksum
-                     chksumOk_i = '1' and
+                     s_chksumOk = '1' and
                      -- Check length
                      r.rxHeadLen = toSlv(24, 8)
                   ) then
@@ -510,7 +515,7 @@ begin
                v.rxBufferAddr := (others => '0');
                v.windowArray  := REG_INIT_C.windowArray;
                
-            -- Check if next valid SEQn is received 
+            -- Check if next valid SEQn is received. If yes:
             -- 1. increment the in order SEQn
             -- 2. save seqN, type, and occupied to the current buffer address
             -- 3. increase buffer
@@ -563,8 +568,7 @@ begin
            
       ----------------------------------------------------------------------
       end case;
-      
-      
+
       ------------------------------------------------------------
       -- TX Application side FSM:
       -- Transmit the segments in correct order
