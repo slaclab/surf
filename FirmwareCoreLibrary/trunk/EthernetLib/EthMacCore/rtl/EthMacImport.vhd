@@ -167,7 +167,7 @@ begin
             varMaster.tKeep(conv_integer(macSize) downto 0) := (others=>'1');
 
             if intFirstLine = '1' then
-               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, varMaster, EMAC_SOF_BIT_C, '1');
+               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, varMaster, EMAC_SOF_BIT_C, '1', 0);
             end if;
 
             if intLastLine = '1' then
