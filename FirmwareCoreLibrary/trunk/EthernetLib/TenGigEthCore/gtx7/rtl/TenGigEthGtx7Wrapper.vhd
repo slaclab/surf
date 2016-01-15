@@ -132,15 +132,6 @@ begin
       TenGigEthGtx7_Inst : entity work.TenGigEthGtx7
          generic map (
             TPD_G            => TPD_G,
-            -- DMA/MAC Configurations
-            IB_ADDR_WIDTH_G  => IB_ADDR_WIDTH_G(i),
-            OB_ADDR_WIDTH_G  => OB_ADDR_WIDTH_G(i),
-            PAUSE_THOLD_G    => PAUSE_THOLD_G(i),
-            VALID_THOLD_G    => VALID_THOLD_G(i),
-            EOH_BIT_G        => EOH_BIT_G(i),
-            ERR_BIT_G        => ERR_BIT_G(i),
-            HEADER_SIZE_G    => HEADER_SIZE_G(i),
-            SHIFT_EN_G       => SHIFT_EN_G(i),
             -- AXI-Lite Configurations
             AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
             -- AXI Streaming Configurations
