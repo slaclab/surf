@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Handels RSSI counters and timeouts.
+-- Title      : Handles RSSI counters, timeouts, and statuses.
 -------------------------------------------------------------------------------
 -- File       : Monitor.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -10,12 +10,12 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
---                
---    statusReg_o(0) : Maximum retransmissions exceeded r.retransMax and
---    statusReg_o(1) : Null timeout reached (server) r.nullTout;
---    statusReg_o(2) : Error in acknowledgment mechanism   
---    statusReg_o(3) : SSI Frame length too long
---    statusReg_o(4) : Connection to peer timed out
+--    statusReg_o(0) : Connection Active          
+--    statusReg_o(1) : Maximum retransmissions exceeded r.retransMax and
+--    statusReg_o(2) : Null timeout reached (server) r.nullTout;
+--    statusReg_o(3) : Error in acknowledgment mechanism   
+--    statusReg_o(4) : SSI Frame length too long
+--    statusReg_o(5) : Connection to peer timed out
      
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
@@ -87,7 +87,7 @@ entity Monitor is
       closeRq_o    : out  sl;
 
       -- Internal statuses
-      statusReg_o : out slv(STATUS_WIDTH_G-1  downto 0);
+      statusReg_o : out slv(STATUS_WIDTH_G  downto 0);
       dropCnt_o   : out slv(CNT_WIDTH_G-1  downto 0);
       validCnt_o  : out slv(CNT_WIDTH_G-1  downto 0)     
    );
@@ -390,7 +390,7 @@ begin
                   r.nullTout or  -- Close connection when null timeouts
                   ackErr_i or    -- Close if acknowledgment error occurs
                   lenErr_i;   -- Close if SSI input frame length error occurs
-   statusReg_o <= r.status;
+   statusReg_o <= connActive_i & r.status;
    dropCnt_o   <= r.dropCnt;
    validCnt_o  <= r.validCnt;
    ---------------------------------------------------------------------

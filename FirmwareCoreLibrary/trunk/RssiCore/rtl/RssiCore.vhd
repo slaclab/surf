@@ -35,7 +35,15 @@ entity RssiCore is
                                            -- External true (Rssi parameters from input)
       RETRANSMIT_ENABLE_G : boolean := true; -- Enable/Disable retransmissions in tx module
       
-      WINDOW_ADDR_SIZE_G : positive := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      WINDOW_ADDR_SIZE_G : positive := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      
+      -- Application AXIS fifos
+      APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4); -- Application Input data width 
+      APP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4); -- Application Output data width 
+      
+      -- Transport AXIS fifos
+      TSP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16); -- Transport Input data width
+      TSP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16); -- Transport Output data width
       
       -- Generic RSSI parameters
       
@@ -84,7 +92,7 @@ entity RssiCore is
       mTspAxisSlave_i  : in  AxiStreamSlaveType;
       
       -- Internal statuses
-      statusReg_o : out slv(4 downto 0);
+      statusReg_o : out slv(5 downto 0);
       dropCnt_o   : out slv(31 downto 0);
       validCnt_o  : out slv(31 downto 0) 
    );
@@ -173,13 +181,28 @@ architecture rtl of RssiCore is
    -- with acknowledge flag received
    signal s_rxAck : sl;
    
+   -- Application Fifo reset when connection is closed
+   signal s_rstFifo : sl;
+   
+   -- AXIS Application side
+   signal s_sAppAxisMaster : AxiStreamMasterType;
+   signal s_sAppAxisSlave  : AxiStreamSlaveType;
+   signal s_mAppAxisMaster : AxiStreamMasterType;
+   signal s_mAppAxisSlave  : AxiStreamSlaveType;
+
    -- SSI Application side
    signal s_sAppSsiMaster : SsiMasterType;
    signal s_sAppSsiSlave  : SsiSlaveType;
    signal s_mAppSsiMaster : SsiMasterType;
    signal s_mAppSsiSlave  : SsiSlaveType;
-  
-   -- SSI Teansport side      
+   
+   -- AXIS Transport side
+   signal s_sTspAxisMaster : AxiStreamMasterType;
+   signal s_sTspAxisSlave  : AxiStreamSlaveType;
+   signal s_mTspAxisMaster : AxiStreamMasterType;
+   signal s_mTspAxisSlave  : AxiStreamSlaveType;
+
+   -- SSI Transport side      
    signal s_sTspSsiMaster : SsiMasterType;
    signal s_sTspSsiSlave  : SsiSlaveType;
    signal s_mTspSsiMaster : SsiMasterType;
@@ -200,29 +223,84 @@ architecture rtl of RssiCore is
 begin
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
-   -- SSI to AXIS conversion
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////   
-
-
-
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- SSI to AXIS conversion
+   -- Input AXIS fifos
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
    
-   -- SSI Application side
-   s_sAppSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, sAppAxisMaster_i); 
-   sAppAxisSlave_o  <= ssi2AxisSlave(s_sAppSsiSlave); 
-   mAppAxisMaster_o <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mAppSsiMaster); 
-   s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, mAppAxisSlave_i, AXI_STREAM_CTRL_UNUSED_C);
+   -- Application Fifo reset when connection is closed
+   s_rstFifo <= rst_i or not s_connActive;
+   
+   -- Application side   
+   app_fifo_in: entity work.AxiStreamFifo
+   generic map (
+      TPD_G               => TPD_G,
+      SLAVE_READY_EN_G    => true,
+      VALID_THOLD_G       => 1,
+      BRAM_EN_G           => true,
+      XIL_DEVICE_G        => "ULTRASCALE",
 
-   -- SSI Transport side
-   s_sTspSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, sTspAxisMaster_i); 
-   sTspAxisSlave_o  <= ssi2AxisSlave(s_sTspSsiSlave); 
-   mTspAxisMaster_o <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mTspSsiMaster); 
-   s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, mTspAxisSlave_i, AXI_STREAM_CTRL_UNUSED_C);
+      CASCADE_SIZE_G      => 1,
+      FIFO_ADDR_WIDTH_G   => 9,
+      FIFO_FIXED_THRESH_G => true,
+      FIFO_PAUSE_THRESH_G => 1,
+
+      SLAVE_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
+      MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
+   port map (
+      sAxisClk        => clk_i,
+      sAxisRst        => s_rstFifo,
+      sAxisMaster     => sAppAxisMaster_i,
+      sAxisSlave      => sAppAxisSlave_o,
+      sAxisCtrl       => open,
+      --
+      mAxisClk        => clk_i,
+      mAxisRst        => s_rstFifo,
+      mAxisMaster     => s_sAppAxisMaster,
+      mAxisSlave      => s_sAppAxisSlave,
+      mTLastTUser     => open);
+   
+   -- Transport side
+   tsp_fifo_in: entity work.AxiStreamFifo
+   generic map (
+      TPD_G               => TPD_G,
+      SLAVE_READY_EN_G    => true,
+      VALID_THOLD_G       => 1,
+      BRAM_EN_G           => true,
+      XIL_DEVICE_G        => "ULTRASCALE",
+
+      CASCADE_SIZE_G      => 1,
+      FIFO_ADDR_WIDTH_G   => 9,
+      FIFO_FIXED_THRESH_G => true,
+      FIFO_PAUSE_THRESH_G => 1,
+
+      SLAVE_AXI_CONFIG_G  => TSP_INPUT_AXI_CONFIG_G,
+      MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
+   port map (
+      sAxisClk        => clk_i,
+      sAxisRst        => rst_i,
+      sAxisMaster     => sTspAxisMaster_i,
+      sAxisSlave      => sTspAxisSlave_o,
+      sAxisCtrl       => open,
+      --
+      mAxisClk        => clk_i,
+      mAxisRst        => rst_i,
+      mAxisMaster     => s_sTspAxisMaster,
+      mAxisSlave      => s_sTspAxisSlave,
+      mTLastTUser     => open);
+
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Input AXIS conversion to SSI 
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+   
+   -- Application side
+   s_sAppSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, s_sAppAxisMaster); 
+   s_sAppAxisSlave  <= ssi2AxisSlave(s_sAppSsiSlave);
+   
+   -- Transport side   
+   s_sTspSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, s_sTspAxisMaster); 
+   s_sTspAxisSlave  <= ssi2AxisSlave(s_sTspSsiSlave);
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -495,7 +573,7 @@ begin
       lastAckN_i     => s_rxLastAckN,--
       initAckN_i     => initSeqN_i,
       rxSeqN_o       => s_rxSeqN,
-      inOrderSeqN_o  => s_rxLastSeqN,
+      rxLastSeqN_o   => s_rxLastSeqN,
       rxAckN_o       => s_rxAckN,
       rxValidSeg_o   => s_rxValidSeg,
       rxDropSeg_o    => s_rxDropSeg,
@@ -556,5 +634,82 @@ begin
       chksum_o => open,
       valid_o  => s_rxChkValid,
       check_o  => s_rxChkCheck);
+      
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Output SSI conversion to AXIS
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+
+   -- SSI Application side   
+   s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mAppSsiMaster); 
+   s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, s_mAppAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
+   -- SSI Transport side
+   s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mTspSsiMaster); 
+   s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, s_mTspAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
+   
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Output AXIS fifos
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+   
+   -- Application side   
+   app_fifo_out: entity work.AxiStreamFifo
+   generic map (
+      TPD_G               => TPD_G,
+      SLAVE_READY_EN_G    => true,
+      VALID_THOLD_G       => 1,
+      BRAM_EN_G           => true,
+      XIL_DEVICE_G        => "ULTRASCALE",
+
+      CASCADE_SIZE_G      => 1,
+      FIFO_ADDR_WIDTH_G   => 9,
+      FIFO_FIXED_THRESH_G => true,
+      FIFO_PAUSE_THRESH_G => 1,
+
+      SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
+      MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
+   port map (
+      sAxisClk        => clk_i,
+      sAxisRst        => s_rstFifo,
+      sAxisMaster     => s_mAppAxisMaster,
+      sAxisSlave      => s_mAppAxisSlave,
+      sAxisCtrl       => open,
+      --
+      mAxisClk        => clk_i,
+      mAxisRst        => s_rstFifo,
+      mAxisMaster     => mAppAxisMaster_o,
+      mAxisSlave      => mAppAxisSlave_i,
+      mTLastTUser     => open);
+   
+   -- Transport side
+   tsp_fifo_out: entity work.AxiStreamFifo
+   generic map (
+      TPD_G               => TPD_G,
+      SLAVE_READY_EN_G    => true,
+      VALID_THOLD_G       => 1,
+      BRAM_EN_G           => true,
+      XIL_DEVICE_G        => "ULTRASCALE",
+
+      CASCADE_SIZE_G      => 1,
+      FIFO_ADDR_WIDTH_G   => 9,
+      FIFO_FIXED_THRESH_G => true,
+      FIFO_PAUSE_THRESH_G => 1,
+
+      SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
+      MASTER_AXI_CONFIG_G => TSP_OUTPUT_AXI_CONFIG_G)
+   port map (
+      sAxisClk        => clk_i,
+      sAxisRst        => rst_i,
+      sAxisMaster     => s_mTspAxisMaster,
+      sAxisSlave      => s_mTspAxisSlave,
+      sAxisCtrl       => open,
+      --
+      mAxisClk        => clk_i,
+      mAxisRst        => rst_i,
+      mAxisMaster     => mTspAxisMaster_o,
+      mAxisSlave      => mTspAxisSlave_i,
+      mTLastTUser     => open);
 ----------------------------------------
 end architecture rtl;

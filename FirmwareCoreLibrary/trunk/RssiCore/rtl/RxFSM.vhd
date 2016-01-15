@@ -54,8 +54,8 @@ entity RxFSM is
       -- Current received ackN
       rxAckN_o     : out slv(7 downto 0);
       
-      -- Last seqN received in order
-      inorderSeqN_o : out slv(7 downto 0);
+      -- Last seqN received and sent to application (this is the ackN transmitted)
+      rxLastSeqN_o : out slv(7 downto 0);
 
       -- Valid Segment received (1 c-c)
       rxValidSeg_o : out sl;
@@ -162,8 +162,9 @@ architecture rtl of RxFSM is
       
       -- Application side FSM (Send segments when next in order received)
       -----------------------------------------------------------
-      txSegmentAddr    : slv(SEGMENT_ADDR_SIZE_C downto 0);
-      txBufferAddr     : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
+      txSegmentAddr  : slv(SEGMENT_ADDR_SIZE_C downto 0);
+      txBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
+      rxLastSeqN     : slv(7 downto 0);
       
       -- SSI      
       appSsiMaster   : SsiMasterType;
@@ -218,6 +219,7 @@ architecture rtl of RxFSM is
       -----------------------------------------------------------
       txBufferAddr  => (others => '0'),
       txSegmentAddr => (others => '0'),
+      rxLastSeqN => (others => '0'),
       
       -- SSI      
       appSsiMaster => SSI_MASTER_INIT_C,
@@ -593,16 +595,18 @@ begin
          
             -- Counters to 0
             v.txSegmentAddr := (others => '0');
+            v.rxLastSeqN    := r.rxLastSeqN;
             
             --
             if connActive_i = '0' then
                v.txBufferAddr  := (others => '0');
+               v.rxLastSeqN    := r.inOrderSeqN;
             elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' and
                    r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001" --and   -- Data segment type
                    --r.txSegmentAddr = 0  -- Wait one c-c for address to be applied and data ready             
             ) then
                --
-               v.txBufferAddr        := r.txBufferAddr;
+               v.txBufferAddr  := r.txBufferAddr;
                
                if (v.appSsiMaster.valid = '0' and appSsiSlave_i.ready = '1') then
                
@@ -627,6 +631,7 @@ begin
             else
                --
                v.txBufferAddr  := r.txBufferAddr;
+               v.appSsiMaster.valid  := '0';
                v.appState      := CHECK_BUFFER_S;
             end if;
          ----------------------------------------------------------------------
@@ -634,6 +639,7 @@ begin
          
             -- Counters 
             v.txBufferAddr  := r.txBufferAddr;
+            v.rxLastSeqN    := r.rxLastSeqN; 
             
             -- SSI parameters
             v.appSsiMaster.sof    := '0';
@@ -678,7 +684,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>
-         
+            
+            -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
+            v.rxLastSeqN    := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
+            
             -- Counters
             if r.txBufferAddr < (rxWindowSize_i-1) then
                v.txBufferAddr  := r.txBufferAddr+1; -- Increment once
@@ -696,7 +705,7 @@ begin
             v.appSsiMaster := SSI_MASTER_INIT_C;
            
             -- Next state immediately
-             v.appState   := CHECK_BUFFER_S;
+            v.appState   := CHECK_BUFFER_S;
 
          ----------------------------------------------------------------------
          when others =>
@@ -723,7 +732,7 @@ begin
       -- Assign outputs
       rxFlags_o      <= r.rxF;
       rxSeqN_o       <= r.rxSeqN;
-      inOrderSeqN_o  <= r.inOrderSeqN;
+      rxLastSeqN_o   <= r.rxLastSeqN;
       rxAckN_o       <= r.rxAckN;
       rxValidSeg_o   <= r.segValid;
       rxDropSeg_o    <= r.segDrop;

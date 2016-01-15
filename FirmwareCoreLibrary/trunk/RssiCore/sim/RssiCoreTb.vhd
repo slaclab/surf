@@ -33,7 +33,7 @@ end RssiCoreTb;
 
 architecture testbed of RssiCoreTb is
 
-   constant CLK_PERIOD_C : time    := 10   ns;
+   constant CLK_PERIOD_C : time    := 10 ns;
    constant TPD_C        : time    := 1 ns; 
 
    -- Clocking
@@ -43,8 +43,7 @@ architecture testbed of RssiCoreTb is
    -- UUT   
    signal   s_intPrbsRst : sl := '0';
    signal   s_prbsRst    : sl := '0';
-   
-   
+
    
    -- RSSI 0   
    signal   connRq0_i     : sl := '0';
@@ -131,73 +130,70 @@ begin
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////  
 
-   Transport_fifo0: entity work.AxiStreamFifo
-   generic map (
-      TPD_G               => TPD_C,
-      SLAVE_READY_EN_G    => true,
-      VALID_THOLD_G       => 1,
-      BRAM_EN_G           => true,
-      XIL_DEVICE_G        => "ULTRASCALE",
+   -- Transport_fifo0: entity work.AxiStreamFifo
+   -- generic map (
+      -- TPD_G               => TPD_C,
+      -- SLAVE_READY_EN_G    => true,
+      -- VALID_THOLD_G       => 1,
+      -- BRAM_EN_G           => true,
+      -- XIL_DEVICE_G        => "ULTRASCALE",
 
-      CASCADE_SIZE_G      => 1,
-      FIFO_ADDR_WIDTH_G   => 4,
-      FIFO_FIXED_THRESH_G => true,
-      FIFO_PAUSE_THRESH_G => 1,
+      -- CASCADE_SIZE_G      => 1,
+      -- FIFO_ADDR_WIDTH_G   => 4,
+      -- FIFO_FIXED_THRESH_G => true,
+      -- FIFO_PAUSE_THRESH_G => 1,
 
-      SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
-      MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
-   port map (
-      sAxisClk        => clk_i,
-      sAxisRst        => rst_i,
-      sAxisMaster     => mTspAxisMaster0,
-      sAxisSlave      => mTspAxisSlave0,
-      sAxisCtrl       => open,
-      --
-      mAxisClk        => clk_i,
-      mAxisRst        => rst_i,
-      mAxisMaster     => sTspAxisMaster1,
-      mAxisSlave      => sTspAxisSlave1,
-      mTLastTUser     => open);
+      -- SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
+      -- MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
+   -- port map (
+      -- sAxisClk        => clk_i,
+      -- sAxisRst        => rst_i,
+      -- sAxisMaster     => mTspAxisMaster0,
+      -- sAxisSlave      => mTspAxisSlave0,
+      -- sAxisCtrl       => open,
+      -- --
+      -- mAxisClk        => clk_i,
+      -- mAxisRst        => rst_i,
+      -- mAxisMaster     => sTspAxisMaster1,
+      -- mAxisSlave      => sTspAxisSlave1,
+      -- mTLastTUser     => open);
    
-   --
-   Transport_fifo1: entity work.AxiStreamFifo
-   generic map (
-      TPD_G               => TPD_C,
-      SLAVE_READY_EN_G    => true,
-      VALID_THOLD_G       => 1,
-      BRAM_EN_G           => true,
-      XIL_DEVICE_G        => "ULTRASCALE",
+   -- --
+   -- Transport_fifo1: entity work.AxiStreamFifo
+   -- generic map (
+      -- TPD_G               => TPD_C,
+      -- SLAVE_READY_EN_G    => true,
+      -- VALID_THOLD_G       => 1,
+      -- BRAM_EN_G           => true,
+      -- XIL_DEVICE_G        => "ULTRASCALE",
 
-      CASCADE_SIZE_G      => 1,
-      FIFO_ADDR_WIDTH_G   => 4,
-      FIFO_FIXED_THRESH_G => true,
-      FIFO_PAUSE_THRESH_G => 1,
+      -- CASCADE_SIZE_G      => 1,
+      -- FIFO_ADDR_WIDTH_G   => 4,
+      -- FIFO_FIXED_THRESH_G => true,
+      -- FIFO_PAUSE_THRESH_G => 1,
 
-      SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
-      MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
-   port map (
-      sAxisClk        => clk_i,
-      sAxisRst        => rst_i,
-      sAxisMaster     => mTspAxisMaster1,
-      sAxisSlave      => mTspAxisSlave1,
-      sAxisCtrl       => open,
-      --
-      mAxisClk        => clk_i,
-      mAxisRst        => rst_i,
-      mAxisMaster     => sTspAxisMaster0,
-      mAxisSlave      => sTspAxisSlave0,
-      mTLastTUser     => open);
+      -- SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
+      -- MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
+   -- port map (
+      -- sAxisClk        => clk_i,
+      -- sAxisRst        => rst_i,
+      -- sAxisMaster     => mTspAxisMaster1,
+      -- sAxisSlave      => mTspAxisSlave1,
+      -- sAxisCtrl       => open,
+      -- --
+      -- mAxisClk        => clk_i,
+      -- mAxisRst        => rst_i,
+      -- mAxisMaster     => sTspAxisMaster0,
+      -- mAxisSlave      => sTspAxisSlave0,
+      -- mTLastTUser     => open);
    
    -- Transport connection between modules
-   -- sTspAxisMaster1 <= mTspAxisMaster0;
-   -- mTspAxisSlave0  <= sTspAxisSlave1; 
-   
-   
-   -- sTspAxisMaster0 <= mTspAxisMaster1;
-   -- mTspAxisSlave1  <= sTspAxisSlave0;
+   sTspAxisMaster1 <= mTspAxisMaster0;
+   mTspAxisSlave0  <= sTspAxisSlave1; 
+  
+   sTspAxisMaster0 <= mTspAxisMaster1;
+   mTspAxisSlave1  <= sTspAxisSlave0;
 
-   
-   
    -- RSSI 1 Client      
    RssiCore1_INST: entity work.RssiCore
    generic map (
@@ -232,8 +228,8 @@ begin
    sAppAxisMaster1 <= mAppAxisMaster1;
    mAppAxisSlave1  <= sAppAxisSlave1;
    
-   --mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
-   --sAppAxisMaster1 <= AXI_STREAM_MASTER_INIT_C;
+   -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
+   -- sAppAxisMaster1 <= AXI_STREAM_MASTER_INIT_C;
 
    ------Application side data PRBS Tx---------------------------
    s_prbsRst <= rst_i or s_intPrbsRst;
@@ -249,7 +245,7 @@ begin
       FIFO_PAUSE_THRESH_G        => 2**8,
       PRBS_SEED_SIZE_G           => 32,
       PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-      MASTER_AXI_STREAM_CONFIG_G => RSSI_AXI_CONFIG_C,
+      MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),
       MASTER_AXI_PIPE_STAGES_G   => 1)
    port map (
       mAxisClk        => clk_i,
@@ -281,7 +277,7 @@ begin
       FIFO_PAUSE_THRESH_G        => 1,
       PRBS_SEED_SIZE_G           => 32,
       PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-      SLAVE_AXI_STREAM_CONFIG_G  => RSSI_AXI_CONFIG_C,
+      SLAVE_AXI_STREAM_CONFIG_G  => ssiAxiStreamConfig(4),
       SLAVE_AXI_PIPE_STAGES_G    => 1)
    port map (
       sAxisClk        => clk_i,
@@ -310,15 +306,25 @@ begin
       errbitCnt       => open,
       packetRate      => open,
       packetLength    => open);
-
+   
+   -- readyToggle : process
+   -- begin
+   
+   -- wait for CLK_PERIOD_C*200;
+   -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_INIT_C;
+   -- wait for CLK_PERIOD_C*200;   
+   -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
+   
+   -- end process readyToggle;  
+   
+   
    StimuliProcess : process
    begin
    
       wait until rst_i = '0';
 
       wait for CLK_PERIOD_C*200;
-      
-      
+            
       -- Connection request 0
       wait for CLK_PERIOD_C*100;
       connRq0_i <= '1';
@@ -338,6 +344,8 @@ begin
       
       -- Request connection close request
       wait for CLK_PERIOD_C*15000;
+      -- Disable PRBS
+      s_trig <= '0';
       closeRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
       closeRq1_i <= '0';
@@ -345,7 +353,7 @@ begin
       -- Reset PRBS
       wait for CLK_PERIOD_C*100;
       s_intPrbsRst <= '1';
-      wait for CLK_PERIOD_C*16;
+      wait for CLK_PERIOD_C*200;
       s_intPrbsRst <= '0';
       
       -- Reconnect
@@ -361,6 +369,13 @@ begin
       connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
       connRq1_i <= '0';
+      
+      -------------------------------------------------------
+      -- Wait for connection 
+      wait for CLK_PERIOD_C*300;      
+      -- Enable PRBS
+      s_trig <= '1';
+      
       
       -------------------------------------------------------
       wait for CLK_PERIOD_C*50000;
