@@ -32,22 +32,9 @@ use work.EthMacPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity XauiGthUltraScale is
-   -- Defaults:
-   -- 9 bits = 4kbytes
-   -- 255 x 8 = 2kbytes (not enough for pause)
-   -- 11 bits = 16kbytes 
+entity XauiGthUltraScale is 
    generic (
       TPD_G            : time                := 1 ns;
-      -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G  : integer             := 11;
-      OB_ADDR_WIDTH_G  : integer             := 9;
-      PAUSE_THOLD_G    : integer             := 512;
-      VALID_THOLD_G    : integer             := 255;
-      EOH_BIT_G        : integer             := 0;
-      ERR_BIT_G        : integer             := 1;
-      HEADER_SIZE_G    : integer             := 16;
-      SHIFT_EN_G       : boolean             := false;
       -- XAUI Configurations
       XAUI_20GIGE_G    : boolean             := false;
       REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz

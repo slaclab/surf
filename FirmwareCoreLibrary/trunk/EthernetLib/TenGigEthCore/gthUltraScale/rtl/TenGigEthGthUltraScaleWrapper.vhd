@@ -30,29 +30,15 @@ use work.AxiLitePkg.all;
 use work.TenGigEthPkg.all;
 
 entity TenGigEthGthUltraScaleWrapper is
-   -- Defaults:
-   -- 9 bits = 4kbytes
-   -- 255 x 8 = 2kbytes (not enough for pause)
-   -- 11 bits = 16kbytes 
    generic (
       TPD_G             : time                             := 1 ns;
       REF_CLK_FREQ_G    : real                             := 156.25E+6;  -- Support 156.25MHz or 312.5MHz            
-      -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G   : NaturalArray(3 downto 0)         := (others => 11);
-      OB_ADDR_WIDTH_G   : NaturalArray(3 downto 0)         := (others => 9);
-      PAUSE_THOLD_G     : NaturalArray(3 downto 0)         := (others => 512);
-      VALID_THOLD_G     : NaturalArray(3 downto 0)         := (others => 255);
-      EOH_BIT_G         : NaturalArray(3 downto 0)         := (others => 0);
-      ERR_BIT_G         : NaturalArray(3 downto 0)         := (others => 1);
-      HEADER_SIZE_G     : NaturalArray(3 downto 0)         := (others => 16);
-      SHIFT_EN_G        : BooleanArray(3 downto 0)         := (others => false);
       NUM_LANE_G        : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G  : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
-      -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
    port (
       -- Local Configurations
@@ -141,15 +127,6 @@ begin
          generic map (
             TPD_G            => TPD_G,
             REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
-            -- DMA/MAC Configurations
-            IB_ADDR_WIDTH_G  => IB_ADDR_WIDTH_G(i),
-            OB_ADDR_WIDTH_G  => OB_ADDR_WIDTH_G(i),
-            PAUSE_THOLD_G    => PAUSE_THOLD_G(i),
-            VALID_THOLD_G    => VALID_THOLD_G(i),
-            EOH_BIT_G        => EOH_BIT_G(i),
-            ERR_BIT_G        => ERR_BIT_G(i),
-            HEADER_SIZE_G    => HEADER_SIZE_G(i),
-            SHIFT_EN_G       => SHIFT_EN_G(i),
             -- AXI-Lite Configurations
             AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
             -- AXI Streaming Configurations

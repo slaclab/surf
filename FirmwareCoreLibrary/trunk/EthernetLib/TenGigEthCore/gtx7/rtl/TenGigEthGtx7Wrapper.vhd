@@ -30,21 +30,8 @@ use work.AxiLitePkg.all;
 use work.TenGigEthPkg.all;
 
 entity TenGigEthGtx7Wrapper is
-   -- Defaults:
-   -- 9 bits = 4kbytes
-   -- 255 x 8 = 2kbytes (not enough for pause)
-   -- 11 bits = 16kbytes 
    generic (
       TPD_G             : time                             := 1 ns;
-      -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G   : NaturalArray(3 downto 0)         := (others => 11);
-      OB_ADDR_WIDTH_G   : NaturalArray(3 downto 0)         := (others => 9);
-      PAUSE_THOLD_G     : NaturalArray(3 downto 0)         := (others => 512);
-      VALID_THOLD_G     : NaturalArray(3 downto 0)         := (others => 255);
-      EOH_BIT_G         : NaturalArray(3 downto 0)         := (others => 0);
-      ERR_BIT_G         : NaturalArray(3 downto 0)         := (others => 1);
-      HEADER_SIZE_G     : NaturalArray(3 downto 0)         := (others => 16);
-      SHIFT_EN_G        : BooleanArray(3 downto 0)         := (others => false);
       NUM_LANE_G        : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G    : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -53,7 +40,6 @@ entity TenGigEthGtx7Wrapper is
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G  : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
-      -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
    port (
       -- Local Configurations
