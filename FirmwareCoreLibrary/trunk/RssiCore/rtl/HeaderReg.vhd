@@ -26,8 +26,6 @@ use ieee.math_real.all;
 entity HeaderReg is
    generic (
       TPD_G        : time     := 1 ns;
-      
-      --MAX_OUT_OF_SEQUENCE_G : natural := 16;
 
       SYN_HEADER_SIZE_G  : natural := 24;
       ACK_HEADER_SIZE_G  : natural := 8;
@@ -52,8 +50,8 @@ entity HeaderReg is
       ack_i : in sl;
       
       -- Header values 
-      txSeqN_i : in slv(7  downto 0); -- Sequence number of the current packet
-      rxAckN_i : in slv(7  downto 0); -- Acknowledgment number of the recived packet handelled by receiver 
+      txSeqN_i : in slv(7 downto 0); -- Sequence number of the current packet
+      rxAckN_i : in slv(7 downto 0); -- Acknowledgment number of the recived packet handelled by receiver 
 
       -- Negotiated or from GENERICS
       headerValues_i : in  RssiParamType;
@@ -62,7 +60,7 @@ entity HeaderReg is
       --eackSeqnArr_i  : in Slv16Array(0 to integer(ceil(real(MAX_OUT_OF_SEQUENCE_G)/2.0))-1);
       --eackN_i        : in natural;
 
-      addr_i         : in  slv(7  downto 0);
+      addr_i         : in  slv(7 downto 0);
       headerData_o   : out slv( (RSSI_WORD_WIDTH_C * 8)-1 downto 0);
       ready_o        : out sl;
       headerLength_o : out positive
@@ -73,14 +71,22 @@ architecture rtl of HeaderReg is
   
    type RegType is record
       headerData :  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
-      ack        :  sl;
       rdy        :  sl;
+      
+      -- Registered header parameters (so they don't change during the checksum calculation)
+      ack        :  sl;
+      txSeqN     :  slv(7 downto 0);
+      rxAckN     :  slv(7 downto 0);
+      
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       headerData  => (others =>'0'),
-      ack         => '0',
-      rdy         => '0'
+      rdy         => '0',
+      
+      ack        => '0',
+      txSeqN     => (others =>'0'),
+      rxAckN     => (others =>'0')
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -107,8 +113,8 @@ begin
          headerLength_o  <= SYN_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;    
          case addrInt is
             when 16#00# =>
-               v.headerData := "1" & ack_i & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
-                               txSeqN_i & rxAckN_i                                  &
+               v.headerData := "1" & r.ack & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
+                               r.txSeqN & r.rxAckN                                  &
                                headerValues_i.version & '1' & headerValues_i.chksumEn & "00" & headerValues_i.maxOutsSeg &       
                                headerValues_i.maxSegSize;
                v.rdy := '1';
@@ -134,7 +140,7 @@ begin
              
             when 16#00# =>
                v.headerData := "00010000" & toSlv(RST_HEADER_SIZE_G, 8) &
-                              txSeqN_i & rxAckN_i                      &
+                              r.txSeqN & r.rxAckN                      &
                               x"00" & x"00"                            &  -- Reserved
                               x"00" & x"00";                              -- Place for checksum
                v.rdy := '1';
@@ -146,8 +152,8 @@ begin
          headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
-               v.headerData := "0" & ack_i & "000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
-                               txSeqN_i & rxAckN_i                       &
+               v.headerData := "0" & r.ack & "000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
+                               r.txSeqN & r.rxAckN                       &
                                x"00" & x"00"                             &  -- Reserved
                                x"00" & x"00";                               -- Place for checksum
                v.rdy := '1';
@@ -160,7 +166,7 @@ begin
          case addrInt is
             when 16#00# =>
                v.headerData := "01000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
-                               txSeqN_i & rxAckN_i                       &
+                               r.txSeqN & r.rxAckN                       &
                                x"00" & x"00"                             &  -- Reserved
                                x"00" & x"00";                               -- Place for checksum
                v.rdy := '1';
@@ -174,8 +180,8 @@ begin
          headerLength_o  <= NULL_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
          case addrInt is
             when 16#00# =>
-               v.headerData :="0" & ack_i & "001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
-                              txSeqN_i & rxAckN_i                       &
+               v.headerData :="0" & r.ack & "001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
+                              r.txSeqN & r.rxAckN                       &
                               x"00" & x"00"                             &  -- Reserved
                               x"00" & x"00";                               -- Place for checksum
                v.rdy := '1';
@@ -188,13 +194,18 @@ begin
      --       when 16#00# =>
      --         v.headerData := "01100000" & toSlv(EACK_HEADER_SIZE_G+r.eackN, 8);
      --       when 16#01# =>
-     --         v.headerData := txSeqN_i & rxAckN_i;
+     --         v.headerData := r.txSeqN & r.rxAckN;
      --       when 16#02# to (2+MAX_OUT_OF_ORDER_G-1) =>
      --         v.headerData := r.eackSeqnArr(addrInt-2);
      --       when others =>
      --         v.headerData := (others=> '0');
      --    end case;
       else
+         -- Register parameters when out of headers
+         v.ack := ack_i;
+         v.txSeqN := txSeqN_i;
+         v.rxAckN := rxAckN_i;
+         --
          headerLength_o  <= 1;
          v.headerData := (others=> '0');
          v.rdy := '0';

@@ -369,8 +369,7 @@ begin
       else 
          v.nextSentAddr     := r.nextSentAddr;
       end if;
-      
-      
+
       -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- ACK FSM
@@ -504,7 +503,7 @@ begin
             v.rxSegmentWe   := '0';
 
             -- txFSM
-            v.sndData      := '0';
+            v.sndData     := '0';
             v.lenErr      := '0';
             v.appBusy     := '0';
             

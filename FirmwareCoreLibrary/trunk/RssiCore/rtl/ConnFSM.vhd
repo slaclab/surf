@@ -349,7 +349,7 @@ begin
             
             -- 
             if (rxValid_i = '1' and rxFlags_i.rst = '1') then
-               v.state := CLOSED_S;
+               v.state := SEND_RST_S;
             elsif (closeRq_i = '1') then
                v.state := SEND_RST_S;
             end if;
