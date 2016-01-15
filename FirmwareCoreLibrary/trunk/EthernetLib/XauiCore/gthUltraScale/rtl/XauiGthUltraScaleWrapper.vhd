@@ -32,28 +32,14 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity XauiGthUltraScaleWrapper is
-   -- Defaults:
-   -- 9 bits = 4kbytes
-   -- 255 x 8 = 2kbytes (not enough for pause)
-   -- 11 bits = 16kbytes 
    generic (
       TPD_G            : time                := 1 ns;
-      -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G  : natural             := 11;
-      OB_ADDR_WIDTH_G  : natural             := 9;
-      PAUSE_THOLD_G    : natural             := 512;
-      VALID_THOLD_G    : natural             := 255;
-      EOH_BIT_G        : natural             := 0;
-      ERR_BIT_G        : natural             := 1;
-      HEADER_SIZE_G    : natural             := 16;
-      SHIFT_EN_G       : boolean             := false;
       -- XAUI Configurations
       XAUI_20GIGE_G    : boolean             := false;
       REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
-      -- Note: Only support 64-bit AXIS configurations on the XMAC module
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
@@ -107,15 +93,6 @@ begin
    XauiGthUltraScale_Inst : entity work.XauiGthUltraScale
       generic map (
          TPD_G            => TPD_G,
-         -- DMA/MAC Configurations
-         IB_ADDR_WIDTH_G  => IB_ADDR_WIDTH_G,
-         OB_ADDR_WIDTH_G  => OB_ADDR_WIDTH_G,
-         PAUSE_THOLD_G    => PAUSE_THOLD_G,
-         VALID_THOLD_G    => VALID_THOLD_G,
-         EOH_BIT_G        => EOH_BIT_G,
-         ERR_BIT_G        => ERR_BIT_G,
-         HEADER_SIZE_G    => HEADER_SIZE_G,
-         SHIFT_EN_G       => SHIFT_EN_G,
          -- XAUI Configurations
          XAUI_20GIGE_G    => XAUI_20GIGE_G,
          REF_CLK_FREQ_G   => REF_CLK_FREQ_G,

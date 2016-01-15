@@ -30,22 +30,9 @@ use work.TenGigEthPkg.all;
 use work.EthMacPkg.all;
 
 entity TenGigEthGthUltraScale is
-   -- Defaults:
-   -- 9 bits = 4kbytes
-   -- 255 x 8 = 2kbytes (not enough for pause)
-   -- 11 bits = 16kbytes 
    generic (
       TPD_G            : time                := 1 ns;
       REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz      
-      -- DMA/MAC Configurations
-      IB_ADDR_WIDTH_G  : integer             := 11;
-      OB_ADDR_WIDTH_G  : integer             := 9;
-      PAUSE_THOLD_G    : integer             := 512;
-      VALID_THOLD_G    : integer             := 255;
-      EOH_BIT_G        : integer             := 0;
-      ERR_BIT_G        : integer             := 1;
-      HEADER_SIZE_G    : integer             := 16;
-      SHIFT_EN_G       : boolean             := false;
       -- AXI-Lite Configurations
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
