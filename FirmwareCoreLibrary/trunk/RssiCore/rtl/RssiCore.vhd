@@ -9,7 +9,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 --                     
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
@@ -23,6 +23,7 @@ use work.StdRtlPkg.all;
 use work.RssiPkg.all;
 use work.SsiPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 
 entity RssiCore is
    generic (
@@ -31,8 +32,7 @@ entity RssiCore is
       TIMEOUT_UNIT_G   : real     := 1.0E-6; -- us (Applies to all the timeouts in the core)
    
       SERVER_G         : boolean  := true; -- Module is server or client 
-      INTERNAL_PARAM_G : boolean  := true; -- Internal true (Rssi parameters from generics) 
-                                           -- External true (Rssi parameters from input)
+
       RETRANSMIT_ENABLE_G : boolean := true; -- Enable/Disable retransmissions in tx module
       
       WINDOW_ADDR_SIZE_G : positive := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
@@ -48,13 +48,14 @@ entity RssiCore is
       -- Generic RSSI parameters
       
       -- Version and connection ID
+      INIT_SEQ_N_G: natural  := 0x80;
       CONN_ID_G   : positive := 1385;
       VERSION_G   : positive := 1;
       HEADER_CHKSUM_EN_G : boolean  := true;
       
       -- Window parameters of receiver module
       MAX_NUM_OUTS_SEG_G  : positive := 8;
-      MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*8; -- Number of bytes
+      MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C; -- Number of bytes
 
       -- RSSI Timeouts
       RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
@@ -67,18 +68,16 @@ entity RssiCore is
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
       MAX_CUM_ACK_CNT_G     : positive := 3;
-      MAX_OUT_OF_SEQUENCE_G : natural  := 3   
+      MAX_OUT_OF_SEQUENCE_G : natural  := 3
    );
    port (
       clk_i      : in  sl;
       rst_i      : in  sl;
      
-      -- High level  Application side interface and RSSI parameters
-      connRq_i   : in  sl;
+      -- High level  Application side interface
+      openRq_i   : in  sl;
       closeRq_i  : in  sl;
-      initSeqN_i : in  slv(7 downto 0);
-      appRssiParam_i : in RssiParamType:= (others => (others =>'0')); -- Can be disconnected if INTERNAL_PARAM_G=true
-      
+
       -- SSI Application side
       sAppAxisMaster_i : in  AxiStreamMasterType;
       sAppAxisSlave_o  : out AxiStreamSlaveType;
@@ -91,10 +90,16 @@ entity RssiCore is
       mTspAxisMaster_o : out AxiStreamMasterType;
       mTspAxisSlave_i  : in  AxiStreamSlaveType;
       
+      -- AXI-Lite Register Interface
+      axiClk_i       : in    sl;
+      axiRst_i       : in    sl;
+      axilReadMaster : in    AxiLiteReadMasterType;
+      axilReadSlave  : out   AxiLiteReadSlaveType;
+      axilWriteMaster: in    AxiLiteWriteMasterType;
+      axilWriteSlave : out   AxiLiteWriteSlaveType;
+
       -- Internal statuses
-      statusReg_o : out slv(5 downto 0);
-      dropCnt_o   : out slv(31 downto 0);
-      validCnt_o  : out slv(31 downto 0) 
+      statusReg_o : out slv(5 downto 0)
    );
 end entity RssiCore;
 
@@ -174,9 +179,7 @@ architecture rtl of RssiCore is
    signal s_txRdBuffRe   : sl;
    signal s_txRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_txRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
-
-   -- Internal signals 
-   
+  
    -- Acknowledge pulse when valid segment 
    -- with acknowledge flag received
    signal s_rxAck : sl;
@@ -219,8 +222,94 @@ architecture rtl of RssiCore is
    signal s_closeRq : sl;
    signal s_intCloseRq : sl;
    signal s_txAckF : sl;
+   
+   -- Axi Lite registers
+   signal s_openRqReg       : sl;
+   signal s_closeRqReg      : sl;
+   signal s_modeReg         : sl;   -- '0': Use internal parameters from generics 
+                                    -- '1': Use parameters from Axil   
+   signal s_initSeqNReg     : slv(7 downto 0);                                    
+   signal s_appRssiParamReg : RssiParamType;
+   
+   signal s_statusReg       : slv(statusReg_o'range);   
+   signal s_dropCntReg      : slv(31 downto 0);
+   signal s_validCntReg     : slv(31 downto 0);
+   
+
 ----------------------------------------------------------------------
 begin
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Register interface
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+   AxiLiteRegItf_INST: entity work.RssiAxiLiteRegItf
+   generic map (
+      TPD_G            => TPD_G,
+      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C)
+   port map (
+      axiClk_i        => axiClk_i,
+      axiRst_i        => axiRst_i,
+      axilReadMaster  => axilReadMaster, 
+      axilReadSlave   => axilReadSlave,  
+      axilWriteMaster => axilWriteMaster,
+      axilWriteSlave  => axilWriteSlave, 
+      
+      -- DevClk domain
+      devClk_i        => clk_i,
+      devRst_i        => rst_i,
+      
+      -- Control
+      openRq_o       => s_openRqReg,      
+      closeRq_o      => s_closeRqReg,      
+      mode_o         => s_modeReg,       
+      initSeqN_o     => s_initSeqNReg,
+      appRssiParam_o => s_appRssiParamReg,
+      
+      -- Status
+      statusReg_i    => s_statusReg;
+      dropCnt_i      => s_dropCntReg;
+      validCnt_i     => s_validCntReg;      
+   );   
+   
+   -- /////////////////////////////////////////////////////////
+   ------------------------------------------------------------
+   -- Parameter assignment
+   ------------------------------------------------------------
+   -- /////////////////////////////////////////////////////////
+   combParamAssign : process (closeRq_i, openRq_i, s_intCloseRq, s_closeRqReg, s_openRqReg, s_appRssiParamReg, s_initSeqNReg) is
+   begin
+      if (s_modeReg = 0) then
+         -- Use external requests
+         s_closeRq <= closeRq_i or s_intCloseRq;
+         s_openRq  <= openRq_i;      
+
+         -- Assign application side Rssi parameters from generics
+         s_appRssiParam.maxOutsSeg      <= toSlv(MAX_NUM_OUTS_SEG_G, 8);
+         s_appRssiParam.maxSegSize      <= toSlv(MAX_SEG_SIZE_G, 16);
+         s_appRssiParam.retransTout     <= toSlv(RETRANS_TOUT_G, 16);
+         s_appRssiParam.cumulAckTout    <= toSlv(ACK_TOUT_G, 16);
+         s_appRssiParam.nullSegTout     <= toSlv(NULL_TOUT_G, 16);
+         s_appRssiParam.maxRetrans      <= toSlv(MAX_RETRANS_CNT_G, 8);
+         s_appRssiParam.maxCumAck       <= toSlv(MAX_CUM_ACK_CNT_G, 8);
+         s_appRssiParam.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
+         s_appRssiParam.version         <= toSlv(VERSION_G, 4);
+         s_appRssiParam.connectionId    <= toSlv(CONN_ID_G, 32);
+         s_appRssiParam.chksumEn        <= ite(HEADER_CHKSUM_EN_G, "1", "0");
+         -- 
+         s_initSeqN                     <= toSlv(INIT_SEQ_N_G, 8);      
+      else
+         -- Use axil register requests
+         s_closeRq <= s_closeRqReg or s_intCloseRq;
+         s_openRq  <= s_openRqReg;    
+         
+         -- Assign application side Rssi parameters from Axilite registers
+         s_appRssiParam  <= s_appRssiParamReg;
+         --
+         s_initSeqN      <= s_initSeqNReg;    
+      end if;
+   end process combParamAssign;
+   
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
    -- Input AXIS fifos
@@ -231,7 +320,7 @@ begin
    s_rstFifo <= rst_i or not s_connActive;
    
    -- Application side   
-   app_fifo_in: entity work.AxiStreamFifo
+   AppFifoIn_INST: entity work.AxiStreamFifo
    generic map (
       TPD_G               => TPD_G,
       SLAVE_READY_EN_G    => true,
@@ -260,7 +349,7 @@ begin
       mTLastTUser     => open);
    
    -- Transport side
-   tsp_fifo_in: entity work.AxiStreamFifo
+   TspFifoIn_INST: entity work.AxiStreamFifo
    generic map (
       TPD_G               => TPD_G,
       SLAVE_READY_EN_G    => true,
@@ -301,41 +390,11 @@ begin
    -- Transport side   
    s_sTspSsiMaster  <= axis2SsiMaster(RSSI_AXI_CONFIG_C, s_sTspAxisMaster); 
    s_sTspAxisSlave  <= ssi2AxisSlave(s_sTspSsiSlave);
-
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- Parameter assignment
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////
-   GEN_INTERNAL : if INTERNAL_PARAM_G = true generate
-      -- assign application side Rssi parameters from generics
-      s_appRssiParam.maxOutsSeg      <= toSlv(MAX_NUM_OUTS_SEG_G, 8);
-      s_appRssiParam.maxSegSize      <= toSlv(MAX_SEG_SIZE_G, 16);
-      s_appRssiParam.retransTout     <= toSlv(RETRANS_TOUT_G, 16);
-      s_appRssiParam.cumulAckTout    <= toSlv(ACK_TOUT_G, 16);
-      s_appRssiParam.nullSegTout     <= toSlv(NULL_TOUT_G, 16);
-      s_appRssiParam.maxRetrans      <= toSlv(MAX_RETRANS_CNT_G, 8);
-      s_appRssiParam.maxCumAck       <= toSlv(MAX_CUM_ACK_CNT_G, 8);
-      s_appRssiParam.maxOutofseq     <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
-      s_appRssiParam.version         <= toSlv(VERSION_G, 4);
-      s_appRssiParam.connectionId    <= toSlv(CONN_ID_G, 32);
-      s_appRssiParam.chksumEn        <= ite(HEADER_CHKSUM_EN_G, "1", "0");
-   end generate GEN_INTERNAL;
-   
-   GEN_EXTERNAL : if INTERNAL_PARAM_G = false generate
-      -- assign application side Rssi parameters from generics
-      s_appRssiParam  <= appRssiParam_i;
-   end generate GEN_EXTERNAL;
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
    -- Connection and monitoring part
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////
-   -- Connection close request 
-   -- Either requested by high level App or Internal error
-   s_closeRq <= s_intCloseRq or closeRq_i;
-   
+   ------------------------------------------------------------ 
    ConnFSM_INST: entity work.ConnFSM
    generic map (
       TPD_G              => TPD_G,
@@ -348,7 +407,7 @@ begin
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
-      connRq_i       => connRq_i,
+      connRq_i       => s_openRq,
       closeRq_i      => s_closeRq,
       rxRssiParam_i  => s_rxRssiParam,
       appRssiParam_i => s_appRssiParam,
@@ -380,7 +439,7 @@ begin
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
-      connRq_i       => connRq_i,     
+      connRq_i       => s_openRq,     
       connActive_i   => s_connActive,
       
       rssiParam_i    => s_rssiParam,
@@ -401,9 +460,9 @@ begin
       sndAck_o       => s_sndAckMon,
       sndNull_o      => s_sndNull,
       closeRq_o      => s_intCloseRq,
-      statusReg_o    => statusReg_o,
-      dropCnt_o      => dropCnt_o,
-      validCnt_o     => validCnt_o);
+      statusReg_o    => s_statusReg,
+      dropCnt_o      => s_dropCntReg,
+      validCnt_o     => s_validCntReg);
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -461,7 +520,7 @@ begin
       clk_i          => clk_i,
       rst_i          => rst_i,
       connActive_i   => s_connActive,
-      connRq_i       => connRq_i,
+      connRq_i       => s_openRq,
       
       sndSyn_i       => s_sndSyn,
       sndAck_i       => s_sndAck,
@@ -489,7 +548,7 @@ begin
       chksumStrobe_o => s_txChkStrobe,
       chksum_i       => s_txChksum,
       
-      initSeqN_i     => initSeqN_i,
+      initSeqN_i     => s_initSeqN,
 
       txSeqN_o       => s_txSeqN,
       synHeadSt_o    => s_synHeadSt,
@@ -571,7 +630,7 @@ begin
       rxBufferSize_i => s_rxBufferSize,
       txWindowSize_i => s_txWindowSize,
       lastAckN_i     => s_rxLastAckN,--
-      initAckN_i     => initSeqN_i,
+      initAckN_i     => s_initSeqN,
       rxSeqN_o       => s_rxSeqN,
       rxLastSeqN_o   => s_rxLastSeqN,
       rxAckN_o       => s_rxAckN,
@@ -655,7 +714,7 @@ begin
    -- /////////////////////////////////////////////////////////
    
    -- Application side   
-   app_fifo_out: entity work.AxiStreamFifo
+   AppFifoOut_INST: entity work.AxiStreamFifo
    generic map (
       TPD_G               => TPD_G,
       SLAVE_READY_EN_G    => true,
@@ -684,7 +743,7 @@ begin
       mTLastTUser     => open);
    
    -- Transport side
-   tsp_fifo_out: entity work.AxiStreamFifo
+   TspFifoOut_INST: entity work.AxiStreamFifo
    generic map (
       TPD_G               => TPD_G,
       SLAVE_READY_EN_G    => true,
@@ -712,4 +771,7 @@ begin
       mAxisSlave      => mTspAxisSlave_i,
       mTLastTUser     => open);
 ----------------------------------------
+-- Output assignment
+   statusReg_o <= s_statusReg;
+
 end architecture rtl;

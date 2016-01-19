@@ -1,5 +1,6 @@
 vhdl work rtl/RssiPkg.vhd
 vhdl work rtl/Chksum.vhd
+vhdl work rtl/RssiAxiLiteRegItf.vhd
 vhdl work rtl/HeaderReg.vhd
 vhdl work rtl/Monitor.vhd
 vhdl work rtl/ConnFSM.vhd
