@@ -153,7 +153,7 @@ proc CopyIpCoresDebug { } {
 }   
 
 # Checking Timing Function
-proc CheckTiming { } {
+proc CheckTiming { {printTiming true} } {
    # Check for timing and routing errors 
    set WNS [get_property STATS.WNS [get_runs impl_1]]
    set TNS [get_property STATS.TNS [get_runs impl_1]]
@@ -166,20 +166,22 @@ proc CheckTiming { } {
       || ${WHS}<0.0 || ${THS}<0.0 \
       || ${TPWS}<0.0 || ${FAILED_NETS}>0.0 } {
       
-      puts "\n\n\n\n\n********************************************************"
-      puts "********************************************************"
-      puts "********************************************************"
-      puts "The design did not meet timing or unable to route:"
-      puts "\tSetup: Worst Negative Slack (WNS): ${WNS} ns"
-      puts "\tSetup: Total Negative Slack (TNS): ${TNS} ns"
-      puts "\tHold: Worst Hold Slack (WHS): ${WHS} ns"
-      puts "\tHold: Total Hold Slack (THS): ${THS} ns"  
-      puts "\tPulse Width: Total Pulse Width Negative Slack (TPWS): ${TPWS} ns"   
-      puts "\tRouting: Number of Failed Nets: ${FAILED_NETS}"       
-      puts "********************************************************"
-      puts "********************************************************"
-      puts "********************************************************\n\n\n\n\n"  
-
+      if { ${printTiming} == true } {
+         puts "\n\n\n\n\n********************************************************"
+         puts "********************************************************"
+         puts "********************************************************"
+         puts "The design did not meet timing or unable to route:"
+         puts "\tSetup: Worst Negative Slack (WNS): ${WNS} ns"
+         puts "\tSetup: Total Negative Slack (TNS): ${TNS} ns"
+         puts "\tHold: Worst Hold Slack (WHS): ${WHS} ns"
+         puts "\tHold: Total Hold Slack (THS): ${THS} ns"  
+         puts "\tPulse Width: Total Pulse Width Negative Slack (TPWS): ${TPWS} ns"   
+         puts "\tRouting: Number of Failed Nets: ${FAILED_NETS}"       
+         puts "********************************************************"
+         puts "********************************************************"
+         puts "********************************************************\n\n\n\n\n"  
+      }
+      
       # Check the TIG variable
       set retVar [expr {[info exists ::env(TIG)] && [string is true -strict $::env(TIG)]}]  
       if { ${retVar} == 1 } {
