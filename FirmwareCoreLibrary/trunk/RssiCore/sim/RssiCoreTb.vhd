@@ -98,15 +98,14 @@ begin
    RssiCore0_INST: entity work.RssiCore
    generic map (
       TPD_G          => TPD_C,
-      SERVER_G       => true
+      SERVER_G       => true,
+      INIT_SEQ_N_G   => x"40"
    )
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
-      connRq_i    => connRq0_i, 
-      closeRq_i   => closeRq0_i,
-      initSeqN_i  => x"40",
-      
+      openRq_i    => connRq0_i, 
+      closeRq_i   => closeRq0_i      
       -- 
       sAppAxisMaster_i => sAppAxisMaster0, -- prbs tx
       sAppAxisSlave_o  => sAppAxisSlave0,  -- prbs tx
@@ -122,71 +121,7 @@ begin
       -- 
       mTspAxisMaster_o => mTspAxisMaster0, -->-- To Peer 
       mTspAxisSlave_i  => mTspAxisSlave0); -->-- To Peer
-   
-   ---------------------------------------
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- Transport fifos
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////  
-
-   -- Transport_fifo0: entity work.AxiStreamFifo
-   -- generic map (
-      -- TPD_G               => TPD_C,
-      -- SLAVE_READY_EN_G    => true,
-      -- VALID_THOLD_G       => 1,
-      -- BRAM_EN_G           => true,
-      -- XIL_DEVICE_G        => "ULTRASCALE",
-
-      -- CASCADE_SIZE_G      => 1,
-      -- FIFO_ADDR_WIDTH_G   => 4,
-      -- FIFO_FIXED_THRESH_G => true,
-      -- FIFO_PAUSE_THRESH_G => 1,
-
-      -- SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
-      -- MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
-   -- port map (
-      -- sAxisClk        => clk_i,
-      -- sAxisRst        => rst_i,
-      -- sAxisMaster     => mTspAxisMaster0,
-      -- sAxisSlave      => mTspAxisSlave0,
-      -- sAxisCtrl       => open,
-      -- --
-      -- mAxisClk        => clk_i,
-      -- mAxisRst        => rst_i,
-      -- mAxisMaster     => sTspAxisMaster1,
-      -- mAxisSlave      => sTspAxisSlave1,
-      -- mTLastTUser     => open);
-   
-   -- --
-   -- Transport_fifo1: entity work.AxiStreamFifo
-   -- generic map (
-      -- TPD_G               => TPD_C,
-      -- SLAVE_READY_EN_G    => true,
-      -- VALID_THOLD_G       => 1,
-      -- BRAM_EN_G           => true,
-      -- XIL_DEVICE_G        => "ULTRASCALE",
-
-      -- CASCADE_SIZE_G      => 1,
-      -- FIFO_ADDR_WIDTH_G   => 4,
-      -- FIFO_FIXED_THRESH_G => true,
-      -- FIFO_PAUSE_THRESH_G => 1,
-
-      -- SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
-      -- MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
-   -- port map (
-      -- sAxisClk        => clk_i,
-      -- sAxisRst        => rst_i,
-      -- sAxisMaster     => mTspAxisMaster1,
-      -- sAxisSlave      => mTspAxisSlave1,
-      -- sAxisCtrl       => open,
-      -- --
-      -- mAxisClk        => clk_i,
-      -- mAxisRst        => rst_i,
-      -- mAxisMaster     => sTspAxisMaster0,
-      -- mAxisSlave      => sTspAxisSlave0,
-      -- mTLastTUser     => open);
-   
+     
    -- Transport connection between modules
    sTspAxisMaster1 <= mTspAxisMaster0;
    mTspAxisSlave0  <= sTspAxisSlave1; 
@@ -198,14 +133,14 @@ begin
    RssiCore1_INST: entity work.RssiCore
    generic map (
       TPD_G          => TPD_C,
-      SERVER_G       => false      
+      SERVER_G       => false,
+      INIT_SEQ_N_G   => x"80"      
    )
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
-      connRq_i    => connRq1_i, 
+      openRq_i    => connRq1_i, 
       closeRq_i   => closeRq1_i,
-      initSeqN_i  => x"80",
            
       -- 
       sAppAxisMaster_i => sAppAxisMaster1, -- Loopback
