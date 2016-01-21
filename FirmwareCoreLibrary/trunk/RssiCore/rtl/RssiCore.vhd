@@ -48,7 +48,7 @@ entity RssiCore is
       -- Generic RSSI parameters
       
       -- Version and connection ID
-      INIT_SEQ_N_G: natural  := 0x80;
+      INIT_SEQ_N_G: natural  := 16#80#;
       CONN_ID_G   : positive := 1385;
       VERSION_G   : positive := 1;
       HEADER_CHKSUM_EN_G : boolean  := true;
@@ -91,11 +91,11 @@ entity RssiCore is
       mTspAxisSlave_i  : in  AxiStreamSlaveType;
       
       -- AXI-Lite Register Interface
-      axiClk_i       : in    sl;
-      axiRst_i       : in    sl;
-      axilReadMaster : in    AxiLiteReadMasterType;
+      axiClk_i       : in    sl:='0';
+      axiRst_i       : in    sl:='0';
+      axilReadMaster : in    AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave  : out   AxiLiteReadSlaveType;
-      axilWriteMaster: in    AxiLiteWriteMasterType;
+      axilWriteMaster: in    AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave : out   AxiLiteWriteSlaveType;
 
       -- Internal statuses
@@ -217,12 +217,14 @@ architecture rtl of RssiCore is
    signal s_ackErr : sl;
    signal s_peerConnTout : sl;
    
-   -- Connection indicator
+   -- Connection control and parameters
+   signal s_initSeqN : slv(7 downto 0);   
    signal s_connActive : sl;
    signal s_closeRq : sl;
+   signal s_openRq  : sl;   
    signal s_intCloseRq : sl;
    signal s_txAckF : sl;
-   
+  
    -- Axi Lite registers
    signal s_openRqReg       : sl;
    signal s_closeRqReg      : sl;
@@ -267,9 +269,9 @@ begin
       appRssiParam_o => s_appRssiParamReg,
       
       -- Status
-      statusReg_i    => s_statusReg;
-      dropCnt_i      => s_dropCntReg;
-      validCnt_i     => s_validCntReg;      
+      status_i       => s_statusReg,
+      dropCnt_i      => s_dropCntReg,
+      validCnt_i     => s_validCntReg      
    );   
    
    -- /////////////////////////////////////////////////////////
@@ -279,10 +281,10 @@ begin
    -- /////////////////////////////////////////////////////////
    combParamAssign : process (closeRq_i, openRq_i, s_intCloseRq, s_closeRqReg, s_openRqReg, s_appRssiParamReg, s_initSeqNReg) is
    begin
-      if (s_modeReg = 0) then
+      if (s_modeReg = '0') then
          -- Use external requests
-         s_closeRq <= closeRq_i or s_intCloseRq;
-         s_openRq  <= openRq_i;      
+         s_closeRq <= s_closeRqReg or closeRq_i or s_intCloseRq;
+         s_openRq  <= s_openRqReg or openRq_i;      
 
          -- Assign application side Rssi parameters from generics
          s_appRssiParam.maxOutsSeg      <= toSlv(MAX_NUM_OUTS_SEG_G, 8);
@@ -438,8 +440,7 @@ begin
       RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G)
    port map (
       clk_i          => clk_i,
-      rst_i          => rst_i,
-      connRq_i       => s_openRq,     
+      rst_i          => rst_i,   
       connActive_i   => s_connActive,
       
       rssiParam_i    => s_rssiParam,

@@ -34,9 +34,9 @@
 --               0x08 (RW)- Maximum number of retransmissions [7:0](Default x"02")
 --                            How many times segments are retransmitted before the connection gets broken.
 --               0x09 (RW)- Maximum cumulative acknowledgments [7:0](Default x"03")
---                            When more than maxCumAck are received and bot acknowledged the 
---                            ACK packet will be sent to ACK the received packets. Even though the 
---                            cumulative acknowledgment timeout has not yet been reached!
+--                            When more than maxCumAck are received and not acknowledged the 
+--                            ACK packet will be sent to acknowledge the received packets. Even though the 
+--                            cumulative acknowledgment timeout has not been reached yet!
 --               0x0A (RW)- Max out of sequence segments (EACK) [7:0](Default x"03")
 --                            Currently not used TBD
 --               0x0B (RW)- Connection ID [31:0](Default x"12345678")
@@ -44,8 +44,8 @@
 --               Statuses
 --               0x10 (R)- Status register [5:0]:
 --                   bit(0) : Connection Active          
---                   bit(1) : Maximum retransmissions exceeded r.retransMax and
---                   bit(2) : Null timeout reached (server) r.nullTout;
+--                   bit(1) : Maximum retransmissions exceeded retransMax
+--                   bit(2) : Null timeout reached (server) r.nullTout
 --                   bit(3) : Error in acknowledgment mechanism   
 --                   bit(4) : SSI Frame length too long
 --                   bit(5) : Connection to peer timed out               
@@ -137,7 +137,7 @@ architecture rtl of RssiAxiLiteRegItf is
       maxRetrans   => x"02",
       maxCumAck    => x"03",
       maxOutofseq  => x"03",
-      connectionId => x"12345678"
+      connectionId => x"12345678",
       
       -- AXI lite      
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -158,11 +158,11 @@ architecture rtl of RssiAxiLiteRegItf is
 begin
 
   -- Convert address to integer (lower two bits of address are always '0')
-  s_RdAddr <= slvToInt(axilReadMaster.araddr(9 downto 2));
-  s_WrAddr <= slvToInt(axilWriteMaster.awaddr(9 downto 2));
+  s_RdAddr <= conv_integer(axilReadMaster.araddr(9 downto 2));
+  s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
 
   comb : process (axiRst_i, axilReadMaster, axilWriteMaster,
-                  r, s_RdAddr, s_WrAddr, s_statusRxArr) is
+                  r, s_RdAddr, s_WrAddr, s_status, s_dropCnt, s_validCnt) is
     variable v             : RegType;
     variable axilStatus    : AxiLiteStatusType;
     variable axilWriteResp : slv(1 downto 0);
@@ -238,7 +238,7 @@ begin
         when 16#0B# =>                  -- ADDR (44)
           v.axilReadSlave.rdata(31 downto 0) := r.connectionId;
         when 16#10# =>                  -- ADDR (64)
-          v.axilReadSlave.rdata(5 downto 0) := s_status;
+          v.axilReadSlave.rdata(5 downto 0)  := s_status;
         when 16#11# =>                  -- ADDR (68)
           v.axilReadSlave.rdata(31 downto 0) := s_validCnt;          
         when 16#12# =>                  -- ADDR (72)
@@ -274,7 +274,7 @@ begin
    SyncFifo_IN0 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
-      DATA_WIDTH_G => status_i'width
+      DATA_WIDTH_G => status_i'length
    )
    port map (
       wr_clk => devClk_i,
@@ -286,7 +286,7 @@ begin
    SyncFifo_IN1 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
-      DATA_WIDTH_G => validCnt_i'width
+      DATA_WIDTH_G => validCnt_i'length
    )
    port map (
       wr_clk => devClk_i,
@@ -298,7 +298,7 @@ begin
    SyncFifo_IN2 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
-      DATA_WIDTH_G => dropCnt_i'width
+      DATA_WIDTH_G => dropCnt_i'length
    )
    port map (
       wr_clk => devClk_i,
@@ -313,10 +313,9 @@ begin
       TPD_G        => TPD_G
    )
    port map (
-      wr_clk => axiClk_i,
-      din    => r.control(0),
-      rd_clk => devClk_i,
-      dout   => openRq_o
+      dataIn    => r.control(0),
+      clk       => devClk_i,
+      dataOut   => openRq_o
    );
    
    Sync_OUT1 : entity work.Synchronizer
@@ -324,10 +323,9 @@ begin
       TPD_G        => TPD_G
    )
     port map (
-      wr_clk => axiClk_i,
-      din    => r.control(1),
-      rd_clk => devClk_i,
-      dout   => closeRq_o
+      dataIn    => r.control(1),
+      clk       => devClk_i,
+      dataOut   => closeRq_o
    );
    
    Sync_OUT2 : entity work.Synchronizer
@@ -335,10 +333,9 @@ begin
       TPD_G        => TPD_G
    )
     port map (
-      wr_clk => axiClk_i,
-      din    => r.control(2),
-      rd_clk => devClk_i,
-      dout   => mode_o
+      dataIn    => r.control(2),
+      clk       => devClk_i,
+      dataOut   => mode_o
    );
    
    Sync_OUT3 : entity work.Synchronizer
@@ -346,25 +343,24 @@ begin
       TPD_G        => TPD_G
    )
     port map (
-      wr_clk => axiClk_i,
-      din    => r.control(3),
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.chksumEn
+      dataIn    => r.control(3),
+      clk       => devClk_i,
+      dataOut   => appRssiParam_o.chksumEn(0)
    );
    
-   SyncFifo_OUT3 : entity work.SynchronizerFifo
+   SyncFifo_OUT4 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
    )
    port map (
       wr_clk => axiClk_i,
-      din    => r.initSeqN(I),
+      din    => r.initSeqN,
       rd_clk => devClk_i,
-      dout   => initSeqN_o(I)
+      dout   => initSeqN_o
    );
    
-   SyncFifo_OUT4 : entity work.SynchronizerFifo
+   SyncFifo_OUT5 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 4
@@ -376,7 +372,7 @@ begin
       dout   => appRssiParam_o.version
    );
    
-   SyncFifo_OUT5 : entity work.SynchronizerFifo
+   SyncFifo_OUT6 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -388,7 +384,7 @@ begin
       dout   => appRssiParam_o.maxOutsSeg
    );
    
-   SyncFifo_OUT6 : entity work.SynchronizerFifo
+   SyncFifo_OUT7 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -400,7 +396,7 @@ begin
       dout   => appRssiParam_o.maxSegSize
    );
    
-   SyncFifo_OUT7 : entity work.SynchronizerFifo
+   SyncFifo_OUT8 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -412,7 +408,7 @@ begin
       dout   => appRssiParam_o.retransTout
    );
    
-   SyncFifo_OUT8 : entity work.SynchronizerFifo
+   SyncFifo_OUT9 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -424,7 +420,7 @@ begin
       dout   => appRssiParam_o.cumulAckTout
    );
    
-   SyncFifo_OUT9 : entity work.SynchronizerFifo
+   SyncFifo_OUT10 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -436,7 +432,7 @@ begin
       dout   => appRssiParam_o.nullSegTout
    );
    
-   SyncFifo_OUT10 : entity work.SynchronizerFifo
+   SyncFifo_OUT11 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -448,7 +444,7 @@ begin
       dout   => appRssiParam_o.maxRetrans
    );
    
-   SyncFifo_OUT11 : entity work.SynchronizerFifo
+   SyncFifo_OUT12 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -460,7 +456,7 @@ begin
       dout   => appRssiParam_o.maxCumAck
    );
    
-   SyncFifo_OUT12 : entity work.SynchronizerFifo
+   SyncFifo_OUT13 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -472,7 +468,7 @@ begin
       dout   => appRssiParam_o.maxOutofseq
    );
     
-   SyncFifo_OUT13 : entity work.SynchronizerFifo
+   SyncFifo_OUT14 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 32

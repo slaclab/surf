@@ -44,9 +44,6 @@ entity Monitor is
       clk_i      : in  sl;
       rst_i      : in  sl;
       
-      -- High level  Application conn request
-      connRq_i   : in  sl;
-      
       -- Connection FSM indicating active connection      
       connActive_i : in  sl;
 
@@ -116,6 +113,9 @@ architecture rtl of Monitor is
       lastAckSeqN : slv(7 downto 0);      
       sndAck      : sl;
       
+      -- For detecting rising edge on connActive
+      connActiveD1 : sl;
+      
       --
       status   : slv(STATUS_WIDTH_G - 1 downto 0);
       validCnt : slv(CNT_WIDTH_G - 1 downto 0);
@@ -141,6 +141,9 @@ architecture rtl of Monitor is
       lastAckSeqN => (others=>'0'),   
       sndAck      => '0',
       
+      -- For detecting rising edge on connActive
+      connActiveD1  => '0',
+      
       -- Statuses
       status   => (others=>'0'),
       validCnt => (others=>'0'),
@@ -164,6 +167,9 @@ begin
       variable v : RegType;
    begin
       v := r;
+      
+   -- DFF the connActive for rising edge detection    
+   v.connActiveD1 := connActive_i;   
       
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -345,22 +351,22 @@ begin
    ------------------------------------------------------------   
    -- /////////////////////////////////////////////////////////
    
-   -- Register statuses until new connection is requested
-   if (connRq_i = '1') then
+   -- Register statuses until new connection is established
+   if (connActive_i = '1' and r.connActiveD1 = '0') then
       v.status := (others=>'0');
    elsif (s_status /= (s_status'range => '0') ) then       
       v.status := r.status or s_status;        
    end if;
    
    -- Count valid packets
-   if (connRq_i = '1') then
+   if (connActive_i = '1' and r.connActiveD1 = '0') then
       v.validCnt := (others=>'0');
    elsif (rxValid_i = '1') then       
       v.validCnt := r.validCnt+1;        
    end if;
    
    -- Count dropped packets
-   if (connRq_i = '1') then
+   if (connActive_i = '1' and r.connActiveD1 = '0') then
       v.dropCnt := (others=>'0');
    elsif (rxDrop_i = '1') then       
       v.dropCnt := r.dropCnt+1;        
