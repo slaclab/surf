@@ -99,13 +99,13 @@ begin
    generic map (
       TPD_G          => TPD_C,
       SERVER_G       => true,
-      INIT_SEQ_N_G   => x"40"
+      INIT_SEQ_N_G   => 16#40#
    )
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
       openRq_i    => connRq0_i, 
-      closeRq_i   => closeRq0_i      
+      closeRq_i   => closeRq0_i,      
       -- 
       sAppAxisMaster_i => sAppAxisMaster0, -- prbs tx
       sAppAxisSlave_o  => sAppAxisSlave0,  -- prbs tx
@@ -134,7 +134,7 @@ begin
    generic map (
       TPD_G          => TPD_C,
       SERVER_G       => false,
-      INIT_SEQ_N_G   => x"80"      
+      INIT_SEQ_N_G   => 16#80#      
    )
    port map (
       clk_i       => clk_i,
