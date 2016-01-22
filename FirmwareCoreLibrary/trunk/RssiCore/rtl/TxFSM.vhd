@@ -46,7 +46,7 @@ entity TxFSM is
       -- Connection FSM indicating active connection
       connActive_i   : in  sl;
       -- Connection request
-      connRq_i    : in  sl;
+      closed_i    : in  sl;
       
       -- Various segment requests
       sndSyn_i        : in  sl;
@@ -310,7 +310,7 @@ begin
    s_chksum <= ite(HEADER_CHKSUM_EN_G, chksum_i, (chksum_i'range=>'0') );
    
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, connRq_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
+   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
                    sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, s_chksum, rdBuffData_i, chksumValid_i, headerLength_i) is
       
       variable v : RegType;
@@ -715,7 +715,7 @@ begin
             v.seqN        := r.nextSeqN;
           
             -- Next state condition   
-            if (connRq_i = '1') then
+            if (closed_i = '0') then
                v.tspState      := DISS_CONN_S;
             end if;
          ----------------------------------------------------------------------
@@ -753,6 +753,8 @@ begin
                v.tspState    := RST_WE_S;
             elsif (connActive_i = '1') then
                v.tspState      := CONN_S;
+            elsif (closed_i = '1') then
+               v.tspState      := INIT_S;            
             end if;
          ----------------------------------------------------------------------
          when CONN_S =>

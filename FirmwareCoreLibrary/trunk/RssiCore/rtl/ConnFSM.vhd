@@ -41,7 +41,7 @@ entity ConnFSM is
       -- Connection request (open/close)
       connRq_i    : in  sl;
       closeRq_i   : in  sl;
-          
+
       -- Parameters received from peer (Server)    
       rxRssiParam_i  : in  RssiParamType;
       
@@ -63,7 +63,10 @@ entity ConnFSM is
 
       --
       -- Connection FSM indicating active connection      
-      connActive_o : out sl;      
+      connActive_o : out sl;
+
+      -- FSM in closed state (indicating when to initialize seqN)      
+      closed_o  : out  sl;
       
       -- 
       sndSyn_o : out sl;
@@ -102,6 +105,7 @@ architecture rtl of ConnFSM is
      
    type RegType is record
       connActive  : sl;
+      closed      : sl;
       sndSyn      : sl;
       sndAck      : sl;
       sndRst      : sl;
@@ -124,6 +128,7 @@ architecture rtl of ConnFSM is
 
    constant REG_INIT_C : RegType := (
       connActive  => '0',
+      closed      => '1',
       sndSyn      => '0',
       sndAck      => '0',
       sndRst      => '0',
@@ -185,6 +190,7 @@ begin
          when SEND_SYN_S =>
             
             v.connActive   := '0';
+            v.closed       := '0';
             v.sndSyn       := '1'; 
             v.sndAck       := '0';
             v.sndRst       := '0';
@@ -260,6 +266,7 @@ begin
           when LISTEN_S =>
             --
             v.connActive   := '0';
+            v.closed       := '0';
             v.sndSyn       := '0'; 
             v.sndAck       := '0';
             v.sndRst       := '0';
@@ -410,7 +417,7 @@ begin
    -- Parameters for transmitter are received by the peer and checked by FSM 
    txBufferSize_o <= r.txBufferSize;
    txWindowSize_o <= r.txWindowSize;
-   
+   closed_o <= r.closed;
    -- 
    peerTout_o <= r.peerTout; 
    ---------------------------------------------------------------------

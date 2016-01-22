@@ -264,32 +264,33 @@ begin
       wait for CLK_PERIOD_C*100;
       connRq0_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq0_i <= '0';
+      --connRq0_i <= '0';
+      
+      wait for CLK_PERIOD_C*1000;
       
       -- Connection request 1
       connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq1_i <= '0';
+      --connRq1_i <= '0';
 
       -------------------------------------------------------
       wait for CLK_PERIOD_C*1000;
       -- Enable PRBS
-      s_trig <= '1';
+      --s_trig <= '1';
       -------------------------------------------------------
       
       -- Request connection close request
       wait for CLK_PERIOD_C*15000;
       -- Disable PRBS
-      s_trig <= '0';
       closeRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
       closeRq1_i <= '0';
       
       -- Reset PRBS
       wait for CLK_PERIOD_C*100;
-      s_intPrbsRst <= '1';
+      --s_intPrbsRst <= '1';
       wait for CLK_PERIOD_C*200;
-      s_intPrbsRst <= '0';
+      --s_intPrbsRst <= '0';
       
       -- Reconnect
 
@@ -297,19 +298,19 @@ begin
       wait for CLK_PERIOD_C*2000;
       connRq0_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq0_i <= '0';
+      --connRq0_i <= '0';
 
       wait for CLK_PERIOD_C*100;      
       -- Connection request 1
       connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq1_i <= '0';
+      --connRq1_i <= '0';
       
       -------------------------------------------------------
       -- Wait for connection 
       wait for CLK_PERIOD_C*300;      
       -- Enable PRBS
-      s_trig <= '1';
+      --s_trig <= '1';
       
       
       -------------------------------------------------------
@@ -324,7 +325,13 @@ begin
       -- Stop PRBS
       s_trig <= '1';
       -------------------------------------------------------
-
+      
+      
+      wait for CLK_PERIOD_C*100000;
+      connRq1_i <= '0'; 
+      connRq0_i <= '0'; 
+       
+       
       wait;
    ------------------------------
    end process StimuliProcess;   
