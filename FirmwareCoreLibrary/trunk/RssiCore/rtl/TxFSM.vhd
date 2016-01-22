@@ -667,7 +667,6 @@ begin
       -- ///////////////////////////////////////////////////////// 
       ------------------------------------------------------------      
       -- Initialisation of the parameters when the connection is broken
-      -- TODO check
       if (connActive_i = '0') then
          v.firstUnackAddr := REG_INIT_C.firstUnackAddr;
          v.lastSentAddr   := REG_INIT_C.lastSentAddr;

@@ -396,7 +396,7 @@ begin
                   r.nullTout or  -- Close connection when null timeouts
                   ackErr_i or    -- Close if acknowledgment error occurs
                   lenErr_i;   -- Close if SSI input frame length error occurs
-   statusReg_o <= connActive_i & r.status;
+   statusReg_o <= r.status & connActive_i;
    dropCnt_o   <= r.dropCnt;
    validCnt_o  <= r.validCnt;
    ---------------------------------------------------------------------
