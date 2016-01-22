@@ -162,7 +162,7 @@ begin
    s_status(3) <= lenErr_i;
    s_status(4) <= peerConnTout_i;
    
-   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, 
+   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, 
                    connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i, s_status) is
       variable v : RegType;
    begin

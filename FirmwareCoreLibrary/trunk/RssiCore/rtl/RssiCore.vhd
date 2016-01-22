@@ -221,7 +221,8 @@ architecture rtl of RssiCore is
    signal s_initSeqN : slv(7 downto 0);   
    signal s_connActive : sl;
    signal s_closeRq : sl;
-   signal s_openRq  : sl;   
+   signal s_closed  : sl;
+   signal s_openRq  : sl;
    signal s_intCloseRq : sl;
    signal s_txAckF : sl;
   
@@ -279,7 +280,7 @@ begin
    -- Parameter assignment
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
-   combParamAssign : process (closeRq_i, openRq_i, s_intCloseRq, s_closeRqReg, s_openRqReg, s_appRssiParamReg, s_initSeqNReg) is
+   combParamAssign : process (closeRq_i, openRq_i, s_intCloseRq, s_closeRqReg, s_openRqReg, s_appRssiParamReg, s_initSeqNReg, s_modeReg) is
    begin
       if (s_modeReg = '0') then
          -- Use external requests
@@ -411,6 +412,7 @@ begin
       rst_i          => rst_i,
       connRq_i       => s_openRq,
       closeRq_i      => s_closeRq,
+      closed_o       => s_closed,
       rxRssiParam_i  => s_rxRssiParam,
       appRssiParam_i => s_appRssiParam,
       rssiParam_o    => s_rssiParam,
@@ -521,7 +523,7 @@ begin
       clk_i          => clk_i,
       rst_i          => rst_i,
       connActive_i   => s_connActive,
-      connRq_i       => s_openRq,
+      closed_i       => s_closed,
       
       sndSyn_i       => s_sndSyn,
       sndAck_i       => s_sndAck,
