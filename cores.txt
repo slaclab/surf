@@ -1,1 +1,2 @@
+coregen/SaltUltraScaleCore.xci
  

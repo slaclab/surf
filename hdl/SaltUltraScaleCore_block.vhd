@@ -97,8 +97,8 @@ USE IEEE.std_logic_arith.ALL;
 use ieee.numeric_std.all; 
 
 
-library gig_ethernet_pcs_pma_v15_1_1;
-use gig_ethernet_pcs_pma_v15_1_1.all;
+library gig_ethernet_pcs_pma_v15_1_0;
+use gig_ethernet_pcs_pma_v15_1_0.all;
 
 --------------------------------------------------------------------------------
 -- The entity declaration for the Core Block wrapper.
@@ -198,7 +198,7 @@ end component;
    -----------------------------------------------------------------------------
    -- Component Declaration for the 1000BASE-X PCS/PMA sublayer core.
    -----------------------------------------------------------------------------
-   component gig_ethernet_pcs_pma_v15_1_1
+   component gig_ethernet_pcs_pma_v15_1_0
       generic (
          C_ELABORATION_TRANSIENT_DIR : string := "";
          C_COMPONENT_NAME            : string := "";
@@ -449,7 +449,7 @@ sgmii_clk_r <= sgmii_clk_r_i;
    -- Instantiate the core
    -----------------------------------------------------------------------------
 
-  SaltUltraScaleCore_core : gig_ethernet_pcs_pma_v15_1_1
+  SaltUltraScaleCore_core : gig_ethernet_pcs_pma_v15_1_0
     generic map (
       C_ELABORATION_TRANSIENT_DIR => "BlankString",
       C_COMPONENT_NAME            => "SaltUltraScaleCore",
