@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2015-09-04
+-- Last update: 2016-01-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -108,6 +108,45 @@ architecture mapping of SaltUltraScale is
          signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
    end component;
 
+   component SaltUltraScaleCoreRxOnly
+      port (
+         -----------------------------
+         -- LVDS transceiver Interface
+         -----------------------------
+         rxp                  : in  std_logic;  -- Differential +ve for serial reception from PMD to PMA.
+         rxn                  : in  std_logic;  -- Differential -ve for serial reception from PMD to PMA.
+         clk125m              : in  std_logic;
+         mmcm_locked          : in  std_logic;
+         sgmii_clk_r          : out std_logic;  -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
+         sgmii_clk_f          : out std_logic;  -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
+         sgmii_clk_en         : out std_logic;  -- Clock enable for client MAC
+         ----------------
+         -- Speed Control
+         ----------------
+         speed_is_10_100      : in  std_logic;  -- Core should operate at either 10Mbps or 100Mbps speeds
+         speed_is_100         : in  std_logic;  -- Core should operate at 100Mbps speed
+         clk625               : in  std_logic;
+         clk312               : in  std_logic;
+         idelay_rdy_in        : in  std_logic;
+         -----------------
+         -- GMII Interface
+         -----------------
+         gmii_txd             : in  std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
+         gmii_tx_en           : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_tx_er           : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_rxd             : out std_logic_vector(7 downto 0);  -- Received Data to client MAC.
+         gmii_rx_dv           : out std_logic;  -- Received control signal to client MAC.
+         gmii_rx_er           : out std_logic;  -- Received control signal to client MAC.
+         gmii_isolate         : out std_logic;  -- Tristate control to electrically isolate GMII.
+         ---------------
+         -- General IO's
+         ---------------
+         configuration_vector : in  std_logic_vector(4 downto 0);  -- Alternative to MDIO interface.
+         status_vector        : out std_logic_vector(15 downto 0);  -- Core status.
+         reset                : in  std_logic;  -- Asynchronous reset for entire core.
+         signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
+   end component;
+
    signal config : slv(4 downto 0);
    signal status : slv(15 downto 0);
 
@@ -128,45 +167,131 @@ begin
    config(3) <= '0';                    -- Isolate Disabled
    config(4) <= '0';                    -- Auto-Negotiation Disabled
 
-   U_SaltUltraScaleCore : SaltUltraScaleCore
-      port map(
-         -----------------------------
-         -- LVDS transceiver Interface
-         -----------------------------
-         txp                  => txP,
-         txn                  => txN,
-         rxp                  => rxP,
-         rxn                  => rxN,
-         clk125m              => clk125MHz,
-         mmcm_locked          => mmcmLocked,
-         sgmii_clk_r          => open,
-         sgmii_clk_f          => open,
-         sgmii_clk_en         => open,
-         ----------------
-         -- Speed Control
-         ----------------
-         speed_is_10_100      => '0',
-         speed_is_100         => '0',
-         clk625               => clk625MHz,
-         clk312               => clk312MHz,
-         idelay_rdy_in        => iDelayCtrlRdy,
-         -----------------
-         -- GMII Interface
-         -----------------
-         gmii_txd             => txData,
-         gmii_tx_en           => txEn,
-         gmii_tx_er           => '0',
-         gmii_rxd             => rxData,
-         gmii_rx_dv           => rxEn,
-         gmii_rx_er           => rxErr,
-         gmii_isolate         => open,
-         ---------------
-         -- General IO's
-         ---------------
-         configuration_vector => config,
-         status_vector        => status,
-         reset                => rst125MHz,
-         signal_detect        => '1');
+   FULL_DUPLEX : if (TX_ENABLE_G = true) and (RX_ENABLE_G = true) generate
+      U_SaltUltraScaleCore : SaltUltraScaleCore
+         port map(
+            -----------------------------
+            -- LVDS transceiver Interface
+            -----------------------------
+            txp                  => txP,
+            txn                  => txN,
+            rxp                  => rxP,
+            rxn                  => rxN,
+            clk125m              => clk125MHz,
+            mmcm_locked          => mmcmLocked,
+            sgmii_clk_r          => open,
+            sgmii_clk_f          => open,
+            sgmii_clk_en         => open,
+            ----------------
+            -- Speed Control
+            ----------------
+            speed_is_10_100      => '0',
+            speed_is_100         => '0',
+            clk625               => clk625MHz,
+            clk312               => clk312MHz,
+            idelay_rdy_in        => iDelayCtrlRdy,
+            -----------------
+            -- GMII Interface
+            -----------------
+            gmii_txd             => txData,
+            gmii_tx_en           => txEn,
+            gmii_tx_er           => '0',
+            gmii_rxd             => rxData,
+            gmii_rx_dv           => rxEn,
+            gmii_rx_er           => rxErr,
+            gmii_isolate         => open,
+            ---------------
+            -- General IO's
+            ---------------
+            configuration_vector => config,
+            status_vector        => status,
+            reset                => rst125MHz,
+            signal_detect        => '1');
+   end generate;
+
+   RX_ONLY : if (TX_ENABLE_G = false) and (RX_ENABLE_G = true) generate
+      txp <= '0';
+      txn <= '1';
+      U_SaltUltraScaleCore : SaltUltraScaleCoreRxOnly
+         port map(
+            -----------------------------
+            -- LVDS transceiver Interface
+            -----------------------------
+            rxp                  => rxP,
+            rxn                  => rxN,
+            clk125m              => clk125MHz,
+            mmcm_locked          => mmcmLocked,
+            sgmii_clk_r          => open,
+            sgmii_clk_f          => open,
+            sgmii_clk_en         => open,
+            ----------------
+            -- Speed Control
+            ----------------
+            speed_is_10_100      => '0',
+            speed_is_100         => '0',
+            clk625               => clk625MHz,
+            clk312               => clk312MHz,
+            idelay_rdy_in        => iDelayCtrlRdy,
+            -----------------
+            -- GMII Interface
+            -----------------
+            gmii_txd             => txData,
+            gmii_tx_en           => txEn,
+            gmii_tx_er           => '0',
+            gmii_rxd             => rxData,
+            gmii_rx_dv           => rxEn,
+            gmii_rx_er           => rxErr,
+            gmii_isolate         => open,
+            ---------------
+            -- General IO's
+            ---------------
+            configuration_vector => config,
+            status_vector        => status,
+            reset                => rst125MHz,
+            signal_detect        => '1');
+   end generate;
+
+   TX_ONLY : if (TX_ENABLE_G = true) and (RX_ENABLE_G = false) generate
+      U_SaltUltraScaleCore : SaltUltraScaleCore
+         port map(
+            -----------------------------
+            -- LVDS transceiver Interface
+            -----------------------------
+            txp                  => txP,
+            txn                  => txN,
+            rxp                  => rxP,
+            rxn                  => rxN,
+            clk125m              => clk125MHz,
+            mmcm_locked          => mmcmLocked,
+            sgmii_clk_r          => open,
+            sgmii_clk_f          => open,
+            sgmii_clk_en         => open,
+            ----------------
+            -- Speed Control
+            ----------------
+            speed_is_10_100      => '0',
+            speed_is_100         => '0',
+            clk625               => clk625MHz,
+            clk312               => clk312MHz,
+            idelay_rdy_in        => iDelayCtrlRdy,
+            -----------------
+            -- GMII Interface
+            -----------------
+            gmii_txd             => txData,
+            gmii_tx_en           => txEn,
+            gmii_tx_er           => '0',
+            gmii_rxd             => rxData,
+            gmii_rx_dv           => rxEn,
+            gmii_rx_er           => rxErr,
+            gmii_isolate         => open,
+            ---------------
+            -- General IO's
+            ---------------
+            configuration_vector => config,
+            status_vector        => status,
+            reset                => rst125MHz,
+            signal_detect        => '1');
+   end generate;
 
    TX_ENABLE : if (TX_ENABLE_G = true) generate
       SaltTx_Inst : entity work.SaltTx
