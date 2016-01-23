@@ -93,8 +93,6 @@ wire			not_rxclk ;
 wire	[6:0]		bt_val ;
 wire	[1:0]		hreg ;
 wire			local_reset ;
-wire			reset_sync_1 ;
-wire			reset_sync_2 ;
 wire			reset_sync ;
 reg	[3:0]		mpx ;
 reg	[19:0]		rxdh ;
@@ -123,23 +121,12 @@ assign reset_n_idelay_rdy = reset || (~idelay_rdy);
      .reset_in  (reset_n_idelay_rdy),
      .reset_out (local_reset)
   );
-
- // stretching the reset to 18 clock cycles(3.2ns) so that minimum reset width requirement of 52ns is met on IDELAY.
-  SaltUltraScaleCore_reset_sync reset_rxclk_div4_1 (
-     .clk       (rxclk_div4),
-     .reset_in  (reset),
-     .reset_out (reset_sync_1)
-  );
-  SaltUltraScaleCore_reset_sync reset_rxclk_div4_2 (
-     .clk       (rxclk_div4),
-     .reset_in  (reset_sync_1),
-     .reset_out (reset_sync_2)
-  );
   SaltUltraScaleCore_reset_sync reset_rxclk_div4 (
      .clk       (rxclk_div4),
-     .reset_in  (reset_sync_2),
+     .reset_in  (reset),
      .reset_out (reset_sync)
   );
+
 //always @ (posedge rxclk_div4 or posedge reset) begin				// generate local reset
 //if (reset == 1'b1) begin
 //	local_reset <= 1'b1 ;

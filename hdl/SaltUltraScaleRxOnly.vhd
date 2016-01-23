@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- File       : SaltUltraScaleRxOnly.vhd
+-- File       : SaltUltraScaleCore.vhd
 -- Author     : Xilinx Inc.
 --------------------------------------------------------------------------------
 -- (c) Copyright 2009 Xilinx, Inc. All rights reserved.
@@ -95,8 +95,8 @@ use ieee.std_logic_1164.all;
 USE IEEE.std_logic_unsigned.ALL;
 USE IEEE.std_logic_arith.ALL;
 use ieee.numeric_std.all; 
-library gig_ethernet_pcs_pma_v15_1_1;
-use gig_ethernet_pcs_pma_v15_1_1.all;
+library gig_ethernet_pcs_pma_v15_1_0;
+use gig_ethernet_pcs_pma_v15_1_0.all;
 --------------------------------------------------------------------------------
 -- The entity declaration for the Core Block wrapper.
 --------------------------------------------------------------------------------
@@ -201,9 +201,9 @@ end component;
 
 
 ATTRIBUTE CORE_GENERATION_INFO : STRING;
-ATTRIBUTE CORE_GENERATION_INFO OF block_level : ARCHITECTURE IS "SaltUltraScaleCore,gig_ethernet_pcs_pma_v15_1_1,{x_ipProduct=Vivado 2015.4,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gig_ethernet_pcs_pma,x_ipVersion=15.1,x_ipCoreRevision=1,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,c_elaboration_transient_dir=.,c_component_name=SaltUltraScaleCore,c_family=kintexu,c_is_sgmii=true,c_use_transceiver=false,c_use_tbi=false,c_is_2_5g=false,c_use_lvds=true,c_has_an=false,c_has_mdio=false,c_has_ext_mdio=false,c_sgmii_phy_mode=false,c_dynamic_switching=false,c_sgmii_fabric_buffer=true,c_1588=0,gt_rx_byte_width=1,C_EMAC_IF_TEMAC=true,C_PHYADDR=1,EXAMPLE_SIMULATION=0,c_support_level=false,c_sub_core_name=SaltUltraScaleCore_gt,c_transceiver_type=GTHE3,c_gt_type=GTH,c_transceivercontrol=false,c_xdevicefamily=xcku040,c_gt_dmonitorout_width=17,c_gt_drpaddr_width=9,c_gt_txdiffctrl_width=4,c_gt_rxmonitorout_width=7,c_num_of_lanes=1,c_refclkrate=125,c_drpclkrate=50.0}";
+ATTRIBUTE CORE_GENERATION_INFO OF block_level : ARCHITECTURE IS "SaltUltraScaleCore,gig_ethernet_pcs_pma_v15_1_0,{x_ipProduct=Vivado 2015.3,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gig_ethernet_pcs_pma,x_ipVersion=15.1,x_ipCoreRevision=0,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,c_elaboration_transient_dir=.,c_component_name=SaltUltraScaleCore,c_family=kintexu,c_is_sgmii=true,c_use_transceiver=false,c_use_tbi=false,c_is_2_5g=false,c_use_lvds=true,c_has_an=false,c_has_mdio=false,c_has_ext_mdio=false,c_sgmii_phy_mode=false,c_dynamic_switching=false,c_sgmii_fabric_buffer=true,c_1588=0,gt_rx_byte_width=1,C_EMAC_IF_TEMAC=true,C_PHYADDR=1,EXAMPLE_SIMULATION=0,c_support_level=false,c_sub_core_name=SaltUltraScaleCore_gt,c_transceiver_type=GTHE3,c_transceivercontrol=false,c_xdevicefamily=xcku040,c_gt_dmonitorout_width=17,c_gt_drpaddr_width=9,c_gt_txdiffctrl_width=4,c_gt_rxmonitorout_width=7,c_num_of_lanes=1,c_refclkrate=125,c_drpclkrate=50.0}";
 ATTRIBUTE X_CORE_INFO : STRING;
-ATTRIBUTE X_CORE_INFO OF block_level: ARCHITECTURE IS "gig_ethernet_pcs_pma_v15_1_1,Vivado 2015.4";
+ATTRIBUTE X_CORE_INFO OF block_level: ARCHITECTURE IS "gig_ethernet_pcs_pma_v15_1_0,Vivado 2015.3";
 
 begin
 

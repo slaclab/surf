@@ -23,4 +23,4 @@ verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_lvds_transceiver_ser8
 verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_serdes_1_to_10_ser8.v
 verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_serdes_10_to_1_ser8.v
 
-vhdl gig_ethernet_pcs_pma_v15_1_1 hdl/gig_ethernet_pcs_pma_v15_1_rfs.vhd
+vhdl gig_ethernet_pcs_pma_v15_1_0 hdl/gig_ethernet_pcs_pma_v15_1_rfs.vhd
