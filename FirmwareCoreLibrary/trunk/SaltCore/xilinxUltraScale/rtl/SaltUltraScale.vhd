@@ -108,7 +108,7 @@ architecture mapping of SaltUltraScale is
          signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
    end component;
 
-   component SaltUltraScaleCoreRxOnly
+   component SaltUltraScaleRxOnly
       port (
          -----------------------------
          -- LVDS transceiver Interface
@@ -212,7 +212,7 @@ begin
    RX_ONLY : if (TX_ENABLE_G = false) and (RX_ENABLE_G = true) generate
       txp <= '0';
       txn <= '1';
-      U_SaltUltraScaleCore : SaltUltraScaleCoreRxOnly
+      U_SaltUltraScaleCore : SaltUltraScaleRxOnly
          port map(
             -----------------------------
             -- LVDS transceiver Interface
