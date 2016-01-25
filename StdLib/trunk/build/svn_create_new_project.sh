@@ -47,7 +47,6 @@ echo "---------------------------------------"
 PROJ="$PWD/$1"
 FIRMWARE="$PROJ/firmware"
 MODULES="$FIRMWARE/modules"
-TARGETS="$FIRMWARE/targets"
 
 echo "---------------------------------------"
 echo "Adding common firmware externals to project directory:"
@@ -62,8 +61,7 @@ echo $PGP2BLIB >> temp.txt
 echo $ETHLIB   >> temp.txt
 
 svn propset svn:externals -F temp.txt $MODULES 
-svn propset svn:externals "^/ExampleProject/trunk/firmware/targets/EmptyTarget EmptyTarget" $TARGETS 
-svn propset svn:externals "^/ExampleProject/trunk/firmware/setup_env.csh setup_env.csh"     $FIRMWARE 
+svn copy $BASE/ExampleProject/trunk/firmware/setup_env.csh $FIRMWARE/setup_env.csh 
 
 rm -f temp.txt
 
