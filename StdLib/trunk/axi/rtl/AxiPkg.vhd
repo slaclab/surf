@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2015-10-02
+-- Last update: 2015-12-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -171,12 +171,14 @@ package AxiPkg is
       ADDR_WIDTH_C : positive range 12 to 64;
       DATA_BYTES_C : positive range 1 to 128;
       ID_BITS_C    : positive range 1 to 32;
+      LEN_BITS_C   : positive range 4 to 8;
    end record AxiConfigType;
 
    constant AXI_CONFIG_INIT_C : AxiConfigType := (
       ADDR_WIDTH_C => 32,
       DATA_BYTES_C => 4,
-      ID_BITS_C    => 12);
+      ID_BITS_C    => 12,
+      LEN_BITS_C   => 4);
 
    function ite(i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType;
 

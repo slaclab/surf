@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-12-07
+-- Last update: 2016-01-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,6 +57,12 @@ entity AxiStreamFifo is
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
 
+      -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
+      -- Set to 0 for same size as primary fifo (default)
+      -- Set >4 for custom size.
+      -- Use at own risk. Overflow of tLast fifo is not checked      
+      LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;  
+
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
 
@@ -85,6 +91,9 @@ entity AxiStreamFifo is
 end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
+
+   constant LAST_FIFO_ADDR_WIDTH_C : integer range 4 to 48 :=
+      ite(LAST_FIFO_ADDR_WIDTH_G < 4, FIFO_ADDR_WIDTH_G, LAST_FIFO_ADDR_WIDTH_G);
 
    constant WR_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant RD_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
@@ -178,7 +187,7 @@ architecture rtl of AxiStreamFifo is
                         master  : inout AxiStreamMasterType;
                         byteCnt : inout integer) is
       variable i    : integer := 0;
-      variable user : slv(FIFO_USER_BITS_C-1 downto 0);
+      variable user : slv(FIFO_USER_BITS_C-1 downto 0) := (others => '0');
    begin
 
       master := axiStreamMasterInit(MASTER_AXI_CONFIG_G);
@@ -500,7 +509,7 @@ begin
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => FIFO_USER_TOT_C,
-            ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
+            ADDR_WIDTH_G       => LAST_FIFO_ADDR_WIDTH_C,
             INIT_G             => "0",
             FULL_THRES_G       => 1,
             EMPTY_THRES_G      => 1
