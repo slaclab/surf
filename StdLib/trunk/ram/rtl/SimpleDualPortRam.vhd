@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2013-11-21
+-- Last update: 2016-01-12
 -- Platform   : ISE 14.5
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ entity SimpleDualPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
       BRAM_EN_G      : boolean                    := true;
+      DOB_REG_G       : boolean                   := false;  -- Extra reg on doutb (folded into BRAM)
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
@@ -63,6 +64,8 @@ architecture rtl of SimpleDualPortRam is
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
+   signal doutBInt : slv(DATA_WIDTH_G-1 downto 0);
+
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
    attribute ram_style of mem : variable is XST_BRAM_STYLE_C;
@@ -80,7 +83,7 @@ architecture rtl of SimpleDualPortRam is
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
    attribute ramstyle of mem : variable is ALTERA_BRAM_STYLE_C;
-   
+
 begin
 
    -- ALTERA_RAM_G check
@@ -93,7 +96,7 @@ begin
            or (ALTERA_RAM_G = "M-RAM"))
       report "Invalid ALTERA_RAM_G string"
       severity failure;
-      
+
    -- Port A
    process(clka)
    begin
@@ -106,21 +109,34 @@ begin
       end if;
    end process;
 
-   
-   XILINX_BUILD : if (ALTERA_SYN_G = false) generate   
+
+   XILINX_BUILD : if (ALTERA_SYN_G = false) generate
       -- Port B
       process(clkb)
       begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
-               doutb <= INIT_C after TPD_G;
+               doutbInt <= INIT_C after TPD_G;
             elsif enb = '1' then
-               doutb <= mem(conv_integer(addrb)) after TPD_G;
+               doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
          end if;
       end process;
-   end generate; 
-   
+
+      NO_REG : if (not DOB_REG_G) generate
+         doutb <= doutBInt;
+      end generate NO_REG;
+
+      REG : if (DOB_REG_G) generate
+         process (clkb)
+         begin
+            if (rising_edge(clkb)) then
+               doutb <= doutBInt after TPD_G;
+            end if;
+         end process;
+      end generate REG;
+   end generate;
+
    ---------------------------------------------------------------
    --NOTE: rstb and enb not supported in Altera when inferring RAM
    ---------------------------------------------------------------
@@ -132,6 +148,6 @@ begin
             doutb <= mem(conv_integer(addrb)) after TPD_G;
          end if;
       end process;
-   end generate;    
-   
+   end generate;
+
 end rtl;
