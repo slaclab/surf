@@ -33,7 +33,7 @@ package AxiDmaPkg is
    type AxiWriteDmaReqType is record
       request : sl;
       drop    : sl;
-      address : slv(31 downto 0);
+      address : slv(63 downto 0);
       maxSize : slv(31 downto 0);
    end record;
 
@@ -88,7 +88,7 @@ package AxiDmaPkg is
    -- Base Record
    type AxiReadDmaReqType is record
       request   : sl;
-      address   : slv(31 downto 0);
+      address   : slv(63 downto 0);
       size      : slv(31 downto 0);
       firstUser : slv(7 downto 0);
       lastUser  : slv(7 downto 0);

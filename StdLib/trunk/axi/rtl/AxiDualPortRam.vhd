@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2014-08-13
+-- Last update: 2015-11-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,14 +30,16 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
 entity AxiDualPortRam is
-   
+
    generic (
       TPD_G        : time                       := 1 ns;
       BRAM_EN_G    : boolean                    := true;
       REG_EN_G     : boolean                    := true;
       MODE_G       : string                     := "write-first";
+      AXI_WR_EN_G  : boolean                    := true;
+      SYS_WR_EN_G  : boolean                    := false;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
-      DATA_WIDTH_G : integer range 1 to 32      := 32;
+      DATA_WIDTH_G : integer range 1 to 64      := 32;
       INIT_G       : slv                        := "0");
 
    port (
@@ -52,14 +54,18 @@ entity AxiDualPortRam is
       -- Standard Port
       clk  : in  sl                           := '0';
       en   : in  sl                           := '1';
+      we   : in  sl                           := '0';
       rst  : in  sl                           := '0';
       addr : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      din  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       dout : out slv(DATA_WIDTH_G-1 downto 0));
 
 end entity AxiDualPortRam;
 
 architecture rtl of AxiDualPortRam is
-   
+
+   constant AXI_ADDR_LOW_C : integer := ite(DATA_WIDTH_G <= 32, 2, 3);
+
    type RegType is record
       axiWriteSlave : AxiLiteWriteSlaveType;
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -80,55 +86,129 @@ architecture rtl of AxiDualPortRam is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal douta : slv(DATA_WIDTH_G-1 downto 0);
-   
+   signal axiDout : slv(DATA_WIDTH_G-1 downto 0);
+
 begin
 
-   DualPortRam_1 : entity work.DualPortRam
-      generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
-         REG_EN_G     => REG_EN_G,
-         MODE_G       => MODE_G,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G,
-         INIT_G       => INIT_G)
-      port map (
-         clka  => axiClk,
-         ena   => '1',
-         wea   => r.axiWrEn,
-         rsta  => axiRst,
-         addra => r.axiAddr,
-         dina  => r.axiWrData,
-         douta => douta,
+   -- AXI read only, sys writable or read only (rom)
+   AXI_R0_SYS_RW : if (not AXI_WR_EN_G and SYS_WR_EN_G) generate
+      DualPortRam_1 : entity work.DualPortRam
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => BRAM_EN_G,
+            REG_EN_G     => REG_EN_G,
+            MODE_G       => MODE_G,
+            DATA_WIDTH_G => DATA_WIDTH_G,
+            ADDR_WIDTH_G => ADDR_WIDTH_G,
+            INIT_G       => INIT_G)
+         port map (
+            clka  => clk,
+            ena   => en,
+            wea   => we,
+            rsta  => rst,
+            addra => addr,
+            dina  => din,
+            douta => dout,
 
-         clkb  => clk,
-         enb   => en,
-         rstb  => rst,
-         addrb => addr,
-         doutb => dout);
+            clkb  => axiClk,
+            enb   => '1',
+            rstb  => axiRst,
+            addrb => r.axiAddr,
+            doutb => axiDout);
+   end generate;
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, douta, r) is
+   -- System Read only, Axi writable or read only (ROM)
+   -- Logic disables axi writes if AXI_WR_EN_G=false
+   AXI_RW_SYS_RO : if (not SYS_WR_EN_G) generate
+      DualPortRam_1 : entity work.DualPortRam
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => BRAM_EN_G,
+            REG_EN_G     => REG_EN_G,
+            MODE_G       => MODE_G,
+            DATA_WIDTH_G => DATA_WIDTH_G,
+            ADDR_WIDTH_G => ADDR_WIDTH_G,
+            INIT_G       => INIT_G)
+         port map (
+            clka  => axiClk,
+            ena   => '1',
+            wea   => r.axiWrEn,
+            rsta  => axiRst,
+            addra => r.axiAddr,
+            dina  => r.axiWrData,
+            douta => axiDout,
+
+            clkb  => clk,
+            enb   => en,
+            rstb  => rst,
+            addrb => addr,
+            doutb => dout);
+   end generate;
+
+   -- Both sides writable, true dual port ram
+   AXI_RW_SYS_RW : if (AXI_WR_EN_G and SYS_WR_EN_G) generate
+      U_TrueDualPortRam_1 : entity work.TrueDualPortRam
+         generic map (
+            TPD_G        => TPD_G,
+            MODE_G       => MODE_G,
+            DATA_WIDTH_G => DATA_WIDTH_G,
+            ADDR_WIDTH_G => ADDR_WIDTH_G,
+            INIT_G       => INIT_G)
+         port map (
+            clka  => axiClk,            -- [in]
+            ena   => '1',               -- [in]
+            wea   => r.axiWrEn,         -- [in]
+            rsta  => axiRst,            -- [in]
+            addra => r.axiAddr,         -- [in]
+            dina  => r.axiWrData,       -- [in]
+            douta => axiDout,           -- [out]
+            clkb  => clk,               -- [in]
+            enb   => en,                -- [in]
+            web   => we,                -- [in]
+            rstb  => rst,               -- [in]
+            addrb => addr,              -- [in]
+            dinb  => din,               -- [in]
+            doutb => dout);             -- [out]
+
+   end generate;
+
+
+   comb : process (axiDout, axiReadMaster, axiRst, axiWriteMaster, r) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
       v := r;
 
-      v.axiWrEn                                     := '0';
-      v.axiRdEn                                     := r.axiRdEn(0) & '0';
-      v.axiReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := douta;
-      v.axiWrData                                   := axiWriteMaster.wdata(DATA_WIDTH_G-1 downto 0);
+      v.axiWrEn := '0';
+      v.axiRdEn := r.axiRdEn(0) & '0';
+
+      if (DATA_WIDTH_G <= 32) then
+         v.axiReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axiDout;
+         v.axiWrData                                   := axiWriteMaster.wdata(DATA_WIDTH_G-1 downto 0);
+      else
+         if (axiReadMaster.araddr(AXI_ADDR_LOW_C-1) = '0') then
+            v.axiReadSlave.rdata := axiDout(31 downto 0);
+         else
+            v.axiReadSlave.rdata(DATA_WIDTH_G-32-1 downto 0) := axiDout(DATA_WIDTH_G-1 downto 32);
+         end if;
+
+         if (axiWriteMaster.awaddr(AXI_ADDR_LOW_C-1) = '0') then
+            v.axiWrData(31 downto 0) := axiWriteMaster.wdata;
+         else
+            v.axiWrData(DATA_WIDTH_G-1 downto 32) := axiWriteMaster.wdata(DATA_WIDTH_G-32-1 downto 0);
+         end if;
+      end if;      
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       if (axiStatus.writeEnable = '1') then
-         v.axiAddr := axiWriteMaster.awaddr(ADDR_WIDTH_G+2-1 downto 2);
+         v.axiAddr := axiWriteMaster.awaddr(ADDR_WIDTH_G+AXI_ADDR_LOW_C-1 downto AXI_ADDR_LOW_C);
 
-         v.axiWrEn := '1';
-         axiSlaveWriteResponse(v.axiWriteSlave);
-         
-      elsif (axiStatus.readEnable = '1' and r.axiRdEn="00") then
-         v.axiAddr := axiReadMaster.araddr(ADDR_WIDTH_G+2-1 downto 2);
+         v.axiWrEn := ite(AXI_WR_EN_G, '1', '0');
+         axiSlaveWriteResponse(v.axiWriteSlave, ite(AXI_WR_EN_G, AXI_RESP_OK_C, AXI_RESP_SLVERR_C));
+
+      elsif (axiStatus.readEnable = '1' and r.axiRdEn = "00") then
+         v.axiAddr := axiReadMaster.araddr(ADDR_WIDTH_G+AXI_ADDR_LOW_C-1 downto AXI_ADDR_LOW_C);
          -- If output of ram is registered, read data will be ready 2 cycles after address asserted
          -- If not registered it will be ready on next cycle
          if (REG_EN_G or BRAM_EN_G) then
@@ -150,7 +230,7 @@ begin
       rin           <= v;
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is

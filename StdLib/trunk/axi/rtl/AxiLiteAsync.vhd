@@ -30,7 +30,8 @@ use work.AxiLitePkg.all;
 entity AxiLiteAsync is
    generic (
       TPD_G            : time    := 1 ns;
-      NUM_ADDR_BITS_G  : natural := 32
+      NUM_ADDR_BITS_G  : natural := 32;
+      PIPE_STAGES_G : integer range 0 to 16 := 0
    );
    port (
 
@@ -106,6 +107,7 @@ begin
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
@@ -170,6 +172,7 @@ begin
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          DATA_WIDTH_G   => 34,
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
@@ -230,6 +233,7 @@ begin
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
@@ -294,6 +298,7 @@ begin
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          DATA_WIDTH_G   => 36,
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
@@ -354,6 +359,7 @@ begin
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          DATA_WIDTH_G   => 2,
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",

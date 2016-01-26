@@ -1271,11 +1271,13 @@ package body StdRtlPkg is
 
    function resize (str : string; newSize : integer ; pad : character := nul) return string is
       variable ret : string(1 to newSize);
+      variable tmp : string(1 to str'length);
       variable top : integer;
    begin
       ret := (others => pad);
+      tmp := str;
       top := minimum( newSize, str'length);
-      ret(1 to top) := str(1 to top);
+      ret(1 to top) := tmp(1 to top);
       return ret;
    end function resize;
 

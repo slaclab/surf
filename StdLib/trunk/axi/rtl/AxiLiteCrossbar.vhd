@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2015-10-06
+-- Last update: 2016-01-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -356,7 +356,6 @@ begin
                   v.master(m).wrValid := '0';
                end if;
 
-            when others => null;
          end case;
 
          -- Don't allow baseAddr bits to be overwritten
@@ -410,7 +409,6 @@ begin
                   v.master(m).rdValid := '0';
                end if;
 
-            when others => null;
          end case;
 
          -- Don't allow baseAddr bits to be overwritten

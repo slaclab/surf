@@ -290,7 +290,7 @@ package AxiLitePkg is
    -- Simulation procedures
    -------------------------------------------------------------------------------------------------
    procedure axiLiteBusSimWrite (
-      signal axiClk          : in  sl;
+      signal axilClk          : in  sl;
       signal axilWriteMaster : out AxiLiteWriteMasterType;
       signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
       addr            : in  slv(31 downto 0);
@@ -298,7 +298,7 @@ package AxiLitePkg is
       debug           : in  boolean := false);
    
    procedure axiLiteBusSimRead (
-      signal axiClk         : in  sl;
+      signal axilClk         : in  sl;
       signal axilReadMaster : out AxiLiteReadMasterType;
       signal axilReadSlave  : in  AxiLiteReadSlaveType;
       addr           : in  slv(31 downto 0);
@@ -383,7 +383,6 @@ package body AxiLitePkg is
       -- Incomming read txn and last txn has concluded
       if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
          readEnable := '1';
---         axiReadSlave.rdata := (others => '0');
       end if;
 
       -- Reset rvalid upon rready
@@ -562,15 +561,13 @@ package body AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    
    procedure axiLiteBusSimWrite (
-      signal axiClk          : in  sl;
+      signal axilClk          : in  sl;
       signal axilWriteMaster : out AxiLiteWriteMasterType;
       signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
       addr            : in  slv(31 downto 0);
       data            : in  slv(31 downto 0);
       debug           : in  boolean := false) is
    begin
-      -- Put the req on the bus
-      wait until axiClk = '1';
       axilWriteMaster.awaddr  <= addr;
       axilWriteMaster.wdata   <= data;
       axilWriteMaster.awprot  <= (others => '0');
@@ -578,6 +575,7 @@ package body AxiLitePkg is
       axilWriteMaster.awvalid <= '1';
       axilWriteMaster.wvalid  <= '1';
       axilWriteMaster.bready  <= '1';
+      wait until axilClk = '1';      
 
 
       -- Wait for a response
@@ -591,11 +589,11 @@ package body AxiLitePkg is
          end if;
 
 
-         wait until axiClk = '1';
+         wait until axilClk = '1';
       end loop;
 
       -- Done. Check for errors
-      wait until axiClk = '1';
+      wait until axilClk = '1';
       axilWriteMaster.bready <= '0';
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
@@ -609,7 +607,7 @@ package body AxiLitePkg is
 
 
    procedure axiLiteBusSimRead (
-      signal axiClk         : in  sl;
+      signal axilClk         : in  sl;
       signal axilReadMaster : out AxiLiteReadMasterType;
       signal axilReadSlave  : in  AxiLiteReadSlaveType;
       addr           : in  slv(31 downto 0);
@@ -617,12 +615,11 @@ package body AxiLitePkg is
       debug          : in  boolean := false) is
    begin
       -- Put the write req on the bus
-      wait until axiClk = '1';
       axilReadMaster.araddr  <= addr;
       axilReadMaster.arprot  <= (others => '0');
       axilReadMaster.arvalid <= '1';
       axilReadMaster.rready  <= '1';
-
+      wait until axilClk = '1';
 
       -- Wait for a response
       while (axilReadSlave.rvalid = '0') loop
@@ -631,11 +628,11 @@ package body AxiLitePkg is
             axilReadMaster.arvalid <= '0';
          end if;
 
-         wait until axiClk = '1';
+         wait until axilClk = '1';
       end loop;
 
       -- Done. Check for errors
-      wait until axiClk = '1';
+      wait until axilClk = '1';
       axilReadMaster.rready <= '0';
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;

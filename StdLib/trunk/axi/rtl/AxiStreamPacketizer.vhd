@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2015-12-11
+-- Last update: 2015-12-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
 
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_C / 8) - 2;
+   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_C / 8) - 3;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
 
@@ -167,7 +167,7 @@ begin
                v.outputAxisMaster.tUser := (others => '0');
                v.outputAxisMaster.tDest := (others => '0');
                v.outputAxisMaster.tId   := (others => '0');
-               
+
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
 

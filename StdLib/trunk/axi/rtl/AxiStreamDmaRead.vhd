@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-05
+-- Last update: 2016-01-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ architecture structure of AxiStreamDmaRead is
 
    constant DATA_BYTES_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C;
    constant ADDR_LSB_C   : integer := bitSize(DATA_BYTES_C-1);
+   constant ARLEN_C : slv(7 downto 0) := resize(toSlv(4096/AXI_CONFIG_G.DATA_BYTES_C-1, AXI_CONFIG_G.LEN_BITS_C), 8);
 
    type StateType is (S_IDLE_C, S_SHIFT_C, S_FIRST_C, S_NEXT_C, S_DATA_C, S_LAST_C, S_DONE_C);
 
@@ -155,15 +156,15 @@ begin
          -- First
          when S_FIRST_C =>
             v.first                                                := '1';
-            v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address;
+            v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
 
             -- Determine transfer size to align address to 16-transfer boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.rMaster.arlen(3 downto 0) := x"F" - r.dmaReq.address(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            v.rMaster.arlen := ARLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
 
             -- Limit read burst size
-            if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen(3 downto 0) then
-               v.rMaster.arlen(3 downto 0) := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen then
+               v.rMaster.arlen := resize(r.dmaReq.size(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C), 8);
             end if;
 
             -- There is enough room in the FIFO for a burst
@@ -174,15 +175,15 @@ begin
 
          -- Next Write
          when S_NEXT_C =>
-            v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address;
+            v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
 
-            -- Limit read burst size
-            if r.dmaReq.size(31 downto ADDR_LSB_C) >= 16 then
-               v.rMaster.arlen(3 downto 0) := x"F";
-            else
-               v.rMaster.arlen(3 downto 0) := r.dmaReq.size(ADDR_LSB_C+3 downto ADDR_LSB_C);
+            -- Bursts after the FIRST are garunteed to be aligned.
+            -- Use the same logic as in S_FIRST_C anyway to reuse the logic resources
+            v.rMaster.arlen := ARLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
+            if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen then
+               v.rMaster.arlen := resize(r.dmaReq.size(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C), 8);
             end if;
-
+            
             -- There is enough room in the FIFO for a burst and address is ready
             if selPause = '0' then
                v.rMaster.arvalid := '1';
@@ -191,7 +192,7 @@ begin
              
          -- Move Data
          when S_DATA_C =>
-
+            v.rMaster.arvalid := r.rMaster.arvalid;
             if axiReadSlave.arready = '1' then
                v.rMaster.arvalid := '0';
             end if;
@@ -231,10 +232,8 @@ begin
                if r.dmaReq.size <= DATA_BYTES_C then
                   v.last          := '1';
                   v.sMaster.tLast := '1';
-                  v.sMaster.tKeep(DATA_BYTES_C-1 downto 0)                := (others=>'0');
-                  v.sMaster.tStrb(DATA_BYTES_C-1 downto 0)                := (others=>'0');
-                  v.sMaster.tKeep(conv_integer(r.dmaReq.size)-1 downto 0) := (others=>'1');
-                  v.sMaster.tStrb(conv_integer(r.dmaReq.size)-1 downto 0) := (others=>'1');
+                  v.sMaster.tKeep := genTKeep(conv_integer(r.dmaReq.size(4 downto 0)));
+                  v.sMaster.tStrb := genTKeep(conv_integer(r.dmaReq.size(4 downto 0)));                  
 
                   -- Set user field, last position
                   axiStreamSetUserField (AXIS_CONFIG_G,
@@ -243,8 +242,8 @@ begin
 
                else
                   v.dmaReq.size := r.dmaReq.size - ite(r.first='1',
-                                                       (conv_std_logic_vector(DATA_BYTES_C,4)-r.shift),
-                                                        conv_std_logic_vector(DATA_BYTES_C,4));
+                                                       (toSlv(DATA_BYTES_C,4)-r.shift),
+                                                        toSlv(DATA_BYTES_C,4));
                end if;
 
                -- Last in transfer
@@ -282,8 +281,7 @@ begin
       end if;
 
       -- Constants
-      --v.rMaster.arsize  := conv_std_logic_vector(AXI_CONFIG_G.DATA_BYTES_C-1,3);
-      v.rMaster.arsize  := "011";
+      v.rMaster.arsize  := conv_std_logic_vector(log2(AXI_CONFIG_G.DATA_BYTES_C),3);
       v.rMaster.arburst := AXI_BURST_G;
       v.rMaster.arcache := AXI_CACHE_G;
       v.rMaster.arlock  := "00";   -- Unused
