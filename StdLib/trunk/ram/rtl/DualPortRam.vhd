@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-18
--- Last update: 2013-12-18
+-- Last update: 2016-01-12
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,29 +33,33 @@ entity DualPortRam is
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
       BRAM_EN_G      : boolean                    := true;
       REG_EN_G       : boolean                    := true;
+      DOA_REG_G      : boolean                    := false;
+      DOB_REG_G      : boolean                    := false;
       MODE_G         : string                     := "write-first";
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
       -- Port A     
-      clka  : in  sl                           := '0';
-      ena   : in  sl                           := '1';
-      wea   : in  sl                           := '0';
-      rsta  : in  sl                           := not(RST_POLARITY_G);
-      addra : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      dina  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      douta : out slv(DATA_WIDTH_G-1 downto 0);
+      clka   : in  sl                           := '0';
+      ena    : in  sl                           := '1';
+      wea    : in  sl                           := '0';
+      rsta   : in  sl                           := not(RST_POLARITY_G);
+      addra  : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      dina   : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+      douta  : out slv(DATA_WIDTH_G-1 downto 0);
+      regcea : in  sl                           := '1';
       -- Port B
-      clkb  : in  sl                           := '0';
-      enb   : in  sl                           := '1';
-      rstb  : in  sl                           := not(RST_POLARITY_G);
-      addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      doutb : out slv(DATA_WIDTH_G-1 downto 0));
+      clkb   : in  sl                           := '0';
+      enb    : in  sl                           := '1';
+      rstb   : in  sl                           := not(RST_POLARITY_G);
+      addrb  : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      doutb  : out slv(DATA_WIDTH_G-1 downto 0);
+      regceb : in  sl                           := '1');
 end DualPortRam;
 
 architecture mapping of DualPortRam is
-   
+
    constant FORCE_RST_C : sl := not(RST_POLARITY_G);
 
 begin
@@ -65,27 +69,31 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
+            DOA_REG_G      => DOA_REG_G,
+            DOB_REG_G      => DOB_REG_G,
             MODE_G         => MODE_G,
             DATA_WIDTH_G   => DATA_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
             INIT_G         => INIT_G)
          port map (
             -- Port A     
-            clka  => clka,
-            ena   => ena,
-            wea   => wea,
-            rsta  => rsta,
-            addra => addra,
-            dina  => dina,
-            douta => douta,
+            clka   => clka,
+            ena    => ena,
+            wea    => wea,
+            rsta   => rsta,
+            addra  => addra,
+            dina   => dina,
+            douta  => douta,
+            regcea => regcea,
             -- Port B
-            clkb  => clkb,
-            enb   => enb,
-            web   => '0',
-            rstb  => rstb,
-            addrb => addrb,
-            dinb  => (others => '0'),
-            doutb => doutb);           
+            clkb   => clkb,
+            enb    => enb,
+            web    => '0',
+            rstb   => rstb,
+            addrb  => addrb,
+            dinb   => (others => '0'),
+            doutb  => doutb,
+            regceb => regceb);
    end generate;
 
    GEN_LUTRAM : if (BRAM_EN_G = false) generate
@@ -126,5 +134,5 @@ begin
             addrd => (others => '0'),
             doutd => open);
    end generate;
-   
+
 end mapping;

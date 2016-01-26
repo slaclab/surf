@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2015-09-11
+-- Last update: 2016-01-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,27 +34,31 @@ entity TrueDualPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       ALTERA_RAM_G   : string                     := "M9K";
+      DOA_REG_G      : boolean                    := false;  -- Extra output register on doutA.
+      DOB_REG_G      : boolean                    := false;  -- Extra output register on doutB.      
       MODE_G         : string                     := "write-first";
       DATA_WIDTH_G   : integer range 1 to (2**24) := 18;
-      ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
+      ADDR_WIDTH_G   : integer range 1 to (2**24) := 9;
       INIT_G         : slv                        := "0");
    port (
       -- Port A     
-      clka  : in  sl                           := '0';
-      ena   : in  sl                           := '1';
-      wea   : in  sl                           := '0';
-      rsta  : in  sl                           := not(RST_POLARITY_G);
-      addra : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      dina  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      douta : out slv(DATA_WIDTH_G-1 downto 0);
+      clka   : in  sl                           := '0';
+      ena    : in  sl                           := '1';
+      wea    : in  sl                           := '0';
+      rsta   : in  sl                           := not(RST_POLARITY_G);
+      addra  : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      dina   : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+      douta  : out slv(DATA_WIDTH_G-1 downto 0);
+      regcea : in  sl                           := '1';  -- Clock enable for extra output reg. Only used when DOA_REG_G = true
       -- Port B
-      clkb  : in  sl                           := '0';
-      enb   : in  sl                           := '1';
-      web   : in  sl                           := '0';
-      rstb  : in  sl                           := not(RST_POLARITY_G);
-      addrb : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      dinb  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      doutb : out slv(DATA_WIDTH_G-1 downto 0));
+      clkb   : in  sl                           := '0';
+      enb    : in  sl                           := '1';
+      web    : in  sl                           := '0';
+      rstb   : in  sl                           := not(RST_POLARITY_G);
+      addrb  : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      dinb   : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+      doutb  : out slv(DATA_WIDTH_G-1 downto 0);
+      regceb : in  sl                           := '1');  -- Clock enable for extra output reg. Only used when DOA_REG_G = true
 end TrueDualPortRam;
 
 architecture rtl of TrueDualPortRam is
@@ -64,7 +68,10 @@ architecture rtl of TrueDualPortRam is
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
    signal mem : mem_type := (others => INIT_C);
-
+   
+   signal doutAInt : slv(DATA_WIDTH_G-1 downto 0);
+   signal doutBInt : slv(DATA_WIDTH_G-1 downto 0);
+   
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
    attribute ram_style of mem : signal is "block";
@@ -85,7 +92,7 @@ architecture rtl of TrueDualPortRam is
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
    attribute ramstyle of mem : signal is ALTERA_RAM_G;
-   
+
 begin
 
    -- MODE_G check
@@ -102,19 +109,19 @@ begin
            or (ALTERA_RAM_G = "M-RAM"))
       report "Invalid ALTERA_RAM_G string"
       severity failure;
-   
+
    NO_CHANGE_MODE : if MODE_G = "no-change" generate
       -- Port A
       process(clka)
       begin
          if rising_edge(clka) then
             if rsta = RST_POLARITY_G then
-               douta <= INIT_C after TPD_G;
+               doutAInt <= INIT_C after TPD_G;
             else
                if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) <= dina after TPD_G;
                else
-                  douta <= mem(conv_integer(addra)) after TPD_G;
+                  doutAInt <= mem(conv_integer(addra)) after TPD_G;
                end if;
             end if;
          end if;
@@ -125,17 +132,17 @@ begin
       begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
-               doutb <= INIT_C after TPD_G;
+               doutBInt <= INIT_C after TPD_G;
             else
                if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) <= dinb after TPD_G;
                else
-                  doutb <= mem(conv_integer(addrb)) after TPD_G;
+                  doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                end if;
             end if;
          end if;
       end process;
-      
+
    end generate;
 
    READ_FIRST_MODE : if MODE_G = "read-first" generate
@@ -144,9 +151,9 @@ begin
       begin
          if rising_edge(clka) then
             if rsta = RST_POLARITY_G then
-               douta <= INIT_C after TPD_G;
+               doutAInt <= INIT_C after TPD_G;
             else
-               douta <= mem(conv_integer(addra)) after TPD_G;
+               doutAInt <= mem(conv_integer(addra)) after TPD_G;
                if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) <= dina after TPD_G;
                end if;
@@ -159,16 +166,16 @@ begin
       begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
-               doutb <= INIT_C after TPD_G;
+               doutBInt <= INIT_C after TPD_G;
             else
-               doutb <= mem(conv_integer(addrb)) after TPD_G;
+               doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) <= dinb after TPD_G;
                end if;
             end if;
          end if;
       end process;
-      
+
    end generate;
 
    WRITE_FIRST_MODE : if MODE_G = "write-first" generate
@@ -177,13 +184,13 @@ begin
       begin
          if rising_edge(clka) then
             if rsta = RST_POLARITY_G then
-               douta <= INIT_C after TPD_G;
+               doutAInt <= INIT_C after TPD_G;
             else
                if (wea = '1') and (ena = '1') then
                   mem(conv_integer(addra)) <= dina after TPD_G;
-                  douta                    <= dina after TPD_G;
+                  doutAInt                 <= dina after TPD_G;
                end if;
-               douta <= mem(conv_integer(addra)) after TPD_G;
+               doutAInt <= mem(conv_integer(addra)) after TPD_G;
             end if;
          end if;
       end process;
@@ -193,17 +200,54 @@ begin
       begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
-               doutb <= INIT_C after TPD_G;
+               doutBInt <= INIT_C after TPD_G;
             else
                if (web = '1') and (enb = '1') then
                   mem(conv_integer(addrb)) <= dinb after TPD_G;
-                  doutb                    <= dinb after TPD_G;
+                  doutBInt                 <= dinb after TPD_G;
                end if;
-               doutb <= mem(conv_integer(addrb)) after TPD_G;
+               doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
          end if;
       end process;
-      
+
    end generate;
-   
+
+   -------------------------------------------------------------------------------------------------
+   -- Optional data output registers
+   -------------------------------------------------------------------------------------------------
+   NO_DOUT_A_REG : if (not DOA_REG_G) generate
+      douta <= doutAInt;
+   end generate NO_DOUT_A_REG;
+
+   DOUT_A_REG : if (DOA_REG_G) generate
+      process (clka) is
+      begin
+         if (rising_edge(clka)) then
+            if (rstA = '1') then
+               douta <= (others => '0') after TPD_G;
+            elsif (regcea = '1') then
+               douta <= doutAInt after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate DOUT_A_REG;
+
+   NO_DOUT_B_REG : if (not DOB_REG_G) generate
+      doutb <= doutBInt;
+   end generate NO_DOUT_B_REG;
+
+   DOUT_B_REG : if (DOB_REG_G) generate
+      process (clkb) is
+      begin
+         if (rising_edge(clkb)) then
+            if (rstB = '1') then
+               doutb <= (others => '0') after TPD_G;
+            elsif (regceb = '1') then
+               doutb <= doutBInt after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate DOUT_B_REG;
+
 end rtl;
