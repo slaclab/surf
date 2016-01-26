@@ -10,13 +10,15 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:  Register decoding for RSSI core
---               0x00 (RW)- Control register [3:0]:
+--               0x00 (RW)- Control register [4:0]:
 --                   bit 0: Open connection request (Default '0')
 --                   bit 1: Close connection request (Default '0')
 --                   bit 2: Mode (Default '0'):
 --                            - '0': Use internal parameters from generics  
 --                            - '1': Use parameters from Axil 
 --                   bit 3: Header checksum enable (Default '1')
+--                   bit 4: Inject fault to the next packet header checksum (Default '0')
+--                            Acts on rising edge - injects exactly one fault in next segment (ACK, NULL, or DATA)
 --               0x01 (RW)- Initial sequence number [7:0] (Default x"80")
 --               0x02 (RW)- Version register [3:0](Default x"1")
 --               0x03 (RW)- Maximum out standing segments [7:0](Default "008"):
@@ -89,7 +91,9 @@ port (
    -- Control (RW)   
    openRq_o       : out sl;
    closeRq_o      : out sl;
-   mode_o         : out sl; 
+   mode_o         : out sl;
+   injectFault_o  : out sl;
+   
    initSeqN_o     : out slv(7 downto 0);
    appRssiParam_o : out RssiParamType;
    
@@ -104,7 +108,7 @@ architecture rtl of RssiAxiLiteRegItf is
 
   type RegType is record
    -- Control (RW)
-   control       : slv(3 downto 0);
+   control       : slv(4 downto 0);
    
    -- Parameters (RW)  
    initSeqN      : slv(7 downto 0);
@@ -126,7 +130,7 @@ architecture rtl of RssiAxiLiteRegItf is
   end record;
   
    constant REG_INIT_C : RegType := (
-      control     => "1000",
+      control     => "01000",
       initSeqN     => x"80",
       version      => x"1",
       maxOutsSeg   => x"08",
@@ -180,7 +184,7 @@ begin
       axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
       case (s_WrAddr) is
         when 16#00# =>                  -- ADDR (0)
-          v.control     := axilWriteMaster.wdata(3 downto 0);
+          v.control     := axilWriteMaster.wdata(4 downto 0);
         when 16#01# =>                  -- ADDR (4)
           v.initSeqN    := axilWriteMaster.wdata(7 downto 0);
         when 16#02# =>                  -- ADDR (8)
@@ -214,7 +218,7 @@ begin
       v.axilReadSlave.rdata := (others => '0');
       case (s_RdAddr) is
         when 16#00# =>                  -- ADDR (0)
-          v.axilReadSlave.rdata(3 downto 0) := r.control;
+          v.axilReadSlave.rdata(4 downto 0) := r.control;
         when 16#01# =>                  -- ADDR (4)
           v.axilReadSlave.rdata(7 downto 0) := r.initSeqN;
         when 16#02# =>                  -- ADDR (8)
@@ -348,7 +352,17 @@ begin
       dataOut   => appRssiParam_o.chksumEn(0)
    );
    
-   SyncFifo_OUT4 : entity work.SynchronizerFifo
+   Sync_OUT4 : entity work.Synchronizer
+   generic map (
+      TPD_G        => TPD_G
+   )
+    port map (
+      dataIn    => r.control(4),
+      clk       => devClk_i,
+      dataOut   => injectFault_o
+   );
+   
+   SyncFifo_OUT5 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -360,7 +374,7 @@ begin
       dout   => initSeqN_o
    );
    
-   SyncFifo_OUT5 : entity work.SynchronizerFifo
+   SyncFifo_OUT6 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 4
@@ -372,7 +386,7 @@ begin
       dout   => appRssiParam_o.version
    );
    
-   SyncFifo_OUT6 : entity work.SynchronizerFifo
+   SyncFifo_OUT7 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -384,7 +398,7 @@ begin
       dout   => appRssiParam_o.maxOutsSeg
    );
    
-   SyncFifo_OUT7 : entity work.SynchronizerFifo
+   SyncFifo_OUT8 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -396,7 +410,7 @@ begin
       dout   => appRssiParam_o.maxSegSize
    );
    
-   SyncFifo_OUT8 : entity work.SynchronizerFifo
+   SyncFifo_OUT9 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -408,7 +422,7 @@ begin
       dout   => appRssiParam_o.retransTout
    );
    
-   SyncFifo_OUT9 : entity work.SynchronizerFifo
+   SyncFifo_OUT10 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -420,7 +434,7 @@ begin
       dout   => appRssiParam_o.cumulAckTout
    );
    
-   SyncFifo_OUT10 : entity work.SynchronizerFifo
+   SyncFifo_OUT11 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 16
@@ -432,7 +446,7 @@ begin
       dout   => appRssiParam_o.nullSegTout
    );
    
-   SyncFifo_OUT11 : entity work.SynchronizerFifo
+   SyncFifo_OUT12 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -444,7 +458,7 @@ begin
       dout   => appRssiParam_o.maxRetrans
    );
    
-   SyncFifo_OUT12 : entity work.SynchronizerFifo
+   SyncFifo_OUT13 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -456,7 +470,7 @@ begin
       dout   => appRssiParam_o.maxCumAck
    );
    
-   SyncFifo_OUT13 : entity work.SynchronizerFifo
+   SyncFifo_OUT14 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 8
@@ -468,7 +482,7 @@ begin
       dout   => appRssiParam_o.maxOutofseq
    );
     
-   SyncFifo_OUT14 : entity work.SynchronizerFifo
+   SyncFifo_OUT15 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       DATA_WIDTH_G => 32

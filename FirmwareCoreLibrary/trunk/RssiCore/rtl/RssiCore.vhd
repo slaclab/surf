@@ -49,12 +49,12 @@ entity RssiCore is
       
       -- Version and connection ID
       INIT_SEQ_N_G: natural  := 16#80#;
-      CONN_ID_G   : positive := 1385;
+      CONN_ID_G   : positive := 16#12345678#;
       VERSION_G   : positive := 1;
       HEADER_CHKSUM_EN_G : boolean  := true;
       
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G  : positive := 8;
+      MAX_NUM_OUTS_SEG_G  : positive := 8; --   <=(2**WINDOW_ADDR_SIZE_G)
       MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C; -- Number of bytes
 
       -- RSSI Timeouts
@@ -77,6 +77,7 @@ entity RssiCore is
       -- High level  Application side interface
       openRq_i   : in  sl;
       closeRq_i  : in  sl;
+      inject_i   : in  sl:='0';
 
       -- SSI Application side
       sAppAxisMaster_i : in  AxiStreamMasterType;
@@ -225,7 +226,11 @@ architecture rtl of RssiCore is
    signal s_openRq  : sl;
    signal s_intCloseRq : sl;
    signal s_txAckF : sl;
-  
+   
+   -- Fault injection
+   signal s_injectFaultReg : sl;
+   signal s_injectFault : sl;
+   
    -- Axi Lite registers
    signal s_openRqReg       : sl;
    signal s_closeRqReg      : sl;
@@ -268,12 +273,15 @@ begin
       mode_o         => s_modeReg,       
       initSeqN_o     => s_initSeqNReg,
       appRssiParam_o => s_appRssiParamReg,
+      injectFault_o  => s_injectFaultReg,
       
       -- Status
       status_i       => s_statusReg,
       dropCnt_i      => s_dropCntReg,
       validCnt_i     => s_validCntReg      
    );   
+   
+   s_injectFault <= s_injectFaultReg or inject_i;
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -524,6 +532,7 @@ begin
       rst_i          => rst_i,
       connActive_i   => s_connActive,
       closed_i       => s_closed,
+      injectFault_i  => s_injectFault,
       
       sndSyn_i       => s_sndSyn,
       sndAck_i       => s_sndAck,
