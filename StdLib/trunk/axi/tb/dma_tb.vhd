@@ -62,8 +62,10 @@ architecture dma_tb of dma_tb is
    );
 
    constant AXI_CONFIG_C : AxiConfigType := (
+      ADDR_WIDTH_C => 32,
       DATA_BYTES_C => 8,
       ID_BITS_C    => 8
+      LEN_BITS_C => 4
    );
 
 begin
