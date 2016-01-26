@@ -114,7 +114,7 @@ begin
          case addrInt is
             when 16#00# =>
                v.headerData := "1" & r.ack & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
-                               r.txSeqN & r.rxAckN                                  &
+                               txSeqN_i & r.rxAckN                                  &
                                headerValues_i.version & '1' & headerValues_i.chksumEn & "00" & headerValues_i.maxOutsSeg &       
                                headerValues_i.maxSegSize;
                v.rdy := '1';
@@ -140,7 +140,7 @@ begin
              
             when 16#00# =>
                v.headerData := "00010000" & toSlv(RST_HEADER_SIZE_G, 8) &
-                              r.txSeqN & r.rxAckN                      &
+                              txSeqN_i & r.rxAckN                      &
                               x"00" & x"00"                            &  -- Reserved
                               x"00" & x"00";                              -- Place for checksum
                v.rdy := '1';
@@ -153,7 +153,7 @@ begin
          case addrInt is
             when 16#00# =>
                v.headerData := "0" & r.ack & "000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
-                               r.txSeqN & r.rxAckN                       &
+                               txSeqN_i & r.rxAckN                       &
                                x"00" & x"00"                             &  -- Reserved
                                x"00" & x"00";                               -- Place for checksum
                v.rdy := '1';
@@ -166,7 +166,7 @@ begin
          case addrInt is
             when 16#00# =>
                v.headerData := "01000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
-                               r.txSeqN & r.rxAckN                       &
+                               txSeqN_i & r.rxAckN                       &
                                x"00" & x"00"                             &  -- Reserved
                                x"00" & x"00";                               -- Place for checksum
                v.rdy := '1';
@@ -181,7 +181,7 @@ begin
          case addrInt is
             when 16#00# =>
                v.headerData :="0" & r.ack & "001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
-                              r.txSeqN & r.rxAckN                       &
+                              txSeqN_i & r.rxAckN                       &
                               x"00" & x"00"                             &  -- Reserved
                               x"00" & x"00";                               -- Place for checksum
                v.rdy := '1';
@@ -194,7 +194,7 @@ begin
      --       when 16#00# =>
      --         v.headerData := "01100000" & toSlv(EACK_HEADER_SIZE_G+r.eackN, 8);
      --       when 16#01# =>
-     --         v.headerData := r.txSeqN & r.rxAckN;
+     --         v.headerData := txSeqN_i & r.rxAckN;
      --       when 16#02# to (2+MAX_OUT_OF_ORDER_G-1) =>
      --         v.headerData := r.eackSeqnArr(addrInt-2);
      --       when others =>

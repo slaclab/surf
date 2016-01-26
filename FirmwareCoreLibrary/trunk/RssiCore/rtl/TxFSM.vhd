@@ -45,8 +45,11 @@ entity TxFSM is
       
       -- Connection FSM indicating active connection
       connActive_i   : in  sl;
-      -- Connection request
+      -- Closed state in connFSM (initialize seqN)
       closed_i    : in  sl;
+      
+      -- Fault injection corrupts header checksum      
+      injectFault_i : in  sl;
       
       -- Various segment requests
       sndSyn_i        : in  sl;
@@ -225,7 +228,11 @@ architecture rtl of TxFSM is
       buffWe   : sl;
       buffSent : sl;
       chkEn    : sl;
-      chkStb    : sl;
+      chkStb   : sl;
+      
+      -- Fault injection
+      injectFaultD1  : sl;
+      injectFaultReg : sl;
       
       -- SSI master
       tspSsiMaster      : SsiMasterType;
@@ -292,6 +299,10 @@ architecture rtl of TxFSM is
       chkEn    => '0',
       chkStb   => '0',
       
+      -- Fault injection
+      injectFaultD1  => '0',
+      injectFaultReg => '0',
+      
       -- SSI master 
       tspSsiMaster   => SSI_MASTER_INIT_C,
       tspSsiSlave    => SSI_SLAVE_NOTRDY_C,
@@ -311,7 +322,7 @@ begin
    
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
-                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, s_chksum, rdBuffData_i, chksumValid_i, headerLength_i) is
+                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, s_chksum, rdBuffData_i, chksumValid_i, headerLength_i, injectFault_i) is
       
       variable v : RegType;
 
@@ -683,6 +694,19 @@ begin
       ------------------------------------------------------------
       -- /////////////////////////////////////////////////////////       
       
+      -- ///////////////////////////////////////////////////////// 
+      ------------------------------------------------------------
+      -- Arm fault injection on rising edge of injectFault_i
+      ------------------------------------------------------------
+      -- /// //////////////////////////////////////////////////////  
+      v.injectFaultD1 := injectFault_i;
+      
+      if (injectFault_i = '1' and r.injectFaultD1 = '0') then
+         v.injectFaultReg := '1';
+      else
+         v.injectFaultReg := r.injectFaultReg;
+      end if;
+      
       
       -- ///////////////////////////////////////////////////////// 
       ------------------------------------------------------------
@@ -902,8 +926,17 @@ begin
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
-                
+               
+               -- Inject fault into checksum
+               if (r.injectFaultReg = '1') then
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum xor (s_chksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+               else
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add checksum to last two bytes
+               end if;
+               
+               -- Set the fault reg to 0
+               v.injectFaultReg := '0';
+               
                --                
                if  connActive_i = '0' then          
                   v.tspState   := DISS_CONN_S; 
@@ -1066,7 +1099,16 @@ begin
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
+               
+               -- Inject fault into checksum
+               if (r.injectFaultReg = '1') then
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum xor (s_chksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+               else
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add checksum to last two bytes
+               end if;
+               
+               -- Set the fault reg to 0
+               v.injectFaultReg := '0';
                
                -- Increment seqN
                v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
@@ -1148,7 +1190,16 @@ begin
                v.tspSsiMaster.eof    := '0';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
+               
+               -- Inject fault into checksum
+               if (r.injectFaultReg = '1') then
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum xor (s_chksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+               else
+                  v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add checksum to last two bytes
+               end if;
+               
+               -- Set the fault reg to 0
+               v.injectFaultReg := '0';
 
                v.tspState := DATA_S;
                --

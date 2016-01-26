@@ -48,6 +48,7 @@ architecture testbed of RssiCoreTb is
    -- RSSI 0   
    signal   connRq0_i     : sl := '0';
    signal   closeRq0_i    : sl := '0';
+   signal   inject0_i     : sl := '0';
    
    signal   sAppAxisMaster0      : AxiStreamMasterType;
    signal   sAppAxisSlave0       : AxiStreamSlaveType;
@@ -62,6 +63,7 @@ architecture testbed of RssiCoreTb is
    -- RSSI 1
    signal   connRq1_i     : sl := '0';
    signal   closeRq1_i    : sl := '0';
+   signal   inject1_i     : sl := '0';
 
    signal   sAppAxisMaster1      : AxiStreamMasterType;
    signal   sAppAxisSlave1       : AxiStreamSlaveType;
@@ -105,7 +107,8 @@ begin
       clk_i       => clk_i,
       rst_i       => rst_i,
       openRq_i    => connRq0_i, 
-      closeRq_i   => closeRq0_i,      
+      closeRq_i   => closeRq0_i,
+      inject_i    => inject0_i,
       -- 
       sAppAxisMaster_i => sAppAxisMaster0, -- prbs tx
       sAppAxisSlave_o  => sAppAxisSlave0,  -- prbs tx
@@ -141,7 +144,8 @@ begin
       rst_i       => rst_i,
       openRq_i    => connRq1_i, 
       closeRq_i   => closeRq1_i,
-           
+      inject_i    => inject1_i,
+      
       -- 
       sAppAxisMaster_i => sAppAxisMaster1, -- Loopback
       sAppAxisSlave_o  => sAppAxisSlave1,  -- Loopback
@@ -190,7 +194,7 @@ begin
       locClk          => clk_i,
       locRst          => s_prbsRst,
       trig            => s_trig,
-      packetLength    => X"0000_00ff",
+      packetLength    => X"0000_002f",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
@@ -314,24 +318,63 @@ begin
       
       
       -------------------------------------------------------
-      wait for CLK_PERIOD_C*50000;
+      wait for CLK_PERIOD_C*10000;
       -- Stop PRBS
       s_trig <= '0';
       -------------------------------------------------------     
       
       
       -------------------------------------------------------
-      wait for CLK_PERIOD_C*50000;
+      wait for CLK_PERIOD_C*10000;
       -- Stop PRBS
       s_trig <= '1';
       -------------------------------------------------------
       
-      
-      wait for CLK_PERIOD_C*100000;
+      wait for CLK_PERIOD_C*10000;
       connRq1_i <= '0'; 
-      connRq0_i <= '0'; 
-       
-       
+      connRq0_i <= '0';       
+            
+      -------------------------------------------------------
+      -- Inject fault into RSSI0
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject0_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject0_i <= '0';
+
+      -------------------------------------------------------
+      -- Inject fault into RSSI1
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject1_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject1_i <= '0';
+      
+      -------------------------------------------------------
+      -- Inject fault into RSSI0
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject0_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject0_i <= '0';
+
+      -------------------------------------------------------
+      -- Inject fault into RSSI1
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject1_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject1_i <= '0';
+      
+      
+      
+      
+      ------------------------------------------------------
+
       wait;
    ------------------------------
    end process StimuliProcess;   
