@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2015-09-30
+-- Last update: 2016-01-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -65,7 +65,8 @@ architecture rtl of AxiMemTester is
    constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
    constant DATA_BITS_C : natural := 8*AXI_CONFIG_G.DATA_BYTES_C;
-   constant BURST_LEN_C : natural := (BURST_LEN_G/AXI_CONFIG_G.DATA_BYTES_C);  -- 4kB boundary
+   constant AXI_LEN_C : slv(7 downto 0) := getAxiLen(BURST_LEN_G, AXI_CONFIG_G);
+   
 
    constant PRBS_TAPS_C : NaturalArray       := (0 => 1023, 1 => 257, 2 => 113, 3 => 61, 4 => 29, 5 => 17, 6 => 7);
    constant PRBS_SEED_C : slv(1023 downto 0) := x"AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55";
@@ -90,7 +91,7 @@ architecture rtl of AxiMemTester is
       rTimerEn       : sl;
       wTimer         : slv(31 downto 0);
       rTimer         : slv(31 downto 0);
-      len            : natural range 0 to BURST_LEN_C;
+      len : slv(7 downto 0);
       address        : slv(63 downto 0);
       randomData     : slv(1023 downto 0);
       state          : StateType;
@@ -108,7 +109,7 @@ architecture rtl of AxiMemTester is
       rTimerEn       => '0',
       wTimer         => (others => '0'),
       rTimer         => (others => '0'),
-      len            => 0,
+      len => AXI_LEN_C,
       address        => (others => '0'),
       randomData     => PRBS_SEED_C,
       state          => IDLE_S,
@@ -206,11 +207,11 @@ begin
                -- Generate next random word
                v.randomData                                   := lfsrShift(r.randomData, PRBS_TAPS_C);
                -- Increment the counter
-               v.len                                          := r.len + 1;
-               -- Check the counter size
-               if r.len = BURST_LEN_C-1 then
+               v.len                                          := r.len - 1;
+               -- Check that all txns are done
+               if r.len = 0 then
                   -- Reset the counter
-                  v.len                  := 0;
+                  v.len                  := AXI_LEN_C;
                   -- Set the flag
                   v.axiWriteMaster.wlast := '1';
                   -- Next State
@@ -315,7 +316,7 @@ begin
 
       -- Write Address Constants      
       v.axiWriteMaster.awid    := (others => '0');
-      v.axiWriteMaster.awlen   := toSlv(BURST_LEN_C-1, 8);
+      v.axiWriteMaster.awlen   := AXI_LEN_C;
       v.axiWriteMaster.awsize  := toSlv(log2(AXI_CONFIG_G.DATA_BYTES_C), 3);
       v.axiWriteMaster.awburst := "01";    -- Burst type = "INCR"
       v.axiWriteMaster.awlock  := (others => '0');

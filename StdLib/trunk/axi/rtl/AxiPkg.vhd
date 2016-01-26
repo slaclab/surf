@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2015-12-16
+-- Last update: 2016-01-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -182,6 +182,13 @@ package AxiPkg is
 
    function ite(i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType;
 
+   -- Calculate number of txns in a burst based on number of bytes and bus configuration
+   -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
+   function getAxiLen (
+      burstBytes : integer range 1 to 4096;
+      axiConfig  : AxiConfigType)
+      return slv;
+
 end package AxiPkg;
 
 package body AxiPkg is
@@ -190,5 +197,18 @@ package body AxiPkg is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
+
+   function getAxiLen (
+      burstBytes : integer range 1 to 4096;
+      axiConfig  : AxiConfigType)
+      return slv   is
+   begin
+      -- burstBytes / data bytes width is number of txns required.
+      -- Subtract by 1 for A*LEN value.
+      -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
+      -- This limits number of txns approraiately based on size of len port
+      -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
+      return resize(toSlv(burstBytes/axiConfig.DATA_BYTES_C-1, axiConfig.LEN_BITS_C), 8);
+   end function getAxiLen;
 
 end package body AxiPkg;
