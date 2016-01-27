@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2015-11-24
+-- Last update: 2016-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -182,6 +182,10 @@ begin
       v.axiWrEn := '0';
       v.axiRdEn := r.axiRdEn(0) & '0';
 
+      -- This call overwrites v.axiReadSlave.rdata with zero, so call it at the top.
+      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+
+      -- Assign axiReadSlave.rdata and axiWrData
       if (DATA_WIDTH_G <= 32) then
          v.axiReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axiDout;
          v.axiWrData                                   := axiWriteMaster.wdata(DATA_WIDTH_G-1 downto 0);
@@ -198,8 +202,6 @@ begin
             v.axiWrData(DATA_WIDTH_G-1 downto 32) := axiWriteMaster.wdata(DATA_WIDTH_G-32-1 downto 0);
          end if;
       end if;      
-
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       if (axiStatus.writeEnable = '1') then
          v.axiAddr := axiWriteMaster.awaddr(ADDR_WIDTH_G+AXI_ADDR_LOW_C-1 downto AXI_ADDR_LOW_C);
