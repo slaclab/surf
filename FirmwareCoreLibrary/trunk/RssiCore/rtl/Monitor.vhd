@@ -1,15 +1,24 @@
 -------------------------------------------------------------------------------
--- Title      : Handles RSSI counters, timeouts, and statuses.
+-- Title      : Monitor module
 -------------------------------------------------------------------------------
 -- File       : Monitor.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2015-08-09
+-- Last update: 2016-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
+--  Handles RSSI counters, timeouts, and statuses:
+--  - Re-transmission timeout and request,
+--  - NULL segment transmission (Client),
+--  - NULL timeout detection (Server),
+--  - Acknowledgment timeout and request,
+--  - Valid segment counter,
+--  - Dropped segment counter.   
+-- 
+--  Status register:
 --    statusReg_o(0) : Connection Active          
 --    statusReg_o(1) : Maximum retransmissions exceeded r.retransMax and
 --    statusReg_o(2) : Null timeout reached (server) r.nullTout;
