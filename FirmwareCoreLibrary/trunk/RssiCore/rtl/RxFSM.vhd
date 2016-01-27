@@ -67,10 +67,7 @@ entity RxFSM is
       
       -- Last acknowledged Sequence number connected to TX module
       lastAckN_i   : in slv(7 downto 0);
-      
-      -- Initial seQn seqN
-      initAckN_i   : in slv(7 downto 0);
-      
+           
       -- Current received seqN
       rxSeqN_o     : out slv(7 downto 0);
 
@@ -264,7 +261,7 @@ begin
    
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, chksumValid_i, s_chksumOk, rxWindowSize_i, lastAckN_i, rxBufferSize_i,
-                  txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i, initAckN_i) is
+                  txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i) is
       
       variable v : RegType;
 
@@ -362,7 +359,7 @@ begin
                v.rxParam.maxSegSize := r.tspSsiMaster.data (15 downto 0);
                
                --
-               if (v.rxF.ack = '1' and v.rxAckN /= initAckN_i) then
+               if (v.rxF.ack = '1' and v.rxAckN /= lastAckN_i) then
                   -- Acknowledgment not valid
                   v.tspState    := DROP_S;
                else

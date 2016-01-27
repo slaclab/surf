@@ -21,7 +21,7 @@
 --                   - Release appBusy flag and go back to INIT.
 --              Acknowledgment FSM.
 --                   - IDLE Waits for ack_i (ack request) and ackN_i(ack number)(from RxFSM),
---                   - Increments lastAckSeqN until the ackN_i is found in Window buffer,
+--                   - Increments firstUnackAddr until the ackN_i is found in Window buffer,
 --                   - If it does not find the SEQ number it reports Ack Error,
 --                   - Goes back to IDLE.
 --              Transport side FSM. Send and resend various segments to Transport side.

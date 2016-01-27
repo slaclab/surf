@@ -651,7 +651,6 @@ begin
       rxBufferSize_i => s_rxBufferSize,
       txWindowSize_i => s_txWindowSize,
       lastAckN_i     => s_rxLastAckN,--
-      initAckN_i     => s_initSeqN,
       rxSeqN_o       => s_rxSeqN,
       rxLastSeqN_o   => s_rxLastSeqN,
       rxAckN_o       => s_rxAckN,
