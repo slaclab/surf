@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Connection and parameter negotiation.
+-- Title      : Connection FSM and parameter negotiation.
 -------------------------------------------------------------------------------
 -- File       : ConnFSM.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -9,8 +9,8 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Calculates and checks the RUDP packet checksum.
---              Checksum for IP/UDP/TCP/RUDP.       
+-- Description: 
+--                     
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

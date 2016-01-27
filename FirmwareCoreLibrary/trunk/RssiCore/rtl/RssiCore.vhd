@@ -1,16 +1,26 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : Reliable SSI top module
 -------------------------------------------------------------------------------
 -- File       : RssiCore.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2015-08-09
+-- Last update: 2016-01-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
---                     
+-- Description: The module is based upon RUDP (Cisco implementation) RFC-908, RFC-1151, draft-ietf-sigtran-reliable-udp-00.
+--              The specifications in the drafts are modified by internal simplifications and improvements.
+--              
+--              Interfaces to transport and application side through AxiStream ports
+--              The AxiStream IO port widths can be adjusted (AxiStream FIFOs added to IO)
+--              Optional AxiLite Register interface. More info on registers is in RssiAxiLiteRegItf.vhd
+--              The module can act as Server or Client:
+--                 - Server: - Passively listens for connection request from client,
+--                           - Monitors connection activity NULL segment timeouts
+--                 - Client: - Actively requests connection
+--                           - Sends NULL packages if there is no incoming data
+--               
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -242,7 +252,6 @@ architecture rtl of RssiCore is
    signal s_statusReg       : slv(statusReg_o'range);   
    signal s_dropCntReg      : slv(31 downto 0);
    signal s_validCntReg     : slv(31 downto 0);
-   
 
 ----------------------------------------------------------------------
 begin

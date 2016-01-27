@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : Receiver FSM
 -------------------------------------------------------------------------------
 -- File       : RxFSM.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -9,8 +9,31 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
---             
+-- Description: Receiver has the following functionality:
+--              Transport side FSM. Receive check and save segments to RX buffer.
+--               - WAIT_SOF Waits for Transport side SOF,  
+--               - CHECK Determines the segment type and checks:
+--                    ACK, NULL, DATA, or RST segment
+--                    1. Validates checksum (when valid), 
+--                    2. Header length (number of bytes), 
+--                    3. Sequence number (Only current seqN or lastSeqN+1 allowed)
+--                    4. Acknowledgment number (Valid range is lastAckN to lastAckN + txWindowSize)
+--               - CHECK_SYN Toggles through SYN header addresses and saves the RSSI parameters
+--                    Checks the following:
+--                    1. Validates checksum (when valid), 
+--                    2. Validates Ack number if the ack is sent with the SYN segment
+--               - DATA Receives the payload part of the DATA segment
+--               - VALID Checks if next valid SEQn is received. If yes:
+--                      1. increment the in order SEQn
+--                      2. save seqN, type, and occupied to the window buffer at current rxBufferAddr
+--                      3. increment rxBufferAddr
+--               - DROP Just report dropped packet and got back to WAIT_SOF
+--              Receiver side FSM. Send data to App side.
+--                - CHECK_BUFFER and DATA Send the data frame to the Application  
+--                  when the data at the next txSegmentAddr is ready.
+--                - SENT Release the windowbuffer at txBufferAddr. 
+--                       Increment txBufferAddr. 
+--                       Register the received SeqN for acknowledgment.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -498,15 +521,7 @@ begin
             v.segmentWe:= '0';
             --
             v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
-            
-            -- If the same Ack is received again do not ack
-            --if (r.rxAckN = lastAckN_i and connActive_i = '1') then
-            --   v.rxF.ack  := '0';
-            --else
-            --   v.rxF.ack  := r.rxF.ack;
-            --end if;
-
-            
+                        
             -- Initialize when valid SYN segment received
             -- 1. Set the initial SeqN
             -- 2. Initialize the buffer address
@@ -601,6 +616,7 @@ begin
             if connActive_i = '0' then
                v.txBufferAddr  := (others => '0');
                v.rxLastSeqN    := r.inOrderSeqN;
+            -- Data segment in buffer got to DATA_S
             elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' and
                    r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001" --and   -- Data segment type
                    --r.txSegmentAddr = 0  -- Wait one c-c for address to be applied and data ready             
@@ -621,8 +637,8 @@ begin
 
                   v.appState  := DATA_S;              
                end if;
-               
-            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' -- None data segment type
+            -- None data segment type  (Go directly to SENT_S) 
+            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1'
             ) then   
                --
                v.txBufferAddr  := r.txBufferAddr;

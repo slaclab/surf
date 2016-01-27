@@ -9,8 +9,11 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Combines and decodes the header values
---    TODO Remove the commented out EACK stuff if argument accepted                 
+-- Description: Combines and decodes the header values from input parameters headerValues_i
+--              Header is selected by xxxHeadSt_i and addressed by addr_i
+--              Outputs the addressed headerData_o and headerLength_o values with 1 Clock Cycle delay
+--              Outputs (oth=>'0')If no header is addressed
+--              
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
