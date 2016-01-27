@@ -600,7 +600,7 @@ package body AxiLitePkg is
       elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity error;
       else
-         print(debug, "AxiLitePkg::axiLiteBusSimWrite( addr:" & hstr(addr) & ", data: " & hstr(data) & ")");
+         print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(data) & ")");
       end if;
 
    end procedure axiLiteBusSimWrite;

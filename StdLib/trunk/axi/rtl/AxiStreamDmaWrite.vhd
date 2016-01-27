@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-01-25
+-- Last update: 2016-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ begin
                v.state := S_IDLE_C;
 
             -- There is enough room in the FIFO for a burst and address is ready
-            elsif selPause = '0' and axiWriteSlave.awready = '1' and intAxisMaster.tValid = '1' then
+            elsif selPause = '0' and  intAxisMaster.tValid = '1' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
@@ -300,7 +300,13 @@ begin
 
          -- Last Trasfer Of A Burst Data
          when S_LAST_C =>
-            if selReady = '1' then
+            -- Unlikely, but might still be waiting on address ack here
+            v.wMaster.awvalid := r.wMaster.awvalid;
+            if axiWriteSlave.awready = '1' then
+               v.wMaster.awvalid := '0';
+            end if;
+            
+            if selReady = '1' and r.wMaster.awvalid = '0' then
                if r.last = '1' then
                   v.state := S_WAIT_C;
                elsif r.dmaAck.overflow = '1' or r.dmaAck.writeError = '1' then
