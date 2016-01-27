@@ -5,12 +5,14 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2015-08-09
+-- Last update: 2016-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
---                     
+-- Description: Connection establishment mechanism:
+--                - Connection open/close request,
+--                - Parameter negotiation,
+--                - Server-client mode (More comments below).           
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -163,7 +165,7 @@ begin
  -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Connection FSM
-      -- Synchronisation and parameter negotiation
+      -- Synchronization and parameter negotiation
       ------------------------------------------------------------
       -- /////////////////////////////////////////////////////////
       
@@ -184,8 +186,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          -- Client
-         -- 
-         --         
+         --  Actively open connection 
+         --  Propose parameters
+         --  Accept parameters from server or close connection         
          ----------------------------------------------------------------------         
          when SEND_SYN_S =>
             
@@ -260,8 +263,10 @@ begin
                         
          ----------------------------------------------------------------------
          -- Server
-         -- 
-         --         
+         --  Passively open connection. Go to listen state and wait for SYN.
+         --  Check clients parameters:
+         --         If valid accept parameters,
+         --         If not valid propose new parameters.
          ----------------------------------------------------------------------      
           when LISTEN_S =>
             --
