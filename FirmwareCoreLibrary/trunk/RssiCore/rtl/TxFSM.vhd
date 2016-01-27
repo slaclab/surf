@@ -1,16 +1,37 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : Transmitter FSM
 -------------------------------------------------------------------------------
 -- File       : TxFSM.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2015-08-09
+-- Last update: 2015-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
---             
+-- Description: Transmitter has the following functionality:
+--              Handle buffer addresses and buffer window (firstUnackAddr,nextSentAddr,lastSentAddr, bufferFull, bufferEmpty)
+--              Application side FSM. Receive SSI frame and store into TX data buffer.
+--                   - IDLE Waits until buffer window is free (not bufferFull),
+--                   - Waits for Application side SOF,
+--                   - Save the segment to Rx buffer at nextSentAddr. Disable sending of NULL segments with appBusy flag,
+--                   - When EOF received save segment length and keep flags. Check length error,
+--                   - Request data send at Transport side FSM and increment nextSentAddr
+--                   - Wait until the data is processed and data segment sent by Transport side FSM
+--                   - Release appBusy flag and go back to INIT.
+--              Acknowledgment FSM.
+--                   - IDLE Waits for ack_i (ack request) and ackN_i(ack number)(from RxFSM),
+--                   - Increments lastAckSeqN until the ackN_i is found in Window buffer,
+--                   - If it does not find the SEQ number it reports Ack Error,
+--                   - Goes back to IDLE.
+--              Transport side FSM. Send and resend various segments to Transport side.
+--                   - INIT Initializes seqN to initSeqN. Waits until new connection requested. ConnFSM goin out od Closed state.
+--                   - DISS_CONN allows sending SYN, ACK, or RST segments. Goes to CONN when connection becomes active.
+--                   - CONN allows sending DATA, NULL, ACK, or RST segments.
+--                     In Resend procedure the FSM resends all the unacknowledged (DATA, NULL, RST) segments in the buffer window. 
+--              
+--              Note:Sequence number is incremented with sending SYN, DATA, NULL, and RST segments.
+--              Note:Only the following segments are saved into Tx buffer DATA, NULL, and RST.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -335,7 +356,6 @@ begin
       ------------------------------------------------------------   
       -- /////////////////////////////////////////////////////////
       
-      
       ------------------------------------------------------------
       -- Buffer full if next slot is occupied
       if ( r.windowArray(conv_integer(r.nextSentAddr)).occupied = '1') then
@@ -353,7 +373,7 @@ begin
       end if;
       
       ------------------------------------------------------------
-      -- Write seqN and type to window array
+      -- Write seqN and segment type to window array
       ------------------------------------------------------------
       if (r.buffWe = '1') then
          v.windowArray(conv_integer(r.nextSentAddr)).seqN    := r.nextSeqN;
@@ -385,7 +405,7 @@ begin
       ------------------------------------------------------------
       -- ACK FSM
       -- Acknowledgment mechanism to increment firstUnackAddr
-      -- Place out of order flags from EACK table
+      -- Place out of order flags from EACK table (Not in Version 1)
       ------------------------------------------------------------
       -- /////////////////////////////////////////////////////////
       
@@ -399,9 +419,8 @@ begin
             --v.eackAddr       := r.firstUnackAddr;
             --v.eackIndex      := 0;
             v.ackErr         := '0';
-            
-            
-            -- Next state condition (TODO consider adding re_i = '0' if read should have priority)          
+
+            -- Next state condition          
             if (ack_i = '1') then
                v.ackState    := ACK_S;
             end if;
@@ -567,9 +586,6 @@ begin
                v.rxSegmentWe   := '1';
                            
                v.appState    := SEG_RCV_S;
-               
-
-
             end if;
          ----------------------------------------------------------------------
          when SEG_RCV_S =>

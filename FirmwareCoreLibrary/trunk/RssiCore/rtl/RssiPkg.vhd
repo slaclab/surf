@@ -9,7 +9,7 @@ package RssiPkg is
 
 -- Common constant definitions
 --------------------------------------------------------------------------
-constant SEGMENT_ADDR_SIZE_C      : positive := 5;     -- 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
+constant SEGMENT_ADDR_SIZE_C      : positive := 7;     -- 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
 constant RSSI_WORD_WIDTH_C        : positive := 8;     -- 64 bit word (FIXED)
 constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C);
 
