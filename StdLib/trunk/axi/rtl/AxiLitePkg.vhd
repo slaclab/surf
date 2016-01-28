@@ -173,6 +173,18 @@ package AxiLitePkg is
       writeEnable => '0',
       readEnable  => '0');
 
+   --------------------------------------------------------
+   -- AXI bus, read/write endpoint record, RTH 1/27/2016
+   --------------------------------------------------------
+   type AxiLiteEndpointType is record
+      axiReadMaster  : AxiLiteReadMasterType;
+      axiReadSlave   : AxiLiteReadSlaveType;
+      axiWriteMaster : AxiLiteWriteMasterType;
+      axiWriteSlave  : AxiLiteWriteSlaveType;
+      axiStatus      : AxiLiteStatusType;
+   end record AxiLiteEndpointType;
+
+
    -------------------------------------------------------------------------------------------------
    -- Crossbar Config Generic Types
    -------------------------------------------------------------------------------------------------
@@ -273,6 +285,48 @@ package AxiLitePkg is
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
       variable axiStatus     : in    AxiLiteStatusType;
       axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
+
+
+   -------------------------------------------------------------------------------------------------
+   -- Simplified Address decode procedures, RTH 1/27/2016
+   -------------------------------------------------------------------------------------------------
+   procedure axiSlaveWaitTxn (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      signal   axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal   axiReadMaster   : in    AxiLiteReadMasterType);
+
+   procedure axiSlaveRegister   (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : inout slv;
+      constVal                 : in    slv     := "X");
+
+   procedure axiSlaveRegisterR (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : in    slv);
+
+   procedure axiSlaveRegister   (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : inout sl;
+      constVal                 : in    sl      := 'X');
+
+   procedure axiSlaveRegisterR (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : in    sl);
+
+   procedure axiSlaveDefault (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      variable axiWriteSlave   : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave    : inout AxiLiteReadSlaveType;
+      axiResp                  : in    slv(1 downto 0) := AXI_RESP_OK_C);
+
 
    -------------------------------------------------------------------------------------------------
    -- Slave AXI Processing functions
@@ -525,6 +579,109 @@ package body AxiLitePkg is
          axiSlaveReadResponse(axiReadSlave, axiResp);
       end if;
    end procedure;
+
+   -------------------------------------------------------------------------------------------------
+   -- Simplified Address decode procedures, RTH 1/27/2016
+   -------------------------------------------------------------------------------------------------
+   procedure axiSlaveWaitTxn (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      signal   axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal   axiReadMaster   : in    AxiLiteReadMasterType) is
+   begin
+      axiLiteEndPoint.axiWriteMaster := axiWriteMaster;
+      axiLiteEndPoint.axiReadMaster  := axiReadMaster;
+      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, 
+                      axiLiteEndPoint.axiWriteSlave, axiLiteEndPoint.axiReadSlave, 
+                      axiLiteEndPoint.axiStatus);
+   end procedure;
+
+   procedure axiSlaveRegister   (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : inout slv;
+      constVal                 : in    slv := "X") is
+   begin
+      -- Read must come first so as not to overwrite the variable if read and write happen at once
+      if (axiLiteEndPoint.axiStatus.readEnable = '1') then
+         if (std_match(axiLiteEndPoint.axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
+            axiLiteEndPoint.axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
+            axiSlaveReadResponse(axiLiteEndPoint.axiReadSlave);
+         end if;
+      end if;
+
+      if (axiLiteEndPoint.axiStatus.writeEnable = '1') then
+         if (std_match(axiLiteEndPoint.axiWriteMaster.awaddr(addr'length-1 downto 0), addr)) then
+            if (constVal /= "X") then
+               reg := constVal;
+            else
+               reg := axiLiteEndPoint.axiWriteMaster.wdata(offset+reg'length-1 downto offset);
+            end if;
+            axiSlaveWriteResponse(axiLiteEndPoint.axiWriteSlave);
+         end if;
+      end if;
+
+   end procedure;
+
+   procedure axiSlaveRegisterR (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : in    slv) is
+   begin
+      if (axiLiteEndPoint.axiStatus.readEnable = '1') then
+         if (std_match(axiLiteEndPoint.axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
+            axiLiteEndPoint.axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
+            axiSlaveReadResponse(axiLiteEndPoint.axiReadSlave);
+         end if;
+      end if;
+   end procedure;
+
+   procedure axiSlaveRegister   (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : inout sl;
+      constVal                 : in    sl := 'X')
+   is
+      variable tmpReg : slv(0 downto 0);
+      variable tmpVal : slv(0 downto 0);
+   begin
+      tmpReg(0) := reg;
+      tmpVal(0) := constVal;
+      axiSlaveRegister(axiLiteEndPoint, addr, offset, tmpReg, tmpVal);
+      reg       := tmpReg(0);
+   end procedure;
+
+   procedure axiSlaveRegisterR (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      addr                     : in    slv;
+      offset                   : in    integer;
+      reg                      : in    sl)
+   is
+      variable tmp : slv(0 downto 0);
+   begin
+      tmp(0) := reg;
+      axiSlaveRegisterR(axiLiteEndPoint, addr, offset, tmp);
+   end procedure;
+
+   procedure axiSlaveDefault (
+      variable axiLiteEndPoint : inout AxiLiteEndpointType;
+      variable axiWriteSlave   : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave    : inout AxiLiteReadSlaveType;
+      axiResp                  : in    slv(1 downto 0) := AXI_RESP_OK_C) is
+   begin
+      if (axiLiteEndPoint.axiStatus.writeEnable = '1' and axiLiteEndPoint.axiWriteSlave.awready = '0') then
+         axiSlaveWriteResponse(axiLiteEndPoint.axiWriteSlave, axiResp);
+      end if;
+
+      if (axiLiteEndPoint.axiStatus.readEnable = '1' and axiLiteEndPoint.axiReadSlave.arready = '0') then
+         axiSlaveReadResponse(axiLiteEndPoint.axiReadSlave, axiResp);
+      end if;
+      axiWriteSlave := axiLiteEndPoint.axiWriteSlave;
+      axiReadSlave  := axiLiteEndPoint.axiReadSlave;
+   end procedure;
+
 
    -------------------------------------------------------------------------------------------------
    -- Slave AXI Processing functions
