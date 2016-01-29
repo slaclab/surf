@@ -444,7 +444,6 @@ package body AxiLitePkg is
       -- Reset rvalid upon rready
       if (axiReadMaster.rready = '1') then
          axiReadSlave.rvalid := '0';
-         axiReadSlave.rdata := (others => '0');
       end if;
    end procedure axiSlaveWaitReadTxn;
 
