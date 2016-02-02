@@ -13,6 +13,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use std.textio.all;
+use work.StdRtlPkg.all;
 
 package TextUtilPkg is
 
@@ -279,16 +280,11 @@ package body TextUtilPkg is
 
    -- converts a std_logic_vector into a hex string.
    function hstr(slv : std_logic_vector) return string is
-      variable hexlen  : integer;
-      variable longslv : std_logic_vector(67 downto 0) := (others => '0');
-      variable hex     : string(1 to 16);
+      constant hexlen  : integer := ite(slv'length mod 4 = 0, slv'length/4, slv'length/4 +1);
+      variable longslv : std_logic_vector(slv'length+3 downto 0) := (others => '0');
+      variable hex     : string(1 to hexlen);
       variable fourbit : std_logic_vector(3 downto 0);
    begin
---      print("HSTR In: " & str(slv));
-      hexlen := (slv'length)/4;
-      if (slv'length) mod 4 /= 0 then
-         hexlen := hexlen + 1;
-      end if;
       longslv(slv'length-1 downto 0) := slv;
       for i in (hexlen -1) downto 0 loop
          fourbit := longslv(((i*4)+3) downto (i*4));

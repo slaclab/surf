@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-01-25
+-- Last update: 2016-02-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -241,9 +241,10 @@ begin
                                          r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
 
                else
-                  v.dmaReq.size := r.dmaReq.size - ite(r.first='1',
-                                                       (toSlv(DATA_BYTES_C,4)-r.shift),
-                                                        toSlv(DATA_BYTES_C,4));
+                  v.dmaReq.size := r.dmaReq.size - DATA_BYTES_C;
+                  if (r.first = '1') then
+                     v.dmaReq.size := v.dmaReq.size - r.shift;
+                  end if;
                end if;
 
                -- Last in transfer

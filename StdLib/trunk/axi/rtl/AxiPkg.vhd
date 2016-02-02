@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-01-26
+-- Last update: 2016-02-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -180,6 +180,12 @@ package AxiPkg is
       ID_BITS_C    => 12,
       LEN_BITS_C   => 4);
 
+   function axiWriteMasterInit (
+      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_BURST_C  : in slv(1 downto 0) := "01";
+      constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
+      return AxiWriteMasterType;
+
    function ite(i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType;
 
    -- Calculate number of txns in a burst based on number of bytes and bus configuration
@@ -193,6 +199,21 @@ end package AxiPkg;
 
 package body AxiPkg is
 
+   function axiWriteMasterInit (
+      constant AXI_CONFIG_C : AxiConfigType;
+      constant AXI_BURST_C : in slv(1 downto 0) := "01";
+      constant AXI_CACHE_C : in slv(3 downto 0) := "1111")
+      return AxiWriteMasterType is
+      variable ret : AxiWriteMasterType;
+   begin
+      ret := AXI_WRITE_MASTER_INIT_C;
+      ret.awsize := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
+      ret.awlen := getAxiLen(4096, AXI_CONFIG_C);
+      ret.awburst := AXI_BURST_C;
+      ret.awcache := AXI_CACHE_C;
+      return ret;
+   end function axiWriteMasterInit;
+
    function ite (i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType is
    begin
       if (i) then return t; else return e; end if;
@@ -201,7 +222,7 @@ package body AxiPkg is
    function getAxiLen (
       burstBytes : integer range 1 to 4096;
       axiConfig  : AxiConfigType)
-      return slv   is
+      return slv is
    begin
       -- burstBytes / data bytes width is number of txns required.
       -- Subtract by 1 for A*LEN value.
