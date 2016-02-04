@@ -1,17 +1,17 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : AXI-Lite Ring Buffer
 -------------------------------------------------------------------------------
 -- File       : AxiLiteRingBuffer.vhd
--- Author     : 
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-11-06
--- Platform   : Vivado 2013.3
+-- Last update: 2016-02-04
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
---
+-- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------
--- This file is part of 'LCLS2 Timing Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
@@ -27,8 +27,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
 entity AxiLiteRingBuffer is
    generic (
@@ -37,55 +35,57 @@ entity AxiLiteRingBuffer is
       BRAM_EN_G        : boolean                     := true;
       REG_EN_G         : boolean                     := true;
       DATA_WIDTH_G     : positive range 1 to 32      := 32;
-      RAM_ADDR_WIDTH_G : positive range 1 to (2**24) := 10);
-
+      RAM_ADDR_WIDTH_G : positive range 1 to (2**24) := 10;
+      AXI_ERROR_RESP_G : slv(1 downto 0)             := AXI_RESP_DECERR_C);
    port (
       -- Data to store in ring buffer
-      dataClk   : in sl;
-      dataRst   : in sl;
-      dataValid : in sl;
-      dataValue : in slv(DATA_WIDTH_G-1 downto 0);
-
-   -- Axi Lite interface for readout
+      dataClk         : in  sl;
+      dataRst         : in  sl := '0';
+      dataValid       : in  sl := '1';
+      dataValue       : in  slv(DATA_WIDTH_G-1 downto 0);
+      dataLogEn       : in  sl := '0';
+      dataLogClr      : in  sl := '0';
+      -- AXI-Lite interface for readout
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-
 end AxiLiteRingBuffer;
 
 architecture rtl of AxiLiteRingBuffer is
 
-   -------------------------------------------------------------------------------------------------
+   ------------------------------
    -- Stream clock domain signals
-   -------------------------------------------------------------------------------------------------
+   ------------------------------
    type DataRegType is record
+      wea       : sl;
       firstAddr : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       nextAddr  : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    end record;
 
    constant DATA_REG_INIT_C : DataRegType := (
+      wea       => '0',
       firstAddr => (others => '0'),
       nextAddr  => (others => '0'));
 
    signal dataR   : DataRegType := DATA_REG_INIT_C;
    signal dataRin : DataRegType;
 
-   signal dataLogEn       : sl;
+   signal dataLogEnable   : sl;
    signal dataBufferClear : sl;
 
-   -------------------------------------------------------------------------------------------------
+   --------------------------------
    -- AXI-Lite clock domain signals
-   -------------------------------------------------------------------------------------------------
+   --------------------------------
    constant AXIL_ADDR_WIDTH_C : integer := RAM_ADDR_WIDTH_G+3;
 
    type AxilRegType is record
       logEn          : sl;
       bufferClear    : sl;
       ramRdAddr      : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-      axilRdEn        : slv(1 downto 0);
+      axilRdEn       : slv(1 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
@@ -101,18 +101,19 @@ architecture rtl of AxiLiteRingBuffer is
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
 
-
    signal axilRamRdData : slv(DATA_WIDTH_G-1 downto 0);
 
    signal axilFirstAddr : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    signal axilNextAddr  : slv(RAM_ADDR_WIDTH_G-1 downto 0);
 
+   signal extDataLogEn  : sl;
+   signal extdataLogClr : sl;
 
 begin
 
-   -------------------------------------------------------------------------------------------------
-   -- Instantiate the ram
-   -------------------------------------------------------------------------------------------------
+   ----------------------
+   -- Instantiate the RAM
+   ----------------------
    DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
@@ -123,7 +124,7 @@ begin
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_G)
       port map (
          clka  => dataClk,
-         wea   => dataValid,
+         wea   => dataR.wea,
          rsta  => dataRst,
          addra => dataR.nextAddr,
          dina  => dataValue,
@@ -133,9 +134,9 @@ begin
          addrb => axilR.ramRdAddr,
          doutb => axilRamRdData);
 
-   -------------------------------------------------------------------------------------------------
+   -------------------------------
    -- Synchronize logEn to dataClk
-   -------------------------------------------------------------------------------------------------
+   -------------------------------
    Synchronizer_logEn : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
@@ -143,7 +144,7 @@ begin
          clk     => dataClk,
          rst     => dataRst,
          dataIn  => axilR.logEn,
-         dataOut => dataLogEn);
+         dataOut => dataLogEnable);
 
    Synchronizer_bufferClear : entity work.SynchronizerOneShot
       generic map (
@@ -154,35 +155,39 @@ begin
          dataIn  => axilR.bufferClear,
          dataOut => dataBufferClear);
 
-   -------------------------------------------------------------------------------------------------
+   --------------------------
    -- Main AXI-Stream process
-   -------------------------------------------------------------------------------------------------
-   dataComb : process (dataBufferClear, dataLogEn, dataR, dataRst, dataValid) is
+   --------------------------
+   dataComb : process (dataBufferClear, dataLogClr, dataLogEn, dataLogEnable, dataR, dataRst,
+                       dataValid) is
       variable v : DataRegType;
    begin
       -- Latch the current value
       v := dataR;
 
+      -- Reset strobes
+      v.wea := '0';
+
       -- Increment the addresses on each valid if logging enabled
-      if (dataValid = '1' and dataLogEn = '1') then
+      if (dataValid = '1') and ((dataLogEnable = '1') or (dataLogEn = '1')) then
+         -- Set the flag
+         v.wea      := '1';
+         -- Increment the address
          v.nextAddr := dataR.nextAddr + 1;
+         -- Check if the write pointer = read pointer
          if (v.nextAddr = dataR.firstAddr) then
             v.firstAddr := dataR.firstAddr + 1;
          end if;
       end if;
 
-      -- If logging not enabled, will keep writing to nextAddr, which is never read
-
       -- Synchronous Reset
-      if (dataRst = '1' or dataBufferClear = '1') then
+      if (dataRst = '1') or (dataBufferClear = '1') or (dataLogClr = '1') then
          v := DATA_REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       dataRin <= v;
-
-      -- Outputs
-
+      
    end process;
 
    dataSeq : process (dataClk) is
@@ -192,9 +197,9 @@ begin
       end if;
    end process;
 
-   -------------------------------------------------------------------------------------------------
-   -- Synchronize write address across to axilite clock
-   -------------------------------------------------------------------------------------------------
+   -----------------------------------------------------
+   -- Synchronize write address across to AXI-Lite clock
+   -----------------------------------------------------
    SynchronizerFifo_1 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
@@ -217,53 +222,94 @@ begin
          rd_clk => axilClk,
          dout   => axilNextAddr);
 
-   axiComb : process (axilFirstAddr, axilNextAddr, axilR, axilRamRdData, axilReadMaster, axilRst,
-                      axilWriteMaster) is
-      variable v          : AxilRegType;
-      variable axilStatus : AxiLiteStatusType;
+   Synchronizer_dataLogEn : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => dataLogEn,
+         dataOut => extDataLogEn);
 
+   Synchronizer_dataLogClr : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => dataLogClr,
+         dataOut => extdataLogClr);         
+
+   ------------------------
+   -- Main AXI-Lite process
+   ------------------------
+   axiComb : process (axilFirstAddr, axilNextAddr, axilR, axilRamRdData, axilReadMaster, axilRst,
+                      axilWriteMaster, extDataLogEn, extdataLogClr) is
+      variable v            : AxilRegType;
+      variable axilStatus   : AxiLiteStatusType;
+      variable axiWriteResp : slv(1 downto 0);
+      variable axiReadResp  : slv(1 downto 0);
    begin
       -- Latch the current value
       v := axilR;
 
+      -- Reset strobes
       v.bufferClear := '0';
-      v.axilRdEn     := axilR.axilRdEn(0) & '0';
 
+      -- Update Shift Register
+      v.axilRdEn := axilR.axilRdEn(0) & '0';
+
+      -- Determine the transaction type
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
+      -- Check for write request
       if (axilStatus.writeEnable = '1') then
-         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_G)) then
+         -- Check for an out of 32 bit aligned address
+         axiWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         -- Check for first mapped address access (which is the control register)
+         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
             v.logEn       := axilWriteMaster.wdata(0);
             v.bufferClear := axilWriteMaster.wdata(1);
+         else
+            -- Unmapped write register access
+            axiWriteResp := AXI_ERROR_RESP_G;
          end if;
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         -- Set the Slave's response
+         axiSlaveWriteResponse(v.axilWriteSlave, axiWriteResp);
       end if;
 
+      -- Check for read request
       if (axilStatus.readEnable = '1') then
+         -- Reset the read data bus
          v.axilReadSlave.rdata := (others => '0');
-         if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_G)) then
-            v.axilReadSlave.rdata(0)            := axilR.logEn;
-            v.axilReadSlave.rdata(1)            := axilR.bufferClear;
-            v.axilReadSlave.rdata(19 downto  8) := resize(axilFirstAddr,12);
-            v.axilReadSlave.rdata(31 downto 20) := resize(axilNextAddr,12);
-            axiSlaveReadResponse(v.axilReadSlave);
+         -- Check for an out of 32 bit aligned address
+         axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         -- Check for first mapped address access (which is the control register)
+         if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
+            v.axilReadSlave.rdata(31)                          := axilR.logEn;
+            v.axilReadSlave.rdata(30)                          := axilR.bufferClear;
+            v.axilReadSlave.rdata(29)                          := extDataLogEn;
+            v.axilReadSlave.rdata(28)                          := extdataLogClr;
+            v.axilReadSlave.rdata(27 downto 20)                := toSlv(RAM_ADDR_WIDTH_G, 8);  -- Let the software know the configuration
+            v.axilReadSlave.rdata(RAM_ADDR_WIDTH_G-1 downto 0) := axilNextAddr - axilFirstAddr;  -- Calculate the length
+            axiSlaveReadResponse(v.axilReadSlave, axiReadResp);
          else
             -- AXI-Lite address is automatically offset by firstAddr.
             -- Thus axil address 0 always pulls from firstAddr, etc
-            v.ramRdAddr := axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) + axilFirstAddr;
-
+            v.ramRdAddr   := axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) + axilFirstAddr - 1;  -- minus 1 corrects for araddr=0x4 start offset
             -- If output of ram is registered, read data will be ready 2 cycles after address asserted
             -- If not registered it will be ready on next cycle
             v.axilRdEn(0) := '1';
             if (axilR.axilRdEn(1) = '1') then
-               v.axilRdEn := "00";
+               -- Reset the shift register
+               v.axilRdEn                                     := "00";
+               -- Update the read data bus
                v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axilRamRdData;
-               axiSlaveReadResponse(v.axilReadSlave);
+               -- Set the Slave's response
+               axiSlaveReadResponse(v.axilReadSlave, axiReadResp);
             end if;
          end if;
       end if;
-
-
 
       -- Synchronous Reset
       if (axilRst = '1') then
@@ -285,4 +331,5 @@ begin
          axilR <= axilRin after TPD_G;
       end if;
    end process;
+   
 end rtl;
