@@ -139,7 +139,7 @@ begin
 
             if (rdEn = '1') then
                v.state := WAIT_AXI_TXN_S;
-               if (r.wrData(23) = '0') then
+               if (r.wrData(PACKET_SIZE_C-1) = '0') then
                   -- Finish write
                   axiSlaveWriteResponse(v.axiWriteSlave);
                else
