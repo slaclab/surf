@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-02-04
+-- Last update: 2016-02-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -268,8 +268,8 @@ begin
          axiWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          -- Check for first mapped address access (which is the control register)
          if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
-            v.logEn       := axilWriteMaster.wdata(0);
-            v.bufferClear := axilWriteMaster.wdata(1);
+            v.logEn       := axilWriteMaster.wdata(31);
+            v.bufferClear := axilWriteMaster.wdata(30);
          else
             -- Unmapped write register access
             axiWriteResp := AXI_ERROR_RESP_G;
