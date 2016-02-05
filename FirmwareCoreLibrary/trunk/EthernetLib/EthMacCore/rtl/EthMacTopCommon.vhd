@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-29
--- Last update: 2016-01-29
+-- Last update: 2016-02-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use work.EthMacPkg.all;
 entity EthMacTopCommon is
    generic (
       TPD_G         : time                := 1 ns;
-      -- AXI Streaming Configurations
+      GMII_EN_G     : boolean             := false;  -- False = XGMII Interface only, True = GMII Interface only      
       AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);      
    port (
       -- DMA Interface 
@@ -45,12 +45,19 @@ entity EthMacTopCommon is
       ethClkRst   : in  sl;
       ethConfig   : in  EthMacConfigType;
       ethStatus   : out EthMacStatusType;
-      -- PHY Interface
+      -- XGMII PHY Interface
       phyTxd      : out slv(63 downto 0);
       phyTxc      : out slv(7 downto 0);
       phyRxd      : in  slv(63 downto 0);
       phyRxc      : in  slv(7 downto 0);
-      phyReady    : in  sl);
+      phyReady    : in  sl;
+      -- GMII PHY Interface
+      gmiiRxDv    : in  sl              := '0';
+      gmiiRxEr    : in  sl              := '0';
+      gmiiRxd     : in  slv(7 downto 0) := x"00";
+      gmiiTxEn    : out sl;
+      gmiiTxEr    : out sl;
+      gmiiTxd     : out slv(7 downto 0));       
 end EthMacTopCommon;
 
 architecture mapping of EthMacTopCommon is
@@ -95,7 +102,8 @@ begin
          BYP_ETH_TYPE_G  => x"0000",
          SHIFT_EN_G      => false,
          FILT_EN_G       => false,
-         CSUM_EN_G       => false) 
+         CSUM_EN_G       => false,
+         GMII_EN_G       => GMII_EN_G) 
       port map (
          -- Clocks
          ethClk      => ethClk,
@@ -106,12 +114,19 @@ begin
          -- Primary Interface, RX
          mPrimMaster => macRxAxisMaster,
          mPrimCtrl   => macRxAxisCtrl,
-         -- PHY Interface
+         -- XGMII PHY Interface
          phyTxd      => phyTxd,
          phyTxc      => phyTxc,
          phyRxd      => phyRxd,
          phyRxc      => phyRxc,
          phyReady    => phyReady,
+         -- GMII PHY Interface
+         gmiiRxDv    => gmiiRxDv,
+         gmiiRxEr    => gmiiRxEr,
+         gmiiRxd     => gmiiRxd,
+         gmiiTxEn    => gmiiTxEn,
+         gmiiTxEr    => gmiiTxEr,
+         gmiiTxd     => gmiiTxd,
          -- Configuration and status
          ethConfig   => ethConfig,
          ethStatus   => ethStatus);    

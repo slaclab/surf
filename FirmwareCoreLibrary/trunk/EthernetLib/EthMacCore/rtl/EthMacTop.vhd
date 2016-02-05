@@ -40,8 +40,8 @@ entity EthMacTop is
       BYP_ETH_TYPE_G  : slv(15 downto 0)        := x"0000";
       SHIFT_EN_G      : boolean                 := false;
       FILT_EN_G       : boolean                 := false;
-      CSUM_EN_G       : boolean                 := false
-   );
+      CSUM_EN_G       : boolean                 := false;
+      GMII_EN_G       : boolean                 := false);-- False = XGMII Interface only, True = GMII Interface only
    port ( 
 
       -- Clocks
@@ -72,13 +72,21 @@ entity EthMacTop is
       mVlanMaster  : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
       mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0) := (others=>AXI_STREAM_CTRL_UNUSED_C);
 
-      -- PHY Interface
+      -- XGMII PHY Interface
       phyTxd       : out slv(63 downto 0);
       phyTxc       : out slv(7  downto 0);
       phyRxd       : in  slv(63 downto 0);
       phyRxc       : in  slv(7  downto 0);
       phyReady     : in  sl;
-
+      
+      -- GMII PHY Interface
+      gmiiRxDv : in  sl               := '0';
+      gmiiRxEr : in  sl               := '0';
+      gmiiRxd  : in  slv(7 downto 0)  := x"00";
+      gmiiTxEn : out sl;
+      gmiiTxEr : out sl;
+      gmiiTxd  : out slv(7 downto 0);      
+      
       -- Configuration and status
       ethConfig    : in  EthMacConfigType;
       ethStatus    : out EthMacStatusType
@@ -198,44 +206,84 @@ begin
          pauseTx      => ethStatus.txPauseCnt
       );
 
-
-   U_EthMacExport: entity work.EthMacExport 
-      generic map (
-         TPD_G => TPD_G
-      ) port map ( 
-         ethClk         => ethClk,
-         ethClkRst      => ethClkRst,
-         macObMaster    => pauseTxMaster,
-         macObSlave     => pauseTxSlave,
-         phyTxd         => phyTxd,
-         phyTxc         => phyTxc,
-         phyReady       => phyReady,
-         interFrameGap  => ethConfig.interFramegap,
-         macAddress     => ethConfig.macAddress,
-         txCountEn      => ethStatus.txCountEn,
-         txUnderRun     => ethStatus.txUnderRunCnt,
-         txLinkNotReady => ethStatus.txNotReadyCnt
-      );
-
+   U_10G_EXPORT: if GMII_EN_G = false generate
+      U_EthMacExport: entity work.EthMacExport 
+         generic map (
+            TPD_G => TPD_G
+         ) port map ( 
+            ethClk         => ethClk,
+            ethClkRst      => ethClkRst,
+            macObMaster    => pauseTxMaster,
+            macObSlave     => pauseTxSlave,
+            phyTxd         => phyTxd,
+            phyTxc         => phyTxc,
+            phyReady       => phyReady,
+            interFrameGap  => ethConfig.interFramegap,
+            macAddress     => ethConfig.macAddress,
+            txCountEn      => ethStatus.txCountEn,
+            txUnderRun     => ethStatus.txUnderRunCnt,
+            txLinkNotReady => ethStatus.txNotReadyCnt
+         );
+   end generate;
+   
+   U_1G_EXPORT: if GMII_EN_G = true generate
+      U_EthMacExport: entity work.EthMacExportGmii 
+         generic map (
+            TPD_G => TPD_G
+         ) port map ( 
+            ethClk         => ethClk,
+            ethClkRst      => ethClkRst,
+            macObMaster    => pauseTxMaster,
+            macObSlave     => pauseTxSlave,
+            gmiiTxEn       => gmiiTxEn,
+            gmiiTxEr       => gmiiTxEr,
+            gmiiTxd        => gmiiTxd,
+            phyReady       => phyReady,
+            interFrameGap  => ethConfig.interFramegap,
+            macAddress     => ethConfig.macAddress,
+            txCountEn      => ethStatus.txCountEn,
+            txUnderRun     => ethStatus.txUnderRunCnt,
+            txLinkNotReady => ethStatus.txNotReadyCnt
+         );
+   end generate;
+   
    ---------------------------------
    -- RX Path
    ---------------------------------
-
-   U_EthMacImport : entity work.EthMacImport
-      generic map (
-         TPD_G => TPD_G
-      ) port map ( 
-         ethClk      => ethClk,
-         ethClkRst   => ethClkRst,
-         macIbMaster => macIbMaster,
-         phyRxd      => phyRxd,
-         phyRxc      => phyRxc,
-         phyReady    => phyReady,
-         rxCountEn   => ethStatus.rxCountEn,
-         rxCrcError  => ethStatus.rxCrcErrorCnt
-      );
-
-
+   
+   U_10G_IMPORT: if GMII_EN_G = false generate
+      U_EthMacImport : entity work.EthMacImport
+         generic map (
+            TPD_G => TPD_G
+         ) port map ( 
+            ethClk      => ethClk,
+            ethClkRst   => ethClkRst,
+            macIbMaster => macIbMaster,
+            phyRxd      => phyRxd,
+            phyRxc      => phyRxc,
+            phyReady    => phyReady,
+            rxCountEn   => ethStatus.rxCountEn,
+            rxCrcError  => ethStatus.rxCrcErrorCnt
+         );
+   end generate;
+   
+   U_1G_IMPORT: if GMII_EN_G = true generate
+      U_EthMacImport: entity work.EthMacImportGmii 
+         generic map (
+            TPD_G => TPD_G
+         ) port map ( 
+            ethClk      => ethClk,
+            ethClkRst   => ethClkRst,
+            macIbMaster => macIbMaster,
+            gmiiRxDv    => gmiiRxDv,
+            gmiiRxEr    => gmiiRxEr,
+            gmiiRxd     => gmiiRxd,
+            phyReady    => phyReady,
+            rxCountEn   => ethStatus.rxCountEn,
+            rxCrcError  => ethStatus.rxCrcErrorCnt
+         );
+   end generate;   
+   
    U_EthMacPauseRx : entity work.EthMacPauseRx 
       generic map (
          TPD_G => TPD_G

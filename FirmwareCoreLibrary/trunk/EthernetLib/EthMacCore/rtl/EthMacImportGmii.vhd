@@ -47,6 +47,7 @@ entity EthMacImportGmii is
       gmiiRxDv    : in  sl;
       gmiiRxEr    : in  sl;
       gmiiRxd     : in  slv(7 downto 0);
+      phyReady    : in  sl;
       -- Status
       rxCountEn   : out sl;
       rxCrcError  : out sl);

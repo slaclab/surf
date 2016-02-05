@@ -48,6 +48,7 @@ entity EthMacExportGmii is
       gmiiTxEn       : out sl;
       gmiiTxEr       : out sl;
       gmiiTxd        : out slv(7 downto 0);
+      phyReady       : in  sl;
       -- Configuration
       interFrameGap  : in  slv(3 downto 0);
       macAddress     : in  slv(47 downto 0);
