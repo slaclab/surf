@@ -85,7 +85,7 @@ architecture rtl of AxiLiteRingBuffer is
       logEn          : sl;
       bufferClear    : sl;
       ramRdAddr      : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-      axilRdEn       : slv(1 downto 0);
+      axilRdEn       : slv(2 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
@@ -94,7 +94,7 @@ architecture rtl of AxiLiteRingBuffer is
       logEn          => '1',
       bufferClear    => '0',
       ramRdAddr      => (others => '0'),
-      axilRdEn       => "00",
+      axilRdEn       => "000",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -120,6 +120,7 @@ begin
          BRAM_EN_G    => BRAM_EN_G,
          REG_EN_G     => REG_EN_G,
          MODE_G       => "read-first",
+         DOB_REG_G    => true,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_G)
       port map (
@@ -257,7 +258,9 @@ begin
       v.bufferClear := '0';
 
       -- Update Shift Register
-      v.axilRdEn := axilR.axilRdEn(0) & '0';
+      v.axilRdEn(0) := '0';
+      v.axilRdEn(1) := axilR.axilRdEn(0);
+      v.axilRdEn(2) := axilR.axilRdEn(1);
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
@@ -300,9 +303,9 @@ begin
             -- If output of ram is registered, read data will be ready 2 cycles after address asserted
             -- If not registered it will be ready on next cycle
             v.axilRdEn(0) := '1';
-            if (axilR.axilRdEn(1) = '1') then
+            if (axilR.axilRdEn(2) = '1') then
                -- Reset the shift register
-               v.axilRdEn                                     := "00";
+               v.axilRdEn                                     := "000";
                -- Update the read data bus
                v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axilRamRdData;
                -- Set the Slave's response
