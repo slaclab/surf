@@ -73,6 +73,7 @@ architecture rtl of AlignFrRepCh is
       dataAlignedD1  : slv(dataRx_i'range);
       charAlignedD1  : slv(chariskRx_i'range);
       position       : slv(chariskRx_i'range);
+      sampleData     : slv(sampleData_o'range);
 
    end record RegType;
 
@@ -81,6 +82,7 @@ architecture rtl of AlignFrRepCh is
       chariskRxD1    => (others => '0'),
       dataAlignedD1  => (others => '0'),
       charAlignedD1  => (others => '0'),
+      sampleData     => (others => '0'),
       position       => intToSlv(1, GT_WORD_SIZE_C) -- Initialize at "0001" or "01"  
    );
 
@@ -173,11 +175,15 @@ begin
          v := REG_INIT_C;
       end if;
       
+      -- Byte swap the bytes before outputting
+      -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
+      v.sampleData   := byteSwapSlv(v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
+
       -- Output assignment
       rin <= v;
       positionErr_o  <= v_positionErr;      
       alignErr_o     <= v_alignErr;
-      sampleData_o   <= byteSwapSlv(v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
+      sampleData_o  <= r.sampleData;
       -----------------------------------------------------------
    end process comb;
 
@@ -189,4 +195,6 @@ begin
    end process seq;
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
+
+
 end architecture rtl;
