@@ -93,7 +93,7 @@ architecture rtl of AxiLiteRingBuffer is
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
-      bufferEnable   => '1',
+      bufferEnable   => '0',
       bufferClear    => '0',
       ramRdAddr      => (others => '0'),
       axilRdEn       => "000",
