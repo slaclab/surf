@@ -60,17 +60,19 @@ architecture rtl of AxiLiteRingBuffer is
    -- Stream clock domain signals
    ------------------------------
    type DataRegType is record
-      ramWrEn   : sl;
-      ramWrData : slv(DATA_WIDTH_G-1 downto 0);
-      firstAddr : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-      nextAddr  : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      ramWrEn      : sl;
+      ramWrData    : slv(DATA_WIDTH_G-1 downto 0);
+      bufferLength : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      firstAddr    : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      nextAddr     : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    end record;
 
    constant DATA_REG_INIT_C : DataRegType := (
-      ramWrEn   => '0',
-      ramWrData => (others => '0'),
-      firstAddr => (others => '0'),
-      nextAddr  => (others => '0'));
+      ramWrEn      => '0',
+      ramWrData    => (others => '0'),
+      bufferLength => (others => '0'),
+      firstAddr    => (others => '0'),
+      nextAddr     => (others => '0'));
 
    signal dataR   : DataRegType := DATA_REG_INIT_C;
    signal dataRin : DataRegType;
@@ -104,9 +106,8 @@ architecture rtl of AxiLiteRingBuffer is
    signal axilRin : AxilRegType;
 
    signal axilRamRdData : slv(DATA_WIDTH_G-1 downto 0);
-
    signal axilFirstAddr : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-   signal axilNextAddr  : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+   signal axilLength    : slv(RAM_ADDR_WIDTH_G-1 downto 0);
 
    signal extBufferEnable : sl;
    signal extBufferClear  : sl;
@@ -163,7 +164,9 @@ begin
    --------------------------
    dataComb : process (axilBufferClear, axilBufferEnable, bufferClear, bufferEnable, dataR, dataRst,
                        dataValid, dataValue) is
-      variable v : DataRegType;
+      variable v      : DataRegType;
+      variable enable : sl;
+      variable clear  : sl;
    begin
       -- Latch the current value
       v := dataR;
@@ -173,9 +176,11 @@ begin
 
       -- Default assignment
       v.ramWrData := dataValue;
+      enable      := bufferEnable or axilBufferEnable;
+      clear       := bufferClear or axilBufferClear;
 
       -- Increment the addresses on each valid if logging enabled
-      if (dataValid = '1') and (bufferEnable = '1' or axilBufferEnable = '1') then
+      if (dataValid = '1') and (enable = '1') then
          -- Trigger a write
          v.ramWrEn := '1';
 
@@ -185,10 +190,12 @@ begin
          if (v.nextAddr = dataR.firstAddr) then
             v.firstAddr := dataR.firstAddr + 1;
          end if;
+         -- Calculate the length of the buffer
+         v.bufferLength := dataR.nextAddr - dataR.firstAddr;
       end if;
 
       -- Synchronous Reset
-      if (dataRst = '1' or bufferClear = '1' or axilBufferClear = '1') then
+      if (dataRst = '1') or (clear = '1') then
          v := DATA_REG_INIT_C;
       end if;
 
@@ -225,9 +232,9 @@ begin
       port map (
          rst    => axilRst,
          wr_clk => dataClk,
-         din    => dataR.nextAddr,
+         din    => dataR.bufferLength,
          rd_clk => axilClk,
-         dout   => axilNextAddr);
+         dout   => axilLength);   
 
    Synchronizer_dataBufferEn : entity work.Synchronizer
       generic map (
@@ -250,7 +257,7 @@ begin
    ------------------------
    -- Main AXI-Lite process
    ------------------------
-   axiComb : process (axilFirstAddr, axilNextAddr, axilR, axilRamRdData, axilReadMaster, axilRst,
+   axiComb : process (axilFirstAddr, axilLength, axilR, axilRamRdData, axilReadMaster, axilRst,
                       axilWriteMaster, extBufferClear, extBufferEnable) is
       variable v            : AxilRegType;
       variable axilStatus   : AxiLiteStatusType;
@@ -300,7 +307,7 @@ begin
             v.axilReadSlave.rdata(29)                          := extBufferEnable;
             v.axilReadSlave.rdata(28)                          := extBufferClear;
             v.axilReadSlave.rdata(27 downto 20)                := toSlv(RAM_ADDR_WIDTH_G, 8);  -- Let the software know the configuration
-            v.axilReadSlave.rdata(RAM_ADDR_WIDTH_G-1 downto 0) := axilNextAddr - axilFirstAddr;  -- Calculate the length
+            v.axilReadSlave.rdata(RAM_ADDR_WIDTH_G-1 downto 0) := axilLength;
             axiSlaveReadResponse(v.axilReadSlave, axiReadResp);
          else
             -- All other AXI-Lite addresses are automatically offset by firstAddr.
