@@ -4,7 +4,9 @@ export PROJECT = $(notdir $(PWD))
 
 # Top level directories
 export PROJ_DIR = $(abspath $(PWD))
+ifndef TOP_DIR
 export TOP_DIR  = $(abspath $(PROJ_DIR)/../..)
+endif
 
 # Project Build Directory
 export OUT_DIR  = $(abspath $(TOP_DIR)/build/$(PROJECT))
