@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="RssiCoreTb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="RssiCoreTb" />
+            <top_module name="axilitepkg" />
+            <top_module name="axistreampkg" />
+            <top_module name="rssipkg" />
+            <top_module name="ssipkg" />
+            <top_module name="stdrtlpkg" />
+            <top_module name="textutilpkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="605871000000fs"></ZoomStartTime>
+      <ZoomEndTime time="3955871000001fs"></ZoomEndTime>
+      <Cursor1Time time="1205871000000fs"></Cursor1Time>
+   </zoom_setting>
+   <WVObjectSize size="68" />
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/rst_i">
+      <obj_property name="ElementShortName">rst_i</obj_property>
+      <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/s_trig">
+      <obj_property name="ElementShortName">s_trig</obj_property>
+      <obj_property name="ObjectShortName">s_trig</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/statusReg_o">
+      <obj_property name="ElementShortName">statusReg_o[5:0]</obj_property>
+      <obj_property name="ObjectShortName">statusReg_o[5:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/statusReg_o">
+      <obj_property name="ElementShortName">statusReg_o[5:0]</obj_property>
+      <obj_property name="ObjectShortName">statusReg_o[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider3174" type="divider">
+      <obj_property name="label">TxPRBS</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/SsiPrbsTx_INST/mAxisMaster">
+      <obj_property name="ElementShortName">mAxisMaster</obj_property>
+      <obj_property name="ObjectShortName">mAxisMaster</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/SsiPrbsTx_INST/mAxisSlave">
+      <obj_property name="ElementShortName">mAxisSlave</obj_property>
+      <obj_property name="ObjectShortName">mAxisSlave</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider3174" type="divider">
+      <obj_property name="label">TxFSM0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/ack_i">
+      <obj_property name="ElementShortName">ack_i</obj_property>
+      <obj_property name="ObjectShortName">ack_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/ackN_i">
+      <obj_property name="ElementShortName">ackN_i[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ackN_i[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="other" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.tspState">
+      <obj_property name="ElementShortName">.tspState</obj_property>
+      <obj_property name="ObjectShortName">r.tspState</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.windowArray">
+         <obj_property name="ElementShortName">.windowArray[0:7]</obj_property>
+         <obj_property name="ObjectShortName">r.windowArray[0:7]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.firstUnackAddr">
+         <obj_property name="ElementShortName">.firstUnackAddr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">r.firstUnackAddr[2:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.nextSentAddr">
+         <obj_property name="ElementShortName">.nextSentAddr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">r.nextSentAddr[2:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.lastSentAddr">
+         <obj_property name="ElementShortName">.lastSentAddr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">r.lastSentAddr[2:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.lastAckSeqN">
+         <obj_property name="ElementShortName">.lastAckSeqN[7:0]</obj_property>
+         <obj_property name="ObjectShortName">r.lastAckSeqN[7:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.bufferFull">
+         <obj_property name="ElementShortName">.bufferFull</obj_property>
+         <obj_property name="ObjectShortName">r.bufferFull</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.bufferEmpty">
+         <obj_property name="ElementShortName">.bufferEmpty</obj_property>
+         <obj_property name="ObjectShortName">r.bufferEmpty</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.ackErr">
+         <obj_property name="ElementShortName">.ackErr</obj_property>
+         <obj_property name="ObjectShortName">r.ackErr</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="other" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.ackState">
+         <obj_property name="ElementShortName">.ackState</obj_property>
+         <obj_property name="ObjectShortName">r.ackState</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.rxSegmentAddr">
+         <obj_property name="ElementShortName">.rxSegmentAddr[7:0]</obj_property>
+         <obj_property name="ObjectShortName">r.rxSegmentAddr[7:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.rxSegmentWe">
+         <obj_property name="ElementShortName">.rxSegmentWe</obj_property>
+         <obj_property name="ObjectShortName">r.rxSegmentWe</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.sndData">
+         <obj_property name="ElementShortName">.sndData</obj_property>
+         <obj_property name="ObjectShortName">r.sndData</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.lenErr">
+         <obj_property name="ElementShortName">.lenErr</obj_property>
+         <obj_property name="ObjectShortName">r.lenErr</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.appBusy">
+         <obj_property name="ElementShortName">.appBusy</obj_property>
+         <obj_property name="ObjectShortName">r.appBusy</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.appSsiMaster">
+         <obj_property name="ElementShortName">.appSsiMaster</obj_property>
+         <obj_property name="ObjectShortName">r.appSsiMaster</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.appSsiSlave">
+         <obj_property name="ElementShortName">.appSsiSlave</obj_property>
+         <obj_property name="ObjectShortName">r.appSsiSlave</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="other" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.appState">
+         <obj_property name="ElementShortName">.appState</obj_property>
+         <obj_property name="ObjectShortName">r.appState</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.nextSeqN">
+         <obj_property name="ElementShortName">.nextSeqN[7:0]</obj_property>
+         <obj_property name="ObjectShortName">r.nextSeqN[7:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.seqN">
+         <obj_property name="ElementShortName">.seqN[7:0]</obj_property>
+         <obj_property name="ObjectShortName">r.seqN[7:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.txHeaderAddr">
+         <obj_property name="ElementShortName">.txHeaderAddr[7:0]</obj_property>
+         <obj_property name="ObjectShortName">r.txHeaderAddr[7:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.txSegmentAddr">
+         <obj_property name="ElementShortName">.txSegmentAddr[7:0]</obj_property>
+         <obj_property name="ObjectShortName">r.txSegmentAddr[7:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.txBufferAddr">
+         <obj_property name="ElementShortName">.txBufferAddr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">r.txBufferAddr[2:0]</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.synH">
+         <obj_property name="ElementShortName">.synH</obj_property>
+         <obj_property name="ObjectShortName">r.synH</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.ackH">
+         <obj_property name="ElementShortName">.ackH</obj_property>
+         <obj_property name="ObjectShortName">r.ackH</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.rstH">
+         <obj_property name="ElementShortName">.rstH</obj_property>
+         <obj_property name="ObjectShortName">r.rstH</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.nullH">
+         <obj_property name="ElementShortName">.nullH</obj_property>
+         <obj_property name="ObjectShortName">r.nullH</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.dataH">
+         <obj_property name="ElementShortName">.dataH</obj_property>
+         <obj_property name="ObjectShortName">r.dataH</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.dataD">
+         <obj_property name="ElementShortName">.dataD</obj_property>
+         <obj_property name="ObjectShortName">r.dataD</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.resend">
+         <obj_property name="ElementShortName">.resend</obj_property>
+         <obj_property name="ObjectShortName">r.resend</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.txRdy">
+         <obj_property name="ElementShortName">.txRdy</obj_property>
+         <obj_property name="ObjectShortName">r.txRdy</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.buffWe">
+         <obj_property name="ElementShortName">.buffWe</obj_property>
+         <obj_property name="ObjectShortName">r.buffWe</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.buffSent">
+         <obj_property name="ElementShortName">.buffSent</obj_property>
+         <obj_property name="ObjectShortName">r.buffSent</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.chkEn">
+         <obj_property name="ElementShortName">.chkEn</obj_property>
+         <obj_property name="ObjectShortName">r.chkEn</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.chkStb">
+         <obj_property name="ElementShortName">.chkStb</obj_property>
+         <obj_property name="ObjectShortName">r.chkStb</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.tspSsiMaster">
+         <obj_property name="ElementShortName">.tspSsiMaster</obj_property>
+         <obj_property name="ObjectShortName">r.tspSsiMaster</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.tspSsiSlave">
+         <obj_property name="ElementShortName">.tspSsiSlave</obj_property>
+         <obj_property name="ObjectShortName">r.tspSsiSlave</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.tspSsiMasterSofD1">
+         <obj_property name="ElementShortName">.tspSsiMasterSofD1</obj_property>
+         <obj_property name="ObjectShortName">r.tspSsiMasterSofD1</obj_property>
+      </wvobject>
+      <wvobject db_ref_id="1" type="other" fp_name="/RssiCoreTb/RssiCore0_INST/TxFSM_INST/r.tspState">
+         <obj_property name="ElementShortName">.tspState</obj_property>
+         <obj_property name="ObjectShortName">r.tspState</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="divider3174" type="divider">
+      <obj_property name="label">RXFSM1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/RxFSM_INST/r.segValid">
+      <obj_property name="ElementShortName">.segValid</obj_property>
+      <obj_property name="ObjectShortName">r.segValid</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/RxFSM_INST/r.segDrop">
+      <obj_property name="ElementShortName">.segDrop</obj_property>
+      <obj_property name="ObjectShortName">r.segDrop</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/RxFSM_INST/lastAckN_i">
+      <obj_property name="ElementShortName">lastAckN_i[7:0]</obj_property>
+      <obj_property name="ObjectShortName">lastAckN_i[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/RxFSM_INST/rxAckN_o">
+      <obj_property name="ElementShortName">rxAckN_o[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rxAckN_o[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/RxFSM_INST/rxSeqN_o">
+      <obj_property name="ElementShortName">rxSeqN_o[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rxSeqN_o[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/RxFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider3174" type="divider">
+      <obj_property name="label">TxFSM1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/TxFSM_INST/ack_i">
+      <obj_property name="ElementShortName">ack_i</obj_property>
+      <obj_property name="ObjectShortName">ack_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/TxFSM_INST/ackN_i">
+      <obj_property name="ElementShortName">ackN_i[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ackN_i[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="other" fp_name="/RssiCoreTb/RssiCore1_INST/TxFSM_INST/r.appState">
+      <obj_property name="ElementShortName">.appState</obj_property>
+      <obj_property name="ObjectShortName">r.appState</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="other" fp_name="/RssiCoreTb/RssiCore1_INST/TxFSM_INST/r.tspState">
+      <obj_property name="ElementShortName">.tspState</obj_property>
+      <obj_property name="ObjectShortName">r.tspState</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/TxFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider3174" type="divider">
+      <obj_property name="label">RXFSM0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/RxFSM_INST/r.segValid">
+      <obj_property name="ElementShortName">.segValid</obj_property>
+      <obj_property name="ObjectShortName">r.segValid</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/RxFSM_INST/r.segDrop">
+      <obj_property name="ElementShortName">.segDrop</obj_property>
+      <obj_property name="ObjectShortName">r.segDrop</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/RxFSM_INST/rxSeqN_o">
+      <obj_property name="ElementShortName">rxSeqN_o[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rxSeqN_o[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/RxFSM_INST/rxAckN_o">
+      <obj_property name="ElementShortName">rxAckN_o[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rxAckN_o[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/RxFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider854" type="divider">
+      <obj_property name="label">ChksumRx0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/rx_Chksum_INST/valid_o">
+      <obj_property name="ElementShortName">valid_o</obj_property>
+      <obj_property name="ObjectShortName">valid_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/rx_Chksum_INST/check_o">
+      <obj_property name="ElementShortName">check_o</obj_property>
+      <obj_property name="ObjectShortName">check_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider789" type="divider">
+      <obj_property name="label">ChksumRx1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/rx_Chksum_INST/valid_o">
+      <obj_property name="ElementShortName">valid_o</obj_property>
+      <obj_property name="ObjectShortName">valid_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/rx_Chksum_INST/check_o">
+      <obj_property name="ElementShortName">check_o</obj_property>
+      <obj_property name="ObjectShortName">check_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider1861" type="divider">
+      <obj_property name="label">buffer</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/RxBuffer_INST/enb">
+      <obj_property name="ElementShortName">enb</obj_property>
+      <obj_property name="ObjectShortName">enb</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/RxBuffer_INST/addrb">
+      <obj_property name="ElementShortName">addrb[9:0]</obj_property>
+      <obj_property name="ObjectShortName">addrb[9:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/RxBuffer_INST/doutb">
+      <obj_property name="ElementShortName">doutb[63:0]</obj_property>
+      <obj_property name="ObjectShortName">doutb[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider1891" type="divider">
+      <obj_property name="label">RX PRBS</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/SsiPrbsRx_INST/sAxisMaster">
+      <obj_property name="ElementShortName">sAxisMaster</obj_property>
+      <obj_property name="ObjectShortName">sAxisMaster</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/SsiPrbsRx_INST/sAxisSlave">
+      <obj_property name="ElementShortName">sAxisSlave</obj_property>
+      <obj_property name="ObjectShortName">sAxisSlave</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/updatedResults">
+      <obj_property name="ElementShortName">updatedResults</obj_property>
+      <obj_property name="ObjectShortName">updatedResults</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/errorDet">
+      <obj_property name="ElementShortName">errorDet</obj_property>
+      <obj_property name="ObjectShortName">errorDet</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/busy">
+      <obj_property name="ElementShortName">busy</obj_property>
+      <obj_property name="ObjectShortName">busy</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/errMissedPacket">
+      <obj_property name="ElementShortName">errMissedPacket</obj_property>
+      <obj_property name="ObjectShortName">errMissedPacket</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/errLength">
+      <obj_property name="ElementShortName">errLength</obj_property>
+      <obj_property name="ObjectShortName">errLength</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/errDataBus">
+      <obj_property name="ElementShortName">errDataBus</obj_property>
+      <obj_property name="ObjectShortName">errDataBus</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/SsiPrbsRx_INST/errEofe">
+      <obj_property name="ElementShortName">errEofe</obj_property>
+      <obj_property name="ObjectShortName">errEofe</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider2320" type="divider">
+      <obj_property name="label">Conn0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/ConnFSM_INST/connRq_i">
+      <obj_property name="ElementShortName">connRq_i</obj_property>
+      <obj_property name="ObjectShortName">connRq_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore0_INST/ConnFSM_INST/closeRq_i">
+      <obj_property name="ElementShortName">closeRq_i</obj_property>
+      <obj_property name="ObjectShortName">closeRq_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/ConnFSM_INST/connActive_o">
+      <obj_property name="ElementShortName">connActive_o</obj_property>
+      <obj_property name="ObjectShortName">connActive_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/ConnFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="divider2320" type="divider">
+      <obj_property name="label">Conn1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/ConnFSM_INST/connRq_i">
+      <obj_property name="ElementShortName">connRq_i</obj_property>
+      <obj_property name="ObjectShortName">connRq_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/closeRq_i">
+      <obj_property name="ElementShortName">closeRq_i</obj_property>
+      <obj_property name="ObjectShortName">closeRq_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/ConnFSM_INST/connActive_o">
+      <obj_property name="ElementShortName">connActive_o</obj_property>
+      <obj_property name="ObjectShortName">connActive_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/ConnFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="divider2320" type="divider">
+      <obj_property name="label">Mon0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore0_INST/Monitor_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="divider2320" type="divider">
+      <obj_property name="label">Mon1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/RssiCoreTb/RssiCore1_INST/Monitor_INST/ackHeadSt_i">
+      <obj_property name="ElementShortName">ackHeadSt_i</obj_property>
+      <obj_property name="ObjectShortName">ackHeadSt_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/Monitor_INST/rxLastSeqN_i">
+      <obj_property name="ElementShortName">rxLastSeqN_i[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rxLastSeqN_i[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/RssiCoreTb/RssiCore1_INST/Monitor_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="divider434" type="divider">
+      <obj_property name="label">END</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+</wave_config>
