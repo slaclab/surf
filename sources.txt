@@ -1,0 +1,18 @@
+vhdl work Version.vhd
+
+vhdl work hdl/GigEthGtx7Core.vhd
+vhdl work hdl/GigEthGtx7Core_block.vhd
+vhdl work hdl/GigEthGtx7Core_reset_sync.vhd
+vhdl work hdl/GigEthGtx7Core_sync_block.vhd
+
+vhdl work hdl/transceiver/GigEthGtx7Core_cpll_railing.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_gtwizard.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_gtwizard_gt.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_gtwizard_init.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_gtwizard_multi_gt.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_reset_wtd_timer.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_rx_startup_fsm.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_transceiver.vhd
+vhdl work hdl/transceiver/GigEthGtx7Core_tx_startup_fsm.vhd
+
+vhdl gig_ethernet_pcs_pma_v15_1_0 hdl/gig_ethernet_pcs_pma_v15_1_rfs.vhd
