@@ -24,7 +24,7 @@ export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
 
 # Get Project Version
-export PRJ_VERSION = $(shell grep MAKE_VERSION $(PROJ_DIR)/Version.vhd | sed 's|.*x"\(\S\+\)";.*|\1|')
+export PRJ_VERSION = $(shell grep FPGA_VERSION_C $(PROJ_DIR)/Version.vhd | sed 's|.*x"\(\S\+\)";.*|\1|')
 
 # Core Directories (IP cores that exist external of the project must have a physical path, not a logical path)
 export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/cores.txt))
