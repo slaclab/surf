@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-12-08
+-- Last update: 2016-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ entity TenGigEthGth7Wrapper is
       txFault             : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       txDisable           : out slv(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
-      extRst              : in  sl;
+      extRst              : in  sl                                             := '0';
       phyClk              : out sl;
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
