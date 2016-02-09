@@ -1,0 +1,3 @@
+
+vhdl work rtl/GigEthPkg.vhd
+vhdl work rtl/GigEthReg.vhd

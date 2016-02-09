@@ -1,0 +1,5 @@
+
+vhdl work rtl/GigEthGtp7Wrapper.vhd
+vhdl work rtl/GigEthGtp7.vhd
+
+vhdl work coregen/GigEthGtp7Core.dcp 
