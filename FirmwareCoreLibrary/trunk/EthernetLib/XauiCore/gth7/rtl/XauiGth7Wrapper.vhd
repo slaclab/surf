@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2015-09-08
+-- Last update: 2016-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ entity XauiGth7Wrapper is
       axiLiteWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axiLiteWriteSlave  : out AxiLiteWriteSlaveType;
       -- Misc. Signals
-      extRst             : in  sl;
+      extRst             : in  sl                     := '0';
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
