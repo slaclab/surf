@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : EthMacTopCommon.vhd
+-- File       : EthMacTopWithFifo.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-29
@@ -27,7 +27,7 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacTopCommon is
+entity EthMacTopWithFifo is
    generic (
       TPD_G         : time                := 1 ns;
       GMII_EN_G     : boolean             := false;  -- False = XGMII Interface only, True = GMII Interface only      
@@ -58,9 +58,9 @@ entity EthMacTopCommon is
       gmiiTxEn    : out sl;
       gmiiTxEr    : out sl;
       gmiiTxd     : out slv(7 downto 0));       
-end EthMacTopCommon;
+end EthMacTopWithFifo;
 
-architecture mapping of EthMacTopCommon is
+architecture mapping of EthMacTopWithFifo is
 
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
