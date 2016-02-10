@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : GigEthGtp7.vhd
+-- File       : GigEthGth7.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Last update: 2016-02-09
@@ -9,7 +9,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 1000BASE-X Ethernet for Gtp7
+-- Description: 1000BASE-X Ethernet for Gth7
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -29,7 +29,7 @@ use work.AxiLitePkg.all;
 use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
-entity GigEthGtp7 is
+entity GigEthGth7 is
    generic (
       TPD_G            : time                := 1 ns;
       -- AXI-Lite Configurations
@@ -60,20 +60,14 @@ entity GigEthGtp7 is
       extRst             : in  sl;
       phyReady           : out sl;
       sigDet             : in  sl                     := '1';
-      -- Quad PLL Interface
-      qPllOutClk         : in  slv(1 downto 0);
-      qPllOutRefClk      : in  slv(1 downto 0);
-      qPllLock           : in  slv(1 downto 0);
-      qPllRefClkLost     : in  slv(1 downto 0);
-      qPllReset          : out slv(1 downto 0);
       -- MGT Ports
       gtTxP              : out sl;
       gtTxN              : out sl;
       gtRxP              : in  sl;
       gtRxN              : in  sl);  
-end GigEthGtp7;
+end GigEthGth7;
 
-architecture mapping of GigEthGtp7 is
+architecture mapping of GigEthGth7 is
 
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
@@ -172,7 +166,7 @@ begin
    ------------------
    -- 1000BASE-X core
    ------------------
-   U_GigEthGtp7Core : entity work.GigEthGtp7Core
+   U_GigEthGth7Core : entity work.GigEthGth7Core
       port map (
          -- Clocks and Resets
          gtrefclk_bufg          => sysClk125,  -- Used as DRP clock in IP core
@@ -204,13 +198,8 @@ begin
          rxp                    => gtRxP,
          rxn                    => gtRxN,
          -- Quad PLL Interface
-         gt0_pll0outclk_in      => qPllOutClk(0),
-         gt0_pll0outrefclk_in   => qPllOutRefClk(0),
-         gt0_pll0lock_in        => qPllLock(0),
-         gt0_pll0refclklost_in  => qPllRefClkLost(0),
-         gt0_pll0reset_out      => qPllReset(0),
-         gt0_pll1outclk_in      => qPllOutClk(1),
-         gt0_pll1outrefclk_in   => qPllOutRefClk(1),
+         gt0_qplloutclk_in      => '0',        -- QPLL not used
+         gt0_qplloutrefclk_in   => '0',        -- QPLL not used
          -- Configuration and Status
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
@@ -218,7 +207,6 @@ begin
 
    status.phyReady <= status.coreStatus(0);
    phyReady        <= status.phyReady;
-   qPllReset(1)    <= '1';              -- No using QPLL[1]   
 
    --------------------------------     
    -- Configuration/Status Register   

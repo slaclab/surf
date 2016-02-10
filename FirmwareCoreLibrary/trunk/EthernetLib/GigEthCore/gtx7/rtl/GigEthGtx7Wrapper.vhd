@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : GigEthGtp7Wrapper.vhd
+-- File       : GigEthGtx7Wrapper.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
@@ -9,7 +9,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Gtp7 Wrapper for 1000BASE-X Ethernet
+-- Description: Gtx7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
@@ -32,7 +32,7 @@ use work.GigEthPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity GigEthGtp7Wrapper is
+entity GigEthGtx7Wrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
@@ -64,7 +64,7 @@ entity GigEthGtp7Wrapper is
       axiLiteWriteMasters : in  AxiLiteWriteMasterArray(NUM_LANE_G-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
       axiLiteWriteSlaves  : out AxiLiteWriteSlaveArray(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
-      extRst              : in  sl;
+      extRst              : in  sl                                             := '0';
       phyClk              : out sl;
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
@@ -78,9 +78,9 @@ entity GigEthGtp7Wrapper is
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
       gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
-end GigEthGtp7Wrapper;
+end GigEthGtx7Wrapper;
 
-architecture mapping of GigEthGtp7Wrapper is
+architecture mapping of GigEthGtx7Wrapper is
 
    signal gtClk     : sl;
    signal gtClkBufg : sl;
@@ -88,13 +88,6 @@ architecture mapping of GigEthGtp7Wrapper is
    signal sysClk125 : sl;
    signal sysRst125 : sl;
    signal sysClk62  : sl;
-
-   signal qPllOutClk     : slv(1 downto 0);
-   signal qPllOutRefClk  : slv(1 downto 0);
-   signal qPllLock       : slv(1 downto 0);
-   signal qPllRefClkLost : slv(1 downto 0);
-   signal qpllRst        : slv(NUM_LANE_G-1 downto 0);
-   signal qpllReset      : slv(1 downto 0);
 
 begin
 
@@ -146,41 +139,13 @@ begin
          rstOut(1) => open,
          locked    => open); 
 
-   -----------
-   -- Quad PLL 
-   -----------
-   U_Gtp7QuadPll : entity work.Gtp7QuadPll
-      generic map (
-         TPD_G                => TPD_G,
-         PLL0_REFCLK_SEL_G    => "111",
-         PLL0_FBDIV_IN_G      => 4,
-         PLL0_FBDIV_45_IN_G   => 5,
-         PLL0_REFCLK_DIV_IN_G => 1,
-         PLL1_REFCLK_SEL_G    => "111",
-         PLL1_FBDIV_IN_G      => 4,
-         PLL1_FBDIV_45_IN_G   => 5,
-         PLL1_REFCLK_DIV_IN_G => 1)       
-      port map (
-         qPllRefClk     => (others => sysClk125),
-         qPllOutClk     => qPllOutClk,
-         qPllOutRefClk  => qPllOutRefClk,
-         qPllLock       => qPllLock,
-         qPllLockDetClk => (others => sysClk125),
-         qPllRefClkLost => qPllRefClkLost,
-         qPllPowerDown  => "10",        -- power down PLL1 (unused PLL)
-         qPllReset      => qpllReset);
-
-   -- Once the QPLL is locked, prevent the 
-   -- IP cores from accidently reseting each other
-   qpllReset(0) <= uOr(qpllRst) and not(qPllLock(0));
-
    --------------
    -- GigE Module 
    --------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
       
-      U_GigEthGtp7 : entity work.GigEthGtp7
+      U_GigEthGtx7 : entity work.GigEthGtx7
          generic map (
             TPD_G            => TPD_G,
             -- AXI-Lite Configurations
@@ -211,13 +176,6 @@ begin
             extRst             => extRst,
             phyReady           => phyReady(i),
             sigDet             => sigDet(i),
-            -- Quad PLL Interface
-            qPllOutClk         => qPllOutClk,
-            qPllOutRefClk      => qPllOutRefClk,
-            qPllLock           => qPllLock,
-            qPllRefClkLost     => qPllRefClkLost,
-            qPllReset(0)       => qpllRst(i),
-            qPllReset(1)       => qpllReset(1),
             -- MGT Ports
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
