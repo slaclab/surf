@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : GigEthGth7.vhd
+-- File       : GigEthGthUltraScale.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Last update: 2016-02-09
@@ -29,7 +29,7 @@ use work.AxiLitePkg.all;
 use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
-entity GigEthGth7 is
+entity GigEthGthUltraScale is
    generic (
       TPD_G            : time                := 1 ns;
       -- AXI-Lite Configurations
@@ -65,9 +65,9 @@ entity GigEthGth7 is
       gtTxN              : out sl;
       gtRxP              : in  sl;
       gtRxN              : in  sl);  
-end GigEthGth7;
+end GigEthGthUltraScale;
 
-architecture mapping of GigEthGth7 is
+architecture mapping of GigEthGthUltraScale is
 
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
@@ -166,12 +166,11 @@ begin
    ------------------
    -- 1000BASE-X core
    ------------------
-   U_GigEthGth7Core : entity work.GigEthGth7Core
+   U_GigEthGthUltraScaleCore : entity work.GigEthGthUltraScaleCore
       port map (
          -- Clocks and Resets
-         gtrefclk_bufg          => sysClk125,  -- Used as DRP clock in IP core
          gtrefclk               => sysClk125,  -- Used as CPLL clock reference
-         independent_clock_bufg => sysClk125,  -- Used as stable clock reference
+         independent_clock_bufg => sysClk62,   -- Used for the GT free running and DRP clock
          txoutclk               => open,
          rxoutclk               => open,
          userclk                => sysClk62,
@@ -197,9 +196,6 @@ begin
          txn                    => gtTxN,
          rxp                    => gtRxP,
          rxn                    => gtRxN,
-         -- Quad PLL Interface
-         gt0_qplloutclk_in      => '0',        -- QPLL not used
-         gt0_qplloutrefclk_in   => '0',        -- QPLL not used
          -- Configuration and Status
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,

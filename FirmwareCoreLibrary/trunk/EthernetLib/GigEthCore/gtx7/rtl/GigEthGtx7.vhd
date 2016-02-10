@@ -170,7 +170,7 @@ begin
       port map (
          -- Clocks and Resets
          gtrefclk_bufg          => sysClk125,  -- Used as DRP clock in IP core
-         gtrefclk               => sysClk125,  -- Not connected to loads in GTP7 IP core
+         gtrefclk               => sysClk125,  -- Used as CPLL clock reference
          independent_clock_bufg => sysClk125,  -- Used as stable clock reference
          txoutclk               => open,
          rxoutclk               => open,
