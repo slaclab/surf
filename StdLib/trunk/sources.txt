@@ -100,7 +100,7 @@ vhdl work axi/rtl/AxiLiteEmptyVector.vhd
 vhdl work axi/rtl/AxiStreamPacketizer.vhd
 vhdl work axi/rtl/AxiStreamDepacketizer.vhd
 vhdl work axi/rtl/AxiLiteRingBuffer.vhd
-
+vhdl work axi/rtl/AxiLiteToDrp.vhd
 
 vhdl work ssi/rtl/SsiAxiLiteMaster.vhd
 vhdl work ssi/rtl/SsiCmdMaster.vhd
