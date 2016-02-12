@@ -42,6 +42,9 @@ package Jesd204bPkg is
    
    -- Ramp step or square wave period slv width (max 16)
    constant PER_STEP_WIDTH_C   : positive := 16;
+   
+   -- Scrambler/Descrambler PBRS taps for 1 + x^14 + x^15
+   constant JESD_PRBS_TAPS_G : NaturalArray := (0 => 14, 1 => 15);
 
 -- Sub-types 
 -------------------------------------------------------------------------- 
