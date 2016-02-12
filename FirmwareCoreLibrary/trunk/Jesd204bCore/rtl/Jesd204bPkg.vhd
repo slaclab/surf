@@ -44,7 +44,7 @@ package Jesd204bPkg is
    constant PER_STEP_WIDTH_C   : positive := 16;
    
    -- Scrambler/Descrambler PBRS taps for 1 + x^14 + x^15
-   constant JESD_PRBS_TAPS_G : NaturalArray := (0 => 14, 1 => 15);
+   constant JESD_PRBS_TAPS_C : NaturalArray := (0 => 14, 1 => 15);
 
 -- Sub-types 
 -------------------------------------------------------------------------- 
