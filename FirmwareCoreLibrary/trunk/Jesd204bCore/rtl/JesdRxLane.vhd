@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-14
--- Last update: 2015-04-24
+-- Last update: 2016-02-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -17,6 +17,7 @@
 --              - Internal buffer to align the lanes.
 --              - Sample data alignment (Sample extraction from GT word - barrel shifter).
 --              - Alignment character replacement.
+--              - Scrambling support
 --             Status register encoding:
 --                bit 0: GT Reset done
 --                bit 1: Received data valid
@@ -56,45 +57,46 @@ entity JesdRxLane is
 
       -- Number of frames in a multi frame
       K_G : positive := 32
-   );
+      );
    port (
 
       -- JESD
       -- Clocks and Resets   
       devClk_i : in sl;
       devRst_i : in sl;
-      
+
       -- JESD subclass selection: '0' or '1'(default)     
       subClass_i : in sl;
 
       -- SYSREF for subcalss 1 fixed latency
       sysRef_i : in sl;
-      
+
       -- Clear registered errors     
       clearErr_i : in sl;
 
       -- Control register
       enable_i     : in  sl;
       replEnable_i : in  sl;
+      scrEnable_i  : in  sl;
       status_o     : out slv((RX_STAT_WIDTH_C)-1 downto 0);
 
       -- Data and character inputs from GT (transceivers)
-      r_jesdGtRx  : in jesdGtRxLaneType;
+      r_jesdGtRx : in jesdGtRxLaneType;
 
       -- Local multi frame clock
-      lmfc_i      : in sl;
+      lmfc_i : in sl;
 
       -- One or more RX modules requested synchronisation
-      nSyncAny_i    : in sl;
-      nSyncAnyD1_i  : in sl;
-      
+      nSyncAny_i   : in sl;
+      nSyncAnyD1_i : in sl;
+
       -- Synchronisation request output 
-      nSync_o     : out sl;
+      nSync_o : out sl;
 
       -- Synchronisation process is complete and data is valid
       dataValid_o  : out sl;
       sampleData_o : out slv((GT_WORD_SIZE_C*8)-1 downto 0)
-   );
+      );
 end JesdRxLane;
 
 
@@ -111,7 +113,7 @@ architecture rtl of JesdRxLane is
    constant REG_INIT_C : RegType := (
       bufWeD1 => '0',
       errReg  => (others => '0')
-   );
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -134,18 +136,19 @@ architecture rtl of JesdRxLane is
    signal s_charAndData     : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);
    signal s_charAndDataBuff : slv(s_charAndData'range);
    signal s_sampleData      : slv(sampleData_o'range);
+   signal s_sampleDataValid : sl;
 
    -- Statuses
-   signal s_bufOvf   : sl;
-   signal s_bufUnf   : sl;
-   signal s_bufFull  : sl;
-   signal s_alignErr : sl;
-   signal s_positionErr : sl;   
-   signal s_linkErr  : sl;
-   signal s_kDetected  : sl;   
-   signal s_refDetected  : sl;     
-   signal s_errComb  : slv(ERR_REG_WIDTH_C-1 downto 0);
-   signal s_buffLatency  : slv(7 downto 0);
+   signal s_bufOvf      : sl;
+   signal s_bufUnf      : sl;
+   signal s_bufFull     : sl;
+   signal s_alignErr    : sl;
+   signal s_positionErr : sl;
+   signal s_linkErr     : sl;
+   signal s_kDetected   : sl;
+   signal s_refDetected : sl;
+   signal s_errComb     : slv(ERR_REG_WIDTH_C-1 downto 0);
+   signal s_buffLatency : slv(7 downto 0);
 
 begin
 
@@ -196,56 +199,58 @@ begin
          empty        => open
          );
 
-   -- Align the rx data within the GT word and replace the characters. 
-   alignFrRepCh_INST : entity work.AlignFrRepCh
-      generic map (
-         TPD_G          => TPD_G,
-         F_G            => F_G)
-      port map (
-         clk          => devClk_i,
-         rst          => devRst_i,
-         replEnable_i => replenable_i,
-         alignFrame_i => s_alignFrame,
-         dataValid_i  => s_dataValid,
-         dataRx_i     => s_charAndDataBuff((GT_WORD_SIZE_C*8)-1 downto 0),
-         chariskRx_i  => s_charAndDataBuff(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
-         sampleData_o => s_sampleData,
-         alignErr_o   => s_alignErr,
-         positionErr_o=> s_positionErr
-      );
-
    -- Synchronisation FSM
    syncFSM_INST : entity work.SyncFsmRx
       generic map (
-         TPD_G          => TPD_G,
-         F_G            => F_G,
-         K_G            => K_G)
+         TPD_G => TPD_G,
+         F_G   => F_G,
+         K_G   => K_G)
       port map (
-         clk          => devClk_i,
-         rst          => devRst_i,
-         enable_i     => enable_i,
-         sysRef_i     => sysRef_i,
-         dataRx_i     => r_jesdGtRx.data,
-         chariskRx_i  => r_jesdGtRx.dataK,
-         gtReady_i    => r_jesdGtRx.rstDone,
-         lmfc_i       => lmfc_i,
-         nSyncAnyD1_i => nSyncAnyD1_i,
-         nSyncAny_i   => nSyncAny_i,
-         linkErr_i    => s_linkErr,
-         nSync_o      => s_nSync,
-         readBuff_o   => s_readBuff,
-         buffLatency_o=> s_buffLatency,
-         alignFrame_o => s_alignFrame,
-         ila_o        => s_ila,
-         kDetected_o  => s_kDetected,
-         sysref_o     => s_refDetected,
-         dataValid_o  => s_dataValid,
-         subClass_i   => subClass_i
-      );
+         clk           => devClk_i,
+         rst           => devRst_i,
+         enable_i      => enable_i,
+         sysRef_i      => sysRef_i,
+         dataRx_i      => r_jesdGtRx.data,
+         chariskRx_i   => r_jesdGtRx.dataK,
+         gtReady_i     => r_jesdGtRx.rstDone,
+         lmfc_i        => lmfc_i,
+         nSyncAnyD1_i  => nSyncAnyD1_i,
+         nSyncAny_i    => nSyncAny_i,
+         linkErr_i     => s_linkErr,
+         nSync_o       => s_nSync,
+         readBuff_o    => s_readBuff,
+         buffLatency_o => s_buffLatency,
+         alignFrame_o  => s_alignFrame,
+         ila_o         => s_ila,
+         kDetected_o   => s_kDetected,
+         sysref_o      => s_refDetected,
+         dataValid_o   => s_dataValid,
+         subClass_i    => subClass_i
+         );
+
+   -- Align the rx data within the GT word and replace the characters. 
+   alignFrRepCh_INST : entity work.AlignFrRepCh
+      generic map (
+         TPD_G => TPD_G,
+         F_G   => F_G)
+      port map (
+         clk           => devClk_i,
+         rst           => devRst_i,
+         replEnable_i  => replenable_i,
+         scrEnable_i   => scrEnable_i,
+         alignFrame_i  => s_alignFrame,
+         dataValid_i   => s_dataValid,
+         dataRx_i      => s_charAndDataBuff((GT_WORD_SIZE_C*8)-1 downto 0),
+         chariskRx_i   => s_charAndDataBuff(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
+         sampleDataValid_o   => s_sampleDataValid,
+         sampleData_o  => s_sampleData,
+         alignErr_o    => s_alignErr,
+         positionErr_o => s_positionErr
+         );
 
    -- Error that stops 
    s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf or s_alignErr;
-   
+
    -- Note: Apply this line if dispErr and decErr also affect the reconfiguration
    -- s_linkErr <= s_positionErr or s_bufOvf or s_bufUnf or uOr(r_jesdGtRx.dispErr) or uOr(r_jesdGtRx.decErr) or s_alignErr;
 
@@ -271,8 +276,8 @@ begin
                v.errReg(I) := '1';
             end if;
          end loop;
-      end if;   
-      
+      end if;
+
       -- Clear registered errors if module is disabled
       if (clearErr_i = '1') then
          v.errReg := REG_INIT_C.errReg;
@@ -294,9 +299,9 @@ begin
    end process seq;
 
    -- Output assignment
-  -- nSync_o      <= s_nSync or not enable_i;
+   -- nSync_o      <= s_nSync or not enable_i;
    nSync_o      <= s_nSync;
-   dataValid_o  <= s_dataValid;
+   dataValid_o  <= s_sampleDataValid;
    sampleData_o <= s_sampleData;
    status_o     <= s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
