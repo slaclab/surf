@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-10
--- Last update: 2016-02-12
+-- Last update: 2016-02-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,24 +31,26 @@ entity AxiPcieReg is
       DMA_SIZE_G       : positive range 1 to 16 := 1);
    port (
       -- AXI4 Interfaces
-      axiClk          : in    sl;
-      axiRst          : in    sl;
-      regReadMaster   : in    AxiReadMasterType;
-      regReadSlave    : out   AxiReadSlaveType;
-      regWriteMaster  : in    AxiWriteMasterType;
-      regWriteSlave   : out   AxiWriteSlaveType;
-      sysReadMasters  : out   AxiLiteReadMasterArray(1 downto 0);
-      sysReadSlaves   : in    AxiLiteReadSlaveArray(1 downto 0);
-      sysWriteMasters : out   AxiLiteWriteMasterArray(1 downto 0);
-      sysWriteSlaves  : in    AxiLiteWriteSlaveArray(1 downto 0);
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      regReadMaster   : in  AxiReadMasterType;
+      regReadSlave    : out AxiReadSlaveType;
+      regWriteMaster  : in  AxiWriteMasterType;
+      regWriteSlave   : out AxiWriteSlaveType;
+      sysReadMasters  : out AxiLiteReadMasterArray(1 downto 0);
+      sysReadSlaves   : in  AxiLiteReadSlaveArray(1 downto 0);
+      sysWriteMasters : out AxiLiteWriteMasterArray(1 downto 0);
+      sysWriteSlaves  : in  AxiLiteWriteSlaveArray(1 downto 0);
       -- Interrupts
-      interrupt       : in    slv(DMA_SIZE_G-1 downto 0);
+      interrupt       : in  slv(DMA_SIZE_G-1 downto 0);
       -- Boot Memory Ports 
-      flashAddr       : out   slv(28 downto 0);
-      flashData       : inout slv(15 downto 0);
-      flashCe         : out   sl;
-      flashOe         : out   sl;
-      flashWe         : out   sl);        
+      flashAddr       : out slv(28 downto 0);
+      flashCe         : out sl;
+      flashOe         : out sl;
+      flashWe         : out sl;
+      flashTri        : out sl;
+      flashDin        : out slv(15 downto 0);
+      flashDout       : in  slv(15 downto 0));
 end AxiPcieReg;
 
 architecture mapping of AxiPcieReg is
@@ -189,30 +191,28 @@ begin
    -----------------------------         
    -- AXI-Lite Boot Flash Module
    -----------------------------         
-   AxiMicronP30Core_Inst : entity work.AxiMicronP30Core
+   U_AxiMicronP30 : entity work.AxiMicronP30Reg
       generic map (
          TPD_G            => TPD_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
       port map (
-         -- Boot Memory Ports
-         flashIn.flashWait => '0',
-         flashInOut.dq     => flashData,
-         flashOut.ceL      => flashCe,
-         flashOut.oeL      => flashOe,
-         flashOut.weL      => flashWe,
-         flashOut.addr     => flashAddress,
-         flashOut.adv      => open,
-         flashOut.clk      => open,
-         flashOut.rstL     => open,
+         -- FLASH Interface 
+         flashAddr      => flashAddress,
+         flashCeL       => flashCe,
+         flashOeL       => flashOe,
+         flashWeL       => flashWe,
+         flashDin       => flashDin,
+         flashDout      => flashDout,
+         flashTri       => flashTri,
          -- AXI-Lite Register Interface
-         axiReadMaster     => axilReadMasters(BOOT_INDEX_C),
-         axiReadSlave      => axilReadSlaves(BOOT_INDEX_C),
-         axiWriteMaster    => axilWriteMasters(BOOT_INDEX_C),
-         axiWriteSlave     => axilWriteSlaves(BOOT_INDEX_C),
+         axiReadMaster  => axilReadMasters(BOOT_INDEX_C),
+         axiReadSlave   => axilReadSlaves(BOOT_INDEX_C),
+         axiWriteMaster => axilWriteMasters(BOOT_INDEX_C),
+         axiWriteSlave  => axilWriteSlaves(BOOT_INDEX_C),
          -- Clocks and Resets
-         axiClk            => axiClk,
-         axiRst            => axiRst);  
+         axiClk         => axiClk,
+         axiRst         => axiRst);  
 
    flashAddr <= flashAddress(28 downto 0);
 
