@@ -1,0 +1,4 @@
+vhdl work rtl/AxiPcieEvrCardG2Core.vhd
+vhdl work rtl/AxiPcieEvrCardG2IpCoreWrapper.vhd
+
+vhdl work coregen/AxiPcieEvrCardG2IpCore.dcp
