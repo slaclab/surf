@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2015-03-06
+-- Last update: 2016-02-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,6 +30,9 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.AxiMicronP30Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiMicronP30Core is
    generic (
@@ -60,7 +63,21 @@ end AxiMicronP30Core;
 
 architecture mapping of AxiMicronP30Core is
 
+   signal flashDin  : slv(15 downto 0);
+   signal flashDout : slv(15 downto 0);
+   signal flashTri  : sl;
+
 begin
+
+   GEN_IOBUF :
+   for i in 15 downto 0 generate
+      IOBUF_inst : IOBUF
+         port map (
+            O  => flashDout(i),         -- Buffer output
+            IO => flashInOut.dq(i),     -- Buffer inout port (connect directly to top-level port)
+            I  => flashDin(i),          -- Buffer input
+            T  => flashTri);            -- 3-state enable input, high=input, low=output     
+   end generate GEN_IOBUF;
 
    AxiMicronP30Reg_Inst : entity work.AxiMicronP30Reg
       generic map (
@@ -72,10 +89,12 @@ begin
       port map (
          -- FLASH Interface 
          flashAddr      => flashOut.addr,
-         flashDq        => flashInOut.dq,
          flashCeL       => flashOut.ceL,
          flashOeL       => flashOut.oeL,
          flashWeL       => flashOut.weL,
+         flashDin       => flashDin,
+         flashDout      => flashDout,
+         flashTri       => flashTri,
          -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
