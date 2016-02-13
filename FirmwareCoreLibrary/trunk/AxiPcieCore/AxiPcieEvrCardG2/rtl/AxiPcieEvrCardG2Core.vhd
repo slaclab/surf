@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-10
--- Last update: 2016-02-12
+-- Last update: 2016-02-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,9 @@ use work.AxiPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiPciePkg.all;
-use work.AxiMicronP30Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiPcieEvrCardG2Core is
    generic (
@@ -62,10 +64,10 @@ end AxiPcieEvrCardG2Core;
 architecture mapping of AxiPcieEvrCardG2Core is
 
    constant PCIE_AXI_CONFIG_C : AxiConfigType := (
-      ADDR_WIDTH_C => 32,
-      DATA_BYTES_C => 16,
-      ID_BITS_C    => 4,
-      LEN_BITS_C   => 8);   
+      ADDR_WIDTH_C => 32,               -- 32-bit address interface
+      DATA_BYTES_C => 16,               -- 16 bytes (128-bit interface)
+      ID_BITS_C    => 4,                -- Up to 16 DMA channels
+      LEN_BITS_C   => 8);               -- 8-bit awlen/arlen interface
 
    signal dmaReadMaster  : AxiReadMasterType;
    signal dmaReadSlave   : AxiReadSlaveType;
@@ -83,6 +85,9 @@ architecture mapping of AxiPcieEvrCardG2Core is
    signal sysWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
 
    signal interrupt : slv(DMA_SIZE_G-1 downto 0);
+   signal flashDin  : slv(15 downto 0);
+   signal flashDout : slv(15 downto 0);
+   signal flashTri  : sl;
 
    signal axiClk : sl;
    signal axiRst : sl;
@@ -153,10 +158,22 @@ begin
          interrupt       => interrupt,
          -- Boot Memory Ports 
          flashAddr       => flashAddr,
-         flashData       => flashData,
          flashCe         => flashCe,
          flashOe         => flashOe,
-         flashWe         => flashWe);
+         flashWe         => flashWe,
+         flashDin        => flashDin,
+         flashDout       => flashDout,
+         flashTri        => flashTri);       
+
+   GEN_IOBUF :
+   for i in 15 downto 0 generate
+      IOBUF_inst : IOBUF
+         port map (
+            O  => flashDout(i),         -- Buffer output
+            IO => flashData(i),         -- Buffer inout port (connect directly to top-level port)
+            I  => flashDin(i),          -- Buffer input
+            T  => flashTri);            -- 3-state enable input, high=input, low=output     
+   end generate GEN_IOBUF;
 
    ---------------
    -- AXI PCIe DMA

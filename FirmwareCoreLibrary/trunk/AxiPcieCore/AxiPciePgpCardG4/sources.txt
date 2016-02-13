@@ -1,4 +1,4 @@
-vhdl work rtl/AxiPciePgpCardG3Core.vhd
-vhdl work rtl/AxiPciePgpCardG3IpCoreWrapper.vhd
+vhdl work rtl/AxiPciePgpCardG4Core.vhd
+vhdl work rtl/AxiPciePgpCardG4IpCoreWrapper.vhd
 
-vhdl work coregen/AxiPciePgpCardG3IpCore.dcp
+vhdl work coregen/AxiPciePgpCardG4IpCore.dcp

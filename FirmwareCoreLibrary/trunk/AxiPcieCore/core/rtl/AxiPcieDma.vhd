@@ -170,13 +170,13 @@ begin
             -- AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,-- not implemented yet
             FREE_ADDR_WIDTH_G => 12,           -- 4096 entries
             AXIL_COUNT_G      => 2,
-            AXIL_BASE_ADDR_G  => x"00000000",  -- ???
+            AXIL_BASE_ADDR_G  => x"00000000", 
             AXI_READY_EN_G    => false,
             AXIS_READY_EN_G   => false,
             AXIS_CONFIG_G     => PCIE_AXIS_CONFIG_C,
             AXI_CONFIG_G      => AXI_CONFIG_G,
-            AXI_BURST_G       => "01",         -- ???
-            AXI_CACHE_G       => "0000")       -- ??? 
+            AXI_BURST_G       => "01",         -- INCR 
+            AXI_CACHE_G       => "0000")       -- Device Non-bufferable 
          port map (
             axiClk          => axiClk,
             axiRst          => axiRst,

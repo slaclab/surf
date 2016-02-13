@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-12
--- Last update: 2016-02-12
+-- Last update: 2016-02-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,9 @@ use work.AxiPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiPciePkg.all;
-use work.AxiMicronP30Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity AxiPciePgpCardG4Core is
    generic (
@@ -34,7 +36,7 @@ entity AxiPciePgpCardG4Core is
       AXIS_CONFIG_G    : AxiStreamConfigArray);
    port (
       -- System Clock and Reset
-      sysClk       : out   sl;          -- 125 MHz
+      sysClk       : out   sl;          -- 250 MHz
       sysRst       : out   sl;
       -- DMA Interfaces
       dmaClk       : in    slv(DMA_SIZE_G-1 downto 0);
@@ -44,28 +46,27 @@ entity AxiPciePgpCardG4Core is
       dmaIbMasters : in    AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
       dmaIbSlaves  : out   AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
       -- Boot Memory Ports 
-      flashAddr    : out   slv(28 downto 0);
-      flashData    : inout slv(15 downto 0);
-      flashCe      : out   sl;
+      flashAddr    : out   slv(23 downto 0);
+      flashData    : inout slv(15 downto 4);
       flashOe      : out   sl;
       flashWe      : out   sl;
       -- PCIe Ports 
       pciRstL      : in    sl;
       pciRefClkP   : in    sl;
       pciRefClkN   : in    sl;
-      pciRxP       : in    slv(3 downto 0);
-      pciRxN       : in    slv(3 downto 0);
-      pciTxP       : out   slv(3 downto 0);
-      pciTxN       : out   slv(3 downto 0));        
+      pciRxP       : in    slv(7 downto 0);
+      pciRxN       : in    slv(7 downto 0);
+      pciTxP       : out   slv(7 downto 0);
+      pciTxN       : out   slv(7 downto 0));        
 end AxiPciePgpCardG4Core;
 
 architecture mapping of AxiPciePgpCardG4Core is
 
    constant PCIE_AXI_CONFIG_C : AxiConfigType := (
-      ADDR_WIDTH_C => 32,
-      DATA_BYTES_C => 16,
-      ID_BITS_C    => 4,
-      LEN_BITS_C   => 8);   
+      ADDR_WIDTH_C => 32,               -- 32-bit address interface
+      DATA_BYTES_C => 32,               -- 32 bytes (256-bit interface)
+      ID_BITS_C    => 4,                -- Up to 16 DMA channels
+      LEN_BITS_C   => 8);               -- 8-bit awlen/arlen interface
 
    signal dmaReadMaster  : AxiReadMasterType;
    signal dmaReadSlave   : AxiReadSlaveType;
@@ -82,11 +83,16 @@ architecture mapping of AxiPciePgpCardG4Core is
    signal sysWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal sysWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
 
-   signal interrupt : slv(DMA_SIZE_G-1 downto 0);
+   signal interrupt    : slv(DMA_SIZE_G-1 downto 0);
+   signal flashAddress : slv(28 downto 0);
+   signal flashDin     : slv(15 downto 0);
+   signal flashDout    : slv(15 downto 0);
+   signal flashTri     : sl;
 
-   signal axiClk : sl;
-   signal axiRst : sl;
-   signal dmaIrq : sl;
+   signal axiClk  : sl;
+   signal axiRst  : sl;
+   signal dmaIrq  : sl;
+   signal flashCe : sl;
    
 begin
 
@@ -152,11 +158,48 @@ begin
          -- Interrupts
          interrupt       => interrupt,
          -- Boot Memory Ports 
-         flashAddr       => flashAddr,
-         flashData       => flashData,
+         flashAddr       => flashAddress,
          flashCe         => flashCe,
          flashOe         => flashOe,
-         flashWe         => flashWe);
+         flashWe         => flashWe,
+         flashDin        => flashDin,
+         flashDout       => flashDout,
+         flashTri        => flashTri);
+
+   flashAddr <= flashAddress(23 downto 0);
+
+   U_STARTUPE3 : STARTUPE3
+      generic map (
+         PROG_USR      => "FALSE",  -- Activate program event security feature. Requires encrypted bitstreams.
+         SIM_CCLK_FREQ => 0.0)          -- Set the Configuration Clock Frequency(ns) for simulation
+      port map (
+         CFGCLK    => open,             -- 1-bit output: Configuration main clock output
+         CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
+         DI        => flashDout(3 downto 0),  -- 4-bit output: Allow receiving on the D[3:0] input pins
+         EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
+         PREQ      => open,             -- 1-bit output: PROGRAM request to fabric output         
+         DO        => flashDin(3 downto 0),  -- 4-bit input: Allows control of the D[3:0] pin outputs
+         DTS       => (others => flashTri),  -- 4-bit input: Allows tristate of the D[3:0] pins
+         FCSBO     => flashCe,          -- 1-bit input: Contols the FCS_B pin for flash access
+         FCSBTS    => '0',              -- 1-bit input: Tristate the FCS_B pin
+         GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
+         GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
+         KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
+         PACK      => '0',              -- 1-bit input: PROGRAM acknowledge input
+         USRCCLKO  => '1',              -- 1-bit input: User CCLK input
+         USRCCLKTS => '1',              -- 1-bit input: User CCLK 3-state enable input
+         USRDONEO  => '1',              -- 1-bit input: User DONE pin output control
+         USRDONETS => '1');  -- 1-bit input: User DONE 3-state enable output              
+
+   GEN_IOBUF :
+   for i in 15 downto 4 generate
+      IOBUF_inst : IOBUF
+         port map (
+            O  => flashDout(i),         -- Buffer output
+            IO => flashData(i),         -- Buffer inout port (connect directly to top-level port)
+            I  => flashDin(i),          -- Buffer input
+            T  => flashTri);            -- 3-state enable input, high=input, low=output     
+   end generate GEN_IOBUF;
 
    ---------------
    -- AXI PCIe DMA
