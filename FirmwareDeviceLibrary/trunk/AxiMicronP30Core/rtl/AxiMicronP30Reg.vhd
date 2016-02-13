@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2015-03-06
+-- Last update: 2016-02-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,24 +42,26 @@ entity AxiMicronP30Reg is
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Interface 
-      flashAddr      : out   slv(30 downto 0);
-      flashDq        : inout slv(15 downto 0);
-      flashCeL       : out   sl;
-      flashOeL       : out   sl;
-      flashWeL       : out   sl;
+      flashAddr      : out slv(30 downto 0);
+      flashCeL       : out sl;
+      flashOeL       : out sl;
+      flashWeL       : out sl;
+      flashTri       : out sl;
+      flashDin       : out slv(15 downto 0);
+      flashDout      : in  slv(15 downto 0);
       -- AXI-Lite Register Interface
-      axiReadMaster  : in    AxiLiteReadMasterType;
-      axiReadSlave   : out   AxiLiteReadSlaveType;
-      axiWriteMaster : in    AxiLiteWriteMasterType;
-      axiWriteSlave  : out   AxiLiteWriteSlaveType;
+      axiReadMaster  : in  AxiLiteReadMasterType;
+      axiReadSlave   : out AxiLiteReadSlaveType;
+      axiWriteMaster : in  AxiLiteWriteMasterType;
+      axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- AXI Streaming Interface (Optional)
-      mAxisMaster    : out   AxiStreamMasterType;
-      mAxisSlave     : in    AxiStreamSlaveType;
-      sAxisMaster    : in    AxiStreamMasterType;
-      sAxisSlave     : out   AxiStreamSlaveType;
+      mAxisMaster    : out AxiStreamMasterType;
+      mAxisSlave     : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+      sAxisMaster    : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      sAxisSlave     : out AxiStreamSlaveType;
       -- Clocks and Resets
-      axiClk         : in    sl;
-      axiRst         : in    sl);
+      axiClk         : in  sl;
+      axiRst         : in  sl);
 end AxiMicronP30Reg;
 
 architecture rtl of AxiMicronP30Reg is
@@ -168,7 +170,6 @@ architecture rtl of AxiMicronP30Reg is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dout    : slv(15 downto 0);
    signal ramDout : slv(15 downto 0);
 
    signal rxMaster : AxiStreamMasterType;
@@ -181,7 +182,7 @@ architecture rtl of AxiMicronP30Reg is
 
 begin
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dout, r, ramDout, rxMaster, txCtrl) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, flashDout, r, ramDout, rxMaster, txCtrl) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -612,7 +613,7 @@ begin
                -- Reset the counter
                v.cnt     := 0;
                --latch the data bus value
-               v.dataReg := dout;
+               v.dataReg := flashDout;
                -- Next state
                v.state   := DATA_HIGH_S;
             end if;
@@ -674,6 +675,8 @@ begin
       flashCeL      <= r.ceL;
       flashOeL      <= r.oeL;
       flashWeL      <= r.weL;
+      flashDin      <= r.din;
+      flashTri      <= r.tristate;
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
       
@@ -685,16 +688,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   GEN_IOBUF :
-   for i in 15 downto 0 generate
-      IOBUF_inst : IOBUF
-         port map (
-            O  => dout(i),              -- Buffer output
-            IO => flashDq(i),           -- Buffer inout port (connect directly to top-level port)
-            I  => r.din(i),             -- Buffer input
-            T  => r.tristate);          -- 3-state enable input, high=input, low=output     
-   end generate GEN_IOBUF;
 
    RX_FIFO : entity work.AxiStreamFifo
       generic map (
