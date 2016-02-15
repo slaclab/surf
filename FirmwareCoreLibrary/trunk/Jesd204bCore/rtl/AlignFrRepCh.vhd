@@ -77,6 +77,7 @@ architecture rtl of AlignFrRepCh is
       dataAlignedD1 : slv(dataRx_i'range);
       charAlignedD1 : slv(chariskRx_i'range);
       scrData       : slv(sampleData_o'range);
+      descrData     : slv(sampleData_o'range);
       scrDataValid  : sl;
       sampleData    : slv(sampleData_o'range);
       dataValid     : sl;
@@ -89,6 +90,7 @@ architecture rtl of AlignFrRepCh is
       dataAlignedD1 => (others => '0'),
       charAlignedD1 => (others => '0'),
       scrData       => (others => '0'),
+      descrData     => (others => '0'),
       scrDataValid  => '0',
       sampleData    => (others => '0'),
       dataValid     => '0',
@@ -118,7 +120,6 @@ begin
       variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
       variable v_dataaligned   : slv(dataRx_i'range);
       variable v_charAligned   : slv(chariskRx_i'range);
-      variable v_descrData     : slv(dataRx_i'range);
 
    begin
       v := r;
@@ -200,17 +201,17 @@ begin
       -- Start descrambling when data is valid
       if (scrEnable_i = '1' and r.scrDataValid = '1') then
          for I in (GT_WORD_SIZE_C*8)-1 downto 0 loop
-            v_descrData := lfsrShift(v_descrData, JESD_PRBS_TAPS_C, r.scrData(I));
+            v.descrData := lfsrShift(v.descrData, JESD_PRBS_TAPS_C, r.scrData(I));
          end loop;
       else
-         v_descrData := r.scrData;
+         v.descrData := r.scrData;
       end if;
 
       -- Byte swap the bytes before outputting
       -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
       if (scrEnable_i = '1') then
          -- 2 c-c latency
-         v.sampleData := byteSwapSlv(v_descrData, GT_WORD_SIZE_C);
+         v.sampleData := byteSwapSlv(r.descrData, GT_WORD_SIZE_C);
          v.dataValid  := r.scrDataValid;
       else
          -- 1 c-c latency
