@@ -182,9 +182,9 @@ begin
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
+         USE_IP_CORE_G    => false,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         AXIS_CONFIG_G    => AXIS_CONFIG_G,
-         AXI_CONFIG_G     => PCIE_AXI_CONFIG_C)
+         AXIS_CONFIG_G    => AXIS_CONFIG_G)
       port map (
          -- Clock and reset
          axiClk          => axiClk,
