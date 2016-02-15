@@ -62,12 +62,6 @@ end AxiPciePgpCardG4Core;
 
 architecture mapping of AxiPciePgpCardG4Core is
 
-   constant PCIE_AXI_CONFIG_C : AxiConfigType := (
-      ADDR_WIDTH_C => 32,               -- 32-bit address interface
-      DATA_BYTES_C => 32,               -- 32 bytes (256-bit interface)
-      ID_BITS_C    => 4,                -- Up to 16 DMA channels
-      LEN_BITS_C   => 8);               -- 8-bit awlen/arlen interface
-
    signal dmaReadMaster  : AxiReadMasterType;
    signal dmaReadSlave   : AxiReadSlaveType;
    signal dmaWriteMaster : AxiWriteMasterType;
@@ -208,9 +202,9 @@ begin
       generic map (
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
+         USE_IP_CORE_G    => true,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         AXIS_CONFIG_G    => AXIS_CONFIG_G,
-         AXI_CONFIG_G     => PCIE_AXI_CONFIG_C)
+         AXIS_CONFIG_G    => AXIS_CONFIG_G)
       port map (
          -- Clock and reset
          axiClk          => axiClk,
