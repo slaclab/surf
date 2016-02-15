@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-02-01
+-- Last update: 2016-02-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,6 +60,19 @@ package AxiPkg is
       arqos    => (others => '0'),
       arregion => (others => '0'),
       rready   => '0');
+   constant AXI_READ_MASTER_FORCE_C : AxiReadMasterType := (
+      arvalid  => '0',
+      araddr   => (others => '0'),
+      arid     => (others => '0'),
+      arlen    => (others => '0'),
+      arsize   => (others => '0'),
+      arburst  => (others => '0'),
+      arlock   => (others => '0'),
+      arprot   => (others => '0'),
+      arcache  => (others => '0'),
+      arqos    => (others => '0'),
+      arregion => (others => '0'),
+      rready   => '1');      
 
    ------------------------------------
    -- AXI bus, read slave signal record
@@ -82,6 +95,13 @@ package AxiPkg is
       rvalid  => '0',
       rid     => (others => '0'),
       rresp   => (others => '0'));
+   constant AXI_READ_SLAVE_FORCE_C : AxiReadSlaveType := (
+      arready => '1',
+      rdata   => (others => '0'),
+      rlast   => '0',
+      rvalid  => '0',
+      rid     => (others => '0'),
+      rresp   => (others => '0'));      
 
    --------------------------------------
    -- AXI bus, write master signal record
@@ -127,6 +147,24 @@ package AxiPkg is
       wid      => (others => '0'),
       wstrb    => (others => '0'),
       bready   => '0');
+   constant AXI_WRITE_MASTER_FORCE_C : AxiWriteMasterType := (
+      awvalid  => '0',
+      awaddr   => (others => '0'),
+      awid     => (others => '0'),
+      awlen    => (others => '0'),
+      awsize   => (others => '0'),
+      awburst  => (others => '0'),
+      awlock   => (others => '0'),
+      awprot   => (others => '0'),
+      awcache  => (others => '0'),
+      awqos    => (others => '0'),
+      awregion => (others => '0'),
+      wdata    => (others => '0'),
+      wlast    => '0',
+      wvalid   => '0',
+      wid      => (others => '0'),
+      wstrb    => (others => '0'),
+      bready   => '1');      
 
    -------------------------------------
    -- AXI bus, write slave signal record
@@ -148,6 +186,12 @@ package AxiPkg is
       bresp   => (others => '0'),
       bvalid  => '0',
       bid     => (others => '0'));
+   constant AXI_WRITE_SLAVE_FORCE_C : AxiWriteSlaveType := (
+      awready => '1',
+      wready  => '1',
+      bresp   => (others => '0'),
+      bvalid  => '0',
+      bid     => (others => '0'));      
 
    ------------------------
    -- AXI bus, fifo control
