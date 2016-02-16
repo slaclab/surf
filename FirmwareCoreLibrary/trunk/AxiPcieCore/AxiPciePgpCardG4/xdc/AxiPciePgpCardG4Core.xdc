@@ -110,3 +110,6 @@ set_clock_groups -asynchronous -group [get_clocks {dnaClk}] -group [get_clocks {
 
 set_property -dict { PACKAGE_PIN K22 IOSTANDARD LVCMOS33 PULLUP true } [get_ports { pciRstL }]
 set_false_path -from [get_ports pciRstL]
+
+create_pblock PCIE_PHY_GRP; add_cells_to_pblock [get_pblocks PCIE_PHY_GRP] [get_cells {U_Core/U_AxiPciePhy/U_AxiPcie}]
+resize_pblock [get_pblocks PCIE_PHY_GRP] -add {CLOCKREGION_X3Y0:CLOCKREGION_X3Y1}
