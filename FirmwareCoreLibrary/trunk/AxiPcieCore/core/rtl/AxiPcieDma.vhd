@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-12
--- Last update: 2016-02-14
+-- Last update: 2016-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ entity AxiPcieDma is
       TPD_G            : time                   := 1 ns;
       DMA_SIZE_G       : positive range 1 to 16 := 1;
       USE_IP_CORE_G    : boolean                := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_DECERR_C;
+      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C;
       AXIS_CONFIG_G    : AxiStreamConfigArray);
    port (
       -- Clock and reset

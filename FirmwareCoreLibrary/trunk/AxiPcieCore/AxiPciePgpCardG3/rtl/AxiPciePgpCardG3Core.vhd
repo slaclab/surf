@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-10
--- Last update: 2016-02-13
+-- Last update: 2016-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,10 +30,9 @@ use unisim.vcomponents.all;
 
 entity AxiPciePgpCardG3Core is
    generic (
-      TPD_G            : time                   := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_DECERR_C;
-      DMA_SIZE_G       : positive range 1 to 16 := 1;
-      AXIS_CONFIG_G    : AxiStreamConfigArray);
+      TPD_G         : time                   := 1 ns;
+      DMA_SIZE_G    : positive range 1 to 16 := 1;
+      AXIS_CONFIG_G : AxiStreamConfigArray);
    port (
       -- System Clock and Reset
       sysClk       : out   sl;          -- 125 MHz
@@ -62,6 +61,8 @@ entity AxiPciePgpCardG3Core is
 end AxiPciePgpCardG3Core;
 
 architecture mapping of AxiPciePgpCardG3Core is
+
+   constant AXI_ERROR_RESP_C : slv(1 downto 0) := AXI_RESP_OK_C;  -- Always return OK to a MMAP()
 
    signal dmaReadMaster  : AxiReadMasterType;
    signal dmaReadSlave   : AxiReadSlaveType;
@@ -133,7 +134,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_CLK_FREQ_G   => 125.0E+6,  -- units of Hz
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_C,
          XIL_DEVICE_G     => "7SERIES",
          DMA_SIZE_G       => DMA_SIZE_G)
       port map (
@@ -177,7 +178,7 @@ begin
          TPD_G            => TPD_G,
          DMA_SIZE_G       => DMA_SIZE_G,
          USE_IP_CORE_G    => false,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_C,
          AXIS_CONFIG_G    => AXIS_CONFIG_G)
       port map (
          -- Clock and reset
