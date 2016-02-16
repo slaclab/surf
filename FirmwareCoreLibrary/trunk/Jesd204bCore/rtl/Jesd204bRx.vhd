@@ -20,7 +20,9 @@
 --              - Serial lane error check
 --              - Alignment character replacement and alignment check
 --               
---              Note: The receiver does not support scrambling (assumes that the data is not scrambled)
+--          Note: sampleDataArr_o is little endian and not byteswapped
+--                First sample in time:  sampleData_o(15 downto 0) 
+--                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
