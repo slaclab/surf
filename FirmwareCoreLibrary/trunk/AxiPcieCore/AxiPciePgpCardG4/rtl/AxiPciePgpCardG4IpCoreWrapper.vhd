@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-12
--- Last update: 2016-02-13
+-- Last update: 2016-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -170,11 +170,18 @@ architecture mapping of AxiPciePgpCardG4IpCoreWrapper is
    signal refClkGt : sl;
    signal clk      : sl;
    signal rstL     : sl;
+   signal rst      : sl;
 
 begin
 
    axiClk <= clk;
-   axiRst <= not(rstL);
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         rst    <= not(rstL) after TPD_G;  -- Register to help with timing
+         axiRst <= rst       after TPD_G;  -- Register to help with timing
+      end if;
+   end process;
 
    ------------------
    -- Clock and Reset
@@ -219,7 +226,7 @@ begin
          s_axi_awvalid          => dmaWriteMaster.awvalid,
          s_axi_awready          => dmaWriteSlave.awready,
          s_axi_wdata            => dmaWriteMaster.wdata(255 downto 0),
-         s_axi_wuser            => (others=>'0'),
+         s_axi_wuser            => (others => '0'),
          s_axi_wstrb            => dmaWriteMaster.wstrb(31 downto 0),
          s_axi_wlast            => dmaWriteMaster.wlast,
          s_axi_wvalid           => dmaWriteMaster.wvalid,
@@ -274,7 +281,7 @@ begin
          m_axi_arcache          => regReadMaster.arcache,
          m_axi_rid              => regReadSlave.rid(2 downto 0),
          m_axi_rdata            => regReadSlave.rdata(255 downto 0),
-         m_axi_ruser            => (others=>'0'),
+         m_axi_ruser            => (others => '0'),
          m_axi_rresp            => regReadSlave.rresp(1 downto 0),
          m_axi_rlast            => regReadSlave.rlast,
          m_axi_rvalid           => regReadSlave.rvalid,

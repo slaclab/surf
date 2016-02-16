@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-10
--- Last update: 2016-02-13
+-- Last update: 2016-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ entity AxiPcieReg is
    generic (
       TPD_G            : time                   := 1 ns;
       AXI_CLK_FREQ_G   : real                   := 125.0E+6;   -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_DECERR_C;
+      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C;
       XIL_DEVICE_G     : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
       DMA_SIZE_G       : positive range 1 to 16 := 1);
    port (
