@@ -76,8 +76,8 @@ architecture rtl of AlignFrRepCh is
       chariskRxD1   : slv(chariskRx_i'range);
       dataAlignedD1 : slv(dataRx_i'range);
       charAlignedD1 : slv(chariskRx_i'range);
-      scrData       : Slv16Array(1 downto 0);
-      descrData     : Slv16Array(1 downto 0);
+      scrData       : Slv16Array(1 downto 0); -- If GT_WORD_SIZE_C=2 Slv8Array(1 downto 0);
+      descrData     : Slv16Array(1 downto 0); -- If GT_WORD_SIZE_C=2 Slv8Array(1 downto 0);
       scrDataValid  : slv(1 downto 0);
       sampleData    : slv(sampleData_o'range);
       dataValid     : sl;
@@ -120,7 +120,6 @@ begin
       variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
       variable v_dataaligned   : slv(dataRx_i'range);
       variable v_charAligned   : slv(chariskRx_i'range);
-      variable v_descramble    : slv(31 downto 0);
 
    begin
       v := r;
@@ -195,20 +194,20 @@ begin
       end if;
 
       -- Register data before scrambling
-      v.scrData(0)      := v_twoWordBuffAl(31 downto 16);-- 1st ADC in time
-      v.scrData(1)      := v_twoWordBuffAl(15 downto 0); -- 2nd ADC in time
+      v.scrData(0)      := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto (GT_WORD_SIZE_C*4)); -- 1st ADC in time
+      v.scrData(1)      := v_twoWordBuffAl((GT_WORD_SIZE_C*4)-1 downto 0);                  -- 2nd ADC in time
       v.scrDataValid(0) := dataValid_i;
       v.scrDataValid(1) := r.scrDataValid(0);
 
       -- Descramble data put data into descrambler MSB first
       -- Start descrambling when data is valid
       if (scrEnable_i = '1' and r.scrDataValid(0) = '1') then
-         for i in 15 downto 0 loop
+         for i in (GT_WORD_SIZE_C*4)-1 downto 0 loop
             -- Descramble 1st ADC in time
             -- Note: r.descrData(1) is the previously Descrambled ADC value
             v.descrData(0) := lfsrShift(r.descrData(1), JESD_PRBS_TAPS_C, r.scrData(0)(i));
          end loop;
-         for i in 15 downto 0 loop
+         for i in (GT_WORD_SIZE_C*4)-1 downto 0 loop
             -- Descramble 2nd ADC in time
             -- Note: v.descrData(0) is the previously Descrambled ADC value
             v.descrData(1) := lfsrShift(v.descrData(0), JESD_PRBS_TAPS_C, r.scrData(1)(i));
@@ -218,16 +217,14 @@ begin
          v.descrData(1) := r.scrData(1);
       end if;
 
-      -- Byte swap the bytes before outputting
       -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
       if (scrEnable_i = '1') then
-         -- 2 c-c latency
-         v_descramble := r.descrData(0) & r.descrData(1);
-         v.sampleData := byteSwapSlv(v_descramble, GT_WORD_SIZE_C);
+         -- 3 c-c latency
+         v.sampleData := r.descrData(0) & r.descrData(1);
          v.dataValid  := r.scrDataValid(1);
       else
          -- 1 c-c latency
-         v.sampleData := byteSwapSlv(v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
+         v.sampleData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
          v.dataValid  := dataValid_i;
       end if;
 

@@ -70,7 +70,7 @@ architecture rtl of TestSigGen is
    
 begin
 
-   s_sampleDataBr <= byteSwapSlv(sampleData_i, GT_WORD_SIZE_C);
+   s_sampleDataBr <= sampleData_i;
    
    -- Buffer two GT words. And compare previous and current samples to threshold.
    -- If the difference between the previous and current sample is higher than threshold

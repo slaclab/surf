@@ -142,8 +142,8 @@ begin
             -- No data sent 
             v.txAxisMaster.tvalid  := '1';
             
-            -- Insert the lane number at the first data byte (byte swapped so it is transferred correctly)
-            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := byteSwapSlv(intToSlv(laneNum_i,(GT_WORD_SIZE_C*8)), GT_WORD_SIZE_C);      
+            -- Insert the lane number at the first data byte
+            v.txAxisMaster.tData((GT_WORD_SIZE_C*8)-1 downto 0)   := intToSlv(laneNum_i,(GT_WORD_SIZE_C*8));      
             v.txAxisMaster.tLast   := '0';
             
             -- Set the SOF bit

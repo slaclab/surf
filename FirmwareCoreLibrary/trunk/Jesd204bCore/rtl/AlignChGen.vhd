@@ -103,7 +103,7 @@ begin
       v.lmfcD1 := lmfc_i;
 
       -- Combinatorial logic
-      v_twoWordBuff:= byteSwapSlv(r.sampleDataD2, GT_WORD_SIZE_C) & byteSwapSlv(r.sampleDataD1, GT_WORD_SIZE_C);
+      v_twoWordBuff:= r.sampleDataD2 & r.sampleDataD1;
       v_twoCharBuff:= r.sampleKD1 & (sampleK_o'range => '0');
 
       
