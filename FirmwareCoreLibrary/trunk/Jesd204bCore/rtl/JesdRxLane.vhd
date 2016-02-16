@@ -31,6 +31,11 @@
 --                bit 9: Comma (K28.5) detected
 --                bit 10-13: Disparity error
 --                bit 14-17: Not in table Error
+--
+--
+--          Note: sampleData_o is little endian and not byteswapped
+--                First sample in time:  sampleData_o(15 downto 0) 
+--                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -302,7 +307,7 @@ begin
    -- nSync_o      <= s_nSync or not enable_i;
    nSync_o      <= s_nSync;
    dataValid_o  <= s_sampleDataValid;
-   sampleData_o <= s_sampleData;
+   sampleData_o <= endianSwapSlv(s_sampleData, GT_WORD_SIZE_C);
    status_o     <= s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

@@ -11,7 +11,16 @@
 -------------------------------------------------------------------------------
 -- Description: What is supported 
 --              Frame sizes 1, 2, 4
---              GT Word sizes 2, 4  <--- I don't think 2 word is supported because hard coded in Jesd204bPkg.vhd    
+--              GT Word sizes 2, 4  <--- I don't think 2 word is supported because hard coded in Jesd204bPkg.vhd
+--
+--          Note: 
+--          dataRx_i - is little endian and byteswapped (directly from GTH)
+--                First sample in time:  dataRx_i(7  downto 0) & dataRx_i(15 downto 8)
+--                Second sample in time: dataRx_i(23 downto 16)& dataRx_i(31 downto 24) 
+--
+--          sampleData_o is big endian and not byteswapped
+--                First sample in time:  sampleData_o(31 downto 16) 
+--                Second sample in time: sampleData_o(15 downto 0)   
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

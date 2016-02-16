@@ -87,6 +87,9 @@ package Jesd204bPkg is
    -- Byte swap slv (bytes int 2 or 4)
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector;
    
+   -- Swap little and big endians (bytes int 2 or 4)
+   function endianSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector;
+   
    -- Align the data within the data buffer according to the position of the byte alignment word
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector; 
 
@@ -98,11 +101,8 @@ package Jesd204bPkg is
 
    -- Convert integer to standard logic vector
    function intToSlv(data_int : integer; bytes_int : positive) return std_logic_vector;
-   
-   -- Replace alignment characters with data
-   function JesdCharReplace(data_slv : slv; char_slv : slv; F_int : positive; bytes_int : positive ; enable_sl : sl) return std_logic_vector;
- 
- -- Replace alignment characters with data
+
+   -- Output offset binary zero
    function outSampleZero(F_int : positive; bytes_int : positive ) return std_logic_vector;
 
  
@@ -271,7 +271,23 @@ package body Jesd204bPkg is
           return data_slv;
       end if;
    end byteSwapSlv;
+   
+   -- Swap little or big endians (bytes int 2 or 4)
+   function endianSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
+   begin
 
+      if(bytes_int = 2) then
+         return data_slv;
+      elsif(bytes_int = 4) then
+         return data_slv(15 downto 0) & data_slv(31 downto 16); 
+      else
+          return data_slv;
+      end if;
+   end endianSwapSlv;
+   
+   
+   
+   
    -- Align the data within the data buffer according to the position of the byte alignment word
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
    begin
@@ -327,29 +343,6 @@ package body Jesd204bPkg is
    begin
       return std_logic_vector(to_unsigned(data_int, bytes_int));
    end IntToSlv;
-   
-   -- Replace alignment characters with data      
-   function JesdCharReplace(data_slv : slv; char_slv : slv; F_int : positive; bytes_int : positive; enable_sl : sl) return std_logic_vector is
-         variable  vSlv: slv((bytes_int*8)-1 downto 0);
-   begin
-         if(enable_sl = '0') then
-            vSlv := data_slv((bytes_int*8)-1 downto 0);
-         else
-            vSlv := data_slv((bytes_int*8)-1 downto 0);
-            -- Replace the character in the data with the data value from previous frame
-            for I in (bytes_int-1) downto 0 loop
-               if ( char_slv(I) = '1' and
-                    (data_slv( (I*8+7) downto I*8) = A_CHAR_C or 
-                     data_slv( (I*8+7) downto I*8) = F_CHAR_C)
-                  ) then
-                  vSlv((I*8+7) downto I*8) := data_slv( (I*8+8*F_int)+7 downto (I*8 + 8*F_int));    
-               end if;
-            end loop;
-         end if;
-         
-         return vSlv((bytes_int*8)-1 downto 0);        
-
-   end  JesdCharReplace;
 
    -- Output zero sample data depending on word size and Frame size
    function outSampleZero(F_int : positive; bytes_int : positive ) return std_logic_vector is

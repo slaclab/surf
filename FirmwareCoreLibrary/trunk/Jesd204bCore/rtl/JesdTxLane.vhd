@@ -26,6 +26,10 @@
 --                bit 3: Synchronisation input status 
 --                bit 4: TX module enabled status
 --                bit 5: SysRef detected (active only when the lane is enabled)
+--
+--          Note: sampleData_i should be big endian and not byteswapped
+--                First sample in time:  sampleData_i(31 downto 16)
+--                Second sample in time: sampleData_i(15 downto 0)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

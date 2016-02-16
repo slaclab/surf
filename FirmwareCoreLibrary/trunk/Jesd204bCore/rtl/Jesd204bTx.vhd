@@ -17,6 +17,10 @@
 --              - Synchronisation of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-8)
 --              Note: The transmitter does not support scrambling (assumes that the receiver does not expect scrambled data)
+--
+--          Note: extSampleDataArray_i should be little endian and not byteswapped
+--                First sample in time:  sampleData_i(15 downto 0)
+--                Second sample in time: sampleData_i(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -130,8 +134,9 @@ architecture rtl of Jesd204bTx is
    signal s_negAmplitude: slv(F_G*8-1 downto 0);
    
    -- Data out multiplexer
-   signal s_testDataArr   : sampleDataArray(L_G-1 downto 0);
-   signal s_axiDataArr    : sampleDataArray(L_G-1 downto 0);
+   signal s_testDataArr       : sampleDataArray(L_G-1 downto 0);
+   signal s_axiDataArr        : sampleDataArray(L_G-1 downto 0);
+   signal s_extDataArraySwap  : sampleDataArray(L_G-1 downto 0);
    
    signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);  
 
@@ -241,10 +246,14 @@ begin
    
    -- Sample data mux
    generateMux : for I in L_G-1 downto 0 generate
+      -- Swap endians (the module is built to use big endian data but the interface is little endian)
+      s_extDataArraySwap(I) <= endianSwapSlv(extSampleDataArray_i(I), GT_WORD_SIZE_C);
+   
+   
       -- Separate mux for separate lane
       with s_muxOutSelArr(I) select 
       s_sampleDataArr(I) <= outSampleZero(F_G,GT_WORD_SIZE_C)when "000",
-                            extSampleDataArray_i(I)          when "001",
+                            s_extDataArraySwap(I)            when "001",
                             s_axiDataArr(I)                  when "010",  
                             s_testDataArr(I)                 when others;
    end generate generateMux;
