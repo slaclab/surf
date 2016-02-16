@@ -195,8 +195,8 @@ begin
       end if;
 
       -- Register data before scrambling
-      v.scrData(1)      := v_twoWordBuffAl(31 downto 16);-- No byte swap? lfsrShift() assumes no byte swap
-      v.scrData(0)      := v_twoWordBuffAl(15 downto 0); -- No byte swap? lfsrShift() assumes no byte swap
+      v.scrData(0)      := v_twoWordBuffAl(31 downto 16);-- 1st ADC in time
+      v.scrData(1)      := v_twoWordBuffAl(15 downto 0); -- 2nd ADC in time
       v.scrDataValid(0) := dataValid_i;
       v.scrDataValid(1) := r.scrDataValid(0);
 
@@ -222,7 +222,7 @@ begin
       -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
       if (scrEnable_i = '1') then
          -- 2 c-c latency
-         v_descramble := r.descrData(1) & r.descrData(0);
+         v_descramble := r.descrData(0) & r.descrData(1);
          v.sampleData := byteSwapSlv(v_descramble, GT_WORD_SIZE_C);
          v.dataValid  := r.scrDataValid(1);
       else
