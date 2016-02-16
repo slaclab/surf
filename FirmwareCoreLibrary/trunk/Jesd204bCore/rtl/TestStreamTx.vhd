@@ -185,6 +185,6 @@ begin
    -- Digital square waveform out 
    pulse_o <= r.sign; 
    -- Output data assignment
-   sampleData_o <= byteSwapSlv(r.testData, GT_WORD_SIZE_C);
+   sampleData_o <= r.testData;
 ---------------------------------------   
 end architecture rtl;

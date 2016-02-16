@@ -351,7 +351,6 @@ package body Jesd204bPkg is
 
    end  JesdCharReplace;
 
-
    -- Output zero sample data depending on word size and Frame size
    function outSampleZero(F_int : positive; bytes_int : positive ) return std_logic_vector is
          constant SAMPLES_IN_WORD_C    : positive := (bytes_int/F_int);
@@ -361,7 +360,7 @@ package body Jesd204bPkg is
       vSlv := (others=>'0');
       
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-          vSlv(I*8*F_int+7) := '1';  
+          vSlv(I*8*F_int+15) := '1';
       end loop;
          
       return vSlv;        
