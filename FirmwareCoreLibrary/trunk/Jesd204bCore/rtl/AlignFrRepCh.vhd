@@ -117,7 +117,7 @@ begin
    -- v.position = (others => '1')
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-   comb : process (r, rst, chariskRx_i, dataRx_i, alignFrame_i, dataValid_i, replEnable_i) is
+   comb : process (r, rst, chariskRx_i, dataRx_i, alignFrame_i, dataValid_i, replEnable_i, scrEnable_i) is
       variable v : RegType;
 
       -- Alignment error. Invalid data received at time of alignment
