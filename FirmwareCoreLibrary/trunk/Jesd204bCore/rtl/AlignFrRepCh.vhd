@@ -129,6 +129,7 @@ begin
       variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
       variable v_dataaligned   : slv(dataRx_i'range);
       variable v_charAligned   : slv(chariskRx_i'range);
+      variable v_feedback      : slv(15 downto 0);
 
    begin
       v := r;
@@ -211,16 +212,18 @@ begin
       -- Descramble data put data into descrambler MSB first
       -- Start descrambling when data is valid
       if (scrEnable_i = '1' and r.scrDataValid(0) = '1') then
+         -- Latch the previous time sample
+         v_feedback := r.descrData(1);
          for i in (GT_WORD_SIZE_C*4)-1 downto 0 loop
-            -- Descramble 1st ADC in time
-            -- Note: r.descrData(1) is the previously Descrambled ADC value
-            v.descrData(0) := lfsrShift(r.descrData(1), JESD_PRBS_TAPS_C, r.scrData(0)(i));
+            v_feedback := lfsrShift(v_feedback, JESD_PRBS_TAPS_C, r.scrData(0)(i));
          end loop;
+         -- Set the bus
+         v.descrData(0) := v_feedback;
          for i in (GT_WORD_SIZE_C*4)-1 downto 0 loop
-            -- Descramble 2nd ADC in time
-            -- Note: v.descrData(0) is the previously Descrambled ADC value
-            v.descrData(1) := lfsrShift(v.descrData(0), JESD_PRBS_TAPS_C, r.scrData(1)(i));
+            v_feedback := lfsrShift(v_feedback, JESD_PRBS_TAPS_C, r.scrData(1)(i));
          end loop;
+         -- Set the bus
+         v.descrData(1) := v_feedback;
       else
          v.descrData(0) := r.scrData(0);
          v.descrData(1) := r.scrData(1);
