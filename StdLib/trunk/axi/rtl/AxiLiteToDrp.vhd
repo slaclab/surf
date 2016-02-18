@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-10
--- Last update: 2016-02-10
+-- Last update: 2016-02-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ entity AxiLiteToDrp is
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_DECERR_C;
       COMMON_CLK_G     : boolean                := false;
       EN_ARBITRATION_G : boolean                := false;
+      TIMEOUT_G        : positive               := 4096;
       ADDR_WIDTH_G     : positive range 1 to 32 := 16;
       DATA_WIDTH_G     : positive range 1 to 32 := 16);
    port (
@@ -52,6 +53,7 @@ entity AxiLiteToDrp is
       drpRdy          : in  sl;
       drpEn           : out sl;
       drpWe           : out sl;
+      drpUsrRst       : out sl;
       drpAddr         : out slv(ADDR_WIDTH_G-1 downto 0);
       drpDi           : out slv(DATA_WIDTH_G-1 downto 0);
       drpDo           : in  slv(DATA_WIDTH_G-1 downto 0));      
@@ -65,22 +67,26 @@ architecture rtl of AxiLiteToDrp is
       ACK_S); 
 
    type RegType is record
+      drpUsrRst  : sl;
       drpReq     : sl;
       drpEn      : sl;
       drpWe      : sl;
       drpAddr    : slv(ADDR_WIDTH_G-1 downto 0);
       drpDi      : slv(DATA_WIDTH_G-1 downto 0);
+      timer      : natural range 0 to TIMEOUT_G;
       writeSlave : AxiLiteWriteSlaveType;
       readSlave  : AxiLiteReadSlaveType;
       state      : StateType;
    end record;
 
    constant REG_INIT_C : RegType := (
+      drpUsrRst  => '1',
       drpReq     => '0',
       drpEn      => '0',
       drpWe      => '0',
       drpAddr    => (others => '0'),
       drpDi      => (others => '0'),
+      timer      => 0,
       writeSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       readSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       state      => IDLE_S);
@@ -93,8 +99,8 @@ architecture rtl of AxiLiteToDrp is
    signal writeMaster : AxiLiteWriteMasterType;
    signal writeSlave  : AxiLiteWriteSlaveType;
 
-   -- attribute dont_touch          : string;
-   -- attribute dont_touch of r     : signal is "true";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -133,13 +139,15 @@ begin
    comb : process (drpDo, drpGnt, drpRdy, drpRst, r, readMaster, writeMaster) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
+      variable axiResp   : slv(1 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the strobes
-      v.drpEn := '0';
-      v.drpWe := '0';
+      v.drpEn     := '0';
+      v.drpWe     := '0';
+      v.drpUsrRst := '0';
 
       -- Determine the transaction type
       axiSlaveWaitTxn(writeMaster, readMaster, v.writeSlave, v.readSlave, axiStatus);
@@ -150,6 +158,7 @@ begin
          when IDLE_S =>
             -- Reset the flags
             v.drpReq := '0';
+            v.timer  := 0;
             -- Check for a write request
             if (axiStatus.writeEnable = '1') then
                -- Set the write address bus (32-bit access alignment)
@@ -188,43 +197,69 @@ begin
             -- Request the DRP bus
             v.drpReq := '1';
             -- Check for DRP bus access granted
-            if drpGnt = '1' then
+            if (drpGnt = '1') or (r.timer = TIMEOUT_G) then
                -- Check for a write request
                if (axiStatus.writeEnable = '1') then
-                  -- Send a write command
-                  v.drpEn := '1';
-                  v.drpWe := '1';
+                  -- Check for non-timeout
+                  if (drpGnt = '1') then
+                     -- Reset the timer
+                     v.timer := 0;
+                     -- Send a write command
+                     v.drpEn := '1';
+                     v.drpWe := '1';
+                  end if;
                   -- Next state
                   v.state := ACK_S;
                -- Check for a read request            
                elsif (axiStatus.readEnable = '1') then
-                  -- Send a read command
-                  v.drpEn := '1';
-                  v.drpWe := '0';
+                  -- Check for non-timeout
+                  if (drpGnt = '1') then
+                     -- Reset the timer
+                     v.timer := 0;
+                     -- Send a read command
+                     v.drpEn := '1';
+                     v.drpWe := '0';
+                  end if;
                   -- Next state
                   v.state := ACK_S;
                else
                   -- Next state
                   v.state := IDLE_S;
                end if;
+            else
+               -- Increment the timer
+               v.timer := r.timer + 1;
             end if;
          ----------------------------------------------------------------------
          when ACK_S =>
             -- Check for DRP acknowledgement of command
-            if drpRdy = '1' then
+            if (drpRdy = '1') or (r.timer = TIMEOUT_G) then
+               -- Check for non-timeout
+               if (drpRdy = '1') then
+                  -- Return good transaction
+                  axiResp := AXI_RESP_OK_C;
+               else
+                  -- Return good transaction
+                  axiResp     := AXI_ERROR_RESP_G;
+                  -- Attempt to re-initialize the DRP interface
+                  v.drpUsrRst := '1';
+               end if;
                -- Check for a write request
                if (axiStatus.writeEnable = '1') then
                   -- Send AXI-Lite response
-                  axiSlaveWriteResponse(v.writeSlave);
+                  axiSlaveWriteResponse(v.writeSlave, axiResp);
                -- Check for a read request            
                elsif (axiStatus.readEnable = '1') then
                   -- Set the read bus
                   v.readSlave.rdata(DATA_WIDTH_G-1 downto 0) := drpDo;
                   -- Send AXI-Lite Response
-                  axiSlaveReadResponse(v.readSlave);
+                  axiSlaveReadResponse(v.readSlave, axiResp);
                end if;
                -- Next state
                v.state := IDLE_S;
+            else
+               -- Increment the timer
+               v.timer := r.timer + 1;
             end if;
       ----------------------------------------------------------------------
       end case;
@@ -245,6 +280,7 @@ begin
       drpWe      <= r.drpWe;
       drpAddr    <= r.drpAddr;
       drpDi      <= r.drpDi;
+      drpUsrRst  <= r.drpUsrRst;
       
    end process comb;
 
