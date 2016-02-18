@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-02-14
+-- Last update: 2016-02-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -218,7 +218,14 @@ package AxiPkg is
       LEN_BITS_C   : positive range 4 to 8;
    end record AxiConfigType;
 
-   constant AXI_CONFIG_INIT_C : AxiConfigType := (
+   function axiConfig (
+      constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
+      constant DATA_BYTES_C : in positive range 1 to 128 := 4;
+      constant ID_BITS_C    : in positive range 1 to 32  := 12;
+      constant LEN_BITS_C   : in positive range 4 to 8   := 4)
+      return AxiConfigType;
+
+   constant AXI_CONFIG_INIT_C : AxiConfigType := axiConfig(
       ADDR_WIDTH_C => 32,
       DATA_BYTES_C => 4,
       ID_BITS_C    => 12,
@@ -229,6 +236,12 @@ package AxiPkg is
       constant AXI_BURST_C  : in slv(1 downto 0) := "01";
       constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
       return AxiWriteMasterType;
+
+   function axiReadMasterInit (
+      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_BURST_C  : in slv(1 downto 0) := "01";
+      constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
+      return AxiReadMasterType;
 
    function ite(i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType;
 
@@ -243,21 +256,52 @@ end package AxiPkg;
 
 package body AxiPkg is
 
+   function axiConfig (
+      constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
+      constant DATA_BYTES_C : in positive range 1 to 128 := 4;
+      constant ID_BITS_C    : in positive range 1 to 32  := 12;
+      constant LEN_BITS_C   : in positive range 4 to 8   := 4)
+      return AxiConfigType is
+      variable ret : AxiConfigType;
+   begin
+      ret := (
+         ADDR_WIDTH_C => ADDR_WIDTH_C,
+         DATA_BYTES_C => DATA_BYTES_C,
+         ID_BITS_C    => ID_BITS_C,
+         LEN_BITS_C   => LEN_BITS_C);
+      return ret;
+   end function axiConfig;
+
    function axiWriteMasterInit (
-      constant AXI_CONFIG_C : AxiConfigType;
-      constant AXI_BURST_C : in slv(1 downto 0) := "01";
-      constant AXI_CACHE_C : in slv(3 downto 0) := "1111")
+      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_BURST_C  : in slv(1 downto 0) := "01";
+      constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
       return AxiWriteMasterType is
       variable ret : AxiWriteMasterType;
    begin
-      ret := AXI_WRITE_MASTER_INIT_C;
-      ret.awsize := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
-      ret.awlen := getAxiLen(4096, AXI_CONFIG_C);
+      ret         := AXI_WRITE_MASTER_INIT_C;
+      ret.awsize  := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
+      ret.awlen   := getAxiLen(4096, AXI_CONFIG_C);
       ret.awburst := AXI_BURST_C;
       ret.awcache := AXI_CACHE_C;
       return ret;
    end function axiWriteMasterInit;
-
+   
+   function axiReadMasterInit (
+      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_BURST_C  : in slv(1 downto 0) := "01";
+      constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
+      return AxiReadMasterType is
+      variable ret : AxiReadMasterType;
+   begin
+      ret         := AXI_READ_MASTER_INIT_C;
+      ret.arsize  := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
+      ret.arlen   := getAxiLen(4096, AXI_CONFIG_C);
+      ret.arburst := AXI_BURST_C;
+      ret.arcache := AXI_CACHE_C;
+      return ret;
+   end function axiReadMasterInit;
+   
    function ite (i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType is
    begin
       if (i) then return t; else return e; end if;
