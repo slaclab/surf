@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-01-25
+-- Last update: 2016-02-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -238,6 +238,8 @@ architecture rtl of AxiStreamFifo is
       -- Strobe is optional
       if STRB_BITS_C > 0 then
          assignRecord(i, din, master.tStrb(STRB_BITS_C-1 downto 0));
+      else
+         master.tStrb := master.tKeep;  -- Strobe follows keep if unused
       end if;
 
       -- Dest is optional
@@ -337,11 +339,9 @@ begin
 
    -- Cant use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
-                SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C)
-           or
-           not (MASTER_AXI_CONFIG_G.TDATA_BYTES_C /= SLAVE_AXI_CONFIG_G.TDATA_BYTES_C and
-                MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C))
-      report "AxiStreamFifo: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side or changing data widths" severity error;
+                SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
+      report "AxiStreamFifo: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
+      severity error;
 
    -------------------------
    -- Write Logic
@@ -577,7 +577,7 @@ begin
 
       -- Advance pipeline
       if axisSlave.tReady = '1' or rdR.rdMaster.tValid = '0' then
-         v.rdMaster := AXI_STREAM_MASTER_INIT_C;
+         v.rdMaster := axiStreamMasterInit(MASTER_AXI_CONFIG_G);
 
          v.rdMaster.tData((RD_BYTES_C*8)-1 downto 0) := fifoMaster.tData((RD_BYTES_C*8*idx)+((RD_BYTES_C*8)-1) downto (RD_BYTES_C*8*idx));
          v.rdMaster.tStrb(RD_BYTES_C-1 downto 0)     := fifoMaster.tStrb((RD_BYTES_C*idx)+(RD_BYTES_C-1) downto (RD_BYTES_C*idx));

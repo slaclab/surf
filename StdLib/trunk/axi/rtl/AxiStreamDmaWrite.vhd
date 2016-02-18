@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-01-27
+-- Last update: 2016-02-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ architecture structure of AxiStreamDmaWrite is
       reqCount => (others => '0'),
       ackCount => (others => '0'),
       stCount  => (others=>'0'),
-      wMaster  => AXI_WRITE_MASTER_INIT_C,
+      wMaster  => axiWriteMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G),
       slave    => AXI_STREAM_SLAVE_INIT_C
       );
 
@@ -108,7 +108,11 @@ architecture structure of AxiStreamDmaWrite is
    signal intAxisMaster : AxiStreamMasterType;
    signal intAxisSlave  : AxiStreamSlaveType;
 
+   signal wDataDebug : slv(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
+
 begin
+
+   wDataDebug <= r.wMaster.wdata(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
 
    assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
       report "AXIS and AXI must have equal data widths" severity failure;
@@ -163,7 +167,7 @@ begin
 
          -- IDLE
          when S_IDLE_C =>
-            v.wMaster  := AXI_WRITE_MASTER_INIT_C;
+            v.wMaster  := axiWriteMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G);
             v.slave    := AXI_STREAM_SLAVE_INIT_C;
             v.reqCount := (others => '0');
             v.ackCount := (others => '0');
@@ -196,11 +200,11 @@ begin
 
             -- Determine transfer size to align address to AXI_BURST_BYTES_G boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.wMaster.awlen := AWLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
+            v.wMaster.awlen := getAxiLen(4096, AXI_CONFIG_G);
 
             -- Limit to maxSize
             if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
-               v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C), 8);
+               v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
             end if;
             
             -- DMA request has dropped. Abort. This is needed to disable engine while it
@@ -221,9 +225,9 @@ begin
 
             -- Bursts after the FIRST are garunteed to be aligned.
             -- Use the same logic as in S_FIRST_C to reuse the logic resources
-            v.wMaster.awlen := AWLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
+            v.wMaster.awlen := getAxiLen(4096, AXI_CONFIG_G);
             if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
-               v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C), 8);
+               v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
             end if;
 
             -- There is enough room in the FIFO for a burst
@@ -353,15 +357,6 @@ begin
          v := REG_INIT_C;
       end if;
 
-      -- Constants
-      v.wMaster.awsize  := conv_std_logic_vector(log2(AXI_CONFIG_G.DATA_BYTES_C), 3);
-      v.wMaster.awburst := AXI_BURST_G;
-      v.wMaster.awcache := AXI_CACHE_G;
-      v.wMaster.awlock  := "00";        -- Unused
-      v.wMaster.awprot  := "000";       -- Unused
-      v.wMaster.awid    := (others => '0');
-      v.wMaster.wid     := (others => '0');
-      v.wMaster.bready  := '1';
 
       rin <= v;
 

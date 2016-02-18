@@ -795,8 +795,6 @@ package body AxiLitePkg is
       end loop;
 
       -- Done. Check for errors
-      wait until axilClk = '1';
-      axilReadMaster.rready <= '0';
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;
       elsif (axilReadSlave.rresp = AXI_RESP_DECERR_C) then
@@ -805,6 +803,8 @@ package body AxiLitePkg is
          data := axilReadSlave.rdata;
          print(debug, "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & ", data: " & hstr(axilReadSlave.rdata) & ")");
       end if;
+      wait until axilClk = '1';
+      axilReadMaster.rready <= '0';
 
 
    end procedure axiLiteBusSimRead;

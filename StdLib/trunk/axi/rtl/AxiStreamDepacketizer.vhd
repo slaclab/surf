@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-02-02
+-- Last update: 2016-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -190,9 +190,10 @@ begin
 
          when MOVE_S =>
             v.inputAxisSlave.tReady := outputAxisSlave.tReady;
-
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
-               -- Send data through
+            v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
+            
+            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
+               -- Advance the pipeline
                v.outputAxisMaster(1) := inputAxisMaster;
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 
