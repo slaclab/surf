@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-02-01
+-- Last update: 2016-02-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,9 +93,8 @@ architecture structure of AxiStreamDmaRead is
       shiftEn  => '0',
       first    => '0',
       last     => '0',
-      rMaster  => AXI_READ_MASTER_INIT_C,
-      sMaster  => AXI_STREAM_MASTER_INIT_C
-      );
+      rMaster  => axiReadMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G),
+      sMaster  => axiStreamMasterInit(AXIS_CONFIG_G)      );
 
    signal r             : RegType := REG_INIT_C;
    signal rin           : RegType;
@@ -104,7 +103,11 @@ architecture structure of AxiStreamDmaRead is
    signal intAxisMaster : AxiStreamMasterType;
    signal intAxisSlave  : AxiStreamSlaveType;
 
+   signal rDataDebug : slv(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
+
 begin
+
+   rDataDebug <= axiReadSlave.rdata(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
 
    assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
       report "AXIS and AXI must have equal data widths" severity failure;
@@ -134,8 +137,8 @@ begin
 
          -- IDLE
          when S_IDLE_C =>
-            v.rMaster  := AXI_READ_MASTER_INIT_C;
-            v.sMaster  := AXI_STREAM_MASTER_INIT_C;
+            v.rMaster  := axiReadMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G);
+            v.sMaster  := axiStreamMasterInit(AXIS_CONFIG_G); 
             v.last     := '0';
             v.dmaAck   := AXI_READ_DMA_ACK_INIT_C;
             v.dmaReq   := dmaReq;
@@ -160,11 +163,11 @@ begin
 
             -- Determine transfer size to align address to 16-transfer boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.rMaster.arlen := ARLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
+            v.rMaster.arlen := getAxiLen(4096, AXI_CONFIG_G);
 
             -- Limit read burst size
             if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen then
-               v.rMaster.arlen := resize(r.dmaReq.size(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C), 8);
+               v.rMaster.arlen := resize(r.dmaReq.size(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
             end if;
 
             -- There is enough room in the FIFO for a burst
@@ -179,9 +182,9 @@ begin
 
             -- Bursts after the FIRST are garunteed to be aligned.
             -- Use the same logic as in S_FIRST_C anyway to reuse the logic resources
-            v.rMaster.arlen := ARLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
+            v.rMaster.arlen := getAxiLen(4096, AXI_CONFIG_G);            
             if r.dmaReq.size(31 downto ADDR_LSB_C) < v.rMaster.arlen then
-               v.rMaster.arlen := resize(r.dmaReq.size(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C), 8);
+               v.rMaster.arlen := resize(r.dmaReq.size(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
             end if;
             
             -- There is enough room in the FIFO for a burst and address is ready
@@ -281,13 +284,6 @@ begin
          v := REG_INIT_C;
       end if;
 
-      -- Constants
-      v.rMaster.arsize  := conv_std_logic_vector(log2(AXI_CONFIG_G.DATA_BYTES_C),3);
-      v.rMaster.arburst := AXI_BURST_G;
-      v.rMaster.arcache := AXI_CACHE_G;
-      v.rMaster.arlock  := "00";   -- Unused
-      v.rMaster.arprot  := "000";  -- Unused
-      v.rMaster.arid    := (others=>'0');
 
       -- Always accept data when outbound ready is ignored
       if AXIS_READY_EN_G = false then
