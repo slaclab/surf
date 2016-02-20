@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-01-13
+-- Last update: 2016-02-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use work.EthMacPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity XauiGthUltraScale is 
+entity XauiGthUltraScale is
    generic (
       TPD_G            : time                := 1 ns;
       -- XAUI Configurations
@@ -97,69 +97,32 @@ begin
    phyRst   <= phyReset;
    phyReady <= status.phyReady;
 
-   ---------------------------
-   -- 10 Gig Ethernet MAC core
-   ---------------------------
-   U_MacTxFifo : entity work.AxiStreamFifo
+   --------------------
+   -- Ethernet MAC core
+   --------------------
+   U_MAC : entity work.EthMacTopWithFifo
       generic map (
-         TPD_G               => TPD_G,
-         FIFO_ADDR_WIDTH_G   => 10,
-         VALID_THOLD_G       => 0,      -- Only when full frame is ready
-         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C) 
+         TPD_G         => TPD_G,
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         sAxisClk    => dmaClk,
-         sAxisRst    => dmaRst,
-         sAxisMaster => dmaObMaster,
-         sAxisSlave  => dmaObSlave,
-         mAxisClk    => phyClock,
-         mAxisRst    => phyReset,
-         mAxisMaster => macTxAxisMaster,
-         mAxisSlave  => macTxAxisSlave);
-
-   U_XMacCore : entity work.EthMacTop
-      generic map (
-         TPD_G           => TPD_G,
-         PAUSE_512BITS_G => 8,
-         VLAN_CNT_G      => 1,
-         VLAN_EN_G       => false,
-         BYP_EN_G        => false,
-         BYP_ETH_TYPE_G  => x"0000",
-         SHIFT_EN_G      => false,
-         FILT_EN_G       => false,
-         CSUM_EN_G       => false) 
-      port map (
+         -- DMA Interface 
+         dmaClk      => dmaClk,
+         dmaClkRst   => dmaRst,
+         dmaIbMaster => dmaIbMaster,
+         dmaIbSlave  => dmaIbSlave,
+         dmaObMaster => dmaObMaster,
+         dmaObSlave  => dmaObSlave,
+         -- Ethernet Interface
          ethClk      => phyClock,
          ethClkRst   => phyReset,
-         sPrimMaster => macTxAxisMaster,
-         sPrimSlave  => macTxAxisSlave,
-         mPrimMaster => macRxAxisMaster,
-         mPrimCtrl   => macRxAxisCtrl,
+         ethConfig   => config.macConfig,
+         ethStatus   => status.macStatus,
+         -- XGMII PHY Interface   
          phyTxd      => phyTxd,
          phyTxc      => phyTxc,
          phyRxd      => phyRxd,
          phyRxc      => phyRxc,
-         phyReady    => status.phyReady,
-         ethConfig   => config.macConfig,
-         ethStatus   => status.macStatus);
-
-   U_MacRxFifo : entity work.AxiStreamFifo
-      generic map (
-         TPD_G               => TPD_G,
-         FIFO_ADDR_WIDTH_G   => 11,
-         SLAVE_READY_EN_G    => false,
-         FIFO_PAUSE_THRESH_G => 1024,
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
-      port map (
-         sAxisClk    => phyClock,
-         sAxisRst    => phyReset,
-         sAxisMaster => macRxAxisMaster,
-         sAxisCtrl   => macRxAxisCtrl,
-         mAxisClk    => dmaClk,
-         mAxisRst    => dmaRst,
-         mAxisMaster => dmaIbMaster,
-         mAxisSlave  => dmaIbSlave);
+         phyReady    => status.phyReady);
 
    --------------------
    -- 10 GigE XAUI Core
