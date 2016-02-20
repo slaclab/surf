@@ -85,9 +85,11 @@ architecture rtl of AlignFrRepCh is
       chariskRxD1   : slv(chariskRx_i'range);
       dataAlignedD1 : slv(dataRx_i'range);
       charAlignedD1 : slv(chariskRx_i'range);
-      scrData       : Slv16Array(1 downto 0); -- If GT_WORD_SIZE_C=2 Slv8Array(1 downto 0);
-      descrData     : Slv16Array(1 downto 0); -- If GT_WORD_SIZE_C=2 Slv8Array(1 downto 0);
-      scrDataValid  : slv(1 downto 0);
+      scrData       : slv(sampleData_o'range);
+      scrDataValid  : sl;
+      lfsr          : slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      descrData     : slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      descrDataValid: sl;
       sampleData    : slv(sampleData_o'range);
       dataValid     : sl;
       position      : slv(chariskRx_i'range);
@@ -98,10 +100,12 @@ architecture rtl of AlignFrRepCh is
       chariskRxD1   => (others => '0'),
       dataAlignedD1 => (others => '0'),
       charAlignedD1 => (others => '0'),
-      scrData       => (others => (others => '0')),
-      descrData     => (others => (others => '0')),
-      scrDataValid  => (others => '0'),
+      scrData       => (others => '0'),
+      lfsr          => (others => '0'),
+      descrData     => (others => '0'),
+      scrDataValid  => '0',
       sampleData    => (others => '0'),
+      descrDataValid  => '0',
       dataValid     => '0',
       position      => intToSlv(1, GT_WORD_SIZE_C)  -- Initialize at "0001" or "01"  
       );
@@ -129,8 +133,7 @@ begin
       variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
       variable v_dataaligned   : slv(dataRx_i'range);
       variable v_charAligned   : slv(chariskRx_i'range);
-      variable v_feedback      : slv(15 downto 0);
-
+     
    begin
       v := r;
 
@@ -199,45 +202,41 @@ begin
          end loop;
       end if;
 
-      if (rst = '1') then
-         v := REG_INIT_C;
-      end if;
-
       -- Register data before scrambling
-      v.scrData(0)      := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto (GT_WORD_SIZE_C*4)); -- 1st ADC in time
-      v.scrData(1)      := v_twoWordBuffAl((GT_WORD_SIZE_C*4)-1 downto 0);                  -- 2nd ADC in time
-      v.scrDataValid(0) := dataValid_i;
-      v.scrDataValid(1) := r.scrDataValid(0);
-
+      v.scrData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
+      v.scrDataValid  := dataValid_i;
+      v.descrDataValid := r.scrDataValid;
+      
       -- Descramble data put data into descrambler MSB first
-      -- Start descrambling when data is valid
-      if (scrEnable_i = '1' and r.scrDataValid(0) = '1') then
-         -- Latch the previous time sample
-         v_feedback := r.descrData(1);
-         for i in (GT_WORD_SIZE_C*4)-1 downto 0 loop
-            v_feedback := lfsrShift(v_feedback, JESD_PRBS_TAPS_C, r.scrData(0)(i));
+      -- Start descrambling when data is enabled 
+      if (scrEnable_i = '1' and r.scrDataValid = '1') then
+         for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
+            v.lfsr := v.lfsr(v.lfsr'left-1 downto v.lfsr'right) & r.scrData(i);
+            --
+            v.descrData(i) := r.scrData(i);
+            for j in JESD_PRBS_TAPS_C'range loop
+               v.descrData(i)  := v.descrData(i) xor v.lfsr(JESD_PRBS_TAPS_C(j));
+            end loop;
+            --
          end loop;
-         -- Set the bus
-         v.descrData(0) := v_feedback;
-         for i in (GT_WORD_SIZE_C*4)-1 downto 0 loop
-            v_feedback := lfsrShift(v_feedback, JESD_PRBS_TAPS_C, r.scrData(1)(i));
-         end loop;
-         -- Set the bus
-         v.descrData(1) := v_feedback;
       else
-         v.descrData(0) := r.scrData(0);
-         v.descrData(1) := r.scrData(1);
+         v.descrData := r.scrData;
       end if;
 
+      -- Byte swap the bytes before outputting
       -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
       if (scrEnable_i = '1') then
          -- 3 c-c latency
-         v.sampleData := r.descrData(0) & r.descrData(1);
-         v.dataValid  := r.scrDataValid(1);
+         v.sampleData   := r.descrData;
+         v.dataValid    := r.descrDataValid;   
       else
          -- 1 c-c latency
-         v.sampleData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
-         v.dataValid  := dataValid_i;
+         v.sampleData   := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
+         v.dataValid    := dataValid_i;
+      end if;
+      
+      if (rst = '1') then
+         v := REG_INIT_C;
       end if;
 
       --
@@ -259,6 +258,5 @@ begin
    end process seq;
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-
 
 end architecture rtl;
