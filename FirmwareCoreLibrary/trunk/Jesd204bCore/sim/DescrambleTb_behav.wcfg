@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="DescrambleTb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="DescrambleTb" />
+            <top_module name="axilitepkg" />
+            <top_module name="jesd204bpkg" />
+            <top_module name="stdrtlpkg" />
+            <top_module name="textutilpkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="2911600000fs"></ZoomStartTime>
+      <ZoomEndTime time="2978700001fs"></ZoomEndTime>
+      <Cursor1Time time="2941000000fs"></Cursor1Time>
+   </zoom_setting>
+   <WVObjectSize size="70" />
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/clk_i">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/rst_i">
+      <obj_property name="ElementShortName">rst_i</obj_property>
+      <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/subClass_i">
+      <obj_property name="ElementShortName">subClass_i</obj_property>
+      <obj_property name="ObjectShortName">subClass_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/sysRef_i">
+      <obj_property name="ElementShortName">sysRef_i</obj_property>
+      <obj_property name="ObjectShortName">sysRef_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/clearErr_i">
+      <obj_property name="ElementShortName">clearErr_i</obj_property>
+      <obj_property name="ObjectShortName">clearErr_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/enable_i">
+      <obj_property name="ElementShortName">enable_i</obj_property>
+      <obj_property name="ObjectShortName">enable_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/replEnable_i">
+      <obj_property name="ElementShortName">replEnable_i</obj_property>
+      <obj_property name="ObjectShortName">replEnable_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/scrEnable_i">
+      <obj_property name="ElementShortName">scrEnable_i</obj_property>
+      <obj_property name="ObjectShortName">scrEnable_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/r_jesdGtRx">
+      <obj_property name="ElementShortName">r_jesdGtRx</obj_property>
+      <obj_property name="ObjectShortName">r_jesdGtRx</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/lmfc_i">
+      <obj_property name="ElementShortName">lmfc_i</obj_property>
+      <obj_property name="ObjectShortName">lmfc_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/nSyncAny_i">
+      <obj_property name="ElementShortName">nSyncAny_i</obj_property>
+      <obj_property name="ObjectShortName">nSyncAny_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/nSyncAnyD1_i">
+      <obj_property name="ElementShortName">nSyncAnyD1_i</obj_property>
+      <obj_property name="ObjectShortName">nSyncAnyD1_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/nSync_o">
+      <obj_property name="ElementShortName">nSync_o</obj_property>
+      <obj_property name="ObjectShortName">nSync_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/sampleData_o">
+      <obj_property name="ElementShortName">sampleData_o[31:0]</obj_property>
+      <obj_property name="ObjectShortName">sampleData_o[31:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/status_o">
+      <obj_property name="ElementShortName">status_o[25:0]</obj_property>
+      <obj_property name="ObjectShortName">status_o[25:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/s_sysrefRe">
+      <obj_property name="ElementShortName">s_sysrefRe</obj_property>
+      <obj_property name="ObjectShortName">s_sysrefRe</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/s_lmfc">
+      <obj_property name="ElementShortName">s_lmfc</obj_property>
+      <obj_property name="ObjectShortName">s_lmfc</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/dataArray">
+      <obj_property name="ElementShortName">dataArray[0:412][31:0]</obj_property>
+      <obj_property name="ObjectShortName">dataArray[0:412][31:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/charArray">
+      <obj_property name="ElementShortName">charArray[0:412][3:0]</obj_property>
+      <obj_property name="ObjectShortName">charArray[0:412][3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider77" type="divider">
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/rst">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/replEnable_i">
+      <obj_property name="ElementShortName">replEnable_i</obj_property>
+      <obj_property name="ObjectShortName">replEnable_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/scrEnable_i">
+      <obj_property name="ElementShortName">scrEnable_i</obj_property>
+      <obj_property name="ObjectShortName">scrEnable_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/alignFrame_i">
+      <obj_property name="ElementShortName">alignFrame_i</obj_property>
+      <obj_property name="ObjectShortName">alignFrame_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/dataValid_i">
+      <obj_property name="ElementShortName">dataValid_i</obj_property>
+      <obj_property name="ObjectShortName">dataValid_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/dataRx_i">
+      <obj_property name="ElementShortName">dataRx_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">dataRx_i[31:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/chariskRx_i">
+      <obj_property name="ElementShortName">chariskRx_i[3:0]</obj_property>
+      <obj_property name="ObjectShortName">chariskRx_i[3:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/sampleData_o">
+      <obj_property name="ElementShortName">sampleData_o[31:0]</obj_property>
+      <obj_property name="ObjectShortName">sampleData_o[31:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/sampleDataValid_o">
+      <obj_property name="ElementShortName">sampleDataValid_o</obj_property>
+      <obj_property name="ObjectShortName">sampleDataValid_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/alignErr_o">
+      <obj_property name="ElementShortName">alignErr_o</obj_property>
+      <obj_property name="ObjectShortName">alignErr_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/positionErr_o">
+      <obj_property name="ElementShortName">positionErr_o</obj_property>
+      <obj_property name="ObjectShortName">positionErr_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/rin">
+      <obj_property name="ElementShortName">rin</obj_property>
+      <obj_property name="ObjectShortName">rin</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="other" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/TPD_G">
+      <obj_property name="ElementShortName">TPD_G</obj_property>
+      <obj_property name="ObjectShortName">TPD_G</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="other" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/F_G">
+      <obj_property name="ElementShortName">F_G</obj_property>
+      <obj_property name="ObjectShortName">F_G</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="other" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/SAMPLES_IN_WORD_C">
+      <obj_property name="ElementShortName">SAMPLES_IN_WORD_C</obj_property>
+      <obj_property name="ObjectShortName">SAMPLES_IN_WORD_C</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/alignFrRepCh_INST/REG_INIT_C">
+      <obj_property name="ElementShortName">REG_INIT_C</obj_property>
+      <obj_property name="ObjectShortName">REG_INIT_C</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider114" type="divider">
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/rst">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/enable_i">
+      <obj_property name="ElementShortName">enable_i</obj_property>
+      <obj_property name="ObjectShortName">enable_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/gtReady_i">
+      <obj_property name="ElementShortName">gtReady_i</obj_property>
+      <obj_property name="ObjectShortName">gtReady_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/subClass_i">
+      <obj_property name="ElementShortName">subClass_i</obj_property>
+      <obj_property name="ObjectShortName">subClass_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/sysRef_i">
+      <obj_property name="ElementShortName">sysRef_i</obj_property>
+      <obj_property name="ObjectShortName">sysRef_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/dataRx_i">
+      <obj_property name="ElementShortName">dataRx_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">dataRx_i[31:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/chariskRx_i">
+      <obj_property name="ElementShortName">chariskRx_i[3:0]</obj_property>
+      <obj_property name="ObjectShortName">chariskRx_i[3:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/lmfc_i">
+      <obj_property name="ElementShortName">lmfc_i</obj_property>
+      <obj_property name="ObjectShortName">lmfc_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/nSyncAny_i">
+      <obj_property name="ElementShortName">nSyncAny_i</obj_property>
+      <obj_property name="ObjectShortName">nSyncAny_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/nSyncAnyD1_i">
+      <obj_property name="ElementShortName">nSyncAnyD1_i</obj_property>
+      <obj_property name="ObjectShortName">nSyncAnyD1_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/linkErr_i">
+      <obj_property name="ElementShortName">linkErr_i</obj_property>
+      <obj_property name="ObjectShortName">linkErr_i</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/nSync_o">
+      <obj_property name="ElementShortName">nSync_o</obj_property>
+      <obj_property name="ObjectShortName">nSync_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/buffLatency_o">
+      <obj_property name="ElementShortName">buffLatency_o[7:0]</obj_property>
+      <obj_property name="ObjectShortName">buffLatency_o[7:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/readBuff_o">
+      <obj_property name="ElementShortName">readBuff_o</obj_property>
+      <obj_property name="ObjectShortName">readBuff_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/alignFrame_o">
+      <obj_property name="ElementShortName">alignFrame_o</obj_property>
+      <obj_property name="ObjectShortName">alignFrame_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/ila_o">
+      <obj_property name="ElementShortName">ila_o</obj_property>
+      <obj_property name="ObjectShortName">ila_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/kDetected_o">
+      <obj_property name="ElementShortName">kDetected_o</obj_property>
+      <obj_property name="ObjectShortName">kDetected_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/sysref_o">
+      <obj_property name="ElementShortName">sysref_o</obj_property>
+      <obj_property name="ObjectShortName">sysref_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/dataValid_o">
+      <obj_property name="ElementShortName">dataValid_o</obj_property>
+      <obj_property name="ObjectShortName">dataValid_o</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/r">
+      <obj_property name="ElementShortName">r</obj_property>
+      <obj_property name="ObjectShortName">r</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/rin">
+      <obj_property name="ElementShortName">rin</obj_property>
+      <obj_property name="ObjectShortName">rin</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/s_kDetected">
+      <obj_property name="ElementShortName">s_kDetected</obj_property>
+      <obj_property name="ObjectShortName">s_kDetected</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/syncFSM_INST/s_kStable">
+      <obj_property name="ElementShortName">s_kStable</obj_property>
+      <obj_property name="ObjectShortName">s_kStable</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider148" type="divider">
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/RX_buffer_fifo_INST/rst">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/RX_buffer_fifo_INST/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/RX_buffer_fifo_INST/wr_en">
+      <obj_property name="ElementShortName">wr_en</obj_property>
+      <obj_property name="ObjectShortName">wr_en</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="logic" fp_name="/DescrambleTb/JesdRxLane_INST/RX_buffer_fifo_INST/rd_en">
+      <obj_property name="ElementShortName">rd_en</obj_property>
+      <obj_property name="ObjectShortName">rd_en</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/RX_buffer_fifo_INST/din">
+      <obj_property name="ElementShortName">din[35:0]</obj_property>
+      <obj_property name="ObjectShortName">din[35:0]</obj_property>
+   </wvobject>
+   <wvobject db_ref_id="1" type="array" fp_name="/DescrambleTb/JesdRxLane_INST/RX_buffer_fifo_INST/dout">
+      <obj_property name="ElementShortName">dout[35:0]</obj_property>
+      <obj_property name="ObjectShortName">dout[35:0]</obj_property>
+   </wvobject>
+</wave_config>
