@@ -16,6 +16,7 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 set AllowMultiDriven [expr {[info exists ::env(ALLOW_MULTI_DRIVEN)] && [string is true -strict $::env(ALLOW_MULTI_DRIVEN)]}]  
+set VersionNumber [version -short]
 
 # Messages Suppression: INFO
 set_msg_config -suppress -id {Synth 8-256}; # SYNTH: done synthesizing module
@@ -23,7 +24,6 @@ set_msg_config -suppress -id {Synth 8-113}; # SYNTH: binding component instance 
 set_msg_config -suppress -id {Synth 8-226}; # SYNTH: default block is never used
 set_msg_config -suppress -id {Synth 8-312}; # SYNTH: ignoring "unsynthesizable construct" message due to assert error checking
 set_msg_config -suppress -id {Synth 8-4472};# SYNTH: Detected and applied attribute shreg_extract = no
-set_msg_config -suppress -id {Synth 8-637}; # SYNTH: synthesizing blackbox instance .... [required for upgrading {Synth 8-63} to an ERROR]
 set_msg_config -suppress -id {Synth 8-638}; # SYNTH: synthesizing module .... [required for upgrading {Synth 8-63} to an ERROR]
 
 set_msg_config -suppress -id {HDL 9-1061};  # SIM: Parsing VHDL file 
@@ -34,6 +34,11 @@ set_msg_config -suppress -id {Simtcl 6-16}; # SIM: Simulation closed
 set_msg_config -suppress -id {Simtcl 6-17}; # SIM: Simulation restarted 
 
 set_msg_config -suppress -id {Drc 23-20}; # DRC: writefirst - Synchronous clocking for BRAM
+
+## Check for version 2015.3 (or older)
+if { ${VersionNumber} <= 2015.3 } {
+   set_msg_config -suppress -id {Synth 8-637}; # SYNTH: synthesizing blackbox instance .... [required for upgrading {Synth 8-63} to an ERROR]
+}
 
 # Messages Suppression: WARNING
 set_msg_config -suppress -id {Designutils 20-1318};# DESIGN_UTILS: Multiple VHDL modules with the same architecture name
