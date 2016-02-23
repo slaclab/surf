@@ -24,7 +24,6 @@ set_msg_config -suppress -id {Synth 8-113}; # SYNTH: binding component instance 
 set_msg_config -suppress -id {Synth 8-226}; # SYNTH: default block is never used
 set_msg_config -suppress -id {Synth 8-312}; # SYNTH: ignoring "unsynthesizable construct" message due to assert error checking
 set_msg_config -suppress -id {Synth 8-4472};# SYNTH: Detected and applied attribute shreg_extract = no
-set_msg_config -suppress -id {Synth 8-638}; # SYNTH: synthesizing module .... [required for upgrading {Synth 8-63} to an ERROR]
 
 set_msg_config -suppress -id {HDL 9-1061};  # SIM: Parsing VHDL file 
 set_msg_config -suppress -id {Runs 36-5};   # SIM: Copied auxiliary file
@@ -38,6 +37,7 @@ set_msg_config -suppress -id {Drc 23-20}; # DRC: writefirst - Synchronous clocki
 ## Check for version 2015.3 (or older)
 if { ${VersionNumber} <= 2015.3 } {
    set_msg_config -suppress -id {Synth 8-637}; # SYNTH: synthesizing blackbox instance .... [required for upgrading {Synth 8-63} to an ERROR]
+   set_msg_config -suppress -id {Synth 8-638}; # SYNTH: synthesizing module .... [required for upgrading {Synth 8-63} to an ERROR]
 }
 
 # Messages Suppression: WARNING
