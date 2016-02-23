@@ -223,7 +223,6 @@ begin
          v.descrData := r.scrData;
       end if;
 
-      -- Byte swap the bytes before outputting
       -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
       if (scrEnable_i = '1') then
          -- 3 c-c latency

@@ -5,16 +5,24 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Last update: 2016-02-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Replaces data with F and A characters.
+-- Description: 
+--     Scrambles incoming data if enabled
+--     
+--     Replaces data with F and A characters.
 --     A(K28.3) - x"7C" - Inserted at the end of a multiframe.   
 --     F(K28.7) - x"FC" - Inserted at the end of a frame.
---   Note: The transmitter does not support scrambling (assumes that the receiver does not expect scrambled data)
---         Character replacement procedure is different for scrambled data.
---               
+--     
+--     Note: Character replacement mechanism is different weather scrambler is enabled or disabled.
+--     Disabled: The characters are inserted if two corresponding octets in consecutive samples have the same value.
+--     Enabled:  The characters are inserted it the corresponding octet has the same value as the inserted character.    
+--     
+--     1 c-c data latency if scrambling disabled
+--     2 c-c data latency if scrambling enabled
+--       
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -34,112 +42,145 @@ use work.jesd204bpkg.all;
 
 entity AlignChGen is
    generic (
-      TPD_G        : time   := 1 ns;
-      F_G          : positive   := 2);
+      TPD_G : time     := 1 ns;
+      F_G   : positive := 2);
    port (
-      clk      : in  sl;
-      rst      : in  sl;
-      
+      clk : in sl;
+      rst : in sl;
+
       -- Enable counter      
-      enable_i  : in  sl;
-      
-      -- Increase counter
-      lmfc_i  : in  sl; 
-     
-      -- Increase counter
-      dataValid_i  : in  sl;
+      enable_i : in sl;
+
+      -- Enable scrambling/descrambling
+      scrEnable_i : in sl;
+
+      -- Local multi clock
+      lmfc_i : in sl;
+
+      -- Valid data from Tx FSM
+      dataValid_i : in sl;
 
       -- 
-      sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);     
-      
+      sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);
+
       -- Outs    
       sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
-      sampleK_o    : out slv(  GT_WORD_SIZE_C-1 downto 0)      
-   );
+      sampleK_o    : out slv(GT_WORD_SIZE_C-1 downto 0)
+      );
 end entity AlignChGen;
 
 architecture rtl of AlignChGen is
-   
+
    -- How many samples is in a GT word
-   constant SAMPLES_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
-   
+   constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);
+
    -- Register type
    type RegType is record
-      sampleDataD1     : slv(sampleData_o'range);
-      sampleDataD2     : slv(sampleData_o'range);
-      sampleKD1        : slv(sampleK_o'range);
-      lmfcD1           : sl;
+      descrData   : slv(sampleData_o'range);
+      sampleDataD1 : slv(sampleData_o'range);
+      sampleDataD2 : slv(sampleData_o'range);
+      sampleKD1    : slv(sampleK_o'range);
+      lmfcD1       : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      sampleDataD1      => (others => '0'),
-      sampleDataD2      => (others => '0'),
-      sampleKD1         => (others => '0'),
-      lmfcD1            => '0'
-   );
+      descrData    => (others => '0'),   
+      sampleDataD1 => (others => '0'),
+      sampleDataD2 => (others => '0'),
+      sampleKD1    => (others => '0'),
+      lmfcD1       => '0'
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
-   --
+
+--
 begin
 
 
-   comb : process (r, rst,sampleData_i, dataValid_i, enable_i, lmfc_i) is
-      variable v : RegType;
+   comb : process (r, rst, sampleData_i, dataValid_i, enable_i, lmfc_i, scrEnable_i) is
+      variable v            : RegType;
       variable v_sampleData : slv(sampleData_o'range);
       variable v_sampleK    : slv(sampleK_o'range);
-      
-      variable v_twoWordBuff: slv( (2*GT_WORD_SIZE_C*8)-1 downto 0);
-      variable v_twoCharBuff: slv( (2*GT_WORD_SIZE_C)  -1 downto 0);
+
+      variable v_twoWordBuff : slv((2*GT_WORD_SIZE_C*8)-1 downto 0);
+      variable v_twoCharBuff : slv((2*GT_WORD_SIZE_C) -1 downto 0);
    begin
       v := r;
+      
+      -- Register data before scrambling
+      v.descrData := sampleData_i;      
+      
+      -- Multiplex sample data input depending on scrEnable_i setting
+      if scrEnable_i = '1' then
+         -- Scramble the data if scrambling enabled
+         for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
+            v.sampleDataD1 := lfsrShift(v.sampleDataD1, JESD_PRBS_TAPS_C, r.descrData(i));
+         end loop;
+      else
+         -- Use the data from the input if scrambling disabled 
+         v.sampleDataD1 := sampleData_i;
+      end if;
 
-      -- Buffer data for two clock cycles 
-      v.sampleDataD1  := sampleData_i;
-      v.sampleDataD2  := r.sampleDataD1;
+
+      -- Buffer data for two clock cycles
+      v.sampleDataD2 := r.sampleDataD1;
 
       -- Delay LMFC for 1 c-c
       v.lmfcD1 := lmfc_i;
 
       -- Combinatorial logic
-      v_twoWordBuff:= r.sampleDataD2 & r.sampleDataD1;
-      v_twoCharBuff:= r.sampleKD1 & (sampleK_o'range => '0');
+      v_twoWordBuff := r.sampleDataD2 & r.sampleDataD1;
+      v_twoCharBuff := r.sampleKD1 & (sampleK_o'range => '0');
 
-      
+      --
       if enable_i = '1' and dataValid_i = '1' then
          -- Replace with A character at the end of the multi-frame
          if r.lmfcD1 = '1' then
-               if ( v_twoWordBuff((F_G*8)+7 downto (F_G*8)) = v_twoWordBuff(7 downto 0)) then
-                  v_twoWordBuff(7 downto 0)  := A_CHAR_C;
-                  v_twoCharBuff(0)       := '1';      
+            if scrEnable_i = '1' then
+               if (v_twoWordBuff(7 downto 0) = A_CHAR_C) then
+                  v_twoCharBuff(0) := '1';
+               end if;            
+            else
+               if (v_twoWordBuff((F_G*8)+7 downto (F_G*8)) = v_twoWordBuff(7 downto 0)) then
+                  v_twoWordBuff(7 downto 0) := A_CHAR_C;
+                  v_twoCharBuff(0) := '1';
                end if;
+            end if;
          end if;
-         
+
          -- Replace with F character
          for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-            if ( v_twoWordBuff((I*F_G*8)+(F_G*8)+7 downto (I*F_G*8)+(F_G*8)) = v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) and
-                 v_twoCharBuff((I*F_G+F_G))  = '0' )
-            then
-               v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8))  := F_CHAR_C;
-               v_twoCharBuff(I*F_G)                         := '1';      
+            if scrEnable_i = '1' then
+               if (v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) = F_CHAR_C and
+                  v_twoCharBuff((I*F_G+F_G)) = '0')
+               then
+                  v_twoCharBuff(I*F_G) := '1';
+               end if;            
+            else   
+               if (v_twoWordBuff((I*F_G*8)+(F_G*8)+7 downto (I*F_G*8)+(F_G*8)) = v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) and
+                   v_twoCharBuff((I*F_G+F_G)) = '0')
+               then
+                  v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) := F_CHAR_C;
+                  v_twoCharBuff(I*F_G)                        := '1';
+               end if;
             end if;
          end loop;
-      end if; 
+      end if;
 
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Buffer char for one clock cycles      
-      v.sampleKD1 := v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0); 
+      -- Buffer char for one clock cycle     
+      v.sampleKD1 := v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0);
 
       rin <= v;
-      
+
       -- Output assignment
-      sampleData_o <= byteSwapSlv(v_twoWordBuff((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);  
+      sampleData_o <= byteSwapSlv(v_twoWordBuff((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
       sampleK_o    <= bitReverse(v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0));
-      
+
    end process comb;
 
    seq : process (clk) is
@@ -150,5 +191,5 @@ begin
    end process seq;
 ---------------------------------------
 
- 
+
 end architecture rtl;

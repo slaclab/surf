@@ -16,7 +16,7 @@
 --              Features:
 --              - Synchronisation of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-8)
---              Note: The transmitter does not support scrambling (assumes that the receiver does not expect scrambled data)
+--
 --
 --          Note: extSampleDataArray_i should be little endian and not byteswapped
 --                First sample in time:  sampleData_i(15 downto 0)
@@ -114,9 +114,10 @@ architecture rtl of Jesd204bTx is
    signal s_sysrefDlyTx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0); 
    signal s_enableTx     : slv(L_G-1 downto 0);
    signal s_replEnable   : sl;
+   signal s_scrEnable    : sl;
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
-   signal s_dataValid   : slv(L_G-1 downto 0);
-   signal s_swTriggerReg: slv(L_G-1 downto 0);
+   signal s_dataValid    : slv(L_G-1 downto 0);
+   signal s_swTriggerReg : slv(L_G-1 downto 0);
    
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
@@ -188,6 +189,7 @@ begin
       sysrefDlyTx_o   => s_sysrefDlyTx,
       enableTx_o      => s_enableTx,
       replEnable_o    => s_replEnable,
+      scrEnable_o     => s_scrEnable,
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
@@ -248,8 +250,7 @@ begin
    generateMux : for I in L_G-1 downto 0 generate
       -- Swap endians (the module is built to use big endian data but the interface is little endian)
       s_extDataArraySwap(I) <= endianSwapSlv(extSampleDataArray_i(I), GT_WORD_SIZE_C);
-   
-   
+
       -- Separate mux for separate lane
       with s_muxOutSelArr(I) select 
       s_sampleDataArr(I) <= outSampleZero(F_G,GT_WORD_SIZE_C)when "000",
@@ -344,6 +345,7 @@ begin
          subClass_i   => s_subClass,    -- From AXI lite
          enable_i     => s_enableTx(I), -- From AXI lite
          replEnable_i => s_replEnable,  -- From AXI lite
+         scrEnable_i  => s_scrEnable,   -- From AXI lite
          lmfc_i       => s_lmfc,
          nSync_i      => s_nSyncSync,
          gtTxReady_i  => gtTxReady_i(I),
