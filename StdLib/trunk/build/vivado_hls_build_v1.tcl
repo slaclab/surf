@@ -37,10 +37,12 @@ if { [info exists ::env(FAST_DCP_GEN)] == 0 } {
 export_design -evaluate verilog -format syn_dcp 
 
 ## Copy the IP directory to module source tree
-exec rm -rf ${PROJ_DIR}/ip/
-exec cp -rf ${OUT_DIR}/${PROJECT}_project/solution1/impl/ip ${PROJ_DIR}/.
-
-exec rm -f  [exec ls [glob "${PROJ_DIR}/ip/*.veo"]]
+if { [file isdirectory ${PROJ_DIR}/ip/] != 1 } {
+   exec mkdir ${PROJ_DIR}/ip/
+}
+foreach filePntr [glob -dir ${OUT_DIR}/${PROJECT}_project/solution1/impl/ip *] {
+    exec cp -f ${filePntr} ${PROJ_DIR}/ip/.
+}
 exec cp -f  [exec ls [glob "${OUT_DIR}/${PROJECT}_project/solution1/impl/report/verilog/*.rpt"]] ${PROJ_DIR}/ip/.
 
 ## Export the Design
