@@ -20,7 +20,8 @@
 --                   bit 2: Reset MGTs (Default '0') 
 --                   bit 3: Clear Registered errors (Default '0')  (Not used-Reserved)
 --                   bit 4: Invert nSync (Default '1'-inverted)
---                   bit 5: Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes.
+--                   bit 5: Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').
+--                   bit 6: Enable scrambling (Default '0') 
 --               0x05 (RW)- Test signal control: Ramp step and Square signal period control
 --                   bit 31-16: Square signal period (Clock cycles)
 --                   bit 15-0:  Ramp step (Clock cycles)
@@ -99,6 +100,7 @@ entity AxiLiteTxRegItf is
       sysrefDlyTx_o   : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       enableTx_o      : out slv(L_G-1 downto 0);
       replEnable_o    : out sl;
+      scrEnable_o     : out sl;
       swTrigger_o     : out slv(L_G-1 downto 0);
       rampStep_o      : out slv(PER_STEP_WIDTH_C-1 downto 0);
       squarePeriod_o  : out slv(PER_STEP_WIDTH_C-1 downto 0);
@@ -120,7 +122,7 @@ architecture rtl of AxiLiteTxRegItf is
    type RegType is record
       -- JESD Control (RW)
       enableTx        : slv(L_G-1 downto 0);
-      commonCtrl      : slv(5 downto 0);
+      commonCtrl      : slv(6 downto 0);
       sysrefDlyTx     : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       swTrigger       : slv(L_G-1 downto 0);
       axisPacketSize  : slv(23 downto 0);
@@ -136,7 +138,7 @@ architecture rtl of AxiLiteTxRegItf is
 
    constant REG_INIT_C : RegType := (
       enableTx        => (others => '0'),
-      commonCtrl      => "110011",
+      commonCtrl      => "0110011",
       sysrefDlyTx     => (others => '0'),
       swTrigger       => (others => '0'),
       axisPacketSize  => AXI_PACKET_SIZE_DEFAULT_C,
@@ -195,7 +197,7 @@ begin
             when 16#03# =>              -- ADDR (12)
                v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
             when 16#04# =>              -- ADDR (16)
-               v.commonCtrl := axilWriteMaster.wdata(5 downto 0);
+               v.commonCtrl := axilWriteMaster.wdata(6 downto 0);
             when 16#05# =>              -- ADDR (20)
                v.periodStep := axilWriteMaster.wdata;
             when 16#06# =>              -- ADDR (24)
@@ -227,7 +229,7 @@ begin
             when 16#03# =>              -- ADDR (12)
                v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
             when 16#04# =>              -- ADDR (16)
-               v.axilReadSlave.rdata(5 downto 0) := r.commonCtrl;
+               v.axilReadSlave.rdata(6 downto 0) := r.commonCtrl;
             when 16#05# =>              -- ADDR (20)
                v.axilReadSlave.rdata := r.periodStep;
             when 16#06# =>              -- ADDR (24)
@@ -402,6 +404,17 @@ begin
          rst     => devRst_i,
          dataIn  => r.commonCtrl(5),
          dataOut => enableTestSig_o
+         );
+         
+   Sync_OUT10 : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G
+         )
+      port map (
+         clk     => devClk_i,
+         rst     => devRst_i,
+         dataIn  => r.commonCtrl(6),
+         dataOut => scrEnable_o
          );
 
    SyncFifo_OUT10 : entity work.SynchronizerFifo

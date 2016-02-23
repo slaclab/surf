@@ -65,7 +65,8 @@ entity JesdTxLane is
       
       -- Control register
       enable_i       : in  sl;
-      replEnable_i : in  sl;      
+      replEnable_i   : in  sl;
+      scrEnable_i : in sl;      
 
       -- Local multi frame clock
       lmfc_i         : in  sl;
@@ -162,6 +163,7 @@ begin
       clk          => devClk_i,
       rst          => devRst_i,
       enable_i     => replEnable_i,
+      scrEnable_i  => scrEnable_i,
       lmfc_i       => lmfc_i,
       dataValid_i  => s_dataValid,
       sampleData_i => sampleData_i,
