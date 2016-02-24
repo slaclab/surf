@@ -68,19 +68,19 @@ entity UdpEngineWrapper is
       ibMacSlave      : in  AxiStreamSlaveType;
       -- Interface to UDP Server engine(s)
       obServerMasters : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      obServerSlaves  : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
-      ibServerMasters : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
+      obServerSlaves  : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+      ibServerMasters : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       ibServerSlaves  : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       serverRemoteIp  : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to UDP Client engine(s)
       obClientMasters : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      obClientSlaves  : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientMasters : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
+      obClientSlaves  : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+      ibClientMasters : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       ibClientSlaves  : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       -- AXI-Lite Interface
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadMaster  : in  AxiLiteReadMasterType                          := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType                         := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Clock and Reset
       clk             : in  sl;
