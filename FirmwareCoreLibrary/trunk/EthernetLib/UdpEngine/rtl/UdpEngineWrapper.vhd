@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-09-08
+-- Last update: 2016-02-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,65 +22,88 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.IpV4EnginePkg.all;
 
 entity UdpEngineWrapper is
    generic (
       -- Simulation Generics
-      TPD_G              : time          := 1 ns;
-      SIM_ERROR_HALT_G   : boolean       := false;
+      TPD_G              : time            := 1 ns;
+      SIM_ERROR_HALT_G   : boolean         := false;
       -- UDP General Generic
-      RX_MTU_G           : positive      := 1500;
-      RX_FORWARD_EOFE_G  : boolean       := false;
-      TX_FORWARD_EOFE_G  : boolean       := false;
-      TX_CALC_CHECKSUM_G : boolean       := true;
+      RX_MTU_G           : positive        := 1500;
+      RX_FORWARD_EOFE_G  : boolean         := false;
+      TX_FORWARD_EOFE_G  : boolean         := false;
+      TX_CALC_CHECKSUM_G : boolean         := true;
       -- UDP Server Generics
-      SERVER_EN_G        : boolean       := true;
-      SERVER_SIZE_G      : positive      := 1;
-      SERVER_PORTS_G     : PositiveArray := (0 => 8192);
-      SERVER_MTU_G       : positive      := 1500;
+      SERVER_EN_G        : boolean         := true;
+      SERVER_SIZE_G      : positive        := 1;
+      SERVER_PORTS_G     : PositiveArray   := (0 => 8192);
+      SERVER_MTU_G       : positive        := 1500;
       -- UDP Client Generics
-      CLIENT_EN_G        : boolean       := true;
-      CLIENT_SIZE_G      : positive      := 1;
-      CLIENT_PORTS_G     : PositiveArray := (0 => 8193);
-      CLIENT_MTU_G       : positive      := 1500;
+      CLIENT_EN_G        : boolean         := true;
+      CLIENT_SIZE_G      : positive        := 1;
+      CLIENT_PORTS_G     : PositiveArray   := (0 => 8193);
+      CLIENT_MTU_G       : positive        := 1500;
       -- IPv4/ARP Generics
-      CLK_FREQ_G         : real          := 156.25E+06;             -- In units of Hz
-      COMM_TIMEOUT_EN_G  : boolean       := true;       -- Disable the timeout by setting to false
-      COMM_TIMEOUT_G     : positive      := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing
-      ARP_TIMEOUT_G      : positive      := 156250000;  -- In units of clock cycles (Default: 156.25 MHz clock = 1 seconds)
-      VLAN_G             : boolean       := false);     -- true = VLAN support       
+      CLK_FREQ_G         : real            := 156.25E+06;          -- In units of Hz
+      COMM_TIMEOUT_EN_G  : boolean         := true;       -- Disable the timeout by setting to false
+      COMM_TIMEOUT_G     : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing
+      ARP_TIMEOUT_G      : positive        := 156250000;  -- In units of clock cycles (Default: 156.25 MHz clock = 1 seconds)
+      VLAN_G             : boolean         := false;      -- true = VLAN support       
+      AXI_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);   --  big-Endian configuration
-      localIp          : in  slv(31 downto 0);   --  big-Endian configuration
+      localMac        : in  slv(47 downto 0);      --  big-Endian configuration
+      localIp         : in  slv(31 downto 0);      --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
-      obMacMaster      : in  AxiStreamMasterType;
-      obMacSlave       : out AxiStreamSlaveType;
-      ibMacMaster      : out AxiStreamMasterType;
-      ibMacSlave       : in  AxiStreamSlaveType;
+      obMacMaster     : in  AxiStreamMasterType;
+      obMacSlave      : out AxiStreamSlaveType;
+      ibMacMaster     : out AxiStreamMasterType;
+      ibMacSlave      : in  AxiStreamSlaveType;
       -- Interface to UDP Server engine(s)
-      obServerMasters  : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
-      ibServerMasters  : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
-      ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
+      obServerMasters : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      obServerSlaves  : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
+      ibServerMasters : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
+      ibServerSlaves  : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      serverRemoteIp  : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to UDP Client engine(s)
-      clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
-      clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
-      obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      obClientMasters : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      obClientSlaves  : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      ibClientMasters : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
+      ibClientSlaves  : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      -- AXI-Lite Interface
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Clock and Reset
-      clk              : in  sl;
-      rst              : in  sl);
+      clk             : in  sl;
+      rst             : in  sl);
 end UdpEngineWrapper;
 
-architecture mapping of UdpEngineWrapper is
+architecture rtl of UdpEngineWrapper is
+
+   type RegType is record
+      clientRemotePort : Slv16Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteIp   : Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      axilReadSlave    : AxiLiteReadSlaveType;
+      axilWriteSlave   : AxiLiteWriteSlaveType;
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      clientRemotePort => (others => (others => '0')),
+      clientRemoteIp   => (others => (others => '0')),
+      axilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    signal arpReqMasters : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
    signal arpReqSlaves  : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
@@ -176,8 +199,8 @@ begin
          ibServerSlaves   => ibServerSlaves,
          serverRemoteIp   => serverRemoteIp,
          -- Interface to UDP Client engine(s)
-         clientRemotePort => clientRemotePort,
-         clientRemoteIp   => clientRemoteIp,
+         clientRemotePort => r.clientRemotePort,
+         clientRemoteIp   => r.clientRemoteIp,
          obClientMasters  => obClientMasters,
          obClientSlaves   => obClientSlaves,
          ibClientMasters  => ibClientMasters,
@@ -186,4 +209,73 @@ begin
          clk              => clk,
          rst              => rst);  
 
-end mapping;
+   comb : process (axilReadMaster, axilWriteMaster, r, rst) is
+      variable v         : RegType;
+      variable axiStatus : AxiLiteStatusType;
+      variable i         : natural;
+
+      -- Wrapper procedures to make calls cleaner.
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
+      begin
+         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg, cA, cV);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
+      begin
+         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
+      begin
+         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
+      begin
+         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
+      end procedure;
+
+      procedure axiSlaveDefault (
+         axiResp : in slv(1 downto 0)) is
+      begin
+         axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, axiResp);
+      end procedure;
+
+   begin
+      -- Latch the current value
+      v := r;
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+
+      -- Map the read registers
+      for i in CLIENT_SIZE_G-1 downto 0 loop
+         axiSlaveRegisterW(toSlv((8*i)+0, 12), 0, v.clientRemotePort(i));
+         axiSlaveRegisterW(toSlv((8*i)+4, 12), 0, v.clientRemoteIp(i));
+      end loop;
+
+      -- Set the Slave's response
+      axiSlaveDefault(AXI_ERROR_RESP_G);
+
+      -- Synchronous Reset
+      if (rst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs
+      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
+      
+   end process comb;
+
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+   
+end rtl;
