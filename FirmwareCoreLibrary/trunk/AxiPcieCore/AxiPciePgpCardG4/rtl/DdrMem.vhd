@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-08
--- Last update: 2016-02-13
+-- Last update: 2016-02-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -160,6 +160,8 @@ architecture mapping of DdrMem is
    signal done       : sl;
    signal refClock   : sl;
    signal refClkBufg : sl;
+   signal coreRst    : sl;
+   signal coreRstDly : sl;
 
    attribute KEEP_HIERARCHY                : string;
    attribute KEEP_HIERARCHY of IBUFDS_Inst : label is "TRUE";
@@ -237,7 +239,7 @@ begin
          c0_ddr3_reset_n         => ddrRstL,
          c0_ddr3_we_n            => ddrWeL,
          c0_ddr3_ui_clk          => ddrClk,
-         c0_ddr3_ui_clk_sync_rst => ddrRst,
+         c0_ddr3_ui_clk_sync_rst => coreRst,
          c0_ddr3_aresetn         => axiRstL,
          c0_ddr3_s_axi_awid      => ddrWriteMaster.awid(3 downto 0),
          c0_ddr3_s_axi_awaddr    => ddrWriteMaster.awaddr(32 downto 0),
@@ -277,6 +279,14 @@ begin
          c0_ddr3_s_axi_rid       => ddrReadSlave.rid(3 downto 0),
          c0_ddr3_s_axi_rdata     => ddrReadSlave.rdata(511 downto 0),
          sys_rst                 => sysRst); 
+
+   process(ddrClk)
+   begin
+      if rising_edge(ddrClk) then
+         coreRstDly <= coreRst    after TPD_G;  -- Register to help with timing
+         ddrRst     <= coreRstDly after TPD_G;  -- Register to help with timing
+      end if;
+   end process;
 
    MEM_TEST_GEN : if (MEM_TEST_G = true) generate
       
