@@ -21,7 +21,7 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 ## Make a copy of the routed .DCP file for future use 
 ## in an "incremental compile" build
 ########################################################
-if { [CheckTiming false] == true } {
+if { ([CheckTiming false] == true) && ([version -short] >= 2015.3) } {
    exec cp -f ${IMPL_DIR}/${PROJECT}_routed.dcp ${OUT_DIR}/IncrementalBuild.dcp
 }
 

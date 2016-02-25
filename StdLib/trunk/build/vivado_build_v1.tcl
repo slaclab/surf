@@ -112,6 +112,9 @@ if { [info exists ::env(SYNTH_DCP)] } {
 ## Implement
 ########################################################
 if { [CheckImpl] != true } {
+   if { [file exists ${OUT_DIR}/IncrementalBuild.dcp] == 1 } {
+      set_property incremental_checkpoint ${OUT_DIR}/IncrementalBuild.dcp [get_runs impl_1]
+   }
    launch_runs -to_step write_bitstream impl_1
    set src_rc [catch { 
       wait_on_run impl_1 
