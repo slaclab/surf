@@ -6,7 +6,7 @@
 -- Author     : Jeff Olsen  <jjo@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-04
--- Last update: 2016-02-04
+-- Last update: 2016-02-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,8 +30,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 use work.EthMacPkg.all;
 
 entity EthMacExportGmii is
@@ -67,7 +68,7 @@ architecture rtl of EthMacExportGmii is
       txCountEn      : sl;
       txUnderRun     : sl;
       txLinkNotReady : sl;
-      macObSlave     : AxiStreamSlaveType;
+      macSlave       : AxiStreamSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -77,15 +78,46 @@ architecture rtl of EthMacExportGmii is
       txCountEn      => '0',
       txUnderRun     => '0',
       txLinkNotReady => '0',
-      macObSlave     => AXI_STREAM_SLAVE_INIT_C);
+      macSlave       => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal macMaster : AxiStreamMasterType;
+   signal macSlave  : AxiStreamSlaveType;
 
    -- attribute dont_touch               : string;
    -- attribute dont_touch of r          : signal is "TRUE";   
 
 begin
+
+   RX_DATA_MUX : entity work.AxiStreamFifo
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         PIPE_STAGES_G       => 0,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         BRAM_EN_G           => false,
+         USE_BUILT_IN_G      => false,
+         GEN_SYNC_FIFO_G     => true,
+         CASCADE_SIZE_G      => 1,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8),  -- 64-bit AXI stream interface  
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(1))  -- 8-bit AXI stream interface          
+      port map (
+         -- Slave Port
+         sAxisClk    => ethClk,
+         sAxisRst    => ethClkRst,
+         sAxisMaster => macObMaster,                    -- 64-bit AXI stream interface 
+         sAxisSlave  => macObSlave,
+         -- Master Port
+         mAxisClk    => ethClk,
+         mAxisRst    => ethClkRst,
+         mAxisMaster => macMaster,                      -- 8-bit AXI stream interface 
+         mAxisSlave  => macSlave);  
 
    comb : process (ethClkRst, r) is
       variable v : RegType;
@@ -94,7 +126,7 @@ begin
       v := r;
 
       -- Reset the flags
-      v.macObSlave := AXI_STREAM_SLAVE_INIT_C;
+      v.macSlave := AXI_STREAM_SLAVE_INIT_C;
 
       ----------------------------------
       ----------------------------------
@@ -113,7 +145,7 @@ begin
       rin <= v;
 
       -- Outputs        
-      macObSlave     <= v.macObSlave;   -- Flow control with non-registered signal
+      macSlave       <= v.macSlave;     -- Flow control with non-registered signal
       txCountEn      <= r.txCountEn;
       txUnderRun     <= r.txUnderRun;
       txLinkNotReady <= r.txLinkNotReady;
