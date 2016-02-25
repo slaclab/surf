@@ -35,7 +35,7 @@ entity AxiStreamPacketizer is
 
    generic (
       TPD_G                : time    := 1 ns;
-      MAX_PACKET_BYTES_C   : integer := 1440;  -- Must be a multiple of 8
+      MAX_PACKET_BYTES_G   : integer := 1440;  -- Must be a multiple of 8
       INPUT_PIPE_STAGES_G  : integer := 0;
       OUTPUT_PIPE_STAGES_G : integer := 0);
 
@@ -54,7 +54,7 @@ end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
 
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_C / 8) - 3;
+   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
 
@@ -92,6 +92,9 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisSlave  : AxiStreamSlaveType;
 
 begin
+
+   assert ((MAX_PACKET_BYTES_G rem 8) = 0)
+      report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    -- Input pipeline
