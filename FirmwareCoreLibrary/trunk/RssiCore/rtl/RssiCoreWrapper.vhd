@@ -26,6 +26,7 @@ use work.AxiLitePkg.all;
 entity RssiCoreWrapper is
    generic (
       TPD_G                   : time                := 1 ns;
+      MAX_PACKET_BYTES_G      : positive            := 1440;
       CLK_FREQUENCY_G         : real                := 100.0E+6;               -- In units of Hz
       TIMEOUT_UNIT_G          : real                := 1.0E-6;  -- In units of seconds
       SERVER_G                : boolean             := true;  -- Module is server or client 
@@ -86,7 +87,44 @@ end entity RssiCoreWrapper;
 
 architecture mapping of RssiCoreWrapper is
 
+   signal depacketizerMasters : AxiStreamMasterArray(1 downto 0);
+   signal depacketizerSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal packetizerMasters   : AxiStreamMasterArray(1 downto 0);
+   signal packetizerSlaves    : AxiStreamSlaveArray(1 downto 0);
+
 begin
+
+   U_RxFifo : entity work.AxiStreamFifo
+      generic map (
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => true,
+         BRAM_EN_G           => false,
+         GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => 4,
+         SLAVE_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8))
+      port map (
+         sAxisClk    => clk_i,
+         sAxisRst    => rst_i,
+         sAxisMaster => sAppAxisMaster_i,
+         sAxisSlave  => sAppAxisSlave_o,
+         mAxisClk    => clk_i,
+         mAxisRst    => rst_i,
+         mAxisMaster => depacketizerMasters(0),
+         mAxisSlave  => depacketizerSlaves(0));
+
+   U_Depacketizer : entity work.AxiStreamDepacketizer
+      generic map (
+         TPD_G                => TPD_G,
+         INPUT_PIPE_STAGES_G  => 1,
+         OUTPUT_PIPE_STAGES_G => 1)
+      port map (
+         axisClk     => clk_i,
+         axisRst     => rst_i,
+         sAxisMaster => depacketizerMasters(0),
+         sAxisSlave  => depacketizerSlaves(0),
+         mAxisMaster => depacketizerMasters(1),
+         mAxisSlave  => depacketizerSlaves(1));
 
    U_RssiCore : entity work.RssiCore
       generic map (
@@ -97,8 +135,8 @@ begin
          RETRANSMIT_ENABLE_G     => RETRANSMIT_ENABLE_G,
          WINDOW_ADDR_SIZE_G      => WINDOW_ADDR_SIZE_G,
          -- Application AXIS fifos
-         APP_INPUT_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
-         APP_OUTPUT_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G,
+         APP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
+         APP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(8),
          -- Transport AXIS fifos
          TSP_INPUT_AXI_CONFIG_G  => TSP_INPUT_AXI_CONFIG_G,
          TSP_OUTPUT_AXI_CONFIG_G => TSP_OUTPUT_AXI_CONFIG_G,
@@ -122,13 +160,13 @@ begin
          MAX_OUT_OF_SEQUENCE_G   => MAX_OUT_OF_SEQUENCE_G)
       port map (
          -- Clock and Reset
-         clk_i            => rst_i,
+         clk_i            => clk_i,
          rst_i            => rst_i,
          -- SSI Application side
-         sAppAxisMaster_i => sAppAxisMaster_i,
-         sAppAxisSlave_o  => sAppAxisSlave_o,
-         mAppAxisMaster_o => mAppAxisMaster_o,
-         mAppAxisSlave_i  => mAppAxisSlave_i,
+         sAppAxisMaster_i => depacketizerMasters(1),
+         sAppAxisSlave_o  => depacketizerSlaves(1),
+         mAppAxisMaster_o => packetizerMasters(1),
+         mAppAxisSlave_i  => packetizerSlaves(1),
          -- SSI Transport side
          sTspAxisMaster_i => sTspAxisMaster_i,
          sTspAxisSlave_o  => sTspAxisSlave_o,
@@ -146,6 +184,39 @@ begin
          axilWriteMaster  => axilWriteMaster,
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
-         statusReg_o      => statusReg_o);
+         statusReg_o      => statusReg_o);         
+
+   U_Packetizer : entity work.AxiStreamPacketizer
+      generic map (
+         TPD_G                => TPD_G,
+         MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
+         INPUT_PIPE_STAGES_G  => 1,
+         OUTPUT_PIPE_STAGES_G => 1)
+      port map (
+         axisClk     => clk_i,
+         axisRst     => rst_i,
+         sAxisMaster => packetizerMasters(1),
+         sAxisSlave  => packetizerSlaves(1),
+         mAxisMaster => packetizerMasters(0),
+         mAxisSlave  => packetizerSlaves(0));
+
+   U_TxFifo : entity work.AxiStreamFifo
+      generic map (
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => true,
+         BRAM_EN_G           => false,
+         GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => 4,
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
+         MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
+      port map (
+         sAxisClk    => clk_i,
+         sAxisRst    => rst_i,
+         sAxisMaster => packetizerMasters(0),
+         sAxisSlave  => packetizerSlaves(0),
+         mAxisClk    => clk_i,
+         mAxisRst    => rst_i,
+         mAxisMaster => mAppAxisMaster_o,
+         mAxisSlave  => mAppAxisSlave_i);
 
 end architecture mapping;
