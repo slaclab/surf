@@ -128,7 +128,7 @@ begin
                                headerValues_i.maxRetrans & headerValues_i.maxCumAck;
                v.rdy := '1';
             when 16#02# =>
-               v.headerData := headerValues_i.maxOutofseq & x"00"        &           
+               v.headerData := headerValues_i.maxOutofseq & headerValues_i.timeoutUnit &           
                                headerValues_i.connectionId(31 downto 16) &
                                headerValues_i.connectionId(15 downto 0)  &
                                x"00" & x"00"; -- Place for checksum

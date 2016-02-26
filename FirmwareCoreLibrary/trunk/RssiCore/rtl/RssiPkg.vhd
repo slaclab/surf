@@ -26,6 +26,7 @@ constant DATA_HEADER_SIZE_C : natural := 8;
    type RssiParamType is record
       version               :  slv(3  downto 0);
       chksumEn              :  slv(0 downto 0);
+      timeoutUnit           :  slv(7 downto 0);
       
       maxOutsSeg            :  slv(7  downto 0); -- Receiver parameter       
       maxSegSize            :  slv(15 downto 0); -- Receiver parameter
@@ -56,14 +57,10 @@ constant DATA_HEADER_SIZE_C : natural := 8;
    type WindowType is record
       seqN                  :  slv(7  downto 0);
       segType               :  slv(2  downto 0);
-      
-      -- SSI
-
 --     eofe                  : sl;
 --     strb                  : slv(15 downto 0);
       keep                  : slv(15 downto 0);
 --     dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
-      
       segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
       occupied              : sl;
    end record WindowType;
@@ -71,7 +68,6 @@ constant DATA_HEADER_SIZE_C : natural := 8;
    constant WINDOW_INIT_C : WindowType := (
       seqN                  => (others => '0'),
       segType               => (others => '0'),
-
 --      eofe                  => '0',
 --      strb                  => (others => '1'), 
       keep                  => (others => '1'), 

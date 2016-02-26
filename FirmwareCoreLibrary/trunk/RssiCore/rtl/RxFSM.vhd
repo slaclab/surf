@@ -442,6 +442,7 @@ begin
                  
                   -- Syn parameters
                   v.rxParam.maxOutofseq              := r.tspSsiMaster.data (63 downto 56);
+                  v.rxParam.timeoutUnit              := r.tspSsiMaster.data (55 downto 48);
                   v.rxParam.connectionId(31 downto 0):= r.tspSsiMaster.data (47 downto 16);
 
                   -- Tsp parameters

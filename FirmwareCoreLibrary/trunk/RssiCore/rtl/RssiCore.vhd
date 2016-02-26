@@ -28,6 +28,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.math_real.all;
 
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
@@ -263,23 +264,24 @@ begin
    AxiLiteRegItf_INST: entity work.RssiAxiLiteRegItf
    generic map (
       TPD_G            => TPD_G,
-      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C)
+      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+      TIMEOUT_UNIT_G   => TIMEOUT_UNIT_G)
    port map (
       axiClk_i        => axiClk_i,
       axiRst_i        => axiRst_i,
-      axilReadMaster  => axilReadMaster, 
-      axilReadSlave   => axilReadSlave,  
+      axilReadMaster  => axilReadMaster,
+      axilReadSlave   => axilReadSlave,
       axilWriteMaster => axilWriteMaster,
-      axilWriteSlave  => axilWriteSlave, 
+      axilWriteSlave  => axilWriteSlave,
       
       -- DevClk domain
       devClk_i        => clk_i,
       devRst_i        => rst_i,
       
       -- Control
-      openRq_o       => s_openRqReg,      
-      closeRq_o      => s_closeRqReg,      
-      mode_o         => s_modeReg,       
+      openRq_o       => s_openRqReg,
+      closeRq_o      => s_closeRqReg,
+      mode_o         => s_modeReg,
       initSeqN_o     => s_initSeqNReg,
       appRssiParam_o => s_appRssiParamReg,
       injectFault_o  => s_injectFaultReg,
@@ -287,8 +289,8 @@ begin
       -- Status
       status_i       => s_statusReg,
       dropCnt_i      => s_dropCntReg,
-      validCnt_i     => s_validCntReg      
-   );   
+      validCnt_i     => s_validCntReg
+   );
    
    s_injectFault <= s_injectFaultReg or inject_i;
    
@@ -316,6 +318,7 @@ begin
          s_appRssiParam.version         <= toSlv(VERSION_G, 4);
          s_appRssiParam.connectionId    <= toSlv(CONN_ID_G, 32);
          s_appRssiParam.chksumEn        <= ite(HEADER_CHKSUM_EN_G, "1", "0");
+         s_appRssiParam.timeoutUnit     <= toSlv(integer(0.0 - (ieee.math_real.log(TIMEOUT_UNIT_G)/ieee.math_real.log(10.0))), 8);
          -- 
          s_initSeqN                     <= toSlv(INIT_SEQ_N_G, 8);      
       else

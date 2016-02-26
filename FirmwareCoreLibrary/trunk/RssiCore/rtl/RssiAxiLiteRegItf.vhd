@@ -71,7 +71,9 @@ entity RssiAxiLiteRegItf is
 generic (
    -- General Configurations
    TPD_G            : time            := 1 ns;
-   AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);    
+   AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+   TIMEOUT_UNIT_G   : real     := 1.0E-6);
+      
 port (
    -- AXI Clk
    axiClk_i : in sl;
@@ -493,5 +495,7 @@ begin
       rd_clk => devClk_i,
       dout   => appRssiParam_o.connectionId
    );
+   
+   appRssiParam_o.timeoutUnit <= toSlv(integer(0.0 - (ieee.math_real.log(TIMEOUT_UNIT_G)/ieee.math_real.log(10.0))), 8); 
 ---------------------------------------------------------------------
 end rtl;

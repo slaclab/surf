@@ -12,7 +12,7 @@
 -- Description: Connection establishment mechanism:
 --                - Connection open/close request,
 --                - Parameter negotiation,
---                - Server-client mode (More comments below).           
+--                - Server-client mode (More comments below).
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -221,9 +221,11 @@ begin
             if (rxValid_i = '1' and rxFlags_i.syn = '1' and rxFlags_i.ack = '1') then
                -- Check parameters
                if (
-                  rxRssiParam_i.version    = appRssiParam_i.version     and
-                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)   and -- Number of segments in a window
-                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8     -- Number of bytes
+                  rxRssiParam_i.version    = appRssiParam_i.version      and -- Version match
+                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8 and -- Number of bytes
+                  rxRssiParam_i.chksumEn   = appRssiParam_i.chksumEn     and -- Checksum match
+                  rxRssiParam_i.timeoutUnit= appRssiParam_i.timeoutUnit      -- Timeout unit match
                ) then
                
                   -- Accept the parameters from the server                  
@@ -282,10 +284,10 @@ begin
             if (rxValid_i = '1' and rxFlags_i.syn = '1') then
                -- Check parameters
                if (
-                  rxRssiParam_i.version    = appRssiParam_i.version     and   -- Version equality
-                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)   and   -- Number of segments in a window
-                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8 and  -- Number of bytes
-                  rxRssiParam_i.chksumEn   = rxRssiParam_i.chksumEn           -- Checksum setting equality
+                  rxRssiParam_i.version    = appRssiParam_i.version      and   -- Version equality
+                  rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and   -- Number of segments in a window
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8 and   -- Number of bytes
+                  rxRssiParam_i.timeoutUnit= appRssiParam_i.timeoutUnit        -- Timeout unit match
                ) then
                
                   -- Accept the parameters from the client                 
@@ -300,6 +302,7 @@ begin
                   v.rssiParam.version     := appRssiParam_i.version;                  
                   v.rssiParam.maxOutsSeg  := appRssiParam_i.maxOutsSeg;
                   v.rssiParam.maxSegSize  := appRssiParam_i.maxSegSize;
+                  v.rssiParam.timeoutUnit := appRssiParam_i.timeoutUnit;
                   v.txBufferSize := conv_integer(appRssiParam_i.maxSegSize);
                   v.txWindowSize := conv_integer(appRssiParam_i.maxOutsSeg);
                   --
@@ -373,7 +376,7 @@ begin
          ----------------------------------------------------------------------
          when SEND_RST_S =>
             --
-            v.connActive   := '1';
+            v.connActive   := r.connActive;
             v.sndSyn       := '0'; 
             v.sndAck       := '0';
             v.sndRst       := '1';
