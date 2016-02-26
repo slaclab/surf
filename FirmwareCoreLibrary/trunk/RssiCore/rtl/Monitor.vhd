@@ -268,7 +268,7 @@ begin
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1') then
           v.sndNull := '0'; 
-      elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C/2)  ) then -- send null segments if timeout/2 reached
+      elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C/3)  ) then -- send null segments if timeout/2 reached
          v.sndNull := '1';
       end if;
       
@@ -340,8 +340,7 @@ begin
        ackHeadSt_i   = '1' or 
        dataHeadSt_i  = '1' or 
        nullHeadSt_i  = '1' or
-       rstHeadSt_i   = '1' or
-      (rxLastSeqN_i - r.lastAckSeqN) = 0
+       rstHeadSt_i   = '1'
    ) then
       v.sndAck := '0';
       
@@ -351,6 +350,10 @@ begin
       
    -- Cumulative acknowledgment request
    elsif ((rxLastSeqN_i - r.lastAckSeqN) >= rssiParam_i.maxCumAck) then
+      v.sndAck := '1';
+      
+   -- Null segment ACK as soon as NUL received
+   elsif (rxValid_i = '1' and rxFlags_i.nul  = '1') then
       v.sndAck := '1';
    end if;
    
