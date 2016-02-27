@@ -67,10 +67,13 @@ if { [version -short] <= 2014.2 } {
    set_property xsim.unifast false        [get_filesets sim_1]
 }   
    
-# Prevent Vivado from doing power optimization
+# Prevent Vivado from doing power optimization (which can optimize out register chains)
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE NoBramPowerOpt [get_runs impl_1]
+
+# Enable physical optimization for register replication
+set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 
 # Target specific properties script
 SourceTclFile ${VIVADO_DIR}/properties.tcl
