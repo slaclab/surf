@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-14
--- Last update: 2015-09-15
+-- Last update: 2016-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,6 +52,12 @@ entity PgpParallelSimModel is
       -- Frame Receive Interface
       pgpRxMasters : out AxiStreamMasterArray(3 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0);
+      -- Non VC Rx Signals
+      pgpRxIn      : in  Pgp2bRxInType := PGP2B_RX_IN_INIT_C;
+      pgpRxOut     : out Pgp2bRxOutType;
+      -- Non VC Tx Signals
+      pgpTxIn      : in  Pgp2bTxInType := PGP2B_TX_IN_INIT_C;
+      pgpTxOut     : out Pgp2bTxOutType;
       -- PGP 8B/10B Encoded
       pgpIn        : in  slv(19 downto 0);
       pgpOut       : out slv(19 downto 0));       
@@ -127,16 +133,16 @@ begin
       port map (
          pgpTxClk         => clk,
          pgpTxClkRst      => rst,
-         pgpTxIn          => PGP2B_TX_IN_INIT_C,
-         pgpTxOut         => open,
+         pgpTxIn          => pgpTxIn,
+         pgpTxOut         => pgpTxOut,
          pgpTxMasters     => pgpTxMasters,
          pgpTxSlaves      => pgpTxSlaves,
          phyTxLanesOut    => phyTxLanesOut,
          phyTxReady       => phyTxReady,
          pgpRxClk         => clk,
          pgpRxClkRst      => rst,
-         pgpRxIn          => PGP2B_RX_IN_INIT_C,
-         pgpRxOut         => open,
+         pgpRxIn          => pgpRxIn,
+         pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => open,
          pgpRxCtrl        => pgpRxCtrl,
