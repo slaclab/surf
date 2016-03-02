@@ -32,6 +32,7 @@ entity RssiCoreWrapper is
       SERVER_G                : boolean             := true;  -- Module is server or client 
       RETRANSMIT_ENABLE_G     : boolean             := true;  -- Enable/Disable retransmissions in tx module
       WINDOW_ADDR_SIZE_G      : positive            := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      PIPE_STAGES_G           : natural             := 0;
       -- Application AXIS fifos
       APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
       APP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Output data width 
@@ -101,6 +102,7 @@ begin
          BRAM_EN_G           => false,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
+         PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8))
       port map (
@@ -207,6 +209,7 @@ begin
          BRAM_EN_G           => false,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
+         PIPE_STAGES_G       => PIPE_STAGES_G,         
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
          MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
       port map (
