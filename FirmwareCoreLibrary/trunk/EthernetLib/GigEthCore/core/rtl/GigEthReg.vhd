@@ -4,7 +4,7 @@
 -- File       : GigEthReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Last update: 2016-02-07
+-- Last update: 2016-03-02
 -- Last update: 2016-02-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
@@ -111,43 +111,15 @@ begin
    -- Configuration Register
    -------------------------------  
    comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst, status, statusOut) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
-      variable rdPntr    : natural;
-
-      -- Wrapper procedures to make calls cleaner.
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is
-      begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
-      begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
-      begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
-      begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveDefault (
-         axiResp : in slv(1 downto 0)) is
-      begin
-         axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, axiResp);
-      end procedure;
-      
+      variable v      : RegType;
+      variable regCon : AxiLiteEndPointType;
+      variable rdPntr : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
       -- Reset strobe signals
       v.cntRst         := '0';
@@ -163,26 +135,27 @@ begin
       --axiSlaveRegisterR(x"104", 0, status.macStatus.rxPauseValue);
       axiSlaveRegisterR(x"108", 0, status.coreStatus);
 
-      axiSlaveRegisterW(x"200", 0, v.config.macConfig.macAddress(31 downto 0));
-      axiSlaveRegisterW(x"204", 0, v.config.macConfig.macAddress(47 downto 32));
-      --axiSlaveRegisterW(x"208", 0, v.config.macConfig.byteSwap);
+      axiSlaveRegister(x"200", 0, v.config.macConfig.macAddress(31 downto 0));
+      axiSlaveRegister(x"204", 0, v.config.macConfig.macAddress(47 downto 32));
+      --axiSlaveRegister(x"208", 0, v.config.macConfig.byteSwap);
 
-      --axiSlaveRegisterW(x"210", 0, v.config.macConfig.txShift);
-      --axiSlaveRegisterW(x"214", 0, v.config.macConfig.txShiftEn);
-      axiSlaveRegisterW(x"218", 0, v.config.macConfig.interFrameGap);
-      axiSlaveRegisterW(x"21C", 0, v.config.macConfig.pauseTime);
+      --axiSlaveRegister(x"210", 0, v.config.macConfig.txShift);
+      --axiSlaveRegister(x"214", 0, v.config.macConfig.txShiftEn);
+      axiSlaveRegister(x"218", 0, v.config.macConfig.interFrameGap);
+      axiSlaveRegister(x"21C", 0, v.config.macConfig.pauseTime);
 
-      --axiSlaveRegisterW(x"220", 0, v.config.macConfig.rxShift);
-      --axiSlaveRegisterW(x"224", 0, v.config.macConfig.rxShiftEn);
-      axiSlaveRegisterW(x"228", 0, v.config.macConfig.filtEnable);
-      axiSlaveRegisterW(x"22C", 0, v.config.macConfig.pauseEnable);
+      --axiSlaveRegister(x"220", 0, v.config.macConfig.rxShift);
+      --axiSlaveRegister(x"224", 0, v.config.macConfig.rxShiftEn);
+      axiSlaveRegister(x"228", 0, v.config.macConfig.filtEnable);
+      axiSlaveRegister(x"22C", 0, v.config.macConfig.pauseEnable);
 
-      axiSlaveRegisterW(x"F00", 0, v.rollOverEn);
-      axiSlaveRegisterW(x"FF4", 0, v.cntRst);
-      axiSlaveRegisterW(x"FF8", 0, v.config.softRst);
-      axiSlaveRegisterW(x"FFC", 0, v.hardRst);
+      axiSlaveRegister(x"F00", 0, v.rollOverEn);
+      axiSlaveRegister(x"FF4", 0, v.cntRst);
+      axiSlaveRegister(x"FF8", 0, v.config.softRst);
+      axiSlaveRegister(x"FFC", 0, v.hardRst);
 
-      axiSlaveDefault(AXI_ERROR_RESP_G);
+      -- Closeout the transaction
+      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
 
       -- Synchronous Reset
       if (rst = '1') or (v.hardRst = '1') then

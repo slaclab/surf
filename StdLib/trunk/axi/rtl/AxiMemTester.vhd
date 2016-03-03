@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2016-01-26
+-- Last update: 2016-03-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,9 +64,9 @@ architecture rtl of AxiMemTester is
    constant STOP_C       : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
    constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
-   constant DATA_BITS_C : natural := 8*AXI_CONFIG_G.DATA_BYTES_C;
-   constant AXI_LEN_C : slv(7 downto 0) := getAxiLen(BURST_LEN_G, AXI_CONFIG_G);
-   
+   constant DATA_BITS_C : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
+   constant AXI_LEN_C   : slv(7 downto 0) := getAxiLen(BURST_LEN_G, AXI_CONFIG_G);
+
 
    constant PRBS_TAPS_C : NaturalArray       := (0 => 1023, 1 => 257, 2 => 113, 3 => 61, 4 => 29, 5 => 17, 6 => 7);
    constant PRBS_SEED_C : slv(1023 downto 0) := x"AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55";
@@ -91,7 +91,7 @@ architecture rtl of AxiMemTester is
       rTimerEn       : sl;
       wTimer         : slv(31 downto 0);
       rTimer         : slv(31 downto 0);
-      len : slv(7 downto 0);
+      len            : slv(7 downto 0);
       address        : slv(63 downto 0);
       randomData     : slv(1023 downto 0);
       state          : StateType;
@@ -109,7 +109,7 @@ architecture rtl of AxiMemTester is
       rTimerEn       => '0',
       wTimer         => (others => '0'),
       rTimer         => (others => '0'),
-      len => AXI_LEN_C,
+      len            => AXI_LEN_C,
       address        => (others => '0'),
       randomData     => PRBS_SEED_C,
       state          => IDLE_S,
@@ -394,65 +394,37 @@ begin
          dout   => rTimer);         
 
    combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, rLite, rTimer, wTimer) is
-      variable v         : RegLiteType;
-      variable axiStatus : AxiLiteStatusType;
-
-      -- Wrapper procedures to make calls cleaner.
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
-      begin
-         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg, cA, cV);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
-      begin
-         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
-      begin
-         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
-      begin
-         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveDefault (
-         axiResp : in slv(1 downto 0)) is
-      begin
-         axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, axiResp);
-      end procedure;
-
+      variable v      : RegLiteType;
+      variable regCon : AxiLiteEndPointType;
    begin
       -- Latch the current value
       v := rLite;
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+      axiSlaveWaitTxn(regCon, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the registers
-      axiSlaveRegisterR(x"100", 0, rLite.memReady);
-      axiSlaveRegisterR(x"104", 0, rLite.memError);
-      axiSlaveRegisterR(x"108", 0, wTimer);
-      axiSlaveRegisterR(x"10C", 0, rTimer);
+      axiSlaveRegisterR(regCon, x"100", 0, rLite.memReady);
+      axiSlaveRegisterR(regCon, x"104", 0, rLite.memError);
+      axiSlaveRegisterR(regCon, x"108", 0, wTimer);
+      axiSlaveRegisterR(regCon, x"10C", 0, rTimer);
       if (AXI_CONFIG_G.ADDR_WIDTH_C <= 32) then
-         axiSlaveRegisterR(x"110", 0, x"00000000");
-         axiSlaveRegisterR(x"114", 0, START_C);
-         axiSlaveRegisterR(x"118", 0, x"00000000");
-         axiSlaveRegisterR(x"11C", 0, STOP_C);
+         axiSlaveRegisterR(regCon, x"110", 0, x"00000000");
+         axiSlaveRegisterR(regCon, x"114", 0, START_C);
+         axiSlaveRegisterR(regCon, x"118", 0, x"00000000");
+         axiSlaveRegisterR(regCon, x"11C", 0, STOP_C);
       else
-         axiSlaveRegisterR(x"110", 0, START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
-         axiSlaveRegisterR(x"114", 0, START_C(31 downto 0));
-         axiSlaveRegisterR(x"118", 0, STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
-         axiSlaveRegisterR(x"11C", 0, STOP_C(31 downto 0));
+         axiSlaveRegisterR(regCon, x"110", 0, START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
+         axiSlaveRegisterR(regCon, x"114", 0, START_C(31 downto 0));
+         axiSlaveRegisterR(regCon, x"118", 0, STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
+         axiSlaveRegisterR(regCon, x"11C", 0, STOP_C(31 downto 0));
       end if;
-      axiSlaveRegisterR(x"120", 0, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 32));
-      axiSlaveRegisterR(x"124", 0, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 32));
-      axiSlaveRegisterR(x"128", 0, toSlv(AXI_CONFIG_G.ID_BITS_C, 32));
+      axiSlaveRegisterR(regCon, x"120", 0, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 32));
+      axiSlaveRegisterR(regCon, x"124", 0, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 32));
+      axiSlaveRegisterR(regCon, x"128", 0, toSlv(AXI_CONFIG_G.ID_BITS_C, 32));
 
-      -- Set the Slave's response
-      axiSlaveDefault(AXI_ERROR_RESP_G);
+      -- Closeout the transaction
+      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
       -- Latch the values from Synchronizers
       v.memReady := done;

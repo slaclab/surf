@@ -67,56 +67,28 @@ architecture rtl of AxiLiteEmpty is
 begin
 
    comb : process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
-      variable i         : natural;
-
-      -- Wrapper procedures to make calls cleaner.
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
-      begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg, cA, cV);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
-      begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
-      begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
-      begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveDefault (
-         axiResp : in slv(1 downto 0)) is
-      begin
-         axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, axiResp);
-      end procedure;
-
+      variable v      : RegType;
+      variable regCon : AxiLiteEndPointType;
+      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
       -- Map the read registers = [0x000:0x0FF]
       for i in NUM_READ_REG_G-1 downto 0 loop
-         axiSlaveRegisterR(toSlv((i*4)+0, 9), 0, readRegister(i));
+         axiSlaveRegisterR(regCon, toSlv((i*4)+0, 9), 0, readRegister(i));
       end loop;
 
       -- Map the write registers = [0x100:0x1FF]
       for i in NUM_WRITE_REG_G-1 downto 0 loop
-         axiSlaveRegisterW(toSlv((i*4)+256, 9), 0, v.writeRegister(i));
+         axiSlaveRegister(regCon, toSlv((i*4)+256, 9), 0, v.writeRegister(i));
       end loop;
 
-      -- Set the Slave's response
-      axiSlaveDefault(AXI_ERROR_RESP_G);
+      -- Closeout the transaction
+      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
 
       -- Synchronous Reset
       if (axiClkRst = '1') then
