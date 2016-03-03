@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-02-23
+-- Last update: 2016-03-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -210,52 +210,24 @@ begin
          rst              => rst);  
 
    comb : process (axilReadMaster, axilWriteMaster, r, rst) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
-      variable i         : natural;
-
-      -- Wrapper procedures to make calls cleaner.
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
-      begin
-         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg, cA, cV);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
-      begin
-         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
-      begin
-         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
-      begin
-         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveDefault (
-         axiResp : in slv(1 downto 0)) is
-      begin
-         axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus, axiResp);
-      end procedure;
-
+      variable v      : RegType;
+      variable regCon : AxiLiteEndPointType;
+      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+      axiSlaveWaitTxn(regCon, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the read registers
       for i in CLIENT_SIZE_G-1 downto 0 loop
-         axiSlaveRegisterW(toSlv((8*i)+0, 12), 0, v.clientRemotePort(i));
-         axiSlaveRegisterW(toSlv((8*i)+4, 12), 0, v.clientRemoteIp(i));
+         axiSlaveRegister(regCon, toSlv((8*i)+0, 12), 0, v.clientRemotePort(i));
+         axiSlaveRegister(regCon, toSlv((8*i)+4, 12), 0, v.clientRemoteIp(i));
       end loop;
 
-      -- Set the Slave's response
-      axiSlaveDefault(AXI_ERROR_RESP_G);
+      -- Closeout the transaction
+      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
       -- Synchronous Reset
       if (rst = '1') then
