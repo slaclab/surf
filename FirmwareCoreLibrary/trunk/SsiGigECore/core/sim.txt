@@ -1,9 +1,0 @@
-vhdl work tb/GigEthAutoNegTb.vhd
-vhdl work tb/GigEthMacTxTb.vhd
-vhdl work tb/GigEthMacRxTxTb.vhd
-vhdl work tb/GigEthGtxRxTxTb.vhd
-vhdl work tb/GigEthClientAndMacTxTb.vhd
-vhdl work tb/GigEthUdpFrameSsiTb.vhd
-vhdl work tb/GigEthUdpFrameRxTb.vhd
-vhdl work tb/GigEthUdpFrameTxTb.vhd
-vhdl work tb/UdpRegisterTb.vhd

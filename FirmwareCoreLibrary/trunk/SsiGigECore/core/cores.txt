@@ -1,1 +1,0 @@
-#coregen/gig_ethernet_pcs_pma_0.xci
