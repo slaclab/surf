@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-02-08
+-- Last update: 2016-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ package AxiPkg is
       arcache  => (others => '0'),
       arqos    => (others => '0'),
       arregion => (others => '0'),
-      rready   => '1');      
+      rready   => '1');
 
    ------------------------------------
    -- AXI bus, read slave signal record
@@ -101,7 +101,7 @@ package AxiPkg is
       rlast   => '0',
       rvalid  => '0',
       rid     => (others => '0'),
-      rresp   => (others => '0'));      
+      rresp   => (others => '0'));
 
    --------------------------------------
    -- AXI bus, write master signal record
@@ -164,7 +164,7 @@ package AxiPkg is
       wvalid   => '0',
       wid      => (others => '0'),
       wstrb    => (others => '0'),
-      bready   => '1');      
+      bready   => '1');
 
    -------------------------------------
    -- AXI bus, write slave signal record
@@ -191,7 +191,7 @@ package AxiPkg is
       wready  => '1',
       bresp   => (others => '0'),
       bvalid  => '0',
-      bid     => (others => '0'));      
+      bid     => (others => '0'));
 
    ------------------------
    -- AXI bus, fifo control
@@ -232,13 +232,15 @@ package AxiPkg is
       LEN_BITS_C   => 4);
 
    function axiWriteMasterInit (
-      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_CONFIG_C : in AxiConfigType;
+      bready                : in sl              := '0';
       constant AXI_BURST_C  : in slv(1 downto 0) := "01";
       constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
+
       return AxiWriteMasterType;
 
    function axiReadMasterInit (
-      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_CONFIG_C : in AxiConfigType;
       constant AXI_BURST_C  : in slv(1 downto 0) := "01";
       constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
       return AxiReadMasterType;
@@ -273,7 +275,8 @@ package body AxiPkg is
    end function axiConfig;
 
    function axiWriteMasterInit (
-      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_CONFIG_C : in AxiConfigType;
+      bready                : in sl              := '0';
       constant AXI_BURST_C  : in slv(1 downto 0) := "01";
       constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
       return AxiWriteMasterType is
@@ -282,13 +285,14 @@ package body AxiPkg is
       ret         := AXI_WRITE_MASTER_INIT_C;
       ret.awsize  := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
       ret.awlen   := getAxiLen(4096, AXI_CONFIG_C);
+      ret.bready  := bready;
       ret.awburst := AXI_BURST_C;
       ret.awcache := AXI_CACHE_C;
       return ret;
    end function axiWriteMasterInit;
-   
+
    function axiReadMasterInit (
-      constant AXI_CONFIG_C :    AxiConfigType;
+      constant AXI_CONFIG_C : in AxiConfigType;
       constant AXI_BURST_C  : in slv(1 downto 0) := "01";
       constant AXI_CACHE_C  : in slv(3 downto 0) := "1111")
       return AxiReadMasterType is
@@ -301,7 +305,7 @@ package body AxiPkg is
       ret.arcache := AXI_CACHE_C;
       return ret;
    end function axiReadMasterInit;
-   
+
    function ite (i : boolean; t : AxiConfigType; e : AxiConfigType) return AxiConfigType is
    begin
       if (i) then return t; else return e; end if;
