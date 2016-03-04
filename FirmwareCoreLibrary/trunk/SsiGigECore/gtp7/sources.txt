@@ -1,2 +1,0 @@
-vhdl work rtl/EthGtp7.vhd
-vhdl work rtl/EthGtp7Wrapper.vhd
