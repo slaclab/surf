@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-02-10
+-- Last update: 2016-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ architecture structure of AxiStreamDmaWrite is
       reqCount => (others => '0'),
       ackCount => (others => '0'),
       stCount  => (others=>'0'),
-      wMaster  => axiWriteMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G),
+      wMaster  => axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G),
       slave    => AXI_STREAM_SLAVE_INIT_C
       );
 
@@ -167,7 +167,7 @@ begin
 
          -- IDLE
          when S_IDLE_C =>
-            v.wMaster  := axiWriteMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G);
+            v.wMaster  := axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G);
             v.slave    := AXI_STREAM_SLAVE_INIT_C;
             v.reqCount := (others => '0');
             v.ackCount := (others => '0');
