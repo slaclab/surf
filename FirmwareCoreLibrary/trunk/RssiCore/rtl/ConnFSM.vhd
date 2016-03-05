@@ -28,13 +28,14 @@ entity ConnFSM is
    generic (
       TPD_G        : time     := 1 ns;
       SERVER_G     : boolean  := true;
-      --
-      WINDOW_ADDR_SIZE_G  : positive := 7;
-      
+      --      
       TIMEOUT_UNIT_G      : real     := 1.0E-6; -- us
       CLK_FREQUENCY_G     : real     := 100.0E6;
-      -- Number of u sec the module waits for the response from the peer
-      PEER_TIMEOUT_G : positive := 1000
+      -- Time the module waits for the response until it retransmits SYN segment 
+      RETRANS_TOUT_G      : positive := 50;
+      MAX_RETRANS_CNT_G   : positive := 2;
+      --
+      WINDOW_ADDR_SIZE_G  : positive := 7
    );
    port (
       clk_i      : in  sl;
@@ -120,8 +121,8 @@ architecture rtl of ConnFSM is
       txBufferSize   : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
       txWindowSize   : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
-      timeoutCntr    : integer range 0 to PEER_TIMEOUT_G * SAMPLES_PER_TIME_C;
-      
+      timeoutCntr    : integer range 0 to RETRANS_TOUT_G * SAMPLES_PER_TIME_C;
+      resendCntr     : integer range 0 to MAX_RETRANS_CNT_G+1;
       
       ---
       state       : StateType;
@@ -140,6 +141,7 @@ architecture rtl of ConnFSM is
       rssiParam   => (others => (others =>'0')),
       
       timeoutCntr => 0,
+      resendCntr  => 0,
       --
       txBufferSize=> 1,
       txWindowSize=> 1,
@@ -241,10 +243,16 @@ begin
                   v.state := SEND_RST_S;
                end if;
             elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
-               v.state := CLOSED_S;
-            elsif (r.timeoutCntr = PEER_TIMEOUT_G * SAMPLES_PER_TIME_C) then
-               v.peerTout := '1';
-               v.state    := CLOSED_S;
+               v.state := CLOSED_S;             
+            elsif (r.timeoutCntr = RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
+               if (r.resendCntr >= MAX_RETRANS_CNT_G) then
+                  v.peerTout := '1';
+                  v.state := CLOSED_S; 
+               else
+                  v.closed   := '1'; -- Signal closed to reset seqN (Resend SYN with the initial seqN)
+                  v.resendCntr := r.resendCntr + 1;
+                  v.state    := SEND_SYN_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when SEND_ACK_S =>
@@ -255,6 +263,7 @@ begin
             v.sndRst       := '0';
             v.txAckF       := '1';
             v.timeoutCntr  :=  0;
+            v.resendCntr   :=  0;
             --
             v.rssiParam := r.rssiParam;
             
@@ -342,9 +351,15 @@ begin
                v.state := OPEN_S;
             elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
                v.state := CLOSED_S;
-            elsif (r.timeoutCntr = PEER_TIMEOUT_G * SAMPLES_PER_TIME_C) then
-               v.peerTout := '1';
-               v.state    := CLOSED_S;
+            elsif (r.timeoutCntr = RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
+               if (r.resendCntr >= MAX_RETRANS_CNT_G) then
+                  v.peerTout := '1';
+                  v.state := CLOSED_S; 
+               else
+                  v.closed   := '1'; -- Signal closed to reset seqN (Resend SYN with the initial seqN)
+                  v.resendCntr := r.resendCntr + 1;
+                  v.state    := SEND_SYN_ACK_S;
+               end if;
             end if;
 
          ----------------------------------------------------------------------           
@@ -359,6 +374,9 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '1';
+            --
+            v.timeoutCntr  :=  0;
+            v.resendCntr   :=  0;
             --
             v.rssiParam := r.rssiParam;
             
