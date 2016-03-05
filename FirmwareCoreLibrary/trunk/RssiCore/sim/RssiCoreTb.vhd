@@ -266,7 +266,7 @@ begin
             
       -- Connection request 0
       wait for CLK_PERIOD_C*100;
-      connRq0_i <= '1';
+      --connRq0_i <= '1'; -- Let the client timeout
       wait for CLK_PERIOD_C*1;
       --connRq0_i <= '0';
       
@@ -275,7 +275,7 @@ begin
       -- Connection request 1
       connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      --connRq1_i <= '0';
+      connRq1_i <= '0';
 
       -------------------------------------------------------
       wait for CLK_PERIOD_C*1000;
@@ -299,16 +299,20 @@ begin
       -- Reconnect
 
       -- Connection request 0
-      wait for CLK_PERIOD_C*2000;
-      connRq0_i <= '1';
-      wait for CLK_PERIOD_C*1;
-      --connRq0_i <= '0';
 
-      wait for CLK_PERIOD_C*100;      
+
+      wait for CLK_PERIOD_C*4000;  
+      
       -- Connection request 1
       connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      --connRq1_i <= '0';
+      connRq1_i <= '0';
+      
+      -- Let the client resend SYN
+      wait for CLK_PERIOD_C*10000;
+      connRq0_i <= '1';
+      wait for CLK_PERIOD_C*1;
+      connRq0_i <= '0';    
       
       -------------------------------------------------------
       -- Wait for connection 

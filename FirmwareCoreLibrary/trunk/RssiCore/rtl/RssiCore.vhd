@@ -72,10 +72,7 @@ entity RssiCore is
       RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
       ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
       NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
-
-      -- Internal Timeouts
-      PEER_CONN_TIMEOUT_G   : positive := 1000; -- unit depends on TIMEOUT_UNIT_G  
-      
+    
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
       MAX_CUM_ACK_CNT_G     : positive := 3;
@@ -424,8 +421,8 @@ begin
       SERVER_G           => SERVER_G,
       TIMEOUT_UNIT_G     => TIMEOUT_UNIT_G,
       CLK_FREQUENCY_G    => CLK_FREQUENCY_G,
-      PEER_TIMEOUT_G     => PEER_CONN_TIMEOUT_G,
-      
+      RETRANS_TOUT_G     => RETRANS_TOUT_G,
+      MAX_RETRANS_CNT_G  => MAX_RETRANS_CNT_G,
       WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
    port map (
       clk_i          => clk_i,
