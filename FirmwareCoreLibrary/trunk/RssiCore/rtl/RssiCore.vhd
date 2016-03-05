@@ -73,6 +73,9 @@ entity RssiCore is
       ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
       NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
     
+      -- Internal Timeouts
+      PEER_CONN_TIMEOUT_G     : positive            := 1000;  -- unit depends on TIMEOUT_UNIT_G     
+    
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
       MAX_CUM_ACK_CNT_G     : positive := 3;
