@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2015-10-05
+-- Last update: 2016-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ architecture rtl of AxiVersion is
    signal fdSerial     : slv(63 downto 0) := (others => '0');
    signal masterRstDet : sl               := '0';
    signal asyncRst     : sl               := '0';
-   
+
 begin
 
    dnaValueOut <= dnaValue;
@@ -165,37 +165,8 @@ begin
 
    comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
                    fpgaEnReload, r, stringRom, userValues) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
-
-      -- Wrapper procedures to make calls cleaner.
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
-      begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg, cA, cV);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
-      begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
-      begin
-         axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axiSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
-      begin
-         axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, addr, offset, reg);
-      end procedure;
-
-
-      procedure axiSlaveDefault (
-         axiResp : in slv(1 downto 0)) is
-      begin
-         axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, axiResp);
-      end procedure;
-
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := r;
@@ -208,25 +179,25 @@ begin
       ------------------------      
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      axiSlaveRegisterR(X"000", 0, FPGA_VERSION_C);
-      axiSlaveRegisterW(X"004", 0, v.scratchPad);
-      axiSlaveRegisterR(X"008", 0, ite(dnaValid = '1', dnaValue(63 downto 32), X"00000000"));
-      axiSlaveRegisterR(X"00C", 0, ite(dnaValid = '1', dnaValue(31 downto 0), X"00000000"));
-      axiSlaveRegisterR(X"010", 0, ite(fdValid = '1', fdSerial(63 downto 32), X"00000000"));
-      axiSlaveRegisterR(X"014", 0, ite(fdValid = '1', fdSerial(31 downto 0), X"00000000"));
-      axiSlaveRegisterW(X"018", 0, v.masterReset);
+      axiSlaveRegisterR(axilEp, X"000", 0, FPGA_VERSION_C);
+      axiSlaveRegister(axilEp, X"004", 0, v.scratchPad);
+      axiSlaveRegisterR(axilEp, X"008", 0, ite(dnaValid = '1', dnaValue(31 downto 0), X"00000000"));
+      axiSlaveRegisterR(axilEp, X"00C", 0, ite(dnaValid = '1', dnaValue(63 downto 32), X"00000000"));
+      axiSlaveRegisterR(axilEp, X"010", 0, ite(fdValid = '1', fdSerial(31 downto 0), X"00000000"));
+      axiSlaveRegisterR(axilEp, X"014", 0, ite(fdValid = '1', fdSerial(63 downto 32), X"00000000"));
+      axiSlaveRegister(axilEp, X"018", 0, v.masterReset);
 
-      axiSlaveRegisterW(X"01C", 0, v.fpgaReload);
-      axiSlaveRegisterW(X"020", 0, v.fpgaReloadAddr);
-      axiSlaveRegisterW(X"024", 0, v.counter, true, X"00000000");
-      axiSlaveRegisterW(X"028", 0, v.haltReload);
+      axiSlaveRegister(axilEp, X"01C", 0, v.fpgaReload);
+      axiSlaveRegister(axilEp, X"020", 0, v.fpgaReloadAddr);
+      axiSlaveRegister(axilEp, X"024", 0, v.counter, X"00000000");
+      axiSlaveRegister(axilEp, X"028", 0, v.haltReload);
 
-      axiSlaveRegisterR("01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
-      axiSlaveRegisterR("10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
+      axiSlaveRegisterR(axilEp, "01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
+      axiSlaveRegisterR(axilEp, "10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
 
-      axiSlaveDefault(AXI_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
 
       ---------------------------------
       -- First Stage Boot Loader (FSBL)
@@ -258,7 +229,7 @@ begin
       fpgaReload     <= r.fpgaReload;
       fpgaReloadAddr <= r.fpgaReloadAddr;
       masterRstDet   <= v.masterReset;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -272,7 +243,7 @@ begin
 
    U_RstSync : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)  
+         TPD_G => TPD_G)
       port map (
          clk      => axiClk,
          asyncRst => asyncRst,
