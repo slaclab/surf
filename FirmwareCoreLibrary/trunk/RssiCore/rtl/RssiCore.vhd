@@ -46,8 +46,9 @@ entity RssiCore is
 
       RETRANSMIT_ENABLE_G : boolean := true; -- Enable/Disable retransmissions in tx module
       
-      WINDOW_ADDR_SIZE_G : positive := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      
+      WINDOW_ADDR_SIZE_G   : positive := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      SEGMENT_ADDR_SIZE_G  : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+
       -- Application AXIS fifos
       APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4); -- Application Input data width 
       APP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4); -- Application Output data width 
@@ -65,8 +66,8 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
       
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G  : positive := 8; --   <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C; -- Number of bytes
+      MAX_NUM_OUTS_SEG_G  : positive := 8;    -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G      : positive := 1024; -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
       RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
@@ -108,7 +109,7 @@ entity RssiCore is
       axilWriteSlave : out   AxiLiteWriteSlaveType;
 
       -- Internal statuses
-      statusReg_o : out slv(5 downto 0)
+      statusReg_o : out slv(6 downto 0)
    );
 end entity RssiCore;
 
@@ -170,23 +171,23 @@ architecture rtl of RssiCore is
    signal s_rxFlags    : flagsType;
    
    -- Rx segment buffer
-   signal s_rxBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+   signal s_rxBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
    signal s_rxWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-   signal s_rxWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_rxWrBuffWe   : sl;
    signal s_rxRdBuffRe   : sl;
-   signal s_rxRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    
    -- Tx segment buffer
-   signal s_txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+   signal s_txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
    signal s_txWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-   signal s_txWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txWrBuffAddr : slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_txWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_txWrBuffWe   : sl;
    signal s_txRdBuffRe   : sl;
-   signal s_txRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txRdBuffAddr : slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal s_txRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
   
    -- Acknowledge pulse when valid segment 
@@ -225,6 +226,7 @@ architecture rtl of RssiCore is
    signal s_lenErr : sl;
    signal s_ackErr : sl;
    signal s_peerConnTout : sl;
+   signal s_paramReject  : sl;   
    
    -- Connection control and parameters
    signal s_initSeqN : slv(7 downto 0);   
@@ -263,6 +265,7 @@ begin
       TPD_G            => TPD_G,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
       TIMEOUT_UNIT_G   => TIMEOUT_UNIT_G,
+      SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
       INIT_SEQ_N_G     => INIT_SEQ_N_G,
       CONN_ID_G        => CONN_ID_G,
       VERSION_G        => VERSION_G,
@@ -435,7 +438,8 @@ begin
       CLK_FREQUENCY_G    => CLK_FREQUENCY_G,
       RETRANS_TOUT_G     => RETRANS_TOUT_G,
       MAX_RETRANS_CNT_G  => MAX_RETRANS_CNT_G,
-      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G)
+      WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
+      SEGMENT_ADDR_SIZE_G=> SEGMENT_ADDR_SIZE_G)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
@@ -459,7 +463,8 @@ begin
       rxWindowSize_o => s_rxWindowSize,
       txBufferSize_o => s_txBufferSize,
       txWindowSize_o => s_txWindowSize,
-      peerTout_o     => s_peerConnTout);
+      peerTout_o     => s_peerConnTout,
+      paramReject_o  => s_paramReject);
 
    Monitor_INST: entity work.Monitor
    generic map (
@@ -487,6 +492,7 @@ begin
       lenErr_i       => s_lenErr,
       ackErr_i       => s_ackErr,
       peerConnTout_i => s_peerConnTout,
+      paramReject_i  => s_paramReject,
       txBufferEmpty_i=> s_txBufferEmpty,
       sndResend_o    => s_sndResend,
       sndAck_o       => s_sndAckMon,
@@ -541,6 +547,7 @@ begin
    generic map (
       TPD_G              => TPD_G,
       WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
+      SEGMENT_ADDR_SIZE_G=> SEGMENT_ADDR_SIZE_G,
       SYN_HEADER_SIZE_G  => SYN_HEADER_SIZE_C,
       ACK_HEADER_SIZE_G  => ACK_HEADER_SIZE_C,
       EACK_HEADER_SIZE_G => EACK_HEADER_SIZE_C,
@@ -611,7 +618,7 @@ begin
    generic map (
       TPD_G          => TPD_G,
       DATA_WIDTH_G   => RSSI_WORD_WIDTH_C*8,
-      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)
+      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)
    )
    port map (
       -- Port A - Write only
@@ -653,8 +660,8 @@ begin
    generic map (
       TPD_G              => TPD_G,
       WINDOW_ADDR_SIZE_G => WINDOW_ADDR_SIZE_G,
-      HEADER_CHKSUM_EN_G => HEADER_CHKSUM_EN_G
-   )      
+      HEADER_CHKSUM_EN_G => HEADER_CHKSUM_EN_G,
+      SEGMENT_ADDR_SIZE_G=> SEGMENT_ADDR_SIZE_G)
    port map (
       clk_i          => clk_i,
       rst_i          => rst_i,
@@ -690,7 +697,7 @@ begin
    generic map (
       TPD_G          => TPD_G,
       DATA_WIDTH_G   => RSSI_WORD_WIDTH_C*8,
-      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)
+      ADDR_WIDTH_G   => (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)
    )
    port map (
       -- Port A - Write only

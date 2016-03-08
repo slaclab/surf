@@ -51,7 +51,8 @@ entity RxFSM is
    generic (
       TPD_G               : time     := 1 ns;
       WINDOW_ADDR_SIZE_G  : positive := 7;     -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
-      HEADER_CHKSUM_EN_G : boolean  := true
+      HEADER_CHKSUM_EN_G  : boolean  := true;
+      SEGMENT_ADDR_SIZE_G : positive := 3  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
    );
    port (
       clk_i      : in  sl;
@@ -62,7 +63,7 @@ entity RxFSM is
       
       -- Window size different for Rx and Tx
       rxWindowSize_i   : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-      rxBufferSize_i   : in integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      rxBufferSize_i   : in integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
       txWindowSize_i   : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       
       -- Last acknowledged Sequence number connected to TX module
@@ -98,11 +99,11 @@ entity RxFSM is
 
       -- Buffer write
       wrBuffWe_o     : out  sl;      
-      wrBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+      wrBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
       wrBuffData_o   : out  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);      
       
       -- Buffer read
-      rdBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+      rdBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
       rdBuffData_i   : in   slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
       -- SSI Transport side interface IN 
@@ -150,7 +151,7 @@ architecture rtl of RxFSM is
       -- Counters
       inorderSeqN    : slv(7 downto 0); -- Next expected seqN
       rxHeaderAddr   : slv(7 downto 0); 
-      rxSegmentAddr  : slv(SEGMENT_ADDR_SIZE_C downto 0);
+      rxSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0);
       rxBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       --
       segmentWe      : sl;
@@ -184,7 +185,7 @@ architecture rtl of RxFSM is
       
       -- Application side FSM (Send segments when next in order received)
       -----------------------------------------------------------
-      txSegmentAddr  : slv(SEGMENT_ADDR_SIZE_C downto 0);
+      txSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0);
       txBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       rxLastSeqN     : slv(7 downto 0);
       
@@ -499,7 +500,7 @@ begin
                v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep;
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
-               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0)+1;     
+               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;     
                
                -- Check EOF Error
                if (tspSsiMaster_i.eofe = '0') then
@@ -509,7 +510,7 @@ begin
                end if;
             elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr > rxBufferSize_i ) then
                v.tspState    := DROP_S;
-            elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
+            elsif (r.tspSsiSlave.ready = '1' and r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G) = '1' ) then
                v.tspState    := DROP_S;
             end if;
          ----------------------------------------------------------------------
@@ -742,10 +743,10 @@ begin
       
       ---------------------------------------------------------------------
       -- Write and read ports
-      wrBuffAddr_o   <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      wrBuffAddr_o   <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
-      rdBuffAddr_o   <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      rdBuffAddr_o   <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       
       -- Assign outputs
       rxFlags_o      <= r.rxF;
