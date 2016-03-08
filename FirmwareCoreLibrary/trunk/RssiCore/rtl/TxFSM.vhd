@@ -94,7 +94,7 @@ entity TxFSM is
     
       -- Header read
       rdHeaderAddr_o  : out  slv(7 downto 0);
-      rdHeaderData_i  : in slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      rdHeaderData_i  : in   slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       --
       headerRdy_i     : in sl;
       headerLength_i  : in positive;  -- Unconnected for now will be used when EACK    
@@ -336,14 +336,16 @@ architecture rtl of TxFSM is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    signal s_chksum : slv(chksum_i'range);
+   signal s_headerAndChksum : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 begin
    
    -- Send all 0 if checksum disabled
    s_chksum <= ite(HEADER_CHKSUM_EN_G, chksum_i, (chksum_i'range=>'0') );
+   s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum;
    
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
-                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, s_chksum, rdBuffData_i, chksumValid_i, headerLength_i, injectFault_i) is
+                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, rdBuffData_i, s_headerAndChksum, chksumValid_i, headerLength_i, injectFault_i) is
       
       variable v : RegType;
 
@@ -862,7 +864,7 @@ begin
             v.chkEn    := '1';
             
             v.tspSsiMaster:= SSI_MASTER_INIT_C;
-            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
 
             -- Send SOF with header address 0
             if (r.txHeaderAddr = (r.txHeaderAddr'range => '0')) then
@@ -878,8 +880,8 @@ begin
                v.chkStb              := '1';
                
                if (tspSsiSlave_i.ready = '1' and headerRdy_i = '1' and chksumValid_i = '1') then 
-                  -- Add checksum to last 16 bits
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum;
+                  -- Add checksum
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
                   v.tspSsiMaster.valid  := '1';                
                   v.tspSsiMaster.eof    := '1';
                   v.tspSsiMaster.eofe   := '0';
@@ -930,7 +932,7 @@ begin
             end if;
             
             v.tspSsiMaster:= SSI_MASTER_INIT_C;
-            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
             if (chksumValid_i = '1' and v.tspSsiMaster.valid = '0' ) then -- Frame size is one word
@@ -941,13 +943,13 @@ begin
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum xor (s_chksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1') ) ; -- Flip bits in checksum! Point of fault injection!
                else
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add checksum to last two bytes
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
                
                -- Set the fault reg to 0
@@ -1021,7 +1023,7 @@ begin
             end if;
             
             v.tspSsiMaster:= SSI_MASTER_INIT_C;
-            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
             if (chksumValid_i = '1' and v.tspSsiMaster.valid = '0' ) then -- Frame size is one word
@@ -1032,8 +1034,7 @@ begin
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add header to last two bytes
                 
                -- Increment seqN
                v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
@@ -1103,7 +1104,7 @@ begin
             end if;
             
             -- Leave initialised v.tspSsiMaster
-            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
             if (chksumValid_i = '1' and v.tspSsiMaster.valid = '0' ) then -- Frame size is one word
@@ -1114,13 +1115,13 @@ begin
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum xor (s_chksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1')); -- Flip bits in checksum! Point of fault injection!
                else
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add checksum to last two bytes
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
                
                -- Set the fault reg to 0
@@ -1193,7 +1194,7 @@ begin
                v.chkStb   := '1';
             end if;
             
-            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
             -- Frame size is one word
@@ -1205,13 +1206,13 @@ begin
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '0';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum xor (s_chksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1')); -- Flip bits in checksum! Point of fault injection!
                else
-                  v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add checksum to last two bytes
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
                
                -- Set the fault reg to 0
@@ -1371,7 +1372,7 @@ begin
                v.chkStb   := '1';
             end if;
             
-            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
+            v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
             -- Frame size is one word
@@ -1381,8 +1382,7 @@ begin
                v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.strb   := (others => '1');
                v.tspSsiMaster.dest   := (others => '0');
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdHeaderData_i;
-               v.tspSsiMaster.data(15 downto 0) := s_chksum; -- Add header to last two bytes
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add header to last two bytes
                
                -- Null or Rst packet
                if    (r.windowArray(conv_integer(r.txBufferAddr)).segType(2) = '1' or
