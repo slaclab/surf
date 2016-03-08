@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2014-03-30
+-- Last update: 2016-03-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,14 +23,17 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Gtp7QuadPll is
    generic (
       TPD_G                : time                 := 1 ns;
+      AXI_ERROR_RESP_G     : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       SIM_RESET_SPEEDUP_G  : string               := "TRUE";
       SIM_VERSION_G        : string               := "1.0";
       PLL0_REFCLK_SEL_G    : bit_vector           := "001";
@@ -42,18 +45,25 @@ entity Gtp7QuadPll is
       PLL1_FBDIV_45_IN_G   : integer range 4 to 5 := 5;
       PLL1_REFCLK_DIV_IN_G : integer range 1 to 2 := 1);
    port (
-      qPllRefClk     : in  slv(1 downto 0);
-      qPllOutClk     : out slv(1 downto 0);
-      qPllOutRefClk  : out slv(1 downto 0);
-      qPllLock       : out slv(1 downto 0);
-      qPllLockDetClk : in  slv(1 downto 0);  -- Lock detect clock
-      qPllRefClkLost : out slv(1 downto 0);
-      qPllPowerDown  : in  slv(1 downto 0) := (others => '0');
-      qPllReset      : in  slv(1 downto 0));
-
+      qPllRefClk      : in  slv(1 downto 0);
+      qPllOutClk      : out slv(1 downto 0);
+      qPllOutRefClk   : out slv(1 downto 0);
+      qPllLock        : out slv(1 downto 0);
+      qPllLockDetClk  : in  slv(1 downto 0);  -- Lock detect clock
+      qPllRefClkLost  : out slv(1 downto 0);
+      qPllPowerDown   : in  slv(1 downto 0)        := (others => '0');
+      qPllReset       : in  slv(1 downto 0);
+      -- AXI-Lite Interface
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType); 
 end entity Gtp7QuadPll;
 
-architecture rtl of Gtp7QuadPll is
+architecture mapping of Gtp7QuadPll is
+
    signal gtRefClk0     : sl;
    signal gtRefClk1     : sl;
    signal gtEastRefClk0 : sl;
@@ -62,7 +72,16 @@ architecture rtl of Gtp7QuadPll is
    signal gtWestRefClk1 : sl;
    signal gtGRefClk0    : sl;
    signal gtGRefClk1    : sl;
+
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal drpRdy  : sl;
+   signal drpAddr : slv(7 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0);
+   
 begin
+
    --------------------------------------------------------------------------------------------------
    -- QPLL clock select. Only ever use 1 clock to drive qpll. Never switch clocks.
    --------------------------------------------------------------------------------------------------
@@ -106,13 +125,13 @@ begin
          PLL_CLKOUT_CFG     => (x"00"))
       port map(
          -- Dynamic Reconfiguration Port (DRP)
-         DRPADDR           => (others => '0'),
-         DRPCLK            => '0',
-         DRPDI             => (others => '0'),
-         DRPDO             => open,
-         DRPEN             => '0',
-         DRPRDY            => open,
-         DRPWE             => '0',
+         DRPADDR           => drpAddr,
+         DRPCLK            => axilClk,
+         DRPDI             => drpDi,
+         DRPDO             => drpDo,
+         DRPEN             => drpEn,
+         DRPRDY            => drpRdy,
+         DRPWE             => drpWe,
          -- Clocking Ports 
          GTREFCLK0         => gtRefClk0,      --address="001" for both PLLs
          GTREFCLK1         => gtRefClk1,      --address="010" for both PLLs   
@@ -160,4 +179,32 @@ begin
          BGRCALOVRD        => "00000",
          PMARSVD           => "00000000",
          RCALENB           => '1');         
-end architecture rtl;
+
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 8,
+         DATA_WIDTH_G     => 16)      
+      port map (
+         -- AXI-Lite Port
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- DRP Interface
+         drpClk          => axilClk,
+         drpRst          => axilRst,
+         drpRdy          => drpRdy,
+         drpEn           => drpEn,
+         drpWe           => drpWe,
+         drpAddr         => drpAddr,
+         drpDi           => drpDi,
+         drpDo           => drpDo);            
+
+end architecture mapping;

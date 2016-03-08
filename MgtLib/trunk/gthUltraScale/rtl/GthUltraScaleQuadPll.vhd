@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-04-09
+-- Last update: 2016-03-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -34,6 +35,8 @@ entity GthUltraScaleQuadPll is
       TPD_G               : time                     := 1 ns;
       SIM_RESET_SPEEDUP_G : string                   := "FALSE";
       SIM_VERSION_G       : natural                  := 2;
+      -- AXI-Lite Parameters
+      AXI_ERROR_RESP_G    : slv(1 downto 0)          := AXI_RESP_DECERR_C;
       -- QPLL Configuration Parameters
       BIAS_CFG0_G         : slv(15 downto 0)         := x"0000";
       BIAS_CFG1_G         : slv(15 downto 0)         := x"0000";
@@ -68,15 +71,22 @@ entity GthUltraScaleQuadPll is
       -- Clock Selects
       QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)    := (others => "001"));      
    port (
-      qPllRefClk     : in  slv(1 downto 0);
-      qPllOutClk     : out slv(1 downto 0);
-      qPllOutRefClk  : out slv(1 downto 0);
-      qPllFbClkLost  : out slv(1 downto 0);
-      qPllLock       : out slv(1 downto 0);
-      qPllLockDetClk : in  slv(1 downto 0);
-      qPllRefClkLost : out slv(1 downto 0);
-      qPllPowerDown  : in  slv(1 downto 0) := "00";
-      qPllReset      : in  slv(1 downto 0));
+      qPllRefClk      : in  slv(1 downto 0);
+      qPllOutClk      : out slv(1 downto 0);
+      qPllOutRefClk   : out slv(1 downto 0);
+      qPllFbClkLost   : out slv(1 downto 0);
+      qPllLock        : out slv(1 downto 0);
+      qPllLockDetClk  : in  slv(1 downto 0);
+      qPllRefClkLost  : out slv(1 downto 0);
+      qPllPowerDown   : in  slv(1 downto 0)        := "00";
+      qPllReset       : in  slv(1 downto 0);
+      -- AXI-Lite Interface
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType); 
 end entity GthUltraScaleQuadPll;
 
 architecture mapping of GthUltraScaleQuadPll is
@@ -89,6 +99,13 @@ architecture mapping of GthUltraScaleQuadPll is
    signal gtSouthRefClk1 : slv(1 downto 0);
    signal gtGRefClk      : slv(1 downto 0);
 
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal drpRdy  : sl;
+   signal drpAddr : slv(8 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0);
+   
 begin
 
    ---------------------------------------------------------------------------------------
@@ -182,13 +199,13 @@ begin
          SIM_VERSION        => SIM_VERSION_G)
       port map (
          -- DRP Ports
-         DRPADDR           => (others => '0'),
-         DRPCLK            => '0',
-         DRPDI             => (others => '0'),
-         DRPDO             => open,
-         DRPEN             => '0',
-         DRPRDY            => open,
-         DRPWE             => '0',
+         DRPADDR           => drpAddr,
+         DRPCLK            => axilClk,
+         DRPDI             => drpDi,
+         DRPDO             => drpDo,
+         DRPEN             => drpEn,
+         DRPRDY            => drpRdy,
+         DRPWE             => drpWe,
          -- QPLL Outputs
          PMARSVDOUT0       => open,
          PMARSVDOUT1       => open,
@@ -249,5 +266,32 @@ begin
          QPLLRSVD3         => (others => '0'),
          QPLLRSVD4         => (others => '0'),
          RCALENB           => '1');
+
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 9,
+         DATA_WIDTH_G     => 16)      
+      port map (
+         -- AXI-Lite Port
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- DRP Interface
+         drpClk          => axilClk,
+         drpRst          => axilRst,
+         drpRdy          => drpRdy,
+         drpEn           => drpEn,
+         drpWe           => drpWe,
+         drpAddr         => drpAddr,
+         drpDi           => drpDi,
+         drpDo           => drpDo);            
 
 end architecture mapping;
