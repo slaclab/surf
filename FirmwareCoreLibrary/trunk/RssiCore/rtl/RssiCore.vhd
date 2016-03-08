@@ -262,7 +262,19 @@ begin
    generic map (
       TPD_G            => TPD_G,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
-      TIMEOUT_UNIT_G   => TIMEOUT_UNIT_G)
+      TIMEOUT_UNIT_G   => TIMEOUT_UNIT_G,
+      INIT_SEQ_N_G     => INIT_SEQ_N_G,
+      CONN_ID_G        => CONN_ID_G,
+      VERSION_G        => VERSION_G,
+      HEADER_CHKSUM_EN_G => HEADER_CHKSUM_EN_G,
+      MAX_NUM_OUTS_SEG_G => MAX_NUM_OUTS_SEG_G,
+      MAX_SEG_SIZE_G     => MAX_SEG_SIZE_G,
+      RETRANS_TOUT_G     => RETRANS_TOUT_G,
+      ACK_TOUT_G         => ACK_TOUT_G,
+      NULL_TOUT_G        => NULL_TOUT_G,
+      MAX_RETRANS_CNT_G  => MAX_RETRANS_CNT_G,
+      MAX_CUM_ACK_CNT_G  => MAX_CUM_ACK_CNT_G,
+      MAX_OUT_OF_SEQUENCE_G => MAX_OUT_OF_SEQUENCE_G)
    port map (
       axiClk_i        => axiClk_i,
       axiRst_i        => axiRst_i,

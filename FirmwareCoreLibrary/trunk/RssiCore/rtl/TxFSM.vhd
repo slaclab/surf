@@ -341,7 +341,7 @@ begin
    
    -- Send all 0 if checksum disabled
    s_chksum <= ite(HEADER_CHKSUM_EN_G, chksum_i, (chksum_i'range=>'0') );
-   s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum;
+   s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
    
    ----------------------------------------------------------------------------------------------- 
    comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
@@ -947,7 +947,7 @@ begin
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1') ) ; -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
                else
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
@@ -1210,7 +1210,7 @@ begin
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1')); -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
                else
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
