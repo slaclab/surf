@@ -73,9 +73,6 @@ entity RssiCore is
       ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
       NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
     
-      -- Internal Timeouts
-      PEER_CONN_TIMEOUT_G     : positive            := 1000;  -- unit depends on TIMEOUT_UNIT_G     
-    
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
       MAX_CUM_ACK_CNT_G     : positive := 3;
@@ -630,7 +627,7 @@ begin
       strobe_i => s_txChkStrobe,
       init_i   => x"0000",
       length_i => s_txChkLength,
-      data_i   => s_mTspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0),
+      data_i   => endianSwap64(s_mTspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)),
       chksum_o => s_txChksum,
       valid_o  => s_txChkValid,
       check_o  => open);   

@@ -172,6 +172,8 @@ architecture rtl of RxFSM is
       --
       segValid    : sl;
       segDrop     : sl;
+      --
+      headerData  : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
       -- SSI
       tspSsiMaster   : SsiMasterType;
@@ -227,6 +229,8 @@ architecture rtl of RxFSM is
       --
       segValid    => '0',
       segDrop     => '0',
+      --
+      headerData  => (others => '0'),
 
       -- SSI 
       tspSsiMaster => SSI_MASTER_INIT_C,
@@ -280,7 +284,7 @@ begin
       
       -- Pipeline the transport master
       v.tspSsiMaster := tspSsiMaster_i;  
-      
+      v.headerData := endianSwap64(tspSsiMaster_i.data(63 downto 0));
       case r.tspState is
          ----------------------------------------------------------------------
          when WAIT_SOF_S =>
@@ -332,16 +336,16 @@ begin
             
             if (r.tspSsiMaster.valid = '1' and r.tspSsiMaster.sof = '1') then
                -- Register flags, header length and SEQn
-               v.rxF.syn  := r.tspSsiMaster.data (63);
-               v.rxF.ack  := r.tspSsiMaster.data (62);
-               v.rxF.eack := r.tspSsiMaster.data (61);
-               v.rxF.rst  := r.tspSsiMaster.data (60);
-               v.rxF.nul  := r.tspSsiMaster.data (59);
-               v.rxF.busy := r.tspSsiMaster.data (56);
+               v.rxF.syn  := r.headerData (63);
+               v.rxF.ack  := r.headerData (62);
+               v.rxF.eack := r.headerData (61);
+               v.rxF.rst  := r.headerData (60);
+               v.rxF.nul  := r.headerData (59);
+               v.rxF.busy := r.headerData (56);
                
-               v.rxHeadLen := r.tspSsiMaster.data (55 downto 48);
-               v.rxSeqN    := r.tspSsiMaster.data (47 downto 40);
-               v.rxAckN    := r.tspSsiMaster.data (39 downto 32);
+               v.rxHeadLen := r.headerData (55 downto 48);
+               v.rxSeqN    := r.headerData (47 downto 40);
+               v.rxAckN    := r.headerData (39 downto 32);
             end if;
             
             -- Checksum commands
@@ -353,10 +357,10 @@ begin
                
                -- Register SYN header word 0 parameters
                v.chkLen     := 3; -- TODO make generic
-               v.rxParam.version    := r.tspSsiMaster.data (31 downto 28);
-               v.rxParam.chksumEn   := r.tspSsiMaster.data (26 downto 26);
-               v.rxParam.maxOutsSeg := r.tspSsiMaster.data (23 downto 16);
-               v.rxParam.maxSegSize := r.tspSsiMaster.data (15 downto 0);
+               v.rxParam.version    := r.headerData (31 downto 28);
+               v.rxParam.chksumEn   := r.headerData (26 downto 26);
+               v.rxParam.maxOutsSeg := r.headerData (23 downto 16);
+               v.rxParam.maxSegSize := r.headerData (15 downto 0);
                
                --
                if (v.rxF.ack = '1' and v.rxAckN /= lastAckN_i) then
@@ -424,11 +428,11 @@ begin
             -- Register SYN header word 1 parameters
             if (r.rxHeaderAddr = x"01" and r.tspSsiMaster.valid = '1') then
                -- Syn parameters              
-               v.rxParam.retransTout := r.tspSsiMaster.data (63 downto 48);
-               v.rxParam.cumulAckTout:= r.tspSsiMaster.data (47 downto 32);
-               v.rxParam.nullSegTout := r.tspSsiMaster.data (31 downto 16);
-               v.rxParam.maxRetrans  := r.tspSsiMaster.data (15 downto 8);
-               v.rxParam.maxCumAck   := r.tspSsiMaster.data ( 7 downto 0);
+               v.rxParam.retransTout := r.headerData (63 downto 48);
+               v.rxParam.cumulAckTout:= r.headerData (47 downto 32);
+               v.rxParam.nullSegTout := r.headerData (31 downto 16);
+               v.rxParam.maxRetrans  := r.headerData (15 downto 8);
+               v.rxParam.maxCumAck   := r.headerData ( 7 downto 0);
                --
             end if;
             
@@ -441,9 +445,9 @@ begin
                if (r.tspSsiMaster.valid = '1') then
                  
                   -- Syn parameters
-                  v.rxParam.maxOutofseq              := r.tspSsiMaster.data (63 downto 56);
-                  v.rxParam.timeoutUnit              := r.tspSsiMaster.data (55 downto 48);
-                  v.rxParam.connectionId(31 downto 0):= r.tspSsiMaster.data (47 downto 16);
+                  v.rxParam.maxOutofseq              := r.headerData (63 downto 56);
+                  v.rxParam.timeoutUnit              := r.headerData (55 downto 48);
+                  v.rxParam.connectionId(31 downto 0):= r.headerData (47 downto 16);
 
                   -- Tsp parameters
                   v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;

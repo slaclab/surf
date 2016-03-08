@@ -82,6 +82,9 @@ constant DATA_HEADER_SIZE_C : natural := 8;
    
 -- Function declarations
 --------------------------------------------------------------------------  
+   -- Swap little and big endians
+   -- 64-bit header word
+   function endianSwap64(data_slv : slv) return std_logic_vector;
 
  
 end RssiPkg;
@@ -90,6 +93,19 @@ package body RssiPkg is
 
 -- Function bodies
 --------------------------------------------------------------------------  
-
+   -- Swap little or big endians 64-bit header
+   function endianSwap64(data_slv : slv) return std_logic_vector is
+         variable  vSlv: slv(data_slv'range);
+   begin
+      
+      vSlv := (others=>'0');
+      
+      for i in 0 to 7 loop
+          vSlv(8*(7-i)+7  downto  8*(7-i)) := data_slv(8*i+7  downto  8*i);
+      end loop;
+         
+      return vSlv;
+ 
+   end endianSwap64;
 --------------------------------------------------------------------------------------------
 end package body RssiPkg;
