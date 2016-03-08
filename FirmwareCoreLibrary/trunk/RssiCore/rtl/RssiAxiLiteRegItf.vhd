@@ -72,7 +72,19 @@ generic (
    -- General Configurations
    TPD_G            : time            := 1 ns;
    AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
-   TIMEOUT_UNIT_G   : real     := 1.0E-6);
+   TIMEOUT_UNIT_G   : real     := 1.0E-6;
+   INIT_SEQ_N_G     : natural  := 16#80#;
+   CONN_ID_G   : positive := 16#12345678#;
+   VERSION_G   : positive := 1;
+   HEADER_CHKSUM_EN_G : boolean  := true;
+   MAX_NUM_OUTS_SEG_G  : positive := 8; --   <=(2**WINDOW_ADDR_SIZE_G)
+   MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C; -- Number of bytes
+   RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
+   ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
+   NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
+   MAX_RETRANS_CNT_G     : positive := 2;
+   MAX_CUM_ACK_CNT_G     : positive := 3;
+   MAX_OUT_OF_SEQUENCE_G : natural  := 3);
       
 port (
    -- AXI Clk
@@ -133,17 +145,17 @@ architecture rtl of RssiAxiLiteRegItf is
   
    constant REG_INIT_C : RegType := (
       control     => "01000",
-      initSeqN     => x"80",
-      version      => x"1",
-      maxOutsSeg   => x"08",
+      initSeqN     => toSlv(INIT_SEQ_N_G, 8),
+      version      => toSlv(VERSION_G, 4),
+      maxOutsSeg   => toSlv(MAX_NUM_OUTS_SEG_G, 8),
       maxSegSize   => toSlv((2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C, 16),
-      retransTout  => toSlv(50, 16),
-      cumulAckTout => toSlv(25, 16),
-      nullSegTout  => toSlv(200, 16),
-      maxRetrans   => x"02",
-      maxCumAck    => x"03",
-      maxOutofseq  => x"03",
-      connectionId => x"12345678",
+      retransTout  => toSlv(RETRANS_TOUT_G, 16),
+      cumulAckTout => toSlv(ACK_TOUT_G, 16),
+      nullSegTout  => toSlv(NULL_TOUT_G, 16),
+      maxRetrans   => toSlv(MAX_RETRANS_CNT_G, 8),
+      maxCumAck    => toSlv(MAX_CUM_ACK_CNT_G, 8),
+      maxOutofseq  => toSlv(MAX_OUT_OF_SEQUENCE_G, 8),
+      connectionId => toSlv(CONN_ID_G, 32),
       
       -- AXI lite      
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
