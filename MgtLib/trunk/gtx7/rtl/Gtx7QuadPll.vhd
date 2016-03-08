@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-06
--- Last update: 2014-10-27
+-- Last update: 2016-03-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -19,39 +19,47 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Gtx7QuadPll is
-   
    generic (
-      TPD_G               : time       := 1 ns;
-      SIM_RESET_SPEEDUP_G : string     := "TRUE";
-      SIM_VERSION_G       : string     := "4.0";
-      QPLL_CFG_G          : bit_vector := x"0680181";  -- QPLL_CFG_G[6] selects the QPLL frequency band: 0 = upper band, 1 = lower band
-      QPLL_REFCLK_SEL_G   : bit_vector := "001";
-      QPLL_FBDIV_G        : bit_vector := "0100100000";
-      QPLL_FBDIV_RATIO_G  : bit        := '1';
-      QPLL_REFCLK_DIV_G   : integer    := 1);
-
+      TPD_G               : time            := 1 ns;
+      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      SIM_RESET_SPEEDUP_G : string          := "TRUE";
+      SIM_VERSION_G       : string          := "4.0";
+      QPLL_CFG_G          : bit_vector      := x"0680181";  -- QPLL_CFG_G[6] selects the QPLL frequency band: 0 = upper band, 1 = lower band
+      QPLL_REFCLK_SEL_G   : bit_vector      := "001";
+      QPLL_FBDIV_G        : bit_vector      := "0100100000";
+      QPLL_FBDIV_RATIO_G  : bit             := '1';
+      QPLL_REFCLK_DIV_G   : integer         := 1);
    port (
-      qPllRefClk     : in  sl;
-      qPllOutClk     : out sl;
-      qPllOutRefClk  : out sl;
-      qPllLock       : out sl;
-      qPllLockDetClk : in  sl;          -- Lock detect clock
-      qPllRefClkLost : out sl;
-      qPllPowerDown  : in  sl := '0';
-      qPllReset      : in  sl);
-
+      qPllRefClk      : in  sl;
+      qPllOutClk      : out sl;
+      qPllOutRefClk   : out sl;
+      qPllLock        : out sl;
+      qPllLockDetClk  : in  sl;         -- Lock detect clock
+      qPllRefClkLost  : out sl;
+      qPllPowerDown   : in  sl                     := '0';
+      qPllReset       : in  sl;
+      -- AXI-Lite Interface
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);      
 end entity Gtx7QuadPll;
 
-architecture rtl of Gtx7QuadPll is
+architecture mapping of Gtx7QuadPll is
 
    signal gtRefClk0      : sl;
    signal gtRefClk1      : sl;
@@ -61,8 +69,14 @@ architecture rtl of Gtx7QuadPll is
    signal gtSouthRefClk1 : sl;
    signal gtGRefClk      : sl;
 
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal drpRdy  : sl;
+   signal drpAddr : slv(7 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0);
+   
 begin
-
 
    --------------------------------------------------------------------------------------------------
    -- QPLL clock select. Only ever use 1 clock to drive qpll. Never switch clocks.
@@ -98,17 +112,16 @@ begin
          QPLL_INIT_CFG            => (x"000006"),
          QPLL_LOCK_CFG            => (x"21E8"),
          QPLL_LPF                 => ("1111"),
-         QPLL_REFCLK_DIV          => QPLL_REFCLK_DIV_G
-         )
+         QPLL_REFCLK_DIV          => QPLL_REFCLK_DIV_G)
       port map (
          ------------- Common Block  - Dynamic Reconfiguration Port (DRP) -----------
-         DRPADDR          => (others => '0'),
-         DRPCLK           => '0',
-         DRPDI            => (others => '0'),
-         DRPDO            => open,
-         DRPEN            => '0',
-         DRPRDY           => open,
-         DRPWE            => '0',
+         DRPADDR          => drpAddr,
+         DRPCLK           => axilClk,
+         DRPDI            => drpDi,
+         DRPDO            => drpDo,
+         DRPEN            => drpEn,
+         DRPRDY           => drpRdy,
+         DRPWE            => drpWe,
          ---------------------- Common Block  - Ref Clock Ports ---------------------
          GTGREFCLK        => gtGRefClk,
          GTNORTHREFCLK0   => gtNorthRefClk0,
@@ -141,8 +154,33 @@ begin
          BGPDB            => '1',
          BGRCALOVRD       => "00000",
          PMARSVD          => "00000000",
-         RCALENB          => '1'
+         RCALENB          => '1');
 
-         );
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 8,
+         DATA_WIDTH_G     => 16)      
+      port map (
+         -- AXI-Lite Port
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- DRP Interface
+         drpClk          => axilClk,
+         drpRst          => axilRst,
+         drpRdy          => drpRdy,
+         drpEn           => drpEn,
+         drpWe           => drpWe,
+         drpAddr         => drpAddr,
+         drpDi           => drpDi,
+         drpDo           => drpDo);            
 
-end architecture rtl;
+end architecture mapping;
