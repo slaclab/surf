@@ -50,7 +50,8 @@
 --                   bit(2) : Null timeout reached (server) r.nullTout
 --                   bit(3) : Error in acknowledgment mechanism   
 --                   bit(4) : SSI Frame length too long
---                   bit(5) : Connection to peer timed out               
+--                   bit(5) : Connection to peer timed out
+--                   bit(6) : Parameters from peer rejected (Client) or new proposed(Server) 
 --                0x11 (R)- Number of valid segments [31:0]:
 --                   The value rests to 0 when new connection open is requested.
 --                0x12 (R)- Number of dropped segments [31:0]:
@@ -70,15 +71,17 @@ use work.RssiPkg.all;
 entity RssiAxiLiteRegItf is
 generic (
    -- General Configurations
-   TPD_G            : time            := 1 ns;
-   AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+   TPD_G                : time            := 1 ns;
+   AXI_ERROR_RESP_G     : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+   SEGMENT_ADDR_SIZE_G  : positive        := 3;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+   -- Defaults form generics
    TIMEOUT_UNIT_G   : real     := 1.0E-6;
    INIT_SEQ_N_G     : natural  := 16#80#;
    CONN_ID_G   : positive := 16#12345678#;
    VERSION_G   : positive := 1;
    HEADER_CHKSUM_EN_G : boolean  := true;
    MAX_NUM_OUTS_SEG_G  : positive := 8; --   <=(2**WINDOW_ADDR_SIZE_G)
-   MAX_SEG_SIZE_G      : positive := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C; -- Number of bytes
+   MAX_SEG_SIZE_G      : positive := 1024;  -- Number of bytes
    RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
    ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
    NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
@@ -112,7 +115,7 @@ port (
    appRssiParam_o : out RssiParamType;
    
    -- Status (RO)
-   status_i       : in slv(5 downto 0);  
+   status_i       : in slv(6 downto 0);  
    dropCnt_i      : in slv(31 downto 0);
    validCnt_i     : in slv(31 downto 0)
 );   
@@ -148,7 +151,7 @@ architecture rtl of RssiAxiLiteRegItf is
       initSeqN     => toSlv(INIT_SEQ_N_G, 8),
       version      => toSlv(VERSION_G, 4),
       maxOutsSeg   => toSlv(MAX_NUM_OUTS_SEG_G, 8),
-      maxSegSize   => toSlv((2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C, 16),
+      maxSegSize   => toSlv((2**SEGMENT_ADDR_SIZE_G)*RSSI_WORD_WIDTH_C, 16),
       retransTout  => toSlv(RETRANS_TOUT_G, 16),
       cumulAckTout => toSlv(ACK_TOUT_G, 16),
       nullSegTout  => toSlv(NULL_TOUT_G, 16),
@@ -256,7 +259,7 @@ begin
         when 16#0B# =>                  -- ADDR (44)
           v.axilReadSlave.rdata(31 downto 0) := r.connectionId;
         when 16#10# =>                  -- ADDR (64)
-          v.axilReadSlave.rdata(5 downto 0)  := s_status;
+          v.axilReadSlave.rdata(status_i'range)  := s_status;
         when 16#11# =>                  -- ADDR (68)
           v.axilReadSlave.rdata(31 downto 0) := s_validCnt;          
         when 16#12# =>                  -- ADDR (72)

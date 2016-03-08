@@ -35,7 +35,8 @@ entity ConnFSM is
       RETRANS_TOUT_G      : positive := 50;
       MAX_RETRANS_CNT_G   : positive := 2;
       --
-      WINDOW_ADDR_SIZE_G  : positive := 7
+      WINDOW_ADDR_SIZE_G  : positive := 3;
+      SEGMENT_ADDR_SIZE_G  : positive := 7  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
    );
    port (
       clk_i      : in  sl;
@@ -79,14 +80,15 @@ entity ConnFSM is
       --
       
       -- Window size and buffer size different for Rx and Tx
-      rxBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      rxBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
       rxWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
-      txBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      txBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
       txWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       
-      -- Timeout status
-      peerTout_o       : out sl
+      -- Status signals
+      peerTout_o       : out sl;
+      paramReject_o    : out sl     
    );
 end entity ConnFSM;
 
@@ -114,11 +116,12 @@ architecture rtl of ConnFSM is
       sndRst      : sl;
       txAckF      : sl;
       peerTout    : sl;
+      paramReject : sl;
       
       rssiParam   : RssiParamType;
       
       --
-      txBufferSize   : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      txBufferSize   : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
       txWindowSize   : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
       timeoutCntr    : integer range 0 to RETRANS_TOUT_G * SAMPLES_PER_TIME_C;
@@ -137,6 +140,7 @@ architecture rtl of ConnFSM is
       sndRst      => '0',
       txAckF      => '0',
       peerTout    => '0',
+      paramReject => '0',
       
       rssiParam   => (others => (others =>'0')),
       
@@ -201,6 +205,7 @@ begin
             v.sndRst       := '0';
             v.txAckF       := '0';
             v.peerTout     := '0';
+            v.paramReject  := '0';
             v.timeoutCntr  :=  0;
             
             -- Send the Client proposed parameters
@@ -225,7 +230,7 @@ begin
                if (
                   rxRssiParam_i.version    = appRssiParam_i.version      and -- Version match
                   rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and -- Number of segments in a window
-                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8 and -- Number of bytes
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_G)*8 and -- Number of bytes
                   rxRssiParam_i.chksumEn   = appRssiParam_i.chksumEn     and -- Checksum match
                   rxRssiParam_i.timeoutUnit= appRssiParam_i.timeoutUnit      -- Timeout unit match
                ) then
@@ -237,7 +242,8 @@ begin
                   --
                   v.state := SEND_ACK_S;
                else
-                  -- Reject parameters and reset the connection               
+                  -- Reject parameters and reset the connection
+                  v.paramReject  := '1';                  
                   v.rssiParam := r.rssiParam;
                   --
                   v.state := SEND_RST_S;
@@ -264,6 +270,7 @@ begin
             v.txAckF       := '1';
             v.timeoutCntr  :=  0;
             v.resendCntr   :=  0;
+            v.paramReject  := '0';
             --
             v.rssiParam := r.rssiParam;
             
@@ -295,7 +302,7 @@ begin
                if (
                   rxRssiParam_i.version    = appRssiParam_i.version      and   -- Version equality
                   rxRssiParam_i.maxOutsSeg <= (2**WINDOW_ADDR_SIZE_G)    and   -- Number of segments in a window
-                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_C)*8 and   -- Number of bytes
+                  rxRssiParam_i.maxSegSize <= (2**SEGMENT_ADDR_SIZE_G)*8 and   -- Number of bytes
                   rxRssiParam_i.timeoutUnit= appRssiParam_i.timeoutUnit        -- Timeout unit match
                ) then
                
@@ -315,6 +322,7 @@ begin
                   v.txBufferSize := conv_integer(appRssiParam_i.maxSegSize);
                   v.txWindowSize := conv_integer(appRssiParam_i.maxOutsSeg);
                   --
+                  v.paramReject  := '1';
                   v.state := SEND_SYN_ACK_S;
                end if;
             end if;
@@ -326,6 +334,7 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '1';
+            v.paramReject  := '0';
             v.timeoutCntr  :=  0;
             
             -- Send the Server parameters
@@ -342,6 +351,8 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '0';
+            v.paramReject  := '0';
+            --            
             v.timeoutCntr  := r.timeoutCntr+1;
             
             -- 
@@ -374,6 +385,7 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '0';
             v.txAckF       := '1';
+            v.paramReject  := '0';
             --
             v.timeoutCntr  :=  0;
             v.resendCntr   :=  0;
@@ -399,6 +411,7 @@ begin
             v.sndAck       := '0';
             v.sndRst       := '1';
             v.txAckF       := '0';
+            v.paramReject  := '0';
             --
             v.rssiParam := r.rssiParam;
             
@@ -445,6 +458,7 @@ begin
    txWindowSize_o <= r.txWindowSize;
    closed_o <= r.closed;
    -- 
-   peerTout_o <= r.peerTout; 
+   peerTout_o    <= r.peerTout;
+   paramReject_o <= r.paramReject;
    ---------------------------------------------------------------------
 end architecture rtl;

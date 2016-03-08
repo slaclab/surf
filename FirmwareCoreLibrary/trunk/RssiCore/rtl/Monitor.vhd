@@ -25,7 +25,8 @@
 --    statusReg_o(3) : Error in acknowledgment mechanism   
 --    statusReg_o(4) : SSI Frame length too long
 --    statusReg_o(5) : Connection to peer timed out
-     
+--    statusReg_o(6) : Client rejected the connection (parameters out of range)
+--                     Server proposed new parameters (parameters out of range)
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -44,7 +45,7 @@ entity Monitor is
       CLK_FREQUENCY_G     : real     := 100.0E6; 
       SERVER_G            : boolean  := true;
       WINDOW_ADDR_SIZE_G  : positive := 7;
-      STATUS_WIDTH_G      : positive := 5;
+      STATUS_WIDTH_G      : positive := 6;
       CNT_WIDTH_G         : positive := 32;
       RETRANSMIT_ENABLE_G : boolean := true
       -- 
@@ -83,6 +84,7 @@ entity Monitor is
       lenErr_i       : in sl;      
       ackErr_i       : in sl;      
       peerConnTout_i : in sl;      
+      paramReject_i  : in sl;
       
       -- Packet transmission requests
       sndResend_o     : out  sl;
@@ -170,6 +172,7 @@ begin
    s_status(2) <= ackErr_i;   
    s_status(3) <= lenErr_i;
    s_status(4) <= peerConnTout_i;
+   s_status(5) <= paramReject_i;   
    
    comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, 
                    connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i, s_status) is

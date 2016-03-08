@@ -9,7 +9,6 @@ package RssiPkg is
 
 -- Common constant definitions
 --------------------------------------------------------------------------
-constant SEGMENT_ADDR_SIZE_C      : positive := 7;     -- 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
 constant RSSI_WORD_WIDTH_C        : positive := 8;     -- 64 bit word (FIXED)
 constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C);
 
@@ -61,7 +60,7 @@ constant DATA_HEADER_SIZE_C : natural := 8;
 --     strb                  : slv(15 downto 0);
       keep                  : slv(15 downto 0);
 --     dest                  : slv(SSI_TDEST_BITS_C-1 downto 0);
-      segSize               :  slv(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      segSize               :  natural;
       occupied              : sl;
    end record WindowType;
    
@@ -72,7 +71,7 @@ constant DATA_HEADER_SIZE_C : natural := 8;
 --      strb                  => (others => '1'), 
       keep                  => (others => '1'), 
 --      dest                  => (others => '0'), 
-      segSize               => (others => '0'),
+      segSize               => 0,
       occupied              => '0'
    );
    

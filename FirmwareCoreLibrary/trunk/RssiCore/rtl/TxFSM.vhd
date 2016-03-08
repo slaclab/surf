@@ -49,8 +49,9 @@ entity TxFSM is
    generic (
       TPD_G              : time     := 1 ns;
       
-      WINDOW_ADDR_SIZE_G : positive := 7;      -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
- 
+      WINDOW_ADDR_SIZE_G : positive := 7;   -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
+      SEGMENT_ADDR_SIZE_G : positive := 3;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+
       SYN_HEADER_SIZE_G  : natural := 24;
       ACK_HEADER_SIZE_G  : natural := 8;
       EACK_HEADER_SIZE_G : natural := 8;
@@ -81,15 +82,15 @@ entity TxFSM is
       
       -- Window buff size (Depends on the number of outstanding segments)
       windowSize_i  : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-      bufferSize_i  : in integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+      bufferSize_i  : in integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
       
       -- Buffer write
       wrBuffWe_o     : out  sl;      
-      wrBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+      wrBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
       wrBuffData_o   : out  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);      
       
       -- Buffer read
-      rdBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_C+WINDOW_ADDR_SIZE_G)-1 downto 0);
+      rdBuffAddr_o   : out  slv( (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
       rdBuffData_i   : in   slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
     
       -- Header read
@@ -214,7 +215,7 @@ architecture rtl of TxFSM is
       
       -- Application side FSM
       -----------------------------------------     
-      rxSegmentAddr  : slv(SEGMENT_ADDR_SIZE_C downto 0); -- One address bit more to check the overflow
+      rxSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0); -- One address bit more to check the overflow
       rxSegmentWe    : sl;
       sndData        : sl;
       lenErr         : sl;
@@ -232,7 +233,7 @@ architecture rtl of TxFSM is
       nextSeqN       : slv(7 downto 0);
       seqN           : slv(7 downto 0);
       txHeaderAddr   : slv(7 downto 0);
-      txSegmentAddr  : slv(SEGMENT_ADDR_SIZE_C downto 0);
+      txSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0);
       txBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       
       -- Data mux flags
@@ -575,7 +576,7 @@ begin
             
                -- Save packet tKeep of last data word
                v.windowArray(conv_integer(r.nextSentAddr)).keep    := appSsiMaster_i.keep;            
-               v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0); 
+               v.windowArray(conv_integer(r.nextSentAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0)); 
             
                v.appState    := SEG_RDY_S;
 
@@ -616,14 +617,14 @@ begin
                v.windowArray(conv_integer(r.nextSentAddr)).keep   := appSsiMaster_i.keep;
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
-               v.windowArray(conv_integer(r.nextSentAddr)).segSize := r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0)+1;           
+               v.windowArray(conv_integer(r.nextSentAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;           
 
                v.appState    := SEG_RDY_S;
                --
             elsif (r.rxSegmentAddr > bufferSize_i ) then
                v.rxSegmentWe := '0';
                v.appState    := SEG_LEN_ERR; 
-            elsif (r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C) = '1' ) then
+            elsif (r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G) = '1' ) then
                v.rxSegmentWe := '0';
                v.appState    := SEG_LEN_ERR;     
             end if;
@@ -1520,7 +1521,7 @@ begin
       -- APP side
       
       -- Combine ram write address      
-      wrBuffAddr_o <= r.nextSentAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      wrBuffAddr_o <= r.nextSentAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffData_o <= r.AppSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
       wrBuffWe_o   <= r.rxSegmentWe;
       
@@ -1539,7 +1540,7 @@ begin
       -- TSP side
       
       -- Combine ram read address
-      rdBuffAddr_o     <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_C-1 downto 0);
+      rdBuffAddr_o     <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       rdHeaderAddr_o   <= v.txHeaderAddr;      
 
       -- State assignment
