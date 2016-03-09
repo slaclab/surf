@@ -35,6 +35,7 @@ entity AxiStreamDmaRingRead is
       BUFFERS_G           : natural range 2 to 64 := 64;
       SSI_OUTPUT_G        : boolean               := false;
       AXIL_BASE_ADDR_G    : slv(31 downto 0)      := (others => '0');
+      AXI_STREAM_READY_EN_G : boolean := true;
       AXI_STREAM_CONFIG_G : AxiStreamConfigType   := ssiAxiStreamConfig(8);
       AXI_READ_CONFIG_G   : AxiConfigType         := axiConfig(32, 8, 1, 8));
    port (
@@ -57,7 +58,8 @@ entity AxiStreamDmaRingRead is
 --       dataRst    : in  sl;
       dataMaster : out AxiStreamMasterType;
       dataSlave  : in  AxiStreamSlaveType;
-
+      dataCtrl : in AxiStreamCtrlType := AXI_STREAM_CTRL_UNUSED_C;
+      
       -- AXI4 Interface for RAM      
       axiClk        : in  sl;
       axiRst        : in  sl;
@@ -122,7 +124,7 @@ begin
    U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
       generic map (
          TPD_G          => TPD_G,
-         AXI_READY_EN_G => true,
+         AXI_READY_EN_G => AXI_STREAM_READY_EN_G,
          AXIS_CONFIG_G  => AXI_STREAM_CONFIG_G,
          AXI_CONFIG_G   => AXI_READ_CONFIG_G,
          AXI_BURST_G    => "01",          -- INCR
@@ -132,8 +134,9 @@ begin
          axiRst        => axiRst,         -- [in]
          dmaReq        => dmaReqAxi,      -- [in]
          dmaAck        => dmaAckAxi,      -- [out]
-         axisMaster    => dataMaster,     -- [in]
-         axisSlave     => dataSlave,      -- [out]
+         axisMaster    => dataMaster,     -- [out]
+         axisSlave     => dataSlave,      -- [in]
+         axisCtrl => dataCtrl,          --[in]
          axiReadMaster => axiReadMaster,  -- [out]
          axiReadSlave  => axiReadSlave);  -- [in]
 
