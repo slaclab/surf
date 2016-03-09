@@ -105,10 +105,10 @@ begin
 
          -- Prepare Write Transaction
          when S_WRITE_C =>
-            v.axilWriteMaster.awaddr  := r.req.address;
+            v.axilWriteMaster.awaddr  := req.address;
             v.axilWriteMaster.awprot  := (others => '0');
             v.axilWriteMaster.wstrb   := (others => '1');
-            v.axilWriteMaster.wdata   := r.req.wrData;
+            v.axilWriteMaster.wdata   := req.wrData;
             v.axilWriteMaster.awvalid := '1';
             v.axilWriteMaster.wvalid  := '1';
             v.axilWriteMaster.bready  := '1';
@@ -133,7 +133,7 @@ begin
 
          -- Read transaction
          when S_READ_C =>
-            v.axilReadMaster.araddr := r.req.address;
+            v.axilReadMaster.araddr := req.address;
             v.axilReadMaster.arprot := (others => '0');
 
             -- Start AXI transaction
