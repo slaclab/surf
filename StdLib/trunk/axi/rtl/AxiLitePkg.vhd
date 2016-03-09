@@ -350,7 +350,7 @@ package AxiLitePkg is
       signal axilWriteMaster : out AxiLiteWriteMasterType;
       signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
       addr            : in  slv(31 downto 0);
-      data            : in  slv(31 downto 0);
+      data            : in  slv;
       debug           : in  boolean := false);
    
    procedure axiLiteBusSimRead (
@@ -358,7 +358,7 @@ package AxiLitePkg is
       signal axilReadMaster : out AxiLiteReadMasterType;
       signal axilReadSlave  : in  AxiLiteReadSlaveType;
       addr           : in  slv(31 downto 0);
-      data           : out slv(31 downto 0);
+      data           : out slv;
       debug          : in  boolean := false);
 
 
@@ -728,11 +728,16 @@ package body AxiLitePkg is
       signal axilWriteMaster : out AxiLiteWriteMasterType;
       signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
       addr            : in  slv(31 downto 0);
-      data            : in  slv(31 downto 0);
-      debug           : in  boolean := false) is
+      data            : in  slv;
+      debug           : in  boolean := false)
+   is
+      variable dataTmp : slv(31 downto 0);
+      variable addrTmp : slv(31 downto 0);
    begin
+      dataTmp := resize(data, 32);
+      
       axilWriteMaster.awaddr  <= addr;
-      axilWriteMaster.wdata   <= data;
+      axilWriteMaster.wdata   <= dataTmp;
       axilWriteMaster.awprot  <= (others => '0');
       axilWriteMaster.wstrb   <= (others => '1');
       axilWriteMaster.awvalid <= '1';
@@ -758,12 +763,18 @@ package body AxiLitePkg is
       -- Done. Check for errors
       wait until axilClk = '1';
       axilWriteMaster.bready <= '0';
+      
+      print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(dataTmp) & ")");      
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
       elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity error;
-      else
-         print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(data) & ")");
+      end if;
+
+      -- If data size is greater than 32, make a recursive call to write the next word
+      if (data'length > 32) then
+         addrTmp := slv(unsigned(addr) + 4);
+         axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addrTmp, data(data'high downto 32), debug);
       end if;
 
    end procedure axiLiteBusSimWrite;
@@ -774,8 +785,11 @@ package body AxiLitePkg is
       signal axilReadMaster : out AxiLiteReadMasterType;
       signal axilReadSlave  : in  AxiLiteReadSlaveType;
       addr           : in  slv(31 downto 0);
-      data           : out slv(31 downto 0);
-      debug          : in  boolean := false) is
+      data           : out slv;
+      debug          : in  boolean := false)
+   is
+      variable dataTmp  : slv(31 downto 0);
+      variable addrTmp : slv(31 downto 0);
    begin
       -- Put the write req on the bus
       axilReadMaster.araddr  <= addr;
@@ -800,11 +814,19 @@ package body AxiLitePkg is
       elsif (axilReadSlave.rresp = AXI_RESP_DECERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): RRESP = DECODE_ERROR" severity error;
       else
-         data := axilReadSlave.rdata;
+         dataTmp := axilReadSlave.rdata;
          print(debug, "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & ", data: " & hstr(axilReadSlave.rdata) & ")");
       end if;
       wait until axilClk = '1';
       axilReadMaster.rready <= '0';
+
+      if (data'length > 32) then
+         addrTmp := slv(unsigned(addr) + 4);
+         data(data'low+31 downto data'low) := dataTmp;         
+         axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, addrTmp, data(data'high downto 32), debug);
+      else
+         data := resize(dataTmp, data'length);
+      end if;
 
 
    end procedure axiLiteBusSimRead;

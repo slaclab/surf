@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-03-03
+-- Last update: 2016-03-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,13 +37,13 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaWrite is
    generic (
-      TPD_G          : time                := 1 ns;
-      AXI_READY_EN_G   : boolean             := false;
-      AXIS_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G   : AxiConfigType       := AXI_CONFIG_INIT_C;
-      AXI_BURST_G    : slv(1 downto 0)     := "01";
-      AXI_CACHE_G    : slv(3 downto 0)     := "1111"
-      );
+      TPD_G             : time                := 1 ns;
+      AXI_READY_EN_G    : boolean             := false;
+      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
+      AXI_BURST_G       : slv(1 downto 0)     := "01";
+      AXI_CACHE_G       : slv(3 downto 0)     := "1111";
+      ACK_WAIT_BVALID_G : boolean             := true);
    port (
 
       -- Clock/Reset
@@ -96,10 +96,9 @@ architecture structure of AxiStreamDmaWrite is
       last     => '0',
       reqCount => (others => '0'),
       ackCount => (others => '0'),
-      stCount  => (others=>'0'),
+      stCount  => (others => '0'),
       wMaster  => axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G),
-      slave    => AXI_STREAM_SLAVE_INIT_C
-      );
+      slave    => AXI_STREAM_SLAVE_INIT_C);
 
    signal r             : RegType := REG_INIT_C;
    signal rin           : RegType;
@@ -140,7 +139,7 @@ begin
 
    comb : process (axiRst, r, intAxisMaster, axiWriteSlave, dmaReq, selReady, selPause) is
       variable v     : RegType;
-      variable bytes : natural; --slv(bitSize(DATA_BYTES_C)-1 downto 0);
+      variable bytes : natural;         --slv(bitSize(DATA_BYTES_C)-1 downto 0);
    begin
       v := r;
 
@@ -153,7 +152,7 @@ begin
       bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
 
       -- Count acks
-      if axiWriteSlave.bvalid = '1' then
+      if axiWriteSlave.bvalid = '1' and ACK_WAIT_BVALID_G then
          v.ackCount := r.ackCount + 1;
 
          if axiWriteSlave.bresp /= "00" then
@@ -175,7 +174,7 @@ begin
             v.last     := '0';
             v.dmaAck   := AXI_WRITE_DMA_ACK_INIT_C;
             v.dmaReq   := dmaReq;
-            v.stCount  := (others=>'0');
+            v.stCount  := (others => '0');
 
             -- Align shift and address to transfer size
             if DATA_BYTES_C /= 1 then
@@ -206,14 +205,14 @@ begin
             if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
                v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
             end if;
-            
+
             -- DMA request has dropped. Abort. This is needed to disable engine while it
             -- is still waiting for an inbound frame.
             if dmaReq.request = '0' then
                v.state := S_IDLE_C;
 
             -- There is enough room in the FIFO for a burst and address is ready
-            elsif selPause = '0' and  intAxisMaster.tValid = '1' then
+            elsif selPause = '0' and intAxisMaster.tValid = '1' then
                v.wMaster.awvalid := '1';
                v.reqCount        := r.reqCount + 1;
                v.state           := S_DATA_C;
@@ -309,7 +308,7 @@ begin
             if axiWriteSlave.awready = '1' then
                v.wMaster.awvalid := '0';
             end if;
-            
+
             if selReady = '1' and r.wMaster.awvalid = '0' then
                if r.last = '1' then
                   v.state := S_WAIT_C;
@@ -331,7 +330,7 @@ begin
 
          -- Wait for acks
          when S_WAIT_C =>
-            if r.ackCount >= r.reqCount then
+            if r.ackCount >= r.reqCount or not ACK_WAIT_BVALID_G then
                v.state       := S_DONE_C;
                v.dmaAck.done := '1';
             elsif r.stCount = x"FFFF" then
