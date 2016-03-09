@@ -5,7 +5,7 @@
 -- File       : AxiLiteMaster.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-09
--- Last update: 2015-05-29
+-- Last update: 2016-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,12 +90,12 @@ begin
             v.axilWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
             v.axilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
 
-            if (req.valid = '0') then
+            if (req.request = '0') then
                v.ack := AXI_LITE_MASTER_ACK_INIT_C;
             end if;
 
             -- Frame is starting
-            if (req.valid = '1' and r.ack.valid = '0') then
+            if (req.request = '1' and r.ack.done = '0') then
                if (req.rnw = '1') then
                   v.state := S_READ_C;
                else
@@ -126,7 +126,7 @@ begin
             end if;
             if axilWriteSlave.bvalid = '1' then
                v.axilWriteMaster.bready := '0';
-               v.ack.valid               := '1';
+               v.ack.done               := '1';
                v.ack.resp                := axilWriteSlave.bresp;
                v.state                   := S_IDLE_C;
             end if;
@@ -155,7 +155,7 @@ begin
 
             -- Transaction is done
             if v.axilReadMaster.arvalid = '0' and v.axilReadMaster.rready = '0' then
-               v.ack.valid := '1';
+               v.ack.done := '1';
                v.state     := S_IDLE_C;
             end if;
 

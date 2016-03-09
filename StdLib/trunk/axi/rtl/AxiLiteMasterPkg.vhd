@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-08
--- Last update: 2016-03-08
+-- Last update: 2016-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,26 +27,26 @@ use work.StdRtlPkg.all;
 package AxiLiteMasterPkg is
 
    type AxiLiteMasterReqType is record
-      valid   : sl;
+      request   : sl;
       rnw     : sl;
       address : slv(31 downto 0);
       wrData  : slv(31 downto 0);
    end record AxiLiteMasterReqType;
 
    constant AXI_LITE_MASTER_REQ_INIT_C : AxiLiteMasterReqType := (
-      valid   => '0',
+      request   => '0',
       rnw     => '1',
       address => (others => '0'),
       wrData  => (others => '0'));
 
    type AxiLiteMasterAckType is record
-      valid  : sl;
+      done  : sl;
       resp   : slv(1 downto 0);
       rdData : slv(31 downto 0);
    end record AxiLiteMasterAckType;
 
    constant AXI_LITE_MASTER_ACK_INIT_C : AxiLiteMasterAckType := (
-      valid  => '0',
+      done  => '0',
       resp   => (others => '0'),
       rdData => (others => '0'));
 
