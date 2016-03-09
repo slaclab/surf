@@ -1383,7 +1383,15 @@ begin
                v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.strb   := (others => '1');
                v.tspSsiMaster.dest   := (others => '0');
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add header to last two bytes
+               -- Inject fault into checksum
+               if (r.injectFaultReg = '1') then
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+               else
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
+               end if;
+               
+               -- Set the fault reg to 0
+               v.injectFaultReg := '0';
                
                -- Null or Rst packet
                if    (r.windowArray(conv_integer(r.txBufferAddr)).segType(2) = '1' or

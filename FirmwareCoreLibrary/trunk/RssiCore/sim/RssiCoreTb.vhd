@@ -373,8 +373,26 @@ begin
       wait for CLK_PERIOD_C*20000;
       -- 
       inject1_i <= '0';
+
+      -------------------------------------------------------
+      -- Inject fault into RSSI0 and RSSI1 Repeatedly
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject0_i <= '1';
+      inject1_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject0_i <= '0';
+      inject1_i <= '0';      
       
-      
+      wait for CLK_PERIOD_C*1000;
+      -- 
+      inject0_i <= '1';
+      inject1_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject0_i <= '0';
+      inject1_i <= '0';
       
       
       ------------------------------------------------------
