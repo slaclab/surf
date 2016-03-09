@@ -50,8 +50,8 @@ entity AxiStreamDmaRingRead is
       -- Status stream
       statusClk    : in  sl;
       statusRst    : in  sl;
-      statusMaster : out AxiStreamMasterType;
-      statusSlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
+      statusMaster : in AxiStreamMasterType;
+      statusSlave  : out  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
 
       -- DMA Stream
 --       dataClk    : in  sl;
@@ -79,7 +79,7 @@ architecture rtl of AxiStreamDmaRingRead is
       state          : StateType;
       axilReq        : AxiLiteMasterReqType;
       dmaReq         : AxiReadDmaReqType;
-      intStatusSlave : AxiStreamMasterType;
+      intStatusSlave : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -93,6 +93,8 @@ architecture rtl of AxiStreamDmaRingRead is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal intStatusMaster : AxiStreamMasterType;
+   
    signal axilAck : AxiLiteMasterAckType;
    signal dmaAck  : AxiReadDmaAckType;
 
@@ -124,7 +126,7 @@ begin
    U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
       generic map (
          TPD_G          => TPD_G,
-         AXI_READY_EN_G => AXI_STREAM_READY_EN_G,
+         AXIS_READY_EN_G => AXI_STREAM_READY_EN_G,
          AXIS_CONFIG_G  => AXI_STREAM_CONFIG_G,
          AXI_CONFIG_G   => AXI_READ_CONFIG_G,
          AXI_BURST_G    => "01",          -- INCR
@@ -246,7 +248,7 @@ begin
 
             if (r.axilReq.request = '1' and axilAck.done = '1') then
                v.axilReq.request        := '0';
-               v.startAddr(31 downto 0) := r.axilAck.rdData;
+               v.startAddr(31 downto 0) := axilAck.rdData;
                v.state                  := START_HIGH_S;
             end if;
 
@@ -255,7 +257,7 @@ begin
 
             if (r.axilReq.request = '1' and axilAck.done = '1') then
                v.axilReq.request         := '0';
-               v.startAddr(63 downto 32) := r.axilAck.rdData;
+               v.startAddr(63 downto 32) := axilAck.rdData;
                v.state                   := END_LOW_S;
             end if;
 
@@ -264,7 +266,7 @@ begin
 
             if (r.axilReq.request = '1' and axilAck.done = '1') then
                v.axilReq.request      := '0';
-               v.endAddr(31 downto 0) := r.axilAck.rdData;
+               v.endAddr(31 downto 0) := axilAck.rdData;
                v.state                := END_HIGH_S;
             end if;
 
@@ -273,7 +275,7 @@ begin
 
             if (axilAck.done = '1') then
                v.axilReq.request       := '0';
-               v.endAddr(63 downto 32) := r.axilAck.rdData;
+               v.endAddr(63 downto 32) := axilAck.rdData;
                v.state                 := DMA_REQ_S;
             end if;
 
@@ -281,7 +283,7 @@ begin
             v.axilReq.request := '0';
 
             v.dmaReq.request   := '1';
-            v.dmaReq.address   := startAddr;
+            v.dmaReq.address   := r.startAddr;
             v.dmaReq.size      := resize(r.endAddr-r.startAddr, 32);
             v.dmaReq.dest      := resize(buf, 8);
             v.dmaReq.firstUser := ite(SSI_OUTPUT_G, X"02", X"00");
