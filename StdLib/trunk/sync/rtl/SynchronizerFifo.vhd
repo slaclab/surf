@@ -5,7 +5,7 @@
 -- Author     : Ben Reese
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-04-14
+-- Last update: 2016-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ begin
    GEN_SYNC : if (COMMON_CLK_G = true) generate
 
       dout  <= din;
-      valid <= '1';
+      valid <= wr_en;
       
    end generate;
    
