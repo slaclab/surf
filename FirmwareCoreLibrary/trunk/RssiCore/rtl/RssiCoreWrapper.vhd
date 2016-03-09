@@ -48,7 +48,10 @@ entity RssiCoreWrapper is
       HEADER_CHKSUM_EN_G      : boolean             := true;
       -- Window parameters of receiver module
       MAX_NUM_OUTS_SEG_G      : positive            := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G          : positive            := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C;  -- Number of bytes
+      
+      -- MAX_SEG_SIZE_G          : positive            := (2**SEGMENT_ADDR_SIZE_C)*RSSI_WORD_WIDTH_C;  -- Number of bytes
+      MAX_SEG_SIZE_G          : positive            := (2**7)*RSSI_WORD_WIDTH_C;  -- Number of bytes
+      
       -- RSSI Timeouts
       RETRANS_TOUT_G          : positive            := 50;    -- unit depends on TIMEOUT_UNIT_G  
       ACK_TOUT_G              : positive            := 25;    -- unit depends on TIMEOUT_UNIT_G  
