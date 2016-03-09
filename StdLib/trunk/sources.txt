@@ -101,6 +101,11 @@ vhdl work axi/rtl/AxiStreamPacketizer.vhd
 vhdl work axi/rtl/AxiStreamDepacketizer.vhd
 vhdl work axi/rtl/AxiLiteRingBuffer.vhd
 vhdl work axi/rtl/AxiLiteToDrp.vhd
+vhdl work axi/rtl/AxiLiteMasterPkg.vhd
+vhdl work axi/rtl/AxiLiteMaster.vhd
+vhdl work axi/rtl/AxiStreamDmaRingPkg.vhd
+vhdl work axi/rtl/AxiStreamDmaRingWrite.vhd
+vhdl work axi/rtl/AxiStreamDmaRingRead.vhd
 
 vhdl work ssi/rtl/SsiAxiLiteMaster.vhd
 vhdl work ssi/rtl/SsiCmdMaster.vhd
