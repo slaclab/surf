@@ -44,6 +44,7 @@ if { ${VersionNumber} <= 2015.3 } {
 set_msg_config -suppress -id {Designutils 20-1318};# DESIGN_UTILS: Multiple VHDL modules with the same architecture name
 set_msg_config -suppress -id {Common 17-301};# DESIGN_INIT: Failed to get a license: Internal_bitstream
 set_msg_config -suppress -id {Pwropt 34-142};# Post-Place Power Opt: power_opt design has already been performed within this design hierarchy. Skipping
+set_msg_config -suppress -id {Common 17-1361};# The existing rule will be replaced.
 
 # Messages Suppression: CRITICAL_WARNING
 # TBD Place holder
