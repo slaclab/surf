@@ -193,7 +193,7 @@ begin
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => false,
          STAGES_G      => 2,
-         WIDTH_G       => 68)
+         WIDTH_G       => 3)
       port map (
          clk                 => axilClk,               -- [in]
          rst                 => axilRst,               -- [in]
