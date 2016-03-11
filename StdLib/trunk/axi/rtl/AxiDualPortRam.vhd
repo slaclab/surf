@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2016-01-27
+-- Last update: 2016-03-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -184,7 +184,8 @@ begin
 
       -- This call overwrites v.axiReadSlave.rdata with zero, so call it at the top.
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
-
+      v.axiReadSlave.rdata := (others=>'0');
+      
       -- Assign axiReadSlave.rdata and axiWrData
       if (DATA_WIDTH_G <= 32) then
          v.axiReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axiDout;
