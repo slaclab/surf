@@ -70,6 +70,7 @@ entity SsiAxiLiteMaster is
       TPD_G : time := 1 ns;
 
       -- FIFO Config
+      RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
       SLAVE_READY_EN_G    : boolean                    := false;
       EN_32BIT_ADDR_G     : boolean                    := false;
       BRAM_EN_G           : boolean                    := true;
@@ -452,6 +453,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
+         VALID_THOLD_G       => RESP_THOLD_G,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
