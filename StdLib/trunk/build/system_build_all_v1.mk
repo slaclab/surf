@@ -4,6 +4,7 @@ all: build
 # Check variables
 test:
 	@echo PARALLEL_BUILD: $(PARALLEL_BUILD)
+	@echo SETUP_ENV: $(SETUP_ENV)
 	@echo TARGET_DIRS:
 	@echo -e "$(foreach ARG,$(TARGET_DIRS),\t$(ARG)\n)"
 
@@ -21,10 +22,10 @@ build:
    for i in $(TARGET_DIRS); do \
       let "n+=1";\
       if test $$n != $(PARALLEL_BUILD); then \
-         (konsole --workdir $$i --new-tab --noclose -e tcsh -c 'source ../../setup_env.csh; make'); \
+         (konsole --workdir $$i --new-tab --noclose -e tcsh -c 'source $(SETUP_ENV); make'); \
       fi; \
       if test $$n = $(PARALLEL_BUILD); then \
-         cd $$i; tcsh -c 'source ../../setup_env.csh; make'; \
+         cd $$i; tcsh -c 'source $(SETUP_ENV); make'; \
          let "n=0";\
       fi; \
    done
