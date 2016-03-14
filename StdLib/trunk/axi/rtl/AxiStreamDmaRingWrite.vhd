@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-09
+-- Last update: 2016-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ use work.AxiLitePkg.all;
 use work.AxiPkg.all;
 use work.AxiDmaPkg.all;
 use work.AxiStreamDmaRingPkg.all;
-  
+
 
 entity AxiStreamDmaRingWrite is
 
@@ -161,7 +161,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       rdRamAddr         => (others => '0'),
       activeBuffer      => (others => '0'),
       initBufferEn      => '0',
-      bufferDone        => (others => '0'),
+      bufferDone        => (others => '1'),
       bufferFull        => (others => '0'),
       bufferEmpty       => (others => '0'),
       ramWe             => '0',
@@ -601,6 +601,9 @@ begin
                   v.bufferFull(conv_integer(r.rdRamAddr)) := '1';
                   if (r.doneWhenFull = '1') then
                      v.bufferDone(conv_integer(r.rdRamAddr)) := '1';
+                     v.axisStatusMaster.tValid               := '1';
+                     v.axisStatusMaster.tLast                := '1';
+                     v.axisStatusMaster.tData(7 downto 0)    := resize(r.rdRamAddr, 8);
                   end if;
                   v.lastAddr := r.startAddr;
                end if;
@@ -636,7 +639,7 @@ begin
 
             end if;
 
-     
+
       end case;
 
       ----------------------------------------------------------------------------------------------

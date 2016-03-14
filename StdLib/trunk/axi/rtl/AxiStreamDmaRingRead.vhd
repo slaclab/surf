@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-09
+-- Last update: 2016-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -226,7 +226,7 @@ begin
          mAxisMaster => intStatusMaster,    -- [out]
          mAxisSlave  => r.intStatusSlave);  -- [in]
 
-   comb : process (axilAck, axilRst, dmaAck, r) is
+   comb : process (axilAck, axilRst, dmaAck, intStatusMaster, r) is
       variable v   : RegType;
       variable buf : slv(5 downto 0);
    begin
@@ -289,7 +289,7 @@ begin
             v.dmaReq.firstUser := ite(SSI_OUTPUT_G, X"02", X"00");
             if (dmaAck.done = '1') then
                v.dmaReq.request := '0';
-               v.state          := CLEAR_S;
+               v.state          := START_LOW_S;
             end if;
 
          when CLEAR_S =>

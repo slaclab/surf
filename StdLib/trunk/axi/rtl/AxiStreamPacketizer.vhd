@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2015-12-08
+-- Last update: 2016-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ entity AxiStreamPacketizer is
    generic (
       TPD_G                : time    := 1 ns;
       MAX_PACKET_BYTES_G   : integer := 1440;  -- Must be a multiple of 8
+      MIN_TKEEP_G : slv(15 downto 0) := X"0001";
       INPUT_PIPE_STAGES_G  : integer := 0;
       OUTPUT_PIPE_STAGES_G : integer := 0);
 
@@ -188,7 +189,7 @@ begin
 
                   -- Need to either append tail to current txn or put tail on next txn (TAIL_S)
                   -- depending on tKeep
-                  v.outputAxisMaster.tKeep := inputAxisMaster.tKeep(14 downto 0) & '1';
+                  v.outputAxisMaster.tKeep := MIN_TKEEP_G or (inputAxisMaster.tKeep(14 downto 0) & '1');
 
                   case (inputAxisMaster.tKeep) is
                      when X"0000" =>
@@ -226,7 +227,7 @@ begin
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster.tValid            := '1';
-               v.outputAxisMaster.tKeep             := X"0001";
+               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;--X"0001";
                v.outputAxisMaster.tData             := (others => '0');
                v.outputAxisMaster.tData(7)          := r.eof;
                v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);
