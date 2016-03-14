@@ -315,7 +315,7 @@ if { [version -short] <= 2014.2 } {
    # Find and replace the AFS path and added secure Verilog support
    while { [eof ${in}] != 1 } {
       gets ${in} line
-      set line [string map {"-full64" "-full64 -nc -l +v2k"} ${line}]
+      set line [string map {"-full64" "-full64 -nc -l +v2k -xlrm"} ${line}]
       puts ${out} ${line} 
    }
 
