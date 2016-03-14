@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-03-07
+-- Last update: 2016-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ architecture structure of AxiStreamDmaWrite is
 
    constant DATA_BYTES_C : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
    constant ADDR_LSB_C   : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C      : slv(7 downto 0) := resize(toSlv(4096/DATA_BYTES_C-1, AXI_CONFIG_G.LEN_BITS_C), 8);
+   constant AWLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096); 
 
    type StateType is (S_IDLE_C, S_FIRST_C, S_NEXT_C, S_DATA_C, S_LAST_C, S_DUMP_C, S_WAIT_C, S_DONE_C);
 
@@ -199,7 +199,7 @@ begin
 
             -- Determine transfer size to align address to AXI_BURST_BYTES_G boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.wMaster.awlen := getAxiLen(4096, AXI_CONFIG_G);
+            v.wMaster.awlen := AWLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
 
             -- Limit to maxSize
             if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
@@ -223,8 +223,7 @@ begin
             v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
 
             -- Bursts after the FIRST are garunteed to be aligned.
-            -- Use the same logic as in S_FIRST_C to reuse the logic resources
-            v.wMaster.awlen := getAxiLen(4096, AXI_CONFIG_G);
+            v.wMaster.awlen := AWLEN_C;
             if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
                v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
             end if;
