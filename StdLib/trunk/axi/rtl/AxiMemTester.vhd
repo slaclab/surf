@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2016-03-02
+-- Last update: 2016-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ architecture rtl of AxiMemTester is
    constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
    constant DATA_BITS_C : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
-   constant AXI_LEN_C   : slv(7 downto 0) := getAxiLen(BURST_LEN_G, AXI_CONFIG_G);
+   constant AXI_LEN_C   : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
 
 
    constant PRBS_TAPS_C : NaturalArray       := (0 => 1023, 1 => 257, 2 => 113, 3 => 61, 4 => 29, 5 => 17, 6 => 7);

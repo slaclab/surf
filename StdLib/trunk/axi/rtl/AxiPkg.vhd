@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-03-03
+-- Last update: 2016-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -250,8 +250,8 @@ package AxiPkg is
    -- Calculate number of txns in a burst based on number of bytes and bus configuration
    -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
    function getAxiLen (
-      burstBytes : integer range 1 to 4096;
-      axiConfig  : AxiConfigType)
+      axiConfig  : AxiConfigType;
+      burstBytes : integer range 1 to 4096 := 4096)
       return slv;
 
 end package AxiPkg;
@@ -284,7 +284,7 @@ package body AxiPkg is
    begin
       ret         := AXI_WRITE_MASTER_INIT_C;
       ret.awsize  := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
-      ret.awlen   := getAxiLen(4096, AXI_CONFIG_C);
+      ret.awlen   := getAxiLen(AXI_CONFIG_C, 4096);
       ret.bready  := bready;
       ret.awburst := AXI_BURST_C;
       ret.awcache := AXI_CACHE_C;
@@ -300,7 +300,7 @@ package body AxiPkg is
    begin
       ret         := AXI_READ_MASTER_INIT_C;
       ret.arsize  := toSlv(log2(AXI_CONFIG_C.DATA_BYTES_C), 3);
-      ret.arlen   := getAxiLen(4096, AXI_CONFIG_C);
+      ret.arlen   := getAxiLen(AXI_CONFIG_C, 4096);
       ret.arburst := AXI_BURST_C;
       ret.arcache := AXI_CACHE_C;
       return ret;
@@ -312,8 +312,8 @@ package body AxiPkg is
    end function ite;
 
    function getAxiLen (
-      burstBytes : integer range 1 to 4096;
-      axiConfig  : AxiConfigType)
+      axiConfig  : AxiConfigType;
+      burstBytes : integer range 1 to 4096 := 4096)
       return slv is
    begin
       -- burstBytes / data bytes width is number of txns required.
