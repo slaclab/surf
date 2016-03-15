@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-14
+-- Last update: 2016-03-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,13 +31,13 @@ use work.AxiStreamDmaRingPkg.all;
 entity AxiStreamDmaRingRead is
 
    generic (
-      TPD_G               : time                  := 1 ns;
-      BUFFERS_G           : natural range 2 to 64 := 64;
-      SSI_OUTPUT_G        : boolean               := false;
-      AXIL_BASE_ADDR_G    : slv(31 downto 0)      := (others => '0');
-      AXI_STREAM_READY_EN_G : boolean := true;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType   := ssiAxiStreamConfig(8);
-      AXI_READ_CONFIG_G   : AxiConfigType         := axiConfig(32, 8, 1, 8));
+      TPD_G                 : time                  := 1 ns;
+      BUFFERS_G             : natural range 2 to 64 := 64;
+      SSI_OUTPUT_G          : boolean               := false;
+      AXIL_BASE_ADDR_G      : slv(31 downto 0)      := (others => '0');
+      AXI_STREAM_READY_EN_G : boolean               := true;
+      AXI_STREAM_CONFIG_G   : AxiStreamConfigType   := ssiAxiStreamConfig(8);
+      AXI_READ_CONFIG_G     : AxiConfigType         := axiConfig(32, 8, 1, 8));
    port (
       -- AXI-Lite Interface for local registers 
       axilClk         : in  sl;
@@ -50,16 +50,16 @@ entity AxiStreamDmaRingRead is
       -- Status stream
       statusClk    : in  sl;
       statusRst    : in  sl;
-      statusMaster : in AxiStreamMasterType;
-      statusSlave  : out  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
+      statusMaster : in  AxiStreamMasterType;
+      statusSlave  : out AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
 
       -- DMA Stream
 --       dataClk    : in  sl;
 --       dataRst    : in  sl;
       dataMaster : out AxiStreamMasterType;
       dataSlave  : in  AxiStreamSlaveType;
-      dataCtrl : in AxiStreamCtrlType := AXI_STREAM_CTRL_UNUSED_C;
-      
+      dataCtrl   : in  AxiStreamCtrlType := AXI_STREAM_CTRL_UNUSED_C;
+
       -- AXI4 Interface for RAM      
       axiClk        : in  sl;
       axiRst        : in  sl;
@@ -94,7 +94,7 @@ architecture rtl of AxiStreamDmaRingRead is
    signal rin : RegType;
 
    signal intStatusMaster : AxiStreamMasterType;
-   
+
    signal axilAck : AxiLiteMasterAckType;
    signal dmaAck  : AxiReadDmaAckType;
 
@@ -125,12 +125,12 @@ begin
    -- DMA Write block
    U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
       generic map (
-         TPD_G          => TPD_G,
+         TPD_G           => TPD_G,
          AXIS_READY_EN_G => AXI_STREAM_READY_EN_G,
-         AXIS_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         AXI_CONFIG_G   => AXI_READ_CONFIG_G,
-         AXI_BURST_G    => "01",          -- INCR
-         AXI_CACHE_G    => "0011")        -- Cacheable
+         AXIS_CONFIG_G   => AXI_STREAM_CONFIG_G,
+         AXI_CONFIG_G    => AXI_READ_CONFIG_G,
+         AXI_BURST_G     => "01",         -- INCR
+         AXI_CACHE_G     => "0011")       -- Cacheable
       port map (
          axiClk        => axiClk,         -- [in]
          axiRst        => axiRst,         -- [in]
@@ -138,7 +138,7 @@ begin
          dmaAck        => dmaAckAxi,      -- [out]
          axisMaster    => dataMaster,     -- [out]
          axisSlave     => dataSlave,      -- [in]
-         axisCtrl => dataCtrl,          --[in]
+         axisCtrl      => dataCtrl,       --[in]
          axiReadMaster => axiReadMaster,  -- [out]
          axiReadSlave  => axiReadSlave);  -- [in]
 
@@ -288,8 +288,9 @@ begin
             v.dmaReq.dest      := resize(buf, 8);
             v.dmaReq.firstUser := ite(SSI_OUTPUT_G, X"02", X"00");
             if (dmaAck.done = '1') then
-               v.dmaReq.request := '0';
-               v.state          := START_LOW_S;
+               v.dmaReq.request        := '0';
+               v.intStatusSlave.tready := '1';
+               v.state                 := START_LOW_S;
             end if;
 
          when CLEAR_S =>
@@ -300,9 +301,9 @@ begin
             v.axilReq.rnw     := '0';
 
             if (axilAck.done = '1') then
-               v.axilReq.request       := '0';
-               v.intStatusSlave.tready := '1';
-               v.state                 := START_LOW_S;
+               v.axilReq.request := '0';
+
+               v.state := START_LOW_S;
             end if;
 
       end case;
