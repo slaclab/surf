@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-02-06
--- Last update: 2014-07-02
+-- Last update: 2016-03-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,28 +31,31 @@ entity SynchronizerOneShot is
       RST_POLARITY_G  : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean  := false;  -- Reset is asynchronous
       BYPASS_SYNC_G   : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
-      RELEASE_DELAY_G : positive := 3;      -- Delay between deassertion of async and sync resets
+      RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G  : sl       := '1');   -- 0 for active LOW, 1 for active HIGH
    port (
-      clk     : in  sl;                        -- Clock to be SYNC'd to
+      clk     : in  sl;                 -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
-      dataIn  : in  sl;                        -- Trigger to be sync'd
-      dataOut : out sl);                       -- synced one-shot pulse
+      dataIn  : in  sl;                 -- Trigger to be sync'd
+      dataOut : out sl);                -- synced one-shot pulse
 end SynchronizerOneShot;
 
 architecture rtl of SynchronizerOneShot is
    
    type RegType is record
-      syncRstDly : sl;
-      dataOut    : sl;
+      pulseDly : sl;
+      dataOut  : sl;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      '0',
-      (not OUT_POLARITY_G));
-   signal r       : RegType := REG_INIT_C;
-   signal rin     : RegType;
-   signal syncRst : sl;
+      pulseDly => '1',
+      dataOut  => (not OUT_POLARITY_G));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal pulseRst : sl;
+   signal pulse    : sl;
    
 begin
 
@@ -66,9 +69,18 @@ begin
       port map (
          clk      => clk,
          asyncRst => dataIn,
-         syncRst  => syncRst); 
+         syncRst  => pulseRst); 
 
-   comb : process (r, rst, syncRst) is
+   Sync_Pulse : entity work.Synchronizer
+      generic map (
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => BYPASS_SYNC_G)      
+      port map (
+         clk     => clk,
+         dataIn  => pulseRst,
+         dataOut => pulse);         
+
+   comb : process (pulse, r, rst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -77,11 +89,11 @@ begin
       -- Reset strobe signals
       v.dataOut := not OUT_POLARITY_G;
 
-      -- Keep a record of the last syncRst
-      v.syncRstDly := syncRst;
+      -- Keep a record of the last pulse
+      v.pulseDly := pulse;
 
-      -- Check for a faling edge of the syncRst
-      if (syncRst = '0') and (r.syncRstDly = '1') then
+      -- Check for a rising edge of the syncRst
+      if (pulse = '1') and (r.pulseDly = '0') then
          v.dataOut := OUT_POLARITY_G;
       end if;
 
