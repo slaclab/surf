@@ -48,7 +48,7 @@ architecture rtl of SynchronizerOneShot is
       dataOut    : sl;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      '1',
+      '0',
       (not OUT_POLARITY_G));
    signal r       : RegType := REG_INIT_C;
    signal rin     : RegType;
