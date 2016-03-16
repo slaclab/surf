@@ -86,7 +86,7 @@ entity RssiCoreWrapper is
       axilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave   : out AxiLiteWriteSlaveType;
       -- Internal statuses
-      statusReg_o      : out slv(5 downto 0));
+      statusReg_o      : out slv(6 downto 0));
 end entity RssiCoreWrapper;
 
 architecture mapping of RssiCoreWrapper is
