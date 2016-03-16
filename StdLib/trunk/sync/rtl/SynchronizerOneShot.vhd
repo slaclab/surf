@@ -80,8 +80,8 @@ begin
       -- Keep a record of the last syncRst
       v.syncRstDly := syncRst;
 
-      -- Check for a rising edge of the syncRst
-      if (syncRst = '1') and (r.syncRstDly = '0') then
+      -- Check for a faling edge of the syncRst
+      if (syncRst = '0') and (r.syncRstDly = '1') then
          v.dataOut := OUT_POLARITY_G;
       end if;
 
