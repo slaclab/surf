@@ -259,7 +259,6 @@ architecture rtl of TxFSM is
       -- SSI master
       tspSsiMaster      : SsiMasterType;
       tspSsiSlave       : SsiSlaveType;
-      tspSsiMasterSofD1 : sl;
       
       -- State Machine
       tspState       : tspStateType;    
@@ -328,7 +327,6 @@ architecture rtl of TxFSM is
       -- SSI master 
       tspSsiMaster   => SSI_MASTER_INIT_C,
       tspSsiSlave    => SSI_SLAVE_NOTRDY_C,
-      tspSsiMasterSofD1 => '0',
       
       -- State Machine
       tspState     => INIT_S
@@ -736,15 +734,9 @@ begin
       -- Reset flags 
       -- These flags will hold if not overidden
       v.tspSsiMaster:= SSI_MASTER_INIT_C;  
-      if tspSsiSlave_i.ready = '1' then
-         v.tspSsiMaster.valid := '0';
-      else
-         v.tspSsiMaster.valid := r.tspSsiMaster.valid;
-      end if;
       
       -- Pipeline incoming slave
       v.tspSsiSlave       := tspSsiSlave_i;
-      v.tspSsiMasterSofD1 := r.tspSsiMaster.sof;
        
       case r.tspState is
          ----------------------------------------------------------------------
@@ -874,13 +866,13 @@ begin
                v.tspSsiMaster.sof   := '0';
             end if;
             
-            -- Increment address and generate strobe
+            -- Increment address and generate strobe   
             if (r.txHeaderAddr = headerLength_i-1 and headerRdy_i = '1') then
                v.tspSsiMaster.valid  := '0';
                v.txHeaderAddr        := r.txHeaderAddr;
                v.chkStb              := '1';
                
-               if (tspSsiSlave_i.ready = '1' and headerRdy_i = '1' and chksumValid_i = '1') then 
+               if (chksumValid_i = '1') then 
                   -- Add checksum
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
                   v.tspSsiMaster.valid  := '1';                
@@ -893,7 +885,7 @@ begin
                   -- Next state            
                   v.tspState   := DISS_CONN_S;
                end if;
-            elsif (tspSsiSlave_i.ready = '1' and headerRdy_i = '1') then
+            elsif (tspSsiSlave_i.pause = '0' and headerRdy_i = '1') then
                v.tspSsiMaster.valid  := '1';
                v.txHeaderAddr        := r.txHeaderAddr + 1;
                v.chkStb              := '1';
@@ -928,6 +920,7 @@ begin
             v.buffSent := '0';
             v.chkEn    := '1';
             
+            -- Strobe immediately after headerRdy
             if (headerRdy_i = '1') then
                v.chkStb   := '1';
             end if;
@@ -935,8 +928,8 @@ begin
             v.tspSsiMaster:= SSI_MASTER_INIT_C;
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
-            -- Next state condition
-            if (chksumValid_i = '1' and v.tspSsiMaster.valid = '0' ) then -- Frame size is one word
+            -- Next state condition (when chksum is ready)
+            if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0') then -- Frame size is one word
                v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.sof    := '1';
                v.tspSsiMaster.strb   := (others => '1');
@@ -948,7 +941,7 @@ begin
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits! Point of fault injection!
                else
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
@@ -986,7 +979,7 @@ begin
             v.dataD    := '0';
             -- 
             v.txRdy    := '0';
-            v.buffWe   := '0';  -- Ignore the buffer because the RST will not get retransmitted
+            v.buffWe   := '0';  -- TODO (Check if this is ok) Ignore the buffer because the RST will not get retransmitted
             v.buffSent := '0';
             v.chkEn    := '0';
             v.chkStb   := '0';
@@ -1027,7 +1020,7 @@ begin
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
-            if (chksumValid_i = '1' and v.tspSsiMaster.valid = '0' ) then -- Frame size is one word
+            if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0' ) then -- Frame size is one word
                v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.sof    := '1';
                v.tspSsiMaster.strb   := (others => '1');
@@ -1108,7 +1101,7 @@ begin
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition
-            if (chksumValid_i = '1' and v.tspSsiMaster.valid = '0' ) then -- Frame size is one word
+            if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0' ) then -- Frame size is one word
                v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.sof    := '1';
                v.tspSsiMaster.strb   := (others => '1');
@@ -1120,7 +1113,7 @@ begin
                
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1')); -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1')); -- Flip bits! Point of fault injection!
                else
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
                end if;
@@ -1200,15 +1193,14 @@ begin
             -- Next state condition
             -- Frame size is one word
             -- Wait for the chksum to be ready
-            if (v.tspSsiMaster.valid = '0' and tspSsiSlave_i.ready = '1' and chksumValid_i = '1') then
+            if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0') then
                v.tspSsiMaster.valid  := '1';  
                v.tspSsiMaster.sof    := '1';
                v.tspSsiMaster.strb   := (others => '1');
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '0';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
-               
+
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
@@ -1251,33 +1243,27 @@ begin
             v.tspSsiMaster.strb   := (others => '1');
             v.tspSsiMaster.dest   := (others => '0');           
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := rdBuffData_i;
-            
-            -- Move data
-            -- Retract the valid if one clock cycle before there was no ready
-            -- This enables data to be ready on time.
-            if (v.tspSsiMaster.valid = '0' and r.tspSsiSlave.ready = '1') then
-               v.tspSsiMaster.valid  := '1';          
-            end if;
-            
+
             -- Next state condition
-            if  (v.tspSsiMaster.valid = '1' and 
-                 r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
+            if  (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
+               v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
                v.tspSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
-
+               --
                v.txSegmentAddr       := r.txSegmentAddr;               
                --
                v.tspState   := DATA_SENT_S;
 
-            -- Increment segment address only when Slave is ready 
-            elsif (tspSsiSlave_i.ready = '1') then                               
+            -- Increment segment address and assert valid only when not paused
+            elsif (tspSsiSlave_i.pause = '0') then
+               v.tspSsiMaster.valid  := '1';            
                v.txSegmentAddr       := r.txSegmentAddr + 1;
-            -- Decrement segment address upon falling edge of ready because it has been already incremented too far
-            elsif (tspSsiSlave_i.ready = '0'  and r.tspSsiSlave.ready = '1') then 
-               v.txSegmentAddr       := r.txSegmentAddr - 1;
+            else
+               v.tspSsiMaster.valid  := '0';
+               v.txSegmentAddr       := r.txSegmentAddr;
             end if;
             
          -----------------------------------------------------------------------------   
@@ -1378,11 +1364,12 @@ begin
             -- Next state condition
             -- Frame size is one word
             -- Wait for the chksum to be ready
-            if (v.tspSsiMaster.valid = '0' and tspSsiSlave_i.ready = '1' and chksumValid_i = '1') then
+            if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0') then
                v.tspSsiMaster.sof    := '1';
                v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.strb   := (others => '1');
                v.tspSsiMaster.dest   := (others => '0');
+               
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits in checksum! Point of fault injection!
@@ -1442,32 +1429,27 @@ begin
             v.tspSsiMaster.strb   := (others => '1');
             v.tspSsiMaster.dest   := (others => '0');
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)  := rdBuffData_i;
-            
-            -- Move data
-            -- Retract the valid if one clock cycle before there was no ready
-            -- This enables data to be ready on time.
-            if (v.tspSsiMaster.valid = '0' and r.tspSsiSlave.ready = '1') then
-               v.tspSsiMaster.valid  := '1';          
-            end if;
 
             -- Next state condition
-            if  (v.tspSsiMaster.valid = '1' and
-                r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
+            if  (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
+               v.tspSsiMaster.valid  := '1';
                v.tspSsiMaster.eof    := '1';
-               v.tspSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                v.tspSsiMaster.eofe   := '0';
+               v.tspSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               --
                v.txSegmentAddr       := r.txSegmentAddr;               
                -- 
                v.tspState   := RESEND_PP_S;
                
             -- Increment segment address only when Slave is ready 
-            elsif (tspSsiSlave_i.ready = '1') then                               
+            elsif (tspSsiSlave_i.pause = '0') then                               
+               v.tspSsiMaster.valid  := '1';            
                v.txSegmentAddr       := r.txSegmentAddr + 1;
-            -- Decrement segment address upon falling edge of ready because it has been already incremented too far
-            elsif (tspSsiSlave_i.ready = '0'  and r.tspSsiSlave.ready = '1') then 
-               v.txSegmentAddr       := r.txSegmentAddr - 1;
+            else
+               v.tspSsiMaster.valid  := '0';
+               v.txSegmentAddr       := r.txSegmentAddr;
             end if;
          ----------------------------------------------------------------------            
          when RESEND_PP_S =>
