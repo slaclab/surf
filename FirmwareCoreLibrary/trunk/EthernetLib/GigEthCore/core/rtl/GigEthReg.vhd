@@ -4,7 +4,7 @@
 -- File       : GigEthReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Last update: 2016-03-02
+-- Last update: 2016-03-17
 -- Last update: 2016-02-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
@@ -130,29 +130,29 @@ begin
       rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
 
       -- Register Mapping
-      axiSlaveRegisterR("0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
-      axiSlaveRegisterR(x"100", 0, statusOut);
-      --axiSlaveRegisterR(x"104", 0, status.macStatus.rxPauseValue);
-      axiSlaveRegisterR(x"108", 0, status.coreStatus);
+      axiSlaveRegisterR(regCon, "0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
+      axiSlaveRegisterR(regCon, x"100", 0, statusOut);
+      --axiSlaveRegisterR(regCon,x"104", 0, status.macStatus.rxPauseValue);
+      axiSlaveRegisterR(regCon, x"108", 0, status.coreStatus);
 
-      axiSlaveRegister(x"200", 0, v.config.macConfig.macAddress(31 downto 0));
-      axiSlaveRegister(x"204", 0, v.config.macConfig.macAddress(47 downto 32));
-      --axiSlaveRegister(x"208", 0, v.config.macConfig.byteSwap);
+      axiSlaveRegister(regCon, x"200", 0, v.config.macConfig.macAddress(31 downto 0));
+      axiSlaveRegister(regCon, x"204", 0, v.config.macConfig.macAddress(47 downto 32));
+      --axiSlaveRegister(regCon,x"208", 0, v.config.macConfig.byteSwap);
 
-      --axiSlaveRegister(x"210", 0, v.config.macConfig.txShift);
-      --axiSlaveRegister(x"214", 0, v.config.macConfig.txShiftEn);
-      axiSlaveRegister(x"218", 0, v.config.macConfig.interFrameGap);
-      axiSlaveRegister(x"21C", 0, v.config.macConfig.pauseTime);
+      --axiSlaveRegister(regCon,x"210", 0, v.config.macConfig.txShift);
+      --axiSlaveRegister(regCon,x"214", 0, v.config.macConfig.txShiftEn);
+      axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
+      axiSlaveRegister(regCon, x"21C", 0, v.config.macConfig.pauseTime);
 
-      --axiSlaveRegister(x"220", 0, v.config.macConfig.rxShift);
-      --axiSlaveRegister(x"224", 0, v.config.macConfig.rxShiftEn);
-      axiSlaveRegister(x"228", 0, v.config.macConfig.filtEnable);
-      axiSlaveRegister(x"22C", 0, v.config.macConfig.pauseEnable);
+      --axiSlaveRegister(regCon,x"220", 0, v.config.macConfig.rxShift);
+      --axiSlaveRegister(regCon,x"224", 0, v.config.macConfig.rxShiftEn);
+      axiSlaveRegister(regCon, x"228", 0, v.config.macConfig.filtEnable);
+      axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
 
-      axiSlaveRegister(x"F00", 0, v.rollOverEn);
-      axiSlaveRegister(x"FF4", 0, v.cntRst);
-      axiSlaveRegister(x"FF8", 0, v.config.softRst);
-      axiSlaveRegister(x"FFC", 0, v.hardRst);
+      axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
+      axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
+      axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);
+      axiSlaveRegister(regCon, x"FFC", 0, v.hardRst);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
