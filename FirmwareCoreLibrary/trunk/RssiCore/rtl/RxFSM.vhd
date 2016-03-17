@@ -596,13 +596,8 @@ begin
       ------------------------------------------------------------
       
       -- Reset flags 
-      -- These flags will hold if not overidden
+      -- These flags will hold if not overridden
       v.appSsiMaster:= SSI_MASTER_INIT_C;  
-      if appSsiSlave_i.ready = '1' then
-         v.appSsiMaster.valid := '0';
-      else
-         v.appSsiMaster.valid := r.appSsiMaster.valid;
-      end if;
 
       -- Pipeline incomming slave
       v.appSsiSlave:= appSsiSlave_i;
@@ -627,7 +622,7 @@ begin
                --
                v.txBufferAddr  := r.txBufferAddr;
                
-               if (v.appSsiMaster.valid = '0' and appSsiSlave_i.ready = '1') then
+               if (appSsiSlave_i.pause = '0') then
                
                   v.appSsiMaster.sof    := '1';
                   v.appSsiMaster.valid  := '1';
@@ -667,39 +662,31 @@ begin
             v.appSsiMaster.eof    := '0';
             v.appSsiMaster.eofe   := '0';
             v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
-            
-            -- Move data
-            -- Retract the valid if one clock cycle before there was no ready
-            -- This enables data to be ready on time.
-            if (r.appSsiSlave.ready = '1') then
-               v.appSsiMaster.valid  := '1';          
-            end if;
-           
+                      
             -- Next state condition
-            -- When segment address reaches segment size then 
-            if  (appSsiSlave_i.ready = '1' and 
-                 r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
+            -- When segment address reaches segment size then go to SENT_S
+            if  (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
+               v.appSsiMaster.valid  := '1';               
                v.appSsiMaster.eof    := '1';
                v.appSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                v.appSsiMaster.eofe   := '0';
+               v.txSegmentAddr       := r.txSegmentAddr;
                
                v.appState   := SENT_S;
                
-            -- Increment segment address only when Slave is ready and master is valid
-            elsif (appSsiSlave_i.ready = '1') then
+            -- Increment segment address only when not pausing
+            elsif (appSsiSlave_i.pause = '0') then
+               v.appSsiMaster.valid  := '1';
                v.txSegmentAddr       := r.txSegmentAddr + 1;
-            -- If the the ready drops when there is SOF go back to check buffer and start again
-            elsif (appSsiSlave_i.ready = '0'  and r.appSsiMaster.sof = '1') then
-               v.appSsiMaster.valid  := '0'; 
-               v.txSegmentAddr := (others => '0');
-               v.appState   := CHECK_BUFFER_S;
-            -- Decrement segment address upon falling edge of ready because it has been already incremented too far
-            elsif (appSsiSlave_i.ready = '0'  and r.appSsiSlave.ready = '1') then
-               v.txSegmentAddr       := r.txSegmentAddr - 1;
             elsif (connActive_i = '0') then
+               v.appSsiMaster.valid  := '0';
+               v.appSsiMaster.eof    := '1';
                v.appState   := CHECK_BUFFER_S;
+            else
+               v.appSsiMaster.valid  := '0';
+               v.txSegmentAddr       := r.txSegmentAddr;
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>

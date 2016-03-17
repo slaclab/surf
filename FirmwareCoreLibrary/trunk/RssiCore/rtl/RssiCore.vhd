@@ -202,7 +202,8 @@ architecture rtl of RssiCore is
    signal s_sAppAxisSlave  : AxiStreamSlaveType;
    signal s_mAppAxisMaster : AxiStreamMasterType;
    signal s_mAppAxisSlave  : AxiStreamSlaveType;
-
+   signal s_mAppAxisCtrl   : AxiStreamCtrlType;
+   
    -- SSI Application side
    signal s_sAppSsiMaster : SsiMasterType;
    signal s_sAppSsiSlave  : SsiSlaveType;
@@ -214,6 +215,7 @@ architecture rtl of RssiCore is
    signal s_sTspAxisSlave  : AxiStreamSlaveType;
    signal s_mTspAxisMaster : AxiStreamMasterType;
    signal s_mTspAxisSlave  : AxiStreamSlaveType;
+   signal s_mTspAxisCtrl   : AxiStreamCtrlType;   
 
    -- SSI Transport side      
    signal s_sTspSsiMaster : SsiMasterType;
@@ -741,10 +743,10 @@ begin
 
    -- SSI Application side   
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mAppSsiMaster); 
-   s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, s_mAppAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
+   s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXI_CONFIG_C, s_mTspSsiMaster); 
-   s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, s_mTspAxisSlave, AXI_STREAM_CTRL_UNUSED_C);
+   s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXI_CONFIG_C, s_mTspAxisSlave, s_mTspAxisCtrl);
    
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -756,7 +758,7 @@ begin
    AppFifoOut_INST: entity work.AxiStreamFifo
    generic map (
       TPD_G               => TPD_G,
-      SLAVE_READY_EN_G    => true,
+      SLAVE_READY_EN_G    => false,
       VALID_THOLD_G       => 1,
       BRAM_EN_G           => true,
       XIL_DEVICE_G        => "ULTRASCALE",
@@ -773,7 +775,7 @@ begin
       sAxisRst        => s_rstFifo,
       sAxisMaster     => s_mAppAxisMaster,
       sAxisSlave      => s_mAppAxisSlave,
-      sAxisCtrl       => open,
+      sAxisCtrl       => s_mAppAxisCtrl,
       --
       mAxisClk        => clk_i,
       mAxisRst        => s_rstFifo,
@@ -785,7 +787,7 @@ begin
    TspFifoOut_INST: entity work.AxiStreamFifo
    generic map (
       TPD_G               => TPD_G,
-      SLAVE_READY_EN_G    => true,
+      SLAVE_READY_EN_G    => false,
       VALID_THOLD_G       => 1,
       BRAM_EN_G           => true,
       XIL_DEVICE_G        => "ULTRASCALE",
@@ -802,7 +804,7 @@ begin
       sAxisRst        => rst_i,
       sAxisMaster     => s_mTspAxisMaster,
       sAxisSlave      => s_mTspAxisSlave,
-      sAxisCtrl       => open,
+      sAxisCtrl       => s_mTspAxisCtrl,
       --
       mAxisClk        => clk_i,
       mAxisRst        => rst_i,
