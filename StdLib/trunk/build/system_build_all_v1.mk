@@ -1,10 +1,24 @@
+
+export BUILD_SCRIPT_DIR  = $(dir $(BUILD_SCRIPT))
+export BUILD_SCRIPT_NAME = $(notdir $(BUILD_SCRIPT))
+
+export SETUP_DIR  = $(dir $(SETUP_ENV))
+export SETUP_NAME = $(notdir $(SETUP_ENV))
+
+.PHONY: all build clean
+
 # Default
 all: build
 
 # Check variables
 test:
-	@echo PARALLEL_BUILD: $(PARALLEL_BUILD)
-	@echo SETUP_ENV: $(SETUP_ENV)
+	@echo PARALLEL_BUILD:    $(PARALLEL_BUILD)
+	@echo BUILD_SCRIPT:      $(BUILD_SCRIPT)
+	@echo BUILD_SCRIPT_DIR:  $(BUILD_SCRIPT_DIR)
+	@echo BUILD_SCRIPT_NAME: $(BUILD_SCRIPT_NAME)
+	@echo SETUP_ENV:         $(SETUP_ENV)
+	@echo SETUP_DIR:         $(SETUP_DIR)
+	@echo SETUP_NAME:        $(SETUP_NAME)
 	@echo TARGET_DIRS:
 	@echo -e "$(foreach ARG,$(TARGET_DIRS),\t$(ARG)\n)"
 
@@ -14,18 +28,6 @@ clean:
       cd $$i; make clean; \
    done
 
-# Build all firmware
-# Note: Builds happen in clusters of up to $(PARALLEL_BUILD) 
-# builds at a time to prevent over subscribing the server
+# Build targets
 build:
-	@n=0 ; \
-   for i in $(TARGET_DIRS); do \
-      let "n+=1";\
-      if test $$n != $(PARALLEL_BUILD); then \
-         (konsole --workdir $$i --new-tab --noclose -e tcsh -c 'source $(SETUP_ENV); make'); \
-      fi; \
-      if test $$n = $(PARALLEL_BUILD); then \
-         cd $$i; tcsh -c 'source $(SETUP_ENV); make'; \
-         let "n=0";\
-      fi; \
-   done
+	@tclsh $(BUILD_SCRIPT_DIR)/system_build_all_v1.tcl
