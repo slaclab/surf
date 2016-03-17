@@ -766,7 +766,7 @@ begin
       CASCADE_SIZE_G      => 1,
       FIFO_ADDR_WIDTH_G   => 9,
       FIFO_FIXED_THRESH_G => true,
-      FIFO_PAUSE_THRESH_G => 1,
+      FIFO_PAUSE_THRESH_G => 8,
 
       SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
       MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
@@ -795,7 +795,7 @@ begin
       CASCADE_SIZE_G      => 1,
       FIFO_ADDR_WIDTH_G   => 9,
       FIFO_FIXED_THRESH_G => true,
-      FIFO_PAUSE_THRESH_G => 1,
+      FIFO_PAUSE_THRESH_G => 8,
 
       SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
       MASTER_AXI_CONFIG_G => TSP_OUTPUT_AXI_CONFIG_G)

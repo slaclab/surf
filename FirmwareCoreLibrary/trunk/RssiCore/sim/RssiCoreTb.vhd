@@ -101,7 +101,9 @@ begin
    generic map (
       TPD_G          => TPD_C,
       SERVER_G       => true,
-      INIT_SEQ_N_G   => 16#40#
+      INIT_SEQ_N_G   => 16#40#,
+      TSP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+      TSP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(4)
    )
    port map (
       clk_i       => clk_i,
@@ -137,8 +139,9 @@ begin
    generic map (
       TPD_G          => TPD_C,
       SERVER_G       => false,
-      INIT_SEQ_N_G   => 16#80#      
-   )
+      INIT_SEQ_N_G   => 16#80#,
+      TSP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+      TSP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(4))
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
@@ -194,7 +197,7 @@ begin
       locClk          => clk_i,
       locRst          => s_prbsRst,
       trig            => s_trig,
-      packetLength    => X"0000_002f",
+      packetLength    => X"0000_00ff",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
