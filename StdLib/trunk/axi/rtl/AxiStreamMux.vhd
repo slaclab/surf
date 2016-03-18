@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-08-13
+-- Last update: 2016-03-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,17 +41,18 @@ entity AxiStreamMux is
       PIPE_STAGES_G : integer range 0 to 16 := 0;  -- mux be > 1 if cascading muxes
       TDEST_HIGH_G  : integer range 0 to 7  := 7;
       TDEST_LOW_G   : integer range 0 to 7  := 0;
-      KEEP_TDEST_G : boolean := false);
+      KEEP_TDEST_G  : boolean               := false);
    port (
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      disableSel   : in  slv(NUM_SLAVES_G-1 downto 0) := (others => '0');
       -- Master
       mAxisMaster  : out AxiStreamMasterType;
       mAxisSlave   : in  AxiStreamSlaveType;
       -- Clock and reset
       axisClk      : in  sl;
-      axisRst      : in  sl);      
+      axisRst      : in  sl);
 end AxiStreamMux;
 
 architecture structure of AxiStreamMux is
@@ -61,7 +62,7 @@ architecture structure of AxiStreamMux is
 
    type StateType is (
       IDLE_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       state  : StateType;
@@ -75,7 +76,7 @@ architecture structure of AxiStreamMux is
    constant REG_INIT_C : RegType := (
       state  => IDLE_S,
       acks   => (others => '0'),
-      ackNum => (others => '0'),
+      ackNum => (others => '1'),
       valid  => '0',
       slaves => (others => AXI_STREAM_SLAVE_INIT_C),
       master => AXI_STREAM_MASTER_INIT_C);
@@ -85,13 +86,13 @@ architecture structure of AxiStreamMux is
 
    signal pipeAxisMaster : AxiStreamMasterType;
    signal pipeAxisSlave  : AxiStreamSlaveType;
-   
+
 begin
-   
+
    assert (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G))
       report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
-   
+
    comb : process (axisRst, pipeAxisSlave, r, sAxisMasters) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
@@ -109,17 +110,17 @@ begin
       end if;
 
       -- Select source
-      selData                             := sAxisMasters(conv_integer(r.ackNum));
+      selData := sAxisMasters(conv_integer(r.ackNum));
 
       if (KEEP_TDEST_G = false) then
-         selData.tDest(7 downto TDEST_LOW_G) := (others => '0');
+         selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
          selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
       end if;
-      
+
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
-         requests(i) := sAxisMasters(i).tValid;
+         requests(i) := sAxisMasters(i).tValid and not disableSel(i);
       end loop;
 
       -- State machine

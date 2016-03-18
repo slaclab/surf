@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-08
--- Last update: 2016-03-09
+-- Last update: 2016-03-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,10 +34,23 @@ package AxiStreamDmaRingPkg is
    constant START_AXIL_C   : integer := 1;
    constant END_AXIL_C     : integer := 2;
    constant FIRST_AXIL_C   : integer := 3;
-   constant LAST_AXIL_C    : integer := 4;
-   constant POS_AXIL_C     : integer := 5;
-   constant ADDR_AXIL_C    : integer := 6;
-   constant DEPTH_AXIL_C   : integer := 7;
+   constant NEXT_AXIL_C    : integer := 4;
+   constant TRIG_AXIL_C    : integer := 5;
+   constant MODE_AXIL_C    : integer := 6;
+   constant STATUS_AXIL_C  : integer := 7;
+
+   -- Status constants
+   constant EMPTY_C : integer := 0;
+   constant FULL_C  : integer := 1;
+   constant DONE_C  : integer := 2;
+   constant TRIGGERED_C : integer := 3;
+   subtype FST_C is integer range 31 downto 4;
+
+   -- Mode constants
+   constant ENABLED_C        : integer := 0;
+   constant DONE_WHEN_FULL_C : integer := 1;
+   constant INIT_C           : integer := 2;
+   subtype FAT_C is integer range 31 downto 4;
 
    constant BUFFER_CLEAR_OFFSET_C : slv(7 downto 0) := X"18";
 
@@ -65,7 +78,7 @@ package body AxiStreamDmaRingPkg is
       baseAddr : slv(31 downto 0);
       busIndex : integer range 0 to 7;
       buf      : slv(5 downto 0) := (others => '0');
-      high     : sl              := '0' )
+      high     : sl              := '0')
       return slv
    is
       variable ret : slv(31 downto 0);

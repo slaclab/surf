@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2016-03-10
+-- Last update: 2016-03-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,8 +38,9 @@ entity AxiDualPortRam is
       MODE_G       : string                     := "write-first";
       AXI_WR_EN_G  : boolean                    := true;
       SYS_WR_EN_G  : boolean                    := false;
+      COMMON_CLK_G : boolean                    := false;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
-      DATA_WIDTH_G : integer range 1 to 64      := 32;
+      DATA_WIDTH_G : integer range 1 to 128      := 32;
       INIT_G       : slv                        := "0");
 
    port (
@@ -52,19 +53,25 @@ entity AxiDualPortRam is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Standard Port
-      clk  : in  sl                           := '0';
-      en   : in  sl                           := '1';
-      we   : in  sl                           := '0';
-      rst  : in  sl                           := '0';
-      addr : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      din  : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      dout : out slv(DATA_WIDTH_G-1 downto 0));
+      clk       : in  sl                           := '0';
+      en        : in  sl                           := '1';
+      we        : in  sl                           := '0';
+      rst       : in  sl                           := '0';
+      addr      : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      din       : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+      dout      : out slv(DATA_WIDTH_G-1 downto 0);
+      axiWrStrobe   : out sl;
+      axiWrAddr : out slv(ADDR_WIDTH_G-1 downto 0);
+      axiWrData : out slv(DATA_WIDTH_G-1 downto 0));
 
 end entity AxiDualPortRam;
 
 architecture rtl of AxiDualPortRam is
 
-   constant AXI_ADDR_LOW_C : integer := ite(DATA_WIDTH_G <= 32, 2, 3);
+   -- Number of Axi address bits that need to be manually decoded
+   constant AXI_DEC_BITS_C : integer := (DATA_WIDTH_G-1)/32;
+   subtype AXI_DEC_ADDR_RANGE_C is integer range 1+AXI_DEC_BITS_C downto 2;
+   subtype AXI_RAM_ADDR_RANGE_C is integer range ADDR_WIDTH_G+AXI_DEC_ADDR_RANGE_C'high downto AXI_DEC_ADDR_RANGE_C'high+1;
 
    type RegType is record
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -87,6 +94,9 @@ architecture rtl of AxiDualPortRam is
    signal rin : RegType;
 
    signal axiDout : slv(DATA_WIDTH_G-1 downto 0);
+
+   signal axiSyncIn  : slv(DATA_WIDTH_G + ADDR_WIDTH_G - 1 downto 0);
+   signal axiSyncOut : slv(DATA_WIDTH_G + ADDR_WIDTH_G - 1 downto 0);
 
 begin
 
@@ -172,46 +182,78 @@ begin
 
    end generate;
 
+   axiSyncIn <= r.axiAddr & r.axiWrData;
+   U_SynchronizerFifo_1 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         BRAM_EN_G    => false,
+         DATA_WIDTH_G => ADDR_WIDTH_G+DATA_WIDTH_G)
+      port map (
+         rst    => rst,                 -- [in]
+         wr_clk => axiClk,              -- [in]
+         wr_en  => r.axiWrEn,           -- [in]
+         din    => axiSyncIn,           -- [in]
+         rd_clk => clk,                 -- [in]
+         rd_en  => '1',                 -- [in]
+         valid  => axiWrStrobe,             -- [out]
+         dout   => axiSyncOut);         -- [out]
+
+   axiWrData <= axiSyncOut(DATA_WIDTH_G-1 downto 0);
+   axiWrAddr <= axiSyncOut(ADDR_WIDTH_G+DATA_WIDTH_G-1 downto DATA_WIDTH_G);
+
 
    comb : process (axiDout, axiReadMaster, axiRst, axiWriteMaster, r) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
+      variable v          : RegType;
+      variable axiStatus  : AxiLiteStatusType;
+      variable decAddrInt : integer;
    begin
       v := r;
+
+
 
       v.axiWrEn := '0';
       v.axiRdEn := r.axiRdEn(0) & '0';
 
       -- This call overwrites v.axiReadSlave.rdata with zero, so call it at the top.
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
-      v.axiReadSlave.rdata := (others=>'0');
-      
+      v.axiReadSlave.rdata := (others => '0');
+
       -- Assign axiReadSlave.rdata and axiWrData
-      if (DATA_WIDTH_G <= 32) then
+      if (AXI_DEC_BITS_C = 0) then
          v.axiReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axiDout;
          v.axiWrData                                   := axiWriteMaster.wdata(DATA_WIDTH_G-1 downto 0);
       else
-         if (axiReadMaster.araddr(AXI_ADDR_LOW_C-1) = '0') then
-            v.axiReadSlave.rdata := axiDout(31 downto 0);
-         else
-            v.axiReadSlave.rdata(DATA_WIDTH_G-32-1 downto 0) := axiDout(DATA_WIDTH_G-1 downto 32);
+
+         -- Mux ram dout onto axi rdata bus
+         decAddrInt := conv_integer(axiReadMaster.araddr(AXI_DEC_ADDR_RANGE_C));
+         for i in 31 downto 0 loop
+            if (32*decAddrInt + i <= DATA_WIDTH_G-1) then
+               v.axiReadSlave.rdata(i) := axiDout((32*decAddrInt)+i);
+            end if;
+         end loop;
+
+         -- Demux axi wdata onto wide ram data bus
+         decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
+         if (axiStatus.writeEnable = '1') then
+            v.axiWrData := axiDout;
+            for i in 31 downto 0 loop
+               if (32*decAddrInt + i <= DATA_WIDTH_G-1) then
+                  v.axiWrData((32*decAddrInt)+i) := axiWriteMaster.wdata(i);
+               end if;
+            end loop;
          end if;
 
-         if (axiWriteMaster.awaddr(AXI_ADDR_LOW_C-1) = '0') then
-            v.axiWrData(31 downto 0) := axiWriteMaster.wdata;
-         else
-            v.axiWrData(DATA_WIDTH_G-1 downto 32) := axiWriteMaster.wdata(DATA_WIDTH_G-32-1 downto 0);
-         end if;
-      end if;      
+      end if;
 
       if (axiStatus.writeEnable = '1') then
-         v.axiAddr := axiWriteMaster.awaddr(ADDR_WIDTH_G+AXI_ADDR_LOW_C-1 downto AXI_ADDR_LOW_C);
-
+         v.axiAddr := axiWriteMaster.awaddr(AXI_RAM_ADDR_RANGE_C);
          v.axiWrEn := ite(AXI_WR_EN_G, '1', '0');
          axiSlaveWriteResponse(v.axiWriteSlave, ite(AXI_WR_EN_G, AXI_RESP_OK_C, AXI_RESP_SLVERR_C));
 
+
       elsif (axiStatus.readEnable = '1' and r.axiRdEn = "00") then
-         v.axiAddr := axiReadMaster.araddr(ADDR_WIDTH_G+AXI_ADDR_LOW_C-1 downto AXI_ADDR_LOW_C);
+         v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_RANGE_C);
          -- If output of ram is registered, read data will be ready 2 cycles after address asserted
          -- If not registered it will be ready on next cycle
          if (REG_EN_G or BRAM_EN_G) then
@@ -222,7 +264,6 @@ begin
       end if;
 
       if (r.axiRdEn(1) = '1') then
-         -- Output data now ready if using async read mode
          axiSlaveReadResponse(v.axiReadSlave);
       end if;
 
