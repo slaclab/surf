@@ -22,7 +22,7 @@ foreach target $::env(TARGET_DIRS) {
       # Increment the counter
       set CNT [expr ${CNT} + 1]
       # Lauch the build in the background
-      exec konsole --new-tab -p tabtitle="${TITLE}" --noclose -e tcsh -e -c "${CMD}"  &
+      exec konsole --new-tab -p tabtitle=${TITLE} --noclose -e tcsh -e -c "${CMD}"  &
    } else {
       # Reset the counter
       set CNT 1
