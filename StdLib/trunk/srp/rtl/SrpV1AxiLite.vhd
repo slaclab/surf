@@ -281,7 +281,7 @@ begin
                   v.txMaster.tDest := rxMaster.tDest;
                   -- Latch the header information
                   v.remVer         := rxMaster.tData(7 downto 0);
-                  v.opCode         := rxMaster.tData(9 downto 0);
+                  v.opCode         := rxMaster.tData(9 downto 8);
                   v.spare          := rxMaster.tData(15 downto 10);
                   v.retryCnt       := rxMaster.tData(23 downto 16);
                   v.timeoutSize    := rxMaster.tData(31 downto 24);
