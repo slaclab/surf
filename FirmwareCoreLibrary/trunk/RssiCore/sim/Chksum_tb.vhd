@@ -128,12 +128,15 @@ BEGIN
       strobe_i <= '0';
       wait for clk_i_period*20;
       
+      
+      
+      -- Check data
+      init_i <= x"fff7";      
       enable_i <= '0';
       wait for clk_i_period;      
       enable_i <= '1';      
       
-      -- Check data
-      -- init_i <= x"442E";
+
       wait for clk_i_period;
       --data_i <= x"4500" & x"0030" & x"4422" & x"4000";
       --data_i <= x"ffff" & x"ffff" & x"0000" & x"0001";

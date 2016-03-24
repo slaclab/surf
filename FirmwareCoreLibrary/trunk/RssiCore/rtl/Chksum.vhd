@@ -130,7 +130,7 @@ begin
       
       -- Checksum output (calculated with 2 c-c delay towards data)
       -- Ones complement
-      chksum_o <= not (r.chksum(CSUM_WIDTH_G-1 downto 0));
+      chksum_o <= not r.chksum(CSUM_WIDTH_G-1 downto 0);
       
       if (rst_i = '1') then
          v := REG_INIT_C;
@@ -149,6 +149,6 @@ begin
    ---------------------------------------------------------------------
    -- Output assignment
    valid_o  <= r.valid;
-   check_o  <= '1' when r.chksum = (r.chksum'range => '0') else '0';
+   check_o  <= '1' when (not r.chksum(CSUM_WIDTH_G-1 downto 0)) = (r.chksum'range => '0') else '0';
    ---------------------------------------------------------------------
 end architecture rtl;
