@@ -45,10 +45,11 @@ architecture behavior of chksum_tb is
          rst_i : in  std_logic;
          enable_i : in  std_logic;
          strobe_i : in  std_logic;
+         length_i   : in positive; 
          init_i : in  std_logic_vector(15 downto 0);
          data_i : in  std_logic_vector(63 downto 0);
          chksum_o : out  std_logic_vector(15 downto 0);
-         chksumreg_o : out  std_logic_vector(15 downto 0);
+         --chksumreg_o : out  std_logic_vector(15 downto 0);
          valid_o : out  std_logic;
          check_o : out  std_logic
         );
@@ -65,7 +66,7 @@ architecture behavior of chksum_tb is
 
    --Outputs
    signal chksum_o : std_logic_vector(15 downto 0);
-   signal chksumReg_o : std_logic_vector(15 downto 0);
+   --signal chksumReg_o : std_logic_vector(15 downto 0);
    signal valid_o : std_logic;
    signal check_o : std_logic;
 
@@ -83,7 +84,8 @@ BEGIN
           init_i => init_i,
           data_i => data_i,
           chksum_o => chksum_o,
-          chksumReg_o => chksumReg_o,
+          length_i => 3,
+          --chksumReg_o => chksumReg_o,
           valid_o => valid_o,
           check_o => check_o
         );
@@ -105,41 +107,49 @@ BEGIN
       rst_i <= '1';
       wait for 100 ns;	
       rst_i <= '0';
+      enable_i <= '1';
       wait for clk_i_period*10;
       strobe_i <= '1';
       -- Calculate checksum
       init_i <= x"0000";
-      data_i <= x"4500" & x"0030" & x"4422" & x"4000";
-      enable_i <= '1';
+      --data_i <= x"4500" & x"0030" & x"4422" & x"4000";
+      --data_i <= x"ffff" & x"ffff" & x"0000" & x"0001";
+      data_i <= x"ffff" & x"ffff" & x"ffff" & x"ffff";
       wait for clk_i_period;
-      data_i <= x"8006" & x"0000" & x"8c7c" & x"19ac";
+      --data_i <= x"8006" & x"0000" & x"8c7c" & x"19ac";
+      --data_i <= x"0000" & x"0000" & x"0000" & x"0000";
+      data_i <= x"ffff" & x"ffff" & x"ffff" & x"ffff";
       wait for clk_i_period;
-      data_i <= x"ae24" & x"1e2b" & x"0000" & x"0000";
+      --data_i <= x"ae24" & x"1e2b" & x"0000" & x"0000";
+      --data_i <= x"0000" & x"0000" & x"0000" & x"0000";
+      data_i <= x"ffff" & x"0008" & x"0000" & x"0000";
       wait for clk_i_period;
       wait for clk_i_period;
       strobe_i <= '0';
-      wait for clk_i_period;
+      wait for clk_i_period*20;
       
-      -- Register chksum
-      wait for clk_i_period*5;
       enable_i <= '0';
-      wait for clk_i_period*5;      
-      
+      wait for clk_i_period;      
+      enable_i <= '1';      
       
       -- Check data
-      init_i <= x"442E";
+      -- init_i <= x"442E";
       wait for clk_i_period;
-      data_i <= x"4500" & x"0030" & x"4422" & x"4000";
-      enable_i <= '1';
+      --data_i <= x"4500" & x"0030" & x"4422" & x"4000";
+      --data_i <= x"ffff" & x"ffff" & x"0000" & x"0001";
+      data_i <= x"ffff" & x"ffff" & x"ffff" & x"ffff";
       strobe_i <= '1';    
       wait for clk_i_period;
-      data_i <= x"8006" & x"0000" & x"8c7c" & x"19ac";
+      --data_i <= x"8006" & x"0000" & x"8c7c" & x"19ac";
+      --data_i <= x"0000" & x"0000" & x"0000" & x"0000";
+      data_i <= x"ffff" & x"ffff" & x"ffff" & x"ffff";
       wait for clk_i_period;
-      data_i <= x"ae24" & x"1e2b" & x"0000" & x"0000";
+      --data_i <= x"ae24" & x"1e2b" & x"0000" & x"442E";
+      ---data_i <= x"0000" & x"0000" & x"0000" & x"0000";
+      data_i <= x"ffff" & x"0008" & x"0000" & x"0000";
       wait for clk_i_period;
       strobe_i <= '0';
       wait for clk_i_period*5;
-      enable_i <= '0';
       wait;
    end process;
 
