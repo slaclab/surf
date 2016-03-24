@@ -68,8 +68,8 @@ architecture rtl of Chksum is
    constant RATIO_C : positive := DATA_WIDTH_G/CSUM_WIDTH_G;
    
    type RegType is record
-      sum    : slv(CSUM_WIDTH_G+2 downto 0);
-      chksum : slv(CSUM_WIDTH_G-1 downto 0);
+      sum    : slv(CSUM_WIDTH_G+4 downto 0);
+      chksum : slv(CSUM_WIDTH_G downto 0);
       lenCnt : natural;
       valid  : sl;
    end record RegType;
@@ -91,7 +91,7 @@ architecture rtl of Chksum is
 begin
    -- TODO make it generic
    --data_i((CSUM_WIDTH_G-1)+(CSUM_WIDTH_G*I) downto CSUM_WIDTH_G*I);   
-   s_dataWordSum <=  "00" & data_i(63 downto 48) +
+   s_dataWordSum <=   "00"& data_i(63 downto 48) +
                             data_i(47 downto 32) +
                             data_i(31 downto 16) +
                             data_i(15 downto 0);
@@ -105,7 +105,7 @@ begin
       
       -- Cumulative sum of the data_i while enabled
       if ( enable_i = '0')   then
-         v.sum    := ("000" & init_i);
+         v.sum    := ("00000" & init_i);
          v.lenCnt := 0;
          v.valid  := '0';
       elsif ( r.lenCnt >= length_i)   then
@@ -123,9 +123,14 @@ begin
          v.valid  := '0';
       end if;
                 
-      -- Direct out (calculated with 2 c-c delay towards data)
-      v.chksum  := not (r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+2 downto CSUM_WIDTH_G) );
-      chksum_o <= r.chksum;
+      -- Add the sum carry bits
+      v.chksum  := '0' & r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+4 downto CSUM_WIDTH_G);
+      -- Add the checksum carry bit     
+      v.chksum(CSUM_WIDTH_G-1 downto 0) := v.chksum(CSUM_WIDTH_G-1 downto 0) + v.chksum(CSUM_WIDTH_G);
+      
+      -- Checksum output (calculated with 2 c-c delay towards data)
+      -- Ones complement
+      chksum_o <= not (r.chksum(CSUM_WIDTH_G-1 downto 0));
       
       if (rst_i = '1') then
          v := REG_INIT_C;
