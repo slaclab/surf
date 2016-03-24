@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-18
+-- Last update: 2016-03-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -620,13 +620,16 @@ begin
                      v.status(FST_C)  := r.status(FST_C);
                   end if;
 
-                  -- Output status message when done
-                  if (v.status(DONE_C) = '1' and r.dmaReq.drop = '0') then
-                     v.axisStatusMaster.tValid            := '1';
-                     v.axisStatusMaster.tLast             := '1';
-                     v.axisStatusMaster.tData(7 downto 0) := resize(r.rdRamAddr, 8);
-                  end if;
+
                end if;
+
+               -- Output status message when done
+               if (v.status(DONE_C) = '1' and r.dmaReq.drop = '0') then
+                  v.axisStatusMaster.tValid            := '1';
+                  v.axisStatusMaster.tLast             := '1';
+                  v.axisStatusMaster.tData(7 downto 0) := resize(r.rdRamAddr, 8);
+               end if;
+
                v.state := WAIT_TVALID_S;
 
             end if;
