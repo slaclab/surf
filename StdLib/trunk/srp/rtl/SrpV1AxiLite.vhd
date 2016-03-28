@@ -435,7 +435,7 @@ begin
                         -- Next State
                         v.state := FOOTER_S;
                      -- Check for version mismatch
-                     elsif r.remVer = SRP_VERSION_C then
+                     elsif r.remVer /= SRP_VERSION_C then
                         -- Set the flags
                         v.verMismatch := '1';
                         -- Next State
