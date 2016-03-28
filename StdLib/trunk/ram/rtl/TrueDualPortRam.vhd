@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2016-01-12
+-- Last update: 2016-03-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -67,31 +67,31 @@ architecture rtl of TrueDualPortRam is
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   signal mem : mem_type := (others => INIT_C);
-   
+   shared variable mem : mem_type := (others => INIT_C);
+
    signal doutAInt : slv(DATA_WIDTH_G-1 downto 0);
    signal doutBInt : slv(DATA_WIDTH_G-1 downto 0);
-   
+
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
-   attribute ram_style of mem : signal is "block";
+   attribute ram_style of mem : variable is "block";
 
    attribute ram_extract        : string;
-   attribute ram_extract of mem : signal is "TRUE";
+   attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : boolean;         --"keep" is same for XST and Altera
-   attribute keep of mem : signal is true;  --"keep" is same for XST and Altera
+   attribute keep        : boolean;           --"keep" is same for XST and Altera
+   attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
 
    -- Attribute for Synplicity Synthesizer 
    attribute syn_ramstyle        : string;
-   attribute syn_ramstyle of mem : signal is "block";
+   attribute syn_ramstyle of mem : variable is "block";
 
    attribute syn_keep        : string;
-   attribute syn_keep of mem : signal is "TRUE";
+   attribute syn_keep of mem : variable is "TRUE";
 
    -- Attribute for Altera Synthesizer
    attribute ramstyle        : string;
-   attribute ramstyle of mem : signal is ALTERA_RAM_G;
+   attribute ramstyle of mem : variable is ALTERA_RAM_G;
 
 begin
 
@@ -117,9 +117,9 @@ begin
          if rising_edge(clka) then
             if rsta = RST_POLARITY_G then
                doutAInt <= INIT_C after TPD_G;
-            else
-               if (wea = '1') and (ena = '1') then
-                  mem(conv_integer(addra)) <= dina after TPD_G;
+            elsif (ena = '1') then
+               if (wea = '1') then
+                  mem(conv_integer(addra)) := dina;
                else
                   doutAInt <= mem(conv_integer(addra)) after TPD_G;
                end if;
@@ -133,9 +133,9 @@ begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
                doutBInt <= INIT_C after TPD_G;
-            else
-               if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) <= dinb after TPD_G;
+            elsif (enb = '1') then
+               if (web = '1') then
+                  mem(conv_integer(addrb)) := dinb;
                else
                   doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                end if;
@@ -152,10 +152,10 @@ begin
          if rising_edge(clka) then
             if rsta = RST_POLARITY_G then
                doutAInt <= INIT_C after TPD_G;
-            else
+            elsif (ena = '1') then
                doutAInt <= mem(conv_integer(addra)) after TPD_G;
-               if (wea = '1') and (ena = '1') then
-                  mem(conv_integer(addra)) <= dina after TPD_G;
+               if (wea = '1') then
+                  mem(conv_integer(addra)) := dina;
                end if;
             end if;
          end if;
@@ -167,10 +167,10 @@ begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
                doutBInt <= INIT_C after TPD_G;
-            else
+            elsif (enb = '1') then
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
-               if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) <= dinb after TPD_G;
+               if (web = '1') then
+                  mem(conv_integer(addrb)) := dinb;
                end if;
             end if;
          end if;
@@ -185,12 +185,13 @@ begin
          if rising_edge(clka) then
             if rsta = RST_POLARITY_G then
                doutAInt <= INIT_C after TPD_G;
-            else
-               if (wea = '1') and (ena = '1') then
-                  mem(conv_integer(addra)) <= dina after TPD_G;
+            elsif (ena = '1') then
+               if (wea = '1') then
+                  mem(conv_integer(addra)) := dina;
                   doutAInt                 <= dina after TPD_G;
+               else
+                  doutAInt <= mem(conv_integer(addra)) after TPD_G;
                end if;
-               doutAInt <= mem(conv_integer(addra)) after TPD_G;
             end if;
          end if;
       end process;
@@ -201,12 +202,13 @@ begin
          if rising_edge(clkb) then
             if rstb = RST_POLARITY_G then
                doutBInt <= INIT_C after TPD_G;
-            else
-               if (web = '1') and (enb = '1') then
-                  mem(conv_integer(addrb)) <= dinb after TPD_G;
+            elsif (enb = '1') then
+               if (web = '1') then
+                  mem(conv_integer(addrb)) := dinb;
                   doutBInt                 <= dinb after TPD_G;
+               else
+                  doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                end if;
-               doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
          end if;
       end process;
