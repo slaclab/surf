@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2016-03-28
+-- Last update: 2016-03-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,14 +115,15 @@ begin
       process(clka)
       begin
          if rising_edge(clka) then
-            if rsta = RST_POLARITY_G then
-               doutAInt <= INIT_C after TPD_G;
-            elsif (ena = '1') then
+            if (ena = '1') then
                if (wea = '1') then
                   mem(conv_integer(addra)) := dina;
                else
                   doutAInt <= mem(conv_integer(addra)) after TPD_G;
                end if;
+            end if;
+            if rsta = RST_POLARITY_G and DOA_REG_G = false then
+               doutAInt <= INIT_C after TPD_G;
             end if;
          end if;
       end process;
@@ -131,14 +132,15 @@ begin
       process(clkb)
       begin
          if rising_edge(clkb) then
-            if rstb = RST_POLARITY_G then
-               doutBInt <= INIT_C after TPD_G;
-            elsif (enb = '1') then
+            if (enb = '1') then
                if (web = '1') then
                   mem(conv_integer(addrb)) := dinb;
                else
                   doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                end if;
+            end if;
+            if rstb = RST_POLARITY_G and DOB_REG_G = false then
+               doutBInt <= INIT_C after TPD_G;
             end if;
          end if;
       end process;
@@ -150,13 +152,14 @@ begin
       process(clka)
       begin
          if rising_edge(clka) then
-            if rsta = RST_POLARITY_G then
-               doutAInt <= INIT_C after TPD_G;
-            elsif (ena = '1') then
+            if (ena = '1') then
                doutAInt <= mem(conv_integer(addra)) after TPD_G;
                if (wea = '1') then
                   mem(conv_integer(addra)) := dina;
                end if;
+            end if;
+            if rsta = RST_POLARITY_G and DOA_REG_G = false then
+               doutAInt <= INIT_C after TPD_G;
             end if;
          end if;
       end process;
@@ -165,13 +168,14 @@ begin
       process(clkb)
       begin
          if rising_edge(clkb) then
-            if rstb = RST_POLARITY_G then
-               doutBInt <= INIT_C after TPD_G;
-            elsif (enb = '1') then
+            if (enb = '1') then
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                if (web = '1') then
                   mem(conv_integer(addrb)) := dinb;
                end if;
+            end if;
+            if rstb = RST_POLARITY_G and DOB_REG_G = false then
+               doutBInt <= INIT_C after TPD_G;
             end if;
          end if;
       end process;
@@ -183,9 +187,7 @@ begin
       process(clka)
       begin
          if rising_edge(clka) then
-            if rsta = RST_POLARITY_G then
-               doutAInt <= INIT_C after TPD_G;
-            elsif (ena = '1') then
+            if (ena = '1') then
                if (wea = '1') then
                   mem(conv_integer(addra)) := dina;
                   doutAInt                 <= dina after TPD_G;
@@ -193,16 +195,18 @@ begin
                   doutAInt <= mem(conv_integer(addra)) after TPD_G;
                end if;
             end if;
+            if rsta = RST_POLARITY_G and DOA_REG_G = false then
+               doutAInt <= INIT_C after TPD_G;
+            end if;
          end if;
+
       end process;
 
       -- Port B
       process(clkb)
       begin
          if rising_edge(clkb) then
-            if rstb = RST_POLARITY_G then
-               doutBInt <= INIT_C after TPD_G;
-            elsif (enb = '1') then
+            if (enb = '1') then
                if (web = '1') then
                   mem(conv_integer(addrb)) := dinb;
                   doutBInt                 <= dinb after TPD_G;
@@ -210,7 +214,11 @@ begin
                   doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                end if;
             end if;
+            if rstb = RST_POLARITY_G and DOB_REG_G = false then
+               doutBInt <= INIT_C after TPD_G;
+            end if;
          end if;
+
       end process;
 
    end generate;
@@ -226,7 +234,7 @@ begin
       process (clka) is
       begin
          if (rising_edge(clka)) then
-            if (rstA = '1') then
+            if (rstA = RST_POLARITY_G) then
                douta <= (others => '0') after TPD_G;
             elsif (regcea = '1') then
                douta <= doutAInt after TPD_G;
@@ -243,7 +251,7 @@ begin
       process (clkb) is
       begin
          if (rising_edge(clkb)) then
-            if (rstB = '1') then
+            if (rstB = RST_POLARITY_G) then
                doutb <= (others => '0') after TPD_G;
             elsif (regceb = '1') then
                doutb <= doutBInt after TPD_G;
