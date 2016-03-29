@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-17
--- Last update: 2016-03-18
+-- Last update: 2016-03-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ entity AxiDualPortRam is
       SYS_WR_EN_G  : boolean                    := false;
       COMMON_CLK_G : boolean                    := false;
       ADDR_WIDTH_G : integer range 1 to (2**24) := 4;
-      DATA_WIDTH_G : integer range 1 to 128      := 32;
+      DATA_WIDTH_G : integer range 1 to 128     := 32;
       INIT_G       : slv                        := "0");
 
    port (
@@ -53,16 +53,16 @@ entity AxiDualPortRam is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Standard Port
-      clk       : in  sl                           := '0';
-      en        : in  sl                           := '1';
-      we        : in  sl                           := '0';
-      rst       : in  sl                           := '0';
-      addr      : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      din       : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      dout      : out slv(DATA_WIDTH_G-1 downto 0);
-      axiWrStrobe   : out sl;
-      axiWrAddr : out slv(ADDR_WIDTH_G-1 downto 0);
-      axiWrData : out slv(DATA_WIDTH_G-1 downto 0));
+      clk         : in  sl                           := '0';
+      en          : in  sl                           := '1';
+      we          : in  sl                           := '0';
+      rst         : in  sl                           := '0';
+      addr        : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      din         : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+      dout        : out slv(DATA_WIDTH_G-1 downto 0);
+      axiWrStrobe : out sl;
+      axiWrAddr   : out slv(ADDR_WIDTH_G-1 downto 0);
+      axiWrData   : out slv(DATA_WIDTH_G-1 downto 0));
 
 end entity AxiDualPortRam;
 
@@ -107,6 +107,8 @@ begin
             TPD_G        => TPD_G,
             BRAM_EN_G    => BRAM_EN_G,
             REG_EN_G     => REG_EN_G,
+            DOA_REG_G    => REG_EN_G,
+            DOB_REG_G    => REG_EN_G,
             MODE_G       => MODE_G,
             DATA_WIDTH_G => DATA_WIDTH_G,
             ADDR_WIDTH_G => ADDR_WIDTH_G,
@@ -135,6 +137,8 @@ begin
             TPD_G        => TPD_G,
             BRAM_EN_G    => BRAM_EN_G,
             REG_EN_G     => REG_EN_G,
+            DOA_REG_G    => REG_EN_G,
+            DOB_REG_G    => REG_EN_G,
             MODE_G       => MODE_G,
             DATA_WIDTH_G => DATA_WIDTH_G,
             ADDR_WIDTH_G => ADDR_WIDTH_G,
@@ -161,6 +165,8 @@ begin
          generic map (
             TPD_G        => TPD_G,
             MODE_G       => MODE_G,
+            DOA_REG_G    => REG_EN_G,
+            DOB_REG_G    => REG_EN_G,
             DATA_WIDTH_G => DATA_WIDTH_G,
             ADDR_WIDTH_G => ADDR_WIDTH_G,
             INIT_G       => INIT_G)
@@ -196,7 +202,7 @@ begin
          din    => axiSyncIn,           -- [in]
          rd_clk => clk,                 -- [in]
          rd_en  => '1',                 -- [in]
-         valid  => axiWrStrobe,             -- [out]
+         valid  => axiWrStrobe,         -- [out]
          dout   => axiSyncOut);         -- [out]
 
    axiWrData <= axiSyncOut(DATA_WIDTH_G-1 downto 0);
