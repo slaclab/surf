@@ -330,6 +330,7 @@ begin
          when SEND_SYN_ACK_S =>
             
             v.connActive   := '0';
+            v.closed       := '0';
             v.sndSyn       := '1'; 
             v.sndAck       := '0';
             v.sndRst       := '0';
