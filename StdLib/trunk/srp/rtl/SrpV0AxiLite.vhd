@@ -385,9 +385,9 @@ begin
          when S_STATUS_C =>
             v.mFifoAxisMaster.tValid             := '1';
             v.mFifoAxisMaster.tLast              := '1';
-            v.mFifoAxisMaster.tData(63 downto 0) := (others => '0');
-            v.mFifoAxisMaster.tData(17)          := r.timeout;
-            v.mFifoAxisMaster.tData(16)          := r.fail;
+            v.mFifoAxisMaster.tData(63 downto 2) := (others => '0');
+            v.mFifoAxisMaster.tData(1)           := r.timeout;
+            v.mFifoAxisMaster.tData(0)           := r.fail;
             v.state                              := S_IDLE_C;
 
          when others =>
