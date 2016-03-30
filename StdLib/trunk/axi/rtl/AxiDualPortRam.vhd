@@ -79,7 +79,7 @@ architecture rtl of AxiDualPortRam is
       axiAddr       : slv(ADDR_WIDTH_G-1 downto 0);
       axiWrData     : slv(DATA_WIDTH_G-1 downto 0);
       axiWrEn       : sl;
-      axiRdEn       : slv(1 downto 0);
+      axiRdEn       : slv(2 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -217,9 +217,11 @@ begin
       v := r;
 
 
-
+      -- Reset strobes and shift Register
       v.axiWrEn := '0';
-      v.axiRdEn := r.axiRdEn(0) & '0';
+      v.axiRdEn(0) := '0';
+      v.axiRdEn(1) := r.axiRdEn(0);
+      v.axiRdEn(2) := r.axiRdEn(1);
 
       -- This call overwrites v.axiReadSlave.rdata with zero, so call it at the top.
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
@@ -258,18 +260,25 @@ begin
          axiSlaveWriteResponse(v.axiWriteSlave, ite(AXI_WR_EN_G, AXI_RESP_OK_C, AXI_RESP_SLVERR_C));
 
 
-      elsif (axiStatus.readEnable = '1' and r.axiRdEn = "00") then
+      elsif (axiStatus.readEnable = '1' and r.axiRdEn = "000") then
+         -- Set the address bus
          v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_RANGE_C);
-         -- If output of ram is registered, read data will be ready 2 cycles after address asserted
-         -- If not registered it will be ready on next cycle
-         if (REG_EN_G or BRAM_EN_G) then
-            v.axiRdEn := "01";          -- read in 2 cycles
+         -- Check for registered BRAM
+         if (BRAM_EN_G = true) and (REG_EN_G = true) then
+            v.axiRdEn := "001";          -- read in 3 cycles
+         -- Check for non-registered BRAM
+         elsif (BRAM_EN_G = true) and (REG_EN_G = false) then
+            v.axiRdEn := "010";          -- read in 2 cycles
+         -- Check for registered LUTRAM
+         elsif (BRAM_EN_G = false) and (REG_EN_G = true) then
+            v.axiRdEn := "010";          -- read in 2 cycles
+         -- Else non-registered LUTRAM
          else
-            v.axiRdEn := "10";          -- read on next cycle
+            v.axiRdEn := "100";          -- read on next cycle
          end if;
       end if;
 
-      if (r.axiRdEn(1) = '1') then
+      if (r.axiRdEn(2) = '1') then
          axiSlaveReadResponse(v.axiReadSlave);
       end if;
 
