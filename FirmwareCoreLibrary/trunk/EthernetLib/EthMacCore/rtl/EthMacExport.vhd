@@ -478,7 +478,7 @@ begin
                nxtEOF <= '0'                 after TPD_G;
 
             -- Not transmitting
-            elsif txEnable2 = '0' and txEnable3 = '0' then 
+            elsif (txEnable2 = '0') and (txEnable3 = '0' or crcFifoOut(71 downto 64) = 0) then 
                phyTxd  <= X"0707070707070707" after TPD_G;
                phyTxc  <= x"FF"               after TPD_G;
 
