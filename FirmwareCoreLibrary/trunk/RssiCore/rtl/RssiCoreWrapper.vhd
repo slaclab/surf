@@ -36,11 +36,11 @@ entity RssiCoreWrapper is
       BYPASS_CHUNKER_G        : boolean             := false;   -- Bypass the AXIS chunker layer
       PIPE_STAGES_G           : natural             := 0;
       -- Application AXIS fifos
-      APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
-      APP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Output data width 
+      APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4,TKEEP_NORMAL_C);  -- Application Input data width 
+      APP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4,TKEEP_NORMAL_C);  -- Application Output data width 
       -- Transport AXIS fifos
-      TSP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Input data width
-      TSP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Output data width      
+      TSP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16,TKEEP_NORMAL_C);  -- Transport Input data width
+      TSP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16,TKEEP_NORMAL_C);  -- Transport Output data width      
       -- Version and connection ID
       INIT_SEQ_N_G            : natural             := 16#80#;
       CONN_ID_G               : positive            := 16#12345678#;
