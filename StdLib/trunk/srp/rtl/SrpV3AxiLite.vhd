@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : SrpV1AxiLite.vhd
+-- File       : SrpV3AxiLite.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
@@ -9,13 +9,13 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: SLAC Register Protocol Version 1, AXI-Lite Interface
+-- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
 -- Documentation: https://confluence.slac.stanford.edu/x/SqjOCw
 --
 -- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
 --       For non 32-bit aligned addresses or non 32-bit transactions, use
---       the SrpV1Axi.vhd module with the AxiToAxiLite.vhd bridge
+--       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -36,7 +36,7 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.AxiLitePkg.all;
 
-entity SrpV1AxiLite is
+entity SrpV3AxiLite is
    generic (
       TPD_G               : time                    := 1 ns;
       PIPE_STAGES_G       : natural range 0 to 16   := 0;
@@ -66,14 +66,14 @@ entity SrpV1AxiLite is
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
       mAxilReadMaster  : out AxiLiteReadMasterType;
       mAxilReadSlave   : in  AxiLiteReadSlaveType);
-end SrpV1AxiLite;
+end SrpV3AxiLite;
 
-architecture rtl of SrpV1AxiLite is
+architecture rtl of SrpV3AxiLite is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C, TUSER_FIRST_LAST_C);
    constant TIMEOUT_C     : natural             := (getTimeRatio(AXIL_CLK_FREQ_G, 10.0) - 1);  -- 100 ms timeout
 
-   constant SRP_VERSION_C      : slv(7 downto 0) := x"01";
+   constant SRP_VERSION_C      : slv(7 downto 0) := x"03";
    constant NON_POSTED_READ_C  : slv(1 downto 0) := "00";
    constant NON_POSTED_WRITE_C : slv(1 downto 0) := "01";
    constant POSTED_WRITE_C     : slv(1 downto 0) := "10";
