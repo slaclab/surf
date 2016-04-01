@@ -614,10 +614,31 @@ begin
             if connActive_i = '0' then
                v.txBufferAddr  := (others => '0');
                v.rxLastSeqN    := r.inOrderSeqN;
-            -- Data segment in buffer got to DATA_S
+            -- Data segment in buffer only one word long take TKEEP and apply EOF
+            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1'   and
+                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001" and   -- Data segment type
+                   r.windowArray(conv_integer(r.txBufferAddr)).segSize  = 0
+            ) then
+               --
+               v.txBufferAddr  := r.txBufferAddr;
+               
+               if (appSsiSlave_i.pause = '0') then
+               
+                  v.appSsiMaster.sof    := '1';
+                  v.appSsiMaster.valid  := '1';
+                  v.appSsiMaster.strb   := (others => '1');
+                  v.appSsiMaster.dest   := (others => '0');
+                  v.appSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+                  v.appSsiMaster.eof    := '1';
+                  v.appSsiMaster.eofe   := '0';
+                  v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
+                  v.txSegmentAddr       := r.txSegmentAddr;
+
+                  v.appState  := SENT_S;              
+               end if;    
+            -- Data segment in buffer longer than one word go to DATA_S
             elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' and
-                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001" --and   -- Data segment type
-                   --r.txSegmentAddr = 0  -- Wait one c-c for address to be applied and data ready             
+                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001"  -- Data segment type          
             ) then
                --
                v.txBufferAddr  := r.txBufferAddr;
@@ -636,8 +657,7 @@ begin
                   v.appState  := DATA_S;              
                end if;
             -- None data segment type  (Go directly to SENT_S) 
-            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1'
-            ) then   
+            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1') then   
                --
                v.txBufferAddr  := r.txBufferAddr;
                v.appState      := SENT_S;

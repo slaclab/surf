@@ -197,7 +197,7 @@ begin
       locClk          => clk_i,
       locRst          => s_prbsRst,
       trig            => s_trig,
-      packetLength    => X"0000_00ff",
+      packetLength    => X"0000_0001",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
