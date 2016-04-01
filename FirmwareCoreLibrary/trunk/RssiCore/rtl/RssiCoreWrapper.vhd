@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2016-02-25
--- Last update: 2016-02-25
+-- Last update: 2016-03-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ entity RssiCoreWrapper is
       RETRANSMIT_ENABLE_G     : boolean             := true;  -- Enable/Disable retransmissions in tx module
       WINDOW_ADDR_SIZE_G      : positive            := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       SEGMENT_ADDR_SIZE_G     : positive            := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      --
+      BYPASS_CHUNKER_G        : boolean             := false;   -- Bypass the AXIS chunker layer
       PIPE_STAGES_G           : natural             := 0;
       -- Application AXIS fifos
       APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
@@ -48,14 +48,11 @@ entity RssiCoreWrapper is
       HEADER_CHKSUM_EN_G      : boolean             := true;
       -- Window parameters of receiver module
       MAX_NUM_OUTS_SEG_G      : positive            := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
-      --
-      MAX_SEG_SIZE_G          : positive            := 1024; -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
-      
+      MAX_SEG_SIZE_G          : positive            := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
       -- RSSI Timeouts
       RETRANS_TOUT_G          : positive            := 50;    -- unit depends on TIMEOUT_UNIT_G  
       ACK_TOUT_G              : positive            := 25;    -- unit depends on TIMEOUT_UNIT_G  
       NULL_TOUT_G             : positive            := 200;   -- unit depends on TIMEOUT_UNIT_G  
-  
       -- Counters
       MAX_RETRANS_CNT_G       : positive            := 2;
       MAX_CUM_ACK_CNT_G       : positive            := 3;
@@ -118,28 +115,35 @@ begin
          mAxisMaster => depacketizerMasters(0),
          mAxisSlave  => depacketizerSlaves(0));
 
-   U_Depacketizer : entity work.AxiStreamDepacketizer
-      generic map (
-         TPD_G                => TPD_G,
-         INPUT_PIPE_STAGES_G  => 1,
-         OUTPUT_PIPE_STAGES_G => 1)
-      port map (
-         axisClk     => clk_i,
-         axisRst     => rst_i,
-         sAxisMaster => depacketizerMasters(0),
-         sAxisSlave  => depacketizerSlaves(0),
-         mAxisMaster => depacketizerMasters(1),
-         mAxisSlave  => depacketizerSlaves(1));
+   GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
+      U_Depacketizer : entity work.AxiStreamDepacketizer
+         generic map (
+            TPD_G                => TPD_G,
+            INPUT_PIPE_STAGES_G  => 1,
+            OUTPUT_PIPE_STAGES_G => 1)
+         port map (
+            axisClk     => clk_i,
+            axisRst     => rst_i,
+            sAxisMaster => depacketizerMasters(0),
+            sAxisSlave  => depacketizerSlaves(0),
+            mAxisMaster => depacketizerMasters(1),
+            mAxisSlave  => depacketizerSlaves(1));
+   end generate;
+
+   BYPASS_DEPACKER : if (BYPASS_CHUNKER_G = true) generate
+      depacketizerMasters(1) <= depacketizerMasters(0);
+      depacketizerSlaves(0)  <= depacketizerSlaves(1);
+   end generate;
 
    U_RssiCore : entity work.RssiCore
       generic map (
-         TPD_G                   => TPD_G,
-         CLK_FREQUENCY_G         => CLK_FREQUENCY_G,
-         TIMEOUT_UNIT_G          => TIMEOUT_UNIT_G,
-         SERVER_G                => SERVER_G,
-         RETRANSMIT_ENABLE_G     => RETRANSMIT_ENABLE_G,
-         WINDOW_ADDR_SIZE_G      => WINDOW_ADDR_SIZE_G,
-         SEGMENT_ADDR_SIZE_G     => SEGMENT_ADDR_SIZE_G,
+         TPD_G               => TPD_G,
+         CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
+         TIMEOUT_UNIT_G      => TIMEOUT_UNIT_G,
+         SERVER_G            => SERVER_G,
+         RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G,
+         WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
+         SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
 
          -- Application AXIS fifos
          APP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
@@ -161,9 +165,9 @@ begin
          NULL_TOUT_G             => NULL_TOUT_G,
 
          -- Counters
-         MAX_RETRANS_CNT_G       => MAX_RETRANS_CNT_G,
-         MAX_CUM_ACK_CNT_G       => MAX_CUM_ACK_CNT_G,
-         MAX_OUT_OF_SEQUENCE_G   => MAX_OUT_OF_SEQUENCE_G)
+         MAX_RETRANS_CNT_G     => MAX_RETRANS_CNT_G,
+         MAX_CUM_ACK_CNT_G     => MAX_CUM_ACK_CNT_G,
+         MAX_OUT_OF_SEQUENCE_G => MAX_OUT_OF_SEQUENCE_G)
       port map (
          -- Clock and Reset
          clk_i            => clk_i,
@@ -192,19 +196,26 @@ begin
          -- Internal statuses
          statusReg_o      => statusReg_o);         
 
-   U_Packetizer : entity work.AxiStreamPacketizer
-      generic map (
-         TPD_G                => TPD_G,
-         MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
-         INPUT_PIPE_STAGES_G  => 1,
-         OUTPUT_PIPE_STAGES_G => 1)
-      port map (
-         axisClk     => clk_i,
-         axisRst     => rst_i,
-         sAxisMaster => packetizerMasters(1),
-         sAxisSlave  => packetizerSlaves(1),
-         mAxisMaster => packetizerMasters(0),
-         mAxisSlave  => packetizerSlaves(0));
+   GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
+      U_Packetizer : entity work.AxiStreamPacketizer
+         generic map (
+            TPD_G                => TPD_G,
+            MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
+            INPUT_PIPE_STAGES_G  => 1,
+            OUTPUT_PIPE_STAGES_G => 1)
+         port map (
+            axisClk     => clk_i,
+            axisRst     => rst_i,
+            sAxisMaster => packetizerMasters(1),
+            sAxisSlave  => packetizerSlaves(1),
+            mAxisMaster => packetizerMasters(0),
+            mAxisSlave  => packetizerSlaves(0));
+   end generate;
+
+   BYPASS_PACKER : if (BYPASS_CHUNKER_G = true) generate
+      packetizerMasters(0) <= packetizerMasters(1);
+      packetizerSlaves(1)  <= packetizerSlaves(0);
+   end generate;
 
    U_TxFifo : entity work.AxiStreamFifo
       generic map (
@@ -213,7 +224,7 @@ begin
          BRAM_EN_G           => false,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
-         PIPE_STAGES_G       => PIPE_STAGES_G,         
+         PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
          MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
       port map (
