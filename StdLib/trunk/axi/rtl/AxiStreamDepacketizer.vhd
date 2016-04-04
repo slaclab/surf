@@ -54,7 +54,7 @@ end entity AxiStreamDepacketizer;
 architecture rtl of AxiStreamDepacketizer is
 
    -- TODO: Define ID and TDEST properly!
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8,TKEEP_NORMAL_C);
 
    constant VERSION_C : slv(3 downto 0) := "0000";
 

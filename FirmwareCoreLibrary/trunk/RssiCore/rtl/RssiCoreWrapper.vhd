@@ -104,7 +104,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8))
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8,TKEEP_NORMAL_C))
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
@@ -146,8 +146,8 @@ begin
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
 
          -- Application AXIS fifos
-         APP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
-         APP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(8),
+         APP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(8,TKEEP_NORMAL_C),
+         APP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(8,TKEEP_NORMAL_C),
          -- Transport AXIS fifos
          TSP_INPUT_AXI_CONFIG_G  => TSP_INPUT_AXI_CONFIG_G,
          TSP_OUTPUT_AXI_CONFIG_G => TSP_OUTPUT_AXI_CONFIG_G,
@@ -225,7 +225,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
          PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8),
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8,TKEEP_NORMAL_C),
          MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
