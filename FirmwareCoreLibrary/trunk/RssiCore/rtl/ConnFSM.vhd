@@ -319,7 +319,7 @@ begin
                   v.rssiParam.maxOutsSeg  := appRssiParam_i.maxOutsSeg;
                   v.rssiParam.maxSegSize  := appRssiParam_i.maxSegSize;
                   v.rssiParam.timeoutUnit := appRssiParam_i.timeoutUnit;
-                  v.txBufferSize := conv_integer(appRssiParam_i.maxSegSize);
+                  v.txBufferSize := conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
                   v.txWindowSize := conv_integer(appRssiParam_i.maxOutsSeg);
                   --
                   v.paramReject  := '1';
