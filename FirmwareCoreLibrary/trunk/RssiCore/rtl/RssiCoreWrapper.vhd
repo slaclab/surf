@@ -104,7 +104,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8,TKEEP_NORMAL_C))
+         MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
@@ -112,29 +112,32 @@ begin
          sAxisSlave  => sAppAxisSlave_o,
          mAxisClk    => clk_i,
          mAxisRst    => rst_i,
-         mAxisMaster => depacketizerMasters(0),
-         mAxisSlave  => depacketizerSlaves(0));
-
-   GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
-      U_Depacketizer : entity work.AxiStreamDepacketizer
+         mAxisMaster => packetizerMasters(0),
+         mAxisSlave  => packetizerSlaves(0));
+   
+   GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
+      U_Packetizer : entity work.AxiStreamPacketizer
          generic map (
             TPD_G                => TPD_G,
+            MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
             INPUT_PIPE_STAGES_G  => 1,
             OUTPUT_PIPE_STAGES_G => 1)
          port map (
             axisClk     => clk_i,
             axisRst     => rst_i,
-            sAxisMaster => depacketizerMasters(0),
-            sAxisSlave  => depacketizerSlaves(0),
-            mAxisMaster => depacketizerMasters(1),
-            mAxisSlave  => depacketizerSlaves(1));
+            sAxisMaster => packetizerMasters(0),
+            sAxisSlave  => packetizerSlaves(0),
+            mAxisMaster => packetizerMasters(1),
+            mAxisSlave  => packetizerSlaves(1));
    end generate;
 
-   BYPASS_DEPACKER : if (BYPASS_CHUNKER_G = true) generate
-      depacketizerMasters(1) <= depacketizerMasters(0);
-      depacketizerSlaves(0)  <= depacketizerSlaves(1);
+   BYPASS_PACKER : if (BYPASS_CHUNKER_G = true) generate
+      packetizerMasters(1) <= packetizerMasters(0);
+      packetizerSlaves(0)  <= packetizerSlaves(1);
    end generate;
-
+   
+   
+   
    U_RssiCore : entity work.RssiCore
       generic map (
          TPD_G               => TPD_G,
@@ -146,8 +149,8 @@ begin
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
 
          -- Application AXIS fifos
-         APP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(8,TKEEP_NORMAL_C),
-         APP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(8,TKEEP_NORMAL_C),
+         APP_INPUT_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
+         APP_OUTPUT_AXI_CONFIG_G => RSSI_AXI_CONFIG_C,
          -- Transport AXIS fifos
          TSP_INPUT_AXI_CONFIG_G  => TSP_INPUT_AXI_CONFIG_G,
          TSP_OUTPUT_AXI_CONFIG_G => TSP_OUTPUT_AXI_CONFIG_G,
@@ -173,10 +176,10 @@ begin
          clk_i            => clk_i,
          rst_i            => rst_i,
          -- SSI Application side
-         sAppAxisMaster_i => depacketizerMasters(1),
-         sAppAxisSlave_o  => depacketizerSlaves(1),
-         mAppAxisMaster_o => packetizerMasters(1),
-         mAppAxisSlave_i  => packetizerSlaves(1),
+         sAppAxisMaster_i => packetizerMasters(1),
+         sAppAxisSlave_o  => packetizerSlaves(1),
+         mAppAxisMaster_o => depacketizerMasters(1),
+         mAppAxisSlave_i  => depacketizerSlaves(1),
          -- SSI Transport side
          sTspAxisMaster_i => sTspAxisMaster_i,
          sTspAxisSlave_o  => sTspAxisSlave_o,
@@ -195,26 +198,25 @@ begin
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
          statusReg_o      => statusReg_o);         
-
-   GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
-      U_Packetizer : entity work.AxiStreamPacketizer
+   
+   GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
+      U_Depacketizer : entity work.AxiStreamDepacketizer
          generic map (
             TPD_G                => TPD_G,
-            MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
             INPUT_PIPE_STAGES_G  => 1,
             OUTPUT_PIPE_STAGES_G => 1)
          port map (
             axisClk     => clk_i,
             axisRst     => rst_i,
-            sAxisMaster => packetizerMasters(1),
-            sAxisSlave  => packetizerSlaves(1),
-            mAxisMaster => packetizerMasters(0),
-            mAxisSlave  => packetizerSlaves(0));
+            sAxisMaster => depacketizerMasters(1),
+            sAxisSlave  => depacketizerSlaves(1),
+            mAxisMaster => depacketizerMasters(0),
+            mAxisSlave  => depacketizerSlaves(0));
    end generate;
 
-   BYPASS_PACKER : if (BYPASS_CHUNKER_G = true) generate
-      packetizerMasters(0) <= packetizerMasters(1);
-      packetizerSlaves(1)  <= packetizerSlaves(0);
+   BYPASS_DEPACKER : if (BYPASS_CHUNKER_G = true) generate
+      depacketizerMasters(0) <= depacketizerMasters(1);
+      depacketizerSlaves(1)  <= depacketizerSlaves(0);
    end generate;
 
    U_TxFifo : entity work.AxiStreamFifo
@@ -225,13 +227,13 @@ begin
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
          PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(8,TKEEP_NORMAL_C),
+         SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
          MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
-         sAxisMaster => packetizerMasters(0),
-         sAxisSlave  => packetizerSlaves(0),
+         sAxisMaster => depacketizerMasters(0),
+         sAxisSlave  => depacketizerSlaves(0),
          mAxisClk    => clk_i,
          mAxisRst    => rst_i,
          mAxisMaster => mAppAxisMaster_o,
