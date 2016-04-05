@@ -11,6 +11,7 @@
 ########################################################
 ## Set Common Environmental variables
 ########################################################
+set MODULE_DIRS      $::env(MODULE_DIRS)
 set XDC_FILES        $::env(XDC_FILES)
 set TCL_FILES        $::env(TCL_FILES)
 set RTL_FILES        $::env(RTL_FILES)
