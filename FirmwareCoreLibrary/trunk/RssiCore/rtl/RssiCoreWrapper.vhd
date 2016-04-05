@@ -135,9 +135,7 @@ begin
       packetizerMasters(1) <= packetizerMasters(0);
       packetizerSlaves(0)  <= packetizerSlaves(1);
    end generate;
-   
-   
-   
+
    U_RssiCore : entity work.RssiCore
       generic map (
          TPD_G               => TPD_G,
