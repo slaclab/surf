@@ -1,0 +1,10 @@
+  &GenericMemory 
+  name: GenericMemory
+  description: Generic Memory Module
+  size: 0x4
+  registers:
+    - address: 0x0
+      name: MemoryArray
+      nelms: 1
+      mode: RW
+      description: Memory Array
