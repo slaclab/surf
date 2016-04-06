@@ -284,6 +284,8 @@ begin
       if (connActive_i = '0' or
          (rxValid_i = '1' and rxFlags_i.data = '1') or 
          (rxValid_i = '1' and rxFlags_i.nul  = '1') or
+         (rxValid_i = '1' and rxFlags_i.ack  = '1') or
+         (rxValid_i = '1' and rxFlags_i.busy = '1') or
          RETRANSMIT_ENABLE_G = false -- Disable null timeout         
       ) then
          v.nullToutCnt := (others=>'0');
