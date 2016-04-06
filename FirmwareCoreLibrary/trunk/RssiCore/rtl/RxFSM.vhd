@@ -386,8 +386,8 @@ begin
                   -- Check AckN range                  
                   (r.rxAckN - lastAckN_i)  <= txWindowSize_i
                ) then
-               
-                  if (r.rxF.data = '1' ) then
+                  -- Valid data segment
+                  if (r.rxF.data = '1' and v.rxF.nul = '0' and v.rxF.rst = '0') then
                      -- Wait if the buffer full
                      -- Note: Deadlock possibility! If the peer is not accepting data!
                      if (r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
@@ -397,9 +397,12 @@ begin
                         -- Buffer is full -> drop segment
                         v.tspState    := DROP_S;                        
                      end if;                         
-                  else
+                  elsif (r.rxF.data = '0') then
                      -- Valid non data segment               
                      v.tspState    := VALID_S;
+                  else
+                     -- Error: Data is attached to NUL or RST segment  
+                     v.tspState    := DROP_S;                      
                   end if;
                else
                   -- Header not valid
