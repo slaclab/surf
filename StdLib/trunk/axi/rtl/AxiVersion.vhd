@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2016-03-04
+-- Last update: 2016-04-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ end AxiVersion;
 architecture rtl of AxiVersion is
 
    constant RELOAD_COUNT_C : integer := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
+   constant TIMEOUT_1HZ_C  : natural := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
 
    type RomType is array (0 to 63) of slv(31 downto 0);
 
@@ -88,6 +89,8 @@ architecture rtl of AxiVersion is
 
 
    type RegType is record
+      upTimeCnt      : slv(31 downto 0);
+      timer          : natural range 0 to TIMEOUT_1HZ_C;
       scratchPad     : slv(31 downto 0);
       counter        : slv(31 downto 0);
       counterRst     : sl;
@@ -100,6 +103,8 @@ architecture rtl of AxiVersion is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      upTimeCnt      => (others => '0'),
+      timer          => 0,
       scratchPad     => (others => '0'),
       counter        => (others => '0'),
       counterRst     => '0',
@@ -193,11 +198,22 @@ begin
       axiSlaveRegister(axilEp, X"020", 0, v.fpgaReloadAddr);
       axiSlaveRegister(axilEp, X"024", 0, v.counter, X"00000000");
       axiSlaveRegister(axilEp, X"028", 0, v.haltReload);
+      axiSlaveRegisterR(axilEp, X"02C", 0, r.upTimeCnt);
 
       axiSlaveRegisterR(axilEp, "01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
       axiSlaveRegisterR(axilEp, "10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+
+      ---------------------------------
+      -- Uptime counter
+      ---------------------------------      
+      if r.timer = TIMEOUT_1HZ_C then
+         v.timer     := 0;
+         v.upTimeCnt := r.upTimeCnt + 1;
+      else
+         v.timer := r.timer + 1;
+      end if;
 
       ---------------------------------
       -- First Stage Boot Loader (FSBL)
