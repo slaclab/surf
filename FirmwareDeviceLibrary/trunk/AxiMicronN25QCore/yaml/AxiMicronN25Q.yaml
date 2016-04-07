@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-AxiSysMonUltraScale: &AxiMicronN25Q 
+AxiMicronN25Q: &AxiMicronN25Q 
   name: AxiMicronN25Q
   description: AXI-Lite Micron N25Q and Micron MT25Q PROM
   size: 0x400
