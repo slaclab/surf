@@ -11,7 +11,7 @@
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
--- Documentation: https://confluence.slac.stanford.edu/x/SqjOCw
+-- Documentation: https://confluence.slac.stanford.edu/x/aRmVD
 --
 -- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
 --
