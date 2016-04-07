@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-02-09
+-- Last update: 2016-04-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ begin
             v.inputAxisSlave.tready := '1';
             v.outputAxisMaster(1)   := axiStreamMasterInit(AXIS_CONFIG_C);
 
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
+            if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
             end if;
 
@@ -195,13 +195,18 @@ begin
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                -- Advance the pipeline
                v.outputAxisMaster(1) := inputAxisMaster;
+               -- Keep sideband data from header
+               v.outputAxisMaster(1).tDest := r.outputAxisMaster(1).tDest;
+               v.outputAxisMaster(1).tId   := r.outputAxisMaster(1).tId;
+               v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
+               
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 
                -- End of frame
                if (inputAxisMaster.tLast = '1') then
                   -- Check tkeep to find tail byte (and strip it out)
                   v.state                     := HEADER_S;
-                  v.outputAxisMaster(1).tKeep := '0' & inputAxisMaster.tKeep(14 downto 0);
+                  v.outputAxisMaster(1).tKeep := '0' & inputAxisMaster.tKeep(15 downto 1);
 
                   case (inputAxisMaster.tKeep(7 downto 0)) is
                      when X"01" =>
