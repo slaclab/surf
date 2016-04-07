@@ -30,5 +30,8 @@ foreach yamlFile ${YAML_FILES} {
    exec cp -f ${yamlFile} ${ProjYamlDir}/.
 }
 
+# Copy the Version.vhd as well
+exec cp -f ${PROJ_DIR}/Version.vhd ${ProjYamlDir}/.
+
 # Compress the project's yaml directory to the target's image directory
 exec tar -zcvf  ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.tar.gz -C ${OUT_DIR} ${PROJECT}_project.yaml
