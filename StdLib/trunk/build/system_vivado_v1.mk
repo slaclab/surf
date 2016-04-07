@@ -31,8 +31,8 @@ export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/cores.txt))
 export CORE_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/cores.txt),$(A1)/$(A2))))
 
 # Source Files
-export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sources.txt))
-export RTL_FILES   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(shell grep -v "\#" $(ARG)/sources.txt | sed 's|\(\S\+\)\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|$(ARG)/\5|')))
+export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/sources.txt)))
+export RTL_FILES   = $(abspath $(foreach ARG,$(SRC_LISTS),$(shell grep -v "\#" $(ARG) | sed 's|\(\S\+\)\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|$(dir $(ARG))/\5|')))
 
 # XDC and TCL Files
 export XDC_LIST = $(PROJ_DIR)/constraints.txt))
@@ -86,7 +86,6 @@ test:
 	@echo -e "$(foreach ARG,$(XDC_FILES),  $(ARG)\n)"
 	@echo TCL_FILES: 
 	@echo -e "$(foreach ARG,$(TCL_FILES),  $(ARG)\n)"
-	@echo SRC_LISTS: $(SRC_LISTS)
 	@echo SRC_LISTS: $(SRC_LISTS)
 	@echo RTL_FILES: 
 	@echo -e "$(foreach ARG,$(RTL_FILES),  $(ARG)\n)"
