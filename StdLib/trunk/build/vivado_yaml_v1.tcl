@@ -25,13 +25,14 @@ if [file exists ${ProjYamlDir}] {
    exec mkdir ${ProjYamlDir}
 }
 
-# Copy all the YAML files to the Project's YAML directory 
+# Copy all the YAML files to the project's YAML directory 
 foreach yamlFile ${YAML_FILES} {
    exec cp -f ${yamlFile} ${ProjYamlDir}/.
 }
 
-# Copy the Version.vhd as well
-exec cp -f ${PROJ_DIR}/Version.vhd ${ProjYamlDir}/.
+# Copy the Version.vhd and the LICENSE.txt to the project's YAML directory
+exec cp -f ${PROJ_DIR}/Version.vhd            ${ProjYamlDir}/.
+exec cp -f ${VIVADO_BUILD_DIR}/../LICENSE.txt ${ProjYamlDir}/.
 
-# Compress the project's yaml directory to the target's image directory
+# Compress the project's YAML directory to the target's image directory
 exec tar -zcvf  ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.tar.gz -C ${OUT_DIR} ${PROJECT}_project.yaml
