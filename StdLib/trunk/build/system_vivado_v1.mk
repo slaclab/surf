@@ -27,8 +27,8 @@ export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
 export PRJ_VERSION = $(shell grep FPGA_VERSION_C $(PROJ_DIR)/Version.vhd | sed 's|.*x"\(\S\+\)";.*|\1|')
 
 # Core Directories (IP cores that exist external of the project must have a physical path, not a logical path)
-export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/cores.txt))
-export CORE_FILES = $(abspath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/cores.txt),$(A1)/$(A2))))
+export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/cores.txt)))
+export CORE_FILES = $(abspath $(foreach A1,$(CORE_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
 
 # Source Files
 export SRC_LISTS   = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/sources.txt)))
