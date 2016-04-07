@@ -1,0 +1,42 @@
+##############################################################################
+## This file is part of 'SLAC Micron Device Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Micron Device Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+AxiSysMonUltraScale: &AxiMicronN25Q 
+  name: AxiMicronN25Q
+  description: AXI-Lite Micron N25Q and Micron MT25Q PROM
+  size: 0x400
+  registers:
+    #########################################################
+    - address: 0x00 
+      name: Test
+      mode: RW
+      description: Scratch Pad tester register
+    #########################################################
+    - address: 0x04 
+      name: Addr32BitMode
+      size: 1      
+      mode: RW
+      description: Enable 32-bit PROM mode
+    #########################################################
+    - address: 0x08
+      name: Addr   
+      mode: RW
+      description: Address Register  
+    #########################################################
+    - address: 0x0C
+      name: Cmd   
+      mode: RW
+      description: Command Register        
+    #########################################################
+    - address: 0x200
+      name: Data   
+      nelms: 64      
+      mode: RW
+      description: Data Register Array
