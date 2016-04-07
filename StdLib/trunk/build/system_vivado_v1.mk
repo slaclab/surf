@@ -48,6 +48,10 @@ endif
 export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/sim.txt)))
 export SIM_FILES = $(realpath $(foreach A1,$(SIM_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
 
+# YAML Files
+export YAML_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/yaml.txt)))
+export YAML_FILES = $(realpath $(foreach A1,$(YAML_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
+
 define ACTION_HEADER
 @echo 
 @echo    "============================================================================="
@@ -91,7 +95,10 @@ test:
 	@echo -e "$(foreach ARG,$(RTL_FILES),  $(ARG)\n)"
 	@echo SIM_LISTS: $(SIM_LISTS)
 	@echo SIM_FILES: 
-	@echo -e "$(foreach ARG,$(SIM_FILES),  $(ARG)\n)"   
+	@echo -e "$(foreach ARG,$(SIM_FILES),  $(ARG)\n)"  
+	@echo YAML_LISTS: $(YAML_LISTS)
+	@echo YAML_FILES: 
+	@echo -e "$(foreach ARG,$(YAML_FILES),  $(ARG)\n)"     
 
 ###############################################################
 #### Build Location ###########################################
