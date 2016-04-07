@@ -45,8 +45,8 @@ else
 endif
 
 # Simulation Files
-export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(ARG)/sim.txt))
-export SIM_FILES = $(realpath $(foreach A1,$(MODULE_DIRS),$(foreach A2,$(shell grep -v "\#" $(A1)/sim.txt),$(A1)/$(A2))))
+export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/sim.txt)))
+export SIM_FILES = $(realpath $(foreach A1,$(SIM_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
 
 define ACTION_HEADER
 @echo 
