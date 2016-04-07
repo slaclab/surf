@@ -1,0 +1,3 @@
+manual yaml/AxiEmpty.yaml
+manual yaml/AxiVersion.yaml
+manual yaml/GenericMemory.yaml
