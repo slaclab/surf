@@ -21,6 +21,7 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 ## Check if passed timing
 ########################################################
 if { [CheckTiming false] == true } {
+
    ########################################################
    ## Make a copy of the routed .DCP file for future use 
    ## in an "incremental compile" build
@@ -28,14 +29,15 @@ if { [CheckTiming false] == true } {
    if { [version -short] >= 2015.3 } {
       exec cp -f ${IMPL_DIR}/${PROJECT}_routed.dcp ${OUT_DIR}/IncrementalBuild.dcp
    }
+   
    #########################################################
    ## Check if need to include YAML files with the .BIT file
    #########################################################
-   set GenYaml [expr {[info exists ::env(GEN_YAML)] && [string is true -strict $::env(GEN_YAML)]}]  
-   if { ${GenYaml} == 1 } {
+   if { [file exists ${PROJ_DIR}/yaml.txt] == 1 } {
       source ${VIVADO_BUILD_DIR}/vivado_yaml_v1.tcl
    }
-}
 
-# Target specific post_route script
-SourceTclFile ${VIVADO_DIR}/post_route.tcl
+   # Target specific post_route script
+   SourceTclFile ${VIVADO_DIR}/post_route.tcl
+   
+}

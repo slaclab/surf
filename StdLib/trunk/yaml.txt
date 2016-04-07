@@ -1,3 +1,4 @@
 manual yaml/AxiEmpty.yaml
+manual yaml/AxiSysMonUltraScale.yaml
 manual yaml/AxiVersion.yaml
 manual yaml/GenericMemory.yaml
