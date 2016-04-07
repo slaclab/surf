@@ -25,15 +25,9 @@ if [file exists ${ProjYamlDir}] {
    exec mkdir ${ProjYamlDir}
 }
 
-# Loop through the module directories
-foreach dir $::env(MODULE_DIRS) {
-   set ModYamlDir "${dir}/yaml"
-   # Check for a yaml directory
-   if [file exists ${ModYamlDir}] {
-      foreach filePntr [glob -dir ${ModYamlDir} *] {
-          exec cp -f ${filePntr} ${ProjYamlDir}/.
-      }   
-   }
+# Copy all the YAML files to the Project's YAML directory 
+foreach yamlFile ${YAML_FILES} {
+   exec cp -f ${yamlFile} ${ProjYamlDir}/.
 }
 
 # Compress the project's yaml directory to the target's image directory
