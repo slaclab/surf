@@ -31,7 +31,7 @@ use work.SsiPkg.all;
 
 package IpV4EnginePkg is
 
-   constant IP_ENGINE_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(16,TKEEP_NORMAL_C,TUSER_FIRST_LAST_C);
+   constant IP_ENGINE_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(16);
 
    -- EtherTypes
    constant ARP_TYPE_C  : slv(15 downto 0) := x"0608";  -- EtherType = ARP = 0x0806
