@@ -157,7 +157,7 @@ begin
 
    -- Generate read
    macObSlave.tReady <= (intAdvance and (not intPad)) or intDump;
-   intData           <= macObmaster.tData(63 downto 0);
+   intData           <= macObmaster.tData(63 downto 0) when intPad = '0' else (others=>'0');
 
    -- State machine logic
    process ( ethClk ) begin
