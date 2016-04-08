@@ -157,7 +157,17 @@ begin
 
    -- Generate read
    macObSlave.tReady <= (intAdvance and (not intPad)) or intDump;
-   intData           <= macObmaster.tData(63 downto 0) when intPad = '0' else (others=>'0');
+
+   -- Data processing
+   process (macObMaster, intPad) begin
+      for i in 0 to 7 loop
+         if intPad = '1' or macObMaster.tKeep(i) = '0' then
+            intData(i*8+7 downto i*8) <= (others=>'0');
+         else
+            intData(i*8+7 downto i*8) <= macObMaster.tData(i*8+7 downto i*8);
+         end if;
+      end loop;
+   end process;
 
    -- State machine logic
    process ( ethClk ) begin
