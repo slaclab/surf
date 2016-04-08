@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-02-17
+-- Last update: 2016-04-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -206,9 +206,8 @@ architecture rtl of AxiStreamFifo is
          assignRecord(i, din, master.tKeep(KEEP_BITS_C-1 downto 0));
          byteCnt := getTKeep(master.tKeep);  
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         byteCnt      := conv_integer(din((KEEP_BITS_C+i)-1 downto i));
+         byteCnt      := conv_integer(din((KEEP_BITS_C+i)-1 downto i))+1;
          master.tKeep := genTKeep(byteCnt);
-         master.tKeep := master.tKeep(14 downto 0) & '1';
          i            := i + KEEP_BITS_C;
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
