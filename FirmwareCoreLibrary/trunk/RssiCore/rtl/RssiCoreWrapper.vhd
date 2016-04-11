@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Reliable SSI top module
+-- Title      : Reliable SSI packetizer wrapper
 -------------------------------------------------------------------------------
 -- File       : RssiCoreWrapper.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
@@ -26,7 +26,7 @@ use work.AxiLitePkg.all;
 entity RssiCoreWrapper is
    generic (
       TPD_G                   : time                := 1 ns;
-      MAX_PACKET_BYTES_G      : positive            := 1440;
+      MAX_PACKET_BYTES_G      : positive            := 1024;
       CLK_FREQUENCY_G         : real                := 100.0E+6;               -- In units of Hz
       TIMEOUT_UNIT_G          : real                := 1.0E-6;  -- In units of seconds
       SERVER_G                : boolean             := true;  -- Module is server or client 
