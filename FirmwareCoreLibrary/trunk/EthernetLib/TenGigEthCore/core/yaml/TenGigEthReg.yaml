@@ -8,23 +8,29 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-XauiReg: &XauiReg 
-  name: XauiReg
-  description: XauiReg 
+TenGigEthReg: &TenGigEthReg 
+  name: TenGigEthReg
+  description: TenGigEthReg 
   size: 0x1000
   registers:
     #########################################################
     - address: 0x000
       name: StatusCounters
-      nelms: 25
+      nelms: 19
       mode: RO
       description: Status Counters
     #########################################################
     - address: 0x100
       name: StatusVector
-      size: 25      
+      size: 19       
       mode: RO
-      description: Status Vector      
+      description: Status Vector   
+    #########################################################
+    - address: 0x108
+      name: PhyStatus
+      size: 8      
+      mode: RO
+      description: PhyStatus              
     #########################################################
     - address: 0x200
       name: MacAddress
@@ -57,14 +63,38 @@ XauiReg: &XauiReg
       description: PauseEnable  
     #########################################################
     - address: 0x230
-      name: ConfigVector
-      size: 7    
+      name: pma_pmd_type
+      size: 3    
       mode: RW
-      description: ConfigVector        
+      description: pma_pmd_type    
+    #########################################################
+    - address: 0x234
+      name: pma_loopback
+      size: 1    
+      mode: RW
+      description: pma_loopback    
+    #########################################################
+    - address: 0x238
+      name: pma_reset
+      size: 1    
+      mode: RW
+      description: pma_reset
+    #########################################################
+    - address: 0x23C
+      name: pcs_loopback
+      size: 1    
+      mode: RW
+      description: pcs_loopback  
+    #########################################################
+    - address: 0x240
+      name: pcs_reset
+      size: 1    
+      mode: RW
+      description: pcs_reset             
     #########################################################
     - address: 0xF00
       name: RollOverEn
-      size: 25    
+      size: 19    
       mode: RW
       description: RollOverEn        
     #########################################################

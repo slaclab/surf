@@ -8,23 +8,29 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-XauiReg: &XauiReg 
-  name: XauiReg
-  description: XauiReg 
+GigEthReg: &GigEthReg 
+  name: GigEthReg
+  description: GigEthReg 
   size: 0x1000
   registers:
     #########################################################
     - address: 0x000
       name: StatusCounters
-      nelms: 25
+      nelms: 9
       mode: RO
       description: Status Counters
     #########################################################
     - address: 0x100
       name: StatusVector
-      size: 25      
+      size: 9       
       mode: RO
-      description: Status Vector      
+      description: Status Vector   
+    #########################################################
+    - address: 0x108
+      name: PhyStatus
+      size: 8      
+      mode: RO
+      description: PhyStatus              
     #########################################################
     - address: 0x200
       name: MacAddress
@@ -54,17 +60,11 @@ XauiReg: &XauiReg
       name: PauseEnable
       size: 1    
       mode: RO
-      description: PauseEnable  
-    #########################################################
-    - address: 0x230
-      name: ConfigVector
-      size: 7    
-      mode: RW
-      description: ConfigVector        
+      description: PauseEnable            
     #########################################################
     - address: 0xF00
       name: RollOverEn
-      size: 25    
+      size: 9    
       mode: RW
       description: RollOverEn        
     #########################################################
