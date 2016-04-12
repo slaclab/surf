@@ -207,7 +207,7 @@ begin
       process(clkd)
       begin
          if rising_edge(clkd) then
-            if rstc = RST_POLARITY_G then
+            if rstd = RST_POLARITY_G then
                doutd <= INIT_C after TPD_G;
             elsif en_d = '1' then
                doutd <= mem(conv_integer(addrd)) after TPD_G;
