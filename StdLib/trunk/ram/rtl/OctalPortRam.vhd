@@ -9,10 +9,7 @@
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   This module infers a Quad Port PARM 
---                as distributed RAM (Ultrascale FPGAs)
---
--- Note: series 7 FPGAs does NOT support a octal LUT-RAM
+-- Description:   This module infers a Quad Port RAM as distributed RAM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

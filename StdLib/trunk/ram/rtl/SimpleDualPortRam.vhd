@@ -6,7 +6,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
 -- Last update: 2016-01-12
--- Platform   : ISE 14.5
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as either Block RAM or distributed RAM
