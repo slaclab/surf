@@ -6,11 +6,10 @@
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-18
 -- Last update: 2015-03-23
--- Platform   : Vivado 2013.3
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   This module infers a Quad Port PARM 
---                as distributed RAM (series 7 FPGAs)
+-- Description:   This module infers a Quad Port RAM as distributed RAM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

@@ -6,7 +6,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-18
 -- Last update: 2016-01-12
--- Platform   : Vivado 2013.3
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: This module infers either Block RAM or distributed RAM
