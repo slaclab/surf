@@ -38,6 +38,7 @@ vhdl work fifo/rtl/FifoOutputPipeline.vhd
 
 vhdl work ram/rtl/DualPortRam.vhd
 vhdl work ram/rtl/QuadPortRam.vhd
+vhdl work ram/rtl/OctalPortRam.vhd
 vhdl work ram/rtl/SimpleDualPortRam.vhd
 vhdl work ram/rtl/TrueDualPortRam.vhd
 
