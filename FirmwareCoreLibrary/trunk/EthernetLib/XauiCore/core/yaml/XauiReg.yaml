@@ -1,0 +1,87 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+AmcCarrierBsi: &XauiReg 
+  name: XauiReg
+  description: XauiReg 
+  size: 0x100
+  registers:
+    #########################################################
+    - address: 0x000
+      name: StatusCounters
+      nelms: 25
+      mode: RO
+      description: Status Counters
+    #########################################################
+    - address: 0x100
+      name: StatusVector
+      mode: RO
+      description: Status Vector      
+    #########################################################
+    - address: 0x200
+      name: MacAddress
+      size: 48      
+      mode: RO
+      description: MAC Address
+    #########################################################
+    - address: 0x218
+      name: InterFrameGap
+      size: 4      
+      mode: RO
+      description: InterFrameGap    
+    #########################################################
+    - address: 0x21C
+      name: InterFrameGap
+      size: 16      
+      mode: RO
+      description: InterFrameGap  
+    #########################################################
+    - address: 0x228
+      name: FilterEnable
+      size: 1    
+      mode: RO
+      description: FilterEnable 
+    #########################################################
+    - address: 0x22C
+      name: PauseEnable
+      size: 1    
+      mode: RO
+      description: PauseEnable  
+    #########################################################
+    - address: 0x230
+      name: ConfigVector
+      size: 7    
+      mode: RW
+      description: ConfigVector        
+    #########################################################
+    - address: 0xF00
+      name: RollOverEn
+      size: 25    
+      mode: RW
+      description: RollOverEn        
+    #########################################################
+    - address: 0xFF4
+      name: CounterReset
+      size: 1    
+      mode: WO
+      description: CounterReset  
+    #########################################################
+    - address: 0xFF8
+      name: SoftReset
+      size: 1    
+      mode: WO
+      description: SoftReset    
+    #########################################################
+    - address: 0xFFC
+      name: HardReset
+      size: 1    
+      mode: WO
+      description: HardReset          
+    #########################################################
