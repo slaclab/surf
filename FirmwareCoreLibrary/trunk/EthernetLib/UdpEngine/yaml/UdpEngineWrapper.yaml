@@ -1,0 +1,28 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+AmcCarrierBsi: &UdpEngineWrapper 
+  name: UdpEngineWrapper
+  description: UdpEngineWrapper 
+  size: 0x8
+  registers:
+    #########################################################
+    - address: 0x00
+      name: ClientRemotePort
+      size: 16      
+      mode: RW
+      description: ClientRemotePort
+    #########################################################
+    - address: 0x04
+      name: ClientRemoteIp
+      size: 32      
+      mode: RW
+      description: ClientRemoteIp
+    #########################################################
