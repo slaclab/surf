@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2016-04-06
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,6 +40,8 @@ entity AxiVersion is
       EN_DEVICE_DNA_G    : boolean                := false;
       EN_DS2411_G        : boolean                := false;
       EN_ICAP_G          : boolean                := false;
+      USE_SLOWCLK_G      : boolean                := false;
+      BUFR_CLK_DIV_G     : string                 := "8";
       AUTO_RELOAD_EN_G   : boolean                := false;
       AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;       -- units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
@@ -57,7 +59,9 @@ entity AxiVersion is
       fpgaEnReload   : in    sl                  := '1';
       fpgaReload     : out   sl;
       fpgaReloadAddr : out   slv(31 downto 0);
+      upTimeCnt      : out   slv(31 downto 0);
       -- Optional: Serial Number outputs
+      slowClk        : in    sl                  := '0';
       dnaValueOut    : out   slv(63 downto 0);
       fdSerialOut    : out   slv(63 downto 0);
       -- Optional: user values
@@ -134,11 +138,14 @@ begin
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
       DeviceDna_1 : entity work.DeviceDna
          generic map (
-            TPD_G        => TPD_G,
-            XIL_DEVICE_G => XIL_DEVICE_G)
+            TPD_G          => TPD_G,
+            USE_SLOWCLK_G  => USE_SLOWCLK_G,
+            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G,
+            XIL_DEVICE_G   => XIL_DEVICE_G)
          port map (
             clk      => axiClk,
             rst      => axiRst,
+            slowClk  => slowClk,
             dnaValue => dnaValue,
             dnaValid => dnaValid);
    end generate GEN_DEVICE_DNA;
@@ -159,11 +166,14 @@ begin
    GEN_ICAP : if (EN_ICAP_G) generate
       Iprog_1 : entity work.Iprog
          generic map (
-            TPD_G        => TPD_G,
-            XIL_DEVICE_G => XIL_DEVICE_G)
+            TPD_G          => TPD_G,
+            USE_SLOWCLK_G  => USE_SLOWCLK_G,
+            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G,
+            XIL_DEVICE_G   => XIL_DEVICE_G)
          port map (
             clk         => axiClk,
             rst         => axiRst,
+            slowClk     => slowClk,
             start       => r.fpgaReload,
             bootAddress => r.fpgaReloadAddr);
    end generate;
@@ -245,6 +255,7 @@ begin
       fpgaReload     <= r.fpgaReload;
       fpgaReloadAddr <= r.fpgaReloadAddr;
       masterRstDet   <= v.masterReset;
+      upTimeCnt      <= r.upTimeCnt;
 
    end process comb;
 

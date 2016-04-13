@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-18
--- Last update: 2015-06-18
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ entity IprogUltraScale is
    generic (
       TPD_G          : time    := 1 ns;
       USE_SLOWCLK_G  : boolean := false;
+      BUFR_CLK_DIV_G : natural := 8;
       RST_POLARITY_G : sl      := '1');      
    port (
       clk         : in sl;
@@ -95,7 +96,7 @@ begin
 
    BUFGCE_DIV_Inst : BUFGCE_DIV
       generic map (
-         BUFGCE_DIVIDE => 8)
+         BUFGCE_DIVIDE => BUFR_CLK_DIV_G)
       port map (
          I   => clk,
          CE  => '1',

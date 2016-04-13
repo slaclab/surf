@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-25
--- Last update: 2015-09-09
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ entity DeviceDna7Series is
    generic (
       TPD_G           : time       := 1 ns;
       USE_SLOWCLK_G   : boolean    := false;
+      BUFR_CLK_DIV_G  : string     := "8";
       RST_POLARITY_G  : sl         := '1';
       SIM_DNA_VALUE_G : bit_vector := X"000000000000000");
    port (
@@ -81,7 +82,7 @@ begin
 
    BUFR_Inst : BUFR
       generic map (
-         BUFR_DIVIDE => "8",
+         BUFR_DIVIDE => BUFR_CLK_DIV_G,
          SIM_DEVICE  => "7SERIES")
       port map (
          I   => clk,

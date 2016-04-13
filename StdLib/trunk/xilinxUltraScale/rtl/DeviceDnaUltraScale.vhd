@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-17
--- Last update: 2015-06-18
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ entity DeviceDnaUltraScale is
    generic (
       TPD_G           : time    := 1 ns;
       USE_SLOWCLK_G   : boolean := false;
+      BUFR_CLK_DIV_G  : natural := 8;
       RST_POLARITY_G  : sl      := '1';
       SIM_DNA_VALUE_G : slv     := X"000000000000000000000000");
    port (
@@ -81,7 +82,7 @@ begin
 
    BUFGCE_DIV_Inst : BUFGCE_DIV
       generic map (
-         BUFGCE_DIVIDE => 8)
+         BUFGCE_DIVIDE => BUFR_CLK_DIV_G)
       port map (
          I   => clk,
          CE  => '1',
