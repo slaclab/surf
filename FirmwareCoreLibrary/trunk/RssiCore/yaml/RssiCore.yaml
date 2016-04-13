@@ -10,5 +10,90 @@
 
 RssiCore: &RssiCore 
   name: RssiCore
-  description: Empty Module as a placeholder for future module
-  size: 0x0
+  description: RSSI module
+  size: 0x100
+    #########################################################
+    - address: 0x00 
+      name: ControlReg
+      nelms: 5
+      mode: RW
+      description: Control register [4:0]
+    #########################################################
+    - address: 0x04
+      name: InitSeqN
+      nelms: 8
+      mode: RW
+      description: Initial sequence number [7:0]
+    #########################################################
+    - address: 0x08
+      name: Version
+      nelms: 4
+      mode: RW
+      description: Version register [3:0]
+    #########################################################
+    - address: 0x0C
+      name: MaxOutsSeg
+      nelms: 8
+      mode: RW
+      description: Maximum out standing segments [7:0]
+    #########################################################
+    - address: 0x10
+      name: MaxSegSize
+      nelms: 16
+      mode: RW
+      description: Maximum segment size [15:0]
+    #########################################################
+    - address: 0x14
+      name: RetransTimeout
+      nelms: 16
+      mode: RW
+      description: Retransmission timeout [15:0]
+    #########################################################
+    - address: 0x18
+      name: CumAckTimeout
+      nelms: 16
+      mode: RW
+      description: Cumulative acknowledgment timeout [15:0]
+    #########################################################
+    - address: 0x1C
+      name: NullSegTimeout
+      nelms: 16
+      mode: RW
+      description: Null segment timeout [15:0]
+    #########################################################
+    - address: 0x20
+      name: MaxNumRetrans
+      nelms: 8     
+      mode: RW
+      description: Maximum number of retransmissions [7:0]
+    #########################################################
+    - address: 0x24
+      name: MaxCumAck
+      nelms: 8 
+      mode: RW
+      description: Maximum cumulative acknowledgments [7:0]
+    #########################################################
+    - address: 0x28
+      name: MaxOutOfSeq
+      nelms: 8
+      mode: RW
+      description: Max out of sequence segments (EACK) [7:0]
+    #########################################################
+    - address: 0x40
+      name: StatusReg
+      nelms: 7
+      mode: RO
+      description: Status register [6:0]
+    #########################################################
+    - address: 0x44
+      name: ValidCnt
+      nelms: 32
+      mode: RO
+      description: Number of valid segments [31:0]
+    #########################################################    
+    - address: 0x48
+      name: DropCnt
+      nelms: 32
+      mode: RO
+      description: Number of dropped segments [31:0]
+    #########################################################
