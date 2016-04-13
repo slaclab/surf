@@ -41,7 +41,7 @@ entity AxiVersion is
       EN_DS2411_G        : boolean                := false;
       EN_ICAP_G          : boolean                := false;
       USE_SLOWCLK_G      : boolean                := false;
-      BUFR_CLK_DIV_G     : string                 := "8";
+      BUFR_CLK_DIV_G     : positive               := 8;
       AUTO_RELOAD_EN_G   : boolean                := false;
       AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;       -- units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
