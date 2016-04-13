@@ -24,14 +24,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
+use work.TextUtilPkg.all;
 
 entity Iprog is
    generic (
-      TPD_G          : time    := 1 ns;
-      XIL_DEVICE_G   : string  := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
-      USE_SLOWCLK_G  : boolean := false;
-      BUFR_CLK_DIV_G : string  := "8";
-      RST_POLARITY_G : sl      := '1');      
+      TPD_G          : time     := 1 ns;
+      XIL_DEVICE_G   : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      USE_SLOWCLK_G  : boolean  := false;
+      BUFR_CLK_DIV_G : positive := 8;
+      RST_POLARITY_G : sl       := '1');      
    port (
       clk         : in sl;
       rst         : in sl;
@@ -49,7 +50,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,
-            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G)
+            BUFR_CLK_DIV_G => str(BUFR_CLK_DIV_G, 10))
          port map (
             clk         => clk,
             rst         => rst,
@@ -63,7 +64,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,
-            BUFR_CLK_DIV_G => integer'value(BUFR_CLK_DIV_G),
+            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G,
             RST_POLARITY_G => RST_POLARITY_G)   
          port map (
             clk         => clk,
