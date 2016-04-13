@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-17
--- Last update: 2015-06-18
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ entity DeviceDna is
       TPD_G           : time    := 1 ns;
       XIL_DEVICE_G    : string  := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
       USE_SLOWCLK_G   : boolean := false;
+      BUFR_CLK_DIV_G  : string  := "8";
       RST_POLARITY_G  : sl      := '1';
       SIM_DNA_VALUE_G : slv     := X"000000000000000000000000");
    port (
@@ -49,6 +50,7 @@ begin
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
+            BUFR_CLK_DIV_G  => BUFR_CLK_DIV_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             SIM_DNA_VALUE_G => to_bitvector(SIM_DNA_VALUE_G))   
          port map (
@@ -64,6 +66,7 @@ begin
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
+            BUFR_CLK_DIV_G  => integer'value(BUFR_CLK_DIV_G),
             RST_POLARITY_G  => RST_POLARITY_G,
             SIM_DNA_VALUE_G => SIM_DNA_VALUE_G)   
          port map (
