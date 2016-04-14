@@ -50,23 +50,23 @@ entity SrpV3Axi is
       AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2));
    port (
       -- AXIS Slave Interface (sAxisClk domain) 
-      sAxisClk       : in  sl;
-      sAxisRst       : in  sl;
-      sAxisMaster    : in  AxiStreamMasterType;
-      sAxisSlave     : out AxiStreamSlaveType;
-      sAxisCtrl      : out AxiStreamCtrlType;
+      sAxisClk        : in  sl;
+      sAxisRst        : in  sl;
+      sAxisMaster     : in  AxiStreamMasterType;
+      sAxisSlave      : out AxiStreamSlaveType;
+      sAxisCtrl       : out AxiStreamCtrlType;
       -- AXIS Master Interface (mAxisClk domain) 
-      mAxisClk       : in  sl;
-      mAxisRst       : in  sl;
-      mAxisMaster    : out AxiStreamMasterType;
-      mAxisSlave     : in  AxiStreamSlaveType;
-      -- AXI Interface  (axiClk domain) 
-      axiClk         : in  sl;
-      axiRst         : in  sl;
-      axiWriteMaster : out AxiWriteMasterType;
-      axiWriteSlave  : in  AxiWriteSlaveType;
-      axiReadMaster  : out AxiReadMasterType;
-      axiReadSlave   : in  AxiReadSlaveType);      
+      mAxisClk        : in  sl;
+      mAxisRst        : in  sl;
+      mAxisMaster     : out AxiStreamMasterType;
+      mAxisSlave      : in  AxiStreamSlaveType;
+      -- Master AXI Interface  (mAxiClk domain) 
+      mAxiClk         : in  sl;
+      mAxiRst         : in  sl;
+      mAxiWriteMaster : out AxiWriteMasterType;
+      mAxiWriteSlave  : in  AxiWriteSlaveType;
+      mAxiReadMaster  : out AxiReadMasterType;
+      mAxiReadSlave   : in  AxiReadSlaveType);      
 end SrpV3Axi;
 
 architecture rtl of SrpV3Axi is
@@ -95,56 +95,56 @@ architecture rtl of SrpV3Axi is
       BLOWOFF_S);
 
    type RegType is record
-      timer          : natural range 0 to TIMEOUT_C;
-      hdrCnt         : slv(3 downto 0);
-      remVer         : slv(7 downto 0);
-      opCode         : slv(1 downto 0);
-      spare          : slv(5 downto 0);
-      retryCnt       : slv(7 downto 0);
-      timeoutSize    : slv(7 downto 0);
-      timeoutCnt     : slv(7 downto 0);
-      tid            : slv(31 downto 0);
-      addr           : slv(63 downto 0);
-      reqSize        : slv(31 downto 0);
-      cnt            : slv(29 downto 0);
-      cntSize        : slv(29 downto 0);
-      memResp        : slv(7 downto 0);
-      timeout        : sl;
-      eofe           : sl;
-      frameError     : sl;
-      verMismatch    : sl;
-      reqSizeError   : sl;
-      axiWriteMaster : AxiWriteMasterType;
-      axiReadMaster  : AxiReadMasterType;
-      rxSlave        : AxiStreamSlaveType;
-      txMaster       : AxiStreamMasterType;
-      state          : StateType;
+      timer           : natural range 0 to TIMEOUT_C;
+      hdrCnt          : slv(3 downto 0);
+      remVer          : slv(7 downto 0);
+      opCode          : slv(1 downto 0);
+      spare           : slv(5 downto 0);
+      retryCnt        : slv(7 downto 0);
+      timeoutSize     : slv(7 downto 0);
+      timeoutCnt      : slv(7 downto 0);
+      tid             : slv(31 downto 0);
+      addr            : slv(63 downto 0);
+      reqSize         : slv(31 downto 0);
+      cnt             : slv(29 downto 0);
+      cntSize         : slv(29 downto 0);
+      memResp         : slv(7 downto 0);
+      timeout         : sl;
+      eofe            : sl;
+      frameError      : sl;
+      verMismatch     : sl;
+      reqSizeError    : sl;
+      mAxiWriteMaster : AxiWriteMasterType;
+      mAxiReadMaster  : AxiReadMasterType;
+      rxSlave         : AxiStreamSlaveType;
+      txMaster        : AxiStreamMasterType;
+      state           : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      timer          => 0,
-      hdrCnt         => (others => '0'),
-      remVer         => (others => '0'),
-      opCode         => (others => '0'),
-      spare          => (others => '0'),
-      retryCnt       => (others => '0'),
-      timeoutSize    => (others => '0'),
-      timeoutCnt     => (others => '0'),
-      tid            => (others => '0'),
-      addr           => (others => '0'),
-      reqSize        => (others => '0'),
-      cnt            => (others => '0'),
-      cntSize        => (others => '0'),
-      memResp        => (others => '0'),
-      timeout        => '0',
-      eofe           => '0',
-      frameError     => '0',
-      verMismatch    => '0',
-      reqSizeError   => '0',
-      axiWriteMaster => AXI_WRITE_MASTER_INIT_C,
-      axiReadMaster  => AXI_READ_MASTER_INIT_C,
-      rxSlave        => AXI_STREAM_SLAVE_INIT_C,
-      txMaster       => AXI_STREAM_MASTER_INIT_C,
-      state          => IDLE_S);
+      timer           => 0,
+      hdrCnt          => (others => '0'),
+      remVer          => (others => '0'),
+      opCode          => (others => '0'),
+      spare           => (others => '0'),
+      retryCnt        => (others => '0'),
+      timeoutSize     => (others => '0'),
+      timeoutCnt      => (others => '0'),
+      tid             => (others => '0'),
+      addr            => (others => '0'),
+      reqSize         => (others => '0'),
+      cnt             => (others => '0'),
+      cntSize         => (others => '0'),
+      memResp         => (others => '0'),
+      timeout         => '0',
+      eofe            => '0',
+      frameError      => '0',
+      verMismatch     => '0',
+      reqSizeError    => '0',
+      mAxiWriteMaster => AXI_WRITE_MASTER_INIT_C,
+      mAxiReadMaster  => AXI_READ_MASTER_INIT_C,
+      rxSlave         => AXI_STREAM_SLAVE_INIT_C,
+      txMaster        => AXI_STREAM_MASTER_INIT_C,
+      state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -193,8 +193,8 @@ begin
          sAxisSlave  => sAxisSlave,
          sAxisCtrl   => sCtrl,
          -- Master Port
-         mAxisClk    => axiClk,
-         mAxisRst    => axiRst,
+         mAxisClk    => mAxiClk,
+         mAxisRst    => mAxiRst,
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave,
          mTLastTUser => rxTLastTUser.tUser);  
@@ -210,8 +210,8 @@ begin
             WIDTH_G => 2,
             INIT_G  => "11")
          port map (
-            clk        => axiClk,
-            rst        => axiRst,
+            clk        => mAxiClk,
+            rst        => mAxiRst,
             dataIn(0)  => sCtrl.pause,
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
@@ -220,28 +220,28 @@ begin
          generic map (
             TPD_G => TPD_G)
          port map (
-            clk     => axiClk,
-            rst     => axiRst,
+            clk     => mAxiClk,
+            rst     => mAxiRst,
             dataIn  => sCtrl.overflow,
             dataOut => rxCtrl.overflow);            
    end generate;
 
-   comb : process (axiReadSlave, axiRst, axiWriteSlave, r, rxMaster) is
+   comb : process (mAxiReadSlave, mAxiRst, mAxiWriteSlave, r, rxMaster) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
       -- Update output registers 
-      if axiWriteSlave.awready = '1' then
-         v.axiWriteMaster.awvalid := '0';
+      if mAxiWriteSlave.awready = '1' then
+         v.mAxiWriteMaster.awvalid := '0';
       end if;
-      if axiWriteSlave.wready = '1' then
-         v.axiWriteMaster.wvalid := '0';
-         v.axiWriteMaster.wlast  := '0';
+      if mAxiWriteSlave.wready = '1' then
+         v.mAxiWriteMaster.wvalid := '0';
+         v.mAxiWriteMaster.wlast  := '0';
       end if;
-      if axiReadSlave.arready = '1' then
-         v.axiReadMaster.arvalid := '0';
+      if mAxiReadSlave.arready = '1' then
+         v.mAxiReadMaster.arvalid := '0';
       end if;
 
       -- Check the timer
@@ -267,11 +267,11 @@ begin
             -- Reset counter
             v.cnt          := (others => '0');
 
-            
-            
-            
-            
-            
+
+
+
+
+
             v.state := BLOWOFF_S;
             -- -- Check for overflow
             -- if rxCtrl.overflow = '1' then
@@ -664,7 +664,7 @@ begin
                      -- v.state   := FOOTER_S;
                   -- end if;
                -- end if;
-            -- end if;         
+            -- end if;       
          ----------------------------------------------------------------------
          when BLOWOFF_S =>
             -- Accept the data
@@ -678,7 +678,7 @@ begin
       end case;
 
       -- Reset
-      if (axiRst = '1') then
+      if (mAxiRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -686,15 +686,15 @@ begin
       rin <= v;
 
       -- Outputs    
-      rxSlave        <= v.rxSlave;
-      axiWriteMaster <= r.axiWriteMaster;
-      axiReadMaster  <= r.axiReadMaster;
+      rxSlave         <= v.rxSlave;
+      mAxiWriteMaster <= r.mAxiWriteMaster;
+      mAxiReadMaster  <= r.mAxiReadMaster;
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (mAxiClk) is
    begin
-      if (rising_edge(axiClk)) then
+      if (rising_edge(mAxiClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -720,8 +720,8 @@ begin
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          -- Slave Port
-         sAxisClk    => axiClk,
-         sAxisRst    => axiRst,
+         sAxisClk    => mAxiClk,
+         sAxisRst    => mAxiRst,
          sAxisMaster => r.txMaster,
          sAxisSlave  => txSlave,
          -- Master Port
