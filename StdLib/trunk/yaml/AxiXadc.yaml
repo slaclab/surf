@@ -1,0 +1,220 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+AxiXadc: &AxiXadc 
+  name: AxiXadc
+  description: AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)
+  size: 0x800
+  registers:
+    #########################################################
+    - address: 0x00 
+      name: SRR
+      mode: WO
+      description: Software Reset Register
+    #########################################################
+    - address: 0x04 
+      name: SR
+      mode: RO
+      description: Status Register
+    #########################################################
+    - address: 0x08
+      name: AOSR
+      mode: RO
+      description: Alarm Output Status Register    
+    #########################################################
+    - address: 0x0C
+      name: CONVSTR
+      mode: WO
+      description: CONVST Register
+    #########################################################
+    - address: 0x10
+      name: SYSMONRR
+      mode: WO
+      description: XADC Hard Macro Reset Register  
+    #########################################################
+    - address: 0x5C
+      name: GIER
+      mode: RW
+      description: Global Interrupt Enable Register   
+    #########################################################
+    - address: 0x60
+      name: IPISR
+      mode: RTOW
+      description: IP Interrupt Status Register
+    #########################################################
+    - address: 0x68
+      name: IPIER
+      mode: RW
+      description: IP Interrupt Enable Register   
+    #########################################################
+    - address: 0x200
+      name: Temperature
+      mode: RO
+      description: Temperature's ADC value  
+    #########################################################
+    - address: 0x204
+      name: VCCINT
+      mode: RO
+      description: VCCINT's ADC value     
+    #########################################################
+    - address: 0x208
+      name: VCCAUX
+      mode: RO
+      description: VCCAUX's ADC value     
+    #########################################################
+    - address: 0x20C
+      name: VP_VN
+      mode: RO
+      description: VP/VN's ADC value      
+    #########################################################
+    - address: 0x210
+      name: VREFP
+      mode: RO
+      description: VREFP's ADC value  
+    #########################################################
+    - address: 0x214
+      name: VREFN
+      mode: RO
+      description: VREFN's ADC value    
+    #########################################################
+    - address: 0x218
+      name: VBRAM
+      mode: RO
+      description: VBRAM's ADC value  
+    #########################################################
+    - address: 0x220
+      name: SupplyOffset
+      mode: RO
+      description: Supply Offset     
+    #########################################################
+    - address: 0x224
+      name: ADCOffset
+      mode: RO
+      description: ADC Offset   
+    #########################################################
+    - address: 0x228
+      name: GainError
+      mode: RO
+      description: Gain Error        
+    #########################################################
+    - address: 0x234
+      name: VCCPINT
+      mode: RO
+      description: VCCPINT's ADC value 
+    #########################################################
+    - address: 0x238
+      name: VCCPAUX
+      mode: RO
+      description: VCCPAUX's ADC value 
+    #########################################################
+    - address: 0x23C
+      name: VCCDDRO
+      mode: RO
+      description: VCCDDRO's ADC value       
+    #########################################################
+    - address: 0x240
+      name: VAUXP_VAUXN
+      nelms: 16
+      mode: RO
+      description: VAUXP_VAUXN's ADC values       
+    #########################################################
+    - address: 0x280
+      name: MaxTemp
+      mode: RO
+      description: maximum temperature measurement
+    #########################################################
+    - address: 0x284
+      name: MaxVCCINT
+      mode: RO
+      description: maximum VCCINT measurement      
+    #########################################################
+    - address: 0x288
+      name: MaxVCCAUX
+      mode: RO
+      description: maximum VCCAUX measurement  
+    #########################################################
+    - address: 0x28C
+      name: MaxVBRAM
+      mode: RO
+      description: maximum VBRAM measurement  
+    #########################################################
+    - address: 0x290
+      name: MinTemp
+      mode: RO
+      description: minimum temperature measurement
+    #########################################################
+    - address: 0x294
+      name: MinVCCINT
+      mode: RO
+      description: minimum VCCINT measurement      
+    #########################################################
+    - address: 0x298
+      name: MinVCCAUX
+      mode: RO
+      description: minimum VCCAUX measurement  
+    #########################################################
+    - address: 0x29C
+      name: MinVBRAM
+      mode: RO
+      description: minimum VBRAM measurement        
+    #########################################################
+    - address: 0x2A0
+      name: MaxVCCPINT
+      mode: RO
+      description: maximum VCCPINT measurement      
+    #########################################################
+    - address: 0x2A4
+      name: MaxVCCPAUX
+      mode: RO
+      description: maximum VCCPAUX measurement  
+    #########################################################
+    - address: 0x2A8
+      name: MaxVCCDDRO
+      mode: RO
+      description: maximum VCCDDRO measurement        
+    #########################################################
+    - address: 0x2B0
+      name: MinVCCPINT
+      mode: RO
+      description: minimum VCCPINT measurement      
+    #########################################################
+    - address: 0x2B4
+      name: MinVCCPAUX
+      mode: RO
+      description: minimum VCCPAUX measurement  
+    #########################################################
+    - address: 0x2B8
+      name: MinVCCDDRO
+      mode: RO
+      description: minimum VCCDDRO measurement       
+    #########################################################
+    - address: 0x2FC
+      name: FlagRegister
+      mode: RO
+      description: Flag Register   
+    #########################################################
+    - address: 0x300
+      name: ConfigurationRegister
+      nelms: 3
+      mode: RW
+      description: Configuration Registers [2:0]
+    #########################################################
+    - address: 0x320
+      name: SequenceReg
+      nelms: 8
+      mode: RW
+      description: Sequence Registers [7:0] 
+    #########################################################
+    - address: 0x340
+      name: AlarmThreshold
+      nelms: 16
+      mode: RW
+      description: Alarm Threshold Registers [15:0]       
+    #########################################################
