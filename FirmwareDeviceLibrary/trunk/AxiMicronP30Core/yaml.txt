@@ -1,0 +1,1 @@
+manual yaml/AxiMicronP30.yaml
