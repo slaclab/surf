@@ -99,7 +99,7 @@ AxiSysMonUltraScale: &AxiSysMonUltraScale
       mode: RO
       description: ADC Offset   
     #########################################################
-    - address: 0x424
+    - address: 0x428
       name: GainError
       mode: RO
       description: Gain Error        
