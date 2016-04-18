@@ -5,12 +5,11 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-26
--- Last update: 2015-09-09
+-- Last update: 2016-03-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Takes 8 80-bit (5x16) adc frames and reformats them into
---              7 80 bit (5x14) frames.
+-- Description: 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -30,10 +29,6 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-use work.HpsPkg.all;
-use work.AdcReadoutPkg.all;
-use work.FebConfigPkg.all;
-
 entity AxiStreamPacker is
    
    generic (
@@ -41,7 +36,6 @@ entity AxiStreamPacker is
       AXI_STREAM_CONFIG_G : AxiStreamConfigType := APV_DATA_SSI_CONFIG_C;
       RANGE_HIGH_G        : integer := 13;
       RANGE_LOW_G         : integer := 2);
---      PACK_SIZE_G         : integer);
    port (
       axisClk : in sl;
       axisRst : in sl;
