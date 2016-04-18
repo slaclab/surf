@@ -17,35 +17,31 @@ AxiMicronP30: &AxiMicronP30
     - address: 0x00 
       name: WrData
       size: 16      
-      bitOffset: 0      
       mode: RW
       description: Write Data
     #########################################################
-    - address: 0x00
+    - address: 0x02
       name: WrCmd
-      size: 16      
-      bitOffset: 16      
+      size: 16        
       mode: RW
       description: Write Command      
     #########################################################
     - address: 0x04 
       name: Address
-      size: 30     
-      bitOffset: 0
+      size: 31
       mode: RW
       description: Read/Write Address
     #########################################################
-    - address: 0x04 
+    - address: 0x07
       name: RnW
       size: 1     
-      bitOffset: 31
+      lsBit: 7
       mode: RW
       description: Read/Write operation bit      
     #########################################################
     - address: 0x08 
       name: RdData
-      size: 16      
-      bitOffset: 0      
+      size: 16          
       mode: RO
       description: Read Data      
     #########################################################    
