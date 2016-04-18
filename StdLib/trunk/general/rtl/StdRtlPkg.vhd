@@ -60,6 +60,7 @@ package StdRtlPkg is
    function log2 (constant number    : positive) return natural;
    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
+   function wordCount (number : positive; wordSize : positive := 8) return natural; 
 
    -- Similar to python's range() function
    function list (constant start, size, step : integer) return IntegerArray;
@@ -744,6 +745,16 @@ package body StdRtlPkg is
       end loop;
       return resultVar;
    end;
+
+   function wordCount (number : positive; wordSize : positive := 8) return natural is
+      variable ret : natural;
+   begin
+      ret := number / wordSize;
+      if (number mod wordSize /= 0) then
+         ret := ret + 1;
+      end if;
+      return ret;
+   end function wordCount;
 
    function list (constant start, size, step : integer) return IntegerArray is
       variable retVar : IntegerArray(0 to size-1);
