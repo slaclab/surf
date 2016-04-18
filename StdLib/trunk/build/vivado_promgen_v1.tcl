@@ -15,14 +15,19 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 # Target PROMGEN script
-set inputFile "$::env(IMPL_DIR)/$::env(PROJECT).bit"
-set outputFile "$::env(IMPL_DIR)/$::env(PROJECT).mcs"
-set imagesFile "$::env(IMAGES_DIR)/$::env(PROJECT)_$::env(PRJ_VERSION).mcs"
-set loadbit    "up 0x0 ${inputFile}"
-set loaddata   ""
+set inputFile     "$::env(IMPL_DIR)/$::env(PROJECT).bit"
+set outputFile    "$::env(IMPL_DIR)/$::env(PROJECT).mcs"
+set outputFilePri "$::env(IMPL_DIR)/$::env(PROJECT)_primary.mcs"
+set outputFileSec "$::env(IMPL_DIR)/$::env(PROJECT)_secondary.mcs"
+set imagesFile    "$::env(IMAGES_DIR)/$::env(PROJECT)_$::env(PRJ_VERSION).mcs"
+set imagesFilePri "$::env(IMAGES_DIR)/$::env(PROJECT)_primary_$::env(PRJ_VERSION).mcs"
+set imagesFileSec "$::env(IMAGES_DIR)/$::env(PROJECT)_secondary_$::env(PRJ_VERSION).mcs"
+set loadbit       "up 0x0 ${inputFile}"
+set loaddata      ""
 
 source ${VIVADO_DIR}/promgen.tcl
 
+# Check for non-user data
 if { ${loaddata} != "" } {
    puts ${inputFile}
    puts ${outputFile}
@@ -47,5 +52,10 @@ if { ${loaddata} != "" } {
       -file ${outputFile}   
 }
 
-# Note: We still need to add copy support for -interface = SPIx8
-exec cp ${outputFile} ${imagesFile}
+# Check for SPIx8
+if { ${inteface} == "SPIx8" } {
+   exec cp ${outputFilePri} ${imagesFilePri}
+   exec cp ${outputFileSec} ${imagesFileSec}
+} else {
+   exec cp ${outputFile} ${imagesFile}
+}
