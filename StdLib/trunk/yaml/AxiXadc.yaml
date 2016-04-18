@@ -54,9 +54,10 @@ AxiXadc: &AxiXadc
       mode: RW
       description: IP Interrupt Enable Register   
     #########################################################
-    - address: 0x201
+    - address: 0x200
       name: Temperature
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of the on-chip temperature sensor measurement is 
@@ -65,9 +66,10 @@ AxiXadc: &AxiXadc
         temperature sensor transfer function shown in Figure 2-8, 
         page 31 of UG480 (v1.2)
     #########################################################
-    - address: 0x205
+    - address: 0x204
       name: VCCINT
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of the on-chip VccInt supply monitor measurement 
@@ -76,9 +78,10 @@ AxiXadc: &AxiXadc
         supply sensor transfer function shown in Figure 2-9, 
         page 32 of UG480 (v1.2)     
     #########################################################
-    - address: 0x209
+    - address: 0x208
       name: VCCAUX
       size: 12
+      lsBit: 4
       mode: RO
       description: |   
         The result of the on-chip VccAux supply monitor measurement 
@@ -87,9 +90,10 @@ AxiXadc: &AxiXadc
         supply sensor transfer function shown in Figure 2-9, 
         page 32 of UG480 (v1.2)
     #########################################################
-    - address: 0x20D
+    - address: 0x20C
       name: VP_VN
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of a conversion on the dedicated analog input 
@@ -99,9 +103,10 @@ AxiXadc: &AxiXadc
         Figure 2-6, page 29 of UG480 (v1.2) depending on analog input mode 
         settings.
     #########################################################
-    - address: 0x211
+    - address: 0x210
       name: VREFP
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of a conversion on the reference input VrefP is 
@@ -110,9 +115,10 @@ AxiXadc: &AxiXadc
         justified in the 16-bit register (Read Only). The supply sensor is used 
         when measuring VrefP.
     #########################################################
-    - address: 0x215
+    - address: 0x214
       name: VREFN
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of a conversion on the reference input VREFN is 
@@ -124,9 +130,10 @@ AxiXadc: &AxiXadc
         VrefN, thus 1 LSB = 3V/4096. The data is MSB justified in 
         the 16-bit register.      
     #########################################################
-    - address: 0x219
+    - address: 0x218
       name: VBRAM
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of the on-chip VccBram supply monitor measurement 
@@ -135,33 +142,37 @@ AxiXadc: &AxiXadc
         supply sensor transfer function shown in Figure 2-9, 
         page 32 of UG480 (v1.2)
     #########################################################
-    - address: 0x221
+    - address: 0x220
       name: SupplyOffset
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The calibration coefficient for the supply sensor offset 
         using ADC A is stored at this location (Read Only).
     #########################################################
-    - address: 0x225
+    - address: 0x224
       name: ADCOffset
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The calibration coefficient for the ADC A offset is stored at 
         this location (Read Only).
     #########################################################
-    - address: 0x229
+    - address: 0x228
       name: GainError
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The calibration coefficient for the ADC A gain error is 
         stored at this location (Read Only).
     #########################################################
-    - address: 0x235
+    - address: 0x234
       name: VCCPINT
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of a conversion on the PS supply, VccpInt is 
@@ -170,9 +181,10 @@ AxiXadc: &AxiXadc
         MSB justified in the 16-bit register (Zynq Only and Read Only).
         The supply sensor is used when measuring VccpInt.
     #########################################################
-    - address: 0x239
+    - address: 0x238
       name: VCCPAUX
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of a conversion on the PS supply, VccpAux is 
@@ -181,9 +193,10 @@ AxiXadc: &AxiXadc
         MSB justified in the 16-bit register (Zynq Only and Read Only). 
         The supply sensor is used when measuring VccpAux.
     #########################################################
-    - address: 0x23D
+    - address: 0x23C
       name: VCCDDRO
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The result of a conversion on the PS supply, VccpDdr is 
@@ -192,10 +205,11 @@ AxiXadc: &AxiXadc
         MSB justified in the 16-bit register (Zynq Only and Read Only). 
         The supply sensor is used when measuring VccpDdr.
     #########################################################
-    - address: 0x241
+    - address: 0x240
       name: VAUXP_VAUXN
       nelms: 16
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         The results of the conversions on auxiliary analog input 
@@ -205,113 +219,127 @@ AxiXadc: &AxiXadc
         Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode 
         settings.
     #########################################################
-    - address: 0x281
+    - address: 0x280
       name: MaxTemp
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum temperature measurement recorded since 
         power-up or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x285
+    - address: 0x284
       name: MaxVCCINT
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum VccInt measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x289
+    - address: 0x288
       name: MaxVCCAUX
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum VccAux measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x28D
+    - address: 0x28C
       name: MaxVBRAM
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum VccBram measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x291
+    - address: 0x290
       name: MinTemp
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum temperature measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x295
+    - address: 0x294
       name: MinVCCINT
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum VccInt measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x299
+    - address: 0x298
       name: MinVCCAUX
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum VccAux measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x29D
+    - address: 0x29C
       name: MinVBRAM
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum VccBram measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x2A1
+    - address: 0x20
       name: MaxVCCPINT
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum VccpInt measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2A5
+    - address: 0x2A4
       name: MaxVCCPAUX
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum VccpAux measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2A9
+    - address: 0x2A8
       name: MaxVCCDDRO
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Maximum VccpDdr measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2B1
+    - address: 0x2B0
       name: MinVCCPINT
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum VccpInt measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2B5
+    - address: 0x2B4
       name: MinVCCPAUX
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum VccpAux measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2B9
+    - address: 0x2B8
       name: MinVCCDDRO
       size: 12
+      lsBit: 4
       mode: RO
       description: |
         Minimum VccpDdr measurement recorded since power-up 
