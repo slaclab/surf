@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-24
+-- Last update: 2016-04-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,35 +35,44 @@ entity AxiStreamDmaRingWrite is
       BUFFERS_G                  : natural range 2 to 64   := 64;
       BURST_SIZE_BYTES_G         : natural range 4 to 4096 := 4096;
       TRIGGER_USER_BIT_G         : natural range 0 to 7    := 0;
-      AXIL_AXI_ASYNC_G           : boolean                 := true;
       AXIL_BASE_ADDR_G           : slv(31 downto 0)        := (others => '0');
       DATA_AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(8);
       STATUS_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
       AXI_WRITE_CONFIG_G         : AxiConfigType           := axiConfig(32, 8, 1, 8));
    port (
       -- AXI-Lite Interface for local registers 
-      axilClk          : in  sl;
-      axilRst          : in  sl;
-      axilReadMaster   : in  AxiLiteReadMasterType;
-      axilReadSlave    : out AxiLiteReadSlaveType;
-      axilWriteMaster  : in  AxiLiteWriteMasterType;
-      axilWriteSlave   : out AxiLiteWriteSlaveType;
-      -- Low level buffer control
-      bufferClear      : in  slv(log2(BUFFERS_G)-1 downto 0) := (others => '0');
-      bufferClearEn    : in  sl                              := '0';
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
+
       -- Status stream
       axisStatusClk    : in  sl;
       axisStatusRst    : in  sl;
       axisStatusMaster : out AxiStreamMasterType;
-      axisStatusSlave  : in  AxiStreamSlaveType              := AXI_STREAM_SLAVE_FORCE_C;
-      -- Axi Stream interface to be buffered
-      axiClk           : in  sl;
-      axiRst           : in  sl;
-      axisDataMaster   : in  AxiStreamMasterType;
-      axisDataSlave    : out AxiStreamSlaveType;
+      axisStatusSlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
+
+      -- AXI (DDR) clock domain
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      -- Axi Stream data to be buffered      
+      axisDataMaster  : in  AxiStreamMasterType;
+      axisDataSlave   : out AxiStreamSlaveType;
+      -- Low level buffer control
+      bufferClear     : in  slv(log2(BUFFERS_G)-1 downto 0) := (others => '0');
+      bufferClearEn   : in  sl                              := '0';
+      bufferEnabled   : out slv(BUFFERS_G-1 downto 0);
+      bufferEmpty     : out slv(BUFFERS_G-1 downto 0);
+      bufferFull      : out slv(BUFFERS_G-1 downto 0);
+      bufferDone      : out slv(BUFFERS_G-1 downto 0);
+      bufferTriggered : out slv(BUFFERS_G-1 downto 0);
+      bufferError     : out slv(BUFFERS_G-1 downto 0);
+
       -- AXI4 Interface for RAM
-      axiWriteMaster   : out AxiWriteMasterType;
-      axiWriteSlave    : in  AxiWriteSlaveType);
+      axiWriteMaster : out AxiWriteMasterType;
+      axiWriteSlave  : in  AxiWriteSlaveType);
 
 end entity AxiStreamDmaRingWrite;
 
@@ -77,10 +86,6 @@ architecture rtl of AxiStreamDmaRingWrite is
 
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
-      LOCAL_AXIL_C    => (
-         baseAddr     => AXIL_BASE_ADDR_G,
-         addrBits     => 8,
-         connectivity => X"FFFF"),
       START_AXIL_C    => (
          baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, START_AXIL_C),
          addrBits     => AXIL_RAM_ADDR_WIDTH_C,
@@ -143,9 +148,14 @@ architecture rtl of AxiStreamDmaRingWrite is
       state            : StateType;
       dmaReq           : AxiWriteDmaReqType;
       trigger          : sl;
+      eofe             : sl;
+      bufferEnabled    : slv(BUFFERS_G-1 downto 0);
+      bufferEmpty      : slv(BUFFERS_G-1 downto 0);
+      bufferFull       : slv(BUFFERS_G-1 downto 0);
+      bufferDone       : slv(BUFFERS_G-1 downto 0);
+      bufferTriggered  : slv(BUFFERS_G-1 downto 0);
+      bufferError      : slv(BUFFERS_G-1 downto 0);
       axisStatusMaster : AxiStreamMasterType;
-      axilWriteSlave   : AxiLiteWriteSlaveType;
-      axilReadSlave    : AxiLiteReadSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -164,9 +174,14 @@ architecture rtl of AxiStreamDmaRingWrite is
       state            => WAIT_TVALID_S,
       dmaReq           => AXI_WRITE_DMA_REQ_INIT_C,
       trigger          => '0',
-      axisStatusMaster => axiStreamMasterInit(AXIS_STATUS_CONFIG_C),
-      axilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C);
+      eofe             => '0',
+      bufferEnabled    => (others => '1'),
+      bufferEmpty      => (others => '1'),
+      bufferFull       => (others => '0'),
+      bufferDone       => (others => '1'),
+      bufferTriggered  => (others => '0'),
+      bufferError      => (others => '0'),
+      axisStatusMaster => axiStreamMasterInit(AXIS_STATUS_CONFIG_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -180,13 +195,10 @@ architecture rtl of AxiStreamDmaRingWrite is
    signal modeRamDout   : slv(31 downto 0);
    signal statusRamDout : slv(31 downto 0);
 
-   signal modeWrStrobe : sl;
+   signal modeWrValid  : sl;
+   signal modeWrStrobe : slv(3 downto 0);
    signal modeWrAddr   : slv(RAM_ADDR_WIDTH_C-1 downto 0);
    signal modeWrData   : slv(31 downto 0);
-
-   -- axiClk signals
-   signal dmaReqAxi : AxiWriteDmaReqType;
-   signal dmaAckAxi : AxiWriteDmaAckType;
 
 begin
    -- Assert that stream config has enough tdest bits for the number of buffers being tracked
@@ -307,7 +319,7 @@ begin
          din            => r.nextAddr,
          dout           => nextRamDout);
 
-   U_AxiDualPortRam_Trigr : entity work.AxiDualPortRam
+   U_AxiDualPortRam_Trigger : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -338,7 +350,7 @@ begin
          REG_EN_G     => false,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
-         COMMON_CLK_G => not AXIL_AXI_ASYNC_G,
+         COMMON_CLK_G => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
          DATA_WIDTH_G => 32)
       port map (
@@ -352,11 +364,11 @@ begin
          rst            => axiRst,
          addr           => r.rdRamAddr,
          dout           => modeRamDout,
+         axiWrValid     => modeWrValid,
          axiWrStrobe    => modeWrStrobe,
          axiWrAddr      => modeWrAddr,
          axiWrData      => modeWrData);
 
-   -- Change this to Config (32 bits wide)
    U_AxiDualPortRam_Status : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
@@ -380,8 +392,6 @@ begin
          din            => r.status,
          dout           => statusRamDout);
 
-
-
    -- DMA Write block
    U_AxiStreamDmaWrite_1 : entity work.AxiStreamDmaWrite
       generic map (
@@ -395,80 +405,15 @@ begin
       port map (
          axiClk         => axiClk,          -- [in]
          axiRst         => axiRst,          -- [in]
-         dmaReq         => dmaReqAxi,       -- [in]
-         dmaAck         => dmaAckAxi,       -- [out]
+         dmaReq         => r.dmaReq,        -- [in]
+         dmaAck         => dmaAck,          -- [out]
          axisMaster     => axisDataMaster,  -- [in]
          axisSlave      => axisDataSlave,   -- [out]
          axiWriteMaster => axiWriteMaster,  -- [out]
          axiWriteSlave  => axiWriteSlave);  -- [in]
 
-   -- Main logic runs on AXI-Lite clk, which may be different from the DMA AXI clk
-   -- Synchronize the request/ack bus if necessary
-   U_Synchronizer_Req : entity work.Synchronizer
-      generic map (
-         TPD_G         => TPD_G,
-         STAGES_G      => 4,
-         BYPASS_SYNC_G => not AXIL_AXI_ASYNC_G)
-      port map (
-         clk     => axiClk,              -- [in]
-         rst     => axiRst,              -- [in]
-         dataIn  => r.dmaReq.request,    -- [in]
-         dataOut => dmaReqAxi.request);  -- [out]
-
-   U_SynchronizerFifo_ReqData : entity work.SynchronizerVector
-      generic map (
-         TPD_G         => TPD_G,
-         BYPASS_SYNC_G => not AXIL_AXI_ASYNC_G,
-         STAGES_G      => 2,
-         WIDTH_G       => 97)
-      port map (
-         clk                   => axiClk,              -- [in]
-         rst                   => axiRst,              -- [in]
-         dataIn(0)             => r.dmaReq.drop,
-         dataIn(64 downto 1)   => r.dmaReq.address,
-         dataIn(96 downto 65)  => r.dmaReq.maxSize,
-         dataOut(0)            => dmaReqAxi.drop,
-         dataOut(64 downto 1)  => dmaReqAxi.address,
-         dataOut(96 downto 65) => dmaReqAxi.maxSize);  -- [out]
-
-   U_Synchronizer_Ack : entity work.Synchronizer
-      generic map (
-         TPD_G         => TPD_G,
-         STAGES_G      => 4,
-         BYPASS_SYNC_G => not AXIL_AXI_ASYNC_G)
-      port map (
-         clk     => axilClk,            -- [in]
-         rst     => axilRst,            -- [in]
-         dataIn  => dmaAckAxi.done,     -- [in]
-         dataOut => dmaAck.done);       -- [out]
-
-   U_SynchronizerFifo_Ack : entity work.SynchronizerVector
-      generic map (
-         TPD_G         => TPD_G,
-         BYPASS_SYNC_G => not AXIL_AXI_ASYNC_G,
-         STAGES_G      => 2,
-         WIDTH_G       => 68)
-      port map (
-         clk                  => axilClk,  -- [in]
-         rst                  => axilRst,  -- [in]
-         dataIn(31 downto 0)  => dmaAckAxi.size,
-         dataIn(32)           => dmaAckAxi.overflow,
-         dataIn(33)           => dmaAckAxi.writeError,
-         dataIn(35 downto 34) => dmaAckAxi.errorValue,
-         dataIn(43 downto 36) => dmaAckAxi.firstUser,
-         dataIn(51 downto 44) => dmaAckAxi.lastUser,
-         dataIn(59 downto 52) => dmaAckAxi.dest,
-         dataIn(67 downto 60) => dmaAckAxi.id,
-
-         dataOut(31 downto 0)  => dmaAck.size,
-         dataOut(32)           => dmaAck.overflow,
-         dataOut(33)           => dmaAck.writeError,
-         dataOut(35 downto 34) => dmaAck.errorValue,
-         dataOut(43 downto 36) => dmaAck.firstUser,
-         dataOut(51 downto 44) => dmaAck.lastUser,
-         dataOut(59 downto 52) => dmaAck.dest,
-         dataOut(67 downto 60) => dmaAck.id);
-
+   -- Pass status message through a small fifo to convert to statusClk
+   -- Maybe allow width conversion here too?
    U_AxiStreamFifo_MSG : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
@@ -484,8 +429,8 @@ begin
          SLAVE_AXI_CONFIG_G  => AXIS_STATUS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_STATUS_CONFIG_C)
       port map (
-         sAxisClk    => axilClk,             -- [in]
-         sAxisRst    => axilRst,             -- [in]
+         sAxisClk    => axiClk,              -- [in]
+         sAxisRst    => axiRst,              -- [in]
          sAxisMaster => r.axisStatusMaster,  -- [in]
          sAxisSlave  => open,                -- [out]
          mAxisClk    => axisStatusClk,       -- [in]
@@ -493,9 +438,12 @@ begin
          mAxisMaster => axisStatusMaster,    -- [out]
          mAxisSlave  => axisStatusSlave);    -- [in]
 
-   comb : process (axilRst, axisDataMaster, bufferClear, bufferClearEn, dmaAck, endRamDout,
-                   firstRamDout, nextRamDout, locAxilReadMasters, locAxilWriteMasters, modeRamDout,
-                   modeWrAddr, modeWrData, modeWrStrobe, r, startRamDout, statusRamDout, trigRamDout) is
+   -------------------------------------------------------------------------------------------------
+   -- Main logic
+   -------------------------------------------------------------------------------------------------
+   comb : process (axiRst, axisDataMaster, bufferClear, bufferClearEn, dmaAck, endRamDout,
+                   firstRamDout, modeRamDout, modeWrAddr, modeWrData, modeWrStrobe, modeWrValid,
+                   nextRamDout, r, startRamDout, statusRamDout, trigRamDout) is
       variable v            : RegType;
       variable axilEndpoint : AxiLiteEndpointType;
    begin
@@ -506,10 +454,16 @@ begin
       v.initBufferEn   := '0';
 
       -- If last txn of frame, check for trigger condition and latch it in a register
-      if (axisDataMaster.tValid = '1' and axisDataMaster.tLast = '1' and
-          axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
-         v.trigger := '1';
+      if (axisDataMaster.tValid = '1' and axisDataMaster.tLast = '1') then
+         if(axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
+            v.trigger := '1';
+         end if;
+         if (axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, SSI_EOFE_C) = '1') then
+            v.eofe := '1';
+         end if;
       end if;
+
+
 
       -- Don't send status message unless directed to below
       v.axisStatusMaster.tValid := '0';
@@ -519,7 +473,7 @@ begin
          v.initBufferEn := '1';
          v.rdRamAddr    := bufferClear;
          v.state        := ASSERT_ADDR_S;
-      elsif(modeWrStrobe = '1' and modeWrData(INIT_C) = '1') then
+      elsif(modeWrValid = '1' and modeWrData(INIT_C) = '1' and modeWrStrobe(INIT_C/8) = '1') then
          v.initBufferEn := '1';
          v.rdRamAddr    := modeWrAddr;
          v.state        := ASSERT_ADDR_S;
@@ -530,6 +484,7 @@ begin
          v.status(FULL_C)      := '0';
          v.status(EMPTY_C)     := '1';
          v.status(TRIGGERED_C) := '0';
+         v.status(ERROR_C)     := '0';
          v.status(FST_C)       := (others => '0');
          v.wrRamAddr           := r.rdRamAddr;
          v.firstAddr           := startRamDout;
@@ -599,13 +554,20 @@ begin
                   v.nextAddr := r.startAddr;
                end if;
 
-
                -- Record trigger position if a trigger was seen on current frame
                v.trigger := '0';
-               if (r.trigger = '1') then
+               if ((r.trigger = '1' or r.mode(SOFT_TRIGGER_C) = '1') and r.status(TRIGGERED_C) = '0') then
                   v.trigAddr            := r.nextAddr;
                   v.status(TRIGGERED_C) := '1';
                end if;
+
+               -- Check for EOFE
+               v.eofe := '0';
+               if (r.eofe = '1') then
+                  v.status(ERROR_C) := '1';
+                  v.status(DONE_C)  := '1';
+               end if;
+
 
                -- If the buffer is full, increment the first addr too
                if (r.status(FULL_C) = '1') then  --v.nextAddr = r.firstAddr
@@ -619,8 +581,6 @@ begin
                      v.status(DONE_C) := '1';
                      v.status(FST_C)  := r.status(FST_C);
                   end if;
-
-
                end if;
 
                -- Output status message when done
@@ -628,6 +588,7 @@ begin
                   v.axisStatusMaster.tValid            := '1';
                   v.axisStatusMaster.tLast             := '1';
                   v.axisStatusMaster.tData(7 downto 0) := resize(r.rdRamAddr, 8);
+                  v.axisStatusMaster.tDest(3 downto 0) := r.mode(STATUS_TDEST_C);
                end if;
 
                v.state := WAIT_TVALID_S;
@@ -637,47 +598,40 @@ begin
 
       end case;
 
-      ----------------------------------------------------------------------------------------------
-      -- AXI-Lite bus for register access
-      ----------------------------------------------------------------------------------------------
-      axiSlaveWaitTxn(axilEndpoint, locAxilWriteMasters(0), locAxilReadMasters(0), v.axilWriteSlave, v.axilReadSlave);
+      -- Assign status outputs
+      if (r.ramWe = '1') then
+         v.bufferEmpty(conv_integer(r.wrRamAddr))     := r.status(EMPTY_C);
+         v.bufferFull(conv_integer(r.wrRamAddr))      := r.status(FULL_C);
+         v.bufferDone(conv_integer(r.wrRamAddr))      := r.status(DONE_C);
+         v.bufferTriggered(conv_integer(r.wrRamAddr)) := r.status(TRIGGERED_C);
+         v.bufferError(conv_integer(r.wrRamAddr))     := r.status(ERROR_C);
+      end if;
 
---       axiSlaveRegisterR(axilEndpoint, X"00", 0, r.bufferDone(31 downto 0));
---       axiSlaveRegisterR(axilEndpoint, X"04", 0, r.bufferDone(63 downto 32));
---       axiSlaveRegisterR(axilEndpoint, X"08", 0, r.bufferFull(31 downto 0));
---       axiSlaveRegisterR(axilEndpoint, X"0C", 0, r.bufferFull(63 downto 32));
---       axiSlaveRegisterR(axilEndpoint, X"10", 0, r.bufferEmpty(31 downto 0));
---       axiSlaveRegisterR(axilEndpoint, X"14", 0, r.bufferEmpty(63 downto 32));
-
---       v.axilBufferClearEn := '0';       -- AutoReset
---       axiSlaveRegister(axilEndpoint, BUFFER_CLEAR_OFFSET_C, 0, v.axilBufferClear);
---       axiSlaveRegister(axilEndpoint, BUFFER_CLEAR_OFFSET_C, 31, v.axilBufferClearEn);
-
---       axiSlaveRegister(axilEndpoint, X"1C", 0, v.doneWhenFull);
---       axiSlaveRegister(axilEndpoint, X"1C", 0, v.doneMsgEn);
---       axiSlaveRegister(axilEndpoint, X"1C", 1, v.fullMsgEn);
---       axiSlaveRegister(axilEndpoint, X"1C", 2, v.emptyMsgEn);
-
-      axiSlaveDefault(axilEndpoint, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_OK_C);
+      if(modeWrValid = '1' and modeWrData(ENABLED_C) = '1' and modeWrStrobe(ENABLED_C/8) = '1') then
+         v.bufferEnabled(conv_integer(modeWrAddr)) := modeWrData(ENABLED_C);
+      end if;
 
 
       ----------------------------------------------------------------------------------------------
       -- Reset and output assignment
       ----------------------------------------------------------------------------------------------
-      if (axilRst = '1') then
+      if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      locAxilReadSlaves(0)  <= r.axilReadSlave;
-      locAxilWriteSlaves(0) <= r.axilWriteSlave;
+      rin             <= v;
+      bufferEnabled   <= r.bufferEnabled;
+      bufferEmpty     <= r.bufferEmpty;
+      bufferFull      <= r.bufferFull;
+      bufferDone      <= r.bufferDone;
+      bufferTriggered <= r.bufferTriggered;
+      bufferError     <= r.bufferError;
 
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axiClk) is
    begin
-      if (rising_edge(axilClk)) then
+      if (rising_edge(axiClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
