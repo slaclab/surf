@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-04-07
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ end entity AxiStreamDepacketizer;
 architecture rtl of AxiStreamDepacketizer is
 
    -- TODO: Define ID and TDEST properly!
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8,TKEEP_NORMAL_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
 
    constant VERSION_C : slv(3 downto 0) := "0000";
 
@@ -66,6 +66,7 @@ architecture rtl of AxiStreamDepacketizer is
       packetNumber     : slv(23 downto 0);
       sof              : sl;
       startup          : sl;
+      sideband         : sl;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterArray(1 downto 0);
    end record RegType;
@@ -76,6 +77,7 @@ architecture rtl of AxiStreamDepacketizer is
       packetNumber     => (others => '0'),
       sof              => '1',
       startup          => '1',
+      sideband         => '0',
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => (others => axiStreamMasterInit(AXIS_CONFIG_C)));
 
@@ -157,7 +159,7 @@ begin
 
                -- Check frame and packet number
                if (r.sof = '1') then
-                  v.frameNumber := inputAxisMaster.tData(15 downto 4);
+                  v.frameNumber  := inputAxisMaster.tData(15 downto 4);
                   v.packetNumber := (others => '0');
                   if ((r.startup = '0' and inputAxisMaster.tData(15 downto 4) /= r.frameNumber+1) or
                       inputAxisMaster.tData(39 downto 16) /= 0) then
@@ -173,8 +175,8 @@ begin
                      v.state                      := BLEED_S;
                   end if;
                end if;
-               v.startup := '0';
-
+               v.startup  := '0';
+               v.sideband := '1';
             end if;
 
          when BLEED_S =>
@@ -189,17 +191,21 @@ begin
             end if;
 
          when MOVE_S =>
-            v.inputAxisSlave.tReady := outputAxisSlave.tReady;
+            v.inputAxisSlave.tReady      := outputAxisSlave.tReady;
             v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
-            
+
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                -- Advance the pipeline
-               v.outputAxisMaster(1) := inputAxisMaster;
+               v.outputAxisMaster(1)       := inputAxisMaster;
                -- Keep sideband data from header
                v.outputAxisMaster(1).tDest := r.outputAxisMaster(1).tDest;
                v.outputAxisMaster(1).tId   := r.outputAxisMaster(1).tId;
-               v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
-               
+               if (r.sideband = '1') then
+                  -- But tUser only for first output txn
+                  v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
+                  v.sideband                  := '0';
+               end if;
+
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 
                -- End of frame
@@ -259,16 +265,6 @@ begin
 
       -- Hold each out tvalid until next in tvalid arrives
       outputAxisMaster <= r.outputAxisMaster(0);
---       outputAxisMaster.tValid <= r.outputAxisMaster.tValid and
---                                  inputAxisMaster.tValid and
---                                  not inputAxisMaster.tLast;
---       outputAxisMaster.tData <= r.outputAxisMaster.tData;
---       outputAxisMaster.tStrb <= r.outputAxisMaster.tStrb;
---       outputAxisMaster.tKeep <= r.outputAxisMaster.tKeep;
---       outputAxisMaster.tLast <= r.outputAxisMaster.tLast;
---       outputAxisMaster.tDest <= r.outputAxisMaster.tDest;
---       outputAxisMaster.tId   <= r.outputAxisMaster.tId;
---       outputAxisMaster.tUser <= r.outputAxisMaster.tUser;
 
    end process comb;
 
