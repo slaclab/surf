@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-09-08
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,14 +33,16 @@ use unisim.vcomponents.all;
 
 entity XauiGthUltraScaleWrapper is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G             : time                := 1 ns;
+      EN_WDT_G          : boolean             := false;
+      STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
       -- XAUI Configurations
-      XAUI_20GIGE_G    : boolean             := false;
-      REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
+      XAUI_20GIGE_G     : boolean             := false;
+      REF_CLK_FREQ_G    : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
+      AXI_ERROR_RESP_G  : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -60,6 +62,7 @@ entity XauiGthUltraScaleWrapper is
       axiLiteWriteSlave  : out AxiLiteWriteSlaveType;
       -- Misc. Signals
       extRst             : in  sl                     := '0';
+      stableClk          : in  sl                     := '0';
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
@@ -75,9 +78,15 @@ end XauiGthUltraScaleWrapper;
 
 architecture mapping of XauiGthUltraScaleWrapper is
 
-   signal refClk : sl;
+   signal refClk   : sl;
+   signal linkUp   : sl;
+   signal wdtRst   : sl;
+   signal wdtReset : sl;
+   signal extReset : sl;
 
 begin
+
+   phyReady <= linkUp;
 
    IBUFDS_GTE3_Inst : IBUFDS_GTE3
       port map (
@@ -86,6 +95,39 @@ begin
          CEB   => '0',
          ODIV2 => open,
          O     => refClk);   
+
+   GEN_WDT : if (EN_WDT_G = true) generate
+
+      -----------------------
+      -- 10 Second LinkUp WDT
+      -----------------------
+      U_Rst : entity work.PwrUpRst
+         generic map(
+            TPD_G      => TPD_G,
+            DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 10.0))  -- 100m s reset
+         port map (
+            arst   => wdtReset,
+            clk    => stableClk,
+            rstOut => extReset);          
+
+      U_WTD : entity work.WatchDogRst
+         generic map(
+            TPD_G      => TPD_G,
+            DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 0.1))  -- 10 s timeout
+         port map (
+            clk    => stableClk,
+            monIn  => linkUp,
+            rstOut => wdtRst);      
+
+      wdtReset <= wdtRst or extRst;
+      
+   end generate;
+
+   BYPASS_WDT : if (EN_WDT_G = false) generate
+      
+      extReset <= extRst;
+      
+   end generate;
 
    ----------------------
    -- 10 GigE XAUI Module
@@ -118,10 +160,10 @@ begin
          axiLiteWriteMaster => axiLiteWriteMaster,
          axiLiteWriteSlave  => axiLiteWriteSlave,
          -- Misc. Signals
-         extRst             => extRst,
+         extRst             => extReset,
          phyClk             => phyClk,
          phyRst             => phyRst,
-         phyReady           => phyReady,
+         phyReady           => linkUp,
          -- MGT Ports
          refClk             => refClk,
          gtTxP              => gtTxP,
