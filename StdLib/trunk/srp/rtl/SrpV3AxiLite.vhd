@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-03-23
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -98,8 +98,7 @@ architecture rtl of SrpV3AxiLite is
       hdrCnt           : slv(3 downto 0);
       remVer           : slv(7 downto 0);
       opCode           : slv(1 downto 0);
-      spare            : slv(5 downto 0);
-      retryCnt         : slv(7 downto 0);
+      spare            : slv(13 downto 0);
       timeoutSize      : slv(7 downto 0);
       timeoutCnt       : slv(7 downto 0);
       tid              : slv(31 downto 0);
@@ -125,7 +124,6 @@ architecture rtl of SrpV3AxiLite is
       remVer           => (others => '0'),
       opCode           => (others => '0'),
       spare            => (others => '0'),
-      retryCnt         => (others => '0'),
       timeoutSize      => (others => '0'),
       timeoutCnt       => (others => '0'),
       tid              => (others => '0'),
@@ -282,8 +280,7 @@ begin
                   -- Latch the header information
                   v.remVer         := rxMaster.tData(7 downto 0);
                   v.opCode         := rxMaster.tData(9 downto 8);
-                  v.spare          := rxMaster.tData(15 downto 10);
-                  v.retryCnt       := rxMaster.tData(23 downto 16);
+                  v.spare          := rxMaster.tData(23 downto 10);
                   v.timeoutSize    := rxMaster.tData(31 downto 24);
                   -- Reset other header fields
                   v.tid            := (others => '0');
@@ -416,8 +413,7 @@ begin
                      -- Set data bus
                      v.txMaster.tData(7 downto 0)   := SRP_VERSION_C;
                      v.txMaster.tData(9 downto 8)   := r.opCode;
-                     v.txMaster.tData(15 downto 10) := r.spare;
-                     v.txMaster.tData(23 downto 16) := r.retryCnt;
+                     v.txMaster.tData(23 downto 10) := r.spare;
                      v.txMaster.tData(31 downto 24) := r.timeoutSize;
                   when x"1" => v.txMaster.tData(31 downto 0) := r.tid(31 downto 0);
                   when x"2" => v.txMaster.tData(31 downto 0) := r.addr(31 downto 0);
