@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-10-16
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ entity TenGigEthGthUltraScaleClk is
       gtClkP        : in  sl := '1';
       gtClkN        : in  sl := '0';
       coreClk       : out sl;
+      coreRst       : in  sl := '0';
       gtClk         : out sl;
       -- Quad PLL Ports
       qplllock      : out sl;
@@ -55,6 +56,7 @@ architecture mapping of TenGigEthGthUltraScaleClk is
    signal refClkCopy : sl;
    signal refClock   : sl;
    signal coreClock  : sl;
+   signal qpllReset  : sl;
 
 begin
    
@@ -82,8 +84,9 @@ begin
          DIV     => DIV_C,
          O       => coreClock);
 
-   refClock <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else refClk;
-   coreClk  <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else coreClock;
+   refClock  <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else refClk;
+   coreClk   <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else coreClock;
+   qpllReset <= qpllRst or coreRst;
 
    GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate
       GthUltraScaleQuadPll_Inst : entity work.GthUltraScaleQuadPll
@@ -129,7 +132,7 @@ begin
             qPllLockDetClk(1) => '0',   -- IP Core ties this to GND (see note below) 
             qPllPowerDown(0)  => '0',
             qPllPowerDown(1)  => '1',
-            qPllReset(0)      => qpllRst,
+            qPllReset(0)      => qpllReset,
             qPllReset(1)      => '1'); 
    end generate;
    GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
@@ -176,7 +179,7 @@ begin
             qPllLockDetClk(1) => '0',   -- IP Core ties this to GND (see note below) 
             qPllPowerDown(0)  => '0',
             qPllPowerDown(1)  => '1',
-            qPllReset(0)      => qpllRst,
+            qPllReset(0)      => qpllReset,
             qPllReset(1)      => '1');          
    end generate;
    ---------------------------------------------------------------------------------------------
