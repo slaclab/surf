@@ -33,7 +33,7 @@ entity WatchDogRst is
       IN_POLARITY_G  : sl                             := '1';
       OUT_POLARITY_G : sl                             := '1';
       USE_DSP48_G    : string                         := "no";
-      DURATION_G     : natural range 0 to ((2**30)-1) := 156250000);
+      DURATION_G     : natural range 0 to ((2**31)-1) := 156250000);
    port (
       clk    : in  sl;
       monIn  : in  sl;
