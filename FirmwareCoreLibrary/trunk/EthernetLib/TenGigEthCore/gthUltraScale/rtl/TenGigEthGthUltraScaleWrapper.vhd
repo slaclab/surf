@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2015-12-08
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,6 +64,7 @@ entity TenGigEthGthUltraScaleWrapper is
       -- Misc. Signals
       extRst              : in  sl;
       coreClk             : out sl;
+      coreRst             : out sl;
       phyClk              : out slv(NUM_LANE_G-1 downto 0);
       phyRst              : out slv(NUM_LANE_G-1 downto 0);
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
@@ -89,10 +90,24 @@ architecture mapping of TenGigEthGthUltraScaleWrapper is
    signal qpllReset : sl;
 
    signal coreClock : sl;
+   signal coreReset : sl;
 
 begin
 
    coreClk <= coreClock;
+   coreRst <= coreReset;
+
+   -----------------
+   -- Power Up Reset
+   -----------------
+   PwrUpRst_Inst : entity work.PwrUpRst
+      generic map (
+         TPD_G      => TPD_G,
+         DURATION_G => 15625000)       -- 100 ms
+      port map (
+         arst   => extRst,
+         clk    => coreClock,
+         rstOut => coreReset);   
 
    ----------------------
    -- Common Clock Module 
@@ -108,6 +123,7 @@ begin
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
          coreClk       => coreClock,
+         coreRst       => coreReset,
          gtClk         => gtClk,
          -- Quad PLL Ports
          qplllock      => qplllock,
@@ -153,7 +169,7 @@ begin
             txFault            => txFault(i),
             txDisable          => txDisable(i),
             -- Misc. Signals
-            extRst             => extRst,
+            extRst             => coreReset,
             coreClk            => coreClock,
             phyClk             => phyClk(i),
             phyRst             => phyRst(i),
