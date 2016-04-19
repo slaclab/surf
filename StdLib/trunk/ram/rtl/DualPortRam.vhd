@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-12-18
--- Last update: 2016-01-12
+-- Last update: 2016-04-19
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,27 +35,30 @@ entity DualPortRam is
       REG_EN_G       : boolean                    := true;
       DOA_REG_G      : boolean                    := false;
       DOB_REG_G      : boolean                    := false;
-      MODE_G         : string                     := "write-first";
+      MODE_G         : string                     := "read-first";
+      BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
+      BYTE_WIDTH_G   : integer                    := 8;    -- If BRAM, should be multiple of 8 or 9
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
       -- Port A     
-      clka   : in  sl                           := '0';
-      ena    : in  sl                           := '1';
-      wea    : in  sl                           := '0';
-      rsta   : in  sl                           := not(RST_POLARITY_G);
-      addra  : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      dina   : in  slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
-      douta  : out slv(DATA_WIDTH_G-1 downto 0);
-      regcea : in  sl                           := '1';
+      clka    : in  sl                                                    := '0';
+      ena     : in  sl                                                    := '1';
+      wea     : in  sl                                                    := '0';
+      weaByte : in  slv(wordCount(DATA_WIDTH_G, BYTE_WIDTH_G)-1 downto 0) := (others => '1');
+      rsta    : in  sl                                                    := not(RST_POLARITY_G);
+      addra   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
+      dina    : in  slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      douta   : out slv(DATA_WIDTH_G-1 downto 0);
+      regcea  : in  sl                                                    := '1';
       -- Port B
-      clkb   : in  sl                           := '0';
-      enb    : in  sl                           := '1';
-      rstb   : in  sl                           := not(RST_POLARITY_G);
-      addrb  : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      doutb  : out slv(DATA_WIDTH_G-1 downto 0);
-      regceb : in  sl                           := '1');
+      clkb    : in  sl                                                    := '0';
+      enb     : in  sl                                                    := '1';
+      rstb    : in  sl                                                    := not(RST_POLARITY_G);
+      addrb   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
+      doutb   : out slv(DATA_WIDTH_G-1 downto 0);
+      regceb  : in  sl                                                    := '1');
 end DualPortRam;
 
 architecture mapping of DualPortRam is
@@ -72,28 +75,31 @@ begin
             DOA_REG_G      => DOA_REG_G,
             DOB_REG_G      => DOB_REG_G,
             MODE_G         => MODE_G,
+            BYTE_WR_EN_G   => BYTE_WR_EN_G,
             DATA_WIDTH_G   => DATA_WIDTH_G,
+            BYTE_WIDTH_G   => BYTE_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
             INIT_G         => INIT_G)
          port map (
             -- Port A     
-            clka   => clka,
-            ena    => ena,
-            wea    => wea,
-            rsta   => rsta,
-            addra  => addra,
-            dina   => dina,
-            douta  => douta,
-            regcea => regcea,
+            clka    => clka,
+            ena     => ena,
+            wea     => wea,
+            weaByte => weaByte,
+            rsta    => rsta,
+            addra   => addra,
+            dina    => dina,
+            douta   => douta,
+            regcea  => regcea,
             -- Port B
-            clkb   => clkb,
-            enb    => enb,
-            web    => '0',
-            rstb   => rstb,
-            addrb  => addrb,
-            dinb   => (others => '0'),
-            doutb  => doutb,
-            regceb => regceb);
+            clkb    => clkb,
+            enb     => enb,
+            web     => '0',
+            rstb    => rstb,
+            addrb   => addrb,
+            dinb    => (others => '0'),
+            doutb   => doutb,
+            regceb  => regceb);
    end generate;
 
    GEN_LUTRAM : if (BRAM_EN_G = false) generate
@@ -103,36 +109,39 @@ begin
             RST_POLARITY_G => RST_POLARITY_G,
             REG_EN_G       => REG_EN_G,
             MODE_G         => MODE_G,
+            BYTE_WR_EN_G   => BYTE_WR_EN_G,
             DATA_WIDTH_G   => DATA_WIDTH_G,
+            BYTE_WIDTH_G   => BYTE_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
             INIT_G         => INIT_G)
          port map (
             -- Port A     
-            clka  => clka,
-            en_a  => ena,
-            wea   => wea,
-            rsta  => rsta,
-            addra => addra,
-            dina  => dina,
-            douta => douta,
+            clka    => clka,
+            en_a    => ena,
+            wea     => wea,
+            weaByte => weaByte,
+            rsta    => rsta,
+            addra   => addra,
+            dina    => dina,
+            douta   => douta,
             -- Port B
-            clkb  => clkb,
-            en_b  => enb,
-            rstb  => rstb,
-            addrb => addrb,
-            doutb => doutb,
+            clkb    => clkb,
+            en_b    => enb,
+            rstb    => rstb,
+            addrb   => addrb,
+            doutb   => doutb,
             -- Port C
-            clkc  => '0',
-            en_c  => '0',
-            rstc  => FORCE_RST_C,
-            addrc => (others => '0'),
-            doutc => open,
+            clkc    => '0',
+            en_c    => '0',
+            rstc    => FORCE_RST_C,
+            addrc   => (others => '0'),
+            doutc   => open,
             -- Port C
-            clkd  => '0',
-            en_d  => '0',
-            rstd  => FORCE_RST_C,
-            addrd => (others => '0'),
-            doutd => open);
+            clkd    => '0',
+            en_d    => '0',
+            rstd    => FORCE_RST_C,
+            addrd   => (others => '0'),
+            doutd   => open);
    end generate;
 
 end mapping;
