@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-02-19
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,6 +64,12 @@ entity TenGigEthGthUltraScale is
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
+      -- Transceiver Debug Interface
+      gtTxPreCursor      : in  slv(4 downto 0)        := "00000";
+      gtTxPostCursor     : in  slv(4 downto 0)        := "00000";
+      gtTxDiffCtrl       : in  slv(3 downto 0)        := "1110";
+      gtRxPolarity       : in  sl                     := '0';
+      gtTxPolarity       : in  sl                     := '0';
       -- Quad PLL Ports
       qplllock           : in  sl;
       qplloutclk         : in  sl;
@@ -252,7 +258,33 @@ begin
             gt_drpaddr           => drpAddr,
             gt_drpdi             => drpDi,
             core_to_gt_drprdy    => drpRdy,
-            core_to_gt_drpdo     => drpDo);
+            core_to_gt_drpdo     => drpDo,
+            -- Transceiver Debug Interface
+            gt_txpcsreset        => extRst,
+            gt_txpmareset        => '0',
+            gt_rxpmareset        => '0',
+            gt_txresetdone       => open,
+            gt_rxresetdone       => open,
+            gt_rxpmaresetdone    => open,
+            gt_txbufstatus       => open,
+            gt_rxbufstatus       => open,
+            gt_rxrate            => (others => '0'),
+            gt_eyescantrigger    => '0',
+            gt_eyescanreset      => '0',
+            gt_eyescandataerror  => open,
+            gt_rxpolarity        => gtRxPolarity,
+            gt_txpolarity        => gtTxPolarity,
+            gt_rxdfelpmreset     => '0',
+            gt_txprbsforceerr    => '0',
+            gt_rxprbserr         => open,
+            gt_rxcdrhold         => '0',
+            gt_dmonitorout       => open,
+            gt_rxlpmen           => '0',
+            gt_txprecursor       => gtTxPreCursor,
+            gt_txpostcursor      => gtTxPostCursor,
+            gt_txdiffctrl        => gtTxDiffCtrl,
+            gt_pcsrsvdin         => (others => '0'),
+            gt_txoutclksel       => "101");
    end generate;
    GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
       U_TenGigEthGthUltraScaleCore : entity work.TenGigEthGthUltraScale312p5MHzCore
@@ -313,7 +345,33 @@ begin
             gt_drpaddr           => drpAddr,
             gt_drpdi             => drpDi,
             core_to_gt_drprdy    => drpRdy,
-            core_to_gt_drpdo     => drpDo);
+            core_to_gt_drpdo     => drpDo,
+            -- Transceiver Debug Interface
+            gt_txpcsreset        => extRst,
+            gt_txpmareset        => '0',
+            gt_rxpmareset        => '0',
+            gt_txresetdone       => open,
+            gt_rxresetdone       => open,
+            gt_rxpmaresetdone    => open,
+            gt_txbufstatus       => open,
+            gt_rxbufstatus       => open,
+            gt_rxrate            => (others => '0'),
+            gt_eyescantrigger    => '0',
+            gt_eyescanreset      => '0',
+            gt_eyescandataerror  => open,
+            gt_rxpolarity        => gtRxPolarity,
+            gt_txpolarity        => gtTxPolarity,
+            gt_rxdfelpmreset     => '0',
+            gt_txprbsforceerr    => '0',
+            gt_rxprbserr         => open,
+            gt_rxcdrhold         => '0',
+            gt_dmonitorout       => open,
+            gt_rxlpmen           => '0',
+            gt_txprecursor       => gtTxPreCursor,
+            gt_txpostcursor      => gtTxPostCursor,
+            gt_txdiffctrl        => gtTxDiffCtrl,
+            gt_pcsrsvdin         => (others => '0'),
+            gt_txoutclksel       => "101");
    end generate;
 
    -------------------------------------
