@@ -69,6 +69,12 @@ entity TenGigEthGthUltraScaleWrapper is
       phyRst              : out slv(NUM_LANE_G-1 downto 0);
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       gtClk               : out sl;
+      -- Transceiver Debug Interface
+      gtTxPreCursor       : in  slv(4 downto 0)                                := "00000";
+      gtTxPostCursor      : in  slv(4 downto 0)                                := "00000";
+      gtTxDiffCtrl        : in  slv(3 downto 0)                                := "1110";
+      gtRxPolarity        : in  sl                                             := '0';
+      gtTxPolarity        : in  sl                                             := '0';
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
@@ -103,7 +109,7 @@ begin
    PwrUpRst_Inst : entity work.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 15625000)       -- 100 ms
+         DURATION_G => 15625000)        -- 100 ms
       port map (
          arst   => extRst,
          clk    => coreClock,
@@ -174,6 +180,12 @@ begin
             phyClk             => phyClk(i),
             phyRst             => phyRst(i),
             phyReady           => phyReady(i),
+            -- Transceiver Debug Interface
+            gtTxPreCursor      => gtTxPreCursor,
+            gtTxPostCursor     => gtTxPostCursor,
+            gtTxDiffCtrl       => gtTxDiffCtrl,
+            gtRxPolarity       => gtRxPolarity,
+            gtTxPolarity       => gtTxPolarity,
             -- Quad PLL Ports
             qplllock           => qplllock,
             qplloutclk         => qplloutclk,

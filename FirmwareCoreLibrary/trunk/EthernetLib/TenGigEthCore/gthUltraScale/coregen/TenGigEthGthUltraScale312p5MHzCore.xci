@@ -35,7 +35,7 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.RefClkRate">312.5</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.SupportLevel">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.Timer_Format">Time_of_day</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TransceiverControl">false</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TransceiverControl">true</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TransceiverInExample">false</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.autonegotiation">false</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.base_kr">BASE-R</spirit:configurableElementValue>
@@ -48,7 +48,7 @@
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BOARD">xilinx.com:kcu105:part0:1.1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.DEVICE">xcku040</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PACKAGE">ffva1156</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PREFHDL">VERILOG</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PREFHDL">VHDL</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SILICON_REVISION"/>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SIMULATOR_LANGUAGE">MIXED</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SPEEDGRADE">-2</spirit:configurableElementValue>
@@ -70,6 +70,7 @@
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.DClkRate" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.MDIO_Management" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RefClkRate" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.TransceiverControl" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.base_kr" xilinx:valueSource="user"/>
           </xilinx:configElementInfos>
         </xilinx:componentInstanceExtensions>
