@@ -20,7 +20,15 @@
 --                           - Monitors connection activity NULL segment timeouts
 --                 - Client: - Actively requests connection
 --                           - Sends NULL packages if there is no incoming data
---               
+--  Status register:
+--    statusReg_o(0) : Connection Active          
+--    statusReg_o(1) : Maximum retransmissions exceeded r.retransMax and
+--    statusReg_o(2) : Null timeout reached (server) r.nullTout;
+--    statusReg_o(3) : Error in acknowledgment mechanism   
+--    statusReg_o(4) : SSI Frame length too long
+--    statusReg_o(5) : Connection to peer timed out
+--    statusReg_o(6) : Client rejected the connection (parameters out of range)
+--                     Server proposed new parameters (parameters out of range)               
 -------------------------------------------------------------------------------
 -- Copyright (c) 2015 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

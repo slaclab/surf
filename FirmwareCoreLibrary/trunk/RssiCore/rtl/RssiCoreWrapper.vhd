@@ -98,7 +98,9 @@ architecture mapping of RssiCoreWrapper is
    signal sAppAxisSlave  : AxiStreamSlaveType;
    signal mAppAxisMaster : AxiStreamMasterType;
    signal mAppAxisSlave  : AxiStreamSlaveType;
-
+   
+   signal s_status            : slv(statusReg_o'range);
+   signal s_depackerRestart   : sl;
 begin
 
    U_AxiStreamMux : entity work.AxiStreamMux
@@ -216,7 +218,11 @@ begin
          axilWriteMaster  => axilWriteMaster,
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
-         statusReg_o      => statusReg_o);         
+         statusReg_o      => s_status);         
+   --
+   statusReg_o <= s_status;
+   -- Restart the De-packetizer when RSSI is disconnected
+   s_depackerRestart <= not s_status(0);
 
    GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
       U_Depacketizer : entity work.AxiStreamDepacketizer
@@ -227,6 +233,7 @@ begin
          port map (
             axisClk     => clk_i,
             axisRst     => rst_i,
+            restart     => s_depackerRestart,
             sAxisMaster => depacketizerMasters(1),
             sAxisSlave  => depacketizerSlaves(1),
             mAxisMaster => depacketizerMasters(0),
