@@ -43,7 +43,7 @@ entity AxiStreamDepacketizer is
       axisClk : in sl;
       axisRst : in sl;
 
-      restart : in sl;                  -- Reset the expected frame number back to 0
+      restart : in sl := '0';                  -- Reset the expected frame number back to 0
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
