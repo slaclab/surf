@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-04-19
+-- Last update: 2016-04-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,6 +42,8 @@ entity AxiStreamDepacketizer is
       -- AXI-Lite Interface for local registers 
       axisClk : in sl;
       axisRst : in sl;
+
+      restart : in sl;                  -- Reset the expected frame number back to 0
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -129,6 +131,11 @@ begin
 
    begin
       v := r;
+
+      if (restart = '1') then
+         v.startup := '1';
+         v.sof := '1';
+      end if;
 
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster(1).tValid := '0';
