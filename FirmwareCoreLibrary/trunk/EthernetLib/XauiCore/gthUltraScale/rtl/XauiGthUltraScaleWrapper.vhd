@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-04-20
+-- Last update: 2016-04-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ begin
       U_Rst : entity work.PwrUpRst
          generic map(
             TPD_G      => TPD_G,
-            DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 10.0))  -- 100m s reset
+            DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 1.0))  -- 1 s reset
          port map (
             arst   => wdtReset,
             clk    => stableClk,
