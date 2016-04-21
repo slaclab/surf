@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-04-19
+-- Last update: 2016-04-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,6 +66,12 @@ entity XauiGthUltraScaleWrapper is
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
+      -- Transceiver Debug Interface
+      gtTxPreCursor      : in  slv(19 downto 0)       := (others => '0');
+      gtTxPostCursor     : in  slv(19 downto 0)       := (others => '0');
+      gtTxDiffCtrl       : in  slv(15 downto 0)       := x"CCCC";
+      gtRxPolarity       : in  slv(3 downto 0)        := x"0";
+      gtTxPolarity       : in  slv(3 downto 0)        := x"0";
       -- MGT Clock Port (125MHz, 156.25MHz, or 312.5MHz)
       gtClkP             : in  sl;
       gtClkN             : in  sl;
@@ -164,6 +170,12 @@ begin
          phyClk             => phyClk,
          phyRst             => phyRst,
          phyReady           => linkUp,
+         -- Transceiver Debug Interface
+         gtTxPreCursor      => gtTxPreCursor,
+         gtTxPostCursor     => gtTxPostCursor,
+         gtTxDiffCtrl       => gtTxDiffCtrl,
+         gtRxPolarity       => gtRxPolarity,
+         gtTxPolarity       => gtTxPolarity,
          -- MGT Ports
          refClk             => refClk,
          gtTxP              => gtTxP,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-02-19
+-- Last update: 2016-04-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,6 +64,12 @@ entity XauiGthUltraScale is
       phyClk             : out sl;
       phyRst             : out sl;
       phyReady           : out sl;
+      -- Transceiver Debug Interface
+      gtTxPreCursor      : in  slv(19 downto 0)       := (others => '0');
+      gtTxPostCursor     : in  slv(19 downto 0)       := (others => '0');
+      gtTxDiffCtrl       : in  slv(15 downto 0)       := x"CCCC";
+      gtRxPolarity       : in  slv(3 downto 0)        := x"0";
+      gtTxPolarity       : in  slv(3 downto 0)        := x"0";
       -- MGT Ports
       refClk             : in  sl;      -- 125MHz, 156.25MHz, or 312.5MHz
       gtTxP              : out slv(3 downto 0);
@@ -159,11 +165,82 @@ begin
                xaui_rx_l2_n         => gtRxN(2),
                xaui_rx_l3_p         => gtRxP(3),
                xaui_rx_l3_n         => gtRxN(3),
+               -- DRP
+               gt0_drpaddr          => (others => '0'),
+               gt0_drpen            => '0',
+               gt0_drpdi            => X"0000",
+               gt0_drpdo            => open,
+               gt0_drprdy           => open,
+               gt0_drpwe            => '0',
+               gt1_drpaddr          => (others => '0'),
+               gt1_drpen            => '0',
+               gt1_drpdi            => X"0000",
+               gt1_drpdo            => open,
+               gt1_drprdy           => open,
+               gt1_drpwe            => '0',
+               gt2_drpaddr          => (others => '0'),
+               gt2_drpen            => '0',
+               gt2_drpdi            => X"0000",
+               gt2_drpdo            => open,
+               gt2_drprdy           => open,
+               gt2_drpwe            => '0',
+               gt3_drpaddr          => (others => '0'),
+               gt3_drpen            => '0',
+               gt3_drpdi            => X"0000",
+               gt3_drpdo            => open,
+               gt3_drprdy           => open,
+               gt3_drpwe            => '0',
+               -- TX Reset and Initialisation
+               gt_txpmareset        => B"0000",
+               gt_txpcsreset        => B"0000",
+               gt_txresetdone       => open,
+               -- RX Reset and Initialisation
+               gt_rxpmareset        => B"0000",
+               gt_rxpcsreset        => B"0000",
+               gt_rxpmaresetdone    => open,
+               gt_rxresetdone       => open,
+               -- Clocking
+               gt_rxbufstatus       => open,
+               gt_txphaligndone     => open,
+               gt_txphinitdone      => open,
+               gt_txdlysresetdone   => open,
+               gt_qplllock          => open,
+               -- Signal Integrity adn Functionality
+               -- Eye Scan
+               gt_eyescantrigger    => B"0000",
+               gt_eyescanreset      => B"0000",
+               gt_eyescandataerror  => open,
+               gt_rxrate            => X"000",
+               -- Loopback
+               gt_loopback          => X"000",
+               -- Polarity
+               gt_rxpolarity        => gtRxPolarity,
+               gt_txpolarity        => gtTxPolarity,
+               -- RX Decision Feedback Equalizer (DFE)
+               gt_rxlpmen           => B"1111",
+               gt_rxdfelpmreset     => B"0000",
+               -- TX Driver
+               gt_txpostcursor      => gtTxPostCursor,
+               gt_txprecursor       => gtTxPreCursor,
+               gt_txdiffctrl        => gtTxDiffCtrl,
+               gt_txinhibit         => "0000",
+               -- PRBS
+               gt_rxprbscntreset    => B"0000",
+               gt_rxprbserr         => open,
+               gt_rxprbssel         => X"0000",
+               gt_txprbssel         => X"0000",
+               gt_txprbsforceerr    => B"0000",
+               gt_rxcdrhold         => B"0000",
+               gt_dmonitorout       => open,
+               gt_pcsrsvdin         => (others => '0'),
                -- Configuration and Status
+               gt_rxdisperr         => open,
+               gt_rxnotintable      => open,
+               gt_rxcommadet        => open,
                signal_detect        => (others => '1'),
                debug                => status.debugVector,
                configuration_vector => config.configVector,
-               status_vector        => status.statusVector); 
+               status_vector        => status.statusVector);
       end generate;
       GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz10GigECore
@@ -196,7 +273,78 @@ begin
                xaui_rx_l2_n         => gtRxN(2),
                xaui_rx_l3_p         => gtRxP(3),
                xaui_rx_l3_n         => gtRxN(3),
+               -- DRP
+               gt0_drpaddr          => (others => '0'),
+               gt0_drpen            => '0',
+               gt0_drpdi            => X"0000",
+               gt0_drpdo            => open,
+               gt0_drprdy           => open,
+               gt0_drpwe            => '0',
+               gt1_drpaddr          => (others => '0'),
+               gt1_drpen            => '0',
+               gt1_drpdi            => X"0000",
+               gt1_drpdo            => open,
+               gt1_drprdy           => open,
+               gt1_drpwe            => '0',
+               gt2_drpaddr          => (others => '0'),
+               gt2_drpen            => '0',
+               gt2_drpdi            => X"0000",
+               gt2_drpdo            => open,
+               gt2_drprdy           => open,
+               gt2_drpwe            => '0',
+               gt3_drpaddr          => (others => '0'),
+               gt3_drpen            => '0',
+               gt3_drpdi            => X"0000",
+               gt3_drpdo            => open,
+               gt3_drprdy           => open,
+               gt3_drpwe            => '0',
+               -- TX Reset and Initialisation
+               gt_txpmareset        => B"0000",
+               gt_txpcsreset        => B"0000",
+               gt_txresetdone       => open,
+               -- RX Reset and Initialisation
+               gt_rxpmareset        => B"0000",
+               gt_rxpcsreset        => B"0000",
+               gt_rxpmaresetdone    => open,
+               gt_rxresetdone       => open,
+               -- Clocking
+               gt_rxbufstatus       => open,
+               gt_txphaligndone     => open,
+               gt_txphinitdone      => open,
+               gt_txdlysresetdone   => open,
+               gt_qplllock          => open,
+               -- Signal Integrity adn Functionality
+               -- Eye Scan
+               gt_eyescantrigger    => B"0000",
+               gt_eyescanreset      => B"0000",
+               gt_eyescandataerror  => open,
+               gt_rxrate            => X"000",
+               -- Loopback
+               gt_loopback          => X"000",
+               -- Polarity
+               gt_rxpolarity        => gtRxPolarity,
+               gt_txpolarity        => gtTxPolarity,
+               -- RX Decision Feedback Equalizer (DFE)
+               gt_rxlpmen           => B"1111",
+               gt_rxdfelpmreset     => B"0000",
+               -- TX Driver
+               gt_txpostcursor      => gtTxPostCursor,
+               gt_txprecursor       => gtTxPreCursor,
+               gt_txdiffctrl        => gtTxDiffCtrl,
+               gt_txinhibit         => "0000",
+               -- PRBS
+               gt_rxprbscntreset    => B"0000",
+               gt_rxprbserr         => open,
+               gt_rxprbssel         => X"0000",
+               gt_txprbssel         => X"0000",
+               gt_txprbsforceerr    => B"0000",
+               gt_rxcdrhold         => B"0000",
+               gt_dmonitorout       => open,
+               gt_pcsrsvdin         => (others => '0'),
                -- Configuration and Status
+               gt_rxdisperr         => open,
+               gt_rxnotintable      => open,
+               gt_rxcommadet        => open,
                signal_detect        => (others => '1'),
                debug                => status.debugVector,
                configuration_vector => config.configVector,
@@ -233,11 +381,82 @@ begin
                xaui_rx_l2_n         => gtRxN(2),
                xaui_rx_l3_p         => gtRxP(3),
                xaui_rx_l3_n         => gtRxN(3),
+               -- DRP
+               gt0_drpaddr          => (others => '0'),
+               gt0_drpen            => '0',
+               gt0_drpdi            => X"0000",
+               gt0_drpdo            => open,
+               gt0_drprdy           => open,
+               gt0_drpwe            => '0',
+               gt1_drpaddr          => (others => '0'),
+               gt1_drpen            => '0',
+               gt1_drpdi            => X"0000",
+               gt1_drpdo            => open,
+               gt1_drprdy           => open,
+               gt1_drpwe            => '0',
+               gt2_drpaddr          => (others => '0'),
+               gt2_drpen            => '0',
+               gt2_drpdi            => X"0000",
+               gt2_drpdo            => open,
+               gt2_drprdy           => open,
+               gt2_drpwe            => '0',
+               gt3_drpaddr          => (others => '0'),
+               gt3_drpen            => '0',
+               gt3_drpdi            => X"0000",
+               gt3_drpdo            => open,
+               gt3_drprdy           => open,
+               gt3_drpwe            => '0',
+               -- TX Reset and Initialisation
+               gt_txpmareset        => B"0000",
+               gt_txpcsreset        => B"0000",
+               gt_txresetdone       => open,
+               -- RX Reset and Initialisation
+               gt_rxpmareset        => B"0000",
+               gt_rxpcsreset        => B"0000",
+               gt_rxpmaresetdone    => open,
+               gt_rxresetdone       => open,
+               -- Clocking
+               gt_rxbufstatus       => open,
+               gt_txphaligndone     => open,
+               gt_txphinitdone      => open,
+               gt_txdlysresetdone   => open,
+               gt_qplllock          => open,
+               -- Signal Integrity adn Functionality
+               -- Eye Scan
+               gt_eyescantrigger    => B"0000",
+               gt_eyescanreset      => B"0000",
+               gt_eyescandataerror  => open,
+               gt_rxrate            => X"000",
+               -- Loopback
+               gt_loopback          => X"000",
+               -- Polarity
+               gt_rxpolarity        => gtRxPolarity,
+               gt_txpolarity        => gtTxPolarity,
+               -- RX Decision Feedback Equalizer (DFE)
+               gt_rxlpmen           => B"1111",
+               gt_rxdfelpmreset     => B"0000",
+               -- TX Driver
+               gt_txpostcursor      => gtTxPostCursor,
+               gt_txprecursor       => gtTxPreCursor,
+               gt_txdiffctrl        => gtTxDiffCtrl,
+               gt_txinhibit         => "0000",
+               -- PRBS
+               gt_rxprbscntreset    => B"0000",
+               gt_rxprbserr         => open,
+               gt_rxprbssel         => X"0000",
+               gt_txprbssel         => X"0000",
+               gt_txprbsforceerr    => B"0000",
+               gt_rxcdrhold         => B"0000",
+               gt_dmonitorout       => open,
+               gt_pcsrsvdin         => (others => '0'),
                -- Configuration and Status
+               gt_rxdisperr         => open,
+               gt_rxnotintable      => open,
+               gt_rxcommadet        => open,
                signal_detect        => (others => '1'),
                debug                => status.debugVector,
                configuration_vector => config.configVector,
-               status_vector        => status.statusVector); 
+               status_vector        => status.statusVector);
       end generate;
    end generate;
 
@@ -276,7 +495,78 @@ begin
                xaui_rx_l2_n         => gtRxN(2),
                xaui_rx_l3_p         => gtRxP(3),
                xaui_rx_l3_n         => gtRxN(3),
+               -- DRP
+               gt0_drpaddr          => (others => '0'),
+               gt0_drpen            => '0',
+               gt0_drpdi            => X"0000",
+               gt0_drpdo            => open,
+               gt0_drprdy           => open,
+               gt0_drpwe            => '0',
+               gt1_drpaddr          => (others => '0'),
+               gt1_drpen            => '0',
+               gt1_drpdi            => X"0000",
+               gt1_drpdo            => open,
+               gt1_drprdy           => open,
+               gt1_drpwe            => '0',
+               gt2_drpaddr          => (others => '0'),
+               gt2_drpen            => '0',
+               gt2_drpdi            => X"0000",
+               gt2_drpdo            => open,
+               gt2_drprdy           => open,
+               gt2_drpwe            => '0',
+               gt3_drpaddr          => (others => '0'),
+               gt3_drpen            => '0',
+               gt3_drpdi            => X"0000",
+               gt3_drpdo            => open,
+               gt3_drprdy           => open,
+               gt3_drpwe            => '0',
+               -- TX Reset and Initialisation
+               gt_txpmareset        => B"0000",
+               gt_txpcsreset        => B"0000",
+               gt_txresetdone       => open,
+               -- RX Reset and Initialisation
+               gt_rxpmareset        => B"0000",
+               gt_rxpcsreset        => B"0000",
+               gt_rxpmaresetdone    => open,
+               gt_rxresetdone       => open,
+               -- Clocking
+               gt_rxbufstatus       => open,
+               gt_txphaligndone     => open,
+               gt_txphinitdone      => open,
+               gt_txdlysresetdone   => open,
+               gt_qplllock          => open,
+               -- Signal Integrity adn Functionality
+               -- Eye Scan
+               gt_eyescantrigger    => B"0000",
+               gt_eyescanreset      => B"0000",
+               gt_eyescandataerror  => open,
+               gt_rxrate            => X"000",
+               -- Loopback
+               gt_loopback          => X"000",
+               -- Polarity
+               gt_rxpolarity        => gtRxPolarity,
+               gt_txpolarity        => gtTxPolarity,
+               -- RX Decision Feedback Equalizer (DFE)
+               gt_rxlpmen           => B"1111",
+               gt_rxdfelpmreset     => B"0000",
+               -- TX Driver
+               gt_txpostcursor      => gtTxPostCursor,
+               gt_txprecursor       => gtTxPreCursor,
+               gt_txdiffctrl        => gtTxDiffCtrl,
+               gt_txinhibit         => "0000",
+               -- PRBS
+               gt_rxprbscntreset    => B"0000",
+               gt_rxprbserr         => open,
+               gt_rxprbssel         => X"0000",
+               gt_txprbssel         => X"0000",
+               gt_txprbsforceerr    => B"0000",
+               gt_rxcdrhold         => B"0000",
+               gt_dmonitorout       => open,
+               gt_pcsrsvdin         => (others => '0'),
                -- Configuration and Status
+               gt_rxdisperr         => open,
+               gt_rxnotintable      => open,
+               gt_rxcommadet        => open,
                signal_detect        => (others => '1'),
                debug                => status.debugVector,
                configuration_vector => config.configVector,
@@ -313,11 +603,82 @@ begin
                xaui_rx_l2_n         => gtRxN(2),
                xaui_rx_l3_p         => gtRxP(3),
                xaui_rx_l3_n         => gtRxN(3),
+               -- DRP
+               gt0_drpaddr          => (others => '0'),
+               gt0_drpen            => '0',
+               gt0_drpdi            => X"0000",
+               gt0_drpdo            => open,
+               gt0_drprdy           => open,
+               gt0_drpwe            => '0',
+               gt1_drpaddr          => (others => '0'),
+               gt1_drpen            => '0',
+               gt1_drpdi            => X"0000",
+               gt1_drpdo            => open,
+               gt1_drprdy           => open,
+               gt1_drpwe            => '0',
+               gt2_drpaddr          => (others => '0'),
+               gt2_drpen            => '0',
+               gt2_drpdi            => X"0000",
+               gt2_drpdo            => open,
+               gt2_drprdy           => open,
+               gt2_drpwe            => '0',
+               gt3_drpaddr          => (others => '0'),
+               gt3_drpen            => '0',
+               gt3_drpdi            => X"0000",
+               gt3_drpdo            => open,
+               gt3_drprdy           => open,
+               gt3_drpwe            => '0',
+               -- TX Reset and Initialisation
+               gt_txpmareset        => B"0000",
+               gt_txpcsreset        => B"0000",
+               gt_txresetdone       => open,
+               -- RX Reset and Initialisation
+               gt_rxpmareset        => B"0000",
+               gt_rxpcsreset        => B"0000",
+               gt_rxpmaresetdone    => open,
+               gt_rxresetdone       => open,
+               -- Clocking
+               gt_rxbufstatus       => open,
+               gt_txphaligndone     => open,
+               gt_txphinitdone      => open,
+               gt_txdlysresetdone   => open,
+               gt_qplllock          => open,
+               -- Signal Integrity adn Functionality
+               -- Eye Scan
+               gt_eyescantrigger    => B"0000",
+               gt_eyescanreset      => B"0000",
+               gt_eyescandataerror  => open,
+               gt_rxrate            => X"000",
+               -- Loopback
+               gt_loopback          => X"000",
+               -- Polarity
+               gt_rxpolarity        => gtRxPolarity,
+               gt_txpolarity        => gtTxPolarity,
+               -- RX Decision Feedback Equalizer (DFE)
+               gt_rxlpmen           => B"1111",
+               gt_rxdfelpmreset     => B"0000",
+               -- TX Driver
+               gt_txpostcursor      => gtTxPostCursor,
+               gt_txprecursor       => gtTxPreCursor,
+               gt_txdiffctrl        => gtTxDiffCtrl,
+               gt_txinhibit         => "0000",
+               -- PRBS
+               gt_rxprbscntreset    => B"0000",
+               gt_rxprbserr         => open,
+               gt_rxprbssel         => X"0000",
+               gt_txprbssel         => X"0000",
+               gt_txprbsforceerr    => B"0000",
+               gt_rxcdrhold         => B"0000",
+               gt_dmonitorout       => open,
+               gt_pcsrsvdin         => (others => '0'),
                -- Configuration and Status
+               gt_rxdisperr         => open,
+               gt_rxnotintable      => open,
+               gt_rxcommadet        => open,
                signal_detect        => (others => '1'),
                debug                => status.debugVector,
                configuration_vector => config.configVector,
-               status_vector        => status.statusVector); 
+               status_vector        => status.statusVector);
       end generate;
       GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
          U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale312p5MHz20GigECore
@@ -350,7 +711,78 @@ begin
                xaui_rx_l2_n         => gtRxN(2),
                xaui_rx_l3_p         => gtRxP(3),
                xaui_rx_l3_n         => gtRxN(3),
+               -- DRP
+               gt0_drpaddr          => (others => '0'),
+               gt0_drpen            => '0',
+               gt0_drpdi            => X"0000",
+               gt0_drpdo            => open,
+               gt0_drprdy           => open,
+               gt0_drpwe            => '0',
+               gt1_drpaddr          => (others => '0'),
+               gt1_drpen            => '0',
+               gt1_drpdi            => X"0000",
+               gt1_drpdo            => open,
+               gt1_drprdy           => open,
+               gt1_drpwe            => '0',
+               gt2_drpaddr          => (others => '0'),
+               gt2_drpen            => '0',
+               gt2_drpdi            => X"0000",
+               gt2_drpdo            => open,
+               gt2_drprdy           => open,
+               gt2_drpwe            => '0',
+               gt3_drpaddr          => (others => '0'),
+               gt3_drpen            => '0',
+               gt3_drpdi            => X"0000",
+               gt3_drpdo            => open,
+               gt3_drprdy           => open,
+               gt3_drpwe            => '0',
+               -- TX Reset and Initialisation
+               gt_txpmareset        => B"0000",
+               gt_txpcsreset        => B"0000",
+               gt_txresetdone       => open,
+               -- RX Reset and Initialisation
+               gt_rxpmareset        => B"0000",
+               gt_rxpcsreset        => B"0000",
+               gt_rxpmaresetdone    => open,
+               gt_rxresetdone       => open,
+               -- Clocking
+               gt_rxbufstatus       => open,
+               gt_txphaligndone     => open,
+               gt_txphinitdone      => open,
+               gt_txdlysresetdone   => open,
+               gt_qplllock          => open,
+               -- Signal Integrity adn Functionality
+               -- Eye Scan
+               gt_eyescantrigger    => B"0000",
+               gt_eyescanreset      => B"0000",
+               gt_eyescandataerror  => open,
+               gt_rxrate            => X"000",
+               -- Loopback
+               gt_loopback          => X"000",
+               -- Polarity
+               gt_rxpolarity        => gtRxPolarity,
+               gt_txpolarity        => gtTxPolarity,
+               -- RX Decision Feedback Equalizer (DFE)
+               gt_rxlpmen           => B"1111",
+               gt_rxdfelpmreset     => B"0000",
+               -- TX Driver
+               gt_txpostcursor      => gtTxPostCursor,
+               gt_txprecursor       => gtTxPreCursor,
+               gt_txdiffctrl        => gtTxDiffCtrl,
+               gt_txinhibit         => "0000",
+               -- PRBS
+               gt_rxprbscntreset    => B"0000",
+               gt_rxprbserr         => open,
+               gt_rxprbssel         => X"0000",
+               gt_txprbssel         => X"0000",
+               gt_txprbsforceerr    => B"0000",
+               gt_rxcdrhold         => B"0000",
+               gt_dmonitorout       => open,
+               gt_pcsrsvdin         => (others => '0'),
                -- Configuration and Status
+               gt_rxdisperr         => open,
+               gt_rxnotintable      => open,
+               gt_rxcommadet        => open,
                signal_detect        => (others => '1'),
                debug                => status.debugVector,
                configuration_vector => config.configVector,
