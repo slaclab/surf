@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-04-20
+-- Last update: 2016-04-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -98,7 +98,6 @@ architecture rtl of SrpV3AxiLite is
       hdrCnt           : slv(3 downto 0);
       remVer           : slv(7 downto 0);
       opCode           : slv(1 downto 0);
-      spare            : slv(11 downto 0);
       timeoutSize      : slv(7 downto 0);
       timeoutCnt       : slv(7 downto 0);
       tid              : slv(31 downto 0);
@@ -123,7 +122,6 @@ architecture rtl of SrpV3AxiLite is
       hdrCnt           => (others => '0'),
       remVer           => (others => '0'),
       opCode           => (others => '0'),
-      spare            => (others => '0'),
       timeoutSize      => (others => '0'),
       timeoutCnt       => (others => '0'),
       tid              => (others => '0'),
@@ -280,7 +278,6 @@ begin
                   -- Latch the header information
                   v.remVer         := rxMaster.tData(7 downto 0);
                   v.opCode         := rxMaster.tData(9 downto 8);
-                  v.spare          := rxMaster.tData(23 downto 12);
                   v.timeoutSize    := rxMaster.tData(31 downto 24);
                   -- Reset other header fields
                   v.tid            := (others => '0');
@@ -414,7 +411,7 @@ begin
                      v.txMaster.tData(7 downto 0)   := SRP_VERSION_C;
                      v.txMaster.tData(9 downto 8)   := r.opCode;
                      v.txMaster.tData(11 downto 10) := "00";  -- Only supports 32-bit aligned addresses and 32-bit transactions
-                     v.txMaster.tData(23 downto 12) := r.spare;
+                     v.txMaster.tData(23 downto 12) := (others => '0');  -- Reserved
                      v.txMaster.tData(31 downto 24) := r.timeoutSize;
                   when x"1" => v.txMaster.tData(31 downto 0) := r.tid(31 downto 0);
                   when x"2" => v.txMaster.tData(31 downto 0) := r.addr(31 downto 0);
