@@ -1,0 +1,528 @@
+##############################################################################
+## This file is part of 'SLAC JESD204b Core'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC JESD204b Core', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+JesdTx: &JesdTx 
+  name: JesdTx
+  description: JESD TX Module
+  size: 0x100
+  registers:
+    #########################################################
+    - address: 0x00
+      name: Enable
+      size: 8
+      mode: RW
+      description: Enables the RX modules: 0x3 - enables both modules at a time        
+    #########################################################    
+    - address: 0x10
+      name: SubClass
+      size: 1
+      lsBit: 0      
+      mode: RW
+      description: SubClass  
+    #########################################################  
+    - address: 0x10
+      name: ReplaceEnable
+      size: 1
+      lsBit: 1      
+      mode: RW
+      description: ReplaceEnable  
+    #########################################################  
+    - address: 0x10
+      name: ResetGTs
+      size: 1
+      lsBit: 2 
+      mode: RW
+      description: ResetGTs  
+    ######################################################### 
+    - address: 0x10
+      name: InvertSync
+      size: 1
+      lsBit: 4
+      mode: RW
+      description: InvertSync  
+    ######################################################### 
+    - address: 0x10
+      name: ScrambleEnable
+      size: 1
+      lsBit: 5
+      mode: RW
+      description: ScrambleEnable  
+    ######################################################### 
+    - address: 0x14
+      name: RampStep
+      size: 16
+      mode: RW
+      description: Ramp increment step and a period of the wave in c-c    
+    ######################################################### 
+    - address: 0x16
+      name: SquarePeriod
+      size: 16
+      mode: RW
+      description: Ramp increment step and a period of the wave in c-c          
+    ######################################################### 
+    - address: 0x18
+      name: LowAmplitudeVal
+      mode: RW
+      description: Low value of the square waveform amplitude   
+    ######################################################### 
+    - address: 0x1C
+      name: HighAmplitudeVal
+      mode: RW
+      description: High value of the square waveform amplitude  
+    #########################################################        
+    - address: 0x040
+      name: L1_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L1_GTXReady  
+    #########################################################        
+    - address: 0x040
+      name: L1_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L1_DataValid  
+    #########################################################        
+    - address: 0x040
+      name: L1_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L1_IlasActive   
+    #########################################################        
+    - address: 0x040
+      name: L1_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L1_nSync  
+    #########################################################        
+    - address: 0x040
+      name: L1_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L1_TxEnabled   
+    #########################################################        
+    - address: 0x040
+      name: L1_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L1_SysRefDetected        
+    #########################################################        
+    - address: 0x044
+      name: L2_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L2_GTXReady  
+    #########################################################        
+    - address: 0x044
+      name: L2_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L2_DataValid  
+    #########################################################        
+    - address: 0x044
+      name: L2_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L2_IlasActive   
+    #########################################################        
+    - address: 0x044
+      name: L2_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L2_nSync  
+    #########################################################        
+    - address: 0x044
+      name: L2_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L2_TxEnabled   
+    #########################################################        
+    - address: 0x044
+      name: L2_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L2_SysRefDetected  
+    #########################################################        
+    - address: 0x048
+      name: L3_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L3_GTXReady  
+    #########################################################        
+    - address: 0x048
+      name: L3_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L3_DataValid  
+    #########################################################        
+    - address: 0x048
+      name: L3_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L3_IlasActive   
+    #########################################################        
+    - address: 0x048
+      name: L3_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L3_nSync  
+    #########################################################        
+    - address: 0x048
+      name: L3_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L3_TxEnabled   
+    #########################################################        
+    - address: 0x048
+      name: L3_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L3_SysRefDetected  
+    #########################################################        
+    - address: 0x04C
+      name: L4_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L4_GTXReady  
+    #########################################################        
+    - address: 0x04C
+      name: L4_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L4_DataValid  
+    #########################################################        
+    - address: 0x04C
+      name: L4_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L4_IlasActive   
+    #########################################################        
+    - address: 0x04C
+      name: L4_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L4_nSync  
+    #########################################################        
+    - address: 0x04C
+      name: L4_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L4_TxEnabled   
+    #########################################################        
+    - address: 0x04C
+      name: L4_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L4_SysRefDetected  
+    #########################################################        
+    - address: 0x050
+      name: L5_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L5_GTXReady  
+    #########################################################        
+    - address: 0x050
+      name: L5_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L5_DataValid  
+    #########################################################        
+    - address: 0x050
+      name: L5_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L5_IlasActive   
+    #########################################################        
+    - address: 0x050
+      name: L5_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L5_nSync  
+    #########################################################        
+    - address: 0x050
+      name: L5_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L5_TxEnabled   
+    #########################################################        
+    - address: 0x050
+      name: L5_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L5_SysRefDetected  
+    #########################################################        
+    - address: 0x054
+      name: L6_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L6_GTXReady  
+    #########################################################        
+    - address: 0x054
+      name: L6_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L6_DataValid  
+    #########################################################        
+    - address: 0x054
+      name: L6_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L6_IlasActive   
+    #########################################################        
+    - address: 0x054
+      name: L6_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L6_nSync  
+    #########################################################        
+    - address: 0x054
+      name: L6_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L6_TxEnabled   
+    #########################################################        
+    - address: 0x054
+      name: L6_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L6_SysRefDetected  
+    #########################################################        
+    - address: 0x058
+      name: L7_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L7_GTXReady  
+    #########################################################        
+    - address: 0x058
+      name: L7_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L7_DataValid  
+    #########################################################        
+    - address: 0x058
+      name: L7_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L7_IlasActive   
+    #########################################################        
+    - address: 0x058
+      name: L7_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L7_nSync  
+    #########################################################        
+    - address: 0x058
+      name: L7_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L7_TxEnabled   
+    #########################################################        
+    - address: 0x058
+      name: L7_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L7_SysRefDetected  
+    #########################################################        
+    - address: 0x05C
+      name: L8_GTXReady
+      size: 1    
+      lsBit: 0
+      mode: RO
+      description: L8_GTXReady  
+    #########################################################        
+    - address: 0x05C
+      name: L8_DataValid
+      size: 1    
+      lsBit: 1
+      mode: RO
+      description: L8_DataValid  
+    #########################################################        
+    - address: 0x05C
+      name: L8_IlasActive
+      size: 1    
+      lsBit: 2
+      mode: RO
+      description: L8_IlasActive   
+    #########################################################        
+    - address: 0x05C
+      name: L8_nSync
+      size: 1    
+      lsBit: 3
+      mode: RO
+      description: L8_nSync  
+    #########################################################        
+    - address: 0x05C
+      name: L8_TxEnabled
+      size: 1    
+      lsBit: 4
+      mode: RO
+      description: L8_TxEnabled   
+    #########################################################        
+    - address: 0x05C
+      name: L8_SysRefDetected
+      size: 1    
+      lsBit: 5
+      mode: RO
+      description: L8_SysRefDetected  
+    #########################################################        
+    - address: 0x080
+      name: L1_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x080
+      name: L1_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero    
+    #########################################################        
+    - address: 0x084
+      name: L2_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x084
+      name: L2_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero    
+    #########################################################        
+    - address: 0x088
+      name: L3_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x088
+      name: L3_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero     
+    #########################################################        
+    - address: 0x08C
+      name: L4_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x08C
+      name: L4_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero          
+    #########################################################        
+    - address: 0x090
+      name: L5_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x090
+      name: L5_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero     
+    #########################################################        
+    - address: 0x094
+      name: L6_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x094
+      name: L6_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero    
+    #########################################################        
+    - address: 0x098
+      name: L7_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x098
+      name: L7_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero     
+    #########################################################        
+    - address: 0x09C
+      name: L8_data_out_mux
+      size: 4    
+      lsBit: 0
+      mode: RO
+      description: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+    #########################################################        
+    - address: 0x09C
+      name: L8_test_out_mux
+      size: 4    
+      lsBit: 4
+      mode: RW
+      description: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero        
+    #########################################################        
+    
