@@ -1,2 +1,2 @@
-manual yaml/AxiJesdRx.yaml
-manual yaml/AxiJesdTx.yaml
+manual yaml/JesdRx.yaml
+manual yaml/JesdTx.yaml
