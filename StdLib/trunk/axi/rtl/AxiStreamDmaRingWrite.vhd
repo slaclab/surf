@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-04-18
+-- Last update: 2016-04-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -148,6 +148,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       state            : StateType;
       dmaReq           : AxiWriteDmaReqType;
       trigger          : sl;
+      softTrigger      : slv(BUFFERS_G-1 downto 0);
       eofe             : sl;
       bufferEnabled    : slv(BUFFERS_G-1 downto 0);
       bufferEmpty      : slv(BUFFERS_G-1 downto 0);
@@ -174,6 +175,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       state            => WAIT_TVALID_S,
       dmaReq           => AXI_WRITE_DMA_REQ_INIT_C,
       trigger          => '0',
+      softTrigger      => (others => '0'),
       eofe             => '0',
       bufferEnabled    => (others => '1'),
       bufferEmpty      => (others => '1'),
@@ -463,6 +465,11 @@ begin
          end if;
       end if;
 
+      -- Check for software trigger.
+      if (modeWrValid = '1' and modeWrStrobe(SOFT_TRIGGER_C/8) = '1' and modeWrData(SOFT_TRIGGER_C) = '1') then
+         v.softTrigger := r.softTrigger or decode(modeWrAddr);
+      end if;
+
 
 
       -- Don't send status message unless directed to below
@@ -555,8 +562,9 @@ begin
                end if;
 
                -- Record trigger position if a trigger was seen on current frame
-               v.trigger := '0';
-               if ((r.trigger = '1' or r.mode(SOFT_TRIGGER_C) = '1') and r.status(TRIGGERED_C) = '0') then
+               v.trigger                                   := '0';
+               v.softTrigger(conv_integer(r.activeBuffer)) := '0';
+               if ((r.trigger = '1' or r.softTrigger(conv_integer(r.activeBuffer)) = '1') and r.status(TRIGGERED_C) = '0') then
                   v.trigAddr            := r.nextAddr;
                   v.status(TRIGGERED_C) := '1';
                end if;
