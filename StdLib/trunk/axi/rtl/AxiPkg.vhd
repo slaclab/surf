@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-22
+-- Last update: 2016-04-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -215,14 +215,14 @@ package AxiPkg is
       ADDR_WIDTH_C : positive range 12 to 64;
       DATA_BYTES_C : positive range 1 to 128;
       ID_BITS_C    : positive range 1 to 32;
-      LEN_BITS_C   : positive range 0 to 8;
+      LEN_BITS_C   : natural range 0 to 8;
    end record AxiConfigType;
 
    function axiConfig (
       constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
       constant DATA_BYTES_C : in positive range 1 to 128 := 4;
       constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in positive range 0 to 8   := 4)
+      constant LEN_BITS_C   : in natural range 0 to 8   := 4)
       return AxiConfigType;
 
    constant AXI_CONFIG_INIT_C : AxiConfigType := axiConfig(
@@ -262,7 +262,7 @@ package body AxiPkg is
       constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
       constant DATA_BYTES_C : in positive range 1 to 128 := 4;
       constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in positive range 0 to 8   := 4)
+      constant LEN_BITS_C   : in natural range 0 to 8   := 4)
       return AxiConfigType is
       variable ret : AxiConfigType;
    begin
