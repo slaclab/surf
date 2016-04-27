@@ -34,7 +34,7 @@ entity AxiStreamDmaRingWrite is
       TPD_G                      : time                    := 1 ns;
       BUFFERS_G                  : natural range 2 to 64   := 64;
       BURST_SIZE_BYTES_G         : natural range 4 to 4096 := 4096;
-      TRIGGER_USER_BIT_G         : natural range 0 to 7    := 0;
+      TRIGGER_USER_BIT_G         : natural range 0 to 7    := 2;
       AXIL_BASE_ADDR_G           : slv(31 downto 0)        := (others => '0');
       DATA_AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(8);
       STATUS_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
@@ -457,9 +457,9 @@ begin
 
       -- If last txn of frame, check for trigger condition and latch it in a register
       if (axisDataMaster.tValid = '1' and axisDataMaster.tLast = '1') then
-         if(axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
-            v.trigger := '1';
-         end if;
+--          if(axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
+--             v.trigger := '1';
+--          end if;
          if (axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, SSI_EOFE_C) = '1') then
             v.eofe := '1';
          end if;
@@ -577,9 +577,9 @@ begin
                end if;
 
 
-               -- If the buffer is full, increment the first addr too
+               -- If the buffer is full, firstAddr moves with nextAddr
                if (r.status(FULL_C) = '1') then  --v.nextAddr = r.firstAddr
-                  v.firstAddr := r.firstAddr + dmaAck.size;
+                  v.firstAddr := v.nextAddr;
                end if;
 
                -- Increment FramesSinceTrigger when necessary
