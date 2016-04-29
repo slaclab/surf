@@ -8,55 +8,55 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-AxiXadc: &AxiXadc 
+Device: &AxiXadc 
   name: AxiXadc
   description: AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)
   size: 0x800
-  registers:
+  IntField:
     #########################################################
-    - address: 0x00 
+    - offset: 0x00 
       name: SRR
       mode: WO
       description: Software Reset Register
     #########################################################
-    - address: 0x04 
+    - offset: 0x04 
       name: SR
       mode: RO
       description: Status Register
     #########################################################
-    - address: 0x08
+    - offset: 0x08
       name: AOSR
       mode: RO
       description: Alarm Output Status Register    
     #########################################################
-    - address: 0x0C
+    - offset: 0x0C
       name: CONVSTR
       mode: WO
       description: CONVST Register
     #########################################################
-    - address: 0x10
+    - offset: 0x10
       name: SYSMONRR
       mode: WO
       description: XADC Hard Macro Reset Register  
     #########################################################
-    - address: 0x5C
+    - offset: 0x5C
       name: GIER
       mode: RW
       description: Global Interrupt Enable Register   
     #########################################################
-    - address: 0x60
+    - offset: 0x60
       name: IPISR
-      mode: RTOW
+      mode: RO
       description: IP Interrupt Status Register
     #########################################################
-    - address: 0x68
+    - offset: 0x68
       name: IPIER
       mode: RW
       description: IP Interrupt Enable Register   
     #########################################################
-    - address: 0x200
+    - offset: 0x200
       name: Temperature
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -66,9 +66,9 @@ AxiXadc: &AxiXadc
         temperature sensor transfer function shown in Figure 2-8, 
         page 31 of UG480 (v1.2)
     #########################################################
-    - address: 0x204
+    - offset: 0x204
       name: VCCINT
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -78,9 +78,9 @@ AxiXadc: &AxiXadc
         supply sensor transfer function shown in Figure 2-9, 
         page 32 of UG480 (v1.2)     
     #########################################################
-    - address: 0x208
+    - offset: 0x208
       name: VCCAUX
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |   
@@ -90,9 +90,9 @@ AxiXadc: &AxiXadc
         supply sensor transfer function shown in Figure 2-9, 
         page 32 of UG480 (v1.2)
     #########################################################
-    - address: 0x20C
+    - offset: 0x20C
       name: VP_VN
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -103,9 +103,9 @@ AxiXadc: &AxiXadc
         Figure 2-6, page 29 of UG480 (v1.2) depending on analog input mode 
         settings.
     #########################################################
-    - address: 0x210
+    - offset: 0x210
       name: VREFP
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -115,9 +115,9 @@ AxiXadc: &AxiXadc
         justified in the 16-bit register (Read Only). The supply sensor is used 
         when measuring VrefP.
     #########################################################
-    - address: 0x214
+    - offset: 0x214
       name: VREFN
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -130,9 +130,9 @@ AxiXadc: &AxiXadc
         VrefN, thus 1 LSB = 3V/4096. The data is MSB justified in 
         the 16-bit register.      
     #########################################################
-    - address: 0x218
+    - offset: 0x218
       name: VBRAM
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -142,36 +142,36 @@ AxiXadc: &AxiXadc
         supply sensor transfer function shown in Figure 2-9, 
         page 32 of UG480 (v1.2)
     #########################################################
-    - address: 0x220
+    - offset: 0x220
       name: SupplyOffset
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         The calibration coefficient for the supply sensor offset 
         using ADC A is stored at this location (Read Only).
     #########################################################
-    - address: 0x224
+    - offset: 0x224
       name: ADCOffset
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         The calibration coefficient for the ADC A offset is stored at 
         this location (Read Only).
     #########################################################
-    - address: 0x228
+    - offset: 0x228
       name: GainError
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         The calibration coefficient for the ADC A gain error is 
         stored at this location (Read Only).
     #########################################################
-    - address: 0x234
+    - offset: 0x234
       name: VCCPINT
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -181,9 +181,9 @@ AxiXadc: &AxiXadc
         MSB justified in the 16-bit register (Zynq Only and Read Only).
         The supply sensor is used when measuring VccpInt.
     #########################################################
-    - address: 0x238
+    - offset: 0x238
       name: VCCPAUX
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -193,9 +193,9 @@ AxiXadc: &AxiXadc
         MSB justified in the 16-bit register (Zynq Only and Read Only). 
         The supply sensor is used when measuring VccpAux.
     #########################################################
-    - address: 0x23C
+    - offset: 0x23C
       name: VCCDDRO
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -205,10 +205,10 @@ AxiXadc: &AxiXadc
         MSB justified in the 16-bit register (Zynq Only and Read Only). 
         The supply sensor is used when measuring VccpDdr.
     #########################################################
-    - address: 0x240
+    - offset: 0x240
       name: VAUXP_VAUXN
       nelms: 16
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
@@ -219,133 +219,133 @@ AxiXadc: &AxiXadc
         Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode 
         settings.
     #########################################################
-    - address: 0x280
+    - offset: 0x280
       name: MaxTemp
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum temperature measurement recorded since 
         power-up or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x284
+    - offset: 0x284
       name: MaxVCCINT
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum VccInt measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x288
+    - offset: 0x288
       name: MaxVCCAUX
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum VccAux measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x28C
+    - offset: 0x28C
       name: MaxVBRAM
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum VccBram measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x290
+    - offset: 0x290
       name: MinTemp
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum temperature measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x294
+    - offset: 0x294
       name: MinVCCINT
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum VccInt measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x298
+    - offset: 0x298
       name: MinVCCAUX
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum VccAux measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x29C
+    - offset: 0x29C
       name: MinVBRAM
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum VccBram measurement recorded since power-up 
         or the last AxiXadc reset (Read Only).
     #########################################################
-    - address: 0x20
+    - offset: 0x20
       name: MaxVCCPINT
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum VccpInt measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2A4
+    - offset: 0x2A4
       name: MaxVCCPAUX
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum VccpAux measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2A8
+    - offset: 0x2A8
       name: MaxVCCDDRO
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Maximum VccpDdr measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2B0
+    - offset: 0x2B0
       name: MinVCCPINT
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum VccpInt measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2B4
+    - offset: 0x2B4
       name: MinVCCPAUX
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum VccpAux measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2B8
+    - offset: 0x2B8
       name: MinVCCDDRO
-      size: 12
+      sizeBits: 12
       lsBit: 4
       mode: RO
       description: |
         Minimum VccpDdr measurement recorded since power-up 
         or the last AxiXadc reset (Zynq Only and Read Only).
     #########################################################
-    - address: 0x2FC
+    - offset: 0x2FC
       name: FlagRegister
       mode: RO
       description: |
@@ -353,7 +353,7 @@ AxiXadc: &AxiXadc
         Flag Register Bits are defined in Figure 3-2 and Table 3-2 on 
         page 37 of UG480 (v1.2)
     #########################################################
-    - address: 0x300
+    - offset: 0x300
       name: ConfigurationRegister
       nelms: 3
       mode: RW
@@ -361,7 +361,7 @@ AxiXadc: &AxiXadc
         These are AxiXadc configuration registers (see Configuration 
         Registers (40hto 42h)) on page 39 of UG480 (v1.2)
     #########################################################
-    - address: 0x320
+    - offset: 0x320
       name: SequenceReg
       nelms: 8
       mode: RW
@@ -369,7 +369,7 @@ AxiXadc: &AxiXadc
         These registers are used to program the channel sequencer 
         function (see Chapter 4, AxiXadc Operating Modes) of UG480 (v1.2)
     #########################################################
-    - address: 0x340
+    - offset: 0x340
       name: AlarmThreshold
       nelms: 16
       mode: RW

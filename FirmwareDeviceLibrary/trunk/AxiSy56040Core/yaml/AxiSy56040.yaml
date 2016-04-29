@@ -8,16 +8,16 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-AxiSy56040: &AxiSy56040 
+Device: &AxiSy56040 
   name: AxiSy56040
   description: AXI-Lite Microchip SY56040 and Microchip SY58040
   size: 0x10
-  registers:
+  IntField:
     #########################################################
-    - address: 0x00
+    - offset: 0x00
       name: OutputConfig   
       nelms: 4      
-      size: 2
+      sizeBits: 2
       mode: RW
       description: Output Configuration Register Array       
     #########################################################

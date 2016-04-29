@@ -8,12 +8,12 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-GenericMemory: &GenericMemory 
+Device: &GenericMemory 
   name: GenericMemory
   description: Generic Memory Module
   size: 0x4
-  registers:
-    - address: 0x0
+  IntField:
+    - offset: 0x0
       name: MemoryArray
       nelms: 1
       mode: RW

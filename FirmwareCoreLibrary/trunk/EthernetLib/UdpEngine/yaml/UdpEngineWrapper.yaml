@@ -8,21 +8,21 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-UdpEngineWrapper: &UdpEngineWrapper 
+Device: &UdpEngineWrapper 
   name: UdpEngineWrapper
   description: UdpEngineWrapper 
   size: 0x8
-  registers:
+  IntField:
     #########################################################
-    - address: 0x00
+    - offset: 0x00
       name: ClientRemotePort
-      size: 16      
+      sizeBits: 16      
       mode: RW
       description: ClientRemotePort
     #########################################################
-    - address: 0x04
+    - offset: 0x04
       name: ClientRemoteIp
-      size: 32      
+      sizeBits: 32      
       mode: RW
       description: ClientRemoteIp
     #########################################################

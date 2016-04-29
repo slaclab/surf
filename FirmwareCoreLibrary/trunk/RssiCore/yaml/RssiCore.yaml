@@ -8,92 +8,92 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-RssiCore: &RssiCore 
+Device: &RssiCore 
   name: RssiCore
   description: RSSI module
   size: 0x100
     #########################################################
-    - address: 0x00 
+    - offset: 0x00 
       name: ControlReg
       nelms: 5
       mode: RW
       description: Control register [4:0]
     #########################################################
-    - address: 0x04
+    - offset: 0x04
       name: InitSeqN
-      size: 8
+      sizeBits: 8
       mode: RW
       description: Initial sequence number [7:0]
     #########################################################
-    - address: 0x08
+    - offset: 0x08
       name: Version
-      size: 4
+      sizeBits: 4
       mode: RW
       description: Version register [3:0]
     #########################################################
-    - address: 0x0C
+    - offset: 0x0C
       name: MaxOutsSeg
-      size: 8
+      sizeBits: 8
       mode: RW
       description: Maximum out standing segments [7:0]
     #########################################################
-    - address: 0x10
+    - offset: 0x10
       name: MaxSegSize
-      size: 16
+      sizeBits: 16
       mode: RW
       description: Maximum segment size [15:0]
     #########################################################
-    - address: 0x14
+    - offset: 0x14
       name: RetransTimeout
-      size: 16
+      sizeBits: 16
       mode: RW
       description: Retransmission timeout [15:0]
     #########################################################
-    - address: 0x18
+    - offset: 0x18
       name: CumAckTimeout
-      size: 16
+      sizeBits: 16
       mode: RW
       description: Cumulative acknowledgment timeout [15:0]
     #########################################################
-    - address: 0x1C
+    - offset: 0x1C
       name: NullSegTimeout
-      size: 16
+      sizeBits: 16
       mode: RW
       description: Null segment timeout [15:0]
     #########################################################
-    - address: 0x20
+    - offset: 0x20
       name: MaxNumRetrans
-      size: 8     
+      sizeBits: 8     
       mode: RW
       description: Maximum number of retransmissions [7:0]
     #########################################################
-    - address: 0x24
+    - offset: 0x24
       name: MaxCumAck
-      size: 8 
+      sizeBits: 8 
       mode: RW
       description: Maximum cumulative acknowledgments [7:0]
     #########################################################
-    - address: 0x28
+    - offset: 0x28
       name: MaxOutOfSeq
-      size: 8
+      sizeBits: 8
       mode: RW
       description: Max out of sequence segments (EACK) [7:0]
     #########################################################
-    - address: 0x40
+    - offset: 0x40
       name: StatusReg
-      nelms: 7
+      sizeBits: 7
       mode: RO
       description: Status register [6:0]
     #########################################################
-    - address: 0x44
+    - offset: 0x44
       name: ValidCnt
-      size: 32
+      sizeBits: 32
       mode: RO
       description: Number of valid segments [31:0]
     #########################################################    
-    - address: 0x48
+    - offset: 0x48
       name: DropCnt
-      size: 32
+      sizeBits: 32
       mode: RO
       description: Number of dropped segments [31:0]
     #########################################################

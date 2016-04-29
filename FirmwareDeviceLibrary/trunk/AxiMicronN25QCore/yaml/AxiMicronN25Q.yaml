@@ -8,34 +8,34 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-AxiMicronN25Q: &AxiMicronN25Q 
+Device: &AxiMicronN25Q 
   name: AxiMicronN25Q
   description: AXI-Lite Micron N25Q and Micron MT25Q PROM
   size: 0x400
-  registers:
+  IntField:
     #########################################################
-    - address: 0x00 
+    - offset: 0x00 
       name: Test
       mode: RW
       description: Scratch Pad tester register
     #########################################################
-    - address: 0x04 
+    - offset: 0x04 
       name: Addr32BitMode
-      size: 1      
+      sizeBits: 1      
       mode: RW
       description: Enable 32-bit PROM mode
     #########################################################
-    - address: 0x08
+    - offset: 0x08
       name: Addr   
       mode: RW
       description: Address Register  
     #########################################################
-    - address: 0x0C
+    - offset: 0x0C
       name: Cmd   
       mode: RW
       description: Command Register        
     #########################################################
-    - address: 0x200
+    - offset: 0x200
       name: Data   
       nelms: 64      
       mode: RW
