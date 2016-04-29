@@ -76,7 +76,7 @@ package body SrpV3Pkg is
       reqSize : in natural          := 0;
       txnId   : in slv(31 downto 0) := (others => '0');
       timeout : in slv(7 downto 0)  := (others => '0'))
-      return Slv32Array;
+      return Slv32Array
    is
       variable header : slv32Array(0 downto 4);
    begin
@@ -101,7 +101,7 @@ package body SrpV3Pkg is
       timeout       : in  slv(7 downto 0)  := (others => '0');
       posted        : in  boolean          := false)
    is
-      variable txData : slv32array(0 to 4+data'length-1)
+      variable txData : slv32array(0 to 4+data'length-1);
    begin
       -- Build frame
       txData(0 to 4)               := srpHeader(ite(posted, SRP_POSTED_WRITE_C, SRP_WRITE_C), addr, data'length*4-1, txnId, timeout);
@@ -128,7 +128,7 @@ package body SrpV3Pkg is
       txData(0 to 4)               := srpHeader(SRP_READ_C, addr, data'length*4-1, txnId, timeout);
       axiStreamSimSendFrame(SRP_AXIS_CONFIG_C, clk, master, slave, txData, "02", "00");
 
-      axiStreamSimReceiveFrame(SRP_AXIS_CONFIG_C, clk, 
+      --axiStreamSimReceiveFrame(SRP_AXIS_CONFIG_C, clk, 
 
    end procedure;
 
