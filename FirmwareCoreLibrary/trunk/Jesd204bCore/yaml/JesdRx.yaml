@@ -8,814 +8,814 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-JesdRx: &JesdRx 
+Device: &JesdRx 
   name: JesdRx
   description: JESD RX Module
   size: 0x100
-  registers:  
+  IntField:  
     #########################################################
-    - address: 0x00
+    - offset: 0x00
       name: Enable
-      size: 8
+      sizeBits: 8
       mode: RW
       description: Enables the RX modules: 0x3 - enables both modules at a time          
     ######################################################### 
-    - address: 0x04
+    - offset: 0x04
       name: SysrefDelay
-      size: 5
+      sizeBits: 5
       mode: RW
       description: Sets the synchronisation delay in clock cycles      
     #########################################################    
-    - address: 0x10
+    - offset: 0x10
       name: SubClass
-      size: 1
+      sizeBits: 1
       lsBit: 0      
       mode: RW
       description: SubClass  
     #########################################################  
-    - address: 0x10
+    - offset: 0x10
       name: ReplaceEnable
-      size: 1
+      sizeBits: 1
       lsBit: 1      
       mode: RW
       description: ReplaceEnable  
     #########################################################  
-    - address: 0x10
+    - offset: 0x10
       name: ResetGTs
-      size: 1
+      sizeBits: 1
       lsBit: 2 
       mode: RW
       description: ResetGTs  
     #########################################################    
-    - address: 0x10
+    - offset: 0x10
       name: ClearErrors
-      size: 1
+      sizeBits: 1
       lsBit: 3 
       mode: RW
       description: ClearErrors  
     ######################################################### 
-    - address: 0x10
+    - offset: 0x10
       name: InvertSync
-      size: 1
+      sizeBits: 1
       lsBit: 4
       mode: RW
       description: InvertSync  
     ######################################################### 
-    - address: 0x10
+    - offset: 0x10
       name: ScrambleEnable
-      size: 1
+      sizeBits: 1
       lsBit: 5
       mode: RW
       description: ScrambleEnable  
     #########################################################     
-    - address: 0xC0
+    - offset: 0xC0
       name: L1_Threshold_Low
-      size: 16
+      sizeBits: 16
       mode: RW
       description: L1_Threshold_Low  
     #########################################################   
-    - address: 0xC2
+    - offset: 0xC2
       name: L1_Threshold_High
-      size: 16
+      sizeBits: 16
       mode: RW
       description: L1_Threshold_High  
     #########################################################    
-    - address: 0xC4
+    - offset: 0xC4
       name: L2_Threshold_Low
-      size: 16
+      sizeBits: 16
       mode: RW
       description: L2_Threshold_Low  
     #########################################################   
-    - address: 0xC6
+    - offset: 0xC6
       name: L2_Threshold_High
-      size: 16
+      sizeBits: 16
       mode: RW
       description: L2_Threshold_High  
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L1_GTXReady  
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L1_DataValid  
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L1_AlignErr   
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L1_nSync  
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L1_RxBuffUfl   
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L1_RxBuffOfl  
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L1_PositionErr  
     #########################################################        
-    - address: 0x040
+    - offset: 0x040
       name: L1_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L1_RxEnabled     
     #########################################################        
-    - address: 0x041
+    - offset: 0x041
       name: L1_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L1_SysRefDetected     
     #########################################################        
-    - address: 0x041
+    - offset: 0x041
       name: L1_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L1_CommaDetected  
     #########################################################        
-    - address: 0x041
+    - offset: 0x041
       name: L1_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L1_DisparityErr        
     #########################################################        
-    - address: 0x041
+    - offset: 0x041
       name: L1_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L1_DecErr  
     #########################################################        
-    - address: 0x042
+    - offset: 0x042
       name: L1_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L1_ElBuffLatency        
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L2_GTXReady  
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L2_DataValid  
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L2_AlignErr   
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L2_nSync  
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L2_RxBuffUfl   
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L2_RxBuffOfl  
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L2_PositionErr  
     #########################################################        
-    - address: 0x044
+    - offset: 0x044
       name: L2_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L2_RxEnabled     
     #########################################################        
-    - address: 0x045
+    - offset: 0x045
       name: L2_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L2_SysRefDetected     
     #########################################################        
-    - address: 0x045
+    - offset: 0x045
       name: L2_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L2_CommaDetected  
     #########################################################        
-    - address: 0x045
+    - offset: 0x045
       name: L2_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L2_DisparityErr        
     #########################################################        
-    - address: 0x045
+    - offset: 0x045
       name: L2_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L2_DecErr  
     #########################################################        
-    - address: 0x046
+    - offset: 0x046
       name: L2_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L2_ElBuffLatency        
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L3_GTXReady  
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L3_DataValid  
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L3_AlignErr   
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L3_nSync  
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L3_RxBuffUfl   
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L3_RxBuffOfl  
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L3_PositionErr  
     #########################################################        
-    - address: 0x048
+    - offset: 0x048
       name: L3_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L3_RxEnabled     
     #########################################################        
-    - address: 0x049
+    - offset: 0x049
       name: L3_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L3_SysRefDetected     
     #########################################################        
-    - address: 0x049
+    - offset: 0x049
       name: L3_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L3_CommaDetected  
     #########################################################        
-    - address: 0x049
+    - offset: 0x049
       name: L3_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L3_DisparityErr        
     #########################################################        
-    - address: 0x049
+    - offset: 0x049
       name: L3_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L3_DecErr  
     #########################################################        
-    - address: 0x04A
+    - offset: 0x04A
       name: L3_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L3_ElBuffLatency        
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L4_GTXReady  
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L4_DataValid  
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L4_AlignErr   
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L4_nSync  
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L4_RxBuffUfl   
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L4_RxBuffOfl  
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L4_PositionErr  
     #########################################################        
-    - address: 0x04C
+    - offset: 0x04C
       name: L4_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L4_RxEnabled     
     #########################################################        
-    - address: 0x04D
+    - offset: 0x04D
       name: L4_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L4_SysRefDetected     
     #########################################################        
-    - address: 0x04D
+    - offset: 0x04D
       name: L4_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L4_CommaDetected  
     #########################################################        
-    - address: 0x04D
+    - offset: 0x04D
       name: L4_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L4_DisparityErr        
     #########################################################        
-    - address: 0x04D
+    - offset: 0x04D
       name: L4_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L4_DecErr  
     #########################################################        
-    - address: 0x04E
+    - offset: 0x04E
       name: L4_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L4_ElBuffLatency        
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L5_GTXReady  
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L5_DataValid  
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L5_AlignErr   
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L5_nSync  
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L5_RxBuffUfl   
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L5_RxBuffOfl  
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L5_PositionErr  
     #########################################################        
-    - address: 0x050
+    - offset: 0x050
       name: L5_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L5_RxEnabled     
     #########################################################        
-    - address: 0x051
+    - offset: 0x051
       name: L5_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L5_SysRefDetected     
     #########################################################        
-    - address: 0x051
+    - offset: 0x051
       name: L5_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L5_CommaDetected  
     #########################################################        
-    - address: 0x051
+    - offset: 0x051
       name: L5_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L5_DisparityErr        
     #########################################################        
-    - address: 0x051
+    - offset: 0x051
       name: L5_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L5_DecErr  
     #########################################################        
-    - address: 0x052
+    - offset: 0x052
       name: L5_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L5_ElBuffLatency        
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L6_GTXReady  
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L6_DataValid  
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L6_AlignErr   
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L6_nSync  
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L6_RxBuffUfl   
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L6_RxBuffOfl  
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L6_PositionErr  
     #########################################################        
-    - address: 0x054
+    - offset: 0x054
       name: L6_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L6_RxEnabled     
     #########################################################        
-    - address: 0x055
+    - offset: 0x055
       name: L6_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L6_SysRefDetected     
     #########################################################        
-    - address: 0x055
+    - offset: 0x055
       name: L6_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L6_CommaDetected  
     #########################################################        
-    - address: 0x055
+    - offset: 0x055
       name: L6_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L6_DisparityErr        
     #########################################################        
-    - address: 0x055
+    - offset: 0x055
       name: L6_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L6_DecErr  
     #########################################################        
-    - address: 0x056
+    - offset: 0x056
       name: L6_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L6_ElBuffLatency        
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L7_GTXReady  
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L7_DataValid  
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L7_AlignErr   
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L7_nSync  
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L7_RxBuffUfl   
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L7_RxBuffOfl  
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L7_PositionErr  
     #########################################################        
-    - address: 0x058
+    - offset: 0x058
       name: L7_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L7_RxEnabled     
     #########################################################        
-    - address: 0x059
+    - offset: 0x059
       name: L7_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L7_SysRefDetected     
     #########################################################        
-    - address: 0x059
+    - offset: 0x059
       name: L7_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L7_CommaDetected  
     #########################################################        
-    - address: 0x059
+    - offset: 0x059
       name: L7_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L7_DisparityErr        
     #########################################################        
-    - address: 0x059
+    - offset: 0x059
       name: L7_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L7_DecErr  
     #########################################################        
-    - address: 0x05A
+    - offset: 0x05A
       name: L7_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L7_ElBuffLatency        
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_GTXReady
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L8_GTXReady  
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_DataValid
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L8_DataValid  
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_AlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L8_AlignErr   
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_nSync
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L8_nSync  
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_RxBuffUfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L8_RxBuffUfl   
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_RxBuffOfl
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L8_RxBuffOfl  
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_PositionErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L8_PositionErr  
     #########################################################        
-    - address: 0x05C
+    - offset: 0x05C
       name: L8_RxEnabled
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L8_RxEnabled     
     #########################################################        
-    - address: 0x05D
+    - offset: 0x05D
       name: L8_SysRefDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L8_SysRefDetected     
     #########################################################        
-    - address: 0x05D
+    - offset: 0x05D
       name: L8_CommaDetected
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L8_CommaDetected  
     #########################################################        
-    - address: 0x05D
+    - offset: 0x05D
       name: L8_DisparityErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L8_DisparityErr        
     #########################################################        
-    - address: 0x05D
+    - offset: 0x05D
       name: L8_DecErr
-      size: 4    
+      sizeBits: 4    
       lsBit: 6
       mode: RO
       description: L8_DecErr  
     #########################################################        
-    - address: 0x05E
+    - offset: 0x05E
       name: L8_ElBuffLatency
-      size: 4    
+      sizeBits: 4    
       lsBit: 2
       mode: RO
       description: L8_ElBuffLatency        

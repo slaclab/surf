@@ -8,101 +8,101 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-Adc16Dx370: &Adc16Dx370 
+Device: &Adc16Dx370 
   name: Adc16Dx370
   description: ADC16Dx370 Module
   size: 0x200
-  registers:
+  IntField:
     #########################################################
-    - address: 0x000
+    - offset: 0x000
       name: AdcReg
-      size: 8
+      sizeBits: 8
       stride: 4
       nelms: 114
       mode: RW
       description: ADC Registers[113:0]           
     #########################################################
-    - address: 0x00C
+    - offset: 0x00C
       name: ID_DEVICE_TYPE
-      size: 8
+      sizeBits: 8
       mode: RO
       description: ID_DEVICE_TYPE 
     #########################################################
-    - address: 0x010
+    - offset: 0x010
       name: ID_PROD_UPPER
-      size: 8
+      sizeBits: 8
       mode: RO
       description: ID_PROD_UPPER 
     #########################################################
-    - address: 0x014
+    - offset: 0x014
       name: ID_PROD_LOWER
-      size: 8
+      sizeBits: 8
       mode: RO
       description: ID_PROD_LOWER 
     #########################################################
-    - address: 0x018
+    - offset: 0x018
       name: ID_MASKREV
-      size: 8
+      sizeBits: 8
       mode: RO
       description: ID_MASKREV 
     #########################################################
-    - address: 0x030
+    - offset: 0x030
       name: ID_VNDR_UPPER
-      size: 8
+      sizeBits: 8
       mode: RO
       description: ID_VNDR_UPPER     
     #########################################################
-    - address: 0x034
+    - offset: 0x034
       name: ID_VNDR_LOWER
-      size: 8
+      sizeBits: 8
       mode: RO
       description: ID_VNDR_LOWER           
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Clock_ready
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: Clock_ready      
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Calibration_done
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: Calibration_done    
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: PLL_lock
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: PLL_lock     
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Aligned_to_sysref
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: Aligned_to_sysref 
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Realigned_to_sysref
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: Realigned_to_sysref    
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Sync_form_FPGA
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: Sync_form_FPGA    
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Link_active
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: Link_active          

@@ -8,81 +8,81 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-GigEthReg: &GigEthReg 
+Device: &GigEthReg 
   name: GigEthReg
   description: GigEthReg 
   size: 0x1000
-  registers:
+  IntField:
     #########################################################
-    - address: 0x000
+    - offset: 0x000
       name: StatusCounters
       nelms: 9
       mode: RO
       description: Status Counters
     #########################################################
-    - address: 0x100
+    - offset: 0x100
       name: StatusVector
-      size: 9       
+      sizeBits: 9       
       mode: RO
       description: Status Vector   
     #########################################################
-    - address: 0x108
+    - offset: 0x108
       name: PhyStatus
-      size: 8      
+      sizeBits: 8      
       mode: RO
       description: PhyStatus              
     #########################################################
-    - address: 0x200
+    - offset: 0x200
       name: MacAddress
-      size: 48      
+      sizeBits: 48      
       mode: RO
       description: MAC Address
     #########################################################
-    - address: 0x218
+    - offset: 0x218
       name: InterFrameGap
-      size: 4      
+      sizeBits: 4      
       mode: RO
       description: InterFrameGap    
     #########################################################
-    - address: 0x21C
+    - offset: 0x21C
       name: InterFrameGap
-      size: 16      
+      sizeBits: 16      
       mode: RO
       description: InterFrameGap  
     #########################################################
-    - address: 0x228
+    - offset: 0x228
       name: FilterEnable
-      size: 1    
+      sizeBits: 1    
       mode: RO
       description: FilterEnable 
     #########################################################
-    - address: 0x22C
+    - offset: 0x22C
       name: PauseEnable
-      size: 1    
+      sizeBits: 1    
       mode: RO
       description: PauseEnable            
     #########################################################
-    - address: 0xF00
+    - offset: 0xF00
       name: RollOverEn
-      size: 9    
+      sizeBits: 9    
       mode: RW
       description: RollOverEn        
     #########################################################
-    - address: 0xFF4
+    - offset: 0xFF4
       name: CounterReset
-      size: 1    
+      sizeBits: 1    
       mode: WO
       description: CounterReset  
     #########################################################
-    - address: 0xFF8
+    - offset: 0xFF8
       name: SoftReset
-      size: 1    
+      sizeBits: 1    
       mode: WO
       description: SoftReset    
     #########################################################
-    - address: 0xFFC
+    - offset: 0xFFC
       name: HardReset
-      size: 1    
+      sizeBits: 1    
       mode: WO
       description: HardReset          
     #########################################################

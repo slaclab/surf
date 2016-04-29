@@ -8,748 +8,748 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-Dac38J84: &Dac38J84 
+Device: &Dac38J84 
   name: Dac38J84
   description: DAC38J84 Module
   size: 0x200
-  registers:
+  IntField:
     #########################################################
-    - address: 0x000
+    - offset: 0x000
       name: DacReg
-      size: 16
+      sizeBits: 16
       stride: 4
       nelms: 126
       mode: RW
       description: DAC Registers[125:0]           
     #########################################################    
-    - address: 0x01C
+    - offset: 0x01C
       name: LaneBufferDelay
-      size: 5    
+      sizeBits: 5    
       mode: RO
       description: Lane Buffer Delay
     #########################################################
-    - address: 0x01D
+    - offset: 0x01D
       name: Temperature
-      size: 8    
+      sizeBits: 8    
       mode: RO
       description: Temperature     
     #########################################################
-    - address: 0x104
+    - offset: 0x104
       name: L1ErrCnt
       mode: RO
       description: Lane1 Error Count
     #########################################################
-    - address: 0x108
+    - offset: 0x108
       name: L2ErrCnt
       mode: RO
       description: Lane2 Error Count      
     #########################################################
-    - address: 0x190
+    - offset: 0x190
       name: L1ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L1ReadFifoEmpty   
     #########################################################
-    - address: 0x190
+    - offset: 0x190
       name: L1ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L1ReadFifoUnderflow  
     #########################################################
-    - address: 0x190
+    - offset: 0x190
       name: L1ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L1ReadFifoFull    
     #########################################################
-    - address: 0x190
+    - offset: 0x190
       name: L1ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L1ReadFifoOverflow    
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L1DispErr     
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L1NotitableErr   
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L1CodeSyncErr  
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L1FirstDataMatchErr  
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L1ElasticBuffOverflow  
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L1LinkConfigErr 
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L1FrameAlignErr 
     #########################################################
-    - address: 0x191
+    - offset: 0x191
       name: L1MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L1MultiFrameAlignErr       
     #########################################################
-    - address: 0x194
+    - offset: 0x194
       name: L2ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L2ReadFifoEmpty   
     #########################################################
-    - address: 0x194
+    - offset: 0x194
       name: L2ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L2ReadFifoUnderflow  
     #########################################################
-    - address: 0x194
+    - offset: 0x194
       name: L2ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L2ReadFifoFull    
     #########################################################
-    - address: 0x194
+    - offset: 0x194
       name: L2ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L2ReadFifoOverflow    
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L2DispErr     
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L2NotitableErr   
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L2CodeSyncErr  
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L2FirstDataMatchErr  
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L2ElasticBuffOverflow  
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L2LinkConfigErr 
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L2FrameAlignErr 
     #########################################################
-    - address: 0x195
+    - offset: 0x195
       name: L2MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L2MultiFrameAlignErr  
     #########################################################
-    - address: 0x198
+    - offset: 0x198
       name: L3ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L3ReadFifoEmpty   
     #########################################################
-    - address: 0x198
+    - offset: 0x198
       name: L3ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L3ReadFifoUnderflow  
     #########################################################
-    - address: 0x198
+    - offset: 0x198
       name: L3ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L3ReadFifoFull    
     #########################################################
-    - address: 0x198
+    - offset: 0x198
       name: L3ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L3ReadFifoOverflow    
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L3DispErr     
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L3NotitableErr   
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L3CodeSyncErr  
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L3FirstDataMatchErr  
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L3ElasticBuffOverflow  
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L3LinkConfigErr 
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L3FrameAlignErr 
     #########################################################
-    - address: 0x199
+    - offset: 0x199
       name: L3MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L3MultiFrameAlignErr       
     #########################################################
-    - address: 0x19C
+    - offset: 0x19C
       name: L4ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L4ReadFifoEmpty   
     #########################################################
-    - address: 0x19C
+    - offset: 0x19C
       name: L4ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L4ReadFifoUnderflow  
     #########################################################
-    - address: 0x19C
+    - offset: 0x19C
       name: L4ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L4ReadFifoFull    
     #########################################################
-    - address: 0x19C
+    - offset: 0x19C
       name: L4ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L4ReadFifoOverflow    
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L4DispErr     
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L4NotitableErr   
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L4CodeSyncErr  
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L4FirstDataMatchErr  
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L4ElasticBuffOverflow  
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L4LinkConfigErr 
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L4FrameAlignErr 
     #########################################################
-    - address: 0x19D
+    - offset: 0x19D
       name: L4MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L4MultiFrameAlignErr    
     #########################################################
-    - address: 0x1A0
+    - offset: 0x1A0
       name: L5ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L5ReadFifoEmpty   
     #########################################################
-    - address: 0x1A0
+    - offset: 0x1A0
       name: L5ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L5ReadFifoUnderflow  
     #########################################################
-    - address: 0x1A0
+    - offset: 0x1A0
       name: L5ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L5ReadFifoFull    
     #########################################################
-    - address: 0x1A0
+    - offset: 0x1A0
       name: L5ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L5ReadFifoOverflow    
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L5DispErr     
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L5NotitableErr   
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L5CodeSyncErr  
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L5FirstDataMatchErr  
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L5ElasticBuffOverflow  
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L5LinkConfigErr 
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L5FrameAlignErr 
     #########################################################
-    - address: 0x1A1
+    - offset: 0x1A1
       name: L5MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L6MultiFrameAlignErr       
     #########################################################
-    - address: 0x1A4
+    - offset: 0x1A4
       name: L6ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L6ReadFifoEmpty   
     #########################################################
-    - address: 0x1A4
+    - offset: 0x1A4
       name: L6ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L6ReadFifoUnderflow  
     #########################################################
-    - address: 0x1A4
+    - offset: 0x1A4
       name: L6ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L6ReadFifoFull    
     #########################################################
-    - address: 0x1A4
+    - offset: 0x1A4
       name: L6ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L6ReadFifoOverflow    
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L6DispErr     
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L6NotitableErr   
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L6CodeSyncErr  
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L6FirstDataMatchErr  
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L6ElasticBuffOverflow  
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L6LinkConfigErr 
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L6FrameAlignErr 
     #########################################################
-    - address: 0x1A5
+    - offset: 0x1A5
       name: L6MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L7MultiFrameAlignErr  
     #########################################################
-    - address: 0x1A8
+    - offset: 0x1A8
       name: L7ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L7ReadFifoEmpty   
     #########################################################
-    - address: 0x1A8
+    - offset: 0x1A8
       name: L7ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L7ReadFifoUnderflow  
     #########################################################
-    - address: 0x1A8
+    - offset: 0x1A8
       name: L7ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L7ReadFifoFull    
     #########################################################
-    - address: 0x1A8
+    - offset: 0x1A8
       name: L7ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L7ReadFifoOverflow    
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L7DispErr     
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L7NotitableErr   
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L7CodeSyncErr  
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L7FirstDataMatchErr  
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L7ElasticBuffOverflow  
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L7LinkConfigErr 
     #########################################################
-    - address: 0x1A9
+    - offset: 0x1A9
       name: L7FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L7FrameAlignErr 
     #########################################################
-    - address: 0x1A8
+    - offset: 0x1A8
       name: L7MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L7MultiFrameAlignErr       
     #########################################################
-    - address: 0x1AC
+    - offset: 0x1AC
       name: L8ReadFifoEmpty
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L8ReadFifoEmpty   
     #########################################################
-    - address: 0x1AC
+    - offset: 0x1AC
       name: L8ReadFifoUnderflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L8ReadFifoUnderflow  
     #########################################################
-    - address: 0x1AC
+    - offset: 0x1AC
       name: L8ReadFifoFull
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L8ReadFifoFull    
     #########################################################
-    - address: 0x1AC
+    - offset: 0x1AC
       name: L8ReadFifoOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L8ReadFifoOverflow    
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8DispErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 0
       mode: RO
       description: L8DispErr     
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8NotitableErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 1
       mode: RO
       description: L8NotitableErr   
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8CodeSyncErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: L8CodeSyncErr  
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8FirstDataMatchErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: L8FirstDataMatchErr  
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8ElasticBuffOverflow
-      size: 1    
+      sizeBits: 1    
       lsBit: 4
       mode: RO
       description: L8ElasticBuffOverflow  
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8LinkConfigErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 5
       mode: RO
       description: L8LinkConfigErr 
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8FrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 6
       mode: RO
       description: L8FrameAlignErr 
     #########################################################
-    - address: 0x1AD
+    - offset: 0x1AD
       name: L8MultiFrameAlignErr
-      size: 1    
+      sizeBits: 1    
       lsBit: 7
       mode: RO
       description: L8MultiFrameAlignErr      
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Serdes1pllAlarm
-      size: 1    
+      sizeBits: 1    
       lsBit: 2
       mode: RO
       description: Serdes1pllAlarm 
     #########################################################
-    - address: 0x1B0
+    - offset: 0x1B0
       name: Serdes0pllAlarm
-      size: 1    
+      sizeBits: 1    
       lsBit: 3
       mode: RO
       description: Serdes0pllAlarm  
     #########################################################
-    - address: 0x1B1
+    - offset: 0x1B1
       name: SysRefAlarms
-      size: 4    
+      sizeBits: 4    
       lsBit: 4
       mode: RO
       description: SysRefAlarms     
     #########################################################
-    - address: 0x1B4
+    - offset: 0x1B4
       name: LaneLoss
-      size: 8
+      sizeBits: 8
       mode: RO
       description: LaneLoss[7:0]    
     #########################################################
-    - address: 0x1B5
+    - offset: 0x1B5
       name: LaneAlarm
-      size: 8
+      sizeBits: 8
       mode: RO
       description: LaneAlarm[7:0]   
     #########################################################
-    - address: 0x1FC
+    - offset: 0x1FC
       name: ID
       mode: RO
       description: Serials and IDs         

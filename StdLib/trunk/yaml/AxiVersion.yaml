@@ -8,77 +8,77 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-AxiVersion: &AxiVersion 
+Device: &AxiVersion 
   name: AxiVersion
   description: AXI-Lite Version Module
   size: 0x1000
-  registers:
+  IntField:
     #########################################################
-    - address: 0x00 
+    - offset: 0x00 
       name: FpgaVersion
       mode: RO
       description: FPGA Firmware Version Number 
     #########################################################
-    - address: 0x04
+    - offset: 0x04
       name: ScratchPad
       mode: RW
       description: Register to test reads and writes
     #########################################################
-    - address: 0x08
+    - offset: 0x08
       name: DeviceDna
-      nelms: 2
+      sizeBits: 64
       mode: RO
       description: Xilinx Device DNA value burned into FPGA
     #########################################################
-    - address: 0x10
+    - offset: 0x10
       name: FdSerial
-      nelms: 2
+      sizeBits: 64
       mode: RO
       description: Board ID value read from DS2411 chip
     #########################################################
-    - address: 0x18
+    - offset: 0x18
       name: MasterReset
       mode: WO
-      size: 1
+      sizeBits: 1
       description: Optional User Reset 
     #########################################################
-    - address: 0x1C
+    - offset: 0x1C
       name: FpgaReload
       mode: RW
-      size: 1
+      sizeBits: 1
       description: Optional Reload the FPGA from the attached PROM
     #########################################################
-    - address: 0x20
+    - offset: 0x20
       name: FpgaReloadAddress
       mode: RW
       description: Reload start address
     #########################################################
-    - address: 0x24
+    - offset: 0x24
       name: Counter
       mode: RO
       description: Free running counter
     #########################################################
-    - address: 0x28
+    - offset: 0x28
       name: FpgaReloadHalt
       mode: RW
-      size: 1
+      sizeBits: 1
       description: Used to halt automatic reloads via AxiVersion
     #########################################################
-    - address: 0x2C
+    - offset: 0x2C
       name: UpTimeCnt
       mode: RO
       description: Number of seconds since last reset
     #########################################################
-    - address: 0x400
+    - offset: 0x400
       name: UserConstants
       nelms: 64
       mode: RO
       description: Optional user input values 
     #########################################################
-    - address: 0x800
+    - offset: 0x800
       name: BuildStamp
       nelms: 64
-      size: 8
+      sizeBits: 8
       mode: RO
       description: Firmware Build String
     #########################################################

@@ -8,215 +8,215 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-AxiSysMonUltraScale: &AxiSysMonUltraScale 
+Device: &AxiSysMonUltraScale 
   name: AxiSysMonUltraScale
   description: AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
   size: 0x800
-  registers:
+  IntField:
     #########################################################
-    - address: 0x00 
+    - offset: 0x00 
       name: SRR
       mode: WO
       description: Software Reset Register
     #########################################################
-    - address: 0x04 
+    - offset: 0x04 
       name: SR
       mode: RO
       description: Status Register
     #########################################################
-    - address: 0x08
+    - offset: 0x08
       name: AOSR
       mode: RO
       description: Alarm Output Status Register    
     #########################################################
-    - address: 0x0C
+    - offset: 0x0C
       name: CONVSTR
       mode: WO
       description: CONVST Register
     #########################################################
-    - address: 0x10
+    - offset: 0x10
       name: SYSMONRR
       mode: WO
       description: SYSMON Hard Macro Reset Register  
     #########################################################
-    - address: 0x5C
+    - offset: 0x5C
       name: GIER
       mode: RW
       description: Global Interrupt Enable Register   
     #########################################################
-    - address: 0x60
+    - offset: 0x60
       name: IPISR
-      mode: RTOW
+      mode: RO
       description: IP Interrupt Status Register
     #########################################################
-    - address: 0x68
+    - offset: 0x68
       name: IPIER
       mode: RW
       description: IP Interrupt Enable Register   
     #########################################################
-    - address: 0x400
+    - offset: 0x400
       name: Temperature
       mode: RO
       description: Temperature's ADC value  
     #########################################################
-    - address: 0x404
+    - offset: 0x404
       name: VCCINT
       mode: RO
       description: VCCINT's ADC value     
     #########################################################
-    - address: 0x408
+    - offset: 0x408
       name: VCCAUX
       mode: RO
       description: VCCAUX's ADC value     
     #########################################################
-    - address: 0x40C
+    - offset: 0x40C
       name: VP_VN
       mode: RO
       description: VP/VN's ADC value      
     #########################################################
-    - address: 0x410
+    - offset: 0x410
       name: VREFP
       mode: RO
       description: VREFP's ADC value  
     #########################################################
-    - address: 0x414
+    - offset: 0x414
       name: VREFN
       mode: RO
       description: VREFN's ADC value    
     #########################################################
-    - address: 0x418
+    - offset: 0x418
       name: VBRAM
       mode: RO
       description: VBRAM's ADC value  
     #########################################################
-    - address: 0x420
+    - offset: 0x420
       name: SupplyOffset
       mode: RO
       description: Supply Offset     
     #########################################################
-    - address: 0x424
+    - offset: 0x424
       name: ADCOffset
       mode: RO
       description: ADC Offset   
     #########################################################
-    - address: 0x428
+    - offset: 0x428
       name: GainError
       mode: RO
       description: Gain Error        
     #########################################################
-    - address: 0x440
+    - offset: 0x440
       name: VAUXP_VAUXN
       nelms: 16
       mode: RO
       description: VAUXP_VAUXN's ADC values       
     #########################################################
-    - address: 0x480
+    - offset: 0x480
       name: MaxTemp
       mode: RO
       description: maximum temperature measurement
     #########################################################
-    - address: 0x484
+    - offset: 0x484
       name: MaxVCCINT
       mode: RO
       description: maximum VCCINT measurement      
     #########################################################
-    - address: 0x488
+    - offset: 0x488
       name: MaxVCCAUX
       mode: RO
       description: maximum VCCAUX measurement  
     #########################################################
-    - address: 0x48C
+    - offset: 0x48C
       name: MaxVBRAM
       mode: RO
       description: maximum VBRAM measurement  
     #########################################################
-    - address: 0x490
+    - offset: 0x490
       name: MinTemp
       mode: RO
       description: minimum temperature measurement
     #########################################################
-    - address: 0x494
+    - offset: 0x494
       name: MinVCCINT
       mode: RO
       description: minimum VCCINT measurement      
     #########################################################
-    - address: 0x498
+    - offset: 0x498
       name: MinVCCAUX
       mode: RO
       description: minimum VCCAUX measurement  
     #########################################################
-    - address: 0x49C
+    - offset: 0x49C
       name: MinVBRAM
       mode: RO
       description: minimum VBRAM measurement        
     #########################################################
-    - address: 0x4E0
+    - offset: 0x4E0
       name: I2C_Address
       mode: RO
       description: I2C Address
     #########################################################
-    - address: 0x4FC
+    - offset: 0x4FC
       name: FlagRegister
       mode: RO
       description: Flag Register   
     #########################################################
-    - address: 0x500
+    - offset: 0x500
       name: ConfigurationRegister
       nelms: 4
       mode: RW
       description: Configuration Registers 
     #########################################################
-    - address: 0x518
+    - offset: 0x518
       name: SequenceRegister8
       mode: RW
       description: Sequence Register 8  
     #########################################################
-    - address: 0x51C
+    - offset: 0x51C
       name: SequenceReg9
       mode: RW
       description: Sequence Register 9
     #########################################################
-    - address: 0x520
+    - offset: 0x520
       name: SequenceReg_7_0
       nelms: 8
       mode: RW
       description: Sequence Register [7:0]
     #########################################################
-    - address: 0x540
+    - offset: 0x540
       name: AlarmThresholdReg_8_0
       nelms: 9
       mode: RW
       description: Alarm Threshold Register [8:0]
     #########################################################
-    - address: 0x570
+    - offset: 0x570
       name: AlarmThresholdReg12
       mode: RW
       description: Alarm Threshold Register 12    
     #########################################################
-    - address: 0x580
+    - offset: 0x580
       name: AlarmThresholdReg16
       mode: RW
       description: Alarm Threshold Register 16
     #########################################################
-    - address: 0x580
+    - offset: 0x580
       name: AlarmThresholdReg_25_16
       nelms: 8
       mode: RW
       description: Alarm Threshold Register [25:16]  
     #########################################################
-    - address: 0x600
+    - offset: 0x600
       name: VUSER
       nelms: 4
       mode: RO
       description: VUSER[4:0] supply monitor measurement
     #########################################################
-    - address: 0x680
+    - offset: 0x680
       name: MAX_VUSER
       nelms: 4
       mode: RO
       description: Maximum VUSER[4:0] supply monitor measurement
     #########################################################
-    - address: 0x6A0
+    - offset: 0x6A0
       name: MAX_VUSER
       nelms: 4
       mode: RO
