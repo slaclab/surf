@@ -136,6 +136,9 @@ vhdl work i2c/rtl/I2cRegMasterMux.vhd
 vhdl work i2c/rtl/I2cRegMasterAxiBridge.vhd
 vhdl work i2c/rtl/AxiI2cRegMaster.vhd
 
+vhdl work srp/rtl/SrpV3Pkg.vhd
+vhdl work srp/rtl/SrpV3Core.vhd
 vhdl work srp/rtl/SrpV0AxiLite.vhd
 vhdl work srp/rtl/SrpV3AxiLite.vhd
 vhdl work srp/rtl/SrpV3Axi.vhd
+
