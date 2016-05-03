@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-16
--- Last update: 2015-09-15
+-- Last update: 2016-05-03
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ entity SyncTrigRate is
    generic (
       TPD_G          : time     := 1 ns;  -- Simulation FF output delay
       COMMON_CLK_G   : boolean  := false;  -- true if locClk & refClk are the same clock
+      ONE_SHOT_G     : boolean  := false;
       IN_POLARITY_G  : sl       := '1';   -- 0 for active LOW, 1 for active HIGH
       REF_CLK_FREQ_G : real     := 200.0E+6;              -- units of Hz
       REFRESH_RATE_G : real     := 1.0E+0;                -- units of Hz
@@ -53,12 +54,13 @@ architecture rtl of SyncTrigRate is
    constant REFRESH_MAX_CNT_C     : natural                     := getTimeRatio(REF_CLK_FREQ_G, REFRESH_RATE_G);
    constant REFRESH_SLV_MAX_CNT_C : slv(CNT_WIDTH_G-1 downto 0) := toSlv((REFRESH_MAX_CNT_C-1), CNT_WIDTH_G);
 
-   signal updated : sl := '0';
-   signal trigCnt,
-      trigCntSync,
-      trigRateCnt,
-      trigRateSync,
-      trigCntDly : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
+   signal trig         : sl                          := not(IN_POLARITY_G);
+   signal updated      : sl                          := '0';
+   signal trigCnt      : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
+   signal trigCntSync  : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
+   signal trigRateCnt  : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
+   signal trigRateSync : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
+   signal trigCntDly   : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
 
    -- Attribute for XST
    attribute use_dsp48                 : string;
@@ -68,13 +70,33 @@ architecture rtl of SyncTrigRate is
    
 begin
 
+   BYPASS_ONE_SHOT : if (ONE_SHOT_G = false) generate
+      
+      trig <= trigIn;
+
+   end generate;
+
+   GEN_ONE_SHOT : if (ONE_SHOT_G = true) generate
+      
+      U_OneShot : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G          => TPD_G,
+            IN_POLARITY_G  => IN_POLARITY_G,
+            OUT_POLARITY_G => IN_POLARITY_G)
+         port map (
+            clk     => locClk,
+            dataIn  => trigIn,
+            dataOut => trig);   
+
+   end generate;
+
    process (locClk) is
    begin
       if rising_edge(locClk) then
          -- Check the clock enable
          if locClkEn = '1' then
             -- Check for a trigger
-            if trigIn = IN_POLARITY_G then
+            if trig = IN_POLARITY_G then
                -- Increment the counter
                trigCnt <= trigCnt + 1 after TPD_G;
             end if;
