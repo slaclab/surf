@@ -12,7 +12,9 @@ Device: &UdpEngineWrapper
   name: UdpEngineWrapper
   description: UdpEngineWrapper 
   size: 0x8
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00
       name: ClientRemotePort

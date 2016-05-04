@@ -12,7 +12,9 @@ Device: &AxiSy56040
   name: AxiSy56040
   description: AXI-Lite Microchip SY56040 and Microchip SY58040
   size: 0x10
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00
       name: OutputConfig   

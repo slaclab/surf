@@ -12,7 +12,9 @@ Device: &AxiSysMonUltraScale
   name: AxiSysMonUltraScale
   description: AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
   size: 0x800
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00 
       name: SRR

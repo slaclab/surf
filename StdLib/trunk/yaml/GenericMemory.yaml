@@ -12,9 +12,13 @@ Device: &GenericMemory
   name: GenericMemory
   description: Generic Memory Module
   size: 0x4
+  #########
   IntField:
+  #########
+    #########################################################
     - offset: 0x0
       name: MemoryArray
       nelms: 1
       mode: RW
       description: Memory Array
+    #########################################################

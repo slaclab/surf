@@ -12,7 +12,9 @@ Device: &TenGigEthReg
   name: TenGigEthReg
   description: TenGigEthReg 
   size: 0x1000
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x000
       name: StatusCounters

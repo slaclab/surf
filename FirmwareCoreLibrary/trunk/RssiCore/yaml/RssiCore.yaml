@@ -12,12 +12,44 @@ Device: &RssiCore
   name: RssiCore
   description: RSSI module
   size: 0x100
+  #########
+  IntField:
+  #########  
     #########################################################
-    - offset: 0x00 
-      name: ControlReg
-      nelms: 5
+    - offset: 0x00
+      name: OpenConn
+      sizeBits: 1    
+      lsBit: 0 
       mode: RW
-      description: Control register [4:0]
+      description: Open Connection Request (Server goes to listen state, Client actively requests the connection by sending SYN segment) 
+    #########################################################
+    - offset: 0x00
+      name: CloseConn
+      sizeBits: 1    
+      lsBit: 1 
+      mode: RW
+      description: Close Connection Request (Send a RST Segment to peer and close the connection) 
+    #########################################################
+    - offset: 0x00
+      name: Mode
+      sizeBits: 1    
+      lsBit: 2 
+      mode: RW
+      description: Mode:'0': Use internal parameters from generics,'1': Use parameters from registers 
+    #########################################################
+    - offset: 0x00
+      name: HeaderChksumEn
+      sizeBits: 1    
+      lsBit: 3 
+      mode: RW
+      description: Header checksum: '1': Enable calculation and check, '0': Disable check and insert 0 in place of header checksum 
+    #########################################################
+    - offset: 0x00
+      name: InjectFault
+      sizeBits: 1    
+      lsBit: 4 
+      mode: RW
+      description: Inject fault to the next packet header checksum (Default '0'). Acts on rising edge - injects exactly one fault in next segment       
     #########################################################
     - offset: 0x04
       name: InitSeqN
@@ -96,4 +128,32 @@ Device: &RssiCore
       sizeBits: 32
       mode: RO
       description: Number of dropped segments [31:0]
+    #########################################################    
+  #########
+  Commands:
+  #########
     #########################################################
+    - name: OpenConn
+      description: Open connection request
+      sequence:
+        - ScalVal: OpenConn
+          SetVal: 0x1
+        - ScalVal: OpenConn
+          SetVal: 0x0          
+    #########################################################
+    - name: CloseConn
+      description: Close connection request
+      sequence:
+        - ScalVal: CloseConn
+          SetVal: 0x1
+        - ScalVal: CloseConn
+          SetVal: 0x0   
+    #########################################################
+    - name: InjectFault
+      description: Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission
+      sequence:
+        - ScalVal: InjectFault
+          SetVal: 0x1
+        - ScalVal: InjectFault
+          SetVal: 0x0               
+    #########################################################    
