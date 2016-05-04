@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2016-02-25
--- Last update: 2016-04-19
+-- Last update: 2016-05-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,48 +25,49 @@ use work.AxiLitePkg.all;
 
 entity RssiCoreWrapper is
    generic (
-      TPD_G                   : time                := 1 ns;
-      MAX_PACKET_BYTES_G      : positive            := 1024;
-      CLK_FREQUENCY_G         : real                := 100.0E+6;  -- In units of Hz
-      TIMEOUT_UNIT_G          : real                := 1.0E-6;    -- In units of seconds
-      SERVER_G                : boolean             := true;  -- Module is server or client 
-      RETRANSMIT_ENABLE_G     : boolean             := true;  -- Enable/Disable retransmissions in tx module
-      WINDOW_ADDR_SIZE_G      : positive            := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G     : positive            := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      BYPASS_CHUNKER_G        : boolean             := false;     -- Bypass the AXIS chunker layer
-      PIPE_STAGES_G           : natural             := 0;
-      TDEST_SIZE_G            : positive            := 1;
+      TPD_G                    : time                := 1 ns;
+      MAX_PACKET_BYTES_G       : positive            := 1024;
+      CLK_FREQUENCY_G          : real                := 100.0E+6;  -- In units of Hz
+      TIMEOUT_UNIT_G           : real                := 1.0E-6;    -- In units of seconds
+      SERVER_G                 : boolean             := true;  -- Module is server or client 
+      RETRANSMIT_ENABLE_G      : boolean             := true;  -- Enable/Disable retransmissions in tx module
+      WINDOW_ADDR_SIZE_G       : positive            := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      SEGMENT_ADDR_SIZE_G      : positive            := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      BYPASS_CHUNKER_G         : boolean             := false;     -- Bypass the AXIS chunker layer
+      PIPE_STAGES_G            : natural             := 0;
+      APP_STREAMS_G            : positive            := 1;
+      APP_STREAM_ROUTES_G      : Slv8Array           := (0 => "--------");
       -- Application AXIS fifos
-      APP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);  -- Application Input data width 
-      APP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);  -- Application Output data width 
+      APP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);  -- Application Input data width 
+      APP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);  -- Application Output data width 
       -- Transport AXIS fifos
-      TSP_INPUT_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);  -- Transport Input data width
-      TSP_OUTPUT_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);  -- Transport Output data width      
+      TSP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);  -- Transport Input data width
+      TSP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);  -- Transport Output data width      
       -- Version and connection ID
-      INIT_SEQ_N_G            : natural             := 16#80#;
-      CONN_ID_G               : positive            := 16#12345678#;
-      VERSION_G               : positive            := 1;
-      HEADER_CHKSUM_EN_G      : boolean             := true;
+      INIT_SEQ_N_G             : natural             := 16#80#;
+      CONN_ID_G                : positive            := 16#12345678#;
+      VERSION_G                : positive            := 1;
+      HEADER_CHKSUM_EN_G       : boolean             := true;
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G      : positive            := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G          : positive            := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
+      MAX_NUM_OUTS_SEG_G       : positive            := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G           : positive            := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
       -- RSSI Timeouts
-      RETRANS_TOUT_G          : positive            := 50;    -- unit depends on TIMEOUT_UNIT_G  
-      ACK_TOUT_G              : positive            := 25;    -- unit depends on TIMEOUT_UNIT_G  
-      NULL_TOUT_G             : positive            := 200;   -- unit depends on TIMEOUT_UNIT_G  
+      RETRANS_TOUT_G           : positive            := 50;    -- unit depends on TIMEOUT_UNIT_G  
+      ACK_TOUT_G               : positive            := 25;    -- unit depends on TIMEOUT_UNIT_G  
+      NULL_TOUT_G              : positive            := 200;   -- unit depends on TIMEOUT_UNIT_G  
       -- Counters
-      MAX_RETRANS_CNT_G       : positive            := 2;
-      MAX_CUM_ACK_CNT_G       : positive            := 3;
-      MAX_OUT_OF_SEQUENCE_G   : natural             := 3);
+      MAX_RETRANS_CNT_G        : positive            := 2;
+      MAX_CUM_ACK_CNT_G        : positive            := 3;
+      MAX_OUT_OF_SEQUENCE_G    : natural             := 3);
    port (
       -- Clock and Reset
       clk_i             : in  sl;
       rst_i             : in  sl;
       -- SSI Application side
-      sAppAxisMasters_i : in  AxiStreamMasterArray(TDEST_SIZE_G-1 downto 0);
-      sAppAxisSlaves_o  : out AxiStreamSlaveArray(TDEST_SIZE_G-1 downto 0);
-      mAppAxisMasters_o : out AxiStreamMasterArray(TDEST_SIZE_G-1 downto 0);
-      mAppAxisSlaves_i  : in  AxiStreamSlaveArray(TDEST_SIZE_G-1 downto 0);
+      sAppAxisMasters_i : in  AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
+      sAppAxisSlaves_o  : out AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
+      mAppAxisMasters_o : out AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
+      mAppAxisSlaves_i  : in  AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
       -- SSI Transport side
       sTspAxisMaster_i  : in  AxiStreamMasterType;
       sTspAxisSlave_o   : out AxiStreamSlaveType;
@@ -94,29 +95,51 @@ architecture mapping of RssiCoreWrapper is
    signal packetizerMasters   : AxiStreamMasterArray(1 downto 0);
    signal packetizerSlaves    : AxiStreamSlaveArray(1 downto 0);
 
-   signal sAppAxisMaster : AxiStreamMasterType;
-   signal sAppAxisSlave  : AxiStreamSlaveType;
+   signal sAppAxisMastersTmp : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
+   signal sAppAxisMaster     : AxiStreamMasterType;
+   signal sAppAxisSlave      : AxiStreamSlaveType;
+
+
    signal mAppAxisMaster : AxiStreamMasterType;
    signal mAppAxisSlave  : AxiStreamSlaveType;
-   
-   signal s_status            : slv(statusReg_o'range);
-   signal s_depackerRestart   : sl;
+
+   signal statusReg        : slv(6 downto 0);
+   signal rssiNotConnected : sl;
+
 begin
+
+   -- Override tdests according to the routing table
+   TDEST_REMAP : process (sAppAxisMasters_i) is
+      variable tmp : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
+   begin
+      tmp := sAppAxisMasters_i;      
+      for i in tmp'range loop
+         for j in 7 downto 0 loop
+            if (APP_STREAM_ROUTES_G(i)(j) /= '-' and APP_STREAM_ROUTES_G(i)(j) /= 'X') then
+               tmp(i).tDest(j) := APP_STREAM_ROUTES_G(i)(j);
+            else
+               tmp(i).tDest(j) := sAppAxisMasters_i(i).tDest(j);
+            end if;
+         end loop;
+      end loop;
+      sAppAxisMastersTmp <= tmp;
+   end process;
 
    U_AxiStreamMux : entity work.AxiStreamMux
       generic map (
          TPD_G        => TPD_G,
-         NUM_SLAVES_G => TDEST_SIZE_G)
+         NUM_SLAVES_G => APP_STREAMS_G,
+         KEEP_TDEST_G => true)          -- Pass tDest from stream
       port map (
          -- Clock and reset
          axisClk      => clk_i,
          axisRst      => rst_i,
          -- Slaves
-         sAxisMasters => sAppAxisMasters_i,
+         sAxisMasters => sAppAxisMastersTmp,
          sAxisSlaves  => sAppAxisSlaves_o,
          -- Master
          mAxisMaster  => sAppAxisMaster,
-         mAxisSlave   => sAppAxisSlave);   
+         mAxisSlave   => sAppAxisSlave);
 
    U_RxFifo : entity work.AxiStreamFifo
       generic map (
@@ -125,9 +148,10 @@ begin
          BRAM_EN_G           => false,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
-         PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_AXI_CONFIG_G  => APP_INPUT_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 1,
+         SLAVE_AXI_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
+         MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
@@ -143,7 +167,7 @@ begin
          generic map (
             TPD_G                => TPD_G,
             MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
-            INPUT_PIPE_STAGES_G  => 1,
+            INPUT_PIPE_STAGES_G  => 0,  -- FIFO input to this block is already pipelined
             OUTPUT_PIPE_STAGES_G => 1)
          port map (
             axisClk     => clk_i,
@@ -170,23 +194,23 @@ begin
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
 
          -- Application AXIS fifos
-         APP_INPUT_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
-         APP_OUTPUT_AXI_CONFIG_G => RSSI_AXI_CONFIG_C,
+         APP_INPUT_AXIS_CONFIG_G  => RSSI_AXIS_CONFIG_C,
+         APP_OUTPUT_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
          -- Transport AXIS fifos
-         TSP_INPUT_AXI_CONFIG_G  => TSP_INPUT_AXI_CONFIG_G,
-         TSP_OUTPUT_AXI_CONFIG_G => TSP_OUTPUT_AXI_CONFIG_G,
+         TSP_INPUT_AXIS_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
+         TSP_OUTPUT_AXIS_CONFIG_G => TSP_OUTPUT_AXIS_CONFIG_G,
          -- Version and connection ID
-         INIT_SEQ_N_G            => INIT_SEQ_N_G,
-         CONN_ID_G               => CONN_ID_G,
-         VERSION_G               => VERSION_G,
-         HEADER_CHKSUM_EN_G      => HEADER_CHKSUM_EN_G,
+         INIT_SEQ_N_G             => INIT_SEQ_N_G,
+         CONN_ID_G                => CONN_ID_G,
+         VERSION_G                => VERSION_G,
+         HEADER_CHKSUM_EN_G       => HEADER_CHKSUM_EN_G,
          -- Window parameters of receiver module
-         MAX_NUM_OUTS_SEG_G      => MAX_NUM_OUTS_SEG_G,
-         MAX_SEG_SIZE_G          => MAX_SEG_SIZE_G,
+         MAX_NUM_OUTS_SEG_G       => MAX_NUM_OUTS_SEG_G,
+         MAX_SEG_SIZE_G           => MAX_SEG_SIZE_G,
          -- RSSI Timeouts
-         RETRANS_TOUT_G          => RETRANS_TOUT_G,
-         ACK_TOUT_G              => ACK_TOUT_G,
-         NULL_TOUT_G             => NULL_TOUT_G,
+         RETRANS_TOUT_G           => RETRANS_TOUT_G,
+         ACK_TOUT_G               => ACK_TOUT_G,
+         NULL_TOUT_G              => NULL_TOUT_G,
 
          -- Counters
          MAX_RETRANS_CNT_G     => MAX_RETRANS_CNT_G,
@@ -218,22 +242,20 @@ begin
          axilWriteMaster  => axilWriteMaster,
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
-         statusReg_o      => s_status);         
-   --
-   statusReg_o <= s_status;
-   -- Restart the De-packetizer when RSSI is disconnected
-   s_depackerRestart <= not s_status(0);
+         statusReg_o      => statusReg);
+   statusReg_o      <= statusReg;
+   rssiNotConnected <= not statusReg(0);
 
    GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
       U_Depacketizer : entity work.AxiStreamDepacketizer
          generic map (
             TPD_G                => TPD_G,
-            INPUT_PIPE_STAGES_G  => 1,
+            INPUT_PIPE_STAGES_G  => 0,  -- No need for input stage, RSSI output is already pipelined
             OUTPUT_PIPE_STAGES_G => 1)
          port map (
             axisClk     => clk_i,
             axisRst     => rst_i,
-            restart     => s_depackerRestart,
+            restart     => rssiNotConnected,
             sAxisMaster => depacketizerMasters(1),
             sAxisSlave  => depacketizerSlaves(1),
             mAxisMaster => depacketizerMasters(0),
@@ -252,9 +274,10 @@ begin
          BRAM_EN_G           => false,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 4,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_AXI_CONFIG_G  => RSSI_AXI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => APP_OUTPUT_AXI_CONFIG_G)
+         SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => APP_OUTPUT_AXIS_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
@@ -267,8 +290,10 @@ begin
 
    U_AxiStreamDeMux : entity work.AxiStreamDeMux
       generic map (
-         TPD_G         => TPD_G,
-         NUM_MASTERS_G => TDEST_SIZE_G)
+         TPD_G          => TPD_G,
+         NUM_MASTERS_G  => APP_STREAMS_G,
+         MODE_G         => "ROUTED",
+         TDEST_ROUTES_G => APP_STREAM_ROUTES_G)
       port map (
          -- Clock and reset
          axisClk      => clk_i,
@@ -278,6 +303,6 @@ begin
          sAxisSlave   => mAppAxisSlave,
          -- Master
          mAxisMasters => mAppAxisMasters_o,
-         mAxisSlaves  => mAppAxisSlaves_i);           
+         mAxisSlaves  => mAppAxisSlaves_i);
 
 end architecture mapping;

@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-03-14
+-- Last update: 2016-05-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ architecture structure of AxiStreamDmaWrite is
 
    constant DATA_BYTES_C : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
    constant ADDR_LSB_C   : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096); 
+   constant AWLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
 
    type StateType is (S_IDLE_C, S_FIRST_C, S_NEXT_C, S_DATA_C, S_LAST_C, S_DUMP_C, S_WAIT_C, S_DONE_C);
 
@@ -114,7 +114,8 @@ begin
    wDataDebug <= r.wMaster.wdata(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
 
    assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
-      report "AXIS and AXI must have equal data widths" severity failure;
+      report "AXIS (" & integer'image(AXIS_CONFIG_G.TDATA_BYTES_C) & ") and AXI ("
+      & integer'image(AXI_CONFIG_G.DATA_BYTES_C) & ") must have equal data widths" severity failure;
 
    -- Stream Shifter
    U_AxiStreamShift : entity work.AxiStreamShift
@@ -199,11 +200,13 @@ begin
 
             -- Determine transfer size to align address to AXI_BURST_BYTES_G boundaries
             -- This initial alignment will ensure that we never cross a 4k boundary
-            v.wMaster.awlen := AWLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
+            if (AWLEN_C > 0) then
+               v.wMaster.awlen := AWLEN_C - r.dmaReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
 
-            -- Limit to maxSize
-            if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
-               v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
+               -- Limit to maxSize
+               if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
+                  v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
+               end if;
             end if;
 
             -- DMA request has dropped. Abort. This is needed to disable engine while it
@@ -257,6 +260,8 @@ begin
 
                -- Address and size increment
                v.dmaReq.address := r.dmaReq.address + DATA_BYTES_C;
+               v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+               
                if r.last = '0' then
                   v.dmaAck.size := r.dmaAck.size + bytes;
                end if;
@@ -277,7 +282,7 @@ begin
                end if;
 
                -- Last in transfer
-               if r.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0) = 0 then
+               if AWLEN_C = 0 or r.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0) = 0 then
                   v.wMaster.wlast := '1';
                   v.state         := S_LAST_C;
                else
@@ -308,7 +313,7 @@ begin
                v.wMaster.awvalid := '0';
             end if;
 
-            if selReady = '1' and r.wMaster.awvalid = '0' then
+            if (selReady = '1' and v.wMaster.awvalid = '0') then  
                if r.last = '1' then
                   v.state := S_WAIT_C;
                elsif r.dmaAck.overflow = '1' or r.dmaAck.writeError = '1' then

@@ -70,7 +70,7 @@ end SrpV3AxiLite;
 
 architecture rtl of SrpV3AxiLite is
 
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C, TUSER_FIRST_LAST_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);
    constant TIMEOUT_C     : natural             := (getTimeRatio(AXIL_CLK_FREQ_G, 10.0) - 1);  -- 100 ms timeout
 
    constant SRP_VERSION_C      : slv(7 downto 0) := x"03";

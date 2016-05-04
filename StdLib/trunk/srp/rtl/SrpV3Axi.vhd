@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-04-14
--- Last update: 2016-04-22
+-- Last update: 2016-05-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -49,19 +49,23 @@ entity SrpV3Axi is
       AXI_BURST_G         : slv(1 downto 0)         := "01";
       AXI_CACHE_G         : slv(3 downto 0)         := "1111";
       ACK_WAIT_BVALID_G   : boolean                 := true;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2));
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
+      UNALIGNED_ACCESS_G  : boolean                 := false;
+      BYTE_ACCESS_G       : boolean                 := false;
+      WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
+      READ_EN_G           : boolean                 := true);      -- Read ops enabled
    port (
       -- AXIS Slave Interface (sAxisClk domain) 
-      sAxisClk        : in  sl;
-      sAxisRst        : in  sl;
-      sAxisMaster     : in  AxiStreamMasterType;
-      sAxisSlave      : out AxiStreamSlaveType;
-      sAxisCtrl       : out AxiStreamCtrlType;
+      sAxisClk       : in  sl;
+      sAxisRst       : in  sl;
+      sAxisMaster    : in  AxiStreamMasterType;
+      sAxisSlave     : out AxiStreamSlaveType;
+      sAxisCtrl      : out AxiStreamCtrlType;
       -- AXIS Master Interface (mAxisClk domain) 
-      mAxisClk        : in  sl;
-      mAxisRst        : in  sl;
-      mAxisMaster     : out AxiStreamMasterType;
-      mAxisSlave      : in  AxiStreamSlaveType;
+      mAxisClk       : in  sl;
+      mAxisRst       : in  sl;
+      mAxisMaster    : out AxiStreamMasterType;
+      mAxisSlave     : in  AxiStreamSlaveType;
       -- Master AXI Interface  (mAxiClk domain) 
       axiClk         : in  sl;
       axiRst         : in  sl;
@@ -73,14 +77,21 @@ end SrpV3Axi;
 
 architecture rtl of SrpV3Axi is
 
-
+   constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 4,
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => 0,              
+      TUSER_MODE_C  => TUSER_NONE_C);
 
    type RegType is record
       srpAck   : SrpV3AckType;
       wrDmaReq : AxiWriteDmaReqType;
       rdDmaReq : AxiReadDmaReqType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       srpAck   => SRPV3_ACK_INIT_C,
       wrDmaReq => AXI_WRITE_DMA_REQ_INIT_C,
@@ -111,8 +122,12 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
          ALTERA_RAM_G        => ALTERA_RAM_G,
-         SRP_CLK_FREQ_G     => AXI_CLK_FREQ_G,
-         AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_G)
+         SRP_CLK_FREQ_G      => AXI_CLK_FREQ_G,
+         AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_G,
+         UNALIGNED_ACCESS_G  => UNALIGNED_ACCESS_G,
+         BYTE_ACCESS_G       => BYTE_ACCESS_G,
+         WRITE_EN_G          => WRITE_EN_G,
+         READ_EN_G           => READ_EN_G)
       port map (
          sAxisClk    => sAxisClk,       -- [in]
          sAxisRst    => sAxisRst,       -- [in]
@@ -136,7 +151,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
-         AXIS_CONFIG_G     => AXIS_CONFIG_C,
+         AXIS_CONFIG_G     => DMA_AXIS_CONFIG_C,
          AXI_CONFIG_G      => AXI_CONFIG_G,
          AXI_BURST_G       => AXI_BURST_G,
          AXI_CACHE_G       => AXI_CACHE_G,
@@ -156,7 +171,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
-         AXIS_CONFIG_G   => AXIS_CONFIG_C,
+         AXIS_CONFIG_G   => DMA_AXIS_CONFIG_C,
          AXI_CONFIG_G    => AXI_CONFIG_G,
          AXI_BURST_G     => AXI_BURST_G,
          AXI_CACHE_G     => AXI_CACHE_G)
@@ -173,28 +188,40 @@ begin
 
 
    comb : process (r, rdDmaAck, srpReq, wrDmaAck) is
-      variable v : RegType;
+      variable v         : RegType;
+      variable addrError : sl;
    begin
       -- Latch the current value
       v := r;
 
-      v.wrDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_WRITE_C or srpReq.opcode = SRP_POSTED_WRITE_C);
-      v.wrDmaReq.address := srpReq.addr;
-      v.wrDmaReq.maxSize := srpReq.reqSize;
+      -- Check that requested address is within range of attached AXI bus
+      addrError := '0';
+      if (srpReq.request = '1' and srpReq.addr(63 downto AXI_CONFIG_G.ADDR_WIDTH_C) /= 0) then
+         addrError := '1';
+      end if;
 
-      v.rdDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_READ_C);
-      v.rdDmaReq.address := srpReq.addr;
-      v.rdDmaReq.size    := srpReq.reqSize;
+      v.wrDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_WRITE_C or srpReq.opcode = SRP_POSTED_WRITE_C) and not addrError;
+      v.wrDmaReq.address := srpReq.addr;
+      v.wrDmaReq.maxSize := srpReq.reqSize + 1;
+
+      v.rdDmaReq.request   := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
+      v.rdDmaReq.address   := srpReq.addr;
+      v.rdDmaReq.size      := srpReq.reqSize + 1;
+
 
       v.srpAck.done := '0';
       if (srpReq.request = '1') then
          if (srpReq.opcode = SRP_WRITE_C or srpReq.opcode = SRP_POSTED_WRITE_C) then
-            v.srpAck.done                 := wrDmaAck.done;
+            v.srpAck.done                 := wrDmaAck.done or addrError;
             v.srpAck.respCode(1 downto 0) := wrDmaAck.errorValue;
+            v.srpAck.respCode(2)          := wrDmaAck.writeError;
+            v.srpAck.respCode(3)          := wrDmaAck.overflow;
          elsif (srpReq.opcode = SRP_READ_C) then
-            v.srpAck.done                 := rdDmaAck.done;
+            v.srpAck.done                 := rdDmaAck.done or addrError;
             v.srpAck.respCode(1 downto 0) := rdDmaAck.errorValue;
+            v.srpAck.respCode(2)          := rdDmaAck.readError;
          end if;
+         v.srpAck.respCode(7) := addrError;
       end if;
 
       -- Reset

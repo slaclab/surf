@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-04-26
+-- Last update: 2016-04-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,16 +29,15 @@ use work.AxiStreamDmaRingPkg.all;
 
 
 entity AxiStreamDmaRingWrite is
-
    generic (
-      TPD_G                      : time                    := 1 ns;
-      BUFFERS_G                  : natural range 2 to 64   := 64;
-      BURST_SIZE_BYTES_G         : natural range 4 to 4096 := 4096;
-      TRIGGER_USER_BIT_G         : natural range 0 to 7    := 2;
-      AXIL_BASE_ADDR_G           : slv(31 downto 0)        := (others => '0');
-      DATA_AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(8);
-      STATUS_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
-      AXI_WRITE_CONFIG_G         : AxiConfigType           := axiConfig(32, 8, 1, 8));
+      TPD_G                : time                    := 1 ns;
+      BUFFERS_G            : natural range 2 to 64   := 64;
+      BURST_SIZE_BYTES_G   : natural range 4 to 4096 := 4096;
+      TRIGGER_USER_BIT_G   : natural range 0 to 7    := 0;
+      AXIL_BASE_ADDR_G     : slv(31 downto 0)        := (others => '0');
+      DATA_AXIS_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(8);
+      STATUS_AXIS_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(1);
+      AXI_WRITE_CONFIG_G   : AxiConfigType           := axiConfig(32, 8, 1, 8));
    port (
       -- AXI-Lite Interface for local registers 
       axilClk         : in  sl;
@@ -121,14 +120,16 @@ architecture rtl of AxiStreamDmaRingWrite is
    signal locAxilReadMasters  : AxiLiteReadMasterArray(AXIL_MASTERS_C-1 downto 0);
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray(AXIL_MASTERS_C-1 downto 0);
 
-   constant AXIS_STATUS_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 1,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_FIXED_C,  --ite(BSA_STREAM_BYTE_WIDTH_G = 4, TKEEP_FIXED_C, TKEEP_COMP_C),
-      TUSER_BITS_C  => 1,
-      TUSER_MODE_C  => TUSER_NONE_C);
+   constant INT_STATUS_AXIS_CONFIG_C : AxiStreamConfigType :=
+      ssiAxiStreamConfig(1, TKEEP_FIXED_C, TUSER_FIRST_LAST_C, 4);
+--       (
+--       TSTRB_EN_C    => false,
+--       TDATA_BYTES_C => 1,
+--       TDEST_BITS_C  => 4,
+--       TID_BITS_C    => 0,
+--       TKEEP_MODE_C  => TKEEP_FIXED_C,  --ite(BSA_STREAM_BYTE_WIDTH_G = 4, TKEEP_FIXED_C, TKEEP_COMP_C),
+--       TUSER_BITS_C  => 2,
+--       TUSER_MODE_C  => TUSER_NONE_C);
 
    type StateType is (WAIT_TVALID_S, ASSERT_ADDR_S, LATCH_POINTERS_S, WAIT_DMA_DONE_S);
 
@@ -183,7 +184,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       bufferDone       => (others => '1'),
       bufferTriggered  => (others => '0'),
       bufferError      => (others => '0'),
-      axisStatusMaster => axiStreamMasterInit(AXIS_STATUS_CONFIG_C));
+      axisStatusMaster => axiStreamMasterInit(INT_STATUS_AXIS_CONFIG_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -399,7 +400,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
-         AXIS_CONFIG_G     => DATA_AXI_STREAM_CONFIG_G,
+         AXIS_CONFIG_G     => DATA_AXIS_CONFIG_G,
          AXI_CONFIG_G      => AXI_WRITE_CONFIG_G,
          AXI_BURST_G       => "01",         -- INCR
          AXI_CACHE_G       => "0011",       -- Cacheable
@@ -415,7 +416,7 @@ begin
          axiWriteSlave  => axiWriteSlave);  -- [in]
 
    -- Pass status message through a small fifo to convert to statusClk
-   -- Maybe allow width conversion here too?
+   -- And convert width
    U_AxiStreamFifo_MSG : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
@@ -428,8 +429,8 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 15,
-         SLAVE_AXI_CONFIG_G  => AXIS_STATUS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_STATUS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => INT_STATUS_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => STATUS_AXIS_CONFIG_G)
       port map (
          sAxisClk    => axiClk,              -- [in]
          sAxisRst    => axiRst,              -- [in]
@@ -457,10 +458,10 @@ begin
 
       -- If last txn of frame, check for trigger condition and latch it in a register
       if (axisDataMaster.tValid = '1' and axisDataMaster.tLast = '1') then
---          if(axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
---             v.trigger := '1';
---          end if;
-         if (axiStreamGetUserBit(DATA_AXI_STREAM_CONFIG_G, axisDataMaster, SSI_EOFE_C) = '1') then
+         if(axiStreamGetUserBit(DATA_AXIS_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
+            v.trigger := '1';
+         end if;
+         if (axiStreamGetUserBit(DATA_AXIS_CONFIG_G, axisDataMaster, SSI_EOFE_C) = '1') then
             v.eofe := '1';
          end if;
       end if;
@@ -597,6 +598,7 @@ begin
                   v.axisStatusMaster.tLast             := '1';
                   v.axisStatusMaster.tData(7 downto 0) := resize(r.rdRamAddr, 8);
                   v.axisStatusMaster.tDest(3 downto 0) := r.mode(STATUS_TDEST_C);
+                  ssiSetUserSof(INT_STATUS_AXIS_CONFIG_C, v.axisStatusMaster, '1');
                end if;
 
                v.state := WAIT_TVALID_S;
