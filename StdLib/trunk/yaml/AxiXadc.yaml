@@ -12,7 +12,9 @@ Device: &AxiXadc
   name: AxiXadc
   description: AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)
   size: 0x800
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00 
       name: SRR

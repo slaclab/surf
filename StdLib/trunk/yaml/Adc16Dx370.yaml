@@ -12,7 +12,9 @@ Device: &Adc16Dx370
   name: Adc16Dx370
   description: ADC16Dx370 Module
   size: 0x200
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x000
       name: AdcReg
@@ -106,5 +108,29 @@ Device: &Adc16Dx370
       lsBit: 6
       mode: RO
       description: Link_active          
-    #########################################################    
+    #########################################################
+  #########
+  Commands:
+  #########
+    #########################################################
+    - name: PowerDown
+      sequence:
+        - ScalVal: AdcReg[2]
+          SetVal: 0x3
+    #########################################################
+    - name: PowerUp
+      sequence:
+        - ScalVal: AdcReg[2]
+          SetVal: 0x0          
+    #########################################################
+    - name: CalibrateAdc
+      sequence:
+        # Power Down
+        - command: PowerDown
+        # 1000 ms sleep
+        - command: usleep
+          set: 1000000 
+        # Power Up
+        - command: PowerUp
+    #########################################################
     

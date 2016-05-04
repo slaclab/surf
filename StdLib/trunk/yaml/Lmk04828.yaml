@@ -12,7 +12,9 @@ Device: &Lmk04828
   name: Lmk04828
   description: LMK04828 Module
   size: 0x800
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x400
       name: LmkReg
@@ -57,4 +59,70 @@ Device: &Lmk04828
       sizeBits: 8
       mode: RO
       description: ID_VNDR_LOWER           
+    #########################################################
+    - offset: 0x4E4    
+      name: EnableSysRef
+      sizeBits: 2    
+      lsBit: 0 
+      mode: RW
+      description: EnableSysRef 
+    #########################################################
+    - offset: 0x510    
+      name: EnableSync
+      sizeBits: 8 
+      lsBit: 0 
+      mode: RW
+      description: EnableSync   
+    #########################################################
+    - offset: 0x50C
+      name: SyncBit
+      sizeBits: 1
+      lsBit: 5 
+      mode: RW
+      description: SyncBit         
+    #########################################################
+  #########
+  Commands:
+  #########      
+    #########################################################
+    - name: InitLmk
+      description: Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks          
+      sequence:
+        # Turn off normal continuous sysref
+        - ScalVal: EnableSysRef
+          SetVal: 0x0 
+        # Turn On SYNC
+        - ScalVal: EnableSync
+          SetVal: 0x0           
+        # 1000 ms sleep
+        - command: usleep
+          set: 1000000 
+        # Toggle Sync bit
+        - ScalVal: SyncBit
+          SetVal: 0x1    
+        - ScalVal: SyncBit
+          SetVal: 0x0        
+        # 1000 ms sleep
+        - command: usleep
+          set: 1000000           
+        # Turn on normal continuous sysref
+        - ScalVal: EnableSysRef
+          SetVal: 0x3           
+        # Turn Off SYNC
+        - ScalVal: EnableSync
+          SetVal: 0xff            
+    #########################################################
+    - name: PwrUpSysRef
+      description: Powerup the sysref lines        
+      sequence:
+        # Turn on normal continuous sysref
+        - ScalVal: EnableSysRef
+          SetVal: 0x3
+    #########################################################
+    - name: PwrDwnSysRef
+      description: Powerdown the sysref lines        
+      sequence:
+        # Turn off normal continuous sysref
+        - ScalVal: EnableSysRef
+          SetVal: 0x0          
     #########################################################

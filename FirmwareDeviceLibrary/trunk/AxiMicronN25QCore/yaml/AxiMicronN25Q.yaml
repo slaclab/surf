@@ -12,7 +12,9 @@ Device: &AxiMicronN25Q
   name: AxiMicronN25Q
   description: AXI-Lite Micron N25Q and Micron MT25Q PROM
   size: 0x400
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00 
       name: Test
@@ -40,3 +42,4 @@ Device: &AxiMicronN25Q
       nelms: 64      
       mode: RW
       description: Data Register Array
+    #########################################################

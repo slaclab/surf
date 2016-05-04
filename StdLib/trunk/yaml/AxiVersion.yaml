@@ -12,7 +12,9 @@ Device: &AxiVersion
   name: AxiVersion
   description: AXI-Lite Version Module
   size: 0x1000
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00 
       name: FpgaVersion
@@ -81,4 +83,26 @@ Device: &AxiVersion
       sizeBits: 8
       mode: RO
       description: Firmware Build String
+    #########################################################
+  #########
+  Commands:
+  #########
+    #########################################################
+    - name: MasterReset
+      description: Perform a logical reset 
+      sequence:
+        - ScalVal: MasterReset
+          SetVal: 0x1
+    #########################################################
+    - name: FpgaReload
+      description: Reload the FPGA from the attached PROM 
+      sequence:
+        - ScalVal: FpgaReload
+          SetVal: 0x1 
+    #########################################################
+    - name: CounterReset
+      description: Reload the FPGA from the attached PROM 
+      sequence:
+        - ScalVal: CounterReset
+          SetVal: 0x1         
     #########################################################
