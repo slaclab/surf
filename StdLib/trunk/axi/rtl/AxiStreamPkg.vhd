@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2016-02-09
+-- Last update: 2016-04-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -162,7 +162,7 @@ package AxiStreamPkg is
 
    function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;
    function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
-   function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;   
+   function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
    function genTKeep (bytes           : integer range 0 to 16) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
@@ -349,5 +349,193 @@ package body AxiStreamPkg is
          when others  => return 0;
       end case;
    end function getTKeep;
+
+   procedure axiStreamSimSendTxn (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
+      tData             : in  slv;
+      tKeep             : in  slv               := "X";
+      tLast             : in  sl                := '0';
+      tDest             : in  slv(7 downto 0)   := X"00";
+      tId               : in  slv(7 downto 0)   := X"00";
+      tUser             : in  slv(127 downto 0) := (others => '0')) is
+   begin
+      -- Wait for rising edge
+      wait until clk = '1';
+      
+     -- Set the bus
+      master        <= axiStreamMasterInit(CONFIG_C);
+      master.tValid <= '1';
+      master.tData  <= resize(tdata, 128);
+      if (tKeep /= "X") then
+         master.tKeep <= resize(tkeep, 16);
+      end if;
+      master.tLast <= tlast;
+      master.tDest <= tDest;
+      master.tId   <= tid;
+      master.tUser <= tUser;
+
+      -- Wait for tReady
+      while (slave.tReady = '0') loop
+         wait until clk = '1';
+      end loop;
+
+   end procedure;
+
+   procedure axiStreamSimReceiveTxn (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : in  AxiStreamMasterType;
+      signal slave      : out AxiStreamSlaveType;
+      tData             : out slv;
+      tKeep             : out slv(15 downto 0);
+      tLast             : out sl;
+      tDest             : out slv(7 downto 0);
+      tId               : out slv(7 downto 0);
+      tUser             : out slv) is
+   begin
+      slave.tready <= '1';
+
+      -- Wait for rising edge
+      while (master.tValid = '0') loop
+         wait until clk = '1';
+      end loop;
+      -- Sample the bus
+      tLast := master.tLast;
+      tData := resize(master.tData, tData'length);
+      tKeep := master.tKeep;
+      tDest := master.tDest;
+      tId   := master.tId;
+      tUser := resize(master.tUser, tUser'length);
+
+   end procedure;
+
+   procedure axiStreamSimSendFrame (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out  AxiStreamMasterType;
+      signal slave      : in AxiStreamSlaveType;
+      data              : in  slVectorArray;
+      tUserFirst        : in  slv(7 downto 0) := (others => '0');
+      tUserLast         : in  slv(7 downto 0) := (others => '0'))
+   is
+      constant DATA_WIDTH_C : natural := data'length(1);
+      constant DATA_BYTES_C : natural := wordCount(DATA_WIDTH_C, 8);
+      
+      variable txWord : slv(CONFIG_C.TDATA_BYTES_C*8-1 downto 0) := (others => '0');
+      variable txKeep : slv(CONFIG_C.TDATA_BYTES_C-1 downto 0)   := (others => '0');
+      variable wordNum   : integer;
+   begin
+      for i in data'range(1) loop
+         wordNum                               := i mod CONFIG_C.TDATA_BYTES_C;
+         txWord((wordNum+1)*DATA_WIDTH_C-1 downto wordNum*DATA_WIDTH_C) := muxSlVectorArray(data, i);
+         txKeep((wordNum+1)*DATA_BYTES_C-1 downto wordNum*DATA_BYTES_C) := (others => '1');
+
+         if (wordNum = CONFIG_C.TDATA_BYTES_C-1) then
+            axiStreamSimSendTxn(CONFIG_C, clk, master, slave, txWord, txKeep, toSl(i = data'high));
+            txWord := (others => '0');
+            txKeep := (others => '0');
+         end if;
+         wait until clk = '1';
+         master.tValid <= '0';
+      end loop;
+   end procedure;
+
+   procedure axiStreamSimSendFrame (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out  AxiStreamMasterType;
+      signal slave      : in AxiStreamSlaveType;
+      data              : in  slv8Array;
+      tUserFirst        : in  slv(7 downto 0) := (others => '0');
+      tUserLast         : in  slv(7 downto 0) := (others => '0'))
+   is
+      variable vec : SlVectorArray(data'range, data(0)'range);
+   begin
+      for i in data'range loop
+         for j in data(0)'range loop 
+            vec(i, j) := data(i)(j);
+         end loop;
+      end loop;
+      axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
+   end procedure;
+   
+   procedure axiStreamSimSendFrame (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out  AxiStreamMasterType;
+      signal slave      : in AxiStreamSlaveType;
+      data              : in  slv16Array;
+      tUserFirst        : in  slv(7 downto 0) := (others => '0');
+      tUserLast         : in  slv(7 downto 0) := (others => '0'))
+   is
+      variable vec : SlVectorArray(data'range, data(0)'range);
+   begin
+      for i in data'range loop
+         for j in data(0)'range loop 
+            vec(i, j) := data(i)(j);
+         end loop;
+      end loop;
+      axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
+   end procedure;
+   
+   procedure axiStreamSimSendFrame (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out  AxiStreamMasterType;
+      signal slave      : in AxiStreamSlaveType;
+      data              : in  slv32Array;
+      tUserFirst        : in  slv(7 downto 0) := (others => '0');
+      tUserLast         : in  slv(7 downto 0) := (others => '0'))
+   is
+      variable vec : SlVectorArray(data'range, data(0)'range);
+   begin
+      for i in data'range loop
+         for j in data(0)'range loop 
+            vec(i, j) := data(i)(j);
+         end loop;
+      end loop;
+      axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
+   end procedure;
+
+      procedure axiStreamSimSendFrame (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out  AxiStreamMasterType;
+      signal slave      : in AxiStreamSlaveType;
+      data              : in  slv64Array;
+      tUserFirst        : in  slv(7 downto 0) := (others => '0');
+      tUserLast         : in  slv(7 downto 0) := (others => '0'))
+   is
+      variable vec : SlVectorArray(data'range, data(0)'range);
+   begin
+      for i in data'range loop
+         for j in data(0)'range loop 
+            vec(i, j) := data(i)(j);
+         end loop;
+      end loop;
+      axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
+   end procedure;
+
+      procedure axiStreamSimSendFrame (
+      constant CONFIG_C : in  AxiStreamConfigType;
+      signal clk        : in  sl;
+      signal master     : out  AxiStreamMasterType;
+      signal slave      : in AxiStreamSlaveType;
+      data              : in  slv128Array;
+      tUserFirst        : in  slv(7 downto 0) := (others => '0');
+      tUserLast         : in  slv(7 downto 0) := (others => '0'))
+   is
+      variable vec : SlVectorArray(data'range, data(0)'range);
+   begin
+      for i in data'range loop
+         for j in data(0)'range loop 
+            vec(i, j) := data(i)(j);
+         end loop;
+      end loop;
+      axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
+   end procedure;
 
 end package body AxiStreamPkg;

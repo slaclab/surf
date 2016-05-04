@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-04-26
+-- Last update: 2016-05-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,8 +48,11 @@ entity SrpV3Core is
       ALTERA_RAM_G        : string                  := "M9K";
       SRP_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
       AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
-      UNALIGNED_ACCESS_G : boolean := false;
-      MIN_REQ_SIZE_G : integer := 4);
+      UNALIGNED_ACCESS_G  : boolean                 := false;
+      BYTE_ACCESS_G       : boolean                 := false;
+      WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
+      READ_EN_G           : boolean                 := true        -- Read ops enabled
+      );
    port (
       -- AXIS Slave Interface (sAxisClk domain) 
       sAxisClk    : in  sl;
@@ -77,6 +80,15 @@ architecture rtl of SrpV3Core is
 
    constant TIMEOUT_C : natural := (getTimeRatio(SRP_CLK_FREQ_G, 10.0) - 1);  -- 100 ms timeout
 
+   constant SRP_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 4,
+      TDEST_BITS_C  => AXI_STREAM_CONFIG_G.TDEST_BITS_C,
+      TID_BITS_C    => AXI_STREAM_CONFIG_G.TID_BITS_C,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,              
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
    type StateType is (
       IDLE_S,
       BLOWOFF_RX_S,
@@ -89,44 +101,44 @@ architecture rtl of SrpV3Core is
       FOOTER_S);
 
    type RegType is record
-      timer        : natural range 0 to TIMEOUT_C;
-      hdrCnt       : slv(3 downto 0);
-      remVer       : slv(7 downto 0);
-      timeoutSize  : slv(7 downto 0);
-      timeoutCnt   : slv(7 downto 0);
-      txnCnt       : slv(29 downto 0);
-      memResp      : slv(7 downto 0);
-      timeout      : sl;
-      eofe         : sl;
-      frameError   : sl;
-      verMismatch  : sl;
-      reqSizeError : sl;
-      rxSlave      : AxiStreamSlaveType;
-      txMaster     : AxiStreamMasterType;
-      state        : StateType;
-      srpReq       : SrpV3ReqType;
-      srpWrMaster  : AxiStreamMasterType;
-      srpRdSlave   : AxiStreamSlaveType;
+      timer       : natural range 0 to TIMEOUT_C;
+      hdrCnt      : slv(3 downto 0);
+      remVer      : slv(7 downto 0);
+      timeoutSize : slv(7 downto 0);
+      timeoutCnt  : slv(7 downto 0);
+      txnCnt      : slv(29 downto 0);
+      memResp     : slv(7 downto 0);
+      timeout     : sl;
+      eofe        : sl;
+      frameError  : sl;
+      verMismatch : sl;
+      reqError    : sl;
+      rxSlave     : AxiStreamSlaveType;
+      txMaster    : AxiStreamMasterType;
+      state       : StateType;
+      srpReq      : SrpV3ReqType;
+      srpWrMaster : AxiStreamMasterType;
+      srpRdSlave  : AxiStreamSlaveType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      timer        => 0,
-      hdrCnt       => (others => '0'),
-      remVer       => (others => '0'),
-      timeoutSize  => (others => '0'),
-      timeoutCnt   => (others => '0'),
-      txnCnt       => (others => '0'),
-      memResp      => (others => '0'),
-      timeout      => '0',
-      eofe         => '0',
-      frameError   => '0',
-      verMismatch  => '0',
-      reqSizeError => '0',
-      rxSlave      => AXI_STREAM_SLAVE_INIT_C,
-      txMaster     => axiStreamMasterInit(AXIS_CONFIG_C),
-      state        => IDLE_S,
-      srpReq       => SRPV3_REQ_INIT_C,
-      srpWrMaster  => axiStreamMasterInit(AXIS_CONFIG_C),
-      srpRdSlave   => AXI_STREAM_SLAVE_INIT_C);
+      timer       => 0,
+      hdrCnt      => (others => '0'),
+      remVer      => (others => '0'),
+      timeoutSize => (others => '0'),
+      timeoutCnt  => (others => '0'),
+      txnCnt      => (others => '0'),
+      memResp     => (others => '0'),
+      timeout     => '0',
+      eofe        => '0',
+      frameError  => '0',
+      verMismatch => '0',
+      reqError    => '0',
+      rxSlave     => AXI_STREAM_SLAVE_INIT_C,
+      txMaster    => axiStreamMasterInit(SRP_AXIS_CONFIG_C),
+      state       => IDLE_S,
+      srpReq      => SRPV3_REQ_INIT_C,
+      srpWrMaster => axiStreamMasterInit(SRP_AXIS_CONFIG_C),
+      srpRdSlave  => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -170,7 +182,7 @@ begin
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => SRP_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
@@ -249,12 +261,12 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset error flags
-            v.memResp      := (others => '0');
-            v.timeout      := '0';
-            v.eofe         := '0';
-            v.frameError   := '0';
-            v.verMismatch  := '0';
-            v.reqSizeError := '0';
+            v.memResp     := (others => '0');
+            v.timeout     := '0';
+            v.eofe        := '0';
+            v.frameError  := '0';
+            v.verMismatch := '0';
+            v.reqError    := '0';
 
             -- Reset SRP request
             v.srpReq := SRPV3_REQ_INIT_C;
@@ -275,7 +287,7 @@ begin
             -- Check for valid data
             elsif rxMaster.tValid = '1' then
                -- Check for SOF
-               if (ssiGetUserSof(AXIS_CONFIG_C, rxMaster) = '1') then
+               if (ssiGetUserSof(SRP_AXIS_CONFIG_C, rxMaster) = '1') then
                   -- Ok to start processing the header
                   v.state := HDR_REQ_S;
                else
@@ -311,7 +323,7 @@ begin
                v.hdrCnt := r.hdrCnt + 1;
 
                -- Assign EOFE
-               v.eofe := ssiGetUserEofe(AXIS_CONFIG_C, rxTLastTUser);
+               v.eofe := ssiGetUserEofe(SRP_AXIS_CONFIG_C, rxTLastTUser);
 
                -- Check for tLast or EOFE
                if rxMaster.tLast = '1' or v.eofe = '1' then
@@ -379,7 +391,7 @@ begin
                case (r.hdrCnt) is
                   when x"0" =>
                      -- Set SOF
-                     ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');
+                     ssiSetUserSof(SRP_AXIS_CONFIG_C, v.txMaster, '1');
                      -- Set data bus
                      v.txMaster.tData(7 downto 0)   := SRP_VERSION_C;
                      v.txMaster.tData(9 downto 8)   := r.srpReq.opCode;
@@ -400,6 +412,7 @@ begin
                         -- Next State
                         v.state := FOOTER_S;
                      end if;
+
                      -- Check for framing error or EOFE
                      if (r.frameError = '1') or (r.eofe = '1') then
                         -- Next State
@@ -416,13 +429,13 @@ begin
                      if ((r.srpReq.opCode = SRP_WRITE_C) or (r.srpReq.opCode = SRP_POSTED_WRITE_C)) and
                         (r.srpReq.reqSize(31 downto 12) /= 0) then
                         -- Set the flags
-                        v.reqSizeError := '1';
+                        v.reqError := '1';
                         -- Next State
-                        v.state        := FOOTER_S;
+                        v.state    := FOOTER_S;
                      end if;
 
                      -------------------------------------------------------------------------------
-                     -- These checks are AXI-Lite specific and need to move to glue logic
+                     -- Access checks
                      -------------------------------------------------------------------------------
                      -- Check for invalid address size (AXI-Lite only support 32-bit address space)
 --                      if (r.addr(63 downto 32) /= 0) then
@@ -431,20 +444,34 @@ begin
 --                         -- Next State
 --                         v.state      := FOOTER_S;
 --                      end if;
---                      -- Check for non 32-bit address alignment
---                      if r.addr(1 downto 0) /= 0 then
---                         -- Set the flags
---                         v.memResp(6) := '1';
---                         -- Next State
---                         v.state      := FOOTER_S;
---                      end if;
---                      -- Check for non 32-bit transaction request
---                      if r.reqSize(1 downto 0) /= "11" then
---                         -- Set the flags
---                         v.memResp(5) := '1';
---                         -- Next State
---                         v.state      := FOOTER_S;
---                      end if;
+
+
+                     -- Need to double check all the cases here
+                     -- Check for non 32-bit transaction request
+                     if (r.srpReq.opCode /= SRP_NULL_C) then
+                        if BYTE_ACCESS_G = false and r.srpReq.reqSize(1 downto 0) /= "11" then
+                           v.reqError := '1';
+                           v.state    := FOOTER_S;
+                        end if;
+
+                        -- Check for non 32-bit address alignment                     
+                        if BYTE_ACCESS_G = false and UNALIGNED_ACCESS_G = false and r.srpReq.addr(1 downto 0) /= 0 then
+                           v.reqError := '1';
+                           v.state    := FOOTER_S;
+                        end if;
+
+                        -- Check that request op is enabled
+                        if (READ_EN_G = false and r.srpReq.opCode = SRP_READ_C) then
+                           v.reqError := '1';
+                           v.state    := FOOTER_S;
+                        end if;
+
+                        if (WRITE_EN_G = false and (r.srpReq.opCode = SRP_WRITE_C or r.srpReq.opCode = SRP_POSTED_WRITE_C)) then
+                           v.reqError := '1';
+                           v.state    := FOOTER_S;
+                        end if;
+                     end if;
+
                      -------------------------------------------------------------------------------
 
                      -- If no error found above, procede with read or write request
@@ -479,20 +506,30 @@ begin
             if (srpRdMasterInt.tValid = '1' and v.txMaster.tValid = '0') then
                v.srpRdSlave.tReady           := '1';
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := srpRdMasterInt.tData(31 downto 0);
+
+               -- Zero out data segments where tkeep not set
+               -- There must be a more elegant way to do this
+               for i in 3 downto 0 loop
+                  if (srpRdMasterInt.tKeep(i) = '1') then
+                     v.txMaster.tData((i+1)*8-1 downto i*8) :=  srpRdMasterInt.tData((i+1)*8-1 downto i*8);
+                  else
+                     v.txMaster.tData((i+1)*8-1 downto i*8) := (others => '0');
+                  end if;
+               end loop;
+
 
                -- Count each txn
                -- If tLast before cntSize, eofe
                -- if cntSize reached and no tlast, blead read data, eofe
                v.txnCnt := r.txnCnt + 1;
-               if r.txnCnt = r.srpReq.reqSize and srpRdMasterInt.tLast = '1' then
+               if r.txnCnt = r.srpReq.reqSize(31 downto 2) and srpRdMasterInt.tLast = '1' then
                   -- Done when reqSize and tlast
                   v.state := WAIT_ACK_S;
                elsif (srpRdMasterInt.tLast = '1') then
                   -- tLast too early
                   v.state := WAIT_ACK_S;
                   v.eofe  := '1';       -- Should assign a memResp bit
-               elsif (r.txnCnt = r.srpReq.reqSize) then
+               elsif (r.txnCnt = r.srpReq.reqSize(31 downto 2)) then
                   -- No tLast when expected
                   v.state := FOOTER_S;
                   v.eofe  := '1';       -- Should assign a memResp bit
@@ -530,15 +567,23 @@ begin
                -- Set the write data bus
                v.srpWrMaster.tValid             := '1';
                v.srpWrMaster.tData(31 downto 0) := rxMaster.tData(31 downto 0);
+               v.srpWrMaster.tLast              := rxMaster.tLast;
+
+               -- Set tkeep for last data word as it may not be a full word
+               if (rxMaster.tLast = '1') then
+                  v.srpWrMaster.tKeep := genTKeep(conv_integer(r.srpReq.reqSize(1 downto 0))+1);
+               else
+                  v.srpWrMaster.tKeep := genTKeep(4);
+               end if;
 
                -- Count each txn
                -- If tLast before cntSize, frameError
                -- if cntSize reached and no tlast, blead write data, frame error
                v.txnCnt := r.txnCnt + 1;
-               if r.txnCnt = r.srpReq.reqSize and rxMaster.tLast = '1' then
+               if r.txnCnt = r.srpReq.reqSize(31 downto 2) and rxMaster.tLast = '1' then
                   -- Done when reqSize reached and tlast
                   v.state := WAIT_ACK_S;
-               elsif (r.txnCnt = r.srpReq.reqSize or rxMaster.tLast = '1') then
+               elsif (r.txnCnt = r.srpReq.reqSize(31 downto 2) or rxMaster.tLast = '1') then
                   -- tLast too early or too late
                   -- Extra rxData will get blown off once IDLE_S state is reached
                   -- Due to missing SOF
@@ -614,7 +659,7 @@ begin
                v.txMaster.tData(9)            := r.eofe;
                v.txMaster.tData(10)           := r.frameError;
                v.txMaster.tData(11)           := r.verMismatch;
-               v.txMaster.tData(12)           := r.reqSizeError;
+               v.txMaster.tData(12)           := r.reqError;
                v.txMaster.tData(31 downto 13) := (others => '0');
                -- Next state
                v.state                        := IDLE_S;
@@ -662,7 +707,7 @@ begin
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => SRP_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          -- Slave Port
