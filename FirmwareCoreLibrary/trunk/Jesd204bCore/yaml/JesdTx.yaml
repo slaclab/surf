@@ -20,7 +20,7 @@ Device: &JesdTx
       name: Enable
       sizeBits: 8
       mode: RW
-      description: Enables the RX modules: 0x3 - enables both modules at a time        
+      description: Enable[7:0]       
     #########################################################    
     - offset: 0x10
       name: SubClass
