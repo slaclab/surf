@@ -112,11 +112,13 @@ begin
    TDEST_REMAP : process (sAppAxisMasters_i) is
       variable tmp : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
    begin
-      tmp := sAppAxisMasters_i;      
+      tmp := sAppAxisMasters_i;
       for i in tmp'range loop
          for j in 7 downto 0 loop
-            if (APP_STREAM_ROUTES_G(i)(j) /= '-' and APP_STREAM_ROUTES_G(i)(j) /= 'X') then
-               tmp(i).tDest(j) := APP_STREAM_ROUTES_G(i)(j);
+            if (APP_STREAM_ROUTES_G(i)(j) = '1') then
+               tmp(i).tDest(j) := '1';
+            elsif(APP_STREAM_ROUTES_G(i)(j) = '0') then
+               tmp(i).tDest(j) := '0';
             else
                tmp(i).tDest(j) := sAppAxisMasters_i(i).tDest(j);
             end if;
