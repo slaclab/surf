@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-04-25
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -424,41 +424,49 @@ begin
                      if r.opCode = NULL_C then
                         -- Next State
                         v.state := FOOTER_S;
+                     end if;
                      -- Check for framing error or EOFE
-                     elsif (r.frameError = '1') or (r.eofe = '1') then
+                     if (r.frameError = '1') or (r.eofe = '1') then
                         -- Next State
                         v.state := FOOTER_S;
+                     end if;
                      -- Check for version mismatch
-                     elsif r.remVer /= SRP_VERSION_C then
+                     if r.remVer /= SRP_VERSION_C then
                         -- Set the flags
                         v.verMismatch := '1';
                         -- Next State
                         v.state       := FOOTER_S;
+                     end if;
                      -- Check for invalid reqSize with respect to writes
-                     elsif ((r.opCode = NON_POSTED_WRITE_C) or (r.opCode = POSTED_WRITE_C)) and (r.reqSize(31 downto 12) /= 0) then
+                     if ((r.opCode = NON_POSTED_WRITE_C) or (r.opCode = POSTED_WRITE_C)) and (r.reqSize(31 downto 12) /= 0) then
                         -- Set the flags
                         v.reqSizeError := '1';
                         -- Next State
                         v.state        := FOOTER_S;
+                     end if;
                      -- Check for invalid address size (AXI-Lite only support 32-bit address space)
-                     elsif (r.addr(63 downto 32) /= 0) then
+                     if (r.addr(63 downto 32) /= 0) then
                         -- Set the flags
                         v.memResp(7) := '1';
                         -- Next State
                         v.state      := FOOTER_S;
+                     end if;
                      -- Check for non 32-bit address alignment
-                     elsif r.addr(1 downto 0) /= 0 then
+                     if r.addr(1 downto 0) /= 0 then
                         -- Set the flags
                         v.memResp(6) := '1';
                         -- Next State
                         v.state      := FOOTER_S;
+                     end if;
                      -- Check for non 32-bit transaction request
-                     elsif r.reqSize(1 downto 0) /= "11" then
+                     if r.reqSize(1 downto 0) /= "11" then
                         -- Set the flags
                         v.memResp(5) := '1';
                         -- Next State
                         v.state      := FOOTER_S;
-                     else
+                     end if;
+                     -- If no error or NULL found above, then proceed with read or write request
+                     if (v.state /= FOOTER_S) then
                         -- Set the counter size
                         v.cntSize := r.reqSize(31 downto 2);
                         -- Check for read
