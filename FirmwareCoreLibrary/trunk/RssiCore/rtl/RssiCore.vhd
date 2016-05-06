@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2016-05-04
+-- Last update: 2016-05-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -320,7 +320,8 @@ begin
    -- Parameter assignment
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
-   combParamAssign : process (closeRq_i, openRq_i, s_intCloseRq, s_closeRqReg, s_openRqReg, s_appRssiParamReg, s_initSeqNReg, s_modeReg) is
+   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg, s_closeRqReg, s_initSeqNReg,
+                              s_intCloseRq, s_modeReg, s_openRqReg) is
    begin
       if (s_modeReg = '0') then
          -- Use external requests
@@ -402,6 +403,7 @@ begin
          BRAM_EN_G        => true,
          XIL_DEVICE_G     => "ULTRASCALE",
 
+         PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_FIXED_THRESH_G => true,
@@ -801,6 +803,7 @@ begin
          BRAM_EN_G        => true,
          XIL_DEVICE_G     => "ULTRASCALE",
 
+         PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_FIXED_THRESH_G => true,
