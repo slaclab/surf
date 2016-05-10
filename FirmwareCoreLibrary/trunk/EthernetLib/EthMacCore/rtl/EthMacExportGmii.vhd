@@ -163,7 +163,7 @@ begin
          mAxisMaster => macMaster,                      -- 8-bit AXI stream interface 
          mAxisSlave  => macSlave);  
 
-   comb : process (ethClkRst, r, macMaster) is
+   comb : process (ethClkRst, r, macMaster, phyReady, crcOut) is
       variable v : RegType;
    begin
       -- Latch the current value

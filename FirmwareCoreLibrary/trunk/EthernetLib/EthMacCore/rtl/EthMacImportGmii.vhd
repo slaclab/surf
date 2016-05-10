@@ -160,7 +160,7 @@ begin
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  
 
 
-   comb : process (ethClkRst, macSlave, r, gmiiRxDv, gmiiRxEr, gmiiRxd, phyReady, FFData, crcOut ) is
+   comb : process (ethClkRst, macSlave, r, gmiiRxDv, gmiiRxEr, gmiiRxd, phyReady, FFData, crcOut, crcIn ) is
       variable v : RegType;
    begin
       -- Latch the current value
