@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-11
--- Last update: 2016-04-19
+-- Last update: 2016-05-09
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,9 +57,12 @@ entity SimpleDualPortRam is
 end SimpleDualPortRam;
 
 architecture rtl of SimpleDualPortRam is
-
-   constant NUM_BYTES_C       : natural := wordCount(DATA_WIDTH_G, BYTE_WIDTH_G);
-   constant FULL_DATA_WIDTH_C : natural := NUM_BYTES_C*BYTE_WIDTH_G;
+   
+   -- Set byte width to word width if byte writes not enabled
+   -- Otherwise block ram parity bits wont be utilized
+   constant BYTE_WIDTH_C : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
+   constant NUM_BYTES_C       : natural := wordCount(DATA_WIDTH_G, BYTE_WIDTH_C);
+   constant FULL_DATA_WIDTH_C : natural := NUM_BYTES_C*BYTE_WIDTH_C;
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
@@ -114,8 +117,8 @@ begin
          if ena = '1' then
             for i in NUM_BYTES_C-1 downto 0 loop
                if (weaByteInt(i) = '1') then
-                  mem(conv_integer(addra))((i+1)*BYTE_WIDTH_G-1 downto i*BYTE_WIDTH_G) :=
-                     resize(dina(minimum(DATA_WIDTH_G-1, (i+1)*BYTE_WIDTH_G-1) downto i*BYTE_WIDTH_G), BYTE_WIDTH_G);
+                  mem(conv_integer(addra))((i+1)*BYTE_WIDTH_C-1 downto i*BYTE_WIDTH_C) :=
+                     resize(dina(minimum(DATA_WIDTH_G-1, (i+1)*BYTE_WIDTH_C-1) downto i*BYTE_WIDTH_C), BYTE_WIDTH_C);
                end if;
             end loop;
          end if;
