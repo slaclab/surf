@@ -3,6 +3,7 @@ manual yaml/AxiSysMonUltraScale.yaml
 manual yaml/AxiVersion.yaml
 manual yaml/AxiXadc.yaml
 manual yaml/GenericMemory.yaml
+manual yaml/AxiStreamDmaRingWrite.yaml
 
 manual yaml/Adc16Dx370.yaml
 manual yaml/Dac38J84.yaml
