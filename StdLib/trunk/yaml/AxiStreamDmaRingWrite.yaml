@@ -1,0 +1,209 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+Device: &AxiStreamDmaRingWrite
+  name: AxiStreamDmaRingWrite
+  description: DMA Ring Buffer Manager
+  size: 0x1000
+  metadata:
+    - numBuffers: &numBuffers 4
+    - destEnums: &destEnums
+        - name: Default
+          value: 0
+    - destHidden: &destHidden true
+  #########
+  IntField:
+  #########
+    #########################################################
+    - offset: 0x00 
+      name: StartAddr
+      mode: RW
+      nelms: *numBuffers
+      stride: 8
+      sizeBits: 64
+      description: 
+    #########################################################
+    - offset: 0x200
+      name: EndAddr
+      mode: RW
+      nelms: *numBuffers
+      stride: 8
+      sizeBits: 64
+      description: 
+    #########################################################
+    - offset: 0x400
+      name: WrAddr
+      mode: RO
+      nelms: *numBuffers
+      stride: 8
+      sizeBits: 64
+      description: 
+    #########################################################
+    - offset: 0x600
+      name: TriggerAddr
+      mode: RW
+      nelms: *numBuffers
+      stride: 8
+      sizeBits: 64
+      description: 
+    #########################################################
+    - offset: 0x8000
+      name: Enabled
+      mode: RW
+      nelms: *numBuffers
+      stride: 4
+      lsBit: 0
+      sizeBits: 1
+      description: 
+    #########################################################
+    - offset: 0x8000
+      name: Mode
+      mode: RW
+      nelms: *numBuffers
+      stride: 4
+      lsBit: 1
+      sizeBits: 1
+      enums: 
+        - name: Wrap
+          value: 0
+        - name: DoneWhenFull: 
+          value: 1
+      description:
+     #########################################################
+    - offset: 0x8000
+      name: Init
+      mode: RW
+      nelms: *numBuffers
+      stride: 4
+      lsBit: 2
+      sizeBits: 1
+      hidden: true
+      description:
+    #########################################################
+    - offset: 0x8000
+      name: SoftTrigger
+      mode: RW
+      nelms: *numBuffers
+      stride: 4
+      lsBit: 3
+      sizeBits: 1
+      hidden: true
+      description:
+   
+    #########################################################
+    - offset: 0x8000
+      name: MsgDest
+      mode: RW
+      nelms: *numBuffers
+      stride: 4
+      lsBit: 4
+      sizeBits: 4
+      enums : *destEnums
+      hidden: *destHidden
+      description: 
+
+    #########################################################
+    - offset: 0x8002
+      name: FramesAfterTrigger
+      mode: RW
+      nelms: *numBuffers
+      stride: 4
+      lsBit: 0
+      sizeBits: 16
+      description: 
+
+    #########################################################
+    - offset: 0xA000
+      name: Empty
+      mode: RO      
+      nelms: *numBuffers
+      sizeBits: 1
+      lsBit: 0
+      stride: 4
+      description: 
+    #########################################################
+    - offset: 0xA000
+      name: Full
+      mode: RO      
+      nelms: *numBuffers
+      sizeBits: 1
+      lsBit: 1
+      stride: 4
+      description: 
+    #########################################################
+    - offset: 0xA000
+      name: Done
+      mode: RO      
+      nelms: *numBuffers
+      sizeBits: 1
+      lsBit: 2
+      stride: 4
+      description: 
+    #########################################################
+    - offset: 0xA000
+      name: Triggered
+      mode: RO      
+      nelms: *numBuffers
+      sizeBits: 1
+      lsBit: 3
+      stride: 4
+      description: 
+    #########################################################
+    - offset: 0xA000
+      name: Error
+      mode: RO      
+      nelms: *numBuffers
+      sizeBits: 1
+      lsBit: 4
+      stride: 4
+      description: 
+    #########################################################
+    - offset: 0xA001 # Same constant value for every buffer so only define one
+      name: BurstSize
+      mode: RO      
+      sizeBits: 4
+      lsBit: 0
+      description:
+    #########################################################
+    - offset: 0xA002
+      name: FramesSinceTrigger
+      mode: RO 
+      nelms: *numBuffers
+      sizeBits: 16
+      lsBit: 0
+      stride: 4
+      description:
+
+  #########
+  Commands:
+  #########
+    #########################################################
+    - name: Initialize
+      description: |
+        Initialize the buffer. Reset the write pointer to
+        StartAddr. Clear the Done field.
+      nelms: *numBuffers
+      sequence:
+        - ScalVal: Init[index] 
+          SetVal: 0x1        
+        - ScalVal: Init[index] 
+          SetVal: 0x0
+    #########################################################
+    - name: SoftTrigger
+      description: Send a trigger to the buffer
+      nelms: *numBuffers
+      sequence:
+        - ScalVal: SoftTrigger[index] 
+          SetVal: 0x1        
+        - ScalVal: SoftTrigger[index] 
+          SetVal: 0x0
+
+      - name: SoftTriggerAll
+        command: SoftTrigger
