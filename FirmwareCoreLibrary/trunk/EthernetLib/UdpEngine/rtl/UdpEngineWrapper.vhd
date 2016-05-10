@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-03-02
+-- Last update: 2016-05-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,58 +33,62 @@ use work.IpV4EnginePkg.all;
 entity UdpEngineWrapper is
    generic (
       -- Simulation Generics
-      TPD_G              : time            := 1 ns;
-      SIM_ERROR_HALT_G   : boolean         := false;
+      TPD_G               : time            := 1 ns;
+      SIM_ERROR_HALT_G    : boolean         := false;
       -- UDP General Generic
-      RX_MTU_G           : positive        := 1500;
-      RX_FORWARD_EOFE_G  : boolean         := false;
-      TX_FORWARD_EOFE_G  : boolean         := false;
-      TX_CALC_CHECKSUM_G : boolean         := true;
+      RX_MTU_G            : positive        := 1500;
+      RX_FORWARD_EOFE_G   : boolean         := false;
+      TX_FORWARD_EOFE_G   : boolean         := false;
+      TX_CALC_CHECKSUM_G  : boolean         := true;
       -- UDP Server Generics
-      SERVER_EN_G        : boolean         := true;
-      SERVER_SIZE_G      : positive        := 1;
-      SERVER_PORTS_G     : PositiveArray   := (0 => 8192);
-      SERVER_MTU_G       : positive        := 1500;
+      SERVER_EN_G         : boolean         := true;
+      SERVER_SIZE_G       : positive        := 1;
+      SERVER_PORTS_G      : PositiveArray   := (0 => 8192);
+      SERVER_MTU_G        : positive        := 1500;
       -- UDP Client Generics
-      CLIENT_EN_G        : boolean         := true;
-      CLIENT_SIZE_G      : positive        := 1;
-      CLIENT_PORTS_G     : PositiveArray   := (0 => 8193);
-      CLIENT_MTU_G       : positive        := 1500;
+      CLIENT_EN_G         : boolean         := true;
+      CLIENT_SIZE_G       : positive        := 1;
+      CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
+      CLIENT_MTU_G        : positive        := 1500;
+      CLIENT_EXT_CONFIG_G : boolean         := false;
       -- IPv4/ARP Generics
-      CLK_FREQ_G         : real            := 156.25E+06;          -- In units of Hz
-      COMM_TIMEOUT_EN_G  : boolean         := true;       -- Disable the timeout by setting to false
-      COMM_TIMEOUT_G     : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing
-      ARP_TIMEOUT_G      : positive        := 156250000;  -- In units of clock cycles (Default: 156.25 MHz clock = 1 seconds)
-      VLAN_G             : boolean         := false;      -- true = VLAN support       
-      AXI_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      CLK_FREQ_G          : real            := 156.25E+06;          -- In units of Hz
+      COMM_TIMEOUT_EN_G   : boolean         := true;  -- Disable the timeout by setting to false
+      COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing
+      ARP_TIMEOUT_G       : positive        := 156250000;  -- In units of clock cycles (Default: 156.25 MHz clock = 1 seconds)
+      VLAN_G              : boolean         := false;      -- true = VLAN support       
+      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       -- Local Configurations
-      localMac        : in  slv(47 downto 0);      --  big-Endian configuration
-      localIp         : in  slv(31 downto 0);      --  big-Endian configuration
+      localMac         : in  slv(47 downto 0);      --  big-Endian configuration
+      localIp          : in  slv(31 downto 0);      --  big-Endian configuration
+      -- Remote Configurations
+      clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0)           := (others => x"0000");
+      clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0)           := (others => x"00000000");
       -- Interface to Ethernet Media Access Controller (MAC)
-      obMacMaster     : in  AxiStreamMasterType;
-      obMacSlave      : out AxiStreamSlaveType;
-      ibMacMaster     : out AxiStreamMasterType;
-      ibMacSlave      : in  AxiStreamSlaveType;
+      obMacMaster      : in  AxiStreamMasterType;
+      obMacSlave       : out AxiStreamSlaveType;
+      ibMacMaster      : out AxiStreamMasterType;
+      ibMacSlave       : in  AxiStreamSlaveType;
       -- Interface to UDP Server engine(s)
-      obServerMasters : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      obServerSlaves  : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-      ibServerMasters : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      ibServerSlaves  : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      serverRemoteIp  : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
+      obServerMasters  : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+      ibServerMasters  : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to UDP Client engine(s)
-      obClientMasters : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      obClientSlaves  : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-      ibClientMasters : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      ibClientSlaves  : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+      ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       -- AXI-Lite Interface
-      axilReadMaster  : in  AxiLiteReadMasterType                          := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType                         := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilReadMaster   : in  AxiLiteReadMasterType                          := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave    : out AxiLiteReadSlaveType;
+      axilWriteMaster  : in  AxiLiteWriteMasterType                         := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave   : out AxiLiteWriteSlaveType;
       -- Clock and Reset
-      clk             : in  sl;
-      rst             : in  sl);
+      clk              : in  sl;
+      rst              : in  sl);
 end UdpEngineWrapper;
 
 architecture rtl of UdpEngineWrapper is
@@ -209,7 +213,7 @@ begin
          clk              => clk,
          rst              => rst);  
 
-   comb : process (axilReadMaster, axilWriteMaster, r, rst) is
+   comb : process (axilReadMaster, axilWriteMaster, clientRemoteIp, clientRemotePort, r, rst) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
       variable i      : natural;
@@ -232,6 +236,12 @@ begin
       -- Synchronous Reset
       if (rst = '1') then
          v := REG_INIT_C;
+      end if;
+
+      -- Check for external configuration
+      if (CLIENT_EXT_CONFIG_G = true) then
+         v.clientRemotePort := clientRemotePort;
+         v.clientRemoteIp   := clientRemoteIp;
       end if;
 
       -- Register the variable for next clock cycle
