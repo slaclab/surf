@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2015-12-15
+-- Last update: 2016-05-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,16 +76,16 @@ end SsiPrbsTx;
 
 architecture rtl of SsiPrbsTx is
 
-   constant PRBS_BYTES_C      : natural             := (PRBS_SEED_SIZE_G/8);
+   constant PRBS_BYTES_C : natural := (PRBS_SEED_SIZE_G/8);
    constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 4,
+      TDATA_BYTES_C => PRBS_BYTES_C,
       TDEST_BITS_C  => 8,
       TID_BITS_C    => 8,
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-   
+
 
    type StateType is (
       IDLE_S,
@@ -195,9 +195,17 @@ begin
             when X"0C" =>
                v.axilReadSlave.rdata(31 downto 0) := r.dataCnt;
             when X"10" =>
-               v.axilReadSlave.rdata(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
+               if (PRBS_SEED_SIZE_G < 32) then
+                  v.axilReadSlave.rdata(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
+               else
+                  v.axilReadSlave.rdata(31 downto 0) := r.eventCnt(31 downto 0);
+               end if;
             when X"14" =>
-               v.axilReadSlave.rdata(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
+               if (PRBS_SEED_SIZE_G < 32) then
+                  v.axilReadSlave.rdata(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
+               else
+                  v.axilReadSlave.rdata(31 downto 0) := r.randomData(31 downto 0);
+               end if;
             when others =>
                axilReadResp := AXI_ERROR_RESP_G;
          end case;
@@ -296,7 +304,7 @@ begin
                v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
 
                -- Increment the counter
-               v.dataCnt    := r.dataCnt + 1;
+               v.dataCnt := r.dataCnt + 1;
                -- Check the counter
                if r.dataCnt = r.length then
                   -- Reset the counter
