@@ -203,7 +203,7 @@ begin
                   v.state := DELAY0_S;
                end if;
                if (r.sof = '1') then
-                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_SOF_BIT_C, '1');
+                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_SOF_BIT_C, '1', 0);
                   v.sof := '0';
                end if;
             end if;
