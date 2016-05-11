@@ -85,7 +85,8 @@ architecture rtl of EthMacExportGmii is
       TX_CRC1_S,
       TX_CRC2_S,
       TX_CRC3_S,
-      DUMP_S);
+      DUMP_S,
+      INTERGAP_S);
 
    type RegType is record
       gmiiTxEn       : sl;
@@ -98,6 +99,7 @@ architecture rtl of EthMacExportGmii is
       txLinkNotReady : sl;
       crcReset       : sl;
       crcDataValid   : sl;
+      crcIn          : slv(7 downto 0);
       state          : StateType;
       macSlave       : AxiStreamSlaveType;
    end record;
@@ -111,23 +113,28 @@ architecture rtl of EthMacExportGmii is
       txCountEn      => '0',
       txUnderRun     => '0',
       txLinkNotReady => '0',
-      crcDataValid   => '0',
       crcReset       => '0',
+      crcDataValid   => '0',
+      crcIn          => (others => '0'),
       state          => IDLE_S,
       macSlave       => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal macMaster : AxiStreamMasterType;
-   signal macSlave  : AxiStreamSlaveType;
-   signal crcOut    : slv(31 downto 0);
+   signal macMaster    : AxiStreamMasterType;
+   signal macSlave     : AxiStreamSlaveType;
+   signal crcOut       : slv(31 downto 0);
+   signal crcDataValid : sl;
+   signal crcIn        : slv(7 downto 0);
 
-   attribute dont_touch              : string;
-   attribute dont_touch of r         : signal is "TRUE";
-   attribute dont_touch of macMaster : signal is "TRUE";
-   attribute dont_touch of macSlave  : signal is "TRUE";
-   attribute dont_touch of crcOut    : signal is "TRUE";
+   attribute dont_touch                 : string;
+   attribute dont_touch of r            : signal is "TRUE";
+   attribute dont_touch of macMaster    : signal is "TRUE";
+   attribute dont_touch of macSlave     : signal is "TRUE";
+   attribute dont_touch of crcOut       : signal is "TRUE";
+   attribute dont_touch of crcDataValid : signal is "TRUE";
+   attribute dont_touch of crcIn        : signal is "TRUE";
 
 begin
 
@@ -166,20 +173,19 @@ begin
       v := r;
 
       -- Reset the flags
-      v.macSlave := AXI_STREAM_SLAVE_INIT_C;
+      v.macSlave     := AXI_STREAM_SLAVE_INIT_C;
+      v.crcDataValid := '0';
 
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------      
          when IDLE_S =>
-            v.CrcDataValid    := '0';
-            v.crcReset        := '1';
-            v.TxCount         := x"00";
-            v.txData_d        := x"77";
-            v.gmiiTxd         := x"77";
-            v.gmiiTxEn        := '0';
-            v.gmiiTxEr        := '0';
-            v.macSlave.tReady := '0';
+            v.crcReset := '1';
+            v.TxCount  := x"00";
+            v.txData_d := x"77";
+            v.gmiiTxd  := x"77";
+            v.gmiiTxEn := '0';
+            v.gmiiTxEr := '0';
             -- Wait for start flag
             if ((macMaster.tValid = '1') and (ethClkRst = '0')) then
                -- Phy is ready
@@ -190,20 +196,16 @@ begin
                   v.state          := DUMP_S;
                   v.txLinkNotReady := '1';
                end if;
-            else
-               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------      
          when TX_PREAMBLE_S =>
             v.gmiiTxEn := '1';
             if (r.TxCount = x"07") then
-               v.CrcReset        := '0';
-               v.txData_d        := x"D5";
-               v.gmiiTxd         := r.txData_d;
-               v.TxCount         := x"00";
-               v.MacSlave.tReady := '0';
-               v.CrcDataValid    := '1';
-               v.state           := TX_DATA_S;
+               v.CrcReset := '0';
+               v.txData_d := x"D5";
+               v.gmiiTxd  := r.txData_d;
+               v.TxCount  := x"00";
+               v.state    := TX_DATA_S;
             else
                v.TxCount  := r.TxCount +1;
                v.txData_d := x"55";
@@ -212,36 +214,34 @@ begin
             end if;
          ----------------------------------------------------------------------      
          when TX_DATA_S =>
+            v.macSlave.tReady := '1';
+            v.crcDataValid    := '1';
+            v.crcIn           := macMaster.tdata(7 downto 0);
+            v.txData_d        := macMaster.tdata(7 downto 0);
+            v.gmiiTxd         := r.txData_d;
             if (r.TxCount < x"3C") then  -- Minimum frame of 64 includes 4byte FCS
                v.TxCount := r.TxCount + 1;
             end if;
-            if ((macMaster.tValid = '1') and (macMaster.tlast = '0')) then
-               v.CrcDataValid    := '1';
-               v.txData_d        := macMaster.tdata(7 downto 0);
-               v.gmiiTxd         := r.txData_d;
-               v.MacSlave.tReady := '1';
-               v.state           := TX_DATA_S;
-            elsif ((macMaster.tValid = '1') and (macMaster.tlast = '1')) then
-               v.MacSlave.tReady := '1';
-               v.CrcDataValid    := '0';
-               v.txData_d        := macMaster.tdata(7 downto 0);
-               v.gmiiTxd         := r.txData_d;
-               if (v.TxCount = x"3C") then
-                  v.state := TX_CRC_S;
-               else
-                  v.state := PAD_S;
+            if (macMaster.tValid = '1') then
+               if (macMaster.tlast = '1') then
+                  if (v.TxCount = x"3C") then
+                     v.state := TX_CRC_S;
+                  else
+                     v.state := PAD_S;
+                  end if;
                end if;
             else
-               v.MacSlave.tReady := '0';
-               v.CrcDataValid    := '0';
-               v.gmiiTxEr        := '1';
-               v.state           := DUMP_S;
+               v.gmiiTxEr := '1';
+               v.state    := DUMP_S;
             end if;
          ----------------------------------------------------------------------      
          when PAD_S =>
+            v.crcDataValid := '1';
+            v.crcIn        := x"00";
+            v.txData_d     := x"00";
+            v.gmiiTxd      := r.txData_d;
             if (r.TxCount < x"3C") then
                v.TxCount := v.TxCount + 1;
-               v.state   := PAD_S;
             else
                v.state := TX_CRC_S;
             end if;
@@ -264,15 +264,23 @@ begin
          ----------------------------------------------------------------------      
          when TX_CRC3_S =>
             v.gmiitxd := crcOut(7 downto 0);
-            v.state   := IDLE_S;
+            v.TxCount := x"00";
+            v.state   := INTERGAP_S;
          ----------------------------------------------------------------------      
          when DUMP_S =>
+            v.gmiiTxEn        := '0';
+            v.macSlave.tReady := '1';
+            v.TxCount         := x"00";
             if ((macMaster.tValid = '1') and (macMaster.tlast = '1')) then
-               v.macSlave.tReady := '0';
-               v.state           := IDLE_S;
-            else
-               v.macSlave.tReady := '1';
-               v.state           := DUMP_S;
+               v.state := INTERGAP_S;
+            end if;
+         ----------------------------------------------------------------------      
+         when INTERGAP_S =>
+            v.gmiiTxEn := '0';
+            v.TxCount  := r.TxCount +1;
+            if r.TxCount = x"5E" then    -- 12 Octels - IDLE state
+               v.TxCount := x"00";
+               v.state   := IDLE_S;
             end if;
       ----------------------------------------------------------------------      
       end case;
@@ -293,6 +301,8 @@ begin
       gmiiTxEn       <= r.gmiiTxEn;
       gmiiTxEr       <= r.gmiiTxEr;
       gmiiTxd        <= r.gmiiTxd;
+      crcDataValid   <= v.crcDataValid;
+      crcIn          <= v.crcIn;
       
    end process comb;
 
@@ -310,9 +320,9 @@ begin
       port map (
          crcOut       => crcOut,
          crcClk       => ethClk,
-         crcDataValid => r.CrcDataValid,
+         crcDataValid => crcDataValid,
          crcDataWidth => "000",
-         crcIn        => macMaster.tdata(7 downto 0),
+         crcIn        => crcIn,
          crcReset     => r.crcReset); 
 
 end rtl;
