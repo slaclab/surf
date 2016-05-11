@@ -219,7 +219,7 @@ Device: &AxiSysMonUltraScale
       description: Maximum VUSER[4:0] supply monitor measurement
     #########################################################
     - offset: 0x6A0
-      name: MAX_VUSER
+      name: MIN_VUSER
       nelms: 4
       mode: RO
       description: Minimum VUSER[4:0] supply monitor measurement
