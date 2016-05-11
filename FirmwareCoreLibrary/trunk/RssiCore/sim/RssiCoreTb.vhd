@@ -102,8 +102,8 @@ begin
       TPD_G          => TPD_C,
       SERVER_G       => true,
       INIT_SEQ_N_G   => 16#40#,
-      TSP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
-      TSP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(4)
+      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(16),
+      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(16)
    )
    port map (
       clk_i       => clk_i,
@@ -140,8 +140,8 @@ begin
       TPD_G          => TPD_C,
       SERVER_G       => false,
       INIT_SEQ_N_G   => 16#80#,
-      TSP_INPUT_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
-      TSP_OUTPUT_AXI_CONFIG_G => ssiAxiStreamConfig(4))
+      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(16),
+      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(16))
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
@@ -397,6 +397,16 @@ begin
       inject0_i <= '0';
       inject1_i <= '0';
       
+      wait for CLK_PERIOD_C*10000;
+      -- Stop PRBS
+      s_trig <= '0';
+      -------------------------------------------------------     
+      
+      
+      -------------------------------------------------------
+      wait for CLK_PERIOD_C*60000;
+      -- Stop PRBS
+      s_trig <= '1';
       
       ------------------------------------------------------
 
