@@ -85,9 +85,11 @@ architecture mapping of GigEthGthUltraScaleWrapper is
    signal gtClk     : sl;
    signal gtClkBufg : sl;
    signal refClk    : sl;
+   signal refRst    : sl;
    signal sysClk125 : sl;
    signal sysRst125 : sl;
    signal sysClk62  : sl;
+   signal sysRst62  : sl;
 
 begin
 
@@ -120,16 +122,27 @@ begin
          O       => gtClkBufg);
 
    refClk <= gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
+   
+   -----------------
+   -- Power Up Reset
+   -----------------
+   PwrUpRst_Inst : entity work.PwrUpRst
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         arst   => extRst,
+         clk    => refClk,
+         rstOut => refRst);   
 
    ----------------
    -- Clock Manager
    ----------------
-   U_MMCM : entity work.ClockManager7
+   U_MMCM : entity work.ClockManagerUltraScale
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
-         FB_BUFG_G          => false,
+         FB_BUFG_G          => true,
          RST_IN_POLARITY_G  => '1',
          NUM_CLOCKS_G       => 2,
          -- MMCM attributes
@@ -141,11 +154,11 @@ begin
          CLKOUT1_DIVIDE_G   => integer(2.0*CLKOUT0_DIVIDE_F_G))
       port map(
          clkIn     => refClk,
+         rstIn     => refRst,
          clkOut(0) => sysClk125,
          clkOut(1) => sysClk62,
          rstOut(0) => sysRst125,
-         rstOut(1) => open,
-         locked    => open); 
+         rstOut(1) => sysRst62); 
 
    --------------
    -- GigE Module 
@@ -181,7 +194,7 @@ begin
             sysClk62           => sysClk62,
             sysClk125          => sysClk125,
             sysRst125          => sysRst125,
-            extRst             => extRst,
+            extRst             => refRst,
             phyReady           => phyReady(i),
             sigDet             => sigDet(i),
             -- MGT Ports
