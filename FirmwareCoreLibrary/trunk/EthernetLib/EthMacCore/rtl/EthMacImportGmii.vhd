@@ -8,7 +8,7 @@
 --
 --      Author: Jeff Olsen
 --      Created on: 2/23/2016 9:04:26 AM
---      Last change: JO 5/2/2016 11:39:55 AM
+--      Last change: JO 5/11/2016 3:00:00 PM
 --
 -------------------------------------------------------------------------------
 -- Title         : 1G MAC / Import Interface
@@ -111,11 +111,11 @@ architecture rtl of EthMacImportGmii is
    signal crcIn     : slv(31 downto 0);
    signal macMaster : AxiStreamMasterType;
 
-   attribute dont_touch              : string;
-   attribute dont_touch of r         : signal is "TRUE";
-   attribute dont_touch of crcIn     : signal is "TRUE";
-   attribute dont_touch of crcOut    : signal is "TRUE";
-   attribute dont_touch of macMaster : signal is "TRUE";
+--   attribute dont_touch              : string;
+--   attribute dont_touch of r         : signal is "TRUE";
+--   attribute dont_touch of crcIn     : signal is "TRUE";
+--   attribute dont_touch of crcOut    : signal is "TRUE";
+--   attribute dont_touch of macMaster : signal is "TRUE";
 
 begin
 
