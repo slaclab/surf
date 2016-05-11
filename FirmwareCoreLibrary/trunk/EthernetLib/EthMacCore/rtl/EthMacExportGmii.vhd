@@ -8,7 +8,7 @@
 --
 --      Author: Jeff Olsen
 --      Created on: 4/15/2016 3:02:34 PM
---      Last change: JO 5/2/2016 2:38:24 PM
+--      Last change: JO 5/11/2016 2:59:24 PM
 --
 -------------------------------------------------------------------------------
 -- Title         : 1G MAC / Export Interface
@@ -128,13 +128,13 @@ architecture rtl of EthMacExportGmii is
    signal crcDataValid : sl;
    signal crcIn        : slv(7 downto 0);
 
-   attribute dont_touch                 : string;
-   attribute dont_touch of r            : signal is "TRUE";
-   attribute dont_touch of macMaster    : signal is "TRUE";
-   attribute dont_touch of macSlave     : signal is "TRUE";
-   attribute dont_touch of crcOut       : signal is "TRUE";
-   attribute dont_touch of crcDataValid : signal is "TRUE";
-   attribute dont_touch of crcIn        : signal is "TRUE";
+--   attribute dont_touch                 : string;
+--   attribute dont_touch of r            : signal is "TRUE";
+--   attribute dont_touch of macMaster    : signal is "TRUE";
+--   attribute dont_touch of macSlave     : signal is "TRUE";
+--   attribute dont_touch of crcOut       : signal is "TRUE";
+--   attribute dont_touch of crcDataValid : signal is "TRUE";
+--   attribute dont_touch of crcIn        : signal is "TRUE";
 
 begin
 
@@ -182,8 +182,8 @@ begin
          when IDLE_S =>
             v.crcReset := '1';
             v.TxCount  := x"00";
-            v.txData_d := x"77";
-            v.gmiiTxd  := x"77";
+            v.txData_d := x"07";
+            v.gmiiTxd  := x"07";
             v.gmiiTxEn := '0';
             v.gmiiTxEr := '0';
             -- Wait for start flag
