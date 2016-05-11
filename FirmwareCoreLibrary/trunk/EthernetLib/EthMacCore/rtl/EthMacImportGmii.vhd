@@ -190,10 +190,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when GET_DATA_S =>
-            if ((gmiiRxEr = '1') or (phyReady = '0')) then  -- Error
+            if ((gmiiRxEr = '1') and (gmiiRxDv = '1')) or (phyReady = '0') then  -- Error
                v.macMaster.tvalid := '1';
                v.macMaster.tlast  := '1';
-               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1');
+               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
                v.state            := WAIT_SFD_S;
             else
                v.crcDataValid                := '1';
@@ -219,7 +219,7 @@ begin
             v.macMaster.tlast  := '1';
             if (crcIn /= crcOut) then
                v.rxCrcError := '1';
-               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1');
+               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
             else
                v.rxCountEn := '1';
             end if;
