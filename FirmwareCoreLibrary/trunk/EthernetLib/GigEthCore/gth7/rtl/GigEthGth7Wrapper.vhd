@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2016-02-09
+-- Last update: 2016-05-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -85,9 +85,11 @@ architecture mapping of GigEthGth7Wrapper is
    signal gtClk     : sl;
    signal gtClkBufg : sl;
    signal refClk    : sl;
+   signal refRst    : sl;
    signal sysClk125 : sl;
    signal sysRst125 : sl;
    signal sysClk62  : sl;
+   signal sysRst62  : sl;
 
 begin
 
@@ -113,6 +115,17 @@ begin
 
    refClk <= gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
 
+   -----------------
+   -- Power Up Reset
+   -----------------
+   PwrUpRst_Inst : entity work.PwrUpRst
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         arst   => extRst,
+         clk    => refClk,
+         rstOut => refRst);   
+
    ----------------
    -- Clock Manager
    ----------------
@@ -133,11 +146,11 @@ begin
          CLKOUT1_DIVIDE_G   => integer(2.0*CLKOUT0_DIVIDE_F_G))
       port map(
          clkIn     => refClk,
+         rstIn     => refRst,
          clkOut(0) => sysClk125,
          clkOut(1) => sysClk62,
          rstOut(0) => sysRst125,
-         rstOut(1) => open,
-         locked    => open); 
+         rstOut(1) => sysRst62); 
 
    --------------
    -- GigE Module 
@@ -173,7 +186,7 @@ begin
             sysClk62           => sysClk62,
             sysClk125          => sysClk125,
             sysRst125          => sysRst125,
-            extRst             => extRst,
+            extRst             => refRst,
             phyReady           => phyReady(i),
             sigDet             => sigDet(i),
             -- MGT Ports
