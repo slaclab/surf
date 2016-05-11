@@ -41,10 +41,10 @@ Device: &XauiReg
       description: InterFrameGap    
     #########################################################
     - offset: 0x21C
-      name: InterFrameGap
+      name: PauseTime
       sizeBits: 16      
       mode: RO
-      description: InterFrameGap  
+      description: PauseTime  
     #########################################################
     - offset: 0x228
       name: FilterEnable
