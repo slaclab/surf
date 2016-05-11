@@ -69,7 +69,7 @@ entity GigEthGthUltraScaleWrapper is
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
-      -- MGT Clock Port (156.25 MHz or 312.5 MHz)
+      -- MGT Clock Port 
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
