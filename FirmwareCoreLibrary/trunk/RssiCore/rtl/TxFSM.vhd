@@ -183,8 +183,7 @@ architecture rtl of TxFSM is
       WAIT_SOF_S,
       SEG_RCV_S,
       SEG_RDY_S,
-      SEG_LEN_ERR,
-      WAIT_TX_S
+      SEG_LEN_ERR
    );
    
    type AckStateType is (
@@ -216,6 +215,7 @@ architecture rtl of TxFSM is
       -- Application side FSM
       -----------------------------------------     
       rxSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0); -- One address bit more to check the overflow
+      rxBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       rxSegmentWe    : sl;
       sndData        : sl;
       lenErr         : sl;
@@ -287,6 +287,7 @@ architecture rtl of TxFSM is
       -----------------------------------------     
       rxSegmentAddr   => (others => '0'),
       rxSegmentWe     => '0',
+      rxBufferAddr    => (others => '0'),
       sndData         => '0',
       lenErr          => '0',
       appBusy         => '0',
@@ -359,7 +360,7 @@ begin
       
       ------------------------------------------------------------
       -- Buffer full if next slot is occupied
-      if ( r.windowArray(conv_integer(r.nextSentAddr)).occupied = '1') then
+      if ( r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '1') then
          v.bufferFull := '1';
       else
          v.bufferFull := '0';
@@ -532,7 +533,8 @@ begin
             -- Buffer write ctl
             v.rxSegmentAddr := (others =>'0');
             v.rxSegmentWe   := '0';
-
+            v.rxBufferAddr  := r.rxBufferAddr;         
+            
             -- txFSM
             v.sndData     := '0';
             v.lenErr      := '0';
@@ -551,6 +553,7 @@ begin
             -- Buffer write ctl
             v.rxSegmentAddr := (others =>'0');
             v.rxSegmentWe   := '0';
+            v.rxBufferAddr  := r.rxBufferAddr;
             
             -- txFSM
             v.sndData     := '0';
@@ -560,8 +563,15 @@ begin
             -- If other segment (NULL, or RST) is requested return to IDLE_S to
             -- check if buffer is still available (not full)
             if (r.buffWe = '1') then
-               v.appState    := IDLE_S;
-            
+               v.appState      := IDLE_S;
+               
+               -- Increment the buffer window address because a NULL segment has filled the current spot
+               if r.rxBufferAddr < (windowSize_i-1) then
+                  v.rxBufferAddr := r.rxBufferAddr+1;
+               else
+                  v.rxBufferAddr := (others => '0');
+               end if;
+               
             -- Wait until receiving the first data            
             -- SOF and EOF received
             -- Packet is only one word long go directly to ready!
@@ -573,8 +583,8 @@ begin
                v.rxSegmentWe   := '1';
             
                -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.nextSentAddr)).keep    := appSsiMaster_i.keep;            
-               v.windowArray(conv_integer(r.nextSentAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0)); 
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep;            
+               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0)); 
             
                v.appState    := SEG_RDY_S;
 
@@ -592,8 +602,9 @@ begin
          when SEG_RCV_S =>
          
             -- SSI
-            v.appSsiSlave := SSI_SLAVE_RDY_C;
-                        
+            v.appSsiSlave  := SSI_SLAVE_RDY_C;
+            v.rxBufferAddr := r.rxBufferAddr;
+             
             -- Buffer write if data valid 
             if (appSsiMaster_i.valid = '1') then            
                v.rxSegmentAddr := r.rxSegmentAddr + 1;
@@ -612,10 +623,10 @@ begin
             if (appSsiMaster_i.eof = '1' and appSsiMaster_i.valid = '1') then
             
                -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.nextSentAddr)).keep   := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep   := appSsiMaster_i.keep;
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
-               v.windowArray(conv_integer(r.nextSentAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;           
+               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;           
 
                v.appState    := SEG_RDY_S;
                --
@@ -643,24 +654,13 @@ begin
             -- Hold request until accepted
             -- And not in resend process
             if (r.dataH = '1' and r.resend = '0' ) then
-               v.appState    := WAIT_TX_S;
-            end if;
-         ----------------------------------------------------------------------
-         when WAIT_TX_S => 
-         
-            -- SSI
-            v.appSsiSlave := SSI_SLAVE_NOTRDY_C;
-            
-            v.rxSegmentAddr := (others =>'0');
-            v.rxSegmentWe   := '0';
-            
-            -- Request data at txFSM
-            v.sndData      := '0';
-            v.lenErr      := '0';
-            v.appBusy     := '1';
-            
-            -- Wait until txFSM sends the packet 
-            if (r.txRdy = '1') then
+               -- Increment the rxBuffer
+               if r.rxBufferAddr < (windowSize_i-1) then
+                  v.rxBufferAddr := r.rxBufferAddr+1;
+               else
+                  v.rxBufferAddr := (others => '0');
+               end if;
+
                v.appState    := IDLE_S;
             end if;
          ----------------------------------------------------------------------
@@ -699,6 +699,7 @@ begin
          v.firstUnackAddr := REG_INIT_C.firstUnackAddr;
          v.lastSentAddr   := REG_INIT_C.lastSentAddr;
          v.nextSentAddr   := REG_INIT_C.nextSentAddr;
+         v.rxBufferAddr   := REG_INIT_C.rxBufferAddr;
          v.bufferFull     := REG_INIT_C.bufferFull;
          v.bufferEmpty    := REG_INIT_C.bufferEmpty;
          v.windowArray    := REG_INIT_C.windowArray;
@@ -1511,7 +1512,7 @@ begin
       -- APP side
       
       -- Combine ram write address      
-      wrBuffAddr_o <= r.nextSentAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
+      wrBuffAddr_o <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffData_o <= r.AppSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
       wrBuffWe_o   <= r.rxSegmentWe;
       
