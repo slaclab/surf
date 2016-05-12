@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-25
+-- Last update: 2016-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ architecture rtl of ArpEngine is
    type RegType is record
       cnt           : natural range 0 to 3;
       tData         : Slv128Array(2 downto 0);
-      rxArpSlave    : AxiStreamSlaveType;
+      ibArpSlave    : AxiStreamSlaveType;
       txArpMaster   : AxiStreamMasterType;
       arpReqSlaves  : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       arpAckMasters : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
@@ -88,7 +88,7 @@ architecture rtl of ArpEngine is
    constant REG_INIT_C : RegType := (
       cnt           => 0,
       tData         => (others => (others => '0')),
-      rxArpSlave    => AXI_STREAM_SLAVE_INIT_C,
+      ibArpSlave    => AXI_STREAM_SLAVE_INIT_C,
       txArpMaster   => AXI_STREAM_MASTER_INIT_C,
       arpReqSlaves  => (others => AXI_STREAM_SLAVE_INIT_C),
       arpAckMasters => (others => AXI_STREAM_MASTER_INIT_C),
@@ -99,43 +99,10 @@ architecture rtl of ArpEngine is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
-   signal rxArpMaster : AxiStreamMasterType;
-   signal rxArpSlave  : AxiStreamSlaveType;
-   signal txArpMaster : AxiStreamMasterType;
-   signal txArpSlave  : AxiStreamSlaveType;
    
 begin
 
-   FIFO_RX : entity work.AxiStreamFifo
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => IP_ENGINE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)            
-      port map (
-         -- Slave Port
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => ibArpMaster,
-         sAxisSlave  => ibArpSlave,
-         -- Master Port
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         mAxisMaster => rxArpMaster,
-         mAxisSlave  => rxArpSlave);
-
-   comb : process (arpAckSlaves, arpReqMasters, localIp, localMac, r, rst, rxArpMaster, txArpSlave) is
+   comb : process (arpAckSlaves, arpReqMasters, ibArpMaster, localIp, localMac, obArpSlave, r, rst) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -143,8 +110,8 @@ begin
       v := r;
 
       -- Reset the flags
-      v.rxArpSlave := AXI_STREAM_SLAVE_INIT_C;
-      if txArpSlave.tReady = '1' then
+      v.ibArpSlave := AXI_STREAM_SLAVE_INIT_C;
+      if obArpSlave.tReady = '1' then
          v.txArpMaster := AXI_STREAM_MASTER_INIT_C;
       end if;
       for i in CLIENT_SIZE_G-1 downto 0 loop
@@ -169,7 +136,7 @@ begin
             -- Reset the counter
             v.cnt := 0;
             -- Check for inbound data
-            if (rxArpMaster.tValid = '1') then
+            if (ibArpMaster.tValid = '1') then
                -- Next state
                v.state := RX_S;
             else
@@ -227,12 +194,12 @@ begin
          ----------------------------------------------------------------------
          when RX_S =>
             -- Accept for data
-            v.rxArpSlave.tReady := '1';
+            v.ibArpSlave.tReady := '1';
             -- Check for SOF and not EOF
-            if (rxArpMaster.tValid = '1') then
+            if (ibArpMaster.tValid = '1') then
                if r.cnt = 0 then
-                  v.tData(0) := rxArpMaster.tData;
-                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, rxArpMaster) = '1') then
+                  v.tData(0) := ibArpMaster.tData;
+                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
                   else
@@ -240,8 +207,8 @@ begin
                      v.state := IDLE_S;
                   end if;
                elsif r.cnt = 1 then
-                  v.tData(1) := rxArpMaster.tData;
-                  if (rxArpMaster.tLast = '0') then
+                  v.tData(1) := ibArpMaster.tData;
+                  if (ibArpMaster.tLast = '0') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
                   else
@@ -249,13 +216,13 @@ begin
                      v.state := IDLE_S;
                   end if;
                elsif r.cnt = 2 then
-                  v.tData(2) := rxArpMaster.tData;
-                  if (rxArpMaster.tLast = '0') then
+                  v.tData(2) := ibArpMaster.tData;
+                  if (ibArpMaster.tLast = '0') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
                   else
                      -- Check for EOFE error
-                     if (ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxArpMaster) = '1') then
+                     if (ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
                         -- Next state
                         v.state := IDLE_S;
                      else
@@ -264,9 +231,9 @@ begin
                      end if;
                   end if;
                else
-                  if rxArpMaster.tLast = '1' then
+                  if ibArpMaster.tLast = '1' then
                      -- Check for EOFE error
-                     if (ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxArpMaster) = '1') then
+                     if (ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
                         -- Next state
                         v.state := IDLE_S;
                      else
@@ -425,8 +392,8 @@ begin
       -- Outputs        
       arpReqSlaves  <= v.arpReqSlaves;
       arpAckMasters <= r.arpAckMasters;
-      rxArpSlave    <= v.rxArpSlave;
-      txArpMaster   <= r.txArpMaster;
+      ibArpSlave    <= v.ibArpSlave;
+      obArpMaster   <= r.txArpMaster;
 
    end process comb;
 
@@ -436,33 +403,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   FIFO_TX : entity work.AxiStreamFifo
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => IP_ENGINE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)            
-      port map (
-         -- Slave Port
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => txArpMaster,
-         sAxisSlave  => txArpSlave,
-         -- Master Port
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         mAxisMaster => obArpMaster,
-         mAxisSlave  => obArpSlave);  
 
 end rtl;
