@@ -278,7 +278,7 @@ begin
          when INTERGAP_S =>
             v.gmiiTxEn := '0';
             v.TxCount  := r.TxCount +1;
-            if r.TxCount = x"5E" then    -- 12 Octels - IDLE state
+            if r.TxCount = x"0A" then    -- 12 Octels - IDLE state
                v.TxCount := x"00";
                v.state   := IDLE_S;
             end if;
