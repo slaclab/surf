@@ -64,6 +64,8 @@ entity RssiCore is
       -- Transport AXIS fifos
       TSP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Input data width
       TSP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Output data width
+      TSP_INPUT_CASCADE_G      : positive := 1;
+      TSP_OUTPUT_CASCADE_G     : positive := 1;
 
       -- Generic RSSI parameters
 
@@ -370,6 +372,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
+         GEN_SYNC_FIFO_G     => true,
          BRAM_EN_G           => true,
          XIL_DEVICE_G        => "ULTRASCALE",
          INT_PIPE_STAGES_G   => 0,
@@ -400,11 +403,13 @@ begin
          TPD_G            => TPD_G,
          SLAVE_READY_EN_G => true,
          VALID_THOLD_G    => 1,
+         GEN_SYNC_FIFO_G  => true,
          BRAM_EN_G        => true,
          XIL_DEVICE_G     => "ULTRASCALE",
 
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => 1,
+         CASCADE_SIZE_G      => TSP_INPUT_CASCADE_G,
+         CASCADE_PAUSE_SEL_G => TSP_INPUT_CASCADE_G-1,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 1,
@@ -770,6 +775,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
+         GEN_SYNC_FIFO_G     => true,
          BRAM_EN_G           => true,
          XIL_DEVICE_G        => "ULTRASCALE",
          INT_PIPE_STAGES_G   => 0,
@@ -800,11 +806,13 @@ begin
          TPD_G            => TPD_G,
          SLAVE_READY_EN_G => false,
          VALID_THOLD_G    => 1,
+         GEN_SYNC_FIFO_G  => true,
          BRAM_EN_G        => true,
          XIL_DEVICE_G     => "ULTRASCALE",
 
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => 1,
+         CASCADE_SIZE_G      => TSP_OUTPUT_CASCADE_G,
+         CASCADE_PAUSE_SEL_G => TSP_OUTPUT_CASCADE_G-1,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 8,
