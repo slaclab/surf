@@ -360,7 +360,7 @@ begin
       
       ------------------------------------------------------------
       -- Buffer full if next slot is occupied
-      if ( r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '1') then
+      if ( r.windowArray(conv_integer(v.rxBufferAddr)).occupied = '1') then
          v.bufferFull := '1';
       else
          v.bufferFull := '0';
@@ -541,7 +541,7 @@ begin
             v.appBusy     := '0';
             
             -- Wait if buffer full
-            if (r.bufferFull = '0') then
+            if (v.bufferFull = '0') then
                v.appState    := WAIT_SOF_S;
             end if;
          ----------------------------------------------------------------------
