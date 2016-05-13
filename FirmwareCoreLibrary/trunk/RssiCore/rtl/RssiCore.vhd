@@ -60,6 +60,8 @@ entity RssiCore is
       -- Application AXIS fifos
       APP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
       APP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Output data width 
+      APP_INPUT_CASCADE_G      : positive := 1;
+      APP_OUTPUT_CASCADE_G     : positive := 1;      
 
       -- Transport AXIS fifos
       TSP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Input data width
@@ -123,6 +125,10 @@ entity RssiCore is
 end entity RssiCore;
 
 architecture rtl of RssiCore is
+
+   constant FIFO_MIN_DEPTH_C    : positive := (MAX_SEG_SIZE_G/8) + 8;-- MAX_SEG_SIZE_G + padding (64 bytes)
+   constant FIFO_ADDR_WIDTH_C   : positive := bitSize(2*FIFO_MIN_DEPTH_C);
+   constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - FIFO_MIN_DEPTH_C; -- FIFO_FULL - min. depth
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -377,11 +383,9 @@ begin
          XIL_DEVICE_G        => "ULTRASCALE",
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => 1,
+         CASCADE_SIZE_G      => APP_INPUT_CASCADE_G,
+         CASCADE_PAUSE_SEL_G => APP_INPUT_CASCADE_G-1,
          FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => 1,
-
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
@@ -400,20 +404,15 @@ begin
    -- Transport side
    TspFifoIn_INST : entity work.AxiStreamFifo
       generic map (
-         TPD_G            => TPD_G,
-         SLAVE_READY_EN_G => true,
-         VALID_THOLD_G    => 1,
-         GEN_SYNC_FIFO_G  => true,
-         BRAM_EN_G        => true,
-         XIL_DEVICE_G     => "ULTRASCALE",
-
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         GEN_SYNC_FIFO_G     => true,
+         BRAM_EN_G           => true,
          PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => TSP_INPUT_CASCADE_G,
          CASCADE_PAUSE_SEL_G => TSP_INPUT_CASCADE_G-1,
          FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => 1,
-
          SLAVE_AXI_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
@@ -777,14 +776,13 @@ begin
          VALID_THOLD_G       => 1,
          GEN_SYNC_FIFO_G     => true,
          BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "ULTRASCALE",
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         CASCADE_SIZE_G      => APP_OUTPUT_CASCADE_G,
+         CASCADE_PAUSE_SEL_G => APP_OUTPUT_CASCADE_G-1,
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => 8,
-
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => APP_OUTPUT_AXIS_CONFIG_G)
       port map (
@@ -808,15 +806,12 @@ begin
          VALID_THOLD_G    => 1,
          GEN_SYNC_FIFO_G  => true,
          BRAM_EN_G        => true,
-         XIL_DEVICE_G     => "ULTRASCALE",
-
          PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => TSP_OUTPUT_CASCADE_G,
          CASCADE_PAUSE_SEL_G => TSP_OUTPUT_CASCADE_G-1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => 8,
-
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => TSP_OUTPUT_AXIS_CONFIG_G)
       port map (
