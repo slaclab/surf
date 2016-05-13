@@ -40,11 +40,13 @@ entity RssiCoreWrapper is
       -- Application AXIS fifos
       APP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);  -- Application Input data width 
       APP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);  -- Application Output data width 
+      APP_INPUT_CASCADE_G      : positive := 1;
+      APP_OUTPUT_CASCADE_G     : positive := 1;      
       -- Transport AXIS fifos
       TSP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);  -- Transport Input data width
       TSP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);  -- Transport Output data width      
       TSP_INPUT_CASCADE_G      : positive := 1;
-      TSP_OUTPUT_CASCADE_G     : positive := 2;-- UDP TX engine requires 2 FIFO for full bandwidth
+      TSP_OUTPUT_CASCADE_G     : positive := 1;
       -- Version and connection ID
       INIT_SEQ_N_G             : natural             := 16#80#;
       CONN_ID_G                : positive            := 16#12345678#;
@@ -200,6 +202,8 @@ begin
          -- Application AXIS fifos
          APP_INPUT_AXIS_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          APP_OUTPUT_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
+         APP_INPUT_CASCADE_G      => APP_INPUT_CASCADE_G,
+         APP_OUTPUT_CASCADE_G     => APP_OUTPUT_CASCADE_G,        
          -- Transport AXIS fifos
          TSP_INPUT_AXIS_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
          TSP_OUTPUT_AXIS_CONFIG_G => TSP_OUTPUT_AXIS_CONFIG_G,
