@@ -115,7 +115,6 @@ begin
       
       MAX_RETRANS_CNT_G     => 2,
       MAX_CUM_ACK_CNT_G     => 3,
-      MAX_OUT_OF_SEQUENCE_G => 3,
       
       RETRANS_TOUT_G        => 1,
       ACK_TOUT_G            => 2,
@@ -169,7 +168,6 @@ begin
       
       MAX_RETRANS_CNT_G     => 2,
       MAX_CUM_ACK_CNT_G     => 3,
-      MAX_OUT_OF_SEQUENCE_G => 3,
       
       RETRANS_TOUT_G        => 1,
       ACK_TOUT_G            => 2,

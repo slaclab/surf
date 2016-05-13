@@ -57,8 +57,7 @@ entity RssiCoreWrapper is
       NULL_TOUT_G              : positive            := 200;   -- unit depends on TIMEOUT_UNIT_G  
       -- Counters
       MAX_RETRANS_CNT_G        : positive            := 2;
-      MAX_CUM_ACK_CNT_G        : positive            := 3;
-      MAX_OUT_OF_SEQUENCE_G    : natural             := 3);
+      MAX_CUM_ACK_CNT_G        : positive            := 3);
    port (
       -- Clock and Reset
       clk_i             : in  sl;
