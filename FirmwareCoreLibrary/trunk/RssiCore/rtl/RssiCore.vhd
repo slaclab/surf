@@ -84,8 +84,7 @@ entity RssiCore is
 
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
-      MAX_CUM_ACK_CNT_G     : positive := 3;
-      MAX_OUT_OF_SEQUENCE_G : natural  := 3
+      MAX_CUM_ACK_CNT_G     : positive := 3
       );
    port (
       clk_i : in sl;
@@ -294,7 +293,7 @@ begin
          NULL_TOUT_G           => NULL_TOUT_G,
          MAX_RETRANS_CNT_G     => MAX_RETRANS_CNT_G,
          MAX_CUM_ACK_CNT_G     => MAX_CUM_ACK_CNT_G,
-         MAX_OUT_OF_SEQUENCE_G => MAX_OUT_OF_SEQUENCE_G)
+         MAX_OUT_OF_SEQUENCE_G => 0)
       port map (
          axiClk_i        => axiClk_i,
          axiRst_i        => axiRst_i,
@@ -344,7 +343,7 @@ begin
          s_appRssiParam.nullSegTout  <= toSlv(NULL_TOUT_G, 16);
          s_appRssiParam.maxRetrans   <= toSlv(MAX_RETRANS_CNT_G, 8);
          s_appRssiParam.maxCumAck    <= toSlv(MAX_CUM_ACK_CNT_G, 8);
-         s_appRssiParam.maxOutofseq  <= toSlv(MAX_OUT_OF_SEQUENCE_G, 8);
+         s_appRssiParam.maxOutofseq  <= toSlv(0, 8);
          s_appRssiParam.version      <= toSlv(VERSION_G, 4);
          s_appRssiParam.connectionId <= toSlv(CONN_ID_G, 32);
          s_appRssiParam.chksumEn     <= ite(HEADER_CHKSUM_EN_G, "1", "0");
