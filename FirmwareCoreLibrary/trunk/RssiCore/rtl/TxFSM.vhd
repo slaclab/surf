@@ -538,7 +538,7 @@ begin
             -- txFSM
             v.sndData     := '0';
             v.lenErr      := '0';
-            v.appBusy     := '0';
+            v.appBusy     := '1';
             
             -- Wait if buffer full
             if (v.bufferFull = '0') then

@@ -52,9 +52,9 @@ entity RssiCoreWrapper is
       MAX_NUM_OUTS_SEG_G       : positive            := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
       MAX_SEG_SIZE_G           : positive            := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
       -- RSSI Timeouts
-      RETRANS_TOUT_G           : positive            := 50;    -- unit depends on TIMEOUT_UNIT_G  
-      ACK_TOUT_G               : positive            := 25;    -- unit depends on TIMEOUT_UNIT_G  
-      NULL_TOUT_G              : positive            := 200;   -- unit depends on TIMEOUT_UNIT_G  
+      ACK_TOUT_G     : positive := 25;   -- unit depends on TIMEOUT_UNIT_G 
+      RETRANS_TOUT_G : positive := 50;   -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 2*ACK_TOUT_G)
+      NULL_TOUT_G    : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 2*RETRANS_TOUT_G)
       -- Counters
       MAX_RETRANS_CNT_G        : positive            := 2;
       MAX_CUM_ACK_CNT_G        : positive            := 3);
