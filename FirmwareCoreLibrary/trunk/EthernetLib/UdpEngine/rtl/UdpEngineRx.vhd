@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-05-12
+-- Last update: 2016-05-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ architecture rtl of UdpEngineRx is
       ERROR_CHECKING_S,
       LAST_S,
       SERVER_MOVE_S,
-      CLIENT_MOVE_S); 
+      CLIENT_MOVE_S);
 
    type RegType is record
       flushBuffer      : sl;
@@ -150,7 +150,7 @@ architecture rtl of UdpEngineRx is
       sMaster          => AXI_STREAM_MASTER_INIT_C,
       obServerMasters  => (others => AXI_STREAM_MASTER_INIT_C),
       obClientMasters  => (others => AXI_STREAM_MASTER_INIT_C),
-      state            => IDLE_S);      
+      state            => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -162,6 +162,11 @@ architecture rtl of UdpEngineRx is
    signal mMaster  : AxiStreamMasterType;
    signal mSlave   : AxiStreamSlaveType;
 
+   signal obClientMastersPipe : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
+   signal obClientSlavesPipe  : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+   signal obServerMastersPipe : AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
+   signal obServerSlavesPipe  : AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
+
    -- attribute dont_touch             : string;
    -- attribute dont_touch of r        : signal is "TRUE";
    -- attribute dont_touch of rxMaster : signal is "TRUE";
@@ -170,14 +175,15 @@ architecture rtl of UdpEngineRx is
    -- attribute dont_touch of sSlave   : signal is "TRUE";
    -- attribute dont_touch of mMaster  : signal is "TRUE";
    -- attribute dont_touch of mSlave   : signal is "TRUE";
-   
+
 begin
 
    FIFO_RX : entity work.AxiStreamFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
@@ -188,7 +194,7 @@ begin
          FIFO_ADDR_WIDTH_G   => (FIFO_ADDR_WIDTH_C+1),  -- 2x bigger than DATAGRAM_BUFFER
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => IP_ENGINE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -205,7 +211,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
@@ -216,7 +223,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => IP_ENGINE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -227,9 +234,9 @@ begin
          mAxisClk    => clk,
          mAxisRst    => r.flushBuffer,
          mAxisMaster => mMaster,
-         mAxisSlave  => mSlave);   
+         mAxisSlave  => mSlave);
 
-   comb : process (mMaster, obClientSlaves, obServerSlaves, r, rst, rxMaster, sSlave) is
+   comb : process (mMaster, obClientSlavesPipe, obServerSlavesPipe, r, rst, rxMaster, sSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -251,7 +258,7 @@ begin
          v.sMaster.tKeep  := (others => '1');
       end if;
       for i in SERVER_SIZE_G-1 downto 0 loop
-         if obServerSlaves(i).tReady = '1' then
+         if obServerSlavesPipe(i).tReady = '1' then
             v.obServerMasters(i).tValid := '0';
             v.obServerMasters(i).tLast  := '0';
             v.obServerMasters(i).tUser  := (others => '0');
@@ -259,7 +266,7 @@ begin
          end if;
       end loop;
       for i in CLIENT_SIZE_G-1 downto 0 loop
-         if obClientSlaves(i).tReady = '1' then
+         if obClientSlavesPipe(i).tReady = '1' then
             v.obClientMasters(i).tValid := '0';
             v.obClientMasters(i).tLast  := '0';
             v.obClientMasters(i).tUser  := (others => '0');
@@ -303,7 +310,7 @@ begin
                      -- Checksum generation and comparison
                      v.ibValid,
                      r.ibChecksum,
-                     v.checksum);                   
+                     v.checksum);
                   -- Next state
                   v.state := CHECK_PORT_S;
                end if;
@@ -343,7 +350,7 @@ begin
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
-                  v.checksum);                
+                  v.checksum);
                -- Check if server engine(s) is enabled
                if (SERVER_EN_G = true) then
                   for i in SERVER_SIZE_G-1 downto 0 loop
@@ -372,10 +379,10 @@ begin
                end if;
                -- Check for the following errors
                if (v.udpPortDet = '0')  -- UDP port was not detected 
-                             or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
-                             or (v.udpLength = 0)              -- zero length detected
-                             or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
-                             or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
+                            or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
+                            or (v.udpLength = 0)              -- zero length detected
+                            or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
+                            or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
                   v.eofe  := '1';
                   -- Next state
                   v.state := IDLE_S;
@@ -412,7 +419,7 @@ begin
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
-                  v.checksum);                 
+                  v.checksum);
                -- Move the data
                v.sMaster.tValid               := '1';
                v.sMaster.tData(31 downto 0)   := r.tData(31 downto 0);
@@ -478,7 +485,7 @@ begin
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
-                  v.checksum);                
+                  v.checksum);
                -- Next state
                v.state := ERROR_CHECKING_S;
             end if;
@@ -494,7 +501,7 @@ begin
                -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
-               v.checksum);       
+               v.checksum);
             -- Check the counter
             if r.cnt = 1 then
                -- Reset the counter
@@ -609,9 +616,9 @@ begin
       mSlave           <= v.mSlave;
       sMaster          <= r.sMaster;
       rxSlave          <= v.rxSlave;
-      obServerMasters  <= r.obServerMasters;
-      obClientMasters  <= r.obClientMasters;
-      
+      obServerMastersPipe <= r.obServerMasters;
+      obClientMastersPipe <= r.obClientMasters;
+
    end process comb;
 
    seq : process (clk) is
@@ -620,5 +627,33 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   OB_SERVER_PIPE_GEN : for i in SERVER_SIZE_G-1 downto 0 generate
+      U_AxiStreamPipeline_ObServers : entity work.AxiStreamPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => 1)
+         port map (
+            axisClk     => clk,                     -- [in]
+            axisRst     => rst,                     -- [in]
+            sAxisMaster => obServerMastersPipe(i),  -- [in]
+            sAxisSlave  => obServerSlavesPipe(i),   -- [out]
+            mAxisMaster => obServerMasters(i),      -- [out]
+            mAxisSlave  => obServerSlaves(i));      -- [in]
+   end generate OB_SERVER_PIPE_GEN;
+
+   OB_CLIENT_PIPE_GEN : for i in CLIENT_SIZE_G-1 downto 0 generate
+      U_AxiStreamPipeline_ObClients : entity work.AxiStreamPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => 1)
+         port map (
+            axisClk     => clk,                     -- [in]
+            axisRst     => rst,                     -- [in]
+            sAxisMaster => obClientMastersPipe(i),  -- [in]
+            sAxisSlave  => obClientSlavesPipe(i),   -- [out]
+            mAxisMaster => obClientMasters(i),      -- [out]
+            mAxisSlave  => obClientSlaves(i));      -- [in]
+   end generate;
 
 end rtl;
