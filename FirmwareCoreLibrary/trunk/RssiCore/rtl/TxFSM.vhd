@@ -49,8 +49,8 @@ entity TxFSM is
    generic (
       TPD_G              : time     := 1 ns;
       
-      WINDOW_ADDR_SIZE_G : positive := 7;   -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
-      SEGMENT_ADDR_SIZE_G : positive := 3;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      WINDOW_ADDR_SIZE_G : positive := 3;   -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
+      SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
 
       SYN_HEADER_SIZE_G  : natural := 24;
       ACK_HEADER_SIZE_G  : natural := 8;
