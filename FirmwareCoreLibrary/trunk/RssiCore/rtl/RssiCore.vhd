@@ -123,7 +123,7 @@ end entity RssiCore;
 architecture rtl of RssiCore is
 
    constant FIFO_ADDR_WIDTH_C   : positive := bitSize(2*(MAX_SEG_SIZE_G/8));
-   constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 8;  -- FIFO_FULL - padding (64 bytes)
+   constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 16;  -- FIFO_FULL - padding (128 bytes)
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -374,10 +374,10 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => false,
+         BRAM_EN_G           => true,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_ADDR_WIDTH_G   => 9,
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
@@ -400,10 +400,10 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => false,
+         BRAM_EN_G           => true,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_ADDR_WIDTH_G   => 9,
          SLAVE_AXI_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
