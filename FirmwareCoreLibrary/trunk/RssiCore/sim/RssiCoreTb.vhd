@@ -38,7 +38,7 @@ architecture testbed of RssiCoreTb is
    
    -- RSSI configuration
    constant WINDOW_ADDR_SIZE_C  : positive := 1;
-   constant SEGMENT_ADDR_SIZE_C : positive := 1;
+   constant SEGMENT_ADDR_SIZE_C : positive := 7;
    
    constant PRBS_BYTE_WIDTH_C : positive := 4;
 
@@ -111,14 +111,14 @@ begin
       WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
       SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
       MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
-      MAX_SEG_SIZE_G       => 8,
+      MAX_SEG_SIZE_G       => (2**SEGMENT_ADDR_SIZE_C)*8,
       
       MAX_RETRANS_CNT_G     => 2,
-      MAX_CUM_ACK_CNT_G     => 3,
-      
-      RETRANS_TOUT_G        => 1,
-      ACK_TOUT_G            => 2,
-      NULL_TOUT_G           => 3,
+      MAX_CUM_ACK_CNT_G     => 1,
+
+      ACK_TOUT_G            => 1,
+      RETRANS_TOUT_G        => 2,
+      NULL_TOUT_G           => 6,
       
       TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(8),
       TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(8),
@@ -164,14 +164,14 @@ begin
       WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
       SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
       MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
-      MAX_SEG_SIZE_G       => 8,
+      MAX_SEG_SIZE_G       => (2**SEGMENT_ADDR_SIZE_C)*8,
       
       MAX_RETRANS_CNT_G     => 2,
-      MAX_CUM_ACK_CNT_G     => 3,
+      MAX_CUM_ACK_CNT_G     => 1,
       
-      RETRANS_TOUT_G        => 1,
       ACK_TOUT_G            => 2,
-      NULL_TOUT_G           => 3,
+      RETRANS_TOUT_G        => 3,
+      NULL_TOUT_G           => 6,
       
       --
       TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(8),
@@ -234,7 +234,7 @@ begin
       locClk          => clk_i,
       locRst          => s_prbsRst,
       trig            => s_trig,
-      packetLength    => X"0000_0003",
+      packetLength    => X"0000_00ff",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
