@@ -653,7 +653,7 @@ begin
             
             -- Hold request until accepted
             -- And not in resend process
-            if (r.dataH = '1' and r.resend = '0' ) then
+            if (v.dataH = '1' and v.resend = '0' ) then
                -- Increment the rxBuffer
                if r.rxBufferAddr < (windowSize_i-1) then
                   v.rxBufferAddr := r.rxBufferAddr+1;
@@ -1098,7 +1098,7 @@ begin
                v.chkStb   := '1';
             end if;
             
-            -- Leave initialised v.tspSsiMaster
+            -- Leave initialized v.tspSsiMaster
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
             
             -- Next state condition

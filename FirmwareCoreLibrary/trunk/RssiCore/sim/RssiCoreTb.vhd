@@ -34,7 +34,13 @@ end RssiCoreTb;
 architecture testbed of RssiCoreTb is
 
    constant CLK_PERIOD_C : time    := 10 ns;
-   constant TPD_C        : time    := 1 ns; 
+   constant TPD_C        : time    := 1 ns;
+   
+   -- RSSI configuration
+   constant WINDOW_ADDR_SIZE_C  : positive := 1;
+   constant SEGMENT_ADDR_SIZE_C : positive := 2;
+   
+   constant PRBS_BYTE_WIDTH_C : positive := 4;
 
    -- Clocking
    signal   clk_i                 : sl := '0';
@@ -102,8 +108,23 @@ begin
       TPD_G          => TPD_C,
       SERVER_G       => true,
       INIT_SEQ_N_G   => 16#40#,
-      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(16),
-      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(16)
+      WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
+      SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
+      MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
+      MAX_SEG_SIZE_G       => (2**SEGMENT_ADDR_SIZE_C)*8,
+      
+      MAX_RETRANS_CNT_G     => 2,
+      MAX_CUM_ACK_CNT_G     => 3,
+      MAX_OUT_OF_SEQUENCE_G => 3,
+      
+      RETRANS_TOUT_G        => 1,
+      ACK_TOUT_G            => 2,
+      NULL_TOUT_G           => 3,
+      
+      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(8),
+      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(8),
+      APP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
+      APP_OUTPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C)
    )
    port map (
       clk_i       => clk_i,
@@ -140,8 +161,26 @@ begin
       TPD_G          => TPD_C,
       SERVER_G       => false,
       INIT_SEQ_N_G   => 16#80#,
-      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(16),
-      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(16))
+      --
+      WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
+      SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
+      MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
+      MAX_SEG_SIZE_G       => (2**SEGMENT_ADDR_SIZE_C)*8,
+      
+      MAX_RETRANS_CNT_G     => 2,
+      MAX_CUM_ACK_CNT_G     => 3,
+      MAX_OUT_OF_SEQUENCE_G => 3,
+      
+      RETRANS_TOUT_G        => 1,
+      ACK_TOUT_G            => 2,
+      NULL_TOUT_G           => 3,
+      
+      --
+      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(8),
+      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(8),
+      APP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
+      APP_OUTPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C)
+   )
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
@@ -185,9 +224,9 @@ begin
       CASCADE_SIZE_G             => 1,
       FIFO_ADDR_WIDTH_G          => 9,
       FIFO_PAUSE_THRESH_G        => 2**8,
-      PRBS_SEED_SIZE_G           => 32,
+      PRBS_SEED_SIZE_G           => PRBS_BYTE_WIDTH_C*8,
       PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-      MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),
+      MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
       MASTER_AXI_PIPE_STAGES_G   => 1)
    port map (
       mAxisClk        => clk_i,
@@ -197,7 +236,7 @@ begin
       locClk          => clk_i,
       locRst          => s_prbsRst,
       trig            => s_trig,
-      packetLength    => X"0000_00fe",
+      packetLength    => X"0000_0003",
       forceEofe       => '0',
       busy            => open,
       tDest           => X"00",
@@ -217,9 +256,9 @@ begin
       CASCADE_SIZE_G             => 1,
       FIFO_ADDR_WIDTH_G          => 4,
       FIFO_PAUSE_THRESH_G        => 1,
-      PRBS_SEED_SIZE_G           => 32,
+      PRBS_SEED_SIZE_G           => PRBS_BYTE_WIDTH_C*8,
       PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-      SLAVE_AXI_STREAM_CONFIG_G  => ssiAxiStreamConfig(4),
+      SLAVE_AXI_STREAM_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
       SLAVE_AXI_PIPE_STAGES_G    => 1)
    port map (
       sAxisClk        => clk_i,
@@ -312,7 +351,8 @@ begin
       connRq1_i <= '0';
       
       -- Let the client resend SYN
-      wait for CLK_PERIOD_C*10000;
+      --wait for CLK_PERIOD_C*10000;
+      --wait for CLK_PERIOD_C*50000;
       connRq0_i <= '1';
       wait for CLK_PERIOD_C*1;
       connRq0_i <= '0';    

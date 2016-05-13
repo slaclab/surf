@@ -54,8 +54,8 @@ entity RssiCore is
 
       RETRANSMIT_ENABLE_G : boolean := true;  -- Enable/Disable retransmissions in tx module
 
-      WINDOW_ADDR_SIZE_G  : positive range 2 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G : positive               := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      WINDOW_ADDR_SIZE_G  : positive range 1 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
 
       -- Application AXIS fifos
       APP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
@@ -74,13 +74,13 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
 
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G : positive range 4 to 1024 := 8;     -- <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G     : positive                 := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
+      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8; -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G     : positive := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
-      RETRANS_TOUT_G : positive := 50;   -- unit depends on TIMEOUT_UNIT_G  
-      ACK_TOUT_G     : positive := 25;   -- unit depends on TIMEOUT_UNIT_G  
-      NULL_TOUT_G    : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  
+      ACK_TOUT_G     : positive := 25;   -- unit depends on TIMEOUT_UNIT_G 
+      RETRANS_TOUT_G : positive := 50;   -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 2*ACK_TOUT_G)
+      NULL_TOUT_G    : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 2*RETRANS_TOUT_G)
 
       -- Counters
       MAX_RETRANS_CNT_G     : positive := 2;
@@ -121,7 +121,7 @@ entity RssiCore is
 end entity RssiCore;
 
 architecture rtl of RssiCore is
-
+   --
    constant FIFO_ADDR_WIDTH_C   : positive := bitSize(2*(MAX_SEG_SIZE_G/8));
    constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 16;  -- FIFO_FULL - padding (128 bytes)
 
@@ -267,6 +267,11 @@ architecture rtl of RssiCore is
 
 ----------------------------------------------------------------------
 begin
+   -- Assertions to check generics
+   assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <=(2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;   
+   assert (1 <= MAX_SEG_SIZE_G and  MAX_SEG_SIZE_G <=(2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
+
+
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
    -- Register interface
