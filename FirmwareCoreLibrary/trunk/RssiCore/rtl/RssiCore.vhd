@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2016-05-06
+-- Last update: 2016-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,20 +54,16 @@ entity RssiCore is
 
       RETRANSMIT_ENABLE_G : boolean := true;  -- Enable/Disable retransmissions in tx module
 
-      WINDOW_ADDR_SIZE_G  : positive := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      WINDOW_ADDR_SIZE_G  : positive range 2 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
+      SEGMENT_ADDR_SIZE_G : positive               := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
 
       -- Application AXIS fifos
       APP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
-      APP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Output data width 
-      APP_INPUT_CASCADE_G      : positive := 1;
-      APP_OUTPUT_CASCADE_G     : positive := 1;      
+      APP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Output data width     
 
       -- Transport AXIS fifos
       TSP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Input data width
       TSP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Output data width
-      TSP_INPUT_CASCADE_G      : positive := 1;
-      TSP_OUTPUT_CASCADE_G     : positive := 1;
 
       -- Generic RSSI parameters
 
@@ -78,8 +74,8 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
 
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G : positive := 8;     -- <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G     : positive := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
+      MAX_NUM_OUTS_SEG_G : positive range 4 to 1024 := 8;     -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G     : positive                 := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
       RETRANS_TOUT_G : positive := 50;   -- unit depends on TIMEOUT_UNIT_G  
@@ -126,9 +122,8 @@ end entity RssiCore;
 
 architecture rtl of RssiCore is
 
-   constant FIFO_MIN_DEPTH_C    : positive := (MAX_SEG_SIZE_G/8) + 8;-- MAX_SEG_SIZE_G + padding (64 bytes)
-   constant FIFO_ADDR_WIDTH_C   : positive := bitSize(2*FIFO_MIN_DEPTH_C);
-   constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - FIFO_MIN_DEPTH_C; -- FIFO_FULL - min. depth
+   constant FIFO_ADDR_WIDTH_C   : positive := bitSize(2*(MAX_SEG_SIZE_G/8));
+   constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 8;  -- FIFO_FULL - padding (64 bytes)
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -379,13 +374,10 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "ULTRASCALE",
+         BRAM_EN_G           => false,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => APP_INPUT_CASCADE_G,
-         CASCADE_PAUSE_SEL_G => APP_INPUT_CASCADE_G-1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_ADDR_WIDTH_G   => 4,
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
@@ -408,11 +400,10 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
+         BRAM_EN_G           => false,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => TSP_INPUT_CASCADE_G,
-         CASCADE_PAUSE_SEL_G => TSP_INPUT_CASCADE_G-1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_ADDR_WIDTH_G   => 4,
          SLAVE_AXI_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
@@ -778,8 +769,8 @@ begin
          BRAM_EN_G           => true,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => APP_OUTPUT_CASCADE_G,
-         CASCADE_PAUSE_SEL_G => APP_OUTPUT_CASCADE_G-1,
+         CASCADE_SIZE_G      => 1,
+         CASCADE_PAUSE_SEL_G => 0,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
@@ -801,14 +792,15 @@ begin
    -- Transport side
    TspFifoOut_INST : entity work.AxiStreamFifo
       generic map (
-         TPD_G            => TPD_G,
-         SLAVE_READY_EN_G => false,
-         VALID_THOLD_G    => 1,
-         GEN_SYNC_FIFO_G  => true,
-         BRAM_EN_G        => true,
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         VALID_THOLD_G       => 1,
+         GEN_SYNC_FIFO_G     => true,
+         BRAM_EN_G           => true,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => TSP_OUTPUT_CASCADE_G,
-         CASCADE_PAUSE_SEL_G => TSP_OUTPUT_CASCADE_G-1,
+         CASCADE_SIZE_G      => 1,
+         CASCADE_PAUSE_SEL_G => 0,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
