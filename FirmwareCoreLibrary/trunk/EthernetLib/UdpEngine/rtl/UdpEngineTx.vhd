@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-01-12
+-- Last update: 2016-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -68,8 +68,7 @@ architecture rtl of UdpEngineTx is
 
    type StateType is (
       IDLE_S,
-      HDR0_S,
-      HDR1_S,
+      HDR_S,
       BUFFER_S,
       LAST_S,
       ADD_LEN_S,
@@ -83,11 +82,7 @@ architecture rtl of UdpEngineTx is
       tKeep       : slv(15 downto 0);
       tData       : slv(127 downto 0);
       tLast       : sl;
-      sum0        : Slv32Array(3 downto 0);
-      sum1        : Slv32Array(1 downto 0);
-      sum2        : slv(31 downto 0);
       accum       : slv(31 downto 0);
-      sum4        : slv(31 downto 0);
       cnt         : natural range 0 to 7;
       chPntr      : natural range 0 to SIZE_G-1;
       index       : natural range 0 to SIZE_G-1;
@@ -107,11 +102,7 @@ architecture rtl of UdpEngineTx is
       tKeep       => (others => '0'),
       tData       => (others => '0'),
       tLast       => '0',
-      sum0        => (others => (others => '0')),
-      sum1        => (others => (others => '0')),
-      sum2        => (others => '0'),
       accum       => (others => '0'),
-      sum4        => (others => '0'),
       cnt         => 0,
       chPntr      => 0,
       index       => 0,
@@ -219,14 +210,6 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset flags/accumulators
-            v.flushBuffer := '1';
-            v.eofe        := '0';
-            v.sum0        := (others => (others => '0'));
-            v.sum1        := (others => (others => '0'));
-            v.sum2        := (others => '0');
-            v.accum       := (others => '0');
-            v.sum4        := (others => '0');
             -- Check for roll over
             if r.index = SIZE_G-1 then
                -- Reset the counter
@@ -236,49 +219,38 @@ begin
                v.index := r.index + 1;
             end if;
             -- Check for data and remote MAC is non-zero
-            if (ibMasters(r.index).tValid = '1') and (remoteMac(r.index) /= 0) and (r.flushBuffer = '1') then
+            if (ibMasters(r.index).tValid = '1') and (remoteMac(r.index) /= 0) and (v.sMaster.tValid = '0') then
                -- Check for SOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibMasters(r.index)) = '1') then
                   -- Latch the index
-                  v.chPntr := r.index;
+                  v.chPntr                       := r.index;
+                  -- Write the first header
+                  v.sMaster.tValid               := '1';
+                  v.sMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
+                  v.sMaster.tData(63 downto 48)  := x"0000";            -- All 0s
+                  v.sMaster.tData(95 downto 64)  := localIp;            -- Source IP address
+                  v.sMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address               
+                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
+                  -- Process checksum
+                  GetUdpChecksum (
+                     -- Inbound tKeep and tData
+                     x"FF00",
+                     v.sMaster.tData,
+                     -- Accumulation Signals
+                     r.accum, v.accum,
+                     -- Checksum generation and comparison
+                     v.ibValid,
+                     r.ibChecksum,
+                     v.checksum);                                   
                   -- Next state
-                  v.state  := HDR0_S;
+                  v.state := HDR_S;
                else
                   -- Blow off the data
                   v.ibSlaves(r.index).tReady := '1';
                end if;
             end if;
          ----------------------------------------------------------------------
-         when HDR0_S =>
-            -- Check if ready to move data
-            if v.sMaster.tValid = '0' then
-               -- Write the first header
-               v.sMaster.tValid               := '1';
-               v.sMaster.tData(47 downto 0)   := remoteMac(r.chPntr);   -- Destination MAC address
-               v.sMaster.tData(63 downto 48)  := x"0000";  -- All 0s
-               v.sMaster.tData(95 downto 64)  := localIp;  -- Source IP address
-               v.sMaster.tData(127 downto 96) := remoteIp(r.chPntr);  -- Destination IP address               
-               ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
-               -- Process checksum
-               GetUdpChecksum (
-                  -- Inbound tKeep and tData
-                  x"FF00",
-                  v.sMaster.tData,
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
-                  r.accum, v.accum,
-                  r.sum4, v.sum4,
-                  -- Checksum generation and comparison
-                  v.ibValid,
-                  r.ibChecksum,
-                  v.checksum);                 
-               -- Next state
-               v.state := HDR1_S;
-            end if;
-         ----------------------------------------------------------------------
-         when HDR1_S =>
+         when HDR_S =>
             -- Check if ready to move data
             if (ibMasters(r.chPntr).tValid = '1') and (v.sMaster.tValid = '0') then
                -- Accept the data
@@ -288,7 +260,7 @@ begin
                v.sMaster.tData(7 downto 0)    := x"00";    -- All 0s
                v.sMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
                v.sMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = TBD
-               v.sMaster.tData(47 downto 32)  := localPort;           -- Source port
+               v.sMaster.tData(47 downto 32)  := localPort;             -- Source port
                v.sMaster.tData(63 downto 48)  := remotePort(r.chPntr);  -- Destination port
                v.sMaster.tData(79 downto 64)  := x"0000";  -- UDP length = TBD
                v.sMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = TBD              
@@ -303,12 +275,8 @@ begin
                   -- Inbound tKeep and tData
                   v.sMaster.tKeep,
                   v.sMaster.tData,
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
+                  -- Accumulation Signals
                   r.accum, v.accum,
-                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -359,12 +327,8 @@ begin
                   -- Inbound tKeep and tData
                   v.sMaster.tKeep,
                   v.sMaster.tData,
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
+                  -- Accumulation Signals
                   r.accum, v.accum,
-                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -404,12 +368,8 @@ begin
                   -- Inbound tKeep and tData
                   v.sMaster.tKeep,
                   v.sMaster.tData,
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
+                  -- Accumulation Signals
                   r.accum, v.accum,
-                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -432,12 +392,8 @@ begin
                -- Inbound tKeep and tData
                v.tKeep,
                v.tData,
-               -- Summation Signals
-               r.sum0, v.sum0,
-               r.sum1, v.sum1,
-               r.sum2, v.sum2,
+               -- Accumulation Signals
                r.accum, v.accum,
-               r.sum4, v.sum4,
                -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
@@ -465,18 +421,14 @@ begin
                -- Inbound tKeep and tData
                (others => '0'),         -- tKeep
                (others => '0'),         -- tData
-               -- Summation Signals
-               r.sum0, v.sum0,
-               r.sum1, v.sum1,
-               r.sum2, v.sum2,
+               -- Accumulation Signals
                r.accum, v.accum,
-               r.sum4, v.sum4,
                -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
                v.checksum);       
             -- Check the counter
-            if r.cnt = 7 then
+            if r.cnt = 1 then
                -- Reset the counter
                v.cnt := 0;
                -- Check for errors
@@ -511,9 +463,9 @@ begin
                -- Check for second header
                if r.cnt = 1 then
                   -- Overwrite the TBD header fields
-                  v.txMaster.tData(31 downto 16) := udpLength;        -- IPv4 Pseudo header length
-                  v.txMaster.tData(79 downto 64) := udpLength;        -- UDP length
-                  v.txMaster.tData(95 downto 80) := udpChecksum;      -- UDP checksum
+                  v.txMaster.tData(31 downto 16) := udpLength;          -- IPv4 Pseudo header length
+                  v.txMaster.tData(79 downto 64) := udpLength;          -- UDP length
+                  v.txMaster.tData(95 downto 80) := udpChecksum;        -- UDP checksum
                end if;
                -- Check for EOF
                if mMaster.tLast = '1' then
@@ -529,6 +481,14 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check if next state is IDLE 
+      if v.state = IDLE_S then
+         -- Reset flags/accumulators
+         v.flushBuffer := '1';
+         v.eofe        := '0';
+         v.accum       := (others => '0');
+      end if;
 
       -- Check the simulation error printing
       if SIM_ERROR_HALT_G and (r.eofe = '1') then

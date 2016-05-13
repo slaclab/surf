@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-12-03
+-- Last update: 2016-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,15 +37,6 @@ package UdpEnginePkg is
       -- Inbound tKeep and tData
       tKeep      : in    slv(15 downto 0);
       tData      : in    slv(127 downto 0);
-      -- Summation Signals
-      sum0Reg    : in    Slv32Array(3 downto 0);
-      sum0       : inout Slv32Array(3 downto 0);
-      sum1Reg    : in    Slv32Array(1 downto 0);
-      sum1       : inout Slv32Array(1 downto 0);
-      sum2Reg    : in    slv(31 downto 0);
-      sum2       : inout slv(31 downto 0);
-      sum4Reg    : in    slv(31 downto 0);
-      sum4       : inout slv(31 downto 0);
       -- Accumulation Signals
       accumReg   : in    slv(31 downto 0);
       accum      : inout slv(31 downto 0);
@@ -129,15 +120,6 @@ package body UdpEnginePkg is
       -- Inbound tKeep and tData
       tKeep      : in    slv(15 downto 0);
       tData      : in    slv(127 downto 0);
-      -- Summation Signals
-      sum0Reg    : in    Slv32Array(3 downto 0);
-      sum0       : inout Slv32Array(3 downto 0);
-      sum1Reg    : in    Slv32Array(1 downto 0);
-      sum1       : inout Slv32Array(1 downto 0);
-      sum2Reg    : in    slv(31 downto 0);
-      sum2       : inout slv(31 downto 0);
-      sum4Reg    : in    slv(31 downto 0);
-      sum4       : inout slv(31 downto 0);
       -- Accumulation Signals
       accumReg   : in    slv(31 downto 0);
       accum      : inout slv(31 downto 0);
@@ -147,8 +129,12 @@ package body UdpEnginePkg is
       checksum   : inout slv(15 downto 0)) is
       variable i        : natural;
       variable data     : Slv32Array(7 downto 0);
+      variable sum0     : Slv32Array(3 downto 0);
+      variable sum1     : Slv32Array(1 downto 0);
+      variable sum2     : slv(31 downto 0);
       variable sum3RegA : slv(31 downto 0);
       variable sum3RegB : slv(31 downto 0);
+      variable sum4     : slv(31 downto 0);
       variable sum5     : slv(15 downto 0);
    begin
       -- Convert to 32-bit (little Endian) words
@@ -171,14 +157,14 @@ package body UdpEnginePkg is
 
       -- Summation: Level1
       for i in 1 downto 0 loop
-         sum1(i) := sum0Reg(2*i+0) + sum0Reg(2*i+1);
+         sum1(i) := sum0(2*i+0) + sum0(2*i+1);
       end loop;
 
       -- Summation: Level2
-      sum2 := sum1Reg(0) + sum1Reg(1);
+      sum2 := sum1(0) + sum1(1);
 
       -- Accumulation: Level3
-      accum := accumReg + sum2Reg;
+      accum := accumReg + sum2;
 
       -- Summation: Level4
       sum3RegA(31 downto 16) := x"0000";
@@ -188,7 +174,7 @@ package body UdpEnginePkg is
       sum4                   := sum3RegA + sum3RegB;
 
       -- Summation: Level5
-      sum5 := sum4Reg(31 downto 16) + sum4Reg(15 downto 0);
+      sum5 := sum4(31 downto 16) + sum4(15 downto 0);
 
       -- Perform 1's complement
       if sum5 = x"FFFF" then

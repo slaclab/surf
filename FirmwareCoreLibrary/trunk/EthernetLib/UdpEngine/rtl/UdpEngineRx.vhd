@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-12-03
+-- Last update: 2016-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -102,11 +102,7 @@ architecture rtl of UdpEngineRx is
       tKeep            : slv(15 downto 0);
       tData            : slv(127 downto 0);
       tLast            : sl;
-      sum0             : Slv32Array(3 downto 0);
-      sum1             : Slv32Array(1 downto 0);
-      sum2             : slv(31 downto 0);
       accum            : slv(31 downto 0);
-      sum4             : slv(31 downto 0);
       cnt              : natural range 0 to 7;
       ibValid          : sl;
       ibChecksum       : slv(15 downto 0);
@@ -140,11 +136,7 @@ architecture rtl of UdpEngineRx is
       tKeep            => (others => '0'),
       tData            => (others => '0'),
       tLast            => '0',
-      sum0             => (others => (others => '0')),
-      sum1             => (others => (others => '0')),
-      sum2             => (others => '0'),
       accum            => (others => '0'),
-      sum4             => (others => '0'),
       cnt              => 0,
       ibValid          => '0',
       ibChecksum       => (others => '0'),
@@ -293,17 +285,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset flags/accumulators
-            v.flushBuffer := '1';
-            v.eofe        := '0';
-            v.rxByteCnt   := UDP_HDR_OFFSET_C;
-            v.sum0        := (others => (others => '0'));
-            v.sum1        := (others => (others => '0'));
-            v.sum2        := (others => '0');
-            v.accum       := (others => '0');
-            v.sum4        := (others => '0');
             -- Check for data and accumulator has resetted
-            if (rxMaster.tValid = '1') and (r.accum = 0) and (r.flushBuffer = '1') then
+            if (rxMaster.tValid = '1') and (r.accum = 0) then
                -- Accept the data
                v.rxSlave.tReady := '1';
                -- Check for SOF with no EOF
@@ -315,12 +298,8 @@ begin
                      -- Inbound tKeep and tData
                      x"FF00",           -- Only use the source and destination IP address
                      rxMaster.tData,    -- tData
-                     -- Summation Signals
-                     r.sum0, v.sum0,
-                     r.sum1, v.sum1,
-                     r.sum2, v.sum2,
+                     -- Accumulation Signals
                      r.accum, v.accum,
-                     r.sum4, v.sum4,
                      -- Checksum generation and comparison
                      v.ibValid,
                      r.ibChecksum,
@@ -359,12 +338,8 @@ begin
                   -- Inbound tKeep and tData
                   v.tKeepMask,
                   rxMaster.tData,
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
+                  -- Accumulation Signals
                   r.accum, v.accum,
-                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -432,12 +407,8 @@ begin
                   -- Inbound tKeep and tData
                   rxMaster.tKeep,
                   rxMaster.tData,
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
+                  -- Accumulation Signals
                   r.accum, v.accum,
-                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -502,12 +473,8 @@ begin
                   -- Inbound tKeep and tData
                   (others => '0'),      -- tKeep
                   (others => '0'),      -- tData
-                  -- Summation Signals
-                  r.sum0, v.sum0,
-                  r.sum1, v.sum1,
-                  r.sum2, v.sum2,
+                  -- Accumulation Signals
                   r.accum, v.accum,
-                  r.sum4, v.sum4,
                   -- Checksum generation and comparison
                   v.ibValid,
                   r.ibChecksum,
@@ -522,23 +489,19 @@ begin
                -- Inbound tKeep and tData
                (others => '0'),         -- tKeep
                (others => '0'),         -- tData
-               -- Summation Signals
-               r.sum0, v.sum0,
-               r.sum1, v.sum1,
-               r.sum2, v.sum2,
+               -- Accumulation Signals
                r.accum, v.accum,
-               r.sum4, v.sum4,
                -- Checksum generation and comparison
                v.ibValid,
                r.ibChecksum,
                v.checksum);       
             -- Check the counter
-            if r.cnt = 7 then
+            if r.cnt = 1 then
                -- Reset the counter
                v.cnt := 0;
                -- Check for checksum 
                -- Note: UDP's checksum = 0x0 is allowed in UDP
-               if (r.ibChecksum /= 0) and (r.ibValid = '0') then
+               if (v.ibChecksum /= 0) and (v.ibValid = '0') then
                   v.eofe := '1';
                end if;
                -- Check for errors
@@ -615,6 +578,15 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check if next state is IDLE 
+      if v.state = IDLE_S then
+         -- Reset flags/accumulators
+         v.flushBuffer := '1';
+         v.eofe        := '0';
+         v.rxByteCnt   := UDP_HDR_OFFSET_C;
+         v.accum       := (others => '0');
+      end if;
 
       -- Check the simulation error printing
       if SIM_ERROR_HALT_G and (r.eofe = '1') then
