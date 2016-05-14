@@ -215,8 +215,7 @@ begin
 
          -- Counters
          MAX_RETRANS_CNT_G     => MAX_RETRANS_CNT_G,
-         MAX_CUM_ACK_CNT_G     => MAX_CUM_ACK_CNT_G,
-         MAX_OUT_OF_SEQUENCE_G => MAX_OUT_OF_SEQUENCE_G)
+         MAX_CUM_ACK_CNT_G     => MAX_CUM_ACK_CNT_G)
       port map (
          -- Clock and Reset
          clk_i            => clk_i,
