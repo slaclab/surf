@@ -37,7 +37,7 @@ architecture testbed of RssiCoreTb is
    constant TPD_C        : time    := 1 ns;
    
    -- RSSI configuration
-   constant WINDOW_ADDR_SIZE_C  : positive := 1;
+   constant WINDOW_ADDR_SIZE_C  : positive := 3;
    constant SEGMENT_ADDR_SIZE_C : positive := 7;
    
    constant PRBS_BYTE_WIDTH_C : positive := 4;
@@ -117,8 +117,8 @@ begin
       MAX_CUM_ACK_CNT_G     => 1,
 
       ACK_TOUT_G            => 1,
-      RETRANS_TOUT_G        => 2,
-      NULL_TOUT_G           => 6,
+      RETRANS_TOUT_G        => 10,
+      NULL_TOUT_G           => 50,
       
       TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(8),
       TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(8),
@@ -169,9 +169,9 @@ begin
       MAX_RETRANS_CNT_G     => 2,
       MAX_CUM_ACK_CNT_G     => 1,
       
-      ACK_TOUT_G            => 2,
-      RETRANS_TOUT_G        => 3,
-      NULL_TOUT_G           => 6,
+      ACK_TOUT_G            => 1,
+      RETRANS_TOUT_G        => 10,
+      NULL_TOUT_G           => 50,
       
       --
       TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(8),
