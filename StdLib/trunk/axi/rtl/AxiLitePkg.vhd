@@ -183,7 +183,13 @@ package AxiLitePkg is
       axiWriteSlave  : AxiLiteWriteSlaveType;
       axiStatus      : AxiLiteStatusType;
    end record AxiLiteEndpointType;
-
+   
+   constant AXI_LITE_END_POINT_INIT_C : AxiLiteEndpointType := (
+      axiReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
+      axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
+      axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
+      axiStatus      => AXI_LITE_STATUS_INIT_C);
 
    -------------------------------------------------------------------------------------------------
    -- Crossbar Config Generic Types
