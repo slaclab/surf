@@ -54,6 +54,7 @@ set_msg_config -suppress -id {Common 17-1361};# The existing rule will be replac
 
 # Messages: Change from WARNING to ERROR
 set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in logic is out of range 
+# set_msg_config -id {Synth 8-3848} -new_severity ERROR;# SYNTH: Input doesn't does not have driver
 set_msg_config -id {VRFC 10-664}  -new_severity ERROR;# SIM:   expression has XXX elements ; expected XXX
 
 ## Check for version 2015.3 (or older)
@@ -82,8 +83,10 @@ set_msg_config -id {Route 35-14}    -new_severity ERROR;# IMPL: Multi-driver net
 # Check if Multi-Driven Nets are allowed
 if { ${AllowMultiDriven} == 1 } {
     set_msg_config -id {Synth 8-3352} -new_severity INFO;# SYNTH: multi-driven net
+    set_msg_config -id {MDRV-1}       -new_severity INFO;# DRC: multi-driven net	
 } else {
     set_msg_config -id {Synth 8-3352} -new_severity ERROR;	
+    set_msg_config -id {MDRV-1}       -new_severity ERROR;	
 }
 
 set_msg_config -id {Timing 38-3} -new_severity INFO; #User defined clocks are common and should be info, not warning.
