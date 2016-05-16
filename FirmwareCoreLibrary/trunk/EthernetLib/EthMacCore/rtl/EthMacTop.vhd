@@ -224,6 +224,10 @@ begin
             txUnderRun     => ethStatus.txUnderRunCnt,
             txLinkNotReady => ethStatus.txNotReadyCnt
          );
+      -- Unused output ports
+      gmiiTxEn <= '0';
+      gmiiTxEr <= '0';
+      gmiiTxd  <= (others=>'0');
    end generate;
    
    U_1G_EXPORT: if GMII_EN_G = true generate
@@ -245,6 +249,9 @@ begin
             txUnderRun     => ethStatus.txUnderRunCnt,
             txLinkNotReady => ethStatus.txNotReadyCnt
          );
+      -- Unused output ports
+      phyTxd  <= (others=>'0');         
+      phyTxc  <= (others=>'0');         
    end generate;
    
    ---------------------------------
