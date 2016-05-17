@@ -49,6 +49,14 @@ if { ${CORE_FILES} != "" } {
    }
 }
 
+# Add block design Files
+if { ${BD_FILES} != "" } {
+   foreach bdPntr ${BD_FILES} {
+      import_files -quiet -norecurse ${bdPntr}
+      export_ip_user_files -force -quiet -of_objects [get_files ${bdPntr}] 
+   }
+}
+
 # Add XDC FILES
 if { ${XDC_FILES} != "" } {
    foreach xdcPntr ${XDC_FILES} {
@@ -75,25 +83,28 @@ set_property top ${PROJECT} [current_fileset]
 # Close and reopen project
 VivadoRefresh ${VIVADO_PROJECT}
 
-# Generate all IP cores' output files
-generate_target all [get_ips]
-if { [get_ips] != "" } {
-   foreach corePntr [get_ips] {
-
-      # Build the IP Core
-      puts "\nUpgrading ${corePntr}.xci IP Core ..."
-      upgrade_ip [get_ips ${corePntr}]
-      puts "... Upgrade Complete!\n"
-      
-      # Check if we need to create the IP_run
-      set ipSynthRun ${corePntr}_synth_1
-      if { [get_runs ${ipSynthRun}] != ${ipSynthRun}} {
-         create_ip_run [get_ips ${corePntr}]
+# Check if we can upgrade IP cores
+if { ${CORE_FILES} != "" } {
+   foreach ipPntr [get_ips] {
+      foreach coreFilePntr ${CORE_FILES} {
+         if { [file extension ${coreFilePntr}] == ".xci" } {
+            if { [ string match *${ipPntr}* ${coreFilePntr} ] } {
+               generate_target all [get_ips ${ipPntr}]
+               # Build the IP Core
+               puts "\nUpgrading ${corePntr}.xci IP Core ..."
+               upgrade_ip [get_ips ${ipPntr}]
+               puts "... Upgrade Complete!\n"
+               # Check if we need to create the IP_run
+               set ipSynthRun ${ipPntr}_synth_1
+               if { [get_runs ${ipSynthRun}] != ${ipSynthRun}} {
+                  create_ip_run [get_ips ${ipPntr}]      
+               }
+            }
+         }
       }
-
    }
 }
-
+      
 # Target specific source setup script
 VivadoRefresh ${VIVADO_PROJECT}
 SourceTclFile ${VIVADO_DIR}/sources.tcl
