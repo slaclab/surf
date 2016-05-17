@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-05-11
+-- Last update: 2016-05-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -379,10 +379,10 @@ begin
                end if;
                -- Check for the following errors
                if (v.udpPortDet = '0')  -- UDP port was not detected 
-                            or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
-                            or (v.udpLength = 0)              -- zero length detected
-                            or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
-                            or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
+                             or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
+                             or (v.udpLength = 0)              -- zero length detected
+                             or (rxMaster.tData(15 downto 8) /= UDP_C)  -- Correct protocol
+                             or (rxMaster.tData(7 downto 0) /= 0) then  -- IPv4 Pseudo doesn't have zero padding
                   v.eofe  := '1';
                   -- Next state
                   v.state := IDLE_S;
@@ -503,12 +503,12 @@ begin
                r.ibChecksum,
                v.checksum);
             -- Check the counter
-            if r.cnt = 1 then
+            if r.cnt = 2 then
                -- Reset the counter
                v.cnt := 0;
                -- Check for checksum 
                -- Note: UDP's checksum = 0x0 is allowed in UDP
-               if (v.ibChecksum /= 0) and (v.ibValid = '0') then
+               if (r.ibChecksum /= 0) and (r.ibValid = '0') then
                   v.eofe := '1';
                end if;
                -- Check for errors
@@ -609,13 +609,13 @@ begin
       rin <= v;
 
       -- Outputs        
-      serverRemotePort <= r.serverRemotePort;
-      serverRemoteIp   <= r.serverRemoteIp;
-      serverRemoteMac  <= r.serverRemoteMac;
-      clientRemoteDet  <= r.clientRemoteDet;
-      mSlave           <= v.mSlave;
-      sMaster          <= r.sMaster;
-      rxSlave          <= v.rxSlave;
+      serverRemotePort    <= r.serverRemotePort;
+      serverRemoteIp      <= r.serverRemoteIp;
+      serverRemoteMac     <= r.serverRemoteMac;
+      clientRemoteDet     <= r.clientRemoteDet;
+      mSlave              <= v.mSlave;
+      sMaster             <= r.sMaster;
+      rxSlave             <= v.rxSlave;
       obServerMastersPipe <= r.obServerMasters;
       obClientMastersPipe <= r.obClientMasters;
 
