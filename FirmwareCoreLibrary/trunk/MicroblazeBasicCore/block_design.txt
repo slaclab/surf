@@ -1,1 +1,1 @@
-bd/MicroblazeSimpleCore.bd 
+bd/MicroblazeBasicCore.bd 

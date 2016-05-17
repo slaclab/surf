@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-16
--- Last update: 2016-05-16
+-- Last update: 2016-05-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ entity MicroblazeBasicCoreWrapper is
       -- Master AXI-Lite Interface: [0x00000000:0x7FFFFFFF]
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
-      mAxilReadMaster  : out AxiLiteReadMasterType; 
+      mAxilReadMaster  : out AxiLiteReadMasterType;
       mAxilReadSlave   : in  AxiLiteReadSlaveType;
       -- Master AXIS Interface
       sAxisMaster      : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -43,7 +43,7 @@ entity MicroblazeBasicCoreWrapper is
       -- Clock and Reset
       clk              : in  sl;
       locked           : in  sl                  := '1';
-      rst            : in  sl);
+      rst              : in  sl);
 end MicroblazeBasicCoreWrapper;
 
 architecture mapping of MicroblazeBasicCoreWrapper is
