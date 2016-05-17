@@ -44,6 +44,10 @@ else
    export TCL_FILES   = 
 endif
 
+# Block design files
+export BD_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/block_design.txt)))
+export BD_FILES = $(realpath $(foreach A1,$(BD_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
+
 # Simulation Files
 export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/sim.txt)))
 export SIM_FILES = $(realpath $(foreach A1,$(SIM_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))

@@ -152,6 +152,57 @@ proc CopyIpCoresDebug { } {
    }
 }   
 
+# Copies all defined block_design.txt IP cores from the build tree to source tree
+proc CopyBdCores { } {
+   # Get variables
+   set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl   
+   
+   # Check if the target project has IP cores
+   if { [get_bd_designs] != "" } {
+      # Loop through the IP cores
+      foreach bdPntr [get_bd_designs] {
+         # Create a copy of the IP Core in the source tree
+         foreach bdFilePntr ${BD_FILES} {
+            if { [ string match *${bdPntr}* ${bdFilePntr} ] } { 
+               # Overwrite the existing .bd file in the source tree
+               set SRC [get_files ${bdPntr}.bd]
+               set DST ${bdFilePntr}
+               exec cp ${SRC} ${DST}
+               puts "exec cp ${SRC} ${DST}"    
+            }
+         }        
+      }
+   }
+} 
+
+# Copies all source code defined block_design.txt IP cores from the build tree to source tree
+proc CopyBdCoresDebug { } {
+   # Get variables
+   set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl   
+   
+   # Check if the target project has IP cores
+   if { [get_bd_designs] != "" } {
+      # Loop through the IP cores
+      foreach bdPntr [get_bd_designs] {
+         # Copy source code from build tree to source tree
+         foreach bdFilePntr ${BD_FILES} {
+            if { [ string match *${bdPntr}* ${bdFilePntr} ] } { 
+               set SRC [get_files ${bdPntr}.bd]
+               set DST ${bdFilePntr}            
+               set SRC  [string trim ${SRC} ${bdPntr}.bd]
+               set DST  [string trim ${DST} ${bdPntr}.bd]
+               exec cp -rf ${SRC} ${DST}    
+               puts "exec cp -rf ${SRC} ${DST}"    
+            }
+         }        
+      }
+   }
+} 
+
 # Checking Timing Function
 proc CheckTiming { {printTiming true} } {
    # Check for timing and routing errors 
