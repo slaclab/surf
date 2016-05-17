@@ -126,11 +126,11 @@ Device: &Adc16Dx370
     - name: CalibrateAdc
       sequence:
         # Power Down
-        - command: PowerDown
+        - entry: PowerDown
         # 1000 ms sleep
-        - command: usleep
+        - entry: usleep
           set: 1000000 
         # Power Up
-        - command: PowerUp
+        - entry: PowerUp
     #########################################################
     

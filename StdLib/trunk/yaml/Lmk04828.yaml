@@ -95,7 +95,7 @@ Device: &Lmk04828
         - ScalVal: EnableSync
           SetVal: 0x0           
         # 1000 ms sleep
-        - command: usleep
+        - entry: usleep
           set: 1000000 
         # Toggle Sync bit
         - ScalVal: SyncBit
@@ -103,7 +103,7 @@ Device: &Lmk04828
         - ScalVal: SyncBit
           SetVal: 0x0        
         # 1000 ms sleep
-        - command: usleep
+        - entry: usleep
           set: 1000000           
         # Turn on normal continuous sysref
         - ScalVal: EnableSysRef
