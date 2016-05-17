@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2013-11-07
+-- Last update: 2016-05-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ package body ArbiterPkg is
       ret := to_unsigned(bestReq, ret'length);
 
       -- Add p to encoded value to undo the rotation
-      ret := (ret + p) mod v'length;
+      ret := resize((ret + p) mod v'length, ret'length);
 
       return slv(ret);
    end function priorityEncode;
