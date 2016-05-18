@@ -73,7 +73,7 @@ Device: &AxiStreamDmaRingWrite
       enums: 
         - name: Wrap
           value: 0
-        - name: DoneWhenFull: 
+        - name: DoneWhenFull 
           value: 1
       description:
      #########################################################
@@ -191,19 +191,21 @@ Device: &AxiStreamDmaRingWrite
         StartAddr. Clear the Done field.
       nelms: *numBuffers
       sequence:
-        - ScalVal: Init[index] 
-          SetVal: 0x1        
-        - ScalVal: Init[index] 
-          SetVal: 0x0
+        - entry: Init
+          value: 0x1        
+        - entry: Init
+          value: 0x0
     #########################################################
     - name: SoftTrigger
       description: Send a trigger to the buffer
       nelms: *numBuffers
       sequence:
-        - ScalVal: SoftTrigger[index] 
-          SetVal: 0x1        
-        - ScalVal: SoftTrigger[index] 
-          SetVal: 0x0
-
-      - name: SoftTriggerAll
-        command: SoftTrigger
+        - entry: SoftTrigger 
+          value: 0x1        
+        - entry: SoftTrigger 
+          value: 0x0
+    - name: SoftTriggerAll
+      description: Send a trigger to the buffer
+      sequence:
+        entry: SoftTrigger
+        value: 1

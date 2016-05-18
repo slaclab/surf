@@ -115,13 +115,13 @@ Device: &Adc16Dx370
     #########################################################
     - name: PowerDown
       sequence:
-        - ScalVal: AdcReg[2]
-          SetVal: 0x3
+        - entry: AdcReg[2]
+          value: 0x3
     #########################################################
     - name: PowerUp
       sequence:
-        - ScalVal: AdcReg[2]
-          SetVal: 0x0          
+        - entry: AdcReg[2]
+          value: 0x0          
     #########################################################
     - name: CalibrateAdc
       sequence:

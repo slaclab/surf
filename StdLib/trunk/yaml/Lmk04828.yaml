@@ -89,40 +89,40 @@ Device: &Lmk04828
       description: Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks          
       sequence:
         # Turn off normal continuous sysref
-        - ScalVal: EnableSysRef
-          SetVal: 0x0 
+        - entry: EnableSysRef
+          value: 0x0 
         # Turn On SYNC
-        - ScalVal: EnableSync
-          SetVal: 0x0           
+        - entry: EnableSync
+          value: 0x0           
         # 1000 ms sleep
         - entry: usleep
           set: 1000000 
         # Toggle Sync bit
-        - ScalVal: SyncBit
-          SetVal: 0x1    
-        - ScalVal: SyncBit
-          SetVal: 0x0        
+        - entry: SyncBit
+          value: 0x1    
+        - entry: SyncBit
+          value: 0x0        
         # 1000 ms sleep
         - entry: usleep
           set: 1000000           
         # Turn on normal continuous sysref
-        - ScalVal: EnableSysRef
-          SetVal: 0x3           
+        - entry: EnableSysRef
+          value: 0x3           
         # Turn Off SYNC
-        - ScalVal: EnableSync
-          SetVal: 0xff            
+        - entry: EnableSync
+          value: 0xff            
     #########################################################
     - name: PwrUpSysRef
       description: Powerup the sysref lines        
       sequence:
         # Turn on normal continuous sysref
-        - ScalVal: EnableSysRef
-          SetVal: 0x3
+        - entry: EnableSysRef
+          value: 0x3
     #########################################################
     - name: PwrDwnSysRef
       description: Powerdown the sysref lines        
       sequence:
         # Turn off normal continuous sysref
-        - ScalVal: EnableSysRef
-          SetVal: 0x0          
+        - entry: EnableSysRef
+          value: 0x0          
     #########################################################
