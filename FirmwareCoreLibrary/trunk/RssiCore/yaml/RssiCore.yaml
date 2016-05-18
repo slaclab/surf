@@ -112,10 +112,53 @@ Device: &RssiCore
       description: "Max out of sequence segments (EACK) [7:0]"
     #########################################################
     - offset: 0x40
-      name: StatusReg
-      sizeBits: 7
+      name: ConnectionActive
+      sizeBits: 1    
+      lsBit: 0 
       mode: RO
-      description: "Status register [6:0]"
+      description: "Connection Active"    
+    #########################################################
+    - offset: 0x40
+      name: ErrMaxRetrans
+      sizeBits: 1    
+      lsBit: 1 
+      mode: RO
+      description: "Maximum retransmissions exceeded retransMax."    
+    #########################################################
+    - offset: 0x40
+      name: ErrNullTout
+      sizeBits: 1    
+      lsBit: 2 
+      mode: RO
+      description: "Null timeout reached (server) nullTout."    
+    #########################################################
+    - offset: 0x40
+      name: ErrAck
+      sizeBits: 1    
+      lsBit: 3 
+      mode: RO
+      description: "Error in acknowledgment mechanism."  
+    #########################################################
+    - offset: 0x40
+      name: ErrSsiFrameLen
+      sizeBits: 1    
+      lsBit: 4 
+      mode: RO
+      description: "SSI Frame length too long"    
+    #########################################################
+    - offset: 0x40
+      name: ErrConnTout
+      sizeBits: 1    
+      lsBit: 5 
+      mode: RO
+      description: "Connection to peer timed out. Timeout defined in generic PEER_CONN_TIMEOUT_G (Default: 1000 ms)"
+    #########################################################
+    - offset: 0x40
+      name: ParamRejected
+      sizeBits: 1    
+      lsBit: 6 
+      mode: RO
+      description: "Client rejected the connection (parameters out of range), Server proposed new parameters (parameters out of range)"      
     #########################################################
     - offset: 0x44
       name: ValidCnt
@@ -134,7 +177,7 @@ Device: &RssiCore
   #########
     #########################################################
     - name: OpenConn
-      description: Open connection request
+      description: "Open connection request"
       sequence:
         - entry: OpenConn
           value: 0x1
@@ -142,7 +185,7 @@ Device: &RssiCore
           value: 0x0          
     #########################################################
     - name: CloseConn
-      description: Close connection request
+      description: "Close connection request"
       sequence:
         - entry: CloseConn
           value: 0x1
@@ -150,7 +193,7 @@ Device: &RssiCore
           value: 0x0   
     #########################################################
     - name: InjectFault
-      description: Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission
+      description: "Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission"
       sequence:
         - entry: InjectFault
           value: 0x1
