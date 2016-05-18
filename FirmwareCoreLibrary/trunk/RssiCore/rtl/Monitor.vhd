@@ -258,6 +258,7 @@ begin
           dataHeadSt_i = '1' or
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1' or
+          ackHeadSt_i  = '1' or
           RETRANSMIT_ENABLE_G = false -- Disable null packet transmission  
       ) then
          v.nullToutCnt := (others=>'0');
