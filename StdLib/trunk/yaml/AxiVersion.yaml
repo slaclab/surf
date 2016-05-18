@@ -98,11 +98,5 @@ Device: &AxiVersion
       description: Reload the FPGA from the attached PROM 
       sequence:
         - entry: FpgaReload
-          value: 0x1 
-    #########################################################
-    - name: CounterReset
-      description: Reload the FPGA from the attached PROM 
-      sequence:
-        - entry: CounterReset
-          value: 0x1         
+          value: 0x1        
     #########################################################
