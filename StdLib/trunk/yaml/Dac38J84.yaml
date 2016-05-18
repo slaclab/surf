@@ -210,38 +210,38 @@ Device: &Dac38J84
     - name: ClearAlarms
       description: Clear all the DAC alarms
       sequence:
-        - ScalVal: DacReg[100]
-          SetVal: 0xFFFF
-        - ScalVal: DacReg[101]
-          SetVal: 0xFFFF   
-        - ScalVal: DacReg[102]
-          SetVal: 0xFFFF
-        - ScalVal: DacReg[103]
-          SetVal: 0xFFFF   
-        - ScalVal: DacReg[104]
-          SetVal: 0xFFFF
-        - ScalVal: DacReg[105]
-          SetVal: 0xFFFF         
-        - ScalVal: DacReg[106]
-          SetVal: 0xFFFF    
-        - ScalVal: DacReg[107]
-          SetVal: 0xFFFF     
-        - ScalVal: DacReg[108]
-          SetVal: 0xFFFF               
+        - entry: DacReg[100]
+          value: 0xFFFF
+        - entry: DacReg[101]
+          value: 0xFFFF   
+        - entry: DacReg[102]
+          value: 0xFFFF
+        - entry: DacReg[103]
+          value: 0xFFFF   
+        - entry: DacReg[104]
+          value: 0xFFFF
+        - entry: DacReg[105]
+          value: 0xFFFF         
+        - entry: DacReg[106]
+          value: 0xFFFF    
+        - entry: DacReg[107]
+          value: 0xFFFF     
+        - entry: DacReg[108]
+          value: 0xFFFF               
     #########################################################
     - name: InitDac
       description: Initialization sequence for the DAC JESD core 
       sequence:
         # Disable TX
-        - ScalVal: EnableTx
-          SetVal: 0x0  
+        - entry: EnableTx
+          value: 0x0  
         # Disable and initialize JESD
-        - ScalVal: InitJesd
-          SetVal: 0x1E 
+        - entry: InitJesd
+          value: 0x1E 
         # Enable JESD
-        - ScalVal: InitJesd
-          SetVal: 0x01           
+        - entry: InitJesd
+          value: 0x01           
         # Enable TX
-        - ScalVal: EnableTx
-          SetVal: 0x1
+        - entry: EnableTx
+          value: 0x1
     #########################################################    

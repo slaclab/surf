@@ -22,3 +22,11 @@ Device: &GenericMemory
       mode: RW
       description: Memory Array
     #########################################################
+    #
+
+IntField: &MemoryArray
+  offset: 0x0
+  name:   MemoryArray
+  nelms:  1
+  mode:   RW
+  description: Memory Array

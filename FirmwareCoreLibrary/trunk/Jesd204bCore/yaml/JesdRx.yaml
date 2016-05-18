@@ -210,16 +210,16 @@ Device: &JesdRx
     - name: ClearErrors
       description: Clear the registered errors of all RX lanes
       sequence:
-        - ScalVal: ClearErrors
-          SetVal: 0x1
-        - ScalVal: ClearErrors
-          SetVal: 0x0   
+        - entry: ClearErrors
+          value: 0x1
+        - entry: ClearErrors
+          value: 0x0   
     #########################################################
     - name: ResetGTs
       description: Toggle the reset of all RX MGTs
       sequence:
-        - ScalVal: ResetGTs
-          SetVal: 0x1
-        - ScalVal: ResetGTs
-          SetVal: 0x0             
+        - entry: ResetGTs
+          value: 0x1
+        - entry: ResetGTs
+          value: 0x0             
     #########################################################
