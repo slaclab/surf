@@ -515,13 +515,13 @@
           <spirit:segment>
             <spirit:name>SEG_dlmb_bram_if_cntlr_Mem</spirit:name>
             <spirit:displayName>/microblaze_0_local_memory/dlmb_bram_if_cntlr/SLMB/Mem</spirit:displayName>
-            <spirit:addressOffset>0xFFFF0000</spirit:addressOffset>
+            <spirit:addressOffset>0x00000000</spirit:addressOffset>
             <spirit:range>32K</spirit:range>
           </spirit:segment>
           <spirit:segment>
             <spirit:name>SEG_M_AXI_DP_Reg</spirit:name>
             <spirit:displayName>/M_AXI_DP/Reg</spirit:displayName>
-            <spirit:addressOffset>0x00000000</spirit:addressOffset>
+            <spirit:addressOffset>0x80000000</spirit:addressOffset>
             <spirit:range>2G</spirit:range>
           </spirit:segment>
         </spirit:segments>
@@ -534,7 +534,7 @@
           <spirit:segment>
             <spirit:name>SEG_ilmb_bram_if_cntlr_Mem</spirit:name>
             <spirit:displayName>/microblaze_0_local_memory/ilmb_bram_if_cntlr/SLMB/Mem</spirit:displayName>
-            <spirit:addressOffset>0xFFFF0000</spirit:addressOffset>
+            <spirit:addressOffset>0x00000000</spirit:addressOffset>
             <spirit:range>32K</spirit:range>
           </spirit:segment>
         </spirit:segments>

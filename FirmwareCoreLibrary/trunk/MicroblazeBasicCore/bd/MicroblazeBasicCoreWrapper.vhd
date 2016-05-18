@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-16
--- Last update: 2016-05-17
+-- Last update: 2016-05-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,9 +23,11 @@ use work.AxiLitePkg.all;
 
 entity MicroblazeBasicCoreWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G           : time    := 1 ns;
+      FWD_MEM_ERR_C   : boolean := false;
+      AXIL_ADDR_MSB_C : boolean := false);  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
    port (
-      -- Master AXI-Lite Interface: [0x00000000:0x7FFFFFFF]
+      -- Master AXI-Lite Interface
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
       mAxilReadMaster  : out AxiLiteReadMasterType;
@@ -84,13 +86,28 @@ architecture mapping of MicroblazeBasicCoreWrapper is
          reset               : in  std_logic;
          dcm_locked          : in  std_logic);
    end component MicroblazeBasicCore;
-   
+
+   signal awaddr : slv(31 downto 0);
+   signal araddr : slv(31 downto 0);
+
 begin
+
+   -- Address space = [0x00000000:0x7FFFFFFF]
+   LOWER_2GB : if (AXIL_ADDR_MSB_C = false) generate
+      mAxilWriteMaster.awaddr <= '0' & awaddr(30 downto 0);
+      mAxilReadMaster.araddr  <= '0' & araddr(30 downto 0);
+   end generate;
+
+   -- Address space = [0x80000000:0xFFFFFFFF]
+   HIGH_2GB : if (AXIL_ADDR_MSB_C = true) generate
+      mAxilWriteMaster.awaddr <= '1' & awaddr(30 downto 0);
+      mAxilReadMaster.araddr  <= '1' & araddr(30 downto 0);
+   end generate;
 
    U_Microblaze : component MicroblazeBasicCore
       port map (
          -- Master AXI-Lite Interface
-         M_AXI_DP_awaddr     => mAxilWriteMaster.awaddr,
+         M_AXI_DP_awaddr     => awaddr,
          M_AXI_DP_awprot     => mAxilWriteMaster.awprot,
          M_AXI_DP_awvalid    => mAxilWriteMaster.awvalid,
          M_AXI_DP_wdata      => mAxilWriteMaster.wdata,
@@ -101,7 +118,7 @@ begin
          M_AXI_DP_wready     => mAxilWriteSlave.wready,
          M_AXI_DP_bresp      => mAxilWriteSlave.bresp,
          M_AXI_DP_bvalid     => mAxilWriteSlave.bvalid,
-         M_AXI_DP_araddr     => mAxilReadMaster.araddr,
+         M_AXI_DP_araddr     => araddr,
          M_AXI_DP_arprot     => mAxilReadMaster.arprot,
          M_AXI_DP_arvalid    => mAxilReadMaster.arvalid,
          M_AXI_DP_rready     => mAxilReadMaster.rready,
