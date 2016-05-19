@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
-      FWD_MEM_ERR_C   : boolean := false;
+      AXIL_RESP_C     : boolean := false;
       AXIL_ADDR_MSB_C : boolean := false);  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
    port (
       -- Master AXI-Lite Interface
@@ -44,7 +44,7 @@ entity MicroblazeBasicCoreWrapper is
       irqReq           : in  sl                  := '0';
       -- Clock and Reset
       clk              : in  sl;
-      locked           : in  sl                  := '1';
+      pllLock          : in  sl                  := '1';
       rst              : in  sl);
 end MicroblazeBasicCoreWrapper;
 
@@ -89,6 +89,8 @@ architecture mapping of MicroblazeBasicCoreWrapper is
 
    signal awaddr : slv(31 downto 0);
    signal araddr : slv(31 downto 0);
+   signal bresp  : slv(1 downto 0);
+   signal rresp  : slv(1 downto 0);
 
 begin
 
@@ -104,6 +106,16 @@ begin
       mAxilReadMaster.araddr  <= '1' & araddr(30 downto 0);
    end generate;
 
+   BYPASS_RESP : if (AXIL_RESP_C = false) generate
+      bresp <= AXI_RESP_OK_C;
+      rresp <= AXI_RESP_OK_C;
+   end generate;
+
+   USE_RESP : if (AXIL_RESP_C = true) generate
+      bresp <= mAxilWriteSlave.bresp;
+      rresp <= mAxilReadSlave.rresp;
+   end generate;
+
    U_Microblaze : component MicroblazeBasicCore
       port map (
          -- Master AXI-Lite Interface
@@ -116,7 +128,7 @@ begin
          M_AXI_DP_bready     => mAxilWriteMaster.bready,
          M_AXI_DP_awready    => mAxilWriteSlave.awready,
          M_AXI_DP_wready     => mAxilWriteSlave.wready,
-         M_AXI_DP_bresp      => mAxilWriteSlave.bresp,
+         M_AXI_DP_bresp      => bresp,
          M_AXI_DP_bvalid     => mAxilWriteSlave.bvalid,
          M_AXI_DP_araddr     => araddr,
          M_AXI_DP_arprot     => mAxilReadMaster.arprot,
@@ -124,7 +136,7 @@ begin
          M_AXI_DP_rready     => mAxilReadMaster.rready,
          M_AXI_DP_arready    => mAxilReadSlave.arready,
          M_AXI_DP_rdata      => mAxilReadSlave.rdata,
-         M_AXI_DP_rresp      => mAxilReadSlave.rresp,
+         M_AXI_DP_rresp      => rresp,
          M_AXI_DP_rvalid     => mAxilReadSlave.rvalid,
          -- Master AXIS Interface
          M0_AXIS_tdata       => mAxisMaster.tdata(31 downto 0),
@@ -142,7 +154,7 @@ begin
          INTERRUPT_interrupt => irqReq,
          -- Clock and Reset
          clk                 => clk,
-         dcm_locked          => locked,
+         dcm_locked          => pllLock,
          reset               => rst);
 
 end mapping;
