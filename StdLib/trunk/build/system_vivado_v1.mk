@@ -26,6 +26,10 @@ export IMAGES_DIR = $(abspath $(PROJ_DIR)/images)
 # Get Project Version
 export PRJ_VERSION = $(shell grep FPGA_VERSION_C $(PROJ_DIR)/Version.vhd | sed 's|.*x"\(\S\+\)";.*|\1|')
 
+# SDK Variables
+export SDK_PRJ = $(abspath $(OUT_DIR)/$(VIVADO_PROJECT).sdk)
+export SDK_ELF = $(abspath $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).elf)
+
 # Core Directories (IP cores that exist external of the project must have a physical path, not a logical path)
 export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/cores.txt)))
 export CORE_FILES = $(abspath $(foreach A1,$(CORE_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
@@ -217,7 +221,7 @@ interactive : $(SOURCE_DEPEND)
 gui : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado GUI")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_gui_v1.tcl
-   
+
 ###############################################################
 #### Vivado VCS ###############################################
 ###############################################################
@@ -268,6 +272,23 @@ $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bitbin : $(IMPL_DIR)/$(PROJECT).bitbin
 	@echo ""
 	@echo "Binary bit file generated at $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"
+
+###############################################################
+#### Vivado SDK ###############################################
+###############################################################
+.PHONY : sdk
+sdk : $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Vivado SDK GUI")
+	@cd $(OUT_DIR); xsdk -workspace $(OUT_DIR)/$(VIVADO_PROJECT).sdk \
+      -vmargs -Dorg.eclipse.swt.internal.gtk.cairoGraphics=false
+
+###############################################################
+#### Vivado SDK ELF ###########################################
+###############################################################
+.PHONY : elf
+elf : $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Vivado SDK .ELF generation")
+	@cd $(OUT_DIR); xsdk -batch -source $(VIVADO_BUILD_DIR)/vivado_sdk_elf_v1.tcl
 
 ###############################################################
 #### Makefile Targets #########################################
