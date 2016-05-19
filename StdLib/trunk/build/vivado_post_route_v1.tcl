@@ -50,7 +50,7 @@ if { [CheckTiming false] == true } {
          # Setup the project
          exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v1.tcl >@stdout   
          # Add .ELF to the .bit file properties
-         if { [get_files ${SDK_ELF} ] != "" } {
+         if { [get_files ${SDK_ELF} ] == "" } {
             add_files -norecurse                                      ${SDK_ELF}  
             set_property used_in_simulation 0              [get_files ${SDK_ELF} ] 
             set_property SCOPED_TO_REF MicroblazeBasicCore [get_files ${SDK_ELF} ]
