@@ -17,7 +17,9 @@ export ISE_DIR          = $(abspath $(PROJ_DIR)/ise)
 export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado)
 export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
+ifndef VIVADO_BUILD_DIR
 export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
+endif
 export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 
 # Images Directory
