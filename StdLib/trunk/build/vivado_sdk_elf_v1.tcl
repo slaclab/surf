@@ -18,6 +18,5 @@ source ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
 sdk set_workspace ${SDK_PRJ}
 sdk build_project  -type all
-file copy -force ${SDK_PRJ}/app_0/Release/app_0.elf ${SDK_ELF} 
-
-exit
+exec cp -f ${SDK_PRJ}/app_0/Release/app_0.elf ${SDK_ELF} 
+exec chmod 664 ${SDK_ELF} 
