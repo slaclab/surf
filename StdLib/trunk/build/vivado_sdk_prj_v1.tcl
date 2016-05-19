@@ -16,7 +16,7 @@
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
-set SOFT_LINK [expr {[info exists ::env(SDK_SRC_PATH)] && [string is true -strict $::env(SDK_SRC_PATH)]}]  
+set SOFT_LINK [info exists ::env(SDK_SRC_PATH)]
 
 # Check if project already exists
 if { [file exists ${SDK_PRJ}] != 1 } {
