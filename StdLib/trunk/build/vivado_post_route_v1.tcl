@@ -41,8 +41,14 @@ if { [CheckTiming false] == true } {
    ## Check if SDK's .sysdef file exists
    #########################################################
    if { [file exists ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef] == 1 } {
-      # Setup the project
-      exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout
+      set SDK_TIMEOUT 1
+      while {$SDK_TIMEOUT>0} {
+         # Setup the project
+         catch {
+            exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout   
+            set SDK_TIMEOUT 0
+         }
+      }
       # Target specific SDK project script
       SourceTclFile ${VIVADO_DIR}/sdk_prj.tcl
       # Try to build the .ELF file
