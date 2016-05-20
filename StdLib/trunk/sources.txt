@@ -119,6 +119,7 @@ vhdl work ssi/rtl/SsiPrbsRx.vhd
 vhdl work ssi/rtl/SsiPrbsTx.vhd
 vhdl work ssi/rtl/SsiPrbsTxOld.vhd
 vhdl work ssi/rtl/SsiInsertSof.vhd
+vhdl work ssi/rtl/SsiFrameLimiter.vhd
 
 vhdl work spi/rtl/SpiMaster.vhd
 vhdl work spi/rtl/SpiSlave.vhd
