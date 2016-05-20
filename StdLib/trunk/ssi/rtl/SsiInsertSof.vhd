@@ -79,13 +79,12 @@ architecture rtl of SsiInsertSof is
 
 begin
 
-
-   BYPASS_FIFO_RX : if (SLAVE_FIFO_G = false) generate
+   BYPASS_FIFO_RX : if ( (SLAVE_FIFO_G = false) and (COMMON_CLK_G = true)) generate
       rxMaster   <= sAxisMaster;
       sAxisSlave <= rxSlave;
    end generate;
 
-   GEN_FIFO_RX : if (SLAVE_FIFO_G = true) generate
+   GEN_FIFO_RX : if ( (SLAVE_FIFO_G = true) or (COMMON_CLK_G = false)) generate
       FIFO_RX : entity work.AxiStreamFifo
          generic map (
             -- General Configurations
