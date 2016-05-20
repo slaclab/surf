@@ -67,9 +67,10 @@ if { [CheckTiming false] == true } {
          }
       }
    }
-   # Reset the flag
-   set_property NEEDS_REFRESH false [get_runs impl_1]
-   
    # Target specific post_route script
    SourceTclFile ${VIVADO_DIR}/post_route.tcl
+   
+   # Reset the flag
+   VivadoRefresh ${VIVADO_PROJECT}
+   set_property NEEDS_REFRESH false [get_runs impl_1]
 }
