@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-04-06
+-- Last update: 2016-05-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,18 +52,31 @@ end TenGigEthGth7Clk;
 
 architecture mapping of TenGigEthGth7Clk is
 
-   constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G,"111",QPLL_REFCLK_SEL_G);
+   constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G, "111", QPLL_REFCLK_SEL_G);
 
    signal refClockDiv2 : sl := '0';
    signal refClock     : sl := '0';
    signal refClk       : sl := '0';
    signal phyClock     : sl := '0';
-   signal phyReset     : sl := '0';
+   signal phyReset     : sl := '1';
+   signal pwrUpRst     : sl := '1';
+   signal qpllReset    : sl := '1';
    
 begin
 
    phyClk <= phyClock;
    phyRst <= phyReset;
+
+   qpllReset <= qpllRst or pwrUpRst;
+
+   PwrUpRst_Inst : entity work.PwrUpRst
+      generic map (
+         TPD_G      => TPD_G,
+         DURATION_G => 15625000)        -- 100 ms
+      port map (
+         arst   => extRst,
+         clk    => phyClock,
+         rstOut => pwrUpRst);  
 
    Synchronizer_0 : entity work.Synchronizer
       generic map(
@@ -77,7 +90,7 @@ begin
          rst     => extRst,
          dataIn  => '0',
          dataOut => phyReset);    
-         
+
    GEN_IBUFDS_GTE2 : if (USE_GTREFCLK_G = false) generate
       IBUFDS_GTE2_Inst : IBUFDS_GTE2
          port map (
@@ -113,7 +126,7 @@ begin
          qPllLockDetClk => '0',                -- IP Core ties this to GND (see note below) 
          qPllRefClkLost => open,
          qPllPowerDown  => '0',
-         qPllReset      => qpllRst);          
+         qPllReset      => qpllReset);          
    ---------------------------------------------------------------------------------------------
    -- Note: GTXE2_COMMON pin gtxe2_common_0_i.QPLLLOCKDETCLK cannot be driven by a clock derived 
    --       from the same clock used as the reference clock for the QPLL, including TXOUTCLK*, 

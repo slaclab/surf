@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2015-10-14
+-- Last update: 2016-05-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,12 +60,25 @@ architecture mapping of TenGigEthGtx7Clk is
    signal refClk       : sl;
    signal phyClock     : sl;
    signal phyReset     : sl;
+   signal pwrUpRst     : sl;
+   signal qpllReset    : sl;
    
 begin
    
    gtClk  <= refClk;
    phyClk <= phyClock;
    phyRst <= phyReset;
+
+   qpllReset <= qpllRst or pwrUpRst;
+
+   PwrUpRst_Inst : entity work.PwrUpRst
+      generic map (
+         TPD_G      => TPD_G,
+         DURATION_G => 15625000)        -- 100 ms
+      port map (
+         arst   => extRst,
+         clk    => phyClock,
+         rstOut => pwrUpRst);      
 
    Synchronizer_0 : entity work.Synchronizer
       generic map(
@@ -113,7 +126,7 @@ begin
          qPllLockDetClk => '0',                -- IP Core ties this to GND (see note below) 
          qPllRefClkLost => open,
          qPllPowerDown  => '0',
-         qPllReset      => qpllRst);          
+         qPllReset      => qpllReset);          
    ---------------------------------------------------------------------------------------------
    -- Note: GTXE2_COMMON pin gtxe2_common_0_i.QPLLLOCKDETCLK cannot be driven by a clock derived 
    --       from the same clock used as the reference clock for the QPLL, including TXOUTCLK*, 
