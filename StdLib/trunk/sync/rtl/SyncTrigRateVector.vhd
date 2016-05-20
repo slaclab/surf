@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-16
--- Last update: 2014-04-17
+-- Last update: 2016-05-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,20 +28,21 @@ use work.StdRtlPkg.all;
 
 entity SyncTrigRateVector is
    generic (
-      TPD_G          : time     := 1 ns;    -- Simulation FF output delay
-      COMMON_CLK_G   : boolean  := false;   -- true if locClk & refClk are the same clock
-      IN_POLARITY_G  : slv      := "1";     -- 0 for active LOW, 1 for active HIGH
-      REF_CLK_FREQ_G : real     := 200.0E+6;-- units of Hz
-      REFRESH_RATE_G : real     := 1.0E+0;  -- units of Hz
-      USE_DSP48_G    : string   := "no";    -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
-      CNT_WIDTH_G    : positive := 32;      -- Counters' width 
+      TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      COMMON_CLK_G   : boolean  := false;     -- true if locClk & refClk are the same clock
+      ONE_SHOT_G     : boolean  := false;
+      IN_POLARITY_G  : slv      := "1";   -- 0 for active LOW, 1 for active HIGH
+      REF_CLK_FREQ_G : real     := 200.0E+6;  -- units of Hz
+      REFRESH_RATE_G : real     := 1.0E+0;    -- units of Hz
+      USE_DSP48_G    : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      CNT_WIDTH_G    : positive := 32;  -- Counters' width 
       WIDTH_G        : positive := 16);
    port (
       -- Trigger Input (locClk domain)
       trigIn          : in  slv(WIDTH_G-1 downto 0);
       -- Trigger Rate Output (locClk domain)
       trigRateUpdated : out sl;
-      trigRateOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);-- units of REFRESH_RATE_G
+      trigRateOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);  -- units of REFRESH_RATE_G
       -- Clocks
       locClkEn        : in  sl := '1';
       locClk          : in  sl;
@@ -85,6 +86,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => COMMON_CLK_G,
+            ONE_SHOT_G     => ONE_SHOT_G,
             IN_POLARITY_G  => IN_POLARITY_C(i),
             REF_CLK_FREQ_G => REF_CLK_FREQ_G,
             REFRESH_RATE_G => REFRESH_RATE_G,
