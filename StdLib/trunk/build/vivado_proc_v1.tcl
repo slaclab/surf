@@ -203,6 +203,19 @@ proc CopyBdCoresDebug { } {
    }
 } 
 
+proc CreateYamlTarGz { } {   
+   # Get variables
+   set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+   #########################################################
+   ## Check if need to include YAML files with the .BIT file
+   #########################################################
+   if { [file exists ${PROJ_DIR}/yaml.txt] == 1 } {
+      source ${VIVADO_BUILD_DIR}/vivado_yaml_v1.tcl
+   }
+}
+
 # Checking Timing Function
 proc CheckTiming { {printTiming true} } {
    # Check for timing and routing errors 
