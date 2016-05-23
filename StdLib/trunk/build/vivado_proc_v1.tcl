@@ -289,11 +289,8 @@ proc CheckIpSynth { ipSynthRun } {
 
 # Check if the Implementation is completed
 proc CheckImpl { } {
-
    if { [get_property PROGRESS [get_runs impl_1]] != "100\%" } {
-      return false
-   } elseif { [get_property NEEDS_REFRESH [get_runs impl_1]] == 1 } {
-      return false   
+      return false 
    } elseif { [get_property STATUS [get_runs impl_1]] != "write_bitstream Complete!" } {
       return false
    } else {
