@@ -33,7 +33,7 @@ entity AxiStreamPacker is
    
    generic (
       TPD_G               : time := 1 ns;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := APV_DATA_SSI_CONFIG_C;
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType := SSI_CONFIG_INIT_C;
       RANGE_HIGH_G        : integer := 13;
       RANGE_LOW_G         : integer := 2);
    port (

@@ -30,10 +30,6 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-use work.HpsPkg.all;
-use work.AdcReadoutPkg.all;
-use work.FebConfigPkg.all;
-
 entity AxiStreamUnpacker is
    
    generic (
