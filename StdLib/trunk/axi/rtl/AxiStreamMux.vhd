@@ -110,7 +110,11 @@ begin
       end if;
 
       -- Select source
-      selData := sAxisMasters(conv_integer(r.ackNum));
+      if NUM_SLAVES_G = 1 then
+         selData := sAxisMasters(0);      
+      else
+         selData := sAxisMasters(conv_integer(r.ackNum));
+      end if;
 
       if (KEEP_TDEST_G = false) then
          selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
