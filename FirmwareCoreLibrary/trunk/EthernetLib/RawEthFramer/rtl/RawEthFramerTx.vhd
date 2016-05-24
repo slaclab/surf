@@ -28,6 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.EthMacPkg.all;
 
 entity RawEthFramerTx is
    generic (
@@ -50,8 +51,6 @@ entity RawEthFramerTx is
 end RawEthFramerTx;
 
 architecture rtl of RawEthFramerTx is
-
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8, 2);
 
    type StateType is (
       IDLE_S,
@@ -109,7 +108,7 @@ begin
             -- Check if ready to move data
             if (obAppMaster.tValid = '1') and (v.ibMacMaster.tValid = '0') then
                -- Check for SOF
-               if (ssiGetUserSof(AXIS_CONFIG_C, obAppMaster) = '1') then
+               if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, obAppMaster) = '1') then
                   -- Check for valid DEST mac
                   if (remoteMac(index) /= 0) then
                      -- Move the data
@@ -118,7 +117,7 @@ begin
                      v.ibMacMaster.tData(47 downto 0)  := remoteMac(index);
                      v.ibMacMaster.tData(63 downto 48) := localMac(15 downto 0);
                      -- Set the SOF
-                     ssiSetUserSof(AXIS_CONFIG_C, v.ibMacMaster, '1');
+                     ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.ibMacMaster, '1');
                      -- Next state
                      v.state                           := HDR_S;
                   else
@@ -149,7 +148,7 @@ begin
                v.tData                           := obAppMaster.tData(63 downto 16);
                v.tKeep                           := obAppMaster.tKeep(7 downto 2);
                -- Get EOFE
-               v.eofe                            := ssiGetUserEofe(AXIS_CONFIG_C, obAppMaster);
+               v.eofe                            := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obAppMaster);
                -- Check for tLast
                if obAppMaster.tLast = '1' then
                   -- Check if no straddling data
@@ -157,7 +156,7 @@ begin
                      -- Set EOF
                      v.ibMacMaster.tLast := '1';
                      -- Set the EOFE
-                     ssiSetUserEofe(AXIS_CONFIG_C, v.ibMacMaster, v.eofe);
+                     ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibMacMaster, v.eofe);
                      -- Next state
                      v.state             := IDLE_S;
                   else
@@ -187,7 +186,7 @@ begin
                v.tData                           := obAppMaster.tData(63 downto 16);
                v.tKeep                           := obAppMaster.tKeep(7 downto 2);
                -- Get EOFE
-               v.eofe                            := ssiGetUserEofe(AXIS_CONFIG_C, obAppMaster);
+               v.eofe                            := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obAppMaster);
                -- Check for tLast
                if obAppMaster.tLast = '1' then
                   -- Check if no straddling data
@@ -195,7 +194,7 @@ begin
                      -- Set EOF
                      v.ibMacMaster.tLast := '1';
                      -- Set the EOFE
-                     ssiSetUserEofe(AXIS_CONFIG_C, v.ibMacMaster, v.eofe);
+                     ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibMacMaster, v.eofe);
                      -- Next state
                      v.state             := IDLE_S;
                   else
@@ -220,7 +219,7 @@ begin
                -- Set EOF
                v.ibMacMaster.tLast               := '1';
                -- Set the EOFE
-               ssiSetUserEofe(AXIS_CONFIG_C, v.ibMacMaster, r.eofe);
+               ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibMacMaster, r.eofe);
                -- Next state
                v.state                           := IDLE_S;
             end if;
