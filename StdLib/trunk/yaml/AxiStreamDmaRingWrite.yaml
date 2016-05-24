@@ -11,7 +11,8 @@
 Device: &AxiStreamDmaRingWrite
   name: AxiStreamDmaRingWrite
   description: DMA Ring Buffer Manager
-  size: 0x1000
+  size: 0x10000
+
   metadata:
     - numBuffers: &numBuffers 4
     - destEnums: &destEnums
@@ -207,5 +208,5 @@ Device: &AxiStreamDmaRingWrite
     - name: SoftTriggerAll
       description: Send a trigger to the buffer
       sequence:
-        entry: SoftTrigger
-        value: 1
+        - entry: SoftTrigger
+          value: 1
