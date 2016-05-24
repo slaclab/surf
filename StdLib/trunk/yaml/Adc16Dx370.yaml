@@ -114,23 +114,29 @@ Device: &Adc16Dx370
   #########
     #########################################################
     - name: PowerDown
+      description: "PowerDown" 
       sequence:
-        - entry: AdcReg[2]
+        - entry: "AdcReg[2]"
           value: 0x3
     #########################################################
     - name: PowerUp
+      description: "PowerUp" 
       sequence:
-        - entry: AdcReg[2]
+        - entry: "AdcReg[2]"
           value: 0x0          
     #########################################################
     - name: CalibrateAdc
+      description: "CalibrateAdc" 
       sequence:
         # Power Down
         - entry: PowerDown
+          value: 0x1          
         # 1000 ms sleep
         - entry: usleep
-          set: 1000000 
+          value: 1000000 
+
         # Power Up
         - entry: PowerUp
+          value: 0x1          
     #########################################################
     

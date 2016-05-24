@@ -86,7 +86,7 @@ Device: &Lmk04828
   #########      
     #########################################################
     - name: InitLmk
-      description: Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks          
+      description: "Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks"
       sequence:
         # Turn off normal continuous sysref
         - entry: EnableSysRef
@@ -96,7 +96,8 @@ Device: &Lmk04828
           value: 0x0           
         # 1000 ms sleep
         - entry: usleep
-          set: 1000000 
+          value: 1000000 
+
         # Toggle Sync bit
         - entry: SyncBit
           value: 0x1    
@@ -104,7 +105,8 @@ Device: &Lmk04828
           value: 0x0        
         # 1000 ms sleep
         - entry: usleep
-          set: 1000000           
+          value: 1000000           
+
         # Turn on normal continuous sysref
         - entry: EnableSysRef
           value: 0x3           
