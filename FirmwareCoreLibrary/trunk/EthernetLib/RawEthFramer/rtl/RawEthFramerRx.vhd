@@ -28,6 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.EthMacPkg.all;
 
 entity RawEthFramerRx is
    generic (
@@ -51,8 +52,6 @@ end RawEthFramerRx;
 
 architecture rtl of RawEthFramerRx is
 
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8, 2);
-   
    type StateType is (
       IDLE_S,
       HDR_S,
@@ -116,7 +115,7 @@ begin
                -- Latch the SRC MAC
                v.srcMac(15 downto 0) := obMacMaster.tData(63 downto 48);
                -- Check for SOF
-               if (ssiGetUserSof(AXIS_CONFIG_C, obMacMaster) = '1') then
+               if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, obMacMaster) = '1') then
                   -- Check the DEST MAC
                   if (localMac /= 0) and (localMac = obMacMaster.tData(47 downto 0)) then
                      -- Next state
@@ -176,10 +175,10 @@ begin
                   -- Reset the flag
                   v.sof := '0';
                   -- Set the SOF
-                  ssiSetUserSof(AXIS_CONFIG_C, v.ibAppMaster, '1');
+                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.ibAppMaster, '1');
                end if;
                -- Get EOFE
-               v.eofe                            := ssiGetUserEofe(AXIS_CONFIG_C, obMacMaster);
+               v.eofe                            := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obMacMaster);
                -- Update tData/tKeep with overlapped information
                v.ibAppMaster.tData(15 downto 0)  := r.tData;
                v.ibAppMaster.tKeep(1 downto 0)   := r.tKeep;
@@ -196,7 +195,7 @@ begin
                      -- Set EOF
                      v.ibAppMaster.tLast := '1';
                      -- Set the EOFE
-                     ssiSetUserEofe(AXIS_CONFIG_C, v.ibAppMaster, v.eofe);
+                     ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibAppMaster, v.eofe);
                      -- Next state
                      v.state             := IDLE_S;
                   else
@@ -220,7 +219,7 @@ begin
                -- Set EOF
                v.ibAppMaster.tLast               := '1';
                -- Set the EOFE
-               ssiSetUserEofe(AXIS_CONFIG_C, v.ibAppMaster, r.eofe);
+               ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibAppMaster, r.eofe);
                -- Next state
                v.state                           := IDLE_S;
             end if;
