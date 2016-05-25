@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-24
--- Last update: 2016-05-24
+-- Last update: 2016-05-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,11 +39,13 @@ architecture testbed of RawEthFramerTb is
    constant CLK_PERIOD_C : time := 6.4 ns;
    constant TPD_G        : time := (CLK_PERIOD_C/4);
 
-   constant BYPASS_UDP_C              : boolean  := true;
-   constant BYPASS_RSSI_C             : boolean  := false;
-   constant BYPASS_CHUNKER_C          : boolean  := false;
-   constant CLIENT_WINDOW_ADDR_SIZE_C : positive := 1;
-   constant CLIENT_MAX_NUM_OUTS_SEG_C : positive := (2**CLIENT_WINDOW_ADDR_SIZE_C);
+   constant BYPASS_UDP_C              : boolean          := true;
+   constant BYPASS_RSSI_C             : boolean          := false;
+   constant BYPASS_CHUNKER_C          : boolean          := false;
+   constant PKT_LEN_C                 : slv(31 downto 0) := X"000000AB";
+   constant PRBS_SEED_SIZE_C          : positive         := 128;
+   constant CLIENT_WINDOW_ADDR_SIZE_C : positive         := 1;
+   constant CLIENT_MAX_NUM_OUTS_SEG_C : positive         := (2**CLIENT_WINDOW_ADDR_SIZE_C);
 
    constant SERVER_WINDOW_ADDR_SIZE_C : positive := CLIENT_WINDOW_ADDR_SIZE_C;
    constant SERVER_MAX_NUM_OUTS_SEG_C : positive := (2**CLIENT_WINDOW_ADDR_SIZE_C);
@@ -85,14 +87,14 @@ architecture testbed of RawEthFramerTb is
    signal obClientMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal obClientSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
-   signal errorDet    : slv(1 downto 0);
+   signal errorDet    : slv(0 downto 0);
    signal start       : sl;
    signal stop        : sl;
    signal cnt         : Slv(31 downto 0);
    signal tdc         : Slv(31 downto 0);
    signal trig        : slv(1 downto 0);
    signal frameRate   : Slv32Array(1 downto 0);
-   signal errorDetCnt : SlVectorArray(1 downto 0, 31 downto 0);
+   signal errorDetCnt : SlVectorArray(0 downto 0, 31 downto 0);
    
 begin
 
@@ -364,7 +366,7 @@ begin
          CASCADE_SIZE_G             => 1,
          FIFO_ADDR_WIDTH_G          => 9,
          FIFO_PAUSE_THRESH_G        => 2**8,
-         PRBS_SEED_SIZE_G           => 128,
+         PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
          MASTER_AXI_STREAM_CONFIG_G => ite(BYPASS_RSSI_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
          MASTER_AXI_PIPE_STAGES_G   => 1)
@@ -376,7 +378,7 @@ begin
          locClk       => clk,
          locRst       => rst,
          trig         => '1',
-         packetLength => X"0000000f",
+         packetLength => PKT_LEN_C,
          tDest        => X"00",
          tId          => X"00");    
 
@@ -389,7 +391,7 @@ begin
          CASCADE_SIZE_G            => 1,
          FIFO_ADDR_WIDTH_G         => 9,
          FIFO_PAUSE_THRESH_G       => 2**8,
-         PRBS_SEED_SIZE_G          => 128,
+         PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G               => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
          SLAVE_AXI_STREAM_CONFIG_G => ite(BYPASS_RSSI_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
          SLAVE_AXI_PIPE_STAGES_G   => 0)
@@ -455,7 +457,7 @@ begin
          TPD_G        => TPD_G,
          COMMON_CLK_G => true,
          CNT_WIDTH_G  => 32,
-         WIDTH_G      => 2)
+         WIDTH_G      => 1)
       port map (
          statusIn => errorDet,
          cntRstIn => '0',
