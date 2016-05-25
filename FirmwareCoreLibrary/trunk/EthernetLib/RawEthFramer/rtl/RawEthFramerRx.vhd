@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-23
--- Last update: 2016-05-24
+-- Last update: 2016-05-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -56,15 +56,14 @@ architecture rtl of RawEthFramerRx is
       IDLE_S,
       HDR_S,
       SCAN_S,
-      MOVE_S,
-      LAST_S);
+      MOVE_S);
 
    type RegType is record
       index       : natural range 0 to REMOTE_SIZE_G-1;
       srcMac      : slv(47 downto 0);
-      tData       : slv(15 downto 0);
-      tKeep       : slv(1 downto 0);
+      minByteCnt  : natural range 0 to 127;
       sof         : sl;
+      eof         : sl;
       eofe        : sl;
       obMacSlave  : AxiStreamSlaveType;
       ibAppMaster : AxiStreamMasterType;
@@ -73,9 +72,9 @@ architecture rtl of RawEthFramerRx is
    constant REG_INIT_C : RegType := (
       index       => 0,
       srcMac      => (others => '0'),
-      tData       => (others => '0'),
-      tKeep       => (others => '1'),
+      minByteCnt  => 0,
       sof         => '1',
+      eof         => '0',
       eofe        => '0',
       obMacSlave  => AXI_STREAM_SLAVE_INIT_C,
       ibAppMaster => AXI_STREAM_MASTER_INIT_C,
@@ -131,21 +130,30 @@ begin
                v.obMacSlave.tReady    := '1';
                -- Latch the SRC MAC
                v.srcMac(47 downto 16) := obMacMaster.tData(31 downto 0);
-               -- Save information for next tValid cycle
-               v.tData                := obMacMaster.tData(63 downto 48);
-               v.tKeep                := "11";
-               -- Check the EtherType
-               if obMacMaster.tData(47 downto 32) = ETH_TYPE_G then
+               -- Get the min. byte cache count
+               v.minByteCnt           := conv_integer(obMacMaster.tData(54 downto 48));
+               -- Check for invalid size or invalid EtherType
+               if (obMacMaster.tData(63 downto 55) /= 0) or (v.minByteCnt > 64) or (obMacMaster.tData(47 downto 32) /= ETH_TYPE_G) then
+                  -- Next state
+                  v.state := IDLE_S;
+               else
                   -- Next state
                   v.state := SCAN_S;
                end if;
             end if;
          ----------------------------------------------------------------------
          when SCAN_S =>
-            -- Reset the flag
-            v.sof := '1';
             -- Check the DEST MAC
             if (remoteMac(r.index) /= 0) and (remoteMac(r.index) = r.srcMac) then
+               -- Reset the flag
+               v.sof := '1';
+               if r.minByteCnt = 0 then
+                  v.eof := '0';
+               else
+                  v.eof        := '1';
+                  -- Remove the header offset
+                  v.minByteCnt := r.minByteCnt - 16;
+               end if;
                -- Set the destination
                v.ibAppMaster.tDest := toSlv(r.index, 8);
                -- Next state
@@ -167,9 +175,11 @@ begin
             -- Check if ready to move data
             if (obMacMaster.tValid = '1') and (v.ibAppMaster.tValid = '0') then
                -- Accept the data
-               v.obMacSlave.tReady  := '1';
+               v.obMacSlave.tReady              := '1';
                -- Move the data
-               v.ibAppMaster.tValid := '1';
+               v.ibAppMaster.tValid             := '1';
+               v.ibAppMaster.tData(63 downto 0) := obMacMaster.tData(63 downto 0);
+               v.ibAppMaster.tKeep(7 downto 0)  := obMacMaster.tKeep(7 downto 0);
                -- Check for SOF
                if r.sof = '1' then
                   -- Reset the flag
@@ -178,20 +188,22 @@ begin
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.ibAppMaster, '1');
                end if;
                -- Get EOFE
-               v.eofe                            := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obMacMaster);
-               -- Update tData/tKeep with overlapped information
-               v.ibAppMaster.tData(15 downto 0)  := r.tData;
-               v.ibAppMaster.tKeep(1 downto 0)   := r.tKeep;
-               -- Update tData/tKeep with current information
-               v.ibAppMaster.tData(63 downto 16) := obMacMaster.tData(47 downto 0);
-               v.ibAppMaster.tKeep(7 downto 2)   := obMacMaster.tKeep(5 downto 0);
-               -- Save information for next tValid cycle
-               v.tData                           := obMacMaster.tData(63 downto 48);
-               v.tKeep                           := obMacMaster.tKeep(7 downto 6);
+               v.eofe := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obMacMaster);
                -- Check for tLast
                if obMacMaster.tLast = '1' then
-                  -- Check if no straddling data
-                  if v.tKeep = 0 then
+                  -- Set EOF
+                  v.ibAppMaster.tLast := '1';
+                  -- Set the EOFE
+                  ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibAppMaster, v.eofe);
+                  -- Next state
+                  v.state             := IDLE_S;
+               end if;
+               -- Check if TX engine had min. ETH cache
+               if r.eof = '1' then
+                  -- Check for last transfer
+                  if (r.minByteCnt <= 8) then
+                     -- Update tKeep
+                     v.ibAppMaster.tKeep := genTKeep(r.minByteCnt);
                      -- Set EOF
                      v.ibAppMaster.tLast := '1';
                      -- Set the EOFE
@@ -199,29 +211,10 @@ begin
                      -- Next state
                      v.state             := IDLE_S;
                   else
-                     -- Next state
-                     v.state := LAST_S;
+                     -- Decrement the counter
+                     v.minByteCnt := r.minByteCnt - 8;
                   end if;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when LAST_S =>
-            -- Check if ready to move data
-            if (v.ibAppMaster.tValid = '0') then
-               -- Move the data
-               v.ibAppMaster.tValid              := '1';
-               -- Update tData/tKeep with overlapped information
-               v.ibAppMaster.tData(15 downto 0)  := r.tData;
-               v.ibAppMaster.tKeep(1 downto 0)   := r.tKeep;
-               -- Update tData/tKeep with current information
-               v.ibAppMaster.tData(63 downto 16) := (others => '0');
-               v.ibAppMaster.tKeep(7 downto 2)   := (others => '0');
-               -- Set EOF
-               v.ibAppMaster.tLast               := '1';
-               -- Set the EOFE
-               ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibAppMaster, r.eofe);
-               -- Next state
-               v.state                           := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;
