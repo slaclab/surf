@@ -191,7 +191,7 @@ begin
                -- Check for tLast
                if obMacMaster.tLast = '1' then
                   -- Check if no straddling data
-                  if v.tKeep /= "11" then
+                  if v.tKeep = 0 then
                      -- Set EOF
                      v.ibAppMaster.tLast := '1';
                      -- Set the EOFE
