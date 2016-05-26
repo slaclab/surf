@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-23
--- Last update: 2016-05-25
+-- Last update: 2016-05-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,17 +28,19 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.EthMacPkg.all;
+use work.RawEthFramerPkg.all;
 
 entity RawEthFramerTx is
    generic (
-      TPD_G         : time             := 1 ns;
-      REMOTE_SIZE_G : positive         := 1;
-      ETH_TYPE_G    : slv(15 downto 0) := x"0010");            --  0x1000 (big-Endian configuration)
+      TPD_G      : time             := 1 ns;
+      ETH_TYPE_G : slv(15 downto 0) := x"0010");  --  0x1000 (big-Endian configuration)
    port (
       -- Local Configurations
-      localMac    : in  slv(47 downto 0);                      --  big-Endian configuration
-      remoteMac   : in  Slv48Array(REMOTE_SIZE_G-1 downto 0);  --  big-Endian configuration
+      localMac    : in  slv(47 downto 0);         --  big-Endian configuration
+      remoteMac   : in  slv(47 downto 0);         --  big-Endian configuration
+      tDest       : out slv(7 downto 0);
+      req         : out sl;
+      ack         : in  sl;
       -- Interface to Ethernet Media Access Controller (MAC)
       ibMacMaster : out AxiStreamMasterType;
       ibMacSlave  : in  AxiStreamSlaveType;
@@ -54,15 +56,18 @@ architecture rtl of RawEthFramerTx is
 
    type StateType is (
       IDLE_S,
+      TDEST_S,
       CACHE_S,
       MOVE_S); 
 
    type RegType is record
+      bcf         : sl;
+      req         : sl;
+      tDest       : slv(7 downto 0);
       wen         : sl;
       wrAddr      : slv(2 downto 0);
       wrData      : slv(63 downto 0);
       rdAddr      : slv(15 downto 0);
-      index       : natural range 0 to REMOTE_SIZE_G-1;
       minByteCnt  : natural range 0 to 64;
       eof         : sl;
       eofe        : sl;
@@ -71,11 +76,13 @@ architecture rtl of RawEthFramerTx is
       state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      bcf         => '0',
+      req         => '0',
+      tDest       => (others => '0'),
       wen         => '0',
       wrAddr      => (others => '0'),
       wrData      => (others => '0'),
       rdAddr      => (others => '0'),
-      index       => 0,
       minByteCnt  => 0,
       eof         => '0',
       eofe        => '0',
@@ -111,10 +118,9 @@ begin
          addrb => r.rdAddr(2 downto 0),
          doutb => rdData);
 
-   comb : process (ibMacSlave, localMac, obAppMaster, r, rdData, remoteMac, rst) is
+   comb : process (ack, ibMacSlave, localMac, obAppMaster, r, rdData, remoteMac, rst) is
       variable v     : RegType;
       variable i     : natural;
-      variable index : natural;
       variable tKeep : slv(15 downto 0);
    begin
       -- Latch the current value
@@ -131,7 +137,6 @@ begin
       end if;
 
       -- Update variables
-      index := conv_integer(obAppMaster.tDest);
       tKeep := x"00" & obAppMaster.tKeep(7 downto 0);
 
       -- State Machine
@@ -142,39 +147,56 @@ begin
             v.rdAddr := (others => '0');
             -- Check if ready to move data
             if (obAppMaster.tValid = '1') then
+               -- Check for SOF
+               if (ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, obAppMaster) = '1') then
+                  -- Latch the routing information
+                  v.bcf   := ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, obAppMaster);
+                  v.tDest := obAppMaster.tDest;
+                  -- Set the flag
+                  v.req   := not(v.bcf);
+                  -- Next state
+                  v.state := TDEST_S;
+               else
+                  -- Accept the data
+                  v.obAppSlave.tReady := '1';
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when TDEST_S =>
+            if (ack = '1') or (r.bcf = '1') then
                -- Accept the data
                v.obAppSlave.tReady := '1';
-               -- Check for SOF
-               if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, obAppMaster) = '1') then
-                  -- Check for valid DEST mac and correct index range
-                  if (remoteMac(index) /= 0) and (index < REMOTE_SIZE_G) then
-                     -- Latch the index
-                     v.index  := index;
-                     -- Write to cache
-                     v.wen    := '1';
-                     v.wrAddr := toSlv(2, 3);
-                     for i in 7 downto 0 loop
-                        if tKeep(i) = '1' then
-                           v.wrData(7+(8*i) downto (8*i)) := obAppMaster.tData(7+(8*i) downto (8*i));
-                        else
-                           v.wrData(7+(8*i) downto (8*i)) := x"00";  -- zero padding                    
-                        end if;
-                     end loop;
-                     -- Update the min. ETH Byte counter
-                     v.minByteCnt := 16 + getTKeep(tKeep);           -- include header offset
-                     -- Check for tLast
-                     if obAppMaster.tLast = '1' then
-                        -- Set EOF
-                        v.eof   := '1';
-                        -- Get EOFE
-                        v.eofe  := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obAppMaster);
-                        -- Next state
-                        v.state := MOVE_S;
+               -- Reset the flag
+               v.req               := '0';
+               -- Check for valid DST MAC or broadcast 
+               if (remoteMac /= 0) or (r.bcf = '1') then
+                  -- Write to cache
+                  v.wen    := '1';
+                  v.wrAddr := toSlv(2, 3);
+                  for i in 7 downto 0 loop
+                     if tKeep(i) = '1' then
+                        v.wrData(7+(8*i) downto (8*i)) := obAppMaster.tData(7+(8*i) downto (8*i));
                      else
-                        -- Next state
-                        v.state := CACHE_S;
+                        v.wrData(7+(8*i) downto (8*i)) := x"00";  -- zero padding                    
                      end if;
+                  end loop;
+                  -- Update the min. ETH Byte counter
+                  v.minByteCnt := 16 + getTKeep(tKeep);           -- include header offset
+                  -- Check for tLast
+                  if obAppMaster.tLast = '1' then
+                     -- Set EOF
+                     v.eof   := '1';
+                     -- Get EOFE
+                     v.eofe  := ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, obAppMaster);
+                     -- Next state
+                     v.state := MOVE_S;
+                  else
+                     -- Next state
+                     v.state := CACHE_S;
                   end if;
+               else
+                  -- Next state
+                  v.state := IDLE_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -190,7 +212,7 @@ begin
                   if tKeep(i) = '1' then
                      v.wrData(7+(8*i) downto (8*i)) := obAppMaster.tData(7+(8*i) downto (8*i));
                   else
-                     v.wrData(7+(8*i) downto (8*i)) := x"00";        -- zero padding           
+                     v.wrData(7+(8*i) downto (8*i)) := x"00";     -- zero padding           
                   end if;
                end loop;
                -- Update the min. ETH Byte counter
@@ -200,7 +222,7 @@ begin
                   -- Set EOF
                   v.eof   := '1';
                   -- Get EOFE
-                  v.eofe  := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obAppMaster);
+                  v.eofe  := ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, obAppMaster);
                   -- Next state
                   v.state := MOVE_S;
                elsif r.wrAddr = 6 then
@@ -219,10 +241,15 @@ begin
                -- Check for HDR[0]
                if r.rdAddr = 0 then
                   -- Set the SOF
-                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.ibMacMaster, '1');
+                  ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v.ibMacMaster, '1');
                   -- Move the data
-                  v.ibMacMaster.tValid              := '1';
-                  v.ibMacMaster.tData(47 downto 0)  := remoteMac(r.index);
+                  v.ibMacMaster.tValid := '1';
+                  -- Check for broadcast message
+                  if (r.bcf = '1') then
+                     v.ibMacMaster.tData(47 downto 0) := (others => '1');
+                  else
+                     v.ibMacMaster.tData(47 downto 0) := remoteMac;
+                  end if;
                   v.ibMacMaster.tData(63 downto 48) := localMac(15 downto 0);
                -- Check for HDR[1]
                elsif r.rdAddr = 1 then
@@ -232,9 +259,15 @@ begin
                   v.ibMacMaster.tData(47 downto 32) := ETH_TYPE_G;
                   -- Check for eof during caching
                   if r.eof = '0' then
-                     v.ibMacMaster.tData(63 downto 48) := (others => '0');
+                     v.ibMacMaster.tData(54 downto 48) := (others => '0');
                   else
-                     v.ibMacMaster.tData(63 downto 48) := toSlv(r.minByteCnt, 16);
+                     v.ibMacMaster.tData(54 downto 48) := toSlv(r.minByteCnt, 7);
+                  end if;
+                  -- Check for broadcast message
+                  if (r.bcf = '1') then
+                     v.ibMacMaster.tData(63 downto 55) := (others => '1');
+                  else
+                     v.ibMacMaster.tData(63 downto 55) := r.tDest & '0';
                   end if;
                elsif r.rdAddr(15 downto 3) = 0 then
                   -- Move the data
@@ -247,7 +280,7 @@ begin
                         -- Set EOF
                         v.ibMacMaster.tLast := '1';
                         -- Set the EOFE
-                        ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibMacMaster, r.eofe);
+                        ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v.ibMacMaster, r.eofe);
                         -- Next state
                         v.state             := IDLE_S;
                      end if;
@@ -264,9 +297,9 @@ begin
                      -- Set EOF
                      v.ibMacMaster.tLast := '1';
                      -- Get the EOFE
-                     v.eofe              := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, obAppMaster);
+                     v.eofe              := ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, obAppMaster);
                      -- Set the EOFE
-                     ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.ibMacMaster, v.eofe);
+                     ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v.ibMacMaster, v.eofe);
                      -- Next state
                      v.state             := IDLE_S;
                   end if;
@@ -286,6 +319,8 @@ begin
       -- Outputs        
       obAppSlave  <= v.obAppSlave;
       ibMacMaster <= r.ibMacMaster;
+      tDest       <= r.tDest;
+      req         <= r.req;
       
    end process comb;
 
