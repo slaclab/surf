@@ -15,14 +15,171 @@ Device: &Adc16Dx370
   #########
   IntField:
   #########
+  
+    #########################################################
+    #
+    #   Control registers
+    #
     #########################################################
     - offset: 0x000
-      name: AdcReg
+      name: AdcReg_0x0000
       sizeBits: 8
-      stride: 4
-      nelms: 114
       mode: RW
-      description: ADC Registers[113:0]           
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x008
+      name: AdcReg_0x0002
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x00C
+      name: AdcReg_0x0003
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x00F
+      name: AdcReg_0x0004
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x014
+      name: AdcReg_0x0005
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x018
+      name: AdcReg_0x0006
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x030
+      name: AdcReg_0x000C
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x034
+      name: AdcReg_0x000D
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x038
+      name: AdcReg_0x000E
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x03C
+      name: AdcReg_0x000F
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x040
+      name: AdcReg_0x0010
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x044
+      name: AdcReg_0x0011
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x048
+      name: AdcReg_0x0012
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x04C
+      name: AdcReg_0x0013
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x050
+      name: AdcReg_0x0014
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x054
+      name: AdcReg_0x0015
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x064
+      name: AdcReg_0x0019
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x0EC
+      name: AdcReg_0x003B
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x0F0
+      name: AdcReg_0x003C
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x0F4
+      name: AdcReg_0x003D
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x11C
+      name: AdcReg_0x0047
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x180
+      name: AdcReg_0x0060
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x184
+      name: AdcReg_0x0061
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x188
+      name: AdcReg_0x0062
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x18C
+      name: AdcReg_0x0063
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    - offset: 0x1C0
+      name: AdcReg_0x0070
+      sizeBits: 8
+      mode: RW
+      description: ADC Control Registers
+    #########################################################
+    #
+    #   Status registers
+    #
     #########################################################
     - offset: 0x00C
       name: ID_DEVICE_TYPE
@@ -116,13 +273,13 @@ Device: &Adc16Dx370
     - name: PowerDown
       description: "PowerDown" 
       sequence:
-        - entry: "AdcReg[2]"
+        - entry: "AdcReg_0x0002"
           value: 0x3
     #########################################################
     - name: PowerUp
       description: "PowerUp" 
       sequence:
-        - entry: "AdcReg[2]"
+        - entry: "AdcReg_0x0002"
           value: 0x0          
     #########################################################
     - name: CalibrateAdc
