@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-23
--- Last update: 2016-05-24
+-- Last update: 2016-05-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,24 +32,21 @@ use work.AxiStreamPkg.all;
 entity RawEthFramerWrapper is
    generic (
       TPD_G            : time             := 1 ns;
-      EXT_CONFIG_G     : boolean          := false;
-      REMOTE_SIZE_G    : positive         := 1;
       ETH_TYPE_G       : slv(15 downto 0) := x"0010";  --  0x1000 (big-Endian configuration)
       AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_DECERR_C);      
    port (
       -- Local Configurations
       localMac        : in  slv(47 downto 0);          --  big-Endian configuration
-      remoteMac       : in  Slv48Array(REMOTE_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster     : in  AxiStreamMasterType;
       obMacSlave      : out AxiStreamSlaveType;
       ibMacMaster     : out AxiStreamMasterType;
       ibMacSlave      : in  AxiStreamSlaveType;
       -- Interface to Application engine(s)
-      ibAppMasters    : out AxiStreamMasterArray(REMOTE_SIZE_G-1 downto 0);
-      ibAppSlaves     : in  AxiStreamSlaveArray(REMOTE_SIZE_G-1 downto 0);
-      obAppMasters    : in  AxiStreamMasterArray(REMOTE_SIZE_G-1 downto 0);
-      obAppSlaves     : out AxiStreamSlaveArray(REMOTE_SIZE_G-1 downto 0);
+      ibAppMaster     : out AxiStreamMasterType;
+      ibAppSlave      : in  AxiStreamSlaveType;
+      obAppMaster     : in  AxiStreamMasterType;
+      obAppSlave      : out AxiStreamSlaveType;
       -- AXI-Lite Interface
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
@@ -60,96 +57,68 @@ entity RawEthFramerWrapper is
       rst             : in  sl);
 end RawEthFramerWrapper;
 
-architecture rtl of RawEthFramerWrapper is
+architecture mapping of RawEthFramerWrapper is
 
-   type RegType is record
-      remoteMac      : Slv48Array(REMOTE_SIZE_G-1 downto 0);
-      axilReadSlave  : AxiLiteReadSlaveType;
-      axilWriteSlave : AxiLiteWriteSlaveType;
-   end record;
-
-   constant REG_INIT_C : RegType := (
-      remoteMac      => (others => (others => '0')),
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal tDest     : slv(7 downto 0);
+   signal remoteMac : slv(47 downto 0);
 
 begin
 
-   ------------------
-   -- IPv4/ARP Engine
-   ------------------
+   -----------------------------
+   -- Raw Ethernet Framer Engine
+   -----------------------------
    U_Core : entity work.RawEthFramer
       generic map (
-         TPD_G         => TPD_G,
-         REMOTE_SIZE_G => REMOTE_SIZE_G,
-         ETH_TYPE_G    => ETH_TYPE_G) 
+         TPD_G      => TPD_G,
+         ETH_TYPE_G => ETH_TYPE_G) 
       port map (
          -- Local Configurations
-         localMac     => localMac,
-         remoteMac    => r.remoteMac,
+         localMac    => localMac,
+         remoteMac   => remoteMac,
+         tDest       => tDest,
          -- Interface to Ethernet Media Access Controller (MAC)
-         obMacMaster  => obMacMaster,
-         obMacSlave   => obMacSlave,
-         ibMacMaster  => ibMacMaster,
-         ibMacSlave   => ibMacSlave,
+         obMacMaster => obMacMaster,
+         obMacSlave  => obMacSlave,
+         ibMacMaster => ibMacMaster,
+         ibMacSlave  => ibMacSlave,
          -- Interface to Application engine(s)
-         ibAppMasters => ibAppMasters,
-         ibAppSlaves  => ibAppSlaves,
-         obAppMasters => obAppMasters,
-         obAppSlaves  => obAppSlaves,
+         ibAppMaster => ibAppMaster,
+         ibAppSlave  => ibAppSlave,
+         obAppMaster => obAppMaster,
+         obAppSlave  => obAppSlave,
          -- Clock and Reset
-         clk          => clk,
-         rst          => rst); 
+         clk         => clk,
+         rst         => rst); 
 
-   comb : process (axilReadMaster, axilWriteMaster, r, remoteMac, rst) is
-      variable v      : RegType;
-      variable regCon : AxiLiteEndPointType;
-      variable i      : natural;
-   begin
-      -- Latch the current value
-      v := r;
+   -----------------
+   -- Remote MAC LUT
+   -----------------
+   U_RemoteMacLut : entity work.AxiDualPortRam
+      generic map (
+         TPD_G            => TPD_G,
+         BRAM_EN_G        => true,
+         REG_EN_G         => true,
+         MODE_G           => "read-first",
+         AXI_WR_EN_G      => true,
+         SYS_WR_EN_G      => false,
+         SYS_BYTE_WR_EN_G => false,
+         COMMON_CLK_G     => true,
+         ADDR_WIDTH_G     => 8,
+         DATA_WIDTH_G     => 48,
+         INIT_G           => "0",
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+      port map (
+         -- AXI-Lite Interface
+         axiClk         => clk,
+         axiRst         => rst,
+         axiReadMaster  => axilReadMaster,
+         axiReadSlave   => axilReadSlave,
+         axiWriteMaster => axilWriteMaster,
+         axiWriteSlave  => axilWriteSlave,
+         -- Standard Port
+         clk            => clk,
+         rst            => rst,
+         addr           => tDest,
+         dout           => remoteMac);         
 
-      -- Determine the transaction type
-      axiSlaveWaitTxn(regCon, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
-
-      -- Map the read registers
-      for i in REMOTE_SIZE_G-1 downto 0 loop
-         axiSlaveRegister(regCon, toSlv(8*i+0, 8), 0, v.remoteMac(i)(31 downto 0));
-         axiSlaveRegister(regCon, toSlv(8*i+4, 8), 0, v.remoteMac(i)(47 downto 32));
-         axiSlaveRegisterR(regCon, toSlv(8*i+4, 8), 16, x"0000");
-      end loop;
-      axiSlaveRegisterR(regCon, x"FC", 0, toSlv(REMOTE_SIZE_G, 32));
-
-      -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
-
-      -- Synchronous Reset
-      if (rst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Check for external configuration
-      if (EXT_CONFIG_G = true) then
-         v.remoteMac := remoteMac;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-      -- Outputs
-      axilWriteSlave <= r.axilWriteSlave;
-      axilReadSlave  <= r.axilReadSlave;
-      
-   end process comb;
-
-   seq : process (clk) is
-   begin
-      if (rising_edge(clk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-   
-end rtl;
+end mapping;

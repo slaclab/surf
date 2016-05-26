@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-24
--- Last update: 2016-05-25
+-- Last update: 2016-05-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -205,52 +205,50 @@ begin
       --------------------
       -- RAW ETH Engine[0]
       --------------------
-      U_Server : entity work.RawEthFramerWrapper
+      U_Server : entity work.RawEthFramer
          generic map (
-            TPD_G        => TPD_G,
-            EXT_CONFIG_G => true)
+            TPD_G => TPD_G)
          port map (
             -- Local Configurations
-            localMac        => MAC_ADDR_C(0),
-            remoteMac(0)    => MAC_ADDR_C(1),
+            localMac    => MAC_ADDR_C(0),
+            remoteMac   => MAC_ADDR_C(1),
             -- Interface to Ethernet Media Access Controller (MAC)
-            obMacMaster     => rxMasters(0),
-            obMacSlave      => rxSlaves(0),
-            ibMacMaster     => txMasters(0),
-            ibMacSlave      => txSlaves(0),
+            obMacMaster => rxMasters(0),
+            obMacSlave  => rxSlaves(0),
+            ibMacMaster => txMasters(0),
+            ibMacSlave  => txSlaves(0),
             -- Interface to Application engine(s)
-            ibAppMasters(0) => obServerMaster,
-            ibAppSlaves(0)  => obServerSlave,
-            obAppMasters(0) => ibServerMaster,
-            obAppSlaves(0)  => ibServerSlave,
+            ibAppMaster => obServerMaster,
+            ibAppSlave  => obServerSlave,
+            obAppMaster => ibServerMaster,
+            obAppSlave  => ibServerSlave,
             -- Clock and Reset
-            clk             => clk,
-            rst             => rst);
+            clk         => clk,
+            rst         => rst);
 
       --------------------
       -- RAW ETH Engine[1]
       --------------------
-      U_Client : entity work.RawEthFramerWrapper
+      U_Client : entity work.RawEthFramer
          generic map (
-            TPD_G        => TPD_G,
-            EXT_CONFIG_G => true)
+            TPD_G => TPD_G)
          port map (
             -- Local Configurations
-            localMac        => MAC_ADDR_C(1),
-            remoteMac(0)    => MAC_ADDR_C(0),
+            localMac    => MAC_ADDR_C(1),
+            remoteMac   => MAC_ADDR_C(0),
             -- Interface to Ethernet Media Access Controller (MAC)
-            obMacMaster     => rxMasters(1),
-            obMacSlave      => rxSlaves(1),
-            ibMacMaster     => txMasters(1),
-            ibMacSlave      => txSlaves(1),
+            obMacMaster => rxMasters(1),
+            obMacSlave  => rxSlaves(1),
+            ibMacMaster => txMasters(1),
+            ibMacSlave  => txSlaves(1),
             -- Interface to Application engine(s)
-            ibAppMasters(0) => obClientMaster,
-            ibAppSlaves(0)  => obClientSlave,
-            obAppMasters(0) => ibClientMaster,
-            obAppSlaves(0)  => ibClientSlave,
+            ibAppMaster => obClientMaster,
+            ibAppSlave  => obClientSlave,
+            obAppMaster => ibClientMaster,
+            obAppSlave  => ibClientSlave,
             -- Clock and Reset
-            clk             => clk,
-            rst             => rst);      
+            clk         => clk,
+            rst         => rst);      
 
    end generate;
 
