@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-04-29
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,14 +30,14 @@ use work.AxiStreamDmaRingPkg.all;
 
 entity AxiStreamDmaRingWrite is
    generic (
-      TPD_G                : time                    := 1 ns;
-      BUFFERS_G            : natural range 2 to 64   := 64;
-      BURST_SIZE_BYTES_G   : natural range 4 to 4096 := 4096;
-      TRIGGER_USER_BIT_G   : natural range 0 to 7    := 0;
-      AXIL_BASE_ADDR_G     : slv(31 downto 0)        := (others => '0');
-      DATA_AXIS_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(8);
-      STATUS_AXIS_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(1);
-      AXI_WRITE_CONFIG_G   : AxiConfigType           := axiConfig(32, 8, 1, 8));
+      TPD_G                : time                     := 1 ns;
+      BUFFERS_G            : natural range 2 to 64    := 64;
+      BURST_SIZE_BYTES_G   : natural range 4 to 2**17 := 4096;
+      TRIGGER_USER_BIT_G   : natural range 0 to 7     := 0;
+      AXIL_BASE_ADDR_G     : slv(31 downto 0)         := (others => '0');
+      DATA_AXIS_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
+      STATUS_AXIS_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(1);
+      AXI_WRITE_CONFIG_G   : AxiConfigType            := axiConfig(32, 8, 1, 8));
    port (
       -- AXI-Lite Interface for local registers 
       axilClk         : in  sl;
@@ -83,6 +83,29 @@ architecture rtl of AxiStreamDmaRingWrite is
 
    constant AXIL_RAM_ADDR_WIDTH_C : integer := RAM_ADDR_WIDTH_C + log2((RAM_DATA_WIDTH_C-1)/4);
 
+   constant DMA_ADDR_LOW_C : integer := log2(BURST_SIZE_BYTES_G);
+
+   -- Create burst size constant for status
+   -- 0 = burst size 4
+   -- 1 = burst size 8
+   -- 15 = burst size 131072
+   constant BURST_SIZE_SLV_C : slv(3 downto 0) := toSlv(DMA_ADDR_LOW_C-2, 4);
+
+   function statusRamInit
+      return slv is
+      variable ret : slv(31 downto 0) := (others => '0');
+   begin
+      ret(EMPTY_C)      := '1';
+      ret(FULL_C)       := '0';
+      ret(DONE_C)       := '1';
+      ret(TRIGGERED_C)  := '0';
+      ret(ERROR_C)      := '0';
+      ret(BURST_SIZE_C) := BURST_SIZE_SLV_C;
+      ret(FST_C)        := (others => '0');
+      return ret;
+   end function statusRamInit;
+
+   constant STATUS_RAM_INIT_C : slv(31 downto 0) := statusRamInit;
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
       START_AXIL_C    => (
@@ -91,10 +114,6 @@ architecture rtl of AxiStreamDmaRingWrite is
          connectivity => X"FFFF"),
       END_AXIL_C      => (
          baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, END_AXIL_C),
-         addrBits     => AXIL_RAM_ADDR_WIDTH_C,
-         connectivity => X"FFFF"),
-      FIRST_AXIL_C    => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, FIRST_AXIL_C),
          addrBits     => AXIL_RAM_ADDR_WIDTH_C,
          connectivity => X"FFFF"),
       NEXT_AXIL_C     => (
@@ -139,7 +158,6 @@ architecture rtl of AxiStreamDmaRingWrite is
       activeBuffer     : slv(RAM_ADDR_WIDTH_C-1 downto 0);
       initBufferEn     : sl;
       ramWe            : sl;
-      firstAddr        : slv(RAM_DATA_WIDTH_C-1 downto 0);
       nextAddr         : slv(RAM_DATA_WIDTH_C-1 downto 0);
       startAddr        : slv(RAM_DATA_WIDTH_C-1 downto 0);
       endAddr          : slv(RAM_DATA_WIDTH_C-1 downto 0);
@@ -166,7 +184,6 @@ architecture rtl of AxiStreamDmaRingWrite is
       activeBuffer     => (others => '0'),
       initBufferEn     => '0',
       ramWe            => '0',
-      firstAddr        => (others => '0'),
       nextAddr         => (others => '0'),
       startAddr        => (others => '0'),
       endAddr          => (others => '0'),
@@ -174,7 +191,11 @@ architecture rtl of AxiStreamDmaRingWrite is
       mode             => (others => '0'),
       status           => (others => '0'),
       state            => WAIT_TVALID_S,
-      dmaReq           => AXI_WRITE_DMA_REQ_INIT_C,
+      dmaReq           => (
+         request       => '0',
+         drop          => '0',
+         address       => (others => '0'),
+         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32)),
       trigger          => '0',
       softTrigger      => (others => '0'),
       eofe             => '0',
@@ -192,7 +213,6 @@ architecture rtl of AxiStreamDmaRingWrite is
    signal dmaAck        : AxiWriteDmaAckType;
    signal startRamDout  : slv(RAM_DATA_WIDTH_C-1 downto 0);
    signal endRamDout    : slv(RAM_DATA_WIDTH_C-1 downto 0);
-   signal firstRamDout  : slv(RAM_DATA_WIDTH_C-1 downto 0);
    signal nextRamDout   : slv(RAM_DATA_WIDTH_C-1 downto 0);
    signal trigRamDout   : slv(RAM_DATA_WIDTH_C-1 downto 0);
    signal modeRamDout   : slv(31 downto 0);
@@ -205,6 +225,7 @@ architecture rtl of AxiStreamDmaRingWrite is
 
 begin
    -- Assert that stream config has enough tdest bits for the number of buffers being tracked
+   -- Assert that BURST_SIZE_BYTES_G is a power of 2
 
    -- Crossbar
    U_AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
@@ -274,29 +295,6 @@ begin
          addr           => r.rdRamAddr,
          dout           => endRamDout);
 
-   -- First Addresses. System writeable
-   U_AxiDualPortRam_First : entity work.AxiDualPortRam
-      generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
-         AXI_WR_EN_G  => false,
-         SYS_WR_EN_G  => true,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => RAM_DATA_WIDTH_C)
-      port map (
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => locAxilReadMasters(FIRST_AXIL_C),
-         axiReadSlave   => locAxilReadSlaves(FIRST_AXIL_C),
-         axiWriteMaster => locAxilWriteMasters(FIRST_AXIL_C),
-         axiWriteSlave  => locAxilWriteSlaves(FIRST_AXIL_C),
-         clk            => axiClk,
-         rst            => axiRst,
-         we             => r.ramWe,
-         addr           => r.wrRamAddr,
-         din            => r.firstAddr,
-         dout           => firstRamDout);
 
    -- Next Addresses. System writeable
    U_AxiDualPortRam_Next : entity work.AxiDualPortRam
@@ -380,7 +378,8 @@ begin
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => 32)
+         DATA_WIDTH_G => 32,
+         INIT_G       => STATUS_RAM_INIT_C)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -445,18 +444,19 @@ begin
    -- Main logic
    -------------------------------------------------------------------------------------------------
    comb : process (axiRst, axisDataMaster, bufferClear, bufferClearEn, dmaAck, endRamDout,
-                   firstRamDout, modeRamDout, modeWrAddr, modeWrData, modeWrStrobe, modeWrValid,
-                   nextRamDout, r, startRamDout, statusRamDout, trigRamDout) is
+                   modeRamDout, modeWrAddr, modeWrData, modeWrStrobe, modeWrValid, nextRamDout, r,
+                   startRamDout, statusRamDout, trigRamDout) is
       variable v            : RegType;
       variable axilEndpoint : AxiLiteEndpointType;
    begin
       v := r;
 
-      v.ramWe          := '0';
-      v.dmaReq.maxSize := toSlv(BURST_SIZE_BYTES_G, 32);
-      v.initBufferEn   := '0';
+      -- These registers default to zero
+      v.ramWe                   := '0';
+      v.initBufferEn            := '0';
+      v.axisStatusMaster.tValid := '0';
 
-      -- If last txn of frame, check for trigger condition and latch it in a register
+      -- If last txn of frame, check for trigger condition and EOFE and latch them in registers.
       if (axisDataMaster.tValid = '1' and axisDataMaster.tLast = '1') then
          if(axiStreamGetUserBit(DATA_AXIS_CONFIG_G, axisDataMaster, TRIGGER_USER_BIT_G) = '1') then
             v.trigger := '1';
@@ -471,13 +471,10 @@ begin
          v.softTrigger := r.softTrigger or decode(modeWrAddr);
       end if;
 
-
-
-      -- Don't send status message unless directed to below
-      v.axisStatusMaster.tValid := '0';
-
+      -- Override state machine if a buffer clear is being requested
+      -- This could occur through the ports (bufferClearEn+bufferClear)
+      -- Or through the mode registers
       if (bufferClearEn = '1') then
-         -- Override state machine in a buffer clear is being requested
          v.initBufferEn := '1';
          v.rdRamAddr    := bufferClear;
          v.state        := ASSERT_ADDR_S;
@@ -487,6 +484,7 @@ begin
          v.state        := ASSERT_ADDR_S;
       end if;
 
+      -- Set status and pointers back to init state and write the values to the local ram registers
       if (r.initBufferEn = '1') then
          v.status(DONE_C)      := '0';
          v.status(FULL_C)      := '0';
@@ -495,7 +493,6 @@ begin
          v.status(ERROR_C)     := '0';
          v.status(FST_C)       := (others => '0');
          v.wrRamAddr           := r.rdRamAddr;
-         v.firstAddr           := startRamDout;
          v.nextAddr            := startRamDout;
          v.trigAddr            := (others => '1');
          v.ramWe               := '1';
@@ -529,27 +526,29 @@ begin
             -- But everything this state asserts is still valid
             v.startAddr := startRamDout;   -- Address of start of buffer
             v.endAddr   := endRamDout;     -- Address of end of buffer
-            v.firstAddr := firstRamDout;   -- Address of first frame in buffer
             v.nextAddr  := nextRamDout;    -- Address of next frame in buffer
             v.trigAddr  := trigRamDout;    -- Start address of frame where trigger was seen
             v.mode      := modeRamDout;    -- Number of frames since trigger seen
             v.status    := statusRamDout;  -- Number of frames to log after trigger seen
 
-
             -- Assert a new request.
             -- Direct that frame be dropped if buffer is done with trigger sequence
+            -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
+            -- bits to zero for optimization.
             v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := nextRamDout;
+            v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0)                  := (others => '0');
             v.dmaReq.request                                             := '1';
             v.dmaReq.drop                                                := v.status(DONE_C);
             v.state                                                      := WAIT_DMA_DONE_S;
 
          when WAIT_DMA_DONE_S =>
-            -- Must check that buffer not being cleared so as not to step on the addresses
+            -- Wait until DMA transaction is done.
+            -- Must also check that buffer not being cleared so as not to step on the addresses
             if (dmaAck.done = '1' and v.initBufferEn = '0') then
 
-               v.dmaReq.request  := '0';
-               v.ramWe           := '1';
-               v.status(EMPTY_C) := '0';
+               v.dmaReq.request  := '0';  -- Deassert dma request
+               v.status(EMPTY_C) := '0';  -- Update empty status
+               v.ramWe           := '1';  -- write new values into register ram
 
                -- Increment address of last burst in buffer.
                -- Wrap back to start when it hits the end of the buffer.
@@ -578,11 +577,6 @@ begin
                end if;
 
 
-               -- If the buffer is full, firstAddr moves with nextAddr
-               if (r.status(FULL_C) = '1') then  --v.nextAddr = r.firstAddr
-                  v.firstAddr := v.nextAddr;
-               end if;
-
                -- Increment FramesSinceTrigger when necessary
                if (v.status(TRIGGERED_C) = '1' and r.status(DONE_C) = '0') then
                   v.status(FST_C) := r.status(FST_C) + 1;
@@ -604,7 +598,6 @@ begin
                v.state := WAIT_TVALID_S;
 
             end if;
-
 
       end case;
 

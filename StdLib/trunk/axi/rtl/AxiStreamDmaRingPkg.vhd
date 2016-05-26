@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-08
--- Last update: 2016-04-26
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,14 +29,13 @@ use work.AxiStreamPkg.all;
 
 package AxiStreamDmaRingPkg is
 
-   constant AXIL_MASTERS_C : integer := 7;
+   constant AXIL_MASTERS_C : integer := 6;
    constant START_AXIL_C   : integer := 0;
    constant END_AXIL_C     : integer := 1;
-   constant FIRST_AXIL_C   : integer := 2;
-   constant NEXT_AXIL_C    : integer := 3;
-   constant TRIG_AXIL_C    : integer := 4;
-   constant MODE_AXIL_C    : integer := 5;
-   constant STATUS_AXIL_C  : integer := 6;
+   constant NEXT_AXIL_C    : integer := 2;
+   constant TRIG_AXIL_C    : integer := 3;
+   constant MODE_AXIL_C    : integer := 4;
+   constant STATUS_AXIL_C  : integer := 5;
 
    -- Status constants
    constant EMPTY_C     : integer := 0;
@@ -44,7 +43,8 @@ package AxiStreamDmaRingPkg is
    constant DONE_C      : integer := 2;
    constant TRIGGERED_C : integer := 3;
    constant ERROR_C     : integer := 4;
-   subtype FST_C is integer range 31 downto 8;
+   subtype BURST_SIZE_C is integer range 11 downto 8;
+   subtype FST_C is integer range 31 downto 16;
 
    -- Mode constants
    constant ENABLED_C        : integer := 0;  -- Not currently used
@@ -52,7 +52,7 @@ package AxiStreamDmaRingPkg is
    constant INIT_C           : integer := 2;
    constant SOFT_TRIGGER_C   : integer := 3;
    subtype STATUS_TDEST_C is integer range 7 downto 4;
-   subtype FAT_C is integer range 31 downto 8;
+   subtype FAT_C is integer range 31 downto 16;
 
    constant INIT_BYTE_C : integer := INIT_C / 8;
 

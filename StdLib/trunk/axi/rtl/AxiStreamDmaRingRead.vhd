@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-15
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,13 +31,14 @@ use work.AxiStreamDmaRingPkg.all;
 entity AxiStreamDmaRingRead is
 
    generic (
-      TPD_G                 : time                  := 1 ns;
-      BUFFERS_G             : natural range 2 to 64 := 64;
-      SSI_OUTPUT_G          : boolean               := false;
-      AXIL_BASE_ADDR_G      : slv(31 downto 0)      := (others => '0');
-      AXI_STREAM_READY_EN_G : boolean               := true;
-      AXI_STREAM_CONFIG_G   : AxiStreamConfigType   := ssiAxiStreamConfig(8);
-      AXI_READ_CONFIG_G     : AxiConfigType         := axiConfig(32, 8, 1, 8));
+      TPD_G                 : time                     := 1 ns;
+      BUFFERS_G             : natural range 2 to 64    := 64;
+      BURST_SIZE_BYTES_G    : natural range 4 to 2**17 := 4096;
+      SSI_OUTPUT_G          : boolean                  := false;
+      AXIL_BASE_ADDR_G      : slv(31 downto 0)         := (others => '0');
+      AXI_STREAM_READY_EN_G : boolean                  := true;
+      AXI_STREAM_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
+      AXI_READ_CONFIG_G     : AxiConfigType            := axiConfig(32, 8, 1, 8));
    port (
       -- AXI-Lite Interface for local registers 
       axilClk         : in  sl;
@@ -70,6 +71,7 @@ end entity AxiStreamDmaRingRead;
 
 architecture rtl of AxiStreamDmaRingRead is
 
+   constant DMA_ADDR_LOW_C : integer := log2(BURST_SIZE_BYTES_G);
 
    type StateType is (START_LOW_S, START_HIGH_S, END_LOW_S, END_HIGH_S, DMA_REQ_S, CLEAR_S);
 
@@ -282,11 +284,13 @@ begin
          when DMA_REQ_S =>
             v.axilReq.request := '0';
 
-            v.dmaReq.request   := '1';
-            v.dmaReq.address   := r.startAddr;
-            v.dmaReq.size      := resize(r.endAddr-r.startAddr, 32);
-            v.dmaReq.dest      := resize(buf, 8);
-            v.dmaReq.firstUser := ite(SSI_OUTPUT_G, X"02", X"00");
+            v.dmaReq.request                            := '1';
+            v.dmaReq.address                            := r.startAddr;
+            -- Optimization. Start address will always be on a BURST_SIZE boundary
+            v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0) := (others => '0');
+            v.dmaReq.size                               := resize(r.endAddr-r.startAddr, 32);
+            v.dmaReq.dest                               := resize(buf, 8);
+            v.dmaReq.firstUser                          := ite(SSI_OUTPUT_G, X"02", X"00");
             if (dmaAck.done = '1') then
                v.dmaReq.request        := '0';
                v.intStatusSlave.tready := '1';

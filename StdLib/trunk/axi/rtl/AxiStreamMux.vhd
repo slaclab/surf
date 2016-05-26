@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-03-16
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ begin
       report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
 
-   comb : process (axisRst, pipeAxisSlave, r, sAxisMasters) is
+   comb : process (axisRst, disableSel, pipeAxisSlave, r, sAxisMasters) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;

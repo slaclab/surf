@@ -202,10 +202,17 @@ begin
 
       v.wrDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_WRITE_C or srpReq.opcode = SRP_POSTED_WRITE_C) and not addrError;
       v.wrDmaReq.address := srpReq.addr;
+      -- This helps the DMA engines trim their unaligned access logic
+      if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
+         v.wrDmaReq.address(1 downto 0) := (others => '0');
+      end if;
       v.wrDmaReq.maxSize := srpReq.reqSize + 1;
 
       v.rdDmaReq.request   := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
       v.rdDmaReq.address   := srpReq.addr;
+      if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
+         v.rdDmaReq.address(1 downto 0) := (others => '0');
+      end if;
       v.rdDmaReq.size      := srpReq.reqSize + 1;
 
 
