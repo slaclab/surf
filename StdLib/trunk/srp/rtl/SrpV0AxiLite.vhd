@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-09
--- Last update: 2016-03-29
+-- Last update: 2016-05-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -423,7 +423,8 @@ begin
    MasterAxiStreamFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
+         INT_PIPE_STAGES_G => 0,
+         PIPE_STAGES_G       => 1,
          VALID_THOLD_G       => RESP_THOLD_G,
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,

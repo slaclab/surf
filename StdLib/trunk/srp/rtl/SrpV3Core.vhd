@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-05-04
+-- Last update: 2016-05-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -434,18 +434,6 @@ begin
                         v.state    := FOOTER_S;
                      end if;
 
-                     -------------------------------------------------------------------------------
-                     -- Access checks
-                     -------------------------------------------------------------------------------
-                     -- Check for invalid address size (AXI-Lite only support 32-bit address space)
---                      if (r.addr(63 downto 32) /= 0) then
---                         -- Set the flags
---                         v.memResp(7) := '1';
---                         -- Next State
---                         v.state      := FOOTER_S;
---                      end if;
-
-
                      -- Need to double check all the cases here
                      -- Check for non 32-bit transaction request
                      if (r.srpReq.opCode /= SRP_NULL_C) then
@@ -725,7 +713,7 @@ begin
    U_AxiStreamPipeline_rdData : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         PIPE_STAGES_G => 0)
       port map (
          axisClk     => srpClk,          -- [in]
          axisRst     => srpRst,          -- [in]
@@ -737,7 +725,7 @@ begin
    U_AxiStreamPipeline_wrData : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         PIPE_STAGES_G => 0)
       port map (
          axisClk     => srpClk,          -- [in]
          axisRst     => srpRst,          -- [in]

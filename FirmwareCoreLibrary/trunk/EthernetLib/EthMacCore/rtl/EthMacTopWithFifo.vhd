@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-29
--- Last update: 2016-02-04
+-- Last update: 2016-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ entity EthMacTopWithFifo is
    generic (
       TPD_G         : time                := 1 ns;
       GMII_EN_G     : boolean             := false;  -- False = XGMII Interface only, True = GMII Interface only      
-      AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);      
+      AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- DMA Interface 
       dmaClk      : in  sl;
@@ -57,7 +57,7 @@ entity EthMacTopWithFifo is
       gmiiRxd     : in  slv(7 downto 0) := x"00";
       gmiiTxEn    : out sl;
       gmiiTxEr    : out sl;
-      gmiiTxd     : out slv(7 downto 0));       
+      gmiiTxd     : out slv(7 downto 0));
 end EthMacTopWithFifo;
 
 architecture mapping of EthMacTopWithFifo is
@@ -66,7 +66,7 @@ architecture mapping of EthMacTopWithFifo is
    signal macTxAxisSlave  : AxiStreamSlaveType;
    signal macRxAxisMaster : AxiStreamMasterType;
    signal macRxAxisCtrl   : AxiStreamCtrlType;
-   
+
 begin
 
    ----------
@@ -75,10 +75,12 @@ begin
    U_MacTxFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 1,
          FIFO_ADDR_WIDTH_G   => 10,
          VALID_THOLD_G       => 0,      -- Only when full frame is ready
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C) 
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          sAxisClk    => dmaClk,
          sAxisRst    => dmaClkRst,
@@ -103,7 +105,7 @@ begin
          SHIFT_EN_G      => false,
          FILT_EN_G       => false,
          CSUM_EN_G       => false,
-         GMII_EN_G       => GMII_EN_G) 
+         GMII_EN_G       => GMII_EN_G)
       port map (
          -- Clocks
          ethClk      => ethClk,
@@ -129,7 +131,7 @@ begin
          gmiiTxd     => gmiiTxd,
          -- Configuration and status
          ethConfig   => ethConfig,
-         ethStatus   => ethStatus);    
+         ethStatus   => ethStatus);
 
    ----------
    -- RX FIFO
@@ -137,11 +139,13 @@ begin
    U_MacRxFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 1,
          FIFO_ADDR_WIDTH_G   => 11,
          SLAVE_READY_EN_G    => false,
          FIFO_PAUSE_THRESH_G => 1024,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
          sAxisClk    => ethClk,
          sAxisRst    => ethClkRst,
