@@ -1,0 +1,56 @@
+-------------------------------------------------------------------------------
+-- Title      : 
+-------------------------------------------------------------------------------
+-- File       : Ad9249Pkg.vhd
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-05-26
+-- Last update: 2016-05-26
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: 
+-------------------------------------------------------------------------------
+-- This file is part of <PROJECT_NAME>. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of <PROJECT_NAME>, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.StdRtlPkg.all;
+
+package Ad9249Pkg is
+
+   -- Interface to AD9249 chip
+   -- Chip has two SerialGroup outputs
+   type Ad9249SerialGroupType is record
+      fClkP : sl;                       -- Frame clock
+      fClkN : sl;
+      dClkP : sl;                       -- Data clock
+      dClkN : sl;
+      chP   : slv(7 downto 0);          -- Serial Data channels
+      chN   : slv(7 downto 0);
+   end record;
+
+   type Ad9249SerialGroupArray is array (natural range <>) of Ad9249SerialGroupType;
+
+   -- Deserialized data output
+--   type Ad9249ReadoutType is record
+--     valid : sl;
+--     data  : slv16Array(15 downto 0);
+--   end record;
+
+--   constant ADC_READOUT_INIT_C : Ad9249ReadoutType := (
+--      valid => '0',
+--      data => (others => X"0000"));
+
+--   type Ad9249ReadoutArray is array (natural range <>) of Ad9249ReadoutType;
+
+end package Ad9249ReadoutPkg;
