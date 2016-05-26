@@ -11,7 +11,7 @@
 Device: &AxiStreamDmaRingWrite
   name: AxiStreamDmaRingWrite
   description: DMA Ring Buffer Manager
-  size: 0x10000
+  size: 0x1000
 
   metadata:
     - numBuffers: &numBuffers 4
@@ -23,7 +23,7 @@ Device: &AxiStreamDmaRingWrite
   IntField:
   #########
     #########################################################
-    - offset: 0x00 
+    - offset: 0x000 
       name: StartAddr
       mode: RW
       nelms: *numBuffers
@@ -55,7 +55,7 @@ Device: &AxiStreamDmaRingWrite
       sizeBits: 64
       description: 
     #########################################################
-    - offset: 0x8000
+    - offset: 0x800
       name: Enabled
       mode: RW
       nelms: *numBuffers
@@ -64,7 +64,7 @@ Device: &AxiStreamDmaRingWrite
       sizeBits: 1
       description: 
     #########################################################
-    - offset: 0x8000
+    - offset: 0x800
       name: Mode
       mode: RW
       nelms: *numBuffers
@@ -78,7 +78,7 @@ Device: &AxiStreamDmaRingWrite
           value: 1
       description:
      #########################################################
-    - offset: 0x8000
+    - offset: 0x800
       name: Init
       mode: RW
       nelms: *numBuffers
@@ -88,7 +88,7 @@ Device: &AxiStreamDmaRingWrite
       hidden: true
       description:
     #########################################################
-    - offset: 0x8000
+    - offset: 0x800
       name: SoftTrigger
       mode: RW
       nelms: *numBuffers
@@ -99,7 +99,7 @@ Device: &AxiStreamDmaRingWrite
       description:
    
     #########################################################
-    - offset: 0x8000
+    - offset: 0x800
       name: MsgDest
       mode: RW
       nelms: *numBuffers
@@ -111,7 +111,7 @@ Device: &AxiStreamDmaRingWrite
       description: 
 
     #########################################################
-    - offset: 0x8002
+    - offset: 0x802
       name: FramesAfterTrigger
       mode: RW
       nelms: *numBuffers
@@ -121,7 +121,7 @@ Device: &AxiStreamDmaRingWrite
       description: 
 
     #########################################################
-    - offset: 0xA000
+    - offset: 0xA00
       name: Empty
       mode: RO      
       nelms: *numBuffers
@@ -130,7 +130,7 @@ Device: &AxiStreamDmaRingWrite
       stride: 4
       description: 
     #########################################################
-    - offset: 0xA000
+    - offset: 0xA00
       name: Full
       mode: RO      
       nelms: *numBuffers
@@ -139,7 +139,7 @@ Device: &AxiStreamDmaRingWrite
       stride: 4
       description: 
     #########################################################
-    - offset: 0xA000
+    - offset: 0xA00
       name: Done
       mode: RO      
       nelms: *numBuffers
@@ -148,7 +148,7 @@ Device: &AxiStreamDmaRingWrite
       stride: 4
       description: 
     #########################################################
-    - offset: 0xA000
+    - offset: 0xA00
       name: Triggered
       mode: RO      
       nelms: *numBuffers
@@ -157,7 +157,7 @@ Device: &AxiStreamDmaRingWrite
       stride: 4
       description: 
     #########################################################
-    - offset: 0xA000
+    - offset: 0xA00
       name: Error
       mode: RO      
       nelms: *numBuffers
@@ -166,14 +166,14 @@ Device: &AxiStreamDmaRingWrite
       stride: 4
       description: 
     #########################################################
-    - offset: 0xA001 # Same constant value for every buffer so only define one
+    - offset: 0xA01 # Same constant value for every buffer so only define one
       name: BurstSize
       mode: RO      
       sizeBits: 4
       lsBit: 0
       description:
     #########################################################
-    - offset: 0xA002
+    - offset: 0xA02
       name: FramesSinceTrigger
       mode: RO 
       nelms: *numBuffers
