@@ -248,8 +248,8 @@ begin
       -- Outputs        
       obMacSlave  <= v.obMacSlave;
       ibAppMaster <= r.ibAppMaster;
-      tDest       <= r.ibAppMaster.tDest;
-      req         <= r.req;
+      tDest       <= v.ibAppMaster.tDest;
+      req         <= v.req;
 
    end process comb;
 

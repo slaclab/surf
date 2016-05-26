@@ -143,10 +143,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset the address
-            v.rdAddr := (others => '0');
             -- Check if ready to move data
-            if (obAppMaster.tValid = '1') then
+            if (obAppMaster.tValid = '1') and (v.ibMacMaster.tValid = '0') then
                -- Check for SOF
                if (ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, obAppMaster) = '1') then
                   -- Latch the routing information
@@ -194,6 +192,22 @@ begin
                      -- Next state
                      v.state := CACHE_S;
                   end if;
+                  ------------------
+                  -- Write HDR[0] --
+                  ------------------
+                  -- Set the SOF
+                  ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v.ibMacMaster, '1');
+                  -- Move the data
+                  v.ibMacMaster.tValid := '1';
+                  -- Check for broadcast message
+                  if (r.bcf = '1') then
+                     v.ibMacMaster.tData(47 downto 0) := (others => '1');
+                  else
+                     v.ibMacMaster.tData(47 downto 0) := remoteMac;
+                  end if;
+                  v.ibMacMaster.tData(63 downto 48) := localMac(15 downto 0);
+                  -- Preset the address
+                  v.rdAddr                          := toSlv(1, 16);
                else
                   -- Next state
                   v.state := IDLE_S;
@@ -202,7 +216,7 @@ begin
          ----------------------------------------------------------------------
          when CACHE_S =>
             -- Check if ready to move data
-            if (obAppMaster.tValid = '1') then
+            if (obAppMaster.tValid = '1') and (v.ibMacMaster.tValid = '0') then
                -- Accept the data
                v.obAppSlave.tReady := '1';
                -- Write to cache
@@ -231,6 +245,30 @@ begin
                   -- Next state
                   v.state := MOVE_S;
                end if;
+               -- Check if next state is MOVE_S
+               if v.state = MOVE_S then
+                  ------------------
+                  -- Write HDR[1] --
+                  ------------------               
+                  -- Move the data
+                  v.ibMacMaster.tValid              := '1';
+                  v.ibMacMaster.tData(31 downto 0)  := localMac(47 downto 16);
+                  v.ibMacMaster.tData(47 downto 32) := ETH_TYPE_G;
+                  -- Check for eof during caching
+                  if v.eof = '0' then
+                     v.ibMacMaster.tData(54 downto 48) := (others => '0');
+                  else
+                     v.ibMacMaster.tData(54 downto 48) := toSlv(v.minByteCnt, 7);
+                  end if;
+                  -- Check for broadcast message
+                  if (r.bcf = '1') then
+                     v.ibMacMaster.tData(63 downto 55) := (others => '1');
+                  else
+                     v.ibMacMaster.tData(63 downto 55) := r.tDest & '0';
+                  end if;
+                  -- Preset the address
+                  v.rdAddr := toSlv(2, 16);
+               end if;
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
@@ -238,21 +276,8 @@ begin
             if (v.ibMacMaster.tValid = '0') then
                -- Increment the counter
                v.rdAddr := r.rdAddr + 1;
-               -- Check for HDR[0]
-               if r.rdAddr = 0 then
-                  -- Set the SOF
-                  ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v.ibMacMaster, '1');
-                  -- Move the data
-                  v.ibMacMaster.tValid := '1';
-                  -- Check for broadcast message
-                  if (r.bcf = '1') then
-                     v.ibMacMaster.tData(47 downto 0) := (others => '1');
-                  else
-                     v.ibMacMaster.tData(47 downto 0) := remoteMac;
-                  end if;
-                  v.ibMacMaster.tData(63 downto 48) := localMac(15 downto 0);
                -- Check for HDR[1]
-               elsif r.rdAddr = 1 then
+               if r.rdAddr = 1 then
                   -- Move the data
                   v.ibMacMaster.tValid              := '1';
                   v.ibMacMaster.tData(31 downto 0)  := localMac(47 downto 16);
@@ -319,8 +344,8 @@ begin
       -- Outputs        
       obAppSlave  <= v.obAppSlave;
       ibMacMaster <= r.ibMacMaster;
-      tDest       <= r.tDest;
-      req         <= r.req;
+      tDest       <= v.tDest;
+      req         <= v.req;
       
    end process comb;
 

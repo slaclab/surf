@@ -64,7 +64,7 @@ architecture rtl of RawEthFramer is
       txAck : sl;
       rxMac : slv(47 downto 0);
       txMac : slv(47 downto 0);
-      rdEn  : slv(2 downto 0);
+      rdEn  : sl;
       tDest : slv(7 downto 0);
       state : StateType;
    end record RegType;
@@ -73,7 +73,7 @@ architecture rtl of RawEthFramer is
       txAck => '0',
       rxMac => (others => '0'),
       txMac => (others => '0'),
-      rdEn  => (others => '0'),
+      rdEn  => '0',
       tDest => (others => '0'),
       state => IDLE_S);
 
@@ -84,13 +84,13 @@ architecture rtl of RawEthFramer is
    signal txReq  : sl;
    signal rxDest : slv(7 downto 0);
    signal txDest : slv(7 downto 0);
+   signal rxAck  : sl;
+   signal txAck  : sl;
+   signal rxMac  : slv(47 downto 0);
+   signal txMac  : slv(47 downto 0);
 
    -- attribute dont_touch           : string;
    -- attribute dont_touch of r      : signal is "TRUE";
-   -- attribute dont_touch of rxReq  : signal is "TRUE";
-   -- attribute dont_touch of txReq  : signal is "TRUE";
-   -- attribute dont_touch of rxDest : signal is "TRUE";
-   -- attribute dont_touch of txDest : signal is "TRUE";
 
 begin
 
@@ -101,10 +101,10 @@ begin
       port map (
          -- Local Configurations
          localMac    => localMac,
-         remoteMac   => r.txMac,
+         remoteMac   => txMac,
          tDest       => txDest,
          req         => txReq,
-         ack         => r.txAck,
+         ack         => txAck,
          -- Interface to Ethernet Media Access Controller (MAC)
          ibMacMaster => ibMacMaster,
          ibMacSlave  => ibMacSlave,
@@ -122,10 +122,10 @@ begin
       port map (
          -- Local Configurations
          localMac    => localMac,
-         remoteMac   => r.rxMac,
+         remoteMac   => rxMac,
          tDest       => rxDest,
          req         => rxReq,
-         ack         => r.rxAck,
+         ack         => rxAck,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster => obMacMaster,
          obMacSlave  => obMacSlave,
@@ -147,9 +147,7 @@ begin
       v.txAck := '0';
 
       -- shift Register
-      v.rdEn(0) := '0';
-      v.rdEn(1) := r.rdEn(0);
-      v.rdEn(2) := r.rdEn(1);
+      v.rdEn := '0';
 
       -- State Machine
       case r.state is
@@ -158,23 +156,23 @@ begin
             -- Check for RX request
             if (r.rxAck = '0') and (rxReq = '1') then
                -- Set the flag
-               v.rdEn(0) := '1';
+               v.rdEn  := '1';
                -- Set the data bus
-               v.tDest   := rxDest;
+               v.tDest := rxDest;
                -- Next state
-               v.state   := RX_S;
+               v.state := RX_S;
             elsif (r.txAck = '0') and (txReq = '1') then
                -- Set the flag
-               v.rdEn(0) := '1';
+               v.rdEn  := '1';
                -- Set the data bus
-               v.tDest   := txDest;
+               v.tDest := txDest;
                -- Next state
-               v.state   := TX_S;
+               v.state := TX_S;
             end if;
          ----------------------------------------------------------------------
          when RX_S =>
             -- Check if data is ready
-            if r.rdEn = 0 then
+            if r.rdEn = '0' then
                -- Set the flag
                v.rxAck := '1';
                -- Set the data bus
@@ -185,7 +183,7 @@ begin
          ----------------------------------------------------------------------
          when TX_S =>
             -- Check if data is ready
-            if r.rdEn = 0 then
+            if r.rdEn = '0' then
                -- Set the flag
                v.txAck := '1';
                -- Set the data bus
@@ -205,8 +203,12 @@ begin
       rin <= v;
 
       -- Outputs
-      tDest <= r.tDest;
-
+      tDest <= v.tDest;
+      rxAck <= v.rxAck;
+      txAck <= v.txAck;
+      rxMac <= v.rxMac;
+      txMac <= v.txMac;
+      
    end process comb;
 
    seq : process (clk) is
