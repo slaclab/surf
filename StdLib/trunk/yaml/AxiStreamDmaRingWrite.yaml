@@ -49,7 +49,7 @@ Device: &AxiStreamDmaRingWrite
     #########################################################
     - offset: 0x600
       name: TriggerAddr
-      mode: RW
+      mode: RO
       nelms: *numBuffers
       stride: 8
       sizeBits: 64
