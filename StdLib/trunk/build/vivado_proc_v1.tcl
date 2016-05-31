@@ -26,7 +26,6 @@ proc SourceTclFile { filePath } {
       source ${filePath}
    } _RESULT] 
    if {$src_rc} { 
-      send_msg_id runtcl-1 warning "$_RESULT"
       return false;
    } else {
       return true;
