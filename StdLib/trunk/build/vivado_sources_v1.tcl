@@ -52,8 +52,8 @@ if { ${CORE_FILES} != "" } {
 # Add block design Files
 if { ${BD_FILES} != "" } {
    foreach bdPntr ${BD_FILES} {
-      import_files -quiet -norecurse ${bdPntr}
-      export_ip_user_files -force -quiet -of_objects [get_files ${bdPntr}] 
+      set locPath [import_files -force -norecurse ${bdPntr}]
+      export_ip_user_files -of_objects [get_files ${locPath}] -force -quiet
    }
 }
 
