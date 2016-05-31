@@ -41,13 +41,15 @@ if { [CheckTiming false] == true } {
    ## Check if SDK's .sysdef file exists
    #########################################################
    if { [file exists ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef] == 1 } {
-      set SDK_TIMEOUT 1
-      while {$SDK_TIMEOUT>0} {
+      set SDK_PRJ false
+      while { ${SDK_PRJ} != true } {
          # Setup the project
-         catch {
-            exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout   
-            set SDK_TIMEOUT 0
-         }
+         set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout}]
+         if {$src_rc} { 
+            puts "Retrying to build SDK project"
+         } else {
+            set SDK_PRJ true
+         }         
       }
       # Target specific SDK project script
       SourceTclFile ${VIVADO_DIR}/sdk_prj.tcl

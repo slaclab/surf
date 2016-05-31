@@ -21,14 +21,11 @@ proc VivadoRefresh { vivadoHlsProject } {
 
 # Custom TLC source function
 proc SourceTclFile { filePath } {
-   set src_rc [catch { 
-      puts "source ${filePath}"
+   if { [file exists ${filePath}] == 1 } {
       source ${filePath}
-   } _RESULT] 
-   if {$src_rc} { 
-      return false;
-   } else {
       return true;
+   } else {
+      return false;
    }
 }
 
