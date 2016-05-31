@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-04-20
+-- Last update: 2016-05-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -230,25 +230,25 @@ begin
                         v.outputAxisMaster(0).tLast               := inputAxisMaster.tData(7);
                         v.sof                                     := inputAxisMaster.tData(7);
                      when X"03" =>
-                        v.outputAxisMaster(1).tUser(7 downto 0) := '0' & inputAxisMaster.tUser(14 downto 8);
+                        v.outputAxisMaster(1).tUser(7 downto 0) := '0' & inputAxisMaster.tData(14 downto 8);
                         v.sof                                   := inputAxisMaster.tData(15);
                      when X"07" =>
-                        v.outputAxisMaster(1).tUser(15 downto 8) := '0' & inputAxisMaster.tUser(22 downto 16);
+                        v.outputAxisMaster(1).tUser(15 downto 8) := '0' & inputAxisMaster.tData(22 downto 16);
                         v.sof                                    := inputAxisMaster.tData(23);
                      when X"0F" =>
-                        v.outputAxisMaster(1).tUser(23 downto 16) := '0' & inputAxisMaster.tUser(30 downto 24);
+                        v.outputAxisMaster(1).tUser(23 downto 16) := '0' & inputAxisMaster.tData(30 downto 24);
                         v.sof                                     := inputAxisMaster.tData(31);
                      when X"1F" =>
-                        v.outputAxisMaster(1).tUser(31 downto 24) := '0' & inputAxisMaster.tUser(38 downto 32);
+                        v.outputAxisMaster(1).tUser(31 downto 24) := '0' & inputAxisMaster.tData(38 downto 32);
                         v.sof                                     := inputAxisMaster.tData(39);
                      when X"3F" =>
-                        v.outputAxisMaster(1).tUser(39 downto 32) := '0' & inputAxisMaster.tUser(46 downto 40);
+                        v.outputAxisMaster(1).tUser(39 downto 32) := '0' & inputAxisMaster.tData(46 downto 40);
                         v.sof                                     := inputAxisMaster.tData(47);
                      when X"7F" =>
-                        v.outputAxisMaster(1).tUser(47 downto 40) := '0' & inputAxisMaster.tUser(54 downto 48);
+                        v.outputAxisMaster(1).tUser(47 downto 40) := '0' & inputAxisMaster.tData(54 downto 48);
                         v.sof                                     := inputAxisMaster.tData(55);
                      when X"FF" =>
-                        v.outputAxisMaster(1).tUser(55 downto 48) := '0' & inputAxisMaster.tUser(62 downto 56);
+                        v.outputAxisMaster(1).tUser(55 downto 48) := '0' & inputAxisMaster.tData(62 downto 56);
                         v.sof                                     := inputAxisMaster.tData(63);
                      when others =>
                         null;
