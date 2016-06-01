@@ -28,12 +28,6 @@ Device: &Lmk04828
       mode: RW
       description: LMK Registers
     #########################################################
-    - offset: 0x408
-      name: LmkReg_0x0102
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
-    #########################################################
     - offset: 0x40C
       name: LmkReg_0x0103
       sizeBits: 8
@@ -75,12 +69,6 @@ Device: &Lmk04828
       sizeBits: 8
       mode: RW
       description: LMK Registers
-    #########################################################
-    - offset: 0x428
-      name: LmkReg_0x010A
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
     #########################################################
     - offset: 0x42C
       name: LmkReg_0x010B
@@ -125,12 +113,6 @@ Device: &Lmk04828
       mode: RW
       description: LMK Registers
     #########################################################
-    - offset: 0x448
-      name: LmkReg_0x0112
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
-    #########################################################
     - offset: 0x44C
       name: LmkReg_0x0113
       sizeBits: 8
@@ -172,12 +154,6 @@ Device: &Lmk04828
       sizeBits: 8
       mode: RW
       description: LMK Registers
-    #########################################################
-    - offset: 0x468
-      name: LmkReg_0x011A
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
     #########################################################
     - offset: 0x46C
       name: LmkReg_0x011B
@@ -222,12 +198,6 @@ Device: &Lmk04828
       mode: RW
       description: LMK Registers
     #########################################################
-    - offset: 0x488
-      name: LmkReg_0x0122
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
-    #########################################################
     - offset: 0x48C
       name: LmkReg_0x0123
       sizeBits: 8
@@ -269,12 +239,6 @@ Device: &Lmk04828
       sizeBits: 8
       mode: RW
       description: LMK Registers
-    #########################################################
-    - offset: 0x4A8
-      name: LmkReg_0x012A
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
     #########################################################
     - offset: 0x4AC
       name: LmkReg_0x012B
@@ -318,12 +282,6 @@ Device: &Lmk04828
       sizeBits: 8
       mode: RW
       description: LMK Registers
-    #########################################################
-    - offset: 0x4C8
-      name: LmkReg_0x0132
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers 
     #########################################################
     - offset: 0x4CC
       name: LmkReg_0x0133
@@ -757,7 +715,7 @@ Device: &Lmk04828
       description: ID_VNDR_LOWER
     #########################################################
     #
-    #   Command support registers
+    #   Command support variables
     #
     #########################################################
     - offset: 0x4E4    
