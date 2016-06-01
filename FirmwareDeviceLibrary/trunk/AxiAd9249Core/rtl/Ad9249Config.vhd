@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-05-26
+-- Last update: 2016-05-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,23 +26,28 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
 entity Ad9249Config is
-   
+
    generic (
-      TPD_G        : time    := 1 ns;
-      SIMULATION_G : boolean := false);
+      TPD_G             : time            := 1 ns;
+      NUM_CHIPS_G       : positive        := 1;
+      SIMULATION_G      : boolean         := false;
+      SCLK_PERIOD_G     : real            := 1.0e-6;
+      AXIL_CLK_PERIOD_G : real            := 8.0e-9;
+      AXIL_ERR_RESP_G   : slv(1 downto 0) := AXI_RESP_DECERR_C);
 
    port (
       axiClk : in sl;
       axiRst : in sl;
 
-      axiReadMaster  : in  AxiLiteReadMasterType;
-      axiReadSlave   : out AxiLiteReadSlaveType;
-      axiWriteMaster : in  AxiLiteWriteMasterType;
-      axiWriteSlave  : out AxiLiteWriteSlaveType;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
 
+      adcPdwn : out   sl;
       adcSclk : out   sl;
       adcSdio : inout sl;
-      adcCsb  : out   sl
+      adcCsb  : out   slv(NUM_CHIPS_G*2-1 downto 0)
 
       );
 
@@ -58,60 +63,76 @@ architecture rtl of Ad9249Config is
    signal coreSclk  : sl;
    signal coreSDin  : sl;
    signal coreSDout : sl;
-   signal coreCsb   : sl;
+   signal coreCsb   : slv(1 downto 0);
+
+   constant CHIP_SEL_WIDTH_C : integer                       := bitSize(NUM_CHIPS_G*2-1);
+   constant PWDN_ADDR_BIT_C  : integer                       := 10 + CHIP_SEL_WIDTH_C;
+   constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := (PWDN_ADDR_BIT_C => '1', others => '0');
 
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_SPI_TXN_DONE_S);
 
    -- Registers
    type RegType is record
-      state         : StateType;
-      axiReadSlave  : AxiLiteReadSlaveType;
-      axiWriteSlave : AxiLiteWriteSlaveType;
+      state          : StateType;
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
       -- Adc Core Inputs
-      wrData        : slv(23 downto 0);
-      wrEn          : sl;
+      chipSel        : slv(CHIP_SEL_WIDTH_C-1 downto 0);
+      wrData         : slv(23 downto 0);
+      wrEn           : sl;
+      pdwn           : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state         => WAIT_AXI_TXN_S,
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      wrData        => (others => '0'),
-      wrEn          => '0');
+      state          => WAIT_AXI_TXN_S,
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      chipSel        => "0",
+      wrData         => (others => '0'),
+      wrEn           => '0',
+      pdwn           => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (axiRst, axiReadMaster, axiWriteMaster, r, rdData, rdEn) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
+   comb : process (axiRst, axilReadMaster, axilWriteMaster, r, rdData, rdEn) is
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndpointType;
    begin
       v := r;
 
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
+      -- Chip powerdown signal is local registers
+      for i in 0 to NUM_CHIPS_G loop
+         axiSlaveRegister(axilEp, PWDN_ADDR_C + (i*4), 0, v.pdwn(i));
+      end loop;
+
+      -- Any other address is forwarded to the chip via SPI
       case (r.state) is
          when WAIT_AXI_TXN_S =>
 
-            if (axiStatus.writeEnable = '1') then
-               v.wrData(23)           := '0';                                -- Write bit
-               v.wrData(22 downto 21) := "00";                               -- Number of bytes (1)
-               v.wrData(20 downto 16) := "00000";                            -- Unused address bits
-               v.wrData(15 downto 8)  := axiWriteMaster.awaddr(9 downto 2);  -- Address
-               v.wrData(7 downto 0)   := axiWriteMaster.wdata(7 downto 0);   -- Data
+            if (axilEp.axiStatus.writeEnable = '1' and axilWriteMaster.awaddr(PWDN_ADDR_BIT_C) = '0') then
+               v.wrData(23)           := '0';                                 -- Write bit
+               v.wrData(22 downto 21) := "00";                                -- Number of bytes (1)
+               v.wrData(20 downto 16) := "00000";                             -- Unused address bits
+               v.wrData(15 downto 8)  := axilWriteMaster.awaddr(9 downto 2);  -- Address
+               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);   -- Data
+               v.chipSel              := axilWriteMaster.awaddr(10+CHIP_SEL_WIDTH_C-1 downto 10);  -- Bank select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
 
-            if (axiStatus.readEnable = '1') then
+            if (axilEp.axiStatus.readEnable = '1' and axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
                v.wrData(23)           := '1';              -- read bit
                v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
                v.wrData(20 downto 16) := "00000";          -- Unused address bits
-               v.wrData(15 downto 8)  := axiReadMaster.araddr(9 downto 2);  -- Address
+               v.wrData(15 downto 8)  := axilReadMaster.araddr(9 downto 2);  -- Address
                v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
                                                            -- drive during data segment
+               v.chipSel              := axilReadMaster.araddr(10+CHIP_SEL_WIDTH_C-1 downto 10);  -- Bank Select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
@@ -127,17 +148,19 @@ begin
                v.state := WAIT_AXI_TXN_S;
                if (r.wrData(23) = '0') then
                   -- Finish write
-                  axiSlaveWriteResponse(v.axiWriteSlave);
+                  axiSlaveWriteResponse(v.axilWriteSlave);
                else
                   -- Finish read
-                  v.axiReadSlave.rdata             := (others => '0');
-                  v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-                  axiSlaveReadResponse(v.axiReadSlave);
+                  v.axilReadSlave.rdata             := (others => '0');
+                  v.axilReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
+                  axiSlaveReadResponse(v.axilReadSlave);
                end if;
             end if;
 
          when others => null;
       end case;
+
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXIL_ERR_RESP_G);
 
       if (axiRst = '1') then
          v := REG_INIT_C;
@@ -145,9 +168,9 @@ begin
 
       rin <= v;
 
-      axiWriteSlave <= r.axiWriteSlave;
-      axiReadSlave  <= r.axiReadSlave;
-      
+      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
+
    end process comb;
 
    seq : process (axiClk) is
@@ -160,24 +183,24 @@ begin
    SpiMaster_1 : entity work.SpiMaster
       generic map (
          TPD_G             => TPD_G,
-         NUM_CHIPS_G       => 1,
+         NUM_CHIPS_G       => NUM_CHIPS_G*2,
          DATA_SIZE_G       => 24,
          CPHA_G            => '0',      -- Sample on leading edge
          CPOL_G            => '0',      -- Sample on rising edge
-         CLK_PERIOD_G      => 8.0E-9,
-         SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 100.0E-9, 100.0E-6))
+         CLK_PERIOD_G      => AXIL_CLK_PERIOD_G,
+         SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 100.0E-9, SCLK_PERIOD_G))
       port map (
-         clk       => axiClk,
-         sRst      => axiRst,
-         chipSel   => "0",
-         wrEn      => r.wrEn,
-         wrData    => r.wrData,
-         rdEn      => rdEn,
-         rdData    => rdData,
-         spiCsL(0) => coreCsb,
-         spiSclk   => coreSclk,
-         spiSdi    => coreSDout,
-         spiSdo    => coreSDin);
+         clk     => axiClk,
+         sRst    => axiRst,
+         chipSel => r.chipSel,
+         wrEn    => r.wrEn,
+         wrData  => r.wrData,
+         rdEn    => rdEn,
+         rdData  => rdData,
+         spiCsL  => coreCsb,
+         spiSclk => coreSclk,
+         spiSdi  => coreSDout,
+         spiSdo  => coreSDin);
 
    -- Bus lines float to Z when not being driven to '0'.
    -- Lines should all have resistor pullups off chip
@@ -189,20 +212,23 @@ begin
 
    SDIO_IOBUFT : IOBUF
       port map (
-         I => '0',
-         O => coreSDin,
+         I  => '0',
+         O  => coreSDin,
          IO => adcSdio,
-         T => coreSDout);
+         T  => coreSDout);
 
-   CSB_OBUFT : OBUFT
-      port map (
-         I => '0',
-         O => adcCsb,
-         T => coreCsb);
-   
---   adcSclk  <= '0' when coreSclk = '0'  else 'Z';
---   adcSdio  <= '0' when coreSDout = '0' else 'Z';
---   coreSDin <= to_x01z(adcSdio);
---   adcCsb   <= '0' when coreCsb = '0'   else 'Z';
+   CSB_OBUFT : for i in NUM_CHIPS_G-1 downto 0 generate
+      CSB0_OBUFT : OBUFT
+         port map (
+            I => '0',
+            O => adcCsb(i*2),
+            T => coreCsb(i*2));
+
+      CSB1_OBUFT : OBUFT
+         port map (
+            I => '0',
+            O => adcCsb(i*2+1),
+            T => coreCsb(i*2+1));
+   end generate;
 
 end architecture rtl;
