@@ -18,7 +18,7 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
-use work.SynchronizePkg.all;
+-- use work.SynchronizePkg.all;
 use work.SaciMasterPkg.all;
 
 entity SaciMasterSync is
@@ -46,6 +46,23 @@ entity SaciMasterSync is
 end entity SaciMasterSync;
 
 architecture rtl of SaciMasterSync is
+
+  type SynchronizerType is record
+    tmp  : sl;
+    sync : sl;
+    last : sl;
+  end record;
+  constant SYNCHRONIZER_INIT_0_C : SynchronizerType := (tmp => '0', sync => '0', last => '0');
+  constant SYNCHRONIZER_INIT_1_C : SynchronizerType := (tmp => '1', sync => '1', last => '1');
+  procedure synchronize (
+    input   : in  sl;
+    current : in  SynchronizerType;
+    nextOut : out SynchronizerType) is
+  begin
+    nextOut.tmp  := input;
+    nextOut.sync := current.tmp;
+    nextOut.last := current.sync;
+  end procedure;  
 
   type StateType is (IDLE_S, CHIP_SELECT_S, TX_S, RX_START_S, RX_HEADER_S, RX_DATA_S, ACK_S);
 
