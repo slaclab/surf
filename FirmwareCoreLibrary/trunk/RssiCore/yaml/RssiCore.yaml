@@ -176,7 +176,7 @@ Device: &RssiCore
   Commands:
   #########
     #########################################################
-    - name: OpenConn
+    - name: C_OpenConn
       description: "Open connection request"
       sequence:
         - entry: OpenConn
@@ -184,7 +184,7 @@ Device: &RssiCore
         - entry: OpenConn
           value: 0x0          
     #########################################################
-    - name: CloseConn
+    - name: C_CloseConn
       description: "Close connection request"
       sequence:
         - entry: CloseConn
@@ -192,7 +192,7 @@ Device: &RssiCore
         - entry: CloseConn
           value: 0x0   
     #########################################################
-    - name: InjectFault
+    - name: C_InjectFault
       description: "Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission"
       sequence:
         - entry: InjectFault
