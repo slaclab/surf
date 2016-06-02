@@ -1,3 +1,4 @@
 vhdl work SaciMasterPkg.vhd
 vhdl work SaciMaster.vhd
-
+vhdl work SaciMasterSync.vhd
+vhdl work AxiLiteSaciMaster.vhd
