@@ -192,12 +192,24 @@ Device: &AxiStreamDmaRingWrite
         StartAddr. Clear the Done field.
       nelms: *numBuffers
       sequence:
-        - entry: Init
+        - entry: Init[0]
           value: 0x1        
-        - entry: Init
+        - entry: Init[1]
+          value: 0x1        
+        - entry: Init[2]
+          value: 0x1        
+        - entry: Init[3]
+          value: 0x1        
+        - entry: Init[0]
+          value: 0x0
+        - entry: Init[1]
+          value: 0x0
+        - entry: Init[2]
+          value: 0x0
+        - entry: Init[3]
           value: 0x0
     #########################################################
-    - name: SoftTrigger
+    - name: C_SoftTrigger
       description: Send a trigger to the buffer
       nelms: *numBuffers
       sequence:
