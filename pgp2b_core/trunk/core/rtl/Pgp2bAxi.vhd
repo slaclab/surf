@@ -117,8 +117,8 @@ entity Pgp2bAxi is
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
       AXI_CLK_FREQ_G     : real                  := 125.0E+6;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4
-   );
+      ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4;
+      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C);  
    port (
 
       -- TX PGP Interface (pgpTxClk)
