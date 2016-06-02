@@ -207,7 +207,7 @@ Device: &JesdRx
   Commands:
   #########
     #########################################################
-    - name: ClearErrors
+    - name: C_ClearErrors
       description: Clear the registered errors of all RX lanes
       sequence:
         - entry: ClearErrors
@@ -215,7 +215,7 @@ Device: &JesdRx
         - entry: ClearErrors
           value: 0x0   
     #########################################################
-    - name: ResetGTs
+    - name: C_ResetGTs
       description: Toggle the reset of all RX MGTs
       sequence:
         - entry: ResetGTs
