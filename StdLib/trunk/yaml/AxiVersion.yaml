@@ -88,13 +88,13 @@ Device: &AxiVersion
   Commands:
   #########
     #########################################################
-    - name: MasterReset
+    - name: C_MasterReset
       description: Perform a logical reset 
       sequence:
         - entry: MasterReset
           value: 0x1
     #########################################################
-    - name: FpgaReload
+    - name: C_FpgaReload
       description: Reload the FPGA from the attached PROM 
       sequence:
         - entry: FpgaReload
