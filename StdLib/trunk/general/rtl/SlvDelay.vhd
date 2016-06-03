@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-14
--- Last update: 2015-09-14
+-- Last update: 2016-06-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,56 +30,55 @@ use work.StdRtlPkg.all;
 entity SlvDelay is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
-      DELAY_G        : natural  := 1;   --number of clock cycle delays
-      WIDTH_G        : positive := 16;
-      INIT_G         : slv      := "0");      
+      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      SRL_EN_G       : boolean  := false;  -- Allow an SRL to be inferred. Disables reset.
+      DELAY_G        : natural  := 1;  --number of clock cycle delays. MAX delay stages when using
+                                        --delay input
+      WIDTH_G        : positive := 1;
+      INIT_G         : slv      := "0");
    port (
-      clk  : in  sl;
-      en   : in  sl := '1';             -- Optional clock enable
-      rst  : in  sl := not RST_POLARITY_G;  -- Optional reset             
-      din  : in  slv(WIDTH_G-1 downto 0);
-      dout : out slv(WIDTH_G-1 downto 0));
+      clk   : in  sl;
+      rst   : in  sl                            := not RST_POLARITY_G;  -- Optional reset
+      en    : in  sl                            := '1';                 -- Optional clock enable
+      delay : in  slv(log2(DELAY_G)-1 downto 0) := toSlv(DELAY_G-1, log2(DELAY_G));
+      din   : in  slv(WIDTH_G-1 downto 0);
+      dout  : out slv(WIDTH_G-1 downto 0));
 end entity SlvDelay;
 
 architecture rtl of SlvDelay is
 
-   type VectorArray is array (DELAY_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
+   constant INIT_C : slv(WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(WIDTH_G), INIT_G);
 
-   function FillVectorArray (INPUT : slv)
-      return VectorArray is
-      variable retVar : VectorArray := (others => (others => '0'));
-   begin
-      if INPUT = "0" then
-         retVar := (others => (others => '0'));
-      else
-         for i in DELAY_G-1 downto 0 loop
-            for j in WIDTH_G-1 downto 0 loop
-               retVar(i)(j) := INIT_G(i);
-            end loop;
-         end loop;
-      end if;
-      return retVar;
-   end function FillVectorArray;
+   type VectorArray is array (DELAY_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
 
    type RegType is record
       shift : VectorArray;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      shift => FillVectorArray(INIT_G));      
+      shift => (others => INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
+   signal iDelay : natural;
+
+   constant SRL_C               : string := ite(SRL_EN_G, "YES", "NO");
+   attribute shreg_extract      : string;
+   attribute shreg_extract of r : signal is SRL_C;
+
 begin
 
    NO_DELAY : if (DELAY_G = 0) generate
       dout <= din;
-   end generate;
+   end generate NO_DELAY;
 
-   DELAY : if (DELAY_G > 0) generate
+   YES_DELAY : if (DELAY_G > 0) generate
 
-      comb : process (din, en, r, rst) is
+
+--   iDelay <= conv_integer(delay) when PROG_DELAY_EN_G else DELAY_G-1;
+      iDelay <= conv_integer(delay);
+
+      comb : process (din, en, iDelay, r, rst) is
          variable v : RegType;
       begin
          -- Latch the current value
@@ -97,7 +96,7 @@ begin
          end if;
 
          -- Reset
-         if (rst = RST_POLARITY_G) then
+         if (rst = RST_POLARITY_G and not SRL_EN_G) then
             v := REG_INIT_C;
          end if;
 
@@ -105,7 +104,7 @@ begin
          rin <= v;
 
          -- Outputs        
-         dout <= r.shift(DELAY_G-1);
+         dout <= r.shift(iDelay);
 
       end process comb;
 
@@ -115,7 +114,5 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
-   end generate;
-
+   end generate YES_DELAY;
 end rtl;
