@@ -1,0 +1,1 @@
+manual yaml/Gthe3Channel.yaml
