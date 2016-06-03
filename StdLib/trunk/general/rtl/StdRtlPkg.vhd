@@ -57,7 +57,7 @@ package StdRtlPkg is
    -- Very useful functions
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
-   function log2 (constant number    : positive) return natural;
+   function log2 (constant number    : integer) return natural;
    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
    function wordCount (number : positive; wordSize : positive := 8) return natural; 
@@ -716,8 +716,11 @@ package body StdRtlPkg is
    -- Arg: number - integer to find log2 of
    -- Returns: Integer containing log base two of input.
    ---------------------------------------------------------------------------------------------------------------------
-   function log2(constant number : positive) return natural is
+   function log2(constant number : integer) return natural is
    begin
+      if (number < 2) then
+         return 1;
+      end if;
       return integer(ceil(ieee.math_real.log2(real(number))));
    end function;
 
@@ -1102,6 +1105,9 @@ package body StdRtlPkg is
    -- convert an integer to an STD_LOGIC_VECTOR
    function toSlv(ARG : integer; SIZE : integer) return slv is
    begin
+      if (arg < 0) then
+         return slv(to_unsigned(0, SIZE));
+      end if;
       return slv(to_unsigned(ARG, SIZE));
    end;
 
