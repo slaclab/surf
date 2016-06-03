@@ -63,7 +63,9 @@ set_msg_config -id {Timing 38-3} -new_severity INFO; #User defined clocks are co
 
 # Messages: Change from WARNING to ERROR
 set_msg_config -id {Synth 8-3512} -new_severity ERROR;# SYNTH: Assigned value in logic is out of range 
+set_msg_config -id {Synth 8-327}  -new_severity ERROR;# SYNTH: Inferred latch
 set_msg_config -id {VRFC 10-664}  -new_severity ERROR;# SIM:   expression has XXX elements ; expected XXX
+
 # set_msg_config -id {Synth 8-3848} -new_severity ERROR;# SYNTH: Input doesn't does not have driver
 
 ## Check for version 2015.3 (or older)
