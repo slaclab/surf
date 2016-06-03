@@ -34,6 +34,7 @@ entity SlvDelay is
       SRL_EN_G       : boolean  := false;  -- Allow an SRL to be inferred. Disables reset.
       DELAY_G        : natural  := 1;  --number of clock cycle delays. MAX delay stages when using
                                         --delay input
+      REG_OUTPUT_G : boolean := false;  -- For use with Dynamic SRLs, adds extra delay register on output
       WIDTH_G        : positive := 1;
       INIT_G         : slv      := "0");
    port (
@@ -61,6 +62,7 @@ architecture rtl of SlvDelay is
    signal rin : RegType;
 
    signal iDelay : natural;
+   signal iDout : slv(WIDTH_G-1 downto 0);
 
    constant SRL_C               : string := ite(SRL_EN_G, "YES", "NO");
    attribute shreg_extract      : string;
@@ -74,8 +76,6 @@ begin
 
    YES_DELAY : if (DELAY_G > 0) generate
 
-
---   iDelay <= conv_integer(delay) when PROG_DELAY_EN_G else DELAY_G-1;
       iDelay <= conv_integer(delay);
 
       comb : process (din, en, iDelay, r, rst) is
@@ -104,7 +104,7 @@ begin
          rin <= v;
 
          -- Outputs        
-         dout <= r.shift(iDelay);
+         iDout <= r.shift(iDelay);
 
       end process comb;
 
@@ -114,5 +114,24 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
+
+      OUT_REG: if (REG_OUTPUT_G) generate
+         REG: process (clk) is
+         begin
+            if (rising_edge(clk)) then
+               if (rst = '1') then
+                  dout <= INIT_C;
+               else
+                  dout <= iDout;                  
+               end if;
+            end if;
+         end process REG;
+      end generate OUT_REG;
+
+      NO_OUT_REG: if (not REG_OUTPUT_G) generate
+         dout <= iDout;
+      end generate NO_OUT_REG;
+      
    end generate YES_DELAY;
+   
 end rtl;
