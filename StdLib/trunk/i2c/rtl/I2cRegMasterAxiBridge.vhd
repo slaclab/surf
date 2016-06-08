@@ -123,8 +123,8 @@ architecture rtl of I2cRegMasterAxiBridge is
 --      i2cRegMasterOut,
 --      i2cRegMasterIn : signal is "TRUE";
 
---   attribute mark_debug : string;
---   attribute mark_debug of
+--   attribute dont_touch : string;
+--   attribute dont_touch of
 --      axiReadMaster,
 --      axiReadSlave,
 --      axiWriteMaster,
