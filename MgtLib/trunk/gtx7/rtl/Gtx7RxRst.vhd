@@ -193,8 +193,8 @@ architecture RTL of Gtx7RxRst is
    
   signal fsmCnt : std_logic_vector(15 downto 0);   
   
-   attribute mark_debug : string;
-   attribute mark_debug of rx_state,
+   attribute dont_touch : string;
+   attribute dont_touch of rx_state,
       reset_time_out,
       recclk_mon_restart_count,
       retry_counter_int,
