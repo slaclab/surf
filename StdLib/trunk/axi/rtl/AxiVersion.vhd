@@ -35,6 +35,7 @@ entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;
       AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_DECERR_C;
+      HW_CONFIG_ID_G     : slv(31 downto 0)       := (others => '0');
       CLK_PERIOD_G       : real                   := 8.0E-9;     -- units of seconds
       XIL_DEVICE_G       : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
       EN_DEVICE_DNA_G    : boolean                := false;
@@ -209,6 +210,7 @@ begin
       axiSlaveRegister(axilEp, X"024", 0, v.counter, X"00000000");
       axiSlaveRegister(axilEp, X"028", 0, v.haltReload);
       axiSlaveRegisterR(axilEp, X"02C", 0, r.upTimeCnt);
+      axiSlaveRegisterR(axilEp, X"030", 0, HW_CONFIG_ID_G);
 
       axiSlaveRegisterR(axilEp, "01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
       axiSlaveRegisterR(axilEp, "10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
