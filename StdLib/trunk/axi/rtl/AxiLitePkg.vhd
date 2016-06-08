@@ -183,7 +183,7 @@ package AxiLitePkg is
       axiWriteSlave  : AxiLiteWriteSlaveType;
       axiStatus      : AxiLiteStatusType;
    end record AxiLiteEndpointType;
-   
+
    constant AXI_LITE_END_POINT_INIT_C : AxiLiteEndpointType := (
       axiReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
@@ -297,17 +297,17 @@ package AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    procedure axiSlaveWaitTxn (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      signal   axiWriteMaster  : in    AxiLiteWriteMasterType;
-      signal   axiReadMaster   : in    AxiLiteReadMasterType;
+      signal axiWriteMaster    : in    AxiLiteWriteMasterType;
+      signal axiReadMaster     : in    AxiLiteReadMasterType;
       variable axiWriteSlave   : in    AxiLiteWriteSlaveType;
       variable axiReadSlave    : in    AxiLiteReadSlaveType);
 
-   procedure axiSlaveRegister   (
+   procedure axiSlaveRegister (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
       addr                     : in    slv;
       offset                   : in    integer;
       reg                      : inout slv;
-      constVal                 : in    slv     := "X");
+      constVal                 : in    slv := "X");
 
    procedure axiSlaveRegisterR (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
@@ -315,12 +315,12 @@ package AxiLitePkg is
       offset                   : in    integer;
       reg                      : in    slv);
 
-   procedure axiSlaveRegister   (
+   procedure axiSlaveRegister (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
       addr                     : in    slv;
       offset                   : in    integer;
       reg                      : inout sl;
-      constVal                 : in    sl      := 'X');
+      constVal                 : in    sl := 'X');
 
    procedure axiSlaveRegisterR (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
@@ -351,20 +351,20 @@ package AxiLitePkg is
    -- Simulation procedures
    -------------------------------------------------------------------------------------------------
    procedure axiLiteBusSimWrite (
-      signal axilClk          : in  sl;
+      signal axilClk         : in  sl;
       signal axilWriteMaster : out AxiLiteWriteMasterType;
       signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
-      addr            : in  slv(31 downto 0);
-      data            : in  slv;
-      debug           : in  boolean := false);
-   
+      addr                   : in  slv(31 downto 0);
+      data                   : in  slv;
+      debug                  : in  boolean := false);
+
    procedure axiLiteBusSimRead (
-      signal axilClk         : in  sl;
+      signal axilClk        : in  sl;
       signal axilReadMaster : out AxiLiteReadMasterType;
       signal axilReadSlave  : in  AxiLiteReadSlaveType;
-      addr           : in  slv(31 downto 0);
-      data           : out slv;
-      debug          : in  boolean := false);
+      addr                  : in  slv(31 downto 0);
+      data                  : out slv;
+      debug                 : in  boolean := false);
 
 
 end AxiLitePkg;
@@ -591,8 +591,8 @@ package body AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    procedure axiSlaveWaitTxn (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      signal   axiWriteMaster  : in    AxiLiteWriteMasterType;
-      signal   axiReadMaster   : in    AxiLiteReadMasterType;
+      signal axiWriteMaster    : in    AxiLiteWriteMasterType;
+      signal axiReadMaster     : in    AxiLiteReadMasterType;
       variable axiWriteSlave   : in    AxiLiteWriteSlaveType;
       variable axiReadSlave    : in    AxiLiteReadSlaveType) is
    begin
@@ -601,17 +601,17 @@ package body AxiLitePkg is
       axiLiteEndpoint.axiWriteSlave  := axiWriteSlave;
       axiLiteEndpoint.axiReadSlave   := axiReadSlave;
 
-      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, 
-                      axiLiteEndpoint.axiWriteSlave, axiLiteEndpoint.axiReadSlave, 
+      axiSlaveWaitTxn(axiWriteMaster, axiReadMaster,
+                      axiLiteEndpoint.axiWriteSlave, axiLiteEndpoint.axiReadSlave,
                       axiLiteEndpoint.axiStatus);
    end procedure;
 
-   procedure axiSlaveRegister   (
+   procedure axiSlaveRegister (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
       addr                     : in    slv;
       offset                   : in    integer;
       reg                      : inout slv;
-      constVal                 : in    slv     := "X") is
+      constVal                 : in    slv := "X") is
    begin
       -- Read must come first so as not to overwrite the variable if read and write happen at once
       if (axiLiteEndpoint.axiStatus.readEnable = '1') then
@@ -648,12 +648,12 @@ package body AxiLitePkg is
       end if;
    end procedure;
 
-   procedure axiSlaveRegister   (
+   procedure axiSlaveRegister (
       variable axiLiteEndpoint : inout AxiLiteEndpointType;
       addr                     : in    slv;
       offset                   : in    integer;
       reg                      : inout sl;
-      constVal                 : in    sl      := 'X')
+      constVal                 : in    sl := 'X')
    is
       variable tmpReg : slv(0 downto 0);
       variable tmpVal : slv(0 downto 0);
@@ -727,20 +727,20 @@ package body AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    -- Simulation procedures
    -------------------------------------------------------------------------------------------------
-   
+
    procedure axiLiteBusSimWrite (
-      signal axilClk          : in  sl;
+      signal axilClk         : in  sl;
       signal axilWriteMaster : out AxiLiteWriteMasterType;
       signal axilWriteSlave  : in  AxiLiteWriteSlaveType;
-      addr            : in  slv(31 downto 0);
-      data            : in  slv;
-      debug           : in  boolean := false)
+      addr                   : in  slv(31 downto 0);
+      data                   : in  slv;
+      debug                  : in  boolean := false)
    is
       variable dataTmp : slv(31 downto 0);
       variable addrTmp : slv(31 downto 0);
    begin
       dataTmp := resize(data, 32);
-      
+
       axilWriteMaster.awaddr  <= addr;
       axilWriteMaster.wdata   <= dataTmp;
       axilWriteMaster.awprot  <= (others => '0');
@@ -748,7 +748,7 @@ package body AxiLitePkg is
       axilWriteMaster.awvalid <= '1';
       axilWriteMaster.wvalid  <= '1';
       axilWriteMaster.bready  <= '1';
-      wait until axilClk = '1';      
+      wait until axilClk = '1';
 
 
       -- Wait for a response
@@ -765,11 +765,19 @@ package body AxiLitePkg is
          wait until axilClk = '1';
       end loop;
 
+      -- Clear control signals if bvalid and ready arrive at the same time
+      if axilWriteSlave.awready = '1' then
+         axilWriteMaster.awvalid <= '0';
+      end if;
+      if axilWriteSlave.wready = '1' then
+         axilWriteMaster.wvalid <= '0';
+      end if;
+
       -- Done. Check for errors
       wait until axilClk = '1';
       axilWriteMaster.bready <= '0';
-      
-      print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(dataTmp) & ")");      
+
+      print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(dataTmp) & ")");
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
       elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
@@ -786,14 +794,14 @@ package body AxiLitePkg is
 
 
    procedure axiLiteBusSimRead (
-      signal axilClk         : in  sl;
+      signal axilClk        : in  sl;
       signal axilReadMaster : out AxiLiteReadMasterType;
       signal axilReadSlave  : in  AxiLiteReadSlaveType;
-      addr           : in  slv(31 downto 0);
-      data           : out slv;
-      debug          : in  boolean := false)
+      addr                  : in  slv(31 downto 0);
+      data                  : out slv;
+      debug                 : in  boolean := false)
    is
-      variable dataTmp  : slv(31 downto 0);
+      variable dataTmp : slv(31 downto 0);
       variable addrTmp : slv(31 downto 0);
    begin
       -- Put the write req on the bus
@@ -813,6 +821,11 @@ package body AxiLitePkg is
          wait until axilClk = '1';
       end loop;
 
+      -- Clear control signals when acked
+      if axilReadSlave.arready = '1' then
+         axilReadMaster.arvalid <= '0';
+      end if;
+
       -- Done. Check for errors
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
          report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;
@@ -826,8 +839,8 @@ package body AxiLitePkg is
       axilReadMaster.rready <= '0';
 
       if (data'length > 32) then
-         addrTmp := slv(unsigned(addr) + 4);
-         data(data'low+31 downto data'low) := dataTmp;         
+         addrTmp                           := slv(unsigned(addr) + 4);
+         data(data'low+31 downto data'low) := dataTmp;
          axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, addrTmp, data(data'high downto 32), debug);
       else
          data := resize(dataTmp, data'length);
