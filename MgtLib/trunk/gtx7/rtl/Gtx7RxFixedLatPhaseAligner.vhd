@@ -88,8 +88,8 @@ architecture rtl of Gtx7RxFixedLatPhaseAligner is
 
    signal rxRunPhAlignmentSync : sl;
 
-   attribute mark_debug      : string;
-   attribute mark_debug of r : signal is "TRUE";
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
    
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of 
