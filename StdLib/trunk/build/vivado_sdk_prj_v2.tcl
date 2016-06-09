@@ -23,10 +23,10 @@ if { [file exists ${SDK_PRJ}] != 1 } {
    # Make the project
    file mkdir ${SDK_PRJ}
    file copy -force ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef ${SDK_PRJ}/${PROJECT}.hdf
-   sdk set_workspace ${SDK_PRJ}
-   sdk create_hw_project  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
-   sdk create_bsp_project -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
-   sdk create_app_project -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
+   sdk setws ${SDK_PRJ}
+   sdk createhw  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
+   sdk createbsp -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
+   sdk createapp -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
 
    # Create a soft-link and add new linker to source tree
    if { ${SOFT_LINK} == 1 } {
