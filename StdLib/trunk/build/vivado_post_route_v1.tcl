@@ -43,8 +43,14 @@ if { [CheckTiming false] == true } {
    if { [file exists ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef] == 1 } {
       set SDK_PRJ false
       while { ${SDK_PRJ} != true } {
-         # Setup the project
-         set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout}]
+         # Check the Vivado version
+         if { [version -short] < 2016.1 } {
+            # Setup the project for Vivado 2015.4 (or earlier)
+            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout}]
+         } else {
+            # Setup the project for Vivado 2016.1 (or later)
+            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v2.tcl >@stdout}]
+         }       
          if {$src_rc} { 
             puts "Retrying to build SDK project"
          } else {
