@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-05-05
+-- Last update: 2016-06-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,12 +36,14 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G         : time                  := 1 ns;
-      NUM_SLAVES_G  : integer range 1 to 32 := 4;
-      PIPE_STAGES_G : integer range 0 to 16 := 0;  -- mux be > 1 if cascading muxes
-      TDEST_HIGH_G  : integer range 0 to 7  := 7;
-      TDEST_LOW_G   : integer range 0 to 7  := 0;
-      KEEP_TDEST_G  : boolean               := false);
+      TPD_G          : time                  := 1 ns;
+      NUM_SLAVES_G   : integer range 1 to 32 := 4;
+      MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
+      TDEST_ROUTES_G : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      PIPE_STAGES_G  : integer range 0 to 16 := 0;                  -- mux be > 1 if cascading muxes
+      TDEST_HIGH_G   : integer range 0 to 7  := 7;
+      TDEST_LOW_G    : integer range 0 to 7  := 0;
+      KEEP_TDEST_G   : boolean               := false);
    port (
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
@@ -84,8 +86,9 @@ architecture structure of AxiStreamMux is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pipeAxisMaster : AxiStreamMasterType;
-   signal pipeAxisSlave  : AxiStreamSlaveType;
+   signal sAxisMastersTmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
+   signal pipeAxisMaster  : AxiStreamMasterType;
+   signal pipeAxisSlave   : AxiStreamSlaveType;
 
 begin
 
@@ -93,7 +96,28 @@ begin
       report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
 
-   comb : process (axisRst, disableSel, pipeAxisSlave, r, sAxisMasters) is
+   -- Override tdests according to the routing table
+   TDEST_REMAP : process (sAxisMasters) is
+      variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
+   begin
+      tmp := sAxisMasters;
+      if MODE_G = "ROUTED" then
+         for i in tmp'range loop
+            for j in 7 downto 0 loop
+               if (TDEST_ROUTES_G(i)(j) = '1') then
+                  tmp(i).tDest(j) := '1';
+               elsif(TDEST_ROUTES_G(i)(j) = '0') then
+                  tmp(i).tDest(j) := '0';
+               else
+                  tmp(i).tDest(j) := sAxisMasters(i).tDest(j);
+               end if;
+            end loop;
+         end loop;
+      end if;
+      sAxisMastersTmp <= tmp;
+   end process;
+
+   comb : process (axisRst, disableSel, pipeAxisSlave, r, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -111,12 +135,12 @@ begin
 
       -- Select source
       if NUM_SLAVES_G = 1 then
-         selData := sAxisMasters(0);      
+         selData := sAxisMastersTmp(0);
       else
-         selData := sAxisMasters(conv_integer(r.ackNum));
+         selData := sAxisMastersTmp(conv_integer(r.ackNum));
       end if;
 
-      if (KEEP_TDEST_G = false) then
+      if (KEEP_TDEST_G = false) or (MODE_G = "ROUTED") then
          selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
          selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
       end if;
@@ -124,7 +148,7 @@ begin
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
-         requests(i) := sAxisMasters(i).tValid and not disableSel(i);
+         requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i);
       end loop;
 
       -- State machine
