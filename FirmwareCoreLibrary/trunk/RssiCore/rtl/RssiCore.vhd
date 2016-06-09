@@ -30,8 +30,9 @@
 --    statusReg_o(6) : Client rejected the connection (parameters out of range)
 --                     Server proposed new parameters (parameters out of range)               
 -------------------------------------------------------------------------------
--- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-- Copyright (c) 2016 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -56,14 +57,10 @@ entity RssiCore is
 
       WINDOW_ADDR_SIZE_G  : positive range 1 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-
-      -- Application AXIS fifos
-      APP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Input data width 
-      APP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- Application Output data width     
-
-      -- Transport AXIS fifos
-      TSP_INPUT_AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Input data width
-      TSP_OUTPUT_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16);  -- Transport Output data width
+      
+      -- AXIS Configurations
+      APP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);    
+      TSP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);       
 
       -- Generic RSSI parameters
 
@@ -382,7 +379,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          FIFO_ADDR_WIDTH_G   => 9,
-         SLAVE_AXI_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
+         SLAVE_AXI_CONFIG_G  => APP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
          sAxisClk    => clk_i,
@@ -408,7 +405,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          FIFO_ADDR_WIDTH_G   => 9,
-         SLAVE_AXI_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
+         SLAVE_AXI_CONFIG_G  => TSP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
          sAxisClk    => clk_i,
@@ -779,7 +776,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => APP_OUTPUT_AXIS_CONFIG_G)
+         MASTER_AXI_CONFIG_G => APP_AXIS_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => s_rstFifo,
@@ -809,7 +806,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => TSP_OUTPUT_AXIS_CONFIG_G)
+         MASTER_AXI_CONFIG_G => TSP_AXIS_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
