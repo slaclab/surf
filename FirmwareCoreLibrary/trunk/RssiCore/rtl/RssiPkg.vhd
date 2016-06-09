@@ -10,7 +10,8 @@ package RssiPkg is
 -- Common constant definitions
 --------------------------------------------------------------------------
 constant RSSI_WORD_WIDTH_C        : positive := 8;     -- 64 bit word (FIXED)
---constant RSSI_AXI_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C,TKEEP_NORMAL_C);
+
+-- Could probably set tDest bits to 0 instead of the default 4.
 constant RSSI_AXIS_CONFIG_C        : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C);
 
 -- Header sizes

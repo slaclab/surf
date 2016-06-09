@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2016-02-25
--- Last update: 2016-05-13
+-- Last update: 2016-06-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_AXI_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => APP_INPUT_AXIS_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,
@@ -195,8 +195,8 @@ begin
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
 
          -- Application AXIS fifos
-         APP_INPUT_AXIS_CONFIG_G  => RSSI_AXIS_CONFIG_C,
-         APP_OUTPUT_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
+         APP_INPUT_AXIS_CONFIG_G  => APP_INPUT_AXIS_CONFIG_G,
+         APP_OUTPUT_AXIS_CONFIG_G => APP_OUTPUT_AXIS_CONFIG_G,
          -- Transport AXIS fifos
          TSP_INPUT_AXIS_CONFIG_G  => TSP_INPUT_AXIS_CONFIG_G,
          TSP_OUTPUT_AXIS_CONFIG_G => TSP_OUTPUT_AXIS_CONFIG_G,
@@ -276,7 +276,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => APP_OUTPUT_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => APP_OUTPUT_AXIS_CONFIG_G)
       port map (
          sAxisClk    => clk_i,
