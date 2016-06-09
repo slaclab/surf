@@ -61,14 +61,19 @@ if { [CheckTiming false] == true } {
       SourceTclFile ${VIVADO_DIR}/sdk_prj.tcl
       # Try to build the .ELF file
       catch { 
-         # Setup the project
-         exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v1.tcl >@stdout   
+         # Check the Vivado version
+         if { [version -short] < 2016.1 } {
+            # Generate .ELF for Vivado 2015.4 (or earlier)
+            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v1.tcl >@stdout}]
+         } else {
+            # Generate .ELF for Vivado 2016.1 (or later)
+            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v2.tcl >@stdout}]
+         }       
          # Add .ELF to the .bit file properties
          if { [get_files ${SDK_ELF} ] == "" } {
-            add_files -norecurse                                      ${SDK_ELF}  
-            set_property used_in_simulation 0              [get_files ${SDK_ELF} ] 
-            set_property SCOPED_TO_REF MicroblazeBasicCore [get_files ${SDK_ELF} ]
-            set_property SCOPED_TO_CELLS { microblaze_0 }  [get_files ${SDK_ELF} ]
+            add_files -norecurse ${SDK_ELF}  
+            set_property SCOPED_TO_REF   [file rootname [file tail ${BD_FILES}]] [get_files ${SDK_ELF} ]
+            set_property SCOPED_TO_CELLS { microblaze_0 }                        [get_files ${SDK_ELF} ]
             # Rebuild the .bit file with the .ELF file include
             if { [file exists ${OUT_DIR}/IncrementalBuild.dcp] == 1 } {
                set_property incremental_checkpoint ${OUT_DIR}/IncrementalBuild.dcp [get_runs impl_1]
