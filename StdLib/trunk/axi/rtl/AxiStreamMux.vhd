@@ -91,9 +91,15 @@ architecture structure of AxiStreamMux is
 
 begin
 
-   assert (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G))
-      report "TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
-      " is too small for NUM_MASTERS_G=" & integer'image(NUM_SLAVES_G) severity error;
+   assert (MODE_G /= "INDEXED" or (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)))
+      report "In INDEXED mode, TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
+      " is too small for NUM_SLAVES_G=" & integer'image(NUM_SLAVES_G)
+      severity error;
+
+   assert (MODE_G /= "ROUTED" or (TDEST_ROUTES_G'length = NUM_SLAVES_G))
+      report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
+      " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
+      severity error;
 
    -- Override tdests according to the routing table
    TDEST_REMAP : process (sAxisMasters) is
@@ -101,7 +107,7 @@ begin
    begin
       tmp := sAxisMasters;
       if MODE_G = "ROUTED" then
-         for i in tmp'range loop
+         for i in NUM_SLAVES_G-1 downto 0 loop
             for j in 7 downto 0 loop
                if (TDEST_ROUTES_G(i)(j) = '1') then
                   tmp(i).tDest(j) := '1';
