@@ -72,9 +72,9 @@ Device: &AxiVersion
       description: Number of seconds since last reset
     #########################################################
     - offset: 0x30
-      name: HardwareConfigId
+      name: DeviceId
       mode: RO
-      description: Hardware Configuration Identification 
+      description: Device Identification 
     #########################################################
     - offset: 0x400
       name: UserConstants
