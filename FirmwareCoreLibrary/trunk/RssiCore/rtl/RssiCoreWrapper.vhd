@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2016-02-25
--- Last update: 2016-06-09
+-- Last update: 2016-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -132,8 +132,7 @@ begin
          TPD_G          => TPD_G,
          NUM_SLAVES_G   => APP_STREAMS_G,
          MODE_G         => "ROUTED",
-         TDEST_ROUTES_G => APP_STREAM_ROUTES_G,
-         KEEP_TDEST_G   => true)        -- Pass tDest from stream
+         TDEST_ROUTES_G => APP_STREAM_ROUTES_G)
       port map (
          -- Clock and reset
          axisClk      => clk_i,

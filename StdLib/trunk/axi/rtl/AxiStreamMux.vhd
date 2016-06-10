@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-06-09
+-- Last update: 2016-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,8 +42,7 @@ entity AxiStreamMux is
       TDEST_ROUTES_G : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16 := 0;                  -- mux be > 1 if cascading muxes
       TDEST_HIGH_G   : integer range 0 to 7  := 7;
-      TDEST_LOW_G    : integer range 0 to 7  := 0;
-      KEEP_TDEST_G   : boolean               := false);
+      TDEST_LOW_G    : integer range 0 to 7  := 0);
    port (
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
@@ -140,7 +139,7 @@ begin
          selData := sAxisMastersTmp(conv_integer(r.ackNum));
       end if;
 
-      if (KEEP_TDEST_G = false) or (MODE_G = "ROUTED") then
+      if MODE_G = "INDEXED" then
          selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
          selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
       end if;
