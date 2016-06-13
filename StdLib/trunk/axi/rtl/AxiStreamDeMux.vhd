@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2015-08-20
+-- Last update: 2016-06-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,27 +36,23 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamDeMux is
    generic (
-      TPD_G         : time                  := 1 ns;
-      NUM_MASTERS_G : integer range 1 to 32 := 12;
-      MODE_G : string := "INDEXED";     -- Or "ROUTED"
-      TDEST_HIGH_G  : integer range 0 to 7  := 7;
-      TDEST_LOW_G   : integer range 0 to 7  := 0;
-      TDEST_ROUTES_G : slv8Array := (0 => "--------")  -- Only used in ROUTED mode
-      );
+      TPD_G          : time                  := 1 ns;
+      NUM_MASTERS_G  : integer range 1 to 32 := 12;
+      MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
+      TDEST_ROUTES_G : slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      PIPE_STAGES_G  : integer range 0 to 16 := 0;  -- Must be != 0 if cascading demuxes      
+      TDEST_HIGH_G   : integer range 0 to 7  := 7;
+      TDEST_LOW_G    : integer range 0 to 7  := 0);
    port (
-
-      -- Clock and reset
-      axisClk : in sl;
-      axisRst : in sl;
-
       -- Slave
-      sAxisMaster : in  AxiStreamMasterType;
-      sAxisSlave  : out AxiStreamSlaveType;
-
+      sAxisMaster  : in  AxiStreamMasterType;
+      sAxisSlave   : out AxiStreamSlaveType;
       -- Masters
       mAxisMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
-      mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0)
-      );
+      mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0);
+      -- Clock and reset
+      axisClk      : in  sl;
+      axisRst      : in  sl);
 end AxiStreamDeMux;
 
 architecture structure of AxiStreamDeMux is
@@ -68,8 +64,10 @@ architecture structure of AxiStreamDeMux is
 
    constant REG_INIT_C : RegType := (
       slave   => AXI_STREAM_SLAVE_INIT_C,
-      masters => (others => AXI_STREAM_MASTER_INIT_C)
-      );
+      masters => (others => AXI_STREAM_MASTER_INIT_C));
+
+   signal pipeAxisMasters : AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
+   signal pipeAxisSlaves  : AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -86,7 +84,7 @@ begin
       " must equal NUM_MASTERS_G: " & integer'image(NUM_MASTERS_G)
       severity error;
 
-   comb : process (axisRst, r, sAxisMaster, mAxisSlaves) is
+   comb : process (axisRst, pipeAxisSlaves, r, sAxisMaster) is
       variable v   : RegType;
       variable idx : integer;
    begin
@@ -94,7 +92,7 @@ begin
 
       -- Update output registers 
       for i in 0 to NUM_MASTERS_G-1 loop
-         if mAxisSlaves(i).tReady = '1' then
+         if pipeAxisSlaves(i).tReady = '1' then
             v.masters(i).tValid := '0';
          end if;
       end loop;
@@ -135,10 +133,27 @@ begin
 
       rin <= v;
 
-      sAxisSlave   <= v.slave;
-      mAxisMasters <= r.masters;
+      sAxisSlave      <= v.slave;
+      pipeAxisMasters <= r.masters;
 
    end process comb;
+
+   GEN_VEC :
+   for i in (NUM_MASTERS_G-1) downto 0 generate
+      
+      U_Pipeline : entity work.AxiStreamPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => PIPE_STAGES_G)
+         port map (
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            sAxisMaster => pipeAxisMasters(i),
+            sAxisSlave  => pipeAxisSlaves(i),
+            mAxisMaster => mAxisMasters(i),
+            mAxisSlave  => mAxisSlaves(i));   
+
+   end generate GEN_VEC;
 
    seq : process (axisClk) is
    begin
