@@ -40,7 +40,7 @@ entity AxiStreamMux is
       NUM_SLAVES_G   : integer range 1 to 32 := 4;
       MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
       TDEST_ROUTES_G : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      PIPE_STAGES_G  : integer range 0 to 16 := 0;                  -- mux be > 1 if cascading muxes
+      PIPE_STAGES_G  : integer range 0 to 16 := 0;                  -- Must be != 0 if cascading muxes
       TDEST_HIGH_G   : integer range 0 to 7  := 7;
       TDEST_LOW_G    : integer range 0 to 7  := 0);
    port (
