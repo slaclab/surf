@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-05-05
+-- Last update: 2016-06-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -208,7 +208,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,
-         SLAVE_READY_EN_G    => false,
+         SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          BRAM_EN_G           => false,
          USE_BUILT_IN_G      => false,
