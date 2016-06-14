@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-01
--- Last update: 2016-06-02
+-- Last update: 2016-06-14
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ entity AxiLiteSaciMaster2 is
       AXIL_CLK_PERIOD_G : real                  := 8.0e-9;  -- units of Hz
       SACI_CLK_PERIOD_G : real                  := 1.0e-6;  -- units of Hz
       TIMEOUT_G         : real                  := 1.0E-3;  -- In units of seconds
-      AXI_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
       -- SACI interface
       saciClk         : out sl;
       saciCmd         : out sl;
-      saciSelL        : out slv(NUM_SLAVES_G-1 downto 0);
-      saciRsp         : in  slv(NUM_SLAVES_G-1 downto 0);
+      saciSelL        : out slv(NUM_CHIPS_G-1 downto 0);
+      saciRsp         : in  sl;
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -48,7 +48,8 @@ end AxiLiteSaciMaster2;
 
 architecture rtl of AxiLiteSaciMaster2 is
 
-   constant CHIP_BITS_C : log2(NUM_CHIPS_G);
+   constant CHIP_BITS_C : integer := log2(NUM_CHIPS_G);
+   constant TIMEOUT_C   : integer := integer(TIMEOUT_G/AXIL_CLK_PERIOD_G)-1;
 
    type StateType is (
       IDLE_S,
@@ -63,7 +64,7 @@ architecture rtl of AxiLiteSaciMaster2 is
       cmd            : slv(6 downto 0);
       addr           : slv(11 downto 0);
       wrData         : slv(31 downto 0);
-      timer          : natural range 0 to TIMEOUT_C;
+      timer          : integer range 0 to TIMEOUT_C;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
 
@@ -94,13 +95,13 @@ begin
    U_SaciMaster2_1 : entity work.SaciMaster2
       generic map (
          TPD_G              => TPD_G,
-         SYS_CLK_PERIOD_G   => SYS_CLK_PERIOD_G,
+         SYS_CLK_PERIOD_G   => AXIL_CLK_PERIOD_G,
          SACI_CLK_PERIOD_G  => SACI_CLK_PERIOD_G,
-         SACI_CLK_FREERUN_G => SACI_CLK_FREERUN_G,
+         SACI_CLK_FREERUN_G => false,
          NUM_CHIPS_G        => NUM_CHIPS_G)
       port map (
-         sysClk   => sysClk,            -- [in]
-         sysRst   => sysRst,            -- [in]
+         sysClk   => axilClk,            -- [in]
+         sysRst   => axilRst,            -- [in]
          req      => r.req,             -- [in]
          ack      => ack,               -- [out]
          fail     => fail,              -- [out]
@@ -115,7 +116,7 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, rsp, saciMasterOut, selL) is
+   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
@@ -176,54 +177,55 @@ begin
                -- Set the error flags
                resp  := AXIL_ERROR_RESP_G;
                v.req := '0';
-               if (ack = '1') then
-                  -- Reset the flag
-                  v.req := '0';
+            elsif (ack = '1') then
+               -- Reset the flag
+               v.req := '0';
+            end if;
+
+
+            if (v.req = '0') then
+               -- Check for Write operation
+               if (r.op = '1') then
+                  --- Send AXI-Lite response
+                  axiSlaveWriteResponse(v.axilWriteSlave, resp);
+               else
+                  -- Return the read data bus
+                  v.axilReadSlave.rdata := rdData;
+                  -- Send AXI-Lite Response
+                  axiSlaveReadResponse(v.axilReadSlave, resp);
                end if;
+               -- Next state
+               v.state := SACI_ACK_S;
+            end if;
+         ----------------------------------------------------------------------
+         when SACI_ACK_S =>
+            -- Check status of ACK flag
+            if (ack = '0') then
+               -- Next state
+               v.state := IDLE_S;
+            end if;
+      ----------------------------------------------------------------------
+      end case;
 
-               if (v.req = '0') then
-                  -- Check for Write operation
-                  if (r.op = '1') then
-                     --- Send AXI-Lite response
-                     axiSlaveWriteResponse(v.axilWriteSlave, resp);
-                  else
-                     -- Return the read data bus
-                     v.axilReadSlave.rdata := rdData;
-                     -- Send AXI-Lite Response
-                     axiSlaveReadResponse(v.axilReadSlave, resp);
-                  end if;
-                  -- Next state
-                  v.state := SACI_ACK_S;
-               end if;
-               ----------------------------------------------------------------------
-               when SACI_ACK_S =>
-               -- Check status of ACK flag
-               if (ack = '0') then
-                  -- Next state
-                  v.state := IDLE_S;
-               end if;
-            ----------------------------------------------------------------------
-            end case;
+      -- Synchronous Reset
+      if axilRst = '1' then
+         v := REG_INIT_C;
+      end if;
 
-               -- Synchronous Reset
-               if axilRst = '1' then
-                  v := REG_INIT_C;
-               end if;
+      -- Register the variable for next clock cycle
+      rin <= v;
 
-               -- Register the variable for next clock cycle
-               rin <= v;
+      -- Outputs
+      axilReadSlave  <= r.axilReadSlave;
+      axilWriteSlave <= r.axilWriteSlave;
 
-               -- Outputs
-               axilReadSlave  <= r.axilReadSlave;
-               axilWriteSlave <= r.axilWriteSlave;
+   end process comb;
 
-            end process comb;
+   seq : process (axilClk) is
+   begin
+      if rising_edge(axilClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
-               seq : process (axilClk) is
-               begin
-                  if rising_edge(axilClk) then
-                     r <= rin after TPD_G;
-                  end if;
-               end process seq;
-
-            end rtl;
+end rtl;
