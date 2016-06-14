@@ -56,8 +56,8 @@ end entity SaciMaster2;
 
 architecture rtl of SaciMaster2 is
 
-   constant SACI_CLK_HALF_PERIOD_C  : integer := integer(SPI_SCLK_PERIOD_G / (2.0*CLK_PERIOD_G))-1;
-   constant SACI_CLK_COUNTER_SIZE_C : integer := log2(SPI_CLK_PERIOD_DIV2_CYCLES_C);
+   constant SACI_CLK_HALF_PERIOD_C  : integer := integer(SACI_CLK_PERIOD_G / (2.0*SYS_CLK_PERIOD_G))-1;
+   constant SACI_CLK_COUNTER_SIZE_C : integer := log2(SACI_CLK_HALF_PERIOD_C);
 
    type StateType is (IDLE_S, TX_S, RX_START_S, RX_HEADER_S, RX_DATA_S, ACK_S);
 
@@ -96,7 +96,7 @@ architecture rtl of SaciMaster2 is
       saciSelL       => (others => '1'),
       saciCmd        => '0');
 
-   signal r   : RegType := REG_INIT_C;;
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal saciRspSync : sl;
@@ -140,10 +140,10 @@ begin
       v.saciClkFalling := '0';
       if (r.clkCount = SACI_CLK_HALF_PERIOD_C-1) then
          if (r.saciClk = '0') then
-            v.saciClkRising = '1';
+            v.saciClkRising := '1';
          end if;
          if (r.saciClk = '1') then
-            v.saciClkFalling = '1';
+            v.saciClkFalling := '1';
          end if;
       end if;
 
@@ -213,7 +213,7 @@ begin
                if (r.shiftReg(19) /= op or
                    r.shiftReg(18 downto 12) /= cmd or
                    r.shiftReg(11 downto 0) /= addr) then
-                  v.saciMasterOut.fail := '1';
+                  v.fail := '1';
                end if;
 
                if (op = '0') then
@@ -224,7 +224,7 @@ begin
             end if;
 
          when RX_DATA_S =>
-            if (saciClkFalling = '1') then
+            if (r.saciClkFalling = '1') then
                v.shiftCount := r.shiftCount + 1;
                v.shiftReg   := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspSync;
                if (r.shiftCount = 51) then
@@ -252,6 +252,7 @@ begin
 
       saciSelL <= r.saciSelL;
       saciCmd  <= r.saciCmd;
+      saciClk <= r.saciClk;
       ack      <= r.ack;
       fail     <= r.fail;
       rdData   <= r.rdData;
