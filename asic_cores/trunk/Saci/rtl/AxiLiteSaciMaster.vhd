@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiLiteSaciMaster.vhd
+-- File       : AxiLiteSaciMaster2.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-01
--- Last update: 2016-06-02
+-- Last update: 2016-06-17
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,19 +25,20 @@ use work.SaciMasterPkg.all;
 
 entity AxiLiteSaciMaster is
    generic (
-      TPD_G            : time                  := 1 ns;
-      NUM_SLAVES_G     : positive range 1 to 4 := 1;
-      AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
-      SACI_CLK_FREQ_G  : real                  := 50.0E+6;   -- units of Hz
-      TIMEOUT_G        : real                  := 1.0E-3;    -- In units of seconds
-      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_DECERR_C);       
+      TPD_G              : time                  := 1 ns;
+      AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C;
+      AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- units of Hz
+      AXIL_TIMEOUT_G     : real                  := 1.0E-3;  -- In units of seconds
+      SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- units of Hz
+      SACI_CLK_FREERUN_G : boolean               := false;
+      SACI_NUM_CHIPS_G   : positive range 1 to 4 := 1;
+      SACI_RSP_BUSSED_G  : boolean               := false);
    port (
       -- SACI interface
       saciClk         : out sl;
       saciCmd         : out sl;
-      saciRstL        : out sl;
-      saciSelL        : out slv(NUM_SLAVES_G-1 downto 0);
-      saciRsp         : in  slv(NUM_SLAVES_G-1 downto 0);
+      saciSelL        : out slv(SACI_NUM_CHIPS_G-1 downto 0);
+      saciRsp         : in  slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0);
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -49,91 +50,85 @@ end AxiLiteSaciMaster;
 
 architecture rtl of AxiLiteSaciMaster is
 
-   constant DOUBLE_SCK_FREQ_C : real    := getRealMult(SACI_CLK_FREQ_G, 2.0);
-   constant SCK_HALF_PERIOD_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, DOUBLE_SCK_FREQ_C))-1;
-   constant TIMEOUT_C         : natural := (getTimeRatio(AXI_CLK_FREQ_G, (1.0/TIMEOUT_G)))-1;
-   
+   constant CHIP_BITS_C : integer := log2(SACI_NUM_CHIPS_G);
+   constant TIMEOUT_C   : integer := integer(AXIL_TIMEOUT_G/AXIL_CLK_PERIOD_G)-1;
+
    type StateType is (
       IDLE_S,
       SACI_REQ_S,
-      SACI_ACK_S); 
+      SACI_ACK_S);
 
    type RegType is record
-      saciRst        : sl;
-      saciRsp        : sl;
-      saciMasterIn   : SaciMasterInType;
-      timer          : natural range 0 to TIMEOUT_C;
+      state          : StateType;
+      req            : sl;
+      chip           : slv(log2(SACI_NUM_CHIPS_G)-1 downto 0);
+      op             : sl;
+      cmd            : slv(6 downto 0);
+      addr           : slv(11 downto 0);
+      wrData         : slv(31 downto 0);
+      timer          : integer range 0 to TIMEOUT_C;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
-      state          : StateType;
+
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
-      saciRst        => '1',
-      saciRsp        => '0',
-      saciMasterIn   => SACI_MASTER_IN_INIT_C,
+      state          => IDLE_S,
+      req            => '0',
+      chip           => (others => '0'),
+      op             => '0',
+      cmd            => (others => '0'),
+      addr           => (others => '0'),
+      wrData         => (others => '0'),
       timer          => 0,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      state          => IDLE_S);      
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal selL          : slv(3 downto 0) := x"0";
-   signal rsp           : slv(3 downto 0) := x"0";
-   signal saciMasterOut : SaciMasterOutType;
+   signal ack    : sl;
+   signal fail   : sl;
+   signal rdData : slv(31 downto 0);
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";
 
 begin
 
-   saciSelL                     <= selL(NUM_SLAVES_G-1 downto 0);
-   saciRstL                     <= not(r.saciRst);
-   rsp(NUM_SLAVES_G-1 downto 0) <= saciRsp;
-
-   U_SaciMaster : entity work.SaciMasterSync
+   U_SaciMaster2_1 : entity work.SaciMaster2
       generic map (
-         TPD_G                 => TPD_G,
-         SACI_HALF_CLK_TICKS   => SCK_HALF_PERIOD_C,
-         SYNCHRONIZE_CONTROL_G => true)
+         TPD_G              => TPD_G,
+         SYS_CLK_PERIOD_G   => AXIL_CLK_PERIOD_G,
+         SACI_CLK_PERIOD_G  => SACI_CLK_PERIOD_G,
+         SACI_CLK_FREERUN_G => SACI_CLK_FREERUN_G,
+         SACI_NUM_CHIPS_G   => SACI_NUM_CHIPS_G,
+         SACI_RSP_BUSSED_G  => SACI_RSP_BUSSED_G)
       port map (
-         clk           => axilClk,
-         rst           => r.saciRst,
-         saciClk       => saciClk,
-         saciSelL      => selL,
-         saciCmd       => saciCmd,
-         saciRsp       => r.saciRsp,
-         saciMasterIn  => r.saciMasterIn,
-         saciMasterOut => saciMasterOut);
+         sysClk   => axilClk,           -- [in]
+         sysRst   => axilRst,           -- [in]
+         req      => r.req,             -- [in]
+         ack      => ack,               -- [out]
+         fail     => fail,              -- [out]
+         chip     => r.chip,            -- [in]
+         op       => r.op,              -- [in]
+         cmd      => r.cmd,             -- [in]
+         addr     => r.addr,            -- [in]
+         wrData   => r.wrData,          -- [in]
+         rdData   => rdData,            -- [out]
+         saciClk  => saciClk,           -- [out]
+         saciSelL => saciSelL,          -- [out]
+         saciCmd  => saciCmd,           -- [out]
+         saciRsp  => saciRsp);          -- [in]
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, rsp, saciMasterOut, selL) is
-      variable v             : RegType;
-      variable axilStatus    : AxiLiteStatusType;
-      variable axilWriteResp : slv(1 downto 0);
-      variable axilReadResp  : slv(1 downto 0);
+   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData) is
+      variable v          : RegType;
+      variable axilStatus : AxiLiteStatusType;
+      variable resp       : slv(1 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the strobing signals
-      v.saciRst     := '0';
-      axilWriteResp := AXI_RESP_OK_C;
-      axilReadResp  := AXI_RESP_OK_C;
-
-      -- Mux the bus responds w.r.t. select bus
-      if (selL(0) = '0') then
-         v.saciRsp := rsp(0);
-      elsif selL(1) = '0' then
-         v.saciRsp := rsp(1);
-      elsif selL(2) = '0' then
-         v.saciRsp := rsp(2);
-      elsif selL(3) = '0' then
-         v.saciRsp := rsp(3);
-      else
-         v.saciRsp := '0';
-      end if;
+      resp := AXI_RESP_OK_C;
 
       -- Check the timer
       if r.timer /= TIMEOUT_C then
@@ -153,51 +148,54 @@ begin
             -- Check for a write request
             if (axilStatus.writeEnable = '1') then
                -- SACI Commands
-               v.saciMasterIn.req    := '1';
-               v.saciMasterIn.op     := '1';
-               v.saciMasterIn.chip   := axilWriteMaster.awaddr(23 downto 22);
-               v.saciMasterIn.cmd    := axilWriteMaster.awaddr(20 downto 14);
-               v.saciMasterIn.addr   := axilWriteMaster.awaddr(13 downto 2);
-               v.saciMasterIn.wrData := axilWriteMaster.wdata;
+               v.req  := '1';
+               v.op   := '1';
+               v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
+               if (SACI_NUM_CHIPS_G = 1) then
+                  v.chip := "0";
+               end if;
+               v.cmd    := axilWriteMaster.awaddr(20 downto 14);
+               v.addr   := axilWriteMaster.awaddr(13 downto 2);
+               v.wrData := axilWriteMaster.wdata;
                -- Next state
-               v.state               := SACI_REQ_S;
+               v.state  := SACI_REQ_S;
             -- Check for a read request            
             elsif (axilStatus.readEnable = '1') then
                -- SACI Commands
-               v.saciMasterIn.req    := '1';
-               v.saciMasterIn.op     := '0';
-               v.saciMasterIn.chip   := axilReadMaster.araddr(23 downto 22);
-               v.saciMasterIn.cmd    := axilReadMaster.araddr(20 downto 14);
-               v.saciMasterIn.addr   := axilReadMaster.araddr(13 downto 2);
-               v.saciMasterIn.wrData := (others => '0');
+               v.req  := '1';
+               v.op   := '0';
+               v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
+               if (SACI_NUM_CHIPS_G = 1) then
+                  v.chip := "0";
+               end if;
+               v.cmd    := axilReadMaster.araddr(20 downto 14);
+               v.addr   := axilReadMaster.araddr(13 downto 2);
+               v.wrData := (others => '0');
                -- Next state
-               v.state               := SACI_REQ_S;
+               v.state  := SACI_REQ_S;
             end if;
          ----------------------------------------------------------------------
          when SACI_REQ_S =>
-            if (saciMasterOut.fail = '1') or (r.timer = TIMEOUT_C) then
-               -- Reset the interface
-               v.saciRst          := '1';
-               -- Reset the flag
-               v.saciMasterIn.req := '0';
+            if (ack = '1' and fail = '1') or (r.timer = TIMEOUT_C) then
                -- Set the error flags
-               axilWriteResp      := AXI_RESP_SLVERR_C;
-               axilReadResp       := AXI_RESP_SLVERR_C;
-            elsif (saciMasterOut.ack = '1') then
+               resp  := AXIL_ERROR_RESP_G;
+               v.req := '0';
+            elsif (ack = '1') then
                -- Reset the flag
-               v.saciMasterIn.req := '0';
+               v.req := '0';
             end if;
-            -- Check status of REQ flag
-            if (v.saciMasterIn.req = '0') then
+
+
+            if (v.req = '0') then
                -- Check for Write operation
-               if (r.saciMasterIn.op = '1') then
+               if (r.op = '1') then
                   --- Send AXI-Lite response
-                  axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
+                  axiSlaveWriteResponse(v.axilWriteSlave, resp);
                else
                   -- Return the read data bus
-                  v.axilReadSlave.rdata := saciMasterOut.rdData;
+                  v.axilReadSlave.rdata := rdData;
                   -- Send AXI-Lite Response
-                  axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
+                  axiSlaveReadResponse(v.axilReadSlave, resp);
                end if;
                -- Next state
                v.state := SACI_ACK_S;
@@ -205,7 +203,7 @@ begin
          ----------------------------------------------------------------------
          when SACI_ACK_S =>
             -- Check status of ACK flag
-            if (saciMasterOut.ack = '0') then
+            if (ack = '0') then
                -- Next state
                v.state := IDLE_S;
             end if;
@@ -223,7 +221,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
-      
+
    end process comb;
 
    seq : process (axilClk) is
