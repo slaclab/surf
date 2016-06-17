@@ -1,0 +1,32 @@
+
+*******************************************************
+
+Cell: SaciSlave    View: rtl    Library: work
+
+*******************************************************
+
+
+ Cell    Library  References     Total Area
+
+AOI22    tsmm025DL_258    33 x     45   1475 gates
+Buf1     tsmm025DL_258     7 x     27    188 gates
+BufI4    tsmm025DL_258    13 x     39    509 gates
+DFFC     tsmm025DL_258    67 x    197  13179 gates
+Inv      tsmm025DL_258    17 x     22    381 gates
+Mux2     tsmm025DL_258    23 x     63   1440 gates
+Nand2    tsmm025DL_258    86 x     28   2365 gates
+Nand3    tsmm025DL_258     5 x     36    179 gates
+Nand4    tsmm025DL_258     2 x     45     89 gates
+Nor2     tsmm025DL_258    15 x     27    402 gates
+Nor3     tsmm025DL_258    11 x     36    394 gates
+Nor4     tsmm025DL_258     1 x     45     45 gates
+Xnor2    tsmm025DL_258     1 x     54     54 gates
+
+ Number of ports :                      93
+ Number of nets :                      334
+ Number of instances :                 281
+ Number of references to this view :     0
+
+Total accumulated area : 
+ Number of gates :                   20698
+ Number of accumulated instances :     281
