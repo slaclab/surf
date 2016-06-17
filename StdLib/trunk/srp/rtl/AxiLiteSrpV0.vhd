@@ -5,7 +5,7 @@
 -- Author     : Ben Reese <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-09
--- Last update: 2016-06-08
+-- Last update: 2016-06-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -192,8 +192,6 @@ begin
          mAxisMaster => rxFifoAxisMaster,
          mAxisSlave  => rxFifoAxisSlave);
 
-
-
    -------------------------------------
    -- Master State Machine
    -------------------------------------
@@ -281,9 +279,11 @@ begin
                      axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_OK_C);
                      v.state               := WAIT_AXIL_REQ_S;
                   elsif (rxFifoAxisMaster.tLast = '0') then
+                     v.sAxilReadSlave.rdata := (others => '1');
                      axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
                      v.state := BLEED_S;
                   else
+                     v.sAxilReadSlave.rdata := (others => '1');                     
                      axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
                      v.state               := WAIT_AXIL_REQ_S;                     
                   end if;
@@ -294,6 +294,7 @@ begin
                if (axilStatus.writeEnable = '1') then
                   axiSlaveWriteResponse(v.sAxilWriteSlave, AXIL_ERR_RESP_G);
                else
+                  v.sAxilReadSlave.rdata := (others => '1');                  
                   axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
                end if;
             end if;
