@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-01
--- Last update: 2016-06-14
+-- Last update: 2016-06-17
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,18 +25,20 @@ use work.SaciMasterPkg.all;
 
 entity AxiLiteSaciMaster2 is
    generic (
-      TPD_G             : time                  := 1 ns;
-      NUM_CHIPS_G       : positive range 1 to 4 := 1;
-      AXIL_CLK_PERIOD_G : real                  := 8.0e-9;  -- units of Hz
-      SACI_CLK_PERIOD_G : real                  := 1.0e-6;  -- units of Hz
-      TIMEOUT_G         : real                  := 1.0E-3;  -- In units of seconds
-      AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      TPD_G              : time                  := 1 ns;
+      AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C;
+      AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- units of Hz
+      AXIL_TIMEOUT_G     : real                  := 1.0E-3;  -- In units of seconds
+      SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- units of Hz
+      SACI_CLK_FREERUN_G : boolean               := false;
+      SACI_NUM_CHIPS_G   : positive range 1 to 4 := 1;
+      SACI_RSP_BUSSED_G  : boolean               := false);
    port (
       -- SACI interface
       saciClk         : out sl;
       saciCmd         : out sl;
-      saciSelL        : out slv(NUM_CHIPS_G-1 downto 0);
-      saciRsp         : in  sl;
+      saciSelL        : out slv(SACI_NUM_CHIPS_G-1 downto 0);
+      saciRsp         : in  slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0);
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -48,8 +50,8 @@ end AxiLiteSaciMaster2;
 
 architecture rtl of AxiLiteSaciMaster2 is
 
-   constant CHIP_BITS_C : integer := log2(NUM_CHIPS_G);
-   constant TIMEOUT_C   : integer := integer(TIMEOUT_G/AXIL_CLK_PERIOD_G)-1;
+   constant CHIP_BITS_C : integer := log2(SACI_NUM_CHIPS_G);
+   constant TIMEOUT_C   : integer := integer(AXIL_TIMEOUT_G/AXIL_CLK_PERIOD_G)-1;
 
    type StateType is (
       IDLE_S,
@@ -59,7 +61,7 @@ architecture rtl of AxiLiteSaciMaster2 is
    type RegType is record
       state          : StateType;
       req            : sl;
-      chip           : slv(log2(NUM_CHIPS_G)-1 downto 0);
+      chip           : slv(log2(SACI_NUM_CHIPS_G)-1 downto 0);
       op             : sl;
       cmd            : slv(6 downto 0);
       addr           : slv(11 downto 0);
@@ -98,10 +100,10 @@ begin
          SYS_CLK_PERIOD_G   => AXIL_CLK_PERIOD_G,
          SACI_CLK_PERIOD_G  => SACI_CLK_PERIOD_G,
          SACI_CLK_FREERUN_G => false,
-         NUM_CHIPS_G        => NUM_CHIPS_G)
+         SACI_NUM_CHIPS_G   => SACI_NUM_CHIPS_G)
       port map (
-         sysClk   => axilClk,            -- [in]
-         sysRst   => axilRst,            -- [in]
+         sysClk   => axilClk,           -- [in]
+         sysRst   => axilRst,           -- [in]
          req      => r.req,             -- [in]
          ack      => ack,               -- [out]
          fail     => fail,              -- [out]
@@ -148,7 +150,7 @@ begin
                v.req  := '1';
                v.op   := '1';
                v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
-               if (NUM_CHIPS_G = 1) then
+               if (SACI_NUM_CHIPS_G = 1) then
                   v.chip := "0";
                end if;
                v.cmd    := axilWriteMaster.awaddr(20 downto 14);
@@ -162,7 +164,7 @@ begin
                v.req  := '1';
                v.op   := '0';
                v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
-               if (NUM_CHIPS_G = 1) then
+               if (SACI_NUM_CHIPS_G = 1) then
                   v.chip := "0";
                end if;
                v.cmd    := axilReadMaster.araddr(20 downto 14);
