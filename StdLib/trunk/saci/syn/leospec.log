@@ -1,0 +1,94 @@
+/afs/slac/g/reseng/vol4/leonardo/2011a/bin/Linux/spectrum -f syn_rtl.txt 
+-------------------------------------------------
+LeonardoSpectrum Level 3 - 2011a.4 (Release Production Release, compiled May 26 2011 at 11:43:50)
+Copyright 1990-2010 Mentor Graphics.  All rights reserved.
+Portions copyright 1991-2010 Compuware Corporation
+
+Checking Security ...
+Info: setting process to typical
+Info, Working Directory is now '/afs/slac.stanford.edu/u/re/bareese/projects/asic_cores/Saci/syn'
+Info: setting temp to 25
+Info: setting voltage to 2.5
+Info: setting max_fanout_load to 0.000000
+Reading library file `/afs/slac/g/reseng/vol4/leonardo/2011a/lib/tsmm025DL_258.syn`...
+Warning: No temperature derating factors specified.
+         Temperature specification ignored.
+Warning: No voltage derating factors specified.
+         Voltage specification ignored.
+Warning: Invalid process 'typical' specified. Ignoring process specification.... 
+Delays assume: Process=typical Temp= 25.0 C  Voltage=2.50 V  
+Info: setting encoding to auto
+Info: setting encoding to Gray
+-- Reading file /afs/slac/g/reseng/vol4/leonardo/2011a/data/standard.vhd for unit standard
+-- Loading package standard into library std
+-- Reading vhdl file /afs/slac/u/re/bareese/projects/asic_cores/StdLib/rtl/StdRtlPkg.vhd into library work
+-- Reading file /afs/slac/g/reseng/vol4/leonardo/2011a/data/std_1164.vhd for unit STD_LOGIC_1164
+-- Loading package std_logic_1164 into library IEEE
+-- Reading file /afs/slac/g/reseng/vol4/leonardo/2011a/data/numeric_std.vhd for unit NUMERIC_STD
+-- Loading package NUMERIC_STD into library IEEE
+-- Loading package StdRtlPkg into library work
+-- Reading vhdl file /afs/slac/u/re/bareese/projects/asic_cores/Saci/rtl/SaciSlave.vhd into library work
+-- Loading entity SaciSlave into library work
+"/afs/slac/u/re/bareese/projects/asic_cores/Saci/rtl/SaciSlave.vhd",line 52: Info, Enumerated type StateType with 6 elements encoded as Gray.
+Encodings for StateType values
+        value    StateType[2-0]
+===============================
+         IDLE_S  000
+SHIFT_HEADER_IN_S  001
+SHIFT_DATA_IN_S  011
+         EXEC_S  010
+SHIFT_HEADER_OUT_S  110
+SHIFT_DATA_OUT_S  111
+
+-- Loading architecture rtl of SaciSlave into library work
+-- Compiling root entity SaciSlave(rtl)
+"/afs/slac/u/re/bareese/projects/asic_cores/Saci/rtl/SaciSlave.vhd",line 200: Info, others clause is never selected for synthesis.
+-- Boundary optimization.
+-- Start pre-optimization for design .work.SaciSlave.rtl
+-- Start pre-optimization for design .work.SaciSlave.rtl
+Info: setting input2register to 10.000000
+Info: setting register2output to 10.000000
+Info: setting register2register to 30.000000
+NO wire table is found
+-- Optimizing netlist .work.SaciSlave.rtl
+-- Matching combinational logic..
+-- Matching non-combinational logic..
+-- Covering..
+-- CPU Time used :   00:00 Mapping
+Re-checking DRC after adjustments
+-- Final Design Rule Check..
+-- Start timing optimization for design .work.SaciSlave.rtl
+
+Initial Timing Optimization Statistics:
+---------------------------------------
+
+	Clock                  : Frequency
+      ------------------------------------
+
+	saciClk                : 871.4 MHz
+
+
+	Most Critical Slack    :    -1117.6
+	Sum of Negative Slacks :  -162625.7
+	Area                   :    19842.0
+
+                                                             
+Final Timing Optimization Statistics:
+-------------------------------------
+
+	Clock                  : Frequency
+      ------------------------------------
+
+	saciClk                : 926.1 MHz
+
+
+	Most Critical Slack    :    -1049.8
+	Sum of Negative Slacks :  -161358.5
+	Area                   :    20698.2
+
+	Total time taken : 0 cpu secs
+NO wire table is found
+AutoWrite args are : -format Verilog SaciSlave.v
+-- Writing file SaciSlave.v
+AutoWrite args are : -format EDIF SaciSlave.edf
+-- Writing file SaciSlave.edf
