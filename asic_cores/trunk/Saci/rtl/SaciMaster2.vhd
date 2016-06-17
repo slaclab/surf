@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-08-10
--- Last update: 2016-06-14
+-- Last update: 2016-06-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,8 +28,8 @@ entity SaciMaster2 is
       SYS_CLK_PERIOD_G   : real     := 8.0e-9;
       SACI_CLK_PERIOD_G  : real     := 1.0e-6;
       SACI_CLK_FREERUN_G : boolean  := false;
-      NUM_CHIPS_G        : positive := 1);
-
+      SACI_NUM_CHIPS_G   : positive := 1;
+      SACI_RSP_BUSSED_G  : boolean  := false);
    port (
       sysClk : in sl;                   -- Main clock
       sysRst : in sl;
@@ -38,7 +38,7 @@ entity SaciMaster2 is
       req    : in  sl;
       ack    : out sl;
       fail   : out sl;
-      chip   : in  slv(log2(NUM_CHIPS_G)-1 downto 0);
+      chip   : in  slv(log2(SACI_NUM_CHIPS_G)-1 downto 0);
       op     : in  sl;
       cmd    : in  slv(6 downto 0);
       addr   : in  slv(11 downto 0);
@@ -47,9 +47,9 @@ entity SaciMaster2 is
 
       -- Serial interface
       saciClk  : out sl;
-      saciSelL : out slv(NUM_CHIPS_G-1 downto 0);
+      saciSelL : out slv(SACI_NUM_CHIPS_G-1 downto 0);
       saciCmd  : out sl;
-      saciRsp  : in  sl);
+      saciRsp  : in  slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0));
 
 
 end entity SaciMaster2;
@@ -78,7 +78,7 @@ architecture rtl of SaciMaster2 is
 
       -- SACI Outputs
       saciClk  : sl;
-      saciSelL : slv(NUM_CHIPS_G-1 downto 0);
+      saciSelL : slv(SACI_NUM_CHIPS_G-1 downto 0);
       saciCmd  : sl;
    end record RegType;
 
@@ -99,34 +99,36 @@ architecture rtl of SaciMaster2 is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal saciRspSync : sl;
+   signal saciRspSync : slv(saciRsp'range);
 
 begin
 
    -------------------------------------------------------------------------------------------------
    -- Synchronize saciRsp to sysClk
    -------------------------------------------------------------------------------------------------
-   U_Synchronizer_1 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => sysClk,             -- [in]
-         rst     => sysRst,             -- [in]
-         dataIn  => saciRsp,            -- [in]
-         dataOut => saciRspSync);       -- [out]
-
+   RSP_SYNC : for i in saciRsp'range generate
+      U_Synchronizer_1 : entity work.Synchronizer
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => sysClk,           -- [in]
+            rst     => sysRst,           -- [in]
+            dataIn  => saciRsp(i),       -- [in]
+            dataOut => saciRspSync(i));  -- [out]
+   end generate RSP_SYNC;
 
    -------------------------------------------------------------------------------------------------
    -- Main logic
    -------------------------------------------------------------------------------------------------
    comb : process (addr, chip, cmd, op, r, req, saciRspSync, sysRst, wrData) is
-      variable v : RegType;
+      variable v        : RegType;
+      variable rspIndex : integer;
    begin
       v := r;
 
       -- Default values
-      v.shiftCount := (others => '0');
       v.ack        := '0';
+      rspIndex     := ite(SACI_RSP_BUSSED_G, 0, conv_integer(chip));
 
       -- Run the saciClk
       v.clkCount := r.clkCount + 1;
@@ -174,7 +176,7 @@ begin
                   v.shiftReg(31 downto 0) := (others => '0');
                end if;
                -- Assert saciSelL line
-               v.saciSelL := not decode(chip)(NUM_CHIPS_G-1 downto 0);
+               v.saciSelL := not decode(chip)(SACI_NUM_CHIPS_G-1 downto 0);
                v.state    := TX_S;
             end if;
 
@@ -194,9 +196,14 @@ begin
 
 
          when RX_START_S =>
+            -- Clear last saciCmd on rising edge of saciCLk
+            if (r.saciClkRising = '1') then
+               v.saciCmd := '0';
+            end if;
+            
             -- Wait for saciRsp start bit
             v.shiftCount := (others => '0');
-            if (saciRspSync = '1' and r.saciClkFalling = '1') then
+            if (saciRspSync(rspIndex) = '1' and r.saciClkFalling = '1') then
                v.state := RX_HEADER_S;
             end if;
 
@@ -204,8 +211,7 @@ begin
             -- Shift data in and check that header is correct
             if (r.saciClkFalling = '1') then
                v.shiftCount := r.shiftCount + 1;
-               --shiftInLeft(saciRspFall, r.shiftReg, v.shiftReg);
-               v.shiftReg   := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspSync;
+               v.shiftReg   := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspSync(rspIndex);
             end if;
 
             if (r.shiftCount = 20) then
@@ -226,7 +232,7 @@ begin
          when RX_DATA_S =>
             if (r.saciClkFalling = '1') then
                v.shiftCount := r.shiftCount + 1;
-               v.shiftReg   := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspSync;
+               v.shiftReg   := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspSync(rspIndex);
                if (r.shiftCount = 51) then
                   v.state := ACK_S;
                end if;
@@ -252,7 +258,7 @@ begin
 
       saciSelL <= r.saciSelL;
       saciCmd  <= r.saciCmd;
-      saciClk <= r.saciClk;
+      saciClk  <= r.saciClk;
       ack      <= r.ack;
       fail     <= r.fail;
       rdData   <= r.rdData;
