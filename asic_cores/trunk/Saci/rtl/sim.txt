@@ -1,1 +1,1 @@
-vhdl work AxiLiteSaciMaster2Tb.vhd
+vhdl work AxiLiteSaciMasterTb.vhd

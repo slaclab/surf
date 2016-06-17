@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-07-12
--- Last update: 2013-03-01
+-- Last update: 2016-06-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -49,36 +49,23 @@ end entity SaciSlave;
 
 architecture rtl of SaciSlave is
 
-  type StateType is (IDLE_S,
-                     SHIFT_HEADER_IN_S,
-                     SHIFT_DATA_IN_S,
-                     EXEC_S,
-                     SHIFT_HEADER_OUT_S,
-                     SHIFT_DATA_OUT_S);
+  type StateType is (WAIT_START_S, SHIFT_IN_S);
 
   type RegType is record
-    headerShiftReg : slv(20 downto 0);
-    dataShiftReg   : slv(31 downto 0);
-    shiftCount     : unsigned(5 downto 0);
-    state          : StateType;
-    exec           : sl;
-    writeFlag      : sl;
-    saciRsp        : sl;
+    shiftReg : slv(54 downto 0);
+    state    : StateType;
+    exec     : sl;
+    readL    : sl;
   end record RegType;
 
   signal r, rin      : RegType;
   signal saciCmdFall : sl;
 
   procedure shiftInLeft (
-    i : in  sl;
-    r : in  slv;
-    v : out slv) is
+    i : in    sl;
+    v : inout slv) is
   begin
-    if (r'ascending) then
-      v := r(r'low+1 to r'high) & i;
-    else
-      v := r(r'high-1 downto r'low) & i;
-    end if;
+    v := v(v'high-1 downto v'low) & i;
   end procedure shiftInLeft;
 
 begin
@@ -101,128 +88,76 @@ begin
   seq : process (saciClk, rstInL) is
   begin
     if (rstInL = '0') then
-      r.headerShiftReg <= (others => '0') after TPD_G;
-      r.dataShiftReg   <= (others => '0') after TPD_G;
-      r.shiftCount     <= (others => '0') after TPD_G;
-      r.state          <= IDLE_S          after TPD_G;
-      r.exec           <= '0'             after TPD_G;
-      r.writeFlag      <= '0'             after TPD_G;
-      r.saciRsp        <= '0'             after TPD_G;
+      r.shiftReg <= (others => '0') after TPD_G;
+      r.state    <= WAIT_START_S    after TPD_G;
+      r.exec     <= '0'             after TPD_G;
+      r.readL    <= '0'             after TPD_G;
     elsif (rising_edge(saciClk)) then
       r <= rin after TPD_G;
     end if;
   end process seq;
 
   comb : process (r, saciCmdFall, ack, rdData, saciSelL) is
-    variable rVar : RegType;
+    variable v : RegType;
   begin
-    rVar := r;
+    v := r;
 
-    -- Defualt values
-    -- Overridden in some states
-    rVar.exec    := '0';
-    rVar.saciRsp := '0';
+    shiftInLeft(saciCmdFall, v.shiftReg);
 
     -- Main state machine
     case (r.state) is
-      
-      when IDLE_S =>
-        -- Shift in bits until a start bit is seen
-        shiftInLeft(saciCmdFall, r.headerShiftReg, rVar.headerShiftReg);
-        rVar.shiftCount := (others => '0');
-        rVar.dataShiftReg := (others => '0');
-        if (saciCmdFall = '1') then
-          rVar.state := SHIFT_HEADER_IN_S;
+
+      when WAIT_START_S =>
+
+        -- Shift data out and look for next start bit
+        if (r.shiftReg(0) = '1') then
+          v.state := SHIFT_IN_S;
         end if;
 
-      when SHIFT_HEADER_IN_S =>
-        -- Shift in the header
-        shiftInLeft(saciCmdFall, r.headerShiftReg, rVar.headerShiftReg);
-        rVar.shiftCount := r.shiftCount + 1;
-        if (r.shiftCount = 19) then
-          -- Header rx'd, check r/w bit
-          rVar.writeFlag  := r.headerShiftReg(18);
-          rVar.shiftCount := (others => '0');
-          if (r.headerShiftReg(18) = '1') then  -- r/w bit will be at index 19 when frozen
-            -- Write
-            rVar.state := SHIFT_DATA_IN_S;
-          else
-            -- Read
-            rVar.state := EXEC_S;
-          end if;
+      when SHIFT_IN_S =>
+        -- Wait for start bit to shift all the way in then assert exec and readL
+        if (r.shiftReg(52) = '1') then
+          v.exec  := '1';
+          v.readL := r.shiftReg(51);
         end if;
 
-      when SHIFT_DATA_IN_S =>
-        -- Write being performed, shift in write data
-        shiftInLeft(saciCmdFall, r.dataShiftReg, rVar.dataShiftReg);
-        rVar.shiftCount := r.shiftCount + 1;
-        if (r.shiftCount = 31) then
-          rVar.state := EXEC_S;
+        if (r.exec = '1') then
+          v.shiftReg := r.shiftReg;     -- Pause shifting when exec high
+          v.readL    := r.readL;
         end if;
 
-      when EXEC_S =>
-        -- Do exec/ack cycle
-        rVar.exec         := '1';
-        rVar.shiftCount   := (others => '0');
         if (ack = '1') then
-          rVar.dataShiftReg := rdData;
-          rVar.state := SHIFT_HEADER_OUT_S;
-        end if;
-
-      when SHIFT_HEADER_OUT_S =>
-        -- Always send back the header, even on writes, as an ack to the other side
-        rVar.shiftCount := r.shiftCount + 1;
-        rVar.saciRsp    := r.headerShiftReg(20);
-        -- Technically shifting out but its the same
-        -- Any saciCmd data shifted in here will be ignored (but there shouldn't be any)
-        shiftInLeft(saciCmdFall, r.headerShiftReg, rVar.headerShiftReg);
-        if (r.shiftCount = 20) then
-          rVar.shiftCount := (others => '0');
-          if (r.writeFlag = '1') then
-            -- Done
-            rVar.state := IDLE_S;
+          v.exec  := '0';
+          v.state := WAIT_START_S;
+          if (r.shiftReg(52) = '1') then
+            v.shiftReg(32 downto 1) := (others => '0');  -- write
           else
-            -- Must now send read data back
-            rVar.state := SHIFT_DATA_OUT_S;
+            v.shiftReg(32 downto 1) := rdData;           -- read
           end if;
-
         end if;
-
-      when SHIFT_DATA_OUT_S =>
-        -- Read being performed, the read data obtained during EXEC_S
-        rVar.shiftCount := r.shiftCount + 1;
-        rVar.saciRsp    := r.dataShiftReg(31);
-        shiftInLeft(saciCmdFall, r.dataShiftReg, rVar.dataShiftReg);
-        if (r.shiftCount = 32) then
-          rVar.state := IDLE_S;
-        end if;
+        
 
       when others =>
-        rVar.headerShiftReg := (others => '0');
-        rVar.dataShiftReg   := (others => '0');
-        rVar.shiftCount     := (others => '0');
-        rVar.state          := IDLE_S;
-        rVar.exec           := '0';
-        rVar.writeFlag      := '0';
-        rVar.saciRsp        := '0';
+        v.shiftReg := (others => '0');
+        v.state    := WAIT_START_S;
+        v.exec     := '0';
+        v.readL    := '0';
 
     end case;
 
 
-    rin     <= rVar;
+    rin <= v;
 
     -- Assign outputs from registers
     exec    <= r.exec;
-    readL   <= r.writeFlag;
-    cmd     <= r.headerShiftReg(18 downto 12);
-    addr    <= r.headerShiftReg(11 downto 0);
-    wrData  <= r.dataShiftReg;
-    saciRsp <= r.saciRsp;
+    readL   <= r.readL;
+    saciRsp <= r.shiftReg(54);          -- 52 = start, 51 = r/w at time of exec
+    cmd     <= r.shiftReg(51 downto 45);
+    addr    <= r.shiftReg(44 downto 33);
+    wrData  <= r.shiftReg(32 downto 1);
 
   end process comb;
 
---  data    <= r.dataShiftReg when r.writeFlag = '1' else (others => 'Z');
---  saciRsp <= r.saciRsp      when saciSelL = '0'    else 'Z';
 
 end architecture rtl;
 

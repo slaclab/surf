@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Testbench for design "AxiLiteSaciMaster2"
 -------------------------------------------------------------------------------
--- File       : AxiLiteSaciMaster2Tb.vhd
+-- File       : AxiLiteSaciMasterTb.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-17
@@ -28,13 +28,13 @@ use work.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity AxiLiteSaciMaster2Tb is
+entity AxiLiteSaciMasterTb is
 
-end entity AxiLiteSaciMaster2Tb;
+end entity AxiLiteSaciMasterTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of AxiLiteSaciMaster2Tb is
+architecture sim of AxiLiteSaciMasterTb is
 
    -- component generics
    constant TPD_G              : time                  := 1 ns;
@@ -47,17 +47,17 @@ architecture sim of AxiLiteSaciMaster2Tb is
    constant SACI_RSP_BUSSED_G  : boolean               := false;
 
    -- component ports
-   signal saciClk         : sl;         -- [out]
-   signal saciCmd         : sl;         -- [out]
-   signal saciSelL        : slv(SACI_NUM_CHIPS_G-1 downto 0);  -- [out]
-   signal saciRsp         : slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0) := (others => '0');  -- [in]
-   signal axilClk         : sl;         -- [in]
-   signal axilRst         : sl;         -- [in]
+   signal saciClk         : sl;        
+   signal saciCmd         : sl;        
+   signal saciSelL        : slv(SACI_NUM_CHIPS_G-1 downto 0);  
+   signal saciRsp         : slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0) := (others => '0');  
+   signal axilClk         : sl;         
+   signal axilRst         : sl;         
    signal axilRstL        : sl;
-   signal axilReadMaster  : AxiLiteReadMasterType;             -- [in]
-   signal axilReadSlave   : AxiLiteReadSlaveType;              -- [out]
-   signal axilWriteMaster : AxiLiteWriteMasterType;            -- [in]
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;             -- [out]
+   signal axilReadMaster  : AxiLiteReadMasterType;             
+   signal axilReadSlave   : AxiLiteReadSlaveType;              
+   signal axilWriteMaster : AxiLiteWriteMasterType;            
+   signal axilWriteSlave  : AxiLiteWriteSlaveType;             
 
    signal rstLoopL : slv(SACI_NUM_CHIPS_G-1 downto 0);
    signal exec     : slv(SACI_NUM_CHIPS_G-1 downto 0);
