@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-28
--- Last update: 2014-10-29
+-- Last update: 2016-06-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity ClockManager7 is
       TYPE_G                 : string                           := "MMCM";  -- or "PLL"
       INPUT_BUFG_G           : boolean                          := true;
       FB_BUFG_G              : boolean                          := true;
+      OUTPUT_BUFG_G          : boolean                          := true;
       RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
       -- MMCM attributes
@@ -116,13 +117,13 @@ architecture rtl of ClockManager7 is
    attribute keep_hierarchy of rtl : architecture is "yes";
 
 begin
-   
+
    assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G < 7))
       report "ClockManager7: Cannot have 7 clocks if TYPE_G is PLL" severity failure;
 
    assert(TYPE_G = "MMCM" or TYPE_G = "PLL")
       report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;
-   
+
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
 
    MmcmGen : if (TYPE_G = "MMCM") generate
@@ -233,13 +234,23 @@ begin
       clkFbOut <= clkFbIn;
    end generate;
 
-   ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
-      U_Bufg : BUFG
-         port map (
-            I => clkOutMmcm(i),
-            O => clkOutLoc(i));
-      clkOut(i) <= clkOutLoc(i);
-   end generate;
+   OutBufgGen : if (OUTPUT_BUFG_G) generate
+      ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
+         U_Bufg : BUFG
+            port map (
+               I => clkOutMmcm(i),
+               O => clkOutLoc(i));
+         clkOut(i) <= clkOutLoc(i);
+      end generate;
+   end generate OutBufgGen;
+
+   NoOutBufgGen : if (not OUTPUT_BUFG_G) generate
+      ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
+         clkOutLoc(i) <= clkOutMmcm(i);
+         clkOut(i)    <= clkOutLoc(i);
+      end generate;
+   end generate NoOutBufgGen;
+
 
    locked <= lockedLoc;
 
