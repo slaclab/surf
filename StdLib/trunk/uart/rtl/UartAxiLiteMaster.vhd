@@ -1,0 +1,377 @@
+-------------------------------------------------------------------------------
+-- Title      : 
+-------------------------------------------------------------------------------
+-- File       : UartAxiLiteMaster.vhd
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-06-09
+-- Last update: 2016-06-09
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: Ties together everything needed for a full duplex UART.
+-- This includes Baud Rate Generator, Transmitter, Receiver and FIFOs.
+-------------------------------------------------------------------------------
+-- This file is part of StdLib. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of StdLib, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+use work.StdRtlPkg.all;
+use work.TextUtilPkg.all;
+use work.AxiLitePkg.all;
+use work.AxiLiteMasterPkg.all;
+
+entity UartAxiLiteMaster is
+
+   generic (
+      TPD_G             : time                  := 1 ns;
+      AXIL_CLK_FREQ_C   : real                  := 125.0e6;
+      BAUD_RATE_G       : integer               := 115200;
+      FIFO_BRAM_EN_G    : boolean               := false;
+      FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 4);
+   port (
+      axilClk          : in  sl;
+      axilRst           : in  sl;
+      -- Transmit parallel interface
+      mAxilWriteMaster : out AxiLiteWriteMasterType;
+      mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
+      mAxilReadMaster  : out AxiLiteReadMasterType;
+      mAxilReadSlave   : in  AxiLiteReadSlaveType;
+      -- Serial IO
+      tx               : out sl;
+      rx               : in  sl);
+
+end entity UartAxiLiteMaster;
+
+architecture rtl of UartAxiLiteMaster is
+
+   type StateType is (WAIT_START_S,
+                      SPACE_ADDR_S,
+                      ADDR_SPACE_S,
+                      WR_DATA_S,
+                      WAIT_EOL_S,
+                      AXIL_TXN_S,
+                      RD_DATA_SPACE_S,
+                      RD_DATA_S,
+                      DONE_S);
+
+   type RegType is record
+      state       : StateType;
+      count       : slv(2 downto 0);
+      axilReq     : AxiLiteMasterReqType;
+      rdData      : slv(31 downto 0);
+      uartTxData  : slv(7 downto 0);
+      uartTxValid : sl;
+      uartRxReady : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      state       => WAIT_START_S,
+      count       => (others => '0'),
+      axilReq     => AXI_LITE_MASTER_REQ_INIT_C,
+      rdData      => (others => '0'),
+      uartTxData  => (others => '0'),
+      uartTxValid => '0',
+      uartRxReady => '1');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+--   signal axilReq : AxiLiteMasterReqType;
+   signal axilAck : AxiLiteMasterAckType;
+
+   signal uartRxData  : slv(7 downto 0);
+   signal uartRxValid : sl;
+--   signal uartRxReady : sl;
+
+--    signal uartTxData  : slv(7 downto 0);
+--    signal uartTxValid : sl;
+   signal uartTxReady : sl;
+
+   function hexToSlv (hex : slv(7 downto 0)) return slv is
+      variable char : character;
+   begin
+      char := character'val(conv_integer(hex));
+      case char is
+         when '0'    => return toSlv(0, 4);
+         when '1'    => return toSlv(1, 4);
+         when '2'    => return toSlv(2, 4);
+         when '3'    => return toSlv(3, 4);
+         when '4'    => return toSlv(4, 4);
+         when '5'    => return toSlv(5, 4);
+         when '6'    => return toSlv(6, 4);
+         when '7'    => return toSlv(7, 4);
+         when '8'    => return toSlv(8, 4);
+         when '9'    => return toSlv(9, 4);
+         when 'A'    => return toSlv(10, 4);
+         when 'a'    => return toSlv(10, 4);
+         when 'B'    => return toSlv(11, 4);
+         when 'b'    => return toSlv(11, 4);
+         when 'C'    => return toSlv(12, 4);
+         when 'c'    => return toSlv(12, 4);
+         when 'D'    => return toSlv(13, 4);
+         when 'd'    => return toSlv(13, 4);
+         when 'E'    => return toSlv(14, 4);
+         when 'e'    => return toSlv(14, 4);
+         when 'F'    => return toSlv(15, 4);
+         when 'f'    => return toSlv(15, 4);
+         when others => return toSlv(0, 4);
+      end case;
+   end function;
+
+   function slvToHex (nibble : slv(3 downto 0)) return slv is
+   begin
+      return toSlv(character'pos(chr(conv_integer(nibble))), 8);
+   end function;
+
+begin
+
+   -------------------------------------------------------------------------------------------------
+   -- Instantiate UART
+   -------------------------------------------------------------------------------------------------
+   U_UartWrapper_1 : entity work.UartWrapper
+      generic map (
+         TPD_G             => TPD_G,
+         CLK_FREQ_G        => AXIL_CLK_FREQ_C,
+         BAUD_RATE_G       => BAUD_RATE_G,
+         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
+         FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
+      port map (
+         clk     => axilClk,            -- [in]
+         rst     => axilRst,            -- [in]
+         wrData  => r.uartTxData,       -- [in]
+         wrValid => r.uartTxValid,      -- [in]
+         wrReady => uartTxReady,        -- [out]
+         rdData  => uartRxData,         -- [out]
+         rdValid => uartRxValid,        -- [out]
+         rdReady => r.uartRxReady,      -- [in]
+         tx      => tx,                 -- [out]
+         rx      => rx);                -- [in]
+
+   U_AxiLiteMaster_1 : entity work.AxiLiteMaster
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         axilClk         => axilClk,           -- [in]
+         axilRst         => axilRst,           -- [in]
+         req             => r.axilReq,         -- [in]
+         ack             => axilAck,           -- [out]
+         axilWriteMaster => mAxilWriteMaster,  -- [out]
+         axilWriteSlave  => mAxilWriteSlave,   -- [in]
+         axilReadMaster  => mAxilReadMaster,   -- [out]
+         axilReadSlave   => mAxilReadSlave);   -- [in]
+
+   comb : process (axilAck, axilRst, r, uartRxData, uartRxValid, uartTxReady) is
+      variable v : RegType;
+
+      procedure uartTx (
+         tx : in slv(7 downto 0)) is
+      begin
+         v.uartTxValid := '1';
+         v.uartTxData  := tx;
+      end procedure uartTx;
+
+      procedure uartTx (
+         char : in character) is
+      begin
+         uartTx(toSlv(character'pos(char), 8));
+      end procedure uartTx;
+
+      function rxIsSpace
+         return boolean is
+      begin
+         return (uartRxData = character'pos(' '));
+      end function rxIsSpace;
+
+      function rxIsEOL
+         return boolean is
+      begin
+         return (uartRxData = character'pos(CR) or
+                 uartRxData = character'pos(LF));
+      end function rxIsEOL;
+
+   begin
+      v := r;
+
+      -- Format:
+      -- "w|W ADDRHEX DATAHEX0 [DATAHEX1] [DATAHEX2]...\r|\n"
+      -- Writes echo'd back with resp code
+      -- "r|R ADDRHEX [NUMREADSHEX] \r|\n"
+      -- Resp: "r|R ADDRHEX DATAHEX0 [DATAHEX1] [DATAHEX2]...\r|\n"
+      -- Blank lines ignored
+      -- Extra words ignored.
+
+      -- Auto clear uartTxValid upton uartTxReady
+      if (uartTxReady = '1') then
+         v.uartTxValid := '0';
+      end if;
+
+      case r.state is
+         when WAIT_START_S =>
+            -- Any characters before 'r' or 'w' are thrown out
+            if (uartRxValid = '1') then
+               if (uartRxData = toSlv(character'pos('w'), 8) or
+                   uartRxData = toSlv(character'pos('W'), 8)) then
+                  -- Write op
+                  v.axilReq.rnw := '0';
+                  uartTx(uartRxData);
+                  v.state       := SPACE_ADDR_S;
+               elsif (uartRxData = toSlv(character'pos('r'), 8) or
+                      uartRxData = toSlv(character'pos('R'), 8)) then
+                  -- Read
+                  v.axilReq.rnw := '1';
+                  uartTx(uartRxData);
+                  v.state       := SPACE_ADDR_S;
+               end if;
+            end if;
+
+         when SPACE_ADDR_S =>
+            -- Need to check for the space after opcode
+            if (uartRxValid = '1') then
+               uartTx(uartRxData);
+               v.state           := ADDR_SPACE_S;
+               v.axilReq.address := r.axilReq.address(27 downto 0) & hexToSlv(uartRxData);
+
+               -- Ignore character if its a space
+               if (rxIsSpace) then
+                  v.axilReq.address := r.axilReq.address;
+               end if;
+
+               -- Go back to start if EOL
+               if (rxIsEOL) then
+                  v.state := WAIT_START_S;
+               end if;
+            end if;
+
+
+         when ADDR_SPACE_S =>
+            if (uartRxValid = '1') then
+               uartTx(uartRxData);
+               v.axilReq.address := r.axilReq.address(27 downto 0) & hexToSlv(uartRxData);
+
+               -- Space indicates end of addr word
+               if (rxIsSpace) then
+                  v.axilReq.address := r.axilReq.address;
+                  if (r.axilReq.rnw = '0') then
+                     v.state := WR_DATA_S;
+                  else
+                     v.state := WAIT_EOL_S;
+                  end if;
+               end if;
+
+               -- Go back to start if EOL
+               if (rxIsEOL) then
+                  v.state := WAIT_START_S;
+               end if;
+
+            end if;
+
+         when WR_DATA_S =>
+            if (uartRxValid = '1') then
+               uartTx(uartRxData);
+               v.axilReq.wrData := r.axilReq.wrData(27 downto 0) & hexToSlv(uartRxData);
+
+               -- Space or EOL indicates end of wrData word
+               -- If space need to wait for EOL
+               if (rxIsSpace) then
+                  v.axilReq.wrData := r.axilReq.wrData;
+                  v.state          := WAIT_EOL_S;
+               end if;
+
+               -- If EOL can issue AXIL txn
+               if (rxIsEOL) then
+                  v.axilReq.wrData := r.axilReq.wrData;
+                  uartTx('#');
+                  v.state          := AXIL_TXN_S;
+               end if;
+            end if;
+
+         when WAIT_EOL_S =>
+            -- Issue AXIL TXN once EOL seen
+            -- Any other charachters are echo'd but otherwise ignored
+            if (uartRxValid = '1') then
+               uartTx(uartRxData);
+               if (rxIsEOL) then
+                  uartTx('#');
+                  v.state := AXIL_TXN_S;
+               end if;
+            end if;
+
+         when AXIL_TXN_S =>
+            -- Transmit a space on first cycle of this state
+            if (r.axilReq.request = '0') then
+               uartTx(' ');
+            end if;
+
+            -- Assert request and wait for response
+            v.axilReq.request := '1';
+            if (axilAck.done = '1') then
+               -- Send the response code
+               uartTx(slvToHex(resize(axilAck.resp, 4)));
+               -- Done if write op, else transmit the read data
+               if (r.axilReq.rnw = '0') then
+                  v.state := DONE_S;
+               else
+                  v.rdData := axilAck.rdData;
+                  v.state  := RD_DATA_SPACE_S;
+               end if;
+            end if;
+
+         when RD_DATA_SPACE_S =>
+            if (v.uartTxValid = '0') then
+               uartTx(' ');
+               v.state := RD_DATA_S;
+            end if;
+
+         when RD_DATA_S =>
+            if (v.uartTxValid = '0') then
+               v.count  := r.count + 1;
+               uartTx(slvToHex(r.rdData(31 downto 0)));
+               v.rdData := r.rdData(27 downto 0) & "0000";
+               if (r.count = 7) then
+                  v.state := DONE_S;
+               end if;
+            end if;
+
+         when DONE_S =>
+            -- Send a space on first cycle of this state
+            if (r.axilReq.request = '1') then
+               uartTx(' ');
+            end if;
+
+            -- Release request and wait for done to fall
+            -- Send closing CR when it does
+            v.axilReq.request := '0';
+            if (axilAck.done = '0') then
+               uartTx(CR);
+               v.state := WAIT_START_S;
+            end if;
+
+      end case;
+
+      if (axilRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      rin <= v;
+   end process comb;
+
+   seq : process (axilClk) is
+   begin
+      if (rising_edge(axilClk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+
+end architecture rtl;
