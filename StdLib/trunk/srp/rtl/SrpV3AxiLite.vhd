@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-05-05
+-- Last update: 2016-06-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -111,6 +111,7 @@ architecture rtl of SrpV3AxiLite is
       frameError       : sl;
       verMismatch      : sl;
       reqSizeError     : sl;
+      ignoreMemResp    : sl;
       mAxilWriteMaster : AxiLiteWriteMasterType;
       mAxilReadMaster  : AxiLiteReadMasterType;
       rxSlave          : AxiStreamSlaveType;
@@ -135,6 +136,7 @@ architecture rtl of SrpV3AxiLite is
       frameError       => '0',
       verMismatch      => '0',
       reqSizeError     => '0',
+      ignoreMemResp    => '0',
       mAxilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
       mAxilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
       rxSlave          => AXI_STREAM_SLAVE_INIT_C,
@@ -278,6 +280,7 @@ begin
                   -- Latch the header information
                   v.remVer         := rxMaster.tData(7 downto 0);
                   v.opCode         := rxMaster.tData(9 downto 8);
+                  v.ignoreMemResp  := rxMaster.tData(14);
                   v.timeoutSize    := rxMaster.tData(31 downto 24);
                   -- Reset other header fields
                   v.tid            := (others => '0');
@@ -410,8 +413,12 @@ begin
                      -- Set data bus
                      v.txMaster.tData(7 downto 0)   := SRP_VERSION_C;
                      v.txMaster.tData(9 downto 8)   := r.opCode;
-                     v.txMaster.tData(11 downto 10) := "00";  -- Only supports 32-bit aligned addresses and 32-bit transactions
-                     v.txMaster.tData(23 downto 12) := (others => '0');  -- Reserved
+                     v.txMaster.tData(10)           := '0';  -- UnalignedAccess: 0 = not supported (only 32-bit alignment)
+                     v.txMaster.tData(11)           := '0';  -- MinAccessSize:   0 = 32-bit (4 byte) transactions only
+                     v.txMaster.tData(12)           := '0';  -- WriteEn:         0 = write operations are not supported
+                     v.txMaster.tData(13)           := '0';  -- ReadEn:          0 = read operations are not supported
+                     v.txMaster.tData(14)           := r.ignoreMemResp;
+                     v.txMaster.tData(23 downto 15) := (others => '0');  -- Reserved
                      v.txMaster.tData(31 downto 24) := r.timeoutSize;
                   when x"1" => v.txMaster.tData(31 downto 0) := r.tid(31 downto 0);
                   when x"2" => v.txMaster.tData(31 downto 0) := r.addr(31 downto 0);
@@ -528,12 +535,18 @@ begin
                   -- Reset the flag
                   v.mAxilReadMaster.rready := '0';
                   -- Latch the memory bus responds
-                  v.memResp(1 downto 0)    := mAxilReadSlave.rresp;
+                  if (r.ignoreMemResp = '0') then
+                     v.memResp(1 downto 0) := mAxilReadSlave.rresp;
+                  end if;
                   -- Check for a valid responds
                   if mAxilReadSlave.rresp = AXI_RESP_OK_C then
                      -- Move the data
                      v.txMaster.tValid             := '1';
                      v.txMaster.tData(31 downto 0) := mAxilReadSlave.rdata;
+                  elsif (r.ignoreMemResp = '1') then
+                     -- Move the data
+                     v.txMaster.tValid             := '1';
+                     v.txMaster.tData(31 downto 0) := (others => '1');
                   end if;
                end if;
                -- Check if transaction is done
@@ -631,7 +644,9 @@ begin
                -- Reset the flag
                v.mAxilWriteMaster.bready := '0';
                -- Latch the memory bus responds
-               v.memResp(1 downto 0)     := mAxilWriteSlave.bresp;
+               if (r.ignoreMemResp = '0') then
+                  v.memResp(1 downto 0) := mAxilWriteSlave.bresp;
+               end if;
             end if;
             -- Check if transaction is done
             if (v.mAxilWriteMaster.awvalid = '0') and(v.mAxilWriteMaster.wvalid = '0') and (v.mAxilWriteMaster.bready = '0') then
