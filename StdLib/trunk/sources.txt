@@ -142,4 +142,17 @@ vhdl work srp/rtl/SrpV3Core.vhd
 vhdl work srp/rtl/SrpV0AxiLite.vhd
 vhdl work srp/rtl/SrpV3AxiLite.vhd
 vhdl work srp/rtl/SrpV3Axi.vhd
+vhdl work srp/rtl/AxiLiteSrpV0.vhd
 
+vhdl work uart/rtl/UartBrg.vhd
+vhdl work uart/rtl/UartTx.vhd
+vhdl work uart/rtl/UartRx.vhd
+vhdl work uart/rtl/UartWrapper.vhd
+vhdl work uart/rtl/UartAxiLiteMaster.vhd
+
+vhdl work saci/rtl/SaciMasterPkg.vhd
+vhdl work saci/rtl/SaciMaster.vhd
+vhdl work saci/rtl/SaciMasterSync.vhd
+vhdl work saci/rtl/SaciMaster2.vhd
+vhdl work saci/rtl/AxiLiteSaciMaster.vhd
+vhdl work saci/rtl/SaciSlave.vhd
