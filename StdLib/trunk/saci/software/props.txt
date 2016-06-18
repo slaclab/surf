@@ -1,3 +1,0 @@
-^/gen_daq/trunk/cntrlGui cntrlGui
-^/gen_daq/trunk/generic generic 
-^/gen_daq/trunk/python python 
