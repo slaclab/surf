@@ -1,0 +1,364 @@
+
+
+
+                        Clock Frequency Report
+
+	Clock                : Frequency
+      ------------------------------------
+
+	saciClk              : 926.1 MHz
+
+
+                        Critical Path Report
+
+
+Critical path #1, (path slack = -1049.8):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(0)/CLK                       DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(0)/Q                         DFFC        0.00  530.77 up             8.85
+reg_nx1445/OUT                           Nor3        42.12  572.89 dn             5.90
+reg_nx1465/OUT                           BufI4       35.05  607.94 up             0.98
+ix9/OUT                                  Nand2       47.47  655.41 dn             2.95
+ix1896/OUT                               Buf1        104.61  760.03 dn             8.85
+ix215/OUT                                Mux2        234.73  994.75 dn             0.98
+reg_r_headerShiftReg(16)/D               DFFC        0.00  994.75 dn             0.00
+data arrival time                                          994.75
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(16)/CLK             DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          994.75
+                                                        ----------
+slack                                                     -1049.75
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #2, (path slack = -1049.8):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(0)/CLK                       DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(0)/Q                         DFFC        0.00  530.77 up             8.85
+reg_nx1445/OUT                           Nor3        42.12  572.89 dn             5.90
+reg_nx1465/OUT                           BufI4       35.05  607.94 up             0.98
+ix9/OUT                                  Nand2       47.47  655.41 dn             2.95
+ix1896/OUT                               Buf1        104.61  760.03 dn             8.85
+ix131/OUT                                Mux2        234.73  994.75 dn             0.98
+reg_r_headerShiftReg(9)/D                DFFC        0.00  994.75 dn             0.00
+data arrival time                                          994.75
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          994.75
+                                                        ----------
+slack                                                     -1049.75
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #3, (path slack = -1019.9):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(1)_0_XREP25/CLK              DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(1)_0_XREP25/Q                DFFC        0.00  504.35 up             1.97
+ix367/OUT                                Nand2       62.50  566.85 dn             4.92
+ix9/OUT                                  Nand2       48.62  514.24 dn             2.95
+ix1896/OUT                               Buf1        104.61  618.85 dn             8.85
+ix215/OUT                                Mux2        234.73  964.88 dn             0.98
+reg_r_headerShiftReg(16)/D               DFFC        0.00  964.88 dn             0.00
+data arrival time                                          964.88
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(16)/CLK             DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          964.88
+                                                        ----------
+slack                                                     -1019.88
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #4, (path slack = -1019.9):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(1)_0_XREP25/CLK              DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(1)_0_XREP25/Q                DFFC        0.00  504.35 up             1.97
+ix367/OUT                                Nand2       62.50  566.85 dn             4.92
+ix9/OUT                                  Nand2       48.62  514.24 dn             2.95
+ix1896/OUT                               Buf1        104.61  618.85 dn             8.85
+ix131/OUT                                Mux2        234.73  964.88 dn             0.98
+reg_r_headerShiftReg(9)/D                DFFC        0.00  964.88 dn             0.00
+data arrival time                                          964.88
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          964.88
+                                                        ----------
+slack                                                     -1019.88
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #5, (path slack = -993.2):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(2)/CLK                       DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(2)/QB                        DFFC        0.00  429.46 dn             12.78
+ix2019/OUT                               BufI4       36.01  465.46 up             1.97
+reg_nx1445/OUT                           Nor3        50.92  516.38 dn             5.90
+reg_nx1465/OUT                           BufI4       35.05  551.44 up             0.98
+ix9/OUT                                  Nand2       47.47  598.90 dn             2.95
+ix1896/OUT                               Buf1        104.61  703.52 dn             8.85
+ix215/OUT                                Mux2        234.73  938.25 dn             0.98
+reg_r_headerShiftReg(16)/D               DFFC        0.00  938.25 dn             0.00
+data arrival time                                          938.25
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(16)/CLK             DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          938.25
+                                                        ----------
+slack                                                     -993.25
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #6, (path slack = -993.2):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(2)/CLK                       DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(2)/QB                        DFFC        0.00  429.46 dn             12.78
+ix2019/OUT                               BufI4       36.01  465.46 up             1.97
+reg_nx1445/OUT                           Nor3        50.92  516.38 dn             5.90
+reg_nx1465/OUT                           BufI4       35.05  551.44 up             0.98
+ix9/OUT                                  Nand2       47.47  598.90 dn             2.95
+ix1896/OUT                               Buf1        104.61  703.52 dn             8.85
+ix131/OUT                                Mux2        234.73  938.25 dn             0.98
+reg_r_headerShiftReg(9)/D                DFFC        0.00  938.25 dn             0.00
+data arrival time                                          938.25
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          938.25
+                                                        ----------
+slack                                                     -993.25
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #7, (path slack = -984.9):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(1)_0_XREP25/CLK              DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(1)_0_XREP25/QB               DFFC        0.00  391.94 dn             4.92
+reg_nx1445/OUT                           Nor3        39.61  365.59 dn             5.90
+reg_nx1465/OUT                           BufI4       35.05  400.64 up             0.98
+ix9/OUT                                  Nand2       47.47  448.11 dn             2.95
+ix1896/OUT                               Buf1        104.61  552.72 dn             8.85
+ix215/OUT                                Mux2        234.73  929.90 dn             0.98
+reg_r_headerShiftReg(16)/D               DFFC        0.00  929.90 dn             0.00
+data arrival time                                          929.90
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(16)/CLK             DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          929.90
+                                                        ----------
+slack                                                     -984.90
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #8, (path slack = -984.9):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_state(1)_0_XREP25/CLK              DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_state(1)_0_XREP25/QB               DFFC        0.00  391.94 dn             4.92
+reg_nx1445/OUT                           Nor3        39.61  365.59 dn             5.90
+reg_nx1465/OUT                           BufI4       35.05  400.64 up             0.98
+ix9/OUT                                  Nand2       47.47  448.11 dn             2.95
+ix1896/OUT                               Buf1        104.61  552.72 dn             8.85
+ix131/OUT                                Mux2        234.73  929.90 dn             0.98
+reg_r_headerShiftReg(9)/D                DFFC        0.00  929.90 dn             0.00
+data arrival time                                          929.90
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          929.90
+                                                        ----------
+slack                                                     -984.90
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #9, (path slack = -777.9):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(8)/CLK              DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_headerShiftReg(8)/Q                DFFC        0.00  504.35 up             1.97
+ix131/OUT                                Mux2        218.72  613.92 dn             0.98
+reg_r_headerShiftReg(9)/D                DFFC        0.00  613.92 dn             0.00
+data arrival time                                          722.92
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          722.92
+                                                        ----------
+slack                                                     -777.92
+------------------------------------------------------------------------------------
+
+
+
+
+Critical path #10, (path slack = -775.0):
+
+NAME                                     GATE              ARRIVAL              LOAD
+------------------------------------------------------------------------------------
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+
+
+default arrival at blackbox outputs                                  20.00
+reg_r_headerShiftReg(9)/Q                DFFC        0.00  504.35 up             1.97
+ix131/OUT                                Mux2        218.53  613.72 dn             0.98
+reg_r_headerShiftReg(9)/D                DFFC        0.00  613.72 dn             0.00
+data arrival time                                          720.00
+
+saciClk (offset)                                         0.00 (rising edge)
+delay thru clock network                                   0.00 (ideal)
+reg_r_headerShiftReg(9)/CLK              DFFC              0.00 (rising edge)
+clock cycle                                                25.00
+library setup time                                        (85.00)
+
+data required time  (default specified - setup time)        -55.00
+------------------------------------------------------------------------------------
+data required time                                         -55.00
+data arrival time                                          720.00
+                                                        ----------
+slack                                                     -775.00
+------------------------------------------------------------------------------------
+
+
