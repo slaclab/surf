@@ -1,0 +1,38 @@
+# Commands for exemplar synthesis
+
+set process typical
+set_working_dir /afs/slac/u/re/bareese/projects/asic_cores/Saci/syn18
+
+set temp 25
+set voltage 2.5
+set max_fanout_load "0.000000"
+load_library tsmm018DL
+set encoding Gray
+
+read -dont_elaborate -technology "tsmm018DL"  { 
+  /afs/slac/u/re/bareese/projects/asic_cores/StdLib/rtl/StdRtlPkg.vhd
+  /afs/slac/u/re/bareese/projects/asic_cores/Saci/rtl/SaciSlave.vhd 
+}
+elaborate SaciSlave -architecture rtl
+
+pre_optimize .work.SaciSlave.rtl -common_logic -unused_logic -boundary -xor_comparator_optimize 
+pre_optimize .work.SaciSlave.rtl -extract
+
+set entity SaciSlave
+set architecture rtl
+
+set input2register 10.000000
+set register2output 10.000000
+set register2register 30.000000
+set_clock -name .work.SaciSlave.rtl.saciClk -clock_cycle "25.000000"
+set_clock -name .work.SaciSlave.rtl.saciClk -pulse_width "12.500000"
+
+optimize .work.SaciSlave.rtl -target tsmm018DL -macro -area -effort standard -hierarchy flatten
+optimize_timing .work.SaciSlave.rtl 
+
+report_area report_area.txt -cell_usage -all_leafs
+report_delay report_time.txt -num_paths 10 -longest_path -clock_frequency
+
+auto_write -format Verilog SaciSlave.v
+auto_write -format EDIF SaciSlave.edf
+
