@@ -20,11 +20,11 @@ Device: &UdpEngineWrapper
       name: ClientRemotePort
       sizeBits: 16      
       mode: RW
-      description: ClientRemotePort
+      description: ClientRemotePort (big-Endian configuration)
     #########################################################
     - offset: 0x04
       name: ClientRemoteIp
       sizeBits: 32      
       mode: RW
-      description: ClientRemoteIp
+      description: ClientRemoteIp (big-Endian configuration)
     #########################################################
