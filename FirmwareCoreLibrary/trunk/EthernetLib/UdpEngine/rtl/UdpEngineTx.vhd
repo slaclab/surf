@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-05-11
+-- Last update: 2016-06-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G => 0,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
@@ -219,8 +219,9 @@ begin
                -- Increment the counter
                v.index := r.index + 1;
             end if;
-            -- Check for data and remote MAC is non-zero
-            if (ibMasters(r.index).tValid = '1') and (remoteMac(r.index) /= 0) and (v.sMaster.tValid = '0') then
+            -- Check for data and remote MAC/IP/PORT is non-zero
+            if (ibMasters(r.index).tValid = '1') and (v.sMaster.tValid = '0')
+               and (remoteMac(r.index) /= 0) and (remoteIp(r.index) /= 0) and (remotePort(r.index) /= 0)then
                -- Check for SOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibMasters(r.index)) = '1') then
                   -- Latch the index
@@ -523,7 +524,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G => 0,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,

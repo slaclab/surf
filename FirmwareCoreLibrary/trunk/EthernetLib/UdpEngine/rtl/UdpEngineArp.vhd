@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2015-08-25
+-- Last update: 2016-06-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,6 +36,9 @@ entity UdpEngineArp is
       COMM_TIMEOUT_EN_G : boolean  := true;
       COMM_TIMEOUT_G    : positive := 30);  
    port (
+      -- Local Configurations
+      localMac        : in  slv(47 downto 0);  --  big-Endian configuration
+      localIp         : in  slv(31 downto 0);  --  big-Endian configuration   
       -- Interface to ARP Engine
       arpReqMasters   : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
       arpReqSlaves    : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
@@ -84,7 +87,8 @@ architecture rtl of UdpEngineArp is
    
 begin
 
-   comb : process (arpAckMasters, arpReqSlaves, clientRemoteDet, clientRemoteIp, r, rst) is
+   comb : process (arpAckMasters, arpReqSlaves, clientRemoteDet, clientRemoteIp, localIp, localMac,
+                   r, rst) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -124,9 +128,23 @@ begin
          v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
 
          -- Check for dynamic change in IP address
-         if r.arpReqMasters(i).tData(31 downto 0) /= clientRemoteIp(i) then
+         if (r.arpReqMasters(i).tData(31 downto 0) /= clientRemoteIp(i)) or (clientRemoteIp(i) = 0) then
+            -- Stop any outstanding requests
+            v.arpReqMasters(i).tValid := '0';
+            -- Reset the remote MAC address
+            v.clientRemoteMac(i)      := (others => '0');
             -- Next state
-            v.state(i) := IDLE_S;
+            v.state(i)                := IDLE_S;
+         -- Check if remote IP = local IP    
+         elsif clientRemoteIp(i) = localIp then
+            -- Stop any outstanding requests
+            v.arpReqMasters(i).tValid := '0';
+            -- Reset the remote MAC address
+            v.clientRemoteMac(i)      := (others => '0');
+            -- Next state
+            v.state(i)                := IDLE_S;
+            -- Latch the value
+            v.clientRemoteMac(i)      := localMac;
          else
             -- State Machine
             case r.state(i) is
@@ -137,7 +155,7 @@ begin
                   -- Reset the remote MAC address
                   v.clientRemoteMac(i) := (others => '0');
                   -- Check if we have a non-zero IP address to request
-                  if r.arpReqMasters(i).tData(31 downto 0) /= 0 then
+                  if clientRemoteIp(i) /= 0 then
                      -- Make an ARP request
                      v.arpReqMasters(i).tValid := '1';
                      -- Next state
