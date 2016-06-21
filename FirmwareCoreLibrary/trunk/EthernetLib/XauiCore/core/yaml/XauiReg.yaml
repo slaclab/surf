@@ -32,7 +32,7 @@ Device: &XauiReg
       name: MacAddress
       sizeBits: 48      
       mode: RO
-      description: MAC Address
+      description: MAC Address (big-Endian)
     #########################################################
     - offset: 0x218
       name: InterFrameGap
