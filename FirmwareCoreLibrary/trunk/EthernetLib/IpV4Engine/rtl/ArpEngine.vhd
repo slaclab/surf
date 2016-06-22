@@ -120,7 +120,7 @@ begin
             v.arpAckMasters(i) := AXI_STREAM_MASTER_INIT_C;
          end if;
       end loop;
-
+      
       -- Update the timers
       for i in CLIENT_SIZE_G-1 downto 0 loop
          if r.arpTimers(i) /= 0 then
@@ -164,7 +164,7 @@ begin
                      v.tData(1)(47 downto 32)   := ARP_REQ_C;
                      v.tData(1)(95 downto 48)   := localMac;
                      v.tData(1)(127 downto 96)  := localIp;
-                     v.tData(2)(47 downto 0)    := (others => '0');     -- Sought-after MAC
+                     v.tData(2)(47 downto 0)    := BROADCAST_MAC_C;
                      v.tData(2)(79 downto 48)   := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
                      v.tData(2)(127 downto 80)  := (others => '0');
                   --------------------
@@ -183,7 +183,7 @@ begin
                      v.tData(1)(79 downto 64)   := ARP_REQ_C;
                      v.tData(1)(127 downto 80)  := localMac;
                      v.tData(2)(31 downto 0)    := localIp;
-                     v.tData(2)(79 downto 32)   := (others => '0');     -- Sought-after MAC
+                     v.tData(2)(79 downto 32)   := BROADCAST_MAC_C;
                      v.tData(2)(111 downto 80)  := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
                      v.tData(2)(127 downto 112) := (others => '0');
                   end if;
@@ -193,10 +193,11 @@ begin
             end if;
          ----------------------------------------------------------------------
          when RX_S =>
-            -- Accept for data
-            v.ibArpSlave.tReady := '1';
-            -- Check for SOF and not EOF
+            -- Check for data
             if (ibArpMaster.tValid = '1') then
+               -- Accept for data
+               v.ibArpSlave.tReady := '1';
+               -- Word[0]
                if r.cnt = 0 then
                   v.tData(0) := ibArpMaster.tData;
                   if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
@@ -206,6 +207,7 @@ begin
                      -- Next state
                      v.state := IDLE_S;
                   end if;
+               -- Word[1]
                elsif r.cnt = 1 then
                   v.tData(1) := ibArpMaster.tData;
                   if (ibArpMaster.tLast = '0') then
@@ -215,6 +217,7 @@ begin
                      -- Next state
                      v.state := IDLE_S;
                   end if;
+               -- Word[2]
                elsif r.cnt = 2 then
                   v.tData(2) := ibArpMaster.tData;
                   if (ibArpMaster.tLast = '0') then
@@ -230,6 +233,7 @@ begin
                         v.state := CHECK_S;
                      end if;
                   end if;
+               -- Word[3] (or more)   
                else
                   if ibArpMaster.tLast = '1' then
                      -- Check for EOFE error
