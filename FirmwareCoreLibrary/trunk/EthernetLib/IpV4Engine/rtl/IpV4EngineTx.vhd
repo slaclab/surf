@@ -103,6 +103,9 @@ architecture rtl of IpV4EngineTx is
 
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
+   
+   -- attribute dont_touch              : string;
+   -- attribute dont_touch of r         : signal is "TRUE";   
 
 begin
 
