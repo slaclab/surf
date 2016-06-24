@@ -100,6 +100,9 @@ architecture rtl of ArpEngine is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    
+   attribute dont_touch              : string;
+   attribute dont_touch of r         : signal is "TRUE";   
+   
 begin
 
    comb : process (arpAckSlaves, arpReqMasters, ibArpMaster, localIp, localMac, obArpSlave, r, rst) is
