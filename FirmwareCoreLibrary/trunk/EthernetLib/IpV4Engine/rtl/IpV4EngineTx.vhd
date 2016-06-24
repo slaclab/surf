@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-05-12
+-- Last update: 2016-06-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,6 +44,8 @@ entity IpV4EngineTx is
       -- Interface to Ethernet Frame MUX/DEMUX 
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
+      localhostMaster   : out AxiStreamMasterType;
+      localhostSlave    : in  AxiStreamSlaveType;
       -- Interface to Protocol Engine  
       obProtocolMasters : in  AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
       obProtocolSlaves  : out AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
@@ -103,7 +105,10 @@ architecture rtl of IpV4EngineTx is
 
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
-   
+
+   signal mAxisMaster : AxiStreamMasterType;
+   signal mAxisSlave  : AxiStreamSlaveType;
+
    -- attribute dont_touch              : string;
    -- attribute dont_touch of r         : signal is "TRUE";   
 
@@ -158,8 +163,18 @@ begin
                -- Check for SOF with no EOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obProtocolMasters(r.chCnt)) = '1') and (obProtocolMasters(r.chCnt).tLast = '0') then
                   -- Send the RAW Ethernet header
-                  v.txMaster.tValid              := '1';
+                  v.txMaster.tValid := '1';
+                  -- Set the SOF bit
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.txMaster, '1');
+                  -- Setup the tDest routing
+                  if localMac = obProtocolMasters(r.chCnt).tData(47 downto 0) then
+                     -- Local Host Path
+                     v.txMaster.tDest := x"01";
+                  else
+                     -- Remote Host Path
+                     v.txMaster.tDest := x"00";
+                  end if;
+                  -- Set the DST MAC and SRC MAC
                   v.txMaster.tData(47 downto 0)  := obProtocolMasters(r.chCnt).tData(47 downto 0);
                   v.txMaster.tData(95 downto 48) := localMac;
                   if (VLAN_G = false) then
@@ -515,7 +530,24 @@ begin
          -- Master Port
          mAxisClk    => clk,
          mAxisRst    => rst,
-         mAxisMaster => obIpv4Master,
-         mAxisSlave  => obIpv4Slave);           
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);        
+
+   U_DeMux : entity work.AxiStreamDeMux
+      generic map (
+         TPD_G         => TPD_G,
+         NUM_MASTERS_G => 2)
+      port map (
+         -- Clock and reset
+         axisClk         => clk,
+         axisRst         => rst,
+         -- Slave         
+         sAxisMaster     => mAxisMaster,
+         sAxisSlave      => mAxisSlave,
+         -- Masters
+         mAxisMasters(0) => obIpv4Master,
+         mAxisMasters(1) => localhostMaster,
+         mAxisSlaves(0)  => obIpv4Slave,
+         mAxisSlaves(1)  => localhostSlave);            
 
 end rtl;

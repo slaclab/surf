@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-06-21
+-- Last update: 2016-06-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,7 +52,6 @@ entity UdpEngine is
       COMM_TIMEOUT_G     : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);    --  big-Endian configuration
       localIp          : in  slv(31 downto 0);    --  big-Endian configuration 
       -- Interface to IPV4 Engine  
       obUdpMaster      : out AxiStreamMasterType;
@@ -170,7 +169,6 @@ begin
             COMM_TIMEOUT_G    => COMM_TIMEOUT_G) 
          port map (
             -- Local Configurations
-            localMac        => localMac,
             localIp         => localIp,
             -- Interface to ARP Engine
             arpReqMasters   => arpReqMasters,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-25
+-- Last update: 2016-06-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -71,6 +71,9 @@ architecture mapping of IpV4Engine is
    signal ibIpv4Slave  : AxiStreamSlaveType;
    signal obIpv4Master : AxiStreamMasterType;
    signal obIpv4Slave  : AxiStreamSlaveType;
+
+   signal localhostMaster : AxiStreamMasterType;
+   signal localhostSlave  : AxiStreamSlaveType;
    
 begin
 
@@ -147,6 +150,8 @@ begin
          -- Interface to Ethernet Frame MUX/DEMUX 
          ibIpv4Master      => ibIpv4Master,
          ibIpv4Slave       => ibIpv4Slave,
+         localhostMaster   => localhostMaster,
+         localhostSlave    => localhostSlave,
          -- Interface to Protocol Engine  
          ibProtocolMasters => ibProtocolMasters,
          ibProtocolSlaves  => ibProtocolSlaves,
@@ -168,6 +173,8 @@ begin
          -- Interface to Ethernet Frame MUX/DEMUX 
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,
+         localhostMaster   => localhostMaster,
+         localhostSlave    => localhostSlave,
          -- Interface to Protocol Engine  
          obProtocolMasters => obProtocolMasters,
          obProtocolSlaves  => obProtocolSlaves,
