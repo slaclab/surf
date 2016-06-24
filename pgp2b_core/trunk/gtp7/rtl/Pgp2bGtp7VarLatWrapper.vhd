@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2015-01-30
+-- Last update: 2016-06-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ entity Pgp2bGtp7VarLatWrapper is
    generic (
       TPD_G                : time                    := 1 ns;
       -- MMCM Configurations (Defaults: gtClkP = 125 MHz Configuration)
-      CLKIN_PERIOD_G       : real                    := 16.0;-- gtClkP/2
+      CLKIN_PERIOD_G       : real                    := 16.0;  -- gtClkP/2
       DIVCLK_DIVIDE_G      : natural range 1 to 106  := 2;
       CLKFBOUT_MULT_F_G    : real range 1.0 to 64.0  := 31.875;
       CLKOUT0_DIVIDE_F_G   : real range 1.0 to 128.0 := 6.375;
@@ -48,14 +48,18 @@ entity Pgp2bGtp7VarLatWrapper is
       -- MGT Configurations (Defaults: gtClkP = 125 MHz Configuration)
       RXOUT_DIV_G          : natural                 := 2;
       TXOUT_DIV_G          : natural                 := 2;
-      RX_CLK25_DIV_G       : natural                 := 5;                        
-      TX_CLK25_DIV_G       : natural                 := 5;                      
-      RX_OS_CFG_G          : bit_vector              := "0000010000000";          
-      RXCDR_CFG_G          : bit_vector              := x"0001107FE206021081010"; 
-      RXLPM_INCM_CFG_G     : bit                     := '0';                      
-      RXLPM_IPCM_CFG_G     : bit                     := '1';                     
-      -- Configure Number of VC Lanes
-      NUM_VC_EN_G          : natural range 1 to 4    := 4);
+      RX_CLK25_DIV_G       : natural                 := 5;
+      TX_CLK25_DIV_G       : natural                 := 5;
+      RX_OS_CFG_G          : bit_vector              := "0000010000000";
+      RXCDR_CFG_G          : bit_vector              := x"0001107FE206021081010";
+      RXLPM_INCM_CFG_G     : bit                     := '0';
+      RXLPM_IPCM_CFG_G     : bit                     := '1';
+      -- Configure PGP
+      PGP_RX_ENABLE_G      : boolean                 := true;
+      PGP_TX_ENABLE_G      : boolean                 := true;
+      PAYLOAD_CNT_TOP_G    : integer                 := 7;     -- Top bit for payload counter
+      VC_INTERLEAVE_G      : integer                 := 1;     -- Interleave Frames
+      NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset
       extRst       : in  sl;
@@ -81,15 +85,15 @@ entity Pgp2bGtp7VarLatWrapper is
       gtTxP        : out sl;
       gtTxN        : out sl;
       gtRxP        : in  sl;
-      gtRxN        : in  sl);  
+      gtRxN        : in  sl);
 end Pgp2bGtp7VarLatWrapper;
 
 architecture mapping of Pgp2bGtp7VarLatWrapper is
 
-   signal refClk     : sl;
-   signal refClkDiv2 : sl;
-   signal stableClock  : sl;
-   signal extRstSync : sl;
+   signal refClk      : sl;
+   signal refClkDiv2  : sl;
+   signal stableClock : sl;
+   signal extRstSync  : sl;
 
    signal pgpClock : sl;
    signal pgpReset : sl;
@@ -102,11 +106,11 @@ architecture mapping of Pgp2bGtp7VarLatWrapper is
    signal gtQPllLock       : slv(1 downto 0);
    signal gtQPllRefClkLost : slv(1 downto 0);
    signal gtQPllReset      : slv(1 downto 0);
-   
+
 begin
 
-   pgpClk     <= pgpClock;
-   pgpRst     <= pgpReset;
+   pgpClk    <= pgpClock;
+   pgpRst    <= pgpReset;
    stableClk <= stableClock;
 
    IBUFDS_GTE2_Inst : IBUFDS_GTE2
@@ -114,21 +118,21 @@ begin
          I     => gtClkP,
          IB    => gtClkN,
          CEB   => '0',
-         ODIV2 => refClkDiv2,  
-         O     => refClk);    
+         ODIV2 => refClkDiv2,
+         O     => refClk);
 
    BUFG_Inst : BUFG
       port map (
          I => refClkDiv2,
-         O => stableClock);           
+         O => stableClock);
 
    RstSync_Inst : entity work.RstSync
       generic map(
-         TPD_G => TPD_G)   
+         TPD_G => TPD_G)
       port map (
          clk      => stableClock,
          asyncRst => extRst,
-         syncRst  => extRstSync);          
+         syncRst  => extRstSync);
 
    ClockManager7_Inst : entity work.ClockManager7
       generic map(
@@ -148,7 +152,7 @@ begin
          clkIn     => stableClock,
          rstIn     => extRstSync,
          clkOut(0) => pgpClock,
-         rstOut(0) => pgpReset);     
+         rstOut(0) => pgpReset);
 
    -- PLL0 Port Mapping
    pllRefClk(0)     <= refClk;
@@ -170,7 +174,7 @@ begin
          PLL1_REFCLK_SEL_G    => QPLL_REFCLK_SEL_G,
          PLL1_FBDIV_IN_G      => QPLL_FBDIV_IN_G,
          PLL1_FBDIV_45_IN_G   => QPLL_FBDIV_45_IN_G,
-         PLL1_REFCLK_DIV_IN_G => QPLL_REFCLK_DIV_IN_G)         
+         PLL1_REFCLK_DIV_IN_G => QPLL_REFCLK_DIV_IN_G)
       port map (
          qPllRefClk     => pllRefClk,
          qPllOutClk     => gtQPllOutClk,
@@ -178,25 +182,29 @@ begin
          qPllLock       => gtQPllLock,
          qPllLockDetClk => pllLockDetClk,
          qPllRefClkLost => gtQPllRefClkLost,
-         qPllReset      => qPllReset);            
+         qPllReset      => qPllReset);
 
    Pgp2bGtp7VarLat_Inst : entity work.Pgp2bGtp7VarLat
       generic map (
-         TPD_G            => TPD_G,
+         TPD_G             => TPD_G,
          -- MGT Configurations
-         RXOUT_DIV_G      => RXOUT_DIV_G,
-         TXOUT_DIV_G      => TXOUT_DIV_G,
-         RX_CLK25_DIV_G   => RX_CLK25_DIV_G,
-         TX_CLK25_DIV_G   => TX_CLK25_DIV_G,
-         RX_OS_CFG_G      => RX_OS_CFG_G,
-         RXCDR_CFG_G      => RXCDR_CFG_G,
-         RXLPM_INCM_CFG_G => RXLPM_INCM_CFG_G,
-         RXLPM_IPCM_CFG_G => RXLPM_IPCM_CFG_G,
+         RXOUT_DIV_G       => RXOUT_DIV_G,
+         TXOUT_DIV_G       => TXOUT_DIV_G,
+         RX_CLK25_DIV_G    => RX_CLK25_DIV_G,
+         TX_CLK25_DIV_G    => TX_CLK25_DIV_G,
+         RX_OS_CFG_G       => RX_OS_CFG_G,
+         RXCDR_CFG_G       => RXCDR_CFG_G,
+         RXLPM_INCM_CFG_G  => RXLPM_INCM_CFG_G,
+         RXLPM_IPCM_CFG_G  => RXLPM_IPCM_CFG_G,
          -- Configure PLL sources
-         TX_PLL_G         => "PLL0",
-         RX_PLL_G         => "PLL1",
-         -- Configure Number of Lanes
-         NUM_VC_EN_G      => NUM_VC_EN_G)
+         TX_PLL_G          => "PLL0",
+         RX_PLL_G          => "PLL1",
+         -- Configure PGP
+         PGP_RX_ENABLE_G   => PGP_RX_ENABLE_G,
+         PGP_TX_ENABLE_G   => PGP_TX_ENABLE_G,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
+         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
+         NUM_VC_EN_G       => NUM_VC_EN_G)
       port map (
          -- GT Clocking
          stableClk        => stableClock,
@@ -233,6 +241,6 @@ begin
          pgpTxSlaves      => pgpTxSlaves,
          -- Frame RX Interface
          pgpRxMasters     => pgpRxMasters,
-         pgpRxCtrl        => pgpRxCtrl);      
+         pgpRxCtrl        => pgpRxCtrl);
 
 end mapping;
