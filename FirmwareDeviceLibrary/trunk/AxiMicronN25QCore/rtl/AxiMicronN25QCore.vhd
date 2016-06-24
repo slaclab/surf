@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-03
--- Last update: 2016-05-23
+-- Last update: 2016-06-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ entity AxiMicronN25QCore is
       TPD_G            : time                := 1 ns;
       MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
       AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G   : real                := 50.0E+6;   -- units of Hz
+      SPI_CLK_FREQ_G   : real                := 25.0E+6;   -- units of Hz
       PIPE_STAGES_G    : natural             := 0;
       AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);     
