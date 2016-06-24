@@ -71,11 +71,11 @@ entity Pgp2bGth7VarLat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PGP_RX_ENABLE_G   : boolean              := true;
-      PGP_TX_ENABLE_G   : boolean              := true;
-      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
-      VC_INTERLEAVE_G   : integer              := 1;  -- Interleave Frames
-      NUM_VC_EN_G       : integer range 1 to 4 := 4);
+      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4;
+      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
@@ -154,11 +154,11 @@ begin
          -- Configure Number of Lanes
          LANE_CNT_G            => 1,
          -- PGP Settings
-         PGP_RX_ENABLE_G       => PGP_RX_ENABLE_G,
-         PGP_TX_ENABLE_G       => PGP_TX_ENABLE_G,
-         PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
-         VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
-         NUM_VC_EN_G           => NUM_VC_EN_G)
+         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
+         NUM_VC_EN_G       => NUM_VC_EN_G,
+         TX_ENABLE_G       => TX_ENABLE_G,
+         RX_ENABLE_G       => RX_ENABLE_G)
       port map (
          -- GT Clocking
          stableClk        => stableClk,
