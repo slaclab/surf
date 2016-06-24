@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-06-23
+-- Last update: 2016-06-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -153,45 +153,53 @@ begin
                if (arpReqMasters(r.reqCnt).tValid = '1') and (r.arpTimers(r.reqCnt) = 0) then
                   -- Set the timer
                   v.arpTimers(r.reqCnt) := ARP_TIMEOUT_G;
-                  ------------------------
-                  -- Checking for non-VLAN
-                  ------------------------
-                  if (VLAN_G = false) then
-                     v.tData(0)(47 downto 0)    := BROADCAST_MAC_C;
-                     v.tData(0)(95 downto 48)   := localMac;
-                     v.tData(0)(111 downto 96)  := ARP_TYPE_C;
-                     v.tData(0)(127 downto 112) := HARDWWARE_TYPE_C;
-                     v.tData(1)(15 downto 0)    := PROTOCOL_TYPE_C;
-                     v.tData(1)(23 downto 16)   := HARDWWARE_LEN_C;
-                     v.tData(1)(31 downto 24)   := PROTOCOL_LEN_C;
-                     v.tData(1)(47 downto 32)   := ARP_REQ_C;
-                     v.tData(1)(95 downto 48)   := localMac;
-                     v.tData(1)(127 downto 96)  := localIp;
-                     v.tData(2)(47 downto 0)    := BROADCAST_MAC_C;
-                     v.tData(2)(79 downto 48)   := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
-                     v.tData(2)(127 downto 80)  := (others => '0');
-                  --------------------
-                  -- Checking for VLAN
-                  --------------------
+                  -- Check if localhost
+                  if localIp = arpReqMasters(r.reqCnt).tData(31 downto 0) then
+                     -- ACK the request
+                     v.arpReqSlaves(r.ackCnt).tReady              := '1';
+                     v.arpAckMasters(r.ackCnt).tValid             := '1';
+                     v.arpAckMasters(r.ackCnt).tData(47 downto 0) := localMac;
                   else
-                     v.tData(0)(47 downto 0)    := BROADCAST_MAC_C;
-                     v.tData(0)(95 downto 48)   := localMac;
-                     v.tData(0)(111 downto 96)  := VLAN_TYPE_C;
-                     v.tData(0)(127 downto 122) := (others => '0');
-                     v.tData(1)(15 downto 0)    := ARP_TYPE_C;
-                     v.tData(1)(31 downto 16)   := HARDWWARE_TYPE_C;
-                     v.tData(1)(47 downto 32)   := PROTOCOL_TYPE_C;
-                     v.tData(1)(55 downto 48)   := HARDWWARE_LEN_C;
-                     v.tData(1)(63 downto 56)   := PROTOCOL_LEN_C;
-                     v.tData(1)(79 downto 64)   := ARP_REQ_C;
-                     v.tData(1)(127 downto 80)  := localMac;
-                     v.tData(2)(31 downto 0)    := localIp;
-                     v.tData(2)(79 downto 32)   := BROADCAST_MAC_C;
-                     v.tData(2)(111 downto 80)  := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
-                     v.tData(2)(127 downto 112) := (others => '0');
+                     ------------------------
+                     -- Checking for non-VLAN
+                     ------------------------
+                     if (VLAN_G = false) then
+                        v.tData(0)(47 downto 0)    := BROADCAST_MAC_C;
+                        v.tData(0)(95 downto 48)   := localMac;
+                        v.tData(0)(111 downto 96)  := ARP_TYPE_C;
+                        v.tData(0)(127 downto 112) := HARDWWARE_TYPE_C;
+                        v.tData(1)(15 downto 0)    := PROTOCOL_TYPE_C;
+                        v.tData(1)(23 downto 16)   := HARDWWARE_LEN_C;
+                        v.tData(1)(31 downto 24)   := PROTOCOL_LEN_C;
+                        v.tData(1)(47 downto 32)   := ARP_REQ_C;
+                        v.tData(1)(95 downto 48)   := localMac;
+                        v.tData(1)(127 downto 96)  := localIp;
+                        v.tData(2)(47 downto 0)    := BROADCAST_MAC_C;
+                        v.tData(2)(79 downto 48)   := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
+                        v.tData(2)(127 downto 80)  := (others => '0');
+                     --------------------
+                     -- Checking for VLAN
+                     --------------------
+                     else
+                        v.tData(0)(47 downto 0)    := BROADCAST_MAC_C;
+                        v.tData(0)(95 downto 48)   := localMac;
+                        v.tData(0)(111 downto 96)  := VLAN_TYPE_C;
+                        v.tData(0)(127 downto 122) := (others => '0');
+                        v.tData(1)(15 downto 0)    := ARP_TYPE_C;
+                        v.tData(1)(31 downto 16)   := HARDWWARE_TYPE_C;
+                        v.tData(1)(47 downto 32)   := PROTOCOL_TYPE_C;
+                        v.tData(1)(55 downto 48)   := HARDWWARE_LEN_C;
+                        v.tData(1)(63 downto 56)   := PROTOCOL_LEN_C;
+                        v.tData(1)(79 downto 64)   := ARP_REQ_C;
+                        v.tData(1)(127 downto 80)  := localMac;
+                        v.tData(2)(31 downto 0)    := localIp;
+                        v.tData(2)(79 downto 32)   := BROADCAST_MAC_C;
+                        v.tData(2)(111 downto 80)  := arpReqMasters(r.reqCnt).tData(31 downto 0);  -- Known IP address
+                        v.tData(2)(127 downto 112) := (others => '0');
+                     end if;
+                     -- Next state
+                     v.state := TX_S;
                   end if;
-                  -- Next state
-                  v.state := TX_S;
                end if;
             end if;
          ----------------------------------------------------------------------

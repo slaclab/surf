@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-05-12
+-- Last update: 2016-06-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,6 +43,8 @@ entity IpV4EngineRx is
       -- Interface to Ethernet Frame MUX/DEMUX 
       ibIpv4Master      : in  AxiStreamMasterType;
       ibIpv4Slave       : out AxiStreamSlaveType;
+      localhostMaster   : in  AxiStreamMasterType;
+      localhostSlave    : out AxiStreamSlaveType;
       -- Interface to Protocol Engine  
       ibProtocolMasters : out AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
       ibProtocolSlaves  : in  AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
@@ -63,43 +65,46 @@ architecture rtl of IpV4EngineRx is
       LAST_S); 
 
    type RegType is record
-      tLast       : sl;
-      eofe        : sl;
-      length      : slv(15 downto 0);
-      tKeep       : slv(15 downto 0);
-      tData       : slv(127 downto 0);
-      hdr         : Slv8Array(19 downto 0);
-      sum0        : Slv32Array(3 downto 0);
-      sum1        : Slv32Array(1 downto 0);
-      sum2        : Slv32Array(1 downto 0);
-      sum3        : slv(31 downto 0);
-      sum4        : slv(31 downto 0);
-      ibIpv4Slave : AxiStreamSlaveType;
-      txMasters   : AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
-      cnt         : natural range 0 to 7;
-      index       : natural range 0 to PROTOCOL_SIZE_G-1;
-      state       : StateType;
+      tLast     : sl;
+      eofe      : sl;
+      length    : slv(15 downto 0);
+      tKeep     : slv(15 downto 0);
+      tData     : slv(127 downto 0);
+      hdr       : Slv8Array(19 downto 0);
+      sum0      : Slv32Array(3 downto 0);
+      sum1      : Slv32Array(1 downto 0);
+      sum2      : Slv32Array(1 downto 0);
+      sum3      : slv(31 downto 0);
+      sum4      : slv(31 downto 0);
+      rxSlave   : AxiStreamSlaveType;
+      txMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
+      cnt       : natural range 0 to 7;
+      index     : natural range 0 to PROTOCOL_SIZE_G-1;
+      state     : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      tLast       => '0',
-      eofe        => '0',
-      length      => (others => '0'),
-      tKeep       => (others => '0'),
-      tData       => (others => '0'),
-      hdr         => (others => (others => '0')),
-      sum0        => (others => (others => '0')),
-      sum1        => (others => (others => '0')),
-      sum2        => (others => (others => '0')),
-      sum3        => (others => '0'),
-      sum4        => (others => '0'),
-      ibIpv4Slave => AXI_STREAM_SLAVE_INIT_C,
-      txMasters   => (others => AXI_STREAM_MASTER_INIT_C),
-      cnt         => 0,
-      index       => 0,
-      state       => IDLE_S);      
+      tLast     => '0',
+      eofe      => '0',
+      length    => (others => '0'),
+      tKeep     => (others => '0'),
+      tData     => (others => '0'),
+      hdr       => (others => (others => '0')),
+      sum0      => (others => (others => '0')),
+      sum1      => (others => (others => '0')),
+      sum2      => (others => (others => '0')),
+      sum3      => (others => '0'),
+      sum4      => (others => '0'),
+      rxSlave   => AXI_STREAM_SLAVE_INIT_C,
+      txMasters => (others => AXI_STREAM_MASTER_INIT_C),
+      cnt       => 0,
+      index     => 0,
+      state     => IDLE_S);      
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal rxMaster : AxiStreamMasterType;
+   signal rxSlave  : AxiStreamSlaveType;
 
    signal txMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
    signal txSlaves  : AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
@@ -111,7 +116,24 @@ architecture rtl of IpV4EngineRx is
 
 begin
 
-   comb : process (ibIpv4Master, localIp, r, rst, txSlaves) is
+   U_Mux : entity work.AxiStreamMux
+      generic map (
+         TPD_G        => TPD_G,
+         NUM_SLAVES_G => 2)
+      port map (
+         -- Clock and reset
+         axisClk         => clk,
+         axisRst         => rst,
+         -- Slaves
+         sAxisMasters(0) => ibIpv4Master,
+         sAxisMasters(1) => localhostMaster,
+         sAxisSlaves(0)  => ibIpv4Slave,
+         sAxisSlaves(1)  => localhostSlave,
+         -- Master
+         mAxisMaster     => rxMaster,
+         mAxisSlave      => rxSlave);
+
+   comb : process (localIp, r, rst, rxMaster, txSlaves) is
       variable v        : RegType;
       variable i        : natural;
       variable len      : slv(15 downto 0);
@@ -123,8 +145,8 @@ begin
       v := r;
 
       -- Reset the flags
-      tReady        := '1';
-      v.ibIpv4Slave := AXI_STREAM_SLAVE_INIT_C;
+      tReady    := '1';
+      v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
       for i in PROTOCOL_SIZE_G-1 downto 0 loop
          if txSlaves(i).tReady = '1' then
             v.txMasters(i).tValid := '0';
@@ -151,21 +173,21 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for data
-            if (ibIpv4Master.tValid = '1') and (tReady = '1') then
+            if (rxMaster.tValid = '1') and (tReady = '1') then
                -- Accept the data
-               v.ibIpv4Slave.tReady := '1';
+               v.rxSlave.tReady := '1';
                -- Check for SOF with no EOF
-               if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibIpv4Master) = '1') and (ibIpv4Master.tLast = '0') then
+               if (ssiGetUserSof(IP_ENGINE_CONFIG_C, rxMaster) = '1') and (rxMaster.tLast = '0') then
                   -- Loop through the protocol buses
                   for i in PROTOCOL_SIZE_G-1 downto 0 loop
                      -- Latch the remote MAC address
-                     v.txMasters(i).tData(47 downto 0) := ibIpv4Master.tData(95 downto 48);
+                     v.txMasters(i).tData(47 downto 0) := rxMaster.tData(95 downto 48);
                      if (VLAN_G = false) then
                         -- Unused data field 
                         v.txMasters(i).tData(63 downto 48) := (others => '0');
                         -- Fill in the header
-                        v.hdr(0)                           := ibIpv4Master.tData(119 downto 112);  -- IPVersion + Header length
-                        v.hdr(1)                           := ibIpv4Master.tData(127 downto 120);  -- DSCP and ECN                     
+                        v.hdr(0)                           := rxMaster.tData(119 downto 112);  -- IPVersion + Header length
+                        v.hdr(1)                           := rxMaster.tData(127 downto 120);  -- DSCP and ECN                     
                      else
                         -- Mask off VLAN's ID
                         v.txMasters(i).tData(63 downto 48) := (others => '0');
@@ -180,41 +202,41 @@ begin
          ----------------------------------------------------------------------
          when IPV4_HDR0_S =>
             -- Check for data
-            if (ibIpv4Master.tValid = '1') then
+            if (rxMaster.tValid = '1') then
                -- Accept the data
-               v.ibIpv4Slave.tReady := '1';
+               v.rxSlave.tReady := '1';
                if (VLAN_G = false) then
-                  v.hdr(2)  := ibIpv4Master.tData(7 downto 0);      -- IPV4_Length(15 downto 8)
-                  v.hdr(3)  := ibIpv4Master.tData(15 downto 8);     -- IPV4_Length(7 downto 0)
-                  v.hdr(4)  := ibIpv4Master.tData(23 downto 16);    -- IPV4_ID(15 downto 8)
-                  v.hdr(5)  := ibIpv4Master.tData(31 downto 24);    -- IPV4_ID(7 downto 0)
-                  v.hdr(6)  := ibIpv4Master.tData(39 downto 32);    -- Flags and Fragment Offsets
-                  v.hdr(7)  := ibIpv4Master.tData(47 downto 40);    -- Flags and Fragment Offsets
-                  v.hdr(8)  := ibIpv4Master.tData(55 downto 48);    -- Time of Live
-                  v.hdr(9)  := ibIpv4Master.tData(63 downto 56);    -- Protocol
-                  v.hdr(10) := ibIpv4Master.tData(71 downto 64);    -- IPV4_Checksum(15 downto 8)
-                  v.hdr(11) := ibIpv4Master.tData(79 downto 72);    -- IPV4_Checksum(7 downto 0)
-                  v.hdr(12) := ibIpv4Master.tData(87 downto 80);    -- Source IP Address
-                  v.hdr(13) := ibIpv4Master.tData(95 downto 88);    -- Source IP Address
-                  v.hdr(14) := ibIpv4Master.tData(103 downto 96);   -- Source IP Address
-                  v.hdr(15) := ibIpv4Master.tData(111 downto 104);  -- Source IP Address
-                  v.hdr(16) := ibIpv4Master.tData(119 downto 112);  -- Destination IP Address
-                  v.hdr(17) := ibIpv4Master.tData(127 downto 120);  -- Destination IP Address
+                  v.hdr(2)  := rxMaster.tData(7 downto 0);      -- IPV4_Length(15 downto 8)
+                  v.hdr(3)  := rxMaster.tData(15 downto 8);     -- IPV4_Length(7 downto 0)
+                  v.hdr(4)  := rxMaster.tData(23 downto 16);    -- IPV4_ID(15 downto 8)
+                  v.hdr(5)  := rxMaster.tData(31 downto 24);    -- IPV4_ID(7 downto 0)
+                  v.hdr(6)  := rxMaster.tData(39 downto 32);    -- Flags and Fragment Offsets
+                  v.hdr(7)  := rxMaster.tData(47 downto 40);    -- Flags and Fragment Offsets
+                  v.hdr(8)  := rxMaster.tData(55 downto 48);    -- Time of Live
+                  v.hdr(9)  := rxMaster.tData(63 downto 56);    -- Protocol
+                  v.hdr(10) := rxMaster.tData(71 downto 64);    -- IPV4_Checksum(15 downto 8)
+                  v.hdr(11) := rxMaster.tData(79 downto 72);    -- IPV4_Checksum(7 downto 0)
+                  v.hdr(12) := rxMaster.tData(87 downto 80);    -- Source IP Address
+                  v.hdr(13) := rxMaster.tData(95 downto 88);    -- Source IP Address
+                  v.hdr(14) := rxMaster.tData(103 downto 96);   -- Source IP Address
+                  v.hdr(15) := rxMaster.tData(111 downto 104);  -- Source IP Address
+                  v.hdr(16) := rxMaster.tData(119 downto 112);  -- Destination IP Address
+                  v.hdr(17) := rxMaster.tData(127 downto 120);  -- Destination IP Address
                else
-                  v.hdr(0)  := ibIpv4Master.tData(23 downto 16);    -- IPVersion + Header length
-                  v.hdr(1)  := ibIpv4Master.tData(31 downto 24);    -- DSCP and ECN
-                  v.hdr(2)  := ibIpv4Master.tData(39 downto 32);    -- IPV4_Length(15 downto 8)
-                  v.hdr(3)  := ibIpv4Master.tData(47 downto 40);    -- IPV4_Length(7 downto 0)
-                  v.hdr(4)  := ibIpv4Master.tData(55 downto 48);    -- IPV4_ID(15 downto 8)
-                  v.hdr(5)  := ibIpv4Master.tData(63 downto 56);    -- IPV4_ID(7 downto 0)
-                  v.hdr(6)  := ibIpv4Master.tData(71 downto 64);    -- Flags and Fragment Offsets
-                  v.hdr(7)  := ibIpv4Master.tData(79 downto 72);    -- Flags and Fragment Offsets
-                  v.hdr(8)  := ibIpv4Master.tData(87 downto 80);    -- Time of Live
-                  v.hdr(9)  := ibIpv4Master.tData(95 downto 88);    -- Protocol
-                  v.hdr(10) := ibIpv4Master.tData(103 downto 96);   -- IPV4_Checksum(15 downto 8)
-                  v.hdr(11) := ibIpv4Master.tData(111 downto 104);  -- IPV4_Checksum(7 downto 0)
-                  v.hdr(12) := ibIpv4Master.tData(119 downto 112);  -- Source IP Address
-                  v.hdr(13) := ibIpv4Master.tData(127 downto 120);  -- Source IP Address               
+                  v.hdr(0)  := rxMaster.tData(23 downto 16);    -- IPVersion + Header length
+                  v.hdr(1)  := rxMaster.tData(31 downto 24);    -- DSCP and ECN
+                  v.hdr(2)  := rxMaster.tData(39 downto 32);    -- IPV4_Length(15 downto 8)
+                  v.hdr(3)  := rxMaster.tData(47 downto 40);    -- IPV4_Length(7 downto 0)
+                  v.hdr(4)  := rxMaster.tData(55 downto 48);    -- IPV4_ID(15 downto 8)
+                  v.hdr(5)  := rxMaster.tData(63 downto 56);    -- IPV4_ID(7 downto 0)
+                  v.hdr(6)  := rxMaster.tData(71 downto 64);    -- Flags and Fragment Offsets
+                  v.hdr(7)  := rxMaster.tData(79 downto 72);    -- Flags and Fragment Offsets
+                  v.hdr(8)  := rxMaster.tData(87 downto 80);    -- Time of Live
+                  v.hdr(9)  := rxMaster.tData(95 downto 88);    -- Protocol
+                  v.hdr(10) := rxMaster.tData(103 downto 96);   -- IPV4_Checksum(15 downto 8)
+                  v.hdr(11) := rxMaster.tData(111 downto 104);  -- IPV4_Checksum(7 downto 0)
+                  v.hdr(12) := rxMaster.tData(119 downto 112);  -- Source IP Address
+                  v.hdr(13) := rxMaster.tData(127 downto 120);  -- Source IP Address               
                end if;
                -- Calculate the IPV4 Pseudo Header length (in little Endian)
                len(15 downto 8)      := v.hdr(2);
@@ -242,31 +264,31 @@ begin
          ----------------------------------------------------------------------
          when IPV4_HDR1_S =>
             -- Check for data
-            if (ibIpv4Master.tValid = '1') then
+            if (rxMaster.tValid = '1') then
                -- Accept the data
-               v.ibIpv4Slave.tReady := '1';
+               v.rxSlave.tReady := '1';
                if (VLAN_G = false) then
-                  v.hdr(18)             := ibIpv4Master.tData(7 downto 0);  -- Destination IP Address
-                  v.hdr(19)             := ibIpv4Master.tData(15 downto 8);  -- Destination IP Address               
+                  v.hdr(18)             := rxMaster.tData(7 downto 0);   -- Destination IP Address
+                  v.hdr(19)             := rxMaster.tData(15 downto 8);  -- Destination IP Address               
                   -- Track the leftovers
-                  v.tData(111 downto 0) := ibIpv4Master.tData(127 downto 16);
-                  v.tKeep(13 downto 0)  := ibIpv4Master.tKeep(15 downto 2);
-                  v.tLast               := ibIpv4Master.tLast;
-                  v.eofe                := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIpv4Master);
+                  v.tData(111 downto 0) := rxMaster.tData(127 downto 16);
+                  v.tKeep(13 downto 0)  := rxMaster.tKeep(15 downto 2);
+                  v.tLast               := rxMaster.tLast;
+                  v.eofe                := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                else
-                  v.hdr(14)              := ibIpv4Master.tData(7 downto 0);  -- Source IP Address
-                  v.hdr(15)              := ibIpv4Master.tData(15 downto 8);   -- Source IP Address
-                  v.hdr(16)              := ibIpv4Master.tData(23 downto 16);  -- Destination IP Address
-                  v.hdr(17)              := ibIpv4Master.tData(31 downto 24);  -- Destination IP Address               
-                  v.hdr(18)              := ibIpv4Master.tData(39 downto 32);  -- Destination IP Address
-                  v.hdr(19)              := ibIpv4Master.tData(47 downto 40);  -- Destination IP Address                
+                  v.hdr(14)              := rxMaster.tData(7 downto 0);  -- Source IP Address
+                  v.hdr(15)              := rxMaster.tData(15 downto 8);   -- Source IP Address
+                  v.hdr(16)              := rxMaster.tData(23 downto 16);  -- Destination IP Address
+                  v.hdr(17)              := rxMaster.tData(31 downto 24);  -- Destination IP Address               
+                  v.hdr(18)              := rxMaster.tData(39 downto 32);  -- Destination IP Address
+                  v.hdr(19)              := rxMaster.tData(47 downto 40);  -- Destination IP Address                
                   -- Track the leftovers                  
-                  v.tData(79 downto 0)   := ibIpv4Master.tData(127 downto 48);
+                  v.tData(79 downto 0)   := rxMaster.tData(127 downto 48);
                   v.tData(127 downto 80) := (others => '0');
-                  v.tKeep(9 downto 0)    := ibIpv4Master.tKeep(15 downto 6);
+                  v.tKeep(9 downto 0)    := rxMaster.tKeep(15 downto 6);
                   v.tKeep(15 downto 10)  := (others => '0');
-                  v.tLast                := ibIpv4Master.tLast;
-                  v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIpv4Master);
+                  v.tLast                := rxMaster.tLast;
+                  v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                end if;
                -- Check the Destination IP Address and (IPVersion + Header length)
                if (v.hdr(16) = localIp(7 downto 0))
@@ -316,7 +338,7 @@ begin
          ----------------------------------------------------------------------
          when IPV4_HDR2_S =>
             -- Check for data
-            if ((ibIpv4Master.tValid = '1') or (r.tLast = '1')) and (v.txMasters(r.index).tValid = '0') then
+            if ((rxMaster.tValid = '1') or (r.tLast = '1')) and (v.txMasters(r.index).tValid = '0') then
                -- Complete the IPV4 Pseudo Header 
                v.txMasters(r.index).tValid              := '1';
                v.txMasters(r.index).tData(7 downto 0)   := (others => '0');
@@ -362,21 +384,21 @@ begin
                      v.state                                    := IDLE_S;
                   else
                      -- Accept the data
-                     v.ibIpv4Slave.tReady                       := '1';
+                     v.rxSlave.tReady                           := '1';
                      -- Move the data
                      v.txMasters(r.index).tData(111 downto 32)  := r.tData(79 downto 0);
-                     v.txMasters(r.index).tData(127 downto 112) := ibIpv4Master.tData(15 downto 0);
+                     v.txMasters(r.index).tData(127 downto 112) := rxMaster.tData(15 downto 0);
                      v.txMasters(r.index).tKeep(13 downto 0)    := r.tKeep(9 downto 0) & "1111";
-                     v.txMasters(r.index).tKeep(15 downto 14)   := ibIpv4Master.tKeep(1 downto 0);
+                     v.txMasters(r.index).tKeep(15 downto 14)   := rxMaster.tKeep(1 downto 0);
                      -- Track the leftovers
-                     v.tData(111 downto 0)                      := ibIpv4Master.tData(127 downto 16);
-                     v.tKeep(13 downto 0)                       := ibIpv4Master.tKeep(15 downto 2);
+                     v.tData(111 downto 0)                      := rxMaster.tData(127 downto 16);
+                     v.tKeep(13 downto 0)                       := rxMaster.tKeep(15 downto 2);
                      -- Check for tLast
-                     if ibIpv4Master.tLast = '1' then
+                     if rxMaster.tLast = '1' then
                         -- Zero out unused data field
                         v.tData(127 downto 112) := (others => '0');
                         -- Update the EOFE bit
-                        v.eofe                  := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIpv4Master);
+                        v.eofe                  := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                         -- Check the leftover tKeep is not empty
                         if v.tKeep /= 0 then
                            -- Next state
@@ -397,26 +419,26 @@ begin
          ----------------------------------------------------------------------
          when MOVE_S =>
             -- Check for data
-            if (ibIpv4Master.tValid = '1') and (v.txMasters(r.index).tValid = '0') then
+            if (rxMaster.tValid = '1') and (v.txMasters(r.index).tValid = '0') then
                -- Accept the data
-               v.ibIpv4Slave.tReady        := '1';
+               v.rxSlave.tReady            := '1';
                -- Move the data
                v.txMasters(r.index).tValid := '1';
                if (VLAN_G = false) then
                   -- Move the data
                   v.txMasters(r.index).tData(15 downto 0)   := r.tData(15 downto 0);
-                  v.txMasters(r.index).tData(127 downto 16) := ibIpv4Master.tData(111 downto 0);
+                  v.txMasters(r.index).tData(127 downto 16) := rxMaster.tData(111 downto 0);
                   v.txMasters(r.index).tKeep(1 downto 0)    := r.tKeep(1 downto 0);
-                  v.txMasters(r.index).tKeep(15 downto 2)   := ibIpv4Master.tKeep(13 downto 0);
+                  v.txMasters(r.index).tKeep(15 downto 2)   := rxMaster.tKeep(13 downto 0);
                   -- Track the leftovers                  
-                  v.tData(15 downto 0)                      := ibIpv4Master.tData(127 downto 112);
-                  v.tKeep(1 downto 0)                       := ibIpv4Master.tKeep(15 downto 14);
+                  v.tData(15 downto 0)                      := rxMaster.tData(127 downto 112);
+                  v.tKeep(1 downto 0)                       := rxMaster.tKeep(15 downto 14);
                   -- Check for tLast
-                  if ibIpv4Master.tLast = '1' then
+                  if rxMaster.tLast = '1' then
                      -- Zero out unused data field
                      v.tData(127 downto 16) := (others => '0');
                      -- Update the EOFE bit
-                     v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIpv4Master);
+                     v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                      -- Check the leftover tKeep is not empty
                      if v.tKeep /= 0 then
                         -- Next state
@@ -431,18 +453,18 @@ begin
                else
                   -- Move the data
                   v.txMasters(r.index).tData(111 downto 0)   := r.tData(111 downto 0);
-                  v.txMasters(r.index).tData(127 downto 112) := ibIpv4Master.tData(15 downto 0);
+                  v.txMasters(r.index).tData(127 downto 112) := rxMaster.tData(15 downto 0);
                   v.txMasters(r.index).tKeep(13 downto 0)    := r.tKeep(13 downto 0);
-                  v.txMasters(r.index).tKeep(15 downto 14)   := ibIpv4Master.tKeep(1 downto 0);
+                  v.txMasters(r.index).tKeep(15 downto 14)   := rxMaster.tKeep(1 downto 0);
                   -- Track the leftovers
-                  v.tData(111 downto 0)                      := ibIpv4Master.tData(127 downto 16);
-                  v.tKeep(13 downto 0)                       := ibIpv4Master.tKeep(15 downto 2);
+                  v.tData(111 downto 0)                      := rxMaster.tData(127 downto 16);
+                  v.tKeep(13 downto 0)                       := rxMaster.tKeep(15 downto 2);
                   -- Check for tLast
-                  if ibIpv4Master.tLast = '1' then
+                  if rxMaster.tLast = '1' then
                      -- Zero out unused data field
                      v.tData(127 downto 112) := (others => '0');
                      -- Update the EOFE bit
-                     v.eofe                  := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIpv4Master);
+                     v.eofe                  := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                      -- Check the leftover tKeep is not empty
                      if v.tKeep /= 0 then
                         -- Next state
@@ -486,8 +508,8 @@ begin
       rin <= v;
 
       -- Outputs        
-      ibIpv4Slave <= v.ibIpv4Slave;
-      txMasters   <= r.txMasters;
+      rxSlave   <= v.rxSlave;
+      txMasters <= r.txMasters;
 
    end process comb;
 
