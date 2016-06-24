@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-05-12
+-- Last update: 2016-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -99,9 +99,9 @@ architecture rtl of ArpEngine is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
-   attribute dont_touch              : string;
-   attribute dont_touch of r         : signal is "TRUE";   
+
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
    
 begin
 
@@ -123,7 +123,7 @@ begin
             v.arpAckMasters(i) := AXI_STREAM_MASTER_INIT_C;
          end if;
       end loop;
-      
+
       -- Update the timers
       for i in CLIENT_SIZE_G-1 downto 0 loop
          if r.arpTimers(i) /= 0 then
@@ -359,7 +359,7 @@ begin
                -- Next state
                v.state  := IDLE_S;
             else
-               v.reqCnt := r.reqCnt + 1;
+               v.ackCnt := r.ackCnt + 1;
             end if;
          ----------------------------------------------------------------------
          when TX_S =>
