@@ -66,10 +66,11 @@ entity Pgp2bGtp7FixedLat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G   : integer              := 1;   -- Interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;   -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4 := 4
-      );
+      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4;
+      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
@@ -165,31 +166,34 @@ begin
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
+         TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-         NUM_VC_EN_G       => NUM_VC_EN_G
-         ) port map ( 
-            pgpTxClk         => pgpTxClk,
-            pgpTxClkRst      => pgpTxReset,
-            pgpTxIn          => pgpTxIn,
-            pgpTxOut         => pgpTxOut,
-            pgpTxMasters     => pgpTxMasters,
-            pgpTxSlaves      => pgpTxSlaves,
-            phyTxLanesOut    => phyTxLanesOut,
-            phyTxReady       => gtTxResetDone,  --phyTxReady,  -- Use txResetDone
-            pgpRxClk         => pgpRxClk,
-            pgpRxClkRst      => gtRxResetDoneL,  -- Hold in reset until gtp rx is up
-            pgpRxIn          => pgpRxIn,
-            pgpRxOut         => pgpRxOut,
-            pgpRxMasters     => pgpRxMasters,
-            pgpRxMasterMuxed => pgpRxMasterMuxed,
-            pgpRxCtrl        => pgpRxCtrl,
-            phyRxLanesOut    => phyRxLanesOut,
-            phyRxLanesIn     => phyRxLanesIn,
-            phyRxReady       => gtRxResetDone,
-            phyRxInit        => open  --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
-            );
+         NUM_VC_EN_G       => NUM_VC_EN_G,
+         TX_ENABLE_G       => TX_ENABLE_G,
+         RX_ENABLE_G       => RX_ENABLE_G)
+      port map (
+         pgpTxClk         => pgpTxClk,
+         pgpTxClkRst      => pgpTxReset,
+         pgpTxIn          => pgpTxIn,
+         pgpTxOut         => pgpTxOut,
+         pgpTxMasters     => pgpTxMasters,
+         pgpTxSlaves      => pgpTxSlaves,
+         phyTxLanesOut    => phyTxLanesOut,
+         phyTxReady       => gtTxResetDone,  --phyTxReady,  -- Use txResetDone
+         pgpRxClk         => pgpRxClk,
+         pgpRxClkRst      => gtRxResetDoneL,  -- Hold in reset until gtp rx is up
+         pgpRxIn          => pgpRxIn,
+         pgpRxOut         => pgpRxOut,
+         pgpRxMasters     => pgpRxMasters,
+         pgpRxMasterMuxed => pgpRxMasterMuxed,
+         pgpRxCtrl        => pgpRxCtrl,
+         phyRxLanesOut    => phyRxLanesOut,
+         phyRxLanesIn     => phyRxLanesIn,
+         phyRxReady       => gtRxResetDone,
+         phyRxInit        => open  --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
+      );
 
 
    --------------------------------------------------------------------------------------------------

@@ -47,8 +47,12 @@ entity Pgp2bGth7VarLatWrapper is
       RX_OS_CFG_G       : bit_vector           := "0000010000000";           -- Set by wizard
       RXCDR_CFG_G       : bit_vector           := x"0002007FE1000C2200018";  -- Set by wizard
       RXDFEXYDEN_G      : sl                   := '1';                       -- Set by wizard 
-      -- Configure Number of VC Lanes
-      NUM_VC_EN_G       : natural range 1 to 4 := 4);
+      -- PGP Settings
+      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4;
+      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- Clocks and Reset
       pgpClk       : in  sl;
@@ -95,7 +99,11 @@ begin
          RXCDR_CFG_G       => RXCDR_CFG_G,
          RXDFEXYDEN_G      => RXDFEXYDEN_G,
          -- VC Configuration
-         NUM_VC_EN_G       => NUM_VC_EN_G)          
+         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
+         NUM_VC_EN_G       => NUM_VC_EN_G,
+         TX_ENABLE_G       => TX_ENABLE_G,
+         RX_ENABLE_G       => RX_ENABLE_G)          
       port map (
          -- GT Clocking
          stableClk        => pgpClk,

@@ -36,8 +36,12 @@ entity Pgp2bGtp7FixedLatWrapper is
       -- Select Master or Slave
       MASTER_SEL_G         : boolean              := true;
       RX_CLK_SEL_G         : boolean              := true;
-      -- Configure Number of Lanes
-      NUM_VC_EN_G          : integer range 1 to 4 := 4;
+      -- PGP Settings
+      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4;
+      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true;  -- Enable RX direction
       -- Quad PLL Configurations
       QPLL_FBDIV_IN_G      : integer range 1 to 5 := 4;
       QPLL_FBDIV_45_IN_G   : integer range 4 to 5 := 5;
@@ -262,7 +266,11 @@ begin
 
    Pgp2bGtp7Fixedlat_Inst : entity work.Pgp2bGtp7FixedLat
       generic map (
-         NUM_VC_EN_G           => NUM_VC_EN_G,
+         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
+         NUM_VC_EN_G       => NUM_VC_EN_G,
+         TX_ENABLE_G       => TX_ENABLE_G,
+         RX_ENABLE_G       => RX_ENABLE_G,
          STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout 
          RXOUT_DIV_G           => RXOUT_DIV_G,
          TXOUT_DIV_G           => TXOUT_DIV_G,
