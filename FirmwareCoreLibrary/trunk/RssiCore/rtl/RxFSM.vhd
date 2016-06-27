@@ -367,6 +367,9 @@ begin
                if (v.rxF.ack = '1' and v.rxAckN /= lastAckN_i) then
                   -- Acknowledgment not valid
                   v.tspState    := DROP_S;
+               elsif (v.rxF.eack = '1' or v.rxF.rst = '1' or v.rxF.busy = '1') then
+                  -- Wrong flags
+                  v.tspState    := DROP_S;               
                else
                   -- Go to SYN_CHECK_S
                   v.tspState    := SYN_CHECK_S;
@@ -407,7 +410,7 @@ begin
                else
                   -- Header not valid
                   v.tspState    := DROP_S;              
-               end if;           
+               end if;
             end if;
             
          ----------------------------------------------------------------------

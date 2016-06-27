@@ -938,17 +938,9 @@ begin
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
                
-               -- Inject fault into checksum
-               if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1'); -- Flip bits! Point of fault injection!
-               else
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
-               end if;
-               
-               -- Set the fault reg to 0
-               v.injectFaultReg := '0';
+               -- Add checksum to last two bytes 
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
                
                --                
                if  connActive_i = '0' then          
@@ -1110,17 +1102,9 @@ begin
                v.tspSsiMaster.dest   := (others => '0');
                v.tspSsiMaster.eof    := '1';
                v.tspSsiMaster.eofe   := '0';
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(rdHeaderData_i);
                
-               -- Inject fault into checksum
-               if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum xor (s_headerAndChksum'range => '1')); -- Flip bits! Point of fault injection!
-               else
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum); -- Add checksum to last two bytes
-               end if;
-               
-               -- Set the fault reg to 0
-               v.injectFaultReg := '0';
+               -- Add checksum to last two bytes
+               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
                
                -- Increment seqN
                v.nextSeqN    := r.nextSeqN+1; -- Increment SEQ number at the end of segment transmission
