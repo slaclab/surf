@@ -77,7 +77,7 @@ architecture rtl of Ad9249ReadoutGroup is
       axilReadSlave  : AxiLiteReadSlaveType;
       dataDelay      : slv5Array(NUM_CHANNELS_G-1 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
-      frameDelay     : slv(NUM_CHANNELS_G-1 downto 0);
+      frameDelay     : slv(4 downto 0);
       frameDelaySet  : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -177,7 +177,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, lockedSync, readoutInt) is
+   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -196,8 +196,8 @@ begin
 
       -- Up to 8 delay registers
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegister(axilEp, X"00"+(i*4), 0, v.dataDelay(i));
-         axiSlaveRegister(axilEp, X"00"+(i*4), 0, v.dataDelaySet(i), '1');
+         axiSlaveRegister(axilEp, X"00"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, v.dataDelay(i));
+         axiSlaveRegister(axilEp, X"00"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, v.dataDelaySet(i), '1');
       end loop;
 
       axiSlaveRegister(axilEp, X"20", 0, v.frameDelay);
@@ -208,14 +208,14 @@ begin
 
 
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"40"+(i*4), 0, curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"40"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, curDelayData(i));
       end loop;
       axiSlaveRegisterR(axilEp, X"60", 0, curDelayFrame);
 
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"80"+(i*4), 0, axilR.readoutDebug0(i));
-         axiSlaveRegisterR(axilEp, X"80"+(i*4), 16, axilR.readoutDebug1(i));
+         axiSlaveRegisterR(axilEp, X"80"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, axilR.readoutDebug0(i));
+         axiSlaveRegisterR(axilEp, X"80"+CONV_STD_LOGIC_VECTOR((i*4),8), 16, axilR.readoutDebug1(i));
       end loop;
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -328,12 +328,12 @@ begin
             O  => adcDataPadOut(i));
 
       -- Optionally invert the pad input
-      adcDataPad(i) <= adcDataPadOut(i) when ADC_INVERT_CH(i) = '0' else not adcDataPadOut(i);
+      adcDataPad(i) <= adcDataPadOut(i) when ADC_INVERT_CH_G(i) = '0' else not adcDataPadOut(i);
 
       U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
-            IODELAY_GROUP_G   => IODELAY_GROUP_G;
+            IODELAY_GROUP_G   => IODELAY_GROUP_G,
             IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G)
          port map (
             clkIo    => adcBitClkIo,
@@ -408,9 +408,9 @@ begin
    glue : for i in NUM_CHANNELS_G-1 downto 0 generate
       fifoDataIn(i*16+15 downto i*16) <= adcR.fifoWrData(i);
       fifoDataTmp(i)                  <= fifoDataOut(i*16+15 downto i*16);
-      adcStream(i).tdata(15 downto 0) <= fifoDataTmp(i);
-      adcStream(i).tDest              <= toSlv(i, 8);
-      adcStream(i).tValid             <= fifoDataValid;
+      adcStreams(i).tdata(15 downto 0) <= fifoDataTmp(i);
+      adcStreams(i).tDest              <= toSlv(i, 8);
+      adcStreams(i).tValid             <= fifoDataValid;
    end generate;
 
    -- Single fifo to synchronize adc data to the Stream clock
