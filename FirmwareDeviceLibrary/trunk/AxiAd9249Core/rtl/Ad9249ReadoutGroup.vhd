@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2016-05-26
+-- Last update: 2016-06-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -75,9 +75,8 @@ architecture rtl of Ad9249ReadoutGroup is
    type AxilRegType is record
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
-      dataDelay      : slv5Array(NUM_CHANNELS_G-1 downto 0);
+      delay          : slv(4 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
-      frameDelay     : slv(4 downto 0);
       frameDelaySet  : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -86,9 +85,8 @@ architecture rtl of Ad9249ReadoutGroup is
    constant AXIL_REG_INIT_C : AxilRegType := (
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      dataDelay      => (others => DEFAULT_DELAY_G),
+      delay          => DEFAULT_DELAY_G,
       dataDelaySet   => (others => '1'),
-      frameDelay     => DEFAULT_DELAY_G,
       frameDelaySet  => '1',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')));
@@ -195,27 +193,31 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Up to 8 delay registers
+      -- Write delay values to IDELAY primatives
+      -- All writes go to same r.delay register,
+      -- dataDelaySet(i) or frameDelaySet enables the primative write
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegister(axilEp, X"00"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, v.dataDelay(i));
-         axiSlaveRegister(axilEp, X"00"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, v.dataDelaySet(i), '1');
+         axiSlaveRegister(axilEp, X"00"+toSlv((i*4), 8), 0, v.delay);
+         axiSlaveRegister(axilEp, X"00"+toSlv((i*4), 8), 5, v.dataDelaySet(i), '1');
       end loop;
+      axiSlaveRegister(axilEp, X"20", 0, v.delay);
+      axiSlaveRegister(axilEp, X"20", 5, v.frameDelaySet, '1');
 
-      axiSlaveRegister(axilEp, X"20", 0, v.frameDelay);
-      axiSlaveRegister(axilEp, X"20", 0, v.frameDelaySet, '1');
+      -- Override read from r.delay and use curDealy output from delay primative instead
+      for i in 0 to NUM_CHANNELS_G-1 loop
+         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, curDelayData(i));
+      end loop;
+      axiSlaveRegisterR(axilEp, X"20", 0, curDelayFrame);
 
+      
+      -- Debug output to see how many times the shift has needed a relock
       axiSlaveRegisterR(axilEp, X"30", 0, lockedFallCount);
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
 
-
-      for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"40"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, curDelayData(i));
-      end loop;
-      axiSlaveRegisterR(axilEp, X"60", 0, curDelayFrame);
-
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"80"+CONV_STD_LOGIC_VECTOR((i*4),8), 0, axilR.readoutDebug0(i));
-         axiSlaveRegisterR(axilEp, X"80"+CONV_STD_LOGIC_VECTOR((i*4),8), 16, axilR.readoutDebug1(i));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 0, axilR.readoutDebug0(i));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 16, axilR.readoutDebug1(i));
       end loop;
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -406,8 +408,8 @@ begin
    -- Regroup fifoDataOut by channel into fifoDataTmp
    -- Format fifoDataTmp into AxiStream channels
    glue : for i in NUM_CHANNELS_G-1 downto 0 generate
-      fifoDataIn(i*16+15 downto i*16) <= adcR.fifoWrData(i);
-      fifoDataTmp(i)                  <= fifoDataOut(i*16+15 downto i*16);
+      fifoDataIn(i*16+15 downto i*16)  <= adcR.fifoWrData(i);
+      fifoDataTmp(i)                   <= fifoDataOut(i*16+15 downto i*16);
       adcStreams(i).tdata(15 downto 0) <= fifoDataTmp(i);
       adcStreams(i).tDest              <= toSlv(i, 8);
       adcStreams(i).tValid             <= fifoDataValid;
