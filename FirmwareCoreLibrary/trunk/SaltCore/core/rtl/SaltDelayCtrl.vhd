@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-16
--- Last update: 2015-10-14
+-- Last update: 2016-06-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,13 +30,14 @@ use UNISIM.vcomponents.all;
 
 entity SaltDelayCtrl is
    generic (
-      TPD_G           : time   := 1 ns;
-      SIM_DEVICE_G    : string := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
-      IODELAY_GROUP_G : string := "SALT_IODELAY_GRP");   
+      TPD_G           : time    := 1 ns;
+      SIM_DEVICE_G    : string  := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      REF_RST_SYNC_G  : boolean := true;       -- Syncronize refRst to refClk.
+      IODELAY_GROUP_G : string  := "SALT_IODELAY_GRP");
    port (
       iDelayCtrlRdy : out sl;
       refClk        : in  sl;
-      refRst        : in  sl);      
+      refRst        : in  sl);
 end SaltDelayCtrl;
 
 architecture mapping of SaltDelayCtrl is
@@ -52,12 +53,13 @@ architecture mapping of SaltDelayCtrl is
    attribute KEEP_HIERARCHY                          : string;
    attribute KEEP_HIERARCHY of SALT_IDELAY_CTRL_Inst : label is "TRUE";
    attribute KEEP_HIERARCHY of RstSync_Inst          : label is "TRUE";
-   
+
 begin
 
    RstSync_Inst : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => not REF_RST_SYNC_G)
       port map (
          clk      => refClk,
          asyncRst => refRst,
@@ -65,7 +67,7 @@ begin
 
    SALT_IDELAY_CTRL_Inst : IDELAYCTRL
       generic map (
-         SIM_DEVICE => SIM_DEVICE_G) 
+         SIM_DEVICE => SIM_DEVICE_G)
       port map (
          RDY    => iDelayCtrlRdy,       -- 1-bit output: Ready output
          REFCLK => refClk,              -- 1-bit input: Reference clock input
