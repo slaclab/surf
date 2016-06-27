@@ -63,9 +63,9 @@ architecture rtl of Ad9249Config is
    signal coreSclk  : sl;
    signal coreSDin  : sl;
    signal coreSDout : sl;
-   signal coreCsb   : slv(1 downto 0);
+   signal coreCsb   : slv(NUM_CHIPS_G*2-1 downto 0);
 
-   constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G*2-1);
+   constant CHIP_SEL_WIDTH_C : integer                       := bitSize(NUM_CHIPS_G*2);
    constant PWDN_ADDR_BIT_C  : integer                       := 10 + CHIP_SEL_WIDTH_C;
    constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := (PWDN_ADDR_BIT_C => '1', others => '0');
 
@@ -220,18 +220,12 @@ begin
          IO => adcSdio,
          T  => coreSDout);
 
-   CSB_OBUFT : for i in NUM_CHIPS_G-1 downto 0 generate
+   CSB_OBUFT : for i in NUM_CHIPS_G*2-1 downto 0 generate
       CSB0_OBUFT : OBUFT
          port map (
             I => '0',
-            O => adcCsb(i*2),
-            T => coreCsb(i*2));
-
-      CSB1_OBUFT : OBUFT
-         port map (
-            I => '0',
-            O => adcCsb(i*2+1),
-            T => coreCsb(i*2+1));
+            O => adcCsb(i),
+            T => coreCsb(i));
    end generate;
 
 end architecture rtl;
