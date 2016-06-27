@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-09
--- Last update: 2016-06-09
+-- Last update: 2016-06-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ entity UartAxiLiteMaster is
       FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 4);
    port (
       axilClk          : in  sl;
-      axilRst           : in  sl;
+      axilRst          : in  sl;
       -- Transmit parallel interface
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
@@ -174,31 +174,27 @@ begin
    comb : process (axilAck, axilRst, r, uartRxData, uartRxValid, uartTxReady) is
       variable v : RegType;
 
-      procedure uartTx (
-         tx : in slv(7 downto 0)) is
+      procedure uartTx (byte : in slv(7 downto 0)) is
       begin
          v.uartTxValid := '1';
-         v.uartTxData  := tx;
+         v.uartTxData  := byte;
       end procedure uartTx;
 
-      procedure uartTx (
-         char : in character) is
+      procedure uartTx (char : in character) is
       begin
          uartTx(toSlv(character'pos(char), 8));
       end procedure uartTx;
 
-      function rxIsSpace
-         return boolean is
+      function isSpace (byte : slv(7 downto 0)) return boolean is
       begin
-         return (uartRxData = character'pos(' '));
-      end function rxIsSpace;
+         return (byte = character'pos(' '));
+      end function isSpace;
 
-      function rxIsEOL
-         return boolean is
+      function isEOL (byte : slv(7 downto 0)) return boolean is
       begin
-         return (uartRxData = character'pos(CR) or
-                 uartRxData = character'pos(LF));
-      end function rxIsEOL;
+         return (byte = character'pos(CR) or
+                 byte = character'pos(LF));
+      end function isEOL;
 
    begin
       v := r;
@@ -243,12 +239,12 @@ begin
                v.axilReq.address := r.axilReq.address(27 downto 0) & hexToSlv(uartRxData);
 
                -- Ignore character if its a space
-               if (rxIsSpace) then
+               if (isSpace(uartRxData)) then
                   v.axilReq.address := r.axilReq.address;
                end if;
 
                -- Go back to start if EOL
-               if (rxIsEOL) then
+               if (isEOL(uartRxData)) then
                   v.state := WAIT_START_S;
                end if;
             end if;
@@ -260,7 +256,7 @@ begin
                v.axilReq.address := r.axilReq.address(27 downto 0) & hexToSlv(uartRxData);
 
                -- Space indicates end of addr word
-               if (rxIsSpace) then
+               if (isSpace(uartRxData)) then
                   v.axilReq.address := r.axilReq.address;
                   if (r.axilReq.rnw = '0') then
                      v.state := WR_DATA_S;
@@ -270,7 +266,7 @@ begin
                end if;
 
                -- Go back to start if EOL
-               if (rxIsEOL) then
+               if (isEOL(uartRxData)) then
                   v.state := WAIT_START_S;
                end if;
 
@@ -283,13 +279,13 @@ begin
 
                -- Space or EOL indicates end of wrData word
                -- If space need to wait for EOL
-               if (rxIsSpace) then
+               if (isSpace(uartRxData)) then
                   v.axilReq.wrData := r.axilReq.wrData;
                   v.state          := WAIT_EOL_S;
                end if;
 
                -- If EOL can issue AXIL txn
-               if (rxIsEOL) then
+               if (isEOL(uartRxData)) then
                   v.axilReq.wrData := r.axilReq.wrData;
                   uartTx('#');
                   v.state          := AXIL_TXN_S;
@@ -301,7 +297,7 @@ begin
             -- Any other charachters are echo'd but otherwise ignored
             if (uartRxValid = '1') then
                uartTx(uartRxData);
-               if (rxIsEOL) then
+               if (isEOL(uartRxData)) then
                   uartTx('#');
                   v.state := AXIL_TXN_S;
                end if;
