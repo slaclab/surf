@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-05-31
+-- Last update: 2016-06-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,15 +36,15 @@ entity Ad9249Config is
       AXIL_ERR_RESP_G   : slv(1 downto 0) := AXI_RESP_DECERR_C);
 
    port (
-      axiClk : in sl;
-      axiRst : in sl;
+      axilClk : in sl;
+      axilRst : in sl;
 
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      adcPdwn : out   sl;
+      adcPdwn : out   slv(NUM_CHIPS_G*2-1 downto 0);
       adcSclk : out   sl;
       adcSdio : inout sl;
       adcCsb  : out   slv(NUM_CHIPS_G*2-1 downto 0)
@@ -65,7 +65,7 @@ architecture rtl of Ad9249Config is
    signal coreSDout : sl;
    signal coreCsb   : slv(1 downto 0);
 
-   constant CHIP_SEL_WIDTH_C : integer                       := bitSize(NUM_CHIPS_G*2-1);
+   constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G*2-1);
    constant PWDN_ADDR_BIT_C  : integer                       := 10 + CHIP_SEL_WIDTH_C;
    constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := (PWDN_ADDR_BIT_C => '1', others => '0');
 
@@ -80,24 +80,24 @@ architecture rtl of Ad9249Config is
       chipSel        : slv(CHIP_SEL_WIDTH_C-1 downto 0);
       wrData         : slv(23 downto 0);
       wrEn           : sl;
-      pdwn           : sl;
+      pdwn           : slv(NUM_CHIPS_G*2-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state          => WAIT_AXI_TXN_S,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      chipSel        => "0",
+      chipSel        => (others => '0'),
       wrData         => (others => '0'),
       wrEn           => '0',
-      pdwn           => '0');
+      pdwn           => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (axiRst, axilReadMaster, axilWriteMaster, r, rdData, rdEn) is
+   comb : process (axilRst, axilReadMaster, axilWriteMaster, r, rdData, rdEn) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -105,15 +105,16 @@ begin
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- Chip powerdown signal is local registers
-      for i in 0 to NUM_CHIPS_G loop
-         axiSlaveRegister(axilEp, PWDN_ADDR_C + (i*4), 0, v.pdwn(i));
-      end loop;
 
-      -- Any other address is forwarded to the chip via SPI
       case (r.state) is
          when WAIT_AXI_TXN_S =>
 
+            -- Chip powerdown signal is local registers
+            for i in 0 to NUM_CHIPS_G-1 loop
+               axiSlaveRegister(axilEp, PWDN_ADDR_C + i*4, 0, v.pdwn(i*2+1 downto i*2));
+            end loop;
+
+            -- Any other address is forwarded to the chip via SPI
             if (axilEp.axiStatus.writeEnable = '1' and axilWriteMaster.awaddr(PWDN_ADDR_BIT_C) = '0') then
                v.wrData(23)           := '0';                                 -- Write bit
                v.wrData(22 downto 21) := "00";                                -- Number of bytes (1)
@@ -148,12 +149,12 @@ begin
                v.state := WAIT_AXI_TXN_S;
                if (r.wrData(23) = '0') then
                   -- Finish write
-                  axiSlaveWriteResponse(v.axilWriteSlave);
+                  axiSlaveWriteResponse(axilEp.axiWriteSlave);
                else
                   -- Finish read
-                  v.axilReadSlave.rdata             := (others => '0');
-                  v.axilReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-                  axiSlaveReadResponse(v.axilReadSlave);
+                  axilEp.axiReadSlave.rdata             := (others => '0');
+                  axilEp.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
+                  axiSlaveReadResponse(axilEp.axiReadSlave);
                end if;
             end if;
 
@@ -162,7 +163,7 @@ begin
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXIL_ERR_RESP_G);
 
-      if (axiRst = '1') then
+      if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -170,12 +171,14 @@ begin
 
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
+      adcPdwn        <= r.pdwn;
+
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axilClk) is
    begin
-      if (rising_edge(axiClk)) then
+      if (rising_edge(axilClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -190,8 +193,8 @@ begin
          CLK_PERIOD_G      => AXIL_CLK_PERIOD_G,
          SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 100.0E-9, SCLK_PERIOD_G))
       port map (
-         clk     => axiClk,
-         sRst    => axiRst,
+         clk     => axilClk,
+         sRst    => axilRst,
          chipSel => r.chipSel,
          wrEn    => r.wrEn,
          wrData  => r.wrData,

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2016-05-26
+-- Last update: 2016-06-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,6 +25,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
 
 package Ad9249Pkg is
 
@@ -41,6 +42,15 @@ package Ad9249Pkg is
 
    type Ad9249SerialGroupArray is array (natural range <>) of Ad9249SerialGroupType;
 
+   constant AD9249_AXIS_CFG_G : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 2,
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_FIXED_C,
+      TUSER_BITS_C  => 0,
+      TUSER_MODE_C  => TUSER_NONE_C);
+
    -- Deserialized data output
 --   type Ad9249ReadoutType is record
 --     valid : sl;
@@ -53,4 +63,4 @@ package Ad9249Pkg is
 
 --   type Ad9249ReadoutArray is array (natural range <>) of Ad9249ReadoutType;
 
-end package Ad9249ReadoutPkg;
+end package Ad9249Pkg;
