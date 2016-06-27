@@ -37,7 +37,7 @@ architecture testbed of RssiCoreTb is
    constant TPD_C        : time    := 0.64 ns;
    
    -- RSSI configuration
-   constant WINDOW_ADDR_SIZE_C  : positive := 4;
+   constant WINDOW_ADDR_SIZE_C  : positive := 3;
    constant SEGMENT_ADDR_SIZE_C : positive := 7;
    
    constant PRBS_BYTE_WIDTH_C : positive := 16;
@@ -57,10 +57,10 @@ architecture testbed of RssiCoreTb is
    signal   closeRq0_i    : sl := '0';
    signal   inject0_i     : sl := '0';
    
-   signal   sAppAxisMaster0      : AxiStreamMasterArray(1 downto 0);
-   signal   sAppAxisSlave0       : AxiStreamSlaveArray(1 downto 0);
-   signal   mAppAxisMaster0      : AxiStreamMasterArray(1 downto 0);
-   signal   mAppAxisSlave0       : AxiStreamSlaveArray(1 downto 0);
+   signal   sAppAxisMaster0      : AxiStreamMasterType;
+   signal   sAppAxisSlave0       : AxiStreamSlaveType;
+   signal   mAppAxisMaster0      : AxiStreamMasterType;
+   signal   mAppAxisSlave0       : AxiStreamSlaveType;
 
    signal   sTspAxisMaster0      : AxiStreamMasterType;
    signal   sTspAxisSlave0       : AxiStreamSlaveType;
@@ -72,10 +72,10 @@ architecture testbed of RssiCoreTb is
    signal   closeRq1_i    : sl := '0';
    signal   inject1_i     : sl := '0';
 
-   signal   sAppAxisMaster1      : AxiStreamMasterArray(1 downto 0);
-   signal   sAppAxisSlave1       : AxiStreamSlaveArray(1 downto 0);
-   signal   mAppAxisMaster1      : AxiStreamMasterArray(1 downto 0);
-   signal   mAppAxisSlave1       : AxiStreamSlaveArray(1 downto 0);
+   signal   sAppAxisMaster1      : AxiStreamMasterType;
+   signal   sAppAxisSlave1       : AxiStreamSlaveType;
+   signal   mAppAxisMaster1      : AxiStreamMasterType;
+   signal   mAppAxisSlave1       : AxiStreamSlaveType;
 
    signal   sTspAxisMaster1      : AxiStreamMasterType;
    signal   sTspAxisSlave1       : AxiStreamSlaveType;
@@ -104,20 +104,11 @@ begin
   -----------------------------
   
    -- RSSI 0 Server
-   RssiCore0_INST: entity work.RssiCoreWrapper
+   RssiCore0_INST: entity work.RssiCore
    generic map (
       TPD_G          => TPD_C,
       SERVER_G       => true,
       INIT_SEQ_N_G   => 16#40#,
-      --
-      APP_STREAMS_G            => 2,
-      APP_STREAM_ROUTES_G      => (
-         0                     => X"00",
-         1                     => X"01"),
-      
-      BYPASS_CHUNKER_G         => false,      
-      PIPE_STAGES_G            => 1, 
-      --
       WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
       SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
       MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
@@ -125,17 +116,14 @@ begin
       CLK_FREQUENCY_G      => 156.25E+6,
       
       MAX_RETRANS_CNT_G     => 1,
-      MAX_CUM_ACK_CNT_G     => 1,
+      MAX_CUM_ACK_CNT_G     => 10,
       
-      ACK_TOUT_G            => 25,
-      RETRANS_TOUT_G        => 50,
-      NULL_TOUT_G           => 200,
+      ACK_TOUT_G            => 250,
+      RETRANS_TOUT_G        => 500,
+      NULL_TOUT_G           => 2000,
       
-      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
-      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
-      APP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
-      APP_OUTPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C)
-   )
+      TSP_AXIS_CONFIG_G  => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
+      APP_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C))
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
@@ -143,12 +131,12 @@ begin
       closeRq_i   => closeRq0_i,
       inject_i    => inject0_i,
       -- 
-      sAppAxisMasters_i => sAppAxisMaster0, -- prbs tx
-      sAppAxisSlaves_o  => sAppAxisSlave0,  -- prbs tx
+      sAppAxisMaster_i => sAppAxisMaster0, -- prbs tx
+      sAppAxisSlave_o  => sAppAxisSlave0,  -- prbs tx
       
       --  
-      mAppAxisMasters_o => mAppAxisMaster0, -- prbs rx
-      mAppAxisSlaves_i  => mAppAxisSlave0,  -- prbs rx
+      mAppAxisMaster_o => mAppAxisMaster0, -- prbs rx
+      mAppAxisSlave_i  => mAppAxisSlave0,  -- prbs rx
       
       -- 
       sTspAxisMaster_i => sTspAxisMaster0, --<-- From Peer
@@ -166,19 +154,11 @@ begin
    mTspAxisSlave1  <= sTspAxisSlave0;
 
    -- RSSI 1 Client      
-   RssiCore1_INST: entity work.RssiCoreWrapper
+   RssiCore1_INST: entity work.RssiCore
    generic map (
       TPD_G          => TPD_C,
       SERVER_G       => false,
       INIT_SEQ_N_G   => 16#80#,
-      --
-      APP_STREAMS_G            => 2,
-      APP_STREAM_ROUTES_G      => (
-         0                     => X"00",
-         1                     => X"01"),
-      
-      BYPASS_CHUNKER_G         => false,      
-      PIPE_STAGES_G            => 1,      
       --
       WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
       SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
@@ -187,18 +167,15 @@ begin
       CLK_FREQUENCY_G      => 156.25E+6,
       
       MAX_RETRANS_CNT_G     => 1,
-      MAX_CUM_ACK_CNT_G     => 1,
+      MAX_CUM_ACK_CNT_G     => 10,
       
-      ACK_TOUT_G            => 25,
-      RETRANS_TOUT_G        => 50,
-      NULL_TOUT_G           => 200,
+      ACK_TOUT_G            => 250,
+      RETRANS_TOUT_G        => 500,
+      NULL_TOUT_G           => 2000,
       
       --
-      TSP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
-      TSP_OUTPUT_AXIS_CONFIG_G => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
-      APP_INPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
-      APP_OUTPUT_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C)
-   )
+      TSP_AXIS_CONFIG_G  => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
+      APP_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C))
    port map (
       clk_i       => clk_i,
       rst_i       => rst_i,
@@ -207,12 +184,12 @@ begin
       inject_i    => inject1_i,
       
       -- 
-      sAppAxisMasters_i => sAppAxisMaster1, -- Loopback
-      sAppAxisSlaves_o  => sAppAxisSlave1,  -- Loopback
+      sAppAxisMaster_i => sAppAxisMaster1, -- Loopback
+      sAppAxisSlave_o  => sAppAxisSlave1,  -- Loopback
       
       -- 
-      mAppAxisMasters_o => mAppAxisMaster1, -- Loopback 
-      mAppAxisSlaves_i  => mAppAxisSlave1,  -- Loopback 
+      mAppAxisMaster_o => mAppAxisMaster1, -- Loopback 
+      mAppAxisSlave_i  => mAppAxisSlave1,  -- Loopback 
       
       -- 
       sTspAxisMaster_i => sTspAxisMaster1, --<-- From Peer
@@ -229,14 +206,8 @@ begin
    
    -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
    -- sAppAxisMaster1 <= AXI_STREAM_MASTER_INIT_C;
-   
-   -- Terminate TDEST=0
-   sAppAxisMaster0(0) <= AXI_STREAM_MASTER_INIT_C;
-   sAppAxisMaster1(0) <= AXI_STREAM_MASTER_INIT_C;
-   mAppAxisSlave0(0)  <= AXI_STREAM_SLAVE_INIT_C;
-   mAppAxisSlave1(0)  <= AXI_STREAM_SLAVE_INIT_C;
-   
-   ------Application side data PRBS Tx TDEST=1 ---------------------------
+
+   ------Application side data PRBS Tx---------------------------
    s_prbsRst <= rst_i or s_intPrbsRst;
     
    SsiPrbsTx_INST: entity work.SsiPrbsTx
@@ -255,15 +226,15 @@ begin
    port map (
       mAxisClk        => clk_i,
       mAxisRst        => s_prbsRst,
-      mAxisMaster     => sAppAxisMaster0(1),
-      mAxisSlave      => sAppAxisSlave0(1),
+      mAxisMaster     => sAppAxisMaster0,
+      mAxisSlave      => sAppAxisSlave0,
       locClk          => clk_i,
       locRst          => s_prbsRst,
       trig            => s_trig,
-      packetLength    => X"0000_ffff",
+      packetLength    => X"0000_003f",
       forceEofe       => '0',
       busy            => open,
-      tDest           => X"01",
+      tDest           => X"00",
       tId             => X"00"
       --axilReadMaster  => ,
       --axilReadSlave   => ,
@@ -287,8 +258,8 @@ begin
    port map (
       sAxisClk        => clk_i,
       sAxisRst        => s_prbsRst,
-      sAxisMaster     => mAppAxisMaster1(1), --mAppAxisMaster0,
-      sAxisSlave      => mAppAxisSlave1(1),  --mAppAxisSlave0,
+      sAxisMaster     => mAppAxisMaster1, --mAppAxisMaster0,
+      sAxisSlave      => mAppAxisSlave1,  --mAppAxisSlave0,
       sAxisCtrl       => open,
       mAxisClk        => clk_i,
       mAxisRst        => s_prbsRst,
@@ -327,12 +298,15 @@ begin
    begin
    
       wait until rst_i = '0';
-
+      connRq0_i <= '1'; -- Let the client timeout
+      connRq1_i <= '1'; 
+      
       wait for CLK_PERIOD_C*200;
             
       -- Connection request 0
       wait for CLK_PERIOD_C*100;
-      --connRq0_i <= '1'; -- Let the client timeout
+    
+      
       wait for CLK_PERIOD_C*1;
       --connRq0_i <= '0';
       
@@ -341,7 +315,7 @@ begin
       -- Connection request 1
       connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq1_i <= '0';
+      --connRq1_i <= '0';
 
       -------------------------------------------------------
       wait for CLK_PERIOD_C*1000;
@@ -352,9 +326,9 @@ begin
       -- Request connection close request
       wait for CLK_PERIOD_C*15000;
       -- Disable PRBS
-      closeRq1_i <= '1';
+     -- closeRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      closeRq1_i <= '0';
+     -- closeRq1_i <= '0';
       
       -- Reset PRBS
       wait for CLK_PERIOD_C*100;
@@ -370,16 +344,16 @@ begin
       wait for CLK_PERIOD_C*4000;  
       
       -- Connection request 1
-      connRq1_i <= '1';
+      --connRq1_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq1_i <= '0';
+      --connRq1_i <= '0';
       
       -- Let the client resend SYN
       --wait for CLK_PERIOD_C*10000;
       --wait for CLK_PERIOD_C*50000;
-      connRq0_i <= '1';
+      --connRq0_i <= '1';
       wait for CLK_PERIOD_C*1;
-      connRq0_i <= '0';    
+      --connRq0_i <= '0';    
       
       -------------------------------------------------------
       -- Wait for connection 
@@ -402,8 +376,8 @@ begin
       -------------------------------------------------------
       
       wait for CLK_PERIOD_C*10000;
-      connRq1_i <= '0'; 
-      connRq0_i <= '0';       
+      --connRq1_i <= '0'; 
+      --connRq0_i <= '0';       
             
       -------------------------------------------------------
       -- Inject fault into RSSI0
@@ -418,7 +392,7 @@ begin
       -- Inject fault into RSSI1
       wait for CLK_PERIOD_C*10000;
       -- 
-      inject1_i <= '1';
+      --inject1_i <= '1';
       wait for CLK_PERIOD_C*20000;
       -- 
       inject1_i <= '0';
@@ -427,16 +401,16 @@ begin
       -- Inject fault into RSSI0
       wait for CLK_PERIOD_C*10000;
       -- 
-      inject0_i <= '1';
+      --inject0_i <= '1';
       wait for CLK_PERIOD_C*20000;
       -- 
-      inject0_i <= '0';
+      --inject0_i <= '0';
 
       -------------------------------------------------------
       -- Inject fault into RSSI1
       wait for CLK_PERIOD_C*10000;
       -- 
-      inject1_i <= '1';
+     -- inject1_i <= '1';
       wait for CLK_PERIOD_C*20000;
       -- 
       inject1_i <= '0';
@@ -445,8 +419,8 @@ begin
       -- Inject fault into RSSI0 and RSSI1 Repeatedly
       wait for CLK_PERIOD_C*10000;
       -- 
-      inject0_i <= '1';
-      inject1_i <= '1';
+      --inject0_i <= '1';
+      --inject1_i <= '1';
       wait for CLK_PERIOD_C*20000;
       -- 
       inject0_i <= '0';
@@ -466,14 +440,12 @@ begin
       s_trig <= '0';
       -------------------------------------------------------     
       
-      -- Trigger only one
+      
       -------------------------------------------------------
       wait for CLK_PERIOD_C*60000;
       -- Stop PRBS
       s_trig <= '1';
-      wait for CLK_PERIOD_C*1;
-      -- Stop PRBS
-      s_trig <= '0';      
+      
       ------------------------------------------------------
 
       wait;
