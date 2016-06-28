@@ -310,7 +310,7 @@ begin
          slip     => adcR.slip,
          sysClk   => axilClk,
          curDelay => curDelayFrame,
-         setDelay => axilR.frameDelay,
+         setDelay => axilR.delay,
          setValid => axilR.frameDelaySet,
          iData    => adcFramePad,
          oData    => adcFrame);
@@ -345,7 +345,7 @@ begin
             slip     => adcR.slip,
             sysClk   => axilClk,
             curDelay => curDelayData(i),
-            setDelay => axilR.dataDelay(i),
+            setDelay => axilR.delay,
             setValid => axilR.dataDelaySet(i),
             iData    => adcDataPad(i),
             oData    => adcData(i));
