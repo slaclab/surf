@@ -40,8 +40,14 @@ package TextUtilPkg is
    -- (can also be used for hex conversion and other bases)
    function chr(int : integer) return character;
 
+   -- Converts a character into an integer
+   function int(c : character) return integer;
+   
    -- converts integer into string using specified base
    function str(int : integer; base : integer) return string;
+
+   -- converts a string with specified base into an integer
+   function int(s : string; base : integer) return integer;
 
    -- converts integer to string, using base 10
    function str(int : integer) return string;
@@ -233,6 +239,52 @@ package body TextUtilPkg is
       return c;
    end chr;
 
+   -- Convert a character into an integer.
+   function int (c : character) return integer is
+      variable tmp : character;
+   begin
+      tmp := toUpper(c);
+      case tmp is
+         when '0'    => return 0;
+         when '1'    => return 1;
+         when '2'    => return 2;
+         when '3'    => return 3;
+         when '4'    => return 4;
+         when '5'    => return 5;
+         when '6'    => return 6;
+         when '7'    => return 7;
+         when '8'    => return 8;
+         when '9'    => return 9;
+         when 'A'    => return 10;
+         when 'B'    => return 11;
+         when 'C'    => return 12;
+         when 'D'    => return 13;
+         when 'E'    => return 14;
+         when 'F'    => return 15;
+         when 'G'    => return 16;
+         when 'H'    => return 17;
+         when 'I'    => return 18;
+         when 'J'    => return 19;
+         when 'K'    => return 20;
+         when 'L'    => return 21;
+         when 'M'    => return 22;
+         when 'N'    => return 23;
+         when 'O'    => return 24;
+         when 'P'    => return 25;
+         when 'Q'    => return 26;
+         when 'R'    => return 27;
+         when 'S'    => return 28;
+         when 'T'    => return 29;
+         when 'U'    => return 30;
+         when 'V'    => return 31;
+         when 'W'    => return 32;
+         when 'X'    => return 33;
+         when 'Y'    => return 34;
+         when 'Z'    => return 35;
+         when others => return -1;
+      end case;
+   end function int;
+
    -- convert integer to string using specified base
    -- (adapted from Steve Vogwell's posting in comp.lang.vhdl)
    function str(int : integer; base : integer) return string is
@@ -265,6 +317,23 @@ package body TextUtilPkg is
 
    end str;
 
+   -- Convert a string and base into an integer.
+   function int (s : string; base : integer) return integer is
+      variable ret : integer;
+      variable tmp : integer;
+   begin
+      ret := 0;
+      for i in s'range loop
+         tmp := int(s(i));
+         assert (tmp < base and tmp >= 0) report
+            "TextUtilPkg::int(string, integer): Input string (" & s & ") " &
+            "has character (" & s(i) & ") outside of base (" & str(base) & ") character set."
+            severity error;
+         ret := ret * base + tmp;
+      end loop;
+      return ret;
+   end function int;
+
 
    -- convert integer to string, using base 10
    function str(int : integer) return string is
@@ -280,7 +349,7 @@ package body TextUtilPkg is
 
    -- converts a std_logic_vector into a hex string.
    function hstr(slv : std_logic_vector) return string is
-      constant hexlen  : integer := ite(slv'length mod 4 = 0, slv'length/4, slv'length/4 +1);
+      constant hexlen  : integer                                 := ite(slv'length mod 4 = 0, slv'length/4, slv'length/4 +1);
       variable longslv : std_logic_vector(slv'length+3 downto 0) := (others => '0');
       variable hex     : string(1 to hexlen);
       variable fourbit : std_logic_vector(3 downto 0);
