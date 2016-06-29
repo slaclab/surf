@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
--- Last update: 2016-06-09
+-- Last update: 2016-06-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,8 +76,8 @@ begin  -- architecture RTL
          -- Wait for new data to send
          when WAIT_DATA_S =>
             v.wrReady := '1';
-            if (wrValid = '1') then
-               v.wrReady := '0';
+            if (wrValid = '1' and r.wrReady = '1') then
+               v.wrReady := '0';                     
                v.holdReg := wrData;
                v.txState := SYNC_EN_16_S;
             end if;

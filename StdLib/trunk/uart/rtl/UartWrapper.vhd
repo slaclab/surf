@@ -58,17 +58,19 @@ architecture rtl of UartWrapper is
    signal uartTxData  : slv(7 downto 0);
    signal uartTxValid : sl;
    signal uartTxReady : sl;
+   signal uartTxRdEn  : sl;
    signal fifoTxData  : slv(7 downto 0);
    signal fifoTxValid : sl;
    signal fifoTxReady : sl;
-   signal fifoTxRdEn  : sl;
-   signal uartRxData  : slv(7 downto 0);
-   signal uartRxValid : sl;
-   signal uartRxReady : sl;
-   signal fifoRxData  : slv(7 downto 0);
-   signal fifoRxValid : sl;
-   signal fifoRxReady : sl;
-   signal fifoRxRdEn  : sl;
+
+   signal uartRxData     : slv(7 downto 0);
+   signal uartRxValid    : sl;
+   signal uartRxValidInt : sl;
+   signal uartRxReady    : sl;
+   signal fifoRxData     : slv(7 downto 0);
+   signal fifoRxValid    : sl;
+   signal fifoRxReady    : sl;
+   signal fifoRxRdEn     : sl;
 
    signal baud16x : sl;
 
@@ -77,13 +79,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Tie parallel IO to internal signals
    -------------------------------------------------------------------------------------------------
-   fifoTxData  <= wrData;
-   fifoTxValid <= wrValid;
-   wrReady     <= fifoTxReady;
 
-   rdData      <= fifoRxData;
-   rdValid     <= fifoRxValid;
-   fifoRxReady <= rdReady;
 
    -------------------------------------------------------------------------------------------------
    -- Baud Rate Generator.
@@ -118,7 +114,10 @@ begin
    -------------------------------------------------------------------------------------------------
    -- FIFO to feed UART transmitter
    -------------------------------------------------------------------------------------------------
-   fifoTxRdEn <= uartTxReady and uartTxValid;
+   wrReady     <= fifoTxReady;
+   fifoTxData  <= wrData;
+   fifoTxValid <= wrValid and fifoTxReady;
+   uartTxRdEn  <= uartTxReady and uartTxValid;
    U_Fifo_Tx : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
@@ -135,7 +134,7 @@ begin
          din      => fifoTxData,        -- [in]
          not_full => fifoTxReady,       -- [out]
          rd_clk   => clk,               -- [in]
-         rd_en    => fifoTxRdEn,        -- [in]
+         rd_en    => uartTxRdEn,        -- [in]
          dout     => uartTxData,        -- [out]
          valid    => uartTxValid);      -- [out]
 
@@ -157,7 +156,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- FIFO for UART Received data
    -------------------------------------------------------------------------------------------------
-   fifoRxRdEn <= fifoRxReady and fifoRxValid;
+   fifoRxRdEn     <= fifoRxReady and fifoRxValid;
+   uartRxValidInt <= uartRxValid and uartRxReady;
+
+   rdData      <= fifoRxData;
+   rdValid     <= fifoRxValid;
+   fifoRxReady <= rdReady;
+
    U_Fifo_Rx : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
@@ -170,7 +175,7 @@ begin
       port map (
          rst      => rst,               -- [in]
          wr_clk   => clk,               -- [in]
-         wr_en    => uartRxValid,       -- [in]
+         wr_en    => uartRxValidInt,    -- [in]
          din      => uartRxData,        -- [in]
          not_full => uartRxReady,       -- [out]
          rd_clk   => clk,               -- [in]

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-09
--- Last update: 2016-06-21
+-- Last update: 2016-06-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,10 +35,10 @@ entity UartAxiLiteMaster is
 
    generic (
       TPD_G             : time                  := 1 ns;
-      AXIL_CLK_FREQ_C   : real                  := 125.0e6;
+      AXIL_CLK_FREQ_G   : real                  := 125.0e6;
       BAUD_RATE_G       : integer               := 115200;
       FIFO_BRAM_EN_G    : boolean               := false;
-      FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 4);
+      FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5);
    port (
       axilClk          : in  sl;
       axilRst          : in  sl;
@@ -55,15 +55,16 @@ end entity UartAxiLiteMaster;
 
 architecture rtl of UartAxiLiteMaster is
 
-   type StateType is (WAIT_START_S,
-                      SPACE_ADDR_S,
-                      ADDR_SPACE_S,
-                      WR_DATA_S,
-                      WAIT_EOL_S,
-                      AXIL_TXN_S,
-                      RD_DATA_SPACE_S,
-                      RD_DATA_S,
-                      DONE_S);
+   type StateType is (
+      WAIT_START_S,
+      SPACE_ADDR_S,
+      ADDR_SPACE_S,
+      WR_DATA_S,
+      WAIT_EOL_S,
+      AXIL_TXN_S,
+      RD_DATA_SPACE_S,
+      RD_DATA_S,
+      DONE_S);
 
    type RegType is record
       state       : StateType;
@@ -98,35 +99,39 @@ architecture rtl of UartAxiLiteMaster is
 --    signal uartTxValid : sl;
    signal uartTxReady : sl;
 
+   -- translate a hex character 0-9 A-F into an slv
    function hexToSlv (hex : slv(7 downto 0)) return slv is
       variable char : character;
    begin
       char := character'val(conv_integer(hex));
-      case char is
-         when '0'    => return toSlv(0, 4);
-         when '1'    => return toSlv(1, 4);
-         when '2'    => return toSlv(2, 4);
-         when '3'    => return toSlv(3, 4);
-         when '4'    => return toSlv(4, 4);
-         when '5'    => return toSlv(5, 4);
-         when '6'    => return toSlv(6, 4);
-         when '7'    => return toSlv(7, 4);
-         when '8'    => return toSlv(8, 4);
-         when '9'    => return toSlv(9, 4);
-         when 'A'    => return toSlv(10, 4);
-         when 'a'    => return toSlv(10, 4);
-         when 'B'    => return toSlv(11, 4);
-         when 'b'    => return toSlv(11, 4);
-         when 'C'    => return toSlv(12, 4);
-         when 'c'    => return toSlv(12, 4);
-         when 'D'    => return toSlv(13, 4);
-         when 'd'    => return toSlv(13, 4);
-         when 'E'    => return toSlv(14, 4);
-         when 'e'    => return toSlv(14, 4);
-         when 'F'    => return toSlv(15, 4);
-         when 'f'    => return toSlv(15, 4);
-         when others => return toSlv(0, 4);
-      end case;
+
+      return toSlv(int(char), 4);
+
+--       case char is
+--          when '0'    => return toSlv(0, 4);
+--          when '1'    => return toSlv(1, 4);
+--          when '2'    => return toSlv(2, 4);
+--          when '3'    => return toSlv(3, 4);
+--          when '4'    => return toSlv(4, 4);
+--          when '5'    => return toSlv(5, 4);
+--          when '6'    => return toSlv(6, 4);
+--          when '7'    => return toSlv(7, 4);
+--          when '8'    => return toSlv(8, 4);
+--          when '9'    => return toSlv(9, 4);
+--          when 'A'    => return toSlv(10, 4);
+--          when 'a'    => return toSlv(10, 4);
+--          when 'B'    => return toSlv(11, 4);
+--          when 'b'    => return toSlv(11, 4);
+--          when 'C'    => return toSlv(12, 4);
+--          when 'c'    => return toSlv(12, 4);
+--          when 'D'    => return toSlv(13, 4);
+--          when 'd'    => return toSlv(13, 4);
+--          when 'E'    => return toSlv(14, 4);
+--          when 'e'    => return toSlv(14, 4);
+--          when 'F'    => return toSlv(15, 4);
+--          when 'f'    => return toSlv(15, 4);
+--          when others => return toSlv(0, 4);
+--       end case;
    end function;
 
    function slvToHex (nibble : slv(3 downto 0)) return slv is
@@ -142,7 +147,7 @@ begin
    U_UartWrapper_1 : entity work.UartWrapper
       generic map (
          TPD_G             => TPD_G,
-         CLK_FREQ_G        => AXIL_CLK_FREQ_C,
+         CLK_FREQ_G        => AXIL_CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
          FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
@@ -265,9 +270,16 @@ begin
                   end if;
                end if;
 
-               -- Go back to start if EOL
+               -- Go back to start if EOL and write op
+               -- Else do the read op
                if (isEOL(uartRxData)) then
-                  v.state := WAIT_START_S;
+                  if (r.axilReq.rnw = '0') then
+                     v.state := WAIT_START_S;
+                  else
+                     v.axilReq.address := r.axilReq.address;
+                     uartTx(' ');
+                     v.state           := AXIL_TXN_S;
+                  end if;
                end if;
 
             end if;
@@ -287,7 +299,7 @@ begin
                -- If EOL can issue AXIL txn
                if (isEOL(uartRxData)) then
                   v.axilReq.wrData := r.axilReq.wrData;
-                  uartTx('#');
+                  uartTx(' ');
                   v.state          := AXIL_TXN_S;
                end if;
             end if;
@@ -298,51 +310,50 @@ begin
             if (uartRxValid = '1') then
                uartTx(uartRxData);
                if (isEOL(uartRxData)) then
-                  uartTx('#');
+                  uartTx(' ');
                   v.state := AXIL_TXN_S;
                end if;
             end if;
 
          when AXIL_TXN_S =>
             -- Transmit a space on first cycle of this state
-            if (r.axilReq.request = '0') then
+            if (r.axilReq.request = '0' and r.axilReq.rnw = '0') then
                uartTx(' ');
             end if;
 
             -- Assert request and wait for response
             v.axilReq.request := '1';
             if (axilAck.done = '1') then
-               -- Send the response code
-               uartTx(slvToHex(resize(axilAck.resp, 4)));
+
                -- Done if write op, else transmit the read data
                if (r.axilReq.rnw = '0') then
                   v.state := DONE_S;
                else
+                  --uartTx(' ');
                   v.rdData := axilAck.rdData;
-                  v.state  := RD_DATA_SPACE_S;
+                  v.state  := RD_DATA_S;
                end if;
             end if;
 
-         when RD_DATA_SPACE_S =>
-            if (v.uartTxValid = '0') then
-               uartTx(' ');
-               v.state := RD_DATA_S;
-            end if;
 
          when RD_DATA_S =>
-            if (v.uartTxValid = '0') then
-               v.count  := r.count + 1;
-               uartTx(slvToHex(r.rdData(31 downto 0)));
-               v.rdData := r.rdData(27 downto 0) & "0000";
-               if (r.count = 7) then
-                  v.state := DONE_S;
-               end if;
+            v.count  := r.count + 1;
+            uartTx(slvToHex(r.rdData(31 downto 28)));
+            v.rdData := r.rdData(27 downto 0) & "0000";
+            if (r.count = 7) then
+               v.state := RD_DATA_SPACE_S;
             end if;
 
+
+         when RD_DATA_SPACE_S =>
+            uartTx(' ');
+            v.state := DONE_S;
+
          when DONE_S =>
-            -- Send a space on first cycle of this state
+            -- Send resp code first cycle of this state
             if (r.axilReq.request = '1') then
-               uartTx(' ');
+               -- Send the response code                  
+               uartTx(slvToHex(resize(axilAck.resp, 4)));
             end if;
 
             -- Release request and wait for done to fall
