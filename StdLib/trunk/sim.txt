@@ -23,3 +23,5 @@ vhdl work axi/simlink/rtl/AxiStreamSimOb.vhd
 
 vhdl work ssi/tb/SsiFifoTb.vhd
 vhdl work ssi/tb/SsiPrbsTb.vhd
+
+vhdl work uart/sim/UartAxiLiteMasterTb.vhd
