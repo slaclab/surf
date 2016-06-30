@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-05-06
+-- Last update: 2016-06-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ architecture rtl of SrpV3Core is
       TDEST_BITS_C  => AXI_STREAM_CONFIG_G.TDEST_BITS_C,
       TID_BITS_C    => AXI_STREAM_CONFIG_G.TID_BITS_C,
       TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,              
+      TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type StateType is (
@@ -164,25 +164,26 @@ begin
    RX_FIFO : entity work.AxiStreamFifo
       generic map (
          -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         VALID_THOLD_G       => 0,  -- = 0 = only when frame ready                                                                 
+         TPD_G                  => TPD_G,
+         PIPE_STAGES_G          => PIPE_STAGES_G,
+         SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
+         VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
-         FIFO_ADDR_WIDTH_G   => 9,      -- 2kB/FIFO = 32-bits x 512 entries
-         CASCADE_SIZE_G      => 3,      -- 6kB = 3 FIFOs x 2 kB/FIFO
-         CASCADE_PAUSE_SEL_G => 2,      -- Set pause select on top FIFO
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         BRAM_EN_G              => true,
+         XIL_DEVICE_G           => "7SERIES",
+         USE_BUILT_IN_G         => false,
+         GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
+         ALTERA_SYN_G           => ALTERA_SYN_G,
+         ALTERA_RAM_G           => ALTERA_RAM_G,
+         FIFO_ADDR_WIDTH_G      => 9,   -- 2kB/FIFO = 32-bits x 512 entries
+         LAST_FIFO_ADDR_WIDTH_G => 4,
+         CASCADE_SIZE_G         => 3,   -- 6kB = 3 FIFOs x 2 kB/FIFO
+         CASCADE_PAUSE_SEL_G    => 2,   -- Set pause select on top FIFO
+         FIFO_FIXED_THRESH_G    => true,
+         FIFO_PAUSE_THRESH_G    => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SRP_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G     => AXI_STREAM_CONFIG_G,
+         MASTER_AXI_CONFIG_G    => SRP_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
@@ -492,14 +493,14 @@ begin
          when READ_S =>
             -- Send read data through to txMaster
             if (srpRdMasterInt.tValid = '1' and v.txMaster.tValid = '0') then
-               v.srpRdSlave.tReady           := '1';
-               v.txMaster.tValid             := '1';
+               v.srpRdSlave.tReady := '1';
+               v.txMaster.tValid   := '1';
 
                -- Zero out data segments where tkeep not set
                -- There must be a more elegant way to do this
                for i in 3 downto 0 loop
                   if (srpRdMasterInt.tKeep(i) = '1') then
-                     v.txMaster.tData((i+1)*8-1 downto i*8) :=  srpRdMasterInt.tData((i+1)*8-1 downto i*8);
+                     v.txMaster.tData((i+1)*8-1 downto i*8) := srpRdMasterInt.tData((i+1)*8-1 downto i*8);
                   else
                      v.txMaster.tData((i+1)*8-1 downto i*8) := (others => '0');
                   end if;
