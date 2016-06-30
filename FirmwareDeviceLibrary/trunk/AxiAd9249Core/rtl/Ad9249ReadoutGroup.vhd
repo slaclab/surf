@@ -80,6 +80,7 @@ architecture rtl of Ad9249ReadoutGroup is
       frameDelaySet  : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
+      lockedCountRst : sl;
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -89,7 +90,8 @@ architecture rtl of Ad9249ReadoutGroup is
       dataDelaySet   => (others => '1'),
       frameDelaySet  => '1',
       readoutDebug0  => (others => (others => '0')),
-      readoutDebug1  => (others => (others => '0')));
+      readoutDebug1  => (others => (others => '0')),
+      lockedCountRst => '0');
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -126,6 +128,7 @@ architecture rtl of Ad9249ReadoutGroup is
 
    signal adcFramePad   : sl;
    signal adcFrame      : slv(13 downto 0);
+   signal adcFrameSync  : slv(13 downto 0);
    signal adcDataPadOut : slv(NUM_CHANNELS_G-1 downto 0);
    signal adcDataPad    : slv(NUM_CHANNELS_G-1 downto 0);
    signal adcData       : Slv14Array(NUM_CHANNELS_G-1 downto 0);
@@ -154,7 +157,7 @@ begin
       port map (
          dataIn     => adcR.locked,
          rollOverEn => '0',
-         cntRst     => axilRst,
+         cntRst     => axilR.lockedCountRst,
          dataOut    => open,
          cntOut     => lockedFallCount,
          wrClk      => adcBitClkR,
@@ -171,11 +174,22 @@ begin
          rst     => axilRst,
          dataIn  => adcR.locked,
          dataOut => lockedSync);
-
+   
+   SynchronizerVec_1 : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2,
+         WIDTH_G  => 14)
+      port map (
+         clk     => axilClk,                   
+         rst     => axilRst,
+         dataIn  => adcFrame,
+         dataOut => adcFrameSync);
+   
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, lockedSync) is
+   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, lockedSync, lockedFallCount, curDelayData, curDelayFrame, adcFrameSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -183,6 +197,7 @@ begin
 
       v.dataDelaySet  := (others => '0');
       v.frameDelaySet := '0';
+      v.axilReadSlave.rdata := (others => '0');
 
       -- Fix this
       if (fifoDataValid = '1') then
@@ -213,6 +228,8 @@ begin
       -- Debug output to see how many times the shift has needed a relock
       axiSlaveRegisterR(axilEp, X"30", 0, lockedFallCount);
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
+      axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
+      axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
 
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
