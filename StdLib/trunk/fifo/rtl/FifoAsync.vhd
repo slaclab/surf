@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-05-05
+-- Last update: 2016-06-30
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -89,26 +89,26 @@ architecture rtl of FifoAsync is
       rdy     : sl;
       done    : sl;
    end record;
-   
+
    constant READ_INIT_C : RegType := (
       waddr   => (others => '0'),
       raddr   => (others => '0'),
       advance => toSlv(1, ADDR_WIDTH_G),
-      cnt     => (others => '0'),-- empty during reset
+      cnt     => (others => '0'),       -- empty during reset
       Ack     => '0',
       error   => '0',
       rdy     => '0',
-      done    => '0');       
+      done    => '0');
 
    constant WRITE_INIT_C : RegType := (
       waddr   => (others => '0'),
       raddr   => (others => '0'),
       advance => toSlv(1, ADDR_WIDTH_G),
-      cnt     => (others => '1'),-- full during reset
+      cnt     => (others => '1'),       -- full during reset
       Ack     => '0',
       error   => '0',
       rdy     => '0',
-      done    => '0'); 	    
+      done    => '0');
 
    signal rdReg : RegType := READ_INIT_C;
    signal wrReg : RegType := WRITE_INIT_C;
@@ -154,14 +154,14 @@ architecture rtl of FifoAsync is
       count        => (others => '0'),
       prog_empty   => '1',
       almost_empty => '1',
-      empty        => '1');   
+      empty        => '1');
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    -- Attribute for XST
    attribute use_dsp48          : string;
    attribute use_dsp48 of rdReg : signal is USE_DSP48_G;
    attribute use_dsp48 of wrReg : signal is USE_DSP48_G;
-   
+
 begin
 
    -- FULL_THRES_G upper range check
@@ -187,11 +187,11 @@ begin
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => SYNC_STAGES_G)   
+         RELEASE_DELAY_G => SYNC_STAGES_G)
       port map (
          clk      => rd_clk,
          asyncRst => rst,
-         syncRst  => readRst); 
+         syncRst  => readRst);
 
    underflow <= rdReg.error;
 
@@ -211,7 +211,7 @@ begin
    end generate;
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
-      
+
       FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
@@ -230,7 +230,7 @@ begin
             mRdEn  => rd_en,
             -- Clock and Reset
             clk    => rd_clk,
-            rst    => readRst);   
+            rst    => readRst);
 
       readEnable <= (sRdEn or fwftStatus.empty) and not(fifoStatus.empty);
       sValid     <= not(fwftStatus.empty);
@@ -265,7 +265,7 @@ begin
          rst     => readRst,
          clk     => rd_clk,
          dataIn  => wrReg_wrGray,
-         dataOut => rdReg_wrGray);   
+         dataOut => rdReg_wrGray);
 
    Synchronizer_0 : entity work.Synchronizer
       generic map (
@@ -277,7 +277,7 @@ begin
          clk     => rd_clk,
          rst     => readRst,
          dataIn  => wrReg.done,
-         dataOut => rdReg_ready);         
+         dataOut => rdReg_ready);
 
    READ_SEQUENCE : process (rd_clk) is
    begin
@@ -315,7 +315,7 @@ begin
 
                -- Encode the Gray code pointer
                rdReg_rdGray <= grayEncode(rdReg.raddr) after TPD_G;
-               
+
             end if;
          end if;
       end if;
@@ -328,11 +328,11 @@ begin
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => SYNC_STAGES_G)   
+         RELEASE_DELAY_G => SYNC_STAGES_G)
       port map (
          clk      => wr_clk,
          asyncRst => rst,
-         syncRst  => writeRst); 
+         syncRst  => writeRst);
 
    wr_data_count <= wrReg.cnt;
    full          <= fullStatus;
@@ -393,7 +393,7 @@ begin
          clk     => wr_clk,
          rst     => writeRst,
          dataIn  => rdReg.done,
-         dataOut => wrReg_ready);           
+         dataOut => wrReg_ready);
 
    WRITE_SEQUENCE : process (wr_clk) is
    begin
@@ -435,7 +435,7 @@ begin
 
                   -- Encode the Gray code pointer
                   wrReg_wrGray <= grayEncode(wrReg.waddr) after TPD_G;
-                  
+
                end if;
             end if;
          end if;
@@ -480,8 +480,8 @@ begin
          -- Port B
          clkb  => portB.clk,
          enb   => portB.en,
-         rstb  => portB.rst,
+         rstb  => '0',                  -- Rely on rd/wr ptrs
          addrb => portB.addr,
-         doutb => portB.dout);     
+         doutb => portB.dout);
 
 end architecture rtl;
