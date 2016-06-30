@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2014-05-05
+-- Last update: 2016-06-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -333,7 +333,7 @@ begin
          -- Port B
          clkb  => portB.clk,
          enb   => portB.en,
-         rstb  => portB.rst,
+         rstb  => '0',                  -- Rely on rd/wr ptrs
          addrb => portB.addr,
          doutb => portB.dout);     
 
