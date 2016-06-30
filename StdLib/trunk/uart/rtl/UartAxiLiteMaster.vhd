@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-09
--- Last update: 2016-06-28
+-- Last update: 2016-06-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -107,31 +107,6 @@ architecture rtl of UartAxiLiteMaster is
 
       return toSlv(int(char), 4);
 
---       case char is
---          when '0'    => return toSlv(0, 4);
---          when '1'    => return toSlv(1, 4);
---          when '2'    => return toSlv(2, 4);
---          when '3'    => return toSlv(3, 4);
---          when '4'    => return toSlv(4, 4);
---          when '5'    => return toSlv(5, 4);
---          when '6'    => return toSlv(6, 4);
---          when '7'    => return toSlv(7, 4);
---          when '8'    => return toSlv(8, 4);
---          when '9'    => return toSlv(9, 4);
---          when 'A'    => return toSlv(10, 4);
---          when 'a'    => return toSlv(10, 4);
---          when 'B'    => return toSlv(11, 4);
---          when 'b'    => return toSlv(11, 4);
---          when 'C'    => return toSlv(12, 4);
---          when 'c'    => return toSlv(12, 4);
---          when 'D'    => return toSlv(13, 4);
---          when 'd'    => return toSlv(13, 4);
---          when 'E'    => return toSlv(14, 4);
---          when 'e'    => return toSlv(14, 4);
---          when 'F'    => return toSlv(15, 4);
---          when 'f'    => return toSlv(15, 4);
---          when others => return toSlv(0, 4);
---       end case;
    end function;
 
    function slvToHex (nibble : slv(3 downto 0)) return slv is
