@@ -1,4 +1,5 @@
 vhdl work rtl/Ad9249Pkg.vhd
 vhdl work rtl/Ad9249Config.vhd
+vhdl work rtl/Ad9249ConfigNoPullup.vhd
 vhdl work rtl/Ad9249ReadoutGroup.vhd
 vhdl work rtl/Ad9249Deserializer.vhd
