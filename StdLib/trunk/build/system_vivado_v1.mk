@@ -165,7 +165,7 @@ $(VIVADO_DEPEND) :
 ###############################################################
 #### Vivado Sources ###########################################
 ###############################################################
-$(SOURCE_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(YAML_LISTS) $(VIVADO_DEPEND)
+$(SOURCE_DEPEND) : $(CORE_LISTS) $(SRC_LISTS) $(XDC_LISTS) $(SIM_LISTS) $(YAML_LISTS) $(BD_LISTS) $(VIVADO_DEPEND)
 	$(call ACTION_HEADER,"Vivado Source Setup")
 	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_sources_v1.tcl
 
