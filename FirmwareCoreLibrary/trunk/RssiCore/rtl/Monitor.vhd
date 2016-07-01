@@ -97,7 +97,9 @@ entity Monitor is
       -- Internal statuses
       statusReg_o : out slv(STATUS_WIDTH_G  downto 0);
       dropCnt_o   : out slv(CNT_WIDTH_G-1  downto 0);
-      validCnt_o  : out slv(CNT_WIDTH_G-1  downto 0)     
+      validCnt_o  : out slv(CNT_WIDTH_G-1  downto 0);
+      resendCnt_o : out slv(CNT_WIDTH_G-1  downto 0);
+      reconCnt_o  : out slv(CNT_WIDTH_G-1  downto 0)
    );
 end entity Monitor;
 
@@ -128,10 +130,12 @@ architecture rtl of Monitor is
       connActiveD1 : sl;
       
       --
-      status   : slv(STATUS_WIDTH_G - 1 downto 0);
-      validCnt : slv(CNT_WIDTH_G - 1 downto 0);
-      dropCnt  : slv(CNT_WIDTH_G - 1 downto 0);
-      --
+      status      : slv(STATUS_WIDTH_G - 1 downto 0);
+      validCnt    : slv(CNT_WIDTH_G - 1 downto 0);
+      dropCnt     : slv(CNT_WIDTH_G - 1 downto 0);
+      reconCnt    : slv(CNT_WIDTH_G - 1 downto 0);
+      resendCnt   : slv(CNT_WIDTH_G - 1 downto 0);
+   --
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -156,9 +160,11 @@ architecture rtl of Monitor is
       connActiveD1  => '0',
       
       -- Statuses
-      status   => (others=>'0'),
-      validCnt => (others=>'0'),
-      dropCnt  => (others=>'0')
+      status      => (others=>'0'),
+      validCnt    => (others=>'0'),
+      dropCnt     => (others=>'0'),
+      reconCnt    => (others=>'0'),
+      resendCnt   => (others=>'0')   
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -390,6 +396,17 @@ begin
       v.dropCnt := r.dropCnt+1;        
    end if;
    
+   -- Count all retransmissions within the active connection
+   if (connActive_i = '1' and r.connActiveD1 = '0') then
+      v.resendCnt := (others=>'0');
+   elsif (r.sndResend  = '1' and r.sndResendD1  = '0') then -- Rising edge       
+      v.resendCnt := r.resendCnt+1;        
+   end if;
+   
+   -- Count all reconnections from reset
+   if (connActive_i = '1' and r.connActiveD1 = '0') then
+      v.reconCnt := r.reconCnt+1;        
+   end if;
    
    -- /////////////////////////////////////////////////////////
    if (rst_i = '1') then
@@ -417,5 +434,7 @@ begin
    statusReg_o <= r.status & connActive_i;
    dropCnt_o   <= r.dropCnt;
    validCnt_o  <= r.validCnt;
+   resendCnt_o <= r.resendCnt;
+   reconCnt_o  <= r.reconCnt;
    ---------------------------------------------------------------------
 end architecture rtl;
