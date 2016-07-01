@@ -171,6 +171,18 @@ Device: &RssiCore
       sizeBits: 32
       mode: RO
       description: "Number of dropped segments [31:0]"
+    #########################################################
+    - offset: 0x4C
+      name: RetransmitCnt
+      sizeBits: 32
+      mode: RO
+      description: "Counts all retransmission requests within the active connection [31:0]"
+    #########################################################    
+    - offset: 0x50
+      name: ReconnectCnt
+      sizeBits: 32
+      mode: RO
+      description: "Counts all reconnections from reset [31:0]"
     #########################################################    
   #########
   Commands:

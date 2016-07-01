@@ -1348,7 +1348,7 @@ begin
             
             -- Next state condition
             -- Frame size is one word
-            -- Wait for the chksum to be ready
+            -- Wait for chksumb ready
             if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0') then
                v.tspSsiMaster.sof    := '1';
                v.tspSsiMaster.valid  := '1';

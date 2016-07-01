@@ -260,6 +260,8 @@ architecture rtl of RssiCore is
    signal s_statusReg   : slv(statusReg_o'range);
    signal s_dropCntReg  : slv(31 downto 0);
    signal s_validCntReg : slv(31 downto 0);
+   signal s_reconCntReg  : slv(31 downto 0);
+   signal s_resendCntReg : slv(31 downto 0);
 
 ----------------------------------------------------------------------
 begin
@@ -312,10 +314,12 @@ begin
          injectFault_o  => s_injectFaultReg,
 
          -- Status
-         status_i   => s_statusReg,
-         dropCnt_i  => s_dropCntReg,
-         validCnt_i => s_validCntReg
-         );
+         status_i    => s_statusReg,
+         dropCnt_i   => s_dropCntReg,
+         validCnt_i  => s_validCntReg,
+         resendCnt_i => s_resendCntReg,
+         reconCnt_i  => s_reconCntReg 
+      );
 
    s_injectFault <= s_injectFaultReg or inject_i;
 
@@ -508,7 +512,10 @@ begin
          closeRq_o       => s_intCloseRq,
          statusReg_o     => s_statusReg,
          dropCnt_o       => s_dropCntReg,
-         validCnt_o      => s_validCntReg);
+         validCnt_o      => s_validCntReg,
+         resendCnt_o     => s_resendCntReg,
+         reconCnt_o      => s_reconCntReg         
+      );
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------

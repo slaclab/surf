@@ -56,6 +56,10 @@
 --                   The value rests to 0 when new connection open is requested.
 --                0x12 (R)- Number of dropped segments [31:0]:
 --                   The value rests to 0 when new connection open is requested.
+--                0x13 (R)- Counts all retransmission requests within the active connection [31:0]:
+--                   The value rests to 0 when new connection open is requested.
+--                0x14 (R)- Counts all reconnections from reset [31:0]:
+--                   The value rests to 0 when module is reset.
 ------------------------------------------------------------------------------
 -- Copyright (c) 2016 SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -117,7 +121,9 @@ port (
    -- Status (RO)
    status_i       : in slv(6 downto 0);  
    dropCnt_i      : in slv(31 downto 0);
-   validCnt_i     : in slv(31 downto 0)
+   validCnt_i     : in slv(31 downto 0);
+   resendCnt_i    : in slv(31 downto 0);
+   reconCnt_i     : in slv(31 downto 0)
 );   
 end RssiAxiLiteRegItf;
 
@@ -175,7 +181,9 @@ architecture rtl of RssiAxiLiteRegItf is
    signal s_status   : slv(status_i'range);  
    signal s_dropCnt  : slv(31 downto 0);
    signal s_validCnt : slv(31 downto 0);
-  
+   signal s_reconCnt : slv(31 downto 0);
+   signal s_resendCnt: slv(31 downto 0);
+   
 begin
 
   -- Convert address to integer (lower two bits of address are always '0')
@@ -183,7 +191,7 @@ begin
   s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
 
   comb : process (axiRst_i, axilReadMaster, axilWriteMaster,
-                  r, s_RdAddr, s_WrAddr, s_status, s_dropCnt, s_validCnt) is
+                  r, s_RdAddr, s_WrAddr, s_status, s_dropCnt, s_validCnt, s_reconCnt, s_resendCnt) is
     variable v             : RegType;
     variable axilStatus    : AxiLiteStatusType;
     variable axilWriteResp : slv(1 downto 0);
@@ -263,7 +271,11 @@ begin
         when 16#11# =>                  -- ADDR (68)
           v.axilReadSlave.rdata(31 downto 0) := s_validCnt;          
         when 16#12# =>                  -- ADDR (72)
-          v.axilReadSlave.rdata(31 downto 0) := s_dropCnt;          
+          v.axilReadSlave.rdata(31 downto 0) := s_dropCnt;
+        when 16#13# =>                  -- ADDR (76)
+          v.axilReadSlave.rdata(31 downto 0) := s_resendCnt;          
+        when 16#14# =>                  -- ADDR (80)
+          v.axilReadSlave.rdata(31 downto 0) := s_reconCnt;          
         when others =>
           axilReadResp := AXI_ERROR_RESP_G;
       end case;
@@ -327,7 +339,31 @@ begin
       rd_clk => axiClk_i,
       dout   => s_dropCnt
    );
+  
+   SyncFifo_IN3 : entity work.SynchronizerFifo
+   generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => resendCnt_i'length
+   )
+   port map (
+      wr_clk => devClk_i,
+      din    => resendCnt_i,
+      rd_clk => axiClk_i,
+      dout   => s_resendCnt
+   );   
    
+   SyncFifo_IN4 : entity work.SynchronizerFifo
+   generic map (
+      TPD_G        => TPD_G,
+      DATA_WIDTH_G => reconCnt_i'length
+   )
+   port map (
+      wr_clk => devClk_i,
+      din    => reconCnt_i,
+      rd_clk => axiClk_i,
+      dout   => s_reconCnt
+   );
+
   -- Output assignment and synchronization
   Sync_OUT0 : entity work.Synchronizer
    generic map (
