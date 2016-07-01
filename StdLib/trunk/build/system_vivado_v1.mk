@@ -293,6 +293,14 @@ elf : $(SOURCE_DEPEND)
 	@cd $(OUT_DIR); xsdk -batch -source $(VIVADO_BUILD_DIR)/vivado_sdk_elf_v1.tcl
 
 ###############################################################
+#### Vivado YAML ##############################################
+###############################################################
+.PHONY : yaml
+yaml : $(SOURCE_DEPEND)
+	$(call ACTION_HEADER,"Generaring YAML.tar.gz file")
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_yaml_v1.tcl
+
+###############################################################
 #### Makefile Targets #########################################
 ###############################################################
 .PHONY      : depend
