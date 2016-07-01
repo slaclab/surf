@@ -106,6 +106,9 @@ test:
 	@echo SIM_LISTS: $(SIM_LISTS)
 	@echo SIM_FILES: 
 	@echo -e "$(foreach ARG,$(SIM_FILES),  $(ARG)\n)"  
+	@echo BD_LISTS: $(BD_LISTS)
+	@echo BD_FILES: 
+	@echo -e "$(foreach ARG,$(BD_FILES),  $(ARG)\n)"  
 	@echo YAML_LISTS: $(YAML_LISTS)
 	@echo YAML_FILES: 
 	@echo -e "$(foreach ARG,$(YAML_FILES),  $(ARG)\n)"     
