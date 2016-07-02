@@ -87,10 +87,14 @@ architecture mapping of MicroblazeBasicCoreWrapper is
          dcm_locked          : in  std_logic);
    end component MicroblazeBasicCore;
 
-   signal awaddr : slv(31 downto 0);
-   signal araddr : slv(31 downto 0);
-   signal bresp  : slv(1 downto 0);
-   signal rresp  : slv(1 downto 0);
+   signal awaddr    : slv(31 downto 0);
+   signal araddr    : slv(31 downto 0);
+   signal bresp     : slv(1 downto 0);
+   signal rresp     : slv(1 downto 0);
+
+   signal tdata     : slv(31 downto 0);
+   signal tlast     : sl;
+   signal tvalid    : sl;
 
 begin
 
@@ -139,9 +143,9 @@ begin
          M_AXI_DP_rresp      => rresp,
          M_AXI_DP_rvalid     => mAxilReadSlave.rvalid,
          -- Master AXIS Interface
-         M0_AXIS_tdata       => mAxisMaster.tdata(31 downto 0),
-         M0_AXIS_tlast       => mAxisMaster.tlast,
-         M0_AXIS_tvalid      => mAxisMaster.tvalid,
+         M0_AXIS_tdata       => tdata,
+         M0_AXIS_tlast       => tlast,
+         M0_AXIS_tvalid      => tvalid,
          M0_AXIS_tready      => mAxisSlave.tready,
          -- Slave AXIS Interface
          S0_AXIS_tdata       => sAxisMaster.tdata(31 downto 0),
@@ -156,5 +160,12 @@ begin
          clk                 => clk,
          dcm_locked          => pllLock,
          reset               => rst);
+
+   process ( tdata, tlast, tvalid ) begin
+      mAxisMaster <= AXI_STREAM_MASTER_INIT_C;
+      mAxisMaster.tdata(31 downto 0) <= tdata;
+      mAxisMaster.tlast              <= tlast;
+      mAxisMaster.tvalid             <= tvalid;
+   end process;
 
 end mapping;
