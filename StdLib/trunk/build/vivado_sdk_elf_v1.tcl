@@ -16,7 +16,17 @@
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
-sdk set_workspace ${SDK_PRJ}
-sdk build_project  -type all
+# Check the Vivado version
+if { ${VIVADO_VERSION} < 2016.1 } {
+   # Generate .ELF for Vivado 2015.4 (or earlier)
+   sdk set_workspace ${SDK_PRJ}
+   sdk build_project  -type all
+} else {
+   # Generate .ELF for Vivado 2016.1 (or later)
+   sdk setws ${SDK_PRJ}
+   sdk projects -build  -type all
+}   
+
+# Copy over .ELF file to image directory
 exec cp -f ${SDK_PRJ}/app_0/Release/app_0.elf ${SDK_ELF} 
 exec chmod 664 ${SDK_ELF} 

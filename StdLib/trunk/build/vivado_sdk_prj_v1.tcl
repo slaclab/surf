@@ -20,13 +20,29 @@ set SOFT_LINK [info exists ::env(SDK_SRC_PATH)]
 
 # Check if project already exists
 if { [file exists ${SDK_PRJ}] != 1 } {
-   # Make the project
-   file mkdir ${SDK_PRJ}
-   file copy -force ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef ${SDK_PRJ}/${PROJECT}.hdf
-   sdk set_workspace ${SDK_PRJ}
-   sdk create_hw_project  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
-   sdk create_bsp_project -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
-   sdk create_app_project -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
+
+   # Check the Vivado version
+   if { ${VIVADO_VERSION} < 2016.1 } {
+
+      # Setup the project for Vivado 2015.4 (or earlier)
+      file mkdir ${SDK_PRJ}
+      file copy -force ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef ${SDK_PRJ}/${PROJECT}.hdf
+      sdk set_workspace ${SDK_PRJ}
+      sdk create_hw_project  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
+      sdk create_bsp_project -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
+      sdk create_app_project -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
+      
+   } else {
+      
+      # Make the project for Vivado 2016.1 (or later)
+      file mkdir ${SDK_PRJ}
+      file copy -force ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef ${SDK_PRJ}/${PROJECT}.hdf
+      sdk setws ${SDK_PRJ}
+      sdk createhw  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
+      sdk createbsp -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
+      sdk createapp -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
+
+   }       
 
    # Create a soft-link and add new linker to source tree
    if { ${SOFT_LINK} == 1 } {
@@ -35,4 +51,5 @@ if { [file exists ${SDK_PRJ}] != 1 } {
       exec ln -s $::env(SDK_SRC_PATH) ${SDK_PRJ}/app_0/src
       exec mv -f ${SDK_PRJ}/app_0/lscript.ld ${SDK_PRJ}/app_0/src/lscript.ld
    }   
+   
 }
