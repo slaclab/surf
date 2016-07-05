@@ -95,7 +95,7 @@ set simTbFileName [get_property top [get_filesets sim_1]]
 ###############################################
 ## Check for Vivado Version 2014.2 (or earlier)
 ###############################################
-if { [version -short] <= 2014.2 } {
+if { ${VIVADO_VERSION} <= 2014.2 } {
 
    # Save the current top level simulation testbed value
    set simTbOutDir ${OUT_DIR}/vcs_scripts/${simTbFileName}
@@ -181,7 +181,7 @@ if { [file isdirectory ${simLinkDir}] == 1 } {
 ###############################################
 ## Check for Vivado Version 2014.2 (or earlier)
 ###############################################
-if { [version -short] <= 2014.2 } {
+if { ${VIVADO_VERSION} <= 2014.2 } {
 
    ########################################################
    ## Customization of the executable bash (.sh) script 

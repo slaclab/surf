@@ -16,7 +16,6 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
 set AllowMultiDriven [expr {[info exists ::env(ALLOW_MULTI_DRIVEN)] && [string is true -strict $::env(ALLOW_MULTI_DRIVEN)]}]  
-set VersionNumber [version -short]
 
 ########################################################
 ## Message Suppression
@@ -41,7 +40,7 @@ set_msg_config -suppress -id {Drc 23-20}; # DRC: writefirst - Synchronous clocki
 set_msg_config -suppress -id {BD 41-434}; # Block Design: Could not find an IP with XCI file by name
 
 ## Check for version 2015.3 (or older)
-if { ${VersionNumber} <= 2015.3 } {
+if { ${VIVADO_VERSION} <= 2015.3 } {
    set_msg_config -suppress -id {Synth 8-637}; # SYNTH: synthesizing blackbox instance .... [required for upgrading {Synth 8-63} to an ERROR]
    set_msg_config -suppress -id {Synth 8-638}; # SYNTH: synthesizing module .... [required for upgrading {Synth 8-63} to an ERROR]
 }
@@ -69,7 +68,7 @@ set_msg_config -id {VRFC 10-664}  -new_severity ERROR;# SIM:   expression has XX
 # set_msg_config -id {Synth 8-3848} -new_severity ERROR;# SYNTH: Input doesn't does not have driver
 
 ## Check for version 2015.3 (or older)
-if { ${VersionNumber} <= 2015.3 } {
+if { ${VIVADO_VERSION} <= 2015.3 } {
    set_msg_config -id {Synth 8-63}   -new_severity ERROR;# SYNTH: RTL assertion
 }
 

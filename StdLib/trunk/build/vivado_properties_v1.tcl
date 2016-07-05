@@ -51,7 +51,7 @@ set_property nl.process_corner slow   [get_filesets sim_1]
 set_property nl.sdf_anno true         [get_filesets sim_1]
 set_property SOURCE_SET sources_1     [get_filesets sim_1]
 
-if { [version -short] <= 2014.2 } {
+if { ${VIVADO_VERSION} <= 2014.2 } {
    set_property runtime {}             [get_filesets sim_1]
    set_property xelab.debug_level all  [get_filesets sim_1]
    set_property xelab.mt_level auto    [get_filesets sim_1]
