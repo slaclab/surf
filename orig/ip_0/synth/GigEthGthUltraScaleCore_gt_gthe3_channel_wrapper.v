@@ -391,7 +391,7 @@ module GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper #(
 
 
 
-gtwizard_ultrascale_v1_6_0_gthe3_channel #(
+gtwizard_ultrascale_v1_6_2_gthe3_channel #(
   .GTHE3_CHANNEL_ACJTAG_DEBUG_MODE              (1'b0),
   .GTHE3_CHANNEL_ACJTAG_MODE                    (1'b0),
   .GTHE3_CHANNEL_ACJTAG_RESET                   (1'b0),
@@ -618,7 +618,7 @@ gtwizard_ultrascale_v1_6_0_gthe3_channel #(
   .GTHE3_CHANNEL_QPLL1CLK_VAL                   (1'b0),
   .GTHE3_CHANNEL_QPLL1REFCLK_TIE_EN             (1'b0),
   .GTHE3_CHANNEL_QPLL1REFCLK_VAL                (1'b0),
-  .GTHE3_CHANNEL_RATE_SW_USE_DRP                (1'b0),
+  .GTHE3_CHANNEL_RATE_SW_USE_DRP                (1'b1),
   .GTHE3_CHANNEL_RESETOVRD_TIE_EN               (1'b0),
   .GTHE3_CHANNEL_RESETOVRD_VAL                  (1'b0),
   .GTHE3_CHANNEL_RESET_POWERSAVE_DISABLE        (1'b0),

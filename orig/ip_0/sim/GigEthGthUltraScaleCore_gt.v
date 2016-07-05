@@ -48,7 +48,7 @@
 
 
 // IP VLNV: xilinx.com:ip:gtwizard_ultrascale:1.6
-// IP Revision: 0
+// IP Revision: 2
 
 `timescale 1ns/1ps
 

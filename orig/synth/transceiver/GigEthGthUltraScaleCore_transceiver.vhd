@@ -66,8 +66,8 @@ use ieee.numeric_std.ALL;
 library unisim;
 use unisim.vcomponents.all;
 
-library gtwizard_ultrascale_v1_6_0;
-use gtwizard_ultrascale_v1_6_0.all;
+library gtwizard_ultrascale_v1_6_2;
+use gtwizard_ultrascale_v1_6_2.all;
 
 entity GigEthGthUltraScaleCore_transceiver is
 generic
@@ -164,7 +164,7 @@ architecture wrapper of GigEthGthUltraScaleCore_transceiver is
    attribute DowngradeIPIdentifiedWarnings of wrapper : architecture is "yes";
 
  --------------------------------------------------------------------------
- -- Component declaration for the GTHE3 transceiver container
+ -- Component declaration for the transceiver container
  --------------------------------------------------------------------------
      component GigEthGthUltraScaleCore_gt
   port(
@@ -700,75 +700,75 @@ begin
  gtwiz_reset_tx_datapath_in           <= txreset and gtwiz_reset_tx_done_out;
  gtwiz_reset_rx_pll_and_datapath_in   <= '0';
  gtwiz_reset_rx_datapath_in           <= rxreset and gtwiz_reset_rx_done_out;
- gthrxn_in                            <= rxn   ;
- gthrxp_in                            <= rxp  ;
- gtrefclk0_in                         <= gtrefclk  ;
- loopback_in                          <=  gt0_loopback_in   ;
- rx8b10ben_in                         <= '1'  ;
- rxcommadeten_in                      <= '1'  ;
- rxmcommaalignen_in                   <= encommaalign_int  ;
- rxpcommaalignen_in                   <= encommaalign_int  ;
+ gthrxn_in                            <= rxn;
+ gthrxp_in                            <= rxp;
+ gtrefclk0_in                         <= gtrefclk;
+ loopback_in                          <=  gt0_loopback_in;
+ rx8b10ben_in                         <= '1';
+ rxcommadeten_in                      <= '1';
+ rxmcommaalignen_in                   <= encommaalign_int;
+ rxpcommaalignen_in                   <= encommaalign_int;
  rxpd_in                              <= rxpowerdown_int;
- rxusrclk_in                          <= usrclk  ;
- rxusrclk2_in                         <= usrclk  ;
- tx8b10ben_in                         <= '1'  ;
- txdiffctrl_in                        <= gt0_txdiffctrl_in  ;
- txinhibit_in                         <= gt0_txinhibit_in  ;
+ rxusrclk_in                          <= usrclk;
+ rxusrclk2_in                         <= usrclk;
+ tx8b10ben_in                         <= '1';
+ txdiffctrl_in                        <= gt0_txdiffctrl_in;
+ txinhibit_in                         <= gt0_txinhibit_in;
  pcsrsvdin_in                         <= gt0_pcsrsvdin_in;
- txctrl0_in(1 downto 0)               <= txchardispval_int ;
- txctrl1_in(1 downto 0)               <= txchardispmode_int ;
- txctrl2_in(1 downto 0)               <= txcharisk_int ;
- txctrl0_in(15 downto 2)              <= "00000000000000" ;
- txctrl1_in(15 downto 2)              <= "00000000000000" ;
+ txctrl0_in(1 downto 0)               <= txchardispval_int;
+ txctrl1_in(1 downto 0)               <= txchardispmode_int;
+ txctrl2_in(1 downto 0)               <= txcharisk_int;
+ txctrl0_in(15 downto 2)              <= "00000000000000";
+ txctrl1_in(15 downto 2)              <= "00000000000000";
  txctrl2_in(7 downto 2)               <= "000000";
- gtwiz_userdata_tx_in                 <= txdata_int  ;
- txelecidle_in                        <= txpowerdown_int(0)   ;
- txpd_in                              <= txpowerdown_int  ;
- txusrclk_in                          <= usrclk ;
- txusrclk2_in                         <= usrclk ;
- cplllock                             <= cplllock_out ;
- txn                                  <= gthtxn_out     ;
- txp                                  <= gthtxp_out     ;
- rxbufstatus                          <= rxbufstatus_out     ;
- txbufstatus                          <= txbufstatus_out     ;
- rxclkcorcnt_int                      <= rxclkcorcnt_out     ;
- rxcharisk_int                        <= rxctrl0_out(1 downto 0)     ;
- rxdisperr_int                        <= rxctrl1_out(1 downto 0)     ;
- rxchariscomma_int                    <= rxctrl2_out(1 downto 0)     ;
- rxnotintable_int                     <= rxctrl3_out(1 downto 0)     ;
- rxdata_int                           <= gtwiz_userdata_rx_out     ;
- rxoutclk                             <=  rxoutclk_out     ;
- txoutclk                             <=  txoutclk_out  ;
+ gtwiz_userdata_tx_in                 <= txdata_int;
+ txelecidle_in                        <= txpowerdown_int(0);
+ txpd_in                              <= txpowerdown_int;
+ txusrclk_in                          <= usrclk;
+ txusrclk2_in                         <= usrclk;
+ cplllock                             <= cplllock_out;
+ txn                                  <= gthtxn_out;
+ txp                                  <= gthtxp_out;
+ rxbufstatus                          <= rxbufstatus_out;
+ txbufstatus                          <= txbufstatus_out;
+ rxclkcorcnt_int                      <= rxclkcorcnt_out;
+ rxcharisk_int                        <= rxctrl0_out(1 downto 0);
+ rxdisperr_int                        <= rxctrl1_out(1 downto 0);
+ rxchariscomma_int                    <= rxctrl2_out(1 downto 0);
+ rxnotintable_int                     <= rxctrl3_out(1 downto 0);
+ rxdata_int                           <= gtwiz_userdata_rx_out;
+ rxoutclk                             <=  rxoutclk_out;
+ txoutclk                             <=  txoutclk_out;
  resetdone                            <= gtwiz_reset_tx_done_out and gtwiz_reset_rx_done_out;
- gt0_rxbyteisaligned_out              <= rxbyteisaligned_out ;
- gt0_rxbyterealign_out                <= rxbyterealign_out  ;
- gt0_rxcommadet_out                   <= rxcommadet_out ;
- txpolarity_in                        <=  gt0_txpolarity_in      ;    
- txpostcursor_in                      <=  gt0_txpostcursor_in    ;    
- txprecursor_in                       <=  gt0_txprecursor_in     ;    
- rxpolarity_in                        <=  gt0_rxpolarity_in      ;    
- rxdfelpmreset_in                     <=  gt0_rxdfelpmreset_in   ;    
- rxlpmen_in                           <=  gt0_rxlpmen_in         ;    
- txprbssel_in(2 downto 0)             <=  gt0_txprbssel_in       ;    
- txprbsforceerr_in                    <=  gt0_txprbsforceerr_in  ;    
- rxprbscntreset_in                    <=  gt0_rxprbscntreset_in  ;    
- gt0_rxprbserr_out                    <=  rxprbserr_out      ;    
- rxprbssel_in(2 downto 0)         <=  gt0_rxprbssel_in       ;    
+ gt0_rxbyteisaligned_out              <= rxbyteisaligned_out;
+ gt0_rxbyterealign_out                <= rxbyterealign_out;
+ gt0_rxcommadet_out                   <= rxcommadet_out;
+ txpolarity_in                        <=  gt0_txpolarity_in;    
+ txpostcursor_in                      <=  gt0_txpostcursor_in;    
+ txprecursor_in                       <=  gt0_txprecursor_in;    
+ rxpolarity_in                        <=  gt0_rxpolarity_in;    
+ rxdfelpmreset_in                     <=  gt0_rxdfelpmreset_in;    
+ rxlpmen_in                           <=  gt0_rxlpmen_in;    
+ txprbssel_in(2 downto 0)             <=  gt0_txprbssel_in;    
+ txprbsforceerr_in                    <=  gt0_txprbsforceerr_in;    
+ rxprbscntreset_in                    <=  gt0_rxprbscntreset_in;    
+ gt0_rxprbserr_out                    <=  rxprbserr_out;    
+ rxprbssel_in(2 downto 0)         <=  gt0_rxprbssel_in;    
  rxprbssel_in(3)                  <= '0';
  txprbssel_in(3)                  <= '0';
- gt0_txresetdone_out              <= txresetdone_out    ;    
- gt0_rxresetdone_out              <= rxresetdone_out    ;    
- eyescanreset_in                  <= gt0_eyescanreset_in    ;    
+ gt0_txresetdone_out              <= txresetdone_out;    
+ gt0_rxresetdone_out              <= rxresetdone_out;    
+ eyescanreset_in                  <= gt0_eyescanreset_in;    
  gt0_eyescandataerror_out         <= eyescandataerror_out;   
- eyescantrigger_in                <= gt0_eyescantrigger_in  ;    
- rxcdrhold_in                     <= gt0_rxcdrhold_in       ;    
- drpaddr_in                       <= gt0_drpaddr_in           ;
- drpclk_in                        <= gt0_drpclk_in            ;
- drpdi_in                         <= gt0_drpdi_in            ;
- gt0_drpdo_out                    <= drpdo_out           ;
- drpen_in                         <= gt0_drpen_in             ;
- gt0_drprdy_out                   <= drprdy_out           ;
- drpwe_in                         <= gt0_drpwe_in             ;  
+ eyescantrigger_in                <= gt0_eyescantrigger_in;    
+ rxcdrhold_in                     <= gt0_rxcdrhold_in;    
+ drpaddr_in                       <= gt0_drpaddr_in;
+ drpclk_in                        <= gt0_drpclk_in;
+ drpdi_in                         <= gt0_drpdi_in;
+ gt0_drpdo_out                    <= drpdo_out;
+ drpen_in                         <= gt0_drpen_in;
+ gt0_drprdy_out                   <= drprdy_out;
+ drpwe_in                         <= gt0_drpwe_in;  
  txpmareset_in                    <= gt0_txpmareset_in;   
  txpcsreset_in                    <= gt0_txpcsreset_in;   
  rxpmareset_in                    <= gt0_rxpmareset_in;   
@@ -779,7 +779,7 @@ begin
  gt0_txbufstatus_out              <= txbufstatus_out;   
  rxrate_in                        <= gt0_rxrate_in;   
  cpllrefclksel_in                 <= gt0_cpllrefclksel_in;
- gtrefclk1_in                     <= gt0_gtrefclk1_in    ;
+ gtrefclk1_in                     <= gt0_gtrefclk1_in;
  gt0_dmonitorout_out              <= dmonitorout_out;   
 
   -- Map single bits to unit-length vectors...

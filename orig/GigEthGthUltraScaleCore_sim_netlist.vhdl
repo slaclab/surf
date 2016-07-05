@@ -1,8 +1,8 @@
--- Copyright 1986-2015 Xilinx, Inc. All Rights Reserved.
+-- Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
--- Tool Version: Vivado v.2015.3 (lin64) Build 1368829 Mon Sep 28 20:06:39 MDT 2015
--- Date        : Tue Feb  9 16:34:36 2016
--- Host        : rdusr217.slac.stanford.edu running 64-bit Red Hat Enterprise Linux Server release 6.7 (Santiago)
+-- Tool Version: Vivado v.2016.1 (lin64) Build 1538259 Fri Apr  8 15:45:23 MDT 2016
+-- Date        : Fri Jul  1 11:21:02 2016
+-- Host        : rdusr219.slac.stanford.edu running 64-bit Red Hat Enterprise Linux Server release 6.8 (Santiago)
 -- Command     : write_vhdl -force -mode funcsim
 --               /u1/ruckman/build/GigEthGthUltraScaleDcp/GigEthGthUltraScaleDcp_project.srcs/sources_1/ip/GigEthGthUltraScaleCore/GigEthGthUltraScaleCore_sim_netlist.vhdl
 -- Design      : GigEthGthUltraScaleCore
@@ -18,7 +18,7 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_reset_sync is
   port (
     reset_out : out STD_LOGIC;
     userclk : in STD_LOGIC;
-    encommaalign : in STD_LOGIC
+    enablealign : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
   attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_reset_sync : entity is "GigEthGthUltraScaleCore_reset_sync";
@@ -67,7 +67,7 @@ reset_sync1: unisim.vcomponents.FDPE
       C => userclk,
       CE => '1',
       D => '0',
-      PRE => encommaalign,
+      PRE => enablealign,
       Q => reset_sync_reg1
     );
 reset_sync2: unisim.vcomponents.FDPE
@@ -78,7 +78,7 @@ reset_sync2: unisim.vcomponents.FDPE
       C => userclk,
       CE => '1',
       D => reset_sync_reg1,
-      PRE => encommaalign,
+      PRE => enablealign,
       Q => reset_sync_reg2
     );
 reset_sync3: unisim.vcomponents.FDPE
@@ -89,7 +89,7 @@ reset_sync3: unisim.vcomponents.FDPE
       C => userclk,
       CE => '1',
       D => reset_sync_reg2,
-      PRE => encommaalign,
+      PRE => enablealign,
       Q => reset_sync_reg3
     );
 reset_sync4: unisim.vcomponents.FDPE
@@ -100,7 +100,7 @@ reset_sync4: unisim.vcomponents.FDPE
       C => userclk,
       CE => '1',
       D => reset_sync_reg3,
-      PRE => encommaalign,
+      PRE => enablealign,
       Q => reset_sync_reg4
     );
 reset_sync5: unisim.vcomponents.FDPE
@@ -111,7 +111,7 @@ reset_sync5: unisim.vcomponents.FDPE
       C => userclk,
       CE => '1',
       D => reset_sync_reg4,
-      PRE => encommaalign,
+      PRE => enablealign,
       Q => reset_sync_reg5
     );
 reset_sync6: unisim.vcomponents.FDPE
@@ -246,3520 +246,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_RX is
-  port (
-    gmii_rx_er : out STD_LOGIC;
-    status_vector : out STD_LOGIC_VECTOR ( 2 downto 0 );
-    gmii_rx_dv : out STD_LOGIC;
-    gmii_rxd : out STD_LOGIC_VECTOR ( 7 downto 0 );
-    Q : in STD_LOGIC_VECTOR ( 7 downto 0 );
-    userclk2 : in STD_LOGIC;
-    SR : in STD_LOGIC_VECTOR ( 0 to 0 );
-    SYNC_STATUS_REG0 : in STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\ : in STD_LOGIC;
-    D : in STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\ : in STD_LOGIC;
-    RXNOTINTABLE_INT : in STD_LOGIC;
-    p_40_in : in STD_LOGIC;
-    RXEVEN : in STD_LOGIC;
-    \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\ : in STD_LOGIC_VECTOR ( 1 downto 0 );
-    \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\ : in STD_LOGIC_VECTOR ( 2 downto 0 )
-  );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_RX : entity is "RX";
-end GigEthGthUltraScaleCore_RX;
-
-architecture STRUCTURE of GigEthGthUltraScaleCore_RX is
-  signal C : STD_LOGIC;
-  signal C0 : STD_LOGIC;
-  signal CGBAD : STD_LOGIC;
-  signal CGBAD_REG1 : STD_LOGIC;
-  signal CGBAD_REG2 : STD_LOGIC;
-  signal CGBAD_REG3 : STD_LOGIC;
-  signal C_HDR_REMOVED : STD_LOGIC;
-  signal C_HDR_REMOVED_REG : STD_LOGIC;
-  signal C_REG1 : STD_LOGIC;
-  signal C_REG2 : STD_LOGIC;
-  signal C_REG3 : STD_LOGIC;
-  signal D0p0 : STD_LOGIC;
-  signal D0p0_REG : STD_LOGIC;
-  signal EOP : STD_LOGIC;
-  signal EOP0 : STD_LOGIC;
-  signal EOP_REG1 : STD_LOGIC;
-  signal EOP_REG10 : STD_LOGIC;
-  signal EOP_i_2_n_0 : STD_LOGIC;
-  signal EXTEND : STD_LOGIC;
-  signal EXTEND_ERR : STD_LOGIC;
-  signal EXTEND_ERR0 : STD_LOGIC;
-  signal EXTEND_REG1 : STD_LOGIC;
-  signal EXTEND_REG2 : STD_LOGIC;
-  signal EXTEND_REG3 : STD_LOGIC;
-  signal EXTEND_i_1_n_0 : STD_LOGIC;
-  signal EXT_ILLEGAL_K : STD_LOGIC;
-  signal EXT_ILLEGAL_K0 : STD_LOGIC;
-  signal EXT_ILLEGAL_K_REG1 : STD_LOGIC;
-  signal EXT_ILLEGAL_K_REG2 : STD_LOGIC;
-  signal FALSE_CARRIER : STD_LOGIC;
-  signal FALSE_CARRIER_REG1 : STD_LOGIC;
-  signal FALSE_CARRIER_REG2 : STD_LOGIC;
-  signal FALSE_CARRIER_REG3 : STD_LOGIC;
-  signal FALSE_CARRIER_i_1_n_0 : STD_LOGIC;
-  signal FALSE_CARRIER_i_2_n_0 : STD_LOGIC;
-  signal FALSE_CARRIER_i_3_n_0 : STD_LOGIC;
-  signal FALSE_CARRIER_i_4_n_0 : STD_LOGIC;
-  signal FALSE_DATA : STD_LOGIC;
-  signal FALSE_DATA0 : STD_LOGIC;
-  signal FALSE_DATA_i_2_n_0 : STD_LOGIC;
-  signal FALSE_DATA_i_3_n_0 : STD_LOGIC;
-  signal FALSE_DATA_i_4_n_0 : STD_LOGIC;
-  signal FALSE_K : STD_LOGIC;
-  signal FALSE_K0 : STD_LOGIC;
-  signal FALSE_K_i_2_n_0 : STD_LOGIC;
-  signal FALSE_K_i_3_n_0 : STD_LOGIC;
-  signal FALSE_NIT : STD_LOGIC;
-  signal FALSE_NIT0 : STD_LOGIC;
-  signal FALSE_NIT_i_2_n_0 : STD_LOGIC;
-  signal FALSE_NIT_i_3_n_0 : STD_LOGIC;
-  signal FALSE_NIT_i_4_n_0 : STD_LOGIC;
-  signal FROM_IDLE_D : STD_LOGIC;
-  signal FROM_IDLE_D0 : STD_LOGIC;
-  signal FROM_RX_CX : STD_LOGIC;
-  signal FROM_RX_CX0 : STD_LOGIC;
-  signal FROM_RX_CX_i_2_n_0 : STD_LOGIC;
-  signal FROM_RX_K : STD_LOGIC;
-  signal FROM_RX_K0 : STD_LOGIC;
-  signal I : STD_LOGIC;
-  signal I0 : STD_LOGIC;
-  signal I335_in : STD_LOGIC;
-  signal \IDLE_REG_reg_n_0_[0]\ : STD_LOGIC;
-  signal \IDLE_REG_reg_n_0_[2]\ : STD_LOGIC;
-  signal ILLEGAL_K : STD_LOGIC;
-  signal ILLEGAL_K0 : STD_LOGIC;
-  signal ILLEGAL_K_REG1 : STD_LOGIC;
-  signal ILLEGAL_K_REG2 : STD_LOGIC;
-  signal I_REG_reg_n_0 : STD_LOGIC;
-  signal I_i_2_n_0 : STD_LOGIC;
-  signal I_i_4_n_0 : STD_LOGIC;
-  signal K23p7 : STD_LOGIC;
-  signal K28p5 : STD_LOGIC;
-  signal K28p5_REG1 : STD_LOGIC;
-  signal K28p5_REG2 : STD_LOGIC;
-  signal K29p7 : STD_LOGIC;
-  signal R : STD_LOGIC;
-  signal RECEIVE : STD_LOGIC;
-  signal RECEIVE_i_1_n_0 : STD_LOGIC;
-  signal RUDI_C0 : STD_LOGIC;
-  signal RUDI_I0 : STD_LOGIC;
-  signal RXCHARISK_REG1 : STD_LOGIC;
-  signal \RXDATA_REG4_reg[0]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[1]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[2]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[3]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[4]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[5]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[6]_srl4_n_0\ : STD_LOGIC;
-  signal \RXDATA_REG4_reg[7]_srl4_n_0\ : STD_LOGIC;
-  signal RXDATA_REG5 : STD_LOGIC_VECTOR ( 7 downto 0 );
-  signal \RXD[0]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[1]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[2]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[3]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[4]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[5]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[6]_i_1_n_0\ : STD_LOGIC;
-  signal \RXD[7]_i_1_n_0\ : STD_LOGIC;
-  signal RX_CONFIG_VALID_INT : STD_LOGIC;
-  signal RX_CONFIG_VALID_INT0 : STD_LOGIC;
-  signal RX_CONFIG_VALID_INT_i_2_n_0 : STD_LOGIC;
-  signal \RX_CONFIG_VALID_REG_reg_n_0_[0]\ : STD_LOGIC;
-  signal \RX_CONFIG_VALID_REG_reg_n_0_[3]\ : STD_LOGIC;
-  signal RX_DATA_ERROR : STD_LOGIC;
-  signal RX_DATA_ERROR0 : STD_LOGIC;
-  signal RX_DATA_ERROR_i_2_n_0 : STD_LOGIC;
-  signal RX_DATA_ERROR_i_3_n_0 : STD_LOGIC;
-  signal RX_DV_i_1_n_0 : STD_LOGIC;
-  signal RX_DV_i_2_n_0 : STD_LOGIC;
-  signal RX_ER0 : STD_LOGIC;
-  signal RX_ER_i_2_n_0 : STD_LOGIC;
-  signal RX_INVALID_i_2_n_0 : STD_LOGIC;
-  signal R_REG1 : STD_LOGIC;
-  signal R_i_2_n_0 : STD_LOGIC;
-  signal R_i_3_n_0 : STD_LOGIC;
-  signal S : STD_LOGIC;
-  signal S0 : STD_LOGIC;
-  signal S2 : STD_LOGIC;
-  signal SOP : STD_LOGIC;
-  signal SOP0 : STD_LOGIC;
-  signal SOP_REG1 : STD_LOGIC;
-  signal SOP_REG2 : STD_LOGIC;
-  signal SOP_REG3 : STD_LOGIC;
-  signal SYNC_STATUS_REG : STD_LOGIC;
-  signal S_i_2_n_0 : STD_LOGIC;
-  signal T : STD_LOGIC;
-  signal T_REG1 : STD_LOGIC;
-  signal T_REG2 : STD_LOGIC;
-  signal WAIT_FOR_K : STD_LOGIC;
-  signal WAIT_FOR_K_i_1_n_0 : STD_LOGIC;
-  signal \^gmii_rx_dv\ : STD_LOGIC;
-  signal p_0_in1_in : STD_LOGIC;
-  signal p_0_in2_in : STD_LOGIC;
-  signal p_1_in : STD_LOGIC;
-  signal \^status_vector\ : STD_LOGIC_VECTOR ( 2 downto 0 );
-  attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of D0p0_REG_i_1 : label is "soft_lutpair2";
-  attribute SOFT_HLUTNM of EXT_ILLEGAL_K_i_1 : label is "soft_lutpair0";
-  attribute SOFT_HLUTNM of FALSE_CARRIER_i_2 : label is "soft_lutpair7";
-  attribute SOFT_HLUTNM of FALSE_CARRIER_i_4 : label is "soft_lutpair7";
-  attribute SOFT_HLUTNM of FALSE_DATA_i_3 : label is "soft_lutpair3";
-  attribute SOFT_HLUTNM of FALSE_K_i_3 : label is "soft_lutpair1";
-  attribute SOFT_HLUTNM of FALSE_NIT_i_2 : label is "soft_lutpair5";
-  attribute SOFT_HLUTNM of FALSE_NIT_i_3 : label is "soft_lutpair5";
-  attribute SOFT_HLUTNM of FALSE_NIT_i_4 : label is "soft_lutpair1";
-  attribute SOFT_HLUTNM of FROM_RX_CX_i_2 : label is "soft_lutpair0";
-  attribute SOFT_HLUTNM of FROM_RX_K_i_1 : label is "soft_lutpair10";
-  attribute srl_bus_name : string;
-  attribute srl_bus_name of \RXDATA_REG4_reg[0]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name : string;
-  attribute srl_name of \RXDATA_REG4_reg[0]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[0]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[1]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[1]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[1]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[2]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[2]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[2]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[3]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[3]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[3]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[4]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[4]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[4]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[5]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[5]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[5]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[6]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[6]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[6]_srl4 ";
-  attribute srl_bus_name of \RXDATA_REG4_reg[7]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg ";
-  attribute srl_name of \RXDATA_REG4_reg[7]_srl4\ : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/RECEIVER/RXDATA_REG4_reg[7]_srl4 ";
-  attribute SOFT_HLUTNM of \RXD[1]_i_1\ : label is "soft_lutpair6";
-  attribute SOFT_HLUTNM of \RXD[2]_i_1\ : label is "soft_lutpair8";
-  attribute SOFT_HLUTNM of \RXD[3]_i_1\ : label is "soft_lutpair6";
-  attribute SOFT_HLUTNM of \RXD[4]_i_1\ : label is "soft_lutpair4";
-  attribute SOFT_HLUTNM of \RXD[5]_i_1\ : label is "soft_lutpair9";
-  attribute SOFT_HLUTNM of \RXD[6]_i_1\ : label is "soft_lutpair8";
-  attribute SOFT_HLUTNM of \RXD[7]_i_1\ : label is "soft_lutpair9";
-  attribute SOFT_HLUTNM of RX_CONFIG_VALID_INT_i_2 : label is "soft_lutpair10";
-  attribute SOFT_HLUTNM of RX_ER_i_2 : label is "soft_lutpair4";
-  attribute SOFT_HLUTNM of R_i_2 : label is "soft_lutpair2";
-  attribute SOFT_HLUTNM of R_i_3 : label is "soft_lutpair3";
-begin
-  gmii_rx_dv <= \^gmii_rx_dv\;
-  status_vector(2 downto 0) <= \^status_vector\(2 downto 0);
-CGBAD_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CGBAD,
-      Q => CGBAD_REG1,
-      R => '0'
-    );
-CGBAD_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CGBAD_REG1,
-      Q => CGBAD_REG2,
-      R => '0'
-    );
-CGBAD_REG3_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CGBAD_REG2,
-      Q => CGBAD_REG3,
-      R => SR(0)
-    );
-CGBAD_i_1: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"FE"
-    )
-        port map (
-      I0 => RXNOTINTABLE_INT,
-      I1 => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\,
-      I2 => D,
-      O => S2
-    );
-CGBAD_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => S2,
-      Q => CGBAD,
-      R => SR(0)
-    );
-C_HDR_REMOVED_REG_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0400"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\(1),
-      I1 => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\(0),
-      I2 => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\(2),
-      I3 => C_REG2,
-      O => C_HDR_REMOVED
-    );
-C_HDR_REMOVED_REG_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => C_HDR_REMOVED,
-      Q => C_HDR_REMOVED_REG,
-      R => '0'
-    );
-C_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => C,
-      Q => C_REG1,
-      R => '0'
-    );
-C_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => C_REG1,
-      Q => C_REG2,
-      R => '0'
-    );
-C_REG3_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => C_REG2,
-      Q => C_REG3,
-      R => '0'
-    );
-C_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"8"
-    )
-        port map (
-      I0 => I335_in,
-      I1 => K28p5_REG1,
-      O => C0
-    );
-C_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => C0,
-      Q => C,
-      R => '0'
-    );
-D0p0_REG_i_1: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00010000"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => Q(1),
-      I2 => Q(6),
-      I3 => Q(7),
-      I4 => FALSE_NIT_i_4_n_0,
-      O => D0p0
-    );
-D0p0_REG_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => D0p0,
-      Q => D0p0_REG,
-      R => '0'
-    );
-EOP_REG1_i_1: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"F8"
-    )
-        port map (
-      I0 => EXTEND_REG1,
-      I1 => EXTEND,
-      I2 => EOP,
-      O => EOP_REG10
-    );
-EOP_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EOP_REG10,
-      Q => EOP_REG1,
-      R => SR(0)
-    );
-EOP_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFFFFFFF8888888"
-    )
-        port map (
-      I0 => I_REG_reg_n_0,
-      I1 => K28p5_REG1,
-      I2 => RXEVEN,
-      I3 => C_REG1,
-      I4 => D0p0_REG,
-      I5 => EOP_i_2_n_0,
-      O => EOP0
-    );
-EOP_i_2: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"88888000"
-    )
-        port map (
-      I0 => R_REG1,
-      I1 => T_REG2,
-      I2 => K28p5_REG1,
-      I3 => RXEVEN,
-      I4 => R,
-      O => EOP_i_2_n_0
-    );
-EOP_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EOP0,
-      Q => EOP,
-      R => SR(0)
-    );
-EXTEND_ERR_i_1: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"F8"
-    )
-        port map (
-      I0 => EXTEND_REG3,
-      I1 => CGBAD_REG3,
-      I2 => EXT_ILLEGAL_K_REG2,
-      O => EXTEND_ERR0
-    );
-EXTEND_ERR_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXTEND_ERR0,
-      Q => EXTEND_ERR,
-      R => SYNC_STATUS_REG0
-    );
-EXTEND_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXTEND,
-      Q => EXTEND_REG1,
-      R => '0'
-    );
-EXTEND_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXTEND_REG1,
-      Q => EXTEND_REG2,
-      R => '0'
-    );
-EXTEND_REG3_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXTEND_REG2,
-      Q => EXTEND_REG3,
-      R => '0'
-    );
-EXTEND_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"F2222222F0000000"
-    )
-        port map (
-      I0 => FROM_RX_CX_i_2_n_0,
-      I1 => S,
-      I2 => R,
-      I3 => RECEIVE,
-      I4 => R_REG1,
-      I5 => EXTEND,
-      O => EXTEND_i_1_n_0
-    );
-EXTEND_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXTEND_i_1_n_0,
-      Q => EXTEND,
-      R => SYNC_STATUS_REG0
-    );
-EXT_ILLEGAL_K_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXT_ILLEGAL_K,
-      Q => EXT_ILLEGAL_K_REG1,
-      R => SYNC_STATUS_REG0
-    );
-EXT_ILLEGAL_K_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXT_ILLEGAL_K_REG1,
-      Q => EXT_ILLEGAL_K_REG2,
-      R => SYNC_STATUS_REG0
-    );
-EXT_ILLEGAL_K_i_1: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00000444"
-    )
-        port map (
-      I0 => S,
-      I1 => EXTEND_REG1,
-      I2 => K28p5_REG1,
-      I3 => RXEVEN,
-      I4 => R,
-      O => EXT_ILLEGAL_K0
-    );
-EXT_ILLEGAL_K_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EXT_ILLEGAL_K0,
-      Q => EXT_ILLEGAL_K,
-      R => SYNC_STATUS_REG0
-    );
-FALSE_CARRIER_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_CARRIER,
-      Q => FALSE_CARRIER_REG1,
-      R => '0'
-    );
-FALSE_CARRIER_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_CARRIER_REG1,
-      Q => FALSE_CARRIER_REG2,
-      R => '0'
-    );
-FALSE_CARRIER_REG3_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_CARRIER_REG2,
-      Q => FALSE_CARRIER_REG3,
-      R => SYNC_STATUS_REG0
-    );
-FALSE_CARRIER_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"22EFEFEF22202020"
-    )
-        port map (
-      I0 => FALSE_CARRIER_i_2_n_0,
-      I1 => FALSE_CARRIER_i_3_n_0,
-      I2 => FALSE_CARRIER_i_4_n_0,
-      I3 => RXEVEN,
-      I4 => K28p5_REG1,
-      I5 => FALSE_CARRIER,
-      O => FALSE_CARRIER_i_1_n_0
-    );
-FALSE_CARRIER_i_2: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0008"
-    )
-        port map (
-      I0 => p_40_in,
-      I1 => I_REG_reg_n_0,
-      I2 => K28p5_REG1,
-      I3 => S,
-      O => FALSE_CARRIER_i_2_n_0
-    );
-FALSE_CARRIER_i_3: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"FE"
-    )
-        port map (
-      I0 => FALSE_NIT,
-      I1 => FALSE_DATA,
-      I2 => FALSE_K,
-      O => FALSE_CARRIER_i_3_n_0
-    );
-FALSE_CARRIER_i_4: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0008"
-    )
-        port map (
-      I0 => p_40_in,
-      I1 => I_REG_reg_n_0,
-      I2 => K28p5_REG1,
-      I3 => S,
-      O => FALSE_CARRIER_i_4_n_0
-    );
-FALSE_CARRIER_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_CARRIER_i_1_n_0,
-      Q => FALSE_CARRIER,
-      R => SYNC_STATUS_REG0
-    );
-FALSE_DATA_i_1: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"FFFF1700"
-    )
-        port map (
-      I0 => Q(3),
-      I1 => Q(4),
-      I2 => Q(2),
-      I3 => FALSE_DATA_i_2_n_0,
-      I4 => FALSE_DATA_i_3_n_0,
-      O => FALSE_DATA0
-    );
-FALSE_DATA_i_2: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000000000100000"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I1 => RXNOTINTABLE_INT,
-      I2 => R_i_2_n_0,
-      I3 => Q(5),
-      I4 => Q(6),
-      I5 => Q(7),
-      O => FALSE_DATA_i_2_n_0
-    );
-FALSE_DATA_i_3: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00080000"
-    )
-        port map (
-      I0 => Q(5),
-      I1 => Q(7),
-      I2 => Q(6),
-      I3 => RXNOTINTABLE_INT,
-      I4 => FALSE_DATA_i_4_n_0,
-      O => FALSE_DATA_i_3_n_0
-    );
-FALSE_DATA_i_4: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0100005400000000"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I1 => Q(4),
-      I2 => Q(3),
-      I3 => Q(1),
-      I4 => Q(0),
-      I5 => Q(2),
-      O => FALSE_DATA_i_4_n_0
-    );
-FALSE_DATA_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_DATA0,
-      Q => FALSE_DATA,
-      R => SR(0)
-    );
-FALSE_K_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"4000000000400000"
-    )
-        port map (
-      I0 => RXNOTINTABLE_INT,
-      I1 => FALSE_K_i_2_n_0,
-      I2 => FALSE_K_i_3_n_0,
-      I3 => Q(6),
-      I4 => Q(7),
-      I5 => Q(5),
-      O => FALSE_K0
-    );
-FALSE_K_i_2: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => Q(1),
-      O => FALSE_K_i_2_n_0
-    );
-FALSE_K_i_3: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"8000"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I1 => Q(3),
-      I2 => Q(2),
-      I3 => Q(4),
-      O => FALSE_K_i_3_n_0
-    );
-FALSE_K_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_K0,
-      Q => FALSE_K,
-      R => SR(0)
-    );
-FALSE_NIT_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"80808080FF000000"
-    )
-        port map (
-      I0 => FALSE_NIT_i_2_n_0,
-      I1 => Q(5),
-      I2 => FALSE_K_i_3_n_0,
-      I3 => FALSE_NIT_i_3_n_0,
-      I4 => FALSE_NIT_i_4_n_0,
-      I5 => Q(6),
-      O => FALSE_NIT0
-    );
-FALSE_NIT_i_2: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"01001600"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => Q(1),
-      I2 => Q(7),
-      I3 => RXNOTINTABLE_INT,
-      I4 => D,
-      O => FALSE_NIT_i_2_n_0
-    );
-FALSE_NIT_i_3: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"68008000"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => Q(1),
-      I2 => Q(7),
-      I3 => RXNOTINTABLE_INT,
-      I4 => D,
-      O => FALSE_NIT_i_3_n_0
-    );
-FALSE_NIT_i_4: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00000001"
-    )
-        port map (
-      I0 => Q(5),
-      I1 => Q(2),
-      I2 => Q(3),
-      I3 => Q(4),
-      I4 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      O => FALSE_NIT_i_4_n_0
-    );
-FALSE_NIT_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FALSE_NIT0,
-      Q => FALSE_NIT,
-      R => SR(0)
-    );
-FROM_IDLE_D_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0004"
-    )
-        port map (
-      I0 => WAIT_FOR_K,
-      I1 => I_REG_reg_n_0,
-      I2 => K28p5_REG1,
-      I3 => p_40_in,
-      O => FROM_IDLE_D0
-    );
-FROM_IDLE_D_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FROM_IDLE_D0,
-      Q => FROM_IDLE_D,
-      R => SYNC_STATUS_REG0
-    );
-FROM_RX_CX_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FEFEFEEEFAFAFA00"
-    )
-        port map (
-      I0 => CGBAD,
-      I1 => FROM_RX_CX_i_2_n_0,
-      I2 => RXCHARISK_REG1,
-      I3 => C_REG2,
-      I4 => C_REG1,
-      I5 => C_REG3,
-      O => FROM_RX_CX0
-    );
-FROM_RX_CX_i_2: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"7"
-    )
-        port map (
-      I0 => K28p5_REG1,
-      I1 => RXEVEN,
-      O => FROM_RX_CX_i_2_n_0
-    );
-FROM_RX_CX_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FROM_RX_CX0,
-      Q => FROM_RX_CX,
-      R => SYNC_STATUS_REG0
-    );
-FROM_RX_K_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"4440"
-    )
-        port map (
-      I0 => p_40_in,
-      I1 => K28p5_REG2,
-      I2 => RXCHARISK_REG1,
-      I3 => CGBAD,
-      O => FROM_RX_K0
-    );
-FROM_RX_K_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => FROM_RX_K0,
-      Q => FROM_RX_K,
-      R => SYNC_STATUS_REG0
-    );
-\IDLE_REG_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => I_REG_reg_n_0,
-      Q => \IDLE_REG_reg_n_0_[0]\,
-      R => SR(0)
-    );
-\IDLE_REG_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \IDLE_REG_reg_n_0_[0]\,
-      Q => p_0_in1_in,
-      R => SR(0)
-    );
-\IDLE_REG_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => p_0_in1_in,
-      Q => \IDLE_REG_reg_n_0_[2]\,
-      R => SR(0)
-    );
-ILLEGAL_K_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => ILLEGAL_K,
-      Q => ILLEGAL_K_REG1,
-      R => SYNC_STATUS_REG0
-    );
-ILLEGAL_K_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => ILLEGAL_K_REG1,
-      Q => ILLEGAL_K_REG2,
-      R => SYNC_STATUS_REG0
-    );
-ILLEGAL_K_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0004"
-    )
-        port map (
-      I0 => T,
-      I1 => RXCHARISK_REG1,
-      I2 => K28p5_REG1,
-      I3 => R,
-      O => ILLEGAL_K0
-    );
-ILLEGAL_K_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => ILLEGAL_K0,
-      Q => ILLEGAL_K,
-      R => SYNC_STATUS_REG0
-    );
-I_REG_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => I,
-      Q => I_REG_reg_n_0,
-      R => '0'
-    );
-I_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"3323222222222222"
-    )
-        port map (
-      I0 => I_i_2_n_0,
-      I1 => I335_in,
-      I2 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I3 => p_40_in,
-      I4 => RXEVEN,
-      I5 => K28p5_REG1,
-      O => I0
-    );
-I_i_2: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"8080808080808000"
-    )
-        port map (
-      I0 => I_REG_reg_n_0,
-      I1 => p_40_in,
-      I2 => RXEVEN,
-      I3 => FALSE_K,
-      I4 => FALSE_DATA,
-      I5 => FALSE_NIT,
-      O => I_i_2_n_0
-    );
-I_i_3: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"000F200000002000"
-    )
-        port map (
-      I0 => FALSE_NIT_i_4_n_0,
-      I1 => Q(7),
-      I2 => Q(6),
-      I3 => Q(1),
-      I4 => Q(0),
-      I5 => I_i_4_n_0,
-      O => I335_in
-    );
-I_i_4: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0008000000000000"
-    )
-        port map (
-      I0 => Q(4),
-      I1 => Q(2),
-      I2 => Q(3),
-      I3 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I4 => Q(7),
-      I5 => Q(5),
-      O => I_i_4_n_0
-    );
-I_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => I0,
-      Q => I,
-      R => '0'
-    );
-K28p5_REG1_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000100000000000"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => Q(1),
-      I2 => Q(7),
-      I3 => Q(5),
-      I4 => Q(6),
-      I5 => FALSE_K_i_3_n_0,
-      O => K28p5
-    );
-K28p5_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => K28p5,
-      Q => K28p5_REG1,
-      R => '0'
-    );
-K28p5_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => K28p5_REG1,
-      Q => K28p5_REG2,
-      R => '0'
-    );
-RECEIVE_i_1: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"BA"
-    )
-        port map (
-      I0 => SOP_REG2,
-      I1 => EOP,
-      I2 => RECEIVE,
-      O => RECEIVE_i_1_n_0
-    );
-RECEIVE_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RECEIVE_i_1_n_0,
-      Q => RECEIVE,
-      R => SYNC_STATUS_REG0
-    );
-RUDI_C_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFFE"
-    )
-        port map (
-      I0 => p_1_in,
-      I1 => \RX_CONFIG_VALID_REG_reg_n_0_[0]\,
-      I2 => \RX_CONFIG_VALID_REG_reg_n_0_[3]\,
-      I3 => p_0_in2_in,
-      O => RUDI_C0
-    );
-RUDI_C_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RUDI_C0,
-      Q => \^status_vector\(0),
-      R => SR(0)
-    );
-RUDI_I_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => \IDLE_REG_reg_n_0_[2]\,
-      I1 => p_0_in1_in,
-      O => RUDI_I0
-    );
-RUDI_I_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RUDI_I0,
-      Q => \^status_vector\(1),
-      R => SR(0)
-    );
-RXCHARISK_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      Q => RXCHARISK_REG1,
-      R => '0'
-    );
-\RXDATA_REG4_reg[0]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(0),
-      Q => \RXDATA_REG4_reg[0]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[1]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(1),
-      Q => \RXDATA_REG4_reg[1]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[2]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(2),
-      Q => \RXDATA_REG4_reg[2]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[3]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(3),
-      Q => \RXDATA_REG4_reg[3]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[4]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(4),
-      Q => \RXDATA_REG4_reg[4]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[5]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(5),
-      Q => \RXDATA_REG4_reg[5]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[6]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(6),
-      Q => \RXDATA_REG4_reg[6]_srl4_n_0\
-    );
-\RXDATA_REG4_reg[7]_srl4\: unisim.vcomponents.SRL16E
-     port map (
-      A0 => '1',
-      A1 => '1',
-      A2 => '0',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => Q(7),
-      Q => \RXDATA_REG4_reg[7]_srl4_n_0\
-    );
-\RXDATA_REG5_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[0]_srl4_n_0\,
-      Q => RXDATA_REG5(0),
-      R => '0'
-    );
-\RXDATA_REG5_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[1]_srl4_n_0\,
-      Q => RXDATA_REG5(1),
-      R => '0'
-    );
-\RXDATA_REG5_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[2]_srl4_n_0\,
-      Q => RXDATA_REG5(2),
-      R => '0'
-    );
-\RXDATA_REG5_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[3]_srl4_n_0\,
-      Q => RXDATA_REG5(3),
-      R => '0'
-    );
-\RXDATA_REG5_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[4]_srl4_n_0\,
-      Q => RXDATA_REG5(4),
-      R => '0'
-    );
-\RXDATA_REG5_reg[5]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[5]_srl4_n_0\,
-      Q => RXDATA_REG5(5),
-      R => '0'
-    );
-\RXDATA_REG5_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[6]_srl4_n_0\,
-      Q => RXDATA_REG5(6),
-      R => '0'
-    );
-\RXDATA_REG5_reg[7]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXDATA_REG4_reg[7]_srl4_n_0\,
-      Q => RXDATA_REG5(7),
-      R => '0'
-    );
-\RXD[0]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"AFAE"
-    )
-        port map (
-      I0 => SOP_REG3,
-      I1 => EXTEND_REG1,
-      I2 => FALSE_CARRIER_REG3,
-      I3 => RXDATA_REG5(0),
-      O => \RXD[0]_i_1_n_0\
-    );
-\RXD[1]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"3332"
-    )
-        port map (
-      I0 => RXDATA_REG5(1),
-      I1 => SOP_REG3,
-      I2 => EXTEND_REG1,
-      I3 => FALSE_CARRIER_REG3,
-      O => \RXD[1]_i_1_n_0\
-    );
-\RXD[2]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFFE"
-    )
-        port map (
-      I0 => SOP_REG3,
-      I1 => EXTEND_REG1,
-      I2 => FALSE_CARRIER_REG3,
-      I3 => RXDATA_REG5(2),
-      O => \RXD[2]_i_1_n_0\
-    );
-\RXD[3]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"3332"
-    )
-        port map (
-      I0 => RXDATA_REG5(3),
-      I1 => SOP_REG3,
-      I2 => EXTEND_REG1,
-      I3 => FALSE_CARRIER_REG3,
-      O => \RXD[3]_i_1_n_0\
-    );
-\RXD[4]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"AAAAFAEE"
-    )
-        port map (
-      I0 => SOP_REG3,
-      I1 => RXDATA_REG5(4),
-      I2 => EXTEND_ERR,
-      I3 => EXTEND_REG1,
-      I4 => FALSE_CARRIER_REG3,
-      O => \RXD[4]_i_1_n_0\
-    );
-\RXD[5]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0002"
-    )
-        port map (
-      I0 => RXDATA_REG5(5),
-      I1 => SOP_REG3,
-      I2 => EXTEND_REG1,
-      I3 => FALSE_CARRIER_REG3,
-      O => \RXD[5]_i_1_n_0\
-    );
-\RXD[6]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FF10"
-    )
-        port map (
-      I0 => EXTEND_REG1,
-      I1 => FALSE_CARRIER_REG3,
-      I2 => RXDATA_REG5(6),
-      I3 => SOP_REG3,
-      O => \RXD[6]_i_1_n_0\
-    );
-\RXD[7]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0002"
-    )
-        port map (
-      I0 => RXDATA_REG5(7),
-      I1 => SOP_REG3,
-      I2 => EXTEND_REG1,
-      I3 => FALSE_CARRIER_REG3,
-      O => \RXD[7]_i_1_n_0\
-    );
-\RXD_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[0]_i_1_n_0\,
-      Q => gmii_rxd(0),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[1]_i_1_n_0\,
-      Q => gmii_rxd(1),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[2]_i_1_n_0\,
-      Q => gmii_rxd(2),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[3]_i_1_n_0\,
-      Q => gmii_rxd(3),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[4]_i_1_n_0\,
-      Q => gmii_rxd(4),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[5]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[5]_i_1_n_0\,
-      Q => gmii_rxd(5),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[6]_i_1_n_0\,
-      Q => gmii_rxd(6),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-\RXD_reg[7]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RXD[7]_i_1_n_0\,
-      Q => gmii_rxd(7),
-      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
-    );
-RX_CONFIG_VALID_INT_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000000000540000"
-    )
-        port map (
-      I0 => S2,
-      I1 => C_HDR_REMOVED_REG,
-      I2 => C_REG1,
-      I3 => RX_CONFIG_VALID_INT_i_2_n_0,
-      I4 => p_40_in,
-      I5 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      O => RX_CONFIG_VALID_INT0
-    );
-RX_CONFIG_VALID_INT_i_2: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => CGBAD,
-      I1 => RXCHARISK_REG1,
-      O => RX_CONFIG_VALID_INT_i_2_n_0
-    );
-RX_CONFIG_VALID_INT_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RX_CONFIG_VALID_INT0,
-      Q => RX_CONFIG_VALID_INT,
-      R => SR(0)
-    );
-\RX_CONFIG_VALID_REG_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RX_CONFIG_VALID_INT,
-      Q => \RX_CONFIG_VALID_REG_reg_n_0_[0]\,
-      R => SR(0)
-    );
-\RX_CONFIG_VALID_REG_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \RX_CONFIG_VALID_REG_reg_n_0_[0]\,
-      Q => p_0_in2_in,
-      R => SR(0)
-    );
-\RX_CONFIG_VALID_REG_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => p_0_in2_in,
-      Q => p_1_in,
-      R => SR(0)
-    );
-\RX_CONFIG_VALID_REG_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => p_1_in,
-      Q => \RX_CONFIG_VALID_REG_reg_n_0_[3]\,
-      R => SR(0)
-    );
-RX_DATA_ERROR_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFF0000FFBA0000"
-    )
-        port map (
-      I0 => T_REG2,
-      I1 => T_REG1,
-      I2 => R,
-      I3 => RX_DATA_ERROR_i_2_n_0,
-      I4 => RX_DATA_ERROR_i_3_n_0,
-      I5 => K28p5_REG1,
-      O => RX_DATA_ERROR0
-    );
-RX_DATA_ERROR_i_2: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFFE"
-    )
-        port map (
-      I0 => I_REG_reg_n_0,
-      I1 => C_REG1,
-      I2 => CGBAD_REG3,
-      I3 => ILLEGAL_K_REG2,
-      O => RX_DATA_ERROR_i_2_n_0
-    );
-RX_DATA_ERROR_i_3: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FF08FFFF00000000"
-    )
-        port map (
-      I0 => T_REG2,
-      I1 => FROM_RX_CX_i_2_n_0,
-      I2 => R,
-      I3 => RX_DATA_ERROR_i_2_n_0,
-      I4 => R_REG1,
-      I5 => RECEIVE,
-      O => RX_DATA_ERROR_i_3_n_0
-    );
-RX_DATA_ERROR_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RX_DATA_ERROR0,
-      Q => RX_DATA_ERROR,
-      R => SYNC_STATUS_REG0
-    );
-RX_DV_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"80FF80F080808080"
-    )
-        port map (
-      I0 => RX_DV_i_2_n_0,
-      I1 => SOP_REG3,
-      I2 => p_40_in,
-      I3 => EOP_REG1,
-      I4 => RECEIVE,
-      I5 => \^gmii_rx_dv\,
-      O => RX_DV_i_1_n_0
-    );
-RX_DV_i_2: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(0),
-      I1 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1),
-      O => RX_DV_i_2_n_0
-    );
-RX_DV_reg: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => RX_DV_i_1_n_0,
-      Q => \^gmii_rx_dv\,
-      R => SR(0)
-    );
-RX_ER_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"000E000E000F0000"
-    )
-        port map (
-      I0 => RX_ER_i_2_n_0,
-      I1 => RX_DATA_ERROR,
-      I2 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(0),
-      I3 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1),
-      I4 => RECEIVE,
-      I5 => p_40_in,
-      O => RX_ER0
-    );
-RX_ER_i_2: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => EXTEND_REG1,
-      I1 => FALSE_CARRIER_REG3,
-      O => RX_ER_i_2_n_0
-    );
-RX_ER_reg: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => RX_ER0,
-      Q => gmii_rx_er,
-      R => SR(0)
-    );
-RX_INVALID_i_2: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FF32FFFFFF32FF32"
-    )
-        port map (
-      I0 => FROM_IDLE_D,
-      I1 => p_40_in,
-      I2 => FROM_RX_K,
-      I3 => FROM_RX_CX,
-      I4 => K28p5_REG1,
-      I5 => \^status_vector\(2),
-      O => RX_INVALID_i_2_n_0
-    );
-RX_INVALID_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => RX_INVALID_i_2_n_0,
-      Q => \^status_vector\(2),
-      R => SYNC_STATUS_REG0
-    );
-R_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => R,
-      Q => R_REG1,
-      R => '0'
-    );
-R_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"2000000000000000"
-    )
-        port map (
-      I0 => R_i_2_n_0,
-      I1 => Q(3),
-      I2 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I3 => Q(2),
-      I4 => Q(4),
-      I5 => R_i_3_n_0,
-      O => K23p7
-    );
-R_i_2: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"8"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => Q(1),
-      O => R_i_2_n_0
-    );
-R_i_3: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"80"
-    )
-        port map (
-      I0 => Q(6),
-      I1 => Q(7),
-      I2 => Q(5),
-      O => R_i_3_n_0
-    );
-R_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => K23p7,
-      Q => R,
-      R => '0'
-    );
-SOP_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SOP,
-      Q => SOP_REG1,
-      R => '0'
-    );
-SOP_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SOP_REG1,
-      Q => SOP_REG2,
-      R => '0'
-    );
-SOP_REG3_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SOP_REG2,
-      Q => SOP_REG3,
-      R => '0'
-    );
-SOP_i_1: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"0000E000"
-    )
-        port map (
-      I0 => EXTEND,
-      I1 => I_REG_reg_n_0,
-      I2 => S,
-      I3 => p_40_in,
-      I4 => WAIT_FOR_K,
-      O => SOP0
-    );
-SOP_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SOP0,
-      Q => SOP,
-      R => SR(0)
-    );
-SYNC_STATUS_REG_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => '1',
-      Q => SYNC_STATUS_REG,
-      R => SYNC_STATUS_REG0
-    );
-S_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0800000000000000"
-    )
-        port map (
-      I0 => S_i_2_n_0,
-      I1 => R_i_2_n_0,
-      I2 => Q(2),
-      I3 => Q(3),
-      I4 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I5 => Q(4),
-      O => S0
-    );
-S_i_2: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000000000000080"
-    )
-        port map (
-      I0 => Q(5),
-      I1 => Q(7),
-      I2 => Q(6),
-      I3 => D,
-      I4 => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\,
-      I5 => RXNOTINTABLE_INT,
-      O => S_i_2_n_0
-    );
-S_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => S0,
-      Q => S,
-      R => '0'
-    );
-T_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => T,
-      Q => T_REG1,
-      R => '0'
-    );
-T_REG2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => T_REG1,
-      Q => T_REG2,
-      R => '0'
-    );
-T_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000800000000000"
-    )
-        port map (
-      I0 => Q(6),
-      I1 => Q(7),
-      I2 => Q(5),
-      I3 => Q(0),
-      I4 => Q(1),
-      I5 => FALSE_K_i_3_n_0,
-      O => K29p7
-    );
-T_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => K29p7,
-      Q => T,
-      R => '0'
-    );
-WAIT_FOR_K_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"7F0F"
-    )
-        port map (
-      I0 => RXEVEN,
-      I1 => K28p5_REG1,
-      I2 => SYNC_STATUS_REG,
-      I3 => WAIT_FOR_K,
-      O => WAIT_FOR_K_i_1_n_0
-    );
-WAIT_FOR_K_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => WAIT_FOR_K_i_1_n_0,
-      Q => WAIT_FOR_K,
-      R => SYNC_STATUS_REG0
-    );
-end STRUCTURE;
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_SYNCHRONISE is
-  port (
-    RXEVEN : out STD_LOGIC;
-    p_40_in : out STD_LOGIC;
-    SYNC_STATUS_REG0 : out STD_LOGIC;
-    STATUS_VECTOR_0_PRE0 : out STD_LOGIC;
-    enablealign : out STD_LOGIC;
-    SIGNAL_DETECT_MOD : in STD_LOGIC;
-    userclk2 : in STD_LOGIC;
-    SR : in STD_LOGIC_VECTOR ( 0 to 0 );
-    \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\ : in STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\ : in STD_LOGIC;
-    Q : in STD_LOGIC_VECTOR ( 0 to 0 );
-    RXNOTINTABLE_INT : in STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\ : in STD_LOGIC;
-    D : in STD_LOGIC;
-    reset_done : in STD_LOGIC
-  );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_SYNCHRONISE : entity is "SYNCHRONISE";
-end GigEthGthUltraScaleCore_SYNCHRONISE;
-
-architecture STRUCTURE of GigEthGthUltraScaleCore_SYNCHRONISE is
-  signal CGBAD : STD_LOGIC;
-  signal ENCOMMAALIGN_i_2_n_0 : STD_LOGIC;
-  signal EVEN_i_1_n_0 : STD_LOGIC;
-  signal \FSM_sequential_STATE[0]_i_2_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[0]_i_3_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[1]_i_2_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[1]_i_3_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[2]_i_2_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[2]_i_3_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[3]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[3]_i_2_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE[3]_i_3_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE_reg[0]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE_reg[1]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_STATE_reg[2]_i_1_n_0\ : STD_LOGIC;
-  signal GOOD_CGS : STD_LOGIC_VECTOR ( 1 downto 0 );
-  signal \GOOD_CGS[0]_i_1_n_0\ : STD_LOGIC;
-  signal \GOOD_CGS[1]_i_1_n_0\ : STD_LOGIC;
-  signal \GOOD_CGS[1]_i_3_n_0\ : STD_LOGIC;
-  signal \^rxeven\ : STD_LOGIC;
-  signal SIGNAL_DETECT_REG : STD_LOGIC;
-  signal STATE : STD_LOGIC_VECTOR ( 3 downto 0 );
-  attribute RTL_KEEP : string;
-  attribute RTL_KEEP of STATE : signal is "yes";
-  signal SYNC_STATUS0 : STD_LOGIC;
-  signal SYNC_STATUS_i_1_n_0 : STD_LOGIC;
-  signal \^enablealign\ : STD_LOGIC;
-  signal p_1_in : STD_LOGIC;
-  signal \^p_40_in\ : STD_LOGIC;
-  attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of EVEN_i_1 : label is "soft_lutpair11";
-  attribute SOFT_HLUTNM of \FSM_sequential_STATE[3]_i_3\ : label is "soft_lutpair12";
-  attribute KEEP : string;
-  attribute KEEP of \FSM_sequential_STATE_reg[0]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_STATE_reg[1]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_STATE_reg[2]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_STATE_reg[3]\ : label is "yes";
-  attribute SOFT_HLUTNM of \GOOD_CGS[1]_i_3\ : label is "soft_lutpair12";
-  attribute SOFT_HLUTNM of RX_INVALID_i_1 : label is "soft_lutpair11";
-begin
-  RXEVEN <= \^rxeven\;
-  enablealign <= \^enablealign\;
-  p_40_in <= \^p_40_in\;
-ENCOMMAALIGN_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000000000000040"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I1 => STATE(0),
-      I2 => STATE(2),
-      I3 => STATE(1),
-      I4 => STATE(3),
-      I5 => CGBAD,
-      O => SYNC_STATUS0
-    );
-ENCOMMAALIGN_i_2: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFFFFFF02200003"
-    )
-        port map (
-      I0 => CGBAD,
-      I1 => STATE(0),
-      I2 => STATE(1),
-      I3 => STATE(2),
-      I4 => STATE(3),
-      I5 => \^enablealign\,
-      O => ENCOMMAALIGN_i_2_n_0
-    );
-ENCOMMAALIGN_i_3: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"FFFFFFF8"
-    )
-        port map (
-      I0 => \^rxeven\,
-      I1 => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\,
-      I2 => D,
-      I3 => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\,
-      I4 => RXNOTINTABLE_INT,
-      O => CGBAD
-    );
-ENCOMMAALIGN_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => ENCOMMAALIGN_i_2_n_0,
-      Q => \^enablealign\,
-      R => SYNC_STATUS0
-    );
-EVEN_i_1: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"4F"
-    )
-        port map (
-      I0 => \^p_40_in\,
-      I1 => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\,
-      I2 => \^rxeven\,
-      O => EVEN_i_1_n_0
-    );
-EVEN_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => EVEN_i_1_n_0,
-      Q => \^rxeven\,
-      R => SR(0)
-    );
-\FSM_sequential_STATE[0]_i_2\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"61156000"
-    )
-        port map (
-      I0 => STATE(0),
-      I1 => CGBAD,
-      I2 => STATE(2),
-      I3 => STATE(1),
-      I4 => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\,
-      O => \FSM_sequential_STATE[0]_i_2_n_0\
-    );
-\FSM_sequential_STATE[0]_i_3\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000000000F000DF"
-    )
-        port map (
-      I0 => GOOD_CGS(1),
-      I1 => GOOD_CGS(0),
-      I2 => STATE(0),
-      I3 => STATE(2),
-      I4 => STATE(1),
-      I5 => CGBAD,
-      O => \FSM_sequential_STATE[0]_i_3_n_0\
-    );
-\FSM_sequential_STATE[1]_i_2\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"30330044"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I1 => STATE(0),
-      I2 => STATE(2),
-      I3 => CGBAD,
-      I4 => STATE(1),
-      O => \FSM_sequential_STATE[1]_i_2_n_0\
-    );
-\FSM_sequential_STATE[1]_i_3\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"00000000FF0004FF"
-    )
-        port map (
-      I0 => CGBAD,
-      I1 => GOOD_CGS(1),
-      I2 => GOOD_CGS(0),
-      I3 => STATE(0),
-      I4 => STATE(1),
-      I5 => STATE(2),
-      O => \FSM_sequential_STATE[1]_i_3_n_0\
-    );
-\FSM_sequential_STATE[2]_i_2\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"30370040"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\,
-      I1 => STATE(0),
-      I2 => STATE(1),
-      I3 => CGBAD,
-      I4 => STATE(2),
-      O => \FSM_sequential_STATE[2]_i_2_n_0\
-    );
-\FSM_sequential_STATE[2]_i_3\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"00000000140E1414"
-    )
-        port map (
-      I0 => STATE(0),
-      I1 => STATE(1),
-      I2 => STATE(2),
-      I3 => GOOD_CGS(0),
-      I4 => GOOD_CGS(1),
-      I5 => CGBAD,
-      O => \FSM_sequential_STATE[2]_i_3_n_0\
-    );
-\FSM_sequential_STATE[3]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"F1"
-    )
-        port map (
-      I0 => Q(0),
-      I1 => SIGNAL_DETECT_REG,
-      I2 => SR(0),
-      O => \FSM_sequential_STATE[3]_i_1_n_0\
-    );
-\FSM_sequential_STATE[3]_i_2\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0FE000E0003030F0"
-    )
-        port map (
-      I0 => \FSM_sequential_STATE[3]_i_3_n_0\,
-      I1 => CGBAD,
-      I2 => STATE(3),
-      I3 => STATE(2),
-      I4 => STATE(1),
-      I5 => STATE(0),
-      O => \FSM_sequential_STATE[3]_i_2_n_0\
-    );
-\FSM_sequential_STATE[3]_i_3\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"B"
-    )
-        port map (
-      I0 => GOOD_CGS(0),
-      I1 => GOOD_CGS(1),
-      O => \FSM_sequential_STATE[3]_i_3_n_0\
-    );
-\FSM_sequential_STATE_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_STATE_reg[0]_i_1_n_0\,
-      Q => STATE(0),
-      R => \FSM_sequential_STATE[3]_i_1_n_0\
-    );
-\FSM_sequential_STATE_reg[0]_i_1\: unisim.vcomponents.MUXF7
-     port map (
-      I0 => \FSM_sequential_STATE[0]_i_2_n_0\,
-      I1 => \FSM_sequential_STATE[0]_i_3_n_0\,
-      O => \FSM_sequential_STATE_reg[0]_i_1_n_0\,
-      S => STATE(3)
-    );
-\FSM_sequential_STATE_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_STATE_reg[1]_i_1_n_0\,
-      Q => STATE(1),
-      R => \FSM_sequential_STATE[3]_i_1_n_0\
-    );
-\FSM_sequential_STATE_reg[1]_i_1\: unisim.vcomponents.MUXF7
-     port map (
-      I0 => \FSM_sequential_STATE[1]_i_2_n_0\,
-      I1 => \FSM_sequential_STATE[1]_i_3_n_0\,
-      O => \FSM_sequential_STATE_reg[1]_i_1_n_0\,
-      S => STATE(3)
-    );
-\FSM_sequential_STATE_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_STATE_reg[2]_i_1_n_0\,
-      Q => STATE(2),
-      R => \FSM_sequential_STATE[3]_i_1_n_0\
-    );
-\FSM_sequential_STATE_reg[2]_i_1\: unisim.vcomponents.MUXF7
-     port map (
-      I0 => \FSM_sequential_STATE[2]_i_2_n_0\,
-      I1 => \FSM_sequential_STATE[2]_i_3_n_0\,
-      O => \FSM_sequential_STATE_reg[2]_i_1_n_0\,
-      S => STATE(3)
-    );
-\FSM_sequential_STATE_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_STATE[3]_i_2_n_0\,
-      Q => STATE(3),
-      R => \FSM_sequential_STATE[3]_i_1_n_0\
-    );
-\GOOD_CGS[0]_i_1\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => GOOD_CGS(0),
-      O => \GOOD_CGS[0]_i_1_n_0\
-    );
-\GOOD_CGS[1]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"FFFF0580"
-    )
-        port map (
-      I0 => STATE(0),
-      I1 => STATE(1),
-      I2 => STATE(2),
-      I3 => STATE(3),
-      I4 => SR(0),
-      O => \GOOD_CGS[1]_i_1_n_0\
-    );
-\GOOD_CGS[1]_i_2\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00010101"
-    )
-        port map (
-      I0 => RXNOTINTABLE_INT,
-      I1 => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\,
-      I2 => D,
-      I3 => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\,
-      I4 => \^rxeven\,
-      O => p_1_in
-    );
-\GOOD_CGS[1]_i_3\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"6"
-    )
-        port map (
-      I0 => GOOD_CGS(0),
-      I1 => GOOD_CGS(1),
-      O => \GOOD_CGS[1]_i_3_n_0\
-    );
-\GOOD_CGS_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => p_1_in,
-      D => \GOOD_CGS[0]_i_1_n_0\,
-      Q => GOOD_CGS(0),
-      R => \GOOD_CGS[1]_i_1_n_0\
-    );
-\GOOD_CGS_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => p_1_in,
-      D => \GOOD_CGS[1]_i_3_n_0\,
-      Q => GOOD_CGS(1),
-      R => \GOOD_CGS[1]_i_1_n_0\
-    );
-RX_INVALID_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"B"
-    )
-        port map (
-      I0 => SR(0),
-      I1 => \^p_40_in\,
-      O => SYNC_STATUS_REG0
-    );
-SIGNAL_DETECT_REG_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SIGNAL_DETECT_MOD,
-      Q => SIGNAL_DETECT_REG,
-      R => '0'
-    );
-STATUS_VECTOR_0_PRE_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"8"
-    )
-        port map (
-      I0 => \^p_40_in\,
-      I1 => reset_done,
-      O => STATUS_VECTOR_0_PRE0
-    );
-SYNC_STATUS_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"AAAAA228AAAAAAA8"
-    )
-        port map (
-      I0 => \^p_40_in\,
-      I1 => STATE(3),
-      I2 => STATE(2),
-      I3 => STATE(1),
-      I4 => STATE(0),
-      I5 => CGBAD,
-      O => SYNC_STATUS_i_1_n_0
-    );
-SYNC_STATUS_reg: unisim.vcomponents.FDSE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => SYNC_STATUS_i_1_n_0,
-      Q => \^p_40_in\,
-      S => SYNC_STATUS0
-    );
-end STRUCTURE;
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_TX is
-  port (
-    \USE_ROCKET_IO.TXCHARDISPMODE_reg\ : out STD_LOGIC;
-    \USE_ROCKET_IO.TXDATA_reg[7]\ : out STD_LOGIC;
-    D : out STD_LOGIC_VECTOR ( 3 downto 0 );
-    \USE_ROCKET_IO.TXDATA_reg[5]\ : out STD_LOGIC;
-    \USE_ROCKET_IO.TXDATA_reg[3]\ : out STD_LOGIC;
-    \USE_ROCKET_IO.TXDATA_reg[2]\ : out STD_LOGIC;
-    \USE_ROCKET_IO.TXCHARISK_reg\ : out STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\ : out STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\ : out STD_LOGIC;
-    \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\ : out STD_LOGIC_VECTOR ( 7 downto 0 );
-    \USE_ROCKET_IO.TXDATA_reg[2]_0\ : out STD_LOGIC;
-    \USE_ROCKET_IO.TXCHARDISPVAL_reg\ : out STD_LOGIC;
-    \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\ : in STD_LOGIC;
-    userclk2 : in STD_LOGIC;
-    gmii_tx_en : in STD_LOGIC;
-    gmii_tx_er : in STD_LOGIC;
-    Q : in STD_LOGIC_VECTOR ( 1 downto 0 );
-    gmii_txd : in STD_LOGIC_VECTOR ( 7 downto 0 );
-    rxcharisk : in STD_LOGIC_VECTOR ( 0 to 0 );
-    rxchariscomma : in STD_LOGIC_VECTOR ( 0 to 0 );
-    rxdata : in STD_LOGIC_VECTOR ( 7 downto 0 )
-  );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_TX : entity is "TX";
-end GigEthGthUltraScaleCore_TX;
-
-architecture STRUCTURE of GigEthGthUltraScaleCore_TX is
-  signal C1_OR_C2_i_1_n_0 : STD_LOGIC;
-  signal C1_OR_C2_reg_n_0 : STD_LOGIC;
-  signal CODE_GRPISK : STD_LOGIC;
-  signal CODE_GRPISK_i_1_n_0 : STD_LOGIC;
-  signal \CODE_GRP[0]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[0]_i_2_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[1]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[1]_i_2_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[2]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[2]_i_2_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[3]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[3]_i_2_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[4]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[5]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[6]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[7]_i_1_n_0\ : STD_LOGIC;
-  signal \CODE_GRP[7]_i_2_n_0\ : STD_LOGIC;
-  signal \CODE_GRP_CNT_reg_n_0_[1]\ : STD_LOGIC;
-  signal \CODE_GRP_reg_n_0_[0]\ : STD_LOGIC;
-  signal CONFIG_DATA : STD_LOGIC_VECTOR ( 6 downto 0 );
-  signal \CONFIG_DATA_reg_n_0_[0]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[1]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[2]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[3]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[4]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[5]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[6]\ : STD_LOGIC;
-  signal \CONFIG_DATA_reg_n_0_[7]\ : STD_LOGIC;
-  signal CONFIG_K28p5 : STD_LOGIC;
-  signal CONFIG_K28p5_0 : STD_LOGIC;
-  signal DISPARITY : STD_LOGIC;
-  signal INSERT_IDLE_i_1_n_0 : STD_LOGIC;
-  signal INSERT_IDLE_reg_n_0 : STD_LOGIC;
-  signal K28p5 : STD_LOGIC;
-  signal K28p5_i_1_n_0 : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXCHARISK_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[0]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[1]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[2]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[3]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[4]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[5]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[6]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DATA.TXDATA[7]_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DISP.DISPARITY_i_1_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DISP.DISPARITY_i_2_n_0\ : STD_LOGIC;
-  signal \NO_QSGMII_DISP.DISPARITY_i_3_n_0\ : STD_LOGIC;
-  signal R : STD_LOGIC;
-  signal \R_i_1__0_n_0\ : STD_LOGIC;
-  signal S : STD_LOGIC;
-  signal S0 : STD_LOGIC;
-  signal SYNC_DISPARITY_i_1_n_0 : STD_LOGIC;
-  signal SYNC_DISPARITY_reg_n_0 : STD_LOGIC;
-  signal T : STD_LOGIC;
-  signal T0 : STD_LOGIC;
-  signal TRIGGER_S : STD_LOGIC;
-  signal TRIGGER_S0 : STD_LOGIC;
-  signal TRIGGER_T : STD_LOGIC;
-  signal TXCHARDISPMODE_INT : STD_LOGIC;
-  signal TXCHARDISPVAL : STD_LOGIC;
-  signal TXCHARISK_INT : STD_LOGIC;
-  signal TXDATA : STD_LOGIC_VECTOR ( 7 downto 0 );
-  signal TXD_REG1 : STD_LOGIC_VECTOR ( 7 downto 0 );
-  signal TX_EN_REG1 : STD_LOGIC;
-  signal TX_ER_REG1 : STD_LOGIC;
-  signal TX_EVEN : STD_LOGIC;
-  signal TX_PACKET : STD_LOGIC;
-  signal TX_PACKET_i_1_n_0 : STD_LOGIC;
-  signal V : STD_LOGIC;
-  signal V_i_1_n_0 : STD_LOGIC;
-  signal V_i_2_n_0 : STD_LOGIC;
-  signal V_i_3_n_0 : STD_LOGIC;
-  signal V_i_4_n_0 : STD_LOGIC;
-  signal V_i_5_n_0 : STD_LOGIC;
-  signal XMIT_CONFIG_INT : STD_LOGIC;
-  signal XMIT_DATA_INT : STD_LOGIC;
-  signal XMIT_DATA_INT_reg_n_0 : STD_LOGIC;
-  signal p_0_in : STD_LOGIC;
-  signal p_0_in16_in : STD_LOGIC;
-  signal p_0_in35_in : STD_LOGIC;
-  signal p_10_out : STD_LOGIC;
-  signal p_1_in : STD_LOGIC;
-  signal p_1_in1_in : STD_LOGIC;
-  signal p_1_in34_in : STD_LOGIC;
-  signal p_33_in : STD_LOGIC;
-  signal p_45_in : STD_LOGIC;
-  signal p_8_out : STD_LOGIC;
-  signal plusOp : STD_LOGIC_VECTOR ( 1 downto 0 );
-  attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of C1_OR_C2_i_1 : label is "soft_lutpair17";
-  attribute SOFT_HLUTNM of \CODE_GRP[7]_i_2\ : label is "soft_lutpair19";
-  attribute SOFT_HLUTNM of \CODE_GRP_CNT[0]_i_1\ : label is "soft_lutpair33";
-  attribute SOFT_HLUTNM of \CODE_GRP_CNT[1]_i_1\ : label is "soft_lutpair24";
-  attribute SOFT_HLUTNM of \CONFIG_DATA[0]_i_1\ : label is "soft_lutpair17";
-  attribute SOFT_HLUTNM of \CONFIG_DATA[1]_i_1\ : label is "soft_lutpair21";
-  attribute SOFT_HLUTNM of \CONFIG_DATA[6]_i_1\ : label is "soft_lutpair21";
-  attribute SOFT_HLUTNM of \CONFIG_DATA[7]_i_1\ : label is "soft_lutpair24";
-  attribute SOFT_HLUTNM of CONFIG_K28p5_i_1 : label is "soft_lutpair18";
-  attribute SOFT_HLUTNM of INSERT_IDLE_i_1 : label is "soft_lutpair20";
-  attribute SOFT_HLUTNM of K28p5_i_1 : label is "soft_lutpair20";
-  attribute SOFT_HLUTNM of \NO_QSGMII_CHAR.TXCHARDISPMODE_i_1\ : label is "soft_lutpair33";
-  attribute SOFT_HLUTNM of \NO_QSGMII_CHAR.TXCHARDISPVAL_i_1\ : label is "soft_lutpair25";
-  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[1]_i_1\ : label is "soft_lutpair16";
-  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[3]_i_1\ : label is "soft_lutpair15";
-  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[5]_i_1\ : label is "soft_lutpair15";
-  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[6]_i_1\ : label is "soft_lutpair16";
-  attribute SOFT_HLUTNM of TRIGGER_S_i_1 : label is "soft_lutpair18";
-  attribute SOFT_HLUTNM of TRIGGER_T_i_1 : label is "soft_lutpair13";
-  attribute SOFT_HLUTNM of TX_PACKET_i_1 : label is "soft_lutpair19";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_i_1\ : label is "soft_lutpair27";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_i_1\ : label is "soft_lutpair22";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[0]_i_1\ : label is "soft_lutpair32";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[1]_i_1\ : label is "soft_lutpair32";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[2]_i_1\ : label is "soft_lutpair31";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[3]_i_1\ : label is "soft_lutpair30";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[4]_i_1\ : label is "soft_lutpair29";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[5]_i_1\ : label is "soft_lutpair28";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[6]_i_1\ : label is "soft_lutpair31";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RXDATA_INT[7]_i_1\ : label is "soft_lutpair30";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXCHARDISPMODE_i_1\ : label is "soft_lutpair25";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXCHARISK_i_1\ : label is "soft_lutpair22";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[0]_i_1\ : label is "soft_lutpair28";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[1]_i_1\ : label is "soft_lutpair27";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[2]_i_1\ : label is "soft_lutpair26";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[3]_i_1\ : label is "soft_lutpair23";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[4]_i_1\ : label is "soft_lutpair29";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[5]_i_1\ : label is "soft_lutpair26";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[6]_i_1\ : label is "soft_lutpair14";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[7]_i_1\ : label is "soft_lutpair14";
-  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[7]_i_2\ : label is "soft_lutpair23";
-  attribute SOFT_HLUTNM of V_i_3 : label is "soft_lutpair13";
-begin
-C1_OR_C2_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"3F80"
-    )
-        port map (
-      I0 => XMIT_CONFIG_INT,
-      I1 => TX_EVEN,
-      I2 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      I3 => C1_OR_C2_reg_n_0,
-      O => C1_OR_C2_i_1_n_0
-    );
-C1_OR_C2_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => C1_OR_C2_i_1_n_0,
-      Q => C1_OR_C2_reg_n_0,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-CODE_GRPISK_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"3030FFFF3030FF55"
-    )
-        port map (
-      I0 => TX_PACKET,
-      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      I2 => TX_EVEN,
-      I3 => Q(1),
-      I4 => XMIT_CONFIG_INT,
-      I5 => \CODE_GRP[7]_i_2_n_0\,
-      O => CODE_GRPISK_i_1_n_0
-    );
-CODE_GRPISK_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CODE_GRPISK_i_1_n_0,
-      Q => CODE_GRPISK,
-      R => '0'
-    );
-\CODE_GRP[0]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"FA00FAFC"
-    )
-        port map (
-      I0 => \CONFIG_DATA_reg_n_0_[0]\,
-      I1 => S,
-      I2 => \CODE_GRP[0]_i_2_n_0\,
-      I3 => XMIT_CONFIG_INT,
-      I4 => Q(1),
-      O => \CODE_GRP[0]_i_1_n_0\
-    );
-\CODE_GRP[0]_i_2\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"000000000000FFF8"
-    )
-        port map (
-      I0 => TX_PACKET,
-      I1 => TXD_REG1(0),
-      I2 => R,
-      I3 => T,
-      I4 => XMIT_CONFIG_INT,
-      I5 => V,
-      O => \CODE_GRP[0]_i_2_n_0\
-    );
-\CODE_GRP[1]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFAA0000FFAAFEFE"
-    )
-        port map (
-      I0 => \CODE_GRP[1]_i_2_n_0\,
-      I1 => V,
-      I2 => S,
-      I3 => \CONFIG_DATA_reg_n_0_[1]\,
-      I4 => XMIT_CONFIG_INT,
-      I5 => Q(1),
-      O => \CODE_GRP[1]_i_1_n_0\
-    );
-\CODE_GRP[1]_i_2\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00000F08"
-    )
-        port map (
-      I0 => TX_PACKET,
-      I1 => TXD_REG1(1),
-      I2 => XMIT_CONFIG_INT,
-      I3 => R,
-      I4 => T,
-      O => \CODE_GRP[1]_i_2_n_0\
-    );
-\CODE_GRP[2]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"C0FFC044"
-    )
-        port map (
-      I0 => S,
-      I1 => \CODE_GRP[2]_i_2_n_0\,
-      I2 => \CONFIG_DATA_reg_n_0_[2]\,
-      I3 => XMIT_CONFIG_INT,
-      I4 => Q(1),
-      O => \CODE_GRP[2]_i_1_n_0\
-    );
-\CODE_GRP[2]_i_2\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFFFFFFFFFFFFFB"
-    )
-        port map (
-      I0 => XMIT_CONFIG_INT,
-      I1 => TX_PACKET,
-      I2 => TXD_REG1(2),
-      I3 => R,
-      I4 => T,
-      I5 => V,
-      O => \CODE_GRP[2]_i_2_n_0\
-    );
-\CODE_GRP[3]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFFFFFF88B888BB"
-    )
-        port map (
-      I0 => \CONFIG_DATA_reg_n_0_[3]\,
-      I1 => XMIT_CONFIG_INT,
-      I2 => TXD_REG1(3),
-      I3 => R,
-      I4 => TX_PACKET,
-      I5 => \CODE_GRP[3]_i_2_n_0\,
-      O => \CODE_GRP[3]_i_1_n_0\
-    );
-\CODE_GRP[3]_i_2\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00FF00FE"
-    )
-        port map (
-      I0 => T,
-      I1 => S,
-      I2 => V,
-      I3 => XMIT_CONFIG_INT,
-      I4 => Q(1),
-      O => \CODE_GRP[3]_i_2_n_0\
-    );
-\CODE_GRP[4]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"CFCFCFCFCFCFCACF"
-    )
-        port map (
-      I0 => TXD_REG1(4),
-      I1 => \CONFIG_DATA_reg_n_0_[4]\,
-      I2 => XMIT_CONFIG_INT,
-      I3 => TX_PACKET,
-      I4 => \CODE_GRP[7]_i_2_n_0\,
-      I5 => Q(1),
-      O => \CODE_GRP[4]_i_1_n_0\
-    );
-\CODE_GRP[5]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"CFCFCFCFCFCFCACF"
-    )
-        port map (
-      I0 => TXD_REG1(5),
-      I1 => \CONFIG_DATA_reg_n_0_[5]\,
-      I2 => XMIT_CONFIG_INT,
-      I3 => TX_PACKET,
-      I4 => \CODE_GRP[7]_i_2_n_0\,
-      I5 => Q(1),
-      O => \CODE_GRP[5]_i_1_n_0\
-    );
-\CODE_GRP[6]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"AAAA0000AAAAFFC0"
-    )
-        port map (
-      I0 => \CONFIG_DATA_reg_n_0_[6]\,
-      I1 => TX_PACKET,
-      I2 => TXD_REG1(6),
-      I3 => \CODE_GRP[7]_i_2_n_0\,
-      I4 => XMIT_CONFIG_INT,
-      I5 => Q(1),
-      O => \CODE_GRP[6]_i_1_n_0\
-    );
-\CODE_GRP[7]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"CFCFCFCFCFCFCACF"
-    )
-        port map (
-      I0 => TXD_REG1(7),
-      I1 => \CONFIG_DATA_reg_n_0_[7]\,
-      I2 => XMIT_CONFIG_INT,
-      I3 => TX_PACKET,
-      I4 => \CODE_GRP[7]_i_2_n_0\,
-      I5 => Q(1),
-      O => \CODE_GRP[7]_i_1_n_0\
-    );
-\CODE_GRP[7]_i_2\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFFE"
-    )
-        port map (
-      I0 => V,
-      I1 => S,
-      I2 => T,
-      I3 => R,
-      O => \CODE_GRP[7]_i_2_n_0\
-    );
-\CODE_GRP_CNT[0]_i_1\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => TX_EVEN,
-      O => plusOp(0)
-    );
-\CODE_GRP_CNT[1]_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"6"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      O => plusOp(1)
-    );
-\CODE_GRP_CNT_reg[0]\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => plusOp(0),
-      Q => TX_EVEN,
-      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CODE_GRP_CNT_reg[1]\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => plusOp(1),
-      Q => \CODE_GRP_CNT_reg_n_0_[1]\,
-      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CODE_GRP_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[0]_i_1_n_0\,
-      Q => \CODE_GRP_reg_n_0_[0]\,
-      R => '0'
-    );
-\CODE_GRP_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[1]_i_1_n_0\,
-      Q => p_1_in,
-      R => '0'
-    );
-\CODE_GRP_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[2]_i_1_n_0\,
-      Q => p_0_in16_in,
-      R => '0'
-    );
-\CODE_GRP_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[3]_i_1_n_0\,
-      Q => p_0_in,
-      R => '0'
-    );
-\CODE_GRP_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[4]_i_1_n_0\,
-      Q => p_1_in1_in,
-      R => '0'
-    );
-\CODE_GRP_reg[5]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[5]_i_1_n_0\,
-      Q => p_1_in34_in,
-      R => '0'
-    );
-\CODE_GRP_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[6]_i_1_n_0\,
-      Q => p_33_in,
-      R => '0'
-    );
-\CODE_GRP_reg[7]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \CODE_GRP[7]_i_1_n_0\,
-      Q => p_0_in35_in,
-      R => '0'
-    );
-\CONFIG_DATA[0]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"04"
-    )
-        port map (
-      I0 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      I1 => TX_EVEN,
-      I2 => C1_OR_C2_reg_n_0,
-      O => CONFIG_DATA(0)
-    );
-\CONFIG_DATA[1]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"08"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => C1_OR_C2_reg_n_0,
-      I2 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      O => CONFIG_DATA(1)
-    );
-\CONFIG_DATA[3]_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      I1 => TX_EVEN,
-      O => CONFIG_DATA(3)
-    );
-\CONFIG_DATA[6]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"08"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => C1_OR_C2_reg_n_0,
-      I2 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      O => CONFIG_DATA(6)
-    );
-\CONFIG_DATA[7]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"07"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => C1_OR_C2_reg_n_0,
-      I2 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      O => CONFIG_DATA(2)
-    );
-\CONFIG_DATA_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(0),
-      Q => \CONFIG_DATA_reg_n_0_[0]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(1),
-      Q => \CONFIG_DATA_reg_n_0_[1]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(2),
-      Q => \CONFIG_DATA_reg_n_0_[2]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(3),
-      Q => \CONFIG_DATA_reg_n_0_[3]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(2),
-      Q => \CONFIG_DATA_reg_n_0_[4]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[5]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(2),
-      Q => \CONFIG_DATA_reg_n_0_[5]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(6),
-      Q => \CONFIG_DATA_reg_n_0_[6]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\CONFIG_DATA_reg[7]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_DATA(2),
-      Q => \CONFIG_DATA_reg_n_0_[7]\,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-CONFIG_K28p5_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      O => CONFIG_K28p5_0
-    );
-CONFIG_K28p5_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => CONFIG_K28p5_0,
-      Q => CONFIG_K28p5,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-INSERT_IDLE_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"00AB"
-    )
-        port map (
-      I0 => Q(1),
-      I1 => \CODE_GRP[7]_i_2_n_0\,
-      I2 => TX_PACKET,
-      I3 => XMIT_CONFIG_INT,
-      O => INSERT_IDLE_i_1_n_0
-    );
-INSERT_IDLE_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => INSERT_IDLE_i_1_n_0,
-      Q => INSERT_IDLE_reg_n_0,
-      R => '0'
-    );
-K28p5_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"8"
-    )
-        port map (
-      I0 => XMIT_CONFIG_INT,
-      I1 => CONFIG_K28p5,
-      O => K28p5_i_1_n_0
-    );
-K28p5_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => K28p5_i_1_n_0,
-      Q => K28p5,
-      R => '0'
-    );
-\NO_QSGMII_CHAR.TXCHARDISPMODE_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => SYNC_DISPARITY_reg_n_0,
-      I1 => TX_EVEN,
-      O => p_10_out
-    );
-\NO_QSGMII_CHAR.TXCHARDISPMODE_reg\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => p_10_out,
-      Q => TXCHARDISPMODE_INT,
-      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\NO_QSGMII_CHAR.TXCHARDISPVAL_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"40"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => SYNC_DISPARITY_reg_n_0,
-      I2 => DISPARITY,
-      O => p_8_out
-    );
-\NO_QSGMII_CHAR.TXCHARDISPVAL_reg\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => p_8_out,
-      Q => TXCHARDISPVAL,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\NO_QSGMII_DATA.TXCHARISK_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"002A"
-    )
-        port map (
-      I0 => CODE_GRPISK,
-      I1 => TX_EVEN,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXCHARISK_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXCHARISK_reg\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXCHARISK_i_1_n_0\,
-      Q => TXCHARISK_INT,
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA[0]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"0000CAAA"
-    )
-        port map (
-      I0 => \CODE_GRP_reg_n_0_[0]\,
-      I1 => DISPARITY,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => TX_EVEN,
-      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[0]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[1]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"002A"
-    )
-        port map (
-      I0 => p_1_in,
-      I1 => TX_EVEN,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[1]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[2]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"0000CAAA"
-    )
-        port map (
-      I0 => p_0_in16_in,
-      I1 => DISPARITY,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => TX_EVEN,
-      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[2]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[3]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"002A"
-    )
-        port map (
-      I0 => p_0_in,
-      I1 => TX_EVEN,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[3]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[4]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"00003AAA"
-    )
-        port map (
-      I0 => p_1_in1_in,
-      I1 => DISPARITY,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => TX_EVEN,
-      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[4]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[5]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"002A"
-    )
-        port map (
-      I0 => p_1_in34_in,
-      I1 => TX_EVEN,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[5]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[6]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"3222"
-    )
-        port map (
-      I0 => p_33_in,
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => TX_EVEN,
-      I3 => INSERT_IDLE_reg_n_0,
-      O => \NO_QSGMII_DATA.TXDATA[6]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA[7]_i_1\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"0000CAAA"
-    )
-        port map (
-      I0 => p_0_in35_in,
-      I1 => DISPARITY,
-      I2 => INSERT_IDLE_reg_n_0,
-      I3 => TX_EVEN,
-      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => \NO_QSGMII_DATA.TXDATA[7]_i_1_n_0\
-    );
-\NO_QSGMII_DATA.TXDATA_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[0]_i_1_n_0\,
-      Q => TXDATA(0),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[1]_i_1_n_0\,
-      Q => TXDATA(1),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[2]_i_1_n_0\,
-      Q => TXDATA(2),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[3]_i_1_n_0\,
-      Q => TXDATA(3),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[4]_i_1_n_0\,
-      Q => TXDATA(4),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[5]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[5]_i_1_n_0\,
-      Q => TXDATA(5),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[6]_i_1_n_0\,
-      Q => TXDATA(6),
-      R => '0'
-    );
-\NO_QSGMII_DATA.TXDATA_reg[7]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DATA.TXDATA[7]_i_1_n_0\,
-      Q => TXDATA(7),
-      R => '0'
-    );
-\NO_QSGMII_DISP.DISPARITY_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0041414100BEBEBE"
-    )
-        port map (
-      I0 => K28p5,
-      I1 => \NO_QSGMII_DISP.DISPARITY_i_2_n_0\,
-      I2 => \NO_QSGMII_DISP.DISPARITY_i_3_n_0\,
-      I3 => INSERT_IDLE_reg_n_0,
-      I4 => TX_EVEN,
-      I5 => DISPARITY,
-      O => \NO_QSGMII_DISP.DISPARITY_i_1_n_0\
-    );
-\NO_QSGMII_DISP.DISPARITY_i_2\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"7C"
-    )
-        port map (
-      I0 => p_0_in35_in,
-      I1 => p_1_in34_in,
-      I2 => p_33_in,
-      O => \NO_QSGMII_DISP.DISPARITY_i_2_n_0\
-    );
-\NO_QSGMII_DISP.DISPARITY_i_3\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"177E7EE0"
-    )
-        port map (
-      I0 => p_0_in,
-      I1 => p_1_in1_in,
-      I2 => \CODE_GRP_reg_n_0_[0]\,
-      I3 => p_1_in,
-      I4 => p_0_in16_in,
-      O => \NO_QSGMII_DISP.DISPARITY_i_3_n_0\
-    );
-\NO_QSGMII_DISP.DISPARITY_reg\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \NO_QSGMII_DISP.DISPARITY_i_1_n_0\,
-      Q => DISPARITY,
-      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\R_i_1__0\: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"F0FEF0F0"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => TX_ER_REG1,
-      I2 => T,
-      I3 => S,
-      I4 => R,
-      O => \R_i_1__0_n_0\
-    );
-R_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \R_i_1__0_n_0\,
-      Q => R,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-SYNC_DISPARITY_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"3030AAAA3030AAFF"
-    )
-        port map (
-      I0 => Q(1),
-      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      I2 => TX_EVEN,
-      I3 => \CODE_GRP[7]_i_2_n_0\,
-      I4 => XMIT_CONFIG_INT,
-      I5 => TX_PACKET,
-      O => SYNC_DISPARITY_i_1_n_0
-    );
-SYNC_DISPARITY_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SYNC_DISPARITY_i_1_n_0,
-      Q => SYNC_DISPARITY_reg_n_0,
-      R => '0'
-    );
-\S_i_1__0\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFF00000B000000"
-    )
-        port map (
-      I0 => TX_ER_REG1,
-      I1 => TX_EVEN,
-      I2 => TX_EN_REG1,
-      I3 => gmii_tx_en,
-      I4 => XMIT_DATA_INT_reg_n_0,
-      I5 => TRIGGER_S,
-      O => S0
-    );
-S_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => S0,
-      Q => S,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-TRIGGER_S_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0040"
-    )
-        port map (
-      I0 => TX_EN_REG1,
-      I1 => gmii_tx_en,
-      I2 => TX_EVEN,
-      I3 => TX_ER_REG1,
-      O => TRIGGER_S0
-    );
-TRIGGER_S_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRIGGER_S0,
-      Q => TRIGGER_S,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-TRIGGER_T_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => TX_EN_REG1,
-      I1 => gmii_tx_en,
-      O => p_45_in
-    );
-TRIGGER_T_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => p_45_in,
-      Q => TRIGGER_T,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\TXD_REG1_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(0),
-      Q => TXD_REG1(0),
-      R => '0'
-    );
-\TXD_REG1_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(1),
-      Q => TXD_REG1(1),
-      R => '0'
-    );
-\TXD_REG1_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(2),
-      Q => TXD_REG1(2),
-      R => '0'
-    );
-\TXD_REG1_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(3),
-      Q => TXD_REG1(3),
-      R => '0'
-    );
-\TXD_REG1_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(4),
-      Q => TXD_REG1(4),
-      R => '0'
-    );
-\TXD_REG1_reg[5]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(5),
-      Q => TXD_REG1(5),
-      R => '0'
-    );
-\TXD_REG1_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(6),
-      Q => TXD_REG1(6),
-      R => '0'
-    );
-\TXD_REG1_reg[7]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_txd(7),
-      Q => TXD_REG1(7),
-      R => '0'
-    );
-TX_EN_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_tx_en,
-      Q => TX_EN_REG1,
-      R => '0'
-    );
-TX_ER_REG1_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => gmii_tx_er,
-      Q => TX_ER_REG1,
-      R => '0'
-    );
-TX_PACKET_i_1: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"BA"
-    )
-        port map (
-      I0 => S,
-      I1 => T,
-      I2 => TX_PACKET,
-      O => TX_PACKET_i_1_n_0
-    );
-TX_PACKET_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TX_PACKET_i_1_n_0,
-      Q => TX_PACKET,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\T_i_1__0\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFF00E000E000E0"
-    )
-        port map (
-      I0 => TX_PACKET,
-      I1 => S,
-      I2 => TX_EN_REG1,
-      I3 => gmii_tx_en,
-      I4 => V,
-      I5 => TRIGGER_T,
-      O => T0
-    );
-T_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => T0,
-      Q => T,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-\USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXCHARISK_INT,
-      I1 => Q(0),
-      I2 => rxchariscomma(0),
-      O => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\
-    );
-\USE_ROCKET_IO.NO_1588.RXCHARISK_INT_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXCHARISK_INT,
-      I1 => Q(0),
-      I2 => rxcharisk(0),
-      O => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[0]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(0),
-      I1 => Q(0),
-      I2 => rxdata(0),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(0)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[1]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(1),
-      I1 => Q(0),
-      I2 => rxdata(1),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(1)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[2]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(2),
-      I1 => Q(0),
-      I2 => rxdata(2),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(2)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[3]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(3),
-      I1 => Q(0),
-      I2 => rxdata(3),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(3)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[4]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(4),
-      I1 => Q(0),
-      I2 => rxdata(4),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(4)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[5]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(5),
-      I1 => Q(0),
-      I2 => rxdata(5),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(5)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[6]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(6),
-      I1 => Q(0),
-      I2 => rxdata(6),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(6)
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT[7]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TXDATA(7),
-      I1 => Q(0),
-      I2 => rxdata(7),
-      O => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(7)
-    );
-\USE_ROCKET_IO.TXCHARDISPMODE_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => Q(0),
-      I2 => TXCHARDISPMODE_INT,
-      O => \USE_ROCKET_IO.TXCHARDISPMODE_reg\
-    );
-\USE_ROCKET_IO.TXCHARDISPVAL_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXCHARDISPVAL,
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => \USE_ROCKET_IO.TXCHARDISPVAL_reg\
-    );
-\USE_ROCKET_IO.TXCHARISK_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"B8"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => Q(0),
-      I2 => TXCHARISK_INT,
-      O => \USE_ROCKET_IO.TXCHARISK_reg\
-    );
-\USE_ROCKET_IO.TXDATA[0]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXDATA(0),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => D(0)
-    );
-\USE_ROCKET_IO.TXDATA[1]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXDATA(1),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => D(1)
-    );
-\USE_ROCKET_IO.TXDATA[2]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXDATA(2),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => \USE_ROCKET_IO.TXDATA_reg[2]\
-    );
-\USE_ROCKET_IO.TXDATA[3]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXDATA(3),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => \USE_ROCKET_IO.TXDATA_reg[3]\
-    );
-\USE_ROCKET_IO.TXDATA[4]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"32"
-    )
-        port map (
-      I0 => TXDATA(4),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => D(2)
-    );
-\USE_ROCKET_IO.TXDATA[5]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXDATA(5),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => \USE_ROCKET_IO.TXDATA_reg[5]\
-    );
-\USE_ROCKET_IO.TXDATA[6]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"003A"
-    )
-        port map (
-      I0 => TXDATA(6),
-      I1 => TX_EVEN,
-      I2 => Q(0),
-      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      O => D(3)
-    );
-\USE_ROCKET_IO.TXDATA[7]_i_1\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"40"
-    )
-        port map (
-      I0 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I1 => Q(0),
-      I2 => TX_EVEN,
-      O => \USE_ROCKET_IO.TXDATA_reg[2]_0\
-    );
-\USE_ROCKET_IO.TXDATA[7]_i_2\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"02"
-    )
-        port map (
-      I0 => TXDATA(7),
-      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
-      I2 => Q(0),
-      O => \USE_ROCKET_IO.TXDATA_reg[7]\
-    );
-V_i_1: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"F888"
-    )
-        port map (
-      I0 => XMIT_DATA_INT_reg_n_0,
-      I1 => V_i_2_n_0,
-      I2 => S,
-      I3 => V,
-      O => V_i_1_n_0
-    );
-V_i_2: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"AAAAFEAA"
-    )
-        port map (
-      I0 => V_i_3_n_0,
-      I1 => V_i_4_n_0,
-      I2 => V_i_5_n_0,
-      I3 => gmii_tx_er,
-      I4 => gmii_tx_en,
-      O => V_i_2_n_0
-    );
-V_i_3: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"8F808080"
-    )
-        port map (
-      I0 => gmii_tx_er,
-      I1 => gmii_tx_en,
-      I2 => TX_PACKET,
-      I3 => TX_ER_REG1,
-      I4 => TX_EN_REG1,
-      O => V_i_3_n_0
-    );
-V_i_4: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"7FFF"
-    )
-        port map (
-      I0 => gmii_txd(0),
-      I1 => gmii_txd(3),
-      I2 => gmii_txd(2),
-      I3 => gmii_txd(1),
-      O => V_i_4_n_0
-    );
-V_i_5: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFFE"
-    )
-        port map (
-      I0 => gmii_txd(6),
-      I1 => gmii_txd(4),
-      I2 => gmii_txd(5),
-      I3 => gmii_txd(7),
-      O => V_i_5_n_0
-    );
-V_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => V_i_1_n_0,
-      Q => V,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-XMIT_CONFIG_INT_i_1: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"1"
-    )
-        port map (
-      I0 => TX_EVEN,
-      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
-      O => XMIT_DATA_INT
-    );
-XMIT_CONFIG_INT_reg: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => XMIT_DATA_INT,
-      D => '0',
-      Q => XMIT_CONFIG_INT,
-      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-XMIT_DATA_INT_reg: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => XMIT_DATA_INT,
-      D => '1',
-      Q => XMIT_DATA_INT_reg_n_0,
-      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
-    );
-end STRUCTURE;
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer is
   port (
     gtwiz_reset_rxresetdone_int : out STD_LOGIC;
     rxresetdone_out : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -3840,17 +337,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_0 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_0 is
   port (
     gtwiz_reset_txresetdone_int : out STD_LOGIC;
     txresetdone_out : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_0 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_0;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_0 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_0;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_0 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_0 is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -3931,21 +428,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_1 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_1 is
   port (
-    E : out STD_LOGIC_VECTOR ( 0 to 0 );
+    gtpowergood_sync : out STD_LOGIC;
     gtpowergood_out : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    sm_reset_all_timer_clr0 : in STD_LOGIC;
-    \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
-    p_0_in14_out : in STD_LOGIC
+    gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_1 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_1;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_1 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_1;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_1 is
-  signal gtpowergood_sync : STD_LOGIC;
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_1 is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -3966,19 +459,6 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute ASYNC_REG_boolean of i_in_sync3_reg : label is std.standard.true;
   attribute KEEP of i_in_sync3_reg : label is "yes";
 begin
-\FSM_sequential_sm_reset_all[2]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"CE0ECE0EFFFF3F3F"
-    )
-        port map (
-      I0 => sm_reset_all_timer_clr0,
-      I1 => \out\(0),
-      I2 => \out\(2),
-      I3 => gtpowergood_sync,
-      I4 => p_0_in14_out,
-      I5 => \out\(1),
-      O => E(0)
-    );
 i_in_meta_reg: unisim.vcomponents.FDRE
     generic map(
       INIT => '0'
@@ -4039,17 +519,19 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_10 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_10 is
   port (
     gtwiz_reset_rx_cdr_stable_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+    sm_reset_rx_cdr_to_clr_reg : out STD_LOGIC;
     rxprogdivreset_out_reg : out STD_LOGIC;
-    rxprogdivreset_out_reg_0 : out STD_LOGIC;
     E : out STD_LOGIC_VECTOR ( 0 to 0 );
     rxcdrlock_out : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
+    sm_reset_rx_timer_clr09_out : in STD_LOGIC;
+    sm_reset_rx_cdr_to_clr : in STD_LOGIC;
     gtwiz_reset_rx_any_sync : in STD_LOGIC;
-    gtwiz_reset_rxprogdivreset_int : in STD_LOGIC;
+    rxprogdivreset_int : in STD_LOGIC;
     sm_reset_rx_cdr_to_sat : in STD_LOGIC;
     \FSM_sequential_sm_reset_rx_reg[1]\ : in STD_LOGIC;
     gtwiz_reset_rxresetdone_int : in STD_LOGIC;
@@ -4059,10 +541,10 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_10 is
     gtwiz_reset_rx_datapath_dly : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_10 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_10;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_10 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_10;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_10 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_10 is
   signal \FSM_sequential_sm_reset_rx[2]_i_3_n_0\ : STD_LOGIC;
   signal \FSM_sequential_sm_reset_rx[2]_i_5_n_0\ : STD_LOGIC;
   signal \^gtwiz_reset_rx_cdr_stable_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
@@ -4075,9 +557,9 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute async_reg of i_in_sync2 : signal is "true";
   signal i_in_sync3 : STD_LOGIC;
   attribute async_reg of i_in_sync3 : signal is "true";
-  signal \^rxprogdivreset_out_reg_0\ : STD_LOGIC;
+  signal sm_reset_rx_cdr_to_clr0 : STD_LOGIC;
   attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_rx[2]_i_5\ : label is "soft_lutpair37";
+  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_rx[2]_i_5\ : label is "soft_lutpair39";
   attribute ASYNC_REG_boolean : boolean;
   attribute ASYNC_REG_boolean of i_in_meta_reg : label is std.standard.true;
   attribute KEEP : string;
@@ -4088,10 +570,9 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute KEEP of i_in_sync2_reg : label is "yes";
   attribute ASYNC_REG_boolean of i_in_sync3_reg : label is std.standard.true;
   attribute KEEP of i_in_sync3_reg : label is "yes";
-  attribute SOFT_HLUTNM of sm_reset_rx_cdr_to_clr_i_3 : label is "soft_lutpair37";
+  attribute SOFT_HLUTNM of sm_reset_rx_cdr_to_clr_i_2 : label is "soft_lutpair39";
 begin
   gtwiz_reset_rx_cdr_stable_out(0) <= \^gtwiz_reset_rx_cdr_stable_out\(0);
-  rxprogdivreset_out_reg_0 <= \^rxprogdivreset_out_reg_0\;
 \FSM_sequential_sm_reset_rx[2]_i_3\: unisim.vcomponents.LUT6
     generic map(
       INIT => X"00B0FFFF00B00000"
@@ -4181,43 +662,55 @@ i_in_sync3_reg: unisim.vcomponents.FDRE
     );
 rxprogdivreset_out_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FFFFFFFB00001102"
+      INIT => X"FFFFFFF700000330"
     )
         port map (
-      I0 => \out\(1),
+      I0 => sm_reset_rx_cdr_to_clr0,
       I1 => \out\(2),
-      I2 => \^rxprogdivreset_out_reg_0\,
+      I2 => \out\(1),
       I3 => \out\(0),
       I4 => gtwiz_reset_rx_any_sync,
-      I5 => gtwiz_reset_rxprogdivreset_int,
+      I5 => rxprogdivreset_int,
       O => rxprogdivreset_out_reg
     );
-sm_reset_rx_cdr_to_clr_i_3: unisim.vcomponents.LUT3
+sm_reset_rx_cdr_to_clr_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"02"
+      INIT => X"FFFF3FFF02020303"
     )
         port map (
-      I0 => \out\(2),
+      I0 => sm_reset_rx_cdr_to_clr0,
+      I1 => \out\(1),
+      I2 => \out\(0),
+      I3 => sm_reset_rx_timer_clr09_out,
+      I4 => \out\(2),
+      I5 => sm_reset_rx_cdr_to_clr,
+      O => sm_reset_rx_cdr_to_clr_reg
+    );
+sm_reset_rx_cdr_to_clr_i_2: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => sm_reset_rx_cdr_to_sat,
       I1 => \^gtwiz_reset_rx_cdr_stable_out\(0),
-      I2 => sm_reset_rx_cdr_to_sat,
-      O => \^rxprogdivreset_out_reg_0\
+      O => sm_reset_rx_cdr_to_clr0
     );
 end STRUCTURE;
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_2 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_2 is
   port (
     gtwiz_reset_rx_datapath_dly : out STD_LOGIC;
-    gtwiz_reset_rx_datapath_sync : in STD_LOGIC;
+    in0 : in STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_2 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_2;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_2 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_2;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_2 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_2 is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -4245,7 +738,7 @@ i_in_meta_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => gtwiz_reset_rx_datapath_sync,
+      D => in0,
       Q => i_in_meta,
       R => '0'
     );
@@ -4298,20 +791,20 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_3 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_3 is
   port (
     gtwiz_reset_rx_pll_and_datapath_dly : out STD_LOGIC;
     D : out STD_LOGIC_VECTOR ( 1 downto 0 );
-    gtwiz_reset_rx_pll_and_datapath_sync : in STD_LOGIC;
+    in0 : in STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
     p_0_in11_out : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_3 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_3;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_3 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_3;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_3 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_3 is
   signal \^gtwiz_reset_rx_pll_and_datapath_dly\ : STD_LOGIC;
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
@@ -4323,8 +816,8 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   signal i_in_sync3 : STD_LOGIC;
   attribute async_reg of i_in_sync3 : signal is "true";
   attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_rx[0]_i_1\ : label is "soft_lutpair34";
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_rx[1]_i_1\ : label is "soft_lutpair34";
+  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_rx[0]_i_1\ : label is "soft_lutpair35";
+  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_rx[1]_i_1\ : label is "soft_lutpair35";
   attribute ASYNC_REG_boolean : boolean;
   attribute ASYNC_REG_boolean of i_in_meta_reg : label is std.standard.true;
   attribute KEEP : string;
@@ -4339,25 +832,25 @@ begin
   gtwiz_reset_rx_pll_and_datapath_dly <= \^gtwiz_reset_rx_pll_and_datapath_dly\;
 \FSM_sequential_sm_reset_rx[0]_i_1\: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"03FE033E"
+      INIT => X"0303BFBC"
     )
         port map (
-      I0 => \^gtwiz_reset_rx_pll_and_datapath_dly\,
-      I1 => \out\(2),
-      I2 => \out\(1),
-      I3 => \out\(0),
-      I4 => p_0_in11_out,
+      I0 => p_0_in11_out,
+      I1 => \out\(1),
+      I2 => \out\(2),
+      I3 => \^gtwiz_reset_rx_pll_and_datapath_dly\,
+      I4 => \out\(0),
       O => D(0)
     );
 \FSM_sequential_sm_reset_rx[1]_i_1\: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"0C0FF0F5"
+      INIT => X"00F3FF11"
     )
         port map (
       I0 => \^gtwiz_reset_rx_pll_and_datapath_dly\,
-      I1 => p_0_in11_out,
-      I2 => \out\(0),
-      I3 => \out\(2),
+      I1 => \out\(2),
+      I2 => p_0_in11_out,
+      I3 => \out\(0),
       I4 => \out\(1),
       O => D(1)
     );
@@ -4368,7 +861,7 @@ i_in_meta_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => gtwiz_reset_rx_pll_and_datapath_sync,
+      D => in0,
       Q => i_in_meta,
       R => '0'
     );
@@ -4421,28 +914,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_4 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_4 is
   port (
-    E : out STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_tx_datapath_sync : in STD_LOGIC;
-    gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    \FSM_sequential_sm_reset_tx_reg[1]\ : in STD_LOGIC;
-    sm_reset_tx_timer_sat_reg : in STD_LOGIC;
-    \out\ : in STD_LOGIC_VECTOR ( 0 to 0 );
-    plllock_tx_sync : in STD_LOGIC;
-    i_in_out_reg_0 : in STD_LOGIC;
-    sm_reset_tx_pll_timer_clr_reg : in STD_LOGIC;
-    sm_reset_tx_pll_timer_sat : in STD_LOGIC;
-    \FSM_sequential_sm_reset_tx_reg[1]_0\ : in STD_LOGIC;
-    gtwiz_reset_tx_pll_and_datapath_dly : in STD_LOGIC
+    gtwiz_reset_tx_datapath_dly : out STD_LOGIC;
+    in0 : in STD_LOGIC;
+    gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_4 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_4;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_4 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_4;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_4 is
-  signal \FSM_sequential_sm_reset_tx[2]_i_3_n_0\ : STD_LOGIC;
-  signal gtwiz_reset_tx_datapath_dly : STD_LOGIC;
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_4 is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -4463,32 +945,6 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute ASYNC_REG_boolean of i_in_sync3_reg : label is std.standard.true;
   attribute KEEP of i_in_sync3_reg : label is "yes";
 begin
-\FSM_sequential_sm_reset_tx[2]_i_1\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FFFFFFFFEAEAAAEA"
-    )
-        port map (
-      I0 => \FSM_sequential_sm_reset_tx[2]_i_3_n_0\,
-      I1 => \FSM_sequential_sm_reset_tx_reg[1]\,
-      I2 => sm_reset_tx_timer_sat_reg,
-      I3 => \out\(0),
-      I4 => plllock_tx_sync,
-      I5 => i_in_out_reg_0,
-      O => E(0)
-    );
-\FSM_sequential_sm_reset_tx[2]_i_3\: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"040404040F0F0F00"
-    )
-        port map (
-      I0 => sm_reset_tx_pll_timer_clr_reg,
-      I1 => sm_reset_tx_pll_timer_sat,
-      I2 => \FSM_sequential_sm_reset_tx_reg[1]_0\,
-      I3 => gtwiz_reset_tx_datapath_dly,
-      I4 => gtwiz_reset_tx_pll_and_datapath_dly,
-      I5 => \out\(0),
-      O => \FSM_sequential_sm_reset_tx[2]_i_3_n_0\
-    );
 i_in_meta_reg: unisim.vcomponents.FDRE
     generic map(
       INIT => '0'
@@ -4496,7 +952,7 @@ i_in_meta_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => gtwiz_reset_tx_datapath_sync,
+      D => in0,
       Q => i_in_meta,
       R => '0'
     );
@@ -4549,19 +1005,19 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_5 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_5 is
   port (
     gtwiz_reset_tx_pll_and_datapath_dly : out STD_LOGIC;
     D : out STD_LOGIC_VECTOR ( 1 downto 0 );
-    gtwiz_reset_tx_pll_and_datapath_sync : in STD_LOGIC;
+    in0 : in STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_5 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_5;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_5 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_5;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_5 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_5 is
   signal \^gtwiz_reset_tx_pll_and_datapath_dly\ : STD_LOGIC;
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
@@ -4573,8 +1029,8 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   signal i_in_sync3 : STD_LOGIC;
   attribute async_reg of i_in_sync3 : signal is "true";
   attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_tx[0]_i_1\ : label is "soft_lutpair35";
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_tx[1]_i_1\ : label is "soft_lutpair35";
+  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_tx[0]_i_1\ : label is "soft_lutpair36";
+  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_tx[1]_i_1\ : label is "soft_lutpair36";
   attribute ASYNC_REG_boolean : boolean;
   attribute ASYNC_REG_boolean of i_in_meta_reg : label is std.standard.true;
   attribute KEEP : string;
@@ -4589,24 +1045,24 @@ begin
   gtwiz_reset_tx_pll_and_datapath_dly <= \^gtwiz_reset_tx_pll_and_datapath_dly\;
 \FSM_sequential_sm_reset_tx[0]_i_1\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"333E"
+      INIT => X"5756"
     )
         port map (
-      I0 => \^gtwiz_reset_tx_pll_and_datapath_dly\,
-      I1 => \out\(0),
+      I0 => \out\(0),
+      I1 => \out\(2),
       I2 => \out\(1),
-      I3 => \out\(2),
+      I3 => \^gtwiz_reset_tx_pll_and_datapath_dly\,
       O => D(0)
     );
 \FSM_sequential_sm_reset_tx[1]_i_1\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"0F51"
+      INIT => X"03F1"
     )
         port map (
-      I0 => \out\(2),
-      I1 => \^gtwiz_reset_tx_pll_and_datapath_dly\,
-      I2 => \out\(1),
-      I3 => \out\(0),
+      I0 => \^gtwiz_reset_tx_pll_and_datapath_dly\,
+      I1 => \out\(2),
+      I2 => \out\(0),
+      I3 => \out\(1),
       O => D(1)
     );
 i_in_meta_reg: unisim.vcomponents.FDRE
@@ -4616,7 +1072,7 @@ i_in_meta_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => gtwiz_reset_tx_pll_and_datapath_sync,
+      D => in0,
       Q => i_in_meta,
       R => '0'
     );
@@ -4669,26 +1125,26 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_6 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_6 is
   port (
     rxuserrdy_out_reg : out STD_LOGIC;
     sm_reset_rx_timer_clr0 : out STD_LOGIC;
     sm_reset_rx_timer_clr_reg : out STD_LOGIC;
     gtwiz_userclk_rx_active_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
-    gtwiz_reset_rx_any_sync : in STD_LOGIC;
-    gtwiz_reset_rxuserrdy_int : in STD_LOGIC;
-    \FSM_sequential_sm_reset_rx_reg[2]\ : in STD_LOGIC;
-    sm_reset_rx_timer_clr_reg_0 : in STD_LOGIC;
     sm_reset_rx_timer_sat : in STD_LOGIC;
-    gtwiz_reset_rxresetdone_int : in STD_LOGIC
+    sm_reset_rx_timer_clr_reg_0 : in STD_LOGIC;
+    \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
+    gtwiz_reset_rxresetdone_int : in STD_LOGIC;
+    gtwiz_reset_rx_any_sync : in STD_LOGIC;
+    rxuserrdy_int : in STD_LOGIC;
+    i_in_out_reg_0 : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_6 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_6;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_6 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_6;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_6 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_6 is
   signal gtwiz_reset_userclk_rx_active_sync : STD_LOGIC;
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
@@ -4770,15 +1226,15 @@ i_in_sync3_reg: unisim.vcomponents.FDRE
     );
 rxuserrdy_out_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FFFFFCF300002000"
+      INIT => X"FFFFEDED00000800"
     )
         port map (
-      I0 => \^sm_reset_rx_timer_clr0\,
-      I1 => \out\(1),
-      I2 => \out\(2),
-      I3 => \out\(0),
+      I0 => \out\(0),
+      I1 => \out\(2),
+      I2 => \out\(1),
+      I3 => \^sm_reset_rx_timer_clr0\,
       I4 => gtwiz_reset_rx_any_sync,
-      I5 => gtwiz_reset_rxuserrdy_int,
+      I5 => rxuserrdy_int,
       O => rxuserrdy_out_reg
     );
 rxuserrdy_out_i_2: unisim.vcomponents.LUT3
@@ -4793,11 +1249,11 @@ rxuserrdy_out_i_2: unisim.vcomponents.LUT3
     );
 sm_reset_rx_timer_clr_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FEEFEEFE0EE0EE0E"
+      INIT => X"FAAFCCFA0AA0CC0A"
     )
         port map (
       I0 => sm_reset_rx_timer_clr_i_2_n_0,
-      I1 => \FSM_sequential_sm_reset_rx_reg[2]\,
+      I1 => i_in_out_reg_0,
       I2 => \out\(0),
       I3 => \out\(1),
       I4 => \out\(2),
@@ -4806,15 +1262,15 @@ sm_reset_rx_timer_clr_i_1: unisim.vcomponents.LUT6
     );
 sm_reset_rx_timer_clr_i_2: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"03CB0303030B0303"
+      INIT => X"0C080008FFFFFFFF"
     )
         port map (
       I0 => gtwiz_reset_userclk_rx_active_sync,
-      I1 => \out\(2),
-      I2 => \out\(1),
-      I3 => sm_reset_rx_timer_clr_reg_0,
-      I4 => sm_reset_rx_timer_sat,
-      I5 => gtwiz_reset_rxresetdone_int,
+      I1 => sm_reset_rx_timer_sat,
+      I2 => sm_reset_rx_timer_clr_reg_0,
+      I3 => \out\(1),
+      I4 => gtwiz_reset_rxresetdone_int,
+      I5 => \out\(2),
       O => sm_reset_rx_timer_clr_i_2_n_0
     );
 end STRUCTURE;
@@ -4822,28 +1278,30 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_7 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_7 is
   port (
-    sm_reset_tx_timer_clr_reg : out STD_LOGIC;
+    gtwiz_reset_userclk_tx_active_sync : out STD_LOGIC;
     txuserrdy_out_reg : out STD_LOGIC;
-    \FSM_sequential_sm_reset_tx_reg[0]\ : out STD_LOGIC;
+    E : out STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_userclk_tx_active_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    \FSM_sequential_sm_reset_tx_reg[1]\ : in STD_LOGIC;
     \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
-    sm_reset_tx_timer_clr_reg_0 : in STD_LOGIC;
     gtwiz_reset_tx_any_sync : in STD_LOGIC;
-    gtwiz_reset_txuserrdy_int : in STD_LOGIC;
+    txuserrdy_int : in STD_LOGIC;
+    sm_reset_tx_timer_clr_reg : in STD_LOGIC;
     sm_reset_tx_timer_sat : in STD_LOGIC;
-    \FSM_sequential_sm_reset_tx_reg[2]\ : in STD_LOGIC;
-    gtwiz_reset_txresetdone_int : in STD_LOGIC
+    i_in_out_reg_0 : in STD_LOGIC;
+    sm_reset_tx_timer_sat_reg : in STD_LOGIC;
+    gtwiz_reset_tx_pll_and_datapath_dly : in STD_LOGIC;
+    gtwiz_reset_tx_datapath_dly : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_7 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_7;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_7 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_7;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_7 is
-  signal gtwiz_reset_userclk_tx_active_sync : STD_LOGIC;
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_7 is
+  signal \FSM_sequential_sm_reset_tx[2]_i_3_n_0\ : STD_LOGIC;
+  signal \^gtwiz_reset_userclk_tx_active_sync\ : STD_LOGIC;
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -4854,7 +1312,6 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   signal i_in_sync3 : STD_LOGIC;
   attribute async_reg of i_in_sync3 : signal is "true";
   signal sm_reset_tx_timer_clr0 : STD_LOGIC;
-  signal sm_reset_tx_timer_clr_i_2_n_0 : STD_LOGIC;
   attribute ASYNC_REG_boolean : boolean;
   attribute ASYNC_REG_boolean of i_in_meta_reg : label is std.standard.true;
   attribute KEEP : string;
@@ -4865,22 +1322,27 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute KEEP of i_in_sync2_reg : label is "yes";
   attribute ASYNC_REG_boolean of i_in_sync3_reg : label is std.standard.true;
   attribute KEEP of i_in_sync3_reg : label is "yes";
-  attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of sm_reset_tx_timer_clr_i_2 : label is "soft_lutpair36";
-  attribute SOFT_HLUTNM of txuserrdy_out_i_2 : label is "soft_lutpair36";
 begin
-\FSM_sequential_sm_reset_tx[2]_i_6\: unisim.vcomponents.LUT6
+  gtwiz_reset_userclk_tx_active_sync <= \^gtwiz_reset_userclk_tx_active_sync\;
+\FSM_sequential_sm_reset_tx[2]_i_3\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"00A0008000000080"
+      INIT => X"40DD40DD40DD4088"
     )
         port map (
-      I0 => \FSM_sequential_sm_reset_tx_reg[2]\,
-      I1 => gtwiz_reset_userclk_tx_active_sync,
-      I2 => sm_reset_tx_timer_sat,
-      I3 => sm_reset_tx_timer_clr_reg_0,
-      I4 => \out\(0),
-      I5 => gtwiz_reset_txresetdone_int,
-      O => \FSM_sequential_sm_reset_tx_reg[0]\
+      I0 => \out\(1),
+      I1 => sm_reset_tx_timer_sat_reg,
+      I2 => \^gtwiz_reset_userclk_tx_active_sync\,
+      I3 => \out\(2),
+      I4 => gtwiz_reset_tx_pll_and_datapath_dly,
+      I5 => gtwiz_reset_tx_datapath_dly,
+      O => \FSM_sequential_sm_reset_tx[2]_i_3_n_0\
+    );
+\FSM_sequential_sm_reset_tx_reg[2]_i_1\: unisim.vcomponents.MUXF7
+     port map (
+      I0 => \FSM_sequential_sm_reset_tx[2]_i_3_n_0\,
+      I1 => i_in_out_reg_0,
+      O => E(0),
+      S => \out\(0)
     );
 i_in_meta_reg: unisim.vcomponents.FDRE
     generic map(
@@ -4901,7 +1363,7 @@ i_in_out_reg: unisim.vcomponents.FDRE
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
       D => i_in_sync3,
-      Q => gtwiz_reset_userclk_tx_active_sync,
+      Q => \^gtwiz_reset_userclk_tx_active_sync\,
       R => '0'
     );
 i_in_sync1_reg: unisim.vcomponents.FDRE
@@ -4937,42 +1399,17 @@ i_in_sync3_reg: unisim.vcomponents.FDRE
       Q => i_in_sync3,
       R => '0'
     );
-sm_reset_tx_timer_clr_i_1: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FECFFECF0EC00ECF"
-    )
-        port map (
-      I0 => sm_reset_tx_timer_clr_i_2_n_0,
-      I1 => \FSM_sequential_sm_reset_tx_reg[1]\,
-      I2 => \out\(1),
-      I3 => \out\(2),
-      I4 => \out\(0),
-      I5 => sm_reset_tx_timer_clr_reg_0,
-      O => sm_reset_tx_timer_clr_reg
-    );
-sm_reset_tx_timer_clr_i_2: unisim.vcomponents.LUT5
-    generic map(
-      INIT => X"0B000800"
-    )
-        port map (
-      I0 => gtwiz_reset_txresetdone_int,
-      I1 => \out\(0),
-      I2 => sm_reset_tx_timer_clr_reg_0,
-      I3 => sm_reset_tx_timer_sat,
-      I4 => gtwiz_reset_userclk_tx_active_sync,
-      O => sm_reset_tx_timer_clr_i_2_n_0
-    );
 txuserrdy_out_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FFFFF9F900001000"
+      INIT => X"FFFFFCCF00000008"
     )
         port map (
-      I0 => \out\(0),
-      I1 => \out\(1),
-      I2 => \out\(2),
-      I3 => sm_reset_tx_timer_clr0,
+      I0 => sm_reset_tx_timer_clr0,
+      I1 => \out\(2),
+      I2 => \out\(1),
+      I3 => \out\(0),
       I4 => gtwiz_reset_tx_any_sync,
-      I5 => gtwiz_reset_txuserrdy_int,
+      I5 => txuserrdy_int,
       O => txuserrdy_out_reg
     );
 txuserrdy_out_i_2: unisim.vcomponents.LUT3
@@ -4980,9 +1417,9 @@ txuserrdy_out_i_2: unisim.vcomponents.LUT3
       INIT => X"40"
     )
         port map (
-      I0 => sm_reset_tx_timer_clr_reg_0,
+      I0 => sm_reset_tx_timer_clr_reg,
       I1 => sm_reset_tx_timer_sat,
-      I2 => gtwiz_reset_userclk_tx_active_sync,
+      I2 => \^gtwiz_reset_userclk_tx_active_sync\,
       O => sm_reset_tx_timer_clr0
     );
 end STRUCTURE;
@@ -4990,20 +1427,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_8 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_8 is
   port (
-    sm_reset_rx_cdr_to_clr_reg : out STD_LOGIC;
     gtrxreset_out_reg : out STD_LOGIC;
+    sm_reset_rx_timer_clr09_out : out STD_LOGIC;
     gtwiz_reset_rx_done_int_reg : out STD_LOGIC;
-    sm_reset_rx_timer_clr_reg : out STD_LOGIC;
     \FSM_sequential_sm_reset_rx_reg[0]\ : out STD_LOGIC;
+    sm_reset_rx_timer_clr_reg : out STD_LOGIC;
     cplllock_out : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    \FSM_sequential_sm_reset_rx_reg[2]\ : in STD_LOGIC;
     \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
-    sm_reset_rx_cdr_to_clr : in STD_LOGIC;
     gtwiz_reset_rx_any_sync : in STD_LOGIC;
-    gtwiz_reset_gtrxreset_int : in STD_LOGIC;
+    gtrxreset_int : in STD_LOGIC;
     p_0_in11_out : in STD_LOGIC;
     gtwiz_reset_rx_done_int_reg_0 : in STD_LOGIC;
     sm_reset_rx_timer_clr_reg_0 : in STD_LOGIC;
@@ -5013,10 +1448,10 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_8 is
     sm_reset_rx_pll_timer_clr_reg : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_8 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_8;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_8 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_8;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_8 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_8 is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -5027,7 +1462,7 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   signal i_in_sync3 : STD_LOGIC;
   attribute async_reg of i_in_sync3 : signal is "true";
   signal plllock_rx_sync : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_clr_i_2_n_0 : STD_LOGIC;
+  signal \^sm_reset_rx_timer_clr09_out\ : STD_LOGIC;
   attribute ASYNC_REG_boolean : boolean;
   attribute ASYNC_REG_boolean of i_in_meta_reg : label is std.standard.true;
   attribute KEEP : string;
@@ -5038,13 +1473,17 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute KEEP of i_in_sync2_reg : label is "yes";
   attribute ASYNC_REG_boolean of i_in_sync3_reg : label is std.standard.true;
   attribute KEEP of i_in_sync3_reg : label is "yes";
+  attribute SOFT_HLUTNM : string;
+  attribute SOFT_HLUTNM of sm_reset_rx_cdr_to_clr_i_3 : label is "soft_lutpair37";
+  attribute SOFT_HLUTNM of sm_reset_rx_timer_clr_i_3 : label is "soft_lutpair37";
 begin
+  sm_reset_rx_timer_clr09_out <= \^sm_reset_rx_timer_clr09_out\;
 \FSM_sequential_sm_reset_rx[2]_i_4\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"BAAABAAABABBBAAA"
+      INIT => X"3088308830BB3088"
     )
         port map (
-      I0 => sm_reset_rx_cdr_to_clr_i_2_n_0,
+      I0 => \^sm_reset_rx_timer_clr09_out\,
       I1 => \out\(1),
       I2 => sm_reset_rx_timer_clr0,
       I3 => \out\(2),
@@ -5054,27 +1493,27 @@ begin
     );
 gtrxreset_out_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FFFF77FF00007706"
+      INIT => X"FFFFFF7F0000003C"
     )
         port map (
-      I0 => \out\(0),
+      I0 => \^sm_reset_rx_timer_clr09_out\,
       I1 => \out\(1),
-      I2 => \out\(2),
-      I3 => sm_reset_rx_cdr_to_clr_i_2_n_0,
+      I2 => \out\(0),
+      I3 => \out\(2),
       I4 => gtwiz_reset_rx_any_sync,
-      I5 => gtwiz_reset_gtrxreset_int,
+      I5 => gtrxreset_int,
       O => gtrxreset_out_reg
     );
 gtwiz_reset_rx_done_int_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"F3FFFFFF22000000"
+      INIT => X"FFFF77FF00800080"
     )
         port map (
-      I0 => p_0_in11_out,
-      I1 => \out\(0),
-      I2 => plllock_rx_sync,
-      I3 => \out\(1),
-      I4 => \out\(2),
+      I0 => \out\(2),
+      I1 => \out\(1),
+      I2 => p_0_in11_out,
+      I3 => \out\(0),
+      I4 => plllock_rx_sync,
       I5 => gtwiz_reset_rx_done_int_reg_0,
       O => gtwiz_reset_rx_done_int_reg
     );
@@ -5133,41 +1572,25 @@ i_in_sync3_reg: unisim.vcomponents.FDRE
       Q => i_in_sync3,
       R => '0'
     );
-sm_reset_rx_cdr_to_clr_i_1: unisim.vcomponents.LUT5
+sm_reset_rx_cdr_to_clr_i_3: unisim.vcomponents.LUT3
     generic map(
-      INIT => X"DFFF0203"
+      INIT => X"40"
     )
         port map (
-      I0 => sm_reset_rx_cdr_to_clr_i_2_n_0,
-      I1 => \FSM_sequential_sm_reset_rx_reg[2]\,
-      I2 => \out\(1),
-      I3 => \out\(0),
-      I4 => sm_reset_rx_cdr_to_clr,
-      O => sm_reset_rx_cdr_to_clr_reg
+      I0 => sm_reset_rx_timer_clr_reg_0,
+      I1 => sm_reset_rx_timer_sat,
+      I2 => plllock_rx_sync,
+      O => \^sm_reset_rx_timer_clr09_out\
     );
-sm_reset_rx_cdr_to_clr_i_2: unisim.vcomponents.LUT5
+sm_reset_rx_timer_clr_i_3: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"00080000"
+      INIT => X"00B0"
     )
         port map (
       I0 => plllock_rx_sync,
-      I1 => sm_reset_rx_timer_sat,
-      I2 => sm_reset_rx_timer_clr_reg_0,
-      I3 => \out\(2),
-      I4 => \out\(1),
-      O => sm_reset_rx_cdr_to_clr_i_2_n_0
-    );
-sm_reset_rx_timer_clr_i_3: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0400040000000400"
-    )
-        port map (
-      I0 => \out\(2),
-      I1 => \out\(1),
-      I2 => sm_reset_rx_timer_clr_reg_0,
-      I3 => sm_reset_rx_timer_sat,
-      I4 => \out\(0),
-      I5 => plllock_rx_sync,
+      I1 => \out\(0),
+      I2 => sm_reset_rx_timer_sat,
+      I3 => sm_reset_rx_timer_clr_reg_0,
       O => sm_reset_rx_timer_clr_reg
     );
 end STRUCTURE;
@@ -5175,27 +1598,31 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_9 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_9 is
   port (
-    plllock_tx_sync : out STD_LOGIC;
     gttxreset_out_reg : out STD_LOGIC;
-    gtwiz_reset_tx_done_int_reg : out STD_LOGIC;
     sm_reset_tx_timer_clr_reg : out STD_LOGIC;
+    gtwiz_reset_tx_done_int_reg : out STD_LOGIC;
+    \FSM_sequential_sm_reset_tx_reg[0]\ : out STD_LOGIC;
     cplllock_out : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+    sm_reset_tx_timer_sat : in STD_LOGIC;
+    sm_reset_tx_timer_clr_reg_0 : in STD_LOGIC;
     \out\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
     gtwiz_reset_tx_any_sync : in STD_LOGIC;
-    gtwiz_reset_gttxreset_int : in STD_LOGIC;
+    gttxreset_int : in STD_LOGIC;
     gtwiz_reset_tx_done_int0 : in STD_LOGIC;
     gtwiz_reset_tx_done_int_reg_0 : in STD_LOGIC;
-    sm_reset_tx_timer_clr_reg_0 : in STD_LOGIC;
-    sm_reset_tx_timer_sat : in STD_LOGIC
+    sm_reset_tx_timer_sat_reg : in STD_LOGIC;
+    gtwiz_reset_txresetdone_int : in STD_LOGIC;
+    sm_reset_tx_pll_timer_clr0 : in STD_LOGIC;
+    gtwiz_reset_userclk_tx_active_sync : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_9 : entity is "gtwizard_ultrascale_v1_6_0_bit_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_9;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_9 : entity is "gtwizard_ultrascale_v1_6_2_bit_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_9;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_9 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_9 is
   signal i_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of i_in_meta : signal is "true";
@@ -5205,8 +1632,12 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute async_reg of i_in_sync2 : signal is "true";
   signal i_in_sync3 : STD_LOGIC;
   attribute async_reg of i_in_sync3 : signal is "true";
-  signal \^plllock_tx_sync\ : STD_LOGIC;
+  signal plllock_tx_sync : STD_LOGIC;
   signal sm_reset_tx_timer_clr012_out : STD_LOGIC;
+  signal sm_reset_tx_timer_clr_i_2_n_0 : STD_LOGIC;
+  signal sm_reset_tx_timer_clr_i_3_n_0 : STD_LOGIC;
+  attribute SOFT_HLUTNM : string;
+  attribute SOFT_HLUTNM of gttxreset_out_i_2 : label is "soft_lutpair38";
   attribute ASYNC_REG_boolean : boolean;
   attribute ASYNC_REG_boolean of i_in_meta_reg : label is std.standard.true;
   attribute KEEP : string;
@@ -5217,19 +1648,32 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit
   attribute KEEP of i_in_sync2_reg : label is "yes";
   attribute ASYNC_REG_boolean of i_in_sync3_reg : label is std.standard.true;
   attribute KEEP of i_in_sync3_reg : label is "yes";
+  attribute SOFT_HLUTNM of sm_reset_tx_timer_clr_i_3 : label is "soft_lutpair38";
 begin
-  plllock_tx_sync <= \^plllock_tx_sync\;
-gttxreset_out_i_1: unisim.vcomponents.LUT6
+\FSM_sequential_sm_reset_tx[2]_i_4\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FFFFF7FF00000606"
+      INIT => X"3000B3B330008080"
     )
         port map (
-      I0 => \out\(0),
+      I0 => plllock_tx_sync,
       I1 => \out\(1),
-      I2 => \out\(2),
-      I3 => sm_reset_tx_timer_clr012_out,
+      I2 => sm_reset_tx_timer_sat_reg,
+      I3 => gtwiz_reset_txresetdone_int,
+      I4 => \out\(2),
+      I5 => sm_reset_tx_pll_timer_clr0,
+      O => \FSM_sequential_sm_reset_tx_reg[0]\
+    );
+gttxreset_out_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFFFF7F0000003C"
+    )
+        port map (
+      I0 => sm_reset_tx_timer_clr012_out,
+      I1 => \out\(1),
+      I2 => \out\(0),
+      I3 => \out\(2),
       I4 => gtwiz_reset_tx_any_sync,
-      I5 => gtwiz_reset_gttxreset_int,
+      I5 => gttxreset_int,
       O => gttxreset_out_reg
     );
 gttxreset_out_i_2: unisim.vcomponents.LUT3
@@ -5239,19 +1683,19 @@ gttxreset_out_i_2: unisim.vcomponents.LUT3
         port map (
       I0 => sm_reset_tx_timer_clr_reg_0,
       I1 => sm_reset_tx_timer_sat,
-      I2 => \^plllock_tx_sync\,
+      I2 => plllock_tx_sync,
       O => sm_reset_tx_timer_clr012_out
     );
 gtwiz_reset_tx_done_int_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"FFBFFFBF0C000000"
+      INIT => X"FFCFFFFF00008080"
     )
         port map (
-      I0 => \^plllock_tx_sync\,
-      I1 => \out\(2),
-      I2 => \out\(1),
-      I3 => \out\(0),
-      I4 => gtwiz_reset_tx_done_int0,
+      I0 => gtwiz_reset_tx_done_int0,
+      I1 => \out\(0),
+      I2 => \out\(2),
+      I3 => plllock_tx_sync,
+      I4 => \out\(1),
       I5 => gtwiz_reset_tx_done_int_reg_0,
       O => gtwiz_reset_tx_done_int_reg
     );
@@ -5274,7 +1718,7 @@ i_in_out_reg: unisim.vcomponents.FDRE
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
       D => i_in_sync3,
-      Q => \^plllock_tx_sync\,
+      Q => plllock_tx_sync,
       R => '0'
     );
 i_in_sync1_reg: unisim.vcomponents.FDRE
@@ -5310,25 +1754,48 @@ i_in_sync3_reg: unisim.vcomponents.FDRE
       Q => i_in_sync3,
       R => '0'
     );
-sm_reset_tx_timer_clr_i_3: unisim.vcomponents.LUT6
+sm_reset_tx_timer_clr_i_1: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"000022000000E200"
+      INIT => X"EBEB282B"
     )
         port map (
-      I0 => \out\(1),
-      I1 => \out\(0),
-      I2 => \^plllock_tx_sync\,
-      I3 => sm_reset_tx_timer_sat,
+      I0 => sm_reset_tx_timer_clr_i_2_n_0,
+      I1 => \out\(1),
+      I2 => \out\(2),
+      I3 => \out\(0),
       I4 => sm_reset_tx_timer_clr_reg_0,
-      I5 => \out\(2),
       O => sm_reset_tx_timer_clr_reg
+    );
+sm_reset_tx_timer_clr_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"CFEFC0C0CFE0C0C0"
+    )
+        port map (
+      I0 => gtwiz_reset_txresetdone_int,
+      I1 => sm_reset_tx_timer_clr_i_3_n_0,
+      I2 => \out\(0),
+      I3 => \out\(1),
+      I4 => sm_reset_tx_timer_sat_reg,
+      I5 => gtwiz_reset_userclk_tx_active_sync,
+      O => sm_reset_tx_timer_clr_i_2_n_0
+    );
+sm_reset_tx_timer_clr_i_3: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0008"
+    )
+        port map (
+      I0 => plllock_tx_sync,
+      I1 => sm_reset_tx_timer_sat,
+      I2 => sm_reset_tx_timer_clr_reg_0,
+      I3 => \out\(2),
+      O => sm_reset_tx_timer_clr_i_3_n_0
     );
 end STRUCTURE;
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gthe3_channel is
   port (
     cpllfbclklost_out : out STD_LOGIC_VECTOR ( 0 to 0 );
     cplllock_out : out STD_LOGIC_VECTOR ( 0 to 0 );
@@ -5457,10 +1924,10 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
     gtrefclk0_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtrefclk1_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtresetsel_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_gtrxreset_int : in STD_LOGIC;
+    gtrxreset_int : in STD_LOGIC;
     gtsouthrefclk0_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtsouthrefclk1_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_gttxreset_int : in STD_LOGIC;
+    gttxreset_int : in STD_LOGIC;
     lpbkrxtxseren_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     lpbktxrxseren_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     pcieeqrxeqadaptdone_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -5558,7 +2025,7 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
     rxpmareset_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxpolarity_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxprbscntreset_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_rxprogdivreset_int : in STD_LOGIC;
+    rxprogdivreset_int : in STD_LOGIC;
     rxqpien_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxratemode_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxslide_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -5567,7 +2034,7 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
     rxsyncallin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxsyncin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxsyncmode_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_rxuserrdy_int : in STD_LOGIC;
+    rxuserrdy_int : in STD_LOGIC;
     rxusrclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     sigvalidclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -5606,7 +2073,7 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
     txpostcursorinv_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txprbsforceerr_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txprecursorinv_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_txprogdivreset_int : in STD_LOGIC;
+    txprogdivreset_int : in STD_LOGIC;
     txqpibiasen_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txqpistrongpdown_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txqpiweakpup_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -5615,7 +2082,7 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
     txsyncallin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txsyncin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txsyncmode_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_txuserrdy_int : in STD_LOGIC;
+    txuserrdy_int : in STD_LOGIC;
     txusrclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_userdata_tx_in : in STD_LOGIC_VECTOR ( 15 downto 0 );
@@ -5661,10 +2128,10 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
     drpaddr_in : in STD_LOGIC_VECTOR ( 8 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel : entity is "gtwizard_ultrascale_v1_6_0_gthe3_channel";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gthe3_channel : entity is "gtwizard_ultrascale_v1_6_2_gthe3_channel";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gthe3_channel;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gthe3_channel is
   signal \^cplllock_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
   attribute box_type : string;
   attribute box_type of \gthe3_channel_gen.gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST\ : label is "PRIMITIVE";
@@ -5796,7 +2263,7 @@ begin
       PLL_SEL_MODE_GEN3 => B"11",
       PMA_RSV1 => X"F000",
       PROCESS_PAR => B"010",
-      RATE_SW_USE_DRP => '0',
+      RATE_SW_USE_DRP => '1',
       RESET_POWERSAVE_DISABLE => '0',
       RXBUFRESET_TIME => B"00011",
       RXBUF_ADDR_MODE => "FULL",
@@ -6111,10 +2578,10 @@ begin
       GTREFCLKMONITOR => gtrefclkmonitor_out(0),
       GTRESETSEL => gtresetsel_in(0),
       GTRSVD(15 downto 0) => gtrsvd_in(15 downto 0),
-      GTRXRESET => gtwiz_reset_gtrxreset_int,
+      GTRXRESET => gtrxreset_int,
       GTSOUTHREFCLK0 => gtsouthrefclk0_in(0),
       GTSOUTHREFCLK1 => gtsouthrefclk1_in(0),
-      GTTXRESET => gtwiz_reset_gttxreset_int,
+      GTTXRESET => gttxreset_int,
       LOOPBACK(2 downto 0) => loopback_in(2 downto 0),
       LPBKRXTXSEREN => lpbkrxtxseren_in(0),
       LPBKTXRXSEREN => lpbktxrxseren_in(0),
@@ -6277,7 +2744,7 @@ begin
       RXPRBSLOCKED => rxprbslocked_out(0),
       RXPRBSSEL(3 downto 0) => rxprbssel_in(3 downto 0),
       RXPRGDIVRESETDONE => rxprgdivresetdone_out(0),
-      RXPROGDIVRESET => gtwiz_reset_rxprogdivreset_int,
+      RXPROGDIVRESET => rxprogdivreset_int,
       RXQPIEN => rxqpien_in(0),
       RXQPISENN => rxqpisenn_out(0),
       RXQPISENP => rxqpisenp_out(0),
@@ -6301,7 +2768,7 @@ begin
       RXSYNCMODE => rxsyncmode_in(0),
       RXSYNCOUT => rxsyncout_out(0),
       RXSYSCLKSEL(1 downto 0) => rxsysclksel_in(1 downto 0),
-      RXUSERRDY => gtwiz_reset_rxuserrdy_int,
+      RXUSERRDY => rxuserrdy_int,
       RXUSRCLK => rxusrclk_in(0),
       RXUSRCLK2 => rxusrclk2_in(0),
       RXVALID => rxvalid_out(0),
@@ -6371,7 +2838,7 @@ begin
       TXPRECURSOR(4 downto 0) => txprecursor_in(4 downto 0),
       TXPRECURSORINV => txprecursorinv_in(0),
       TXPRGDIVRESETDONE => txprgdivresetdone_out(0),
-      TXPROGDIVRESET => gtwiz_reset_txprogdivreset_int,
+      TXPROGDIVRESET => txprogdivreset_int,
       TXQPIBIASEN => txqpibiasen_in(0),
       TXQPISENN => txqpisenn_out(0),
       TXQPISENP => txqpisenp_out(0),
@@ -6389,7 +2856,7 @@ begin
       TXSYNCMODE => txsyncmode_in(0),
       TXSYNCOUT => txsyncout_out(0),
       TXSYSCLKSEL(1 downto 0) => txsysclksel_in(1 downto 0),
-      TXUSERRDY => gtwiz_reset_txuserrdy_int,
+      TXUSERRDY => txuserrdy_int,
       TXUSRCLK => txusrclk_in(0),
       TXUSRCLK2 => txusrclk2_in(0)
     );
@@ -6406,21 +2873,21 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer is
   port (
     gtwiz_reset_rx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
     rxusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_done_int_reg : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer : entity is "gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer : entity is "gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer is
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of rst_in_meta : signal is "true";
-  signal rst_in_out_i_1_n_0 : STD_LOGIC;
+  signal \rst_in_out_i_1__0_n_0\ : STD_LOGIC;
   signal rst_in_sync1 : STD_LOGIC;
   attribute async_reg of rst_in_sync1 : signal is "true";
   signal rst_in_sync2 : STD_LOGIC;
@@ -6445,17 +2912,17 @@ rst_in_meta_reg: unisim.vcomponents.FDCE
         port map (
       C => rxusrclk2_in(0),
       CE => '1',
-      CLR => rst_in_out_i_1_n_0,
+      CLR => \rst_in_out_i_1__0_n_0\,
       D => '1',
       Q => rst_in_meta
     );
-rst_in_out_i_1: unisim.vcomponents.LUT1
+\rst_in_out_i_1__0\: unisim.vcomponents.LUT1
     generic map(
       INIT => X"1"
     )
         port map (
       I0 => gtwiz_reset_rx_done_int_reg,
-      O => rst_in_out_i_1_n_0
+      O => \rst_in_out_i_1__0_n_0\
     );
 rst_in_out_reg: unisim.vcomponents.FDCE
     generic map(
@@ -6464,7 +2931,7 @@ rst_in_out_reg: unisim.vcomponents.FDCE
         port map (
       C => rxusrclk2_in(0),
       CE => '1',
-      CLR => rst_in_out_i_1_n_0,
+      CLR => \rst_in_out_i_1__0_n_0\,
       D => rst_in_sync3,
       Q => gtwiz_reset_rx_done_out(0)
     );
@@ -6475,7 +2942,7 @@ rst_in_sync1_reg: unisim.vcomponents.FDCE
         port map (
       C => rxusrclk2_in(0),
       CE => '1',
-      CLR => rst_in_out_i_1_n_0,
+      CLR => \rst_in_out_i_1__0_n_0\,
       D => rst_in_meta,
       Q => rst_in_sync1
     );
@@ -6486,7 +2953,7 @@ rst_in_sync2_reg: unisim.vcomponents.FDCE
         port map (
       C => rxusrclk2_in(0),
       CE => '1',
-      CLR => rst_in_out_i_1_n_0,
+      CLR => \rst_in_out_i_1__0_n_0\,
       D => rst_in_sync1,
       Q => rst_in_sync2
     );
@@ -6497,7 +2964,7 @@ rst_in_sync3_reg: unisim.vcomponents.FDCE
         port map (
       C => rxusrclk2_in(0),
       CE => '1',
-      CLR => rst_in_out_i_1_n_0,
+      CLR => \rst_in_out_i_1__0_n_0\,
       D => rst_in_sync2,
       Q => rst_in_sync3
     );
@@ -6506,17 +2973,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer_17 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer_17 is
   port (
     gtwiz_reset_tx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
     txusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_tx_done_int_reg : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer_17 : entity is "gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer_17;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer_17 : entity is "gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer_17;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer_17 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer_17 is
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of rst_in_meta : signal is "true";
@@ -6606,17 +3073,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer is
   port (
     SR : out STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_all_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer is
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of rst_in_meta : signal is "true";
@@ -6697,7 +3164,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_11 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_11 is
   port (
     gtwiz_reset_rx_any_sync : out STD_LOGIC;
     pllreset_rx_out_reg : out STD_LOGIC;
@@ -6710,10 +3177,10 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_11 
     gtwiz_reset_rx_pll_and_datapath_int_reg : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_11 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_11;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_11 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_11;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_11 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_11 is
   signal gtwiz_reset_rx_any : STD_LOGIC;
   signal \^gtwiz_reset_rx_any_sync\ : STD_LOGIC;
   signal rst_in_meta : STD_LOGIC;
@@ -6820,18 +3287,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_12 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_12 is
   port (
-    gtwiz_reset_rx_datapath_sync : out STD_LOGIC;
+    in0 : out STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_datapath_int_reg : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_12 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_12;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_12 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_12;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_12 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_12 is
   signal rst_in0_2 : STD_LOGIC;
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
@@ -6882,7 +3349,7 @@ rst_in_out_reg: unisim.vcomponents.FDPE
       CE => '1',
       D => rst_in_sync3,
       PRE => rst_in0_2,
-      Q => gtwiz_reset_rx_datapath_sync
+      Q => in0
     );
 rst_in_sync1_reg: unisim.vcomponents.FDPE
     generic map(
@@ -6922,18 +3389,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_13 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_13 is
   port (
-    gtwiz_reset_rx_pll_and_datapath_sync : out STD_LOGIC;
+    in0 : out STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_pll_and_datapath_int_reg : in STD_LOGIC;
     gtwiz_reset_rx_pll_and_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_13 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_13;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_13 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_13;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_13 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_13 is
   signal p_0_in_1 : STD_LOGIC;
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
@@ -6984,7 +3451,7 @@ rst_in_out_reg: unisim.vcomponents.FDPE
       CE => '1',
       D => rst_in_sync3,
       PRE => p_0_in_1,
-      Q => gtwiz_reset_rx_pll_and_datapath_sync
+      Q => in0
     );
 rst_in_sync1_reg: unisim.vcomponents.FDPE
     generic map(
@@ -7024,7 +3491,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_14 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_14 is
   port (
     gtwiz_reset_tx_any_sync : out STD_LOGIC;
     pllreset_tx_out_reg : out STD_LOGIC;
@@ -7036,10 +3503,10 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_14 
     gtwiz_reset_tx_pll_and_datapath_int_reg : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_14 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_14;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_14 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_14;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_14 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_14 is
   signal gtwiz_reset_tx_any : STD_LOGIC;
   signal \^gtwiz_reset_tx_any_sync\ : STD_LOGIC;
   signal rst_in_meta : STD_LOGIC;
@@ -7145,17 +3612,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_15 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_15 is
   port (
-    gtwiz_reset_tx_datapath_sync : out STD_LOGIC;
+    in0 : out STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_tx_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_15 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_15;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_15 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_15;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_15 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_15 is
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of rst_in_meta : signal is "true";
@@ -7196,7 +3663,7 @@ rst_in_out_reg: unisim.vcomponents.FDPE
       CE => '1',
       D => rst_in_sync3,
       PRE => gtwiz_reset_tx_datapath_in(0),
-      Q => gtwiz_reset_tx_datapath_sync
+      Q => in0
     );
 rst_in_sync1_reg: unisim.vcomponents.FDPE
     generic map(
@@ -7236,18 +3703,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_16 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_16 is
   port (
-    gtwiz_reset_tx_pll_and_datapath_sync : out STD_LOGIC;
+    in0 : out STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_tx_pll_and_datapath_int_reg : in STD_LOGIC;
     gtwiz_reset_tx_pll_and_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_16 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_16;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_16 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_16;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_16 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_16 is
   signal p_1_in_0 : STD_LOGIC;
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
@@ -7298,7 +3765,7 @@ rst_in_out_reg: unisim.vcomponents.FDPE
       CE => '1',
       D => rst_in_sync3,
       PRE => p_1_in_0,
-      Q => gtwiz_reset_tx_pll_and_datapath_sync
+      Q => in0
     );
 rst_in_sync1_reg: unisim.vcomponents.FDPE
     generic map(
@@ -7338,17 +3805,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_18 is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_18 is
   port (
-    gtwiz_reset_txprogdivreset_int : out STD_LOGIC;
+    txprogdivreset_int : out STD_LOGIC;
     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rst_in0 : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_18 : entity is "gtwizard_ultrascale_v1_6_0_reset_synchronizer";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_18;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_18 : entity is "gtwizard_ultrascale_v1_6_2_reset_synchronizer";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_18;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_18 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_18 is
   signal rst_in_meta : STD_LOGIC;
   attribute async_reg : string;
   attribute async_reg of rst_in_meta : signal is "true";
@@ -7389,7 +3856,7 @@ rst_in_out_reg: unisim.vcomponents.FDPE
       CE => '1',
       D => rst_in_sync3,
       PRE => rst_in0,
-      Q => gtwiz_reset_txprogdivreset_int
+      Q => txprogdivreset_int
     );
 rst_in_sync1_reg: unisim.vcomponents.FDPE
     generic map(
@@ -7423,6 +3890,3447 @@ rst_in_sync3_reg: unisim.vcomponents.FDPE
       D => rst_in_sync2,
       PRE => rst_in0,
       Q => rst_in_sync3
+    );
+end STRUCTURE;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
+entity GigEthGthUltraScaleCore_RX is
+  port (
+    gmii_rx_er : out STD_LOGIC;
+    status_vector : out STD_LOGIC_VECTOR ( 2 downto 0 );
+    gmii_rx_dv : out STD_LOGIC;
+    gmii_rxd : out STD_LOGIC_VECTOR ( 7 downto 0 );
+    Q : in STD_LOGIC_VECTOR ( 7 downto 0 );
+    userclk2 : in STD_LOGIC;
+    SR : in STD_LOGIC_VECTOR ( 0 to 0 );
+    SYNC_STATUS_REG0 : in STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\ : in STD_LOGIC;
+    D : in STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\ : in STD_LOGIC;
+    RXNOTINTABLE_INT : in STD_LOGIC;
+    RXSYNC_STATUS : in STD_LOGIC;
+    RXEVEN0_out : in STD_LOGIC;
+    \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\ : in STD_LOGIC_VECTOR ( 1 downto 0 );
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\ : in STD_LOGIC_VECTOR ( 2 downto 0 );
+    \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]_0\ : in STD_LOGIC
+  );
+  attribute ORIG_REF_NAME : string;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_RX : entity is "RX";
+end GigEthGthUltraScaleCore_RX;
+
+architecture STRUCTURE of GigEthGthUltraScaleCore_RX is
+  signal C : STD_LOGIC;
+  signal C0 : STD_LOGIC;
+  signal CGBAD : STD_LOGIC;
+  signal CGBAD_REG1 : STD_LOGIC;
+  signal CGBAD_REG2 : STD_LOGIC;
+  signal CGBAD_REG3 : STD_LOGIC;
+  signal C_HDR_REMOVED : STD_LOGIC;
+  signal C_HDR_REMOVED_REG : STD_LOGIC;
+  signal C_REG1 : STD_LOGIC;
+  signal C_REG2 : STD_LOGIC;
+  signal C_REG3 : STD_LOGIC;
+  signal D0p0 : STD_LOGIC;
+  signal D0p0_REG : STD_LOGIC;
+  signal EOP : STD_LOGIC;
+  signal EOP0 : STD_LOGIC;
+  signal EOP_REG1 : STD_LOGIC;
+  signal EOP_REG10 : STD_LOGIC;
+  signal EOP_i_2_n_0 : STD_LOGIC;
+  signal EXTEND : STD_LOGIC;
+  signal EXTEND_ERR : STD_LOGIC;
+  signal EXTEND_ERR0 : STD_LOGIC;
+  signal EXTEND_REG1 : STD_LOGIC;
+  signal EXTEND_REG2 : STD_LOGIC;
+  signal EXTEND_REG3 : STD_LOGIC;
+  signal EXTEND_i_1_n_0 : STD_LOGIC;
+  signal EXT_ILLEGAL_K : STD_LOGIC;
+  signal EXT_ILLEGAL_K0 : STD_LOGIC;
+  signal EXT_ILLEGAL_K_REG1 : STD_LOGIC;
+  signal EXT_ILLEGAL_K_REG2 : STD_LOGIC;
+  signal FALSE_CARRIER : STD_LOGIC;
+  signal FALSE_CARRIER0 : STD_LOGIC;
+  signal FALSE_CARRIER_REG1 : STD_LOGIC;
+  signal FALSE_CARRIER_REG2 : STD_LOGIC;
+  signal FALSE_CARRIER_REG3 : STD_LOGIC;
+  signal FALSE_CARRIER_i_1_n_0 : STD_LOGIC;
+  signal FALSE_CARRIER_i_3_n_0 : STD_LOGIC;
+  signal FALSE_DATA : STD_LOGIC;
+  signal FALSE_DATA0 : STD_LOGIC;
+  signal FALSE_DATA_i_2_n_0 : STD_LOGIC;
+  signal FALSE_DATA_i_3_n_0 : STD_LOGIC;
+  signal FALSE_DATA_i_4_n_0 : STD_LOGIC;
+  signal FALSE_K : STD_LOGIC;
+  signal FALSE_K0 : STD_LOGIC;
+  signal FALSE_K_i_2_n_0 : STD_LOGIC;
+  signal FALSE_K_i_3_n_0 : STD_LOGIC;
+  signal FALSE_NIT : STD_LOGIC;
+  signal FALSE_NIT0 : STD_LOGIC;
+  signal FALSE_NIT_i_2_n_0 : STD_LOGIC;
+  signal FALSE_NIT_i_3_n_0 : STD_LOGIC;
+  signal FALSE_NIT_i_4_n_0 : STD_LOGIC;
+  signal FROM_IDLE_D : STD_LOGIC;
+  signal FROM_IDLE_D0 : STD_LOGIC;
+  signal FROM_RX_CX : STD_LOGIC;
+  signal FROM_RX_CX0 : STD_LOGIC;
+  signal FROM_RX_CX_i_2_n_0 : STD_LOGIC;
+  signal FROM_RX_K : STD_LOGIC;
+  signal FROM_RX_K0 : STD_LOGIC;
+  signal I : STD_LOGIC;
+  signal I0 : STD_LOGIC;
+  signal I335_in : STD_LOGIC;
+  signal \IDLE_REG_reg_n_0_[0]\ : STD_LOGIC;
+  signal \IDLE_REG_reg_n_0_[2]\ : STD_LOGIC;
+  signal ILLEGAL_K : STD_LOGIC;
+  signal ILLEGAL_K0 : STD_LOGIC;
+  signal ILLEGAL_K_REG1 : STD_LOGIC;
+  signal ILLEGAL_K_REG2 : STD_LOGIC;
+  signal I_REG_reg_n_0 : STD_LOGIC;
+  signal I_i_2_n_0 : STD_LOGIC;
+  signal I_i_4_n_0 : STD_LOGIC;
+  signal K23p7 : STD_LOGIC;
+  signal K28p5 : STD_LOGIC;
+  signal K28p5_REG1 : STD_LOGIC;
+  signal K28p5_REG2 : STD_LOGIC;
+  signal K29p7 : STD_LOGIC;
+  signal R : STD_LOGIC;
+  signal RECEIVE : STD_LOGIC;
+  signal RECEIVE_i_1_n_0 : STD_LOGIC;
+  signal \RUDI_C0__0\ : STD_LOGIC;
+  signal RUDI_I0 : STD_LOGIC;
+  signal RXCHARISK_REG1 : STD_LOGIC;
+  signal \RXDATA_REG4_reg[0]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[1]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[2]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[3]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[4]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[5]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[6]_srl4_n_0\ : STD_LOGIC;
+  signal \RXDATA_REG4_reg[7]_srl4_n_0\ : STD_LOGIC;
+  signal RXDATA_REG5 : STD_LOGIC_VECTOR ( 7 downto 0 );
+  signal \RXD[0]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[1]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[2]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[3]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[4]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[5]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[6]_i_1_n_0\ : STD_LOGIC;
+  signal \RXD[7]_i_1_n_0\ : STD_LOGIC;
+  signal RX_CONFIG_VALID_INT : STD_LOGIC;
+  signal RX_CONFIG_VALID_INT0 : STD_LOGIC;
+  signal RX_CONFIG_VALID_INT_i_2_n_0 : STD_LOGIC;
+  signal \RX_CONFIG_VALID_REG_reg_n_0_[0]\ : STD_LOGIC;
+  signal \RX_CONFIG_VALID_REG_reg_n_0_[3]\ : STD_LOGIC;
+  signal RX_DATA_ERROR : STD_LOGIC;
+  signal RX_DATA_ERROR0 : STD_LOGIC;
+  signal RX_DATA_ERROR_i_2_n_0 : STD_LOGIC;
+  signal RX_DATA_ERROR_i_3_n_0 : STD_LOGIC;
+  signal RX_DV_i_1_n_0 : STD_LOGIC;
+  signal RX_ER0 : STD_LOGIC;
+  signal RX_ER_i_2_n_0 : STD_LOGIC;
+  signal RX_INVALID_i_2_n_0 : STD_LOGIC;
+  signal R_REG1 : STD_LOGIC;
+  signal R_i_2_n_0 : STD_LOGIC;
+  signal R_i_3_n_0 : STD_LOGIC;
+  signal S : STD_LOGIC;
+  signal S0 : STD_LOGIC;
+  signal S2 : STD_LOGIC;
+  signal SOP : STD_LOGIC;
+  signal SOP0 : STD_LOGIC;
+  signal SOP_REG1 : STD_LOGIC;
+  signal SOP_REG2 : STD_LOGIC;
+  signal SOP_REG3 : STD_LOGIC;
+  signal SYNC_STATUS_REG : STD_LOGIC;
+  signal S_i_2_n_0 : STD_LOGIC;
+  signal T : STD_LOGIC;
+  signal T_REG1 : STD_LOGIC;
+  signal T_REG2 : STD_LOGIC;
+  signal WAIT_FOR_K : STD_LOGIC;
+  signal WAIT_FOR_K_i_1_n_0 : STD_LOGIC;
+  signal \^gmii_rx_dv\ : STD_LOGIC;
+  signal p_0_in1_in : STD_LOGIC;
+  signal p_0_in2_in : STD_LOGIC;
+  signal p_1_in : STD_LOGIC;
+  signal \^status_vector\ : STD_LOGIC_VECTOR ( 2 downto 0 );
+  attribute SOFT_HLUTNM : string;
+  attribute SOFT_HLUTNM of D0p0_REG_i_1 : label is "soft_lutpair4";
+  attribute SOFT_HLUTNM of EXT_ILLEGAL_K_i_1 : label is "soft_lutpair5";
+  attribute SOFT_HLUTNM of FALSE_DATA_i_3 : label is "soft_lutpair0";
+  attribute SOFT_HLUTNM of FALSE_K_i_3 : label is "soft_lutpair2";
+  attribute SOFT_HLUTNM of FALSE_NIT_i_2 : label is "soft_lutpair1";
+  attribute SOFT_HLUTNM of FALSE_NIT_i_3 : label is "soft_lutpair1";
+  attribute SOFT_HLUTNM of FALSE_NIT_i_4 : label is "soft_lutpair2";
+  attribute SOFT_HLUTNM of FROM_RX_CX_i_2 : label is "soft_lutpair5";
+  attribute SOFT_HLUTNM of FROM_RX_K_i_1 : label is "soft_lutpair6";
+  attribute srl_bus_name : string;
+  attribute srl_bus_name of \RXDATA_REG4_reg[0]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name : string;
+  attribute srl_name of \RXDATA_REG4_reg[0]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[0]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[1]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[1]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[1]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[2]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[2]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[2]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[3]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[3]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[3]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[4]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[4]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[4]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[5]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[5]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[5]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[6]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[6]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[6]_srl4 ";
+  attribute srl_bus_name of \RXDATA_REG4_reg[7]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg ";
+  attribute srl_name of \RXDATA_REG4_reg[7]_srl4\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK/RXDATA_REG4_reg[7]_srl4 ";
+  attribute SOFT_HLUTNM of \RXD[0]_i_1\ : label is "soft_lutpair7";
+  attribute SOFT_HLUTNM of \RXD[1]_i_1\ : label is "soft_lutpair7";
+  attribute SOFT_HLUTNM of \RXD[2]_i_1\ : label is "soft_lutpair9";
+  attribute SOFT_HLUTNM of \RXD[3]_i_1\ : label is "soft_lutpair8";
+  attribute SOFT_HLUTNM of \RXD[4]_i_1\ : label is "soft_lutpair3";
+  attribute SOFT_HLUTNM of \RXD[6]_i_1\ : label is "soft_lutpair8";
+  attribute SOFT_HLUTNM of \RXD[7]_i_1\ : label is "soft_lutpair9";
+  attribute SOFT_HLUTNM of RX_CONFIG_VALID_INT_i_2 : label is "soft_lutpair6";
+  attribute SOFT_HLUTNM of RX_ER_i_2 : label is "soft_lutpair3";
+  attribute SOFT_HLUTNM of R_i_2 : label is "soft_lutpair4";
+  attribute SOFT_HLUTNM of R_i_3 : label is "soft_lutpair0";
+begin
+  gmii_rx_dv <= \^gmii_rx_dv\;
+  status_vector(2 downto 0) <= \^status_vector\(2 downto 0);
+CGBAD_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CGBAD,
+      Q => CGBAD_REG1,
+      R => '0'
+    );
+CGBAD_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CGBAD_REG1,
+      Q => CGBAD_REG2,
+      R => '0'
+    );
+CGBAD_REG3_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CGBAD_REG2,
+      Q => CGBAD_REG3,
+      R => SR(0)
+    );
+CGBAD_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"FE"
+    )
+        port map (
+      I0 => RXNOTINTABLE_INT,
+      I1 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\,
+      I2 => D,
+      O => S2
+    );
+CGBAD_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => S2,
+      Q => CGBAD,
+      R => SR(0)
+    );
+C_HDR_REMOVED_REG_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0400"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\(1),
+      I1 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\(0),
+      I2 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\(2),
+      I3 => C_REG2,
+      O => C_HDR_REMOVED
+    );
+C_HDR_REMOVED_REG_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => C_HDR_REMOVED,
+      Q => C_HDR_REMOVED_REG,
+      R => '0'
+    );
+C_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => C,
+      Q => C_REG1,
+      R => '0'
+    );
+C_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => C_REG1,
+      Q => C_REG2,
+      R => '0'
+    );
+C_REG3_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => C_REG2,
+      Q => C_REG3,
+      R => '0'
+    );
+C_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"8"
+    )
+        port map (
+      I0 => I335_in,
+      I1 => K28p5_REG1,
+      O => C0
+    );
+C_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => C0,
+      Q => C,
+      R => '0'
+    );
+D0p0_REG_i_1: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00010000"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => Q(1),
+      I2 => Q(6),
+      I3 => Q(7),
+      I4 => FALSE_NIT_i_4_n_0,
+      O => D0p0
+    );
+D0p0_REG_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => D0p0,
+      Q => D0p0_REG,
+      R => '0'
+    );
+EOP_REG1_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"F8"
+    )
+        port map (
+      I0 => EXTEND_REG1,
+      I1 => EXTEND,
+      I2 => EOP,
+      O => EOP_REG10
+    );
+EOP_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EOP_REG10,
+      Q => EOP_REG1,
+      R => SR(0)
+    );
+EOP_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFFFFFFF8888888"
+    )
+        port map (
+      I0 => I_REG_reg_n_0,
+      I1 => K28p5_REG1,
+      I2 => RXEVEN0_out,
+      I3 => C_REG1,
+      I4 => D0p0_REG,
+      I5 => EOP_i_2_n_0,
+      O => EOP0
+    );
+EOP_i_2: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"88888000"
+    )
+        port map (
+      I0 => R_REG1,
+      I1 => T_REG2,
+      I2 => K28p5_REG1,
+      I3 => RXEVEN0_out,
+      I4 => R,
+      O => EOP_i_2_n_0
+    );
+EOP_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EOP0,
+      Q => EOP,
+      R => SR(0)
+    );
+EXTEND_ERR_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"F8"
+    )
+        port map (
+      I0 => EXTEND_REG3,
+      I1 => CGBAD_REG3,
+      I2 => EXT_ILLEGAL_K_REG2,
+      O => EXTEND_ERR0
+    );
+EXTEND_ERR_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXTEND_ERR0,
+      Q => EXTEND_ERR,
+      R => SYNC_STATUS_REG0
+    );
+EXTEND_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXTEND,
+      Q => EXTEND_REG1,
+      R => '0'
+    );
+EXTEND_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXTEND_REG1,
+      Q => EXTEND_REG2,
+      R => '0'
+    );
+EXTEND_REG3_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXTEND_REG2,
+      Q => EXTEND_REG3,
+      R => '0'
+    );
+EXTEND_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"F2222222F0000000"
+    )
+        port map (
+      I0 => FROM_RX_CX_i_2_n_0,
+      I1 => S,
+      I2 => R,
+      I3 => RECEIVE,
+      I4 => R_REG1,
+      I5 => EXTEND,
+      O => EXTEND_i_1_n_0
+    );
+EXTEND_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXTEND_i_1_n_0,
+      Q => EXTEND,
+      R => SYNC_STATUS_REG0
+    );
+EXT_ILLEGAL_K_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXT_ILLEGAL_K,
+      Q => EXT_ILLEGAL_K_REG1,
+      R => SYNC_STATUS_REG0
+    );
+EXT_ILLEGAL_K_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXT_ILLEGAL_K_REG1,
+      Q => EXT_ILLEGAL_K_REG2,
+      R => SYNC_STATUS_REG0
+    );
+EXT_ILLEGAL_K_i_1: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00000444"
+    )
+        port map (
+      I0 => S,
+      I1 => EXTEND_REG1,
+      I2 => K28p5_REG1,
+      I3 => RXEVEN0_out,
+      I4 => R,
+      O => EXT_ILLEGAL_K0
+    );
+EXT_ILLEGAL_K_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EXT_ILLEGAL_K0,
+      Q => EXT_ILLEGAL_K,
+      R => SYNC_STATUS_REG0
+    );
+FALSE_CARRIER_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_CARRIER,
+      Q => FALSE_CARRIER_REG1,
+      R => '0'
+    );
+FALSE_CARRIER_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_CARRIER_REG1,
+      Q => FALSE_CARRIER_REG2,
+      R => '0'
+    );
+FALSE_CARRIER_REG3_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_CARRIER_REG2,
+      Q => FALSE_CARRIER_REG3,
+      R => SYNC_STATUS_REG0
+    );
+FALSE_CARRIER_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"BFAA"
+    )
+        port map (
+      I0 => FALSE_CARRIER0,
+      I1 => RXEVEN0_out,
+      I2 => K28p5_REG1,
+      I3 => FALSE_CARRIER,
+      O => FALSE_CARRIER_i_1_n_0
+    );
+FALSE_CARRIER_i_2: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00000020"
+    )
+        port map (
+      I0 => RXSYNC_STATUS,
+      I1 => K28p5_REG1,
+      I2 => I_REG_reg_n_0,
+      I3 => S,
+      I4 => FALSE_CARRIER_i_3_n_0,
+      O => FALSE_CARRIER0
+    );
+FALSE_CARRIER_i_3: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"FE"
+    )
+        port map (
+      I0 => FALSE_NIT,
+      I1 => FALSE_DATA,
+      I2 => FALSE_K,
+      O => FALSE_CARRIER_i_3_n_0
+    );
+FALSE_CARRIER_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_CARRIER_i_1_n_0,
+      Q => FALSE_CARRIER,
+      R => SYNC_STATUS_REG0
+    );
+FALSE_DATA_i_1: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"FFFF1700"
+    )
+        port map (
+      I0 => Q(3),
+      I1 => Q(4),
+      I2 => Q(2),
+      I3 => FALSE_DATA_i_2_n_0,
+      I4 => FALSE_DATA_i_3_n_0,
+      O => FALSE_DATA0
+    );
+FALSE_DATA_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000000000100000"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I1 => RXNOTINTABLE_INT,
+      I2 => R_i_2_n_0,
+      I3 => Q(5),
+      I4 => Q(6),
+      I5 => Q(7),
+      O => FALSE_DATA_i_2_n_0
+    );
+FALSE_DATA_i_3: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00080000"
+    )
+        port map (
+      I0 => Q(5),
+      I1 => Q(7),
+      I2 => Q(6),
+      I3 => RXNOTINTABLE_INT,
+      I4 => FALSE_DATA_i_4_n_0,
+      O => FALSE_DATA_i_3_n_0
+    );
+FALSE_DATA_i_4: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0100005400000000"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I1 => Q(4),
+      I2 => Q(3),
+      I3 => Q(1),
+      I4 => Q(0),
+      I5 => Q(2),
+      O => FALSE_DATA_i_4_n_0
+    );
+FALSE_DATA_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_DATA0,
+      Q => FALSE_DATA,
+      R => SR(0)
+    );
+FALSE_K_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"4000000000400000"
+    )
+        port map (
+      I0 => RXNOTINTABLE_INT,
+      I1 => FALSE_K_i_2_n_0,
+      I2 => FALSE_K_i_3_n_0,
+      I3 => Q(6),
+      I4 => Q(7),
+      I5 => Q(5),
+      O => FALSE_K0
+    );
+FALSE_K_i_2: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"1"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => Q(1),
+      O => FALSE_K_i_2_n_0
+    );
+FALSE_K_i_3: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"8000"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I1 => Q(3),
+      I2 => Q(2),
+      I3 => Q(4),
+      O => FALSE_K_i_3_n_0
+    );
+FALSE_K_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_K0,
+      Q => FALSE_K,
+      R => SR(0)
+    );
+FALSE_NIT_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"80808080FF000000"
+    )
+        port map (
+      I0 => FALSE_NIT_i_2_n_0,
+      I1 => Q(5),
+      I2 => FALSE_K_i_3_n_0,
+      I3 => FALSE_NIT_i_3_n_0,
+      I4 => FALSE_NIT_i_4_n_0,
+      I5 => Q(6),
+      O => FALSE_NIT0
+    );
+FALSE_NIT_i_2: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"01001600"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => Q(1),
+      I2 => Q(7),
+      I3 => RXNOTINTABLE_INT,
+      I4 => D,
+      O => FALSE_NIT_i_2_n_0
+    );
+FALSE_NIT_i_3: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"68008000"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => Q(1),
+      I2 => Q(7),
+      I3 => RXNOTINTABLE_INT,
+      I4 => D,
+      O => FALSE_NIT_i_3_n_0
+    );
+FALSE_NIT_i_4: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00000001"
+    )
+        port map (
+      I0 => Q(5),
+      I1 => Q(2),
+      I2 => Q(3),
+      I3 => Q(4),
+      I4 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      O => FALSE_NIT_i_4_n_0
+    );
+FALSE_NIT_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FALSE_NIT0,
+      Q => FALSE_NIT,
+      R => SR(0)
+    );
+FROM_IDLE_D_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0004"
+    )
+        port map (
+      I0 => WAIT_FOR_K,
+      I1 => I_REG_reg_n_0,
+      I2 => RXSYNC_STATUS,
+      I3 => K28p5_REG1,
+      O => FROM_IDLE_D0
+    );
+FROM_IDLE_D_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FROM_IDLE_D0,
+      Q => FROM_IDLE_D,
+      R => SYNC_STATUS_REG0
+    );
+FROM_RX_CX_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FEFEFEEEFAFAFA00"
+    )
+        port map (
+      I0 => CGBAD,
+      I1 => FROM_RX_CX_i_2_n_0,
+      I2 => RXCHARISK_REG1,
+      I3 => C_REG2,
+      I4 => C_REG1,
+      I5 => C_REG3,
+      O => FROM_RX_CX0
+    );
+FROM_RX_CX_i_2: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"7"
+    )
+        port map (
+      I0 => K28p5_REG1,
+      I1 => RXEVEN0_out,
+      O => FROM_RX_CX_i_2_n_0
+    );
+FROM_RX_CX_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FROM_RX_CX0,
+      Q => FROM_RX_CX,
+      R => SYNC_STATUS_REG0
+    );
+FROM_RX_K_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"4440"
+    )
+        port map (
+      I0 => RXSYNC_STATUS,
+      I1 => K28p5_REG2,
+      I2 => RXCHARISK_REG1,
+      I3 => CGBAD,
+      O => FROM_RX_K0
+    );
+FROM_RX_K_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => FROM_RX_K0,
+      Q => FROM_RX_K,
+      R => SYNC_STATUS_REG0
+    );
+\IDLE_REG_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => I_REG_reg_n_0,
+      Q => \IDLE_REG_reg_n_0_[0]\,
+      R => SR(0)
+    );
+\IDLE_REG_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \IDLE_REG_reg_n_0_[0]\,
+      Q => p_0_in1_in,
+      R => SR(0)
+    );
+\IDLE_REG_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => p_0_in1_in,
+      Q => \IDLE_REG_reg_n_0_[2]\,
+      R => SR(0)
+    );
+ILLEGAL_K_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => ILLEGAL_K,
+      Q => ILLEGAL_K_REG1,
+      R => SYNC_STATUS_REG0
+    );
+ILLEGAL_K_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => ILLEGAL_K_REG1,
+      Q => ILLEGAL_K_REG2,
+      R => SYNC_STATUS_REG0
+    );
+ILLEGAL_K_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0004"
+    )
+        port map (
+      I0 => T,
+      I1 => RXCHARISK_REG1,
+      I2 => K28p5_REG1,
+      I3 => R,
+      O => ILLEGAL_K0
+    );
+ILLEGAL_K_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => ILLEGAL_K0,
+      Q => ILLEGAL_K,
+      R => SYNC_STATUS_REG0
+    );
+I_REG_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => I,
+      Q => I_REG_reg_n_0,
+      R => '0'
+    );
+I_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"3323222222222222"
+    )
+        port map (
+      I0 => I_i_2_n_0,
+      I1 => I335_in,
+      I2 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I3 => RXSYNC_STATUS,
+      I4 => RXEVEN0_out,
+      I5 => K28p5_REG1,
+      O => I0
+    );
+I_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"8080808080808000"
+    )
+        port map (
+      I0 => I_REG_reg_n_0,
+      I1 => RXSYNC_STATUS,
+      I2 => RXEVEN0_out,
+      I3 => FALSE_K,
+      I4 => FALSE_DATA,
+      I5 => FALSE_NIT,
+      O => I_i_2_n_0
+    );
+I_i_3: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"000F200000002000"
+    )
+        port map (
+      I0 => FALSE_NIT_i_4_n_0,
+      I1 => Q(7),
+      I2 => Q(6),
+      I3 => Q(1),
+      I4 => Q(0),
+      I5 => I_i_4_n_0,
+      O => I335_in
+    );
+I_i_4: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0008000000000000"
+    )
+        port map (
+      I0 => Q(4),
+      I1 => Q(2),
+      I2 => Q(3),
+      I3 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I4 => Q(7),
+      I5 => Q(5),
+      O => I_i_4_n_0
+    );
+I_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => I0,
+      Q => I,
+      R => '0'
+    );
+K28p5_REG1_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000100000000000"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => Q(1),
+      I2 => Q(7),
+      I3 => Q(5),
+      I4 => Q(6),
+      I5 => FALSE_K_i_3_n_0,
+      O => K28p5
+    );
+K28p5_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => K28p5,
+      Q => K28p5_REG1,
+      R => '0'
+    );
+K28p5_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => K28p5_REG1,
+      Q => K28p5_REG2,
+      R => '0'
+    );
+RECEIVE_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"BA"
+    )
+        port map (
+      I0 => SOP_REG2,
+      I1 => EOP,
+      I2 => RECEIVE,
+      O => RECEIVE_i_1_n_0
+    );
+RECEIVE_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => RECEIVE_i_1_n_0,
+      Q => RECEIVE,
+      R => SYNC_STATUS_REG0
+    );
+RUDI_C0: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FFFE"
+    )
+        port map (
+      I0 => p_1_in,
+      I1 => \RX_CONFIG_VALID_REG_reg_n_0_[0]\,
+      I2 => \RX_CONFIG_VALID_REG_reg_n_0_[3]\,
+      I3 => p_0_in2_in,
+      O => \RUDI_C0__0\
+    );
+RUDI_C_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RUDI_C0__0\,
+      Q => \^status_vector\(0),
+      R => SR(0)
+    );
+RUDI_I_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => \IDLE_REG_reg_n_0_[2]\,
+      I1 => p_0_in1_in,
+      O => RUDI_I0
+    );
+RUDI_I_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => RUDI_I0,
+      Q => \^status_vector\(1),
+      R => SR(0)
+    );
+RXCHARISK_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      Q => RXCHARISK_REG1,
+      R => '0'
+    );
+\RXDATA_REG4_reg[0]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(0),
+      Q => \RXDATA_REG4_reg[0]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[1]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(1),
+      Q => \RXDATA_REG4_reg[1]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[2]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(2),
+      Q => \RXDATA_REG4_reg[2]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[3]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(3),
+      Q => \RXDATA_REG4_reg[3]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[4]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(4),
+      Q => \RXDATA_REG4_reg[4]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[5]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(5),
+      Q => \RXDATA_REG4_reg[5]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[6]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(6),
+      Q => \RXDATA_REG4_reg[6]_srl4_n_0\
+    );
+\RXDATA_REG4_reg[7]_srl4\: unisim.vcomponents.SRL16E
+     port map (
+      A0 => '1',
+      A1 => '1',
+      A2 => '0',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => Q(7),
+      Q => \RXDATA_REG4_reg[7]_srl4_n_0\
+    );
+\RXDATA_REG5_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[0]_srl4_n_0\,
+      Q => RXDATA_REG5(0),
+      R => '0'
+    );
+\RXDATA_REG5_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[1]_srl4_n_0\,
+      Q => RXDATA_REG5(1),
+      R => '0'
+    );
+\RXDATA_REG5_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[2]_srl4_n_0\,
+      Q => RXDATA_REG5(2),
+      R => '0'
+    );
+\RXDATA_REG5_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[3]_srl4_n_0\,
+      Q => RXDATA_REG5(3),
+      R => '0'
+    );
+\RXDATA_REG5_reg[4]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[4]_srl4_n_0\,
+      Q => RXDATA_REG5(4),
+      R => '0'
+    );
+\RXDATA_REG5_reg[5]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[5]_srl4_n_0\,
+      Q => RXDATA_REG5(5),
+      R => '0'
+    );
+\RXDATA_REG5_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[6]_srl4_n_0\,
+      Q => RXDATA_REG5(6),
+      R => '0'
+    );
+\RXDATA_REG5_reg[7]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXDATA_REG4_reg[7]_srl4_n_0\,
+      Q => RXDATA_REG5(7),
+      R => '0'
+    );
+\RXD[0]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"AFAE"
+    )
+        port map (
+      I0 => SOP_REG3,
+      I1 => EXTEND_REG1,
+      I2 => FALSE_CARRIER_REG3,
+      I3 => RXDATA_REG5(0),
+      O => \RXD[0]_i_1_n_0\
+    );
+\RXD[1]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0F0E"
+    )
+        port map (
+      I0 => FALSE_CARRIER_REG3,
+      I1 => EXTEND_REG1,
+      I2 => SOP_REG3,
+      I3 => RXDATA_REG5(1),
+      O => \RXD[1]_i_1_n_0\
+    );
+\RXD[2]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FFFE"
+    )
+        port map (
+      I0 => SOP_REG3,
+      I1 => FALSE_CARRIER_REG3,
+      I2 => EXTEND_REG1,
+      I3 => RXDATA_REG5(2),
+      O => \RXD[2]_i_1_n_0\
+    );
+\RXD[3]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"3332"
+    )
+        port map (
+      I0 => RXDATA_REG5(3),
+      I1 => SOP_REG3,
+      I2 => FALSE_CARRIER_REG3,
+      I3 => EXTEND_REG1,
+      O => \RXD[3]_i_1_n_0\
+    );
+\RXD[4]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"AAAAFAEE"
+    )
+        port map (
+      I0 => SOP_REG3,
+      I1 => RXDATA_REG5(4),
+      I2 => EXTEND_ERR,
+      I3 => EXTEND_REG1,
+      I4 => FALSE_CARRIER_REG3,
+      O => \RXD[4]_i_1_n_0\
+    );
+\RXD[5]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0002"
+    )
+        port map (
+      I0 => RXDATA_REG5(5),
+      I1 => SOP_REG3,
+      I2 => FALSE_CARRIER_REG3,
+      I3 => EXTEND_REG1,
+      O => \RXD[5]_i_1_n_0\
+    );
+\RXD[6]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FF10"
+    )
+        port map (
+      I0 => FALSE_CARRIER_REG3,
+      I1 => EXTEND_REG1,
+      I2 => RXDATA_REG5(6),
+      I3 => SOP_REG3,
+      O => \RXD[6]_i_1_n_0\
+    );
+\RXD[7]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0002"
+    )
+        port map (
+      I0 => RXDATA_REG5(7),
+      I1 => SOP_REG3,
+      I2 => FALSE_CARRIER_REG3,
+      I3 => EXTEND_REG1,
+      O => \RXD[7]_i_1_n_0\
+    );
+\RXD_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[0]_i_1_n_0\,
+      Q => gmii_rxd(0),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[1]_i_1_n_0\,
+      Q => gmii_rxd(1),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[2]_i_1_n_0\,
+      Q => gmii_rxd(2),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[3]_i_1_n_0\,
+      Q => gmii_rxd(3),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[4]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[4]_i_1_n_0\,
+      Q => gmii_rxd(4),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[5]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[5]_i_1_n_0\,
+      Q => gmii_rxd(5),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[6]_i_1_n_0\,
+      Q => gmii_rxd(6),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+\RXD_reg[7]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RXD[7]_i_1_n_0\,
+      Q => gmii_rxd(7),
+      R => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1)
+    );
+RX_CONFIG_VALID_INT_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000000000540000"
+    )
+        port map (
+      I0 => S2,
+      I1 => C_HDR_REMOVED_REG,
+      I2 => C_REG1,
+      I3 => RX_CONFIG_VALID_INT_i_2_n_0,
+      I4 => RXSYNC_STATUS,
+      I5 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      O => RX_CONFIG_VALID_INT0
+    );
+RX_CONFIG_VALID_INT_i_2: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => CGBAD,
+      I1 => RXCHARISK_REG1,
+      O => RX_CONFIG_VALID_INT_i_2_n_0
+    );
+RX_CONFIG_VALID_INT_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => RX_CONFIG_VALID_INT0,
+      Q => RX_CONFIG_VALID_INT,
+      R => SR(0)
+    );
+\RX_CONFIG_VALID_REG_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => RX_CONFIG_VALID_INT,
+      Q => \RX_CONFIG_VALID_REG_reg_n_0_[0]\,
+      R => SR(0)
+    );
+\RX_CONFIG_VALID_REG_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \RX_CONFIG_VALID_REG_reg_n_0_[0]\,
+      Q => p_0_in2_in,
+      R => SR(0)
+    );
+\RX_CONFIG_VALID_REG_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => p_0_in2_in,
+      Q => p_1_in,
+      R => SR(0)
+    );
+\RX_CONFIG_VALID_REG_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => p_1_in,
+      Q => \RX_CONFIG_VALID_REG_reg_n_0_[3]\,
+      R => SR(0)
+    );
+RX_DATA_ERROR_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFF0000FFBA0000"
+    )
+        port map (
+      I0 => T_REG2,
+      I1 => T_REG1,
+      I2 => R,
+      I3 => RX_DATA_ERROR_i_2_n_0,
+      I4 => RX_DATA_ERROR_i_3_n_0,
+      I5 => K28p5_REG1,
+      O => RX_DATA_ERROR0
+    );
+RX_DATA_ERROR_i_2: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FFFE"
+    )
+        port map (
+      I0 => I_REG_reg_n_0,
+      I1 => C_REG1,
+      I2 => CGBAD_REG3,
+      I3 => ILLEGAL_K_REG2,
+      O => RX_DATA_ERROR_i_2_n_0
+    );
+RX_DATA_ERROR_i_3: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FF08FFFF00000000"
+    )
+        port map (
+      I0 => T_REG2,
+      I1 => FROM_RX_CX_i_2_n_0,
+      I2 => R,
+      I3 => RX_DATA_ERROR_i_2_n_0,
+      I4 => R_REG1,
+      I5 => RECEIVE,
+      O => RX_DATA_ERROR_i_3_n_0
+    );
+RX_DATA_ERROR_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => RX_DATA_ERROR0,
+      Q => RX_DATA_ERROR,
+      R => SYNC_STATUS_REG0
+    );
+RX_DV_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FF545454FF000000"
+    )
+        port map (
+      I0 => EOP_REG1,
+      I1 => RECEIVE,
+      I2 => RXSYNC_STATUS,
+      I3 => SOP_REG3,
+      I4 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]_0\,
+      I5 => \^gmii_rx_dv\,
+      O => RX_DV_i_1_n_0
+    );
+RX_DV_reg: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => RX_DV_i_1_n_0,
+      Q => \^gmii_rx_dv\,
+      R => SR(0)
+    );
+RX_ER_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"000E000E000F0000"
+    )
+        port map (
+      I0 => RX_ER_i_2_n_0,
+      I1 => RX_DATA_ERROR,
+      I2 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(0),
+      I3 => \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1),
+      I4 => RECEIVE,
+      I5 => RXSYNC_STATUS,
+      O => RX_ER0
+    );
+RX_ER_i_2: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => FALSE_CARRIER_REG3,
+      I1 => EXTEND_REG1,
+      O => RX_ER_i_2_n_0
+    );
+RX_ER_reg: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => RX_ER0,
+      Q => gmii_rx_er,
+      R => SR(0)
+    );
+RX_INVALID_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FF32FFFFFF32FF32"
+    )
+        port map (
+      I0 => FROM_IDLE_D,
+      I1 => RXSYNC_STATUS,
+      I2 => FROM_RX_K,
+      I3 => FROM_RX_CX,
+      I4 => K28p5_REG1,
+      I5 => \^status_vector\(2),
+      O => RX_INVALID_i_2_n_0
+    );
+RX_INVALID_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => RX_INVALID_i_2_n_0,
+      Q => \^status_vector\(2),
+      R => SYNC_STATUS_REG0
+    );
+R_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => R,
+      Q => R_REG1,
+      R => '0'
+    );
+R_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"2000000000000000"
+    )
+        port map (
+      I0 => R_i_2_n_0,
+      I1 => Q(3),
+      I2 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I3 => Q(2),
+      I4 => Q(4),
+      I5 => R_i_3_n_0,
+      O => K23p7
+    );
+R_i_2: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"8"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => Q(1),
+      O => R_i_2_n_0
+    );
+R_i_3: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"80"
+    )
+        port map (
+      I0 => Q(6),
+      I1 => Q(7),
+      I2 => Q(5),
+      O => R_i_3_n_0
+    );
+R_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => K23p7,
+      Q => R,
+      R => '0'
+    );
+SOP_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SOP,
+      Q => SOP_REG1,
+      R => '0'
+    );
+SOP_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SOP_REG1,
+      Q => SOP_REG2,
+      R => '0'
+    );
+SOP_REG3_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SOP_REG2,
+      Q => SOP_REG3,
+      R => '0'
+    );
+SOP_i_1: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"0000E000"
+    )
+        port map (
+      I0 => EXTEND,
+      I1 => I_REG_reg_n_0,
+      I2 => RXSYNC_STATUS,
+      I3 => S,
+      I4 => WAIT_FOR_K,
+      O => SOP0
+    );
+SOP_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SOP0,
+      Q => SOP,
+      R => SR(0)
+    );
+SYNC_STATUS_REG_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => '1',
+      Q => SYNC_STATUS_REG,
+      R => SYNC_STATUS_REG0
+    );
+S_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0800000000000000"
+    )
+        port map (
+      I0 => S_i_2_n_0,
+      I1 => R_i_2_n_0,
+      I2 => Q(2),
+      I3 => Q(3),
+      I4 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I5 => Q(4),
+      O => S0
+    );
+S_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000000000000080"
+    )
+        port map (
+      I0 => Q(5),
+      I1 => Q(7),
+      I2 => Q(6),
+      I3 => D,
+      I4 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\,
+      I5 => RXNOTINTABLE_INT,
+      O => S_i_2_n_0
+    );
+S_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => S0,
+      Q => S,
+      R => '0'
+    );
+T_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => T,
+      Q => T_REG1,
+      R => '0'
+    );
+T_REG2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => T_REG1,
+      Q => T_REG2,
+      R => '0'
+    );
+T_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000800000000000"
+    )
+        port map (
+      I0 => Q(6),
+      I1 => Q(7),
+      I2 => Q(5),
+      I3 => Q(0),
+      I4 => Q(1),
+      I5 => FALSE_K_i_3_n_0,
+      O => K29p7
+    );
+T_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => K29p7,
+      Q => T,
+      R => '0'
+    );
+WAIT_FOR_K_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"7F0F"
+    )
+        port map (
+      I0 => RXEVEN0_out,
+      I1 => K28p5_REG1,
+      I2 => SYNC_STATUS_REG,
+      I3 => WAIT_FOR_K,
+      O => WAIT_FOR_K_i_1_n_0
+    );
+WAIT_FOR_K_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => WAIT_FOR_K_i_1_n_0,
+      Q => WAIT_FOR_K,
+      R => SYNC_STATUS_REG0
+    );
+end STRUCTURE;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
+entity GigEthGthUltraScaleCore_SYNCHRONISE is
+  port (
+    RXSYNC_STATUS : out STD_LOGIC;
+    RXEVEN0_out : out STD_LOGIC;
+    enablealign : out STD_LOGIC;
+    SYNC_STATUS_REG0 : out STD_LOGIC;
+    RX_DV_reg : out STD_LOGIC;
+    STATUS_VECTOR_0_PRE0 : out STD_LOGIC;
+    SIGNAL_DETECT_MOD : in STD_LOGIC;
+    userclk2 : in STD_LOGIC;
+    SR : in STD_LOGIC_VECTOR ( 0 to 0 );
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\ : in STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\ : in STD_LOGIC;
+    Q : in STD_LOGIC_VECTOR ( 2 downto 0 );
+    RXNOTINTABLE_INT : in STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\ : in STD_LOGIC;
+    D : in STD_LOGIC;
+    reset_done : in STD_LOGIC
+  );
+  attribute ORIG_REF_NAME : string;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_SYNCHRONISE : entity is "SYNCHRONISE";
+end GigEthGthUltraScaleCore_SYNCHRONISE;
+
+architecture STRUCTURE of GigEthGthUltraScaleCore_SYNCHRONISE is
+  signal CGBAD : STD_LOGIC;
+  signal ENCOMMAALIGN_i_2_n_0 : STD_LOGIC;
+  signal EVEN_i_1_n_0 : STD_LOGIC;
+  signal \FSM_sequential_STATE[0]_i_2_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[0]_i_3_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[1]_i_2_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[1]_i_3_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[2]_i_2_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[2]_i_3_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[3]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[3]_i_2_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE[3]_i_3_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE_reg[0]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE_reg[1]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_STATE_reg[2]_i_1_n_0\ : STD_LOGIC;
+  signal GOOD_CGS : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal \GOOD_CGS[0]_i_1_n_0\ : STD_LOGIC;
+  signal \GOOD_CGS[1]_i_1_n_0\ : STD_LOGIC;
+  signal \GOOD_CGS[1]_i_3_n_0\ : STD_LOGIC;
+  signal \^rxeven0_out\ : STD_LOGIC;
+  signal \^rxsync_status\ : STD_LOGIC;
+  signal SIGNAL_DETECT_REG : STD_LOGIC;
+  signal STATE : STD_LOGIC_VECTOR ( 3 downto 0 );
+  attribute RTL_KEEP : string;
+  attribute RTL_KEEP of STATE : signal is "yes";
+  signal SYNC_STATUS0 : STD_LOGIC;
+  signal p_1_in : STD_LOGIC;
+  attribute SOFT_HLUTNM : string;
+  attribute SOFT_HLUTNM of EVEN_i_1 : label is "soft_lutpair10";
+  attribute SOFT_HLUTNM of \FSM_sequential_STATE[3]_i_3\ : label is "soft_lutpair11";
+  attribute KEEP : string;
+  attribute KEEP of \FSM_sequential_STATE_reg[0]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_STATE_reg[1]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_STATE_reg[2]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_STATE_reg[3]\ : label is "yes";
+  attribute SOFT_HLUTNM of \GOOD_CGS[1]_i_3\ : label is "soft_lutpair11";
+  attribute SOFT_HLUTNM of RX_DV_i_2 : label is "soft_lutpair10";
+  attribute SOFT_HLUTNM of RX_INVALID_i_1 : label is "soft_lutpair12";
+  attribute SOFT_HLUTNM of STATUS_VECTOR_0_PRE_i_1 : label is "soft_lutpair12";
+begin
+  RXEVEN0_out <= \^rxeven0_out\;
+  RXSYNC_STATUS <= \^rxsync_status\;
+ENCOMMAALIGN_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000000000000040"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I1 => STATE(0),
+      I2 => STATE(2),
+      I3 => STATE(1),
+      I4 => STATE(3),
+      I5 => CGBAD,
+      O => SYNC_STATUS0
+    );
+ENCOMMAALIGN_i_2: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"02200003"
+    )
+        port map (
+      I0 => CGBAD,
+      I1 => STATE(0),
+      I2 => STATE(1),
+      I3 => STATE(2),
+      I4 => STATE(3),
+      O => ENCOMMAALIGN_i_2_n_0
+    );
+ENCOMMAALIGN_i_3: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"FFFFFFF8"
+    )
+        port map (
+      I0 => \^rxeven0_out\,
+      I1 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\,
+      I2 => D,
+      I3 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\,
+      I4 => RXNOTINTABLE_INT,
+      O => CGBAD
+    );
+ENCOMMAALIGN_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => ENCOMMAALIGN_i_2_n_0,
+      D => ENCOMMAALIGN_i_2_n_0,
+      Q => enablealign,
+      R => SYNC_STATUS0
+    );
+EVEN_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"4F"
+    )
+        port map (
+      I0 => \^rxsync_status\,
+      I1 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\,
+      I2 => \^rxeven0_out\,
+      O => EVEN_i_1_n_0
+    );
+EVEN_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => EVEN_i_1_n_0,
+      Q => \^rxeven0_out\,
+      R => SR(0)
+    );
+\FSM_sequential_STATE[0]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"61156000"
+    )
+        port map (
+      I0 => STATE(0),
+      I1 => CGBAD,
+      I2 => STATE(1),
+      I3 => STATE(2),
+      I4 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\,
+      O => \FSM_sequential_STATE[0]_i_2_n_0\
+    );
+\FSM_sequential_STATE[0]_i_3\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000000000F000DF"
+    )
+        port map (
+      I0 => GOOD_CGS(1),
+      I1 => GOOD_CGS(0),
+      I2 => STATE(0),
+      I3 => STATE(2),
+      I4 => STATE(1),
+      I5 => CGBAD,
+      O => \FSM_sequential_STATE[0]_i_3_n_0\
+    );
+\FSM_sequential_STATE[1]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"30330044"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I1 => STATE(0),
+      I2 => STATE(2),
+      I3 => CGBAD,
+      I4 => STATE(1),
+      O => \FSM_sequential_STATE[1]_i_2_n_0\
+    );
+\FSM_sequential_STATE[1]_i_3\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"00000000FF0004FF"
+    )
+        port map (
+      I0 => CGBAD,
+      I1 => GOOD_CGS(1),
+      I2 => GOOD_CGS(0),
+      I3 => STATE(0),
+      I4 => STATE(1),
+      I5 => STATE(2),
+      O => \FSM_sequential_STATE[1]_i_3_n_0\
+    );
+\FSM_sequential_STATE[2]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"30370040"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\,
+      I1 => STATE(0),
+      I2 => STATE(1),
+      I3 => CGBAD,
+      I4 => STATE(2),
+      O => \FSM_sequential_STATE[2]_i_2_n_0\
+    );
+\FSM_sequential_STATE[2]_i_3\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"00000000140E1414"
+    )
+        port map (
+      I0 => STATE(0),
+      I1 => STATE(1),
+      I2 => STATE(2),
+      I3 => GOOD_CGS(0),
+      I4 => GOOD_CGS(1),
+      I5 => CGBAD,
+      O => \FSM_sequential_STATE[2]_i_3_n_0\
+    );
+\FSM_sequential_STATE[3]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"F1"
+    )
+        port map (
+      I0 => Q(0),
+      I1 => SIGNAL_DETECT_REG,
+      I2 => SR(0),
+      O => \FSM_sequential_STATE[3]_i_1_n_0\
+    );
+\FSM_sequential_STATE[3]_i_2\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0FE000E0003030F0"
+    )
+        port map (
+      I0 => \FSM_sequential_STATE[3]_i_3_n_0\,
+      I1 => CGBAD,
+      I2 => STATE(3),
+      I3 => STATE(2),
+      I4 => STATE(1),
+      I5 => STATE(0),
+      O => \FSM_sequential_STATE[3]_i_2_n_0\
+    );
+\FSM_sequential_STATE[3]_i_3\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"B"
+    )
+        port map (
+      I0 => GOOD_CGS(0),
+      I1 => GOOD_CGS(1),
+      O => \FSM_sequential_STATE[3]_i_3_n_0\
+    );
+\FSM_sequential_STATE_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_STATE_reg[0]_i_1_n_0\,
+      Q => STATE(0),
+      R => \FSM_sequential_STATE[3]_i_1_n_0\
+    );
+\FSM_sequential_STATE_reg[0]_i_1\: unisim.vcomponents.MUXF7
+     port map (
+      I0 => \FSM_sequential_STATE[0]_i_2_n_0\,
+      I1 => \FSM_sequential_STATE[0]_i_3_n_0\,
+      O => \FSM_sequential_STATE_reg[0]_i_1_n_0\,
+      S => STATE(3)
+    );
+\FSM_sequential_STATE_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_STATE_reg[1]_i_1_n_0\,
+      Q => STATE(1),
+      R => \FSM_sequential_STATE[3]_i_1_n_0\
+    );
+\FSM_sequential_STATE_reg[1]_i_1\: unisim.vcomponents.MUXF7
+     port map (
+      I0 => \FSM_sequential_STATE[1]_i_2_n_0\,
+      I1 => \FSM_sequential_STATE[1]_i_3_n_0\,
+      O => \FSM_sequential_STATE_reg[1]_i_1_n_0\,
+      S => STATE(3)
+    );
+\FSM_sequential_STATE_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_STATE_reg[2]_i_1_n_0\,
+      Q => STATE(2),
+      R => \FSM_sequential_STATE[3]_i_1_n_0\
+    );
+\FSM_sequential_STATE_reg[2]_i_1\: unisim.vcomponents.MUXF7
+     port map (
+      I0 => \FSM_sequential_STATE[2]_i_2_n_0\,
+      I1 => \FSM_sequential_STATE[2]_i_3_n_0\,
+      O => \FSM_sequential_STATE_reg[2]_i_1_n_0\,
+      S => STATE(3)
+    );
+\FSM_sequential_STATE_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_STATE[3]_i_2_n_0\,
+      Q => STATE(3),
+      R => \FSM_sequential_STATE[3]_i_1_n_0\
+    );
+\GOOD_CGS[0]_i_1\: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"1"
+    )
+        port map (
+      I0 => GOOD_CGS(0),
+      O => \GOOD_CGS[0]_i_1_n_0\
+    );
+\GOOD_CGS[1]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"FFFF0580"
+    )
+        port map (
+      I0 => STATE(0),
+      I1 => STATE(1),
+      I2 => STATE(2),
+      I3 => STATE(3),
+      I4 => SR(0),
+      O => \GOOD_CGS[1]_i_1_n_0\
+    );
+\GOOD_CGS[1]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00010101"
+    )
+        port map (
+      I0 => RXNOTINTABLE_INT,
+      I1 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\,
+      I2 => D,
+      I3 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\,
+      I4 => \^rxeven0_out\,
+      O => p_1_in
+    );
+\GOOD_CGS[1]_i_3\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"6"
+    )
+        port map (
+      I0 => GOOD_CGS(0),
+      I1 => GOOD_CGS(1),
+      O => \GOOD_CGS[1]_i_3_n_0\
+    );
+\GOOD_CGS_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => p_1_in,
+      D => \GOOD_CGS[0]_i_1_n_0\,
+      Q => GOOD_CGS(0),
+      R => \GOOD_CGS[1]_i_1_n_0\
+    );
+\GOOD_CGS_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => p_1_in,
+      D => \GOOD_CGS[1]_i_3_n_0\,
+      Q => GOOD_CGS(1),
+      R => \GOOD_CGS[1]_i_1_n_0\
+    );
+RX_DV_i_2: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"10"
+    )
+        port map (
+      I0 => Q(2),
+      I1 => Q(1),
+      I2 => \^rxsync_status\,
+      O => RX_DV_reg
+    );
+RX_INVALID_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"B"
+    )
+        port map (
+      I0 => SR(0),
+      I1 => \^rxsync_status\,
+      O => SYNC_STATUS_REG0
+    );
+SIGNAL_DETECT_REG_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SIGNAL_DETECT_MOD,
+      Q => SIGNAL_DETECT_REG,
+      R => '0'
+    );
+STATUS_VECTOR_0_PRE_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"8"
+    )
+        port map (
+      I0 => \^rxsync_status\,
+      I1 => reset_done,
+      O => STATUS_VECTOR_0_PRE0
+    );
+SYNC_STATUS_reg: unisim.vcomponents.FDSE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => ENCOMMAALIGN_i_2_n_0,
+      D => '0',
+      Q => \^rxsync_status\,
+      S => SYNC_STATUS0
+    );
+end STRUCTURE;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
+entity GigEthGthUltraScaleCore_TX is
+  port (
+    \USE_ROCKET_IO.TXCHARDISPMODE_reg\ : out STD_LOGIC;
+    \USE_ROCKET_IO.TXDATA_reg[7]\ : out STD_LOGIC;
+    D : out STD_LOGIC_VECTOR ( 3 downto 0 );
+    \USE_ROCKET_IO.TXDATA_reg[5]\ : out STD_LOGIC;
+    \USE_ROCKET_IO.TXDATA_reg[3]\ : out STD_LOGIC;
+    \USE_ROCKET_IO.TXDATA_reg[2]\ : out STD_LOGIC;
+    \USE_ROCKET_IO.TXCHARISK_reg\ : out STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\ : out STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\ : out STD_LOGIC;
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\ : out STD_LOGIC_VECTOR ( 7 downto 0 );
+    \USE_ROCKET_IO.TXDATA_reg[2]_0\ : out STD_LOGIC;
+    \USE_ROCKET_IO.TXCHARDISPVAL_reg\ : out STD_LOGIC;
+    \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\ : in STD_LOGIC;
+    userclk2 : in STD_LOGIC;
+    gmii_tx_en : in STD_LOGIC;
+    gmii_tx_er : in STD_LOGIC;
+    Q : in STD_LOGIC_VECTOR ( 1 downto 0 );
+    gmii_txd : in STD_LOGIC_VECTOR ( 7 downto 0 );
+    rxcharisk : in STD_LOGIC_VECTOR ( 0 to 0 );
+    rxchariscomma : in STD_LOGIC_VECTOR ( 0 to 0 );
+    rxdata : in STD_LOGIC_VECTOR ( 7 downto 0 )
+  );
+  attribute ORIG_REF_NAME : string;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_TX : entity is "TX";
+end GigEthGthUltraScaleCore_TX;
+
+architecture STRUCTURE of GigEthGthUltraScaleCore_TX is
+  signal C1_OR_C2_i_1_n_0 : STD_LOGIC;
+  signal C1_OR_C2_reg_n_0 : STD_LOGIC;
+  signal CODE_GRPISK : STD_LOGIC;
+  signal CODE_GRPISK_i_1_n_0 : STD_LOGIC;
+  signal \CODE_GRP[0]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[0]_i_2_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[1]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[1]_i_2_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[2]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[2]_i_2_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[3]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[3]_i_2_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[4]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[5]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[6]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[6]_i_2_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[7]_i_1_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[7]_i_2_n_0\ : STD_LOGIC;
+  signal \CODE_GRP[7]_i_3_n_0\ : STD_LOGIC;
+  signal \CODE_GRP_CNT_reg_n_0_[1]\ : STD_LOGIC;
+  signal \CODE_GRP_reg_n_0_[0]\ : STD_LOGIC;
+  signal CONFIG_DATA : STD_LOGIC_VECTOR ( 7 downto 0 );
+  signal \CONFIG_DATA_reg_n_0_[0]\ : STD_LOGIC;
+  signal \CONFIG_DATA_reg_n_0_[3]\ : STD_LOGIC;
+  signal \CONFIG_DATA_reg_n_0_[6]\ : STD_LOGIC;
+  signal \CONFIG_DATA_reg_n_0_[7]\ : STD_LOGIC;
+  signal DISPARITY : STD_LOGIC;
+  signal INSERT_IDLE_i_1_n_0 : STD_LOGIC;
+  signal INSERT_IDLE_reg_n_0 : STD_LOGIC;
+  signal K28p5 : STD_LOGIC;
+  signal K28p5_i_1_n_0 : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXCHARISK_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[0]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[1]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[2]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[3]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[4]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[5]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[6]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DATA.TXDATA[7]_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DISP.DISPARITY_i_1_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DISP.DISPARITY_i_2_n_0\ : STD_LOGIC;
+  signal \NO_QSGMII_DISP.DISPARITY_i_3_n_0\ : STD_LOGIC;
+  signal R : STD_LOGIC;
+  signal \R_i_1__0_n_0\ : STD_LOGIC;
+  signal S : STD_LOGIC;
+  signal S0 : STD_LOGIC;
+  signal S4 : STD_LOGIC;
+  signal SYNC_DISPARITY_i_1_n_0 : STD_LOGIC;
+  signal SYNC_DISPARITY_reg_n_0 : STD_LOGIC;
+  signal T : STD_LOGIC;
+  signal T0 : STD_LOGIC;
+  signal TRIGGER_S : STD_LOGIC;
+  signal TRIGGER_S0 : STD_LOGIC;
+  signal TRIGGER_T : STD_LOGIC;
+  signal TXCHARDISPMODE_INT : STD_LOGIC;
+  signal TXCHARDISPVAL : STD_LOGIC;
+  signal TXCHARISK_INT : STD_LOGIC;
+  signal TXDATA : STD_LOGIC_VECTOR ( 7 downto 0 );
+  signal TXD_REG1 : STD_LOGIC_VECTOR ( 7 downto 0 );
+  signal TX_EN_REG1 : STD_LOGIC;
+  signal TX_ER_REG1 : STD_LOGIC;
+  signal TX_EVEN : STD_LOGIC;
+  signal TX_PACKET : STD_LOGIC;
+  signal TX_PACKET_REG1 : STD_LOGIC;
+  signal TX_PACKET_i_1_n_0 : STD_LOGIC;
+  signal V : STD_LOGIC;
+  signal V_i_1_n_0 : STD_LOGIC;
+  signal V_i_2_n_0 : STD_LOGIC;
+  signal V_i_3_n_0 : STD_LOGIC;
+  signal V_i_4_n_0 : STD_LOGIC;
+  signal V_i_5_n_0 : STD_LOGIC;
+  signal V_i_6_n_0 : STD_LOGIC;
+  signal V_i_7_n_0 : STD_LOGIC;
+  signal XMIT_CONFIG_INT : STD_LOGIC;
+  signal XMIT_DATA_INT : STD_LOGIC;
+  signal XMIT_DATA_INT_reg_n_0 : STD_LOGIC;
+  signal p_0_in : STD_LOGIC;
+  signal p_0_in16_in : STD_LOGIC;
+  signal p_0_in35_in : STD_LOGIC;
+  signal p_10_out : STD_LOGIC;
+  signal p_1_in : STD_LOGIC;
+  signal p_1_in1_in : STD_LOGIC;
+  signal p_1_in34_in : STD_LOGIC;
+  signal p_33_in : STD_LOGIC;
+  signal p_45_in : STD_LOGIC;
+  signal p_8_out : STD_LOGIC;
+  signal plusOp : STD_LOGIC_VECTOR ( 1 to 1 );
+  attribute SOFT_HLUTNM : string;
+  attribute SOFT_HLUTNM of C1_OR_C2_i_1 : label is "soft_lutpair20";
+  attribute SOFT_HLUTNM of \CODE_GRP[4]_i_1\ : label is "soft_lutpair28";
+  attribute SOFT_HLUTNM of \CODE_GRP[5]_i_1\ : label is "soft_lutpair28";
+  attribute SOFT_HLUTNM of \CODE_GRP[7]_i_3\ : label is "soft_lutpair14";
+  attribute SOFT_HLUTNM of \CODE_GRP_CNT[1]_i_1\ : label is "soft_lutpair34";
+  attribute SOFT_HLUTNM of \CONFIG_DATA[0]_i_1\ : label is "soft_lutpair23";
+  attribute SOFT_HLUTNM of \CONFIG_DATA[6]_i_1\ : label is "soft_lutpair23";
+  attribute SOFT_HLUTNM of \CONFIG_DATA[7]_i_1\ : label is "soft_lutpair20";
+  attribute SOFT_HLUTNM of INSERT_IDLE_i_1 : label is "soft_lutpair13";
+  attribute SOFT_HLUTNM of K28p5_i_1 : label is "soft_lutpair13";
+  attribute SOFT_HLUTNM of \NO_QSGMII_CHAR.TXCHARDISPMODE_i_1\ : label is "soft_lutpair34";
+  attribute SOFT_HLUTNM of \NO_QSGMII_CHAR.TXCHARDISPVAL_i_1\ : label is "soft_lutpair24";
+  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXCHARISK_i_1\ : label is "soft_lutpair16";
+  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[1]_i_1\ : label is "soft_lutpair18";
+  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[3]_i_1\ : label is "soft_lutpair17";
+  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[5]_i_1\ : label is "soft_lutpair16";
+  attribute SOFT_HLUTNM of \NO_QSGMII_DATA.TXDATA[6]_i_1\ : label is "soft_lutpair17";
+  attribute SOFT_HLUTNM of TRIGGER_S_i_1 : label is "soft_lutpair15";
+  attribute SOFT_HLUTNM of TRIGGER_T_i_1 : label is "soft_lutpair15";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_i_1\ : label is "soft_lutpair27";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_i_1\ : label is "soft_lutpair27";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[0]_i_1\ : label is "soft_lutpair32";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[1]_i_1\ : label is "soft_lutpair32";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[2]_i_1\ : label is "soft_lutpair31";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[3]_i_1\ : label is "soft_lutpair31";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[4]_i_1\ : label is "soft_lutpair30";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[5]_i_1\ : label is "soft_lutpair30";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[6]_i_1\ : label is "soft_lutpair29";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[7]_i_1\ : label is "soft_lutpair29";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXCHARDISPMODE_i_1\ : label is "soft_lutpair19";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXCHARDISPVAL_i_1\ : label is "soft_lutpair33";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXCHARISK_i_1\ : label is "soft_lutpair24";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[0]_i_1\ : label is "soft_lutpair26";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[1]_i_1\ : label is "soft_lutpair22";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[2]_i_1\ : label is "soft_lutpair26";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[3]_i_1\ : label is "soft_lutpair25";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[4]_i_1\ : label is "soft_lutpair33";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[5]_i_1\ : label is "soft_lutpair25";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[6]_i_1\ : label is "soft_lutpair19";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[7]_i_1\ : label is "soft_lutpair18";
+  attribute SOFT_HLUTNM of \USE_ROCKET_IO.TXDATA[7]_i_2\ : label is "soft_lutpair22";
+  attribute SOFT_HLUTNM of V_i_1 : label is "soft_lutpair14";
+  attribute SOFT_HLUTNM of V_i_3 : label is "soft_lutpair21";
+  attribute SOFT_HLUTNM of V_i_7 : label is "soft_lutpair21";
+begin
+C1_OR_C2_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"3F80"
+    )
+        port map (
+      I0 => XMIT_CONFIG_INT,
+      I1 => TX_EVEN,
+      I2 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      I3 => C1_OR_C2_reg_n_0,
+      O => C1_OR_C2_i_1_n_0
+    );
+C1_OR_C2_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => C1_OR_C2_i_1_n_0,
+      Q => C1_OR_C2_reg_n_0,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+CODE_GRPISK_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"3030FFFF3030FF55"
+    )
+        port map (
+      I0 => TX_PACKET,
+      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      I2 => TX_EVEN,
+      I3 => Q(1),
+      I4 => XMIT_CONFIG_INT,
+      I5 => \CODE_GRP[7]_i_3_n_0\,
+      O => CODE_GRPISK_i_1_n_0
+    );
+CODE_GRPISK_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CODE_GRPISK_i_1_n_0,
+      Q => CODE_GRPISK,
+      R => '0'
+    );
+\CODE_GRP[0]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FEAE"
+    )
+        port map (
+      I0 => \CODE_GRP[0]_i_2_n_0\,
+      I1 => S,
+      I2 => XMIT_CONFIG_INT,
+      I3 => \CONFIG_DATA_reg_n_0_[0]\,
+      O => \CODE_GRP[0]_i_1_n_0\
+    );
+\CODE_GRP[0]_i_2\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"000000000000FFF8"
+    )
+        port map (
+      I0 => TX_PACKET,
+      I1 => TXD_REG1(0),
+      I2 => R,
+      I3 => T,
+      I4 => XMIT_CONFIG_INT,
+      I5 => V,
+      O => \CODE_GRP[0]_i_2_n_0\
+    );
+\CODE_GRP[1]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"FFFFBBB8"
+    )
+        port map (
+      I0 => \CONFIG_DATA_reg_n_0_[6]\,
+      I1 => XMIT_CONFIG_INT,
+      I2 => S,
+      I3 => V,
+      I4 => \CODE_GRP[1]_i_2_n_0\,
+      O => \CODE_GRP[1]_i_1_n_0\
+    );
+\CODE_GRP[1]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00000F08"
+    )
+        port map (
+      I0 => TX_PACKET,
+      I1 => TXD_REG1(1),
+      I2 => XMIT_CONFIG_INT,
+      I3 => R,
+      I4 => T,
+      O => \CODE_GRP[1]_i_2_n_0\
+    );
+\CODE_GRP[2]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"C044"
+    )
+        port map (
+      I0 => S,
+      I1 => \CODE_GRP[2]_i_2_n_0\,
+      I2 => \CONFIG_DATA_reg_n_0_[7]\,
+      I3 => XMIT_CONFIG_INT,
+      O => \CODE_GRP[2]_i_1_n_0\
+    );
+\CODE_GRP[2]_i_2\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFFFFFFFFFEFFFF"
+    )
+        port map (
+      I0 => R,
+      I1 => T,
+      I2 => V,
+      I3 => XMIT_CONFIG_INT,
+      I4 => TX_PACKET,
+      I5 => TXD_REG1(2),
+      O => \CODE_GRP[2]_i_2_n_0\
+    );
+\CODE_GRP[3]_i_1\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFFFFFF88B888BB"
+    )
+        port map (
+      I0 => \CONFIG_DATA_reg_n_0_[3]\,
+      I1 => XMIT_CONFIG_INT,
+      I2 => TXD_REG1(3),
+      I3 => R,
+      I4 => TX_PACKET,
+      I5 => \CODE_GRP[3]_i_2_n_0\,
+      O => \CODE_GRP[3]_i_1_n_0\
+    );
+\CODE_GRP[3]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00FF00FE"
+    )
+        port map (
+      I0 => T,
+      I1 => S,
+      I2 => V,
+      I3 => XMIT_CONFIG_INT,
+      I4 => Q(1),
+      O => \CODE_GRP[3]_i_2_n_0\
+    );
+\CODE_GRP[4]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"E2"
+    )
+        port map (
+      I0 => TXD_REG1(4),
+      I1 => XMIT_CONFIG_INT,
+      I2 => \CONFIG_DATA_reg_n_0_[7]\,
+      O => \CODE_GRP[4]_i_1_n_0\
+    );
+\CODE_GRP[5]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"E2"
+    )
+        port map (
+      I0 => TXD_REG1(5),
+      I1 => XMIT_CONFIG_INT,
+      I2 => \CONFIG_DATA_reg_n_0_[7]\,
+      O => \CODE_GRP[5]_i_1_n_0\
+    );
+\CODE_GRP[6]_i_1\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => Q(1),
+      I1 => XMIT_CONFIG_INT,
+      O => \CODE_GRP[6]_i_1_n_0\
+    );
+\CODE_GRP[6]_i_2\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"FFEA00EA"
+    )
+        port map (
+      I0 => \CODE_GRP[7]_i_3_n_0\,
+      I1 => TXD_REG1(6),
+      I2 => TX_PACKET,
+      I3 => XMIT_CONFIG_INT,
+      I4 => \CONFIG_DATA_reg_n_0_[6]\,
+      O => \CODE_GRP[6]_i_2_n_0\
+    );
+\CODE_GRP[7]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"00EF"
+    )
+        port map (
+      I0 => Q(1),
+      I1 => \CODE_GRP[7]_i_3_n_0\,
+      I2 => TX_PACKET,
+      I3 => XMIT_CONFIG_INT,
+      O => \CODE_GRP[7]_i_1_n_0\
+    );
+\CODE_GRP[7]_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"E2"
+    )
+        port map (
+      I0 => TXD_REG1(7),
+      I1 => XMIT_CONFIG_INT,
+      I2 => \CONFIG_DATA_reg_n_0_[7]\,
+      O => \CODE_GRP[7]_i_2_n_0\
+    );
+\CODE_GRP[7]_i_3\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FFFE"
+    )
+        port map (
+      I0 => V,
+      I1 => S,
+      I2 => T,
+      I3 => R,
+      O => \CODE_GRP[7]_i_3_n_0\
+    );
+\CODE_GRP_CNT[0]_i_1\: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"1"
+    )
+        port map (
+      I0 => TX_EVEN,
+      O => S4
+    );
+\CODE_GRP_CNT[1]_i_1\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"6"
+    )
+        port map (
+      I0 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      I1 => TX_EVEN,
+      O => plusOp(1)
+    );
+\CODE_GRP_CNT_reg[0]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => S4,
+      Q => TX_EVEN,
+      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\CODE_GRP_CNT_reg[1]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => plusOp(1),
+      Q => \CODE_GRP_CNT_reg_n_0_[1]\,
+      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\CODE_GRP_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[0]_i_1_n_0\,
+      Q => \CODE_GRP_reg_n_0_[0]\,
+      R => \CODE_GRP[6]_i_1_n_0\
+    );
+\CODE_GRP_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[1]_i_1_n_0\,
+      Q => p_1_in,
+      R => \CODE_GRP[6]_i_1_n_0\
+    );
+\CODE_GRP_reg[2]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[2]_i_1_n_0\,
+      Q => p_0_in16_in,
+      S => \CODE_GRP[6]_i_1_n_0\
+    );
+\CODE_GRP_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[3]_i_1_n_0\,
+      Q => p_0_in,
+      R => '0'
+    );
+\CODE_GRP_reg[4]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[4]_i_1_n_0\,
+      Q => p_1_in1_in,
+      S => \CODE_GRP[7]_i_1_n_0\
+    );
+\CODE_GRP_reg[5]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[5]_i_1_n_0\,
+      Q => p_1_in34_in,
+      S => \CODE_GRP[7]_i_1_n_0\
+    );
+\CODE_GRP_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[6]_i_2_n_0\,
+      Q => p_33_in,
+      R => \CODE_GRP[6]_i_1_n_0\
+    );
+\CODE_GRP_reg[7]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \CODE_GRP[7]_i_2_n_0\,
+      Q => p_0_in35_in,
+      S => \CODE_GRP[7]_i_1_n_0\
+    );
+\CONFIG_DATA[0]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"04"
+    )
+        port map (
+      I0 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      I1 => TX_EVEN,
+      I2 => C1_OR_C2_reg_n_0,
+      O => CONFIG_DATA(0)
+    );
+\CONFIG_DATA[6]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"40"
+    )
+        port map (
+      I0 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      I1 => TX_EVEN,
+      I2 => C1_OR_C2_reg_n_0,
+      O => CONFIG_DATA(6)
+    );
+\CONFIG_DATA[7]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"07"
+    )
+        port map (
+      I0 => TX_EVEN,
+      I1 => C1_OR_C2_reg_n_0,
+      I2 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      O => CONFIG_DATA(7)
+    );
+\CONFIG_DATA_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CONFIG_DATA(0),
+      Q => \CONFIG_DATA_reg_n_0_[0]\,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\CONFIG_DATA_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => XMIT_DATA_INT,
+      Q => \CONFIG_DATA_reg_n_0_[3]\,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\CONFIG_DATA_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CONFIG_DATA(6),
+      Q => \CONFIG_DATA_reg_n_0_[6]\,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\CONFIG_DATA_reg[7]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => CONFIG_DATA(7),
+      Q => \CONFIG_DATA_reg_n_0_[7]\,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+INSERT_IDLE_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"00AB"
+    )
+        port map (
+      I0 => Q(1),
+      I1 => \CODE_GRP[7]_i_3_n_0\,
+      I2 => TX_PACKET,
+      I3 => XMIT_CONFIG_INT,
+      O => INSERT_IDLE_i_1_n_0
+    );
+INSERT_IDLE_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => INSERT_IDLE_i_1_n_0,
+      Q => INSERT_IDLE_reg_n_0,
+      R => '0'
+    );
+K28p5_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"8"
+    )
+        port map (
+      I0 => XMIT_CONFIG_INT,
+      I1 => \CONFIG_DATA_reg_n_0_[3]\,
+      O => K28p5_i_1_n_0
+    );
+K28p5_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => K28p5_i_1_n_0,
+      Q => K28p5,
+      R => '0'
+    );
+\NO_QSGMII_CHAR.TXCHARDISPMODE_i_1\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => SYNC_DISPARITY_reg_n_0,
+      I1 => TX_EVEN,
+      O => p_10_out
+    );
+\NO_QSGMII_CHAR.TXCHARDISPMODE_reg\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => p_10_out,
+      Q => TXCHARDISPMODE_INT,
+      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\NO_QSGMII_CHAR.TXCHARDISPVAL_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"40"
+    )
+        port map (
+      I0 => TX_EVEN,
+      I1 => SYNC_DISPARITY_reg_n_0,
+      I2 => DISPARITY,
+      O => p_8_out
+    );
+\NO_QSGMII_CHAR.TXCHARDISPVAL_reg\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => p_8_out,
+      Q => TXCHARDISPVAL,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\NO_QSGMII_DATA.TXCHARISK_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"002A"
+    )
+        port map (
+      I0 => CODE_GRPISK,
+      I1 => TX_EVEN,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXCHARISK_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXCHARISK_reg\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXCHARISK_i_1_n_0\,
+      Q => TXCHARISK_INT,
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA[0]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"0000CAAA"
+    )
+        port map (
+      I0 => \CODE_GRP_reg_n_0_[0]\,
+      I1 => DISPARITY,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => TX_EVEN,
+      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[0]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[1]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"002A"
+    )
+        port map (
+      I0 => p_1_in,
+      I1 => TX_EVEN,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[1]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[2]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"0000CAAA"
+    )
+        port map (
+      I0 => p_0_in16_in,
+      I1 => DISPARITY,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => TX_EVEN,
+      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[2]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[3]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"002A"
+    )
+        port map (
+      I0 => p_0_in,
+      I1 => TX_EVEN,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[3]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[4]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"00003AAA"
+    )
+        port map (
+      I0 => p_1_in1_in,
+      I1 => DISPARITY,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => TX_EVEN,
+      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[4]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[5]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"002A"
+    )
+        port map (
+      I0 => p_1_in34_in,
+      I1 => TX_EVEN,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[5]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[6]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"3222"
+    )
+        port map (
+      I0 => p_33_in,
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => TX_EVEN,
+      I3 => INSERT_IDLE_reg_n_0,
+      O => \NO_QSGMII_DATA.TXDATA[6]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA[7]_i_1\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"0000CAAA"
+    )
+        port map (
+      I0 => p_0_in35_in,
+      I1 => DISPARITY,
+      I2 => INSERT_IDLE_reg_n_0,
+      I3 => TX_EVEN,
+      I4 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => \NO_QSGMII_DATA.TXDATA[7]_i_1_n_0\
+    );
+\NO_QSGMII_DATA.TXDATA_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[0]_i_1_n_0\,
+      Q => TXDATA(0),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[1]_i_1_n_0\,
+      Q => TXDATA(1),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[2]_i_1_n_0\,
+      Q => TXDATA(2),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[3]_i_1_n_0\,
+      Q => TXDATA(3),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[4]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[4]_i_1_n_0\,
+      Q => TXDATA(4),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[5]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[5]_i_1_n_0\,
+      Q => TXDATA(5),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[6]_i_1_n_0\,
+      Q => TXDATA(6),
+      R => '0'
+    );
+\NO_QSGMII_DATA.TXDATA_reg[7]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DATA.TXDATA[7]_i_1_n_0\,
+      Q => TXDATA(7),
+      R => '0'
+    );
+\NO_QSGMII_DISP.DISPARITY_i_1\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0041414100BEBEBE"
+    )
+        port map (
+      I0 => K28p5,
+      I1 => \NO_QSGMII_DISP.DISPARITY_i_2_n_0\,
+      I2 => \NO_QSGMII_DISP.DISPARITY_i_3_n_0\,
+      I3 => INSERT_IDLE_reg_n_0,
+      I4 => TX_EVEN,
+      I5 => DISPARITY,
+      O => \NO_QSGMII_DISP.DISPARITY_i_1_n_0\
+    );
+\NO_QSGMII_DISP.DISPARITY_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"7C"
+    )
+        port map (
+      I0 => p_0_in35_in,
+      I1 => p_1_in34_in,
+      I2 => p_33_in,
+      O => \NO_QSGMII_DISP.DISPARITY_i_2_n_0\
+    );
+\NO_QSGMII_DISP.DISPARITY_i_3\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"177E7EE0"
+    )
+        port map (
+      I0 => p_0_in,
+      I1 => p_1_in1_in,
+      I2 => \CODE_GRP_reg_n_0_[0]\,
+      I3 => p_1_in,
+      I4 => p_0_in16_in,
+      O => \NO_QSGMII_DISP.DISPARITY_i_3_n_0\
+    );
+\NO_QSGMII_DISP.DISPARITY_reg\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \NO_QSGMII_DISP.DISPARITY_i_1_n_0\,
+      Q => DISPARITY,
+      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\R_i_1__0\: unisim.vcomponents.LUT5
+    generic map(
+      INIT => X"F0FEF0F0"
+    )
+        port map (
+      I0 => TX_EVEN,
+      I1 => TX_ER_REG1,
+      I2 => T,
+      I3 => S,
+      I4 => R,
+      O => \R_i_1__0_n_0\
+    );
+R_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \R_i_1__0_n_0\,
+      Q => R,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+SYNC_DISPARITY_i_1: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"3030AAAA3030AAFF"
+    )
+        port map (
+      I0 => Q(1),
+      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      I2 => TX_EVEN,
+      I3 => \CODE_GRP[7]_i_3_n_0\,
+      I4 => XMIT_CONFIG_INT,
+      I5 => TX_PACKET,
+      O => SYNC_DISPARITY_i_1_n_0
+    );
+SYNC_DISPARITY_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SYNC_DISPARITY_i_1_n_0,
+      Q => SYNC_DISPARITY_reg_n_0,
+      R => '0'
+    );
+\S_i_1__0\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFF00000B000000"
+    )
+        port map (
+      I0 => TX_ER_REG1,
+      I1 => TX_EVEN,
+      I2 => TX_EN_REG1,
+      I3 => gmii_tx_en,
+      I4 => XMIT_DATA_INT_reg_n_0,
+      I5 => TRIGGER_S,
+      O => S0
+    );
+S_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => S0,
+      Q => S,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+TRIGGER_S_i_1: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"0040"
+    )
+        port map (
+      I0 => TX_EN_REG1,
+      I1 => gmii_tx_en,
+      I2 => TX_EVEN,
+      I3 => TX_ER_REG1,
+      O => TRIGGER_S0
+    );
+TRIGGER_S_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRIGGER_S0,
+      Q => TRIGGER_S,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+TRIGGER_T_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => TX_EN_REG1,
+      I1 => gmii_tx_en,
+      O => p_45_in
+    );
+TRIGGER_T_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => p_45_in,
+      Q => TRIGGER_T,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\TXD_REG1_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(0),
+      Q => TXD_REG1(0),
+      R => '0'
+    );
+\TXD_REG1_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(1),
+      Q => TXD_REG1(1),
+      R => '0'
+    );
+\TXD_REG1_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(2),
+      Q => TXD_REG1(2),
+      R => '0'
+    );
+\TXD_REG1_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(3),
+      Q => TXD_REG1(3),
+      R => '0'
+    );
+\TXD_REG1_reg[4]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(4),
+      Q => TXD_REG1(4),
+      R => '0'
+    );
+\TXD_REG1_reg[5]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(5),
+      Q => TXD_REG1(5),
+      R => '0'
+    );
+\TXD_REG1_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(6),
+      Q => TXD_REG1(6),
+      R => '0'
+    );
+\TXD_REG1_reg[7]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_txd(7),
+      Q => TXD_REG1(7),
+      R => '0'
+    );
+TX_EN_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_tx_en,
+      Q => TX_EN_REG1,
+      R => '0'
+    );
+TX_ER_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => gmii_tx_er,
+      Q => TX_ER_REG1,
+      R => '0'
+    );
+TX_PACKET_REG1_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TX_PACKET,
+      Q => TX_PACKET_REG1,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+TX_PACKET_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"BA"
+    )
+        port map (
+      I0 => S,
+      I1 => T,
+      I2 => TX_PACKET,
+      O => TX_PACKET_i_1_n_0
+    );
+TX_PACKET_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TX_PACKET_i_1_n_0,
+      Q => TX_PACKET,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\T_i_1__0\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFF00E000E000E0"
+    )
+        port map (
+      I0 => TX_PACKET,
+      I1 => S,
+      I2 => TX_EN_REG1,
+      I3 => gmii_tx_en,
+      I4 => V,
+      I5 => TRIGGER_T,
+      O => T0
+    );
+T_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => T0,
+      Q => T,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXCHARISK_INT,
+      I1 => Q(0),
+      I2 => rxchariscomma(0),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXCHARISK_INT,
+      I1 => Q(0),
+      I2 => rxcharisk(0),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[0]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(0),
+      I1 => Q(0),
+      I2 => rxdata(0),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(0)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[1]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(1),
+      I1 => Q(0),
+      I2 => rxdata(1),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(1)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[2]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(2),
+      I1 => Q(0),
+      I2 => rxdata(2),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(2)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[3]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(3),
+      I1 => Q(0),
+      I2 => rxdata(3),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(3)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[4]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(4),
+      I1 => Q(0),
+      I2 => rxdata(4),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(4)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[5]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(5),
+      I1 => Q(0),
+      I2 => rxdata(5),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(5)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[6]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(6),
+      I1 => Q(0),
+      I2 => rxdata(6),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(6)
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT[7]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TXDATA(7),
+      I1 => Q(0),
+      I2 => rxdata(7),
+      O => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(7)
+    );
+\USE_ROCKET_IO.TXCHARDISPMODE_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TX_EVEN,
+      I1 => Q(0),
+      I2 => TXCHARDISPMODE_INT,
+      O => \USE_ROCKET_IO.TXCHARDISPMODE_reg\
+    );
+\USE_ROCKET_IO.TXCHARDISPVAL_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXCHARDISPVAL,
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => \USE_ROCKET_IO.TXCHARDISPVAL_reg\
+    );
+\USE_ROCKET_IO.TXCHARISK_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"B8"
+    )
+        port map (
+      I0 => TX_EVEN,
+      I1 => Q(0),
+      I2 => TXCHARISK_INT,
+      O => \USE_ROCKET_IO.TXCHARISK_reg\
+    );
+\USE_ROCKET_IO.TXDATA[0]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXDATA(0),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => D(0)
+    );
+\USE_ROCKET_IO.TXDATA[1]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXDATA(1),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => D(1)
+    );
+\USE_ROCKET_IO.TXDATA[2]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXDATA(2),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => \USE_ROCKET_IO.TXDATA_reg[2]\
+    );
+\USE_ROCKET_IO.TXDATA[3]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXDATA(3),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => \USE_ROCKET_IO.TXDATA_reg[3]\
+    );
+\USE_ROCKET_IO.TXDATA[4]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"32"
+    )
+        port map (
+      I0 => TXDATA(4),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => D(2)
+    );
+\USE_ROCKET_IO.TXDATA[5]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXDATA(5),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => \USE_ROCKET_IO.TXDATA_reg[5]\
+    );
+\USE_ROCKET_IO.TXDATA[6]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"003A"
+    )
+        port map (
+      I0 => TXDATA(6),
+      I1 => TX_EVEN,
+      I2 => Q(0),
+      I3 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      O => D(3)
+    );
+\USE_ROCKET_IO.TXDATA[7]_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"40"
+    )
+        port map (
+      I0 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I1 => Q(0),
+      I2 => TX_EVEN,
+      O => \USE_ROCKET_IO.TXDATA_reg[2]_0\
+    );
+\USE_ROCKET_IO.TXDATA[7]_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"02"
+    )
+        port map (
+      I0 => TXDATA(7),
+      I1 => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\,
+      I2 => Q(0),
+      O => \USE_ROCKET_IO.TXDATA_reg[7]\
+    );
+V_i_1: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"EA"
+    )
+        port map (
+      I0 => V_i_2_n_0,
+      I1 => S,
+      I2 => V,
+      O => V_i_1_n_0
+    );
+V_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFEEEEE00000000"
+    )
+        port map (
+      I0 => V_i_3_n_0,
+      I1 => V_i_4_n_0,
+      I2 => V_i_5_n_0,
+      I3 => V_i_6_n_0,
+      I4 => V_i_7_n_0,
+      I5 => XMIT_DATA_INT_reg_n_0,
+      O => V_i_2_n_0
+    );
+V_i_3: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"80"
+    )
+        port map (
+      I0 => TX_PACKET,
+      I1 => gmii_tx_en,
+      I2 => gmii_tx_er,
+      O => V_i_3_n_0
+    );
+V_i_4: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"08"
+    )
+        port map (
+      I0 => TX_EN_REG1,
+      I1 => TX_ER_REG1,
+      I2 => TX_PACKET_REG1,
+      O => V_i_4_n_0
+    );
+V_i_5: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"FFFE"
+    )
+        port map (
+      I0 => gmii_txd(6),
+      I1 => gmii_txd(7),
+      I2 => gmii_txd(5),
+      I3 => gmii_txd(4),
+      O => V_i_5_n_0
+    );
+V_i_6: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"7FFF"
+    )
+        port map (
+      I0 => gmii_txd(2),
+      I1 => gmii_txd(3),
+      I2 => gmii_txd(0),
+      I3 => gmii_txd(1),
+      O => V_i_6_n_0
+    );
+V_i_7: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => gmii_tx_er,
+      I1 => gmii_tx_en,
+      O => V_i_7_n_0
+    );
+V_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => V_i_1_n_0,
+      Q => V,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+XMIT_CONFIG_INT_i_1: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"1"
+    )
+        port map (
+      I0 => TX_EVEN,
+      I1 => \CODE_GRP_CNT_reg_n_0_[1]\,
+      O => XMIT_DATA_INT
+    );
+XMIT_CONFIG_INT_reg: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => XMIT_DATA_INT,
+      D => '0',
+      Q => XMIT_CONFIG_INT,
+      S => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
+    );
+XMIT_DATA_INT_reg: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => XMIT_DATA_INT,
+      D => '1',
+      Q => XMIT_DATA_INT_reg_n_0,
+      R => \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\
     );
 end STRUCTURE;
 library IEEE;
@@ -7546,6 +7454,248 @@ reset_sync6: unisim.vcomponents.FDPE
     )
         port map (
       C => userclk,
+      CE => '1',
+      D => reset_sync_reg5,
+      PRE => '0',
+      Q => reset_out
+    );
+end STRUCTURE;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
+entity GigEthGthUltraScaleCore_reset_sync_block_19 is
+  port (
+    p_6_out : out STD_LOGIC;
+    dcm_locked : in STD_LOGIC;
+    reset_out : in STD_LOGIC;
+    reset : in STD_LOGIC
+  );
+  attribute ORIG_REF_NAME : string;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_reset_sync_block_19 : entity is "reset_sync_block";
+end GigEthGthUltraScaleCore_reset_sync_block_19;
+
+architecture STRUCTURE of GigEthGthUltraScaleCore_reset_sync_block_19 is
+  signal RESET_REG_RXRECCLK : STD_LOGIC;
+  signal reset_sync_reg1 : STD_LOGIC;
+  signal reset_sync_reg2 : STD_LOGIC;
+  signal reset_sync_reg3 : STD_LOGIC;
+  signal reset_sync_reg4 : STD_LOGIC;
+  signal reset_sync_reg5 : STD_LOGIC;
+  attribute ASYNC_REG : boolean;
+  attribute ASYNC_REG of reset_sync1 : label is std.standard.true;
+  attribute SHREG_EXTRACT : string;
+  attribute SHREG_EXTRACT of reset_sync1 : label is "no";
+  attribute XILINX_LEGACY_PRIM : string;
+  attribute XILINX_LEGACY_PRIM of reset_sync1 : label is "FDP";
+  attribute box_type : string;
+  attribute box_type of reset_sync1 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync2 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync2 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync2 : label is "FDP";
+  attribute box_type of reset_sync2 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync3 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync3 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync3 : label is "FDP";
+  attribute box_type of reset_sync3 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync4 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync4 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync4 : label is "FDP";
+  attribute box_type of reset_sync4 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync5 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync5 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync5 : label is "FDP";
+  attribute box_type of reset_sync5 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync6 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync6 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync6 : label is "FDP";
+  attribute box_type of reset_sync6 : label is "PRIMITIVE";
+begin
+\MGT_RESET.RESET_INT_PIPE_RXRECCLK_i_1\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"FB"
+    )
+        port map (
+      I0 => RESET_REG_RXRECCLK,
+      I1 => dcm_locked,
+      I2 => reset_out,
+      O => p_6_out
+    );
+reset_sync1: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => '0',
+      PRE => reset,
+      Q => reset_sync_reg1
+    );
+reset_sync2: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg1,
+      PRE => reset,
+      Q => reset_sync_reg2
+    );
+reset_sync3: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg2,
+      PRE => reset,
+      Q => reset_sync_reg3
+    );
+reset_sync4: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg3,
+      PRE => reset,
+      Q => reset_sync_reg4
+    );
+reset_sync5: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg4,
+      PRE => reset,
+      Q => reset_sync_reg5
+    );
+reset_sync6: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg5,
+      PRE => '0',
+      Q => RESET_REG_RXRECCLK
+    );
+end STRUCTURE;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
+entity GigEthGthUltraScaleCore_reset_sync_block_20 is
+  port (
+    reset_out : out STD_LOGIC
+  );
+  attribute ORIG_REF_NAME : string;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_reset_sync_block_20 : entity is "reset_sync_block";
+end GigEthGthUltraScaleCore_reset_sync_block_20;
+
+architecture STRUCTURE of GigEthGthUltraScaleCore_reset_sync_block_20 is
+  signal reset_sync_reg1 : STD_LOGIC;
+  signal reset_sync_reg2 : STD_LOGIC;
+  signal reset_sync_reg3 : STD_LOGIC;
+  signal reset_sync_reg4 : STD_LOGIC;
+  signal reset_sync_reg5 : STD_LOGIC;
+  attribute ASYNC_REG : boolean;
+  attribute ASYNC_REG of reset_sync1 : label is std.standard.true;
+  attribute SHREG_EXTRACT : string;
+  attribute SHREG_EXTRACT of reset_sync1 : label is "no";
+  attribute XILINX_LEGACY_PRIM : string;
+  attribute XILINX_LEGACY_PRIM of reset_sync1 : label is "FDP";
+  attribute box_type : string;
+  attribute box_type of reset_sync1 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync2 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync2 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync2 : label is "FDP";
+  attribute box_type of reset_sync2 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync3 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync3 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync3 : label is "FDP";
+  attribute box_type of reset_sync3 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync4 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync4 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync4 : label is "FDP";
+  attribute box_type of reset_sync4 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync5 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync5 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync5 : label is "FDP";
+  attribute box_type of reset_sync5 : label is "PRIMITIVE";
+  attribute ASYNC_REG of reset_sync6 : label is std.standard.true;
+  attribute SHREG_EXTRACT of reset_sync6 : label is "no";
+  attribute XILINX_LEGACY_PRIM of reset_sync6 : label is "FDP";
+  attribute box_type of reset_sync6 : label is "PRIMITIVE";
+begin
+reset_sync1: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => '0',
+      PRE => '0',
+      Q => reset_sync_reg1
+    );
+reset_sync2: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg1,
+      PRE => '0',
+      Q => reset_sync_reg2
+    );
+reset_sync3: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg2,
+      PRE => '0',
+      Q => reset_sync_reg3
+    );
+reset_sync4: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg3,
+      PRE => '0',
+      Q => reset_sync_reg4
+    );
+reset_sync5: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => reset_sync_reg4,
+      PRE => '0',
+      Q => reset_sync_reg5
+    );
+reset_sync6: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '1'
+    )
+        port map (
+      C => '0',
       CE => '1',
       D => reset_sync_reg5,
       PRE => '0',
@@ -7683,926 +7833,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_GPCS_PMA_GEN is
-  port (
-    status_vector : out STD_LOGIC_VECTOR ( 6 downto 0 );
-    MGT_TX_RESET : out STD_LOGIC;
-    Q : out STD_LOGIC_VECTOR ( 1 downto 0 );
-    MGT_RX_RESET : out STD_LOGIC;
-    enablealign : out STD_LOGIC;
-    gmii_rxd : out STD_LOGIC_VECTOR ( 7 downto 0 );
-    gmii_rx_er : out STD_LOGIC;
-    txchardispmode : out STD_LOGIC;
-    txcharisk : out STD_LOGIC;
-    txdata : out STD_LOGIC_VECTOR ( 7 downto 0 );
-    gmii_rx_dv : out STD_LOGIC;
-    txchardispval : out STD_LOGIC;
-    userclk2 : in STD_LOGIC;
-    dcm_locked : in STD_LOGIC;
-    signal_detect : in STD_LOGIC;
-    userclk : in STD_LOGIC;
-    reset : in STD_LOGIC;
-    gmii_tx_en : in STD_LOGIC;
-    gmii_tx_er : in STD_LOGIC;
-    configuration_vector : in STD_LOGIC_VECTOR ( 2 downto 0 );
-    gmii_txd : in STD_LOGIC_VECTOR ( 7 downto 0 );
-    rxnotintable : in STD_LOGIC_VECTOR ( 0 to 0 );
-    rxbufstatus : in STD_LOGIC_VECTOR ( 0 to 0 );
-    txbuferr : in STD_LOGIC;
-    rxdisperr : in STD_LOGIC_VECTOR ( 0 to 0 );
-    rxclkcorcnt : in STD_LOGIC_VECTOR ( 2 downto 0 );
-    rxcharisk : in STD_LOGIC_VECTOR ( 0 to 0 );
-    rxchariscomma : in STD_LOGIC_VECTOR ( 0 to 0 );
-    reset_done : in STD_LOGIC;
-    rxdata : in STD_LOGIC_VECTOR ( 7 downto 0 )
-  );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_GPCS_PMA_GEN : entity is "GPCS_PMA_GEN";
-end GigEthGthUltraScaleCore_GPCS_PMA_GEN;
-
-architecture STRUCTURE of GigEthGthUltraScaleCore_GPCS_PMA_GEN is
-  signal CONFIGURATION_VECTOR_REG : STD_LOGIC_VECTOR ( 1 to 1 );
-  signal D : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[0]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[1]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[2]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[3]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1_n_0\ : STD_LOGIC;
-  signal \MGT_RESET.SYNC_ASYNC_RESET_n_0\ : STD_LOGIC;
-  signal \^mgt_rx_reset\ : STD_LOGIC;
-  signal MGT_RX_RESET_INT : STD_LOGIC;
-  signal \^mgt_tx_reset\ : STD_LOGIC;
-  signal MGT_TX_RESET_INT : STD_LOGIC;
-  signal \^q\ : STD_LOGIC_VECTOR ( 1 downto 0 );
-  signal RESET_INT : STD_LOGIC;
-  attribute async_reg : string;
-  attribute async_reg of RESET_INT : signal is "true";
-  signal RESET_INT_PIPE : STD_LOGIC;
-  attribute async_reg of RESET_INT_PIPE : signal is "true";
-  signal RXCLKCORCNT_INT : STD_LOGIC;
-  signal RXDISPERR_SRL : STD_LOGIC;
-  signal RXEVEN : STD_LOGIC;
-  signal RXNOTINTABLE_INT : STD_LOGIC;
-  signal RXNOTINTABLE_SRL : STD_LOGIC;
-  signal RXRUNDISP_INT : STD_LOGIC;
-  signal RX_RST_SM : STD_LOGIC_VECTOR ( 3 downto 0 );
-  attribute RTL_KEEP : string;
-  attribute RTL_KEEP of RX_RST_SM : signal is "yes";
-  signal SIGNAL_DETECT_MOD : STD_LOGIC;
-  signal SRESET : STD_LOGIC;
-  attribute async_reg of SRESET : signal is "true";
-  signal SRESET_PIPE : STD_LOGIC;
-  attribute async_reg of SRESET_PIPE : signal is "true";
-  signal STATUS_VECTOR_0_PRE : STD_LOGIC;
-  signal STATUS_VECTOR_0_PRE0 : STD_LOGIC;
-  signal SYNC_STATUS_REG : STD_LOGIC;
-  signal SYNC_STATUS_REG0 : STD_LOGIC;
-  signal TRANSMITTER_n_0 : STD_LOGIC;
-  signal TRANSMITTER_n_1 : STD_LOGIC;
-  signal TRANSMITTER_n_10 : STD_LOGIC;
-  signal TRANSMITTER_n_11 : STD_LOGIC;
-  signal TRANSMITTER_n_12 : STD_LOGIC;
-  signal TRANSMITTER_n_13 : STD_LOGIC;
-  signal TRANSMITTER_n_14 : STD_LOGIC;
-  signal TRANSMITTER_n_15 : STD_LOGIC;
-  signal TRANSMITTER_n_16 : STD_LOGIC;
-  signal TRANSMITTER_n_17 : STD_LOGIC;
-  signal TRANSMITTER_n_18 : STD_LOGIC;
-  signal TRANSMITTER_n_19 : STD_LOGIC;
-  signal TRANSMITTER_n_2 : STD_LOGIC;
-  signal TRANSMITTER_n_20 : STD_LOGIC;
-  signal TRANSMITTER_n_21 : STD_LOGIC;
-  signal TRANSMITTER_n_3 : STD_LOGIC;
-  signal TRANSMITTER_n_4 : STD_LOGIC;
-  signal TRANSMITTER_n_5 : STD_LOGIC;
-  signal TRANSMITTER_n_6 : STD_LOGIC;
-  signal TRANSMITTER_n_7 : STD_LOGIC;
-  signal TRANSMITTER_n_8 : STD_LOGIC;
-  signal TRANSMITTER_n_9 : STD_LOGIC;
-  signal TXBUFERR_INT : STD_LOGIC;
-  signal TX_RST_SM : STD_LOGIC_VECTOR ( 3 downto 0 );
-  attribute RTL_KEEP of TX_RST_SM : signal is "yes";
-  signal \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg_n_0_[1]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg_n_0\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg_n_0\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[0]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[1]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[2]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[0]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[1]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[2]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[3]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[4]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[5]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[6]\ : STD_LOGIC;
-  signal \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[7]\ : STD_LOGIC;
-  signal p_0_out : STD_LOGIC;
-  signal p_1_out : STD_LOGIC;
-  signal p_40_in : STD_LOGIC;
-  attribute XILINX_LEGACY_PRIM : string;
-  attribute XILINX_LEGACY_PRIM of DELAY_RXDISPERR : label is "SRL16";
-  attribute box_type : string;
-  attribute box_type of DELAY_RXDISPERR : label is "PRIMITIVE";
-  attribute srl_name : string;
-  attribute srl_name of DELAY_RXDISPERR : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/DELAY_RXDISPERR ";
-  attribute XILINX_LEGACY_PRIM of DELAY_RXNOTINTABLE : label is "SRL16";
-  attribute box_type of DELAY_RXNOTINTABLE : label is "PRIMITIVE";
-  attribute srl_name of DELAY_RXNOTINTABLE : label is "\U0/GigEthGthUltraScaleCore_core /\gpcs_pma_inst/DELAY_RXNOTINTABLE ";
-  attribute KEEP : string;
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[0]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[1]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[2]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[3]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[0]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[1]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[2]\ : label is "yes";
-  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[3]\ : label is "yes";
-  attribute ASYNC_REG_boolean : boolean;
-  attribute ASYNC_REG_boolean of \MGT_RESET.RESET_INT_PIPE_reg\ : label is std.standard.true;
-  attribute KEEP of \MGT_RESET.RESET_INT_PIPE_reg\ : label is "yes";
-  attribute ASYNC_REG_boolean of \MGT_RESET.RESET_INT_reg\ : label is std.standard.true;
-  attribute KEEP of \MGT_RESET.RESET_INT_reg\ : label is "yes";
-  attribute ASYNC_REG_boolean of \MGT_RESET.SRESET_PIPE_reg\ : label is std.standard.true;
-  attribute KEEP of \MGT_RESET.SRESET_PIPE_reg\ : label is "yes";
-  attribute ASYNC_REG_boolean of \MGT_RESET.SRESET_reg\ : label is std.standard.true;
-  attribute KEEP of \MGT_RESET.SRESET_reg\ : label is "yes";
-begin
-  MGT_RX_RESET <= \^mgt_rx_reset\;
-  MGT_TX_RESET <= \^mgt_tx_reset\;
-  Q(1 downto 0) <= \^q\(1 downto 0);
-DELAY_RXDISPERR: unisim.vcomponents.SRL16E
-    generic map(
-      INIT => X"0000"
-    )
-        port map (
-      A0 => '0',
-      A1 => '0',
-      A2 => '1',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => D,
-      Q => RXDISPERR_SRL
-    );
-DELAY_RXNOTINTABLE: unisim.vcomponents.SRL16E
-    generic map(
-      INIT => X"0000"
-    )
-        port map (
-      A0 => '0',
-      A1 => '0',
-      A2 => '1',
-      A3 => '0',
-      CE => '1',
-      CLK => userclk2,
-      D => RXNOTINTABLE_INT,
-      Q => RXNOTINTABLE_SRL
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM[0]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"1555"
-    )
-        port map (
-      I0 => RX_RST_SM(0),
-      I1 => RX_RST_SM(3),
-      I2 => RX_RST_SM(1),
-      I3 => RX_RST_SM(2),
-      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[0]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM[1]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"DA5A"
-    )
-        port map (
-      I0 => RX_RST_SM(0),
-      I1 => RX_RST_SM(3),
-      I2 => RX_RST_SM(1),
-      I3 => RX_RST_SM(2),
-      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[1]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM[2]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"BFC0"
-    )
-        port map (
-      I0 => RX_RST_SM(3),
-      I1 => RX_RST_SM(0),
-      I2 => RX_RST_SM(1),
-      I3 => RX_RST_SM(2),
-      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[2]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM[3]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"EAAA"
-    )
-        port map (
-      I0 => RX_RST_SM(3),
-      I1 => RX_RST_SM(2),
-      I2 => RX_RST_SM(0),
-      I3 => RX_RST_SM(1),
-      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[3]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[0]_i_1_n_0\,
-      Q => RX_RST_SM(0),
-      R => p_0_out
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[1]_i_1_n_0\,
-      Q => RX_RST_SM(1),
-      R => p_0_out
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[2]_i_1_n_0\,
-      Q => RX_RST_SM(2),
-      R => p_0_out
-    );
-\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM[3]_i_1_n_0\,
-      Q => RX_RST_SM(3),
-      R => p_0_out
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"1555"
-    )
-        port map (
-      I0 => TX_RST_SM(0),
-      I1 => TX_RST_SM(3),
-      I2 => TX_RST_SM(1),
-      I3 => TX_RST_SM(2),
-      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"DA5A"
-    )
-        port map (
-      I0 => TX_RST_SM(0),
-      I1 => TX_RST_SM(3),
-      I2 => TX_RST_SM(1),
-      I3 => TX_RST_SM(2),
-      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"BFC0"
-    )
-        port map (
-      I0 => TX_RST_SM(3),
-      I1 => TX_RST_SM(0),
-      I2 => TX_RST_SM(1),
-      I3 => TX_RST_SM(2),
-      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1\: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"EAAA"
-    )
-        port map (
-      I0 => TX_RST_SM(3),
-      I1 => TX_RST_SM(2),
-      I2 => TX_RST_SM(0),
-      I3 => TX_RST_SM(1),
-      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1_n_0\
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1_n_0\,
-      Q => TX_RST_SM(0),
-      R => p_1_out
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1_n_0\,
-      Q => TX_RST_SM(1),
-      R => p_1_out
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[2]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1_n_0\,
-      Q => TX_RST_SM(2),
-      R => p_1_out
-    );
-\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[3]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1_n_0\,
-      Q => TX_RST_SM(3),
-      R => p_1_out
-    );
-\MGT_RESET.RESET_INT_PIPE_reg\: unisim.vcomponents.FDPE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk,
-      CE => '1',
-      D => '0',
-      PRE => \MGT_RESET.SYNC_ASYNC_RESET_n_0\,
-      Q => RESET_INT_PIPE
-    );
-\MGT_RESET.RESET_INT_reg\: unisim.vcomponents.FDPE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk,
-      CE => '1',
-      D => RESET_INT_PIPE,
-      PRE => \MGT_RESET.SYNC_ASYNC_RESET_n_0\,
-      Q => RESET_INT
-    );
-\MGT_RESET.SRESET_PIPE_reg\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => RESET_INT,
-      Q => SRESET_PIPE,
-      R => '0'
-    );
-\MGT_RESET.SRESET_reg\: unisim.vcomponents.FDSE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => SRESET_PIPE,
-      Q => SRESET,
-      S => RESET_INT
-    );
-\MGT_RESET.SYNC_ASYNC_RESET\: entity work.GigEthGthUltraScaleCore_reset_sync_block
-     port map (
-      \MGT_RESET.RESET_INT_PIPE_reg\ => \MGT_RESET.SYNC_ASYNC_RESET_n_0\,
-      dcm_locked => dcm_locked,
-      reset => reset,
-      userclk => userclk
-    );
-\NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[1]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => configuration_vector(0),
-      Q => CONFIGURATION_VECTOR_REG(1),
-      R => SRESET
-    );
-\NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[2]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => configuration_vector(1),
-      Q => \^q\(0),
-      R => SRESET
-    );
-\NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => configuration_vector(2),
-      Q => \^q\(1),
-      R => SRESET
-    );
-RECEIVER: entity work.GigEthGthUltraScaleCore_RX
-     port map (
-      D => D,
-      \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1 downto 0) => \^q\(1 downto 0),
-      Q(7) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[7]\,
-      Q(6) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[6]\,
-      Q(5) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[5]\,
-      Q(4) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[4]\,
-      Q(3) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[3]\,
-      Q(2) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[2]\,
-      Q(1) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[1]\,
-      Q(0) => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[0]\,
-      RXEVEN => RXEVEN,
-      RXNOTINTABLE_INT => RXNOTINTABLE_INT,
-      SR(0) => \^mgt_rx_reset\,
-      SYNC_STATUS_REG0 => SYNC_STATUS_REG0,
-      \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\ => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg_n_0_[1]\,
-      \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\ => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg_n_0\,
-      \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\(2) => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[2]\,
-      \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\(1) => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[1]\,
-      \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\(0) => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[0]\,
-      gmii_rx_dv => gmii_rx_dv,
-      gmii_rx_er => gmii_rx_er,
-      gmii_rxd(7 downto 0) => gmii_rxd(7 downto 0),
-      p_40_in => p_40_in,
-      status_vector(2 downto 0) => status_vector(4 downto 2),
-      userclk2 => userclk2
-    );
-RXDISPERR_REG_reg: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => RXDISPERR_SRL,
-      Q => status_vector(5),
-      R => '0'
-    );
-RXNOTINTABLE_REG_reg: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => RXNOTINTABLE_SRL,
-      Q => status_vector(6),
-      R => '0'
-    );
-STATUS_VECTOR_0_PRE_reg: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => STATUS_VECTOR_0_PRE0,
-      Q => STATUS_VECTOR_0_PRE,
-      R => '0'
-    );
-\STATUS_VECTOR_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => STATUS_VECTOR_0_PRE,
-      Q => status_vector(0),
-      R => '0'
-    );
-\STATUS_VECTOR_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => SYNC_STATUS_REG,
-      Q => status_vector(1),
-      R => '0'
-    );
-SYNCHRONISATION: entity work.GigEthGthUltraScaleCore_SYNCHRONISE
-     port map (
-      D => D,
-      Q(0) => CONFIGURATION_VECTOR_REG(1),
-      RXEVEN => RXEVEN,
-      RXNOTINTABLE_INT => RXNOTINTABLE_INT,
-      SIGNAL_DETECT_MOD => SIGNAL_DETECT_MOD,
-      SR(0) => \^mgt_rx_reset\,
-      STATUS_VECTOR_0_PRE0 => STATUS_VECTOR_0_PRE0,
-      SYNC_STATUS_REG0 => SYNC_STATUS_REG0,
-      \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\ => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg_n_0_[1]\,
-      \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\ => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg_n_0\,
-      \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\ => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg_n_0\,
-      enablealign => enablealign,
-      p_40_in => p_40_in,
-      reset_done => reset_done,
-      userclk2 => userclk2
-    );
-SYNC_SIGNAL_DETECT: entity work.GigEthGthUltraScaleCore_sync_block
-     port map (
-      Q(0) => \^q\(0),
-      SIGNAL_DETECT_MOD => SIGNAL_DETECT_MOD,
-      signal_detect => signal_detect,
-      userclk2 => userclk2
-    );
-SYNC_STATUS_REG_reg: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => p_40_in,
-      Q => SYNC_STATUS_REG,
-      R => '0'
-    );
-TRANSMITTER: entity work.GigEthGthUltraScaleCore_TX
-     port map (
-      D(3) => TRANSMITTER_n_2,
-      D(2) => TRANSMITTER_n_3,
-      D(1) => TRANSMITTER_n_4,
-      D(0) => TRANSMITTER_n_5,
-      Q(1) => \^q\(1),
-      Q(0) => CONFIGURATION_VECTOR_REG(1),
-      \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\ => \^mgt_tx_reset\,
-      \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\ => TRANSMITTER_n_11,
-      \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\ => TRANSMITTER_n_10,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(7) => TRANSMITTER_n_12,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(6) => TRANSMITTER_n_13,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(5) => TRANSMITTER_n_14,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(4) => TRANSMITTER_n_15,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(3) => TRANSMITTER_n_16,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(2) => TRANSMITTER_n_17,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(1) => TRANSMITTER_n_18,
-      \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\(0) => TRANSMITTER_n_19,
-      \USE_ROCKET_IO.TXCHARDISPMODE_reg\ => TRANSMITTER_n_0,
-      \USE_ROCKET_IO.TXCHARDISPVAL_reg\ => TRANSMITTER_n_21,
-      \USE_ROCKET_IO.TXCHARISK_reg\ => TRANSMITTER_n_9,
-      \USE_ROCKET_IO.TXDATA_reg[2]\ => TRANSMITTER_n_8,
-      \USE_ROCKET_IO.TXDATA_reg[2]_0\ => TRANSMITTER_n_20,
-      \USE_ROCKET_IO.TXDATA_reg[3]\ => TRANSMITTER_n_7,
-      \USE_ROCKET_IO.TXDATA_reg[5]\ => TRANSMITTER_n_6,
-      \USE_ROCKET_IO.TXDATA_reg[7]\ => TRANSMITTER_n_1,
-      gmii_tx_en => gmii_tx_en,
-      gmii_tx_er => gmii_tx_er,
-      gmii_txd(7 downto 0) => gmii_txd(7 downto 0),
-      rxchariscomma(0) => rxchariscomma(0),
-      rxcharisk(0) => rxcharisk(0),
-      rxdata(7 downto 0) => rxdata(7 downto 0),
-      userclk2 => userclk2
-    );
-\USE_ROCKET_IO.MGT_RX_RESET_INT_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => RESET_INT,
-      I1 => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg_n_0_[1]\,
-      O => p_0_out
-    );
-\USE_ROCKET_IO.MGT_RX_RESET_INT_i_2\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"7F"
-    )
-        port map (
-      I0 => RX_RST_SM(2),
-      I1 => RX_RST_SM(1),
-      I2 => RX_RST_SM(3),
-      O => MGT_RX_RESET_INT
-    );
-\USE_ROCKET_IO.MGT_RX_RESET_INT_reg\: unisim.vcomponents.FDSE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => MGT_RX_RESET_INT,
-      Q => \^mgt_rx_reset\,
-      S => p_0_out
-    );
-\USE_ROCKET_IO.MGT_TX_RESET_INT_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => RESET_INT,
-      I1 => TXBUFERR_INT,
-      O => p_1_out
-    );
-\USE_ROCKET_IO.MGT_TX_RESET_INT_i_2\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"7F"
-    )
-        port map (
-      I0 => TX_RST_SM(2),
-      I1 => TX_RST_SM(1),
-      I2 => TX_RST_SM(3),
-      O => MGT_TX_RESET_INT
-    );
-\USE_ROCKET_IO.MGT_TX_RESET_INT_reg\: unisim.vcomponents.FDSE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => MGT_TX_RESET_INT,
-      Q => \^mgt_tx_reset\,
-      S => p_1_out
-    );
-\USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT[1]_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => \^mgt_rx_reset\,
-      I1 => CONFIGURATION_VECTOR_REG(1),
-      O => RXCLKCORCNT_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg[1]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => rxbufstatus(0),
-      Q => \USE_ROCKET_IO.NO_1588.RXBUFSTATUS_INT_reg_n_0_[1]\,
-      R => RXCLKCORCNT_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_11,
-      Q => \USE_ROCKET_IO.NO_1588.RXCHARISCOMMA_INT_reg_n_0\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_10,
-      Q => \USE_ROCKET_IO.NO_1588.RXCHARISK_INT_reg_n_0\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[0]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => rxclkcorcnt(0),
-      Q => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[0]\,
-      R => RXCLKCORCNT_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[1]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => rxclkcorcnt(1),
-      Q => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[1]\,
-      R => RXCLKCORCNT_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg[2]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => rxclkcorcnt(2),
-      Q => \USE_ROCKET_IO.NO_1588.RXCLKCORCNT_INT_reg_n_0_[2]\,
-      R => RXCLKCORCNT_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[0]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_19,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[0]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[1]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_18,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[1]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[2]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_17,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[2]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[3]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_16,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[3]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[4]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_15,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[4]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[5]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_14,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[5]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[6]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_13,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[6]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDATA_INT_reg[7]\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_12,
-      Q => \USE_ROCKET_IO.NO_1588.RXDATA_INT_reg_n_0_[7]\,
-      R => \^mgt_rx_reset\
-    );
-\USE_ROCKET_IO.NO_1588.RXDISPERR_INT_reg\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => rxdisperr(0),
-      Q => D,
-      R => RXRUNDISP_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXNOTINTABLE_INT_i_1\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => \^mgt_rx_reset\,
-      I1 => CONFIGURATION_VECTOR_REG(1),
-      O => RXRUNDISP_INT
-    );
-\USE_ROCKET_IO.NO_1588.RXNOTINTABLE_INT_reg\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => rxnotintable(0),
-      Q => RXNOTINTABLE_INT,
-      R => RXRUNDISP_INT
-    );
-\USE_ROCKET_IO.TXBUFERR_INT_reg\: unisim.vcomponents.FDRE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => userclk2,
-      CE => '1',
-      D => txbuferr,
-      Q => TXBUFERR_INT,
-      R => \^mgt_tx_reset\
-    );
-\USE_ROCKET_IO.TXCHARDISPMODE_reg\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_0,
-      Q => txchardispmode,
-      R => \^mgt_tx_reset\
-    );
-\USE_ROCKET_IO.TXCHARDISPVAL_reg\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_21,
-      Q => txchardispval,
-      R => '0'
-    );
-\USE_ROCKET_IO.TXCHARISK_reg\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_9,
-      Q => txcharisk,
-      R => \^mgt_tx_reset\
-    );
-\USE_ROCKET_IO.TXDATA_reg[0]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_5,
-      Q => txdata(0),
-      R => '0'
-    );
-\USE_ROCKET_IO.TXDATA_reg[1]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_4,
-      Q => txdata(1),
-      R => '0'
-    );
-\USE_ROCKET_IO.TXDATA_reg[2]\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_8,
-      Q => txdata(2),
-      S => TRANSMITTER_n_20
-    );
-\USE_ROCKET_IO.TXDATA_reg[3]\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_7,
-      Q => txdata(3),
-      S => TRANSMITTER_n_20
-    );
-\USE_ROCKET_IO.TXDATA_reg[4]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_3,
-      Q => txdata(4),
-      R => '0'
-    );
-\USE_ROCKET_IO.TXDATA_reg[5]\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_6,
-      Q => txdata(5),
-      S => TRANSMITTER_n_20
-    );
-\USE_ROCKET_IO.TXDATA_reg[6]\: unisim.vcomponents.FDRE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_2,
-      Q => txdata(6),
-      R => '0'
-    );
-\USE_ROCKET_IO.TXDATA_reg[7]\: unisim.vcomponents.FDSE
-     port map (
-      C => userclk2,
-      CE => '1',
-      D => TRANSMITTER_n_1,
-      Q => txdata(7),
-      S => TRANSMITTER_n_20
-    );
-end STRUCTURE;
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
 entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper is
   port (
     cpllfbclklost_out : out STD_LOGIC_VECTOR ( 0 to 0 );
@@ -8732,10 +7962,10 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper 
     gtrefclk0_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtrefclk1_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtresetsel_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_gtrxreset_int : in STD_LOGIC;
+    gtrxreset_int : in STD_LOGIC;
     gtsouthrefclk0_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtsouthrefclk1_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_gttxreset_int : in STD_LOGIC;
+    gttxreset_int : in STD_LOGIC;
     lpbkrxtxseren_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     lpbktxrxseren_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     pcieeqrxeqadaptdone_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -8833,7 +8063,7 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper 
     rxpmareset_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxpolarity_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxprbscntreset_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_rxprogdivreset_int : in STD_LOGIC;
+    rxprogdivreset_int : in STD_LOGIC;
     rxqpien_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxratemode_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxslide_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -8842,7 +8072,7 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper 
     rxsyncallin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxsyncin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxsyncmode_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_rxuserrdy_int : in STD_LOGIC;
+    rxuserrdy_int : in STD_LOGIC;
     rxusrclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     sigvalidclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -8881,7 +8111,7 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper 
     txpostcursorinv_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txprbsforceerr_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txprecursorinv_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_txprogdivreset_int : in STD_LOGIC;
+    txprogdivreset_int : in STD_LOGIC;
     txqpibiasen_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txqpistrongpdown_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txqpiweakpup_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -8890,7 +8120,7 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper 
     txsyncallin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txsyncin_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txsyncmode_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_txuserrdy_int : in STD_LOGIC;
+    txuserrdy_int : in STD_LOGIC;
     txusrclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     txusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_userdata_tx_in : in STD_LOGIC_VECTOR ( 15 downto 0 );
@@ -8941,7 +8171,7 @@ end GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper;
 
 architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper is
 begin
-channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gthe3_channel
+channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gthe3_channel
      port map (
       bufgtce_out(2 downto 0) => bufgtce_out(2 downto 0),
       bufgtcemask_out(2 downto 0) => bufgtcemask_out(2 downto 0),
@@ -8992,14 +8222,10 @@ channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gth
       gtrefclkmonitor_out(0) => gtrefclkmonitor_out(0),
       gtresetsel_in(0) => gtresetsel_in(0),
       gtrsvd_in(15 downto 0) => gtrsvd_in(15 downto 0),
+      gtrxreset_int => gtrxreset_int,
       gtsouthrefclk0_in(0) => gtsouthrefclk0_in(0),
       gtsouthrefclk1_in(0) => gtsouthrefclk1_in(0),
-      gtwiz_reset_gtrxreset_int => gtwiz_reset_gtrxreset_int,
-      gtwiz_reset_gttxreset_int => gtwiz_reset_gttxreset_int,
-      gtwiz_reset_rxprogdivreset_int => gtwiz_reset_rxprogdivreset_int,
-      gtwiz_reset_rxuserrdy_int => gtwiz_reset_rxuserrdy_int,
-      gtwiz_reset_txprogdivreset_int => gtwiz_reset_txprogdivreset_int,
-      gtwiz_reset_txuserrdy_int => gtwiz_reset_txuserrdy_int,
+      gttxreset_int => gttxreset_int,
       gtwiz_userdata_tx_in(15 downto 0) => gtwiz_userdata_tx_in(15 downto 0),
       loopback_in(2 downto 0) => loopback_in(2 downto 0),
       lpbkrxtxseren_in(0) => lpbkrxtxseren_in(0),
@@ -9164,6 +8390,7 @@ channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gth
       rxprbslocked_out(0) => rxprbslocked_out(0),
       rxprbssel_in(3 downto 0) => rxprbssel_in(3 downto 0),
       rxprgdivresetdone_out(0) => rxprgdivresetdone_out(0),
+      rxprogdivreset_int => rxprogdivreset_int,
       rxqpien_in(0) => rxqpien_in(0),
       rxqpisenn_out(0) => rxqpisenn_out(0),
       rxqpisenp_out(0) => rxqpisenp_out(0),
@@ -9187,6 +8414,7 @@ channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gth
       rxsyncmode_in(0) => rxsyncmode_in(0),
       rxsyncout_out(0) => rxsyncout_out(0),
       rxsysclksel_in(1 downto 0) => rxsysclksel_in(1 downto 0),
+      rxuserrdy_int => rxuserrdy_int,
       rxusrclk2_in(0) => rxusrclk2_in(0),
       rxusrclk_in(0) => rxusrclk_in(0),
       rxvalid_out(0) => rxvalid_out(0),
@@ -9253,6 +8481,7 @@ channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gth
       txprecursor_in(4 downto 0) => txprecursor_in(4 downto 0),
       txprecursorinv_in(0) => txprecursorinv_in(0),
       txprgdivresetdone_out(0) => txprgdivresetdone_out(0),
+      txprogdivreset_int => txprogdivreset_int,
       txqpibiasen_in(0) => txqpibiasen_in(0),
       txqpisenn_out(0) => txqpisenn_out(0),
       txqpisenp_out(0) => txqpisenp_out(0),
@@ -9270,6 +8499,7 @@ channel_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gth
       txsyncmode_in(0) => txsyncmode_in(0),
       txsyncout_out(0) => txsyncout_out(0),
       txsysclksel_in(1 downto 0) => txsysclksel_in(1 downto 0),
+      txuserrdy_int => txuserrdy_int,
       txusrclk2_in(0) => txusrclk2_in(0),
       txusrclk_in(0) => txusrclk_in(0)
     );
@@ -9278,17 +8508,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtwiz_reset is
+entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gtwiz_reset is
   port (
-    gtwiz_reset_txprogdivreset_int : out STD_LOGIC;
+    txprogdivreset_int : out STD_LOGIC;
     gtwiz_reset_tx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_cdr_stable_out : out STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_gttxreset_int : out STD_LOGIC;
-    gtwiz_reset_txuserrdy_int : out STD_LOGIC;
-    gtwiz_reset_rxprogdivreset_int : out STD_LOGIC;
-    gtwiz_reset_gtrxreset_int : out STD_LOGIC;
-    gtwiz_reset_rxuserrdy_int : out STD_LOGIC;
+    gttxreset_int : out STD_LOGIC;
+    txuserrdy_int : out STD_LOGIC;
+    rxprogdivreset_int : out STD_LOGIC;
+    gtrxreset_int : out STD_LOGIC;
+    rxuserrdy_int : out STD_LOGIC;
     cpllpd_ch_int : out STD_LOGIC;
     gtpowergood_out : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_userclk_tx_active_in : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -9301,51 +8531,48 @@ entity GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtwiz_reset is
     rst_in0 : in STD_LOGIC;
     txusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     rxusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
-    gtwiz_reset_txresetdone_int : in STD_LOGIC;
     gtwiz_reset_rxresetdone_int : in STD_LOGIC;
+    gtwiz_reset_txresetdone_int : in STD_LOGIC;
     gtwiz_reset_tx_pll_and_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
     gtwiz_reset_rx_pll_and_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtwiz_reset : entity is "gtwizard_ultrascale_v1_6_0_gtwiz_reset";
-end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtwiz_reset;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gtwiz_reset : entity is "gtwizard_ultrascale_v1_6_2_gtwiz_reset";
+end GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gtwiz_reset;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtwiz_reset is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gtwiz_reset is
   signal \FSM_sequential_sm_reset_all[0]_i_1_n_0\ : STD_LOGIC;
   signal \FSM_sequential_sm_reset_all[1]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_sm_reset_all[2]_i_1_n_0\ : STD_LOGIC;
   signal \FSM_sequential_sm_reset_all[2]_i_2_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_sm_reset_all[2]_i_3_n_0\ : STD_LOGIC;
   signal \FSM_sequential_sm_reset_rx[2]_i_2_n_0\ : STD_LOGIC;
   signal \FSM_sequential_sm_reset_tx[2]_i_2_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_sm_reset_tx[2]_i_4_n_0\ : STD_LOGIC;
   signal \FSM_sequential_sm_reset_tx[2]_i_5_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_sm_reset_tx[2]_i_7_n_0\ : STD_LOGIC;
-  signal \FSM_sequential_sm_reset_tx[2]_i_8_n_0\ : STD_LOGIC;
-  signal bit_synchronizer_gtpowergood_inst_n_0 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_rx_pll_and_datapath_dly_inst_n_1 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_rx_pll_and_datapath_dly_inst_n_2 : STD_LOGIC;
-  signal bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst_n_0 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst_n_1 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst_n_2 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_userclk_rx_active_inst_n_0 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_userclk_rx_active_inst_n_2 : STD_LOGIC;
-  signal bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_0 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_1 : STD_LOGIC;
   signal bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2 : STD_LOGIC;
   signal bit_synchronizer_plllock_rx_inst_n_0 : STD_LOGIC;
-  signal bit_synchronizer_plllock_rx_inst_n_1 : STD_LOGIC;
   signal bit_synchronizer_plllock_rx_inst_n_2 : STD_LOGIC;
   signal bit_synchronizer_plllock_rx_inst_n_3 : STD_LOGIC;
   signal bit_synchronizer_plllock_rx_inst_n_4 : STD_LOGIC;
+  signal bit_synchronizer_plllock_tx_inst_n_0 : STD_LOGIC;
   signal bit_synchronizer_plllock_tx_inst_n_1 : STD_LOGIC;
   signal bit_synchronizer_plllock_tx_inst_n_2 : STD_LOGIC;
   signal bit_synchronizer_plllock_tx_inst_n_3 : STD_LOGIC;
   signal bit_synchronizer_rxcdrlock_inst_n_1 : STD_LOGIC;
   signal bit_synchronizer_rxcdrlock_inst_n_2 : STD_LOGIC;
   signal bit_synchronizer_rxcdrlock_inst_n_3 : STD_LOGIC;
+  signal gtpowergood_sync : STD_LOGIC;
+  signal \^gtrxreset_int\ : STD_LOGIC;
+  signal \^gttxreset_int\ : STD_LOGIC;
   signal gtwiz_reset_all_sync : STD_LOGIC;
-  signal \^gtwiz_reset_gtrxreset_int\ : STD_LOGIC;
-  signal \^gtwiz_reset_gttxreset_int\ : STD_LOGIC;
   signal gtwiz_reset_pllreset_rx_int : STD_LOGIC;
   signal gtwiz_reset_pllreset_tx_int : STD_LOGIC;
   signal gtwiz_reset_rx_any_sync : STD_LOGIC;
@@ -9358,9 +8585,8 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   signal gtwiz_reset_rx_pll_and_datapath_int_i_1_n_0 : STD_LOGIC;
   signal gtwiz_reset_rx_pll_and_datapath_int_reg_n_0 : STD_LOGIC;
   signal gtwiz_reset_rx_pll_and_datapath_sync : STD_LOGIC;
-  signal \^gtwiz_reset_rxprogdivreset_int\ : STD_LOGIC;
-  signal \^gtwiz_reset_rxuserrdy_int\ : STD_LOGIC;
   signal gtwiz_reset_tx_any_sync : STD_LOGIC;
+  signal gtwiz_reset_tx_datapath_dly : STD_LOGIC;
   signal gtwiz_reset_tx_datapath_sync : STD_LOGIC;
   signal gtwiz_reset_tx_done_int0 : STD_LOGIC;
   signal gtwiz_reset_tx_done_int_reg_n_0 : STD_LOGIC;
@@ -9368,59 +8594,42 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   signal gtwiz_reset_tx_pll_and_datapath_int_i_1_n_0 : STD_LOGIC;
   signal gtwiz_reset_tx_pll_and_datapath_int_reg_n_0 : STD_LOGIC;
   signal gtwiz_reset_tx_pll_and_datapath_sync : STD_LOGIC;
-  signal \^gtwiz_reset_txuserrdy_int\ : STD_LOGIC;
-  signal p_0_in : STD_LOGIC_VECTOR ( 9 downto 0 );
+  signal gtwiz_reset_userclk_tx_active_sync : STD_LOGIC;
+  signal p_0_in : STD_LOGIC;
   signal p_0_in11_out : STD_LOGIC;
-  signal p_0_in14_out : STD_LOGIC;
   signal \p_0_in__0\ : STD_LOGIC_VECTOR ( 9 downto 0 );
+  signal \p_0_in__1\ : STD_LOGIC_VECTOR ( 9 downto 0 );
   signal p_1_in : STD_LOGIC_VECTOR ( 2 downto 0 );
-  signal plllock_tx_sync : STD_LOGIC;
   signal reset_synchronizer_gtwiz_reset_rx_any_inst_n_1 : STD_LOGIC;
   signal reset_synchronizer_gtwiz_reset_tx_any_inst_n_1 : STD_LOGIC;
+  signal \^rxprogdivreset_int\ : STD_LOGIC;
+  signal \^rxuserrdy_int\ : STD_LOGIC;
   signal sel : STD_LOGIC;
   signal sm_reset_all : STD_LOGIC_VECTOR ( 2 downto 0 );
   attribute RTL_KEEP : string;
   attribute RTL_KEEP of sm_reset_all : signal is "yes";
-  signal sm_reset_all_timer_clr0 : STD_LOGIC;
   signal sm_reset_all_timer_clr_i_1_n_0 : STD_LOGIC;
+  signal sm_reset_all_timer_clr_i_2_n_0 : STD_LOGIC;
   signal sm_reset_all_timer_clr_reg_n_0 : STD_LOGIC;
   signal sm_reset_all_timer_ctr : STD_LOGIC_VECTOR ( 2 downto 0 );
+  signal \sm_reset_all_timer_ctr0_inferred__0_n_0\ : STD_LOGIC;
   signal \sm_reset_all_timer_ctr[0]_i_1_n_0\ : STD_LOGIC;
   signal \sm_reset_all_timer_ctr[1]_i_1_n_0\ : STD_LOGIC;
   signal \sm_reset_all_timer_ctr[2]_i_1_n_0\ : STD_LOGIC;
-  signal \sm_reset_all_timer_ctr[2]_i_2_n_0\ : STD_LOGIC;
   signal sm_reset_all_timer_sat : STD_LOGIC;
   signal sm_reset_all_timer_sat_i_1_n_0 : STD_LOGIC;
   signal sm_reset_rx : STD_LOGIC_VECTOR ( 2 downto 0 );
   attribute RTL_KEEP of sm_reset_rx : signal is "yes";
   signal sm_reset_rx_cdr_to_clr : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_10_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_11_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_12_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_13_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_14_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_15_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_16_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_cdr_to_ctr[0]_i_17_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_cdr_to_ctr[0]_i_1_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_cdr_to_ctr[0]_i_3_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_4_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_5_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_6_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_7_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_8_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[0]_i_9_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_2_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_3_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_4_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_5_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_6_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_7_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_8_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[16]_i_9_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[24]_i_2_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[24]_i_3_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_2_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_3_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_4_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_5_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_6_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_7_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_8_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_cdr_to_ctr[8]_i_9_n_0\ : STD_LOGIC;
   signal sm_reset_rx_cdr_to_ctr_reg : STD_LOGIC_VECTOR ( 25 downto 0 );
   signal \sm_reset_rx_cdr_to_ctr_reg[0]_i_2_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_cdr_to_ctr_reg[0]_i_2_n_1\ : STD_LOGIC;
@@ -9472,15 +8681,10 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   signal \sm_reset_rx_cdr_to_ctr_reg[8]_i_1_n_9\ : STD_LOGIC;
   signal sm_reset_rx_cdr_to_sat : STD_LOGIC;
   signal sm_reset_rx_cdr_to_sat_i_1_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_2_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_3_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_4_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_5_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_6_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_7_n_0 : STD_LOGIC;
-  signal sm_reset_rx_cdr_to_sat_i_8_n_0 : STD_LOGIC;
   signal sm_reset_rx_pll_timer_clr_i_1_n_0 : STD_LOGIC;
   signal sm_reset_rx_pll_timer_clr_reg_n_0 : STD_LOGIC;
+  signal \sm_reset_rx_pll_timer_ctr[7]_i_1_n_0\ : STD_LOGIC;
+  signal \sm_reset_rx_pll_timer_ctr[7]_i_2_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_pll_timer_ctr[9]_i_3_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_pll_timer_ctr_reg__0\ : STD_LOGIC_VECTOR ( 9 downto 0 );
@@ -9488,16 +8692,18 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   signal sm_reset_rx_pll_timer_sat_i_1_n_0 : STD_LOGIC;
   signal sm_reset_rx_pll_timer_sat_i_2_n_0 : STD_LOGIC;
   signal sm_reset_rx_timer_clr0 : STD_LOGIC;
+  signal sm_reset_rx_timer_clr09_out : STD_LOGIC;
   signal sm_reset_rx_timer_clr_reg_n_0 : STD_LOGIC;
   signal sm_reset_rx_timer_ctr : STD_LOGIC_VECTOR ( 2 downto 0 );
+  signal \sm_reset_rx_timer_ctr0_inferred__0_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_timer_ctr[0]_i_1_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_timer_ctr[1]_i_1_n_0\ : STD_LOGIC;
   signal \sm_reset_rx_timer_ctr[2]_i_1_n_0\ : STD_LOGIC;
-  signal \sm_reset_rx_timer_ctr[2]_i_2_n_0\ : STD_LOGIC;
   signal sm_reset_rx_timer_sat : STD_LOGIC;
   signal sm_reset_rx_timer_sat_i_1_n_0 : STD_LOGIC;
   signal sm_reset_tx : STD_LOGIC_VECTOR ( 2 downto 0 );
   attribute RTL_KEEP of sm_reset_tx : signal is "yes";
+  signal sm_reset_tx_pll_timer_clr0 : STD_LOGIC;
   signal sm_reset_tx_pll_timer_clr_i_1_n_0 : STD_LOGIC;
   signal sm_reset_tx_pll_timer_clr_reg_n_0 : STD_LOGIC;
   signal \sm_reset_tx_pll_timer_ctr[7]_i_2_n_0\ : STD_LOGIC;
@@ -9508,9 +8714,9 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   signal sm_reset_tx_pll_timer_sat_i_2_n_0 : STD_LOGIC;
   signal sm_reset_tx_timer_clr_reg_n_0 : STD_LOGIC;
   signal sm_reset_tx_timer_ctr : STD_LOGIC_VECTOR ( 2 downto 0 );
-  signal \sm_reset_tx_timer_ctr[2]_i_1_n_0\ : STD_LOGIC;
   signal sm_reset_tx_timer_sat : STD_LOGIC;
   signal sm_reset_tx_timer_sat_i_1_n_0 : STD_LOGIC;
+  signal \^txuserrdy_int\ : STD_LOGIC;
   signal \NLW_sm_reset_rx_cdr_to_ctr_reg[0]_i_2_CO_UNCONNECTED\ : STD_LOGIC_VECTOR ( 3 to 3 );
   signal \NLW_sm_reset_rx_cdr_to_ctr_reg[16]_i_1_CO_UNCONNECTED\ : STD_LOGIC_VECTOR ( 3 to 3 );
   signal \NLW_sm_reset_rx_cdr_to_ctr_reg[24]_i_1_CO_UNCONNECTED\ : STD_LOGIC_VECTOR ( 7 downto 1 );
@@ -9518,9 +8724,6 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   signal \NLW_sm_reset_rx_cdr_to_ctr_reg[24]_i_1_O_UNCONNECTED\ : STD_LOGIC_VECTOR ( 7 downto 2 );
   signal \NLW_sm_reset_rx_cdr_to_ctr_reg[24]_i_1_S_UNCONNECTED\ : STD_LOGIC_VECTOR ( 7 downto 2 );
   signal \NLW_sm_reset_rx_cdr_to_ctr_reg[8]_i_1_CO_UNCONNECTED\ : STD_LOGIC_VECTOR ( 3 to 3 );
-  attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_all[2]_i_3\ : label is "soft_lutpair45";
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_all[2]_i_4\ : label is "soft_lutpair45";
   attribute KEEP : string;
   attribute KEEP of \FSM_sequential_sm_reset_all_reg[0]\ : label is "yes";
   attribute KEEP of \FSM_sequential_sm_reset_all_reg[1]\ : label is "yes";
@@ -9528,89 +8731,97 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtw
   attribute KEEP of \FSM_sequential_sm_reset_rx_reg[0]\ : label is "yes";
   attribute KEEP of \FSM_sequential_sm_reset_rx_reg[1]\ : label is "yes";
   attribute KEEP of \FSM_sequential_sm_reset_rx_reg[2]\ : label is "yes";
-  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_tx[2]_i_5\ : label is "soft_lutpair38";
+  attribute SOFT_HLUTNM : string;
+  attribute SOFT_HLUTNM of \FSM_sequential_sm_reset_tx[2]_i_5\ : label is "soft_lutpair43";
   attribute KEEP of \FSM_sequential_sm_reset_tx_reg[0]\ : label is "yes";
   attribute KEEP of \FSM_sequential_sm_reset_tx_reg[1]\ : label is "yes";
   attribute KEEP of \FSM_sequential_sm_reset_tx_reg[2]\ : label is "yes";
-  attribute SOFT_HLUTNM of \sm_reset_all_timer_ctr[1]_i_1\ : label is "soft_lutpair46";
-  attribute SOFT_HLUTNM of \sm_reset_all_timer_ctr[2]_i_2\ : label is "soft_lutpair46";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[0]_i_1\ : label is "soft_lutpair50";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[1]_i_1\ : label is "soft_lutpair50";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[2]_i_1\ : label is "soft_lutpair43";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[3]_i_1\ : label is "soft_lutpair43";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[4]_i_1\ : label is "soft_lutpair39";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[7]_i_1\ : label is "soft_lutpair42";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[8]_i_1\ : label is "soft_lutpair42";
-  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[9]_i_3\ : label is "soft_lutpair39";
-  attribute SOFT_HLUTNM of \sm_reset_rx_timer_ctr[1]_i_1\ : label is "soft_lutpair48";
-  attribute SOFT_HLUTNM of \sm_reset_rx_timer_ctr[2]_i_2\ : label is "soft_lutpair48";
+  attribute SOFT_HLUTNM of \sm_reset_all_timer_ctr[1]_i_1\ : label is "soft_lutpair50";
+  attribute SOFT_HLUTNM of \sm_reset_all_timer_ctr[2]_i_1\ : label is "soft_lutpair50";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[1]_i_1\ : label is "soft_lutpair51";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[2]_i_1\ : label is "soft_lutpair51";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[3]_i_1\ : label is "soft_lutpair46";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[4]_i_1\ : label is "soft_lutpair41";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[6]_i_1\ : label is "soft_lutpair40";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[7]_i_2\ : label is "soft_lutpair46";
+  attribute SOFT_HLUTNM of \sm_reset_rx_pll_timer_ctr[9]_i_3\ : label is "soft_lutpair41";
+  attribute SOFT_HLUTNM of sm_reset_rx_pll_timer_sat_i_2 : label is "soft_lutpair40";
+  attribute SOFT_HLUTNM of \sm_reset_rx_timer_ctr[1]_i_1\ : label is "soft_lutpair49";
+  attribute SOFT_HLUTNM of \sm_reset_rx_timer_ctr[2]_i_1\ : label is "soft_lutpair49";
   attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[1]_i_1\ : label is "soft_lutpair47";
-  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[2]_i_1\ : label is "soft_lutpair44";
-  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[3]_i_1\ : label is "soft_lutpair44";
-  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[4]_i_1\ : label is "soft_lutpair41";
-  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[6]_i_1\ : label is "soft_lutpair40";
-  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[7]_i_2\ : label is "soft_lutpair47";
-  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[9]_i_3\ : label is "soft_lutpair41";
-  attribute SOFT_HLUTNM of sm_reset_tx_pll_timer_sat_i_2 : label is "soft_lutpair40";
-  attribute SOFT_HLUTNM of \sm_reset_tx_timer_ctr[1]_i_1\ : label is "soft_lutpair49";
-  attribute SOFT_HLUTNM of \sm_reset_tx_timer_ctr[2]_i_2\ : label is "soft_lutpair49";
-  attribute SOFT_HLUTNM of sm_reset_tx_timer_sat_i_1 : label is "soft_lutpair38";
+  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[2]_i_1\ : label is "soft_lutpair47";
+  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[3]_i_1\ : label is "soft_lutpair45";
+  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[4]_i_1\ : label is "soft_lutpair42";
+  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[6]_i_1\ : label is "soft_lutpair44";
+  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[7]_i_2\ : label is "soft_lutpair45";
+  attribute SOFT_HLUTNM of \sm_reset_tx_pll_timer_ctr[9]_i_3\ : label is "soft_lutpair42";
+  attribute SOFT_HLUTNM of sm_reset_tx_pll_timer_sat_i_2 : label is "soft_lutpair44";
+  attribute SOFT_HLUTNM of \sm_reset_tx_timer_ctr[1]_i_1\ : label is "soft_lutpair48";
+  attribute SOFT_HLUTNM of \sm_reset_tx_timer_ctr[2]_i_1\ : label is "soft_lutpair48";
+  attribute SOFT_HLUTNM of sm_reset_tx_timer_sat_i_1 : label is "soft_lutpair43";
 begin
-  gtwiz_reset_gtrxreset_int <= \^gtwiz_reset_gtrxreset_int\;
-  gtwiz_reset_gttxreset_int <= \^gtwiz_reset_gttxreset_int\;
-  gtwiz_reset_rxprogdivreset_int <= \^gtwiz_reset_rxprogdivreset_int\;
-  gtwiz_reset_rxuserrdy_int <= \^gtwiz_reset_rxuserrdy_int\;
-  gtwiz_reset_txuserrdy_int <= \^gtwiz_reset_txuserrdy_int\;
-\FSM_sequential_sm_reset_all[0]_i_1\: unisim.vcomponents.LUT4
+  gtrxreset_int <= \^gtrxreset_int\;
+  gttxreset_int <= \^gttxreset_int\;
+  rxprogdivreset_int <= \^rxprogdivreset_int\;
+  rxuserrdy_int <= \^rxuserrdy_int\;
+  txuserrdy_int <= \^txuserrdy_int\;
+\FSM_sequential_sm_reset_all[0]_i_1\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"335D"
+      INIT => X"77777777DDDD5DDD"
     )
         port map (
       I0 => sm_reset_all(0),
       I1 => sm_reset_all(2),
-      I2 => p_0_in14_out,
-      I3 => sm_reset_all(1),
+      I2 => gtwiz_reset_rx_done_int_reg_n_0,
+      I3 => sm_reset_all_timer_sat,
+      I4 => sm_reset_all_timer_clr_reg_n_0,
+      I5 => sm_reset_all(1),
       O => \FSM_sequential_sm_reset_all[0]_i_1_n_0\
     );
-\FSM_sequential_sm_reset_all[1]_i_1\: unisim.vcomponents.LUT3
+\FSM_sequential_sm_reset_all[1]_i_1\: unisim.vcomponents.LUT2
     generic map(
-      INIT => X"1A"
+      INIT => X"6"
+    )
+        port map (
+      I0 => sm_reset_all(0),
+      I1 => sm_reset_all(1),
+      O => \FSM_sequential_sm_reset_all[1]_i_1_n_0\
+    );
+\FSM_sequential_sm_reset_all[2]_i_1\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FFFFFFFF0000AAEA"
+    )
+        port map (
+      I0 => sm_reset_all(0),
+      I1 => gtwiz_reset_tx_done_int_reg_n_0,
+      I2 => sm_reset_all_timer_sat,
+      I3 => sm_reset_all_timer_clr_reg_n_0,
+      I4 => sm_reset_all(2),
+      I5 => \FSM_sequential_sm_reset_all[2]_i_3_n_0\,
+      O => \FSM_sequential_sm_reset_all[2]_i_1_n_0\
+    );
+\FSM_sequential_sm_reset_all[2]_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"2C"
     )
         port map (
       I0 => sm_reset_all(0),
       I1 => sm_reset_all(2),
       I2 => sm_reset_all(1),
-      O => \FSM_sequential_sm_reset_all[1]_i_1_n_0\
-    );
-\FSM_sequential_sm_reset_all[2]_i_2\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"58"
-    )
-        port map (
-      I0 => sm_reset_all(1),
-      I1 => sm_reset_all(0),
-      I2 => sm_reset_all(2),
       O => \FSM_sequential_sm_reset_all[2]_i_2_n_0\
     );
-\FSM_sequential_sm_reset_all[2]_i_3\: unisim.vcomponents.LUT3
+\FSM_sequential_sm_reset_all[2]_i_3\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"40"
+      INIT => X"8888B88833333333"
     )
         port map (
-      I0 => sm_reset_all_timer_clr_reg_n_0,
-      I1 => sm_reset_all_timer_sat,
-      I2 => gtwiz_reset_tx_done_int_reg_n_0,
-      O => sm_reset_all_timer_clr0
-    );
-\FSM_sequential_sm_reset_all[2]_i_4\: unisim.vcomponents.LUT3
-    generic map(
-      INIT => X"40"
-    )
-        port map (
-      I0 => sm_reset_all_timer_clr_reg_n_0,
-      I1 => sm_reset_all_timer_sat,
+      I0 => gtpowergood_sync,
+      I1 => sm_reset_all(1),
       I2 => gtwiz_reset_rx_done_int_reg_n_0,
-      O => p_0_in14_out
+      I3 => sm_reset_all_timer_sat,
+      I4 => sm_reset_all_timer_clr_reg_n_0,
+      I5 => sm_reset_all(0),
+      O => \FSM_sequential_sm_reset_all[2]_i_3_n_0\
     );
 \FSM_sequential_sm_reset_all_reg[0]\: unisim.vcomponents.FDRE
     generic map(
@@ -9618,7 +8829,7 @@ begin
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => bit_synchronizer_gtpowergood_inst_n_0,
+      CE => \FSM_sequential_sm_reset_all[2]_i_1_n_0\,
       D => \FSM_sequential_sm_reset_all[0]_i_1_n_0\,
       Q => sm_reset_all(0),
       R => gtwiz_reset_all_sync
@@ -9629,7 +8840,7 @@ begin
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => bit_synchronizer_gtpowergood_inst_n_0,
+      CE => \FSM_sequential_sm_reset_all[2]_i_1_n_0\,
       D => \FSM_sequential_sm_reset_all[1]_i_1_n_0\,
       Q => sm_reset_all(1),
       R => gtwiz_reset_all_sync
@@ -9640,7 +8851,7 @@ begin
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => bit_synchronizer_gtpowergood_inst_n_0,
+      CE => \FSM_sequential_sm_reset_all[2]_i_1_n_0\,
       D => \FSM_sequential_sm_reset_all[2]_i_2_n_0\,
       Q => sm_reset_all(2),
       R => gtwiz_reset_all_sync
@@ -9657,15 +8868,15 @@ begin
     );
 \FSM_sequential_sm_reset_rx[2]_i_2\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"ACACACACECACACAC"
+      INIT => X"CCCCECCCAAAAAAAA"
     )
         port map (
-      I0 => sm_reset_rx(0),
-      I1 => sm_reset_rx(2),
-      I2 => sm_reset_rx(1),
-      I3 => gtwiz_reset_rxresetdone_int,
-      I4 => sm_reset_rx_timer_sat,
-      I5 => sm_reset_rx_timer_clr_reg_n_0,
+      I0 => sm_reset_rx(2),
+      I1 => sm_reset_rx(0),
+      I2 => gtwiz_reset_rxresetdone_int,
+      I3 => sm_reset_rx_timer_sat,
+      I4 => sm_reset_rx_timer_clr_reg_n_0,
+      I5 => sm_reset_rx(1),
       O => \FSM_sequential_sm_reset_rx[2]_i_2_n_0\
     );
 \FSM_sequential_sm_reset_rx_reg[0]\: unisim.vcomponents.FDRE
@@ -9702,15 +8913,6 @@ begin
       I2 => sm_reset_tx(2),
       O => \FSM_sequential_sm_reset_tx[2]_i_2_n_0\
     );
-\FSM_sequential_sm_reset_tx[2]_i_4\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_tx(1),
-      I1 => sm_reset_tx(2),
-      O => \FSM_sequential_sm_reset_tx[2]_i_4_n_0\
-    );
 \FSM_sequential_sm_reset_tx[2]_i_5\: unisim.vcomponents.LUT2
     generic map(
       INIT => X"2"
@@ -9720,28 +8922,19 @@ begin
       I1 => sm_reset_tx_timer_clr_reg_n_0,
       O => \FSM_sequential_sm_reset_tx[2]_i_5_n_0\
     );
-\FSM_sequential_sm_reset_tx[2]_i_7\: unisim.vcomponents.LUT2
-    generic map(
-      INIT => X"E"
-    )
-        port map (
-      I0 => sm_reset_tx(1),
-      I1 => sm_reset_tx(2),
-      O => \FSM_sequential_sm_reset_tx[2]_i_7_n_0\
-    );
-\FSM_sequential_sm_reset_tx[2]_i_8\: unisim.vcomponents.LUT2
+\FSM_sequential_sm_reset_tx[2]_i_6\: unisim.vcomponents.LUT2
     generic map(
       INIT => X"2"
     )
         port map (
-      I0 => sm_reset_tx(2),
-      I1 => sm_reset_tx(1),
-      O => \FSM_sequential_sm_reset_tx[2]_i_8_n_0\
+      I0 => sm_reset_tx_pll_timer_sat,
+      I1 => sm_reset_tx_pll_timer_clr_reg_n_0,
+      O => sm_reset_tx_pll_timer_clr0
     );
 \FSM_sequential_sm_reset_tx_reg[0]\: unisim.vcomponents.FDRE
      port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst_n_0,
+      CE => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2,
       D => bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst_n_2,
       Q => sm_reset_tx(0),
       R => gtwiz_reset_tx_any_sync
@@ -9749,7 +8942,7 @@ begin
 \FSM_sequential_sm_reset_tx_reg[1]\: unisim.vcomponents.FDRE
      port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst_n_0,
+      CE => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2,
       D => bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst_n_1,
       Q => sm_reset_tx(1),
       R => gtwiz_reset_tx_any_sync
@@ -9757,145 +8950,138 @@ begin
 \FSM_sequential_sm_reset_tx_reg[2]\: unisim.vcomponents.FDRE
      port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst_n_0,
+      CE => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2,
       D => \FSM_sequential_sm_reset_tx[2]_i_2_n_0\,
       Q => sm_reset_tx(2),
       R => gtwiz_reset_tx_any_sync
     );
-bit_synchronizer_gtpowergood_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_1
+bit_synchronizer_gtpowergood_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_1
      port map (
-      E(0) => bit_synchronizer_gtpowergood_inst_n_0,
       gtpowergood_out(0) => gtpowergood_out(0),
-      gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
-      \out\(2 downto 0) => sm_reset_all(2 downto 0),
-      p_0_in14_out => p_0_in14_out,
-      sm_reset_all_timer_clr0 => sm_reset_all_timer_clr0
+      gtpowergood_sync => gtpowergood_sync,
+      gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0)
     );
-bit_synchronizer_gtwiz_reset_rx_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_2
+bit_synchronizer_gtwiz_reset_rx_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_2
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rx_datapath_dly => gtwiz_reset_rx_datapath_dly,
-      gtwiz_reset_rx_datapath_sync => gtwiz_reset_rx_datapath_sync
+      in0 => gtwiz_reset_rx_datapath_sync
     );
-bit_synchronizer_gtwiz_reset_rx_pll_and_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_3
+bit_synchronizer_gtwiz_reset_rx_pll_and_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_3
      port map (
       D(1) => bit_synchronizer_gtwiz_reset_rx_pll_and_datapath_dly_inst_n_1,
       D(0) => bit_synchronizer_gtwiz_reset_rx_pll_and_datapath_dly_inst_n_2,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rx_pll_and_datapath_dly => gtwiz_reset_rx_pll_and_datapath_dly,
-      gtwiz_reset_rx_pll_and_datapath_sync => gtwiz_reset_rx_pll_and_datapath_sync,
+      in0 => gtwiz_reset_rx_pll_and_datapath_sync,
       \out\(2 downto 0) => sm_reset_rx(2 downto 0),
       p_0_in11_out => p_0_in11_out
     );
-bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_4
+bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_4
      port map (
-      E(0) => bit_synchronizer_gtwiz_reset_tx_datapath_dly_inst_n_0,
-      \FSM_sequential_sm_reset_tx_reg[1]\ => \FSM_sequential_sm_reset_tx[2]_i_4_n_0\,
-      \FSM_sequential_sm_reset_tx_reg[1]_0\ => \FSM_sequential_sm_reset_tx[2]_i_7_n_0\,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
-      gtwiz_reset_tx_datapath_sync => gtwiz_reset_tx_datapath_sync,
-      gtwiz_reset_tx_pll_and_datapath_dly => gtwiz_reset_tx_pll_and_datapath_dly,
-      i_in_out_reg_0 => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2,
-      \out\(0) => sm_reset_tx(0),
-      plllock_tx_sync => plllock_tx_sync,
-      sm_reset_tx_pll_timer_clr_reg => sm_reset_tx_pll_timer_clr_reg_n_0,
-      sm_reset_tx_pll_timer_sat => sm_reset_tx_pll_timer_sat,
-      sm_reset_tx_timer_sat_reg => \FSM_sequential_sm_reset_tx[2]_i_5_n_0\
+      gtwiz_reset_tx_datapath_dly => gtwiz_reset_tx_datapath_dly,
+      in0 => gtwiz_reset_tx_datapath_sync
     );
-bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_5
+bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_5
      port map (
       D(1) => bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst_n_1,
       D(0) => bit_synchronizer_gtwiz_reset_tx_pll_and_datapath_dly_inst_n_2,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_tx_pll_and_datapath_dly => gtwiz_reset_tx_pll_and_datapath_dly,
-      gtwiz_reset_tx_pll_and_datapath_sync => gtwiz_reset_tx_pll_and_datapath_sync,
+      in0 => gtwiz_reset_tx_pll_and_datapath_sync,
       \out\(2 downto 0) => sm_reset_tx(2 downto 0)
     );
-bit_synchronizer_gtwiz_reset_userclk_rx_active_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_6
+bit_synchronizer_gtwiz_reset_userclk_rx_active_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_6
      port map (
-      \FSM_sequential_sm_reset_rx_reg[2]\ => bit_synchronizer_plllock_rx_inst_n_3,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rx_any_sync => gtwiz_reset_rx_any_sync,
       gtwiz_reset_rxresetdone_int => gtwiz_reset_rxresetdone_int,
-      gtwiz_reset_rxuserrdy_int => \^gtwiz_reset_rxuserrdy_int\,
       gtwiz_userclk_rx_active_in(0) => gtwiz_userclk_rx_active_in(0),
+      i_in_out_reg_0 => bit_synchronizer_plllock_rx_inst_n_4,
       \out\(2 downto 0) => sm_reset_rx(2 downto 0),
+      rxuserrdy_int => \^rxuserrdy_int\,
       rxuserrdy_out_reg => bit_synchronizer_gtwiz_reset_userclk_rx_active_inst_n_0,
       sm_reset_rx_timer_clr0 => sm_reset_rx_timer_clr0,
       sm_reset_rx_timer_clr_reg => bit_synchronizer_gtwiz_reset_userclk_rx_active_inst_n_2,
       sm_reset_rx_timer_clr_reg_0 => sm_reset_rx_timer_clr_reg_n_0,
       sm_reset_rx_timer_sat => sm_reset_rx_timer_sat
     );
-bit_synchronizer_gtwiz_reset_userclk_tx_active_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_7
+bit_synchronizer_gtwiz_reset_userclk_tx_active_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_7
      port map (
-      \FSM_sequential_sm_reset_tx_reg[0]\ => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2,
-      \FSM_sequential_sm_reset_tx_reg[1]\ => bit_synchronizer_plllock_tx_inst_n_3,
-      \FSM_sequential_sm_reset_tx_reg[2]\ => \FSM_sequential_sm_reset_tx[2]_i_8_n_0\,
+      E(0) => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_2,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_tx_any_sync => gtwiz_reset_tx_any_sync,
-      gtwiz_reset_txresetdone_int => gtwiz_reset_txresetdone_int,
-      gtwiz_reset_txuserrdy_int => \^gtwiz_reset_txuserrdy_int\,
+      gtwiz_reset_tx_datapath_dly => gtwiz_reset_tx_datapath_dly,
+      gtwiz_reset_tx_pll_and_datapath_dly => gtwiz_reset_tx_pll_and_datapath_dly,
+      gtwiz_reset_userclk_tx_active_sync => gtwiz_reset_userclk_tx_active_sync,
       gtwiz_userclk_tx_active_in(0) => gtwiz_userclk_tx_active_in(0),
+      i_in_out_reg_0 => bit_synchronizer_plllock_tx_inst_n_3,
       \out\(2 downto 0) => sm_reset_tx(2 downto 0),
-      sm_reset_tx_timer_clr_reg => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_0,
-      sm_reset_tx_timer_clr_reg_0 => sm_reset_tx_timer_clr_reg_n_0,
+      sm_reset_tx_timer_clr_reg => sm_reset_tx_timer_clr_reg_n_0,
       sm_reset_tx_timer_sat => sm_reset_tx_timer_sat,
+      sm_reset_tx_timer_sat_reg => \FSM_sequential_sm_reset_tx[2]_i_5_n_0\,
+      txuserrdy_int => \^txuserrdy_int\,
       txuserrdy_out_reg => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_1
     );
-bit_synchronizer_plllock_rx_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_8
+bit_synchronizer_plllock_rx_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_8
      port map (
-      \FSM_sequential_sm_reset_rx_reg[0]\ => bit_synchronizer_plllock_rx_inst_n_4,
-      \FSM_sequential_sm_reset_rx_reg[2]\ => bit_synchronizer_rxcdrlock_inst_n_2,
+      \FSM_sequential_sm_reset_rx_reg[0]\ => bit_synchronizer_plllock_rx_inst_n_3,
       cplllock_out(0) => cplllock_out(0),
-      gtrxreset_out_reg => bit_synchronizer_plllock_rx_inst_n_1,
+      gtrxreset_int => \^gtrxreset_int\,
+      gtrxreset_out_reg => bit_synchronizer_plllock_rx_inst_n_0,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
-      gtwiz_reset_gtrxreset_int => \^gtwiz_reset_gtrxreset_int\,
       gtwiz_reset_rx_any_sync => gtwiz_reset_rx_any_sync,
       gtwiz_reset_rx_done_int_reg => bit_synchronizer_plllock_rx_inst_n_2,
       gtwiz_reset_rx_done_int_reg_0 => gtwiz_reset_rx_done_int_reg_n_0,
       \out\(2 downto 0) => sm_reset_rx(2 downto 0),
       p_0_in11_out => p_0_in11_out,
-      sm_reset_rx_cdr_to_clr => sm_reset_rx_cdr_to_clr,
-      sm_reset_rx_cdr_to_clr_reg => bit_synchronizer_plllock_rx_inst_n_0,
       sm_reset_rx_pll_timer_clr_reg => sm_reset_rx_pll_timer_clr_reg_n_0,
       sm_reset_rx_pll_timer_sat => sm_reset_rx_pll_timer_sat,
       sm_reset_rx_timer_clr0 => sm_reset_rx_timer_clr0,
-      sm_reset_rx_timer_clr_reg => bit_synchronizer_plllock_rx_inst_n_3,
+      sm_reset_rx_timer_clr09_out => sm_reset_rx_timer_clr09_out,
+      sm_reset_rx_timer_clr_reg => bit_synchronizer_plllock_rx_inst_n_4,
       sm_reset_rx_timer_clr_reg_0 => sm_reset_rx_timer_clr_reg_n_0,
       sm_reset_rx_timer_sat => sm_reset_rx_timer_sat
     );
-bit_synchronizer_plllock_tx_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_9
+bit_synchronizer_plllock_tx_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_9
      port map (
+      \FSM_sequential_sm_reset_tx_reg[0]\ => bit_synchronizer_plllock_tx_inst_n_3,
       cplllock_out(0) => cplllock_out(0),
-      gttxreset_out_reg => bit_synchronizer_plllock_tx_inst_n_1,
+      gttxreset_int => \^gttxreset_int\,
+      gttxreset_out_reg => bit_synchronizer_plllock_tx_inst_n_0,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
-      gtwiz_reset_gttxreset_int => \^gtwiz_reset_gttxreset_int\,
       gtwiz_reset_tx_any_sync => gtwiz_reset_tx_any_sync,
       gtwiz_reset_tx_done_int0 => gtwiz_reset_tx_done_int0,
       gtwiz_reset_tx_done_int_reg => bit_synchronizer_plllock_tx_inst_n_2,
       gtwiz_reset_tx_done_int_reg_0 => gtwiz_reset_tx_done_int_reg_n_0,
+      gtwiz_reset_txresetdone_int => gtwiz_reset_txresetdone_int,
+      gtwiz_reset_userclk_tx_active_sync => gtwiz_reset_userclk_tx_active_sync,
       \out\(2 downto 0) => sm_reset_tx(2 downto 0),
-      plllock_tx_sync => plllock_tx_sync,
-      sm_reset_tx_timer_clr_reg => bit_synchronizer_plllock_tx_inst_n_3,
+      sm_reset_tx_pll_timer_clr0 => sm_reset_tx_pll_timer_clr0,
+      sm_reset_tx_timer_clr_reg => bit_synchronizer_plllock_tx_inst_n_1,
       sm_reset_tx_timer_clr_reg_0 => sm_reset_tx_timer_clr_reg_n_0,
-      sm_reset_tx_timer_sat => sm_reset_tx_timer_sat
+      sm_reset_tx_timer_sat => sm_reset_tx_timer_sat,
+      sm_reset_tx_timer_sat_reg => \FSM_sequential_sm_reset_tx[2]_i_5_n_0\
     );
-bit_synchronizer_rxcdrlock_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_10
+bit_synchronizer_rxcdrlock_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_10
      port map (
       E(0) => bit_synchronizer_rxcdrlock_inst_n_3,
-      \FSM_sequential_sm_reset_rx_reg[1]\ => bit_synchronizer_plllock_rx_inst_n_4,
+      \FSM_sequential_sm_reset_rx_reg[1]\ => bit_synchronizer_plllock_rx_inst_n_3,
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rx_any_sync => gtwiz_reset_rx_any_sync,
       gtwiz_reset_rx_cdr_stable_out(0) => gtwiz_reset_rx_cdr_stable_out(0),
       gtwiz_reset_rx_datapath_dly => gtwiz_reset_rx_datapath_dly,
       gtwiz_reset_rx_pll_and_datapath_dly => gtwiz_reset_rx_pll_and_datapath_dly,
-      gtwiz_reset_rxprogdivreset_int => \^gtwiz_reset_rxprogdivreset_int\,
       gtwiz_reset_rxresetdone_int => gtwiz_reset_rxresetdone_int,
       \out\(2 downto 0) => sm_reset_rx(2 downto 0),
       rxcdrlock_out(0) => rxcdrlock_out(0),
-      rxprogdivreset_out_reg => bit_synchronizer_rxcdrlock_inst_n_1,
-      rxprogdivreset_out_reg_0 => bit_synchronizer_rxcdrlock_inst_n_2,
+      rxprogdivreset_int => \^rxprogdivreset_int\,
+      rxprogdivreset_out_reg => bit_synchronizer_rxcdrlock_inst_n_2,
+      sm_reset_rx_cdr_to_clr => sm_reset_rx_cdr_to_clr,
+      sm_reset_rx_cdr_to_clr_reg => bit_synchronizer_rxcdrlock_inst_n_1,
       sm_reset_rx_cdr_to_sat => sm_reset_rx_cdr_to_sat,
+      sm_reset_rx_timer_clr09_out => sm_reset_rx_timer_clr09_out,
       sm_reset_rx_timer_clr_reg => sm_reset_rx_timer_clr_reg_n_0,
       sm_reset_rx_timer_sat => sm_reset_rx_timer_sat
     );
@@ -9915,8 +9101,8 @@ gtrxreset_out_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => bit_synchronizer_plllock_rx_inst_n_1,
-      Q => \^gtwiz_reset_gtrxreset_int\,
+      D => bit_synchronizer_plllock_rx_inst_n_0,
+      Q => \^gtrxreset_int\,
       R => '0'
     );
 gttxreset_out_reg: unisim.vcomponents.FDRE
@@ -9926,18 +9112,18 @@ gttxreset_out_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => bit_synchronizer_plllock_tx_inst_n_1,
-      Q => \^gtwiz_reset_gttxreset_int\,
+      D => bit_synchronizer_plllock_tx_inst_n_0,
+      Q => \^gttxreset_int\,
       R => '0'
     );
 gtwiz_reset_rx_datapath_int_i_1: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"DF40"
+      INIT => X"F720"
     )
         port map (
-      I0 => sm_reset_all(2),
-      I1 => sm_reset_all(1),
-      I2 => sm_reset_all(0),
+      I0 => sm_reset_all(0),
+      I1 => sm_reset_all(2),
+      I2 => sm_reset_all(1),
       I3 => gtwiz_reset_rx_datapath_int_reg_n_0,
       O => gtwiz_reset_rx_datapath_int_i_1_n_0
     );
@@ -9965,12 +9151,12 @@ gtwiz_reset_rx_done_int_reg: unisim.vcomponents.FDRE
     );
 gtwiz_reset_rx_pll_and_datapath_int_i_1: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"BF04"
+      INIT => X"F704"
     )
         port map (
-      I0 => sm_reset_all(1),
+      I0 => sm_reset_all(0),
       I1 => sm_reset_all(2),
-      I2 => sm_reset_all(0),
+      I2 => sm_reset_all(1),
       I3 => gtwiz_reset_rx_pll_and_datapath_int_reg_n_0,
       O => gtwiz_reset_rx_pll_and_datapath_int_i_1_n_0
     );
@@ -10008,12 +9194,12 @@ gtwiz_reset_tx_done_int_reg: unisim.vcomponents.FDRE
     );
 gtwiz_reset_tx_pll_and_datapath_int_i_1: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"FB10"
+      INIT => X"FD04"
     )
         port map (
-      I0 => sm_reset_all(2),
-      I1 => sm_reset_all(1),
-      I2 => sm_reset_all(0),
+      I0 => sm_reset_all(1),
+      I1 => sm_reset_all(0),
+      I2 => sm_reset_all(2),
       I3 => gtwiz_reset_tx_pll_and_datapath_int_reg_n_0,
       O => gtwiz_reset_tx_pll_and_datapath_int_i_1_n_0
     );
@@ -10050,13 +9236,13 @@ pllreset_tx_out_reg: unisim.vcomponents.FDRE
       Q => gtwiz_reset_pllreset_tx_int,
       R => '0'
     );
-reset_synchronizer_gtwiz_reset_all_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer
+reset_synchronizer_gtwiz_reset_all_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer
      port map (
       SR(0) => gtwiz_reset_all_sync,
       gtwiz_reset_all_in(0) => gtwiz_reset_all_in(0),
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0)
     );
-reset_synchronizer_gtwiz_reset_rx_any_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_11
+reset_synchronizer_gtwiz_reset_rx_any_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_11
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_pllreset_rx_int => gtwiz_reset_pllreset_rx_int,
@@ -10068,21 +9254,21 @@ reset_synchronizer_gtwiz_reset_rx_any_inst: entity work.GigEthGthUltraScaleCore_
       \out\(2 downto 0) => sm_reset_rx(2 downto 0),
       pllreset_rx_out_reg => reset_synchronizer_gtwiz_reset_rx_any_inst_n_1
     );
-reset_synchronizer_gtwiz_reset_rx_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_12
+reset_synchronizer_gtwiz_reset_rx_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_12
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rx_datapath_in(0) => gtwiz_reset_rx_datapath_in(0),
       gtwiz_reset_rx_datapath_int_reg => gtwiz_reset_rx_datapath_int_reg_n_0,
-      gtwiz_reset_rx_datapath_sync => gtwiz_reset_rx_datapath_sync
+      in0 => gtwiz_reset_rx_datapath_sync
     );
-reset_synchronizer_gtwiz_reset_rx_pll_and_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_13
+reset_synchronizer_gtwiz_reset_rx_pll_and_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_13
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rx_pll_and_datapath_in(0) => gtwiz_reset_rx_pll_and_datapath_in(0),
       gtwiz_reset_rx_pll_and_datapath_int_reg => gtwiz_reset_rx_pll_and_datapath_int_reg_n_0,
-      gtwiz_reset_rx_pll_and_datapath_sync => gtwiz_reset_rx_pll_and_datapath_sync
+      in0 => gtwiz_reset_rx_pll_and_datapath_sync
     );
-reset_synchronizer_gtwiz_reset_tx_any_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_14
+reset_synchronizer_gtwiz_reset_tx_any_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_14
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_pllreset_tx_int => gtwiz_reset_pllreset_tx_int,
@@ -10093,36 +9279,36 @@ reset_synchronizer_gtwiz_reset_tx_any_inst: entity work.GigEthGthUltraScaleCore_
       \out\(2 downto 0) => sm_reset_tx(2 downto 0),
       pllreset_tx_out_reg => reset_synchronizer_gtwiz_reset_tx_any_inst_n_1
     );
-reset_synchronizer_gtwiz_reset_tx_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_15
+reset_synchronizer_gtwiz_reset_tx_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_15
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_tx_datapath_in(0) => gtwiz_reset_tx_datapath_in(0),
-      gtwiz_reset_tx_datapath_sync => gtwiz_reset_tx_datapath_sync
+      in0 => gtwiz_reset_tx_datapath_sync
     );
-reset_synchronizer_gtwiz_reset_tx_pll_and_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_16
+reset_synchronizer_gtwiz_reset_tx_pll_and_datapath_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_16
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_tx_pll_and_datapath_in(0) => gtwiz_reset_tx_pll_and_datapath_in(0),
       gtwiz_reset_tx_pll_and_datapath_int_reg => gtwiz_reset_tx_pll_and_datapath_int_reg_n_0,
-      gtwiz_reset_tx_pll_and_datapath_sync => gtwiz_reset_tx_pll_and_datapath_sync
+      in0 => gtwiz_reset_tx_pll_and_datapath_sync
     );
-reset_synchronizer_rx_done_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer
+reset_synchronizer_rx_done_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer
      port map (
       gtwiz_reset_rx_done_int_reg => gtwiz_reset_rx_done_int_reg_n_0,
       gtwiz_reset_rx_done_out(0) => gtwiz_reset_rx_done_out(0),
       rxusrclk2_in(0) => rxusrclk2_in(0)
     );
-reset_synchronizer_tx_done_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer_17
+reset_synchronizer_tx_done_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_inv_synchronizer_17
      port map (
       gtwiz_reset_tx_done_int_reg => gtwiz_reset_tx_done_int_reg_n_0,
       gtwiz_reset_tx_done_out(0) => gtwiz_reset_tx_done_out(0),
       txusrclk2_in(0) => txusrclk2_in(0)
     );
-reset_synchronizer_txprogdivreset_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_reset_synchronizer_18
+reset_synchronizer_txprogdivreset_inst: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_reset_synchronizer_18
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
-      gtwiz_reset_txprogdivreset_int => gtwiz_reset_txprogdivreset_int,
-      rst_in0 => rst_in0
+      rst_in0 => rst_in0,
+      txprogdivreset_int => txprogdivreset_int
     );
 rxprogdivreset_out_reg: unisim.vcomponents.FDRE
     generic map(
@@ -10131,8 +9317,8 @@ rxprogdivreset_out_reg: unisim.vcomponents.FDRE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => bit_synchronizer_rxcdrlock_inst_n_1,
-      Q => \^gtwiz_reset_rxprogdivreset_int\,
+      D => bit_synchronizer_rxcdrlock_inst_n_2,
+      Q => \^rxprogdivreset_int\,
       R => '0'
     );
 rxuserrdy_out_reg: unisim.vcomponents.FDRE
@@ -10143,21 +9329,33 @@ rxuserrdy_out_reg: unisim.vcomponents.FDRE
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
       D => bit_synchronizer_gtwiz_reset_userclk_rx_active_inst_n_0,
-      Q => \^gtwiz_reset_rxuserrdy_int\,
+      Q => \^rxuserrdy_int\,
       R => '0'
     );
-sm_reset_all_timer_clr_i_1: unisim.vcomponents.LUT6
+sm_reset_all_timer_clr_i_1: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"FFAFFDFD50000D0D"
+      INIT => X"EFFA200A"
+    )
+        port map (
+      I0 => sm_reset_all_timer_clr_i_2_n_0,
+      I1 => sm_reset_all(1),
+      I2 => sm_reset_all(0),
+      I3 => sm_reset_all(2),
+      I4 => sm_reset_all_timer_clr_reg_n_0,
+      O => sm_reset_all_timer_clr_i_1_n_0
+    );
+sm_reset_all_timer_clr_i_2: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"05050505DD0D0505"
     )
         port map (
       I0 => sm_reset_all(1),
-      I1 => sm_reset_all_timer_clr0,
+      I1 => gtwiz_reset_tx_done_int_reg_n_0,
       I2 => sm_reset_all(2),
-      I3 => p_0_in14_out,
-      I4 => sm_reset_all(0),
+      I3 => gtwiz_reset_rx_done_int_reg_n_0,
+      I4 => sm_reset_all_timer_sat,
       I5 => sm_reset_all_timer_clr_reg_n_0,
-      O => sm_reset_all_timer_clr_i_1_n_0
+      O => sm_reset_all_timer_clr_i_2_n_0
     );
 sm_reset_all_timer_clr_reg: unisim.vcomponents.FDSE
     generic map(
@@ -10169,6 +9367,16 @@ sm_reset_all_timer_clr_reg: unisim.vcomponents.FDSE
       D => sm_reset_all_timer_clr_i_1_n_0,
       Q => sm_reset_all_timer_clr_reg_n_0,
       S => gtwiz_reset_all_sync
+    );
+\sm_reset_all_timer_ctr0_inferred__0\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"7F"
+    )
+        port map (
+      I0 => sm_reset_all_timer_ctr(2),
+      I1 => sm_reset_all_timer_ctr(0),
+      I2 => sm_reset_all_timer_ctr(1),
+      O => \sm_reset_all_timer_ctr0_inferred__0_n_0\
     );
 \sm_reset_all_timer_ctr[0]_i_1\: unisim.vcomponents.LUT1
     generic map(
@@ -10189,23 +9397,13 @@ sm_reset_all_timer_clr_reg: unisim.vcomponents.FDSE
     );
 \sm_reset_all_timer_ctr[2]_i_1\: unisim.vcomponents.LUT3
     generic map(
-      INIT => X"7F"
-    )
-        port map (
-      I0 => sm_reset_all_timer_ctr(2),
-      I1 => sm_reset_all_timer_ctr(0),
-      I2 => sm_reset_all_timer_ctr(1),
-      O => \sm_reset_all_timer_ctr[2]_i_1_n_0\
-    );
-\sm_reset_all_timer_ctr[2]_i_2\: unisim.vcomponents.LUT3
-    generic map(
       INIT => X"78"
     )
         port map (
       I0 => sm_reset_all_timer_ctr(0),
       I1 => sm_reset_all_timer_ctr(1),
       I2 => sm_reset_all_timer_ctr(2),
-      O => \sm_reset_all_timer_ctr[2]_i_2_n_0\
+      O => \sm_reset_all_timer_ctr[2]_i_1_n_0\
     );
 \sm_reset_all_timer_ctr_reg[0]\: unisim.vcomponents.FDRE
     generic map(
@@ -10213,7 +9411,7 @@ sm_reset_all_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_all_timer_ctr[2]_i_1_n_0\,
+      CE => \sm_reset_all_timer_ctr0_inferred__0_n_0\,
       D => \sm_reset_all_timer_ctr[0]_i_1_n_0\,
       Q => sm_reset_all_timer_ctr(0),
       R => sm_reset_all_timer_clr_reg_n_0
@@ -10224,7 +9422,7 @@ sm_reset_all_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_all_timer_ctr[2]_i_1_n_0\,
+      CE => \sm_reset_all_timer_ctr0_inferred__0_n_0\,
       D => \sm_reset_all_timer_ctr[1]_i_1_n_0\,
       Q => sm_reset_all_timer_ctr(1),
       R => sm_reset_all_timer_clr_reg_n_0
@@ -10235,8 +9433,8 @@ sm_reset_all_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_all_timer_ctr[2]_i_1_n_0\,
-      D => \sm_reset_all_timer_ctr[2]_i_2_n_0\,
+      CE => \sm_reset_all_timer_ctr0_inferred__0_n_0\,
+      D => \sm_reset_all_timer_ctr[2]_i_1_n_0\,
       Q => sm_reset_all_timer_ctr(2),
       R => sm_reset_all_timer_clr_reg_n_0
     );
@@ -10245,9 +9443,9 @@ sm_reset_all_timer_sat_i_1: unisim.vcomponents.LUT5
       INIT => X"0000FF80"
     )
         port map (
-      I0 => sm_reset_all_timer_ctr(1),
+      I0 => sm_reset_all_timer_ctr(2),
       I1 => sm_reset_all_timer_ctr(0),
-      I2 => sm_reset_all_timer_ctr(2),
+      I2 => sm_reset_all_timer_ctr(1),
       I3 => sm_reset_all_timer_sat,
       I4 => sm_reset_all_timer_clr_reg_n_0,
       O => sm_reset_all_timer_sat_i_1_n_0
@@ -10270,7 +9468,7 @@ sm_reset_rx_cdr_to_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => bit_synchronizer_plllock_rx_inst_n_0,
+      D => bit_synchronizer_rxcdrlock_inst_n_1,
       Q => sm_reset_rx_cdr_to_clr,
       S => gtwiz_reset_rx_any_sync
     );
@@ -10279,216 +9477,97 @@ sm_reset_rx_cdr_to_clr_reg: unisim.vcomponents.FDSE
       INIT => X"1"
     )
         port map (
-      I0 => sm_reset_rx_cdr_to_sat_i_2_n_0,
+      I0 => \sm_reset_rx_cdr_to_ctr[0]_i_3_n_0\,
       O => \sm_reset_rx_cdr_to_ctr[0]_i_1_n_0\
     );
-\sm_reset_rx_cdr_to_ctr[0]_i_10\: unisim.vcomponents.LUT1
+\sm_reset_rx_cdr_to_ctr[0]_i_11\: unisim.vcomponents.LUT1
     generic map(
       INIT => X"1"
     )
         port map (
       I0 => sm_reset_rx_cdr_to_ctr_reg(0),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_10_n_0\
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_11_n_0\
     );
-\sm_reset_rx_cdr_to_ctr[0]_i_3\: unisim.vcomponents.LUT1
+\sm_reset_rx_cdr_to_ctr[0]_i_12\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(7),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_3_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[0]_i_4\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(6),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_4_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[0]_i_5\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(5),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_5_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[0]_i_6\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
+      INIT => X"FF7F"
     )
         port map (
       I0 => sm_reset_rx_cdr_to_ctr_reg(4),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_6_n_0\
+      I1 => sm_reset_rx_cdr_to_ctr_reg(12),
+      I2 => sm_reset_rx_cdr_to_ctr_reg(20),
+      I3 => sm_reset_rx_cdr_to_ctr_reg(16),
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_12_n_0\
     );
-\sm_reset_rx_cdr_to_ctr[0]_i_7\: unisim.vcomponents.LUT1
+\sm_reset_rx_cdr_to_ctr[0]_i_13\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(3),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_7_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[0]_i_8\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(2),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_8_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[0]_i_9\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(1),
-      O => \sm_reset_rx_cdr_to_ctr[0]_i_9_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_2\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(23),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_2_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_3\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(22),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_3_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_4\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(21),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_4_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_5\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(20),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_5_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_6\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(19),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_6_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_7\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(18),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_7_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_8\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(17),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_8_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[16]_i_9\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(16),
-      O => \sm_reset_rx_cdr_to_ctr[16]_i_9_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[24]_i_2\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(25),
-      O => \sm_reset_rx_cdr_to_ctr[24]_i_2_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[24]_i_3\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(24),
-      O => \sm_reset_rx_cdr_to_ctr[24]_i_3_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[8]_i_2\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(15),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_2_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[8]_i_3\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(14),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_3_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[8]_i_4\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(13),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_4_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[8]_i_5\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(12),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_5_n_0\
-    );
-\sm_reset_rx_cdr_to_ctr[8]_i_6\: unisim.vcomponents.LUT1
-    generic map(
-      INIT => X"2"
+      INIT => X"FFDF"
     )
         port map (
       I0 => sm_reset_rx_cdr_to_ctr_reg(11),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_6_n_0\
+      I1 => sm_reset_rx_cdr_to_ctr_reg(5),
+      I2 => sm_reset_rx_cdr_to_ctr_reg(9),
+      I3 => sm_reset_rx_cdr_to_ctr_reg(2),
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_13_n_0\
     );
-\sm_reset_rx_cdr_to_ctr[8]_i_7\: unisim.vcomponents.LUT1
+\sm_reset_rx_cdr_to_ctr[0]_i_14\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"2"
+      INIT => X"0001"
     )
         port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(10),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_7_n_0\
+      I0 => sm_reset_rx_cdr_to_ctr_reg(1),
+      I1 => sm_reset_rx_cdr_to_ctr_reg(21),
+      I2 => sm_reset_rx_cdr_to_ctr_reg(8),
+      I3 => sm_reset_rx_cdr_to_ctr_reg(0),
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_14_n_0\
     );
-\sm_reset_rx_cdr_to_ctr[8]_i_8\: unisim.vcomponents.LUT1
+\sm_reset_rx_cdr_to_ctr[0]_i_15\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"2"
+      INIT => X"FFEF"
     )
         port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(9),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_8_n_0\
+      I0 => sm_reset_rx_cdr_to_ctr_reg(6),
+      I1 => sm_reset_rx_cdr_to_ctr_reg(15),
+      I2 => sm_reset_rx_cdr_to_ctr_reg(19),
+      I3 => sm_reset_rx_cdr_to_ctr_reg(14),
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_15_n_0\
     );
-\sm_reset_rx_cdr_to_ctr[8]_i_9\: unisim.vcomponents.LUT1
+\sm_reset_rx_cdr_to_ctr[0]_i_16\: unisim.vcomponents.LUT4
     generic map(
-      INIT => X"2"
+      INIT => X"FFFE"
     )
         port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(8),
-      O => \sm_reset_rx_cdr_to_ctr[8]_i_9_n_0\
+      I0 => sm_reset_rx_cdr_to_ctr_reg(24),
+      I1 => sm_reset_rx_cdr_to_ctr_reg(25),
+      I2 => sm_reset_rx_cdr_to_ctr_reg(17),
+      I3 => sm_reset_rx_cdr_to_ctr_reg(10),
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_16_n_0\
+    );
+\sm_reset_rx_cdr_to_ctr[0]_i_17\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"FEFFFFFFFFFFFFFF"
+    )
+        port map (
+      I0 => sm_reset_rx_cdr_to_ctr_reg(3),
+      I1 => sm_reset_rx_cdr_to_ctr_reg(22),
+      I2 => sm_reset_rx_cdr_to_ctr_reg(23),
+      I3 => sm_reset_rx_cdr_to_ctr_reg(13),
+      I4 => sm_reset_rx_cdr_to_ctr_reg(18),
+      I5 => sm_reset_rx_cdr_to_ctr_reg(7),
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_17_n_0\
+    );
+\sm_reset_rx_cdr_to_ctr[0]_i_3\: unisim.vcomponents.LUT6
+    generic map(
+      INIT => X"0000000000000010"
+    )
+        port map (
+      I0 => \sm_reset_rx_cdr_to_ctr[0]_i_12_n_0\,
+      I1 => \sm_reset_rx_cdr_to_ctr[0]_i_13_n_0\,
+      I2 => \sm_reset_rx_cdr_to_ctr[0]_i_14_n_0\,
+      I3 => \sm_reset_rx_cdr_to_ctr[0]_i_15_n_0\,
+      I4 => \sm_reset_rx_cdr_to_ctr[0]_i_16_n_0\,
+      I5 => \sm_reset_rx_cdr_to_ctr[0]_i_17_n_0\,
+      O => \sm_reset_rx_cdr_to_ctr[0]_i_3_n_0\
     );
 \sm_reset_rx_cdr_to_ctr_reg[0]\: unisim.vcomponents.FDRE
     generic map(
@@ -10522,14 +9601,8 @@ sm_reset_rx_cdr_to_clr_reg: unisim.vcomponents.FDSE
       O(2) => \sm_reset_rx_cdr_to_ctr_reg[0]_i_2_n_13\,
       O(1) => \sm_reset_rx_cdr_to_ctr_reg[0]_i_2_n_14\,
       O(0) => \sm_reset_rx_cdr_to_ctr_reg[0]_i_2_n_15\,
-      S(7) => \sm_reset_rx_cdr_to_ctr[0]_i_3_n_0\,
-      S(6) => \sm_reset_rx_cdr_to_ctr[0]_i_4_n_0\,
-      S(5) => \sm_reset_rx_cdr_to_ctr[0]_i_5_n_0\,
-      S(4) => \sm_reset_rx_cdr_to_ctr[0]_i_6_n_0\,
-      S(3) => \sm_reset_rx_cdr_to_ctr[0]_i_7_n_0\,
-      S(2) => \sm_reset_rx_cdr_to_ctr[0]_i_8_n_0\,
-      S(1) => \sm_reset_rx_cdr_to_ctr[0]_i_9_n_0\,
-      S(0) => \sm_reset_rx_cdr_to_ctr[0]_i_10_n_0\
+      S(7 downto 1) => sm_reset_rx_cdr_to_ctr_reg(7 downto 1),
+      S(0) => \sm_reset_rx_cdr_to_ctr[0]_i_11_n_0\
     );
 \sm_reset_rx_cdr_to_ctr_reg[10]\: unisim.vcomponents.FDRE
     generic map(
@@ -10629,14 +9702,7 @@ sm_reset_rx_cdr_to_clr_reg: unisim.vcomponents.FDSE
       O(2) => \sm_reset_rx_cdr_to_ctr_reg[16]_i_1_n_13\,
       O(1) => \sm_reset_rx_cdr_to_ctr_reg[16]_i_1_n_14\,
       O(0) => \sm_reset_rx_cdr_to_ctr_reg[16]_i_1_n_15\,
-      S(7) => \sm_reset_rx_cdr_to_ctr[16]_i_2_n_0\,
-      S(6) => \sm_reset_rx_cdr_to_ctr[16]_i_3_n_0\,
-      S(5) => \sm_reset_rx_cdr_to_ctr[16]_i_4_n_0\,
-      S(4) => \sm_reset_rx_cdr_to_ctr[16]_i_5_n_0\,
-      S(3) => \sm_reset_rx_cdr_to_ctr[16]_i_6_n_0\,
-      S(2) => \sm_reset_rx_cdr_to_ctr[16]_i_7_n_0\,
-      S(1) => \sm_reset_rx_cdr_to_ctr[16]_i_8_n_0\,
-      S(0) => \sm_reset_rx_cdr_to_ctr[16]_i_9_n_0\
+      S(7 downto 0) => sm_reset_rx_cdr_to_ctr_reg(23 downto 16)
     );
 \sm_reset_rx_cdr_to_ctr_reg[17]\: unisim.vcomponents.FDRE
     generic map(
@@ -10749,8 +9815,7 @@ sm_reset_rx_cdr_to_clr_reg: unisim.vcomponents.FDSE
       O(1) => \sm_reset_rx_cdr_to_ctr_reg[24]_i_1_n_14\,
       O(0) => \sm_reset_rx_cdr_to_ctr_reg[24]_i_1_n_15\,
       S(7 downto 2) => \NLW_sm_reset_rx_cdr_to_ctr_reg[24]_i_1_S_UNCONNECTED\(7 downto 2),
-      S(1) => \sm_reset_rx_cdr_to_ctr[24]_i_2_n_0\,
-      S(0) => \sm_reset_rx_cdr_to_ctr[24]_i_3_n_0\
+      S(1 downto 0) => sm_reset_rx_cdr_to_ctr_reg(25 downto 24)
     );
 \sm_reset_rx_cdr_to_ctr_reg[25]\: unisim.vcomponents.FDRE
     generic map(
@@ -10861,14 +9926,7 @@ sm_reset_rx_cdr_to_clr_reg: unisim.vcomponents.FDSE
       O(2) => \sm_reset_rx_cdr_to_ctr_reg[8]_i_1_n_13\,
       O(1) => \sm_reset_rx_cdr_to_ctr_reg[8]_i_1_n_14\,
       O(0) => \sm_reset_rx_cdr_to_ctr_reg[8]_i_1_n_15\,
-      S(7) => \sm_reset_rx_cdr_to_ctr[8]_i_2_n_0\,
-      S(6) => \sm_reset_rx_cdr_to_ctr[8]_i_3_n_0\,
-      S(5) => \sm_reset_rx_cdr_to_ctr[8]_i_4_n_0\,
-      S(4) => \sm_reset_rx_cdr_to_ctr[8]_i_5_n_0\,
-      S(3) => \sm_reset_rx_cdr_to_ctr[8]_i_6_n_0\,
-      S(2) => \sm_reset_rx_cdr_to_ctr[8]_i_7_n_0\,
-      S(1) => \sm_reset_rx_cdr_to_ctr[8]_i_8_n_0\,
-      S(0) => \sm_reset_rx_cdr_to_ctr[8]_i_9_n_0\
+      S(7 downto 0) => sm_reset_rx_cdr_to_ctr_reg(15 downto 8)
     );
 \sm_reset_rx_cdr_to_ctr_reg[9]\: unisim.vcomponents.FDRE
     generic map(
@@ -10887,90 +9945,9 @@ sm_reset_rx_cdr_to_sat_i_1: unisim.vcomponents.LUT3
     )
         port map (
       I0 => sm_reset_rx_cdr_to_sat,
-      I1 => sm_reset_rx_cdr_to_sat_i_2_n_0,
+      I1 => \sm_reset_rx_cdr_to_ctr[0]_i_3_n_0\,
       I2 => sm_reset_rx_cdr_to_clr,
       O => sm_reset_rx_cdr_to_sat_i_1_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_2: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"0000000000000010"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_sat_i_3_n_0,
-      I1 => sm_reset_rx_cdr_to_sat_i_4_n_0,
-      I2 => sm_reset_rx_cdr_to_sat_i_5_n_0,
-      I3 => sm_reset_rx_cdr_to_sat_i_6_n_0,
-      I4 => sm_reset_rx_cdr_to_sat_i_7_n_0,
-      I5 => sm_reset_rx_cdr_to_sat_i_8_n_0,
-      O => sm_reset_rx_cdr_to_sat_i_2_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_3: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFDF"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(11),
-      I1 => sm_reset_rx_cdr_to_ctr_reg(3),
-      I2 => sm_reset_rx_cdr_to_ctr_reg(20),
-      I3 => sm_reset_rx_cdr_to_ctr_reg(16),
-      O => sm_reset_rx_cdr_to_sat_i_3_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_4: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFDF"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(4),
-      I1 => sm_reset_rx_cdr_to_ctr_reg(5),
-      I2 => sm_reset_rx_cdr_to_ctr_reg(9),
-      I3 => sm_reset_rx_cdr_to_ctr_reg(2),
-      O => sm_reset_rx_cdr_to_sat_i_4_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_5: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"0010"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(1),
-      I1 => sm_reset_rx_cdr_to_ctr_reg(21),
-      I2 => sm_reset_rx_cdr_to_ctr_reg(12),
-      I3 => sm_reset_rx_cdr_to_ctr_reg(8),
-      O => sm_reset_rx_cdr_to_sat_i_5_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_6: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFEF"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(6),
-      I1 => sm_reset_rx_cdr_to_ctr_reg(15),
-      I2 => sm_reset_rx_cdr_to_ctr_reg(19),
-      I3 => sm_reset_rx_cdr_to_ctr_reg(14),
-      O => sm_reset_rx_cdr_to_sat_i_6_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_7: unisim.vcomponents.LUT4
-    generic map(
-      INIT => X"FFFE"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(24),
-      I1 => sm_reset_rx_cdr_to_ctr_reg(25),
-      I2 => sm_reset_rx_cdr_to_ctr_reg(17),
-      I3 => sm_reset_rx_cdr_to_ctr_reg(10),
-      O => sm_reset_rx_cdr_to_sat_i_7_n_0
-    );
-sm_reset_rx_cdr_to_sat_i_8: unisim.vcomponents.LUT6
-    generic map(
-      INIT => X"FEFFFFFFFFFFFFFF"
-    )
-        port map (
-      I0 => sm_reset_rx_cdr_to_ctr_reg(0),
-      I1 => sm_reset_rx_cdr_to_ctr_reg(22),
-      I2 => sm_reset_rx_cdr_to_ctr_reg(23),
-      I3 => sm_reset_rx_cdr_to_ctr_reg(13),
-      I4 => sm_reset_rx_cdr_to_ctr_reg(18),
-      I5 => sm_reset_rx_cdr_to_ctr_reg(7),
-      O => sm_reset_rx_cdr_to_sat_i_8_n_0
     );
 sm_reset_rx_cdr_to_sat_reg: unisim.vcomponents.FDRE
     generic map(
@@ -10985,14 +9962,14 @@ sm_reset_rx_cdr_to_sat_reg: unisim.vcomponents.FDRE
     );
 sm_reset_rx_pll_timer_clr_i_1: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"E1E0F1F1"
+      INIT => X"FFF3000B"
     )
         port map (
-      I0 => sm_reset_rx(2),
-      I1 => sm_reset_rx(1),
-      I2 => sm_reset_rx_pll_timer_clr_reg_n_0,
-      I3 => sm_reset_rx_pll_timer_sat,
-      I4 => sm_reset_rx(0),
+      I0 => sm_reset_rx_pll_timer_sat,
+      I1 => sm_reset_rx(0),
+      I2 => sm_reset_rx(1),
+      I3 => sm_reset_rx(2),
+      I4 => sm_reset_rx_pll_timer_clr_reg_n_0,
       O => sm_reset_rx_pll_timer_clr_i_1_n_0
     );
 sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
@@ -11012,7 +9989,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
-      O => \p_0_in__0\(0)
+      O => \p_0_in__1\(0)
     );
 \sm_reset_rx_pll_timer_ctr[1]_i_1\: unisim.vcomponents.LUT2
     generic map(
@@ -11021,7 +9998,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
       I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
-      O => \p_0_in__0\(1)
+      O => \p_0_in__1\(1)
     );
 \sm_reset_rx_pll_timer_ctr[2]_i_1\: unisim.vcomponents.LUT3
     generic map(
@@ -11031,7 +10008,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
       I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
       I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(2),
-      O => \p_0_in__0\(2)
+      O => \p_0_in__1\(2)
     );
 \sm_reset_rx_pll_timer_ctr[3]_i_1\: unisim.vcomponents.LUT4
     generic map(
@@ -11042,7 +10019,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
       I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
       I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(2),
-      O => \p_0_in__0\(3)
+      O => \p_0_in__1\(3)
     );
 \sm_reset_rx_pll_timer_ctr[4]_i_1\: unisim.vcomponents.LUT5
     generic map(
@@ -11054,7 +10031,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
       I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
       I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(3),
-      O => \p_0_in__0\(4)
+      O => \p_0_in__1\(4)
     );
 \sm_reset_rx_pll_timer_ctr[5]_i_1\: unisim.vcomponents.LUT6
     generic map(
@@ -11067,28 +10044,42 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(2),
       I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
       I5 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
-      O => \p_0_in__0\(5)
+      O => \p_0_in__1\(5)
     );
-\sm_reset_rx_pll_timer_ctr[6]_i_1\: unisim.vcomponents.LUT3
+\sm_reset_rx_pll_timer_ctr[6]_i_1\: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"6A"
+      INIT => X"6AAAAAAA"
     )
         port map (
       I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
-      I1 => \sm_reset_rx_pll_timer_ctr[9]_i_3_n_0\,
-      I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
-      O => \p_0_in__0\(6)
+      I1 => \sm_reset_rx_pll_timer_ctr[7]_i_2_n_0\,
+      I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(4),
+      I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(3),
+      I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
+      O => \p_0_in__1\(6)
     );
-\sm_reset_rx_pll_timer_ctr[7]_i_1\: unisim.vcomponents.LUT4
+\sm_reset_rx_pll_timer_ctr[7]_i_1\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"6AAA"
+      INIT => X"6AAAAAAAAAAAAAAA"
     )
         port map (
       I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(7),
       I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
       I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
-      I3 => \sm_reset_rx_pll_timer_ctr[9]_i_3_n_0\,
-      O => \p_0_in__0\(7)
+      I3 => \sm_reset_rx_pll_timer_ctr[7]_i_2_n_0\,
+      I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(4),
+      I5 => \sm_reset_rx_pll_timer_ctr_reg__0\(3),
+      O => \sm_reset_rx_pll_timer_ctr[7]_i_1_n_0\
+    );
+\sm_reset_rx_pll_timer_ctr[7]_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"80"
+    )
+        port map (
+      I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(2),
+      I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
+      I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
+      O => \sm_reset_rx_pll_timer_ctr[7]_i_2_n_0\
     );
 \sm_reset_rx_pll_timer_ctr[8]_i_1\: unisim.vcomponents.LUT5
     generic map(
@@ -11100,7 +10091,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
       I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
       I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(7),
-      O => \p_0_in__0\(8)
+      O => \p_0_in__1\(8)
     );
 \sm_reset_rx_pll_timer_ctr[9]_i_1\: unisim.vcomponents.LUT6
     generic map(
@@ -11126,7 +10117,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
       I4 => \sm_reset_rx_pll_timer_ctr[9]_i_3_n_0\,
       I5 => \sm_reset_rx_pll_timer_ctr_reg__0\(8),
-      O => \p_0_in__0\(9)
+      O => \p_0_in__1\(9)
     );
 \sm_reset_rx_pll_timer_ctr[9]_i_3\: unisim.vcomponents.LUT5
     generic map(
@@ -11147,7 +10138,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(0),
+      D => \p_0_in__1\(0),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(0),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11158,7 +10149,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(1),
+      D => \p_0_in__1\(1),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(1),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11169,7 +10160,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(2),
+      D => \p_0_in__1\(2),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(2),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11180,7 +10171,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(3),
+      D => \p_0_in__1\(3),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(3),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11191,7 +10182,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(4),
+      D => \p_0_in__1\(4),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(4),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11202,7 +10193,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(5),
+      D => \p_0_in__1\(5),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11213,7 +10204,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(6),
+      D => \p_0_in__1\(6),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11224,7 +10215,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(7),
+      D => \sm_reset_rx_pll_timer_ctr[7]_i_1_n_0\,
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(7),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11235,7 +10226,7 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(8),
+      D => \p_0_in__1\(8),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(8),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
@@ -11246,31 +10237,33 @@ sm_reset_rx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => \sm_reset_rx_pll_timer_ctr[9]_i_1_n_0\,
-      D => \p_0_in__0\(9),
+      D => \p_0_in__1\(9),
       Q => \sm_reset_rx_pll_timer_ctr_reg__0\(9),
       R => sm_reset_rx_pll_timer_clr_reg_n_0
     );
-sm_reset_rx_pll_timer_sat_i_1: unisim.vcomponents.LUT3
+sm_reset_rx_pll_timer_sat_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"0E"
+      INIT => X"00000000AAAAAAAB"
     )
         port map (
       I0 => sm_reset_rx_pll_timer_sat,
       I1 => sm_reset_rx_pll_timer_sat_i_2_n_0,
-      I2 => sm_reset_rx_pll_timer_clr_reg_n_0,
+      I2 => \sm_reset_rx_pll_timer_ctr_reg__0\(7),
+      I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(8),
+      I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(9),
+      I5 => sm_reset_rx_pll_timer_clr_reg_n_0,
       O => sm_reset_rx_pll_timer_sat_i_1_n_0
     );
-sm_reset_rx_pll_timer_sat_i_2: unisim.vcomponents.LUT6
+sm_reset_rx_pll_timer_sat_i_2: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"0000000000000080"
+      INIT => X"7FFFFFFF"
     )
         port map (
-      I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
-      I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
-      I2 => \sm_reset_rx_pll_timer_ctr[9]_i_3_n_0\,
-      I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(7),
-      I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(8),
-      I5 => \sm_reset_rx_pll_timer_ctr_reg__0\(9),
+      I0 => \sm_reset_rx_pll_timer_ctr_reg__0\(3),
+      I1 => \sm_reset_rx_pll_timer_ctr_reg__0\(4),
+      I2 => \sm_reset_rx_pll_timer_ctr[7]_i_2_n_0\,
+      I3 => \sm_reset_rx_pll_timer_ctr_reg__0\(6),
+      I4 => \sm_reset_rx_pll_timer_ctr_reg__0\(5),
       O => sm_reset_rx_pll_timer_sat_i_2_n_0
     );
 sm_reset_rx_pll_timer_sat_reg: unisim.vcomponents.FDRE
@@ -11295,6 +10288,16 @@ sm_reset_rx_timer_clr_reg: unisim.vcomponents.FDSE
       Q => sm_reset_rx_timer_clr_reg_n_0,
       S => gtwiz_reset_rx_any_sync
     );
+\sm_reset_rx_timer_ctr0_inferred__0\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"7F"
+    )
+        port map (
+      I0 => sm_reset_rx_timer_ctr(2),
+      I1 => sm_reset_rx_timer_ctr(0),
+      I2 => sm_reset_rx_timer_ctr(1),
+      O => \sm_reset_rx_timer_ctr0_inferred__0_n_0\
+    );
 \sm_reset_rx_timer_ctr[0]_i_1\: unisim.vcomponents.LUT1
     generic map(
       INIT => X"1"
@@ -11314,23 +10317,13 @@ sm_reset_rx_timer_clr_reg: unisim.vcomponents.FDSE
     );
 \sm_reset_rx_timer_ctr[2]_i_1\: unisim.vcomponents.LUT3
     generic map(
-      INIT => X"7F"
-    )
-        port map (
-      I0 => sm_reset_rx_timer_ctr(2),
-      I1 => sm_reset_rx_timer_ctr(0),
-      I2 => sm_reset_rx_timer_ctr(1),
-      O => \sm_reset_rx_timer_ctr[2]_i_1_n_0\
-    );
-\sm_reset_rx_timer_ctr[2]_i_2\: unisim.vcomponents.LUT3
-    generic map(
       INIT => X"78"
     )
         port map (
       I0 => sm_reset_rx_timer_ctr(0),
       I1 => sm_reset_rx_timer_ctr(1),
       I2 => sm_reset_rx_timer_ctr(2),
-      O => \sm_reset_rx_timer_ctr[2]_i_2_n_0\
+      O => \sm_reset_rx_timer_ctr[2]_i_1_n_0\
     );
 \sm_reset_rx_timer_ctr_reg[0]\: unisim.vcomponents.FDRE
     generic map(
@@ -11338,7 +10331,7 @@ sm_reset_rx_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_rx_timer_ctr[2]_i_1_n_0\,
+      CE => \sm_reset_rx_timer_ctr0_inferred__0_n_0\,
       D => \sm_reset_rx_timer_ctr[0]_i_1_n_0\,
       Q => sm_reset_rx_timer_ctr(0),
       R => sm_reset_rx_timer_clr_reg_n_0
@@ -11349,7 +10342,7 @@ sm_reset_rx_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_rx_timer_ctr[2]_i_1_n_0\,
+      CE => \sm_reset_rx_timer_ctr0_inferred__0_n_0\,
       D => \sm_reset_rx_timer_ctr[1]_i_1_n_0\,
       Q => sm_reset_rx_timer_ctr(1),
       R => sm_reset_rx_timer_clr_reg_n_0
@@ -11360,8 +10353,8 @@ sm_reset_rx_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_rx_timer_ctr[2]_i_1_n_0\,
-      D => \sm_reset_rx_timer_ctr[2]_i_2_n_0\,
+      CE => \sm_reset_rx_timer_ctr0_inferred__0_n_0\,
+      D => \sm_reset_rx_timer_ctr[2]_i_1_n_0\,
       Q => sm_reset_rx_timer_ctr(2),
       R => sm_reset_rx_timer_clr_reg_n_0
     );
@@ -11370,9 +10363,9 @@ sm_reset_rx_timer_sat_i_1: unisim.vcomponents.LUT5
       INIT => X"0000FF80"
     )
         port map (
-      I0 => sm_reset_rx_timer_ctr(1),
+      I0 => sm_reset_rx_timer_ctr(2),
       I1 => sm_reset_rx_timer_ctr(0),
-      I2 => sm_reset_rx_timer_ctr(2),
+      I2 => sm_reset_rx_timer_ctr(1),
       I3 => sm_reset_rx_timer_sat,
       I4 => sm_reset_rx_timer_clr_reg_n_0,
       O => sm_reset_rx_timer_sat_i_1_n_0
@@ -11390,14 +10383,14 @@ sm_reset_rx_timer_sat_reg: unisim.vcomponents.FDRE
     );
 sm_reset_tx_pll_timer_clr_i_1: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"EE10FF11"
+      INIT => X"FFF3000B"
     )
         port map (
-      I0 => sm_reset_tx(1),
-      I1 => sm_reset_tx(2),
-      I2 => sm_reset_tx_pll_timer_sat,
-      I3 => sm_reset_tx_pll_timer_clr_reg_n_0,
-      I4 => sm_reset_tx(0),
+      I0 => sm_reset_tx_pll_timer_sat,
+      I1 => sm_reset_tx(0),
+      I2 => sm_reset_tx(1),
+      I3 => sm_reset_tx(2),
+      I4 => sm_reset_tx_pll_timer_clr_reg_n_0,
       O => sm_reset_tx_pll_timer_clr_i_1_n_0
     );
 sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
@@ -11417,7 +10410,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       I0 => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
-      O => p_0_in(0)
+      O => \p_0_in__0\(0)
     );
 \sm_reset_tx_pll_timer_ctr[1]_i_1\: unisim.vcomponents.LUT2
     generic map(
@@ -11426,7 +10419,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       I0 => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
       I1 => \sm_reset_tx_pll_timer_ctr_reg__0\(1),
-      O => p_0_in(1)
+      O => \p_0_in__0\(1)
     );
 \sm_reset_tx_pll_timer_ctr[2]_i_1\: unisim.vcomponents.LUT3
     generic map(
@@ -11436,7 +10429,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I0 => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
       I1 => \sm_reset_tx_pll_timer_ctr_reg__0\(1),
       I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(2),
-      O => p_0_in(2)
+      O => \p_0_in__0\(2)
     );
 \sm_reset_tx_pll_timer_ctr[3]_i_1\: unisim.vcomponents.LUT4
     generic map(
@@ -11447,7 +10440,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I1 => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
       I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(1),
       I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(2),
-      O => p_0_in(3)
+      O => \p_0_in__0\(3)
     );
 \sm_reset_tx_pll_timer_ctr[4]_i_1\: unisim.vcomponents.LUT5
     generic map(
@@ -11459,7 +10452,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(1),
       I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
       I4 => \sm_reset_tx_pll_timer_ctr_reg__0\(3),
-      O => p_0_in(4)
+      O => \p_0_in__0\(4)
     );
 \sm_reset_tx_pll_timer_ctr[5]_i_1\: unisim.vcomponents.LUT6
     generic map(
@@ -11472,7 +10465,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(2),
       I4 => \sm_reset_tx_pll_timer_ctr_reg__0\(1),
       I5 => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
-      O => p_0_in(5)
+      O => \p_0_in__0\(5)
     );
 \sm_reset_tx_pll_timer_ctr[6]_i_1\: unisim.vcomponents.LUT5
     generic map(
@@ -11484,7 +10477,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(4),
       I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(3),
       I4 => \sm_reset_tx_pll_timer_ctr_reg__0\(5),
-      O => p_0_in(6)
+      O => \p_0_in__0\(6)
     );
 \sm_reset_tx_pll_timer_ctr[7]_i_1\: unisim.vcomponents.LUT6
     generic map(
@@ -11497,7 +10490,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I3 => \sm_reset_tx_pll_timer_ctr[7]_i_2_n_0\,
       I4 => \sm_reset_tx_pll_timer_ctr_reg__0\(4),
       I5 => \sm_reset_tx_pll_timer_ctr_reg__0\(3),
-      O => p_0_in(7)
+      O => \p_0_in__0\(7)
     );
 \sm_reset_tx_pll_timer_ctr[7]_i_2\: unisim.vcomponents.LUT3
     generic map(
@@ -11519,7 +10512,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(6),
       I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(5),
       I4 => \sm_reset_tx_pll_timer_ctr_reg__0\(7),
-      O => p_0_in(8)
+      O => \p_0_in__0\(8)
     );
 \sm_reset_tx_pll_timer_ctr[9]_i_1\: unisim.vcomponents.LUT6
     generic map(
@@ -11545,7 +10538,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
       I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(6),
       I4 => \sm_reset_tx_pll_timer_ctr[9]_i_3_n_0\,
       I5 => \sm_reset_tx_pll_timer_ctr_reg__0\(8),
-      O => p_0_in(9)
+      O => \p_0_in__0\(9)
     );
 \sm_reset_tx_pll_timer_ctr[9]_i_3\: unisim.vcomponents.LUT5
     generic map(
@@ -11566,7 +10559,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(0),
+      D => \p_0_in__0\(0),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(0),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11577,7 +10570,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(1),
+      D => \p_0_in__0\(1),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(1),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11588,7 +10581,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(2),
+      D => \p_0_in__0\(2),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(2),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11599,7 +10592,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(3),
+      D => \p_0_in__0\(3),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(3),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11610,7 +10603,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(4),
+      D => \p_0_in__0\(4),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(4),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11621,7 +10614,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(5),
+      D => \p_0_in__0\(5),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(5),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11632,7 +10625,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(6),
+      D => \p_0_in__0\(6),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(6),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11643,7 +10636,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(7),
+      D => \p_0_in__0\(7),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(7),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11654,7 +10647,7 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(8),
+      D => \p_0_in__0\(8),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(8),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
@@ -11665,20 +10658,20 @@ sm_reset_tx_pll_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => sel,
-      D => p_0_in(9),
+      D => \p_0_in__0\(9),
       Q => \sm_reset_tx_pll_timer_ctr_reg__0\(9),
       R => sm_reset_tx_pll_timer_clr_reg_n_0
     );
 sm_reset_tx_pll_timer_sat_i_1: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"00000000AAABAAAA"
+      INIT => X"00000000AAAAAAAE"
     )
         port map (
       I0 => sm_reset_tx_pll_timer_sat,
-      I1 => \sm_reset_tx_pll_timer_ctr_reg__0\(9),
-      I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(8),
-      I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(7),
-      I4 => sm_reset_tx_pll_timer_sat_i_2_n_0,
+      I1 => sm_reset_tx_pll_timer_sat_i_2_n_0,
+      I2 => \sm_reset_tx_pll_timer_ctr_reg__0\(7),
+      I3 => \sm_reset_tx_pll_timer_ctr_reg__0\(8),
+      I4 => \sm_reset_tx_pll_timer_ctr_reg__0\(9),
       I5 => sm_reset_tx_pll_timer_clr_reg_n_0,
       O => sm_reset_tx_pll_timer_sat_i_1_n_0
     );
@@ -11712,9 +10705,19 @@ sm_reset_tx_timer_clr_reg: unisim.vcomponents.FDSE
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
-      D => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_0,
+      D => bit_synchronizer_plllock_tx_inst_n_1,
       Q => sm_reset_tx_timer_clr_reg_n_0,
       S => gtwiz_reset_tx_any_sync
+    );
+\sm_reset_tx_timer_ctr0_inferred__0\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"7F"
+    )
+        port map (
+      I0 => sm_reset_tx_timer_ctr(2),
+      I1 => sm_reset_tx_timer_ctr(0),
+      I2 => sm_reset_tx_timer_ctr(1),
+      O => p_0_in
     );
 \sm_reset_tx_timer_ctr[0]_i_1\: unisim.vcomponents.LUT1
     generic map(
@@ -11735,16 +10738,6 @@ sm_reset_tx_timer_clr_reg: unisim.vcomponents.FDSE
     );
 \sm_reset_tx_timer_ctr[2]_i_1\: unisim.vcomponents.LUT3
     generic map(
-      INIT => X"7F"
-    )
-        port map (
-      I0 => sm_reset_tx_timer_ctr(2),
-      I1 => sm_reset_tx_timer_ctr(0),
-      I2 => sm_reset_tx_timer_ctr(1),
-      O => \sm_reset_tx_timer_ctr[2]_i_1_n_0\
-    );
-\sm_reset_tx_timer_ctr[2]_i_2\: unisim.vcomponents.LUT3
-    generic map(
       INIT => X"78"
     )
         port map (
@@ -11759,7 +10752,7 @@ sm_reset_tx_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_tx_timer_ctr[2]_i_1_n_0\,
+      CE => p_0_in,
       D => p_1_in(0),
       Q => sm_reset_tx_timer_ctr(0),
       R => sm_reset_tx_timer_clr_reg_n_0
@@ -11770,7 +10763,7 @@ sm_reset_tx_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_tx_timer_ctr[2]_i_1_n_0\,
+      CE => p_0_in,
       D => p_1_in(1),
       Q => sm_reset_tx_timer_ctr(1),
       R => sm_reset_tx_timer_clr_reg_n_0
@@ -11781,7 +10774,7 @@ sm_reset_tx_timer_clr_reg: unisim.vcomponents.FDSE
     )
         port map (
       C => gtwiz_reset_clk_freerun_in(0),
-      CE => \sm_reset_tx_timer_ctr[2]_i_1_n_0\,
+      CE => p_0_in,
       D => p_1_in(2),
       Q => sm_reset_tx_timer_ctr(2),
       R => sm_reset_tx_timer_clr_reg_n_0
@@ -11791,9 +10784,9 @@ sm_reset_tx_timer_sat_i_1: unisim.vcomponents.LUT5
       INIT => X"0000FF80"
     )
         port map (
-      I0 => sm_reset_tx_timer_ctr(1),
+      I0 => sm_reset_tx_timer_ctr(2),
       I1 => sm_reset_tx_timer_ctr(0),
-      I2 => sm_reset_tx_timer_ctr(2),
+      I2 => sm_reset_tx_timer_ctr(1),
       I3 => sm_reset_tx_timer_sat,
       I4 => sm_reset_tx_timer_clr_reg_n_0,
       O => sm_reset_tx_timer_sat_i_1_n_0
@@ -11817,8 +10810,1010 @@ txuserrdy_out_reg: unisim.vcomponents.FDRE
       C => gtwiz_reset_clk_freerun_in(0),
       CE => '1',
       D => bit_synchronizer_gtwiz_reset_userclk_tx_active_inst_n_1,
-      Q => \^gtwiz_reset_txuserrdy_int\,
+      Q => \^txuserrdy_int\,
       R => '0'
+    );
+end STRUCTURE;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
+entity GigEthGthUltraScaleCore_GPCS_PMA_GEN is
+  port (
+    status_vector : out STD_LOGIC_VECTOR ( 6 downto 0 );
+    MGT_TX_RESET : out STD_LOGIC;
+    Q : out STD_LOGIC_VECTOR ( 1 downto 0 );
+    MGT_RX_RESET : out STD_LOGIC;
+    enablealign : out STD_LOGIC;
+    gmii_rxd : out STD_LOGIC_VECTOR ( 7 downto 0 );
+    gmii_rx_er : out STD_LOGIC;
+    txchardispmode : out STD_LOGIC;
+    txcharisk : out STD_LOGIC;
+    txdata : out STD_LOGIC_VECTOR ( 7 downto 0 );
+    gmii_rx_dv : out STD_LOGIC;
+    txchardispval : out STD_LOGIC;
+    userclk2 : in STD_LOGIC;
+    dcm_locked : in STD_LOGIC;
+    signal_detect : in STD_LOGIC;
+    userclk : in STD_LOGIC;
+    reset : in STD_LOGIC;
+    gmii_tx_en : in STD_LOGIC;
+    gmii_tx_er : in STD_LOGIC;
+    configuration_vector : in STD_LOGIC_VECTOR ( 2 downto 0 );
+    gmii_txd : in STD_LOGIC_VECTOR ( 7 downto 0 );
+    rxnotintable : in STD_LOGIC_VECTOR ( 0 to 0 );
+    rxbufstatus : in STD_LOGIC_VECTOR ( 0 to 0 );
+    txbuferr : in STD_LOGIC;
+    rxdisperr : in STD_LOGIC_VECTOR ( 0 to 0 );
+    rxclkcorcnt : in STD_LOGIC_VECTOR ( 2 downto 0 );
+    rxcharisk : in STD_LOGIC_VECTOR ( 0 to 0 );
+    rxchariscomma : in STD_LOGIC_VECTOR ( 0 to 0 );
+    reset_done : in STD_LOGIC;
+    rxdata : in STD_LOGIC_VECTOR ( 7 downto 0 )
+  );
+  attribute ORIG_REF_NAME : string;
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_GPCS_PMA_GEN : entity is "GPCS_PMA_GEN";
+end GigEthGthUltraScaleCore_GPCS_PMA_GEN;
+
+architecture STRUCTURE of GigEthGthUltraScaleCore_GPCS_PMA_GEN is
+  signal CONFIGURATION_VECTOR_REG : STD_LOGIC_VECTOR ( 1 to 1 );
+  signal D : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[0]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[1]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[2]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[3]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1_n_0\ : STD_LOGIC;
+  signal \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1_n_0\ : STD_LOGIC;
+  signal \MGT_RESET.SYNC_ASYNC_RESET_n_0\ : STD_LOGIC;
+  signal \^mgt_rx_reset\ : STD_LOGIC;
+  signal MGT_RX_RESET_INT : STD_LOGIC;
+  signal \^mgt_tx_reset\ : STD_LOGIC;
+  signal MGT_TX_RESET_INT : STD_LOGIC;
+  signal \^q\ : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal RESET_INT : STD_LOGIC;
+  attribute async_reg : string;
+  attribute async_reg of RESET_INT : signal is "true";
+  signal RESET_INT_PIPE : STD_LOGIC;
+  attribute async_reg of RESET_INT_PIPE : signal is "true";
+  signal RESET_INT_PIPE_RXRECCLK : STD_LOGIC;
+  attribute async_reg of RESET_INT_PIPE_RXRECCLK : signal is "true";
+  signal RESET_INT_RXRECCLK : STD_LOGIC;
+  attribute async_reg of RESET_INT_RXRECCLK : signal is "true";
+  signal RXCLKCORCNT_INT : STD_LOGIC;
+  signal RXDISPERR_SRL : STD_LOGIC;
+  signal RXEVEN0_out : STD_LOGIC;
+  signal RXNOTINTABLE_INT : STD_LOGIC;
+  signal RXNOTINTABLE_SRL : STD_LOGIC;
+  signal RXSYNC_STATUS : STD_LOGIC;
+  signal \RX_GMII_AT_TXOUTCLK.SYNCHRONISATION_n_4\ : STD_LOGIC;
+  signal RX_RST_SM : STD_LOGIC_VECTOR ( 3 downto 0 );
+  attribute RTL_KEEP : string;
+  attribute RTL_KEEP of RX_RST_SM : signal is "yes";
+  signal SIGNAL_DETECT_MOD : STD_LOGIC;
+  signal SOFT_RESET_RXRECCLK : STD_LOGIC;
+  signal SRESET : STD_LOGIC;
+  attribute async_reg of SRESET : signal is "true";
+  signal SRESET_PIPE : STD_LOGIC;
+  attribute async_reg of SRESET_PIPE : signal is "true";
+  signal STATUS_VECTOR_0_PRE : STD_LOGIC;
+  signal STATUS_VECTOR_0_PRE0 : STD_LOGIC;
+  signal SYNC_STATUS_REG : STD_LOGIC;
+  signal SYNC_STATUS_REG0 : STD_LOGIC;
+  signal TRANSMITTER_n_0 : STD_LOGIC;
+  signal TRANSMITTER_n_1 : STD_LOGIC;
+  signal TRANSMITTER_n_10 : STD_LOGIC;
+  signal TRANSMITTER_n_11 : STD_LOGIC;
+  signal TRANSMITTER_n_12 : STD_LOGIC;
+  signal TRANSMITTER_n_13 : STD_LOGIC;
+  signal TRANSMITTER_n_14 : STD_LOGIC;
+  signal TRANSMITTER_n_15 : STD_LOGIC;
+  signal TRANSMITTER_n_16 : STD_LOGIC;
+  signal TRANSMITTER_n_17 : STD_LOGIC;
+  signal TRANSMITTER_n_18 : STD_LOGIC;
+  signal TRANSMITTER_n_19 : STD_LOGIC;
+  signal TRANSMITTER_n_2 : STD_LOGIC;
+  signal TRANSMITTER_n_20 : STD_LOGIC;
+  signal TRANSMITTER_n_21 : STD_LOGIC;
+  signal TRANSMITTER_n_3 : STD_LOGIC;
+  signal TRANSMITTER_n_4 : STD_LOGIC;
+  signal TRANSMITTER_n_5 : STD_LOGIC;
+  signal TRANSMITTER_n_6 : STD_LOGIC;
+  signal TRANSMITTER_n_7 : STD_LOGIC;
+  signal TRANSMITTER_n_8 : STD_LOGIC;
+  signal TRANSMITTER_n_9 : STD_LOGIC;
+  signal TXBUFERR_INT : STD_LOGIC;
+  signal TX_RST_SM : STD_LOGIC_VECTOR ( 3 downto 0 );
+  attribute RTL_KEEP of TX_RST_SM : signal is "yes";
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg_n_0_[1]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg_n_0\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg_n_0\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[0]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[1]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[2]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[0]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[1]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[2]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[3]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[4]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[5]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[6]\ : STD_LOGIC;
+  signal \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[7]\ : STD_LOGIC;
+  signal p_0_out : STD_LOGIC;
+  signal p_1_out : STD_LOGIC;
+  signal p_6_out : STD_LOGIC;
+  signal NLW_i_0_O_UNCONNECTED : STD_LOGIC;
+  signal NLW_i_1_O_UNCONNECTED : STD_LOGIC;
+  signal NLW_i_2_O_UNCONNECTED : STD_LOGIC;
+  signal NLW_i_3_O_UNCONNECTED : STD_LOGIC;
+  signal NLW_i_4_O_UNCONNECTED : STD_LOGIC;
+  attribute XILINX_LEGACY_PRIM : string;
+  attribute XILINX_LEGACY_PRIM of \DELAY_ERROR_TXOUTCLK.DELAY_RXDISPERR\ : label is "SRL16";
+  attribute box_type : string;
+  attribute box_type of \DELAY_ERROR_TXOUTCLK.DELAY_RXDISPERR\ : label is "PRIMITIVE";
+  attribute srl_name : string;
+  attribute srl_name of \DELAY_ERROR_TXOUTCLK.DELAY_RXDISPERR\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/DELAY_ERROR_TXOUTCLK.DELAY_RXDISPERR ";
+  attribute XILINX_LEGACY_PRIM of \DELAY_ERROR_TXOUTCLK.DELAY_RXNOTINTABLE\ : label is "SRL16";
+  attribute box_type of \DELAY_ERROR_TXOUTCLK.DELAY_RXNOTINTABLE\ : label is "PRIMITIVE";
+  attribute srl_name of \DELAY_ERROR_TXOUTCLK.DELAY_RXNOTINTABLE\ : label is "U0/GigEthGthUltraScaleCore_core/\gpcs_pma_inst/DELAY_ERROR_TXOUTCLK.DELAY_RXNOTINTABLE ";
+  attribute KEEP : string;
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[0]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[1]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[2]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[3]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[0]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[1]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[2]\ : label is "yes";
+  attribute KEEP of \FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[3]\ : label is "yes";
+  attribute ASYNC_REG_boolean : boolean;
+  attribute ASYNC_REG_boolean of \MGT_RESET.RESET_INT_PIPE_RXRECCLK_reg\ : label is std.standard.true;
+  attribute KEEP of \MGT_RESET.RESET_INT_PIPE_RXRECCLK_reg\ : label is "yes";
+  attribute ASYNC_REG_boolean of \MGT_RESET.RESET_INT_PIPE_reg\ : label is std.standard.true;
+  attribute KEEP of \MGT_RESET.RESET_INT_PIPE_reg\ : label is "yes";
+  attribute ASYNC_REG_boolean of \MGT_RESET.RESET_INT_RXRECCLK_reg\ : label is std.standard.true;
+  attribute KEEP of \MGT_RESET.RESET_INT_RXRECCLK_reg\ : label is "yes";
+  attribute ASYNC_REG_boolean of \MGT_RESET.RESET_INT_reg\ : label is std.standard.true;
+  attribute KEEP of \MGT_RESET.RESET_INT_reg\ : label is "yes";
+  attribute ASYNC_REG_boolean of \MGT_RESET.SRESET_PIPE_reg\ : label is std.standard.true;
+  attribute KEEP of \MGT_RESET.SRESET_PIPE_reg\ : label is "yes";
+  attribute ASYNC_REG_boolean of \MGT_RESET.SRESET_reg\ : label is std.standard.true;
+  attribute KEEP of \MGT_RESET.SRESET_reg\ : label is "yes";
+begin
+  MGT_RX_RESET <= \^mgt_rx_reset\;
+  MGT_TX_RESET <= \^mgt_tx_reset\;
+  Q(1 downto 0) <= \^q\(1 downto 0);
+\DELAY_ERROR_TXOUTCLK.DELAY_RXDISPERR\: unisim.vcomponents.SRL16E
+    generic map(
+      INIT => X"0000"
+    )
+        port map (
+      A0 => '0',
+      A1 => '0',
+      A2 => '1',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => D,
+      Q => RXDISPERR_SRL
+    );
+\DELAY_ERROR_TXOUTCLK.DELAY_RXNOTINTABLE\: unisim.vcomponents.SRL16E
+    generic map(
+      INIT => X"0000"
+    )
+        port map (
+      A0 => '0',
+      A1 => '0',
+      A2 => '1',
+      A3 => '0',
+      CE => '1',
+      CLK => userclk2,
+      D => RXNOTINTABLE_INT,
+      Q => RXNOTINTABLE_SRL
+    );
+\DELAY_ERROR_TXOUTCLK.RXDISPERR_REG_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => RXDISPERR_SRL,
+      Q => status_vector(5),
+      R => '0'
+    );
+\DELAY_ERROR_TXOUTCLK.RXNOTINTABLE_REG_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => RXNOTINTABLE_SRL,
+      Q => status_vector(6),
+      R => '0'
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[0]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"007F"
+    )
+        port map (
+      I0 => RX_RST_SM(3),
+      I1 => RX_RST_SM(1),
+      I2 => RX_RST_SM(2),
+      I3 => RX_RST_SM(0),
+      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[0]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[1]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"DA5A"
+    )
+        port map (
+      I0 => RX_RST_SM(0),
+      I1 => RX_RST_SM(3),
+      I2 => RX_RST_SM(1),
+      I3 => RX_RST_SM(2),
+      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[1]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[2]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"BFC0"
+    )
+        port map (
+      I0 => RX_RST_SM(3),
+      I1 => RX_RST_SM(0),
+      I2 => RX_RST_SM(1),
+      I3 => RX_RST_SM(2),
+      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[2]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[3]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"EAAA"
+    )
+        port map (
+      I0 => RX_RST_SM(3),
+      I1 => RX_RST_SM(2),
+      I2 => RX_RST_SM(0),
+      I3 => RX_RST_SM(1),
+      O => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[3]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[0]_i_1_n_0\,
+      Q => RX_RST_SM(0),
+      R => p_0_out
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[1]_i_1_n_0\,
+      Q => RX_RST_SM(1),
+      R => p_0_out
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[2]_i_1_n_0\,
+      Q => RX_RST_SM(2),
+      R => p_0_out
+    );
+\FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.RX_RST_SM[3]_i_1_n_0\,
+      Q => RX_RST_SM(3),
+      R => p_0_out
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"007F"
+    )
+        port map (
+      I0 => TX_RST_SM(3),
+      I1 => TX_RST_SM(1),
+      I2 => TX_RST_SM(2),
+      I3 => TX_RST_SM(0),
+      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"DA5A"
+    )
+        port map (
+      I0 => TX_RST_SM(0),
+      I1 => TX_RST_SM(3),
+      I2 => TX_RST_SM(1),
+      I3 => TX_RST_SM(2),
+      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"BFC0"
+    )
+        port map (
+      I0 => TX_RST_SM(3),
+      I1 => TX_RST_SM(0),
+      I2 => TX_RST_SM(1),
+      I3 => TX_RST_SM(2),
+      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1\: unisim.vcomponents.LUT4
+    generic map(
+      INIT => X"EAAA"
+    )
+        port map (
+      I0 => TX_RST_SM(3),
+      I1 => TX_RST_SM(2),
+      I2 => TX_RST_SM(0),
+      I3 => TX_RST_SM(1),
+      O => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1_n_0\
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[0]_i_1_n_0\,
+      Q => TX_RST_SM(0),
+      R => p_1_out
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[1]_i_1_n_0\,
+      Q => TX_RST_SM(1),
+      R => p_1_out
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[2]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[2]_i_1_n_0\,
+      Q => TX_RST_SM(2),
+      R => p_1_out
+    );
+\FSM_sequential_USE_ROCKET_IO.TX_RST_SM_reg[3]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => \FSM_sequential_USE_ROCKET_IO.TX_RST_SM[3]_i_1_n_0\,
+      Q => TX_RST_SM(3),
+      R => p_1_out
+    );
+\MGT_RESET.RESET_INT_PIPE_RXRECCLK_reg\: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => '0',
+      PRE => p_6_out,
+      Q => RESET_INT_PIPE_RXRECCLK
+    );
+\MGT_RESET.RESET_INT_PIPE_reg\: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk,
+      CE => '1',
+      D => '0',
+      PRE => \MGT_RESET.SYNC_ASYNC_RESET_n_0\,
+      Q => RESET_INT_PIPE
+    );
+\MGT_RESET.RESET_INT_RXRECCLK_reg\: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => '0',
+      CE => '1',
+      D => RESET_INT_PIPE_RXRECCLK,
+      PRE => p_6_out,
+      Q => RESET_INT_RXRECCLK
+    );
+\MGT_RESET.RESET_INT_reg\: unisim.vcomponents.FDPE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk,
+      CE => '1',
+      D => RESET_INT_PIPE,
+      PRE => \MGT_RESET.SYNC_ASYNC_RESET_n_0\,
+      Q => RESET_INT
+    );
+\MGT_RESET.SRESET_PIPE_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => RESET_INT,
+      Q => SRESET_PIPE,
+      R => '0'
+    );
+\MGT_RESET.SRESET_reg\: unisim.vcomponents.FDSE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => SRESET_PIPE,
+      Q => SRESET,
+      S => RESET_INT
+    );
+\MGT_RESET.SYNC_ASYNC_RESET\: entity work.GigEthGthUltraScaleCore_reset_sync_block
+     port map (
+      \MGT_RESET.RESET_INT_PIPE_reg\ => \MGT_RESET.SYNC_ASYNC_RESET_n_0\,
+      dcm_locked => dcm_locked,
+      reset => reset,
+      userclk => userclk
+    );
+\MGT_RESET.SYNC_ASYNC_RESET_RECCLK\: entity work.GigEthGthUltraScaleCore_reset_sync_block_19
+     port map (
+      dcm_locked => dcm_locked,
+      p_6_out => p_6_out,
+      reset => reset,
+      reset_out => SOFT_RESET_RXRECCLK
+    );
+\MGT_RESET.SYNC_SOFT_RESET_RECCLK\: entity work.GigEthGthUltraScaleCore_reset_sync_block_20
+     port map (
+      reset_out => SOFT_RESET_RXRECCLK
+    );
+\NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[1]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => configuration_vector(0),
+      Q => CONFIGURATION_VECTOR_REG(1),
+      R => SRESET
+    );
+\NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[2]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => configuration_vector(1),
+      Q => \^q\(0),
+      R => SRESET
+    );
+\NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => configuration_vector(2),
+      Q => \^q\(1),
+      R => SRESET
+    );
+\RX_GMII_AT_TXOUTCLK.RECEIVER_TXOUTCLK\: entity work.GigEthGthUltraScaleCore_RX
+     port map (
+      D => D,
+      \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]\(1 downto 0) => \^q\(1 downto 0),
+      \NO_MANAGEMENT.CONFIGURATION_VECTOR_REG_reg[3]_0\ => \RX_GMII_AT_TXOUTCLK.SYNCHRONISATION_n_4\,
+      Q(7) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[7]\,
+      Q(6) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[6]\,
+      Q(5) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[5]\,
+      Q(4) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[4]\,
+      Q(3) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[3]\,
+      Q(2) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[2]\,
+      Q(1) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[1]\,
+      Q(0) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[0]\,
+      RXEVEN0_out => RXEVEN0_out,
+      RXNOTINTABLE_INT => RXNOTINTABLE_INT,
+      RXSYNC_STATUS => RXSYNC_STATUS,
+      SR(0) => \^mgt_rx_reset\,
+      SYNC_STATUS_REG0 => SYNC_STATUS_REG0,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\ => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg_n_0_[1]\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\ => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg_n_0\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\(2) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[2]\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\(1) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[1]\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\(0) => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[0]\,
+      gmii_rx_dv => gmii_rx_dv,
+      gmii_rx_er => gmii_rx_er,
+      gmii_rxd(7 downto 0) => gmii_rxd(7 downto 0),
+      status_vector(2 downto 0) => status_vector(4 downto 2),
+      userclk2 => userclk2
+    );
+\RX_GMII_AT_TXOUTCLK.SYNCHRONISATION\: entity work.GigEthGthUltraScaleCore_SYNCHRONISE
+     port map (
+      D => D,
+      Q(2 downto 1) => \^q\(1 downto 0),
+      Q(0) => CONFIGURATION_VECTOR_REG(1),
+      RXEVEN0_out => RXEVEN0_out,
+      RXNOTINTABLE_INT => RXNOTINTABLE_INT,
+      RXSYNC_STATUS => RXSYNC_STATUS,
+      RX_DV_reg => \RX_GMII_AT_TXOUTCLK.SYNCHRONISATION_n_4\,
+      SIGNAL_DETECT_MOD => SIGNAL_DETECT_MOD,
+      SR(0) => \^mgt_rx_reset\,
+      STATUS_VECTOR_0_PRE0 => STATUS_VECTOR_0_PRE0,
+      SYNC_STATUS_REG0 => SYNC_STATUS_REG0,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\ => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg_n_0_[1]\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\ => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg_n_0\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\ => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg_n_0\,
+      enablealign => enablealign,
+      reset_done => reset_done,
+      userclk2 => userclk2
+    );
+STATUS_VECTOR_0_PRE_reg: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => STATUS_VECTOR_0_PRE0,
+      Q => STATUS_VECTOR_0_PRE,
+      R => '0'
+    );
+\STATUS_VECTOR_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => STATUS_VECTOR_0_PRE,
+      Q => status_vector(0),
+      R => '0'
+    );
+\STATUS_VECTOR_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => SYNC_STATUS_REG,
+      Q => status_vector(1),
+      R => '0'
+    );
+SYNC_SIGNAL_DETECT: entity work.GigEthGthUltraScaleCore_sync_block
+     port map (
+      Q(0) => \^q\(0),
+      SIGNAL_DETECT_MOD => SIGNAL_DETECT_MOD,
+      signal_detect => signal_detect,
+      userclk2 => userclk2
+    );
+SYNC_STATUS_REG_reg: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => RXSYNC_STATUS,
+      Q => SYNC_STATUS_REG,
+      R => '0'
+    );
+TRANSMITTER: entity work.GigEthGthUltraScaleCore_TX
+     port map (
+      D(3) => TRANSMITTER_n_2,
+      D(2) => TRANSMITTER_n_3,
+      D(1) => TRANSMITTER_n_4,
+      D(0) => TRANSMITTER_n_5,
+      Q(1) => \^q\(1),
+      Q(0) => CONFIGURATION_VECTOR_REG(1),
+      \USE_ROCKET_IO.MGT_TX_RESET_INT_reg\ => \^mgt_tx_reset\,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\ => TRANSMITTER_n_11,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\ => TRANSMITTER_n_10,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(7) => TRANSMITTER_n_12,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(6) => TRANSMITTER_n_13,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(5) => TRANSMITTER_n_14,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(4) => TRANSMITTER_n_15,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(3) => TRANSMITTER_n_16,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(2) => TRANSMITTER_n_17,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(1) => TRANSMITTER_n_18,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(0) => TRANSMITTER_n_19,
+      \USE_ROCKET_IO.TXCHARDISPMODE_reg\ => TRANSMITTER_n_0,
+      \USE_ROCKET_IO.TXCHARDISPVAL_reg\ => TRANSMITTER_n_21,
+      \USE_ROCKET_IO.TXCHARISK_reg\ => TRANSMITTER_n_9,
+      \USE_ROCKET_IO.TXDATA_reg[2]\ => TRANSMITTER_n_8,
+      \USE_ROCKET_IO.TXDATA_reg[2]_0\ => TRANSMITTER_n_20,
+      \USE_ROCKET_IO.TXDATA_reg[3]\ => TRANSMITTER_n_7,
+      \USE_ROCKET_IO.TXDATA_reg[5]\ => TRANSMITTER_n_6,
+      \USE_ROCKET_IO.TXDATA_reg[7]\ => TRANSMITTER_n_1,
+      gmii_tx_en => gmii_tx_en,
+      gmii_tx_er => gmii_tx_er,
+      gmii_txd(7 downto 0) => gmii_txd(7 downto 0),
+      rxchariscomma(0) => rxchariscomma(0),
+      rxcharisk(0) => rxcharisk(0),
+      rxdata(7 downto 0) => rxdata(7 downto 0),
+      userclk2 => userclk2
+    );
+\USE_ROCKET_IO.MGT_TX_RESET_INT_i_1\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => RESET_INT,
+      I1 => TXBUFERR_INT,
+      O => p_1_out
+    );
+\USE_ROCKET_IO.MGT_TX_RESET_INT_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"7F"
+    )
+        port map (
+      I0 => TX_RST_SM(2),
+      I1 => TX_RST_SM(1),
+      I2 => TX_RST_SM(3),
+      O => MGT_TX_RESET_INT
+    );
+\USE_ROCKET_IO.MGT_TX_RESET_INT_reg\: unisim.vcomponents.FDSE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => MGT_TX_RESET_INT,
+      Q => \^mgt_tx_reset\,
+      S => p_1_out
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg[1]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => rxbufstatus(0),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg_n_0_[1]\,
+      R => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_11,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISCOMMA_INT_reg_n_0\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_10,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCHARISK_INT_reg_n_0\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[0]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => rxclkcorcnt(0),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[0]\,
+      R => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[1]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => rxclkcorcnt(1),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[1]\,
+      R => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg[2]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => rxclkcorcnt(2),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXCLKCORCNT_INT_reg_n_0_[2]\,
+      R => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[0]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_19,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[0]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[1]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_18,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[1]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[2]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_17,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[2]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[3]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_16,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[3]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[4]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_15,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[4]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[5]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_14,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[5]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[6]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_13,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[6]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_12,
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg_n_0_[7]\,
+      R => \^mgt_rx_reset\
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDISPERR_INT_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => rxdisperr(0),
+      Q => D,
+      R => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXNOTINTABLE_INT_i_1\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => \^mgt_rx_reset\,
+      I1 => CONFIGURATION_VECTOR_REG(1),
+      O => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXNOTINTABLE_INT_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => rxnotintable(0),
+      Q => RXNOTINTABLE_INT,
+      R => RXCLKCORCNT_INT
+    );
+\USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.MGT_RX_RESET_INT_i_1\: unisim.vcomponents.LUT2
+    generic map(
+      INIT => X"E"
+    )
+        port map (
+      I0 => RESET_INT,
+      I1 => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXBUFSTATUS_INT_reg_n_0_[1]\,
+      O => p_0_out
+    );
+\USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.MGT_RX_RESET_INT_i_2\: unisim.vcomponents.LUT3
+    generic map(
+      INIT => X"7F"
+    )
+        port map (
+      I0 => RX_RST_SM(2),
+      I1 => RX_RST_SM(1),
+      I2 => RX_RST_SM(3),
+      O => MGT_RX_RESET_INT
+    );
+\USE_ROCKET_IO.RX_RST_SM_TXOUTCLK.MGT_RX_RESET_INT_reg\: unisim.vcomponents.FDSE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => MGT_RX_RESET_INT,
+      Q => \^mgt_rx_reset\,
+      S => p_0_out
+    );
+\USE_ROCKET_IO.TXBUFERR_INT_reg\: unisim.vcomponents.FDRE
+    generic map(
+      INIT => '0'
+    )
+        port map (
+      C => userclk2,
+      CE => '1',
+      D => txbuferr,
+      Q => TXBUFERR_INT,
+      R => \^mgt_tx_reset\
+    );
+\USE_ROCKET_IO.TXCHARDISPMODE_reg\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_0,
+      Q => txchardispmode,
+      R => \^mgt_tx_reset\
+    );
+\USE_ROCKET_IO.TXCHARDISPVAL_reg\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_21,
+      Q => txchardispval,
+      R => '0'
+    );
+\USE_ROCKET_IO.TXCHARISK_reg\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_9,
+      Q => txcharisk,
+      R => \^mgt_tx_reset\
+    );
+\USE_ROCKET_IO.TXDATA_reg[0]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_5,
+      Q => txdata(0),
+      R => '0'
+    );
+\USE_ROCKET_IO.TXDATA_reg[1]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_4,
+      Q => txdata(1),
+      R => '0'
+    );
+\USE_ROCKET_IO.TXDATA_reg[2]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_8,
+      Q => txdata(2),
+      S => TRANSMITTER_n_20
+    );
+\USE_ROCKET_IO.TXDATA_reg[3]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_7,
+      Q => txdata(3),
+      S => TRANSMITTER_n_20
+    );
+\USE_ROCKET_IO.TXDATA_reg[4]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_3,
+      Q => txdata(4),
+      R => '0'
+    );
+\USE_ROCKET_IO.TXDATA_reg[5]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_6,
+      Q => txdata(5),
+      S => TRANSMITTER_n_20
+    );
+\USE_ROCKET_IO.TXDATA_reg[6]\: unisim.vcomponents.FDRE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_2,
+      Q => txdata(6),
+      R => '0'
+    );
+\USE_ROCKET_IO.TXDATA_reg[7]\: unisim.vcomponents.FDSE
+     port map (
+      C => userclk2,
+      CE => '1',
+      D => TRANSMITTER_n_1,
+      Q => txdata(7),
+      S => TRANSMITTER_n_20
+    );
+i_0: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => '1',
+      O => NLW_i_0_O_UNCONNECTED
+    );
+i_1: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => '1',
+      O => NLW_i_1_O_UNCONNECTED
+    );
+i_2: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => '1',
+      O => NLW_i_2_O_UNCONNECTED
+    );
+i_3: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => '1',
+      O => NLW_i_3_O_UNCONNECTED
+    );
+i_4: unisim.vcomponents.LUT1
+    generic map(
+      INIT => X"2"
+    )
+        port map (
+      I0 => '1',
+      O => NLW_i_4_O_UNCONNECTED
     );
 end STRUCTURE;
 library IEEE;
@@ -12168,18 +12163,18 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt_gtw
   signal \^cplllock_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
   signal cpllpd_ch_int : STD_LOGIC;
   signal \^gtpowergood_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
-  signal gtwiz_reset_gtrxreset_int : STD_LOGIC;
-  signal gtwiz_reset_gttxreset_int : STD_LOGIC;
-  signal gtwiz_reset_rxprogdivreset_int : STD_LOGIC;
+  signal gtrxreset_int : STD_LOGIC;
+  signal gttxreset_int : STD_LOGIC;
   signal gtwiz_reset_rxresetdone_int : STD_LOGIC;
-  signal gtwiz_reset_rxuserrdy_int : STD_LOGIC;
-  signal gtwiz_reset_txprogdivreset_int : STD_LOGIC;
   signal gtwiz_reset_txresetdone_int : STD_LOGIC;
-  signal gtwiz_reset_txuserrdy_int : STD_LOGIC;
   signal rst_in0 : STD_LOGIC;
   signal \^rxcdrlock_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
+  signal rxprogdivreset_int : STD_LOGIC;
   signal \^rxresetdone_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
+  signal rxuserrdy_int : STD_LOGIC;
+  signal txprogdivreset_int : STD_LOGIC;
   signal \^txresetdone_out\ : STD_LOGIC_VECTOR ( 0 to 0 );
+  signal txuserrdy_int : STD_LOGIC;
 begin
   cplllock_out(0) <= \^cplllock_out\(0);
   gtpowergood_out(0) <= \^gtpowergood_out\(0);
@@ -12237,14 +12232,10 @@ begin
       gtrefclkmonitor_out(0) => gtrefclkmonitor_out(0),
       gtresetsel_in(0) => gtresetsel_in(0),
       gtrsvd_in(15 downto 0) => gtrsvd_in(15 downto 0),
+      gtrxreset_int => gtrxreset_int,
       gtsouthrefclk0_in(0) => gtsouthrefclk0_in(0),
       gtsouthrefclk1_in(0) => gtsouthrefclk1_in(0),
-      gtwiz_reset_gtrxreset_int => gtwiz_reset_gtrxreset_int,
-      gtwiz_reset_gttxreset_int => gtwiz_reset_gttxreset_int,
-      gtwiz_reset_rxprogdivreset_int => gtwiz_reset_rxprogdivreset_int,
-      gtwiz_reset_rxuserrdy_int => gtwiz_reset_rxuserrdy_int,
-      gtwiz_reset_txprogdivreset_int => gtwiz_reset_txprogdivreset_int,
-      gtwiz_reset_txuserrdy_int => gtwiz_reset_txuserrdy_int,
+      gttxreset_int => gttxreset_int,
       gtwiz_userdata_tx_in(15 downto 0) => gtwiz_userdata_tx_in(15 downto 0),
       loopback_in(2 downto 0) => loopback_in(2 downto 0),
       lpbkrxtxseren_in(0) => lpbkrxtxseren_in(0),
@@ -12409,6 +12400,7 @@ begin
       rxprbslocked_out(0) => rxprbslocked_out(0),
       rxprbssel_in(3 downto 0) => rxprbssel_in(3 downto 0),
       rxprgdivresetdone_out(0) => rxprgdivresetdone_out(0),
+      rxprogdivreset_int => rxprogdivreset_int,
       rxqpien_in(0) => rxqpien_in(0),
       rxqpisenn_out(0) => rxqpisenn_out(0),
       rxqpisenp_out(0) => rxqpisenp_out(0),
@@ -12432,6 +12424,7 @@ begin
       rxsyncmode_in(0) => rxsyncmode_in(0),
       rxsyncout_out(0) => rxsyncout_out(0),
       rxsysclksel_in(1 downto 0) => rxsysclksel_in(1 downto 0),
+      rxuserrdy_int => rxuserrdy_int,
       rxusrclk2_in(0) => rxusrclk2_in(0),
       rxusrclk_in(0) => rxusrclk_in(0),
       rxvalid_out(0) => rxvalid_out(0),
@@ -12498,6 +12491,7 @@ begin
       txprecursor_in(4 downto 0) => txprecursor_in(4 downto 0),
       txprecursorinv_in(0) => txprecursorinv_in(0),
       txprgdivresetdone_out(0) => txprgdivresetdone_out(0),
+      txprogdivreset_int => txprogdivreset_int,
       txqpibiasen_in(0) => txqpibiasen_in(0),
       txqpisenn_out(0) => txqpisenn_out(0),
       txqpisenp_out(0) => txqpisenp_out(0),
@@ -12515,48 +12509,49 @@ begin
       txsyncmode_in(0) => txsyncmode_in(0),
       txsyncout_out(0) => txsyncout_out(0),
       txsysclksel_in(1 downto 0) => txsysclksel_in(1 downto 0),
+      txuserrdy_int => txuserrdy_int,
       txusrclk2_in(0) => txusrclk2_in(0),
       txusrclk_in(0) => txusrclk_in(0)
     );
-\gen_gtwizard_gthe3.gen_reset_controller_internal.gen_single_instance.gen_ch_xrd[0].bit_synchronizer_rxresetdone_inst\: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer
+\gen_gtwizard_gthe3.gen_reset_controller_internal.gen_single_instance.gen_ch_xrd[0].bit_synchronizer_rxresetdone_inst\: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_rxresetdone_int => gtwiz_reset_rxresetdone_int,
       rxresetdone_out(0) => \^rxresetdone_out\(0)
     );
-\gen_gtwizard_gthe3.gen_reset_controller_internal.gen_single_instance.gen_ch_xrd[0].bit_synchronizer_txresetdone_inst\: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_bit_synchronizer_0
+\gen_gtwizard_gthe3.gen_reset_controller_internal.gen_single_instance.gen_ch_xrd[0].bit_synchronizer_txresetdone_inst\: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_bit_synchronizer_0
      port map (
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
       gtwiz_reset_txresetdone_int => gtwiz_reset_txresetdone_int,
       txresetdone_out(0) => \^txresetdone_out\(0)
     );
-\gen_gtwizard_gthe3.gen_reset_controller_internal.gen_single_instance.gtwiz_reset_inst\: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_0_gtwiz_reset
+\gen_gtwizard_gthe3.gen_reset_controller_internal.gen_single_instance.gtwiz_reset_inst\: entity work.GigEthGthUltraScaleCore_gtwizard_ultrascale_v1_6_2_gtwiz_reset
      port map (
       cplllock_out(0) => \^cplllock_out\(0),
       cpllpd_ch_int => cpllpd_ch_int,
       gtpowergood_out(0) => \^gtpowergood_out\(0),
+      gtrxreset_int => gtrxreset_int,
+      gttxreset_int => gttxreset_int,
       gtwiz_reset_all_in(0) => gtwiz_reset_all_in(0),
       gtwiz_reset_clk_freerun_in(0) => gtwiz_reset_clk_freerun_in(0),
-      gtwiz_reset_gtrxreset_int => gtwiz_reset_gtrxreset_int,
-      gtwiz_reset_gttxreset_int => gtwiz_reset_gttxreset_int,
       gtwiz_reset_rx_cdr_stable_out(0) => gtwiz_reset_rx_cdr_stable_out(0),
       gtwiz_reset_rx_datapath_in(0) => gtwiz_reset_rx_datapath_in(0),
       gtwiz_reset_rx_done_out(0) => gtwiz_reset_rx_done_out(0),
       gtwiz_reset_rx_pll_and_datapath_in(0) => gtwiz_reset_rx_pll_and_datapath_in(0),
-      gtwiz_reset_rxprogdivreset_int => gtwiz_reset_rxprogdivreset_int,
       gtwiz_reset_rxresetdone_int => gtwiz_reset_rxresetdone_int,
-      gtwiz_reset_rxuserrdy_int => gtwiz_reset_rxuserrdy_int,
       gtwiz_reset_tx_datapath_in(0) => gtwiz_reset_tx_datapath_in(0),
       gtwiz_reset_tx_done_out(0) => gtwiz_reset_tx_done_out(0),
       gtwiz_reset_tx_pll_and_datapath_in(0) => gtwiz_reset_tx_pll_and_datapath_in(0),
-      gtwiz_reset_txprogdivreset_int => gtwiz_reset_txprogdivreset_int,
       gtwiz_reset_txresetdone_int => gtwiz_reset_txresetdone_int,
-      gtwiz_reset_txuserrdy_int => gtwiz_reset_txuserrdy_int,
       gtwiz_userclk_rx_active_in(0) => gtwiz_userclk_rx_active_in(0),
       gtwiz_userclk_tx_active_in(0) => gtwiz_userclk_tx_active_in(0),
       rst_in0 => rst_in0,
       rxcdrlock_out(0) => \^rxcdrlock_out\(0),
+      rxprogdivreset_int => rxprogdivreset_int,
+      rxuserrdy_int => rxuserrdy_int,
       rxusrclk2_in(0) => rxusrclk2_in(0),
+      txprogdivreset_int => txprogdivreset_int,
+      txuserrdy_int => txuserrdy_int,
       txusrclk2_in(0) => txusrclk2_in(0)
     );
 end STRUCTURE;
@@ -12564,7 +12559,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 is
+entity GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 is
   port (
     reset : in STD_LOGIC;
     signal_detect : in STD_LOGIC;
@@ -12628,7 +12623,7 @@ entity GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 is
     drp_den : out STD_LOGIC;
     drp_dwe : out STD_LOGIC;
     drp_drdy : in STD_LOGIC;
-    drp_daddr : out STD_LOGIC_VECTOR ( 8 downto 0 );
+    drp_daddr : out STD_LOGIC_VECTOR ( 9 downto 0 );
     drp_di : out STD_LOGIC_VECTOR ( 15 downto 0 );
     drp_do : in STD_LOGIC_VECTOR ( 15 downto 0 );
     systemtimer_s_field : in STD_LOGIC_VECTOR ( 47 downto 0 );
@@ -12641,52 +12636,55 @@ entity GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 is
     reset_done : in STD_LOGIC
   );
   attribute B_SHIFTER_ADDR : string;
-  attribute B_SHIFTER_ADDR of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "8'b01010000";
+  attribute B_SHIFTER_ADDR of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "10'b0101010000";
   attribute C_1588 : integer;
-  attribute C_1588 of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is 0;
+  attribute C_1588 of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is 0;
   attribute C_COMPONENT_NAME : string;
-  attribute C_COMPONENT_NAME of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "GigEthGthUltraScaleCore";
+  attribute C_COMPONENT_NAME of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "GigEthGthUltraScaleCore";
   attribute C_DYNAMIC_SWITCHING : string;
-  attribute C_DYNAMIC_SWITCHING of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_DYNAMIC_SWITCHING of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
   attribute C_ELABORATION_TRANSIENT_DIR : string;
-  attribute C_ELABORATION_TRANSIENT_DIR of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "BlankString";
+  attribute C_ELABORATION_TRANSIENT_DIR of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "BlankString";
   attribute C_FAMILY : string;
-  attribute C_FAMILY of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "kintexu";
+  attribute C_FAMILY of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "kintexu";
   attribute C_HAS_AN : string;
-  attribute C_HAS_AN of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_HAS_AN of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
   attribute C_HAS_MDIO : string;
-  attribute C_HAS_MDIO of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_HAS_MDIO of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
   attribute C_HAS_TEMAC : string;
-  attribute C_HAS_TEMAC of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "TRUE";
+  attribute C_HAS_TEMAC of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "TRUE";
   attribute C_IS_SGMII : string;
-  attribute C_IS_SGMII of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_IS_SGMII of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
+  attribute C_RX_GMII_CLK : string;
+  attribute C_RX_GMII_CLK of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "TXOUTCLK";
   attribute C_SGMII_FABRIC_BUFFER : string;
-  attribute C_SGMII_FABRIC_BUFFER of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "TRUE";
+  attribute C_SGMII_FABRIC_BUFFER of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "TRUE";
   attribute C_SGMII_PHY_MODE : string;
-  attribute C_SGMII_PHY_MODE of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_SGMII_PHY_MODE of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
   attribute C_USE_LVDS : string;
-  attribute C_USE_LVDS of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_USE_LVDS of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
   attribute C_USE_TBI : string;
-  attribute C_USE_TBI of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "FALSE";
+  attribute C_USE_TBI of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "FALSE";
   attribute C_USE_TRANSCEIVER : string;
-  attribute C_USE_TRANSCEIVER of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "TRUE";
+  attribute C_USE_TRANSCEIVER of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "TRUE";
   attribute GT_RX_BYTE_WIDTH : integer;
-  attribute GT_RX_BYTE_WIDTH of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is 1;
+  attribute GT_RX_BYTE_WIDTH of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is 1;
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "gig_ethernet_pcs_pma_v15_1_0";
+  attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "gig_ethernet_pcs_pma_v15_2_0";
   attribute RX_GT_NOMINAL_LATENCY : string;
-  attribute RX_GT_NOMINAL_LATENCY of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "16'b0000000010001100";
+  attribute RX_GT_NOMINAL_LATENCY of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "16'b0000000010001100";
   attribute downgradeipidentifiedwarnings : string;
-  attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 : entity is "yes";
-end GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0;
+  attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 : entity is "yes";
+end GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0;
 
-architecture STRUCTURE of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0 is
+architecture STRUCTURE of GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0 is
   signal \<const0>\ : STD_LOGIC;
   signal \<const1>\ : STD_LOGIC;
   signal \^status_vector\ : STD_LOGIC_VECTOR ( 6 downto 0 );
 begin
   an_enable <= \<const0>\;
   an_interrupt <= \<const0>\;
+  drp_daddr(9) <= \<const0>\;
   drp_daddr(8) <= \<const0>\;
   drp_daddr(7) <= \<const0>\;
   drp_daddr(6) <= \<const0>\;
@@ -14200,12 +14198,10 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt is
   attribute CHECK_LICENSE_TYPE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt : entity is "GigEthGthUltraScaleCore_gt,GigEthGthUltraScaleCore_gt_gtwizard_top,{}";
   attribute ORIG_REF_NAME : string;
   attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt : entity is "GigEthGthUltraScaleCore_gt";
-  attribute core_generation_info : string;
-  attribute core_generation_info of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt : entity is "GigEthGthUltraScaleCore_gt,GigEthGthUltraScaleCore_gt_gtwizard_top,{x_ipProduct=Vivado 2015.3,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gtwizard_ultrascale,x_ipVersion=1.6,x_ipCoreRevision=0,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,C_CHANNEL_ENABLE=000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001,C_COMMON_SCALING_FACTOR=1,C_CPLL_VCO_FREQUENCY=2500.0,C_FORCE_COMMONS=0,C_FREERUN_FREQUENCY=62.5,C_GT_TYPE=0,C_GT_REV=17,C_INCLUDE_CPLL_CAL=2,C_LOCATE_COMMON=0,C_LOCATE_RESET_CONTROLLER=0,C_LOCATE_USER_DATA_WIDTH_SIZING=0,C_LOCATE_RX_BUFFER_BYPASS_CONTROLLER=0,C_LOCATE_IN_SYSTEM_IBERT_CORE=2,C_LOCATE_RX_USER_CLOCKING=1,C_LOCATE_TX_BUFFER_BYPASS_CONTROLLER=0,C_LOCATE_TX_USER_CLOCKING=1,C_RESET_CONTROLLER_INSTANCE_CTRL=0,C_RX_BUFFBYPASS_MODE=0,C_RX_BUFFER_BYPASS_INSTANCE_CTRL=0,C_RX_BUFFER_MODE=1,C_RX_CB_DISP=00000000,C_RX_CB_K=00000000,C_RX_CB_MAX_LEVEL=1,C_RX_CB_LEN_SEQ=1,C_RX_CB_NUM_SEQ=0,C_RX_CB_VAL=00000000000000000000000000000000000000000000000000000000000000000000000000000000,C_RX_CC_DISP=00000000,C_RX_CC_ENABLE=1,C_RESET_SEQUENCE_INTERVAL=0,C_RX_CC_K=00010001,C_RX_CC_LEN_SEQ=2,C_RX_CC_NUM_SEQ=2,C_RX_CC_PERIODICITY=5000,C_RX_CC_VAL=00000000000000000000001011010100101111000000000000000000000000010100000010111100,C_RX_COMMA_M_ENABLE=1,C_RX_COMMA_M_VAL=1010000011,C_RX_COMMA_P_ENABLE=1,C_RX_COMMA_P_VAL=0101111100,C_RX_DATA_DECODING=1,C_RX_ENABLE=1,C_RX_INT_DATA_WIDTH=20,C_RX_LINE_RATE=1.25,C_RX_MASTER_CHANNEL_IDX=0,C_RX_OUTCLK_BUFG_GT_DIV=1,C_RX_OUTCLK_FREQUENCY=62.5000000,C_RX_OUTCLK_SOURCE=1,C_RX_PLL_TYPE=2,C_RX_RECCLK_OUTPUT=0x000000000000000000000000000000000000000000000000,C_RX_REFCLK_FREQUENCY=125,C_RX_SLIDE_MODE=0,C_RX_USER_CLOCKING_CONTENTS=0,C_RX_USER_CLOCKING_INSTANCE_CTRL=0,C_RX_USER_CLOCKING_RATIO_FSRC_FUSRCLK=1,C_RX_USER_CLOCKING_RATIO_FUSRCLK_FUSRCLK2=1,C_RX_USER_CLOCKING_SOURCE=0,C_RX_USER_DATA_WIDTH=16,C_RX_USRCLK_FREQUENCY=62.5000000,C_RX_USRCLK2_FREQUENCY=62.5000000,C_SECONDARY_QPLL_ENABLE=0,C_SECONDARY_QPLL_REFCLK_FREQUENCY=257.8125,C_TOTAL_NUM_CHANNELS=1,C_TOTAL_NUM_COMMONS=0,C_TOTAL_NUM_COMMONS_EXAMPLE=0,C_TXPROGDIV_FREQ_ENABLE=1,C_TXPROGDIV_FREQ_SOURCE=2,C_TXPROGDIV_FREQ_VAL=125,C_TX_BUFFBYPASS_MODE=0,C_TX_BUFFER_BYPASS_INSTANCE_CTRL=0,C_TX_BUFFER_MODE=1,C_TX_DATA_ENCODING=1,C_TX_ENABLE=1,C_TX_INT_DATA_WIDTH=20,C_TX_LINE_RATE=1.25,C_TX_MASTER_CHANNEL_IDX=0,C_TX_OUTCLK_BUFG_GT_DIV=2,C_TX_OUTCLK_FREQUENCY=62.5000000,C_TX_OUTCLK_SOURCE=4,C_TX_PLL_TYPE=2,C_TX_REFCLK_FREQUENCY=125,C_TX_USER_CLOCKING_CONTENTS=0,C_TX_USER_CLOCKING_INSTANCE_CTRL=0,C_TX_USER_CLOCKING_RATIO_FSRC_FUSRCLK=1,C_TX_USER_CLOCKING_RATIO_FUSRCLK_FUSRCLK2=1,C_TX_USER_CLOCKING_SOURCE=0,C_TX_USER_DATA_WIDTH=16,C_TX_USRCLK_FREQUENCY=62.5000000,C_TX_USRCLK2_FREQUENCY=62.5000000}";
   attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt : entity is "yes";
   attribute x_core_info : string;
-  attribute x_core_info of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt : entity is "GigEthGthUltraScaleCore_gt_gtwizard_top,Vivado 2015.3";
+  attribute x_core_info of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt : entity is "GigEthGthUltraScaleCore_gt_gtwizard_top,Vivado 2016.1";
 end GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt;
 
 architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt is
@@ -15059,8 +15055,8 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver is
     txoutclk : out STD_LOGIC;
     rxchariscomma : out STD_LOGIC;
     rxcharisk : out STD_LOGIC;
-    rxclkcorcnt : out STD_LOGIC_VECTOR ( 1 downto 0 );
-    rxdata : out STD_LOGIC_VECTOR ( 7 downto 0 );
+    Q : out STD_LOGIC_VECTOR ( 1 downto 0 );
+    \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\ : out STD_LOGIC_VECTOR ( 7 downto 0 );
     rxdisperr : out STD_LOGIC;
     rxnotintable : out STD_LOGIC;
     rxbuferr : out STD_LOGIC;
@@ -15068,7 +15064,7 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver is
     data_in : out STD_LOGIC;
     mmcm_reset : out STD_LOGIC;
     userclk : in STD_LOGIC;
-    encommaalign : in STD_LOGIC;
+    enablealign : in STD_LOGIC;
     mmcm_locked : in STD_LOGIC;
     independent_clock_bufg : in STD_LOGIC;
     pma_reset : in STD_LOGIC;
@@ -15080,19 +15076,15 @@ entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver is
     txreset : in STD_LOGIC;
     D : in STD_LOGIC_VECTOR ( 7 downto 0 );
     powerdown : in STD_LOGIC;
-    txchardispval : in STD_LOGIC;
-    txchardispmode : in STD_LOGIC;
-    txcharisk : in STD_LOGIC
+    \USE_ROCKET_IO.TXCHARDISPVAL_reg\ : in STD_LOGIC_VECTOR ( 0 to 0 );
+    \USE_ROCKET_IO.TXCHARDISPMODE_reg\ : in STD_LOGIC_VECTOR ( 0 to 0 );
+    \USE_ROCKET_IO.TXCHARISK_reg\ : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute ORIG_REF_NAME : string;
   attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver : entity is "GigEthGthUltraScaleCore_transceiver";
 end GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver;
 
 architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver is
-  signal GigEthGthUltraScaleCore_gt_i_n_103 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_104 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_111 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_112 : STD_LOGIC;
   signal GigEthGthUltraScaleCore_gt_i_n_114 : STD_LOGIC;
   signal GigEthGthUltraScaleCore_gt_i_n_115 : STD_LOGIC;
   signal GigEthGthUltraScaleCore_gt_i_n_116 : STD_LOGIC;
@@ -15140,16 +15132,12 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transc
   signal GigEthGthUltraScaleCore_gt_i_n_60 : STD_LOGIC;
   signal GigEthGthUltraScaleCore_gt_i_n_61 : STD_LOGIC;
   signal GigEthGthUltraScaleCore_gt_i_n_64 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_79 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_80 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_95 : STD_LOGIC;
-  signal GigEthGthUltraScaleCore_gt_i_n_96 : STD_LOGIC;
   signal \^cplllock\ : STD_LOGIC;
+  signal encommaalign_int : STD_LOGIC;
   signal gtwiz_reset_rx_datapath_in_int : STD_LOGIC;
-  signal gtwiz_reset_rx_done_out : STD_LOGIC;
+  signal gtwiz_reset_rx_done_out_int : STD_LOGIC;
   signal gtwiz_reset_tx_datapath_in_int : STD_LOGIC;
-  signal gtwiz_reset_tx_done_out : STD_LOGIC;
-  signal gtwiz_userdata_rx_out : STD_LOGIC_VECTOR ( 15 downto 0 );
+  signal gtwiz_reset_tx_done_out_int : STD_LOGIC;
   signal p_0_in : STD_LOGIC;
   signal p_1_in : STD_LOGIC_VECTOR ( 7 downto 0 );
   signal rxchariscomma_double : STD_LOGIC_VECTOR ( 1 downto 0 );
@@ -15159,8 +15147,12 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transc
   signal rxcharisk_i_1_n_0 : STD_LOGIC;
   signal \rxcharisk_reg__0\ : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal rxclkcorcnt_double : STD_LOGIC_VECTOR ( 1 downto 0 );
-  signal rxclkcorcnt_out : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal rxclkcorcnt_int : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal rxclkcorcnt_reg : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal rxctrl0_out : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal rxctrl1_out : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal rxctrl2_out : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal rxctrl3_out : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal \rxdata[0]_i_1_n_0\ : STD_LOGIC;
   signal \rxdata[1]_i_1_n_0\ : STD_LOGIC;
   signal \rxdata[2]_i_1_n_0\ : STD_LOGIC;
@@ -15170,6 +15162,7 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transc
   signal \rxdata[6]_i_1_n_0\ : STD_LOGIC;
   signal \rxdata[7]_i_1_n_0\ : STD_LOGIC;
   signal rxdata_double : STD_LOGIC_VECTOR ( 15 downto 0 );
+  signal rxdata_int : STD_LOGIC_VECTOR ( 15 downto 0 );
   signal rxdata_reg : STD_LOGIC_VECTOR ( 15 downto 0 );
   signal rxdisperr_double : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal rxdisperr_i_1_n_0 : STD_LOGIC;
@@ -15177,7 +15170,6 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transc
   signal rxnotintable_double : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal rxnotintable_i_1_n_0 : STD_LOGIC;
   signal \rxnotintable_reg__0\ : STD_LOGIC_VECTOR ( 1 downto 0 );
-  signal rxpcommaalignen_in_int : STD_LOGIC;
   signal rxpowerdown : STD_LOGIC;
   signal rxpowerdown_double : STD_LOGIC;
   signal \rxpowerdown_reg__0\ : STD_LOGIC;
@@ -15207,27 +15199,25 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transc
   signal NLW_GigEthGthUltraScaleCore_gt_i_txprgdivresetdone_out_UNCONNECTED : STD_LOGIC_VECTOR ( 0 to 0 );
   attribute CHECK_LICENSE_TYPE : string;
   attribute CHECK_LICENSE_TYPE of GigEthGthUltraScaleCore_gt_i : label is "GigEthGthUltraScaleCore_gt,GigEthGthUltraScaleCore_gt_gtwizard_top,{}";
-  attribute CORE_GENERATION_INFO : string;
-  attribute CORE_GENERATION_INFO of GigEthGthUltraScaleCore_gt_i : label is "GigEthGthUltraScaleCore_gt,GigEthGthUltraScaleCore_gt_gtwizard_top,{x_ipProduct=Vivado 2015.3,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gtwizard_ultrascale,x_ipVersion=1.6,x_ipCoreRevision=0,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,C_CHANNEL_ENABLE=000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001,C_COMMON_SCALING_FACTOR=1,C_CPLL_VCO_FREQUENCY=2500.0,C_FORCE_COMMONS=0,C_FREERUN_FREQUENCY=62.5,C_GT_TYPE=0,C_GT_REV=17,C_INCLUDE_CPLL_CAL=2,C_LOCATE_COMMON=0,C_LOCATE_RESET_CONTROLLER=0,C_LOCATE_USER_DATA_WIDTH_SIZING=0,C_LOCATE_RX_BUFFER_BYPASS_CONTROLLER=0,C_LOCATE_IN_SYSTEM_IBERT_CORE=2,C_LOCATE_RX_USER_CLOCKING=1,C_LOCATE_TX_BUFFER_BYPASS_CONTROLLER=0,C_LOCATE_TX_USER_CLOCKING=1,C_RESET_CONTROLLER_INSTANCE_CTRL=0,C_RX_BUFFBYPASS_MODE=0,C_RX_BUFFER_BYPASS_INSTANCE_CTRL=0,C_RX_BUFFER_MODE=1,C_RX_CB_DISP=00000000,C_RX_CB_K=00000000,C_RX_CB_MAX_LEVEL=1,C_RX_CB_LEN_SEQ=1,C_RX_CB_NUM_SEQ=0,C_RX_CB_VAL=00000000000000000000000000000000000000000000000000000000000000000000000000000000,C_RX_CC_DISP=00000000,C_RX_CC_ENABLE=1,C_RESET_SEQUENCE_INTERVAL=0,C_RX_CC_K=00010001,C_RX_CC_LEN_SEQ=2,C_RX_CC_NUM_SEQ=2,C_RX_CC_PERIODICITY=5000,C_RX_CC_VAL=00000000000000000000001011010100101111000000000000000000000000010100000010111100,C_RX_COMMA_M_ENABLE=1,C_RX_COMMA_M_VAL=1010000011,C_RX_COMMA_P_ENABLE=1,C_RX_COMMA_P_VAL=0101111100,C_RX_DATA_DECODING=1,C_RX_ENABLE=1,C_RX_INT_DATA_WIDTH=20,C_RX_LINE_RATE=1.25,C_RX_MASTER_CHANNEL_IDX=0,C_RX_OUTCLK_BUFG_GT_DIV=1,C_RX_OUTCLK_FREQUENCY=62.5000000,C_RX_OUTCLK_SOURCE=1,C_RX_PLL_TYPE=2,C_RX_RECCLK_OUTPUT=0x000000000000000000000000000000000000000000000000,C_RX_REFCLK_FREQUENCY=125,C_RX_SLIDE_MODE=0,C_RX_USER_CLOCKING_CONTENTS=0,C_RX_USER_CLOCKING_INSTANCE_CTRL=0,C_RX_USER_CLOCKING_RATIO_FSRC_FUSRCLK=1,C_RX_USER_CLOCKING_RATIO_FUSRCLK_FUSRCLK2=1,C_RX_USER_CLOCKING_SOURCE=0,C_RX_USER_DATA_WIDTH=16,C_RX_USRCLK_FREQUENCY=62.5000000,C_RX_USRCLK2_FREQUENCY=62.5000000,C_SECONDARY_QPLL_ENABLE=0,C_SECONDARY_QPLL_REFCLK_FREQUENCY=257.8125,C_TOTAL_NUM_CHANNELS=1,C_TOTAL_NUM_COMMONS=0,C_TOTAL_NUM_COMMONS_EXAMPLE=0,C_TXPROGDIV_FREQ_ENABLE=1,C_TXPROGDIV_FREQ_SOURCE=2,C_TXPROGDIV_FREQ_VAL=125,C_TX_BUFFBYPASS_MODE=0,C_TX_BUFFER_BYPASS_INSTANCE_CTRL=0,C_TX_BUFFER_MODE=1,C_TX_DATA_ENCODING=1,C_TX_ENABLE=1,C_TX_INT_DATA_WIDTH=20,C_TX_LINE_RATE=1.25,C_TX_MASTER_CHANNEL_IDX=0,C_TX_OUTCLK_BUFG_GT_DIV=2,C_TX_OUTCLK_FREQUENCY=62.5000000,C_TX_OUTCLK_SOURCE=4,C_TX_PLL_TYPE=2,C_TX_REFCLK_FREQUENCY=125,C_TX_USER_CLOCKING_CONTENTS=0,C_TX_USER_CLOCKING_INSTANCE_CTRL=0,C_TX_USER_CLOCKING_RATIO_FSRC_FUSRCLK=1,C_TX_USER_CLOCKING_RATIO_FUSRCLK_FUSRCLK2=1,C_TX_USER_CLOCKING_SOURCE=0,C_TX_USER_DATA_WIDTH=16,C_TX_USRCLK_FREQUENCY=62.5000000,C_TX_USRCLK2_FREQUENCY=62.5000000}";
   attribute X_CORE_INFO : string;
-  attribute X_CORE_INFO of GigEthGthUltraScaleCore_gt_i : label is "GigEthGthUltraScaleCore_gt_gtwizard_top,Vivado 2015.3";
+  attribute X_CORE_INFO of GigEthGthUltraScaleCore_gt_i : label is "GigEthGthUltraScaleCore_gt_gtwizard_top,Vivado 2016.1";
   attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore_gt_i : label is "yes";
   attribute SOFT_HLUTNM : string;
-  attribute SOFT_HLUTNM of GigEthGthUltraScaleCore_gt_i_i_1 : label is "soft_lutpair57";
-  attribute SOFT_HLUTNM of data_sync1_i_1 : label is "soft_lutpair57";
-  attribute SOFT_HLUTNM of rxchariscomma_i_1 : label is "soft_lutpair55";
-  attribute SOFT_HLUTNM of rxcharisk_i_1 : label is "soft_lutpair55";
-  attribute SOFT_HLUTNM of \rxdata[0]_i_1\ : label is "soft_lutpair51";
-  attribute SOFT_HLUTNM of \rxdata[1]_i_1\ : label is "soft_lutpair51";
-  attribute SOFT_HLUTNM of \rxdata[2]_i_1\ : label is "soft_lutpair52";
-  attribute SOFT_HLUTNM of \rxdata[3]_i_1\ : label is "soft_lutpair52";
-  attribute SOFT_HLUTNM of \rxdata[4]_i_1\ : label is "soft_lutpair53";
-  attribute SOFT_HLUTNM of \rxdata[5]_i_1\ : label is "soft_lutpair53";
-  attribute SOFT_HLUTNM of \rxdata[6]_i_1\ : label is "soft_lutpair54";
-  attribute SOFT_HLUTNM of \rxdata[7]_i_1\ : label is "soft_lutpair54";
-  attribute SOFT_HLUTNM of rxdisperr_i_1 : label is "soft_lutpair56";
-  attribute SOFT_HLUTNM of rxnotintable_i_1 : label is "soft_lutpair56";
+  attribute SOFT_HLUTNM of GigEthGthUltraScaleCore_gt_i_i_1 : label is "soft_lutpair58";
+  attribute SOFT_HLUTNM of data_sync1_i_1 : label is "soft_lutpair58";
+  attribute SOFT_HLUTNM of rxchariscomma_i_1 : label is "soft_lutpair56";
+  attribute SOFT_HLUTNM of rxcharisk_i_1 : label is "soft_lutpair56";
+  attribute SOFT_HLUTNM of \rxdata[0]_i_1\ : label is "soft_lutpair52";
+  attribute SOFT_HLUTNM of \rxdata[1]_i_1\ : label is "soft_lutpair52";
+  attribute SOFT_HLUTNM of \rxdata[2]_i_1\ : label is "soft_lutpair53";
+  attribute SOFT_HLUTNM of \rxdata[3]_i_1\ : label is "soft_lutpair53";
+  attribute SOFT_HLUTNM of \rxdata[4]_i_1\ : label is "soft_lutpair54";
+  attribute SOFT_HLUTNM of \rxdata[5]_i_1\ : label is "soft_lutpair54";
+  attribute SOFT_HLUTNM of \rxdata[6]_i_1\ : label is "soft_lutpair55";
+  attribute SOFT_HLUTNM of \rxdata[7]_i_1\ : label is "soft_lutpair55";
+  attribute SOFT_HLUTNM of rxdisperr_i_1 : label is "soft_lutpair57";
+  attribute SOFT_HLUTNM of rxnotintable_i_1 : label is "soft_lutpair57";
 begin
   cplllock <= \^cplllock\;
 GigEthGthUltraScaleCore_gt_i: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_gt
@@ -15286,14 +15276,14 @@ GigEthGthUltraScaleCore_gt_i: entity work.GigEthGthUltraScaleCore_GigEthGthUltra
       gtwiz_reset_clk_freerun_in(0) => independent_clock_bufg,
       gtwiz_reset_rx_cdr_stable_out(0) => NLW_GigEthGthUltraScaleCore_gt_i_gtwiz_reset_rx_cdr_stable_out_UNCONNECTED(0),
       gtwiz_reset_rx_datapath_in(0) => gtwiz_reset_rx_datapath_in_int,
-      gtwiz_reset_rx_done_out(0) => gtwiz_reset_rx_done_out,
+      gtwiz_reset_rx_done_out(0) => gtwiz_reset_rx_done_out_int,
       gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
       gtwiz_reset_tx_datapath_in(0) => gtwiz_reset_tx_datapath_in_int,
-      gtwiz_reset_tx_done_out(0) => gtwiz_reset_tx_done_out,
+      gtwiz_reset_tx_done_out(0) => gtwiz_reset_tx_done_out_int,
       gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
       gtwiz_userclk_rx_active_in(0) => GigEthGthUltraScaleCore_gt_i_n_114,
       gtwiz_userclk_tx_active_in(0) => mmcm_locked,
-      gtwiz_userdata_rx_out(15 downto 0) => gtwiz_userdata_rx_out(15 downto 0),
+      gtwiz_userdata_rx_out(15 downto 0) => rxdata_int(15 downto 0),
       gtwiz_userdata_tx_in(15 downto 0) => txdata_int(15 downto 0),
       loopback_in(2 downto 0) => B"000",
       pcsrsvdin_in(15 downto 0) => B"0000000000000000",
@@ -15305,26 +15295,22 @@ GigEthGthUltraScaleCore_gt_i: entity work.GigEthGthUltraScaleCore_GigEthGthUltra
       rxbyteisaligned_out(0) => GigEthGthUltraScaleCore_gt_i_n_60,
       rxbyterealign_out(0) => GigEthGthUltraScaleCore_gt_i_n_61,
       rxcdrhold_in(0) => '0',
-      rxclkcorcnt_out(1 downto 0) => rxclkcorcnt_out(1 downto 0),
+      rxclkcorcnt_out(1 downto 0) => rxclkcorcnt_int(1 downto 0),
       rxcommadet_out(0) => GigEthGthUltraScaleCore_gt_i_n_64,
       rxcommadeten_in(0) => '1',
       rxctrl0_out(15 downto 2) => NLW_GigEthGthUltraScaleCore_gt_i_rxctrl0_out_UNCONNECTED(15 downto 2),
-      rxctrl0_out(1) => GigEthGthUltraScaleCore_gt_i_n_79,
-      rxctrl0_out(0) => GigEthGthUltraScaleCore_gt_i_n_80,
+      rxctrl0_out(1 downto 0) => rxctrl0_out(1 downto 0),
       rxctrl1_out(15 downto 2) => NLW_GigEthGthUltraScaleCore_gt_i_rxctrl1_out_UNCONNECTED(15 downto 2),
-      rxctrl1_out(1) => GigEthGthUltraScaleCore_gt_i_n_95,
-      rxctrl1_out(0) => GigEthGthUltraScaleCore_gt_i_n_96,
+      rxctrl1_out(1 downto 0) => rxctrl1_out(1 downto 0),
       rxctrl2_out(7 downto 2) => NLW_GigEthGthUltraScaleCore_gt_i_rxctrl2_out_UNCONNECTED(7 downto 2),
-      rxctrl2_out(1) => GigEthGthUltraScaleCore_gt_i_n_103,
-      rxctrl2_out(0) => GigEthGthUltraScaleCore_gt_i_n_104,
+      rxctrl2_out(1 downto 0) => rxctrl2_out(1 downto 0),
       rxctrl3_out(7 downto 2) => NLW_GigEthGthUltraScaleCore_gt_i_rxctrl3_out_UNCONNECTED(7 downto 2),
-      rxctrl3_out(1) => GigEthGthUltraScaleCore_gt_i_n_111,
-      rxctrl3_out(0) => GigEthGthUltraScaleCore_gt_i_n_112,
+      rxctrl3_out(1 downto 0) => rxctrl3_out(1 downto 0),
       rxdfelpmreset_in(0) => '0',
       rxlpmen_in(0) => '1',
-      rxmcommaalignen_in(0) => rxpcommaalignen_in_int,
+      rxmcommaalignen_in(0) => encommaalign_int,
       rxoutclk_out(0) => rxoutclk,
-      rxpcommaalignen_in(0) => rxpcommaalignen_in_int,
+      rxpcommaalignen_in(0) => encommaalign_int,
       rxpcsreset_in(0) => '0',
       rxpd_in(1) => rxpowerdown,
       rxpd_in(0) => rxpowerdown,
@@ -15372,7 +15358,7 @@ GigEthGthUltraScaleCore_gt_i_i_1: unisim.vcomponents.LUT2
     )
         port map (
       I0 => txreset,
-      I1 => gtwiz_reset_tx_done_out,
+      I1 => gtwiz_reset_tx_done_out_int,
       O => gtwiz_reset_tx_datapath_in_int
     );
 GigEthGthUltraScaleCore_gt_i_i_2: unisim.vcomponents.LUT2
@@ -15381,7 +15367,7 @@ GigEthGthUltraScaleCore_gt_i_i_2: unisim.vcomponents.LUT2
     )
         port map (
       I0 => SR(0),
-      I1 => gtwiz_reset_rx_done_out,
+      I1 => gtwiz_reset_rx_done_out_int,
       O => gtwiz_reset_rx_datapath_in_int
     );
 data_sync1_i_1: unisim.vcomponents.LUT2
@@ -15389,8 +15375,8 @@ data_sync1_i_1: unisim.vcomponents.LUT2
       INIT => X"8"
     )
         port map (
-      I0 => gtwiz_reset_tx_done_out,
-      I1 => gtwiz_reset_rx_done_out,
+      I0 => gtwiz_reset_tx_done_out_int,
+      I1 => gtwiz_reset_rx_done_out_int,
       O => data_in
     );
 mmcm_reset_INST_0: unisim.vcomponents.LUT1
@@ -15403,8 +15389,8 @@ mmcm_reset_INST_0: unisim.vcomponents.LUT1
     );
 reclock_encommaalign: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_reset_sync
      port map (
-      encommaalign => encommaalign,
-      reset_out => rxpcommaalignen_in_int,
+      enablealign => enablealign,
+      reset_out => encommaalign_int,
       userclk => userclk
     );
 rxbuferr_reg: unisim.vcomponents.FDRE
@@ -15461,7 +15447,7 @@ rxchariscomma_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_104,
+      D => rxctrl2_out(0),
       Q => \rxchariscomma_reg__0\(0),
       R => '0'
     );
@@ -15469,7 +15455,7 @@ rxchariscomma_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_103,
+      D => rxctrl2_out(1),
       Q => \rxchariscomma_reg__0\(1),
       R => '0'
     );
@@ -15511,7 +15497,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_80,
+      D => rxctrl0_out(0),
       Q => \rxcharisk_reg__0\(0),
       R => '0'
     );
@@ -15519,7 +15505,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_79,
+      D => rxctrl0_out(1),
       Q => \rxcharisk_reg__0\(1),
       R => '0'
     );
@@ -15544,7 +15530,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => rxclkcorcnt_double(0),
-      Q => rxclkcorcnt(0),
+      Q => Q(0),
       R => SR(0)
     );
 \rxclkcorcnt_reg[1]\: unisim.vcomponents.FDRE
@@ -15552,14 +15538,14 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => rxclkcorcnt_double(1),
-      Q => rxclkcorcnt(1),
+      Q => Q(1),
       R => SR(0)
     );
 \rxclkcorcnt_reg_reg[0]\: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => rxclkcorcnt_out(0),
+      D => rxclkcorcnt_int(0),
       Q => rxclkcorcnt_reg(0),
       R => '0'
     );
@@ -15567,7 +15553,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => rxclkcorcnt_out(1),
+      D => rxclkcorcnt_int(1),
       Q => rxclkcorcnt_reg(1),
       R => '0'
     );
@@ -15784,7 +15770,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[0]_i_1_n_0\,
-      Q => rxdata(0),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(0),
       R => SR(0)
     );
 \rxdata_reg[1]\: unisim.vcomponents.FDRE
@@ -15792,7 +15778,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[1]_i_1_n_0\,
-      Q => rxdata(1),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(1),
       R => SR(0)
     );
 \rxdata_reg[2]\: unisim.vcomponents.FDRE
@@ -15800,7 +15786,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[2]_i_1_n_0\,
-      Q => rxdata(2),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(2),
       R => SR(0)
     );
 \rxdata_reg[3]\: unisim.vcomponents.FDRE
@@ -15808,7 +15794,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[3]_i_1_n_0\,
-      Q => rxdata(3),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(3),
       R => SR(0)
     );
 \rxdata_reg[4]\: unisim.vcomponents.FDRE
@@ -15816,7 +15802,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[4]_i_1_n_0\,
-      Q => rxdata(4),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(4),
       R => SR(0)
     );
 \rxdata_reg[5]\: unisim.vcomponents.FDRE
@@ -15824,7 +15810,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[5]_i_1_n_0\,
-      Q => rxdata(5),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(5),
       R => SR(0)
     );
 \rxdata_reg[6]\: unisim.vcomponents.FDRE
@@ -15832,7 +15818,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[6]_i_1_n_0\,
-      Q => rxdata(6),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(6),
       R => SR(0)
     );
 \rxdata_reg[7]\: unisim.vcomponents.FDRE
@@ -15840,14 +15826,14 @@ rxcharisk_reg: unisim.vcomponents.FDRE
       C => userclk2,
       CE => '1',
       D => \rxdata[7]_i_1_n_0\,
-      Q => rxdata(7),
+      Q => \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(7),
       R => SR(0)
     );
 \rxdata_reg_reg[0]\: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(0),
+      D => rxdata_int(0),
       Q => rxdata_reg(0),
       R => '0'
     );
@@ -15855,7 +15841,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(10),
+      D => rxdata_int(10),
       Q => rxdata_reg(10),
       R => '0'
     );
@@ -15863,7 +15849,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(11),
+      D => rxdata_int(11),
       Q => rxdata_reg(11),
       R => '0'
     );
@@ -15871,7 +15857,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(12),
+      D => rxdata_int(12),
       Q => rxdata_reg(12),
       R => '0'
     );
@@ -15879,7 +15865,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(13),
+      D => rxdata_int(13),
       Q => rxdata_reg(13),
       R => '0'
     );
@@ -15887,7 +15873,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(14),
+      D => rxdata_int(14),
       Q => rxdata_reg(14),
       R => '0'
     );
@@ -15895,7 +15881,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(15),
+      D => rxdata_int(15),
       Q => rxdata_reg(15),
       R => '0'
     );
@@ -15903,7 +15889,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(1),
+      D => rxdata_int(1),
       Q => rxdata_reg(1),
       R => '0'
     );
@@ -15911,7 +15897,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(2),
+      D => rxdata_int(2),
       Q => rxdata_reg(2),
       R => '0'
     );
@@ -15919,7 +15905,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(3),
+      D => rxdata_int(3),
       Q => rxdata_reg(3),
       R => '0'
     );
@@ -15927,7 +15913,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(4),
+      D => rxdata_int(4),
       Q => rxdata_reg(4),
       R => '0'
     );
@@ -15935,7 +15921,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(5),
+      D => rxdata_int(5),
       Q => rxdata_reg(5),
       R => '0'
     );
@@ -15943,7 +15929,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(6),
+      D => rxdata_int(6),
       Q => rxdata_reg(6),
       R => '0'
     );
@@ -15951,7 +15937,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(7),
+      D => rxdata_int(7),
       Q => rxdata_reg(7),
       R => '0'
     );
@@ -15959,7 +15945,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(8),
+      D => rxdata_int(8),
       Q => rxdata_reg(8),
       R => '0'
     );
@@ -15967,7 +15953,7 @@ rxcharisk_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => gtwiz_userdata_rx_out(9),
+      D => rxdata_int(9),
       Q => rxdata_reg(9),
       R => '0'
     );
@@ -16009,7 +15995,7 @@ rxdisperr_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_96,
+      D => rxctrl1_out(0),
       Q => \rxdisperr_reg__0\(0),
       R => '0'
     );
@@ -16017,7 +16003,7 @@ rxdisperr_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_95,
+      D => rxctrl1_out(1),
       Q => \rxdisperr_reg__0\(1),
       R => '0'
     );
@@ -16059,7 +16045,7 @@ rxnotintable_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_112,
+      D => rxctrl3_out(0),
       Q => \rxnotintable_reg__0\(0),
       R => '0'
     );
@@ -16067,7 +16053,7 @@ rxnotintable_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk,
       CE => '1',
-      D => GigEthGthUltraScaleCore_gt_i_n_111,
+      D => rxctrl3_out(1),
       Q => \rxnotintable_reg__0\(1),
       R => '0'
     );
@@ -16148,7 +16134,7 @@ txbuferr_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk2,
       CE => toggle_i_1_n_0,
-      D => txchardispmode,
+      D => \USE_ROCKET_IO.TXCHARDISPMODE_reg\(0),
       Q => txchardispmode_double(1),
       R => txreset
     );
@@ -16172,7 +16158,7 @@ txchardispmode_reg_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk2,
       CE => '1',
-      D => txchardispmode,
+      D => \USE_ROCKET_IO.TXCHARDISPMODE_reg\(0),
       Q => txchardispmode_reg,
       R => txreset
     );
@@ -16188,7 +16174,7 @@ txchardispmode_reg_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk2,
       CE => toggle_i_1_n_0,
-      D => txchardispval,
+      D => \USE_ROCKET_IO.TXCHARDISPVAL_reg\(0),
       Q => txchardispval_double(1),
       R => txreset
     );
@@ -16212,7 +16198,7 @@ txchardispval_reg_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk2,
       CE => '1',
-      D => txchardispval,
+      D => \USE_ROCKET_IO.TXCHARDISPVAL_reg\(0),
       Q => txchardispval_reg,
       R => txreset
     );
@@ -16228,7 +16214,7 @@ txchardispval_reg_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk2,
       CE => toggle_i_1_n_0,
-      D => txcharisk,
+      D => \USE_ROCKET_IO.TXCHARISK_reg\(0),
       Q => txcharisk_double(1),
       R => txreset
     );
@@ -16252,7 +16238,7 @@ txcharisk_reg_reg: unisim.vcomponents.FDRE
      port map (
       C => userclk2,
       CE => '1',
-      D => txcharisk,
+      D => \USE_ROCKET_IO.TXCHARISK_reg\(0),
       Q => txcharisk_reg,
       R => txreset
     );
@@ -16616,42 +16602,48 @@ library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
 entity GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block is
   port (
+    gtrefclk : in STD_LOGIC;
+    txp : out STD_LOGIC;
+    txn : out STD_LOGIC;
+    rxp : in STD_LOGIC;
+    rxn : in STD_LOGIC;
+    txoutclk : out STD_LOGIC;
+    rxoutclk : out STD_LOGIC;
+    resetdone : out STD_LOGIC;
+    cplllock : out STD_LOGIC;
+    mmcm_reset : out STD_LOGIC;
+    mmcm_locked : in STD_LOGIC;
+    userclk : in STD_LOGIC;
+    userclk2 : in STD_LOGIC;
+    rxuserclk : in STD_LOGIC;
+    rxuserclk2 : in STD_LOGIC;
+    independent_clock_bufg : in STD_LOGIC;
+    pma_reset : in STD_LOGIC;
+    gmii_txd : in STD_LOGIC_VECTOR ( 7 downto 0 );
+    gmii_tx_en : in STD_LOGIC;
+    gmii_tx_er : in STD_LOGIC;
     gmii_rxd : out STD_LOGIC_VECTOR ( 7 downto 0 );
     gmii_rx_dv : out STD_LOGIC;
     gmii_rx_er : out STD_LOGIC;
     gmii_isolate : out STD_LOGIC;
-    status_vector : out STD_LOGIC_VECTOR ( 15 downto 0 );
-    resetdone : out STD_LOGIC;
-    cplllock : out STD_LOGIC;
-    txn : out STD_LOGIC;
-    txp : out STD_LOGIC;
-    rxoutclk : out STD_LOGIC;
-    txoutclk : out STD_LOGIC;
-    mmcm_reset : out STD_LOGIC;
-    reset : in STD_LOGIC;
-    signal_detect : in STD_LOGIC;
-    userclk2 : in STD_LOGIC;
-    mmcm_locked : in STD_LOGIC;
-    gmii_txd : in STD_LOGIC_VECTOR ( 7 downto 0 );
-    gmii_tx_en : in STD_LOGIC;
-    gmii_tx_er : in STD_LOGIC;
     configuration_vector : in STD_LOGIC_VECTOR ( 4 downto 0 );
-    userclk : in STD_LOGIC;
-    independent_clock_bufg : in STD_LOGIC;
-    pma_reset : in STD_LOGIC;
-    rxn : in STD_LOGIC;
-    rxp : in STD_LOGIC;
-    gtrefclk : in STD_LOGIC
+    status_vector : out STD_LOGIC_VECTOR ( 15 downto 0 );
+    reset : in STD_LOGIC;
+    signal_detect : in STD_LOGIC
   );
   attribute ORIG_REF_NAME : string;
   attribute ORIG_REF_NAME of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block : entity is "GigEthGthUltraScaleCore_block";
+  attribute downgradeipidentifiedwarnings : string;
+  attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block : entity is "yes";
 end GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block;
 
 architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block is
-  signal data_in : STD_LOGIC;
-  signal encommaalign : STD_LOGIC;
+  signal enablealign : STD_LOGIC;
+  signal mgt_rx_reset : STD_LOGIC;
+  signal mgt_tx_reset : STD_LOGIC;
   signal powerdown : STD_LOGIC;
   signal \^resetdone\ : STD_LOGIC;
+  signal resetdone_i : STD_LOGIC;
   signal rxbuferr : STD_LOGIC;
   signal rxchariscomma : STD_LOGIC;
   signal rxcharisk : STD_LOGIC;
@@ -16659,13 +16651,11 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block 
   signal rxdata : STD_LOGIC_VECTOR ( 7 downto 0 );
   signal rxdisperr : STD_LOGIC;
   signal rxnotintable : STD_LOGIC;
-  signal rxreset : STD_LOGIC;
   signal txbuferr : STD_LOGIC;
   signal txchardispmode : STD_LOGIC;
   signal txchardispval : STD_LOGIC;
   signal txcharisk : STD_LOGIC;
   signal txdata : STD_LOGIC_VECTOR ( 7 downto 0 );
-  signal txreset : STD_LOGIC;
   signal NLW_GigEthGthUltraScaleCore_core_an_enable_UNCONNECTED : STD_LOGIC;
   signal NLW_GigEthGthUltraScaleCore_core_an_interrupt_UNCONNECTED : STD_LOGIC;
   signal NLW_GigEthGthUltraScaleCore_core_drp_den_UNCONNECTED : STD_LOGIC;
@@ -16676,7 +16666,7 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block 
   signal NLW_GigEthGthUltraScaleCore_core_loc_ref_UNCONNECTED : STD_LOGIC;
   signal NLW_GigEthGthUltraScaleCore_core_mdio_out_UNCONNECTED : STD_LOGIC;
   signal NLW_GigEthGthUltraScaleCore_core_mdio_tri_UNCONNECTED : STD_LOGIC;
-  signal NLW_GigEthGthUltraScaleCore_core_drp_daddr_UNCONNECTED : STD_LOGIC_VECTOR ( 8 downto 0 );
+  signal NLW_GigEthGthUltraScaleCore_core_drp_daddr_UNCONNECTED : STD_LOGIC_VECTOR ( 9 downto 0 );
   signal NLW_GigEthGthUltraScaleCore_core_drp_di_UNCONNECTED : STD_LOGIC_VECTOR ( 15 downto 0 );
   signal NLW_GigEthGthUltraScaleCore_core_rxphy_correction_timer_UNCONNECTED : STD_LOGIC_VECTOR ( 63 downto 0 );
   signal NLW_GigEthGthUltraScaleCore_core_rxphy_ns_field_UNCONNECTED : STD_LOGIC_VECTOR ( 31 downto 0 );
@@ -16684,7 +16674,7 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block 
   signal NLW_GigEthGthUltraScaleCore_core_speed_selection_UNCONNECTED : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal NLW_GigEthGthUltraScaleCore_core_tx_code_group_UNCONNECTED : STD_LOGIC_VECTOR ( 9 downto 0 );
   attribute B_SHIFTER_ADDR : string;
-  attribute B_SHIFTER_ADDR of GigEthGthUltraScaleCore_core : label is "8'b01010000";
+  attribute B_SHIFTER_ADDR of GigEthGthUltraScaleCore_core : label is "10'b0101010000";
   attribute C_1588 : integer;
   attribute C_1588 of GigEthGthUltraScaleCore_core : label is 0;
   attribute C_COMPONENT_NAME : string;
@@ -16703,6 +16693,8 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block 
   attribute C_HAS_TEMAC of GigEthGthUltraScaleCore_core : label is "TRUE";
   attribute C_IS_SGMII : string;
   attribute C_IS_SGMII of GigEthGthUltraScaleCore_core : label is "FALSE";
+  attribute C_RX_GMII_CLK : string;
+  attribute C_RX_GMII_CLK of GigEthGthUltraScaleCore_core : label is "TXOUTCLK";
   attribute C_SGMII_FABRIC_BUFFER : string;
   attribute C_SGMII_FABRIC_BUFFER of GigEthGthUltraScaleCore_core : label is "TRUE";
   attribute C_SGMII_PHY_MODE : string;
@@ -16713,17 +16705,16 @@ architecture STRUCTURE of GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block 
   attribute C_USE_TBI of GigEthGthUltraScaleCore_core : label is "FALSE";
   attribute C_USE_TRANSCEIVER : string;
   attribute C_USE_TRANSCEIVER of GigEthGthUltraScaleCore_core : label is "TRUE";
-  attribute DONT_TOUCH : boolean;
-  attribute DONT_TOUCH of GigEthGthUltraScaleCore_core : label is std.standard.true;
   attribute GT_RX_BYTE_WIDTH : integer;
   attribute GT_RX_BYTE_WIDTH of GigEthGthUltraScaleCore_core : label is 1;
+  attribute KEEP_HIERARCHY : string;
+  attribute KEEP_HIERARCHY of GigEthGthUltraScaleCore_core : label is "true";
   attribute RX_GT_NOMINAL_LATENCY : string;
   attribute RX_GT_NOMINAL_LATENCY of GigEthGthUltraScaleCore_core : label is "16'b0000000010001100";
-  attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore_core : label is "yes";
 begin
   resetdone <= \^resetdone\;
-GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_1_0
+GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_pcs_pma_v15_2_0
      port map (
       an_adv_config_val => '0',
       an_adv_config_vector(15 downto 0) => B"0000000000000000",
@@ -16735,7 +16726,7 @@ GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_p
       configuration_vector(4 downto 0) => configuration_vector(4 downto 0),
       correction_timer(63 downto 0) => B"0000000000000000000000000000000000000000000000000000000000000000",
       dcm_locked => mmcm_locked,
-      drp_daddr(8 downto 0) => NLW_GigEthGthUltraScaleCore_core_drp_daddr_UNCONNECTED(8 downto 0),
+      drp_daddr(9 downto 0) => NLW_GigEthGthUltraScaleCore_core_drp_daddr_UNCONNECTED(9 downto 0),
       drp_dclk => '0',
       drp_den => NLW_GigEthGthUltraScaleCore_core_drp_den_UNCONNECTED,
       drp_di(15 downto 0) => NLW_GigEthGthUltraScaleCore_core_drp_di_UNCONNECTED(15 downto 0),
@@ -16745,7 +16736,7 @@ GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_p
       drp_gnt => '0',
       drp_req => NLW_GigEthGthUltraScaleCore_core_drp_req_UNCONNECTED,
       en_cdet => NLW_GigEthGthUltraScaleCore_core_en_cdet_UNCONNECTED,
-      enablealign => encommaalign,
+      enablealign => enablealign,
       ewrap => NLW_GigEthGthUltraScaleCore_core_ewrap_UNCONNECTED,
       gmii_isolate => gmii_isolate,
       gmii_rx_dv => gmii_rx_dv,
@@ -16763,8 +16754,8 @@ GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_p
       mdio_in => '0',
       mdio_out => NLW_GigEthGthUltraScaleCore_core_mdio_out_UNCONNECTED,
       mdio_tri => NLW_GigEthGthUltraScaleCore_core_mdio_tri_UNCONNECTED,
-      mgt_rx_reset => rxreset,
-      mgt_tx_reset => txreset,
+      mgt_rx_reset => mgt_rx_reset,
+      mgt_tx_reset => mgt_tx_reset,
       phyad(4 downto 0) => B"00000",
       pma_rx_clk0 => '0',
       pma_rx_clk1 => '0',
@@ -16785,7 +16776,7 @@ GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_p
       rxphy_correction_timer(63 downto 0) => NLW_GigEthGthUltraScaleCore_core_rxphy_correction_timer_UNCONNECTED(63 downto 0),
       rxphy_ns_field(31 downto 0) => NLW_GigEthGthUltraScaleCore_core_rxphy_ns_field_UNCONNECTED(31 downto 0),
       rxphy_s_field(47 downto 0) => NLW_GigEthGthUltraScaleCore_core_rxphy_s_field_UNCONNECTED(47 downto 0),
-      rxrecclk => '0',
+      rxrecclk => rxuserclk2,
       rxrundisp(0) => '0',
       signal_detect => signal_detect,
       speed_selection(1 downto 0) => NLW_GigEthGthUltraScaleCore_core_speed_selection_UNCONNECTED(1 downto 0),
@@ -16803,17 +16794,22 @@ GigEthGthUltraScaleCore_core: entity work.GigEthGthUltraScaleCore_gig_ethernet_p
     );
 sync_block_reset_done: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_sync_block
      port map (
-      data_in => data_in,
+      data_in => resetdone_i,
       resetdone => \^resetdone\,
       userclk2 => userclk2
     );
 transceiver_inst: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_transceiver
      port map (
       D(7 downto 0) => txdata(7 downto 0),
-      SR(0) => rxreset,
+      Q(1 downto 0) => rxclkcorcnt(1 downto 0),
+      SR(0) => mgt_rx_reset,
+      \USE_ROCKET_IO.NO_1588.RECLOCK_MGT_SIGNALS_TXOUTCLK.RXDATA_INT_reg[7]\(7 downto 0) => rxdata(7 downto 0),
+      \USE_ROCKET_IO.TXCHARDISPMODE_reg\(0) => txchardispmode,
+      \USE_ROCKET_IO.TXCHARDISPVAL_reg\(0) => txchardispval,
+      \USE_ROCKET_IO.TXCHARISK_reg\(0) => txcharisk,
       cplllock => cplllock,
-      data_in => data_in,
-      encommaalign => encommaalign,
+      data_in => resetdone_i,
+      enablealign => enablealign,
       gtrefclk => gtrefclk,
       independent_clock_bufg => independent_clock_bufg,
       mmcm_locked => mmcm_locked,
@@ -16823,21 +16819,16 @@ transceiver_inst: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_tr
       rxbuferr => rxbuferr,
       rxchariscomma => rxchariscomma,
       rxcharisk => rxcharisk,
-      rxclkcorcnt(1 downto 0) => rxclkcorcnt(1 downto 0),
-      rxdata(7 downto 0) => rxdata(7 downto 0),
       rxdisperr => rxdisperr,
       rxn => rxn,
       rxnotintable => rxnotintable,
       rxoutclk => rxoutclk,
       rxp => rxp,
       txbuferr => txbuferr,
-      txchardispmode => txchardispmode,
-      txchardispval => txchardispval,
-      txcharisk => txcharisk,
       txn => txn,
       txoutclk => txoutclk,
       txp => txp,
-      txreset => txreset,
+      txreset => mgt_tx_reset,
       userclk => userclk,
       userclk2 => userclk2
     );
@@ -16879,15 +16870,14 @@ entity GigEthGthUltraScaleCore is
   );
   attribute NotValidForBitStream : boolean;
   attribute NotValidForBitStream of GigEthGthUltraScaleCore : entity is true;
-  attribute core_generation_info : string;
-  attribute core_generation_info of GigEthGthUltraScaleCore : entity is "GigEthGthUltraScaleCore,gig_ethernet_pcs_pma_v15_1_0,{x_ipProduct=Vivado 2015.3,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gig_ethernet_pcs_pma,x_ipVersion=15.1,x_ipCoreRevision=0,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,c_elaboration_transient_dir=.,c_component_name=GigEthGthUltraScaleCore,c_family=kintexu,c_is_sgmii=false,c_use_transceiver=true,c_use_tbi=false,c_is_2_5g=false,c_use_lvds=false,c_has_an=false,c_has_mdio=false,c_has_ext_mdio=false,c_sgmii_phy_mode=false,c_dynamic_switching=false,c_sgmii_fabric_buffer=true,c_1588=0,gt_rx_byte_width=1,C_EMAC_IF_TEMAC=true,C_PHYADDR=1,EXAMPLE_SIMULATION=0,c_support_level=false,c_sub_core_name=GigEthGthUltraScaleCore_gt,c_transceiver_type=GTHE3,c_transceivercontrol=false,c_xdevicefamily=xcku040,c_gt_dmonitorout_width=17,c_gt_drpaddr_width=9,c_gt_txdiffctrl_width=4,c_gt_rxmonitorout_width=7,c_num_of_lanes=1,c_refclkrate=125,c_drpclkrate=62.5}";
   attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of GigEthGthUltraScaleCore : entity is "yes";
   attribute x_core_info : string;
-  attribute x_core_info of GigEthGthUltraScaleCore : entity is "gig_ethernet_pcs_pma_v15_1_0,Vivado 2015.3";
+  attribute x_core_info of GigEthGthUltraScaleCore : entity is "gig_ethernet_pcs_pma_v15_2_0,Vivado 2016.1";
 end GigEthGthUltraScaleCore;
 
 architecture STRUCTURE of GigEthGthUltraScaleCore is
+  attribute downgradeipidentifiedwarnings of U0 : label is "yes";
 begin
 U0: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block
      port map (
@@ -16910,6 +16900,8 @@ U0: entity work.GigEthGthUltraScaleCore_GigEthGthUltraScaleCore_block
       rxn => rxn,
       rxoutclk => rxoutclk,
       rxp => rxp,
+      rxuserclk => rxuserclk,
+      rxuserclk2 => rxuserclk2,
       signal_detect => signal_detect,
       status_vector(15 downto 0) => status_vector(15 downto 0),
       txn => txn,

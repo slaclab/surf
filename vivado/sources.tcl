@@ -6,5 +6,5 @@ source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 set_property top GigEthGthUltraScaleCore [current_fileset]
 
 ## Set the Secure IP library 
-set_property library gig_ethernet_pcs_pma_v15_1_0 [get_files ${PROJ_DIR}/hdl/gig_ethernet_pcs_pma_v15_1_rfs.vhd]
+set_property library gig_ethernet_pcs_pma_v15_2_0 [get_files ${PROJ_DIR}/hdl/gig_ethernet_pcs_pma_v15_2_rfs.vhd]
 

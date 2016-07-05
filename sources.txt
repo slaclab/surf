@@ -25,4 +25,4 @@ verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_userdata_tx.v
 verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_reset_inv_synchronizer.v
 verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_reset_synchronizer.v
 
-vhdl gig_ethernet_pcs_pma_v15_1_0 hdl/gig_ethernet_pcs_pma_v15_1_rfs.vhd
+vhdl gig_ethernet_pcs_pma_v15_2_0 hdl/gig_ethernet_pcs_pma_v15_2_rfs.vhd

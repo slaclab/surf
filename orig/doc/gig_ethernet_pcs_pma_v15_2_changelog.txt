@@ -1,3 +1,27 @@
+2016.1:
+ * Version 15.2
+ * Adding GTYE3 and GTYE4 support.
+ * Adding selection option for GTH and GTY transceivers for Ultrascale and Ultrascale+ devices.
+ * Added support for Virtex Ultrascale+ devices.
+ * Added support to interface with GEM of Zynq Ultrascale+ devices.
+ * Added support for GT in example design for Ultrascale and Ultrascale+ devices.
+ * Added support for Rx GMII interface to work at RXOUTCLK.
+ * Changes to HDL library management to support Vivado IP simulation library
+ * Revision change in one or more subcores
+
+2015.4.2:
+ * Version 15.1 (Rev. 1)
+ * No changes
+
+2015.4.1:
+ * Version 15.1 (Rev. 1)
+ * No changes
+
+2015.4:
+ * Version 15.1 (Rev. 1)
+ * Updated Default Latency numbers of GTXE2 and GTHE2 transceivers.
+ * Removing Transceiver_type user parameter as its redundant and not user editable.
+
 2015.3:
  * Version 15.1
  * Added Zynq Ultrascale plus support.
@@ -115,7 +139,7 @@
  * Added parameter EXAMPLE_SIMULATION to be tied 1 in simulation.
  * Marking Production for Kintex-7 family.
 
-(c) Copyright 2002 - 2015 Xilinx, Inc. All rights reserved.
+(c) Copyright 2002 - 2016 Xilinx, Inc. All rights reserved.
 
 This file contains confidential and proprietary information
 of Xilinx, Inc. and is protected under U.S. and
