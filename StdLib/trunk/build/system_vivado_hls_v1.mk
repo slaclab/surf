@@ -6,6 +6,7 @@ export PROJECT = $(notdir $(BASE_DIR))
 export OUT_DIR  = $(abspath $(TOP_DIR)/build/$(PROJECT))
 
 # Synthesis Variables
+export VIVADO_VERSION   = $(shell vivado -version | grep -Po "(\d+\.)+\d+")
 export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado_hls)
 export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project/$(VIVADO_PROJECT).app
@@ -41,6 +42,7 @@ test:
 	@echo RTL_DIR: $(RTL_DIR)
 	@echo VIVADO_BUILD_DIR: $(VIVADO_BUILD_DIR)
 	@echo VIVADO_PROJECT: $(VIVADO_PROJECT)
+	@echo VIVADO_VERSION: $(VIVADO_VERSION)
 	@echo SRC_FILE: $(SRC_FILE)
 	@echo ARGV: $(ARGV)
 	@echo CFLAGS: $(CFLAGS)

@@ -14,6 +14,7 @@ export IMPL_DIR = $(OUT_DIR)/$(VIVADO_PROJECT).runs/impl_1
 
 # Synthesis Variables
 export ISE_DIR          = $(abspath $(PROJ_DIR)/ise)
+export VIVADO_VERSION   = $(shell vivado -version | grep -Po "(\d+\.)+\d+")
 export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado)
 export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
@@ -91,6 +92,7 @@ test:
 	@echo VIVADO_DIR: $(VIVADO_DIR)
 	@echo VIVADO_BUILD_DIR: $(VIVADO_BUILD_DIR)
 	@echo VIVADO_PROJECT: $(VIVADO_PROJECT)
+	@echo VIVADO_VERSION: $(VIVADO_VERSION)
 	@echo MODULE_DIRS: $(MODULE_DIRS)
 	@echo CORE_LISTS: $(CORE_LISTS)
 	@echo CORE_FILES:
