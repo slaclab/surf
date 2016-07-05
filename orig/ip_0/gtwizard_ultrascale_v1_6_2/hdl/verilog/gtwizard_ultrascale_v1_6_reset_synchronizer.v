@@ -52,7 +52,7 @@
 
 `timescale 1ps/1ps
 
-module gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer # (
+module gtwizard_ultrascale_v1_6_2_reset_synchronizer # (
 
   parameter FREQUENCY = 512
 
@@ -67,7 +67,7 @@ module gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer # (
   // Use 5 flip-flops as a single synchronizer, and tag each declaration with the appropriate synthesis attribute to
   // enable clustering. Each flip-flop in the synchronizer is asynchronously reset so that the downstream logic is also
   // asynchronously reset but encounters no reset assertion latency. The removal of reset is synchronous, so that the
-  // downstream logic is also removed from reset synchronously. This module is designed for active-low reset use.
+  // downstream logic is also removed from reset synchronously. This module is designed for active-high reset use.
 
   (* ASYNC_REG = "TRUE" *) reg rst_in_meta  = 1'b0;
   (* ASYNC_REG = "TRUE" *) reg rst_in_sync1 = 1'b0;
@@ -75,16 +75,16 @@ module gtwizard_ultrascale_v1_6_0_reset_inv_synchronizer # (
   (* ASYNC_REG = "TRUE" *) reg rst_in_sync3 = 1'b0;
                            reg rst_in_out   = 1'b0;
 
-  always @(posedge clk_in, negedge rst_in) begin
-    if (!rst_in) begin
-      rst_in_meta  <= 1'b0;
-      rst_in_sync1 <= 1'b0;
-      rst_in_sync2 <= 1'b0;
-      rst_in_sync3 <= 1'b0;
-      rst_in_out   <= 1'b0;
+  always @(posedge clk_in, posedge rst_in) begin
+    if (rst_in) begin
+      rst_in_meta  <= 1'b1;
+      rst_in_sync1 <= 1'b1;
+      rst_in_sync2 <= 1'b1;
+      rst_in_sync3 <= 1'b1;
+      rst_in_out   <= 1'b1;
     end
     else begin
-      rst_in_meta  <= 1'b1;
+      rst_in_meta  <= 1'b0;
       rst_in_sync1 <= rst_in_meta;
       rst_in_sync2 <= rst_in_sync1;
       rst_in_sync3 <= rst_in_sync2;

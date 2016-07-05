@@ -85,8 +85,8 @@ use unisim.vcomponents.all;
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all; 
-library gig_ethernet_pcs_pma_v15_1_0;
-use gig_ethernet_pcs_pma_v15_1_0.all;
+library gig_ethernet_pcs_pma_v15_2_0;
+use gig_ethernet_pcs_pma_v15_2_0.all;
 
 
 
@@ -202,9 +202,9 @@ architecture wrapper of GigEthGthUltraScaleCore is
    end component;
 
 ATTRIBUTE CORE_GENERATION_INFO : STRING;
-ATTRIBUTE CORE_GENERATION_INFO OF wrapper : ARCHITECTURE IS "GigEthGthUltraScaleCore,gig_ethernet_pcs_pma_v15_1_0,{x_ipProduct=Vivado 2015.3,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gig_ethernet_pcs_pma,x_ipVersion=15.1,x_ipCoreRevision=0,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,c_elaboration_transient_dir=.,c_component_name=GigEthGthUltraScaleCore,c_family=kintexu,c_is_sgmii=false,c_use_transceiver=true,c_use_tbi=false,c_is_2_5g=false,c_use_lvds=false,c_has_an=false,c_has_mdio=false,c_has_ext_mdio=false,c_sgmii_phy_mode=false,c_dynamic_switching=false,c_sgmii_fabric_buffer=true,c_1588=0,gt_rx_byte_width=1,C_EMAC_IF_TEMAC=true,C_PHYADDR=1,EXAMPLE_SIMULATION=0,c_support_level=false,c_sub_core_name=GigEthGthUltraScaleCore_gt,c_transceiver_type=GTHE3,c_transceivercontrol=false,c_xdevicefamily=xcku040,c_gt_dmonitorout_width=17,c_gt_drpaddr_width=9,c_gt_txdiffctrl_width=4,c_gt_rxmonitorout_width=7,c_num_of_lanes=1,c_refclkrate=125,c_drpclkrate=62.5}";
+ATTRIBUTE CORE_GENERATION_INFO OF wrapper : ARCHITECTURE IS "GigEthGthUltraScaleCore,gig_ethernet_pcs_pma_v15_2_0,{x_ipProduct=Vivado 2016.1,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=gig_ethernet_pcs_pma,x_ipVersion=15.2,x_ipCoreRevision=0,x_ipLanguage=VHDL,x_ipSimLanguage=MIXED,c_elaboration_transient_dir=.,c_component_name=GigEthGthUltraScaleCore,c_family=kintexu,c_architecture=kintexu,c_is_sgmii=false,c_use_transceiver=true,c_use_tbi=false,c_is_2_5g=false,c_use_lvds=false,c_has_an=false,characterization=false,c_has_mdio=false,c_has_ext_mdio=false,c_sgmii_phy_mode=false,c_dynamic_switching=false,c_sgmii_fabric_buffer=true,c_1588=0,gt_rx_byte_width=1,C_EMAC_IF_TEMAC=true,C_PHYADDR=1,EXAMPLE_SIMULATION=0,c_support_level=false,c_RxNibbleBitslice0Used=false,c_tx_in_upper_nibble=1,c_TxLane0_Placement=DIFF_PAIR_0,c_TxLane1_Placement=DIFF_PAIR_1,c_RxLane0_Placement=DIFF_PAIR_0,c_RxLane1_Placement=DIFF_PAIR_1,c_sub_core_name=GigEthGthUltraScaleCore_gt,c_transceiver_type=GTHE3,c_gt_type=GTH,c_rx_gmii_clk_src=TXOUTCLK,c_transceivercontrol=false,c_gtinex=false,c_xdevicefamily=xcku040,c_gt_dmonitorout_width=17,c_gt_drpaddr_width=9,c_gt_txdiffctrl_width=4,c_gt_rxmonitorout_width=7,c_num_of_lanes=1,c_refclkrate=125,c_drpclkrate=62.5}";
 ATTRIBUTE X_CORE_INFO : STRING;
-ATTRIBUTE X_CORE_INFO OF wrapper: ARCHITECTURE IS "gig_ethernet_pcs_pma_v15_1_0,Vivado 2015.3";
+ATTRIBUTE X_CORE_INFO OF wrapper: ARCHITECTURE IS "gig_ethernet_pcs_pma_v15_2_0,Vivado 2016.1";
 
 begin
 

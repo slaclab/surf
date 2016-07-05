@@ -52,7 +52,7 @@
 
 `timescale 1ps/1ps
 
-module gtwizard_ultrascale_v1_6_0_gthe3_cpll_cal # (
+module gtwizard_ultrascale_v1_6_2_gthe3_cpll_cal # (
         parameter REVISION = 2
 )(
         // control signals
@@ -189,45 +189,45 @@ module gtwizard_ultrascale_v1_6_0_gthe3_cpll_cal # (
   );
 
   wire reset_in_sync;
-  gtwizard_ultrascale_v1_6_0_reset_synchronizer reset_synchronizer_resetin_inst (
+  gtwizard_ultrascale_v1_6_2_reset_synchronizer reset_synchronizer_resetin_inst (
     .clk_in (CLK_IN),
     .rst_in   (RESET_IN),
     .rst_out  (reset_in_sync)
   );
 
   wire gthe3_cplllock_sync;
-  gtwizard_ultrascale_v1_6_0_bit_synchronizer bit_synchronizer_cplllock_inst (
+  gtwizard_ultrascale_v1_6_2_bit_synchronizer bit_synchronizer_cplllock_inst (
     .clk_in (CLK_IN),
     .i_in   (GTHE3_CPLLLOCK_IN),
     .o_out  (gthe3_cplllock_sync)
   );
 
   wire user_txprogdivreset_sync;
-  gtwizard_ultrascale_v1_6_0_bit_synchronizer bit_synchronizer_txprogdivreset_inst (
+  gtwizard_ultrascale_v1_6_2_bit_synchronizer bit_synchronizer_txprogdivreset_inst (
     .clk_in (CLK_IN),
     .i_in   (USER_TXPROGDIVRESET_IN),
     .o_out  (user_txprogdivreset_sync)
   );
 
   wire gthe3_txprgdivresetdone_sync;
-  gtwizard_ultrascale_v1_6_0_bit_synchronizer bit_synchronizer_txprgdivresetdone_inst (
+  gtwizard_ultrascale_v1_6_2_bit_synchronizer bit_synchronizer_txprgdivresetdone_inst (
     .clk_in (CLK_IN),
     .i_in   (GTHE3_TXPRGDIVRESETDONE_IN),
     .o_out  (gthe3_txprgdivresetdone_sync)
   );
 
   wire [2:0] user_txoutclksel_sync;
-  gtwizard_ultrascale_v1_6_0_bit_synchronizer bit_synchronizer_txoutclksel_inst0 (
+  gtwizard_ultrascale_v1_6_2_bit_synchronizer bit_synchronizer_txoutclksel_inst0 (
     .clk_in (CLK_IN),
     .i_in   (USER_TXOUTCLKSEL_IN[0]),
     .o_out  (user_txoutclksel_sync[0])
   );
-  gtwizard_ultrascale_v1_6_0_bit_synchronizer bit_synchronizer_txoutclksel_inst1 (
+  gtwizard_ultrascale_v1_6_2_bit_synchronizer bit_synchronizer_txoutclksel_inst1 (
     .clk_in (CLK_IN),
     .i_in   (USER_TXOUTCLKSEL_IN[1]),
     .o_out  (user_txoutclksel_sync[1])
   );
-  gtwizard_ultrascale_v1_6_0_bit_synchronizer bit_synchronizer_txoutclksel_inst2 (
+  gtwizard_ultrascale_v1_6_2_bit_synchronizer bit_synchronizer_txoutclksel_inst2 (
     .clk_in (CLK_IN),
     .i_in   (USER_TXOUTCLKSEL_IN[2]),
     .o_out  (user_txoutclksel_sync[2])
@@ -268,7 +268,7 @@ module gtwizard_ultrascale_v1_6_0_gthe3_cpll_cal # (
   wire [17:0] txoutclk_freq_cnt;
   reg freq_counter_rst = 1'b1;
   wire freq_cnt_done;
-  gtwizard_ultrascale_v1_6_0_gthe3_cpll_cal_freq_counter U_TXOUTCLK_FREQ_COUNTER
+  gtwizard_ultrascale_v1_6_2_gthe3_cpll_cal_freq_counter U_TXOUTCLK_FREQ_COUNTER
     (
       .freq_cnt_o(txoutclk_freq_cnt),
       .done_o(freq_cnt_done),

@@ -87,8 +87,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library gig_ethernet_pcs_pma_v15_1_0;
-use gig_ethernet_pcs_pma_v15_1_0.all;
+library gig_ethernet_pcs_pma_v15_2_0;
+use gig_ethernet_pcs_pma_v15_2_0.all;
 --------------------------------------------------------------------------------
 -- The entity declaration for the Core Block wrapper.
 --------------------------------------------------------------------------------
@@ -121,13 +121,13 @@ entity GigEthGthUltraScaleCore_block is
  
       -- GMII Interface
       -----------------
-      gmii_txd             : in std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
-      gmii_tx_en           : in std_logic;                     -- Transmit control signal from client MAC.
-      gmii_tx_er           : in std_logic;                     -- Transmit control signal from client MAC.
-      gmii_rxd             : out std_logic_vector(7 downto 0); -- Received Data to client MAC.
-      gmii_rx_dv           : out std_logic;                    -- Received control signal to client MAC.
-      gmii_rx_er           : out std_logic;                    -- Received control signal to client MAC.
-      gmii_isolate         : out std_logic;                    -- Tristate control to electrically isolate GMII.
+      gmii_txd               : in std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
+      gmii_tx_en             : in std_logic;                     -- Transmit control signal from client MAC.
+      gmii_tx_er             : in std_logic;                     -- Transmit control signal from client MAC.
+      gmii_rxd               : out std_logic_vector(7 downto 0); -- Received Data to client MAC.
+      gmii_rx_dv             : out std_logic;                    -- Received control signal to client MAC.
+      gmii_rx_er             : out std_logic;                    -- Received control signal to client MAC.
+      gmii_isolate           : out std_logic;                    -- Tristate control to electrically isolate GMII.
 
       -- Management: Alternative to MDIO Interface
       --------------------------------------------
@@ -187,7 +187,7 @@ architecture block_level of GigEthGthUltraScaleCore_block is
       rxbuferr            : out   std_logic;
       txbuferr            : out   std_logic;
       plllkdet            : out   std_logic;
-      mmcm_reset          : out std_logic;
+      mmcm_reset          : out   std_logic;
       txoutclk            : out   std_logic;
       rxoutclk            : out   std_logic;
       txn                 : out   std_logic;
@@ -248,10 +248,11 @@ architecture block_level of GigEthGthUltraScaleCore_block is
    -----------------------------------------------------------------------------
    -- Component Declaration for the 1000BASE-X PCS/PMA sublayer core.
    -----------------------------------------------------------------------------
-   component gig_ethernet_pcs_pma_v15_1_0
+   component gig_ethernet_pcs_pma_v15_2_0
       generic (
          C_ELABORATION_TRANSIENT_DIR : string := "";
          C_COMPONENT_NAME            : string := "";
+         C_RX_GMII_CLK               : string  := "TXOUTCLK";          
          C_FAMILY                    : string := "virtex2";
          C_IS_SGMII                  : boolean := false;
          C_USE_TRANSCEIVER           : boolean := true;
@@ -264,60 +265,95 @@ architecture block_level of GigEthGthUltraScaleCore_block is
          C_DYNAMIC_SWITCHING         : boolean := false;
          C_SGMII_FABRIC_BUFFER       : boolean := false;
          C_1588                      : integer := 0;
-         B_SHIFTER_ADDR              : std_logic_vector(7 downto 0) := x"4E";
+         B_SHIFTER_ADDR              : std_logic_vector(9 downto 0) := "0101001110";
          RX_GT_NOMINAL_LATENCY       : std_logic_vector(15 downto 0) := "0000000011001000";
          GT_RX_BYTE_WIDTH            : integer := 1
       );
       port(
-      -- Core <=> Transceiver Interface
-      ------------------------------
+    reset : in std_logic := '0';
+    signal_detect : in std_logic := '0';
+    link_timer_value : in std_logic_vector(9 downto 0) := (others => '0');
+    link_timer_basex : in std_logic_vector(9 downto 0) := (others => '0');
+    link_timer_sgmii : in std_logic_vector(9 downto 0) := (others => '0');
+    mgt_rx_reset : out std_logic;
+    mgt_tx_reset : out std_logic;
+    userclk : in std_logic := '0';
+    userclk2 : in std_logic := '0';
+    dcm_locked : in std_logic := '0';
+    rxbufstatus : in std_logic_vector(1 downto 0) := (others => '0');
+    rxchariscomma : in std_logic_vector(1-1 downto 0) := (others => '0');
+    rxcharisk     : in std_logic_vector(1-1 downto 0) := (others => '0');
+    rxclkcorcnt : in std_logic_vector(2 downto 0) := (others => '0');
+    rxdata        : in std_logic_vector((1*8)-1 downto 0) := (others => '0');
+    rxdisperr     : in std_logic_vector(1-1 downto 0) := (others => '0');
+    rxnotintable  : in std_logic_vector(1-1 downto 0) := (others => '0');
+    rxrundisp     : in std_logic_vector(1-1 downto 0) := (others => '0');
+    txbuferr : in std_logic := '0';
+    powerdown : out std_logic;
+    txchardispmode : out std_logic;
+    txchardispval : out std_logic;
+    txcharisk : out std_logic;
+    txdata : out std_logic_vector(7 downto 0);
+    enablealign : out std_logic;
+    gtx_clk : in std_logic := '0';
+    tx_code_group : out std_logic_vector(9 downto 0);
+    loc_ref : out std_logic;
+    ewrap : out std_logic;
+    rx_code_group0 : in std_logic_vector(9 downto 0) := (others => '0');
+    rx_code_group1 : in std_logic_vector(9 downto 0) := (others => '0');
+    pma_rx_clk0 : in std_logic := '0';
+    pma_rx_clk1 : in std_logic := '0';
+    en_cdet : out std_logic;
+    gmii_txd : in std_logic_vector(7 downto 0) := (others => '0');
+    gmii_tx_en : in std_logic := '0';
+    gmii_tx_er : in std_logic := '0';
+    gmii_rxd : out std_logic_vector(7 downto 0);
+    gmii_rx_dv : out std_logic;
+    gmii_rx_er : out std_logic;
+    gmii_isolate : out std_logic;
+    an_interrupt : out std_logic;
+    an_enable : out std_logic;
+    speed_selection : out std_logic_vector(1 downto 0);
+    phyad : in std_logic_vector(4 downto 0) := (others => '0');
+    mdc : in std_logic := '0';
+    mdio_in : in std_logic := '0';
+    mdio_out : out std_logic;
+    mdio_tri : out std_logic;
+    an_adv_config_vector : in std_logic_vector ( 15 downto 0) := (others => '0');
+    an_adv_config_val : in std_logic := '0';
+    an_restart_config : in std_logic := '0';  
+    configuration_vector : in std_logic_vector(4 downto 0) := (others => '0');
+    configuration_valid : in std_logic := '0';
+    status_vector : out std_logic_vector(15 downto 0);
+    basex_or_sgmii : in std_logic := '0';
 
-      mgt_rx_reset         : out std_logic;                    -- Transceiver connection: reset for the receiver half of the Transceiver
-      mgt_tx_reset         : out std_logic;                    -- Transceiver connection: reset for the transmitter half of the Transceiver
-      userclk              : in std_logic;                     -- Routed to TXUSERCLK and RXUSERCLK of Transceiver.
-      userclk2             : in std_logic;                     -- Routed to TXUSERCLK2 and RXUSERCLK2 of Transceiver.
-      dcm_locked           : in std_logic;                     -- LOCKED signal from DCM.
+    -----------------------
+    -- I/O for 1588 support
+    -----------------------
+    -- Transceiver DRP
+    drp_dclk                    : in  std_logic := '0';
+    drp_req                     : out std_logic;
+    drp_gnt                     : in  std_logic := '0';
+    drp_den                     : out std_logic;
+    drp_dwe                     : out std_logic;
+    drp_drdy                    : in  std_logic := '0';
+    drp_daddr                   : out std_logic_vector( 9 downto 0);
+    drp_di                      : out std_logic_vector(15 downto 0);
+    drp_do                      : in  std_logic_vector(15 downto 0) := (others => '0');
+    
+    -- 1588 Timer input
+    systemtimer_s_field     : in std_logic_vector(47 downto 0) := (others => '0');
+    systemtimer_ns_field    : in std_logic_vector(31 downto 0) := (others => '0');
+    correction_timer        : in std_logic_vector(63 downto 0) := (others => '0');
+    -- Rx CDR recovered clock from GT transcevier
+    rxrecclk                : in  std_logic := '0';
 
-      rxbufstatus          : in std_logic_vector (1 downto 0); -- Transceiver connection: Elastic Buffer Status.
-      rxchariscomma        : in std_logic_vector (0 downto 0); -- Transceiver connection: Comma detected in RXDATA.
-      rxcharisk            : in std_logic_vector (0 downto 0); -- Transceiver connection: K character received (or extra data bit) in RXDATA.
-      rxclkcorcnt          : in std_logic_vector (2 downto 0); -- Transceiver connection: Indicates clock correction.
-      rxdata               : in std_logic_vector (7 downto 0); -- Transceiver connection: Data after 8B/10B decoding.
-      rxdisperr            : in std_logic_vector (0 downto 0); -- Transceiver connection: Disparity-error in RXDATA.
-      rxnotintable         : in std_logic_vector (0 downto 0); -- Transceiver connection: Non-existent 8B/10 code indicated.
-      rxrundisp            : in std_logic_vector (0 downto 0); -- Transceiver connection: Running Disparity of RXDATA (or extra data bit).
-      txbuferr             : in std_logic;                     -- Transceiver connection: TX Buffer error (overflow or underflow).
-
-      powerdown            : out std_logic;                    -- Transceiver connection: Powerdown the Transceiver
-      txchardispmode       : out std_logic;                    -- Transceiver connection: Set running disparity for current byte.
-      txchardispval        : out std_logic;                    -- Transceiver connection: Set running disparity value.
-      txcharisk            : out std_logic;                    -- Transceiver connection: K character transmitted in TXDATA.
-      txdata               : out std_logic_vector(7 downto 0); -- Transceiver connection: Data for 8B/10B encoding.
-      enablealign          : out std_logic;                    -- Allow the transceivers to serially realign to a comma character.
-
-      -- GMII Interface
-      -----------------
-
-      gmii_txd             : in std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
-      gmii_tx_en           : in std_logic;                     -- Transmit control signal from client MAC.
-      gmii_tx_er           : in std_logic;                     -- Transmit control signal from client MAC.
-      gmii_rxd             : out std_logic_vector(7 downto 0); -- Received Data to client MAC.
-      gmii_rx_dv           : out std_logic;                    -- Received control signal to client MAC.
-      gmii_rx_er           : out std_logic;                    -- Received control signal to client MAC.
-      gmii_isolate         : out std_logic;                    -- Tristate control to electrically isolate GMII.
-
-      -- Management: Alternative to MDIO Interface
-      --------------------------------------------
-
-      configuration_vector : in std_logic_vector(4 downto 0);  -- Alternative to MDIO interface.
-
-      -- General IO's
-      ---------------
-      status_vector        : out std_logic_vector(15 downto 0); -- Core status.
-      reset                : in std_logic;                     -- Asynchronous reset for entire core.
-      signal_detect        : in std_logic;                      -- Input from PMD to indicate presence of optical input.
-      reset_done           : in std_logic 
-
+    -- Rx 1588 Timer PHY Correction Ports
+    rxphy_s_field           : out  std_logic_vector(47 downto 0) := (others => '0');
+    rxphy_ns_field          : out  std_logic_vector(31 downto 0) := (others => '0');
+    rxphy_correction_timer  : out  std_logic_vector(63 downto 0) := (others => '0');
+    --resetdone indication from gt.
+    reset_done            : in std_logic
       );
 
    end component;
@@ -374,16 +410,19 @@ begin
 
 
 
+
+
 phyaddress <= std_logic_vector(to_unsigned(1, phyaddress'length));
 
   ------------------------------------------------------------------------------
   -- Instantiate the core
   ------------------------------------------------------------------------------
 
-  GigEthGthUltraScaleCore_core : gig_ethernet_pcs_pma_v15_1_0
+  GigEthGthUltraScaleCore_core : gig_ethernet_pcs_pma_v15_2_0
     generic map (
       C_ELABORATION_TRANSIENT_DIR => "BlankString",
       C_COMPONENT_NAME            => "GigEthGthUltraScaleCore",
+      C_RX_GMII_CLK               => "TXOUTCLK",
       C_FAMILY                    => "kintexu",
       C_IS_SGMII                  => false,
       C_USE_TRANSCEIVER           => true,
@@ -396,7 +435,9 @@ phyaddress <= std_logic_vector(to_unsigned(1, phyaddress'length));
       C_DYNAMIC_SWITCHING         => false,
       C_SGMII_FABRIC_BUFFER       => true,
       C_1588                      => 0,
-      B_SHIFTER_ADDR              => x"50",
+
+      
+      B_SHIFTER_ADDR              => "0101010000",
       RX_GT_NOMINAL_LATENCY       => "0000000010001100",
       GT_RX_BYTE_WIDTH            => 1
     )
@@ -421,6 +462,7 @@ phyaddress <= std_logic_vector(to_unsigned(1, phyaddress'length));
       txcharisk            => txcharisk,
       txdata               => txdata,
       enablealign          => enablealign,
+      rxrecclk             => rxuserclk2,
       gmii_txd             => gmii_txd,
       gmii_tx_en           => gmii_tx_en,
       gmii_tx_er           => gmii_tx_er,
@@ -429,9 +471,52 @@ phyaddress <= std_logic_vector(to_unsigned(1, phyaddress'length));
       gmii_rx_er           => gmii_rx_er,
       gmii_isolate         => gmii_isolate,
       configuration_vector => configuration_vector,
+      mdc                  => '0',
+      mdio_in              => '0',
+      phyad                => (others => '0'),
+      configuration_valid  => '0',
+      mdio_out             => open,
+      mdio_tri             => open,
+      an_interrupt         => open,
+      an_adv_config_vector => (others => '0'),
+      an_restart_config    => '0',
+      link_timer_value     => (others => '0'),
+      an_adv_config_val    => '0',
+      link_timer_basex     => (others => '0'),
+      link_timer_sgmii     => (others => '0'),
+      
+      basex_or_sgmii       => '0',
       status_vector        => status_vector_i,
+      an_enable            => open,
+      speed_selection      => open,
       reset                => reset,
       signal_detect        => signal_detect,
+      -- drp interface used in 1588 mode
+      drp_dclk             => '0',        
+      drp_gnt              => '0',        
+      drp_drdy             => '0',        
+      drp_do               => (others => '0'),
+      drp_req              => open, 
+      drp_den              => open,
+      drp_dwe              => open,
+      drp_daddr            => open,
+      drp_di               => open,
+      -- 1588 Timer input
+      systemtimer_s_field  => (others => '0'),
+      systemtimer_ns_field => (others => '0'),
+      correction_timer     => (others => '0'),
+      rxphy_s_field          => open,
+      rxphy_ns_field         => open,
+      rxphy_correction_timer => open,
+      gtx_clk              => '0',
+      rx_code_group0       => (others => '0'),
+      rx_code_group1       => (others => '0'),
+      pma_rx_clk0          => '0',
+      pma_rx_clk1          => '0',
+      tx_code_group        => open,
+      loc_ref              => open,
+      ewrap                => open,
+      en_cdet              => open,
       reset_done           => reset_done_i
 
    );
@@ -504,7 +589,7 @@ phyaddress <= std_logic_vector(to_unsigned(1, phyaddress'length));
       gt0_drpwe_in              => '0',
       gt0_rxcommadet_out        => open,
       gt0_txpolarity_in         => '0',
-      gt0_txdiffctrl_in         => "1000",
+      gt0_txdiffctrl_in         => "1111",
       
       gt0_txinhibit_in          => '0',
       gt0_txpostcursor_in       => (others=>'0'),

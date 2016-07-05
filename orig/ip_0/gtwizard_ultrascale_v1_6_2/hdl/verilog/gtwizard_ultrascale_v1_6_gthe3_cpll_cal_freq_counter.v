@@ -52,7 +52,7 @@
 
 `timescale 1ps/1ps
 
-module gtwizard_ultrascale_v1_6_0_gthe3_cpll_cal_freq_counter # (
+module gtwizard_ultrascale_v1_6_2_gthe3_cpll_cal_freq_counter # (
   parameter REVISION = 1
 )(
   output reg  [17:0] freq_cnt_o = 18'd0,
@@ -117,7 +117,7 @@ module gtwizard_ultrascale_v1_6_0_gthe3_cpll_cal_freq_counter # (
 
   wire testclk_rst_sync;
 
-  gtwizard_ultrascale_v1_6_0_reset_synchronizer reset_synchronizer_testclk_rst_inst (
+  gtwizard_ultrascale_v1_6_2_reset_synchronizer reset_synchronizer_testclk_rst_inst (
     .clk_in (test_clk_i),
     .rst_in   (testclk_rst),
     .rst_out  (testclk_rst_sync)
