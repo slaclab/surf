@@ -295,7 +295,10 @@ sdk : $(SOURCE_DEPEND)
 .PHONY : elf
 elf : $(SOURCE_DEPEND)
 	$(call ACTION_HEADER,"Vivado SDK .ELF generation")
-	@cd $(OUT_DIR); xsdk -batch -source $(VIVADO_BUILD_DIR)/vivado_sdk_elf_v1.tcl
+	@cd $(OUT_DIR); vivado -mode batch -source $(VIVADO_BUILD_DIR)/vivado_sdk_bit_v1.tcl
+	@echo ""
+	@echo "Bit file w/ Elf file copied to $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit"
+	@echo "Don't forget to 'svn commit' when the image is stable!"  
 
 ###############################################################
 #### Vivado YAML ##############################################

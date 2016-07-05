@@ -26,7 +26,7 @@ if { [CheckTiming false] == true } {
    ## Make a copy of the routed .DCP file for future use 
    ## in an "incremental compile" build
    ########################################################
-   if { [version -short] >= 2015.3 } {
+   if { ${VIVADO_VERSION} >= 2015.3 } {
       exec cp -f ${IMPL_DIR}/${PROJECT}_routed.dcp ${OUT_DIR}/IncrementalBuild.dcp
    }
    
@@ -43,14 +43,7 @@ if { [CheckTiming false] == true } {
    if { [file exists ${OUT_DIR}/${VIVADO_PROJECT}.runs/impl_1/${PROJECT}.sysdef] == 1 } {
       set SDK_PRJ false
       while { ${SDK_PRJ} != true } {
-         # Check the Vivado version
-         if { [version -short] < 2016.1 } {
-            # Setup the project for Vivado 2015.4 (or earlier)
-            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout}]
-         } else {
-            # Setup the project for Vivado 2016.1 (or later)
-            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v2.tcl >@stdout}]
-         }       
+         set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout}]       
          if {$src_rc} { 
             puts "Retrying to build SDK project"
          } else {
@@ -61,31 +54,13 @@ if { [CheckTiming false] == true } {
       SourceTclFile ${VIVADO_DIR}/sdk_prj.tcl
       # Try to build the .ELF file
       catch { 
-         # Check the Vivado version
-         if { [version -short] < 2016.1 } {
-            # Generate .ELF for Vivado 2015.4 (or earlier)
-            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v1.tcl >@stdout}]
-         } else {
-            # Generate .ELF for Vivado 2016.1 (or later)
-            set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v2.tcl >@stdout}]
-         }       
-         # Add .ELF to the .bit file properties
-         if { [get_files ${SDK_ELF} ] == "" } {
-            add_files -norecurse ${SDK_ELF}  
-            set_property SCOPED_TO_REF   [file rootname [file tail ${BD_FILES}]] [get_files ${SDK_ELF} ]
-            set_property SCOPED_TO_CELLS { microblaze_0 }                        [get_files ${SDK_ELF} ]
-            # Rebuild the .bit file with the .ELF file include
-            if { [file exists ${OUT_DIR}/IncrementalBuild.dcp] == 1 } {
-               set_property incremental_checkpoint ${OUT_DIR}/IncrementalBuild.dcp [get_runs impl_1]
-            }
-            reset_run impl_1 -prev_step
-            launch_runs -to_step write_bitstream impl_1 >@stdout
-            set src_rc [catch { 
-               wait_on_run impl_1 
-            } _RESULT]           
-         }
+         # Generate .ELF
+         set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_elf_v1.tcl >@stdout}]    
+         # Add .ELF to the .bit file
+         source ${VIVADO_BUILD_DIR}/vivado_sdk_bit_v1.tcl       
       }
    }
+
    # Target specific post_route script
    SourceTclFile ${VIVADO_DIR}/post_route.tcl
 }
