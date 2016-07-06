@@ -55,8 +55,8 @@ proc BuildIpCores { } {
          # Set the IP core synthesis run name
          set ipSynthRun ${corePntr}_synth_1
          # Check if we need to build the IP core
-         if { [CheckIpSynth ${ipSynthRun}] != true } {
-            if { [get_runs ${ipSynthRun}] == ${ipSynthRun} } {
+         if { [get_runs ${ipSynthRun}] == ${ipSynthRun} } {
+            if { [CheckIpSynth ${ipSynthRun}] != true } {
                reset_run  ${ipSynthRun}
                append ipSynthRun " "
                append ipCoreList ${ipSynthRun}
