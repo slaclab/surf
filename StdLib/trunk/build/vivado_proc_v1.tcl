@@ -70,7 +70,7 @@ proc BuildIpCores { } {
             } _RESULT]   
          }
       }      
-      foreach corePntr [get_ips] {
+      foreach corePntr ${ipCoreList} {
          # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
          set xdcPntr [get_files -quiet -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
          if { ${xdcPntr} != "" } {
@@ -271,8 +271,9 @@ proc CheckSynth { } {
 
 # Check if the Synthesize is completed
 proc CheckIpSynth { ipSynthRun } {
-
-   if { [get_property PROGRESS [get_runs ${ipSynthRun}]] != "100\%" } {
+   if { [get_runs ${ipSynthRun}] != ${ipSynthRun} } {
+      return true
+   } elseif { [get_property PROGRESS [get_runs ${ipSynthRun}]] != "100\%" } {
       return false
    } elseif { [get_property NEEDS_REFRESH [get_runs ${ipSynthRun}]] == 1 } {
       return false   
