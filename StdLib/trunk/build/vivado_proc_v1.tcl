@@ -49,15 +49,20 @@ proc BuildIpCores { } {
    if { [get_ips] != "" } {
       # Clear the list of IP cores
       set ipCoreList ""
+      set ipList ""
       # Loop through each IP core
       foreach corePntr [get_ips] {
          # Set the IP core synthesis run name
          set ipSynthRun ${corePntr}_synth_1
          # Check if we need to build the IP core
          if { [CheckIpSynth ${ipSynthRun}] != true } {
-            reset_run  ${ipSynthRun}
-            append ipSynthRun " "
-            append ipCoreList ${ipSynthRun}
+            if { [get_runs ${ipSynthRun}] == ${ipSynthRun} } {
+               reset_run  ${ipSynthRun}
+               append ipSynthRun " "
+               append ipCoreList ${ipSynthRun}
+               append ipList ${corePntr}            
+               append ipList " "
+            }
          }
       }
       # Check for IP cores to build
@@ -70,7 +75,7 @@ proc BuildIpCores { } {
             } _RESULT]   
          }
       }      
-      foreach corePntr ${ipCoreList} {
+      foreach corePntr ${ipList} {
          # Disable the IP Core's XDC (so it doesn't get implemented at the project level)
          set xdcPntr [get_files -quiet -of_objects [get_files ${corePntr}.xci] -filter {FILE_TYPE == XDC}]
          if { ${xdcPntr} != "" } {
@@ -271,9 +276,7 @@ proc CheckSynth { } {
 
 # Check if the Synthesize is completed
 proc CheckIpSynth { ipSynthRun } {
-   if { [get_runs ${ipSynthRun}] != ${ipSynthRun} } {
-      return true
-   } elseif { [get_property PROGRESS [get_runs ${ipSynthRun}]] != "100\%" } {
+   if { [get_property PROGRESS [get_runs ${ipSynthRun}]] != "100\%" } {
       return false
    } elseif { [get_property NEEDS_REFRESH [get_runs ${ipSynthRun}]] == 1 } {
       return false   
