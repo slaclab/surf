@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-16
--- Last update: 2016-05-18
+-- Last update: 2016-07-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,9 +39,7 @@ entity MicroblazeBasicCoreWrapper is
       mAxisMaster      : out AxiStreamMasterType;
       mAxisSlave       : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
       -- Interrupt Interface
-      irqAck           : out slv (0 to 1);
-      irqAddr          : in  slv (0 to 31)       := (others => '0');
-      irqReq           : in  sl                  := '0';
+      interrupt        : in  slv(7 downto 0)     := (others => '0');
       -- Clock and Reset
       clk              : in  sl;
       pllLock          : in  sl                  := '1';
@@ -52,49 +50,47 @@ architecture mapping of MicroblazeBasicCoreWrapper is
 
    component MicroblazeBasicCore is
       port (
-         M_AXI_DP_araddr     : out std_logic_vector (31 downto 0);
-         M_AXI_DP_arprot     : out std_logic_vector (2 downto 0);
-         M_AXI_DP_arready    : in  std_logic;
-         M_AXI_DP_arvalid    : out std_logic;
-         M_AXI_DP_awaddr     : out std_logic_vector (31 downto 0);
-         M_AXI_DP_awprot     : out std_logic_vector (2 downto 0);
-         M_AXI_DP_awready    : in  std_logic;
-         M_AXI_DP_awvalid    : out std_logic;
-         M_AXI_DP_bready     : out std_logic;
-         M_AXI_DP_bresp      : in  std_logic_vector (1 downto 0);
-         M_AXI_DP_bvalid     : in  std_logic;
-         M_AXI_DP_rdata      : in  std_logic_vector (31 downto 0);
-         M_AXI_DP_rready     : out std_logic;
-         M_AXI_DP_rresp      : in  std_logic_vector (1 downto 0);
-         M_AXI_DP_rvalid     : in  std_logic;
-         M_AXI_DP_wdata      : out std_logic_vector (31 downto 0);
-         M_AXI_DP_wready     : in  std_logic;
-         M_AXI_DP_wstrb      : out std_logic_vector (3 downto 0);
-         M_AXI_DP_wvalid     : out std_logic;
-         INTERRUPT_ack       : out std_logic_vector (0 to 1);
-         INTERRUPT_address   : in  std_logic_vector (0 to 31);
-         INTERRUPT_interrupt : in  std_logic;
-         M0_AXIS_tdata       : out std_logic_vector (31 downto 0);
-         M0_AXIS_tlast       : out std_logic;
-         M0_AXIS_tready      : in  std_logic;
-         M0_AXIS_tvalid      : out std_logic;
-         S0_AXIS_tdata       : in  std_logic_vector (31 downto 0);
-         S0_AXIS_tlast       : in  std_logic;
-         S0_AXIS_tready      : out std_logic;
-         S0_AXIS_tvalid      : in  std_logic;
-         clk                 : in  std_logic;
-         reset               : in  std_logic;
-         dcm_locked          : in  std_logic);
+         INTERRUPT        : in  std_logic_vector (7 downto 0);
+         M0_AXIS_tdata    : out std_logic_vector (31 downto 0);
+         M0_AXIS_tlast    : out std_logic;
+         M0_AXIS_tready   : in  std_logic;
+         M0_AXIS_tvalid   : out std_logic;
+         M_AXI_DP_araddr  : out std_logic_vector (31 downto 0);
+         M_AXI_DP_arprot  : out std_logic_vector (2 downto 0);
+         M_AXI_DP_arready : in  std_logic_vector (0 to 0);
+         M_AXI_DP_arvalid : out std_logic_vector (0 to 0);
+         M_AXI_DP_awaddr  : out std_logic_vector (31 downto 0);
+         M_AXI_DP_awprot  : out std_logic_vector (2 downto 0);
+         M_AXI_DP_awready : in  std_logic_vector (0 to 0);
+         M_AXI_DP_awvalid : out std_logic_vector (0 to 0);
+         M_AXI_DP_bready  : out std_logic_vector (0 to 0);
+         M_AXI_DP_bresp   : in  std_logic_vector (1 downto 0);
+         M_AXI_DP_bvalid  : in  std_logic_vector (0 to 0);
+         M_AXI_DP_rdata   : in  std_logic_vector (31 downto 0);
+         M_AXI_DP_rready  : out std_logic_vector (0 to 0);
+         M_AXI_DP_rresp   : in  std_logic_vector (1 downto 0);
+         M_AXI_DP_rvalid  : in  std_logic_vector (0 to 0);
+         M_AXI_DP_wdata   : out std_logic_vector (31 downto 0);
+         M_AXI_DP_wready  : in  std_logic_vector (0 to 0);
+         M_AXI_DP_wstrb   : out std_logic_vector (3 downto 0);
+         M_AXI_DP_wvalid  : out std_logic_vector (0 to 0);
+         S0_AXIS_tdata    : in  std_logic_vector (31 downto 0);
+         S0_AXIS_tlast    : in  std_logic;
+         S0_AXIS_tready   : out std_logic;
+         S0_AXIS_tvalid   : in  std_logic;
+         clk              : in  std_logic;
+         dcm_locked       : in  std_logic;
+         reset            : in  std_logic);
    end component MicroblazeBasicCore;
 
-   signal awaddr    : slv(31 downto 0);
-   signal araddr    : slv(31 downto 0);
-   signal bresp     : slv(1 downto 0);
-   signal rresp     : slv(1 downto 0);
+   signal awaddr : slv(31 downto 0);
+   signal araddr : slv(31 downto 0);
+   signal bresp  : slv(1 downto 0);
+   signal rresp  : slv(1 downto 0);
 
-   signal tdata     : slv(31 downto 0);
-   signal tlast     : sl;
-   signal tvalid    : sl;
+   signal tdata  : slv(31 downto 0);
+   signal tlast  : sl;
+   signal tvalid : sl;
 
 begin
 
@@ -122,26 +118,28 @@ begin
 
    U_Microblaze : component MicroblazeBasicCore
       port map (
+         -- Interrupt Interface
+         INTERRUPT           => interrupt,
          -- Master AXI-Lite Interface
          M_AXI_DP_awaddr     => awaddr,
          M_AXI_DP_awprot     => mAxilWriteMaster.awprot,
-         M_AXI_DP_awvalid    => mAxilWriteMaster.awvalid,
+         M_AXI_DP_awvalid(0) => mAxilWriteMaster.awvalid,
          M_AXI_DP_wdata      => mAxilWriteMaster.wdata,
          M_AXI_DP_wstrb      => mAxilWriteMaster.wstrb,
-         M_AXI_DP_wvalid     => mAxilWriteMaster.wvalid,
-         M_AXI_DP_bready     => mAxilWriteMaster.bready,
-         M_AXI_DP_awready    => mAxilWriteSlave.awready,
-         M_AXI_DP_wready     => mAxilWriteSlave.wready,
+         M_AXI_DP_wvalid(0)  => mAxilWriteMaster.wvalid,
+         M_AXI_DP_bready(0)  => mAxilWriteMaster.bready,
+         M_AXI_DP_awready(0) => mAxilWriteSlave.awready,
+         M_AXI_DP_wready(0)  => mAxilWriteSlave.wready,
          M_AXI_DP_bresp      => bresp,
-         M_AXI_DP_bvalid     => mAxilWriteSlave.bvalid,
+         M_AXI_DP_bvalid(0)  => mAxilWriteSlave.bvalid,
          M_AXI_DP_araddr     => araddr,
          M_AXI_DP_arprot     => mAxilReadMaster.arprot,
-         M_AXI_DP_arvalid    => mAxilReadMaster.arvalid,
-         M_AXI_DP_rready     => mAxilReadMaster.rready,
-         M_AXI_DP_arready    => mAxilReadSlave.arready,
+         M_AXI_DP_arvalid(0) => mAxilReadMaster.arvalid,
+         M_AXI_DP_rready(0)  => mAxilReadMaster.rready,
+         M_AXI_DP_arready(0) => mAxilReadSlave.arready,
          M_AXI_DP_rdata      => mAxilReadSlave.rdata,
          M_AXI_DP_rresp      => rresp,
-         M_AXI_DP_rvalid     => mAxilReadSlave.rvalid,
+         M_AXI_DP_rvalid(0)  => mAxilReadSlave.rvalid,
          -- Master AXIS Interface
          M0_AXIS_tdata       => tdata,
          M0_AXIS_tlast       => tlast,
@@ -152,17 +150,14 @@ begin
          S0_AXIS_tlast       => sAxisMaster.tlast,
          S0_AXIS_tvalid      => sAxisMaster.tvalid,
          S0_AXIS_tready      => sAxisSlave.tready,
-         -- Interrupt Interface
-         INTERRUPT_ack       => irqAck,
-         INTERRUPT_address   => irqAddr,
-         INTERRUPT_interrupt => irqReq,
          -- Clock and Reset
          clk                 => clk,
          dcm_locked          => pllLock,
          reset               => rst);
 
-   process ( tdata, tlast, tvalid ) begin
-      mAxisMaster <= AXI_STREAM_MASTER_INIT_C;
+   process (tdata, tlast, tvalid)
+   begin
+      mAxisMaster                    <= AXI_STREAM_MASTER_INIT_C;
       mAxisMaster.tdata(31 downto 0) <= tdata;
       mAxisMaster.tlast              <= tlast;
       mAxisMaster.tvalid             <= tvalid;
