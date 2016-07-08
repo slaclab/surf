@@ -20,6 +20,7 @@ Device: &AxiSy56040
       name: OutputConfig   
       nelms: 4      
       sizeBits: 2
+      stride: 4       
       mode: RW
       description: Output Configuration Register Array       
     #########################################################
