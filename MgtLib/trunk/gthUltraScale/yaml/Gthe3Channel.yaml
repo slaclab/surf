@@ -823,12 +823,6 @@ Device: &Gthe3Channel
       lsBit: 0
       sizeBits: 16   
     #########################################################
-    - offset: 0x17C
-      name: RX_BIAS_CFG0
-      mode: RW
-      lsBit: 0
-      sizeBits: 16  
-    #########################################################
     - offset: 0x180
       name: PCS_RSVD0
       mode: RW
@@ -1553,7 +1547,7 @@ Device: &Gthe3Channel
       sizeBits: 1
     #########################################################
     - offset: 0x234
-      name: ACJTAG_MODE
+      name: RXDFELPM_KL_CFG2
       mode: RW
       lsBit: 0
       sizeBits: 16
