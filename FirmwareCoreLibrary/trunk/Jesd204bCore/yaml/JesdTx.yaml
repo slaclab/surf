@@ -10,7 +10,7 @@
 
 Device: &JesdTx 
   name: JesdTx
-  description: JESD TX Module
+  description: "JESD TX Module"
   size: 0x100
   #########
   IntField:
@@ -20,64 +20,64 @@ Device: &JesdTx
       name: Enable
       sizeBits: 8
       mode: RW
-      description: Enable[7:0]       
+      description: "Enable[7:0]"       
     #########################################################    
     - offset: 0x10
       name: SubClass
       sizeBits: 1
       lsBit: 0      
       mode: RW
-      description: SubClass  
+      description: "SubClass"
     #########################################################  
     - offset: 0x10
       name: ReplaceEnable
       sizeBits: 1
       lsBit: 1      
       mode: RW
-      description: ReplaceEnable  
+      description: "ReplaceEnable"
     #########################################################  
     - offset: 0x10
       name: ResetGTs
       sizeBits: 1
       lsBit: 2 
       mode: RW
-      description: ResetGTs  
+      description: "ResetGTs"
     ######################################################### 
     - offset: 0x10
       name: InvertSync
       sizeBits: 1
       lsBit: 4
       mode: RW
-      description: InvertSync  
+      description: "InvertSync"
     ######################################################### 
     - offset: 0x10
       name: ScrambleEnable
       sizeBits: 1
       lsBit: 5
       mode: RW
-      description: ScrambleEnable  
+      description: "ScrambleEnable"
     ######################################################### 
     - offset: 0x14
       name: RampStep
       sizeBits: 16
       mode: RW
-      description: Ramp increment step and a period of the wave in c-c    
+      description: "Ramp increment step and a period of the wave in c-c"
     ######################################################### 
     - offset: 0x16
       name: SquarePeriod
       sizeBits: 16
       mode: RW
-      description: Ramp increment step and a period of the wave in c-c          
+      description: "Ramp increment step and a period of the wave in c-c"
     ######################################################### 
     - offset: 0x18
       name: LowAmplitudeVal
       mode: RW
-      description: Low value of the square waveform amplitude   
+      description: "Low value of the square waveform amplitude" 
     ######################################################### 
     - offset: 0x1C
       name: HighAmplitudeVal
       mode: RW
-      description: High value of the square waveform amplitude  
+      description: "High value of the square waveform amplitude"
     #########################################################        
     - offset: 0x040
       name:  GTXReady
@@ -86,7 +86,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8       
       mode: RO
-      description:  GTXReady[7:0]  
+      description: "GTXReady[7:0]"
     #########################################################        
     - offset: 0x040
       name:  DataValid
@@ -95,7 +95,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8       
       mode: RO
-      description:  DataValid[7:0]  
+      description: "DataValid[7:0]" 
     #########################################################        
     - offset: 0x040
       name:  IlasActive
@@ -104,7 +104,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8       
       mode: RO
-      description:  IlasActive[7:0]   
+      description: "IlasActive[7:0]"
     #########################################################        
     - offset: 0x040
       name:  nSync
@@ -113,7 +113,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8       
       mode: RO
-      description:  nSync[7:0]  
+      description: "nSync[7:0]"
     #########################################################        
     - offset: 0x040
       name:  TxEnabled
@@ -122,7 +122,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8       
       mode: RO
-      description:  TxEnabled[7:0]   
+      description: "TxEnabled[7:0]"
     #########################################################        
     - offset: 0x040
       name:  SysRefDetected
@@ -131,7 +131,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8       
       mode: RO
-      description:  SysRefDetected[7:0]       
+      description: "SysRefDetected[7:0]"       
     #########################################################        
     - offset: 0x080
       name:  data_out_mux
@@ -140,7 +140,7 @@ Device: &JesdTx
       stride: 4
       nelms: 8          
       mode: RO
-      description: data_out_mux[7:0]: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data 
+      description: "data_out_mux[7:0]: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data"
     #########################################################        
     - offset: 0x080
       name:  test_out_mux
@@ -149,6 +149,6 @@ Device: &JesdTx
       stride: 4
       nelms: 8          
       mode: RW
-      description:  data_out_mux[7:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero   
+      description: "data_out_mux[7:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero" 
     #########################################################        
     
