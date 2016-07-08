@@ -33,6 +33,10 @@ export PRJ_VERSION = $(shell grep FPGA_VERSION_C $(PROJ_DIR)/Version.vhd | sed '
 export SDK_PRJ = $(abspath $(OUT_DIR)/$(VIVADO_PROJECT).sdk)
 export SDK_ELF = $(abspath $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).elf)
 
+ifndef SDK_LIB
+export SDK_LIB  =  $(TOP_DIR)/modules/StdLib/sdk
+endif
+
 # Core Directories (IP cores that exist external of the project must have a physical path, not a logical path)
 export CORE_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/cores.txt)))
 export CORE_FILES = $(abspath $(foreach A1,$(CORE_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
