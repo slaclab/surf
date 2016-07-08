@@ -731,7 +731,7 @@
         <spirit:componentRef spirit:library="ip" spirit:name="axi_intc" spirit:vendor="xilinx.com" spirit:version="4.1"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">MicroblazeBasicCore_axi_intc_0_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_HAS_ILR">1</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="C_HAS_ILR">0</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_KIND_OF_INTR">0xFFFFFE00</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_NUM_SW_INTR">9</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_KIND_OF_LVL">0xFFFFFFFF</spirit:configurableElementValue>
