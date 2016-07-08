@@ -25,7 +25,6 @@ entity SaciMasterSync is
   
   generic (
     TPD_G                 : time    := 1 ns;
-    SACI_HALF_CLK_TICKS   : integer := 5;
     SYNCHRONIZE_CONTROL_G : boolean := true
   );
 
@@ -38,6 +37,8 @@ entity SaciMasterSync is
     saciSelL : out slv(SACI_NUM_SLAVES_C-1 downto 0);
     saciCmd  : out sl;
     saciRsp  : in  sl;
+    
+    saciHalfClk   : in slv(7 downto 0);
 
     -- Parallel interface
     saciMasterIn  : in  SaciMasterInType;
@@ -99,7 +100,7 @@ begin
       
       if rst = '1' or saciClkCntRst = '1' then
         saciClkCnt <= (others=>'0') after TPD_G;
-      elsif saciClkCnt = SACI_HALF_CLK_TICKS - 1 then
+      elsif saciClkCnt = to_integer(unsigned(saciHalfClk)) then
         saciClkCnt <= (others=>'0') after TPD_G;
       else
         saciClkCnt <= saciClkCnt + 1 after TPD_G;
@@ -107,7 +108,7 @@ begin
       
       if rst = '1' or saciClkCntRst = '1' then
         iSaciClk <= '0' after TPD_G;
-      elsif saciClkCnt = SACI_HALF_CLK_TICKS - 1 then
+      elsif saciClkCnt = to_integer(unsigned(saciHalfClk)) then
         iSaciClk <= not iSaciClk after TPD_G;
       end if;
       
