@@ -31,9 +31,9 @@ if { [file exists ${SDK_PRJ}] != 1 } {
       sdk create_bsp_project -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
       sdk create_app_project -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
       sdk get_build_config   -app  app_0 -set compiler-optimization "Optimize for size (-Os)"
-      # sdk get_build_config   -app  app_0 -add include-path ${SDK_LIB}
-      # sdk get_build_config   -app  app_0 -add libraries ${SDK_LIB}
+      sdk get_build_config   -app  app_0 -add include-path ${SDK_LIB}
       # sdk get_build_config   -app  app_0 -add library-search-path ${SDK_LIB}
+      # sdk get_build_config   -app  app_0 -add libraries ${SDK_LIB}
    } else {
       # Make the project for Vivado 2016.1 (or later)
       file mkdir ${SDK_PRJ}
@@ -43,9 +43,9 @@ if { [file exists ${SDK_PRJ}] != 1 } {
       sdk createbsp -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
       sdk createapp -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
       sdk configapp -app  app_0 -set compiler-optimization "Optimize for size (-Os)"
-      # sdk configapp -app  app_0 -add include-path ${SDK_LIB}      
-      # sdk configapp -app  app_0 -add libraries ${SDK_LIB}      
+      sdk configapp -app  app_0 -add include-path ${SDK_LIB}      
       # sdk configapp -app  app_0 -add library-search-path ${SDK_LIB}      
+      # sdk configapp -app  app_0 -add libraries ${SDK_LIB}      
    }       
 
    # Create a soft-link and add new linker to source tree
