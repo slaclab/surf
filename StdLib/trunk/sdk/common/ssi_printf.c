@@ -29,11 +29,11 @@ void ssi_putc ( void* p, char c) {
 
       // Adjust pointer
       pp->buffPtr++;
-      if ( pp->buffPtr == (pp->buffSize*4-4) ) 
+      if ( pp->buffPtr == (pp->buffSize-4) ) 
          pp->buffPtr = 0;
 
       // Adjust total
-      if ( pp->buffTot < (pp->buffSize*4-4) ) 
+      if ( pp->buffTot < (pp->buffSize-4) ) 
          pp->buffTot++;
 
       // Update tracking
@@ -54,7 +54,7 @@ void ssi_printf_init(uint32_t buffBase, uint16_t buffSize) {
 
    if ( buffSize > 0 ) {
       Xil_Out32(buffBase, 0);
-      memset((void*)buffBase, 0, buffSize*4);
+      memset((void*)buffBase, 0, buffSize);
    }
 
    init_printf(&ssi_printf_data,ssi_putc);
