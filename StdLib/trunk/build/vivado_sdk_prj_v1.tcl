@@ -28,6 +28,7 @@ if { [file exists ${SDK_PRJ}] != 1 } {
       sdk create_hw_project  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
       sdk create_bsp_project -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
       sdk create_app_project -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
+      file delete -force ${SDK_PRJ}/app_0/src/main.cc
       # Configure the release build
       sdk get_build_config -app app_0 build-config release
       sdk get_build_config -app  app_0 -set compiler-optimization "Optimize for size (-Os)"      
@@ -54,6 +55,7 @@ if { [file exists ${SDK_PRJ}] != 1 } {
       sdk createhw  -name hw_0  -hwspec ${SDK_PRJ}/${PROJECT}.hdf
       sdk createbsp -name bsp_0 -proc microblaze_0 -hwproject hw_0 -os standalone
       sdk createapp -name app_0 -app "Empty Application" -proc microblaze_0 -hwproject hw_0 -bsp bsp_0 -os standalone -lang c++
+      file delete -force ${SDK_PRJ}/app_0/src/main.cc
       # Configure the release build
       sdk configapp -app app_0 build-config release
       sdk configapp -app  app_0 -set compiler-optimization "Optimize for size (-Os)"      
@@ -74,9 +76,10 @@ if { [file exists ${SDK_PRJ}] != 1 } {
       }           
    }       
 
-   # Create a soft-link and add new linker to source tree
-   file copy   -force ${SDK_PRJ}/app_0/src/lscript.ld ${SDK_PRJ}/app_0/lscript.ld
-   file delete -force ${SDK_PRJ}/app_0/src
-   exec ln -s $::env(SDK_SRC_PATH) ${SDK_PRJ}/app_0/src
-   exec mv -f ${SDK_PRJ}/app_0/lscript.ld ${SDK_PRJ}/app_0/src/lscript.ld
 }
+
+# Create a soft-link and add new linker to source tree
+file copy   -force ${SDK_PRJ}/app_0/src/lscript.ld ${SDK_PRJ}/app_0/lscript.ld
+file delete -force ${SDK_PRJ}/app_0/src
+exec ln -s $::env(SDK_SRC_PATH) ${SDK_PRJ}/app_0/src
+exec mv -f ${SDK_PRJ}/app_0/lscript.ld ${SDK_PRJ}/app_0/src/lscript.ld
