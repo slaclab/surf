@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-06-01
+-- Last update: 2016-07-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -163,6 +163,7 @@ begin
          ret.regAddrSkip := toSl(DEVICE_MAP_G(i).addrSize = 0);
          ret.regDataSize := toSlv(wordCount(DEVICE_MAP_G(i).dataSize, 8) - 1, 2);
          ret.endianness  := DEVICE_MAP_G(i).endianness;
+         ret.repeatStart := DEVICE_MAP_G(i).repeatStart;
          return ret;
       end function;
       

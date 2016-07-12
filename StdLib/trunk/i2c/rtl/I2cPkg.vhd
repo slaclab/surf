@@ -86,6 +86,7 @@ package I2cPkg is
       regReq      : sl;
       busReq      : sl;
       endianness  : sl;
+      repeatStart : sl;
    end record;
 
    constant I2C_REG_MASTER_IN_INIT_C : I2cRegMasterInType := (
@@ -99,7 +100,8 @@ package I2cPkg is
       regDataSize => (others => '0'),
       regReq      => '0',
       busReq      => '0',
-      endianness  => '0');
+      endianness  => '0',
+      repeatStart => '0');
 
    type I2cRegMasterInArray is array (natural range <>) of I2cRegMasterInType;
 
@@ -153,12 +155,21 @@ package I2cPkg is
    -- AXI Bridge Generic Type, stick here for now
    -------------------------------------------------------------------------------------------------
    type I2cAxiLiteDevType is record
-      i2cAddress : slv(9 downto 0);
-      i2cTenbit  : sl;
-      dataSize   : integer;
-      addrSize   : integer;
-      endianness : sl;
+      i2cAddress  : slv(9 downto 0);
+      i2cTenbit   : sl;
+      dataSize    : integer;
+      addrSize    : integer;
+      endianness  : sl;
+      repeatStart : sl;
    end record I2cAxiLiteDevType;
+
+   function MakeI2cAxiLiteDevType (
+      i2cAddress  : slv;
+      dataSize    : integer;
+      addrSize    : integer;
+      endianness  : sl;
+      repeatStart : sl := '0')
+      return I2cAxiLiteDevType;
 
    type I2cAxiLiteDevArray is array (natural range <>) of I2cAxiLiteDevType;
 
@@ -208,6 +219,33 @@ package I2cPkg is
 end;
 
 package body I2cPkg is
+
+   function MakeI2cAxiLiteDevType (
+      i2cAddress  : slv;
+      dataSize    : integer;
+      addrSize    : integer;
+      endianness  : sl;
+      repeatStart : sl := '0')
+      return I2cAxiLiteDevType
+   is
+      variable ret : I2cAxiLiteDevType;
+   begin
+      if (i2cAddress'length = 7) then
+         ret.i2cAddress := "000" & i2cAddress;
+         ret.i2cTenbit  := '0';
+      elsif (i2cAddress'length = 10) then
+         ret.i2cAddress := i2cAddress;
+         ret.i2cTenbit  := '1';
+      else
+         report "i2cAddress param must have length of 7 or 10" severity error;
+      end if;
+
+      ret.dataSize    := dataSize;
+      ret.addrSize    := addrSize;
+      ret.endianness  := endianness;
+      ret.repeatStart := repeatStart;
+      return ret;
+   end function MakeI2cAxiLiteDevType;
 
    function maxAddrSize (constant devMap : I2cAxiLiteDevArray) return natural is
       variable ret : natural := 0;
