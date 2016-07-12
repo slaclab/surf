@@ -7,6 +7,9 @@ export PROJ_DIR = $(abspath $(PWD))
 ifndef TOP_DIR
 export TOP_DIR  = $(abspath $(PROJ_DIR)/../..)
 endif
+ifndef MODULES
+export MODULES = modules
+endif
 
 # Project Build Directory
 export OUT_DIR  = $(abspath $(TOP_DIR)/build/$(PROJECT))
@@ -19,7 +22,7 @@ export VIVADO_DIR       = $(abspath $(PROJ_DIR)/vivado)
 export VIVADO_PROJECT   = $(PROJECT)_project
 export VIVADO_DEPEND    = $(OUT_DIR)/$(PROJECT)_project.xpr
 ifndef VIVADO_BUILD_DIR
-export VIVADO_BUILD_DIR = $(TOP_DIR)/modules/StdLib/build
+export VIVADO_BUILD_DIR = $(TOP_DIR)/$(MODULES)/StdLib/build
 endif
 export SOURCE_DEPEND    = $(OUT_DIR)/$(PROJECT)_sources.txt
 
