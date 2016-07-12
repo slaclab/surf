@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-04-08
+-- Last update: 2016-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,8 +39,8 @@ entity AxiStreamFifo is
 
       -- General Configurations
       TPD_G               : time                       := 1 ns;
-      INT_PIPE_STAGES_G   : natural range 0 to 16      := 1;  -- Internal FIFO setting
-      PIPE_STAGES_G       : natural range 0 to 16      := 0;
+      INT_PIPE_STAGES_G   : natural range 0 to 16      := 0;  -- Internal FIFO setting
+      PIPE_STAGES_G       : natural range 0 to 16      := 1;
       SLAVE_READY_EN_G    : boolean                    := true;
       VALID_THOLD_G       : integer range 0 to (2**24) := 1;  -- =1 = normal operation
                                                               -- =0 = only when frame ready
