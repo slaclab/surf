@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-06-13
+-- Last update: 2016-07-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,8 +27,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
 use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
 use work.ArbiterPkg.all;
@@ -100,7 +98,7 @@ begin
       -- Decode destination
       if (MODE_G = "INDEXED") then
          -- TDEST indicates the output port
-         idx := conv_integer(sAxisMaster.tDest(TDEST_HIGH_G downto TDEST_LOW_G));
+         idx := to_integer(unsigned(sAxisMaster.tDest(TDEST_HIGH_G downto TDEST_LOW_G)));
       elsif (MODE_G = "ROUTED") then
          -- Output port determined by TDEST_ROUTES_G
          -- Set to invalid idx first, if non match then frame will be dumped
