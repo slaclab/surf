@@ -55,9 +55,8 @@ end AxiLiteAsync;
 
 architecture STRUCTURE of AxiLiteAsync is
 
-   signal locRst          : sl;
-   signal mAxiClkRstTmp   : sl;         
-   signal mAxiClkRstSlave : sl;         -- Master clock reset resynchronized to slave clock
+   signal s2mRst : sl;                  -- Slave rst sync'd to master clk
+   signal m2sRst : sl;                  -- Master rst sync'd to slave clk
 
    signal readSlaveToMastDin   : slv(NUM_ADDR_BITS_G+2 downto 0);
    signal readSlaveToMastDout  : slv(NUM_ADDR_BITS_G+2 downto 0);
@@ -96,27 +95,25 @@ architecture STRUCTURE of AxiLiteAsync is
 
 begin
 
-   -- Local reset for FIFOs. FifoAsync will resynchronize to each clock domain as needed.
-   -- This allows either clock's reset to clear the FIFO.
-   locRst <= sAxiClkRst or mAxiClkRst;
-
-   -------------------------------------------------------------------------------------------------
-   -- Synchronize master side reset to slave clock
-   -------------------------------------------------------------------------------------------------
-   READ_RstSync : entity work.RstSync
+   -- Synchronize each reset across to the other clock domain
+   LOC_S2M_RstSync : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => false)
+      port map (
+         clk      => mAxiClk,
+         asyncRst => sAxiClkRst,
+         syncRst  => s2mRst);
+
+   LOC_M2S_RstSync : entity work.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => false)
       port map (
          clk      => sAxiClk,
          asyncRst => mAxiClkRst,
-         syncRst  => mAxiClkRstTmp);
+         syncRst  => m2sRst);
 
-   RegRst : process (sAxiClk) is
-   begin
-      if (rising_edge(sAxiClk)) then
-         mAxiClkRstSlave <= mAxiClkRstTmp after TPD_G;
-      end if;
-   end process RegRst;
 
 
    ------------------------------------
@@ -139,36 +136,36 @@ begin
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
          FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1
-         ) port map (
-            rst           => locRst,
-            wr_clk        => sAxiClk,
-            wr_en         => readSlaveToMastWrite,
-            din           => readSlaveTomastDin,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => readSlaveToMastFull,
-            not_full      => open,
-            rd_clk        => mAxiClk,
-            rd_en         => readSlaveToMastRead,
-            dout          => readSlaveTomastDout,
-            rd_data_count => open,
-            valid         => readSlaveToMastValid,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
+         EMPTY_THRES_G  => 1)
+      port map (
+         rst           => s2mRst,
+         wr_clk        => sAxiClk,
+         wr_en         => readSlaveToMastWrite,
+         din           => readSlaveTomastDin,
+         wr_data_count => open,
+         wr_ack        => open,
+         overflow      => open,
+         prog_full     => open,
+         almost_full   => open,
+         full          => readSlaveToMastFull,
+         not_full      => open,
+         rd_clk        => mAxiClk,
+         rd_en         => readSlaveToMastRead,
+         dout          => readSlaveTomastDout,
+         rd_data_count => open,
+         valid         => readSlaveToMastValid,
+         underflow     => open,
+         prog_empty    => open,
+         almost_empty  => open,
+         empty         => open
+         );
 
    -- Data In
    readSlaveToMastDin(2 downto 0)                 <= sAxiReadMaster.arprot;
    readSlaveToMastDin(NUM_ADDR_BITS_G+2 downto 3) <= sAxiReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0);
 
    -- Write control and ready generation
-   sAxiReadSlave.arready <= ite(mAxiClkRstSlave = '0', not readSlaveToMastFull, '1');
+   sAxiReadSlave.arready <= ite(m2sRst = '0', not readSlaveToMastFull, '1');
    readSlaveToMastWrite  <= sAxiReadMaster.arvalid and (not readSlaveToMastFull);
 
    -- Data Out
@@ -205,44 +202,44 @@ begin
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
          FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1
-         ) port map (
-            rst           => locRst,
-            wr_clk        => mAxiClk,
-            wr_en         => readMastToSlaveWrite,
-            din           => readMastToSlaveDin,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => readMastToSlaveFull,
-            not_full      => open,
-            rd_clk        => sAxiClk,
-            rd_en         => readMastToSlaveRead,
-            dout          => readMastToSlaveDout,
-            rd_data_count => open,
-            valid         => readMastToSlaveValid,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
+         EMPTY_THRES_G  => 1)
+      port map (
+         rst           => m2sRst,
+         wr_clk        => mAxiClk,
+         wr_en         => readMastToSlaveWrite,
+         din           => readMastToSlaveDin,
+         wr_data_count => open,
+         wr_ack        => open,
+         overflow      => open,
+         prog_full     => open,
+         almost_full   => open,
+         full          => readMastToSlaveFull,
+         not_full      => open,
+         rd_clk        => sAxiClk,
+         rd_en         => readMastToSlaveRead,
+         dout          => readMastToSlaveDout,
+         rd_data_count => open,
+         valid         => readMastToSlaveValid,
+         underflow     => open,
+         prog_empty    => open,
+         almost_empty  => open,
+         empty         => open
+         );
 
    -- Data In
    readMastToSlaveDin(1 downto 0)  <= mAxiReadSlave.rresp;
    readMastToSlaveDin(33 downto 2) <= mAxiReadSlave.rdata;
 
    -- Write control and ready generation
-   mAxiReadMaster.rready <= ite(mAxiClkRstSlave = '0', not readMastToSlaveFull, '1');
+   mAxiReadMaster.rready <= ite(mAxiClkRst = '0', not readMastToSlaveFull, '1');
    readMastToSlaveWrite  <= mAxiReadSlave.rvalid and (not readMastToSlaveFull);
 
    -- Data Out
-   sAxiReadSlave.rresp <= ite(mAxiClkRstSlave = '0', readMastToSlaveDout(1 downto 0), AXI_RESP_SLVERR_C);
+   sAxiReadSlave.rresp <= ite(m2sRst = '0', readMastToSlaveDout(1 downto 0), AXI_RESP_SLVERR_C);
    sAxiReadSlave.rdata <= readMastToSlaveDout(33 downto 2);
 
    -- Read control and valid
-   sAxiReadSlave.rvalid <= ite(mAxiClkRstSlave = '0', readMastToSlaveValid, '1');
+   sAxiReadSlave.rvalid <= ite(m2sRst = '0', readMastToSlaveValid, '1');
    readMastToSlaveRead  <= sAxiReadMaster.rready;
 
 
@@ -266,36 +263,36 @@ begin
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
          FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1
-         ) port map (
-            rst           => locRst,
-            wr_clk        => sAxiClk,
-            wr_en         => writeAddrSlaveToMastWrite,
-            din           => writeAddrSlaveToMastDin,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => writeAddrSlaveToMastFull,
-            not_full      => open,
-            rd_clk        => mAxiClk,
-            rd_en         => writeAddrSlaveToMastRead,
-            dout          => writeAddrSlaveToMastDout,
-            rd_data_count => open,
-            valid         => writeAddrSlaveToMastValid,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
+         EMPTY_THRES_G  => 1)
+      port map (
+         rst           => s2mRst,
+         wr_clk        => sAxiClk,
+         wr_en         => writeAddrSlaveToMastWrite,
+         din           => writeAddrSlaveToMastDin,
+         wr_data_count => open,
+         wr_ack        => open,
+         overflow      => open,
+         prog_full     => open,
+         almost_full   => open,
+         full          => writeAddrSlaveToMastFull,
+         not_full      => open,
+         rd_clk        => mAxiClk,
+         rd_en         => writeAddrSlaveToMastRead,
+         dout          => writeAddrSlaveToMastDout,
+         rd_data_count => open,
+         valid         => writeAddrSlaveToMastValid,
+         underflow     => open,
+         prog_empty    => open,
+         almost_empty  => open,
+         empty         => open
+         );
 
    -- Data In
    writeAddrSlaveToMastDin(2 downto 0)                 <= sAxiWriteMaster.awprot;
    writeAddrSlaveToMastDin(NUM_ADDR_BITS_G+2 downto 3) <= sAxiWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0);
 
    -- Write control and ready generation
-   sAxiWriteSlave.awready    <= ite(mAxiClkRstSlave = '0', not writeAddrSlaveToMastFull, '1');
+   sAxiWriteSlave.awready    <= ite(m2sRst = '0', not writeAddrSlaveToMastFull, '1');
    writeAddrSlaveToMastWrite <= sAxiWriteMaster.awvalid and (not writeAddrSlaveToMastFull);
 
    -- Data Out
@@ -308,7 +305,7 @@ begin
    end process;
 
    -- Read control and valid
-   mAxiWriteMaster.awvalid  <= ite(mAxiClkRstSlave = '0', writeAddrSlaveToMastValid, '1');
+   mAxiWriteMaster.awvalid  <= writeAddrSlaveToMastValid;
    writeAddrSlaveToMastRead <= mAxiWriteSlave.awready;
 
 
@@ -332,36 +329,36 @@ begin
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
          FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1
-         ) port map (
-            rst           => locRst,
-            wr_clk        => sAxiClk,
-            wr_en         => writeDataSlaveToMastWrite,
-            din           => writeDataSlaveTomastDin,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => writeDataSlaveToMastFull,
-            not_full      => open,
-            rd_clk        => mAxiClk,
-            rd_en         => writeDataSlaveToMastRead,
-            dout          => writeDataSlaveTomastDout,
-            rd_data_count => open,
-            valid         => writeDataSlaveToMastValid,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
+         EMPTY_THRES_G  => 1)
+      port map (
+         rst           => s2mRst,
+         wr_clk        => sAxiClk,
+         wr_en         => writeDataSlaveToMastWrite,
+         din           => writeDataSlaveTomastDin,
+         wr_data_count => open,
+         wr_ack        => open,
+         overflow      => open,
+         prog_full     => open,
+         almost_full   => open,
+         full          => writeDataSlaveToMastFull,
+         not_full      => open,
+         rd_clk        => mAxiClk,
+         rd_en         => writeDataSlaveToMastRead,
+         dout          => writeDataSlaveTomastDout,
+         rd_data_count => open,
+         valid         => writeDataSlaveToMastValid,
+         underflow     => open,
+         prog_empty    => open,
+         almost_empty  => open,
+         empty         => open
+         );
 
    -- Data In
    writeDataSlaveToMastDin(3 downto 0)  <= sAxiWriteMaster.wstrb;
    writeDataSlaveToMastDin(35 downto 4) <= sAxiWriteMaster.wdata;
 
    -- Write control and ready generation
-   sAxiWriteSlave.wready     <= ite(mAxiClkRstSlave = '0', not writeDataSlaveToMastFull, '1');
+   sAxiWriteSlave.wready     <= ite(m2sRst = '0', not writeDataSlaveToMastFull, '1');
    writeDataSlaveToMastWrite <= sAxiWriteMaster.wvalid and (not writeDataSlaveToMastFull);
 
    -- Data Out
@@ -393,29 +390,29 @@ begin
          ADDR_WIDTH_G   => 4,
          INIT_G         => "0",
          FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1
-         ) port map (
-            rst           => locRst,
-            wr_clk        => mAxiClk,
-            wr_en         => writeMastToSlaveWrite,
-            din           => writeMastToSlaveDin,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => writeMastToSlaveFull,
-            not_full      => open,
-            rd_clk        => sAxiClk,
-            rd_en         => writeMastToSlaveRead,
-            dout          => writeMastToSlaveDout,
-            rd_data_count => open,
-            valid         => writeMastToSlaveValid,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
+         EMPTY_THRES_G  => 1)
+      port map (
+         rst           => m2sRst,
+         wr_clk        => mAxiClk,
+         wr_en         => writeMastToSlaveWrite,
+         din           => writeMastToSlaveDin,
+         wr_data_count => open,
+         wr_ack        => open,
+         overflow      => open,
+         prog_full     => open,
+         almost_full   => open,
+         full          => writeMastToSlaveFull,
+         not_full      => open,
+         rd_clk        => sAxiClk,
+         rd_en         => writeMastToSlaveRead,
+         dout          => writeMastToSlaveDout,
+         rd_data_count => open,
+         valid         => writeMastToSlaveValid,
+         underflow     => open,
+         prog_empty    => open,
+         almost_empty  => open,
+         empty         => open
+         );
 
    -- Data In
    writeMastToSlaveDin <= mAxiWriteSlave.bresp;
@@ -425,10 +422,10 @@ begin
    writeMastToSlaveWrite  <= mAxiWriteSlave.bvalid and (not writeMastToSlaveFull);
 
    -- Data Out
-   sAxiWriteSlave.bresp <= ite(mAxiClkRstSlave = '0', writeMastToSlaveDout, AXI_RESP_SLVERR_C);
+   sAxiWriteSlave.bresp <= ite(m2sRst = '0', writeMastToSlaveDout, AXI_RESP_SLVERR_C);
 
    -- Read control and valid
-   sAxiWriteSlave.bvalid <= ite(mAxiClkRstSlave = '0', writeMastToSlaveValid, '1');
+   sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');
    writeMastToSlaveRead  <= sAxiWriteMaster.bready;
 
 end architecture STRUCTURE;
