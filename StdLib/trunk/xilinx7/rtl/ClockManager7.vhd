@@ -245,12 +245,9 @@ begin
    end generate OutBufgGen;
 
    NoOutBufgGen : if (not OUTPUT_BUFG_G) generate
-      ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
-         clkOutLoc(i) <= clkOutMmcm(i);
-         clkOut(i)    <= clkOutLoc(i);
-      end generate;
+      clkOutLoc <= clkOutMmcm;
+      clkOut    <= clkOutLoc;
    end generate NoOutBufgGen;
-
 
    locked <= lockedLoc;
 
