@@ -5,11 +5,12 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-24
--- Last update: 2015-11-05
+-- Last update: 2016-06-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
+-- 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -41,9 +42,10 @@ entity SpiMaster is
       clk     : in  sl;
       sRst    : in  sl;
       -- Parallel interface
-      chipSel : in  slv(bitSize(NUM_CHIPS_G)-1 downto 0);
+      chipSel : in  slv(log2(NUM_CHIPS_G)-1 downto 0);
       wrEn    : in  sl;
       wrData  : in  slv(DATA_SIZE_G-1 downto 0);
+      dataSize : in slv(log2(DATA_SIZE_G)-1 downto 0) := toSlv(DATA_SIZE_G-1, log2(DATA_SIZE_G));
       rdEn    : out sl;
       rdData  : out slv(DATA_SIZE_G-1 downto 0);
       --SPI interface
@@ -99,7 +101,7 @@ begin
 
    spiSdoRes <= to_x01z(spiSdo);
 
-   comb : process (chipSel, r, sRst, spiSdoRes, wrData, wrEn) is
+   comb : process (chipSel, dataSize, r, sRst, spiSdoRes, wrData, wrEn) is
       variable v : RegType;
    begin
       v := r;
@@ -141,7 +143,7 @@ begin
 
                if (CPHA_G = '0') then
                   v.dataCounter := r.dataCounter + 1;
-                  if (r.dataCounter = DATA_SIZE_G-1) then
+                  if (r.dataCounter = dataSize) then
                      v.state := DONE_S;
                   end if;
                end if;
@@ -158,7 +160,7 @@ begin
 
                if (CPHA_G = '1') then
                   v.dataCounter := r.dataCounter + 1;
-                  if (r.dataCounter = DATA_SIZE_G-1) then
+                  if (r.dataCounter = dataSize) then
                      v.state := DONE_S;
                   end if;
                end if;
