@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-22
--- Last update: 2015-10-15
+-- Last update: 2016-07-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -144,7 +144,10 @@ begin
             if (regIn.regReq = '1') then
                v.i2cMasterIn.txnReq := '1';
                v.i2cMasterIn.op     := '1';
-               v.i2cMasterIn.stop   := '1';  --regIn.regOp;  -- no i2c stop after addr when reg read
+               -- Use a repeated start for reads when directed to do so
+               -- This is done by setting stop to 0 for the regAddr write txn
+               -- Then the following read txn will be issued with repeated start
+               v.i2cMasterIn.stop   := ite(regIn.regOp = '0' and regIn.repeatStart = '1', '0', '1');
                v.i2cMasterIn.busReq := regIn.busReq;
                v.state              := ADDR_S;
                if regIn.busReq = '1' then
