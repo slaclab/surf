@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
--- Last update: 2016-07-11
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,7 +90,8 @@ architecture rtl of AxiI2cEepromCore is
       regDataSize => DATA_SIZE_C,
       regReq      => '0',
       busReq      => '0',
-      endianness  => '1');              -- Big endian
+      endianness  => '1',               -- Big endian
+      repeatStart => '0');
 
    type StateType is (
       IDLE_S,
