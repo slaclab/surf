@@ -23,6 +23,7 @@ vhdl work general/rtl/Iprog.vhd
 vhdl work general/rtl/PwrUpRst.vhd
 vhdl work general/rtl/SlvDelay.vhd
 vhdl work general/rtl/WatchDogRst.vhd
+vhdl work general/rtl/ClockDivider.vhd
 
 vhdl work general/rtl/CrcPkg.vhd
 vhdl work general/rtl/Crc32.vhd
