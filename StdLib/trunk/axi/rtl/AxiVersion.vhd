@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2016-04-13
+-- Last update: 2016-07-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ use work.Version.all;
 entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;
+      SIM_DNA_VALUE_G    : slv                    := X"000000000000000000000000";
       AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_DECERR_C;
       DEVICE_ID_G        : slv(31 downto 0)       := (others => '0');
       CLK_PERIOD_G       : real                   := 8.0E-9;     -- units of seconds
@@ -76,7 +77,7 @@ architecture rtl of AxiVersion is
    constant RELOAD_COUNT_C : integer := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
    constant TIMEOUT_1HZ_C  : natural := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
 
-   type RomType is array (0 to 63) of slv(31 downto 0);
+   subtype RomType is Slv32Array(0 to 63);
 
    function makeStringRom return RomType is
       variable ret : RomType := (others => (others => '0'));
@@ -90,8 +91,7 @@ architecture rtl of AxiVersion is
       return ret;
    end function makeStringRom;
 
-   signal stringRom : RomType := makeStringRom;
-
+   constant STRING_ROM_C : RomType := makeStringRom;
 
    type RegType is record
       upTimeCnt      : slv(31 downto 0);
@@ -131,6 +131,13 @@ architecture rtl of AxiVersion is
    signal masterRstDet : sl               := '0';
    signal asyncRst     : sl               := '0';
 
+   attribute rom_style                   : string;
+   attribute rom_style of STRING_ROM_C   : constant is "distributed";
+   attribute rom_extract                 : string;
+   attribute rom_extract of STRING_ROM_C : constant is "TRUE";
+   attribute syn_keep                    : string;
+   attribute syn_keep of STRING_ROM_C    : constant is "TRUE";
+
 begin
 
    dnaValueOut <= dnaValue;
@@ -139,10 +146,11 @@ begin
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
       DeviceDna_1 : entity work.DeviceDna
          generic map (
-            TPD_G          => TPD_G,
-            USE_SLOWCLK_G  => USE_SLOWCLK_G,
-            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G,
-            XIL_DEVICE_G   => XIL_DEVICE_G)
+            TPD_G           => TPD_G,
+            USE_SLOWCLK_G   => USE_SLOWCLK_G,
+            BUFR_CLK_DIV_G  => BUFR_CLK_DIV_G,
+            XIL_DEVICE_G    => XIL_DEVICE_G,
+            SIM_DNA_VALUE_G => SIM_DNA_VALUE_G)
          port map (
             clk      => axiClk,
             rst      => axiRst,
@@ -179,8 +187,9 @@ begin
             bootAddress => r.fpgaReloadAddr);
    end generate;
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
-                   fpgaEnReload, r, stringRom, userValues) is
+
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial,
+                   fpgaEnReload, r, userValues) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -199,10 +208,8 @@ begin
 
       axiSlaveRegisterR(axilEp, X"000", 0, FPGA_VERSION_C);
       axiSlaveRegister(axilEp, X"004", 0, v.scratchPad);
-      axiSlaveRegisterR(axilEp, X"008", 0, ite(dnaValid = '1', dnaValue(31 downto 0), X"00000000"));
-      axiSlaveRegisterR(axilEp, X"00C", 0, ite(dnaValid = '1', dnaValue(63 downto 32), X"00000000"));
-      axiSlaveRegisterR(axilEp, X"010", 0, ite(fdValid = '1', fdSerial(31 downto 0), X"00000000"));
-      axiSlaveRegisterR(axilEp, X"014", 0, ite(fdValid = '1', fdSerial(63 downto 32), X"00000000"));
+      axiSlaveRegisterR(axilEp, X"008", 0, ite(dnaValid = '1', dnaValue, X"0000000000000000"));
+      axiSlaveRegisterR(axilEp, X"010", 0, ite(fdValid = '1', fdSerial, X"0000000000000000"));
       axiSlaveRegister(axilEp, X"018", 0, v.masterReset);
 
       axiSlaveRegister(axilEp, X"01C", 0, v.fpgaReload);
@@ -212,8 +219,8 @@ begin
       axiSlaveRegisterR(axilEp, X"02C", 0, r.upTimeCnt);
       axiSlaveRegisterR(axilEp, X"030", 0, DEVICE_ID_G);
 
-      axiSlaveRegisterR(axilEp, "01----------", 0, userValues(conv_integer(axiReadMaster.araddr(7 downto 2))));
-      axiSlaveRegisterR(axilEp, "10----------", 0, stringRom(conv_integer(axiReadMaster.araddr(7 downto 2))));
+      axiSlaveRegisterR(axilEp, X"400", userValues);
+      axiSlaveRegisterR(axilEp, X"800", STRING_ROM_C);
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
 

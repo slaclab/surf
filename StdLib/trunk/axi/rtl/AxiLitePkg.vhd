@@ -184,7 +184,7 @@ package AxiLitePkg is
       axiStatus      : AxiLiteStatusType;
    end record AxiLiteEndpointType;
 
-   constant AXI_LITE_END_POINT_INIT_C : AxiLiteEndpointType := (
+   constant AXI_LITE_ENDPOINT_INIT_C : AxiLiteEndpointType := (
       axiReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
@@ -296,43 +296,55 @@ package AxiLitePkg is
    -- Simplified Address decode procedures, RTH 1/27/2016
    -------------------------------------------------------------------------------------------------
    procedure axiSlaveWaitTxn (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      signal axiWriteMaster    : in    AxiLiteWriteMasterType;
-      signal axiReadMaster     : in    AxiLiteReadMasterType;
-      variable axiWriteSlave   : in    AxiLiteWriteSlaveType;
-      variable axiReadSlave    : in    AxiLiteReadSlaveType);
+      variable ep            : inout AxiLiteEndpointType;
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : in    AxiLiteWriteSlaveType;
+      variable axiReadSlave  : in    AxiLiteReadSlaveType);
 
    procedure axiSlaveRegister (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : inout slv;
-      constVal                 : in    slv := "X");
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv;
+      constVal    : in    slv := "X");
 
    procedure axiSlaveRegisterR (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : in    slv);
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : in    slv);
 
    procedure axiSlaveRegister (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : inout sl;
-      constVal                 : in    sl := 'X');
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout sl;
+      constVal    : in    sl := 'X');
 
    procedure axiSlaveRegisterR (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : in    sl);
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : in    sl);
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      regs        : inout slv32Array);
+
+   procedure axiSlaveRegisterR (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      regs        : in    slv32Array);
+
+
 
    procedure axiSlaveDefault (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      variable axiWriteSlave   : inout AxiLiteWriteSlaveType;
-      variable axiReadSlave    : inout AxiLiteReadSlaveType;
-      axiResp                  : in    slv(1 downto 0) := AXI_RESP_OK_C);
+      variable ep            : inout AxiLiteEndpointType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
 
 
    -------------------------------------------------------------------------------------------------
@@ -590,107 +602,156 @@ package body AxiLitePkg is
    -- Simplified Address decode procedures, RTH 1/27/2016
    -------------------------------------------------------------------------------------------------
    procedure axiSlaveWaitTxn (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      signal axiWriteMaster    : in    AxiLiteWriteMasterType;
-      signal axiReadMaster     : in    AxiLiteReadMasterType;
-      variable axiWriteSlave   : in    AxiLiteWriteSlaveType;
-      variable axiReadSlave    : in    AxiLiteReadSlaveType) is
+      variable ep            : inout AxiLiteEndpointType;
+      signal axiWriteMaster  : in    AxiLiteWriteMasterType;
+      signal axiReadMaster   : in    AxiLiteReadMasterType;
+      variable axiWriteSlave : in    AxiLiteWriteSlaveType;
+      variable axiReadSlave  : in    AxiLiteReadSlaveType) is
    begin
-      axiLiteEndpoint.axiWriteMaster := axiWriteMaster;
-      axiLiteEndpoint.axiReadMaster  := axiReadMaster;
-      axiLiteEndpoint.axiWriteSlave  := axiWriteSlave;
-      axiLiteEndpoint.axiReadSlave   := axiReadSlave;
+      ep := AXI_LITE_ENDPOINT_INIT_C;
+
+      ep.axiWriteMaster := axiWriteMaster;
+      ep.axiReadMaster  := axiReadMaster;
+      ep.axiWriteSlave  := axiWriteSlave;
+      ep.axiReadSlave   := axiReadSlave;
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster,
-                      axiLiteEndpoint.axiWriteSlave, axiLiteEndpoint.axiReadSlave,
-                      axiLiteEndpoint.axiStatus);
+                      ep.axiWriteSlave, ep.axiReadSlave,
+                      ep.axiStatus);
    end procedure;
 
+
+
+
    procedure axiSlaveRegister (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : inout slv;
-      constVal                 : in    slv := "X") is
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv;
+      constVal    : in    slv := "X")
+   is
+      -- Need to remap addr range to be (length-1 downto 0)
+      constant ADDR_LEN_C     : integer                    := addr'length;
+      constant ADDR_C         : slv(ADDR_LEN_C-1 downto 0) := addr;
+      constant REG_HIGH_BIT_C : integer                    := minimum(31-offset+reg'low, reg'high);
+      constant BUS_HIGH_BIT_C : integer                    := minimum(offset+reg'length-1, 31);
+      variable strobeMask     : slv(3 downto 0)            := (others => '-');
    begin
+
+      for i in BUS_HIGH_BIT_C downto offset loop
+         strobeMask(i/8) := '1';
+      end loop;
+
       -- Read must come first so as not to overwrite the variable if read and write happen at once
-      if (axiLiteEndpoint.axiStatus.readEnable = '1') then
-         if (std_match(axiLiteEndpoint.axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
-            axiLiteEndpoint.axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
-            axiSlaveReadResponse(axiLiteEndpoint.axiReadSlave);
+      if (ep.axiStatus.readEnable = '1') then
+         if (std_match(ep.axiReadMaster.araddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2))) then
+            ep.axiReadSlave.rdata(BUS_HIGH_BIT_C downto offset) := reg(REG_HIGH_BIT_C downto reg'low);
+            axiSlaveReadResponse(ep.axiReadSlave);
          end if;
       end if;
 
-      if (axiLiteEndpoint.axiStatus.writeEnable = '1') then
-         if (std_match(axiLiteEndpoint.axiWriteMaster.awaddr(addr'length-1 downto 0), addr)) then
+      if (ep.axiStatus.writeEnable = '1') then
+         if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2)) and
+             std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
             if (constVal /= "X") then
-               reg := constVal;
+               reg(REG_HIGH_BIT_C downto reg'low) := constVal;
             else
-               reg := axiLiteEndpoint.axiWriteMaster.wdata(offset+reg'length-1 downto offset);
+               reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto offset);
             end if;
-            axiSlaveWriteResponse(axiLiteEndpoint.axiWriteSlave);
+            axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;
+      end if;
+
+      if (REG_HIGH_BIT_C < reg'high) then
+         axiSlaveRegister(ep, slv(unsigned(ADDR_C)+4), 0, reg(reg'high downto REG_HIGH_BIT_C+1));
       end if;
 
    end procedure;
 
    procedure axiSlaveRegisterR (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : in    slv) is
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : in    slv)
+   is
+      variable regTmp : slv(reg'length-1 downto 0);
    begin
-      if (axiLiteEndpoint.axiStatus.readEnable = '1') then
-         if (std_match(axiLiteEndpoint.axiReadMaster.araddr(addr'length-1 downto 0), addr)) then
-            axiLiteEndpoint.axiReadSlave.rdata(offset+reg'length-1 downto offset) := reg;
-            axiSlaveReadResponse(axiLiteEndpoint.axiReadSlave);
-         end if;
-      end if;
+      regTmp := reg;
+      axiSlaveRegister(ep, addr, offset, regTmp);
    end procedure;
 
    procedure axiSlaveRegister (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : inout sl;
-      constVal                 : in    sl := 'X')
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout sl;
+      constVal    : in    sl := 'X')
    is
       variable tmpReg : slv(0 downto 0);
       variable tmpVal : slv(0 downto 0);
    begin
       tmpReg(0) := reg;
       tmpVal(0) := constVal;
-      axiSlaveRegister(axiLiteEndpoint, addr, offset, tmpReg, tmpVal);
+      axiSlaveRegister(ep, addr, offset, tmpReg, tmpVal);
       reg       := tmpReg(0);
    end procedure;
 
    procedure axiSlaveRegisterR (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      addr                     : in    slv;
-      offset                   : in    integer;
-      reg                      : in    sl)
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : in    sl)
    is
       variable tmp : slv(0 downto 0);
    begin
       tmp(0) := reg;
-      axiSlaveRegisterR(axiLiteEndpoint, addr, offset, tmp);
+      axiSlaveRegisterR(ep, addr, offset, tmp);
+   end procedure;
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      regs        : inout slv32Array)
+   is
+   begin
+      for i in regs'range loop
+         axiSlaveRegister(ep, slv(unsigned(addr) + to_unsigned(i*4, addr'length)), 0, regs(i));
+      end loop;
+
+   end procedure;
+
+   procedure axiSlaveRegisterR (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      regs        : in    slv32Array)
+   is
+      constant ADDR_BITS_C : integer                     := log2(regs'length);
+      variable addrLocal   : slv(addr'length-1 downto 0) := addr;
+      variable tmp         : slv(31 downto 0);
+   begin
+      -- Select regs word based on araddr
+      tmp := regs(to_integer(unsigned(ep.axiReadMaster.araddr(ADDR_BITS_C+2-1 downto 2))));
+
+      addrLocal                           := addr;
+      addrLocal(ADDR_BITS_C+2-1 downto 0) := (others => '-');
+      axiSlaveRegister(ep, addrLocal, 0, tmp);
    end procedure;
 
    procedure axiSlaveDefault (
-      variable axiLiteEndpoint : inout AxiLiteEndpointType;
-      variable axiWriteSlave   : inout AxiLiteWriteSlaveType;
-      variable axiReadSlave    : inout AxiLiteReadSlaveType;
-      axiResp                  : in    slv(1 downto 0) := AXI_RESP_OK_C) is
+      variable ep            : inout AxiLiteEndpointType;
+      variable axiWriteSlave : inout AxiLiteWriteSlaveType;
+      variable axiReadSlave  : inout AxiLiteReadSlaveType;
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
-      if (axiLiteEndpoint.axiStatus.writeEnable = '1' and axiLiteEndpoint.axiWriteSlave.awready = '0') then
-         axiSlaveWriteResponse(axiLiteEndpoint.axiWriteSlave, axiResp);
+      if (ep.axiStatus.writeEnable = '1' and ep.axiWriteSlave.awready = '0') then
+         axiSlaveWriteResponse(ep.axiWriteSlave, axiResp);
       end if;
 
-      if (axiLiteEndpoint.axiStatus.readEnable = '1' and axiLiteEndpoint.axiReadSlave.arready = '0') then
-         axiSlaveReadResponse(axiLiteEndpoint.axiReadSlave, axiResp);
+      if (ep.axiStatus.readEnable = '1' and ep.axiReadSlave.arready = '0') then
+         axiSlaveReadResponse(ep.axiReadSlave, axiResp);
       end if;
-      axiWriteSlave := axiLiteEndpoint.axiWriteSlave;
-      axiReadSlave  := axiLiteEndpoint.axiReadSlave;
+      axiWriteSlave := ep.axiWriteSlave;
+      axiReadSlave  := ep.axiReadSlave;
    end procedure;
 
 
@@ -741,6 +802,7 @@ package body AxiLitePkg is
    begin
       dataTmp := resize(data, 32);
 
+      wait until axilClk = '1';
       axilWriteMaster.awaddr  <= addr;
       axilWriteMaster.wdata   <= dataTmp;
       axilWriteMaster.awprot  <= (others => '0');
@@ -748,9 +810,9 @@ package body AxiLitePkg is
       axilWriteMaster.awvalid <= '1';
       axilWriteMaster.wvalid  <= '1';
       axilWriteMaster.bready  <= '1';
+
+
       wait until axilClk = '1';
-
-
       -- Wait for a response
       while (axilWriteSlave.bvalid = '0') loop
          -- Clear control signals when acked
@@ -760,7 +822,6 @@ package body AxiLitePkg is
          if axilWriteSlave.wready = '1' then
             axilWriteMaster.wvalid <= '0';
          end if;
-
 
          wait until axilClk = '1';
       end loop;
@@ -774,15 +835,15 @@ package body AxiLitePkg is
       end if;
 
       -- Done. Check for errors
-      wait until axilClk = '1';
       axilWriteMaster.bready <= '0';
 
       print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(dataTmp) & ")");
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
-         report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity error;
+         report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity warning;
       elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
-         report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity error;
+         report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity warning;
       end if;
+
 
       -- If data size is greater than 32, make a recursive call to write the next word
       if (data'length > 32) then
@@ -805,12 +866,13 @@ package body AxiLitePkg is
       variable addrTmp : slv(31 downto 0);
    begin
       -- Put the write req on the bus
+      wait until axilClk = '1';
       axilReadMaster.araddr  <= addr;
       axilReadMaster.arprot  <= (others => '0');
       axilReadMaster.arvalid <= '1';
       axilReadMaster.rready  <= '1';
-      wait until axilClk = '1';
 
+      wait until axilClk = '1';
       -- Wait for a response
       while (axilReadSlave.rvalid = '0') loop
          -- Clear control signals when acked
@@ -828,14 +890,13 @@ package body AxiLitePkg is
 
       -- Done. Check for errors
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
-         report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity error;
+         report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity warning;
       elsif (axilReadSlave.rresp = AXI_RESP_DECERR_C) then
-         report "AxiLitePkg::axiLiteBusSimRead(): RRESP = DECODE_ERROR" severity error;
+         report "AxiLitePkg::axiLiteBusSimRead(): RRESP = DECODE_ERROR" severity warning;
       else
          dataTmp := axilReadSlave.rdata;
          print(debug, "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & ", data: " & hstr(axilReadSlave.rdata) & ")");
       end if;
-      wait until axilClk = '1';
       axilReadMaster.rready <= '0';
 
       if (data'length > 32) then
