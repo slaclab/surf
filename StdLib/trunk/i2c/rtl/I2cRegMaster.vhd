@@ -48,7 +48,14 @@ end entity I2cRegMaster;
 
 architecture rtl of I2cRegMaster is
 
-   type StateType is (WAIT_REQ_S, ADDR_S, WRITE_S, READ_TXN_S, READ_S, REG_ACK_S);
+   type StateType is (
+      WAIT_REQ_S, 
+      ADDR_S, 
+      WRITE_S, 
+      READ_TXN_S, 
+      READ_S, 
+      BUS_ACK_S, 
+      REG_ACK_S);
 
    type RegType is record
       state       : StateType;
@@ -72,6 +79,7 @@ architecture rtl of I2cRegMaster is
          txnReq      => '0',
          stop        => '0',
          op          => '0',
+         busReq      => '0',
          addr        => (others => '0'),
          tenbit      => '0',
          wrValid     => '0',
@@ -137,8 +145,11 @@ begin
                v.i2cMasterIn.txnReq := '1';
                v.i2cMasterIn.op     := '1';
                v.i2cMasterIn.stop   := '1';  --regIn.regOp;  -- no i2c stop after addr when reg read
+               v.i2cMasterIn.busReq := regIn.busReq;
                v.state              := ADDR_S;
-               if (regIn.regAddrSkip = '1') then
+               if regIn.busReq = '1' then
+                  v.state := BUS_ACK_S;
+               elsif (regIn.regAddrSkip = '1') then
                   if (regIn.regOp = '1') then
                      v.state := WRITE_S;
                   else
@@ -208,6 +219,12 @@ begin
                end if;
             end if;
 
+         when BUS_ACK_S => 
+            if i2cMasterOut.busAck = '1' then
+               v.i2cMasterIn.txnReq := '0';
+               v.state              := REG_ACK_S;
+            end if;
+            
          when REG_ACK_S =>
             -- Req done. Ack the req.
             -- Might have failed so hold regFail (would be set to 0 otherwise).
