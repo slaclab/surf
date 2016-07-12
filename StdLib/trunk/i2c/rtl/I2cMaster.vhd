@@ -116,6 +116,7 @@ architecture rtl of I2cMaster is
       state        => WAIT_TXN_REQ_S,
       tenbit       => '0',
       i2cMasterOut => (
+         busAck    => '0',
          txnError  => '0',
          wrAck     => '0',
          rdValid   => '0',
@@ -202,7 +203,8 @@ begin
       v.byteCtrlIn.write := '0';
       v.byteCtrlIn.ackIn := '0';
 
-      v.i2cMasterOut.wrAck := '0';      -- pulsed
+      v.i2cMasterOut.wrAck  := '0';      -- pulsed
+      v.i2cMasterOut.busAck := '0';      -- pulsed
 
       if (i2cMasterIn.rdAck = '1') then
          v.i2cMasterOut.rdValid  := '0';
@@ -214,7 +216,7 @@ begin
             -- Reset front end outputs
             v.i2cMasterOut.rdData := (others => '0');  -- Necessary?
             -- If new request and any previous rdData has been acked.
-            if (i2cMasterIn.txnReq = '1' and r.i2cMasterOut.rdValid = '0') then
+            if (i2cMasterIn.txnReq = '1') and (r.i2cMasterOut.rdValid = '0') and (r.i2cMasterOut.busAck = '0') then
                v.state  := ADDR_S;
                v.tenbit := i2cMasterIn.tenbit;
             end if;
@@ -260,6 +262,10 @@ begin
                   v.i2cMasterOut.rdValid  := '1';
                   v.i2cMasterOut.rdData   := I2C_INVALID_ADDR_ERROR_C;
                   v.state                 := WAIT_TXN_REQ_S;
+               end if;
+               if (r.tenbit = '0') and (i2cMasterIn.busReq = '1') then
+                  v.i2cMasterOut.busAck := '1';
+                  v.state               := WAIT_TXN_REQ_S;
                end if;
             end if;
 

@@ -58,6 +58,7 @@ package I2cPkg is
       txnReq   : sl;                    -- Execute a transaction
       stop     : sl;                    -- Set STOP when done
       op       : sl;                    -- 1 for write, 0 for read
+      busReq   : sl;                    -- 1 for bus request, 0 for read/write
       addr     : slv(9 downto 0);       -- i2c device address
       tenbit   : sl;                    -- use 10 bit addressing
       wrValid  : sl;
@@ -66,6 +67,7 @@ package I2cPkg is
    end record;
 
    type I2cMasterOutType is record
+      busAck   : sl;
       txnError : sl;                    -- An error occured during the txn
       wrAck    : sl;
       rdValid  : sl;
@@ -82,6 +84,7 @@ package I2cPkg is
       regAddrSize : slv(1 downto 0);
       regDataSize : slv(1 downto 0);
       regReq      : sl;
+      busReq      : sl;
       endianness  : sl;
    end record;
 
@@ -95,6 +98,7 @@ package I2cPkg is
       regAddrSize => (others => '0'),
       regDataSize => (others => '0'),
       regReq      => '0',
+      busReq      => '0',
       endianness  => '0');
 
    type I2cRegMasterInArray is array (natural range <>) of I2cRegMasterInType;
