@@ -16,10 +16,14 @@ Device: &AxiSysMonUltraScale
   IntField:
   #########
     #########################################################
-    - offset: 0x00 
-      name: SRR
-      mode: WO
-      description: Software Reset Register
+    # - offset: 0x00 
+      # name: SRR
+      # mode: WO
+      # description: |
+        # The Software Reset register permits you to reset the System Management Wizard IP core 
+        # including the SYSMON hard macro output ports (except JTAG-related outputs) 
+        # independently of other IP cores in the systems. To activate a software reset, write 
+        # 0x0000_000A to the register. Any other access, read or write, has undefined results.
     #########################################################
     - offset: 0x04 
       name: SR
