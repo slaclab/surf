@@ -18,7 +18,7 @@
 -- Author     : Jeff Olsen  <jjo@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-04
--- Last update: 2016-05-11
+-- Last update: 2016-07-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -72,8 +72,15 @@ entity EthMacExportGmii is
 end EthMacExportGmii;
 
 architecture rtl of EthMacExportGmii is
-
-   constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1);
+   
+   constant AXI_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TDATA_BYTES_C => 1,
+      TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);      
 
    type StateType is(
       IDLE_S,
@@ -128,13 +135,13 @@ architecture rtl of EthMacExportGmii is
    signal crcDataValid : sl;
    signal crcIn        : slv(7 downto 0);
 
---   attribute dont_touch                 : string;
---   attribute dont_touch of r            : signal is "TRUE";
---   attribute dont_touch of macMaster    : signal is "TRUE";
---   attribute dont_touch of macSlave     : signal is "TRUE";
---   attribute dont_touch of crcOut       : signal is "TRUE";
---   attribute dont_touch of crcDataValid : signal is "TRUE";
---   attribute dont_touch of crcIn        : signal is "TRUE";
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of r            : signal is "TRUE";
+   -- attribute dont_touch of macMaster    : signal is "TRUE";
+   -- attribute dont_touch of macSlave     : signal is "TRUE";
+   -- attribute dont_touch of crcOut       : signal is "TRUE";
+   -- attribute dont_touch of crcDataValid : signal is "TRUE";
+   -- attribute dont_touch of crcIn        : signal is "TRUE";
 
 begin
 
@@ -142,7 +149,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
@@ -173,8 +181,10 @@ begin
       v := r;
 
       -- Reset the flags
-      v.macSlave     := AXI_STREAM_SLAVE_INIT_C;
-      v.crcDataValid := '0';
+      v.macSlave       := AXI_STREAM_SLAVE_INIT_C;
+      v.crcDataValid   := '0';
+      v.txUnderRun     := '0';
+      v.txLinkNotReady := '0';
 
       -- State Machine
       case r.state is
@@ -231,8 +241,9 @@ begin
                   end if;
                end if;
             else
-               v.gmiiTxEr := '1';
-               v.state    := DUMP_S;
+               v.gmiiTxEr   := '1';
+               v.txUnderRun := '1';
+               v.state      := DUMP_S;
             end if;
          ----------------------------------------------------------------------      
          when PAD_S =>
