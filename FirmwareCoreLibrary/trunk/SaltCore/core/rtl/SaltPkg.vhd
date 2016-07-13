@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-04
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,8 +28,8 @@ use work.SsiPkg.all;
 
 package SaltPkg is
 
-   constant SSI_GMII_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1);
-   constant SSI_SALT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
+   constant SSI_GMII_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 0);
+   constant SSI_SALT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);
    constant SALT_MAX_WORDS_C  : natural             := (1500/4);
    constant INTER_GAP_SIZE_C  : natural             := 12;
 
