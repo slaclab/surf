@@ -1,0 +1,81 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+Device: &AxiMemTester 
+  name: AxiMemTester
+  description: AXI4 Memory Tester Module
+  size: 0x1000
+  #########
+  IntField:
+  #########
+    #########################################################
+    - offset: 0x100
+      name: Passed
+      mode: RO
+      lsBit: 0
+      sizeBits: 1
+      description: Passed Memory Test   
+    #########################################################
+    - offset: 0x104
+      name: Failed
+      mode: RO
+      lsBit: 0
+      sizeBits: 1
+      description: Failed Memory Test   
+    ######################################################### 
+    - offset: 0x108
+      name: WriteTimer
+      mode: RO
+      lsBit: 0
+      sizeBits: 32
+      description: Write Timer
+    #########################################################   
+    - offset: 0x10C
+      name: ReadTimer
+      mode: RO
+      lsBit: 0
+      sizeBits: 32
+      description: Read Timer
+    #########################################################   
+    - offset: 0x110
+      name: StartAddress
+      mode: RO
+      lsBit: 0
+      sizeBits: 64
+      description: Start Address
+    #########################################################    
+    - offset: 0x118
+      name: StopAddress
+      mode: RO
+      lsBit: 0
+      sizeBits: 64
+      description: Stop Address
+    #########################################################   
+    - offset: 0x120
+      name: ADDR_WIDTH_C
+      mode: RO
+      lsBit: 0
+      sizeBits: 32
+      description: AXI4 Address Bus Width (units of bits)
+    #########################################################   
+    - offset: 0x124
+      name: DATA_BYTES_C
+      mode: RO
+      lsBit: 0
+      sizeBits: 32
+      description: AXI4 Data Bus Width (units of bits)
+    #########################################################  
+    - offset: 0x128
+      name: ID_BITS_C
+      mode: RO
+      lsBit: 0
+      sizeBits: 32
+      description: AXI4 ID Bus Width (units of bits)
+    #########################################################      
