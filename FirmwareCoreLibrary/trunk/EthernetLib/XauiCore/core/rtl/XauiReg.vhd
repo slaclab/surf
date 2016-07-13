@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2016-03-02
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ end XauiReg;
 
 architecture rtl of XauiReg is
 
-   constant STATUS_SIZE_C : positive := 25;
+   constant STATUS_SIZE_C : positive := 32;
 
    type RegType is record
       hardRst       : sl;
@@ -102,6 +102,7 @@ begin
          statusIn(10)           => status.clkLock,
          statusIn(18 downto 11) => status.statusVector,
          statusIn(24 downto 19) => status.debugVector,
+         statusIn(31 downto 25) => (others => '0'),
          -- Output Status bit Signals (rdClk domain)           
          statusOut              => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 

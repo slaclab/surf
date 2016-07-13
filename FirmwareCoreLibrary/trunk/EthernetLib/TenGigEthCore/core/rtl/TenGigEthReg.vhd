@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2016-03-02
--- Platform   : Vivado 2014.3
+-- Last update: 2016-07-13
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
@@ -51,7 +51,7 @@ end TenGigEthReg;
 
 architecture rtl of TenGigEthReg is
 
-   constant STATUS_SIZE_C : positive := 19;
+   constant STATUS_SIZE_C : positive := 32;
 
    type RegType is record
       hardRst       : sl;
@@ -88,34 +88,35 @@ begin
          WIDTH_G        => STATUS_SIZE_C)     
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(0)  => status.phyReady,
-         statusIn(1)  => status.macStatus.rxPauseCnt,
-         statusIn(2)  => status.macStatus.txPauseCnt,
-         statusIn(3)  => status.macStatus.rxCountEn,
-         statusIn(4)  => status.macStatus.rxOverFlow,
-         statusIn(5)  => status.macStatus.rxCrcErrorCnt,
-         statusIn(6)  => status.macStatus.txCountEn,
-         statusIn(7)  => status.macStatus.txUnderRunCnt,
-         statusIn(8)  => status.macStatus.txNotReadyCnt,
-         statusIn(9)  => status.txDisable,
-         statusIn(10) => status.sigDet,
-         statusIn(11) => status.txFault,
-         statusIn(12) => status.gtTxRst,
-         statusIn(13) => status.gtRxRst,
-         statusIn(14) => status.rstCntDone,
-         statusIn(15) => status.qplllock,
-         statusIn(16) => status.txRstdone,
-         statusIn(17) => status.rxRstdone,
-         statusIn(18) => status.txUsrRdy,
+         statusIn(0)            => status.phyReady,
+         statusIn(1)            => status.macStatus.rxPauseCnt,
+         statusIn(2)            => status.macStatus.txPauseCnt,
+         statusIn(3)            => status.macStatus.rxCountEn,
+         statusIn(4)            => status.macStatus.rxOverFlow,
+         statusIn(5)            => status.macStatus.rxCrcErrorCnt,
+         statusIn(6)            => status.macStatus.txCountEn,
+         statusIn(7)            => status.macStatus.txUnderRunCnt,
+         statusIn(8)            => status.macStatus.txNotReadyCnt,
+         statusIn(9)            => status.txDisable,
+         statusIn(10)           => status.sigDet,
+         statusIn(11)           => status.txFault,
+         statusIn(12)           => status.gtTxRst,
+         statusIn(13)           => status.gtRxRst,
+         statusIn(14)           => status.rstCntDone,
+         statusIn(15)           => status.qplllock,
+         statusIn(16)           => status.txRstdone,
+         statusIn(17)           => status.rxRstdone,
+         statusIn(18)           => status.txUsrRdy,
+         statusIn(31 downto 19) => (others => '0'),
          -- Output Status bit Signals (rdClk domain)           
-         statusOut    => statusOut,
+         statusOut              => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn     => r.cntRst,
-         rollOverEnIn => r.rollOverEn,
-         cntOut       => cntOut,
+         cntRstIn               => r.cntRst,
+         rollOverEnIn           => r.rollOverEn,
+         cntOut                 => cntOut,
          -- Clocks and Reset Ports
-         wrClk        => clk,
-         rdClk        => clk);
+         wrClk                  => clk,
+         rdClk                  => clk);
 
    -------------------------------
    -- Configuration Register
