@@ -69,7 +69,14 @@ end EthMacImportGmii;
 architecture rtl of EthMacImportGmii is
 
    constant SFD_C        : slv(7 downto 0)     := x"D5";
-   constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1);
+   constant AXI_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TDATA_BYTES_C => 1,
+      TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    type StateType is(
       WAIT_SFD_S,
