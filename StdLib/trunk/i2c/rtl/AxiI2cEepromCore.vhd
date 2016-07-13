@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
--- Last update: 2016-07-12
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -74,10 +74,10 @@ architecture rtl of AxiI2cEepromCore is
    constant PRESCALE_C       : natural := (getTimeRatio(AXI_CLK_FREQ_G, I2C_SCL_5xFREQ_C)) - 1;
    constant FILTER_C         : natural := natural(getRealMult(AXI_CLK_FREQ_G, I2C_MIN_PULSE_G)) + 1;
 
-   constant ADDR_SIZE_C    : slv(1 downto 0)                := toSlv(wordCount(ADDR_WIDTH_G, 8) - 1, 2);
-   constant DATA_SIZE_C    : slv(1 downto 0)                := toSlv(wordCount(32, 8) - 1, 2);
-   constant I2C_ADDR_C     : slv(9 downto 0)                := ("000" & I2C_ADDR_G);
-   constant POLL_TIMEOUT_C : slv(POLL_TIMEOUT_G-1 downto 0) := (others => '1');
+   constant ADDR_SIZE_C : slv(1 downto 0) := toSlv(wordCount(ADDR_WIDTH_G, 8) - 1, 2);
+   constant DATA_SIZE_C : slv(1 downto 0) := toSlv(wordCount(32, 8) - 1, 2);
+   constant I2C_ADDR_C  : slv(9 downto 0) := ("000" & I2C_ADDR_G);
+   constant TIMEOUT_C   : natural         := (getTimeRatio(AXI_CLK_FREQ_G, 200.0)) - 1;  -- 5 ms timeout   
    
    constant MY_I2C_REG_MASTER_IN_INIT_C : I2cRegMasterInType := (
       i2cAddr     => I2C_ADDR_C,
@@ -96,13 +96,14 @@ architecture rtl of AxiI2cEepromCore is
    type StateType is (
       IDLE_S,
       READ_ACK_S,
+      READ_DONE_S,
       WRITE_REQ_S,
       WRITE_ACK_S,
-      POLL_REQ_S,
-      POLL_ACK_S);    
+      WRITE_DONE_S,
+      WAIT_S);    
 
    type RegType is record
-      timeout        : slv(POLL_TIMEOUT_G-1 downto 0);
+      timer          : natural range 0 to TIMEOUT_C;
       RnW            : sl;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -111,7 +112,7 @@ architecture rtl of AxiI2cEepromCore is
    end record;
 
    constant REG_INIT_C : RegType := (
-      timeout        => (others => '0'),
+      timer          => 0,
       RnW            => '0',
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -123,8 +124,9 @@ architecture rtl of AxiI2cEepromCore is
 
    signal regOut : I2cRegMasterOutType;
 
-   -- attribute dont_touch               : string;
-   -- attribute dont_touch of r          : signal is "TRUE";      
+   -- attribute dont_touch           : string;
+   -- attribute dont_touch of r      : signal is "TRUE";
+   -- attribute dont_touch of regOut : signal is "TRUE";
    
 begin
 
@@ -163,26 +165,28 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Check for a write request
-            if (axilStatus.writeEnable = '1') then
-               -- Set the flag
-               v.RnW                                    := '0';
-               -- Send read transaction to I2cRegMaster
-               v.regIn.regReq                           := '1';
-               v.regIn.regOp                            := '0';  -- Read (then modify write) operation
-               v.regIn.regAddr(ADDR_WIDTH_G-1 downto 0) := axilWriteMaster.awaddr(ADDR_WIDTH_G-1 downto 0);
-               -- Next state
-               v.state                                  := READ_ACK_S;
-            -- Check for a read request            
-            elsif (axilStatus.readEnable = '1') then
-               -- Set the flag
-               v.RnW                                    := '1';
-               -- Send read transaction to I2cRegMaster
-               v.regIn.regReq                           := '1';
-               v.regIn.regOp                            := '0';  -- Read operation
-               v.regIn.regAddr(ADDR_WIDTH_G-1 downto 0) := axilReadMaster.araddr(ADDR_WIDTH_G-1 downto 0);
-               -- Next state
-               v.state                                  := READ_ACK_S;
+            if regOut.regAck = '0' then
+               -- Check for a write request
+               if (axilStatus.writeEnable = '1') then
+                  -- Set the flag
+                  v.RnW                                    := '0';
+                  -- Send read transaction to I2cRegMaster
+                  v.regIn.regReq                           := '1';
+                  v.regIn.regOp                            := '0';  -- Read (then modify write) operation
+                  v.regIn.regAddr(ADDR_WIDTH_G-1 downto 0) := axilWriteMaster.awaddr(ADDR_WIDTH_G-1 downto 0);
+                  -- Next state
+                  v.state                                  := READ_ACK_S;
+               -- Check for a read request            
+               elsif (axilStatus.readEnable = '1') then
+                  -- Set the flag
+                  v.RnW                                    := '1';
+                  -- Send read transaction to I2cRegMaster
+                  v.regIn.regReq                           := '1';
+                  v.regIn.regOp                            := '0';  -- Read operation
+                  v.regIn.regAddr(ADDR_WIDTH_G-1 downto 0) := axilReadMaster.araddr(ADDR_WIDTH_G-1 downto 0);
+                  -- Next state
+                  v.state                                  := READ_ACK_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when READ_ACK_S =>
@@ -190,35 +194,47 @@ begin
             if regOut.regAck = '1' then
                -- Reset the flag
                v.regIn.regReq := '0';
-               -- Next state (default)
-               v.state        := IDLE_S;
                -- Check for write operation
                if r.RnW = '0' then
                   -- Check for I2C failure
                   if regOut.regFail = '1' then
                      -- Send AXI-Lite response
                      axiSlaveWriteResponse(v.axilWriteSlave, axilResp);
+                     -- Next state
+                     v.state := WAIT_S;
                   -- Check if not modification required
                   elsif axilWriteMaster.wData = regOut.regRdData then
                      -- Send AXI-Lite response
                      axiSlaveWriteResponse(v.axilWriteSlave, axilResp);
+                     -- Next state
+                     v.state := IDLE_S;
                   else
-                     -- Next state (override default)
-                     v.state := WRITE_REQ_S;
+                     -- Next state
+                     v.state := READ_DONE_S;
                   end if;
                -- Else read operation
                else
                   -- Check for I2C failure
                   if regOut.regFail = '1' then
+                     -- Next state
+                     v.state               := WAIT_S;
                      -- Forward error code on the data bus for debugging
                      v.axilReadSlave.rdata := X"000000" & regOut.regFailCode;
                   else
                      -- Forward the readout data
                      v.axilReadSlave.rdata := regOut.regRdData;
+                     -- Next state
+                     v.state               := IDLE_S;
                   end if;
                   -- Send AXI-Lite response
                   axiSlaveReadResponse(v.axilReadSlave, axilResp);
                end if;
+            end if;
+         ----------------------------------------------------------------------
+         when READ_DONE_S =>
+            if regOut.regAck = '0' then
+               -- Next state
+               v.state := WRITE_REQ_S;
             end if;
          ----------------------------------------------------------------------
          when WRITE_REQ_S =>
@@ -242,36 +258,25 @@ begin
                   v.state := IDLE_S;
                else
                   -- Next state
-                  v.state := POLL_REQ_S;
+                  v.state := WRITE_DONE_S;
                end if;
             end if;
          ----------------------------------------------------------------------
-         when POLL_REQ_S =>
-            -- Send write transaction to I2cRegMaster
-            v.regIn.regReq := '1';
-            v.regIn.regOp  := '1';      -- Write operation            
-            v.regIn.busReq := '1';      -- Poll the I2C bus address
-            -- Next state
-            v.state        := POLL_ACK_S;
+         when WRITE_DONE_S =>
+            if regOut.regAck = '0' then
+               -- Next state
+               v.state := WAIT_S;
+            end if;
          ----------------------------------------------------------------------
-         when POLL_ACK_S =>
-            -- Wait for completion
-            if regOut.regAck = '1' then
-               -- Reset the flag
-               v.regIn.regReq := '0';
-               v.regIn.busReq := '0';
-               -- Increment the counter
-               v.timeout      := r.timeout + 1;
-               -- Check for I2C bus ACK or timeout
-               if (regOut.regFail = '0') or (r.timeout = POLL_TIMEOUT_C) then
-                  -- Reset the counter
-                  v.timeout := (others => '0');
-                  -- Next state
-                  v.state   := IDLE_S;
-               else
-                  -- Next state
-                  v.state := POLL_REQ_S;
-               end if;
+         when WAIT_S =>
+            -- Increment the counter
+            v.timer := r.timer + 1;
+            -- Check counter
+            if (r.timer = TIMEOUT_C) then
+               -- Reset the counter
+               v.timer := 0;
+               -- Next state
+               v.state := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;
