@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2016-03-14
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -409,15 +409,15 @@ begin
       axiSlaveRegisterR(regCon, x"108", 0, wTimer);
       axiSlaveRegisterR(regCon, x"10C", 0, rTimer);
       if (AXI_CONFIG_G.ADDR_WIDTH_C <= 32) then
-         axiSlaveRegisterR(regCon, x"110", 0, x"00000000");
-         axiSlaveRegisterR(regCon, x"114", 0, START_C);
-         axiSlaveRegisterR(regCon, x"118", 0, x"00000000");
-         axiSlaveRegisterR(regCon, x"11C", 0, STOP_C);
+         axiSlaveRegisterR(regCon, x"110", 0, START_C);
+         axiSlaveRegisterR(regCon, x"114", 0, x"00000000");
+         axiSlaveRegisterR(regCon, x"118", 0, STOP_C);
+         axiSlaveRegisterR(regCon, x"11C", 0, x"00000000");
       else
-         axiSlaveRegisterR(regCon, x"110", 0, START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
-         axiSlaveRegisterR(regCon, x"114", 0, START_C(31 downto 0));
-         axiSlaveRegisterR(regCon, x"118", 0, STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
-         axiSlaveRegisterR(regCon, x"11C", 0, STOP_C(31 downto 0));
+         axiSlaveRegisterR(regCon, x"110", 0, START_C(31 downto 0));
+         axiSlaveRegisterR(regCon, x"114", 0, START_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
+         axiSlaveRegisterR(regCon, x"118", 0, STOP_C(31 downto 0));
+         axiSlaveRegisterR(regCon, x"11C", 0, STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 32));
       end if;
       axiSlaveRegisterR(regCon, x"120", 0, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 32));
       axiSlaveRegisterR(regCon, x"124", 0, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 32));
