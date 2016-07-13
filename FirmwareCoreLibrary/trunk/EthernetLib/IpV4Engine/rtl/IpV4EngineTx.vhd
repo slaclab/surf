@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-06-24
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,6 +76,7 @@ architecture rtl of IpV4EngineTx is
       sum2             : Slv32Array(1 downto 0);
       sum3             : slv(31 downto 0);
       sum4             : slv(31 downto 0);
+      id               : slv(15 downto 0);
       obProtocolSlaves : AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
       txMaster         : AxiStreamMasterType;
       cnt              : natural range 0 to 7;
@@ -93,6 +94,7 @@ architecture rtl of IpV4EngineTx is
       sum2             => (others => (others => '0')),
       sum3             => (others => '0'),
       sum4             => (others => '0'),
+      id               => (others => '0'),
       obProtocolSlaves => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster         => AXI_STREAM_MASTER_INIT_C,
       cnt              => 0,
@@ -192,11 +194,11 @@ begin
                   v.hdr(1)  := x"00";   -- DSCP and ECN
                   v.hdr(2)  := x"00";   -- IPV4_Length(15 downto 8) Note: Filled in next state
                   v.hdr(3)  := x"00";   -- IPV4_Length(7 downto 0)  Note: Filled in next state
-                  v.hdr(4)  := x"00";   -- IPV4_ID(15 downto 8)
-                  v.hdr(5)  := x"00";   -- IPV4_ID(7 downto 0)  
-                  v.hdr(6)  := x"00";   -- Flags and Fragment Offsets
-                  v.hdr(7)  := x"00";   -- Flags and Fragment Offsets                       
-                  v.hdr(8)  := x"06";   -- Time of Live = 0x6???
+                  v.hdr(4)  := r.id(15 downto 8);       -- IPV4_ID(15 downto 8)
+                  v.hdr(5)  := r.id(7 downto 0);        -- IPV4_ID(7 downto 0)
+                  v.hdr(6)  := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
+                  v.hdr(7)  := x"00";   -- Fragment_Offsets(7 downto 0) = 0x0
+                  v.hdr(8)  := x"06";  -- Time of Live = 0x6 (number of hops before packet is discarded)
                   v.hdr(9)  := PROTOCOL_G(r.chCnt);     -- Protocol
                   v.hdr(10) := x"00";   -- IPV4_Checksum(15 downto 8)  Note: Filled in next state
                   v.hdr(11) := x"00";   -- IPV4_Checksum(7 downto 0)   Note: Filled in next state
@@ -210,6 +212,8 @@ begin
                   v.hdr(19) := obProtocolMasters(r.chCnt).tData(127 downto 120);  -- Destination IP Address
                   -- Reset the tKeep bus
                   v.tKeep   := (others => '0');
+                  -- Increment the counter
+                  v.id      := r.id + 1;
                   -- Next state
                   v.state   := LENGTH_S;
                end if;
