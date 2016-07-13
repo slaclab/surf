@@ -4,8 +4,8 @@
 -- File       : GigEthReg.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Last update: 2016-03-17
--- Last update: 2016-02-07
+-- Created    : 2015-02-20
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ end GigEthReg;
 
 architecture rtl of GigEthReg is
 
-   constant STATUS_SIZE_C : positive := 9;
+   constant STATUS_SIZE_C : positive := 32;
 
    type RegType is record
       hardRst       : sl;
@@ -88,24 +88,25 @@ begin
          WIDTH_G        => STATUS_SIZE_C)     
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(0)  => status.phyReady,
-         statusIn(1)  => status.macStatus.rxPauseCnt,
-         statusIn(2)  => status.macStatus.txPauseCnt,
-         statusIn(3)  => status.macStatus.rxCountEn,
-         statusIn(4)  => status.macStatus.rxOverFlow,
-         statusIn(5)  => status.macStatus.rxCrcErrorCnt,
-         statusIn(6)  => status.macStatus.txCountEn,
-         statusIn(7)  => status.macStatus.txUnderRunCnt,
-         statusIn(8)  => status.macStatus.txNotReadyCnt,
+         statusIn(0)           => status.phyReady,
+         statusIn(1)           => status.macStatus.rxPauseCnt,
+         statusIn(2)           => status.macStatus.txPauseCnt,
+         statusIn(3)           => status.macStatus.rxCountEn,
+         statusIn(4)           => status.macStatus.rxOverFlow,
+         statusIn(5)           => status.macStatus.rxCrcErrorCnt,
+         statusIn(6)           => status.macStatus.txCountEn,
+         statusIn(7)           => status.macStatus.txUnderRunCnt,
+         statusIn(8)           => status.macStatus.txNotReadyCnt,
+         statusIn(31 downto 9) => (others => '0'),
          -- Output Status bit Signals (rdClk domain)           
-         statusOut    => statusOut,
+         statusOut             => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn     => r.cntRst,
-         rollOverEnIn => r.rollOverEn,
-         cntOut       => cntOut,
+         cntRstIn              => r.cntRst,
+         rollOverEnIn          => r.rollOverEn,
+         cntOut                => cntOut,
          -- Clocks and Reset Ports
-         wrClk        => clk,
-         rdClk        => clk);
+         wrClk                 => clk,
+         rdClk                 => clk);
 
    -------------------------------
    -- Configuration Register
