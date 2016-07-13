@@ -26,10 +26,11 @@ use work.StdRtlPkg.all;
 entity RstSync is
    generic (
       TPD_G           : time                             := 1 ns;   -- Simulation FF output delay
-      IN_POLARITY_G   : sl                               := '1';    -- 0 for active low rst, 1 for high
+      IN_POLARITY_G   : sl                               := '1';  -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl                               := '1';
       BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration   
-      RELEASE_DELAY_G : integer range 3 to positive'high := 3);     -- Delay between deassertion of async and sync resets
+      RELEASE_DELAY_G : integer range 3 to positive'high := 3;  -- Delay between deassertion of async and sync resets
+      OUT_REG_RST_G   : boolean                          := true);  -- Apply async reset to final reg stage
    port (
       clk      : in  sl;
       asyncRst : in  sl;
@@ -62,7 +63,7 @@ begin
    -- Final stage does not have async constraints applied, can be duplicated to ease timing
    OUT_REG : process (clk, asyncRst) is
    begin
-      if (asyncRst = IN_POLARITY_G) then
+      if (asyncRst = IN_POLARITY_G and OUT_REG_RST_G) then
          syncRst <= OUT_POLARITY_G after TPD_G;
       elsif (rising_edge(clk)) then
          syncRst <= syncInt after TPD_G;
