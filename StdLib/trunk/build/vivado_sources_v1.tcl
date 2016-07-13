@@ -82,6 +82,12 @@ if { ${TCL_FILES} != "" } {
 # Set the Top Level 
 set_property top ${PROJECT} [current_fileset]
 
+# Check if SDK_SRC_PATH is a valid path
+if { [CheckSdkSrcPath] != true } {
+   close_project
+   exit -1
+}
+
 # Close and reopen project
 VivadoRefresh ${VIVADO_PROJECT}
 
