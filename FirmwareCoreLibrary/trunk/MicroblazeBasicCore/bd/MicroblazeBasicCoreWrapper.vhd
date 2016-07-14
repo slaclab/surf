@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-16
--- Last update: 2016-07-07
+-- Last update: 2016-07-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.SsiPkg.all;
 
 entity MicroblazeBasicCoreWrapper is
    generic (
@@ -88,9 +89,8 @@ architecture mapping of MicroblazeBasicCoreWrapper is
    signal bresp  : slv(1 downto 0);
    signal rresp  : slv(1 downto 0);
 
-   signal tdata  : slv(31 downto 0);
-   signal tlast  : sl;
-   signal tvalid : sl;
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -141,10 +141,10 @@ begin
          M_AXI_DP_rresp      => rresp,
          M_AXI_DP_rvalid(0)  => mAxilReadSlave.rvalid,
          -- Master AXIS Interface
-         M0_AXIS_tdata       => tdata,
-         M0_AXIS_tlast       => tlast,
-         M0_AXIS_tvalid      => tvalid,
-         M0_AXIS_tready      => mAxisSlave.tready,
+         M0_AXIS_tdata       => txMaster.tdata(31 downto 0),
+         M0_AXIS_tlast       => txMaster.tlast,
+         M0_AXIS_tvalid      => txMaster.tvalid,
+         M0_AXIS_tready      => txSlave.tready,
          -- Slave AXIS Interface
          S0_AXIS_tdata       => sAxisMaster.tdata(31 downto 0),
          S0_AXIS_tlast       => sAxisMaster.tlast,
@@ -155,12 +155,23 @@ begin
          dcm_locked          => pllLock,
          reset               => rst);
 
-   process (tdata, tlast, tvalid)
-   begin
-      mAxisMaster                    <= AXI_STREAM_MASTER_INIT_C;
-      mAxisMaster.tdata(31 downto 0) <= tdata;
-      mAxisMaster.tlast              <= tlast;
-      mAxisMaster.tvalid             <= tvalid;
-   end process;
+   U_InsertSOF : entity work.SsiInsertSof
+      generic map (
+         TPD_G               => TPD_G,
+         COMMON_CLK_G        => true,
+         SLAVE_FIFO_G        => false,
+         MASTER_FIFO_G       => false,
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
+      port map (
+         -- Slave Port
+         sAxisClk    => clk,
+         sAxisRst    => rst,
+         sAxisMaster => txMaster,
+         sAxisSlave  => txSlave,
+         mAxisClk    => clk,
+         mAxisRst    => rst,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);         
 
 end mapping;
