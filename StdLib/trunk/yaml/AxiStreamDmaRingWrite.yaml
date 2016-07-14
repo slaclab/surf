@@ -12,13 +12,12 @@ Device: &AxiStreamDmaRingWrite
   name: AxiStreamDmaRingWrite
   description: DMA Ring Buffer Manager
   size: 0x1000
-### Merging module must provde metadata with ancors
-#  metadata:
-#    - numBuffers: &numBuffers 4
-#    - destEnums: &destEnums
-#        - name: Default
-#          value: 0
-#    - destHidden: &destHidden true
+  metadata:
+    - numBuffers: &numBuffers 4
+    - destEnums: &destEnums
+        - name: Default
+          value: 0
+    - destHidden: &destHidden true
   #########
   IntField:
   #########
