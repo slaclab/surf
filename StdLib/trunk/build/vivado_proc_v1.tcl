@@ -346,14 +346,17 @@ proc HlsVersionCheck { } {
 
 proc VersionCheck { lockVersion } {
    set VersionNumber [version -short]
-   if { ${lockVersion} != ${VersionNumber} } {
-      puts "\n\n****************************************************************"
-      puts "Vivado Version Lock == ${lockVersion} != ${VersionNumber}"
+   if { ${VersionNumber} < ${lockVersion} } {
+      puts "\n\n*********************************************************"
+      puts "Your Vivado Version Vivado   = ${VersionNumber}"
+      puts "However, Vivado Version Lock = ${lockVersion}"
       puts "You need to change your Vivado software to Version ${lockVersion}"
-      puts "****************************************************************\n\n" 
+      puts "*********************************************************\n\n" 
       return -1
-   } else {
+   } elseif { ${VersionNumber} == ${lockVersion} } {
       return 0
+   } else { 
+      return 1
    }
 }
 
