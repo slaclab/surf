@@ -1,0 +1,104 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+Device: &SsiPrbsTx 
+  name: SsiPrbsTx
+  description: SsiPrbsTx
+  size: 0x100
+  #########
+  IntField:
+  #########
+    #########################################################
+    - offset: 0x00 
+      name: AxiEn
+      mode: RW
+      lsBit: 0
+      sizeBits: 1        
+      description: ""
+    #########################################################
+    - offset: 0x00 
+      name: TxEn
+      mode: RW
+      lsBit: 1
+      sizeBits: 1        
+      description: ""  
+    #########################################################
+    - offset: 0x00 
+      name: Busy
+      mode: RO
+      lsBit: 2
+      sizeBits: 1        
+      description: ""   
+    #########################################################
+    - offset: 0x00 
+      name: Overflow
+      mode: RO
+      lsBit: 3
+      sizeBits: 1        
+      description: ""         
+    #########################################################
+    - offset: 0x00 
+      name: OneShot
+      mode: WO
+      lsBit: 4
+      sizeBits: 1        
+      description: ""      
+    #########################################################
+    - offset: 0x00 
+      name: FwCnt
+      mode: RW
+      lsBit: 5
+      sizeBits: 1        
+      description: ""   
+    #########################################################
+    - offset: 0x04 
+      name: PacketLength
+      mode: RW
+      description: ""  
+    #########################################################
+    - offset: 0x08
+      name: tDest
+      mode: RW
+      lsBit: 0
+      sizeBits: 8       
+      description: ""   
+    #########################################################
+    - offset: 0x09
+      name: tId
+      mode: RW
+      lsBit: 0
+      sizeBits: 8       
+      description: ""         
+    #########################################################
+    - offset: 0x0C
+      name: DataCount
+      mode: RO
+      description: ""   
+    #########################################################
+    - offset: 0x10
+      name: EventCount
+      mode: RO
+      description: ""   
+    #########################################################
+    - offset: 0x14
+      name: RandomData
+      mode: RO
+      description: ""         
+    #########################################################
+  #########
+  Commands:
+  #########
+    #########################################################
+    - name: C_OneShot
+      description: ""
+      sequence:
+        - entry: OneShot
+          value: 0x1   
+    #########################################################
