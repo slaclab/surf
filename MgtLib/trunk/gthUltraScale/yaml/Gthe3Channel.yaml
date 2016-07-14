@@ -10,161 +10,186 @@
 
 Device: &Gthe3Channel 
   name: Gthe3Channel
-  description: Device driver for Gthe3Channel
+  description: Gthe3Channel
   size: 0x400
   #########
   IntField:
-  #########
+  #########        
     #########################################################
     - offset: 0x008
       name: CDR_SWAP_MODE_EN
       mode: RW
       lsBit: 0
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x00C
       name: RXCDRFREQRESET_TIME
       mode: RW
       lsBit: 0
       sizeBits: 5    
+      description: ""           
     #########################################################
     - offset: 0x00C
       name: RX_DATA_WIDTH
       mode: RW
       lsBit: 5
       sizeBits: 4  
+      description: ""           
     #########################################################
     - offset: 0x00D
       name: EYE_SCAN_SWAP_EN
       mode: RW
       lsBit: 1
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x00D
       name: RXBUFRESET_TIME
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x010
       name: RX_FABINT_USRCLK_FLOP
       mode: RW
       lsBit: 0
       sizeBits: 1   
+      description: ""           
     #########################################################
     - offset: 0x010
       name: RXDFELPMRESET_TIME
       mode: RW
       lsBit: 1
       sizeBits: 7         
+      description: ""           
     #########################################################
     - offset: 0x011
       name: PCI3_RX_ELECIDLE_H2L_DISABLE
       mode: RW
       lsBit: 0
       sizeBits: 3 
+      description: ""           
     #########################################################
     - offset: 0x011
       name: RXCDRPHRESET_TIME
       mode: RW
       lsBit: 3
       sizeBits: 5     
+      description: ""           
     #########################################################
     - offset: 0x014
       name: RXELECIDLE_CFG
       mode: RW
       lsBit: 0
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x014
       name: RXPCSRESET_TIME
       mode: RW
       lsBit: 3
       sizeBits: 5  
+      description: ""           
     #########################################################
     - offset: 0x015
       name: PCI3_RX_FIFO_DISABLE
       mode: RW
       lsBit: 0
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x015
       name: PCI3_RX_ELECIDLE_EI2_ENABLE
       mode: RW
       lsBit: 1
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x015
       name: PCI3_RX_ELECIDLE_LP4_DISABLE
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x015
       name: RXPMARESET_TIME
       mode: RW
       lsBit: 3
       sizeBits: 5      
+      description: ""           
     #########################################################
     - offset: 0x018
       name: RXDFE_HB_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x024
       name: TXPCSRESET_TIME
       mode: RW
       lsBit: 3
       sizeBits: 5    
+      description: ""           
     #########################################################
     - offset: 0x025
       name: TX_PMA_POWER_SAVE
       mode: RW
       lsBit: 1
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x025
       name: RX_PMA_POWER_SAVE
       mode: RW
       lsBit: 2
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x025
       name: TXPMARESET_TIME
       mode: RW
       lsBit: 3
       sizeBits: 5        
+      description: ""           
     #########################################################
     - offset: 0x02C
       name: TX_FABINT_USRCLK_FLOP
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x02B
       name: RXPMACLK_SEL
       mode: RW
       lsBit: 0
       sizeBits: 2   
+      description: ""           
     #########################################################
     - offset: 0x02B
       name: WB_MODE
       mode: RW
       lsBit: 6
       sizeBits: 2         
+      description: ""           
     #########################################################
     - offset: 0x030
       name: RXISCANRESET_TIME
       mode: RW
       lsBit: 5
       sizeBits: 5  
+      description: ""           
     #########################################################
     - offset: 0x031
       name: TX_PROGCLK_SEL
       mode: RW
       lsBit: 2
       sizeBits: 2  
+      description: ""           
     #########################################################
     - offset: 0x038
       name: RXCDR_CFG
@@ -174,474 +199,553 @@ Device: &Gthe3Channel
       stride: 4      
       nelms: 5
       description: RXCDR_CFG[4:0]      
+      description: ""           
     #########################################################
     - offset: 0x04C
       name: RXCDR_LOCK_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x050
       name: CHAN_BOND_SEQ_1_1
       mode: RW
       lsBit: 0
       sizeBits: 10     
+      description: ""           
     #########################################################
     - offset: 0x051
       name: CHAN_BOND_SEQ_LEN
       mode: RW
       lsBit: 2
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x051
       name: CHAN_BOND_MAX_SKEW
       mode: RW
       lsBit: 4
       sizeBits: 4      
+      description: ""           
     #########################################################
     - offset: 0x054
       name: CHAN_BOND_SEQ_1_3
       mode: RW
       lsBit: 0
       sizeBits: 10    
+      description: ""           
     #########################################################
     - offset: 0x055
       name: PCI3_RX_ELECIDLE_HI_COUNT
       mode: RW
       lsBit: 2
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x058
       name: CHAN_BOND_SEQ_1_4
       mode: RW
       lsBit: 0
       sizeBits: 10    
+      description: ""           
     #########################################################
     - offset: 0x059
       name: PCI3_RX_ELECIDLE_H2L_COUNT
       mode: RW
       lsBit: 2
       sizeBits: 5      
+      description: ""           
     #########################################################
     - offset: 0x05C
       name: PCI3_PIPE_RX_ELECIDLE
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x05C
       name: PCI3_AUTO_REALIGN
       mode: RW
       lsBit: 5
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x05C
       name: OOBDIVCTL
       mode: RW
       lsBit: 7
       sizeBits: 2  
+      description: ""           
     #########################################################
     - offset: 0x05D
       name: RX_DEFER_RESET_BUF_EN
       mode: RW
       lsBit: 1
       sizeBits: 1       
+      description: ""           
     #########################################################
     - offset: 0x05D
       name: RX_BUFFER_CFG
       mode: RW
       lsBit: 2
       sizeBits: 6             
+      description: ""           
     #########################################################
     - offset: 0x060
       name: CHAN_BOND_SEQ_2_1
       mode: RW
       lsBit: 0
       sizeBits: 10  
+      description: ""           
     #########################################################
     - offset: 0x061
       name: PCI3_RX_ASYNC_EBUF_BYPASS
       mode: RW
       lsBit: 2
       sizeBits: 2    
+      description: ""           
     #########################################################
     - offset: 0x061
       name: CHAN_BOND_SEQ_1_ENABLE
       mode: RW
       lsBit: 4
       sizeBits: 4 
+      description: ""           
     #########################################################
     - offset: 0x064
       name: CHAN_BOND_SEQ_2_2
       mode: RW
       lsBit: 0
       sizeBits: 10   
+      description: ""           
     #########################################################
     - offset: 0x068
       name: CHAN_BOND_SEQ_2_3
       mode: RW
       lsBit: 0
       sizeBits: 10  
+      description: ""           
     #########################################################
     - offset: 0x06C
       name: CHAN_BOND_SEQ_2_4
       mode: RW
       lsBit: 0
       sizeBits: 10  
+      description: ""           
     #########################################################
     - offset: 0x070
       name: CLK_COR_MIN_LAT
       mode: RW
       lsBit: 0
       sizeBits: 6 
+      description: ""           
     #########################################################
     - offset: 0x070
       name: CLK_COR_KEEP_IDLE
       mode: RW
       lsBit: 6
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x071
       name: CHAN_BOND_SEQ_2_USE
       mode: RW
       lsBit: 3
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x071
       name: CHAN_BOND_SEQ_2_ENABLE
       mode: RW
       lsBit: 4
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x074
       name: CHAN_BOND_KEEP_ALIGN
       mode: RW
       lsBit: 0
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x074
       name: CLK_COR_SEQ_LEN
       mode: RW
       lsBit: 2
       sizeBits: 2 
+      description: ""           
     #########################################################
     - offset: 0x074
       name: CLK_COR_REPEAT_WAIT
       mode: RW
       lsBit: 4
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x075
       name: CLK_COR_PRECEDENCE
       mode: RW
       lsBit: 1
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x075
       name: CLK_COR_MAX_LAT
       mode: RW
       lsBit: 2
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x078
       name: CLK_COR_SEQ_1_1
       mode: RW
       lsBit: 0
       sizeBits: 10  
+      description: ""           
     #########################################################
     - offset: 0x07C
       name: CLK_COR_SEQ_1_2
       mode: RW
       lsBit: 0
       sizeBits: 10 
+      description: ""           
     #########################################################
     - offset: 0x080
       name: CLK_COR_SEQ_1_3
       mode: RW
       lsBit: 0
       sizeBits: 10  
+      description: ""           
     #########################################################
     - offset: 0x084
       name: CLK_COR_SEQ_1_4
       mode: RW
       lsBit: 0
       sizeBits: 10     
+      description: ""           
     #########################################################
     - offset: 0x088
       name: CLK_COR_SEQ_2_1
       mode: RW
       lsBit: 0
       sizeBits: 10 
+      description: ""           
     #########################################################
     - offset: 0x089
       name: CLK_COR_SEQ_1_ENABLE
       mode: RW
       lsBit: 4
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x08C
       name: CLK_COR_SEQ_2_2
       mode: RW
       lsBit: 0
       sizeBits: 10 
+      description: ""           
     #########################################################
     - offset: 0x090
       name: CLK_COR_SEQ_2_3
       mode: RW
       lsBit: 0
       sizeBits: 10 
+      description: ""           
     #########################################################
     - offset: 0x091
       name: CLK_CORRECT_USE
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x091
       name: CLK_COR_SEQ_2_USE
       mode: RW
       lsBit: 3
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x091
       name: CLK_COR_SEQ_2_ENABLE
       mode: RW
       lsBit: 4
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x094
       name: CLK_COR_SEQ_2_4
       mode: RW
       lsBit: 0
       sizeBits: 10     
+      description: ""           
     #########################################################
     - offset: 0x098
       name: RXDFE_HE_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x09C
       name: ALIGN_COMMA_ENABLE
       mode: RW
       lsBit: 0
       sizeBits: 10      
+      description: ""           
     #########################################################
     - offset: 0x09D
       name: SHOW_REALIGN_COMMA
       mode: RW
       lsBit: 3
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x09D
       name: ALIGN_COMMA_DOUBLE
       mode: RW
       lsBit: 4
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x09D
       name: ALIGN_COMMA_WORD
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x0A0
       name: TXDRVBIAS_N
       mode: RW
       lsBit: 0
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x0A0
       name: CPLL_FBDIV_45
       mode: RW
       lsBit: 7
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x0A1
       name: CPLL_FBDIV
       mode: RW
       lsBit: 0
       sizeBits: 8    
+      description: ""           
     #########################################################
     - offset: 0x0A4
       name: CPLL_LOCK_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x0A8
       name: TXDRVBIAS_P
       mode: RW
       lsBit: 0
       sizeBits: 4      
+      description: ""           
     #########################################################
     - offset: 0x0A8
       name: SATA_CPLL_CFG
       mode: RW
       lsBit: 5
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x0A9
       name: CPLL_REFCLK_DIV
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x0AC
       name: CPLL_INIT_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x0B0
       name: A_RXPROGDIVRESET
       mode: RW
       lsBit: 0
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x0B0
       name: A_TXPROGDIVRESET
       mode: RW
       lsBit: 1
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x0B0
       name: RX_DIVRESET_TIME
       mode: RW
       lsBit: 2
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x0B0
       name: TX_DIVRESET_TIME
       mode: RW
       lsBit: 7
       sizeBits: 5      
+      description: ""           
     #########################################################
     - offset: 0x0B1
       name: DEC_PCOMMA_DETECT
       mode: RW
       lsBit: 7
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x0B4
       name: RXCDR_LOCK_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x0B8
       name: RXCFOK_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16      
+      description: ""           
     #########################################################
     - offset: 0x0BC
       name: RXDFE_H2_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x0C0
       name: RXDFE_H2_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x0C4
       name: RXCFOK_CFG2
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x0C8
       name: RXLPM_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x0CC
       name: RXLPM_KH_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x0D0
       name: RXLPM_KH_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16      
+      description: ""           
     #########################################################
     - offset: 0x0D4
       name: RXDFELPM_KL_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x0D8
       name: RXDFELPM_KL_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16          
+      description: ""           
     #########################################################
     - offset: 0x0DC
       name: RXLPM_OS_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x0E0
       name: RXLPM_OS_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16         
+      description: ""           
     #########################################################
     - offset: 0x0E4
       name: RXLPM_GC_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16         
+      description: ""           
     #########################################################
     - offset: 0x0E9
       name: DMONITOR_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 8    
+      description: ""           
     #########################################################
     - offset: 0x0F0
       name: ES_PRESCALE
       mode: RW
       lsBit: 0
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x0F1
       name: ES_EYE_SCAN_EN
       mode: RW
       lsBit: 0
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x0F1
       name: ES_ERRDET_EN
       mode: RW
       lsBit: 1
       sizeBits: 1     
+      description: ""           
     #########################################################
     - offset: 0x0F1
       name: ES_CONTROL
       mode: RW
       lsBit: 2
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x0F4
       name: RXDFE_HC_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16      
+      description: ""           
     #########################################################
     - offset: 0x0F8
       name: TX_PROGDIV_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x0FC
       name: ES_QUALIFIER
@@ -651,6 +755,7 @@ Device: &Gthe3Channel
       stride: 4      
       nelms: 5
       description: ES_QUALIFIER[4:0]    
+      description: ""           
     #########################################################
     - offset: 0x110
       name: ES_QUAL_MASK
@@ -660,6 +765,7 @@ Device: &Gthe3Channel
       stride: 4      
       nelms: 5
       description: ES_QUAL_MASK[4:0]    
+      description: ""           
     #########################################################
     - offset: 0x124
       name: ES_SDATA_MASK
@@ -669,60 +775,70 @@ Device: &Gthe3Channel
       stride: 4      
       nelms: 5
       description: ES_SDATA_MASK[4:0]          
+      description: ""           
     #########################################################
     - offset: 0x138
       name: FTS_DESKEW_SEQ_ENABLE
       mode: RW
       lsBit: 0
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x138
       name: FTS_LANE_DESKEW_EN
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x13C
       name: FTS_LANE_DESKEW_CFG
       mode: RW
       lsBit: 4
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x13C
       name: ES_HORZ_OFFSET
       mode: RW
       lsBit: 4
       sizeBits: 12
+      description: ""           
     #########################################################
     - offset: 0x140
       name: RXDFE_HC_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x144
       name: ES_PMA_CFG
       mode: RW
       lsBit: 0
       sizeBits: 10   
+      description: ""           
     #########################################################
     - offset: 0x148
       name: RX_DFE_AGC_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x148
       name: RX_DFE_AGC_CFG1
       mode: RW
       lsBit: 2
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x149
       name: RX_EN_HI_LR
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x14C
       name: RXDFE_CFG
@@ -732,420 +848,490 @@ Device: &Gthe3Channel
       stride: 4      
       nelms: 2
       description: RXDFE_CFG[1:0]    
+      description: ""           
     #########################################################
     - offset: 0x154
       name: ALIGN_MCOMMA_VALUE
       mode: RW
       lsBit: 0
       sizeBits: 10     
+      description: ""           
     #########################################################
     - offset: 0x155
       name: ALIGN_MCOMMA_DET
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x155
       name: PCS_PCIE_EN
       mode: RW
       lsBit: 4
       sizeBits: 1   
+      description: ""           
     #########################################################
     - offset: 0x155
       name: LOCAL_MASTER
       mode: RW
       lsBit: 5
       sizeBits: 1     
+      description: ""           
     #########################################################
     - offset: 0x158
       name: ALIGN_PCOMMA_VALUE
       mode: RW
       lsBit: 0
       sizeBits: 10
+      description: ""           
     #########################################################
     - offset: 0x159
       name: ALIGN_PCOMMA_DET
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x15C
       name: TXDLY_LCFG
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x160
       name: RXDFE_OS_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x164
       name: RXPHDLY_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x168
       name: RXDFE_OS_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x16C
       name: RXDLY_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x170
       name: RXDLY_LCFG
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x174
       name: RXDFE_HF_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x178
       name: RXDFE_HD_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x17C
       name: RX_BIAS_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x180
       name: PCS_RSVD0
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x184
       name: RX_CM_SEL
       mode: RW
       lsBit: 0
       sizeBits: 2    
+      description: ""           
     #########################################################
     - offset: 0x184
       name: RX_CM_TRIM
       mode: RW
       lsBit: 2
       sizeBits: 4     
+      description: ""           
     #########################################################
     - offset: 0x184
       name: RX_CM_BUF_CFG
       mode: RW
       lsBit: 6
       sizeBits: 4     
+      description: ""           
     #########################################################
     - offset: 0x185
       name: RX_CM_BUF_PD
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x185
       name: RXPH_MONITOR_SEL
       mode: RW
       lsBit: 3
       sizeBits: 5      
+      description: ""           
     #########################################################
     - offset: 0x188
       name: RX_SUM_VREF_TUNE
       mode: RW
       lsBit: 0
       sizeBits: 3  
+      description: ""           
     #########################################################
     - offset: 0x188
       name: RX_SUM_VCMTUNE
       mode: RW
       lsBit: 3
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x188
       name: RX_SUM_RES_CTRL
       mode: RW
       lsBit: 7
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x189
       name: RX_SUM_IREF_TUNE
       mode: RW
       lsBit: 1
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x189
       name: RX_SUM_VCM_OVWR
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x189
       name: RX_SUM_DFETAPREP_EN
       mode: RW
       lsBit: 6
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x18C
       name: RXOUT_DIV
       mode: RW
       lsBit: 0
       sizeBits: 3    
+      description: ""           
     #########################################################
     - offset: 0x18C
       name: RXOOB_CFG
       mode: RW
       lsBit: 5
       sizeBits: 9
+      description: ""           
     #########################################################
     - offset: 0x18D
       name: OOB_PWRUP
       mode: RW
       lsBit: 6
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x18D
       name: CBCC_DATA_SOURCE_SEL
       mode: RW
       lsBit: 7
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x190
       name: RXGEARBOX_EN
       mode: RW
       lsBit: 0
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x190
       name: RX_XCLK_SEL
       mode: RW
       lsBit: 1
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x190
       name: RXBUF_EN
       mode: RW
       lsBit: 3
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x190
       name: RXSLIDE_AUTO_WAIT
       mode: RW
       lsBit: 4
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x191
       name: RXPRBS_ERR_LOOPBACK
       mode: RW
       lsBit: 0
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x191
       name: RXSLIDE_MODE
       mode: RW
       lsBit: 1
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x191
       name: RX_SIG_VALID_DLY
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x194
       name: DMONITOR_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 10
+      description: ""           
     #########################################################
     - offset: 0x195
       name: RXBUF_THRESH_OVFLW
       mode: RW
       lsBit: 2
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x198
       name: RX_INT_DATAWIDTH
       mode: RW
       lsBit: 0
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x198
       name: RX_WIDEMODE_CDR
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x198
       name: RXBUF_ADDR_MODE
       mode: RW
       lsBit: 3
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x198
       name: RX_DISPERR_SEQ_MATCH
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x198
       name: RX_CLKMUX_EN
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x198
       name: RXBUF_THRESH_UNDFLW
       mode: RW
       lsBit: 6
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x199
       name: RXBUF_RESET_ON_CB_CHANGE
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x199
       name: RXBUF_RESET_ON_RATE_CHANGE
       mode: RW
       lsBit: 5
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x199
       name: RXBUF_RESET_ON_COMMAALIGN
       mode: RW
       lsBit: 6
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x199
       name: RXBUF_THRESH_OVRD
       mode: RW
       lsBit: 7
       sizeBits: 1        
+      description: ""           
     #########################################################
     - offset: 0x19C
       name: RXCDR_PH_RESET_ON_EIDLE
       mode: RW
       lsBit: 1
       sizeBits: 1        
+      description: ""           
     #########################################################
     - offset: 0x19C
       name: RXCDR_FR_RESET_ON_EIDLE
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x19C
       name: RXBUF_RESET_ON_EIDLE
       mode: RW
       lsBit: 3
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x19C
       name: RXBUF_EIDLE_LO_CNT
       mode: RW
       lsBit: 4
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x19D
       name: RX_DFE_LPM_HOLD_DURING_EIDLE
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x19D
       name: RXCDR_HOLD_DURING_EIDLE
       mode: RW
       lsBit: 3
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x19D
       name: RXBUF_EIDLE_HI_CNT
       mode: RW
       lsBit: 4
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x1A0
       name: SATA_EIDLE_VAL
       mode: RW
       lsBit: 0
       sizeBits: 2 
+      description: ""           
     #########################################################
     - offset: 0x1A0
       name: SATA_BURST_SEQ_LEN
       mode: RW
       lsBit: 4
       sizeBits: 4   
+      description: ""           
     #########################################################
     - offset: 0x1A1
       name: SATA_BURST_VAL
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x1A4
       name: SAS_MIN_COM
       mode: RW
       lsBit: 1
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x1A5
       name: SATA_MIN_BURST
       mode: RW
       lsBit: 2
       sizeBits: 6      
+      description: ""           
     #########################################################
     - offset: 0x1A8
       name: SATA_MIN_WAKE
       mode: RW
       lsBit: 1
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x1A9
       name: SATA_MIN_INIT
       mode: RW
       lsBit: 2
       sizeBits: 6      
+      description: ""           
     #########################################################
     - offset: 0x1AC
       name: SAS_MAX_COM
       mode: RW
       lsBit: 1
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x1AD
       name: SATA_MAX_BURST
       mode: RW
       lsBit: 2
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x1B0
       name: SATA_MAX_WAKE
       mode: RW
       lsBit: 1
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x1B1
       name: SATA_MAX_INIT
       mode: RW
       lsBit: 2
       sizeBits: 6  
+      description: ""           
     #########################################################
     - offset: 0x1B4
       name: RX_CLK25_DIV
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x1B8
       name: TXPHDLY_CFG
@@ -1155,1072 +1341,1252 @@ Device: &Gthe3Channel
       stride: 4      
       nelms: 2
       description: TXPHDLY_CFG[1:0] 
+      description: ""           
     #########################################################
     - offset: 0x1C0
       name: TXDLY_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x1C4
       name: TAPDLY_SET_TX
       mode: RW
       lsBit: 0
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x1C4
       name: TXPH_MONITOR_SEL
       mode: RW
       lsBit: 2
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x1C8
       name: RXCDR_LOCK_CFG2
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x1CC
       name: TXPH_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x1D0
       name: TERM_RCAL_CFG
       mode: RW
       lsBit: 0
       sizeBits: 15
+      description: ""           
     #########################################################
     - offset: 0x1D4
       name: RXDFE_HF_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x1D8
       name: TERM_RCAL_OVRD
       mode: RW
       lsBit: 1
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x1D8
       name: PD_TRANS_TIME_FROM_P2
       mode: RW
       lsBit: 4
       sizeBits: 12
+      description: ""           
     #########################################################
     - offset: 0x1DC
       name: PD_TRANS_TIME_TO_P2
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x1DD
       name: PD_TRANS_TIME_NONE_P2
       mode: RW
       lsBit: 0
       sizeBits: 8      
+      description: ""           
     #########################################################
     - offset: 0x1E1
       name: TRANS_TIME_RATE
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x1E4
       name: TST_RSV1
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x1E5
       name: TST_RSV0
       mode: RW
       lsBit: 0
       sizeBits: 8 
+      description: ""           
     #########################################################
     - offset: 0x1E8
       name: TX_DATA_WIDTH
       mode: RW
       lsBit: 0
       sizeBits: 4      
+      description: ""           
     #########################################################
     - offset: 0x1E9
       name: TX_XCLK_SEL
       mode: RW
       lsBit: 2
       sizeBits: 1   
+      description: ""           
     #########################################################
     - offset: 0x1E9
       name: TX_CLK25_DIV
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x1EC
       name: TX_DEEMPH1
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x1ED
       name: TX_DEEMPH0
       mode: RW
       lsBit: 0
       sizeBits: 8      
+      description: ""           
     #########################################################
     - offset: 0x1F0
       name: TXFIFO_ADDR_CFG
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x1F0
       name: TX_RXDETECT_REF
       mode: RW
       lsBit: 3
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x1F0
       name: TXBUF_RESET_ON_RATE_CHANGE
       mode: RW
       lsBit: 6
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x1F0
       name: TXBUF_EN
       mode: RW
       lsBit: 7
       sizeBits: 1     
+      description: ""           
     #########################################################
     - offset: 0x1F1
       name: TXOUT_DIV
       mode: RW
       lsBit: 0
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x1F1
       name: TXGEARBOX_EN
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x1F1
       name: TX_MAINCURSOR_SEL
       mode: RW
       lsBit: 6
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x1F4
       name: TX_RXDETECT_CFG
       mode: RW
       lsBit: 2
       sizeBits: 14
+      description: ""           
     #########################################################
     - offset: 0x1F8
       name: TX_EIDLE_DEASSERT_DELAY
       mode: RW
       lsBit: 2
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x1F8
       name: TX_EIDLE_ASSERT_DELAY
       mode: RW
       lsBit: 5
       sizeBits: 3 
+      description: ""           
     #########################################################
     - offset: 0x1F9
       name: TX_DRIVE_MODE
       mode: RW
       lsBit: 0
       sizeBits: 5   
+      description: ""           
     #########################################################
     - offset: 0x1F9
       name: TX_LOOPBACK_DRIVE_HIZ
       mode: RW
       lsBit: 6
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x1F9
       name: TX_CLKMUX_EN
       mode: RW
       lsBit: 7
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x1FC
       name: TX_MARGIN_FULL_1
       mode: RW
       lsBit: 1
       sizeBits: 7     
+      description: ""           
     #########################################################
     - offset: 0x1FD
       name: TX_MARGIN_FULL_0
       mode: RW
       lsBit: 1
       sizeBits: 7           
+      description: ""           
     #########################################################
     - offset: 0x200
       name: TX_MARGIN_FULL_3
       mode: RW
       lsBit: 1
       sizeBits: 7     
+      description: ""           
     #########################################################
     - offset: 0x201
       name: TX_MARGIN_FULL_2
       mode: RW
       lsBit: 1
       sizeBits: 7       
+      description: ""           
     #########################################################
     - offset: 0x204
       name: TX_MARGIN_LOW_0
       mode: RW
       lsBit: 1
       sizeBits: 7     
+      description: ""           
     #########################################################
     - offset: 0x205
       name: TX_MARGIN_FULL_4
       mode: RW
       lsBit: 1
       sizeBits: 7   
+      description: ""           
     #########################################################
     - offset: 0x208
       name: TX_MARGIN_LOW_2
       mode: RW
       lsBit: 1
       sizeBits: 7     
+      description: ""           
     #########################################################
     - offset: 0x209
       name: TX_MARGIN_LOW_1
       mode: RW
       lsBit: 1
       sizeBits: 7   
+      description: ""           
     #########################################################
     - offset: 0x20C
       name: TX_MARGIN_LOW_4
       mode: RW
       lsBit: 1
       sizeBits: 7     
+      description: ""           
     #########################################################
     - offset: 0x20D
       name: TX_MARGIN_LOW_3
       mode: RW
       lsBit: 1
       sizeBits: 7     
+      description: ""           
     #########################################################
     - offset: 0x210
       name: RXDFE_HD_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x215
       name: TX_INT_DATAWIDTH
       mode: RW
       lsBit: 2
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x215
       name: TX_QPI_STATUS_EN
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x224
       name: RXPRBS_LINKACQ_CNT
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x228
       name: RXOSCALRESET_TIME
       mode: RW
       lsBit: 0
       sizeBits: 5  
+      description: ""           
     #########################################################
     - offset: 0x229
       name: RXSYNC_SKIP_DA
       mode: RW
       lsBit: 0
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x229
       name: TXSYNC_SKIP_DA
       mode: RW
       lsBit: 1
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x229
       name: RXOOB_CLK_CFG
       mode: RW
       lsBit: 2
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x229
       name: A_RXOSCALRESET
       mode: RW
       lsBit: 3
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x229
       name: TX_IDLE_DATA_ZERO
       mode: RW
       lsBit: 4
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x229
       name: TXSYNC_OVRD
       mode: RW
       lsBit: 5
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x229
       name: RXSYNC_OVRD
       mode: RW
       lsBit: 6
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x229
       name: TX_PMADATA_OPT
       mode: RW
       lsBit: 7
       sizeBits: 1     
+      description: ""           
     #########################################################
     - offset: 0x22C
       name: RX_CTLE3_LPF
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x22D
       name: RXSYNC_MULTILANE
       mode: RW
       lsBit: 1
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x22D
       name: TXSYNC_MULTILANE
       mode: RW
       lsBit: 2
       sizeBits: 1   
+      description: ""           
     #########################################################
     - offset: 0x230
       name: RX_DFE_KL_LPM_KL_CFG1
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x231
       name: RX_DFE_KL_LPM_KL_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x231
       name: RX_TUNE_AFE_OS
       mode: RW
       lsBit: 2
       sizeBits: 2  
+      description: ""           
     #########################################################
     - offset: 0x231
       name: RESET_POWERSAVE_DISABLE
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x231
       name: ACJTAG_RESET
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x231
       name: ACJTAG_DEBUG_MODE
       mode: RW
       lsBit: 6
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x231
       name: ACJTAG_MODE
       mode: RW
       lsBit: 7
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x234
       name: RXDFELPM_KL_CFG2
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x238
       name: RXDFE_VP_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x23C
       name: RXDFE_VP_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x240
       name: RXDFE_UT_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x244
       name: ADAPT_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x248
       name: ADAPT_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x24C
       name: RXCFOK_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x251
       name: USE_PCS_CLK_PHASE_SEL
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x251
       name: ES_CLK_PHASE_SEL
       mode: RW
       lsBit: 3
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x254
       name: PMA_RSV1
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x25C
       name: RX_EYESCAN_VS_RANGE
       mode: RW
       lsBit: 0
       sizeBits: 2   
+      description: ""           
     #########################################################
     - offset: 0x25C
       name: RX_EYESCAN_VS_CODE
       mode: RW
       lsBit: 2
       sizeBits: 7
+      description: ""           
     #########################################################
     - offset: 0x25D
       name: RX_EYESCAN_VS_UT_SIGN
       mode: RW
       lsBit: 1
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x25D
       name: RX_EYESCAN_VS_NEG_DIR
       mode: RW
       lsBit: 2
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x25D
       name: RX_CAPFF_SARC_ENB
       mode: RW
       lsBit: 3
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x25D
       name: RX_AFE_CM_EN
       mode: RW
       lsBit: 2
       sizeBits: 1   
+      description: ""           
     #########################################################
     - offset: 0x260
       name: RXDFE_HE_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x264
       name: TXPI_VREFSEL
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x264
       name: TXPI_LPM
       mode: RW
       lsBit: 3
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x264
       name: TXPI_GRAY_SEL
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x264
       name: TXPI_INVSTROBE_SEL
       mode: RW
       lsBit: 6
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x264
       name: TXPI_PPMCLK_SEL
       mode: RW
       lsBit: 7
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x265
       name: TXPI_SYNFREQ_PPM
       mode: RW
       lsBit: 0
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x265
       name: GEARBOX_MODE
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x268
       name: TXPI_PPM_CFG
       mode: RW
       lsBit: 0
       sizeBits: 8
+      description: ""           
     #########################################################
     - offset: 0x26C
       name: RX_DFE_KL_LPM_KH_CFG1
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x26D
       name: RX_DFE_KL_LPM_KH_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x26D
       name: RX_DFELPM_CFG1
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x26D
       name: RX_DFELPM_CFG0
       mode: RW
       lsBit: 3
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x26D
       name: RX_DFELPM_KLKH_AGC_STUP_EN
       mode: RW
       lsBit: 7
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x270
       name: TXPI_CFG5
       mode: RW
       lsBit: 2
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x270
       name: TXPI_CFG4
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x270
       name: TXPI_CFG3
       mode: RW
       lsBit: 6
       sizeBits: 1      
+      description: ""           
     #########################################################
     - offset: 0x270
       name: TXPI_CFG2
       mode: RW
       lsBit: 7
       sizeBits: 2 
+      description: ""           
     #########################################################
     - offset: 0x271
       name: TXPI_CFG1
       mode: RW
       lsBit: 1
       sizeBits: 2  
+      description: ""           
     #########################################################
     - offset: 0x271
       name: TXPI_CFG0
       mode: RW
       lsBit: 3
       sizeBits: 2  
+      description: ""           
     #########################################################
     - offset: 0x274
       name: RXPI_CFG0
       mode: RW
       lsBit: 3
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x274
       name: RXPI_CFG6
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x275
       name: RXPI_CFG5
       mode: RW
       lsBit: 0
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x275
       name: RXPI_CFG4
       mode: RW
       lsBit: 1
       sizeBits: 1     
+      description: ""           
     #########################################################
     - offset: 0x275
       name: RXPI_CFG3
       mode: RW
       lsBit: 2
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x275
       name: RXPI_CFG2
       mode: RW
       lsBit: 4
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x275
       name: RXPI_CFG1
       mode: RW
       lsBit: 6
       sizeBits: 2  
+      description: ""           
     #########################################################
     - offset: 0x278
       name: RXDFE_UT_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x27C
       name: RXDFE_GC_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16      
+      description: ""           
     #########################################################
     - offset: 0x280
       name: RXDFE_GC_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x284
       name: RXDFE_GC_CFG2
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x288
       name: RXCDR_CFG0_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x28C
       name: RXCDR_CFG1_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x290
       name: RXCDR_CFG2_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x294
       name: RXCDR_CFG3_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x298
       name: RXCDR_CFG4_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x29C
       name: RXCDR_CFG5_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x2A0
       name: RXCDR_CFG5
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x2A4
       name: PCIE_RXPMA_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x2A8
       name: PCIE_TXPCS_CFG_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16       
+      description: ""           
     #########################################################
     - offset: 0x2AC
       name: PCIE_TXPMA_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x2B0
       name: PCS_RSVD1
       mode: RW
       lsBit: 0
       sizeBits: 3 
+      description: ""           
     #########################################################
     - offset: 0x2B0
       name: RX_CLK_SLIP_OVRD
       mode: RW
       lsBit: 3
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x2B4
       name: RXPI_VREFSEL
       mode: RW
       lsBit: 2
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x2B4
       name: RXPI_LPM
       mode: RW
       lsBit: 3
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x2B5
       name: RATE_SW_USE_DRP
       mode: RW
       lsBit: 0
       sizeBits: 1   
+      description: ""           
     #########################################################
     - offset: 0x2B5
       name: PLL_SEL_MODE_GEN12
       mode: RW
       lsBit: 1
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x2B5
       name: PLL_SEL_MODE_GEN3
       mode: RW
       lsBit: 3
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x2B8
       name: RXDFE_H3_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x2BC
       name: EVODD_PHI_CFG
       mode: RW
       lsBit: 0
       sizeBits: 11
+      description: ""           
     #########################################################
     - offset: 0x2BD
       name: GM_BIAS_SELECT
       mode: RW
       lsBit: 5
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x2BD
       name: DFE_VCM_COMP_EN
       mode: RW
       lsBit: 6
       sizeBits: 1    
+      description: ""           
     #########################################################
     - offset: 0x2BD
       name: DFE_D_X_REL_POS
       mode: RW
       lsBit: 6
       sizeBits: 1          
+      description: ""           
     #########################################################
     - offset: 0x2C0
       name: RXDFE_H3_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x2C4
       name: RXDFE_H4_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16      
+      description: ""           
     #########################################################
     - offset: 0x2C8
       name: RXDFE_H4_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x2CC
       name: RXDFE_H5_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x2D0
       name: TX_SARC_LPBK_ENB
       mode: RW
       lsBit: 4
       sizeBits: 1
+      description: ""           
     #########################################################
     - offset: 0x2D0
       name: TX_MODE_SEL
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x2D1
       name: TEMPERATUR_PAR
       mode: RW
       lsBit: 0
       sizeBits: 4
+      description: ""           
     #########################################################
     - offset: 0x2D1
       name: PROCESS_PAR
       mode: RW
       lsBit: 5
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x2D4
       name: RXDFE_H5_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16 
+      description: ""           
     #########################################################
     - offset: 0x2D8
       name: CPLL_CFG3
       mode: RW
       lsBit: 0
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x2D9
       name: TX_EML_PHI_TUNE
       mode: RW
       lsBit: 0
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x2D9
       name: TX_DCD_EN
       mode: RW
       lsBit: 1
       sizeBits: 1       
+      description: ""           
     #########################################################
     - offset: 0x2D9
       name: TX_DCD_CFG
       mode: RW
       lsBit: 2
       sizeBits: 6             
+      description: ""           
     #########################################################
     - offset: 0x2DC
       name: RXDFE_H6_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x2E0
       name: RXDFE_H6_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x2E4
       name: RXDFE_H7_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x2E8
       name: DDI_CTRL
       mode: RW
       lsBit: 0
       sizeBits: 2
+      description: ""           
     #########################################################
     - offset: 0x2E8
       name: DDI_REALIGN_WAIT
       mode: RW
       lsBit: 2
       sizeBits: 5
+      description: ""           
     #########################################################
     - offset: 0x2EC
       name: RX_SAMPLE_PERIOD
       mode: RW
       lsBit: 0
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x2EC
       name: RXGBOX_FIFO_INIT_RD_ADDR
       mode: RW
       lsBit: 3
       sizeBits: 3
+      description: ""           
     #########################################################
     - offset: 0x2EC
       name: TX_SAMPLE_PERIOD
       mode: RW
       lsBit: 6
       sizeBits: 3      
+      description: ""           
     #########################################################
     - offset: 0x2ED
       name: TXGBOX_FIFO_INIT_RD_ADDR
       mode: RW
       lsBit: 1
       sizeBits: 3   
+      description: ""           
     #########################################################
     - offset: 0x2F0
       name: CPLL_CFG2
       mode: RW
       lsBit: 0
       sizeBits: 16
+      description: ""           
     #########################################################
     - offset: 0x2F4
       name: RXPHSAMP_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x2F8
       name: RXPHSLIP_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x2FC
       name: RXPHBEACON_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x300
       name: RXDFE_H7_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x304
       name: RXDFE_H8_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x308
       name: RXDFE_H8_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x30C
       name: PCIE_BUFG_DIV_CTRL
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x310
       name: PCIE_RXPCS_CFG_GEN3
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x314
       name: RXDFE_H9_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16   
+      description: ""           
     #########################################################
     - offset: 0x318
       name: RX_PROGDIV_CFG
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x31C
       name: RXDFE_H9_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16     
+      description: ""           
     #########################################################
     - offset: 0x320
       name: RXDFE_HA_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x328
       name: CHAN_BOND_SEQ_1_2
       mode: RW
       lsBit: 0
       sizeBits: 10
+      description: ""           
     #########################################################
     - offset: 0x32C
       name: CPLL_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x330
       name: CPLL_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16    
+      description: ""           
     #########################################################
     - offset: 0x334
       name: DEC_MCOMMA_DETECT
       mode: RW
       lsBit: 0
       sizeBits: 1  
+      description: ""           
     #########################################################
     - offset: 0x334
       name: DEC_VALID_COMMA_ONLY
       mode: RW
       lsBit: 1
       sizeBits: 1 
+      description: ""           
     #########################################################
     - offset: 0x334
       name: RX_DDI_SEL
       mode: RW
       lsBit: 2
       sizeBits: 6
+      description: ""           
     #########################################################
     - offset: 0x335
       name: CPLL_INIT_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 8 
+      description: ""           
     #########################################################
     - offset: 0x338
       name: RXDFE_HA_CFG1
       mode: RW
       lsBit: 0
       sizeBits: 16  
+      description: ""           
     #########################################################
     - offset: 0x33C
       name: RXDFE_HB_CFG0
       mode: RW
       lsBit: 0
       sizeBits: 16        
+      description: ""           
+    #########################################################
   
