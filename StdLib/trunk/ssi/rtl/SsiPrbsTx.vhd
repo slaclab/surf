@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2016-05-10
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -106,6 +106,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          : sl;
       oneShot        : sl;
       trig           : sl;
+      cntData        : sl;
       tDest          : slv(7 downto 0);
       tId            : slv(7 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -125,6 +126,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          => '0',
       oneShot        => '0',
       trig           => '0',
+      cntData        => '0',
       tDest          => X"00",
       tId            => X"00",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -166,6 +168,7 @@ begin
                -- BIT2 reserved for busy
                -- BIT3 reserved for overflow
                v.oneShot := axilWriteMaster.wdata(4);
+               v.cntData := axilWriteMaster.wdata(5);
             when X"04" =>
                v.packetLength := axilWriteMaster.wdata(31 downto 0);
             when X"08" =>
@@ -186,7 +189,8 @@ begin
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-            -- BIT4 reserved for oneShot
+               -- BIT4 reserved for oneShot
+               v.axilReadSlave.rdata(5) := r.cntData;
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
             when X"08" =>
@@ -267,17 +271,16 @@ begin
                -- Send the random seed word
                v.txAxisMaster.tvalid                             := '1';
                v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
-
                -- Generate the next random data word
-               v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
+               v.randomData                                      := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
                -- Increment the counter
-               v.eventCnt   := r.eventCnt + 1;
+               v.eventCnt                                        := r.eventCnt + 1;
                -- Increment the counter
-               v.dataCnt    := r.dataCnt + 1;
+               v.dataCnt                                         := r.dataCnt + 1;
                -- Set the SOF bit
                ssiSetUserSof(PRBS_SSI_CONFIG_C, v.txAxisMaster, '1');
                -- Next State
-               v.state      := LENGTH_S;
+               v.state                                           := LENGTH_S;
             end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
@@ -286,25 +289,30 @@ begin
                -- Send the upper packetLength value
                v.txAxisMaster.tvalid             := '1';
                v.txAxisMaster.tData(31 downto 0) := r.length;
-
                -- Increment the counter
-               v.dataCnt := r.dataCnt + 1;
+               v.dataCnt                         := r.dataCnt + 1;
                -- Next State
-               v.state   := DATA_S;
+               v.state                           := DATA_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check if the FIFO is ready
             if txCtrl.pause = '0' then
                -- Send the random data word
-               v.txAxisMaster.tValid                             := '1';
-               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
+               v.txAxisMaster.tValid := '1';
+               -- Check if we are sending PRBS or counter data
+               if r.cntData = '0' then
+                  -- PRBS data
+                  v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
+               else
+                  -- Counter data
+                  v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := (others => '0');
+                  v.txAxisMaster.tData(31 downto 0)                 := r.dataCnt;
+               end if;
                -- Generate the next random data word
-
                v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
-
                -- Increment the counter
-               v.dataCnt := r.dataCnt + 1;
+               v.dataCnt    := r.dataCnt + 1;
                -- Check the counter
                if r.dataCnt = r.length then
                   -- Reset the counter
@@ -313,11 +321,10 @@ begin
                   v.txAxisMaster.tLast := '1';
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);
-
                   -- Reset the busy flag
-                  v.busy  := '0';
+                  v.busy               := '0';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state              := IDLE_S;
                end if;
             end if;
       ----------------------------------------------------------------------
