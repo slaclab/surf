@@ -119,6 +119,8 @@ port (
    appRssiParam_o : out RssiParamType;
    
    -- Status (RO)
+   frameRate_i    : in Slv32Array(1 downto 0);   
+   bandwidth_i    : in Slv64Array(1 downto 0);   
    status_i       : in slv(6 downto 0);  
    dropCnt_i      : in slv(31 downto 0);
    validCnt_i     : in slv(31 downto 0);
@@ -275,7 +277,19 @@ begin
         when 16#13# =>                  -- ADDR (76)
           v.axilReadSlave.rdata(31 downto 0) := s_resendCnt;          
         when 16#14# =>                  -- ADDR (80)
-          v.axilReadSlave.rdata(31 downto 0) := s_reconCnt;          
+          v.axilReadSlave.rdata(31 downto 0) := s_reconCnt;  
+        when 16#15# =>                  
+          v.axilReadSlave.rdata(31 downto 0) := frameRate_i(0);  
+        when 16#16# =>                  
+          v.axilReadSlave.rdata(31 downto 0) := frameRate_i(1);
+        when 16#17# =>                  
+          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(31 downto 0);  
+        when 16#18# =>                  
+          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(63 downto 32);    
+        when 16#19# =>                  
+          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(31 downto 0);  
+        when 16#20# =>                  
+          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(63 downto 32);              
         when others =>
           axilReadResp := AXI_ERROR_RESP_G;
       end case;
