@@ -263,6 +263,15 @@ architecture rtl of RssiCore is
    signal s_reconCntReg  : slv(31 downto 0);
    signal s_resendCntReg : slv(31 downto 0);
 
+   signal monMasters : AxiStreamMasterArray(1 downto 0);   
+   signal monSlaves  : AxiStreamSlaveArray(1 downto 0);      
+   signal frameRate  : Slv32Array(1 downto 0);   
+   signal bandwidth  : Slv64Array(1 downto 0);   
+   
+   -- attribute dont_touch                   : string;
+   -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";     
+   -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";     
+
 ----------------------------------------------------------------------
 begin
    -- Assertions to check generics
@@ -313,7 +322,9 @@ begin
          appRssiParam_o => s_appRssiParamReg,
          injectFault_o  => s_injectFaultReg,
 
-         -- Status
+         -- Status (RO)
+         frameRate_i => frameRate,
+         bandwidth_i => bandwidth, 
          status_i    => s_statusReg,
          dropCnt_i   => s_dropCntReg,
          validCnt_i  => s_validCntReg,
@@ -388,8 +399,8 @@ begin
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => s_rstFifo,
-         sAxisMaster => sAppAxisMaster_i,
-         sAxisSlave  => sAppAxisSlave_o,
+         sAxisMaster => monMasters(0),
+         sAxisSlave  => monSlaves(0),
          sAxisCtrl   => open,
          --
          mAxisClk    => clk_i,
@@ -397,7 +408,10 @@ begin
          mAxisMaster => s_sAppAxisMaster,
          mAxisSlave  => s_sAppAxisSlave,
          mTLastTUser => open);
-
+           
+   monMasters(0)   <= sAppAxisMaster_i;      
+   sAppAxisSlave_o <= monSlaves(0);      
+   
    -- Transport side
    TspFifoIn_INST : entity work.AxiStreamFifo
       generic map (
@@ -793,9 +807,12 @@ begin
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
-         mAxisMaster => mAppAxisMaster_o,
-         mAxisSlave  => mAppAxisSlave_i,
+         mAxisMaster => monMasters(1),
+         mAxisSlave  => monSlaves(1),
          mTLastTUser => open);
+         
+   mAppAxisMaster_o <= monMasters(1);
+   monSlaves(1)     <= mAppAxisSlave_i;
 
    -- Transport side
    TspFifoOut_INST : entity work.AxiStreamFifo
@@ -829,5 +846,25 @@ begin
 ----------------------------------------
 -- Output assignment
    statusReg_o <= s_statusReg;
-
+   
+   PACKET_RATE :
+   for i in 1 downto 0 generate
+      U_AxiStreamMon : entity work.AxiStreamMon
+         generic map (
+            TPD_G            => TPD_G,   
+            AXIS_CLK_FREQ_G => CLK_FREQUENCY_G,
+            AXIS_CONFIG_G   => APP_AXIS_CONFIG_G)
+         port map (
+            -- AXIS Stream Interface
+            axisClk    => clk_i,
+            axisRst    => rst_i,
+            axisMaster => monMasters(i),
+            axisSlave  => monSlaves(i),
+            -- Status Interface
+            statusClk  => axiClk_i,
+            statusRst  => axiRst_i,
+            frameRate  => frameRate(i),
+            bandwidth  => bandwidth(i));  
+   end generate PACKET_RATE;         
+   
 end architecture rtl;
