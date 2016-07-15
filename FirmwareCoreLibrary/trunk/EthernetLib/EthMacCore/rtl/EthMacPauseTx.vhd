@@ -135,7 +135,7 @@ begin
 
       -- Clear tvalid on ready assertion
       if mAxisSlave.tReady = '1' then
-         v.outMaster.tValid = '0' 
+         v.outMaster.tValid := '0';
       end if;
 
       -- Clear ready
