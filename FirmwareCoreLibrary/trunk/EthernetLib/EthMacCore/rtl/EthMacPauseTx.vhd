@@ -72,7 +72,7 @@ architecture EthMacPauseTx of EthMacPauseTx is
 
    constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G);
 
-   type StateType is ( IDLE_S, PASS_S, TX_S, LAST_S);
+   type StateType is ( IDLE_S, PASS_S, TX_S );
 
    type RegType is record
       state       : StateType;
@@ -133,14 +133,20 @@ begin
          v.remPauseCnt := r.remPauseCnt - 1;
       end if;
 
+      -- Clear tvalid on ready assertion
+      if mAxisSlave.tReady = '1' then
+         v.outMaster.tValid = '0' 
+      end if;
+
+      -- Clear ready
+      v.outSlave.tReady :='0';
+
       -- State
       case r.state is
 
          -- IDLE, wait for frame
          when IDLE_S =>
-            v.outSlave.tReady  := '0';
-            v.outMaster.tValid := '0';
-            v.txCount          := (others=>'0');
+            v.txCount := (others=>'0');
 
             -- Pause transmit needed
             if clientPause = '1' and r.remPauseCnt = 0 and pauseEnable = '1' and phyReady = '1' then
@@ -155,7 +161,7 @@ begin
          -- Pause transmit
          when TX_S =>
 
-            if r.outMaster.tValid = '0' or mAxisSlave.tReady = '1' then
+            if v.outMaster.tValid = '0' then
                v.outMaster        := AXI_STREAM_MASTER_INIT_C;
                v.outMaster.tValid := '1';
                v.txCount          := r.txCount + 1;
@@ -186,7 +192,7 @@ begin
                      v.remPauseCnt     := pauseTime;
                      v.remPreCnt       := (others=>'1');
                      v.pauseTx         := '1';
-                     v.state           := LAST_S;
+                     v.state           := IDLE_S;
 
                end case;
             end if;
@@ -196,24 +202,13 @@ begin
          when PASS_S =>
 
             -- Fill chain
-            if r.outMaster.tValid = '0' or mAxisSlave.tReady = '1' then
+            if v.outMaster.tValid = '0' then
                v.outSlave.tReady := '1';
                v.outMaster       := sAxisMaster;
 
                if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
-                  v.state := LAST_S;
+                  v.state := IDLE_S;
                end if;
-
-            else
-               v.outSlave.tReady :='0';
-            end if;
-
-
-         -- Last Data wait for ready
-         when LAST_S =>
-            if mAxisSlave.tReady = '1' then
-               v.outMaster.tValid := '0';
-               v.state            := IDLE_S;
             end if;
 
       end case;
