@@ -53,7 +53,7 @@ end EthMacBypassMux;
 -- Define architecture
 architecture EthMacBypassMux of EthMacBypassMux is
 
-   type StateType is ( IDLE_S, PRIM_S, LAST_S, BYP_S, DUMP_S );
+   type StateType is ( IDLE_S, PRIM_S, BYP_S, DUMP_S );
 
    type RegType is record
       state       : StateType;
@@ -85,15 +85,21 @@ begin
 
       v := r;
 
+      -- Clear tvalid on ready assertion
+      if mAxisSlave.tReady = '1' then
+         v.outMaster.tValid = '0' 
+      end if;
+
+      -- Clear ready
+      v.primSlave.tReady :='0';
+      v.bypSlave.tReady  :='0';
+
       -- State
       case r.state is
 
          -- IDLE, wait for frame
          when IDLE_S =>
-            v.primSlave.tReady := '0';
-            v.bypSlave.tReady  := '0';
-            v.outMaster.tValid := '0';
-            v.dump             := '0';
+            v.dump := '0';
 
             -- Bypass frame request
             if sBypMaster.tValid = '1' then
@@ -109,13 +115,13 @@ begin
          when PRIM_S =>
 
             -- Fill chain
-            if r.outMaster.tValid = '0' or mAxisSlave.tReady = '1' then
+            if v.outMaster.tValid = '0' then
                v.primSlave.tReady := '1';
                v.outMaster        := sPrimMaster;
 
                -- Last of frame
                if sPrimMaster.tValid = '1' and sPrimMaster.tLast = '1' then
-                  v.state := LAST_S;
+                  v.state := IDLE_S;
 
                -- Bypass preempt
                elsif sBypMaster.tValid = '1' then
@@ -126,15 +132,6 @@ begin
                   -- Mark frame in error
                   axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.outMaster, EMAC_EOFE_BIT_C, '1');
                end if;
-            else
-               v.primSlave.tReady :='0';
-            end if;
-
-         -- Last data
-         when LAST_S =>
-            if mAxisSlave.tReady = '1' then
-               v.outMaster.tValid := '0';
-               v.state            := IDLE_S;
             end if;
 
          -- Sending preempt data
@@ -143,13 +140,13 @@ begin
             -- Assert ready when dumping
             v.primSlave.tReady := r.dump;
 
-            -- Detect last dump
+            -- Detect last dump of primary data
             if sPrimMaster.tValid = '1' and sPrimMaster.tLast = '1' then
                v.dump := '0';
             end if;
 
             -- Fill chain
-            if r.outMaster.tValid = '0' or mAxisSlave.tReady = '1' then
+            if v.outMaster.tValid = '0' then
                v.bypSlave.tReady := '1';
                v.outMaster       := sBypMaster;
 
@@ -160,37 +157,21 @@ begin
                   if v.dump = '1' then
                      v.state := DUMP_S;
 
-                  -- Done
                   else
-                     v.state := LAST_S;
+                     v.state := IDLE_S;
                   end if;
                end if;
-            else
-               v.bypSlave.tReady := '0';
             end if;
 
          -- Dump data
          when DUMP_S =>
-
-            -- Last of bypass data
-            if mAxisSlave.tReady = '1' then
-               v.outMaster.tValid := '0';
-            end if;
 
             -- Accept all data
             v.primSlave.tReady := '1';
 
             -- Dump until last primary data
             if sPrimMaster.tValid = '1' and sPrimMaster.tLast = '1' then
-
-               -- Still waiting on ready
-               if v.outMaster.tValid = '1' then
-                  v.state := LAST_S;
-
-               -- Done
-               else
-                  v.state := IDLE_S;
-               end if;
+               v.state := IDLE_S;
             end if;
 
       end case;
