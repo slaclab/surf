@@ -62,8 +62,6 @@ end EthMacTopWithFifo;
 
 architecture mapping of EthMacTopWithFifo is
 
-   constant PAUSE_EN_C : boolean := ite(GMII_EN_G, false, true);  -- GMII doesn't support TX pause yet
-
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
    signal macRxAxisMaster : AxiStreamMasterType;
@@ -99,7 +97,7 @@ begin
    U_EthMac : entity work.EthMacTop
       generic map (
          TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_C,
+         PAUSE_EN_G      => false,
          PAUSE_512BITS_G => 8,
          VLAN_CNT_G      => 1,
          VLAN_EN_G       => false,
