@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2016-01-27
+-- Last update: 2016-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ architecture rtl of ConnFSM is
       peerTout    => '0',
       paramReject => '0',
       
-      rssiParam   => (others => (others =>'0')),
+      rssiParam   => RSSI_PARAM_INIT_C,
       
       timeoutCntr => 0,
       resendCntr  => 0,

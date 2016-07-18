@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-06-11
--- Last update: 2016-01-27
+-- Last update: 2016-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -217,7 +217,7 @@ architecture rtl of RxFSM is
       rxF => (others => ('0')),
       
       -- Received RSSI parameters
-      rxParam    => (others => (others => '0')),
+      rxParam    => RSSI_PARAM_INIT_C,
 
       rxHeadLen  => (others => '0'), -- Received seqN
       rxSeqN     => (others => '0'),   -- Received seqN
