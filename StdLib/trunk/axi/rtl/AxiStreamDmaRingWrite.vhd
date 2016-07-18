@@ -1,17 +1,23 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : AxiStreamDmaRingWrite
 -------------------------------------------------------------------------------
--- File       : BsaBufferControl.vhd
+-- File       : AxiStreamDmaRingWrite.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-05-05
+-- Last update: 2016-07-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-- This file is part of <PROJECT_NAME>. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of <PROJECT_NAME>, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -33,7 +39,7 @@ entity AxiStreamDmaRingWrite is
       TPD_G                : time                     := 1 ns;
       BUFFERS_G            : natural range 2 to 64    := 64;
       BURST_SIZE_BYTES_G   : natural range 4 to 2**17 := 4096;
-      TRIGGER_USER_BIT_G   : natural range 0 to 7     := 0;
+      TRIGGER_USER_BIT_G   : natural range 0 to 7     := 2;
       AXIL_BASE_ADDR_G     : slv(31 downto 0)         := (others => '0');
       DATA_AXIS_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
       STATUS_AXIS_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(1);
