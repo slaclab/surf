@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-05-31
+-- Last update: 2016-07-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,8 +55,15 @@ end entity AxiStreamDepacketizer;
 
 architecture rtl of AxiStreamDepacketizer is
 
-   -- TODO: Define ID and TDEST properly!
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
 
    constant VERSION_C : slv(3 downto 0) := "0000";
 
@@ -126,7 +133,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Accumulation sequencing, DMA ring buffer, and AXI-Lite logic
    -------------------------------------------------------------------------------------------------
-   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r) is
+   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r, restart) is
       variable v : RegType;
 
    begin
@@ -224,7 +231,6 @@ begin
                   case (inputAxisMaster.tKeep(7 downto 0)) is
                      when X"01" =>
                         -- Single byte tail, append tUser to previous txn which has been held
---                        v.outputAxisMaster(0)                     := r.outputAxisMaster;
                         v.outputAxisMaster(1).tValid              := '0';
                         v.outputAxisMaster(0).tUser(63 downto 56) := '0' & inputAxisMaster.tData(6 downto 0);
                         v.outputAxisMaster(0).tLast               := inputAxisMaster.tData(7);
