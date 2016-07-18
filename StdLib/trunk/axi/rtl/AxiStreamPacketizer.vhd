@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-03-14
+-- Last update: 2016-07-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,11 +34,12 @@ use work.SsiPkg.all;
 entity AxiStreamPacketizer is
 
    generic (
-      TPD_G                : time    := 1 ns;
-      MAX_PACKET_BYTES_G   : integer := 1440;  -- Must be a multiple of 8
-      MIN_TKEEP_G : slv(15 downto 0) := X"0001";
-      INPUT_PIPE_STAGES_G  : integer := 0;
-      OUTPUT_PIPE_STAGES_G : integer := 0);
+      TPD_G                : time             := 1 ns;
+      MAX_PACKET_BYTES_G   : integer          := 1440;  -- Must be a multiple of 8
+      MIN_TKEEP_G          : slv(15 downto 0) := X"0001";
+      OUTPUT_SSI_G         : boolean          := true;  -- SSI compliant output (SOF on tuser)
+      INPUT_PIPE_STAGES_G  : integer          := 0;
+      OUTPUT_PIPE_STAGES_G : integer          := 0);
 
    port (
       -- AXI-Lite Interface for local registers 
@@ -57,7 +58,15 @@ architecture rtl of AxiStreamPacketizer is
 
    constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
 
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8,TKEEP_NORMAL_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => ite(OUTPUT_SSI_G, 2, 0),
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
 
    constant VERSION_C : slv(3 downto 0) := "0000";
 
@@ -157,9 +166,11 @@ begin
                v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
                v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
                v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
-               axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
-               v.state                                := MOVE_S;
-               v.packetNumber                         := r.packetNumber + 1;
+               if (OUTPUT_SSI_G) then
+                  axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
+               end if;
+               v.state        := MOVE_S;
+               v.packetNumber := r.packetNumber + 1;
             end if;
 
          when MOVE_S =>
@@ -227,7 +238,7 @@ begin
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster.tValid            := '1';
-               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;--X"0001";
+               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;  --X"0001";
                v.outputAxisMaster.tData             := (others => '0');
                v.outputAxisMaster.tData(7)          := r.eof;
                v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);
@@ -239,6 +250,8 @@ begin
             end if;
 
       end case;
+
+      v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
       ----------------------------------------------------------------------------------------------
       -- Reset and output assignment
