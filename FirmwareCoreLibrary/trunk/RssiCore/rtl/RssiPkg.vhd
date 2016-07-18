@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-08-09
--- Last update: 2016-06-09
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,13 @@ package RssiPkg is
    -- Common constant definitions
    --------------------------------------------------------------------------
    constant RSSI_WORD_WIDTH_C  : positive            := 8;  -- 64 bit word (FIXED)
-   constant RSSI_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(RSSI_WORD_WIDTH_C, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);
+   constant RSSI_AXIS_CONFIG_C : AxiStreamConfigType :=
+      ssiAxiStreamConfig(
+         dataBytes => RSSI_WORD_WIDTH_C,
+         tKeepMode => TKEEP_COMP_C,
+         tUserMode => TUSER_FIRST_LAST_C,
+         tDestBits => 0,
+         tUserBits => 2);
 
    -- Header sizes
    constant SYN_HEADER_SIZE_C  : natural := 24;
@@ -60,6 +66,20 @@ package RssiPkg is
       connectionId : slv(31 downto 0);
    end record RssiParamType;
 
+   constant RSSI_PARAM_INIT_C : RssiParamType := (
+      version      => (others => '0'),
+      chksumEn     => (others => '0'),
+      timeoutUnit  => (others => '0'),
+      maxOutsSeg   => (others => '0'),
+      maxSegSize   => (others => '0'),
+      retransTout  => (others => '0'),
+      cumulAckTout => (others => '0'),
+      nullSegTout  => (others => '0'),
+      maxRetrans   => (others => '0'),
+      maxCumAck    => (others => '0'),
+      maxOutofseq  => (others => '0'),
+      connectionId => (others => '0'));
+
    type flagsType is record
       syn  : sl;
       ack  : sl;
@@ -78,7 +98,7 @@ package RssiPkg is
       segSize  : natural;
       occupied : sl;
    end record WindowType;
-   
+
    constant WINDOW_INIT_C : WindowType := (
       seqN     => (others => '0'),
       segType  => (others => '0'),
@@ -114,7 +134,7 @@ package body RssiPkg is
       end loop;
 
       return vSlv;
-      
+
    end endianSwap64;
 --------------------------------------------------------------------------------------------
 end package body RssiPkg;

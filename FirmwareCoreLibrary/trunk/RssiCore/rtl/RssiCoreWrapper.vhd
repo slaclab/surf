@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2016-02-25
--- Last update: 2016-06-10
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -101,6 +101,20 @@ architecture mapping of RssiCoreWrapper is
    signal statusReg        : slv(6 downto 0);
    signal rssiNotConnected : sl;
 
+   -- This should really go in a AxiStreamPacketizerPkg
+   constant PACKETIZER_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   -- If bypassing chunker, convert directly to RSSI AXIS config
+   -- else use Packetizer AXIS format. Packetizer will then convert to RSSI config.
+   constant CONV_AXIS_CONFIG_C : AxiStreamConfigType := ite(BYPASS_CHUNKER_G, RSSI_AXIS_CONFIG_C, PACKETIZER_AXIS_CONFIG_C);
+
 begin
 
    GEN_RX :
@@ -115,7 +129,7 @@ begin
             INT_PIPE_STAGES_G   => 0,
             PIPE_STAGES_G       => 1,
             SLAVE_AXI_CONFIG_G  => APP_AXIS_CONFIG_G(i),
-            MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
+            MASTER_AXI_CONFIG_G => CONV_AXIS_CONFIG_C)
          port map (
             sAxisClk    => clk_i,
             sAxisRst    => rst_i,
@@ -124,7 +138,7 @@ begin
             mAxisClk    => clk_i,
             mAxisRst    => rst_i,
             mAxisMaster => rxMasters(i),
-            mAxisSlave  => rxSlaves(i));   
+            mAxisSlave  => rxSlaves(i));
    end generate GEN_RX;
 
    U_AxiStreamMux : entity work.AxiStreamMux
@@ -132,7 +146,8 @@ begin
          TPD_G          => TPD_G,
          NUM_SLAVES_G   => APP_STREAMS_G,
          MODE_G         => "ROUTED",
-         TDEST_ROUTES_G => APP_STREAM_ROUTES_G)
+         TDEST_ROUTES_G => APP_STREAM_ROUTES_G,
+         PIPE_STAGES_G  => 1)
       port map (
          -- Clock and reset
          axisClk      => clk_i,
@@ -149,7 +164,7 @@ begin
          generic map (
             TPD_G                => TPD_G,
             MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
-            INPUT_PIPE_STAGES_G  => 0,  -- FIFO input to this block is already pipelined
+            INPUT_PIPE_STAGES_G  => 0,
             OUTPUT_PIPE_STAGES_G => 1)
          port map (
             axisClk     => clk_i,
@@ -272,7 +287,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             INT_PIPE_STAGES_G   => 0,
             PIPE_STAGES_G       => PIPE_STAGES_G,
-            SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => CONV_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => APP_AXIS_CONFIG_G(i))
          port map (
             sAxisClk    => clk_i,
@@ -284,5 +299,5 @@ begin
             mAxisMaster => mAppAxisMasters_o(i),
             mAxisSlave  => mAppAxisSlaves_i(i));
    end generate GEN_TX;
-   
+
 end architecture mapping;
