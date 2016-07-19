@@ -219,12 +219,12 @@ Device: &JesdRx
       description: "Threshold_High[7:0]. Debug funtionality. Threshold for generating a digital signal from the ADC data."
     #########################################################   
     - offset: 0x100
-       name: StatusValidCnt
-       sizeBits: 32
-       stride: 4
-       nelms: 8        
-       mode: RW
-       description: "StatusValidCnt[7:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
+      name: StatusValidCnt
+      sizeBits: 32
+      stride: 4
+      nelms: 8
+      mode: RW
+      description: "StatusValidCnt[7:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
     ######################################################### 
   #########
   Commands:
