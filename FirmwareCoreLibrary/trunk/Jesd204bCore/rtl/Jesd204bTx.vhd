@@ -17,6 +17,7 @@
 --              - Synchronisation of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-8)
 --
+--          Warning: Scrambling support has not been tested on the TX module yet.
 --
 --          Note: extSampleDataArray_i should be little endian and not byteswapped
 --                First sample in time:  sampleData_i(15 downto 0)
@@ -97,6 +98,8 @@ entity Jesd204bTx is
       
       -- Data and character inputs from GT (transceivers)
       r_jesdGtTxArr  : out   jesdGtTxLaneTypeArray(L_G-1 downto 0);
+      
+      -- Debug signals
       pulse_o        : out   slv(L_G-1 downto 0);
       leds_o         : out   slv(1 downto 0)
    );
