@@ -103,9 +103,9 @@ entity Jesd204bRx is
 
       -- Synchronisation output combined from all receivers 
       nSync_o : out sl;
-
+      
+      -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
-
       leds_o : out slv(1 downto 0)
       );
 end Jesd204bRx;
