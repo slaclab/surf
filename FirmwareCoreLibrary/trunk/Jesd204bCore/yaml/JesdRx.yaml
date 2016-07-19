@@ -40,7 +40,12 @@ Device: &JesdRx
       sizeBits: 1
       lsBit: 1      
       mode: RW
-      description: "ReplaceEnable"
+      enums:
+        - name: Disabled
+          value: 0
+        - name: Enabled 
+          value: 1
+      description: "Jesd Character Replacement Enable (Leave Enabled in normal operation)."
     #########################################################  
     - offset: 0x10
       name: ResetGTs
@@ -61,14 +66,24 @@ Device: &JesdRx
       sizeBits: 1
       lsBit: 4
       mode: RW
-      description: "InvertSync"
+      enums:
+        - name: Regular
+          value: 0
+        - name: Inverted 
+          value: 1
+      description: "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB."
     ######################################################### 
     - offset: 0x10
       name: ScrambleEnable
       sizeBits: 1
       lsBit: 5
       mode: RW
-      description: "ScrambleEnable"
+      enums:
+        - name: Disabled
+          value: 0
+        - name: Enabled 
+          value: 1
+      description: "Enable data Scrambling."
     #########################################################        
     - offset: 0x040
       name: GTXReady
@@ -202,15 +217,15 @@ Device: &JesdRx
       nelms: 8        
       mode: RW
       description: "Threshold_High[7:0]. Debug funtionality. Threshold for generating a digital signal from the ADC data."
-   #########################################################   
-   - offset: 0x100
-      name: StatusValidCnt
-      sizeBits: 32
-      stride: 4
-      nelms: 8        
-      mode: RW
-      description: "StatusValidCnt[7:0]. Shows stability of JESD lanes. Counts number of reconnections."
-   ######################################################### 
+    #########################################################   
+    - offset: 0x100
+       name: StatusValidCnt
+       sizeBits: 32
+       stride: 4
+       nelms: 8        
+       mode: RW
+       description: "StatusValidCnt[7:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
+    ######################################################### 
   #########
   Commands:
   #########
