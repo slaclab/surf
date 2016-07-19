@@ -97,7 +97,7 @@ begin
    U_EthMac : entity work.EthMacTop
       generic map (
          TPD_G           => TPD_G,
-         PAUSE_EN_G      => false,
+         PAUSE_EN_G      => true,
          PAUSE_512BITS_G => 8,
          VLAN_CNT_G      => 1,
          VLAN_EN_G       => false,
