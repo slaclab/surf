@@ -139,8 +139,8 @@ begin
             else
                v.cnt := r.cnt + 1;
             end if;
-            -- Check the valid flag
-            if r.valid(r.cnt) = '1' then
+            -- Check the valid flag and transaction completed
+            if (r.valid(r.cnt) = '1') and (ack.done = '0') then
                -- Reset the flag
                v.valid(r.cnt) := '0';
                -- Setup the AXI-Lite Master request
