@@ -109,6 +109,7 @@ vhdl work axi/rtl/AxiStreamDmaRingPkg.vhd
 vhdl work axi/rtl/AxiStreamDmaRingWrite.vhd
 vhdl work axi/rtl/AxiStreamDmaRingRead.vhd
 vhdl work axi/rtl/AxiStreamMon.vhd
+vhdl work axi/rtl/SlvArraytoAxiLite.vhd
 
 vhdl work ssi/rtl/SsiAxiLiteMaster.vhd
 vhdl work ssi/rtl/SsiCmdMaster.vhd
