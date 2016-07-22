@@ -30,11 +30,10 @@ use work.AxiLitePkg.all;
 entity AxiLiteAsync is
    generic (
       TPD_G           : time                  := 1 ns;
+      COMMON_CLK_G    : boolean               := false;    
       NUM_ADDR_BITS_G : natural               := 32;
-      PIPE_STAGES_G   : integer range 0 to 16 := 0
-      );
+      PIPE_STAGES_G   : integer range 0 to 16 := 0);
    port (
-
       -- Slave Port
       sAxiClk         : in  sl;
       sAxiClkRst      : in  sl;
@@ -42,15 +41,13 @@ entity AxiLiteAsync is
       sAxiReadSlave   : out AxiLiteReadSlaveType;
       sAxiWriteMaster : in  AxiLiteWriteMasterType;
       sAxiWriteSlave  : out AxiLiteWriteSlaveType;
-
       -- Master Port
       mAxiClk         : in  sl;
       mAxiClkRst      : in  sl;
       mAxiReadMaster  : out AxiLiteReadMasterType;
       mAxiReadSlave   : in  AxiLiteReadSlaveType;
       mAxiWriteMaster : out AxiLiteWriteMasterType;
-      mAxiWriteSlave  : in  AxiLiteWriteSlaveType
-      );
+      mAxiWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiLiteAsync;
 
 architecture STRUCTURE of AxiLiteAsync is
@@ -95,6 +92,17 @@ architecture STRUCTURE of AxiLiteAsync is
 
 begin
 
+   GEN_SYNC : if (COMMON_CLK_G = true) generate
+
+      mAxiReadMaster  <= sAxiReadMaster;
+      sAxiReadSlave   <= mAxiReadSlave;
+      mAxiWriteMaster <= sAxiWriteMaster;
+      sAxiWriteSlave  <= mAxiWriteSlave;
+      
+   end generate;
+   
+   GEN_ASYNC : if (COMMON_CLK_G = false) generate   
+   
    -- Synchronize each reset across to the other clock domain
    LOC_S2M_RstSync : entity work.RstSync
       generic map (
@@ -427,6 +435,7 @@ begin
    -- Read control and valid
    sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');
    writeMastToSlaveRead  <= sAxiWriteMaster.bready;
-
+   
+   end generate;
+   
 end architecture STRUCTURE;
-
