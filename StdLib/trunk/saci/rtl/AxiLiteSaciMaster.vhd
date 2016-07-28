@@ -27,9 +27,9 @@ entity AxiLiteSaciMaster is
    generic (
       TPD_G              : time                  := 1 ns;
       AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C;
-      AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- units of Hz
+      AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- In units of seconds
       AXIL_TIMEOUT_G     : real                  := 1.0E-3;  -- In units of seconds
-      SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- units of Hz
+      SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- In units of seconds
       SACI_CLK_FREERUN_G : boolean               := false;
       SACI_NUM_CHIPS_G   : positive range 1 to 4 := 1;
       SACI_RSP_BUSSED_G  : boolean               := false);
@@ -60,6 +60,7 @@ architecture rtl of AxiLiteSaciMaster is
 
    type RegType is record
       state          : StateType;
+      saciRst        : sl;
       req            : sl;
       chip           : slv(log2(SACI_NUM_CHIPS_G)-1 downto 0);
       op             : sl;
@@ -74,6 +75,7 @@ architecture rtl of AxiLiteSaciMaster is
 
    constant REG_INIT_C : RegType := (
       state          => IDLE_S,
+      saciRst        => '1',
       req            => '0',
       chip           => (others => '0'),
       op             => '0',
@@ -104,7 +106,7 @@ begin
          SACI_RSP_BUSSED_G  => SACI_RSP_BUSSED_G)
       port map (
          sysClk   => axilClk,           -- [in]
-         sysRst   => axilRst,           -- [in]
+         sysRst   => r.saciRst,         -- [in]
          req      => r.req,             -- [in]
          ack      => ack,               -- [out]
          fail     => fail,              -- [out]
@@ -144,6 +146,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the timer
+            v.saciRst := '0';
             v.timer := 0;
             -- Check for a write request
             if (axilStatus.writeEnable = '1') then
@@ -180,6 +183,7 @@ begin
                -- Set the error flags
                resp  := AXIL_ERROR_RESP_G;
                v.req := '0';
+               v.saciRst := '1';
             elsif (ack = '1') then
                -- Reset the flag
                v.req := '0';
