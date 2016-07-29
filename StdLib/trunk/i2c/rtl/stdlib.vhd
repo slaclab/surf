@@ -144,7 +144,7 @@ end;
 
 function decode(v : std_logic_vector) return std_logic_vector is
 variable res : std_logic_vector((2**v'length)-1 downto 0);
-variable i : integer range res'range;
+variable i : integer;
 begin
   res := (others => '0'); i := 0;
   if notx(v) then i := to_integer(unsigned(v)); end if;
@@ -156,7 +156,7 @@ end;
 
 function genmux(s,v : std_logic_vector) return std_ulogic is
 variable res : std_logic_vector(v'length-1 downto 0);
-variable i : integer range res'range;
+variable i : integer;
 begin
   res := v; i := 0;
   if notx(s) then i := to_integer(unsigned(s)); end if;
