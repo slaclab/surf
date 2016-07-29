@@ -816,7 +816,7 @@ package body StdRtlPkg is
    -- generic decoder
    function decode(v : slv) return slv is
       variable res : slv((2**v'length)-1 downto 0);
-      variable i   : integer range res'range;
+      variable i   : integer;
    begin
       res    := (others => '0');
       i      := 0;
@@ -828,7 +828,7 @@ package body StdRtlPkg is
    -- generic multiplexer
    function genmux(s, v : slv) return sl is
       variable res : slv(v'length-1 downto 0);
-      variable i   : integer range res'range;
+      variable i   : integer;
    begin
       res := v;
       i   := 0;
