@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-06-13
+-- Last update: 2016-08-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -73,11 +73,20 @@ architecture rtl of AxiStreamDmaRingRead is
 
    constant DMA_ADDR_LOW_C : integer := log2(BURST_SIZE_BYTES_G);
 
-   type StateType is (START_LOW_S, START_HIGH_S, END_LOW_S, END_HIGH_S, DMA_REQ_S, CLEAR_S);
+   type StateType is (
+      START_LOW_S,
+      START_HIGH_S,
+      END_LOW_S,
+      END_HIGH_S,
+      MODE_S,
+      DMA_REQ_S,
+      CLEAR_HIGH_S,
+      CLEAR_LOW_S);
 
    type RegType is record
       startAddr      : slv(63 downto 0);
       endAddr        : slv(63 downto 0);
+      mode           : slv(31 downto 0);
       state          : StateType;
       axilReq        : AxiLiteMasterReqType;
       dmaReq         : AxiReadDmaReqType;
@@ -87,6 +96,7 @@ architecture rtl of AxiStreamDmaRingRead is
    constant REG_INIT_C : RegType := (
       startAddr      => (others => '0'),
       endAddr        => (others => '0'),
+      mode           => (others => '0'),
       state          => START_LOW_S,
       axilReq        => AXI_LITE_MASTER_REQ_INIT_C,
       dmaReq         => AXI_READ_DMA_REQ_INIT_C,
@@ -278,7 +288,16 @@ begin
             if (axilAck.done = '1') then
                v.axilReq.request       := '0';
                v.endAddr(63 downto 32) := axilAck.rdData;
-               v.state                 := DMA_REQ_S;
+               v.state                 := MODE_S;
+            end if;
+
+         when MODE_S =>
+            v.axilReq.address := getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C, buf, '0');
+
+            if (axilAck.done = '1') then
+               v.axilReq.request := '0';
+               v.mode            := axilAck.rdData;
+               v.state           := DMA_REQ_S;
             end if;
 
          when DMA_REQ_S =>
@@ -294,21 +313,32 @@ begin
             if (dmaAck.done = '1') then
                v.dmaReq.request        := '0';
                v.intStatusSlave.tready := '1';
-               v.state                 := START_LOW_S;
+               v.state                 := CLEAR_HIGH_S;
             end if;
 
-         when CLEAR_S =>
+         when CLEAR_HIGH_S =>
             -- Clear the buffer after reading it out
-            v.axilReq.address := AXIL_BASE_ADDR_G(31 downto 8) & BUFFER_CLEAR_OFFSET_C;
-            v.axilReq.wrData  := '1' & resize(buf, 31);
-            v.axilReq.request := '1';
-            v.axilReq.rnw     := '0';
-
+            v.axilReq.address        := getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C, buf, '0');
+            v.axilReq.wrData         := r.mode;
+            v.axilReq.wrData(INIT_C) := '1';
+            v.axilReq.request        := '1';
+            v.axilReq.rnw            := '0';
             if (axilAck.done = '1') then
                v.axilReq.request := '0';
-
-               v.state := START_LOW_S;
+               v.state           := CLEAR_LOW_S;
             end if;
+
+         when CLEAR_LOW_S =>
+            v.axilReq.address        := getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C, buf, '0');
+            v.axilReq.wrData         := r.mode;
+            v.axilReq.wrData(INIT_C) := '0';
+            v.axilReq.request        := '1';
+            v.axilReq.rnw            := '0';
+            if (axilAck.done = '1') then
+               v.axilReq.request := '0';
+               v.state           := START_LOW_S;
+            end if;
+
 
       end case;
 
