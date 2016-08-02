@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-08-01
+-- Last update: 2016-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -285,19 +285,10 @@ begin
          when END_HIGH_S =>
             v.axilReq.address := getBufferAddr(AXIL_BASE_ADDR_G, END_AXIL_C, buf, '1');
 
-            if (axilAck.done = '1') then
+            if (r.axilReq.request = '1' and axilAck.done = '1') then
                v.axilReq.request       := '0';
                v.endAddr(63 downto 32) := axilAck.rdData;
-               v.state                 := MODE_S;
-            end if;
-
-         when MODE_S =>
-            v.axilReq.address := getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C, buf, '0');
-
-            if (axilAck.done = '1') then
-               v.axilReq.request := '0';
-               v.mode            := axilAck.rdData;
-               v.state           := DMA_REQ_S;
+               v.state                 := DMA_REQ_S;
             end if;
 
          when DMA_REQ_S =>
@@ -312,8 +303,17 @@ begin
             v.dmaReq.firstUser                          := ite(SSI_OUTPUT_G, X"02", X"00");
             if (dmaAck.done = '1') then
                v.dmaReq.request        := '0';
-               v.intStatusSlave.tready := '1';
-               v.state                 := CLEAR_HIGH_S;
+               v.state                 := MODE_S;
+            end if;
+
+         when MODE_S =>
+            v.axilReq.address := getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C, buf, '0');
+            v.axilReq.request := '1';
+            v.axilReq.rnw     := '1';
+            if (r.axilReq.request = '1' and axilAck.done = '1') then
+               v.axilReq.request := '0';
+               v.mode            := axilAck.rdData;
+               v.state           := CLEAR_HIGH_S;
             end if;
 
          when CLEAR_HIGH_S =>
@@ -323,7 +323,7 @@ begin
             v.axilReq.wrData(INIT_C) := '1';
             v.axilReq.request        := '1';
             v.axilReq.rnw            := '0';
-            if (axilAck.done = '1') then
+            if (r.axilReq.request = '1' and axilAck.done = '1') then
                v.axilReq.request := '0';
                v.state           := CLEAR_LOW_S;
             end if;
@@ -334,8 +334,9 @@ begin
             v.axilReq.wrData(INIT_C) := '0';
             v.axilReq.request        := '1';
             v.axilReq.rnw            := '0';
-            if (axilAck.done = '1') then
+            if (r.axilReq.request = '1' and axilAck.done = '1') then
                v.axilReq.request := '0';
+               v.intStatusSlave.tready := '1';               
                v.state           := START_LOW_S;
             end if;
 
