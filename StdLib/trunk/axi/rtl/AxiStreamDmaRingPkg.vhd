@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-08
--- Last update: 2016-05-05
+-- Last update: 2016-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -65,6 +65,13 @@ package AxiStreamDmaRingPkg is
       high     : sl              := '0')
       return slv;
 
+   function getBufferAddr (
+      baseAddr : slv(31 downto 0);
+      busIndex : integer range 0 to 7;
+      buf      : integer range 0 to 63 := 0;
+      high     : sl                    := '0')
+      return slv;
+
    constant DMA_RING_STATUS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 1,
@@ -88,9 +95,21 @@ package body AxiStreamDmaRingPkg is
       variable ret : slv(31 downto 0);
    begin
       ret := baseAddr(31 downto 12) & toSlv(busIndex, 3) & buf & high & "00";
+      if (busIndex = MODE_AXIL_C or busIndex = STATUS_AXIL_C) then
+         ret := baseAddr(31 downto 12) & toSlv(busIndex, 3) & '0' & buf & "00";
+      end if;
       return ret;
    end function;
 
+   function getBufferAddr (
+      baseAddr : slv(31 downto 0);
+      busIndex : integer range 0 to 7;
+      buf      : integer range 0 to 63 := 0;
+      high     : sl                    := '0')
+      return slv
+   is begin
+      return getBufferAddr(baseAddr, busIndex, toSlv(buf, 6), high);
+   end function;
 
 --    function getAxilConfig (
 --       baseAddr : slv(31 downto 0);
