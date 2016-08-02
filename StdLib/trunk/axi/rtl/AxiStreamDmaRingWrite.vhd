@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-07-18
+-- Last update: 2016-08-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,27 +115,27 @@ architecture rtl of AxiStreamDmaRingWrite is
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
       START_AXIL_C    => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, START_AXIL_C),
+         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, START_AXIL_C, 0),
          addrBits     => AXIL_RAM_ADDR_WIDTH_C,
          connectivity => X"FFFF"),
       END_AXIL_C      => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, END_AXIL_C),
+         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, END_AXIL_C, 0),
          addrBits     => AXIL_RAM_ADDR_WIDTH_C,
          connectivity => X"FFFF"),
       NEXT_AXIL_C     => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, NEXT_AXIL_C),
+         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, NEXT_AXIL_C, 0),
          addrBits     => AXIL_RAM_ADDR_WIDTH_C,
          connectivity => X"FFFF"),
       TRIG_AXIL_C     => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, TRIG_AXIL_C),
+         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, TRIG_AXIL_C, 0),
          addrBits     => AXIL_RAM_ADDR_WIDTH_C,
          connectivity => X"FFFF"),
       MODE_AXIL_C     => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C),
+         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, MODE_AXIL_C, 0),
          addrBits     => RAM_ADDR_WIDTH_C+2,
          connectivity => X"FFFF"),
       STATUS_AXIL_C   => (
-         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, STATUS_AXIL_C),
+         baseAddr     => getBufferAddr(AXIL_BASE_ADDR_G, STATUS_AXIL_C, 0),
          addrBits     => RAM_ADDR_WIDTH_C+2,
          connectivity => X"FFFF"));
 
