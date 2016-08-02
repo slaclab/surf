@@ -223,8 +223,8 @@ Device: &JesdRx
       sizeBits: 32
       stride: 4
       nelms: 8
-      mode: RW
-      description: "StatusValidCnt[7:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
+      mode: RO
+      description: "StatusValidCnt[7:0][31:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
     ######################################################### 
   #########
   Commands:
