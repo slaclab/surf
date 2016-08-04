@@ -217,6 +217,10 @@ proc CreateYamlTarGz { } {
    }
 }
 
+proc RemoveUnsuedCode { } { 
+   remove_files [get_files -filter {IS_AUTO_DISABLED}]
+}
+
 # Checking Timing Function
 proc CheckTiming { {printTiming true} } {
    # Check for timing and routing errors 
