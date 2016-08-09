@@ -45,13 +45,14 @@ if { [CheckTiming false] == true } {
       if { [file exists ${VIVADO_DIR}/sdk.tcl] == 1 } {   
          source ${VIVADO_DIR}/sdk.tcl
       } else {
-         set SDK_PRJ false
-         while { ${SDK_PRJ} != true } {
+         set SDK_PRJ_RDY false
+         while { ${SDK_PRJ_RDY} != true } {
             set src_rc [catch {exec xsdk -batch -source ${VIVADO_BUILD_DIR}/vivado_sdk_prj_v1.tcl >@stdout}]       
-            if {$src_rc} { 
+            if {$src_rc} {
                puts "Retrying to build SDK project"
+               exec rm -rf ${SDK_PRJ}
             } else {
-               set SDK_PRJ true
+               set SDK_PRJ_RDY true
             }         
          }
          # Try to build the .ELF file
