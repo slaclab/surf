@@ -1,3 +1,4 @@
+
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
@@ -33,38 +34,8 @@ Device: &Adc16Dx370
       mode: RW
       description: ADC Control Registers
     #########################################################
-    - offset: 0x00C
-      name: AdcReg_0x0003
-      sizeBits: 8
-      mode: RW
-      description: ADC Control Registers
-    #########################################################
     - offset: 0x00F
       name: AdcReg_0x0004
-      sizeBits: 8
-      mode: RW
-      description: ADC Control Registers
-    #########################################################
-    - offset: 0x014
-      name: AdcReg_0x0005
-      sizeBits: 8
-      mode: RW
-      description: ADC Control Registers
-    #########################################################
-    - offset: 0x018
-      name: AdcReg_0x0006
-      sizeBits: 8
-      mode: RW
-      description: ADC Control Registers
-    #########################################################
-    - offset: 0x030
-      name: AdcReg_0x000C
-      sizeBits: 8
-      mode: RW
-      description: ADC Control Registers
-    #########################################################
-    - offset: 0x034
-      name: AdcReg_0x000D
       sizeBits: 8
       mode: RW
       description: ADC Control Registers
