@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2015-08-25
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -118,10 +118,13 @@ begin
                      v.arpSel      := '1';
                      v.ibArpMaster := obMacMaster;
                   end if;
-               -- Check for a valid IPV4 EtherType and matching destination MAC address
-               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) and (obMacMaster.tData(47 downto 0) = localMac) then
-                  v.ipv4Sel      := '1';
-                  v.ibIpv4Master := obMacMaster;
+               -- Check for a valid IPV4 EtherType
+               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) then
+                  -- Check the destination MAC address
+                  if(obMacMaster.tData(47 downto 0) = BROADCAST_MAC_C) or (obMacMaster.tData(47 downto 0) = localMac) then
+                     v.ipv4Sel      := '1';
+                     v.ibIpv4Master := obMacMaster;
+                  end if;
                end if;
             elsif r.arpSel = '1' then
                v.ibArpMaster := obMacMaster;
@@ -165,10 +168,13 @@ begin
                         v.arpSel      := '1';
                         v.ibArpMaster := r.dly;
                      end if;
-                  -- Check for a valid IPV4 EtherType and matching destination MAC address
-                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (r.dly.tData(47 downto 0) = localMac) then
-                     v.ipv4Sel      := '1';
-                     v.ibIpv4Master := r.dly;
+                  -- Check for a valid IPV4 EtherType
+                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) then
+                     -- Check the destination MAC address
+                     if(r.dly.tData(47 downto 0) = BROADCAST_MAC_C) or (r.dly.tData(47 downto 0) = localMac) then
+                        v.ipv4Sel      := '1';
+                        v.ibIpv4Master := r.dly;
+                     end if;
                   end if;
                   -- Next state
                   v.state := MOVE_S;
