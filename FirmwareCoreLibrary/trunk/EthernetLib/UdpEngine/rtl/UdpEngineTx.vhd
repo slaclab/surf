@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-06-21
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,18 +44,22 @@ entity UdpEngineTx is
       PORT_G             : PositiveArray := (0 => 8192));
    port (
       -- Interface to IPV4 Engine  
-      obUdpMaster : out AxiStreamMasterType;
-      obUdpSlave  : in  AxiStreamSlaveType;
+      obUdpMaster   : out AxiStreamMasterType;
+      obUdpSlave    : in  AxiStreamSlaveType;
       -- Interface to User Application
-      localIp     : in  slv(31 downto 0);
-      remotePort  : in  Slv16Array(SIZE_G-1 downto 0);
-      remoteIp    : in  Slv32Array(SIZE_G-1 downto 0);
-      remoteMac   : in  Slv48Array(SIZE_G-1 downto 0);
-      ibMasters   : in  AxiStreamMasterArray(SIZE_G-1 downto 0);
-      ibSlaves    : out AxiStreamSlaveArray(SIZE_G-1 downto 0);
+      localIp       : in  slv(31 downto 0);
+      remotePort    : in  Slv16Array(SIZE_G-1 downto 0);
+      remoteIp      : in  Slv32Array(SIZE_G-1 downto 0);
+      remoteMac     : in  Slv48Array(SIZE_G-1 downto 0);
+      ibMasters     : in  AxiStreamMasterArray(SIZE_G-1 downto 0);
+      ibSlaves      : out AxiStreamSlaveArray(SIZE_G-1 downto 0);
+      -- Interface to DHCP Engine
+      dhcpRemoteMac : in  slv(47 downto 0)    := (others => '0');
+      obDhcpMaster  : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      obDhcpSlave   : out AxiStreamSlaveType;
       -- Clock and Reset
-      clk         : in  sl;
-      rst         : in  sl);
+      clk           : in  sl;
+      rst           : in  sl);
 end UdpEngineTx;
 
 architecture rtl of UdpEngineTx is
@@ -68,7 +72,9 @@ architecture rtl of UdpEngineTx is
 
    type StateType is (
       IDLE_S,
+      DHCP_HDR_S,
       HDR_S,
+      DHCP_BUFFER_S,
       BUFFER_S,
       LAST_S,
       ADD_LEN_S,
@@ -89,6 +95,7 @@ architecture rtl of UdpEngineTx is
       ibValid     : sl;
       ibChecksum  : slv(15 downto 0);
       checksum    : slv(15 downto 0);
+      obDhcpSlave : AxiStreamSlaveType;
       ibSlaves    : AxiStreamSlaveArray(SIZE_G-1 downto 0);
       txMaster    : AxiStreamMasterType;
       mSlave      : AxiStreamSlaveType;
@@ -109,6 +116,7 @@ architecture rtl of UdpEngineTx is
       ibValid     => '0',
       ibChecksum  => (others => '0'),
       checksum    => (others => '0'),
+      obDhcpSlave => AXI_STREAM_SLAVE_INIT_C,
       ibSlaves    => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster    => AXI_STREAM_MASTER_INIT_C,
       mSlave      => AXI_STREAM_SLAVE_INIT_C,
@@ -165,8 +173,8 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);   
 
-   comb : process (ibMasters, localIp, mMaster, r, remoteIp, remoteMac, remotePort, rst, sSlave,
-                   txSlave) is
+   comb : process (dhcpRemoteMac, ibMasters, localIp, mMaster, obDhcpMaster, r, remoteIp, remoteMac,
+                   remotePort, rst, sSlave, txSlave) is
       variable v           : RegType;
       variable i           : natural;
       variable lPort       : slv(15 downto 0);
@@ -182,6 +190,7 @@ begin
       -- Reset the flags
       v.flushBuffer := '0';
       tKeepMask     := (others => '0');
+      v.obDhcpSlave := AXI_STREAM_SLAVE_INIT_C;
       v.ibSlaves    := (others => AXI_STREAM_SLAVE_INIT_C);
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
@@ -219,9 +228,37 @@ begin
                -- Increment the counter
                v.index := r.index + 1;
             end if;
+            -- Check for DHCP data and remote MAC/IP/PORT is non-zero
+            if (obDhcpMaster.tValid = '1') and (v.sMaster.tValid = '0') and (dhcpRemoteMac /= 0) then
+               -- Check for SOF
+               if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obDhcpMaster) = '1') then
+                  -- Write the first header
+                  v.sMaster.tValid               := '1';
+                  v.sMaster.tData(47 downto 0)   := dhcpRemoteMac;      -- Destination MAC address
+                  v.sMaster.tData(63 downto 48)  := x"0000";      -- All 0s
+                  v.sMaster.tData(95 downto 64)  := localIp;      -- Source IP address
+                  v.sMaster.tData(127 downto 96) := x"FFFFFFFF";  -- Destination IP address               
+                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
+                  -- Process checksum
+                  GetUdpChecksum (
+                     -- Inbound tKeep and tData
+                     x"FF00",
+                     v.sMaster.tData,
+                     -- Accumulation Signals
+                     r.accum, v.accum,
+                     -- Checksum generation and comparison
+                     v.ibValid,
+                     r.ibChecksum,
+                     v.checksum);                                   
+                  -- Next state
+                  v.state := DHCP_HDR_S;
+               else
+                  -- Blow off the data
+                  v.obDhcpSlave.tReady := '1';
+               end if;
             -- Check for data and remote MAC/IP/PORT is non-zero
-            if (ibMasters(r.index).tValid = '1') and (v.sMaster.tValid = '0')
-               and (remoteMac(r.index) /= 0) and (remoteIp(r.index) /= 0) and (remotePort(r.index) /= 0)then
+            elsif (ibMasters(r.index).tValid = '1') and (v.sMaster.tValid = '0')and (remoteMac(r.index) /= 0)
+               and (remoteIp(r.index) /= 0) and (remotePort(r.index) /= 0)then
                -- Check for SOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibMasters(r.index)) = '1') then
                   -- Latch the index
@@ -229,8 +266,8 @@ begin
                   -- Write the first header
                   v.sMaster.tValid               := '1';
                   v.sMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
-                  v.sMaster.tData(63 downto 48)  := x"0000";            -- All 0s
-                  v.sMaster.tData(95 downto 64)  := localIp;            -- Source IP address
+                  v.sMaster.tData(63 downto 48)  := x"0000";      -- All 0s
+                  v.sMaster.tData(95 downto 64)  := localIp;      -- Source IP address
                   v.sMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address               
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                   -- Process checksum
@@ -252,6 +289,61 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
+         when DHCP_HDR_S =>
+            -- Check if ready to move data
+            if (obDhcpMaster.tValid = '1') and (v.sMaster.tValid = '0') then
+               -- Accept the data
+               v.obDhcpSlave.tReady           := '1';
+               -- Write the Second header
+               v.sMaster.tValid               := '1';
+               v.sMaster.tData(7 downto 0)    := x"00";    -- All 0s
+               v.sMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
+               v.sMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = TBD
+               v.sMaster.tData(47 downto 32)  := DHCP_SPORT;      -- Source port
+               v.sMaster.tData(63 downto 48)  := DHCP_CPORT;      -- Destination port
+               v.sMaster.tData(79 downto 64)  := x"0000";  -- UDP length = TBD
+               v.sMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = TBD              
+               v.sMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);  -- UDP Datagram     
+               v.sMaster.tKeep(11 downto 0)   := x"FFF";
+               v.sMaster.tKeep(15 downto 12)  := obDhcpMaster.tKeep(3 downto 0);   -- UDP Datagram  
+               -- Track the number of bytes received
+               tKeepMask                      := x"0" & v.sMaster.tKeep(15 downto 4);
+               v.rxByteCnt                    := getTKeep(tKeepMask);
+               -- Process checksum
+               GetUdpChecksum (
+                  -- Inbound tKeep and tData
+                  v.sMaster.tKeep,
+                  v.sMaster.tData,
+                  -- Accumulation Signals
+                  r.accum, v.accum,
+                  -- Checksum generation and comparison
+                  v.ibValid,
+                  r.ibChecksum,
+                  v.checksum);  
+               -- Track the leftovers
+               v.tData(95 downto 0)   := obDhcpMaster.tData(127 downto 32);
+               v.tData(127 downto 96) := (others => '0');
+               v.tKeep(11 downto 0)   := obDhcpMaster.tKeep(15 downto 4);
+               v.tKeep(15 downto 12)  := (others => '0');
+               v.tLast                := obDhcpMaster.tLast;
+               v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, obDhcpMaster);
+               -- Check for tLast
+               if (v.tLast = '1') then
+                  -- Check the leftover tKeep is not empty
+                  if v.tKeep /= 0 then
+                     -- Next state
+                     v.state := LAST_S;
+                  else
+                     v.sMaster.tLast := '1';
+                     -- Next state
+                     v.state         := ADD_LEN_S;
+                  end if;
+               else
+                  -- Next state
+                  v.state := DHCP_BUFFER_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
          when HDR_S =>
             -- Check if ready to move data
             if (ibMasters(r.chPntr).tValid = '1') and (v.sMaster.tValid = '0') then
@@ -262,7 +354,7 @@ begin
                v.sMaster.tData(7 downto 0)    := x"00";    -- All 0s
                v.sMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
                v.sMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = TBD
-               v.sMaster.tData(47 downto 32)  := localPort;             -- Source port
+               v.sMaster.tData(47 downto 32)  := localPort;       -- Source port
                v.sMaster.tData(63 downto 48)  := remotePort(r.chPntr);  -- Destination port
                v.sMaster.tData(79 downto 64)  := x"0000";  -- UDP length = TBD
                v.sMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = TBD              
@@ -304,6 +396,54 @@ begin
                else
                   -- Next state
                   v.state := BUFFER_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when DHCP_BUFFER_S =>
+            -- Check if ready to move data
+            if (obDhcpMaster.tValid = '1') and (v.sMaster.tValid = '0') then
+               -- Accept the data
+               v.obDhcpSlave.tReady           := '1';
+               -- Write the Second header
+               v.sMaster.tValid               := '1';
+               -- Move the data
+               v.sMaster.tData(95 downto 0)   := r.tData(95 downto 0);
+               v.sMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);
+               v.sMaster.tKeep(11 downto 0)   := r.tKeep(11 downto 0);
+               v.sMaster.tKeep(15 downto 12)  := obDhcpMaster.tKeep(3 downto 0);
+               -- Track the leftovers                                 
+               v.tData(95 downto 0)           := obDhcpMaster.tData(127 downto 32);
+               v.tKeep(11 downto 0)           := obDhcpMaster.tKeep(15 downto 4);
+               -- Track the number of bytes received
+               v.rxByteCnt                    := r.rxByteCnt + getTKeep(v.sMaster.tKeep);
+               -- Process checksum
+               GetUdpChecksum (
+                  -- Inbound tKeep and tData
+                  v.sMaster.tKeep,
+                  v.sMaster.tData,
+                  -- Accumulation Signals
+                  r.accum, v.accum,
+                  -- Checksum generation and comparison
+                  v.ibValid,
+                  r.ibChecksum,
+                  v.checksum);                 
+               -- Check for tLast
+               if (obDhcpMaster.tLast = '1') or (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
+                  -- Update the EOFE bit
+                  v.eofe := ssiGetUserEofe(IP_ENGINE_CONFIG_C, obDhcpMaster);
+                  -- Check for overflow
+                  if (v.rxByteCnt > MAX_DATAGRAM_SIZE_C) then
+                     v.eofe := '1';
+                  end if;
+                  -- Check the leftover tKeep is not empty
+                  if v.tKeep /= 0 then
+                     -- Next state
+                     v.state := LAST_S;
+                  else
+                     v.sMaster.tLast := '1';
+                     -- Next state
+                     v.state         := ADD_LEN_S;
+                  end if;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -465,9 +605,9 @@ begin
                -- Check for second header
                if r.cnt = 1 then
                   -- Overwrite the TBD header fields
-                  v.txMaster.tData(31 downto 16) := udpLength;          -- IPv4 Pseudo header length
-                  v.txMaster.tData(79 downto 64) := udpLength;          -- UDP length
-                  v.txMaster.tData(95 downto 80) := udpChecksum;        -- UDP checksum
+                  v.txMaster.tData(31 downto 16) := udpLength;    -- IPv4 Pseudo header length
+                  v.txMaster.tData(79 downto 64) := udpLength;    -- UDP length
+                  v.txMaster.tData(95 downto 80) := udpChecksum;  -- UDP checksum
                end if;
                -- Check for EOF
                if mMaster.tLast = '1' then
@@ -506,10 +646,11 @@ begin
       rin <= v;
 
       -- Outputs        
-      mSlave   <= v.mSlave;
-      sMaster  <= r.sMaster;
-      ibSlaves <= v.ibSlaves;
-      txMaster <= r.txMaster;
+      mSlave      <= v.mSlave;
+      sMaster     <= r.sMaster;
+      ibSlaves    <= v.ibSlaves;
+      txMaster    <= r.txMaster;
+      obDhcpSlave <= v.obDhcpSlave;
       
    end process comb;
 

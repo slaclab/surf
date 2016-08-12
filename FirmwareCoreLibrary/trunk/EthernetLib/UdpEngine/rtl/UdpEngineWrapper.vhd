@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-06-24
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ entity UdpEngineWrapper is
       TX_CALC_CHECKSUM_G  : boolean         := true;
       -- UDP Server Generics
       SERVER_EN_G         : boolean         := true;
+      SERVER_DHCP_G       : boolean         := false;
       SERVER_SIZE_G       : positive        := 1;
       SERVER_PORTS_G      : PositiveArray   := (0 => 8192);
       SERVER_MTU_G        : positive        := 1500;
@@ -119,7 +120,13 @@ architecture rtl of UdpEngineWrapper is
    signal obUdpMaster : AxiStreamMasterType;
    signal obUdpSlave  : AxiStreamSlaveType;
 
+   signal dhcpEn      : sl;
+   signal dhcpIp      : slv(31 downto 0);
+   signal localIpAddr : slv(31 downto 0);
+
 begin
+
+   localIpAddr <= localIp when(dhcpEn = '0') else dhcpIp;
 
    ------------------
    -- IPv4/ARP Engine
@@ -136,7 +143,7 @@ begin
       port map (
          -- Local Configurations
          localMac             => localMac,
-         localIp              => localIp,
+         localIp              => localIpAddr,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster          => obMacMaster,
          obMacSlave           => obMacSlave,
@@ -171,6 +178,7 @@ begin
          TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
          -- UDP Server Generics
          SERVER_EN_G        => SERVER_EN_G,
+         SERVER_DHCP_G      => SERVER_DHCP_G,
          SERVER_SIZE_G      => SERVER_SIZE_G,
          SERVER_PORTS_G     => SERVER_PORTS_G,
          SERVER_MTU_G       => SERVER_MTU_G,
@@ -185,7 +193,7 @@ begin
          COMM_TIMEOUT_G     => COMM_TIMEOUT_G)  
       port map (
          -- Local Configurations
-         localIp          => localIp,
+         localIp          => localIpAddr,
          -- Interface to IPV4 Engine  
          obUdpMaster      => obUdpMaster,
          obUdpSlave       => obUdpSlave,
@@ -209,6 +217,9 @@ begin
          obClientSlaves   => obClientSlaves,
          ibClientMasters  => ibClientMasters,
          ibClientSlaves   => ibClientSlaves,
+         -- Interface to DHCP Engine  
+         dhcpEn           => dhcpEn,
+         dhcpIp           => dhcpIp,
          -- Clock and Reset
          clk              => clk,
          rst              => rst);  

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-06-24
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity UdpEngine is
       TX_CALC_CHECKSUM_G : boolean       := true;
       -- UDP Server Generics
       SERVER_EN_G        : boolean       := true;
+      SERVER_DHCP_G      : boolean       := false;
       SERVER_SIZE_G      : positive      := 1;
       SERVER_PORTS_G     : PositiveArray := (0 => 8192);
       SERVER_MTU_G       : positive      := 1500;
@@ -76,6 +77,9 @@ entity UdpEngine is
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
       ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
+      -- Interface to DHCP Engine  
+      dhcpEn           : out sl;
+      dhcpIp           : out slv(31 downto 0);    --  big-Endian configuration        
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl);
@@ -93,6 +97,12 @@ architecture mapping of UdpEngine is
    signal obUdpMasters : AxiStreamMasterArray(1 downto 0);
    signal obUdpSlaves  : AxiStreamSlaveArray(1 downto 0);
 
+   signal dhcpRemoteMac : slv(47 downto 0);
+   signal ibDhcpMaster  : AxiStreamMasterType;
+   signal ibDhcpSlave   : AxiStreamSlaveType;
+   signal obDhcpMaster  : AxiStreamMasterType;
+   signal obDhcpSlave   : AxiStreamSlaveType;
+
 begin
 
    assert ((SERVER_EN_G = true) or (CLIENT_EN_G = true)) report
@@ -107,6 +117,7 @@ begin
          RX_MTU_G          => RX_MTU_G,
          RX_FORWARD_EOFE_G => RX_FORWARD_EOFE_G,
          SERVER_EN_G       => SERVER_EN_G,
+         SERVER_DHCP_G     => SERVER_DHCP_G,
          SERVER_SIZE_G     => SERVER_SIZE_G,
          SERVER_PORTS_G    => SERVER_PORTS_G,
          CLIENT_EN_G       => CLIENT_EN_G,
@@ -126,9 +137,42 @@ begin
          clientRemoteDet  => clientRemoteDet,
          obClientMasters  => obClientMasters,
          obClientSlaves   => obClientSlaves,
+         -- Interface to DHCP Engine  
+         dhcpRemoteMac    => dhcpRemoteMac,
+         ibDhcpMaster     => ibDhcpMaster,
+         ibDhcpSlave      => ibDhcpSlave,
          -- Clock and Reset
          clk              => clk,
          rst              => rst); 
+
+   GEN_DHCP : if (SERVER_DHCP_G = true) generate
+      
+      U_UdpEngineDhcp : entity work.UdpEngineDhcp
+         generic map (
+            TPD_G            => TPD_G,
+            SIM_ERROR_HALT_G => SIM_ERROR_HALT_G)    
+         port map (
+            -- Interface to DHCP Engine  
+            dhcpEn       => dhcpEn,
+            dhcpIp       => dhcpIp,
+            ibDhcpMaster => ibDhcpMaster,
+            ibDhcpSlave  => ibDhcpSlave,
+            obDhcpMaster => obDhcpMaster,
+            obDhcpSlave  => obDhcpSlave,
+            -- Clock and Reset
+            clk          => clk,
+            rst          => rst);
+
+   end generate;
+
+   BYPASS_DHCP : if (SERVER_DHCP_G = false) generate
+      
+      dhcpEn       <= '0';
+      dhcpIp       <= (others => '0');
+      ibDhcpSlave  <= AXI_STREAM_SLAVE_FORCE_C;
+      obDhcpMaster <= AXI_STREAM_MASTER_INIT_C;
+      
+   end generate;
 
    GEN_SERVER : if (SERVER_EN_G = true) generate
       
@@ -143,18 +187,22 @@ begin
             PORT_G             => SERVER_PORTS_G)    
          port map (
             -- Interface to IPV4 Engine  
-            obUdpMaster => obUdpMasters(0),
-            obUdpSlave  => obUdpSlaves(0),
+            obUdpMaster   => obUdpMasters(0),
+            obUdpSlave    => obUdpSlaves(0),
             -- Interface to User Application
-            localIp     => localIp,
-            remotePort  => serverRemotePort,
-            remoteIp    => remoteIp,
-            remoteMac   => serverRemoteMac,
-            ibMasters   => ibServerMasters,
-            ibSlaves    => ibServerSlaves,
+            localIp       => localIp,
+            remotePort    => serverRemotePort,
+            remoteIp      => remoteIp,
+            remoteMac     => serverRemoteMac,
+            ibMasters     => ibServerMasters,
+            ibSlaves      => ibServerSlaves,
+            -- Interface to DHCP Engine  
+            dhcpRemoteMac => dhcpRemoteMac,
+            obDhcpMaster  => obDhcpMaster,
+            obDhcpSlave   => obDhcpSlave,
             -- Clock and Reset
-            clk         => clk,
-            rst         => rst);
+            clk           => clk,
+            rst           => rst);
 
    end generate;
 

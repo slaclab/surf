@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-06-24
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -290,20 +290,30 @@ begin
                   v.tLast                := rxMaster.tLast;
                   v.eofe                 := ssiGetUserEofe(IP_ENGINE_CONFIG_C, rxMaster);
                end if;
-               -- Check the Destination IP Address and (IPVersion + Header length)
-               if (v.hdr(16) = localIp(7 downto 0))
-                  and (v.hdr(17) = localIp(15 downto 8))
-                  and (v.hdr(18) = localIp(23 downto 16))
-                  and (v.hdr(19) = localIp(31 downto 24))
-                  and (r.hdr(0) = x"45") then
-                  -- Fill in the reset of the 1st word of IPV4 Pseudo Header
-                  v.txMasters(r.index).tData(71 downto 64)  := v.hdr(12);
-                  v.txMasters(r.index).tData(79 downto 72)  := v.hdr(13);
-                  v.txMasters(r.index).tData(87 downto 80)  := v.hdr(14);
-                  v.txMasters(r.index).tData(95 downto 88)  := v.hdr(15);
-                  v.txMasters(r.index).tData(127 downto 96) := localIp;
-                  -- Next state
-                  v.state                                   := CHECKSUM_S;
+               -- Fill in the reset of the 1st word of IPV4 Pseudo Header
+               v.txMasters(r.index).tData(71 downto 64)   := v.hdr(12);
+               v.txMasters(r.index).tData(79 downto 72)   := v.hdr(13);
+               v.txMasters(r.index).tData(87 downto 80)   := v.hdr(14);
+               v.txMasters(r.index).tData(95 downto 88)   := v.hdr(15);
+               v.txMasters(r.index).tData(103 downto 96)  := v.hdr(16);
+               v.txMasters(r.index).tData(111 downto 104) := v.hdr(17);
+               v.txMasters(r.index).tData(119 downto 112) := v.hdr(18);
+               v.txMasters(r.index).tData(127 downto 120) := v.hdr(19);
+               -- Check the (IPVersion + Header length)
+               if (r.hdr(0) = x"45") then
+                  -- Check the Destination IP Address
+                  if (v.txMasters(r.index).tData(127 downto 96) = localIp) then
+                     -- Next state
+                     v.state := CHECKSUM_S;
+                  -- Check for broadcast IP address
+                  elsif (v.txMasters(r.index).tData(127 downto 96) = x"FFFFFFFF") then
+                     -- Next state
+                     v.state := CHECKSUM_S;
+                  else
+                     v.eofe  := '1';
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
                else
                   v.eofe  := '1';
                   -- Next state
