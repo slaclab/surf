@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2016-05-12
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,9 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
 package UdpEnginePkg is
+
+   constant DHCP_CPORT : slv(15 downto 0) := x"4400";  -- Port = 68 (big Endian)
+   constant DHCP_SPORT : slv(15 downto 0) := x"4300";  -- Port = 67 (big Endian)
 
    -- Note: This function assumes the AXIS bus is IP_ENGINE_CONFIG_C
    function Axis32BitEndianConvert(master : AxiStreamMasterType; byteSwap : boolean := false) return AxiStreamMasterType;

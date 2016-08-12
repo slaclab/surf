@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-05-17
+-- Last update: 2016-08-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ entity UdpEngineRx is
       RX_FORWARD_EOFE_G : boolean       := false;
       -- UDP Server Generics
       SERVER_EN_G       : boolean       := true;
+      SERVER_DHCP_G     : boolean       := false;
       SERVER_SIZE_G     : positive      := 1;
       SERVER_PORTS_G    : PositiveArray := (0 => 8192);
       -- UDP Client Generics
@@ -61,6 +62,10 @@ entity UdpEngineRx is
       clientRemoteDet  : out slv(CLIENT_SIZE_G-1 downto 0);
       obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      -- Interface to DHCP Engine
+      dhcpRemoteMac    : out slv(47 downto 0);
+      ibDhcpMaster     : out AxiStreamMasterType;
+      ibDhcpSlave      : in  AxiStreamSlaveType;
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl);
@@ -75,6 +80,10 @@ architecture rtl of UdpEngineRx is
    constant FIFO_ADDR_WIDTH_C   : positive := bitSize(FIFO_ADDR_SIZE_C-1);
    constant UDP_HDR_OFFSET_C    : positive := 8;
 
+   constant SERVER_MOVE_C : slv(1 downto 0) := "00";
+   constant CLIENT_MOVE_C : slv(1 downto 0) := "01";
+   constant DHCP_MOVE_C   : slv(1 downto 0) := "11";
+
    type StateType is (
       IDLE_S,
       CHECK_PORT_S,
@@ -82,7 +91,8 @@ architecture rtl of UdpEngineRx is
       ERROR_CHECKING_S,
       LAST_S,
       SERVER_MOVE_S,
-      CLIENT_MOVE_S);
+      CLIENT_MOVE_S,
+      DHCP_MOVE_S);
 
    type RegType is record
       flushBuffer      : sl;
@@ -98,6 +108,8 @@ architecture rtl of UdpEngineRx is
       serverPorts      : Slv16Array(SERVER_SIZE_G-1 downto 0);
       cPorts           : Slv16Array(CLIENT_SIZE_G-1 downto 0);
       clientPorts      : Slv16Array(CLIENT_SIZE_G-1 downto 0);
+      dhcpRemoteMac    : slv(47 downto 0);
+      ibDhcpMaster     : AxiStreamMasterType;
       tKeepMask        : slv(15 downto 0);
       tKeep            : slv(15 downto 0);
       tData            : slv(127 downto 0);
@@ -108,7 +120,7 @@ architecture rtl of UdpEngineRx is
       ibChecksum       : slv(15 downto 0);
       checksum         : slv(15 downto 0);
       udpLength        : slv(15 downto 0);
-      destSel          : sl;
+      destSel          : slv(1 downto 0);
       serverId         : natural range 0 to SERVER_SIZE_G-1;
       clientId         : natural range 0 to CLIENT_SIZE_G-1;
       rxSlave          : AxiStreamSlaveType;
@@ -132,6 +144,8 @@ architecture rtl of UdpEngineRx is
       serverPorts      => (others => (others => '0')),
       cPorts           => (others => (others => '0')),
       clientPorts      => (others => (others => '0')),
+      dhcpRemoteMac    => (others => '0'),
+      ibDhcpMaster     => AXI_STREAM_MASTER_INIT_C,
       tKeepMask        => (others => '0'),
       tKeep            => (others => '0'),
       tData            => (others => '0'),
@@ -142,7 +156,7 @@ architecture rtl of UdpEngineRx is
       ibChecksum       => (others => '0'),
       checksum         => (others => '0'),
       udpLength        => (others => '0'),
-      destSel          => '0',
+      destSel          => (others => '0'),
       serverId         => 0,
       clientId         => 0,
       rxSlave          => AXI_STREAM_SLAVE_INIT_C,
@@ -166,6 +180,9 @@ architecture rtl of UdpEngineRx is
    signal obClientSlavesPipe  : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
    signal obServerMastersPipe : AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
    signal obServerSlavesPipe  : AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
+
+   signal ibDhcpMasterPipe : AxiStreamMasterType;
+   signal ibDhcpSlavePipe  : AxiStreamSlaveType;
 
    -- attribute dont_touch             : string;
    -- attribute dont_touch of r        : signal is "TRUE";
@@ -236,7 +253,8 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);
 
-   comb : process (mMaster, obClientSlavesPipe, obServerSlavesPipe, r, rst, rxMaster, sSlave) is
+   comb : process (ibDhcpSlavePipe, mMaster, obClientSlavesPipe, obServerSlavesPipe, r, rst,
+                   rxMaster, sSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -273,6 +291,12 @@ begin
             v.obClientMasters(i).tKeep  := (others => '1');
          end if;
       end loop;
+      if ibDhcpSlavePipe.tReady = '1' then
+         v.ibDhcpMaster.tValid := '0';
+         v.ibDhcpMaster.tLast  := '0';
+         v.ibDhcpMaster.tUser  := (others => '0');
+         v.ibDhcpMaster.tKeep  := (others => '1');
+      end if;
 
       -- Convert the NaturalArray into Slv48Array
       for i in SERVER_SIZE_G-1 downto 0 loop
@@ -357,7 +381,7 @@ begin
                      -- Check if port is defined
                      if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.sPorts(i)) then
                         v.udpPortDet          := '1';
-                        v.destSel             := '0';
+                        v.destSel             := SERVER_MOVE_C;
                         v.serverId            := i;
                         v.serverRemotePort(i) := rxMaster.tData(47 downto 32);
                         v.serverRemoteIp(i)   := r.tData(95 downto 64);
@@ -371,12 +395,38 @@ begin
                      -- Check if port is defined
                      if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.cPorts(i)) then
                         v.udpPortDet         := '1';
-                        v.destSel            := '1';
+                        v.destSel            := CLIENT_MOVE_C;
                         v.clientId           := i;
                         v.clientRemoteDet(i) := '1';
                      end if;
                   end loop;
                end if;
+               -- Check if dhcp engine is enabled and DHCP packet
+               if (SERVER_DHCP_G = true)
+                  and (r.tData(95 downto 64) = x"00000000")    -- DHCP Client IP = 0.0.0.0
+                  and (r.tData(127 downto 96) = x"FFFFFFFF")   -- DHCP Server IP = 255.255.255.255
+                  and (rxMaster.tData(47 downto 32) = DHCP_CPORT)       -- DHCP Client Port = 68
+                  and (rxMaster.tData(63 downto 48) = DHCP_SPORT) then  -- DHCP Server Port = 67
+                  v.udpPortDet    := '1';
+                  v.destSel       := DHCP_MOVE_C;
+                  v.dhcpRemoteMac := r.tData(47 downto 0);
+               end if;
+               ------------------------------------------------
+               -- Notes: Non-Standard IPv4 Pseudo Header Format
+               ------------------------------------------------
+               -- tData[0][47:0]   = Remote MAC Address
+               -- tData[0][63:48]  = zeros
+               -- tData[0][95:64]  = Remote IP Address 
+               -- tData[0][127:96] = Local IP address
+               -- tData[1][7:0]    = zeros
+               -- tData[1][15:8]   = Protocol Type = UDP
+               -- tData[1][31:16]  = IPv4 Pseudo header length
+               -- tData[1][47:32]  = Remote Port
+               -- tData[1][63:48]  = Local Port
+               -- tData[1][79:64]  = UDP Length
+               -- tData[1][95:80]  = UDP Checksum 
+               -- tData[1][127:96] = UDP Datagram 
+               ------------------------------------------------
                -- Check for the following errors
                if (v.udpPortDet = '0')  -- UDP port was not detected 
                              or (v.udpLength /= v.ipv4Length)  -- the IPv4 Pseudo length and UDP length mismatch 
@@ -519,12 +569,15 @@ begin
                   -- Remove the header IPv4 and UDP header offset
                   v.udpLength := r.udpLength - UDP_HDR_OFFSET_C;
                   -- Select the data destination
-                  if r.destSel = '0' then
+                  if r.destSel = SERVER_MOVE_C then
                      -- Next state
                      v.state := SERVER_MOVE_S;
-                  else
+                  elsif r.destSel = CLIENT_MOVE_C then
                      -- Next state
                      v.state := CLIENT_MOVE_S;
+                  else
+                     -- Next state
+                     v.state := DHCP_MOVE_S;
                   end if;
                end if;
             else
@@ -583,6 +636,33 @@ begin
                   v.state := IDLE_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when DHCP_MOVE_S =>
+            -- Check for data
+            if (mMaster.tValid = '1') and (v.ibDhcpMaster.tValid = '0') then
+               -- Accept the data
+               v.mSlave.tReady                          := '1';
+               -- Move data
+               v.ibDhcpMaster                           := mMaster;
+               -- Decrement the counter
+               v.udpLength                              := r.udpLength - 16;
+               -- Check for EOF
+               if (mMaster.tLast = '1') or (r.udpLength <= 16) then
+                  -- Update the tKeep
+                  if (r.udpLength <= 16) then
+                     v.ibDhcpMaster.tKeep := genTKeep(conv_integer(r.udpLength));
+                  end if;
+                  -- Force the tLast
+                  v.ibDhcpMaster.tLast := '1';
+                  -- Set EOFE
+                  if r.eofe = '1' then
+                     ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.ibDhcpMaster, '1');
+                  end if;
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
+            end if;
+
       ----------------------------------------------------------------------
       end case;
 
@@ -618,6 +698,8 @@ begin
       rxSlave             <= v.rxSlave;
       obServerMastersPipe <= r.obServerMasters;
       obClientMastersPipe <= r.obClientMasters;
+      dhcpRemoteMac       <= r.dhcpRemoteMac;
+      ibDhcpMasterPipe    <= r.ibDhcpMaster;
 
    end process comb;
 
@@ -634,12 +716,12 @@ begin
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 1)
          port map (
-            axisClk     => clk,                     -- [in]
-            axisRst     => rst,                     -- [in]
-            sAxisMaster => obServerMastersPipe(i),  -- [in]
-            sAxisSlave  => obServerSlavesPipe(i),   -- [out]
-            mAxisMaster => obServerMasters(i),      -- [out]
-            mAxisSlave  => obServerSlaves(i));      -- [in]
+            axisClk     => clk,
+            axisRst     => rst,
+            sAxisMaster => obServerMastersPipe(i),
+            sAxisSlave  => obServerSlavesPipe(i),
+            mAxisMaster => obServerMasters(i),
+            mAxisSlave  => obServerSlaves(i));      
    end generate OB_SERVER_PIPE_GEN;
 
    OB_CLIENT_PIPE_GEN : for i in CLIENT_SIZE_G-1 downto 0 generate
@@ -648,12 +730,24 @@ begin
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 1)
          port map (
-            axisClk     => clk,                     -- [in]
-            axisRst     => rst,                     -- [in]
-            sAxisMaster => obClientMastersPipe(i),  -- [in]
-            sAxisSlave  => obClientSlavesPipe(i),   -- [out]
-            mAxisMaster => obClientMasters(i),      -- [out]
-            mAxisSlave  => obClientSlaves(i));      -- [in]
+            axisClk     => clk,
+            axisRst     => rst,
+            sAxisMaster => obClientMastersPipe(i),
+            sAxisSlave  => obClientSlavesPipe(i),
+            mAxisMaster => obClientMasters(i),
+            mAxisSlave  => obClientSlaves(i));      
    end generate;
+
+   U_AxiStreamPipeline_Dhcp : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => 1)
+      port map (
+         axisClk     => clk,
+         axisRst     => rst,
+         sAxisMaster => ibDhcpMasterPipe,
+         sAxisSlave  => ibDhcpSlavePipe,
+         mAxisMaster => ibDhcpMaster,
+         mAxisSlave  => ibDhcpSlave);      
 
 end rtl;
