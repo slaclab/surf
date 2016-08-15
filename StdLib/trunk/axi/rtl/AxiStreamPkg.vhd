@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2016-04-26
+-- Last update: 2016-08-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -209,6 +209,9 @@ package body AxiStreamPkg is
 
       if bytePos = -1 then
          ret := getTKeep(axisMaster.tKeep)-1;
+         if (ret > axisConfig.TDATA_BYTES_C) then
+            ret := axisConfig.TDATA_BYTES_C-1;
+         end if;
          if ret < 0 then
             ret := 0;
          end if;
@@ -260,8 +263,10 @@ package body AxiStreamPkg is
       variable pos : integer;
    begin
 
-      pos                                                                                                              := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
-      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
+      pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
+
+      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto
+                       ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
 
    end procedure;
 
@@ -364,8 +369,8 @@ package body AxiStreamPkg is
    begin
       -- Wait for rising edge
       wait until clk = '1';
-      
-     -- Set the bus
+
+      -- Set the bus
       master        <= axiStreamMasterInit(CONFIG_C);
       master.tValid <= '1';
       master.tData  <= resize(tdata, 128);
@@ -415,21 +420,21 @@ package body AxiStreamPkg is
    procedure axiStreamSimSendFrame (
       constant CONFIG_C : in  AxiStreamConfigType;
       signal clk        : in  sl;
-      signal master     : out  AxiStreamMasterType;
-      signal slave      : in AxiStreamSlaveType;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
       data              : in  slVectorArray;
       tUserFirst        : in  slv(7 downto 0) := (others => '0');
       tUserLast         : in  slv(7 downto 0) := (others => '0'))
    is
       constant DATA_WIDTH_C : natural := data'length(1);
       constant DATA_BYTES_C : natural := wordCount(DATA_WIDTH_C, 8);
-      
-      variable txWord : slv(CONFIG_C.TDATA_BYTES_C*8-1 downto 0) := (others => '0');
-      variable txKeep : slv(CONFIG_C.TDATA_BYTES_C-1 downto 0)   := (others => '0');
-      variable wordNum   : integer;
+
+      variable txWord  : slv(CONFIG_C.TDATA_BYTES_C*8-1 downto 0) := (others => '0');
+      variable txKeep  : slv(CONFIG_C.TDATA_BYTES_C-1 downto 0)   := (others => '0');
+      variable wordNum : integer;
    begin
       for i in data'range(1) loop
-         wordNum                               := i mod CONFIG_C.TDATA_BYTES_C;
+         wordNum                                                        := i mod CONFIG_C.TDATA_BYTES_C;
          txWord((wordNum+1)*DATA_WIDTH_C-1 downto wordNum*DATA_WIDTH_C) := muxSlVectorArray(data, i);
          txKeep((wordNum+1)*DATA_BYTES_C-1 downto wordNum*DATA_BYTES_C) := (others => '1');
 
@@ -446,8 +451,8 @@ package body AxiStreamPkg is
    procedure axiStreamSimSendFrame (
       constant CONFIG_C : in  AxiStreamConfigType;
       signal clk        : in  sl;
-      signal master     : out  AxiStreamMasterType;
-      signal slave      : in AxiStreamSlaveType;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
       data              : in  slv8Array;
       tUserFirst        : in  slv(7 downto 0) := (others => '0');
       tUserLast         : in  slv(7 downto 0) := (others => '0'))
@@ -455,18 +460,18 @@ package body AxiStreamPkg is
       variable vec : SlVectorArray(data'range, data(0)'range);
    begin
       for i in data'range loop
-         for j in data(0)'range loop 
+         for j in data(0)'range loop
             vec(i, j) := data(i)(j);
          end loop;
       end loop;
       axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
    end procedure;
-   
+
    procedure axiStreamSimSendFrame (
       constant CONFIG_C : in  AxiStreamConfigType;
       signal clk        : in  sl;
-      signal master     : out  AxiStreamMasterType;
-      signal slave      : in AxiStreamSlaveType;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
       data              : in  slv16Array;
       tUserFirst        : in  slv(7 downto 0) := (others => '0');
       tUserLast         : in  slv(7 downto 0) := (others => '0'))
@@ -474,18 +479,18 @@ package body AxiStreamPkg is
       variable vec : SlVectorArray(data'range, data(0)'range);
    begin
       for i in data'range loop
-         for j in data(0)'range loop 
+         for j in data(0)'range loop
             vec(i, j) := data(i)(j);
          end loop;
       end loop;
       axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
    end procedure;
-   
+
    procedure axiStreamSimSendFrame (
       constant CONFIG_C : in  AxiStreamConfigType;
       signal clk        : in  sl;
-      signal master     : out  AxiStreamMasterType;
-      signal slave      : in AxiStreamSlaveType;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
       data              : in  slv32Array;
       tUserFirst        : in  slv(7 downto 0) := (others => '0');
       tUserLast         : in  slv(7 downto 0) := (others => '0'))
@@ -493,18 +498,18 @@ package body AxiStreamPkg is
       variable vec : SlVectorArray(data'range, data(0)'range);
    begin
       for i in data'range loop
-         for j in data(0)'range loop 
+         for j in data(0)'range loop
             vec(i, j) := data(i)(j);
          end loop;
       end loop;
       axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
    end procedure;
 
-      procedure axiStreamSimSendFrame (
+   procedure axiStreamSimSendFrame (
       constant CONFIG_C : in  AxiStreamConfigType;
       signal clk        : in  sl;
-      signal master     : out  AxiStreamMasterType;
-      signal slave      : in AxiStreamSlaveType;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
       data              : in  slv64Array;
       tUserFirst        : in  slv(7 downto 0) := (others => '0');
       tUserLast         : in  slv(7 downto 0) := (others => '0'))
@@ -512,18 +517,18 @@ package body AxiStreamPkg is
       variable vec : SlVectorArray(data'range, data(0)'range);
    begin
       for i in data'range loop
-         for j in data(0)'range loop 
+         for j in data(0)'range loop
             vec(i, j) := data(i)(j);
          end loop;
       end loop;
       axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
    end procedure;
 
-      procedure axiStreamSimSendFrame (
+   procedure axiStreamSimSendFrame (
       constant CONFIG_C : in  AxiStreamConfigType;
       signal clk        : in  sl;
-      signal master     : out  AxiStreamMasterType;
-      signal slave      : in AxiStreamSlaveType;
+      signal master     : out AxiStreamMasterType;
+      signal slave      : in  AxiStreamSlaveType;
       data              : in  slv128Array;
       tUserFirst        : in  slv(7 downto 0) := (others => '0');
       tUserLast         : in  slv(7 downto 0) := (others => '0'))
@@ -531,7 +536,7 @@ package body AxiStreamPkg is
       variable vec : SlVectorArray(data'range, data(0)'range);
    begin
       for i in data'range loop
-         for j in data(0)'range loop 
+         for j in data(0)'range loop
             vec(i, j) := data(i)(j);
          end loop;
       end loop;
