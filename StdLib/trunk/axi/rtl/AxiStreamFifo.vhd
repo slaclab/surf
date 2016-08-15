@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-05-13
+-- Last update: 2016-08-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ entity AxiStreamFifo is
       -- Set to 0 for same size as primary fifo (default)
       -- Set >4 for custom size.
       -- Use at own risk. Overflow of tLast fifo is not checked      
-      LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;  
+      LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;
 
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
@@ -186,7 +186,7 @@ architecture rtl of AxiStreamFifo is
                         valid   : in    sl;
                         master  : inout AxiStreamMasterType;
                         byteCnt : inout integer) is
-      variable i    : integer := 0;
+      variable i    : integer                          := 0;
       variable user : slv(FIFO_USER_BITS_C-1 downto 0) := (others => '0');
    begin
 
@@ -204,14 +204,14 @@ architecture rtl of AxiStreamFifo is
       -- Get keep bits
       if KEEP_MODE_C = TKEEP_NORMAL_C then
          assignRecord(i, din, master.tKeep(KEEP_BITS_C-1 downto 0));
-         byteCnt := getTKeep(master.tKeep);  
+         byteCnt := getTKeep(master.tKeep);
       elsif KEEP_MODE_C = TKEEP_COMP_C then
          byteCnt      := conv_integer(din((KEEP_BITS_C+i)-1 downto i))+1;
          master.tKeep := genTKeep(byteCnt);
          i            := i + KEEP_BITS_C;
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
-         master.tKeep := genTKeep(MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
-         byteCnt      := DATA_BYTES_C;
+         master.tKeep := genTKeep(DATA_BYTES_C);
+         byteCnt      := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
          i            := i + KEEP_BITS_C;
       end if;
 
