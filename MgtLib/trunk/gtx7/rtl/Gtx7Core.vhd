@@ -229,9 +229,17 @@ entity Gtx7Core is
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
 
-      txPowerDown : in slv(1 downto 0) := "00";
-      rxPowerDown : in slv(1 downto 0) := "00";
-      loopbackIn  : in slv(2 downto 0) := "000");
+      txPowerDown    : in slv(1 downto 0) := "00";
+      rxPowerDown    : in slv(1 downto 0) := "00";
+      loopbackIn     : in slv(2 downto 0) := "000";
+      
+      drpClk         : in  sl := '0';
+      drpRdy         : out sl;
+      drpEn          : in  sl := '0';
+      drpWe          : in  sl := '0';
+      drpAddr        : in  slv(8 downto 0) := "000000000";
+      drpDi          : in  slv(15 downto 0) := X"0000";
+      drpDo          : out slv(15 downto 0));
 
 end entity Gtx7Core;
 
@@ -821,7 +829,7 @@ begin
          ---------------------------PMA Attributes----------------------------
          OUTREFCLK_SEL_INV => ("11"),          -- ??
          PMA_RSV           => PMA_RSV_G,       -- 
-         PMA_RSV2          => (x"2050"),
+         PMA_RSV2          => (x"2070"),
          PMA_RSV3          => ("00"),
          PMA_RSV4          => (x"00000000"),
          RX_BIAS_CFG       => ("000000000100"),
@@ -1018,13 +1026,13 @@ begin
          QPLLREFCLK       => qPllRefClkIn,
          RESETOVRD        => '0',
          ---------------- Channel - Dynamic Reconfiguration Port (DRP) --------------
-         DRPADDR          => (others => '0'),
-         DRPCLK           => '0',
-         DRPDI            => X"0000",
-         DRPDO            => open,
-         DRPEN            => '0',
-         DRPRDY           => open,
-         DRPWE            => '0',
+         DRPADDR          => drpAddr,
+         DRPCLK           => drpClk,
+         DRPDI            => drpDi,
+         DRPDO            => drpDo,
+         DRPEN            => drpEn,
+         DRPRDY           => drpRdy,
+         DRPWE            => drpWe,         
          ------------------------- Channel - Ref Clock Ports ------------------------
          GTGREFCLK        => gtGRefClk,
          GTNORTHREFCLK0   => gtNorthRefClk0,
