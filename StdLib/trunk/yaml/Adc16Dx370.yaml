@@ -34,12 +34,6 @@ Device: &Adc16Dx370
       mode: RW
       description: ADC Control Registers
     #########################################################
-    - offset: 0x00F
-      name: AdcReg_0x0004
-      sizeBits: 8
-      mode: RW
-      description: ADC Control Registers
-    #########################################################
     - offset: 0x038
       name: AdcReg_0x000E
       sizeBits: 8
