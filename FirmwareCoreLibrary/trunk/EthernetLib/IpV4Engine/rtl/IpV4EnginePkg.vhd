@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2015-12-03
+-- Last update: 2016-08-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,8 +39,9 @@ package IpV4EnginePkg is
    constant VLAN_TYPE_C : slv(15 downto 0) := x"0081";  -- EtherType = VLAN = 0x8100
 
    -- IPV4 Protocol Constants
-   constant UDP_C : slv(7 downto 0) := x"11";  -- Protocol = UDP = 0x11
-   constant TCP_C : slv(7 downto 0) := x"06";  -- Protocol = TCP = 0x06
+   constant UDP_C  : slv(7 downto 0) := x"11";  -- Protocol = UDP  = 0x11
+   constant TCP_C  : slv(7 downto 0) := x"06";  -- Protocol = TCP  = 0x06
+   constant ICMP_C : slv(7 downto 0) := x"01";  -- Protocol = ICMP = 0x01
 
    procedure GetIpV4Checksum (
       hdr      : in    Slv8Array(19 downto 0);
