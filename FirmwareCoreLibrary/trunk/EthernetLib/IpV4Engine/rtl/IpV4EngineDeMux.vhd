@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : EthFrameDeMux.vhd
+-- File       : IpV4EngineDeMux.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
@@ -30,7 +30,7 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.IpV4EnginePkg.all;
 
-entity EthFrameDeMux is
+entity IpV4EngineDeMux is
    generic (
       TPD_G  : time    := 1 ns;
       VLAN_G : boolean := false);    
@@ -48,9 +48,9 @@ entity EthFrameDeMux is
       -- Clock and Reset
       clk          : in  sl;
       rst          : in  sl);      
-end EthFrameDeMux;
+end IpV4EngineDeMux;
 
-architecture rtl of EthFrameDeMux is
+architecture rtl of IpV4EngineDeMux is
 
    constant BROADCAST_MAC_C : slv(47 downto 0) := (others => '1');
 

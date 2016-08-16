@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-06-24
+-- Last update: 2016-08-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -62,6 +62,18 @@ end IpV4Engine;
 
 architecture mapping of IpV4Engine is
 
+   function GenIPv4List (foo : Slv8Array(PROTOCOL_SIZE_G-1 downto 0)) return Slv8Array is
+      variable retVar : Slv8Array(PROTOCOL_SIZE_G downto 0);
+      variable i      : natural;
+   begin
+      for i in PROTOCOL_SIZE_G-1 downto 0 loop
+         retVar(i) := foo(i);
+      end loop;
+      retVar(PROTOCOL_SIZE_G) := ICMP_C;
+      return retVar;
+   end function;
+   constant PROTOCOL_C : Slv8Array(PROTOCOL_SIZE_G downto 0) := GenIPv4List(PROTOCOL_G);
+
    signal ibArpMaster : AxiStreamMasterType;
    signal ibArpSlave  : AxiStreamSlaveType;
    signal obArpMaster : AxiStreamMasterType;
@@ -74,10 +86,15 @@ architecture mapping of IpV4Engine is
 
    signal localhostMaster : AxiStreamMasterType;
    signal localhostSlave  : AxiStreamSlaveType;
+
+   signal ibMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G downto 0);
+   signal ibSlaves  : AxiStreamSlaveArray(PROTOCOL_SIZE_G downto 0);
+   signal obMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G downto 0);
+   signal obSlaves  : AxiStreamSlaveArray(PROTOCOL_SIZE_G downto 0);
    
 begin
 
-   U_EthFrameDeMux : entity work.EthFrameDeMux
+   U_EthFrameDeMux : entity work.IpV4EngineDeMux
       generic map (
          TPD_G  => TPD_G,
          VLAN_G => VLAN_G) 
@@ -141,8 +158,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_G,
-         PROTOCOL_SIZE_G  => PROTOCOL_SIZE_G,
-         PROTOCOL_G       => PROTOCOL_G,
+         PROTOCOL_SIZE_G  => (PROTOCOL_SIZE_G+1),
+         PROTOCOL_G       => PROTOCOL_C,
          VLAN_G           => VLAN_G)    
       port map (
          -- Local Configurations
@@ -153,8 +170,8 @@ begin
          localhostMaster   => localhostMaster,
          localhostSlave    => localhostSlave,
          -- Interface to Protocol Engine  
-         ibProtocolMasters => ibProtocolMasters,
-         ibProtocolSlaves  => ibProtocolSlaves,
+         ibProtocolMasters => ibMasters,
+         ibProtocolSlaves  => ibSlaves,
          -- Clock and Reset
          clk               => clk,
          rst               => rst); 
@@ -163,8 +180,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_G,
-         PROTOCOL_SIZE_G  => PROTOCOL_SIZE_G,
-         PROTOCOL_G       => PROTOCOL_G,
+         PROTOCOL_SIZE_G  => (PROTOCOL_SIZE_G+1),
+         PROTOCOL_G       => PROTOCOL_C,
          VLAN_G           => VLAN_G)    
       port map (
          -- Local Configurations
@@ -176,10 +193,31 @@ begin
          localhostMaster   => localhostMaster,
          localhostSlave    => localhostSlave,
          -- Interface to Protocol Engine  
-         obProtocolMasters => obProtocolMasters,
-         obProtocolSlaves  => obProtocolSlaves,
+         obProtocolMasters => obMasters,
+         obProtocolSlaves  => obSlaves,
          -- Clock and Reset
          clk               => clk,
          rst               => rst); 
 
+   U_IcmpEngine : entity work.IcmpEngine
+      generic map (
+         TPD_G => TPD_G)    
+      port map (
+         -- Interface to ICMP Engine
+         ibIcmpMaster => ibMasters(PROTOCOL_SIZE_G),
+         ibIcmpSlave  => ibSlaves(PROTOCOL_SIZE_G),
+         obIcmpMaster => obMasters(PROTOCOL_SIZE_G),
+         obIcmpSlave  => obSlaves(PROTOCOL_SIZE_G),
+         -- Clock and Reset
+         clk          => clk,
+         rst          => rst);           
+
+   GEN_VEC :
+   for i in (PROTOCOL_SIZE_G-1) downto 0 generate
+      obMasters(i)         <= obProtocolMasters(i);
+      obProtocolSlaves(i)  <= obSlaves(i);
+      ibProtocolMasters(i) <= ibMasters(i);
+      ibSlaves(i)          <= ibProtocolSlaves(i);
+   end generate GEN_VEC;
+   
 end mapping;
