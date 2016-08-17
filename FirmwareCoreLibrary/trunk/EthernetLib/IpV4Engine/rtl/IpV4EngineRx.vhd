@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-08-12
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,8 +38,6 @@ entity IpV4EngineRx is
       PROTOCOL_G       : Slv8Array := (0 => UDP_C);
       VLAN_G           : boolean   := false);       
    port (
-      -- Local Configurations
-      localIp           : in  slv(31 downto 0);  --  big-Endian configuration   
       -- Interface to Ethernet Frame MUX/DEMUX 
       ibIpv4Master      : in  AxiStreamMasterType;
       ibIpv4Slave       : out AxiStreamSlaveType;
@@ -133,7 +131,7 @@ begin
          mAxisMaster     => rxMaster,
          mAxisSlave      => rxSlave);
 
-   comb : process (localIp, r, rst, rxMaster, txSlaves) is
+   comb : process (r, rst, rxMaster, txSlaves) is
       variable v        : RegType;
       variable i        : natural;
       variable len      : slv(15 downto 0);
@@ -212,7 +210,7 @@ begin
                   v.hdr(5)  := rxMaster.tData(31 downto 24);    -- IPV4_ID(7 downto 0)
                   v.hdr(6)  := rxMaster.tData(39 downto 32);    -- Flags and Fragment Offsets
                   v.hdr(7)  := rxMaster.tData(47 downto 40);    -- Flags and Fragment Offsets
-                  v.hdr(8)  := rxMaster.tData(55 downto 48);    -- Time of Live
+                  v.hdr(8)  := rxMaster.tData(55 downto 48);    -- Time-To-Live
                   v.hdr(9)  := rxMaster.tData(63 downto 56);    -- Protocol
                   v.hdr(10) := rxMaster.tData(71 downto 64);    -- IPV4_Checksum(15 downto 8)
                   v.hdr(11) := rxMaster.tData(79 downto 72);    -- IPV4_Checksum(7 downto 0)
@@ -231,7 +229,7 @@ begin
                   v.hdr(5)  := rxMaster.tData(63 downto 56);    -- IPV4_ID(7 downto 0)
                   v.hdr(6)  := rxMaster.tData(71 downto 64);    -- Flags and Fragment Offsets
                   v.hdr(7)  := rxMaster.tData(79 downto 72);    -- Flags and Fragment Offsets
-                  v.hdr(8)  := rxMaster.tData(87 downto 80);    -- Time of Live
+                  v.hdr(8)  := rxMaster.tData(87 downto 80);    -- Time-To-Live
                   v.hdr(9)  := rxMaster.tData(95 downto 88);    -- Protocol
                   v.hdr(10) := rxMaster.tData(103 downto 96);   -- IPV4_Checksum(15 downto 8)
                   v.hdr(11) := rxMaster.tData(111 downto 104);  -- IPV4_Checksum(7 downto 0)
@@ -301,19 +299,8 @@ begin
                v.txMasters(r.index).tData(127 downto 120) := v.hdr(19);
                -- Check the (IPVersion + Header length)
                if (r.hdr(0) = x"45") then
-                  -- Check the Destination IP Address
-                  if (v.txMasters(r.index).tData(127 downto 96) = localIp) then
-                     -- Next state
-                     v.state := CHECKSUM_S;
-                  -- Check for broadcast IP address
-                  elsif (v.txMasters(r.index).tData(127 downto 96) = x"FFFFFFFF") then
-                     -- Next state
-                     v.state := CHECKSUM_S;
-                  else
-                     v.eofe  := '1';
-                     -- Next state
-                     v.state := IDLE_S;
-                  end if;
+                  -- Next state
+                  v.state := CHECKSUM_S;
                else
                   v.eofe  := '1';
                   -- Next state

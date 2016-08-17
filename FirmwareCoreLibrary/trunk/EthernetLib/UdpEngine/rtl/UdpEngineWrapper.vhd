@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-08-12
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,7 +42,6 @@ entity UdpEngineWrapper is
       TX_CALC_CHECKSUM_G  : boolean         := true;
       -- UDP Server Generics
       SERVER_EN_G         : boolean         := true;
-      SERVER_DHCP_G       : boolean         := false;
       SERVER_SIZE_G       : positive        := 1;
       SERVER_PORTS_G      : PositiveArray   := (0 => 8192);
       SERVER_MTU_G        : positive        := 1500;
@@ -52,13 +51,13 @@ entity UdpEngineWrapper is
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
       CLIENT_MTU_G        : positive        := 1500;
       CLIENT_EXT_CONFIG_G : boolean         := false;
-      -- IPv4/ARP Generics
+      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      -- IPv4/ARP/DHCP Generics
+      DHCP_G              : boolean         := false;
       CLK_FREQ_G          : real            := 156.25E+06;          -- In units of Hz
-      COMM_TIMEOUT_EN_G   : boolean         := true;  -- Disable the timeout by setting to false
-      COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing
-      ARP_TIMEOUT_G       : positive        := 156250000;  -- In units of clock cycles (Default: 156.25 MHz clock = 1 seconds)
-      VLAN_G              : boolean         := false;      -- true = VLAN support       
-      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      TTL_G               : slv(7 downto 0) := x"20";               -- IPv4's Time-To-Live (TTL)
+      VLAN_G              : boolean         := false);              -- true = VLAN support       
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);      --  big-Endian configuration
@@ -120,13 +119,9 @@ architecture rtl of UdpEngineWrapper is
    signal obUdpMaster : AxiStreamMasterType;
    signal obUdpSlave  : AxiStreamSlaveType;
 
-   signal dhcpEn      : sl;
-   signal dhcpIp      : slv(31 downto 0);
-   signal localIpAddr : slv(31 downto 0);
+   signal dhcpIp : slv(31 downto 0);
 
 begin
-
-   localIpAddr <= localIp when(dhcpEn = '0') else dhcpIp;
 
    ------------------
    -- IPv4/ARP Engine
@@ -138,12 +133,12 @@ begin
          PROTOCOL_SIZE_G  => 1,
          PROTOCOL_G       => (0 => UDP_C),
          CLIENT_SIZE_G    => CLIENT_SIZE_G,
-         ARP_TIMEOUT_G    => ARP_TIMEOUT_G,
+         CLK_FREQ_G       => CLK_FREQ_G,
          VLAN_G           => VLAN_G)
       port map (
          -- Local Configurations
          localMac             => localMac,
-         localIp              => localIpAddr,
+         localIp              => dhcpIp,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster          => obMacMaster,
          obMacSlave           => obMacSlave,
@@ -178,7 +173,6 @@ begin
          TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
          -- UDP Server Generics
          SERVER_EN_G        => SERVER_EN_G,
-         SERVER_DHCP_G      => SERVER_DHCP_G,
          SERVER_SIZE_G      => SERVER_SIZE_G,
          SERVER_PORTS_G     => SERVER_PORTS_G,
          SERVER_MTU_G       => SERVER_MTU_G,
@@ -187,13 +181,15 @@ begin
          CLIENT_SIZE_G      => CLIENT_SIZE_G,
          CLIENT_PORTS_G     => CLIENT_PORTS_G,
          CLIENT_MTU_G       => CLIENT_MTU_G,
-         -- UDP ARP Generics
+         -- UDP ARP/DHCP Generics
+         DHCP_G             => DHCP_G,
          CLK_FREQ_G         => CLK_FREQ_G,
-         COMM_TIMEOUT_EN_G  => COMM_TIMEOUT_EN_G,
          COMM_TIMEOUT_G     => COMM_TIMEOUT_G)  
       port map (
          -- Local Configurations
-         localIp          => localIpAddr,
+         localMac         => localMac,
+         localIpIn        => localIp,
+         dhcpIpOut        => dhcpIp,
          -- Interface to IPV4 Engine  
          obUdpMaster      => obUdpMaster,
          obUdpSlave       => obUdpSlave,
@@ -217,9 +213,6 @@ begin
          obClientSlaves   => obClientSlaves,
          ibClientMasters  => ibClientMasters,
          ibClientSlaves   => ibClientSlaves,
-         -- Interface to DHCP Engine  
-         dhcpEn           => dhcpEn,
-         dhcpIp           => dhcpIp,
          -- Clock and Reset
          clk              => clk,
          rst              => rst);  

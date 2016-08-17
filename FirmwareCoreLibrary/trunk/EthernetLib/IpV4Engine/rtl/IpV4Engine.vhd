@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-08-16
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,17 +29,18 @@ use work.IpV4EnginePkg.all;
 
 entity IpV4Engine is
    generic (
-      TPD_G            : time      := 1 ns;       -- Simulation parameter only
-      SIM_ERROR_HALT_G : boolean   := false;      -- Simulation parameter only
-      PROTOCOL_SIZE_G  : positive  := 1;          -- Default to 1x protocol
-      PROTOCOL_G       : Slv8Array := (0 => UDP_C);  -- Default to UDP protocol
-      CLIENT_SIZE_G    : positive  := 1;          -- Sets the number of attached client engines
-      ARP_TIMEOUT_G    : positive  := 156250000;  -- In units of clock cycles (Default: 156.25 MHz clock = 1 seconds)
-      VLAN_G           : boolean   := false);     -- true = VLAN support 
+      TPD_G            : time            := 1 ns;          -- Simulation parameter only
+      SIM_ERROR_HALT_G : boolean         := false;         -- Simulation parameter only
+      PROTOCOL_SIZE_G  : positive        := 1;  -- Default to 1x protocol
+      PROTOCOL_G       : Slv8Array       := (0 => UDP_C);  -- Default to UDP protocol
+      CLIENT_SIZE_G    : positive        := 1;  -- Sets the number of attached client engines
+      CLK_FREQ_G       : real            := 156.25E+06;    -- In units of Hz
+      TTL_G            : slv(7 downto 0) := x"20";
+      VLAN_G           : boolean         := false);        -- true = VLAN support 
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);   --  big-Endian configuration
-      localIp           : in  slv(31 downto 0);   --  big-Endian configuration
+      localMac          : in  slv(47 downto 0);            --  big-Endian configuration
+      localIp           : in  slv(31 downto 0);            --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster       : in  AxiStreamMasterType;
       obMacSlave        : out AxiStreamSlaveType;
@@ -134,7 +135,7 @@ begin
       generic map (
          TPD_G         => TPD_G,
          CLIENT_SIZE_G => CLIENT_SIZE_G,
-         ARP_TIMEOUT_G => ARP_TIMEOUT_G,
+         CLK_FREQ_G    => CLK_FREQ_G,
          VLAN_G        => VLAN_G)
       port map (
          -- Local Configurations
@@ -162,8 +163,6 @@ begin
          PROTOCOL_G       => PROTOCOL_C,
          VLAN_G           => VLAN_G)    
       port map (
-         -- Local Configurations
-         localIp           => localIp,
          -- Interface to Ethernet Frame MUX/DEMUX 
          ibIpv4Master      => ibIpv4Master,
          ibIpv4Slave       => ibIpv4Slave,
@@ -182,11 +181,11 @@ begin
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_G,
          PROTOCOL_SIZE_G  => (PROTOCOL_SIZE_G+1),
          PROTOCOL_G       => PROTOCOL_C,
+         TTL_G            => TTL_G,
          VLAN_G           => VLAN_G)    
       port map (
          -- Local Configurations
          localMac          => localMac,
-         localIp           => localIp,
          -- Interface to Ethernet Frame MUX/DEMUX 
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,
@@ -203,6 +202,8 @@ begin
       generic map (
          TPD_G => TPD_G)    
       port map (
+         -- Local Configurations
+         localIp      => localIp,
          -- Interface to ICMP Engine
          ibIcmpMaster => ibMasters(PROTOCOL_SIZE_G),
          ibIcmpSlave  => ibSlaves(PROTOCOL_SIZE_G),

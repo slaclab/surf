@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-08-12
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,22 +44,21 @@ entity UdpEngineTx is
       PORT_G             : PositiveArray := (0 => 8192));
    port (
       -- Interface to IPV4 Engine  
-      obUdpMaster   : out AxiStreamMasterType;
-      obUdpSlave    : in  AxiStreamSlaveType;
+      obUdpMaster  : out AxiStreamMasterType;
+      obUdpSlave   : in  AxiStreamSlaveType;
       -- Interface to User Application
-      localIp       : in  slv(31 downto 0);
-      remotePort    : in  Slv16Array(SIZE_G-1 downto 0);
-      remoteIp      : in  Slv32Array(SIZE_G-1 downto 0);
-      remoteMac     : in  Slv48Array(SIZE_G-1 downto 0);
-      ibMasters     : in  AxiStreamMasterArray(SIZE_G-1 downto 0);
-      ibSlaves      : out AxiStreamSlaveArray(SIZE_G-1 downto 0);
+      localIp      : in  slv(31 downto 0);
+      remotePort   : in  Slv16Array(SIZE_G-1 downto 0);
+      remoteIp     : in  Slv32Array(SIZE_G-1 downto 0);
+      remoteMac    : in  Slv48Array(SIZE_G-1 downto 0);
+      ibMasters    : in  AxiStreamMasterArray(SIZE_G-1 downto 0);
+      ibSlaves     : out AxiStreamSlaveArray(SIZE_G-1 downto 0);
       -- Interface to DHCP Engine
-      dhcpRemoteMac : in  slv(47 downto 0)    := (others => '0');
-      obDhcpMaster  : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      obDhcpSlave   : out AxiStreamSlaveType;
+      obDhcpMaster : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      obDhcpSlave  : out AxiStreamSlaveType;
       -- Clock and Reset
-      clk           : in  sl;
-      rst           : in  sl);
+      clk          : in  sl;
+      rst          : in  sl);
 end UdpEngineTx;
 
 architecture rtl of UdpEngineTx is
@@ -173,8 +172,8 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);   
 
-   comb : process (dhcpRemoteMac, ibMasters, localIp, mMaster, obDhcpMaster, r, remoteIp, remoteMac,
-                   remotePort, rst, sSlave, txSlave) is
+   comb : process (ibMasters, localIp, mMaster, obDhcpMaster, r, remoteIp, remoteMac, remotePort,
+                   rst, sSlave, txSlave) is
       variable v           : RegType;
       variable i           : natural;
       variable lPort       : slv(15 downto 0);
@@ -228,16 +227,16 @@ begin
                -- Increment the counter
                v.index := r.index + 1;
             end if;
-            -- Check for DHCP data and remote MAC/IP/PORT is non-zero
-            if (obDhcpMaster.tValid = '1') and (v.sMaster.tValid = '0') and (dhcpRemoteMac /= 0) then
+            -- Check for DHCP data and remote MAC is non-zero
+            if (obDhcpMaster.tValid = '1') and (v.sMaster.tValid = '0') then
                -- Check for SOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obDhcpMaster) = '1') then
                   -- Write the first header
                   v.sMaster.tValid               := '1';
-                  v.sMaster.tData(47 downto 0)   := dhcpRemoteMac;      -- Destination MAC address
-                  v.sMaster.tData(63 downto 48)  := x"0000";      -- All 0s
-                  v.sMaster.tData(95 downto 64)  := localIp;      -- Source IP address
-                  v.sMaster.tData(127 downto 96) := x"FFFFFFFF";  -- Destination IP address               
+                  v.sMaster.tData(47 downto 0)   := (others => '1');  -- Destination MAC address
+                  v.sMaster.tData(63 downto 48)  := x"0000";          -- All 0s
+                  v.sMaster.tData(95 downto 64)  := (others => '0');  -- Source IP address
+                  v.sMaster.tData(127 downto 96) := (others => '1');  -- Destination IP address               
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                   -- Process checksum
                   GetUdpChecksum (
@@ -256,9 +255,8 @@ begin
                   -- Blow off the data
                   v.obDhcpSlave.tReady := '1';
                end if;
-            -- Check for data and remote MAC/IP/PORT is non-zero
-            elsif (ibMasters(r.index).tValid = '1') and (v.sMaster.tValid = '0')and (remoteMac(r.index) /= 0)
-               and (remoteIp(r.index) /= 0) and (remotePort(r.index) /= 0)then
+            -- Check for data and remote MAC is non-zero
+            elsif (ibMasters(r.index).tValid = '1') and (v.sMaster.tValid = '0')and (remoteMac(r.index) /= 0) then
                -- Check for SOF
                if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibMasters(r.index)) = '1') then
                   -- Latch the index
@@ -266,8 +264,8 @@ begin
                   -- Write the first header
                   v.sMaster.tValid               := '1';
                   v.sMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
-                  v.sMaster.tData(63 downto 48)  := x"0000";      -- All 0s
-                  v.sMaster.tData(95 downto 64)  := localIp;      -- Source IP address
+                  v.sMaster.tData(63 downto 48)  := x"0000";          -- All 0s
+                  v.sMaster.tData(95 downto 64)  := localIp;          -- Source IP address
                   v.sMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address               
                   ssiSetUserSof(IP_ENGINE_CONFIG_C, v.sMaster, '1');
                   -- Process checksum
@@ -288,6 +286,22 @@ begin
                   v.ibSlaves(r.index).tReady := '1';
                end if;
             end if;
+         ------------------------------------------------
+         -- Notes: Non-Standard IPv4 Pseudo Header Format
+         ------------------------------------------------
+         -- tData[0][47:0]   = DST MAC Address
+         -- tData[0][63:48]  = zeros
+         -- tData[0][95:64]  = SRC IP Address 
+         -- tData[0][127:96] = DST IP address
+         -- tData[1][7:0]    = zeros
+         -- tData[1][15:8]   = Protocol Type = UDP
+         -- tData[1][31:16]  = IPv4 Pseudo header length
+         -- tData[1][47:32]  = SRC Port
+         -- tData[1][63:48]  = DST Port
+         -- tData[1][79:64]  = UDP Length
+         -- tData[1][95:80]  = UDP Checksum 
+         -- tData[1][127:96] = UDP Datagram 
+         ------------------------------------------------            
          ----------------------------------------------------------------------
          when DHCP_HDR_S =>
             -- Check if ready to move data
@@ -299,8 +313,8 @@ begin
                v.sMaster.tData(7 downto 0)    := x"00";    -- All 0s
                v.sMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
                v.sMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = TBD
-               v.sMaster.tData(47 downto 32)  := DHCP_SPORT;      -- Source port
-               v.sMaster.tData(63 downto 48)  := DHCP_CPORT;      -- Destination port
+               v.sMaster.tData(47 downto 32)  := DHCP_CPORT;          -- Source port
+               v.sMaster.tData(63 downto 48)  := DHCP_SPORT;          -- Destination port
                v.sMaster.tData(79 downto 64)  := x"0000";  -- UDP length = TBD
                v.sMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = TBD              
                v.sMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);  -- UDP Datagram     
@@ -354,7 +368,7 @@ begin
                v.sMaster.tData(7 downto 0)    := x"00";    -- All 0s
                v.sMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
                v.sMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = TBD
-               v.sMaster.tData(47 downto 32)  := localPort;       -- Source port
+               v.sMaster.tData(47 downto 32)  := localPort;           -- Source port
                v.sMaster.tData(63 downto 48)  := remotePort(r.chPntr);  -- Destination port
                v.sMaster.tData(79 downto 64)  := x"0000";  -- UDP length = TBD
                v.sMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = TBD              
@@ -605,9 +619,9 @@ begin
                -- Check for second header
                if r.cnt = 1 then
                   -- Overwrite the TBD header fields
-                  v.txMaster.tData(31 downto 16) := udpLength;    -- IPv4 Pseudo header length
-                  v.txMaster.tData(79 downto 64) := udpLength;    -- UDP length
-                  v.txMaster.tData(95 downto 80) := udpChecksum;  -- UDP checksum
+                  v.txMaster.tData(31 downto 16) := udpLength;        -- IPv4 Pseudo header length
+                  v.txMaster.tData(79 downto 64) := udpLength;        -- UDP length
+                  v.txMaster.tData(95 downto 80) := udpChecksum;      -- UDP checksum
                end if;
                -- Check for EOF
                if mMaster.tLast = '1' then

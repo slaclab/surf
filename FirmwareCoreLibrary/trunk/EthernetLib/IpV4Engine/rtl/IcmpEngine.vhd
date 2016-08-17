@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-16
--- Last update: 2016-08-16
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,8 @@ entity IcmpEngine is
    generic (
       TPD_G : time := 1 ns);
    port (
+      -- Local Configurations
+      localIp      : in  slv(31 downto 0);  --  big-Endian configuration   
       -- Interface to ICMP Engine
       ibIcmpMaster : in  AxiStreamMasterType;
       ibIcmpSlave  : out AxiStreamSlaveType;
@@ -74,8 +76,9 @@ architecture rtl of IcmpEngine is
 
 begin
 
-   comb : process (ibIcmpMaster, obIcmpSlave, r, rst) is
-      variable v : RegType;
+   comb : process (ibIcmpMaster, localIp, obIcmpSlave, r, rst) is
+      variable v    : RegType;
+      variable eofe : sl;
    begin
       -- Latch the current value
       v := r;
@@ -88,6 +91,9 @@ begin
          v.obIcmpMaster.tUser  := (others => '0');
          v.obIcmpMaster.tKeep  := (others => '1');
       end if;
+
+      -- Update the variable
+      eofe := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIcmpMaster);
 
       ------------------------------------------------
       -- Notes: Non-Standard IPv4 Pseudo Header Format
@@ -121,8 +127,10 @@ begin
                   -- Swap the IP addresses
                   v.tData(95 downto 64)  := ibIcmpMaster.tData(127 downto 96);  -- SRC IP
                   v.tData(127 downto 96) := ibIcmpMaster.tData(95 downto 64);   -- DST IP
-                  -- Next state
-                  v.state                := RX_HDR_S;
+                  if ibIcmpMaster.tData(127 downto 96) = localIp then
+                     -- Next state
+                     v.state := RX_HDR_S;
+                  end if;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -171,6 +179,8 @@ begin
                v.obIcmpMaster.tKeep                := ibIcmpMaster.tKeep;
                v.obIcmpMaster.tLast                := ibIcmpMaster.tLast;
                if ibIcmpMaster.tLast = '1' then
+                  -- Echo back EOFE 
+                  ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obIcmpMaster, eofe);
                   -- Next state
                   v.state := IDLE_S;
                else
@@ -190,6 +200,8 @@ begin
                v.obIcmpMaster.tKeep  := ibIcmpMaster.tKeep;
                v.obIcmpMaster.tLast  := ibIcmpMaster.tLast;
                if ibIcmpMaster.tLast = '1' then
+                  -- Echo back EOFE 
+                  ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obIcmpMaster, eofe);
                   -- Next state
                   v.state := IDLE_S;
                end if;

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-06-24
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,11 +30,10 @@ use work.AxiStreamPkg.all;
 
 entity UdpEngineArp is
    generic (
-      TPD_G             : time     := 1 ns;
-      CLIENT_SIZE_G     : positive := 1;
-      CLK_FREQ_G        : real     := 156.25E+06;
-      COMM_TIMEOUT_EN_G : boolean  := true;
-      COMM_TIMEOUT_G    : positive := 30);  
+      TPD_G          : time     := 1 ns;
+      CLIENT_SIZE_G  : positive := 1;
+      CLK_FREQ_G     : real     := 156.25E+06;
+      COMM_TIMEOUT_G : positive := 30);  
    port (
       -- Local Configurations
       localIp         : in  slv(31 downto 0);  --  big-Endian configuration   
@@ -102,15 +101,13 @@ begin
          end if;
       end loop;
 
-      -- Check if the timer is enabled
-      if (COMM_TIMEOUT_EN_G = true) then
-         -- Increment the timer
-         if r.timer = (TIMER_1_SEC_C-1) then
-            v.timer   := 0;
-            v.timerEn := '1';
-         else
-            v.timer := r.timer + 1;
-         end if;
+
+      -- Increment the timer
+      if r.timer = (TIMER_1_SEC_C-1) then
+         v.timer   := 0;
+         v.timerEn := '1';
+      else
+         v.timer := r.timer + 1;
       end if;
 
       -- Loop through the clients

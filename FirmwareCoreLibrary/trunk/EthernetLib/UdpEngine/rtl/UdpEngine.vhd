@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-08-12
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ entity UdpEngine is
       TX_CALC_CHECKSUM_G : boolean       := true;
       -- UDP Server Generics
       SERVER_EN_G        : boolean       := true;
-      SERVER_DHCP_G      : boolean       := false;
       SERVER_SIZE_G      : positive      := 1;
       SERVER_PORTS_G     : PositiveArray := (0 => 8192);
       SERVER_MTU_G       : positive      := 1500;
@@ -47,13 +46,15 @@ entity UdpEngine is
       CLIENT_SIZE_G      : positive      := 1;
       CLIENT_PORTS_G     : PositiveArray := (0 => 8193);
       CLIENT_MTU_G       : positive      := 1500;
-      -- UDP ARP Generics
+      -- UDP ARP/DHCP Generics
+      DHCP_G             : boolean       := false;
       CLK_FREQ_G         : real          := 156.25E+06;             -- In units of Hz
-      COMM_TIMEOUT_EN_G  : boolean       := true;  -- Disable the timeout by setting to false
-      COMM_TIMEOUT_G     : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing
+      COMM_TIMEOUT_G     : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
    port (
       -- Local Configurations
-      localIp          : in  slv(31 downto 0);    --  big-Endian configuration 
+      localMac         : in  slv(47 downto 0);    --  big-Endian configuration
+      localIpIn        : in  slv(31 downto 0);    --  big-Endian configuration 
+      dhcpIpOut        : out slv(31 downto 0);    --  big-Endian configuration 
       -- Interface to IPV4 Engine  
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
@@ -76,10 +77,7 @@ entity UdpEngine is
       obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      -- Interface to DHCP Engine  
-      dhcpEn           : out sl;
-      dhcpIp           : out slv(31 downto 0);    --  big-Endian configuration        
+      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration    
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl);
@@ -97,18 +95,21 @@ architecture mapping of UdpEngine is
    signal obUdpMasters : AxiStreamMasterArray(1 downto 0);
    signal obUdpSlaves  : AxiStreamSlaveArray(1 downto 0);
 
-   signal dhcpRemoteMac : slv(47 downto 0);
-   signal ibDhcpMaster  : AxiStreamMasterType;
-   signal ibDhcpSlave   : AxiStreamSlaveType;
-   signal obDhcpMaster  : AxiStreamMasterType;
-   signal obDhcpSlave   : AxiStreamSlaveType;
+   signal ibDhcpMaster : AxiStreamMasterType;
+   signal ibDhcpSlave  : AxiStreamSlaveType;
 
+   signal obDhcpMaster : AxiStreamMasterType;
+   signal obDhcpSlave  : AxiStreamSlaveType;
+
+   signal localIp : slv(31 downto 0);
+   
 begin
 
    assert ((SERVER_EN_G = true) or (CLIENT_EN_G = true)) report
       "UdpEngine: Either SERVER_EN_G or CLIENT_EN_G must be true" severity failure;
    
    serverRemoteIp <= remoteIp;          -- Debug Only
+   dhcpIpOut      <= localIp;
 
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
@@ -117,13 +118,15 @@ begin
          RX_MTU_G          => RX_MTU_G,
          RX_FORWARD_EOFE_G => RX_FORWARD_EOFE_G,
          SERVER_EN_G       => SERVER_EN_G,
-         SERVER_DHCP_G     => SERVER_DHCP_G,
+         DHCP_G            => DHCP_G,
          SERVER_SIZE_G     => SERVER_SIZE_G,
          SERVER_PORTS_G    => SERVER_PORTS_G,
          CLIENT_EN_G       => CLIENT_EN_G,
          CLIENT_SIZE_G     => CLIENT_SIZE_G,
          CLIENT_PORTS_G    => CLIENT_PORTS_G) 
       port map (
+         -- Local Configurations
+         localIp          => localIp,
          -- Interface to IPV4 Engine  
          ibUdpMaster      => ibUdpMaster,
          ibUdpSlave       => ibUdpSlave,
@@ -138,23 +141,28 @@ begin
          obClientMasters  => obClientMasters,
          obClientSlaves   => obClientSlaves,
          -- Interface to DHCP Engine  
-         dhcpRemoteMac    => dhcpRemoteMac,
          ibDhcpMaster     => ibDhcpMaster,
          ibDhcpSlave      => ibDhcpSlave,
          -- Clock and Reset
          clk              => clk,
          rst              => rst); 
 
-   GEN_DHCP : if (SERVER_DHCP_G = true) generate
+   GEN_DHCP : if (DHCP_G = true) generate
       
       U_UdpEngineDhcp : entity work.UdpEngineDhcp
          generic map (
+            -- Simulation Generics
             TPD_G            => TPD_G,
-            SIM_ERROR_HALT_G => SIM_ERROR_HALT_G)    
+            SIM_ERROR_HALT_G => SIM_ERROR_HALT_G,
+            -- UDP ARP/DHCP Generics
+            CLK_FREQ_G       => CLK_FREQ_G,
+            COMM_TIMEOUT_G   => COMM_TIMEOUT_G)             
          port map (
+            -- Local Configurations
+            localMac     => localMac,
+            localIp      => localIpIn,
+            dhcpIp       => localIp,
             -- Interface to DHCP Engine  
-            dhcpEn       => dhcpEn,
-            dhcpIp       => dhcpIp,
             ibDhcpMaster => ibDhcpMaster,
             ibDhcpSlave  => ibDhcpSlave,
             obDhcpMaster => obDhcpMaster,
@@ -165,10 +173,9 @@ begin
 
    end generate;
 
-   BYPASS_DHCP : if (SERVER_DHCP_G = false) generate
-      
-      dhcpEn       <= '0';
-      dhcpIp       <= (others => '0');
+   BYPASS_DHCP : if (DHCP_G = false) generate
+
+      localIp      <= localIpIn;
       ibDhcpSlave  <= AXI_STREAM_SLAVE_FORCE_C;
       obDhcpMaster <= AXI_STREAM_MASTER_INIT_C;
       
@@ -187,22 +194,21 @@ begin
             PORT_G             => SERVER_PORTS_G)    
          port map (
             -- Interface to IPV4 Engine  
-            obUdpMaster   => obUdpMasters(0),
-            obUdpSlave    => obUdpSlaves(0),
+            obUdpMaster  => obUdpMasters(0),
+            obUdpSlave   => obUdpSlaves(0),
             -- Interface to User Application
-            localIp       => localIp,
-            remotePort    => serverRemotePort,
-            remoteIp      => remoteIp,
-            remoteMac     => serverRemoteMac,
-            ibMasters     => ibServerMasters,
-            ibSlaves      => ibServerSlaves,
+            localIp      => localIp,
+            remotePort   => serverRemotePort,
+            remoteIp     => remoteIp,
+            remoteMac    => serverRemoteMac,
+            ibMasters    => ibServerMasters,
+            ibSlaves     => ibServerSlaves,
             -- Interface to DHCP Engine  
-            dhcpRemoteMac => dhcpRemoteMac,
-            obDhcpMaster  => obDhcpMaster,
-            obDhcpSlave   => obDhcpSlave,
+            obDhcpMaster => obDhcpMaster,
+            obDhcpSlave  => obDhcpSlave,
             -- Clock and Reset
-            clk           => clk,
-            rst           => rst);
+            clk          => clk,
+            rst          => rst);
 
    end generate;
 
@@ -210,11 +216,10 @@ begin
       
       U_UdpEngineArp : entity work.UdpEngineArp
          generic map (
-            TPD_G             => TPD_G,
-            CLIENT_SIZE_G     => CLIENT_SIZE_G,
-            CLK_FREQ_G        => CLK_FREQ_G,
-            COMM_TIMEOUT_EN_G => COMM_TIMEOUT_EN_G,
-            COMM_TIMEOUT_G    => COMM_TIMEOUT_G) 
+            TPD_G          => TPD_G,
+            CLIENT_SIZE_G  => CLIENT_SIZE_G,
+            CLK_FREQ_G     => CLK_FREQ_G,
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G) 
          port map (
             -- Local Configurations
             localIp         => localIp,
