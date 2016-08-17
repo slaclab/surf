@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-06-24
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ entity ArpEngine is
    generic (
       TPD_G         : time     := 1 ns;
       CLIENT_SIZE_G : positive := 1;
-      ARP_TIMEOUT_G : positive := 156250000;
+      CLK_FREQ_G    : real     := 156.25E+06;                              -- In units of Hz
       VLAN_G        : boolean  := false);  
    port (
       -- Local Configuration
@@ -65,7 +65,8 @@ architecture rtl of ArpEngine is
    constant PROTOCOL_LEN_C   : slv(7 downto 0)  := x"04";    -- ProtocolLength = 4 (6 Bytes/IP)
    constant ARP_REQ_C        : slv(15 downto 0) := x"0100";  -- OpCode = ARP Request  = 0x0001
    constant ARP_REPLY_C      : slv(15 downto 0) := x"0200";  -- OpCode = ARP Reply    = 0x0002
-
+   constant TIMER_1_SEC_C    : natural          := getTimeRatio(CLK_FREQ_G, 1.0);
+   
    type StateType is (
       IDLE_S,
       RX_S,
@@ -152,7 +153,7 @@ begin
                -- Check the tValid and timer
                if (arpReqMasters(r.reqCnt).tValid = '1') and (r.arpTimers(r.reqCnt) = 0) then
                   -- Set the timer
-                  v.arpTimers(r.reqCnt) := ARP_TIMEOUT_G;
+                  v.arpTimers(r.reqCnt) := TIMER_1_SEC_C;
                   -- Check if localhost
                   if localIp = arpReqMasters(r.reqCnt).tData(31 downto 0) then
                      -- ACK the request

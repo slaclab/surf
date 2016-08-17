@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-08-12
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,9 +39,9 @@ entity UdpEngineRx is
       -- UDP General Generic
       RX_MTU_G          : positive      := 1500;
       RX_FORWARD_EOFE_G : boolean       := false;
+      DHCP_G            : boolean       := false;
       -- UDP Server Generics
       SERVER_EN_G       : boolean       := true;
-      SERVER_DHCP_G     : boolean       := false;
       SERVER_SIZE_G     : positive      := 1;
       SERVER_PORTS_G    : PositiveArray := (0 => 8192);
       -- UDP Client Generics
@@ -49,6 +49,8 @@ entity UdpEngineRx is
       CLIENT_SIZE_G     : positive      := 1;
       CLIENT_PORTS_G    : PositiveArray := (0 => 8193));
    port (
+      -- Local Configurations
+      localIp          : in  slv(31 downto 0);  --  big-Endian configuration      
       -- Interface to IPV4 Engine  
       ibUdpMaster      : in  AxiStreamMasterType;
       ibUdpSlave       : out AxiStreamSlaveType;
@@ -63,7 +65,6 @@ entity UdpEngineRx is
       obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       -- Interface to DHCP Engine
-      dhcpRemoteMac    : out slv(47 downto 0);
       ibDhcpMaster     : out AxiStreamMasterType;
       ibDhcpSlave      : in  AxiStreamSlaveType;
       -- Clock and Reset
@@ -108,7 +109,6 @@ architecture rtl of UdpEngineRx is
       serverPorts      : Slv16Array(SERVER_SIZE_G-1 downto 0);
       cPorts           : Slv16Array(CLIENT_SIZE_G-1 downto 0);
       clientPorts      : Slv16Array(CLIENT_SIZE_G-1 downto 0);
-      dhcpRemoteMac    : slv(47 downto 0);
       ibDhcpMaster     : AxiStreamMasterType;
       tKeepMask        : slv(15 downto 0);
       tKeep            : slv(15 downto 0);
@@ -144,7 +144,6 @@ architecture rtl of UdpEngineRx is
       serverPorts      => (others => (others => '0')),
       cPorts           => (others => (others => '0')),
       clientPorts      => (others => (others => '0')),
-      dhcpRemoteMac    => (others => '0'),
       ibDhcpMaster     => AXI_STREAM_MASTER_INIT_C,
       tKeepMask        => (others => '0'),
       tKeep            => (others => '0'),
@@ -253,8 +252,8 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);
 
-   comb : process (ibDhcpSlavePipe, mMaster, obClientSlavesPipe, obServerSlavesPipe, r, rst,
-                   rxMaster, sSlave) is
+   comb : process (ibDhcpSlavePipe, localIp, mMaster, obClientSlavesPipe, obServerSlavesPipe, r,
+                   rst, rxMaster, sSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -375,41 +374,39 @@ begin
                   v.ibValid,
                   r.ibChecksum,
                   v.checksum);
-               -- Check if server engine(s) is enabled
-               if (SERVER_EN_G = true) then
-                  for i in SERVER_SIZE_G-1 downto 0 loop
-                     -- Check if port is defined
-                     if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.sPorts(i)) then
-                        v.udpPortDet          := '1';
-                        v.destSel             := SERVER_MOVE_C;
-                        v.serverId            := i;
-                        v.serverRemotePort(i) := rxMaster.tData(47 downto 32);
-                        v.serverRemoteIp(i)   := r.tData(95 downto 64);
-                        v.serverRemoteMac(i)  := r.tData(47 downto 0);
-                     end if;
-                  end loop;
-               end if;
-               -- Check if clients engine(s) is enabled
-               if (CLIENT_EN_G = true) then
-                  for i in CLIENT_SIZE_G-1 downto 0 loop
-                     -- Check if port is defined
-                     if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.cPorts(i)) then
-                        v.udpPortDet         := '1';
-                        v.destSel            := CLIENT_MOVE_C;
-                        v.clientId           := i;
-                        v.clientRemoteDet(i) := '1';
-                     end if;
-                  end loop;
+               -- Check the IP port 
+               if r.tData(127 downto 96) = localIp then
+                  -- Check if server engine(s) is enabled
+                  if (SERVER_EN_G = true) then
+                     for i in SERVER_SIZE_G-1 downto 0 loop
+                        -- Check if port is defined
+                        if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.sPorts(i)) then
+                           v.udpPortDet          := '1';
+                           v.destSel             := SERVER_MOVE_C;
+                           v.serverId            := i;
+                           v.serverRemotePort(i) := rxMaster.tData(47 downto 32);
+                           v.serverRemoteIp(i)   := r.tData(95 downto 64);
+                           v.serverRemoteMac(i)  := r.tData(47 downto 0);
+                        end if;
+                     end loop;
+                  end if;
+                  -- Check if clients engine(s) is enabled
+                  if (CLIENT_EN_G = true) then
+                     for i in CLIENT_SIZE_G-1 downto 0 loop
+                        -- Check if port is defined
+                        if (v.udpPortDet = '0') and (rxMaster.tData(63 downto 48) = v.cPorts(i)) then
+                           v.udpPortDet         := '1';
+                           v.destSel            := CLIENT_MOVE_C;
+                           v.clientId           := i;
+                           v.clientRemoteDet(i) := '1';
+                        end if;
+                     end loop;
+                  end if;
                end if;
                -- Check if dhcp engine is enabled and DHCP packet
-               if (SERVER_DHCP_G = true)
-                  and (r.tData(95 downto 64) = x"00000000")    -- DHCP Client IP = 0.0.0.0
-                  and (r.tData(127 downto 96) = x"FFFFFFFF")   -- DHCP Server IP = 255.255.255.255
-                  and (rxMaster.tData(47 downto 32) = DHCP_CPORT)       -- DHCP Client Port = 68
-                  and (rxMaster.tData(63 downto 48) = DHCP_SPORT) then  -- DHCP Server Port = 67
-                  v.udpPortDet    := '1';
-                  v.destSel       := DHCP_MOVE_C;
-                  v.dhcpRemoteMac := r.tData(47 downto 0);
+               if (DHCP_G = true) and (rxMaster.tData(47 downto 32) = DHCP_SPORT) and (rxMaster.tData(63 downto 48) = DHCP_CPORT) then
+                  v.udpPortDet := '1';
+                  v.destSel    := DHCP_MOVE_C;
                end if;
                ------------------------------------------------
                -- Notes: Non-Standard IPv4 Pseudo Header Format
@@ -698,7 +695,6 @@ begin
       rxSlave             <= v.rxSlave;
       obServerMastersPipe <= r.obServerMasters;
       obClientMastersPipe <= r.obClientMasters;
-      dhcpRemoteMac       <= r.dhcpRemoteMac;
       ibDhcpMasterPipe    <= r.ibDhcpMaster;
 
    end process comb;
@@ -741,7 +737,7 @@ begin
    U_AxiStreamPipeline_Dhcp : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         PIPE_STAGES_G => 0)
       port map (
          axisClk     => clk,
          axisRst     => rst,

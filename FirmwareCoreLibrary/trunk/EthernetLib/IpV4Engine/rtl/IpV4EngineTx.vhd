@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-07-12
+-- Last update: 2016-08-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,15 +32,15 @@ use work.IpV4EnginePkg.all;
 
 entity IpV4EngineTx is
    generic (
-      TPD_G            : time      := 1 ns;
-      SIM_ERROR_HALT_G : boolean   := false;
-      PROTOCOL_SIZE_G  : positive  := 1;
-      PROTOCOL_G       : Slv8Array := (0 => UDP_C);
-      VLAN_G           : boolean   := false);       
+      TPD_G            : time            := 1 ns;
+      SIM_ERROR_HALT_G : boolean         := false;
+      PROTOCOL_SIZE_G  : positive        := 1;
+      PROTOCOL_G       : Slv8Array       := (0 => UDP_C);
+      TTL_G            : slv(7 downto 0) := x"20";
+      VLAN_G           : boolean         := false);       
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);  --  big-Endian configuration
-      localIp           : in  slv(31 downto 0);  --  big-Endian configuration   
+      localMac          : in  slv(47 downto 0);  --  big-Endian configuration 
       -- Interface to Ethernet Frame MUX/DEMUX 
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
@@ -116,7 +116,7 @@ architecture rtl of IpV4EngineTx is
 
 begin
 
-   comb : process (localIp, localMac, obProtocolMasters, r, rst, txSlave) is
+   comb : process (localMac, obProtocolMasters, r, rst, txSlave) is
       variable v        : RegType;
       variable i        : natural;
       variable len      : slv(15 downto 0);
@@ -198,14 +198,14 @@ begin
                   v.hdr(5)  := r.id(7 downto 0);        -- IPV4_ID(7 downto 0)
                   v.hdr(6)  := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
                   v.hdr(7)  := x"00";   -- Fragment_Offsets(7 downto 0) = 0x0
-                  v.hdr(8)  := x"06";  -- Time of Live = 0x6 (number of hops before packet is discarded)
+                  v.hdr(8)  := TTL_G;   -- Time-To-Live (number of hops before packet is discarded)
                   v.hdr(9)  := PROTOCOL_G(r.chCnt);     -- Protocol
                   v.hdr(10) := x"00";   -- IPV4_Checksum(15 downto 8)  Note: Filled in next state
                   v.hdr(11) := x"00";   -- IPV4_Checksum(7 downto 0)   Note: Filled in next state
-                  v.hdr(12) := localIp(7 downto 0);     -- Source IP Address
-                  v.hdr(13) := localIp(15 downto 8);    -- Source IP Address
-                  v.hdr(14) := localIp(23 downto 16);   -- Source IP Address 
-                  v.hdr(15) := localIp(31 downto 24);   -- Source IP Address 
+                  v.hdr(12) := obProtocolMasters(r.chCnt).tData(71 downto 64);  -- Source IP Address
+                  v.hdr(13) := obProtocolMasters(r.chCnt).tData(79 downto 72);  -- Source IP Address
+                  v.hdr(14) := obProtocolMasters(r.chCnt).tData(87 downto 80);  -- Source IP Address 
+                  v.hdr(15) := obProtocolMasters(r.chCnt).tData(95 downto 88);  -- Source IP Address 
                   v.hdr(16) := obProtocolMasters(r.chCnt).tData(103 downto 96);  -- Destination IP Address
                   v.hdr(17) := obProtocolMasters(r.chCnt).tData(111 downto 104);  -- Destination IP Address
                   v.hdr(18) := obProtocolMasters(r.chCnt).tData(119 downto 112);  -- Destination IP Address 
