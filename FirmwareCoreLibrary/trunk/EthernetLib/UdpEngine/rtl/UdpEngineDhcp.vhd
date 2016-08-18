@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-12
--- Last update: 2016-08-17
+-- Last update: 2016-08-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,6 +61,7 @@ architecture rtl of UdpEngineDhcp is
    constant CLIENT_HDR_C   : slv(31 downto 0)    := x"00060101";  -- 0x01010600
    constant SERVER_HDR_C   : slv(31 downto 0)    := x"00060102";  -- 0x02010600
    constant MAGIC_COOKIE_C : slv(31 downto 0)    := x"63538263";  -- 0x63825363
+   constant COMM_TIMEOUT_C : positive            := ite((COMM_TIMEOUT_G > 3), COMM_TIMEOUT_G, 3);
 
    type StateType is (
       IDLE_S,
@@ -78,7 +79,7 @@ architecture rtl of UdpEngineDhcp is
       heartbeat  : sl;
       cnt        : natural range 0 to 127;
       timer      : natural range 0 to (TIMER_1_SEC_C-1);
-      commCnt    : natural range 0 to COMM_TIMEOUT_G;
+      commCnt    : natural range 0 to COMM_TIMEOUT_C;
       renewCnt   : slv(30 downto 0);
       leaseCnt   : slv(31 downto 0);
       leaseTime  : slv(31 downto 0);
@@ -105,7 +106,7 @@ architecture rtl of UdpEngineDhcp is
       heartbeat  => '0',
       cnt        => 0,
       timer      => 0,
-      commCnt    => COMM_TIMEOUT_G,
+      commCnt    => 3,                  -- Default to 3 seconds after bootup
       renewCnt   => (others => '0'),
       leaseCnt   => (others => '0'),
       leaseTime  => (others => '0'),
@@ -315,7 +316,7 @@ begin
                         v.txMaster.tData(23 downto 16) := x"01";  -- DHCP Discover = 0x1
                         v.txMaster.tLast               := '1';
                         -- Start the communication timer
-                        v.commCnt                      := 30;     -- 30 second timeout
+                        v.commCnt                      := COMM_TIMEOUT_C;
                         -- Reset the counter
                         v.cnt                          := 0;
                         -- Next state
@@ -343,7 +344,7 @@ begin
                      v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
                      v.txMaster.tLast              := '1';
                      -- Start the communication timer
-                     v.commCnt                     := 30;         -- 30 second timeout
+                     v.commCnt                     := COMM_TIMEOUT_C;
                      -- Reset the counter
                      v.cnt                         := 0;
                      -- Next state
