@@ -1,0 +1,29 @@
+vhdl work Version.vhd
+
+vhdl work hdl/Salt7SeriesCore.vhd
+vhdl work hdl/Salt7SeriesCore_block.vhd
+vhdl work hdl/Salt7SeriesCore_reset_sync.vhd
+vhdl work hdl/Salt7SeriesCore_reset_wtd_timer.vhd
+vhdl work hdl/Salt7SeriesCore_sync_block.vhd
+
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_gearbox_6b_10b.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_gearbox_10b_6b.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_gpio_sgmii_top.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_lvds_transceiver.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_sgmii_comma_alignment.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_sgmii_eye_monitor.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_sgmii_phy_calibration.vhd
+vhdl work hdl/lvds_transceiver/Salt7SeriesCore_sgmii_phy_iob.vhd
+
+vhdl work hdl/sgmii_adapt/Salt7SeriesCore_clk_gen.vhd
+vhdl work hdl/sgmii_adapt/Salt7SeriesCore_johnson_cntr.vhd
+vhdl work hdl/sgmii_adapt/Salt7SeriesCore_rx_rate_adapt.vhd
+vhdl work hdl/sgmii_adapt/Salt7SeriesCore_sgmii_adapt.vhd
+vhdl work hdl/sgmii_adapt/Salt7SeriesCore_tx_rate_adapt.vhd
+
+vhdl work hdl/sgmii_lvds_transceiver/Salt7SeriesCore_decode_8b10b_lut_base.vhd
+vhdl work hdl/sgmii_lvds_transceiver/Salt7SeriesCore_decode_8b10b_pkg.vhd
+vhdl work hdl/sgmii_lvds_transceiver/Salt7SeriesCore_encode_8b10b_lut_base.vhd
+vhdl work hdl/sgmii_lvds_transceiver/Salt7SeriesCore_encode_8b10b_pkg.vhd
+
+vhdl gig_ethernet_pcs_pma_v15_2_0 hdl/gig_ethernet_pcs_pma_v15_2_rfs.vhd
