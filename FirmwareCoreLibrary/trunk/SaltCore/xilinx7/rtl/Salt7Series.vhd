@@ -49,6 +49,7 @@ entity Salt7Series is
       clk104MHz   : in  sl;
       clk208MHz   : in  sl;
       clk625MHz   : in  sl;
+      refClk200   : in  sl;
       mmcmLocked  : in  sl := '1';
       loopback    : in  sl := '0';
       powerDown   : in  sl := '0';
@@ -89,6 +90,7 @@ architecture mapping of Salt7Series is
          clk625               : in  std_logic;
          clk208               : in  std_logic;
          clk104               : in  std_logic;
+         refClk200            : in  std_logic;
          -----------------
          -- GMII Interface
          -----------------
@@ -150,6 +152,7 @@ begin
          clk625               => clk625MHz,
          clk208               => clk208MHz,
          clk104               => clk104MHz,
+         refClk200            => refClk200,
          -----------------
          -- GMII Interface
          -----------------
