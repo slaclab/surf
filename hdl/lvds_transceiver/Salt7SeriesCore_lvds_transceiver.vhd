@@ -96,6 +96,7 @@ port (
   phy_cdr_lock        : out std_logic ;
   clk625              : in std_logic ;
   clk208              : in std_logic ;
+  refClk200           : in std_logic ;
   clk104              : in std_logic ;
   clk125              : in std_logic ;
   soft_tx_reset       : in std_logic ; 
@@ -212,6 +213,7 @@ port (
       soft_rx_reset       : in std_logic; 
      
       clk625              : in std_logic;
+      refClk200           : in std_logic;
       clk208              : in std_logic;
       clk104              : in std_logic;
 
@@ -521,6 +523,7 @@ port map (
    soft_rx_reset      => soft_rx_reset_104,
    
    clk625             => clk625, 
+   refClk200          => refClk200, 
    clk208             => clk208, 
    clk104             => clk104, 
 

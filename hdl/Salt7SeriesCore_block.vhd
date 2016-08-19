@@ -125,6 +125,7 @@ entity Salt7SeriesCore_block is
       sgmii_clk_en: out std_logic;             -- Clock enable for client MAC
       clk625 : in std_logic;
       clk208 : in std_logic;
+      refClk200 : in std_logic;
       clk104 : in std_logic;
       ----------------
       -- Speed Control
@@ -188,6 +189,7 @@ architecture block_level of Salt7SeriesCore_block is
     phy_cdr_lock           : out std_logic;
     clk625                 : in std_logic;
     clk208                 : in std_logic;
+    refClk200              : in std_logic;
     clk104                 : in std_logic;
 
     o_r_margin             : out std_logic_vector (4 downto 0);
@@ -612,6 +614,7 @@ sgmii_clk_r <= sgmii_clk_r_i;
       rxrundisp        =>     rxrundisp(0),
       clk625           =>     clk625, 
       clk208           =>     clk208, 
+      refClk200        =>     refClk200, 
       clk104           =>     clk104, 
       phy_cdr_lock     =>     lvds_phy_ready,
       o_r_margin       =>     open,

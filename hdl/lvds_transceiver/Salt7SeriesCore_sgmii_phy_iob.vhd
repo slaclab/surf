@@ -70,6 +70,7 @@ entity  Salt7SeriesCore_sgmii_phy_iob is
 port (
    clk625           : in  std_logic;
    clk208           : in  std_logic;
+   refClk200        : in  std_logic;
    clk104           : in  std_logic;
    rst              : in  std_logic;  -- 104
    soft_tx_reset    : in  std_logic;  -- 104
@@ -138,15 +139,20 @@ signal soft_rx_reset_208_d1   : std_logic;
 signal soft_rx_reset_208_d2   : std_logic;
 signal tx_rst_208             : std_logic;
 signal rx_rst_208             : std_logic;
+signal rx_rst_200             : std_logic;
 
 signal data_dly_ce            : std_logic;
 signal data_dly_inc           : std_logic;
 signal data_idly_actual_value : std_logic_vector(5 downto 0);
 signal data_idly_requested_value : std_logic_vector(5 downto 0);
+signal data_idly_requested_value_sync : std_logic_vector(5 downto 0);
+signal data_dly_val_out_sync : std_logic_vector(4 downto 0);
 signal mon_dly_ce             : std_logic;
 signal mon_dly_inc            : std_logic;
 signal mon_idly_actual_value  : std_logic_vector(5 downto 0);
 signal mon_idly_requested_value : std_logic_vector(5 downto 0);
+signal mon_idly_requested_value_sync : std_logic_vector(5 downto 0);
+signal mon_dly_val_out_sync  : std_logic_vector(4 downto 0); 
 
 begin 
 
@@ -166,6 +172,12 @@ port map(
 
 tx_rst_208   <= rst208_r or soft_tx_reset_208;
 rx_rst_208   <= rst208_r or soft_rx_reset_208;
+
+RstSync_Inst : entity work.RstSync
+   port map (
+      clk      => refClk200,
+      asyncRst => rx_rst_208,
+      syncRst  => rx_rst_200);
 
 reset_sync_soft_rx_reset_208 : Salt7SeriesCore_reset_sync
 port map(
@@ -204,19 +216,28 @@ begin
   end if;
 end process;
 
+U_data_idly_requested_value : entity work.SynchronizerFifo
+   generic map (
+      DATA_WIDTH_G => 6)
+   port map (
+      wr_clk => clk208,
+      din    => data_idly_requested_value,
+      rd_clk => refClk200,
+      dout   => data_idly_requested_value_sync);   
+
 -- Control IDELAY values via inc and ce
-process (clk208)
+process (refClk200)
 begin
-  if clk208'event and clk208 ='1' then 
-    if (rx_rst_208 = '1') then   
+  if refClk200'event and refClk200 ='1' then 
+   if (rx_rst_200 = '1') then      
        data_idly_actual_value <= (others => '0');
        data_dly_ce  <= '0';
        data_dly_inc <= '0';
-    elsif (data_idly_actual_value > data_idly_requested_value) then -- need to Decrement
+    elsif (data_idly_actual_value > data_idly_requested_value_sync) then -- need to Decrement
       data_idly_actual_value <= data_idly_actual_value - '1';
       data_dly_ce  <= '1';
       data_dly_inc <= '0';
-    elsif (data_idly_actual_value < data_idly_requested_value) then -- Need to Increment
+    elsif (data_idly_actual_value < data_idly_requested_value_sync) then -- Need to Increment
       data_idly_actual_value <= data_idly_actual_value + '1';
       data_dly_ce  <= '1';
       data_dly_inc <= '1';
@@ -241,19 +262,28 @@ end process;
       PIPE_SEL              => "FALSE"             
    )
    port map (
-      CNTVALUEOUT   => data_dly_val_out, 
+      CNTVALUEOUT   => data_dly_val_out_sync, 
       DATAOUT       => rx_ser_data_delayed,         
-      C             => clk208,                    
+      C             => refClk200,                    
       CE            => data_dly_ce,                  
       CINVCTRL      => '0',       
       CNTVALUEIN    => "00000",   
       DATAIN        => '0',          
       IDATAIN       => rx_ser_data, 
       INC           => data_dly_inc,             
-      REGRST        => rx_rst_208,    
-      LD            => rx_rst_208, 
+      REGRST        => rx_rst_200,    
+      LD            => rx_rst_200, 
       LDPIPEEN      => '0'        
    );
+   
+U_data_dly_val_out : entity work.SynchronizerFifo
+   generic map (
+      DATA_WIDTH_G => 5)
+   port map (
+      wr_clk => refClk200,
+      din    => data_dly_val_out_sync,
+      rd_clk => clk208,
+      dout   => data_dly_val_out);     
 
 clk625_inv <= not clk625;
 
@@ -359,19 +389,28 @@ begin
   end if;
 end process;
 
+U_mon_idly_requested_value : entity work.SynchronizerFifo
+   generic map (
+      DATA_WIDTH_G => 6)
+   port map (
+      wr_clk => clk208,
+      din    => mon_idly_requested_value,
+      rd_clk => refClk200,
+      dout   => mon_idly_requested_value_sync);   
+
 -- Control IDELAY values via inc and ce
-process (clk208)
+process (refClk200)
 begin
-  if clk208'event and clk208 ='1' then 
-   if (rx_rst_208 = '1') then    
+  if refClk200'event and refClk200 ='1' then 
+   if (rx_rst_200 = '1') then    
       mon_idly_actual_value <= (others => '0');
       mon_dly_ce  <= '0';
       mon_dly_inc <= '0';
-   elsif (mon_idly_actual_value > mon_idly_requested_value) then -- need to Decrement
+   elsif (mon_idly_actual_value > mon_idly_requested_value_sync) then -- need to Decrement
       mon_idly_actual_value <= mon_idly_actual_value - '1';
       mon_dly_ce  <= '1';
       mon_dly_inc <= '0';
-   elsif (mon_idly_actual_value < mon_idly_requested_value) then -- Need to Increment
+   elsif (mon_idly_actual_value < mon_idly_requested_value_sync) then -- Need to Increment
       mon_idly_actual_value <= mon_idly_actual_value + '1';
       mon_dly_ce  <= '1';
       mon_dly_inc <= '1';
@@ -395,19 +434,28 @@ end process;
       PIPE_SEL              => "FALSE"             
    )
    port map (
-      CNTVALUEOUT => mon_dly_val_out, 
+      CNTVALUEOUT => mon_dly_val_out_sync, 
       DATAOUT     => rx_ser_mon_delayed,         
-      C           => clk208,                    
+      C           => refClk200,                    
       CE          => mon_dly_ce,                  
       CINVCTRL    => '0',       
       CNTVALUEIN  => "00000",   
       DATAIN      => '0',          
       IDATAIN     => rx_ser_mon, 
       INC         => mon_dly_inc,             
-      REGRST      => rx_rst_208,    
-      LD          => rx_rst_208, --         -- 1-bit input - Load IDELAY_VALUE input
+      REGRST      => rx_rst_200,    
+      LD          => rx_rst_200, --         -- 1-bit input - Load IDELAY_VALUE input
       LDPIPEEN    => '0'        
    );
+   
+U_mon_dly_val_out : entity work.SynchronizerFifo
+   generic map (
+      DATA_WIDTH_G => 5)
+   port map (
+      wr_clk => refClk200,
+      din    => mon_dly_val_out_sync,
+      rd_clk => clk208,
+      dout   => mon_dly_val_out);     
      
 -- RX Monitor ISERDES 
 rx_mon_iserdes_i : ISERDESE2 
