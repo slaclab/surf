@@ -118,6 +118,7 @@ entity Salt7SeriesCore is
       clk125m     : in std_logic;
       clk625 : in std_logic;
       clk208      : in std_logic;
+      refClk200   : in std_logic;
       clk104      : in std_logic;
       mmcm_locked  : in std_logic;
       sgmii_clk_r   : out std_logic;                -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
@@ -170,6 +171,7 @@ architecture block_level of Salt7SeriesCore is
       clk125m     : in std_logic;
       clk625      : in std_logic;
       clk208      : in std_logic;
+      refClk200   : in std_logic;
       clk104      : in std_logic;
       mmcm_locked  : in std_logic;
       sgmii_clk_r   : out std_logic;                -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
@@ -220,6 +222,7 @@ begin
       clk125m               => clk125m,
       clk625                => clk625,
       clk208                => clk208,
+      refClk200             => refClk200,
       clk104                => clk104,
       mmcm_locked           => mmcm_locked,
 

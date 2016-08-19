@@ -5,7 +5,7 @@ package Version is
 
 constant FPGA_VERSION_C : std_logic_vector(31 downto 0) := x"00000001"; -- MAKE_VERSION
 
-constant BUILD_STAMP_C : string := "Salt7SeriesCore: Vivado v2016.2 (x86_64) Built Thu Aug 18 16:01:18 PDT 2016 by ruckman";
+constant BUILD_STAMP_C : string := "Salt7SeriesCore: Vivado v2016.1 (x86_64) Built Thu Aug 18 17:17:09 PDT 2016 by ruckman";
 
 end Version;
 

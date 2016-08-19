@@ -76,6 +76,7 @@ port (
       soft_tx_reset       : in std_logic; 
       soft_rx_reset       : in std_logic; 
       clk625              : in std_logic;
+      refClk200           : in std_logic;
       clk208              : in std_logic;
       clk104              : in std_logic;
 
@@ -107,6 +108,7 @@ component Salt7SeriesCore_sgmii_phy_iob
 port (
     clk625            : in  std_logic;
     clk208            : in  std_logic;
+    refClk200         : in  std_logic;
     clk104            : in  std_logic;
     rst               : in  std_logic;  -- 104
     soft_tx_reset     : in std_logic;
@@ -224,6 +226,7 @@ sgmii_phy_iob : Salt7SeriesCore_sgmii_phy_iob
 port map (
    clk625           => clk625, 
    clk208           => clk208, 
+   refClk200        => refClk200, 
    clk104           => clk104, 
    rst              => reset, 
    soft_tx_reset    => soft_tx_reset, 
