@@ -38,6 +38,7 @@ echo "   $MODULES"
 echo "   $TARGETS"
 echo "---------------------------------------"
 
+
 echo "---------------------------------------"
 echo "Checking out the new SVN project:"
 svn checkout $TRUNK $1
