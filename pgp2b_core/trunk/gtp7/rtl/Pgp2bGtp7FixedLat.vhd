@@ -5,16 +5,11 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2015-03-20
+-- Last update: 2016-08-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper
---
--- Dependencies:  ^/pgp2_core/trunk/rtl/core/Pgp2RxWrapper.vhd
---                ^/pgp2_core/trunk/rtl/core/Pgp2TxWrapper.vhd
---                ^/StdLib/trunk/rtl/CRC32Rtl.vhd
---                ^/MgtLib/trunk/rtl/gtp7/Gtp7Core.vhd
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC PGP2B Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -31,6 +26,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -66,15 +62,16 @@ entity Pgp2bGtp7FixedLat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
-      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
+      AXI_ERROR_RESP_G  : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";  -- Signals from QPLLs
+      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";     -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
@@ -114,7 +111,19 @@ entity Pgp2bGtp7FixedLat is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0));
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
+
+      -- Debug Interface 
+      txPreCursor     : in  slv(4 downto 0)        := (others => '0');
+      txPostCursor    : in  slv(4 downto 0)        := (others => '0');
+      txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      -- AXI-Lite Interface 
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 
 end Pgp2bGtp7FixedLat;
 
@@ -151,6 +160,15 @@ architecture rtl of Pgp2bGtp7FixedLat is
    -- PgpTx Signals
    signal phyTxLanesOut : Pgp2bTxPhyLaneOutArray(0 to 0);
 --   signal phyTxReady    : sl;
+
+   signal stableRst : sl;
+   signal drpGnt    : sl;
+   signal drpRdy    : sl;
+   signal drpEn     : sl;
+   signal drpWe     : sl;
+   signal drpAddr   : slv(8 downto 0);
+   signal drpDi     : slv(15 downto 0);
+   signal drpDo     : slv(15 downto 0);
 
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of
@@ -193,7 +211,7 @@ begin
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
          phyRxInit        => open  --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
-      );
+         );
 
 
    --------------------------------------------------------------------------------------------------
@@ -327,7 +345,53 @@ begin
          txDataIn         => phyTxLanesOut(0).data,
          txCharIsKIn      => phyTxLanesOut(0).dataK,
          txBufStatusOut   => open,      -- Not using tx buff
-         loopbackIn       => pgpRxIn.loopback);
+         loopbackIn       => pgpRxIn.loopback,
+         txPreCursor      => txPreCursor,
+         txPostCursor     => txPostCursor,
+         txDiffCtrl       => txDiffCtrl,
+         drpGnt           => drpGnt,
+         drpRdy           => drpRdy,
+         drpEn            => drpEn,
+         drpWe            => drpWe,
+         drpAddr          => drpAddr,
+         drpDi            => drpDi,
+         drpDo            => drpDo);            
+
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => false,
+         EN_ARBITRATION_G => true,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 9,
+         DATA_WIDTH_G     => 16)      
+      port map (
+         -- AXI-Lite Port
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- DRP Interface
+         drpClk          => stableClk,
+         drpRst          => stableRst,
+         drpGnt          => drpGnt,
+         drpRdy          => drpRdy,
+         drpEn           => drpEn,
+         drpWe           => drpWe,
+         drpAddr         => drpAddr,
+         drpDi           => drpDi,
+         drpDo           => drpDo);
+
+   U_RstSync : entity work.RstSync
+      generic map (
+         TPD_G => TPD_G)      
+      port map (
+         clk      => stableClk,
+         asyncRst => axilRst,
+         syncRst  => stableRst);        
 
 end rtl;
 

@@ -5,16 +5,11 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2015-04-29
+-- Last update: 2016-08-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper
---
--- Dependencies:  ^/pgp2_core/trunk/rtl/core/Pgp2RxWrapper.vhd
---                ^/pgp2_core/trunk/rtl/core/Pgp2TxWrapper.vhd
---                ^/StdLib/trunk/rtl/CRC32Rtl.vhd
---                ^/MgtLib/trunk/rtl/gtx7/Gtx7Core.vhd
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC PGP2B Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -32,6 +27,7 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
+use work.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -79,11 +75,12 @@ entity Pgp2bGtx7MultiLane is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;        -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;        -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
-      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
+      AXI_ERROR_RESP_G  : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_ENABLE_G       : boolean              := true;     -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);    -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;                            -- GT needs a stable clock to "boot up"
@@ -118,12 +115,23 @@ entity Pgp2bGtx7MultiLane is
       pgpTxIn          : in  Pgp2bTxInType;
       pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0)                 := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0));
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
+      -- Debug Interface 
+      txPreCursor      : in  slv(4 downto 0)                                  := (others => '0');
+      txPostCursor     : in  slv(4 downto 0)                                  := (others => '0');
+      txDiffCtrl       : in  slv(3 downto 0)                                  := "1000";
+      -- AXI-Lite Interface 
+      axilClk          : in  sl                                               := '0';
+      axilRst          : in  sl                                               := '0';
+      axilReadMasters  : in  AxiLiteReadMasterArray((LANE_CNT_G-1) downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+      axilReadSlaves   : out AxiLiteReadSlaveArray((LANE_CNT_G-1) downto 0);
+      axilWriteMasters : in  AxiLiteWriteMasterArray((LANE_CNT_G-1) downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+      axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));        
 end Pgp2bGtx7MultiLane;
 
 -- Define architecture
@@ -158,6 +166,12 @@ architecture rtl of Pgp2bGtx7MultiLane is
    signal phyTxLanesOut   : Pgp2bTxPhyLaneOutArray((LANE_CNT_G-1) downto 0);
    signal phyTxReady      : sl;
 
+   signal drpRdy  : slv(LANE_CNT_G-1 downto 0);
+   signal drpEn   : slv(LANE_CNT_G-1 downto 0);
+   signal drpWe   : slv(LANE_CNT_G-1 downto 0);
+   signal drpAddr : Slv9Array(LANE_CNT_G-1 downto 0);
+   signal drpDi   : Slv16Array(LANE_CNT_G-1 downto 0);
+   signal drpDo   : Slv16Array(LANE_CNT_G-1 downto 0);
 
 --   attribute KEEP_HIERARCHY : string;
 --   attribute KEEP_HIERARCHY of
@@ -208,7 +222,7 @@ begin
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => phyRxReady,
          phyRxInit        => gtRxUserReset
-      );
+         );
 
    --------------------------------------------------------------------------------------------------
    -- Generate the GTX channels
@@ -359,8 +373,44 @@ begin
             txDataIn         => phyTxLanesOut(i).data,
             txCharIsKIn      => phyTxLanesOut(i).dataK,
             txBufStatusOut   => open,
-            loopbackIn       => pgpRxIn.loopback);
+            loopbackIn       => pgpRxIn.loopback,
+            txPreCursor      => txPreCursor,
+            txPostCursor     => txPostCursor,
+            txDiffCtrl       => txDiffCtrl,
+            drpClk           => axilClk,
+            drpRdy           => drpRdy(i),
+            drpEn            => drpEn(i),
+            drpWe            => drpWe(i),
+            drpAddr          => drpAddr(i),
+            drpDi            => drpDi(i),
+            drpDo            => drpDo(i));            
 
+      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+         generic map (
+            TPD_G            => TPD_G,
+            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+            COMMON_CLK_G     => true,
+            EN_ARBITRATION_G => false,
+            TIMEOUT_G        => 4096,
+            ADDR_WIDTH_G     => 9,
+            DATA_WIDTH_G     => 16)          
+         port map (
+            -- AXI-Lite Port
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(i),
+            axilReadSlave   => axilReadSlaves(i),
+            axilWriteMaster => axilWriteMasters(i),
+            axilWriteSlave  => axilWriteSlaves(i),
+            -- DRP Interface
+            drpClk          => axilClk,
+            drpRst          => axilRst,
+            drpRdy          => drpRdy(i),
+            drpEn           => drpEn(i),
+            drpWe           => drpWe(i),
+            drpAddr         => drpAddr(i),
+            drpDi           => drpDi(i),
+            drpDo           => drpDo(i));     
 
    end generate GTX7_CORE_GEN;
 end rtl;

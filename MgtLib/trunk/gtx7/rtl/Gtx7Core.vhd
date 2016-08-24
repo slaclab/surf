@@ -228,11 +228,15 @@ entity Gtx7Core is
       txDataIn       : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
-
+      txPolarityIn   : in  sl             := '0';
+      -- Debug Interface   
       txPowerDown    : in slv(1 downto 0) := "00";
       rxPowerDown    : in slv(1 downto 0) := "00";
       loopbackIn     : in slv(2 downto 0) := "000";
-      
+      txPreCursor    : in slv(4 downto 0) := (others => '0');
+      txPostCursor   : in slv(4 downto 0) := (others => '0');
+      txDiffCtrl     : in slv(3 downto 0) := "1000";         
+      -- DRP Interface (drpClk Domain)      
       drpClk         : in  sl := '0';
       drpRdy         : out sl;
       drpEn          : in  sl := '0';
@@ -1201,9 +1205,9 @@ begin
          TSTIN            => "11111111111111111111",
          TSTOUT           => open,
          TXPHDLYTSTCLK    => '0',
-         TXPOSTCURSOR     => "00000",
+         TXPOSTCURSOR     => txPostCursor,
          TXPOSTCURSORINV  => '0',
-         TXPRECURSOR      => "00000",
+         TXPRECURSOR      => txPreCursor,
          TXPRECURSORINV   => '0',
          TXQPIBIASEN      => '0',
          TXQPISENN        => open,
@@ -1255,7 +1259,7 @@ begin
          GTXTXN           => gtTxN,
          GTXTXP           => gtTxP,
          TXBUFDIFFCTRL    => "100",
-         TXDIFFCTRL       => "1000",
+         TXDIFFCTRL       => txDiffCtrl,
          TXDIFFPD         => '0',
          TXINHIBIT        => '0',
          TXMAINCURSOR     => "0000000",
@@ -1269,7 +1273,7 @@ begin
          TXPRBSFORCEERR   => '0',
          TXPRBSSEL        => "000",
          -------------------- Transmit Ports - TX Polarity Control ------------------
-         TXPOLARITY       => '0',
+         TXPOLARITY       => txPolarityIn,
          ----------------- Transmit Ports - TX Ports for PCI Express ----------------
          TXDEEMPH         => '0',
          TXDETECTRX       => '0',

@@ -5,11 +5,11 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-01
--- Last update: 2015-04-01
+-- Last update: 2016-08-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGP Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC PGP2B Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -27,6 +27,7 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
+use work.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -37,11 +38,12 @@ entity Pgp2bGth7FixedLatWrapper is
       MASTER_SEL_G         : boolean              := true;
       RX_CLK_SEL_G         : boolean              := true;
       -- PGP Settings
-      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4 := 4;
-      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true;  -- Enable RX direction
+      VC_INTERLEAVE_G      : integer              := 0;     -- No interleave Frames
+      PAYLOAD_CNT_TOP_G    : integer              := 7;     -- Top bit for payload counter
+      NUM_VC_EN_G          : integer range 1 to 4 := 4;
+      AXI_ERROR_RESP_G     : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_ENABLE_G          : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G          : boolean              := true;  -- Enable RX direction
       -- QPLL Configurations
       QPLL_FBDIV_G         : bit_vector           := "0100100000";
       QPLL_FBDIV_RATIO_G   : bit                  := '1';
@@ -58,11 +60,11 @@ entity Pgp2bGth7FixedLatWrapper is
       -- MGT Configurations
       RXOUT_DIV_G          : integer              := 2;
       TXOUT_DIV_G          : integer              := 4;
-      RX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
-      TX_CLK25_DIV_G       : integer              := 5;    -- Set by wizard
+      RX_CLK25_DIV_G       : integer              := 5;     -- Set by wizard
+      TX_CLK25_DIV_G       : integer              := 5;     -- Set by wizard
       RX_OS_CFG_G          : bit_vector           := "0000010000000";           -- Set by wizard
       RXCDR_CFG_G          : bit_vector           := x"0002007FE1000C2200018";  -- Set by wizard
-      RXDFEXYDEN_G         : sl                   := '0';  -- Set by wizard      
+      RXDFEXYDEN_G         : sl                   := '0';   -- Set by wizard      
       TX_PLL_G             : string               := "QPLL";
       RX_PLL_G             : string               := "CPLL");
    port (
@@ -93,7 +95,18 @@ entity Pgp2bGth7FixedLatWrapper is
       gtTxP            : out sl;
       gtTxN            : out sl;
       gtRxP            : in  sl;
-      gtRxN            : in  sl);  
+      gtRxN            : in  sl;
+      -- Debug Interface 
+      txPreCursor      : in  slv(4 downto 0)        := (others => '0');
+      txPostCursor     : in  slv(4 downto 0)        := (others => '0');
+      txDiffCtrl       : in  slv(3 downto 0)        := "1000";
+      -- AXI-Lite Interface 
+      axilClk          : in  sl                     := '0';
+      axilRst          : in  sl                     := '0';
+      axilReadMaster   : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave    : out AxiLiteReadSlaveType;
+      axilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave   : out AxiLiteWriteSlaveType); 
 end Pgp2bGth7FixedLatWrapper;
 
 architecture rtl of Pgp2bGth7FixedLatWrapper is
@@ -262,11 +275,12 @@ begin
 
    Pgp2bGth7Fixedlat_Inst : entity work.Pgp2bGth7Fixedlat
       generic map (
-         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-         NUM_VC_EN_G       => NUM_VC_EN_G,
-         TX_ENABLE_G       => TX_ENABLE_G,
-         RX_ENABLE_G       => RX_ENABLE_G,
+         VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
+         PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
+         NUM_VC_EN_G           => NUM_VC_EN_G,
+         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
+         TX_ENABLE_G           => TX_ENABLE_G,
+         RX_ENABLE_G           => RX_ENABLE_G,
          STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout 
          -- CPLL Settings -
          CPLL_REFCLK_SEL_G     => "111",
@@ -321,5 +335,16 @@ begin
          -- Frame Receive Interface - 1 Lane, Array of 4 VCs
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
-         pgpRxCtrl        => pgpRxCtrl);  
+         pgpRxCtrl        => pgpRxCtrl,
+         -- Debug Interface 
+         txPreCursor      => txPreCursor,
+         txPostCursor     => txPostCursor,
+         txDiffCtrl       => txDiffCtrl,
+         -- AXI-Lite Interface 
+         axilClk          => axilClk,
+         axilRst          => axilRst,
+         axilReadMaster   => axilReadMaster,
+         axilReadSlave    => axilReadSlave,
+         axilWriteMaster  => axilWriteMaster,
+         axilWriteSlave   => axilWriteSlave);    
 end rtl;
