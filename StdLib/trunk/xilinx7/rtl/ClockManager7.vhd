@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-28
--- Last update: 2016-08-18
+-- Last update: 2016-08-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ library unisim;
 use unisim.vcomponents.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 entity ClockManager7 is
    generic (
@@ -40,6 +41,7 @@ entity ClockManager7 is
       OUTPUT_BUFG_G          : boolean                          := true;
       RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
+      AXI_ERROR_RESP_G       : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
       -- MMCM attributes
       BANDWIDTH_G            : string                           := "OPTIMIZED";
       CLKIN_PERIOD_G         : real                             := 10.0;    -- Input period in ns );
@@ -83,12 +85,18 @@ entity ClockManager7 is
       CLKOUT5_RST_POLARITY_G : sl                               := '1';
       CLKOUT6_RST_POLARITY_G : sl                               := '1');
    port (
-      clkIn  : in  sl;
-      rstIn  : in  sl := '0';
-      clkOut : out slv(NUM_CLOCKS_G-1 downto 0);
-      rstOut : out slv(NUM_CLOCKS_G-1 downto 0);
-      locked : out sl);
-
+      clkIn           : in  sl;
+      rstIn           : in  sl                     := '0';
+      clkOut          : out slv(NUM_CLOCKS_G-1 downto 0);
+      rstOut          : out slv(NUM_CLOCKS_G-1 downto 0);
+      locked          : out sl;
+      -- AXI-Lite Interface 
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);      
 end entity ClockManager7;
 
 architecture rtl of ClockManager7 is
@@ -112,6 +120,13 @@ architecture rtl of ClockManager7 is
    signal clkFbOut   : sl;
    signal clkFbIn    : sl;
 
+   signal drpRdy  : sl;
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal drpAddr : slv(6 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0);
+
    attribute keep_hierarchy        : string;
    attribute keep_hierarchy of rtl : architecture is "yes";
 
@@ -125,8 +140,35 @@ begin
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
 
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 7,
+         DATA_WIDTH_G     => 16)      
+      port map (
+         -- AXI-Lite Port
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- DRP Interface
+         drpClk          => axilClk,
+         drpRst          => axilRst,
+         drpRdy          => drpRdy,
+         drpEn           => drpEn,
+         drpWe           => drpWe,
+         drpAddr         => drpAddr,
+         drpDi           => drpDi,
+         drpDo           => drpDo);         
+
    MmcmGen : if (TYPE_G = "MMCM") generate
-      U_Mmcm : MMCME2_BASE
+      U_Mmcm : MMCME2_ADV
          generic map (
             BANDWIDTH          => BANDWIDTH_G,
             CLKOUT4_CASCADE    => false,
@@ -156,9 +198,21 @@ begin
             CLKOUT5_DUTY_CYCLE => CLKOUT5_DUTY_CYCLE_G,
             CLKOUT6_DUTY_CYCLE => CLKOUT6_DUTY_CYCLE_G)
          port map (
+            DCLK     => axilClk,
+            DRDY     => drpRdy,
+            DEN      => drpEn,
+            DWE      => drpWe,
+            DADDR    => drpAddr,
+            DI       => drpDi,
+            DO       => drpDo,
+            PSCLK    => '0',
+            PSEN     => '0',
+            PSINCDEC => '0',
             PWRDWN   => '0',
             RST      => rstInLoc,
             CLKIN1   => clkInLoc,
+            CLKIN2   => '0',
+            CLKINSEL => '1',
             CLKFBOUT => clkFbOut,
             CLKFBIN  => clkFbIn,
             LOCKED   => lockedLoc,
@@ -172,7 +226,7 @@ begin
    end generate MmcmGen;
 
    PllGen : if (TYPE_G = "PLL") generate
-      U_Pll : PLLE2_BASE
+      U_Pll : PLLE2_ADV
          generic map (
             BANDWIDTH          => BANDWIDTH_G,
             CLKIN1_PERIOD      => CLKIN_PERIOD_G,
@@ -197,9 +251,18 @@ begin
             CLKOUT4_DUTY_CYCLE => CLKOUT4_DUTY_CYCLE_G,
             CLKOUT5_DUTY_CYCLE => CLKOUT5_DUTY_CYCLE_G)
          port map (
+            DCLK     => axilClk,
+            DRDY     => drpRdy,
+            DEN      => drpEn,
+            DWE      => drpWe,
+            DADDR    => drpAddr,
+            DI       => drpDi,
+            DO       => drpDo,
             PWRDWN   => '0',
             RST      => rstInLoc,
             CLKIN1   => clkInLoc,
+            CLKIN2   => '0',
+            CLKINSEL => '1',
             CLKFBOUT => clkFbOut,
             CLKFBIN  => clkFbIn,
             LOCKED   => lockedLoc,
