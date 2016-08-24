@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2015-04-20
+-- Last update: 2016-08-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,18 +28,19 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
+use work.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity Pgp2bGtx7VarLatWrapper is
    generic (
-      TPD_G                : time                    := 1 ns;   
+      TPD_G              : time                    := 1 ns;
       -- MMCM Configurations (Defaults: gtClkP = 125 MHz Configuration)
-      CLKIN_PERIOD_G       : real                    := 16.0;-- gtClkP/2
-      DIVCLK_DIVIDE_G      : natural range 1 to 106  := 2;
-      CLKFBOUT_MULT_F_G    : real range 1.0 to 64.0  := 31.875;
-      CLKOUT0_DIVIDE_F_G   : real range 1.0 to 128.0 := 6.375;
+      CLKIN_PERIOD_G     : real                    := 16.0;   -- gtClkP/2
+      DIVCLK_DIVIDE_G    : natural range 1 to 106  := 2;
+      CLKFBOUT_MULT_F_G  : real range 1.0 to 64.0  := 31.875;
+      CLKOUT0_DIVIDE_F_G : real range 1.0 to 128.0 := 6.375;
       -- CPLL Configurations (Defaults: gtClkP = 125 MHz Configuration)
       CPLL_REFCLK_SEL_G  : bit_vector              := "001";
       CPLL_FBDIV_G       : natural                 := 5;
@@ -50,58 +51,70 @@ entity Pgp2bGtx7VarLatWrapper is
       TXOUT_DIV_G        : natural                 := 2;
       RX_CLK25_DIV_G     : natural                 := 5;
       TX_CLK25_DIV_G     : natural                 := 5;
-      RX_OS_CFG_G        : bit_vector              := "0000010000000";     
-      RXCDR_CFG_G        : bit_vector              := x"03000023ff40200020"; 
-      RXDFEXYDEN_G       : sl                      := '1';   
-      RX_DFE_KL_CFG2_G   : bit_vector              := x"301148AC";      
+      RX_OS_CFG_G        : bit_vector              := "0000010000000";
+      RXCDR_CFG_G        : bit_vector              := x"03000023ff40200020";
+      RXDFEXYDEN_G       : sl                      := '1';
+      RX_DFE_KL_CFG2_G   : bit_vector              := x"301148AC";
       -- PGP Settings
-      VC_INTERLEAVE_G   : integer              := 0;    -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;    -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4 := 4;
-      TX_ENABLE_G       : boolean              := true; -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
+      VC_INTERLEAVE_G    : integer                 := 0;      -- No interleave Frames
+      PAYLOAD_CNT_TOP_G  : integer                 := 7;      -- Top bit for payload counter
+      NUM_VC_EN_G        : integer range 1 to 4    := 4;
+      AXI_ERROR_RESP_G   : slv(1 downto 0)         := AXI_RESP_DECERR_C;
+      TX_ENABLE_G        : boolean                 := true;   -- Enable TX direction
+      RX_ENABLE_G        : boolean                 := true);  -- Enable RX direction
    port (
       -- Manual Reset
-      extRst       : in  sl;
+      extRst          : in  sl;
       -- Clocks and Reset
-      pgpClk       : out sl;
-      pgpRst       : out sl;
-      stableClk    : out sl;
+      pgpClk          : out sl;
+      pgpRst          : out sl;
+      stableClk       : out sl;
       -- Non VC TX Signals
-      pgpTxIn      : in  Pgp2bTxInType;
-      pgpTxOut     : out Pgp2bTxOutType;
+      pgpTxIn         : in  Pgp2bTxInType;
+      pgpTxOut        : out Pgp2bTxOutType;
       -- Non VC RX Signals
-      pgpRxIn      : in  Pgp2bRxInType;
-      pgpRxOut     : out Pgp2bRxOutType;
+      pgpRxIn         : in  Pgp2bRxInType;
+      pgpRxOut        : out Pgp2bRxOutType;
       -- Frame TX Interface
-      pgpTxMasters : in  AxiStreamMasterArray(3 downto 0);
-      pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
+      pgpTxMasters    : in  AxiStreamMasterArray(3 downto 0);
+      pgpTxSlaves     : out AxiStreamSlaveArray(3 downto 0);
       -- Frame RX Interface
-      pgpRxMasters : out AxiStreamMasterArray(3 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxMasters    : out AxiStreamMasterArray(3 downto 0);
+      pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
-      gtClkP       : in  sl;
-      gtClkN       : in  sl;
-      gtTxP        : out sl;
-      gtTxN        : out sl;
-      gtRxP        : in  sl;
-      gtRxN        : in  sl);  
+      gtClkP          : in  sl;
+      gtClkN          : in  sl;
+      gtTxP           : out sl;
+      gtTxN           : out sl;
+      gtRxP           : in  sl;
+      gtRxN           : in  sl;
+      -- Debug Interface 
+      txPreCursor     : in  slv(4 downto 0)        := (others => '0');
+      txPostCursor    : in  slv(4 downto 0)        := (others => '0');
+      txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      -- AXI-Lite Interface 
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);  
 end Pgp2bGtx7VarLatWrapper;
 
 architecture mapping of Pgp2bGtx7VarLatWrapper is
 
-   signal refClk     : sl;
-   signal refClkDiv2 : sl;
-   signal stableClock  : sl;
-   signal extRstSync : sl;
+   signal refClk      : sl;
+   signal refClkDiv2  : sl;
+   signal stableClock : sl;
+   signal extRstSync  : sl;
 
    signal pgpClock : sl;
    signal pgpReset : sl;
 
 begin
 
-   pgpClk     <= pgpClock;
-   pgpRst     <= pgpReset;
+   pgpClk    <= pgpClock;
+   pgpRst    <= pgpReset;
    stableClk <= stableClock;
 
    IBUFDS_GTE2_Inst : IBUFDS_GTE2
@@ -109,7 +122,7 @@ begin
          I     => gtClkP,
          IB    => gtClkN,
          CEB   => '0',
-         ODIV2 => refClkDiv2,  
+         ODIV2 => refClkDiv2,
          O     => refClk);    
 
    BUFG_Inst : BUFG
@@ -168,6 +181,7 @@ begin
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G,
+         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
          TX_ENABLE_G       => TX_ENABLE_G,
          RX_ENABLE_G       => RX_ENABLE_G)     
       port map (
@@ -208,6 +222,17 @@ begin
          pgpTxSlaves      => pgpTxSlaves,
          -- Frame RX Interface
          pgpRxMasters     => pgpRxMasters,
-         pgpRxCtrl        => pgpRxCtrl);      
-         
+         pgpRxCtrl        => pgpRxCtrl,
+         -- Debug Interface 
+         txPreCursor      => txPreCursor,
+         txPostCursor     => txPostCursor,
+         txDiffCtrl       => txDiffCtrl,
+         -- AXI-Lite Interface 
+         axilClk          => axilClk,
+         axilRst          => axilRst,
+         axilReadMaster   => axilReadMaster,
+         axilReadSlave    => axilReadSlave,
+         axilWriteMaster  => axilWriteMaster,
+         axilWriteSlave   => axilWriteSlave);                 
+
 end mapping;

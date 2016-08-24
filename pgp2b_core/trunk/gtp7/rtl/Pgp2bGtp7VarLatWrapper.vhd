@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-06-03
+-- Last update: 2016-08-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
+use work.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -57,35 +58,47 @@ entity Pgp2bGtp7VarLatWrapper is
       -- Configure PGP
       RX_ENABLE_G          : boolean                 := true;
       TX_ENABLE_G          : boolean                 := true;
+      AXI_ERROR_RESP_G     : slv(1 downto 0)         := AXI_RESP_DECERR_C;
       PAYLOAD_CNT_TOP_G    : integer                 := 7;     -- Top bit for payload counter
       VC_INTERLEAVE_G      : integer                 := 1;     -- Interleave Frames
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset
-      extRst       : in  sl;
+      extRst          : in  sl;
       -- Clocks and Reset
-      pgpClk       : out sl;
-      pgpRst       : out sl;
-      stableClk    : out sl;
+      pgpClk          : out sl;
+      pgpRst          : out sl;
+      stableClk       : out sl;
       -- Non VC TX Signals
-      pgpTxIn      : in  Pgp2bTxInType;
-      pgpTxOut     : out Pgp2bTxOutType;
+      pgpTxIn         : in  Pgp2bTxInType;
+      pgpTxOut        : out Pgp2bTxOutType;
       -- Non VC RX Signals
-      pgpRxIn      : in  Pgp2bRxInType;
-      pgpRxOut     : out Pgp2bRxOutType;
+      pgpRxIn         : in  Pgp2bRxInType;
+      pgpRxOut        : out Pgp2bRxOutType;
       -- Frame TX Interface
-      pgpTxMasters : in  AxiStreamMasterArray(3 downto 0);
-      pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
+      pgpTxMasters    : in  AxiStreamMasterArray(3 downto 0);
+      pgpTxSlaves     : out AxiStreamSlaveArray(3 downto 0);
       -- Frame RX Interface
-      pgpRxMasters : out AxiStreamMasterArray(3 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxMasters    : out AxiStreamMasterArray(3 downto 0);
+      pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
-      gtClkP       : in  sl;
-      gtClkN       : in  sl;
-      gtTxP        : out sl;
-      gtTxN        : out sl;
-      gtRxP        : in  sl;
-      gtRxN        : in  sl);
+      gtClkP          : in  sl;
+      gtClkN          : in  sl;
+      gtTxP           : out sl;
+      gtTxN           : out sl;
+      gtRxP           : in  sl;
+      gtRxN           : in  sl;
+      -- Debug Interface 
+      txPreCursor     : in  slv(4 downto 0)        := (others => '0');
+      txPostCursor    : in  slv(4 downto 0)        := (others => '0');
+      txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      -- AXI-Lite Interface 
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);   
 end Pgp2bGtp7VarLatWrapper;
 
 architecture mapping of Pgp2bGtp7VarLatWrapper is
@@ -202,6 +215,7 @@ begin
          -- Configure PGP
          RX_ENABLE_G       => RX_ENABLE_G,
          TX_ENABLE_G       => TX_ENABLE_G,
+         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          NUM_VC_EN_G       => NUM_VC_EN_G)
@@ -241,6 +255,17 @@ begin
          pgpTxSlaves      => pgpTxSlaves,
          -- Frame RX Interface
          pgpRxMasters     => pgpRxMasters,
-         pgpRxCtrl        => pgpRxCtrl);
+         pgpRxCtrl        => pgpRxCtrl,
+         -- Debug Interface 
+         txPreCursor      => txPreCursor,
+         txPostCursor     => txPostCursor,
+         txDiffCtrl       => txDiffCtrl,
+         -- AXI-Lite Interface 
+         axilClk          => axilClk,
+         axilRst          => axilRst,
+         axilReadMaster   => axilReadMaster,
+         axilReadSlave    => axilReadSlave,
+         axilWriteMaster  => axilWriteMaster,
+         axilWriteSlave   => axilWriteSlave);                 
 
 end mapping;

@@ -210,11 +210,22 @@ entity Gtp7Core is
       txDataIn       : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
-
-      txPowerDown : in slv(1 downto 0) := "00";
-      rxPowerDown : in slv(1 downto 0) := "00";
-      loopbackIn  : in slv(2 downto 0) := "000");
-
+      txPolarityIn   : in  sl              := '0';
+      -- Debug Interface      
+      txPowerDown    : in  slv(1 downto 0) := "00";
+      rxPowerDown    : in  slv(1 downto 0) := "00";
+      loopbackIn     : in  slv(2 downto 0) := "000";
+      txPreCursor    : in  slv(4 downto 0) := (others => '0');
+      txPostCursor   : in  slv(4 downto 0) := (others => '0');
+      txDiffCtrl     : in  slv(3 downto 0) := "1000";   
+      -- DRP Interface (stableClkIn Domain)
+      drpGnt         : out sl;
+      drpRdy         : out sl;
+      drpEn          : in  sl := '0';
+      drpWe          : in  sl := '0';
+      drpAddr        : in  slv(8 downto 0) := "000000000";
+      drpDi          : in  slv(15 downto 0) := X"0000";
+      drpDo          : out slv(15 downto 0));      
 end entity Gtp7Core;
 
 architecture rtl of Gtp7Core is
@@ -347,13 +358,20 @@ architecture rtl of Gtp7Core is
    signal txCharDispVal  : slv(3 downto 0)  := (others => '0');
 
    -- DRP Signals
-   signal drpAddr : slv(8 downto 0);
-   signal drpDo   : slv(15 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpRdy  : sl;
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal gtRxRst : sl;
+   signal drpMuxAddr : slv(8 downto 0);
+   signal drpMuxDo   : slv(15 downto 0);
+   signal drpMuxDi   : slv(15 downto 0);
+   signal drpMuxRdy  : sl;
+   signal drpMuxEn   : sl;
+   signal drpMuxWe   : sl;
+   signal drpRstAddr : slv(8 downto 0);
+   signal drpRstDo   : slv(15 downto 0);
+   signal drpRstDi   : slv(15 downto 0);
+   signal drpRstRdy  : sl;
+   signal drpRstEn   : sl;
+   signal drpRstWe   : sl;   
+   signal drpRstDone : sl;   
+   signal gtRxRst    : sl;
 
 begin
 
@@ -998,13 +1016,13 @@ begin
          PCSRSVDIN            => "0000000000000000",
          TSTIN                => "11111111111111111111",
          ---------------------------- Channel - DRP Ports  --------------------------
-         DRPADDR              => drpAddr,
+         DRPADDR              => drpMuxAddr,
          DRPCLK               => stableClkIn,
-         DRPDI                => drpDi,
-         DRPDO                => drpDo,
-         DRPEN                => drpEn,
-         DRPRDY               => drpRdy,
-         DRPWE                => drpWe,
+         DRPDI                => drpMuxDi,
+         DRPDO                => drpMuxDo,
+         DRPEN                => drpMuxEn,
+         DRPRDY               => drpMuxRdy,
+         DRPWE                => drpMuxWe,
          ----------------- FPGA TX Interface Datapath Configuration  ----------------
          TX8B10BEN            => toSl(TX_8B10B_EN_G),
          ------------------------ GTPE2_CHANNEL Clocking Ports ----------------------
@@ -1180,9 +1198,9 @@ begin
          --------------------------- TX Buffer Bypass Ports -------------------------
          TXPHDLYTSTCLK        => '0',
          ------------------------ TX Configurable Driver Ports ----------------------
-         TXPOSTCURSOR         => "00000",
+         TXPOSTCURSOR         => txPostCursor,
          TXPOSTCURSORINV      => '0',
-         TXPRECURSOR          => "00000",
+         TXPRECURSOR          => txPreCursor,
          TXPRECURSORINV       => '0',
          -------------------- TX Fabric Clock Output Control Ports ------------------
          TXRATEMODE           => '0',
@@ -1250,7 +1268,7 @@ begin
          GTPTXP               => gtTxP,
          TXBUFDIFFCTRL        => "100",
          TXDEEMPH             => '0',
-         TXDIFFCTRL           => "1000",
+         TXDIFFCTRL           => txDiffCtrl,
          TXDIFFPD             => '0',
          TXINHIBIT            => '0',
          TXMAINCURSOR         => "0000000",
@@ -1291,13 +1309,23 @@ begin
          GTRXRESET_IN   => gtRxReset,
          RXPMARESETDONE => rxPmaResetDone,
          GTRXRESET_OUT  => gtRxRst,
-         DRP_OP_DONE    => open,
+         DRP_OP_DONE    => drpRstDone,
          DRPCLK         => stableClkIn,
-         DRPEN          => drpEn,
-         DRPADDR        => drpAddr,
-         DRPWE          => drpWe,
-         DRPDO          => drpDo,
-         DRPDI          => drpDi,
-         DRPRDY         => drpRdy); 
+         DRPEN          => drpRstEn,
+         DRPADDR        => drpRstAddr,
+         DRPWE          => drpRstWe,
+         DRPDO          => drpRstDo,
+         DRPDI          => drpRstDi,
+         DRPRDY         => drpRstRdy); 
 
+   drpGnt     <= drpRstDone;         
+   drpRstRdy  <= drpMuxRdy when(drpRstDone = '0') else '0';
+   drpRdy     <= drpMuxRdy when(drpRstDone = '1') else '0';
+   drpMuxEn   <= drpEn     when(drpRstDone = '1') else drpRstEn;
+   drpMuxWe   <= drpWe     when(drpRstDone = '1') else drpRstWe;
+   drpMuxAddr <= drpAddr   when(drpRstDone = '1') else drpRstAddr;
+   drpMuxDi   <= drpDi     when(drpRstDone = '1') else drpRstDi;
+   drpRstDo   <= drpMuxDo;
+   drpDo      <= drpMuxDo;          
+         
 end architecture rtl;

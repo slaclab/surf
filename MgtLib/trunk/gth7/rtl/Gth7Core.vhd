@@ -141,7 +141,7 @@ entity Gth7Core is
       RXDFELFOVRDEN_G          : sl              := '0';
       RXDFEXYDEN_G             : sl              := '1');   -- This should always be 1
    port (
-      stableClkIn      : in  sl;        -- Freerunning clock needed to drive reset logic
+      stableClkIn      : in  sl;        -- Free running clock needed to drive reset logic and DRP interface
       cPllRefClkIn     : in  sl              := '0';  -- Drives CPLL if used
       cPllLockOut      : out sl;
       qPllRefClkIn     : in  sl              := '0';  -- Signals from QPLL if used
@@ -193,10 +193,22 @@ entity Gth7Core is
       txDataIn         : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
       txCharIsKIn      : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut   : out slv(1 downto 0);
+      txPolarityIn     : in  sl              := '0';
+      -- Debug Interface      
       txPowerDown      : in  slv(1 downto 0) := "00";
       rxPowerDown      : in  slv(1 downto 0) := "00";
-      loopbackIn       : in  slv(2 downto 0) := "000");
-
+      loopbackIn       : in  slv(2 downto 0) := "000";
+      txPreCursor      : in  slv(4 downto 0) := (others => '0');
+      txPostCursor     : in  slv(4 downto 0) := (others => '0');
+      txDiffCtrl       : in  slv(3 downto 0) := "1000";      
+      -- DRP Interface (stableClkIn Domain)
+      drpGnt         : out sl;
+      drpRdy         : out sl;
+      drpEn          : in  sl := '0';
+      drpWe          : in  sl := '0';
+      drpAddr        : in  slv(8 downto 0) := "000000000";
+      drpDi          : in  slv(15 downto 0) := X"0000";
+      drpDo          : out slv(15 downto 0));      
 end entity Gth7Core;
 
 architecture rtl of Gth7Core is
@@ -336,13 +348,20 @@ architecture rtl of Gth7Core is
       txCharDispVal : slv(7 downto 0) := (others => '0');
 
    -- DRP Signals
-   signal drpAddr : slv(8 downto 0);
-   signal drpDo   : slv(15 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpRdy  : sl;
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal gtRxRst : sl;
+   signal drpMuxAddr : slv(8 downto 0);
+   signal drpMuxDo   : slv(15 downto 0);
+   signal drpMuxDi   : slv(15 downto 0);
+   signal drpMuxRdy  : sl;
+   signal drpMuxEn   : sl;
+   signal drpMuxWe   : sl;
+   signal drpRstAddr : slv(8 downto 0);
+   signal drpRstDo   : slv(15 downto 0);
+   signal drpRstDi   : slv(15 downto 0);
+   signal drpRstRdy  : sl;
+   signal drpRstEn   : sl;
+   signal drpRstWe   : sl;   
+   signal drpRstDone : sl;   
+   signal gtRxRst    : sl;
    
 begin
 
@@ -1001,13 +1020,13 @@ begin
          QPLLREFCLK                 => qPllRefClkIn,
          RESETOVRD                  => '0',
          ---------------- Channel - Dynamic Reconfiguration Port (DRP) --------------
-         DRPADDR                    => drpAddr,
+         DRPADDR                    => drpMuxAddr,
          DRPCLK                     => stableClkIn,
-         DRPDI                      => drpDi,
-         DRPDO                      => drpDo,
-         DRPEN                      => drpEn,
-         DRPRDY                     => drpRdy,
-         DRPWE                      => drpWe,
+         DRPDI                      => drpMuxDi,
+         DRPDO                      => drpMuxDo,
+         DRPEN                      => drpMuxEn,
+         DRPRDY                     => drpMuxRdy,
+         DRPWE                      => drpMuxWe,
          ------------------------- Channel - Ref Clock Ports ------------------------
          GTGREFCLK                  => gtGRefClk,
          GTNORTHREFCLK0             => gtNorthRefClk0,
@@ -1217,9 +1236,9 @@ begin
          SETERRSTATUS               => '0',
          TSTIN                      => "11111111111111111111",
          TXPHDLYTSTCLK              => '0',
-         TXPOSTCURSOR               => "00000",
+         TXPOSTCURSOR               => txPostCursor,
          TXPOSTCURSORINV            => '0',
-         TXPRECURSOR                => "00000",
+         TXPRECURSOR                => txPreCursor,
          TXPRECURSORINV             => '0',
          TXQPIBIASEN                => '0',
          TXQPISENN                  => open,
@@ -1284,7 +1303,7 @@ begin
          GTHTXN                     => gtTxN,
          GTHTXP                     => gtTxP,
          TXBUFDIFFCTRL              => "100",
-         TXDIFFCTRL                 => "1000",
+         TXDIFFCTRL                 => txDiffCtrl,
          TXDIFFPD                   => '0',
          TXINHIBIT                  => '0',
          TXMAINCURSOR               => "0000000",
@@ -1298,7 +1317,7 @@ begin
          TXPRBSFORCEERR             => '0',
          TXPRBSSEL                  => "000",
          -------------------- Transmit Ports - TX Polarity Control ------------------
-         TXPOLARITY                 => '0',
+         TXPOLARITY                 => txPolarityIn,
          ----------------- Transmit Ports - TX Ports for PCI Express ----------------
          TXDEEMPH                   => '0',
          TXDETECTRX                 => '0',
@@ -1318,13 +1337,23 @@ begin
          GTRXRESET_IN   => gtRxReset,
          RXPMARESETDONE => rxPmaResetDone,
          GTRXRESET_OUT  => gtRxRst,
-         DRP_OP_DONE    => open,
+         DRP_OP_DONE    => drpRstDone,
          DRPCLK         => stableClkIn,
-         DRPEN          => drpEn,
-         DRPADDR        => drpAddr,
-         DRPWE          => drpWe,
-         DRPDO          => drpDo,
-         DRPDI          => drpDi,
-         DRPRDY         => drpRdy); 
-
+         DRPEN          => drpRstEn,
+         DRPADDR        => drpRstAddr,
+         DRPWE          => drpRstWe,
+         DRPDO          => drpRstDo,
+         DRPDI          => drpRstDi,
+         DRPRDY         => drpRstRdy); 
+   
+   drpGnt     <= drpRstDone;         
+   drpRstRdy  <= drpMuxRdy when(drpRstDone = '0') else '0';
+   drpRdy     <= drpMuxRdy when(drpRstDone = '1') else '0';
+   drpMuxEn   <= drpEn     when(drpRstDone = '1') else drpRstEn;
+   drpMuxWe   <= drpWe     when(drpRstDone = '1') else drpRstWe;
+   drpMuxAddr <= drpAddr   when(drpRstDone = '1') else drpRstAddr;
+   drpMuxDi   <= drpDi     when(drpRstDone = '1') else drpRstDi;
+   drpRstDo   <= drpMuxDo;
+   drpDo      <= drpMuxDo;         
+         
 end architecture rtl;
