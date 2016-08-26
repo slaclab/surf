@@ -47,14 +47,14 @@ if { [file exists  ${PROJ_DIR}/solution1.directive] == 0 } {
    exec echo  > ${PROJ_DIR}/solution1.directive
 }
 
-## Make symbolic links for the directives.tcl file
-if { [file exists  ${OUT_DIR}/${PROJECT}_project/solution1/directives.tcl] == 0 } {
-   exec ln -s  ${PROJ_DIR}/directives.tcl ${OUT_DIR}/${PROJECT}_project/solution1/directives.tcl
-}
+# ## Make symbolic links for the directives.tcl file
+# if { [file exists  ${OUT_DIR}/${PROJECT}_project/solution1/directives.tcl] == 0 } {
+   # exec ln -s  ${PROJ_DIR}/directives.tcl ${OUT_DIR}/${PROJECT}_project/solution1/directives.tcl
+# }
 
-## Make symbolic links for the solution1.directive file
-if { [file exists  ${OUT_DIR}/${PROJECT}_project/solution1/solution1.directive] == 0 } {
-   exec ln -s  ${PROJ_DIR}/solution1.directive ${OUT_DIR}/${PROJECT}_project/solution1/solution1.directive
-}
+# ## Make symbolic links for the solution1.directive file
+# if { [file exists  ${OUT_DIR}/${PROJECT}_project/solution1/solution1.directive] == 0 } {
+   # exec ln -s  ${PROJ_DIR}/solution1.directive ${OUT_DIR}/${PROJECT}_project/solution1/solution1.directive
+# }
 
 exit 0
