@@ -17,6 +17,14 @@ set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
 source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
 
+# Check that the MODULE_DIRS paths all exist
+foreach dir ${MODULE_DIRS} {
+   if { [file exists ${dir}] != 1 } {
+      puts "\n ${dir} doesn't exist!"
+      exit -1
+   }
+}
+
 # Open the project
 open_project -quiet ${VIVADO_PROJECT}
 
