@@ -50,8 +50,8 @@ export RTL_FILES   = $(abspath $(foreach ARG,$(SRC_LISTS),$(shell grep -v "\#" $
 # XDC and TCL Files
 export XDC_LIST = $(PROJ_DIR)/constraints.txt))
 ifneq ($(wildcard $(PROJ_DIR)/constraints.txt ),) 
-   export XDC_FILES   = $(realpath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
-   export TCL_FILES   = $(realpath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.tcl"), $(PROJ_DIR)/$(ARG)))
+   export XDC_FILES   = $(abspath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.xdc"), $(PROJ_DIR)/$(ARG)))
+   export TCL_FILES   = $(abspath $(foreach ARG,$(shell grep -v "\#" $(PROJ_DIR)/constraints.txt | grep "\.tcl"), $(PROJ_DIR)/$(ARG)))
 else
    export XDC_FILES   = 
    export TCL_FILES   = 
@@ -59,15 +59,15 @@ endif
 
 # Block design files
 export BD_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/block_design.txt)))
-export BD_FILES = $(realpath $(foreach A1,$(BD_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
+export BD_FILES = $(abspath $(foreach A1,$(BD_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
 
 # Simulation Files
 export SIM_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/sim.txt)))
-export SIM_FILES = $(realpath $(foreach A1,$(SIM_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
+export SIM_FILES = $(abspath $(foreach ARG,$(SIM_LISTS),$(shell grep -v "\#" $(ARG) | sed 's|\(\S\+\)\(\s\+\)\(\S\+\)\(\s\+\)\(\S\+\).*|$(dir $(ARG))/\5|')))
 
 # YAML Files
 export YAML_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/yaml.txt)))
-export YAML_FILES = $(realpath $(foreach A1,$(YAML_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
+export YAML_FILES = $(abspath $(foreach A1,$(YAML_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
 
 define ACTION_HEADER
 @echo 
