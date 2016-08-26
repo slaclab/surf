@@ -67,7 +67,7 @@ export SIM_FILES = $(abspath $(foreach ARG,$(SIM_LISTS),$(shell grep -v "\#" $(A
 
 # YAML Files
 export YAML_LISTS = $(abspath $(foreach ARG,$(MODULE_DIRS),$(wildcard $(ARG)/yaml.txt)))
-export YAML_FILES = $(abspath $(foreach A1,$(YAML_LISTS),$(foreach A2,$(shell grep -v "\#" $(A1)),$(dir $(A1))/$(A2))))
+export YAML_FILES = $(abspath $(foreach ARG,$(YAML_LISTS),$(shell grep -v "\#" $(ARG) | sed 's|\(\S\+\)\(\s\+\)\(\S\+\).*|$(dir $(ARG))/\3|')))
 
 define ACTION_HEADER
 @echo 
