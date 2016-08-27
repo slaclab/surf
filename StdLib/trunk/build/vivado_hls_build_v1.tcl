@@ -20,7 +20,7 @@ open_project ${PROJECT}_project
 open_solution "solution1"
 
 ## Get the directives
-source ${OUT_DIR}/${PROJECT}_project/solution1/directives.tcl
+source ${PROJ_DIR}/directives.tcl
 
 ## Run C/C++ simulation testbed
 csim_design -clean -O -ldflags ${LDFLAGS} -argv ${ARGV}
