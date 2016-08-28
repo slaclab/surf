@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-07-11
+-- Last update: 2016-08-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -86,9 +86,13 @@ begin
       variable v   : RegType;
       variable idx : integer;
    begin
+      -- Latch the current value
       v := r;
 
-      -- Update output registers 
+      -- Reset strobing signals
+      v.slave.tReady := '0';
+
+      -- Update tValid register
       for i in 0 to NUM_MASTERS_G-1 loop
          if pipeAxisSlaves(i).tReady = '1' then
             v.masters(i).tValid := '0';
@@ -111,26 +115,27 @@ begin
          end loop;
       end if;
 
-      -- Invalid destination, dump data
+      -- Check for invalid destination
       if idx >= NUM_MASTERS_G then
+         -- Blow off the data
          v.slave.tReady := '1';
-
-      -- Target is ready
-      elsif v.masters(idx).tValid = '0' then
+      -- Check if ready to move data
+      elsif (v.masters(idx).tValid = '0') and (sAxisMaster.tValid = '1') then
+         -- Accept the data
          v.slave.tReady := '1';
+         -- Move the data
          v.masters(idx) := sAxisMaster;
-
-      -- Not ready
-      else
-         v.slave.tReady := '0';
       end if;
 
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Outputs
       sAxisSlave      <= v.slave;
       pipeAxisMasters <= r.masters;
 
