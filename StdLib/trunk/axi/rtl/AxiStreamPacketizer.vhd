@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-07-14
+-- Last update: 2016-08-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -174,14 +174,16 @@ begin
             end if;
 
          when MOVE_S =>
-            v.inputAxisSlave.tReady := outputAxisSlave.tReady;
+            v.inputAxisSlave.tReady := '0';  --outputAxisSlave.tReady;
 
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Send data through
-               v.outputAxisMaster       := inputAxisMaster;
-               v.outputAxisMaster.tUser := (others => '0');
-               v.outputAxisMaster.tDest := (others => '0');
-               v.outputAxisMaster.tId   := (others => '0');
+               v.inputAxisSlave.tReady   := '1';
+               v.outputAxisMaster.tValid := '1';
+               v.outputAxisMaster.tData  := inputAxisMaster.tData;
+               v.outputAxisMaster.tUser  := (others => '0');
+               v.outputAxisMaster.tDest  := (others => '0');
+               v.outputAxisMaster.tId    := (others => '0');
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
