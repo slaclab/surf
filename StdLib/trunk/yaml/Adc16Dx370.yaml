@@ -12,7 +12,7 @@
 Device: &Adc16Dx370 
   name: Adc16Dx370
   description: ADC16Dx370 Module
-  size: 0x00100000
+  size: 0x001000
   #########
   IntField:
   #########
