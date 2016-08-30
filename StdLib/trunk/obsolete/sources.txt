@@ -1,3 +1,0 @@
-vhdl work rtl/SynchronizePkg.vhd
-
-vhdl work rtl/ClkOutBuf.vhd
