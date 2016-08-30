@@ -1,0 +1,71 @@
+
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+Device: &AxiCdcm6208 
+  name: AxiCdcm6208
+  description: "AxiCdcm6208 Module"
+  size: 0x00100
+  #########
+  IntField:
+  #########
+  
+    #########################################################
+    #
+    #   Control registers
+    #
+    #########################################################
+    - offset: 0x000
+      name: Cdcm6208
+      sizeBits: 16
+      nelms: 21
+      mode: RW
+      description: "Cdcm6208 Control Registers"
+    #########################################################
+    #
+    #   Status registers
+    #
+    #########################################################
+    - offset: 0x054
+      name: SEL_REF
+      lsBit: 0
+      sizeBits: 1
+      mode: RO
+      description: "Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary"
+    ##########################################################
+    - offset: 0x054
+      name: LOS_REF
+      lsBit: 1
+      sizeBits: 1
+      mode: RO
+      description: "Loss of reference input: 0 => Reference input present 1 => Loss of reference input."
+    ##########################################################
+    - offset: 0x054
+      name: PLL_UNLOCK
+      lsBit: 2
+      sizeBits: 1
+      mode: RO
+      description: "Indicates unlock status for PLL (digital):0 => PLL locked 1 => PLL unlocked"
+    #########################################################
+    - offset: 0x0A0
+      name: DIE_REVISION
+      lsBit: 0
+      sizeBits: 3
+      mode: RO
+      description: "Indicates the silicon die revision (Read only): 2:0 DIE_REVISION 00X --> Engineering Prototypes 010 --> Production Materia"
+    #########################################################
+    - offset: 0x0A0
+      name: VCO_VERSION
+      lsBit: 3
+      sizeBits: 3
+      mode: RO
+      description: "Indicates the device version (Read only):5:3 VCO_VERSION 000 => CDCM6208V1 001 => CDCM6208V2"
+    #########################################################
+    
