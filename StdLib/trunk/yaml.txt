@@ -6,6 +6,7 @@ manual yaml/AxiStreamDmaRingWrite.yaml
 manual yaml/AxiSysMonUltraScale.yaml
 manual yaml/AxiVersion.yaml
 manual yaml/AxiXadc.yaml
+manual yaml/AxiCdcm6208.yaml
 
 manual yaml/SsiPrbsTx.yaml
 
