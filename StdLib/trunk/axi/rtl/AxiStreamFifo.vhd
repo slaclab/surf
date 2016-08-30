@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-08-09
+-- Last update: 2016-08-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ architecture rtl of AxiStreamFifo is
          i            := i + KEEP_BITS_C;
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(DATA_BYTES_C);
-         byteCnt      := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
+         byteCnt      := DATA_BYTES_C;
          i            := i + KEEP_BITS_C;
       end if;
 
