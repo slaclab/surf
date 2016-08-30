@@ -297,12 +297,12 @@ begin
                -- Check for read operation
                if readEnable = '1' then
                   if fifoStatus.empty = '0' then
+                     -- Calculate the count
+                     rdReg.cnt     <= rdReg.waddr - rdReg.advance after TPD_G;
                      -- Increment the read address pointer
                      rdReg.raddr   <= rdReg.raddr + 1             after TPD_G;
                      rdReg.advance <= rdReg.advance + 1           after TPD_G;
                      rdReg.Ack     <= '1'                         after TPD_G;
-                     -- Calculate the count
-                     rdReg.cnt     <= rdReg.waddr - rdReg.advance after TPD_G;
                   else
                      -- Calculate the count
                      rdReg.cnt   <= rdReg.waddr - rdReg.raddr after TPD_G;
@@ -417,12 +417,12 @@ begin
                   -- Check for write operation
                   if wr_en = '1' then
                      if fullStatus = '0' then
+                        -- Calculate the count
+                        wrReg.cnt     <= wrReg.advance - wrReg.raddr after TPD_G;
                         -- Increment the read address pointer
                         wrReg.waddr   <= wrReg.waddr + 1             after TPD_G;
                         wrReg.advance <= wrReg.advance + 1           after TPD_G;
                         wrReg.Ack     <= '1'                         after TPD_G;
-                        -- Calculate the count
-                        wrReg.cnt     <= wrReg.advance - wrReg.raddr after TPD_G;
                      else
                         wrReg.error <= '1'                       after TPD_G;
                         -- Calculate the count
