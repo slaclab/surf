@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-08-29
+-- Last update: 2016-08-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -179,8 +179,7 @@ begin
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Send data through
                v.inputAxisSlave.tReady   := '1';
-               v.outputAxisMaster.tValid := '1';
-               v.outputAxisMaster.tData  := inputAxisMaster.tData;
+               v.outputAxisMaster        := inputAxisMaster;
                v.outputAxisMaster.tUser  := (others => '0');
                v.outputAxisMaster.tDest  := (others => '0');
                v.outputAxisMaster.tId    := (others => '0');
