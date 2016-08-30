@@ -22,12 +22,6 @@ Device: &GenericMemory
       mode: RW
       description: Memory Array
     #########################################################
-    - offset: 0x0
-      name: MemoryArrayRO
-      nelms: 1
-      mode: RO
-      description: Memory Array Read Only
-    #########################################################
 
 IntField: &MemoryArray
   offset: 0x0
@@ -35,10 +29,3 @@ IntField: &MemoryArray
   nelms:  1
   mode:   RW
   description: Memory Array
-  
-IntField: &MemoryArrayRO
-  offset: 0x0
-  name:   MemoryArray
-  nelms:  1
-  mode:   RO
-  description: Memory Array Read Only
