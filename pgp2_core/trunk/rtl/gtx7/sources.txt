@@ -1,4 +1,0 @@
-vhdl work Pgp2Gtx7FixedLat.vhd
-vhdl work Pgp2Gtx7MultiLane.vhd
-vhdl work Pgp2Gtx7FixedLatWrapper.vhd
-vhdl work Pgp2Gtx7VarLatWrapper.vhd
