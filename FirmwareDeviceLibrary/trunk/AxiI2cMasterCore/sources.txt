@@ -1,2 +1,0 @@
-vhdl work rtl/AxiI2cMasterPkg.vhd
-vhdl work rtl/AxiI2cMasterCore.vhd
