@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifo.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-08-30
+-- Last update: 2016-08-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -92,6 +92,8 @@ end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
 
+   constant FIFO_AXIS_CONFIG_C : AxiStreamConfigType := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C, SLAVE_AXI_CONFIG_G, MASTER_AXI_CONFIG_G);
+
    constant LAST_FIFO_ADDR_WIDTH_C : integer range 4 to 48 :=
       ite(LAST_FIFO_ADDR_WIDTH_G < 4, FIFO_ADDR_WIDTH_G, LAST_FIFO_ADDR_WIDTH_G);
 
@@ -150,15 +152,15 @@ architecture rtl of AxiStreamFifo is
 
       -- Pack user bits
       if USER_MODE_C = TUSER_FIRST_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, 0), FIFO_USER_BITS_C));  -- First byte
-         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(FIFO_AXIS_CONFIG_C, din, 0), FIFO_USER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(FIFO_AXIS_CONFIG_C, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
 
       elsif USER_MODE_C = TUSER_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(FIFO_AXIS_CONFIG_C, din, -1), FIFO_USER_BITS_C));  -- Last valid byte
 
       else
          for j in 0 to DATA_BYTES_C-1 loop
-            assignSlv(i, retValue, resize(axiStreamGetUserField(SLAVE_AXI_CONFIG_G, din, j), FIFO_USER_BITS_C));
+            assignSlv(i, retValue, resize(axiStreamGetUserField(FIFO_AXIS_CONFIG_C, din, j), FIFO_USER_BITS_C));
          end loop;
       end if;
 
