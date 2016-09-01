@@ -1,11 +1,17 @@
 -------------------------------------------------------------------------------
--- Title         : AXI Bus To AXI Lite Bus Bridge
--- File          : AxiToAxiLite.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 03/06/2014
+-- Title      : AXI Bus To AXI Lite Bus Bridge
 -------------------------------------------------------------------------------
--- Description:
--- AXI to AXI lite bus converter module
+-- File       : AxiToAxiLite.vhd
+-- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-03-06
+-- Last update: 2016-09-01
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: AXI4-to-AXI-Lite bridge
+--
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -15,14 +21,11 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 03/06/2014: created.
--------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
@@ -30,29 +33,24 @@ use work.AxiPkg.all;
 
 entity AxiToAxiLite is
    generic (
-      TPD_G  : time := 1 ns
-   );
+      TPD_G : time := 1 ns);
    port (
-
       -- Clocks & Reset
-      axiClk             : in     sl;
-      axiClkRst          : in     sl;
-
+      axiClk          : in  sl;
+      axiClkRst       : in  sl;
       -- AXI Slave 
-      axiReadMaster      : in     AxiReadMasterType;
-      axiReadSlave       : out    AxiReadSlaveType;
-      axiWriteMaster     : in     AxiWriteMasterType;
-      axiWriteSlave      : out    AxiWriteSlaveType;
-
+      axiReadMaster   : in  AxiReadMasterType;
+      axiReadSlave    : out AxiReadSlaveType;
+      axiWriteMaster  : in  AxiWriteMasterType;
+      axiWriteSlave   : out AxiWriteSlaveType;
       -- AXI Lite
-      axilReadMaster     : out    AxiLiteReadMasterType;
-      axilReadSlave      : in     AxiLiteReadSlaveType;
-      axilWriteMaster    : out    AxiLiteWriteMasterType;
-      axilWriteSlave     : in     AxiLiteWriteSlaveType
-   );
+      axilReadMaster  : out AxiLiteReadMasterType;
+      axilReadSlave   : in  AxiLiteReadSlaveType;
+      axilWriteMaster : out AxiLiteWriteMasterType;
+      axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiToAxiLite;
 
-architecture structure of AxiToAxiLite is
+architecture mapping of AxiToAxiLite is
 
 begin
 
@@ -74,25 +72,34 @@ begin
    axilReadMaster.arvalid <= axiReadMaster.arvalid;
    axilReadMaster.rready  <= axiReadMaster.rready;
 
-   axiReadSlave.arready             <= axilReadSlave.arready;
-   axiReadSlave.rdata(63 downto 32) <= (others=>'0');
-   axiReadSlave.rdata(31 downto  0) <= axilReadSlave.rdata;
-   axiReadSlave.rresp               <= axilReadSlave.rresp;
-   axiReadSlave.rlast               <= '1';
-   axiReadSlave.rvalid              <= axilReadSlave.rvalid;
+   axiReadSlave.arready <= axilReadSlave.arready;
+   axiReadSlave.rresp   <= axilReadSlave.rresp;
+   axiReadSlave.rlast   <= '1';
+   axiReadSlave.rvalid  <= axilReadSlave.rvalid;
+
+   process(axilReadSlave)
+      variable i     : integer;
+      variable rdata : slv(1023 downto 0);
+   begin
+      -- Copy the responds read bus bus to all word boundaries
+      for i in 0 to 31 loop
+         rdata((32*i)+31 downto (32*i)) := axilReadSlave.rdata;
+      end loop;
+      -- Return the value to the output
+      axiReadSlave.rdata <= rdata;
+   end process;
 
    -- ID Tracking
-   process ( axiClk ) begin
+   process (axiClk)
+   begin
       if rising_edge(axiClk) then
          if axiClkRst = '1' then
-            axiReadSlave.rid  <= (others=>'0') after TPD_G;
-            axiWriteSlave.bid <= (others=>'0') after TPD_G;
+            axiReadSlave.rid  <= (others => '0') after TPD_G;
+            axiWriteSlave.bid <= (others => '0') after TPD_G;
          else
-
             if axiReadMaster.arvalid = '1' and axilReadSlave.arready = '1' then
                axiReadSlave.rid <= axiReadMaster.arid after TPD_G;
             end if;
-
             if axiWriteMaster.awvalid = '1' and axilWriteSlave.awready = '1' then
                axiWriteSlave.bid <= axiWriteMaster.awid after TPD_G;
             end if;
@@ -100,5 +107,4 @@ begin
       end if;
    end process;
 
-end architecture structure;
-
+end architecture mapping;
