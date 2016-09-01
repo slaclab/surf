@@ -199,21 +199,27 @@ $(IMPL_DIR)/$(PROJECT)_dynamic.bit : $(RTL_FILES) $(XDC_FILES) $(TCL_FILES) $(CO
 ###############################################################
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION).bit : $(IMPL_DIR)/$(PROJECT).bit
 	@cp $< $@
+	@gzip -c -f -9 $@ > $@.gz
 	@echo ""
 	@echo "Bit file copied to $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"
 #### Bitfile Copy (Partial Reconfiguration: Static) ###########
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION)_static.bit : $(IMPL_DIR)/$(PROJECT)_static.bit
 	@cp $< $@
+	@gzip -c -f -9 $@ > $@.gz
 	@echo ""
 	@echo "Bit file copied to $@"
+	@echo "Don't forget to 'svn commit' when the image is stable!"
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION)_static.dcp : $(IMPL_DIR)/$(PROJECT)_static.dcp
 	@cp $< $@
+	@gzip -c -f -9 $@ > $@.gz
+	@echo ""
 	@echo "Checkpoint file copied to $@"
 	@echo "Don't forget to 'svn commit' when the image and checkpoint is stable!" 
 #### Bitfile Copy (Partial Reconfiguration: Dynamic) ##########
 $(IMAGES_DIR)/$(PROJECT)_$(PRJ_VERSION)_dynamic.bit : $(IMPL_DIR)/$(PROJECT)_dynamic.bit
 	@cp $< $@
+	@gzip -c -f -9 $@ > $@.gz
 	@echo ""
 	@echo "Bit file copied to $@"
 	@echo "Don't forget to 'svn commit' when the image is stable!"  

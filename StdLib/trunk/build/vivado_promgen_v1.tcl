@@ -54,8 +54,17 @@ if { ${loaddata} != "" } {
 
 # Check for SPIx8
 if { ${inteface} == "SPIx8" } {
-   exec cp ${outputFilePri} ${imagesFilePri}
-   exec cp ${outputFileSec} ${imagesFileSec}
+   # Copy the images from build tree to source tree
+   exec cp -f ${outputFilePri} ${imagesFilePri}
+   exec cp -f ${outputFileSec} ${imagesFileSec}
+   # Create a compressed version of the image files
+   exec gzip -c -f -9 ${imagesFilePri} > ${imagesFilePri}.gz   
+   exec gzip -c -f -9 ${imagesFileSec} > ${imagesFileSec}.gz   
+# Else single file PROM format
 } else {
-   exec cp ${outputFile} ${imagesFile}
+   # Copy the image from build tree to source tree
+   exec cp -f ${outputFile} ${imagesFile}
+   # Create a compressed version of the image file
+   exec gzip -c -f -9 ${imagesFile} > ${imagesFile}.gz
 }
+
