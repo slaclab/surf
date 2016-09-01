@@ -52,6 +52,10 @@ architecture rtl of Synchronizer is
    -------------------------------
    -- XST/Synplify Attributes
    -------------------------------
+   
+   -- ASYNC_REG require for Vivado but breaks ISE/XST synthesis
+   attribute ASYNC_REG      : string;
+   attribute ASYNC_REG of crossDomainSyncReg : signal is "TRUE";   
 
    -- Synplify Pro: disable shift-register LUT (SRL) extraction
    attribute syn_srlstyle                       : string;
