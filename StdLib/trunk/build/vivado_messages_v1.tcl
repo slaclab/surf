@@ -27,6 +27,9 @@ set_msg_config -suppress -id {Synth 8-113}; # SYNTH: Binding component instance 
 set_msg_config -suppress -id {Synth 8-226}; # SYNTH: Default block is never used
 set_msg_config -suppress -id {Synth 8-312}; # SYNTH: Ignoring "unsynthesizable construct" message due to assert error checking
 set_msg_config -suppress -id {Synth 8-4472};# SYNTH: Detected and applied attribute shreg_extract = no
+set_msg_config -suppress -id {Synth 8-4480};# SYNTH: BRAM: Providing additional output register may help in improving timing
+set_msg_config -suppress -id {Synth 8-3331};# SYNTH: Unconnected port 
+set_msg_config -suppress -id {Synth 8-3332};# SYNTH: Sequential element is unused and will be removed from module 
 
 set_msg_config -suppress -id {HDL 9-1061};  # SIM: Parsing VHDL file 
 set_msg_config -suppress -id {Runs 36-5};   # SIM: Copied auxiliary file
