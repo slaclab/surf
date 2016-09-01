@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2016-07-13
+-- Last update: 2016-09-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -86,7 +86,6 @@ architecture rtl of SsiPrbsTx is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-
    type StateType is (
       IDLE_S,
       SEED_RAND_S,
@@ -135,14 +134,15 @@ architecture rtl of SsiPrbsTx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txCtrl : AxiStreamCtrlType;
+   signal txSlave : AxiStreamSlaveType;
+   signal txCtrl  : AxiStreamCtrlType;
    
 begin
 
    assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
 
    comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst, packetLength, r, tDest, tId,
-                   trig, txCtrl) is
+                   trig, txCtrl, txSlave) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -224,14 +224,18 @@ begin
          v.tId          := tId;
       end if;
 
-      -- Reset strobing signals
-      ssiResetFlags(v.txAxisMaster);
-      v.txAxisMaster.tData := (others => '0');
-
       -- Check for overflow condition or forced EOFE
       if (txCtrl.overflow = '1') or (forceEofe = '1') then
          -- Latch the overflow error bit for the data packet
          v.overflow := '1';
+      end if;
+
+      -- Check the AXIS flow control
+      if txSlave.tReady = '1' then
+         v.txAxisMaster.tValid := '0';
+         v.txAxisMaster.tLast  := '0';
+         v.txAxisMaster.tUser  := (others => '0');
+         v.txAxisMaster.tKeep  := (others => '1');
       end if;
 
       -- State Machine
@@ -267,7 +271,7 @@ begin
          ----------------------------------------------------------------------
          when SEED_RAND_S =>
             -- Check if the FIFO is ready
-            if txCtrl.pause = '0' then
+            if v.txAxisMaster.tvalid = '0' then
                -- Send the random seed word
                v.txAxisMaster.tvalid                             := '1';
                v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
@@ -285,7 +289,7 @@ begin
          ----------------------------------------------------------------------
          when LENGTH_S =>
             -- Check if the FIFO is ready
-            if txCtrl.pause = '0' then
+            if v.txAxisMaster.tvalid = '0' then
                -- Send the upper packetLength value
                v.txAxisMaster.tvalid             := '1';
                v.txAxisMaster.tData(31 downto 0) := r.length;
@@ -297,7 +301,7 @@ begin
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check if the FIFO is ready
-            if txCtrl.pause = '0' then
+            if v.txAxisMaster.tvalid = '0' then
                -- Send the random data word
                v.txAxisMaster.tValid := '1';
                -- Check if we are sending PRBS or counter data
@@ -357,7 +361,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
-         SLAVE_READY_EN_G    => false,
+         SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
@@ -379,7 +383,7 @@ begin
          sAxisClk    => locClk,
          sAxisRst    => locRst,
          sAxisMaster => r.txAxisMaster,
-         sAxisSlave  => open,
+         sAxisSlave  => txSlave,
          sAxisCtrl   => txCtrl,
          -- Master Port
          mAxisClk    => mAxisClk,
