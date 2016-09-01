@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-10
--- Last update: 2016-02-16
+-- Last update: 2016-09-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,31 +57,31 @@ architecture mapping of AxiPcieReg is
 
    constant NUM_AXI_MASTERS_C : natural := 4;
 
-   constant DMA_INDEX_C     : natural := 0;
-   constant PHY_INDEX_C     : natural := 1;
-   constant VERSION_INDEX_C : natural := 2;
-   constant BOOT_INDEX_C    : natural := 3;
+   constant VERSION_INDEX_C : natural := 0;
+   constant BOOT_INDEX_C    : natural := 1;
+   constant DMA_INDEX_C     : natural := 2;
+   constant PHY_INDEX_C     : natural := 3;
 
-   constant DMA_ADDR_C     : slv(31 downto 0) := x"00000000";
-   constant PHY_ADDR_C     : slv(31 downto 0) := x"00010000";
-   constant VERSION_ADDR_C : slv(31 downto 0) := x"00020000";
-   constant BOOT_ADDR_C    : slv(31 downto 0) := x"00030000";
+   constant VERSION_ADDR_C : slv(31 downto 0) := x"00000000";
+   constant BOOT_ADDR_C    : slv(31 downto 0) := x"00010000";
+   constant DMA_ADDR_C     : slv(31 downto 0) := x"00020000";
+   constant PHY_ADDR_C     : slv(31 downto 0) := x"00030000";
    
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
-      DMA_INDEX_C     => (
-         baseAddr     => DMA_ADDR_C,
-         addrBits     => 16,
-         connectivity => x"FFFF"),
-      PHY_INDEX_C     => (
-         baseAddr     => PHY_ADDR_C,
-         addrBits     => 16,
-         connectivity => x"FFFF"),
       VERSION_INDEX_C => (
          baseAddr     => VERSION_ADDR_C,
          addrBits     => 16,
          connectivity => x"FFFF"),
       BOOT_INDEX_C    => (
          baseAddr     => BOOT_ADDR_C,
+         addrBits     => 16,
+         connectivity => x"FFFF"),
+      DMA_INDEX_C     => (
+         baseAddr     => DMA_ADDR_C,
+         addrBits     => 16,
+         connectivity => x"FFFF"),
+      PHY_INDEX_C     => (
+         baseAddr     => PHY_ADDR_C,
          addrBits     => 16,
          connectivity => x"FFFF")); 
 
@@ -97,20 +97,21 @@ architecture mapping of AxiPcieReg is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-   signal userValues   : Slv32Array(0 to 63) := (others => x"00000000");
+   signal userValues   : Slv32Array(63 downto 0) := (others => x"00000000");
    signal flashAddress : slv(30 downto 0);
    
 begin
 
    userValues(0)                        <= toSlv(DMA_SIZE_G, 32);
    userValues(1)(DMA_SIZE_G-1 downto 0) <= interrupt;
+   userValues(2)                        <= toSlv(getTimeRatio(AXI_CLK_FREQ_G, 1.0), 32);
 
    -------------------------          
    -- AXI-to-AXI-Lite Bridge
    -------------------------          
    U_AxiToAxiLite : entity work.AxiToAxiLite
       generic map (
-         TPD_G => TPD_G) 
+         TPD_G => TPD_G)
       port map (
          axiClk          => axiClk,
          axiClkRst       => axiRst,
@@ -160,14 +161,6 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);         
 
-   ----------------------------------------------
-   -- Map the AXI-Lite to DMA Engine and PCIe PHY
-   ----------------------------------------------
-   sysWriteMasters(1 downto 0) <= axilWriteMasters(1 downto 0);
-   axilWriteSlaves(1 downto 0) <= sysWriteSlaves;
-   sysReadMasters(1 downto 0)  <= axilReadMasters(1 downto 0);
-   axilReadSlaves(1 downto 0)  <= sysReadSlaves;
-
    --------------------------
    -- AXI-Lite Version Module
    --------------------------   
@@ -216,4 +209,20 @@ begin
 
    flashAddr <= flashAddress(28 downto 0);
 
+   ---------------------------------
+   -- Map the AXI-Lite to DMA Engine
+   ---------------------------------
+   sysWriteMasters(0)           <= axilWriteMasters(DMA_INDEX_C);
+   axilWriteSlaves(DMA_INDEX_C) <= sysWriteSlaves(0);
+   sysReadMasters(0)            <= axilReadMasters(DMA_INDEX_C);
+   axilReadSlaves(DMA_INDEX_C)  <= sysReadSlaves(0);
+
+   -------------------------------
+   -- Map the AXI-Lite to PCIe PHY
+   -------------------------------
+   sysWriteMasters(1)           <= axilWriteMasters(PHY_INDEX_C);
+   axilWriteSlaves(PHY_INDEX_C) <= sysWriteSlaves(1);
+   sysReadMasters(1)            <= axilReadMasters(PHY_INDEX_C);
+   axilReadSlaves(PHY_INDEX_C)  <= sysReadSlaves(1);
+   
 end mapping;
