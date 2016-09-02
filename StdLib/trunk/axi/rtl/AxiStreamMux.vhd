@@ -42,7 +42,9 @@ entity AxiStreamMux is
       TDEST_ROUTES_G : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16 := 0;                  -- Must be != 0 if cascading muxes
       TDEST_HIGH_G   : integer range 0 to 7  := 7;
-      TDEST_LOW_G    : integer range 0 to 7  := 0);
+      TDEST_LOW_G    : integer range 0 to 7  := 0;
+      ILEAVE_EN_G    : boolean               := false -- Set to true if interleaving dests, arbitrate on gaps
+   );
    port (
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
@@ -195,6 +197,10 @@ begin
                   -- Next state
                   v.state := IDLE_S;
                end if;
+
+            -- RE-arbitrate on gaps if interleaving frames
+            elsif (v.master.tValid = '0') and (selData.tValid = '0') and (ILEAVE_EN_G = true) then
+               v.state := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;
