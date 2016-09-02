@@ -86,12 +86,15 @@ vhdl work axi/rtl/AxiStreamDma.vhd
 vhdl work axi/rtl/AxiStreamDmaRead.vhd
 vhdl work axi/rtl/AxiStreamDmaWrite.vhd
 vhdl work axi/rtl/AxiStreamFifo.vhd
+vhdl work axi/rtl/AxiStreamFifoV2.vhd
 vhdl work axi/rtl/AxiStreamMux.vhd
 vhdl work axi/rtl/AxiStreamPipeline.vhd
 vhdl work axi/rtl/AxiStreamPkg.vhd
+vhdl work axi/rtl/AxiStreamResize.vhd
 vhdl work axi/rtl/AxiStreamShift.vhd
 vhdl work axi/rtl/AxiStreamPacker.vhd
 vhdl work axi/rtl/AxiStreamUnpacker.vhd
+vhdl work axi/rtl/AxiStreamResize.vhd
 vhdl work axi/rtl/AxiStreamScatterGather.vhd
 vhdl work axi/rtl/AxiToAxiLite.vhd
 vhdl work axi/rtl/AxiVersion.vhd
