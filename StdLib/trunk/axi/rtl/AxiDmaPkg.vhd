@@ -135,7 +135,7 @@ package AxiDmaPkg is
 
    type AxiWriteDescReqType is record
       valid      : sl;
-      dest       : slv(7 downto 0);
+      desc       : slv(7 downto 0);
    end record;
 
    constant AXI_WRITE_DESC_REQ_INIT_C : AxiWriteDescReqType := ( 
