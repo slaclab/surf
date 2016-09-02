@@ -37,12 +37,13 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaRead is
    generic (
-      TPD_G           : time                := 1 ns;
-      AXIS_READY_EN_G : boolean             := false;
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G    : AxiConfigType       := AXI_CONFIG_INIT_C;
-      AXI_BURST_G     : slv(1 downto 0)     := "01";
-      AXI_CACHE_G     : slv(3 downto 0)     := "1111"
+      TPD_G           : time                       := 1 ns;
+      AXIS_READY_EN_G : boolean                    := false;
+      AXIS_CONFIG_G   : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G    : AxiConfigType              := AXI_CONFIG_INIT_C;
+      AXI_BURST_G     : slv(1 downto 0)            := "01";
+      AXI_CACHE_G     : slv(3 downto 0)            := "1111";
+      MAX_PEND_G      : integer range 0 to (2**24) := 0
       );
    port (
 

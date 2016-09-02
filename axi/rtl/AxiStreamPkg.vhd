@@ -96,6 +96,10 @@ package AxiStreamPkg is
 
    function axiStreamMasterInit (constant config : AxiStreamConfigType) return AxiStreamMasterType;
 
+   function getSlvSize (c : AxiStreamConfigType) return integer;
+   function toSlv (din : AxiStreamMasterType; c: AxiStreamConfigType) return slv;
+   function toAxiStreamMaster (din : slv; valid : sl; c : AxiStreamConfigType) return AxiStreamMasterType;
+
    -------------------------------------------------------------------------------------------------
    -- Special control backpressure interface for use with stream fifos
    -------------------------------------------------------------------------------------------------
@@ -543,4 +547,148 @@ package body AxiStreamPkg is
       axiStreamSimSendFrame(CONFIG_C, clk, master, slave, vec, tUserFirst, tUserLast);
    end procedure;
 
+   function getSlvSize (c : AxiStreamConfigType) return integer is
+      variable size : integer := 1;
+   begin
+
+      -- Data
+      size := size + c.TDATA_BYTES_C*8;
+
+      -- Keep
+      size := size + ite(c.TKEEP_MODE_C = TKEEP_NORMAL_C, c.TDATA_BYTES_C,
+                        ite(c.TKEEP_MODE_C = TKEEP_COMP_C, bitSize(c.TDATA_BYTES_C-1), 0));
+
+      -- User bits
+      size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
+                        ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C, c.TDATA_BYTES_C * c.TUSER_BITS_C));
+
+      size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0); -- Strobe bits
+      size := size + c.TDEST_BITS_C;
+      size := size + c.TID_BITS_C;
+
+      return(size);
+
+   end function;
+
+   function toSlv (din : AxiStreamMasterType; c: AxiStreamConfigType) return slv is
+      variable size     : integer              := getSlvSize(c);
+      variable retValue : slv(size-1 downto 0) := (others => '0');
+      variable i        : integer              := 0;
+   begin
+
+      -- init, pass last
+      assignSlv(i, retValue, din.tLast);
+
+      -- Pack data
+      assignSlv(i, retValue, din.tData((c.TDATA_BYTES_C*8)-1 downto 0));
+
+      -- Pack keep
+      if c.TKEEP_MODE_C = TKEEP_NORMAL_C then
+         assignSlv(i, retValue, din.tKeep(c.TDATA_BYTES_C-1 downto 0));
+      elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
+         -- Assume lsb is present
+         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1)),bitSize(c.TDATA_BYTES_C-1)));
+      end if;
+      -- TKEEP Fixed uses 0 bits
+
+      -- Pack user bits
+      if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
+         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din,  0), c.TUSER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
+
+      elsif c.TUSER_MODE_C = TUSER_LAST_C then
+         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
+
+      else
+         for j in 0 to c.TDATA_BYTES_C-1 loop
+            assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, j), c.TUSER_BITS_C));
+         end loop;
+      end if;
+
+      -- Strobe is optional
+      if c.TSTRB_EN_C = true then
+         assignSlv(i, retValue, din.tStrb(c.TDATA_BYTES_C-1 downto 0));
+      end if;
+
+      -- Dest is optional
+      if c.TDEST_BITS_C > 0 then
+         assignSlv(i, retValue, din.tDest(c.TDEST_BITS_C-1 downto 0));
+      end if;
+
+      -- Id is optional
+      if c.TID_BITS_C > 0 then
+         assignSlv(i, retValue, din.tId(c.TID_BITS_C-1 downto 0));
+      end if;
+
+      return(retValue);
+
+   end function;
+
+   function toAxiStreamMaster (din : slv; valid : sl; c : AxiStreamConfigType) return AxiStreamMasterType is
+      variable master : AxiStreamMasterType := axiStreamMasterInit(c);
+      variable user   : slv(c.TUSER_BITS_C-1 downto 0) := (others => '0');
+      variable keep   : slv(bitSize(c.TDATA_BYTES_C-1)-1 downto 0);
+      variable i      : integer := 0;
+   begin
+
+      -- Set valid, 
+      master.tValid := valid;
+
+      -- Set last
+      assignRecord(i, din, master.tLast);
+
+      -- Get data
+      assignRecord(i, din, master.tData((c.TDATA_BYTES_C*8)-1 downto 0));
+
+      -- Get keep bits
+      if c.TKEEP_MODE_C = TKEEP_NORMAL_C then
+         assignRecord(i, din, master.tKeep(c.TDATA_BYTES_C-1 downto 0));
+      elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
+         assignRecord(i, din, keep);
+         master.tKeep := genTKeep(conv_integer(keep)+1);
+      else -- KEEP_MODE_C = TKEEP_FIXED_C
+         master.tKeep := genTKeep(c.TDATA_BYTES_C);
+      end if;
+
+      -- get user bits
+      if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
+         assignRecord(i, din, user);
+         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), 0);   -- First byte
+
+         assignRecord(i, din, user);
+         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte
+
+      elsif c.TUSER_MODE_C = TUSER_LAST_C then
+         assignRecord(i, din, user);
+         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte
+
+      else
+         for j in 0 to c.TDATA_BYTES_C-1 loop
+            assignRecord(i, din, user);
+            axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), j);
+         end loop;
+      end if;
+
+      -- Strobe is optional
+      if c.TSTRB_EN_C = true then
+         assignRecord(i, din, master.tStrb(c.TDATA_BYTES_C-1 downto 0));
+      else
+         master.tStrb := master.tKeep;  -- Strobe follows keep if unused
+      end if;
+
+      -- Dest is optional
+      if c.TDEST_BITS_C > 0 then
+         assignRecord(i, din, master.tDest(c.TDEST_BITS_C-1 downto 0));
+      end if;
+
+      -- ID is optional
+      if c.TID_BITS_C > 0 then
+         assignRecord(i, din, master.tId(c.TID_BITS_C-1 downto 0));
+      end if;
+
+      return(master);
+
+   end function;
+
 end package body AxiStreamPkg;
+
