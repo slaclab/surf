@@ -1,3 +1,12 @@
+##############################################################################
+## This file is part of 'SLAC PGP2 Core'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC PGP2 Core', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
 # The package naming convention is <core_name>_xmdf
 package provide pgp2_v4_fifo_69x512_xmdf 1.0
 

@@ -10,7 +10,13 @@
 -- VHDL source file containing the PGP, GTX and CRC blocks.
 -- This module also contains the logic to control the reset of the GTX.
 -------------------------------------------------------------------------------
--- Copyright (c) 2006 by Ryan Herbst. All rights reserved.
+-- This file is part of 'SLAC PGP2 Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC PGP2 Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Modification history:
 -- 10/13/2010: created.
