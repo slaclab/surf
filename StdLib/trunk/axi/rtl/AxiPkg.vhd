@@ -22,6 +22,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 
@@ -254,6 +256,12 @@ package AxiPkg is
       burstBytes : integer range 1 to 4096 := 4096)
       return slv;
 
+   -- Caclulate the byte count for a read request
+   function getAxiReadBytes (
+      axiConfig  : AxiConfigType;
+      axiRead    : AxiReadMasterType)
+      return slv;
+
 end package AxiPkg;
 
 package body AxiPkg is
@@ -324,4 +332,23 @@ package body AxiPkg is
       return resize(toSlv(burstBytes/axiConfig.DATA_BYTES_C-1, axiConfig.LEN_BITS_C), 8);
    end function getAxiLen;
 
+   -- Calculate the byte count for a read request
+   function getAxiReadBytes (
+      axiConfig  : AxiConfigType;
+      axiRead    : AxiReadMasterType)
+      return slv is
+      constant addrLsb : natural := bitSize(AxiConfig.DATA_BYTES_C-1);
+      variable tempSlv : slv(AxiConfig.LEN_BITS_C+addrLsb downto 0);
+   begin
+      tempSlv := (others=>'0');
+
+      tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb) 
+         := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1,AxiConfig.LEN_BITS_C+1);
+
+      tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
+
+      return(tempSlv);
+   end function getAxiReadBytes;
+
 end package body AxiPkg;
+
