@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-20
--- Last update: 2016-05-20
+-- Last update: 2016-09-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,6 +32,9 @@ use work.SsiPkg.all;
 entity SsiFrameLimiter is
    generic (
       TPD_G               : time                := 1 ns;
+      EN_TIMEOUT_G        : boolean             := true;
+      MAXIS_CLK_FREQ_G    : real                := 156.25E+06;  -- In units of Hz
+      TIMEOUT_G           : real                := 1.0E-3;      -- In units of seconds
       FRAME_LIMIT_G       : positive            := 1024;  -- In units of MASTER_AXI_CONFIG_G.TDATA_BYTES_C
       COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
       SLAVE_FIFO_G        : boolean             := false;
@@ -53,18 +56,22 @@ end SsiFrameLimiter;
 
 architecture rtl of SsiFrameLimiter is
 
+   constant TIMEOUT_C : natural := getTimeRatio(getRealMult(MAXIS_CLK_FREQ_G, TIMEOUT_G), 1.0);
+
    type StateType is (
       IDLE_S,
       MOVE_S); 
 
    type RegType is record
       cnt      : natural range 0 to FRAME_LIMIT_G-1;
+      timer    : natural range 0 to TIMEOUT_C-1;
       rxSlave  : AxiStreamSlaveType;
       txMaster : AxiStreamMasterType;
       state    : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
       cnt      => 0,
+      timer    => 0,
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
       state    => IDLE_S);      
@@ -170,6 +177,31 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check if timeout is enabled
+      if EN_TIMEOUT_G then
+         -- Check if in (or going into) IDLE state
+         if (r.state = IDLE_S) or (v.state = IDLE_S) then
+            -- Reset the timer
+            v.timer := 0;
+         else
+            -- Check the timer
+            if (r.timer /= (TIMEOUT_C-1)) then
+               -- Increment the timer
+               v.timer := r.timer + 1;
+            else
+               -- Check ready to move data 
+               if (v.txMaster.tValid = '0') then
+                  -- Set EOF and EOFE
+                  v.txMaster.tValid := '1';
+                  v.txMaster.tLast  := '1';
+                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.txMaster, '1');
+                  -- Next state
+                  v.state           := IDLE_S;
+               end if;
+            end if;
+         end if;
+      end if;
 
       -- Reset
       if (mAxisRst = '1') then
