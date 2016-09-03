@@ -12,7 +12,13 @@
 -- Description: Decoder for the Condition Inversion Master Transition coding
 -- used by the GLink Protocol.
 -------------------------------------------------------------------------------
--- Copyright (c) 2015 SLAC National Accelerator Laboratory
+-- This file is part of 'SLAC G-Link Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC G-Link Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;

@@ -11,7 +11,13 @@
 -------------------------------------------------------------------------------
 -- Description: Encodes 16 bit data raw words into 20 bit GLink words.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- This file is part of 'SLAC G-Link Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC G-Link Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
