@@ -61,7 +61,13 @@
 --                0x14 (R)- Counts all reconnections from reset [31:0]:
 --                   The value rests to 0 when module is reset.
 ------------------------------------------------------------------------------
--- Copyright (c) 2016 SLAC National Accelerator Laboratory
+-- This file is part of 'Reliable SLAC Streaming Interface Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'Reliable SLAC Streaming Interface Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
