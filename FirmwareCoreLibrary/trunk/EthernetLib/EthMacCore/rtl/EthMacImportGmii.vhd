@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 1G MAC / Export Interface
+-- Title      : 1G MAC / Import Interface
 -------------------------------------------------------------------------------
 -- File       : EthMacImportGmii.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
@@ -10,7 +10,7 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 1GigE Ixport MAC core with GMII interface
+-- Description: 1GigE Import MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
