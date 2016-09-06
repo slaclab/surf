@@ -1,29 +1,16 @@
------------------------------------------------------------------
---                                                             --
------------------------------------------------------------------
---
---      EthMacImportGmii.vhd - 
---
---      Copyright(c) SLAC National Accelerator Laboratory 2000
---
---      Author: Jeff Olsen
---      Created on: 2/23/2016 9:04:26 AM
---      Last change: JO 5/11/2016 3:00:00 PM
---
 -------------------------------------------------------------------------------
--- Title         : 1G MAC / Import Interface
--- Project       : RCE 1G-bit MAC
+-- Title      : 1G MAC / Import Interface
 -------------------------------------------------------------------------------
 -- File       : EthMacImportGmii.vhd
--- Author     : Jeff Olsen  <jjo@slac.stanford.edu>
+-- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
+-- Co-Author  : Jeff Olsen  <jjo@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-02-04
--- Last update: 2016-05-11
+-- Created    : 2015-02-04
+-- Last update: 2016-09-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- PIC Import block for 1G MAC core for the RCE.
+-- Description: 1GigE Import MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -32,9 +19,6 @@
 -- No part of 'SLAC Ethernet Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 02/04/2016: created.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -68,7 +52,7 @@ end EthMacImportGmii;
 
 architecture rtl of EthMacImportGmii is
 
-   constant SFD_C        : slv(7 downto 0)     := x"D5";
+   constant SFD_C : slv(7 downto 0) := x"D5";
    constant AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => 1,
