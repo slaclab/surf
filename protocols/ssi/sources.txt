@@ -1,0 +1,8 @@
+vhdl work protocols/ssi/rtl/SsiFifo.vhd
+vhdl work protocols/ssi/rtl/SsiFrameFilter.vhd
+vhdl work protocols/ssi/rtl/SsiFrameLimiter.vhd
+vhdl work protocols/ssi/rtl/SsiInsertSof.vhd
+vhdl work protocols/ssi/rtl/SsiPkg.vhd
+vhdl work protocols/ssi/rtl/SsiPrbsRx.vhd
+vhdl work protocols/ssi/rtl/SsiPrbsTx.vhd
+

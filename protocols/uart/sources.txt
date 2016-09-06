@@ -1,0 +1,5 @@
+vhdl work rtl/UartAxiLiteMaster.vhd
+vhdl work rtl/UartBrg.vhd
+vhdl work rtl/UartRx.vhd
+vhdl work rtl/UartTx.vhd
+vhdl work rtl/UartWrapper.vhd

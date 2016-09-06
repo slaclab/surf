@@ -1,0 +1,5 @@
+vhdl work rtl/SspDecoder.vhd
+vhdl work rtl/SspDeframer.vhd
+vhdl work rtl/SspEncoder.vhd
+vhdl work rtl/SspFramer.vhd
+vhdl work rtl/SspPkg.vhd
