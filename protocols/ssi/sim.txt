@@ -1,0 +1,2 @@
+vhdl work tb/SsiFifoTb.vhd
+vhdl work tb/SsiPrbsTb.vhd

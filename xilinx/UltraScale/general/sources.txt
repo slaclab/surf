@@ -1,0 +1,3 @@
+vhdl work rtl/ClockManagerUltraScale.vhd
+vhdl work rtl/DeviceDnaUltraScale.vhd
+vhdl work rtl/IprogUltraScale.vhd
