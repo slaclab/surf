@@ -5,7 +5,7 @@
 -- File       : AxiStreamDeMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-08-28
+-- Last update: 2016-09-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ entity AxiStreamDeMux is
       NUM_MASTERS_G  : integer range 1 to 32 := 12;
       MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
       TDEST_ROUTES_G : slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      PIPE_STAGES_G  : integer range 0 to 16 := 0;  -- Must be != 0 if cascading demuxes      
+      PIPE_STAGES_G  : integer range 0 to 16 := 0;
       TDEST_HIGH_G   : integer range 0 to 7  := 7;
       TDEST_LOW_G    : integer range 0 to 7  := 0);
    port (
