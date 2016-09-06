@@ -37,6 +37,7 @@ use unisim.vcomponents.all;
 entity AxiPciePgpCardG4Core is
    generic (
       TPD_G            : time                   := 1 ns;
+      DRIVER_TYPE_ID_G : slv(31 downto 0)       := x"00000000";
       AXI_APP_BUS_EN_G : boolean                := false;
       DMA_SIZE_G       : positive range 1 to 16 := 1;
       AXIS_CONFIG_G    : AxiStreamConfigArray);
@@ -151,6 +152,8 @@ begin
    U_REG : entity work.AxiPcieReg
       generic map (
          TPD_G            => TPD_G,
+         DRIVER_TYPE_ID_G => DRIVER_TYPE_ID_G,
+         AXI_APP_BUS_EN_G => AXI_APP_BUS_EN_G,
          AXI_CLK_FREQ_G   => 250.0E+6,  -- units of Hz
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_C,
          XIL_DEVICE_G     => "ULTRASCALE",
