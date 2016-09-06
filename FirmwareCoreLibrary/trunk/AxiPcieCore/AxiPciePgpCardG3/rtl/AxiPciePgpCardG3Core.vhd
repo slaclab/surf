@@ -4,8 +4,8 @@
 -- File       : AxiPciePgpCardG3Core.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-11-10
--- Last update: 2016-02-16
+-- Created    : 2016-02-12
+-- Last update: 2016-09-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,34 +36,40 @@ use unisim.vcomponents.all;
 
 entity AxiPciePgpCardG3Core is
    generic (
-      TPD_G         : time                   := 1 ns;
-      DMA_SIZE_G    : positive range 1 to 16 := 1;
-      AXIS_CONFIG_G : AxiStreamConfigArray);
+      TPD_G            : time                   := 1 ns;
+      AXI_APP_BUS_EN_G : boolean                := false;
+      DMA_SIZE_G       : positive range 1 to 16 := 1;
+      AXIS_CONFIG_G    : AxiStreamConfigArray);
    port (
       -- System Clock and Reset
-      sysClk       : out   sl;          -- 125 MHz
-      sysRst       : out   sl;
+      sysClk         : out   sl;        -- 125 MHz
+      sysRst         : out   sl;
       -- DMA Interfaces
-      dmaClk       : in    slv(DMA_SIZE_G-1 downto 0);
-      dmaRst       : in    slv(DMA_SIZE_G-1 downto 0);
-      dmaObMasters : out   AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaObSlaves  : in    AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
-      dmaIbMasters : in    AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
-      dmaIbSlaves  : out   AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaClk         : in    slv(DMA_SIZE_G-1 downto 0);
+      dmaRst         : in    slv(DMA_SIZE_G-1 downto 0);
+      dmaObMasters   : out   AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaObSlaves    : in    AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      dmaIbMasters   : in    AxiStreamMasterArray(DMA_SIZE_G-1 downto 0);
+      dmaIbSlaves    : out   AxiStreamSlaveArray(DMA_SIZE_G-1 downto 0);
+      -- (Optional) Application AXI-Lite Interfaces [0x00080000:0x000FFFFF]
+      appReadMaster  : out   AxiLiteReadMasterType;
+      appReadSlave   : in    AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+      appWriteMaster : out   AxiLiteWriteMasterType;
+      appWriteSlave  : in    AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C;
       -- Boot Memory Ports 
-      flashAddr    : out   slv(28 downto 0);
-      flashData    : inout slv(15 downto 0);
-      flashCe      : out   sl;
-      flashOe      : out   sl;
-      flashWe      : out   sl;
+      flashAddr      : out   slv(28 downto 0);
+      flashData      : inout slv(15 downto 0);
+      flashCe        : out   sl;
+      flashOe        : out   sl;
+      flashWe        : out   sl;
       -- PCIe Ports 
-      pciRstL      : in    sl;
-      pciRefClkP   : in    sl;
-      pciRefClkN   : in    sl;
-      pciRxP       : in    slv(3 downto 0);
-      pciRxN       : in    slv(3 downto 0);
-      pciTxP       : out   slv(3 downto 0);
-      pciTxN       : out   slv(3 downto 0));        
+      pciRstL        : in    sl;
+      pciRefClkP     : in    sl;
+      pciRefClkN     : in    sl;
+      pciRxP         : in    slv(3 downto 0);
+      pciRxN         : in    slv(3 downto 0);
+      pciTxP         : out   slv(3 downto 0);
+      pciTxN         : out   slv(3 downto 0));        
 end AxiPciePgpCardG3Core;
 
 architecture mapping of AxiPciePgpCardG3Core is
@@ -80,10 +86,15 @@ architecture mapping of AxiPciePgpCardG3Core is
    signal regWriteMaster : AxiWriteMasterType;
    signal regWriteSlave  : AxiWriteSlaveType;
 
-   signal sysReadMasters  : AxiLiteReadMasterArray(1 downto 0);
-   signal sysReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
-   signal sysWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
-   signal sysWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
+   signal dmaCtrlReadMaster  : AxiLiteReadMasterType;
+   signal dmaCtrlReadSlave   : AxiLiteReadSlaveType;
+   signal dmaCtrlWriteMaster : AxiLiteWriteMasterType;
+   signal dmaCtrlWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal phyReadMaster  : AxiLiteReadMasterType;
+   signal phyReadSlave   : AxiLiteReadSlaveType;
+   signal phyWriteMaster : AxiLiteWriteMasterType;
+   signal phyWriteSlave  : AxiLiteWriteSlaveType;
 
    signal interrupt : slv(DMA_SIZE_G-1 downto 0);
    signal flashDin  : slv(15 downto 0);
@@ -118,10 +129,10 @@ begin
          regReadSlave   => regReadSlave,
          regWriteMaster => regWriteMaster,
          regWriteSlave  => regWriteSlave,
-         phyReadMaster  => sysReadMasters(1),
-         phyReadSlave   => sysReadSlaves(1),
-         phyWriteMaster => sysWriteMasters(1),
-         phyWriteSlave  => sysWriteSlaves(1),
+         phyReadMaster  => phyReadMaster,
+         phyReadSlave   => phyReadSlave,
+         phyWriteMaster => phyWriteMaster,
+         phyWriteSlave  => phyWriteSlave,
          -- Interrupt Interface
          dmaIrq         => dmaIrq,
          -- PCIe Ports 
@@ -145,26 +156,37 @@ begin
          DMA_SIZE_G       => DMA_SIZE_G)
       port map (
          -- AXI4 Interfaces
-         axiClk          => axiClk,
-         axiRst          => axiRst,
-         regReadMaster   => regReadMaster,
-         regReadSlave    => regReadSlave,
-         regWriteMaster  => regWriteMaster,
-         regWriteSlave   => regWriteSlave,
-         sysReadMasters  => sysReadMasters,
-         sysReadSlaves   => sysReadSlaves,
-         sysWriteMasters => sysWriteMasters,
-         sysWriteSlaves  => sysWriteSlaves,
+         axiClk             => axiClk,
+         axiRst             => axiRst,
+         regReadMaster      => regReadMaster,
+         regReadSlave       => regReadSlave,
+         regWriteMaster     => regWriteMaster,
+         regWriteSlave      => regWriteSlave,
+         -- DMA AXI-Lite Interfaces [0x00020000:0x0002FFFF]
+         dmaCtrlReadMaster  => dmaCtrlReadMaster,
+         dmaCtrlReadSlave   => dmaCtrlReadSlave,
+         dmaCtrlWriteMaster => dmaCtrlWriteMaster,
+         dmaCtrlWriteSlave  => dmaCtrlWriteSlave,
+         -- PHY AXI-Lite Interfaces [0x00030000:0x0003FFFF]
+         phyReadMaster      => phyReadMaster,
+         phyReadSlave       => phyReadSlave,
+         phyWriteMaster     => phyWriteMaster,
+         phyWriteSlave      => phyWriteSlave,
+         -- (Optional) Application AXI-Lite Interfaces [0x00080000:0x000FFFFF]
+         appReadMaster      => appReadMaster,
+         appReadSlave       => appReadSlave,
+         appWriteMaster     => appWriteMaster,
+         appWriteSlave      => appWriteSlave,
          -- Interrupts
-         interrupt       => interrupt,
+         interrupt          => interrupt,
          -- Boot Memory Ports 
-         flashAddr       => flashAddr,
-         flashCe         => flashCe,
-         flashOe         => flashOe,
-         flashWe         => flashWe,
-         flashDin        => flashDin,
-         flashDout       => flashDout,
-         flashTri        => flashTri);       
+         flashAddr          => flashAddr,
+         flashCe            => flashCe,
+         flashOe            => flashOe,
+         flashWe            => flashWe,
+         flashDin           => flashDin,
+         flashDout          => flashDout,
+         flashTri           => flashTri);       
 
    GEN_IOBUF :
    for i in 15 downto 0 generate
@@ -196,10 +218,10 @@ begin
          axiWriteMaster  => dmaWriteMaster,
          axiWriteSlave   => dmaWriteSlave,
          -- AXI4-Lite Interfaces
-         axilReadMaster  => sysReadMasters(0),
-         axilReadSlave   => sysReadSlaves(0),
-         axilWriteMaster => sysWriteMasters(0),
-         axilWriteSlave  => sysWriteSlaves(0),
+         axilReadMaster  => dmaCtrlReadMaster,
+         axilReadSlave   => dmaCtrlReadSlave,
+         axilWriteMaster => dmaCtrlWriteMaster,
+         axilWriteSlave  => dmaCtrlWriteSlave,
          -- Interrupts
          interrupt       => interrupt,
          -- DMA Interfaces
