@@ -31,6 +31,7 @@ use work.AxiMicronP30Pkg.all;
 entity AxiPcieReg is
    generic (
       TPD_G            : time                   := 1 ns;
+      DRIVER_TYPE_ID_G : slv(31 downto 0)       := x"00000000";
       AXI_APP_BUS_EN_G : boolean                := false;
       AXI_CLK_FREQ_G   : real                   := 125.0E+6;   -- units of Hz
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C;
@@ -132,8 +133,9 @@ begin
    userValues(0)(DMA_SIZE_G-1 downto 0) <= interrupt;
    userValues(1)                        <= toSlv(DMA_SIZE_G, 32);
    userValues(2)                        <= x"00000001" when(AXI_APP_BUS_EN_G)         else x"00000000";
-   userValues(3)                        <= x"00000001" when(XIL_DEVICE_G = "7SERIES") else x"00000000";
-   userValues(4)                        <= toSlv(getTimeRatio(AXI_CLK_FREQ_G, 1.0), 32);
+   userValues(3)                        <= DRIVER_TYPE_ID_G;
+   userValues(62)                       <= x"00000001" when(XIL_DEVICE_G = "7SERIES") else x"00000000";
+   userValues(63)                       <= toSlv(getTimeRatio(AXI_CLK_FREQ_G, 1.0), 32);
 
    -------------------------          
    -- AXI-to-AXI-Lite Bridge
