@@ -1,4 +1,3 @@
-vhdl work rtl/ClockDivider.vhd
 vhdl work rtl/ClockManager7.vhd
 vhdl work rtl/ClockManager7Pkg.vhd
 vhdl work rtl/DeviceDna7Series.vhd
