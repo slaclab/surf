@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-01
--- Last update: 2015-04-03
--- Platform   : Vivado 2013.3
+-- Last update: 2016-09-06
+-- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:   This module is used to sync a AxiStream bus 
@@ -71,8 +71,8 @@ begin
    PIPE_REG : if (PIPE_STAGES_G > 0) generate
       
       comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
-         variable i : integer;
          variable v : RegType;
+         variable i : natural;
       begin
          -- Latch the current value
          v := r;

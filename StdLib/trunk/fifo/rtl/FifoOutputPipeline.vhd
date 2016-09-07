@@ -5,8 +5,8 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-05
--- Last update: 2015-04-06
--- Platform   : Vivado 2014.1
+-- Last update: 2016-09-06
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:   This module is used to sync a FWFT FIFO bus 
@@ -80,8 +80,8 @@ begin
    PIPE_REG : if (PIPE_STAGES_G > 0) generate
       
       comb : process (mRdEn, r, rst, sData, sValid) is
-         variable i : integer;
          variable v : RegType;
+         variable i : natural;
       begin
          -- Latch the current value
          v := r;
