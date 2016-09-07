@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-06-10
+-- Last update: 2016-09-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,11 +40,10 @@ entity AxiStreamMux is
       NUM_SLAVES_G   : integer range 1 to 32 := 4;
       MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
       TDEST_ROUTES_G : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      PIPE_STAGES_G  : integer range 0 to 16 := 0;                  -- Must be != 0 if cascading muxes
+      PIPE_STAGES_G  : integer range 0 to 16 := 0;
       TDEST_HIGH_G   : integer range 0 to 7  := 7;
       TDEST_LOW_G    : integer range 0 to 7  := 0;
-      ILEAVE_EN_G    : boolean               := false -- Set to true if interleaving dests, arbitrate on gaps
-   );
+      ILEAVE_EN_G    : boolean               := false);  -- Set to true if interleaving dests, arbitrate on gaps
    port (
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
@@ -106,6 +105,8 @@ begin
    -- Override tdests according to the routing table
    TDEST_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
+      variable i   : natural;
+      variable j   : natural;
    begin
       tmp := sAxisMasters;
       if MODE_G = "ROUTED" then
@@ -128,6 +129,7 @@ begin
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
+      variable i        : natural;
    begin
       -- Latch the current value   
       v := r;

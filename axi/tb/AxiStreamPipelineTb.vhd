@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-04-03
+-- Last update: 2016-09-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,39 +32,57 @@ entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
 architecture testbed of AxiStreamPipelineTb is
 
-   constant CLK_PERIOD_C  : time              := 1 ns;
+   constant CLK_PERIOD_C  : time              := 4 ns;
    constant TPD_C         : time              := CLK_PERIOD_C/4;
-   constant FIFO_WIDTH_C  : natural           := 4;
-   constant DATA_WIDTH_C  : natural           := 128;
-   constant PIPE_STAGES_C : natural           := 4;
-   constant MAX_CNT_C     : slv(127 downto 0) := toSlv(65535, 128);
+   constant PIPE_STAGES_C : natural           := 1;
+   constant MAX_CNT_C     : slv(127 downto 0) := x"000000000000000019999997E241C000";
+   -- constant MAX_CNT_C     : slv(127 downto 0) := x"000000000000000000000000000000FF";
+   constant PRBS_TAPS_C   : NaturalArray      := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
 
-   type StateType is (
-      FILLUP_S,
-      DRAIN_S,
-      HOLD_S);       
+   type RegType is record
+      passed      : sl;
+      failed      : sl;
+      wrPbrs      : slv(31 downto 0);
+      wrSof       : sl;
+      wrPkt       : slv(127 downto 0);
+      wrCnt       : slv(127 downto 0);
+      wrSize      : slv(127 downto 0);
+      rdPbrs      : slv(31 downto 0);
+      rdSof       : sl;
+      rdPkt       : slv(127 downto 0);
+      rdCnt       : slv(127 downto 0);
+      rdSize      : slv(127 downto 0);
+      sAxisMaster : AxiStreamMasterType;
+      mAxisSlave  : AxiStreamSlaveType;
+   end record RegType;
+   constant REG_INIT_C : RegType := (
+      passed      => '0',
+      failed      => '0',
+      wrPbrs      => x"AE64B770",
+      wrSof       => '1',
+      wrPkt       => (others => '0'),
+      wrCnt       => (others => '0'),
+      wrSize      => (others => '0'),
+      rdPbrs      => x"5E68B7E2",
+      rdSof       => '1',
+      rdPkt       => (others => '0'),
+      rdCnt       => (others => '0'),
+      rdSize      => (others => '0'),
+      sAxisMaster => AXI_STREAM_MASTER_INIT_C,
+      mAxisSlave  => AXI_STREAM_SLAVE_INIT_C);      
 
-   signal state     : StateType := FILLUP_S;
-   signal clk       : sl        := '0';
-   signal rst       : sl        := '0';
-   signal passed    : sl        := '0';
-   signal failed    : sl        := '0';
-   signal toggle    : sl        := '0';
-   signal fifoWrEn  : sl        := '0';
-   signal fifoAFull : sl        := '0';
-   signal fifoRdEn  : sl        := '0';
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal mAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal writeDelay : slv(3 downto 0)              := (others => '0');
-   signal readDelay  : slv(3 downto 0)              := (others => '0');
-   signal fillCount  : slv(FIFO_WIDTH_C-1 downto 0) := (others => '0');
-   signal cnt        : slv(DATA_WIDTH_C-1 downto 0) := (others => '1');
-   signal check      : slv(DATA_WIDTH_C-1 downto 0) := (others => '0');
+   signal clk    : sl := '0';
+   signal rst    : sl := '0';
+   signal passed : sl := '0';
+   signal failed : sl := '0';
    
 begin
 
@@ -73,90 +91,12 @@ begin
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 745 ns)   -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk,
          clkN => open,
          rst  => rst,
          rstL => open); 
-
-   -- Data generator
-   process(clk)
-   begin
-      if rising_edge(clk) then
-         -- Reset the flag
-         fifoWrEn <= '0' after TPD_C;
-         -- Check for a reset
-         if rst = '1' then
-            -- Reset the registers
-            cnt        <= (others => '1') after TPD_C;
-            writeDelay <= (others => '0') after TPD_C;
-            state      <= FILLUP_S        after TPD_C;
-         else
-            case state is
-               ----------------------------------------------------------------------
-               when FILLUP_S =>
-                  -- Check the FIFO status
-                  if fifoAFull = '0' then
-                     -- Increment the counter
-                     writeDelay <= writeDelay + 1 after TPD_C;
-                     -- Check the counter
-                     if writeDelay < 3 then
-                        fifoWrEn <= '1'     after TPD_C;
-                        cnt      <= cnt + 1 after TPD_C;
-                     end if;
-                  else
-                     -- Next state
-                     state <= DRAIN_S after TPD_C;
-                  end if;
-               ----------------------------------------------------------------------
-               when DRAIN_S =>
-                  -- Check the FIFO status
-                  if fillCount = 0 then
-                     -- Next state
-                     state <= HOLD_S after TPD_C;
-                  end if;
-               ----------------------------------------------------------------------
-               when HOLD_S =>
-                  -- Check for polling
-                  if (mAxisSlave.tReady = '1') and (mAxisMaster.tValid = '1') then
-                     -- Reset the counter
-                     writeDelay <= (others => '0') after TPD_C;
-                  elsif writeDelay /= x"F" then
-                     -- Increment the counter
-                     writeDelay <= writeDelay + 1;
-                  else
-                     -- Reset the counter
-                     writeDelay <= (others => '0') after TPD_C;
-                     -- Next state
-                     state      <= FILLUP_S        after TPD_C;
-                  end if;
-            ----------------------------------------------------------------------
-            end case;
-         end if;
-      end if;
-   end process;
-
-   -- Buffer the data
-   FifoSync_Inst : entity work.FifoSync
-      generic map (
-         TPD_G        => TPD_C,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => DATA_WIDTH_C,
-         ADDR_WIDTH_G => FIFO_WIDTH_C)
-      port map (
-         rst         => rst,
-         clk         => clk,
-         wr_en       => fifoWrEn,
-         rd_en       => fifoRdEn,
-         din         => cnt,
-         dout        => sAxisMaster.tData,
-         valid       => sAxisMaster.tValid,
-         data_count  => fillCount,
-         almost_full => fifoAFull); 
-
-   fifoRdEn <= sAxisMaster.tValid and sAxisSlave.tReady;
 
    -- AxiStreamPipeline (VHDL module to be tested)
    AxiStreamPipeline_Inst : entity work.AxiStreamPipeline
@@ -172,51 +112,124 @@ begin
          sAxisSlave  => sAxisSlave,
          -- Master Port
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);   
+         mAxisSlave  => mAxisSlave);            
 
-   process(clk)
+   comb : process (mAxisMaster, r, rst, sAxisSlave) is
+      variable v : RegType;
+      variable i : natural;
    begin
-      if rising_edge(clk) then
-         -- Reset the flag
-         mAxisSlave.tReady <= '0' after TPD_C;
-         -- Check for reset
-         if rst = '1' then
-            -- Reset the registers
-            check      <= (others => '0')         after TPD_C;
-            readDelay  <= (others => '0')         after TPD_C;
-            mAxisSlave <= AXI_STREAM_SLAVE_INIT_C after TPD_C;
+      -- Latch the current value
+      v := r;
+
+      -- Reset the flags      
+      v.mAxisSlave := AXI_STREAM_SLAVE_INIT_C;
+      if sAxisSlave.tReady = '1' then
+         v.sAxisMaster.tValid := '0';
+         v.sAxisMaster.tLast  := '0';
+         v.sAxisMaster.tUser  := (others => '0');
+         v.sAxisMaster.tKeep  := (others => '1');
+      end if;
+
+      -- Generate the next random data words
+      for i in 31 downto 0 loop
+         v.wrPbrs := lfsrShift(v.wrPbrs, PRBS_TAPS_C);
+         v.rdPbrs := lfsrShift(v.rdPbrs, PRBS_TAPS_C);
+      end loop;
+
+      -- Write Process with time domain randomization
+      if (v.sAxisMaster.tValid = '0') and (r.wrPbrs(0) = '0') then
+         -- Move the data
+         v.sAxisMaster.tValid := '1';
+         -- Check for SOF
+         if r.wrSof = '1' then
+            -- Reset the flag
+            v.wrSof             := '0';
+            -- Forward packet index
+            v.sAxisMaster.tData := r.wrPkt;
+            -- Increment the counter
+            v.wrPkt             := r.wrPkt + 1;
+         else
+            -- Forward counter
+            v.sAxisMaster.tData := r.wrCnt;
+            -- Increment the counter
+            v.wrCnt             := r.wrCnt + 1;
+            -- Check the counter size
+            if r.wrCnt = r.wrSize then
+               -- Reset the counter
+               v.wrCnt             := (others => '0');
+               -- Increment the counter
+               v.wrSize            := r.wrSize + 1;
+               -- Set EOF
+               v.sAxisMaster.tLast := '1';
+               -- Reset the flag
+               v.wrSof             := '1';
+            end if;
+         end if;
+      end if;
+
+      -- Read Process with time domain randomization      
+      if (mAxisMaster.tValid = '1') and (r.rdPbrs(0) = '0') then
+         -- Accept the data
+         v.mAxisSlave.tReady := '1';
+         -- Check for SOF
+         if r.rdSof = '1' then
+            -- Reset the flag
+            v.rdSof := '0';
+            -- Increment the counter
+            v.rdPkt := r.rdPkt + 1;
+            -- Check for incorrect packet number
+            if (mAxisMaster.tData /= r.rdPkt) then
+               v.failed := '1';
+            end if;
          else
             -- Increment the counter
-            readDelay <= readDelay + 1 after TPD_C;
-            -- Check the counter to create a tReady duty cycle
-            if state /= FILLUP_S then
-               -- Set the flag
-               mAxisSlave.tReady <= '1' after TPD_C;
-            elsif readDelay < 2 then
-               -- Set the flag
-               mAxisSlave.tReady <= '1' after TPD_C;
+            v.rdCnt := r.rdCnt + 1;
+            -- Check for incorrect data
+            if (mAxisMaster.tData /= r.rdCnt) then
+               v.failed := '1';
             end if;
-            -- Check the flag
-            if mAxisSlave.tReady = '1' then
-               -- Check for FIFO data
-               if mAxisMaster.tValid = '1' then
-                  -- Increment the counter
-                  check <= check + 1 after TPD_C;
-                  -- Check for data error
-                  if mAxisMaster.tData /= check then
-                     -- Assert the flag and not the simulation
-                     failed <= '1' after TPD_C;
-                  end if;
-                  -- Check if simulation is completed
-                  if check = MAX_CNT_C then
-                     -- Assert the flag and not the simulation
-                     passed <= '1' after TPD_C;
-                  end if;
+            -- Check for EOF
+            if (mAxisMaster.tLast = '1') then
+               -- Reset the counter
+               v.rdCnt  := (others => '0');
+               -- Increment the counter
+               v.rdSize := r.rdSize + 1;
+               -- Check for incorrect size
+               if (r.rdCnt /= r.rdSize) then
+                  v.failed := '1';
+               end if;
+               -- Reset the flag
+               v.rdSof := '1';
+               -- Check if test passed 
+               if r.rdSize = MAX_CNT_C then
+                  v.passed := '1';
                end if;
             end if;
          end if;
       end if;
-   end process;
+
+      -- Reset
+      if (rst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs        
+      mAxisSlave  <= v.mAxisSlave;
+      sAxisMaster <= r.sAxisMaster;
+      failed      <= r.failed;
+      passed      <= r.passed;
+      
+   end process comb;
+
+   seq : process (clk) is
+   begin
+      if rising_edge(clk) then
+         r <= rin after TPD_C;
+      end if;
+   end process seq;
 
    process(failed, passed)
    begin
