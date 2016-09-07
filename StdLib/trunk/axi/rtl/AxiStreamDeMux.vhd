@@ -84,7 +84,8 @@ begin
 
    comb : process (axisRst, pipeAxisSlaves, r, sAxisMaster) is
       variable v   : RegType;
-      variable idx : integer;
+      variable idx : natural;
+      variable i   : natural;
    begin
       -- Latch the current value
       v := r;
