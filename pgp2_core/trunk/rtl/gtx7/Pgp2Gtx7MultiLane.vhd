@@ -115,7 +115,15 @@ entity Pgp2Gtx7MultiLane is
       pgpVcRxCommonOut : out VcRxCommonOutType;
       pgpVcRxQuadOut   : out VcRxQuadOutType;
       -- GT loopback control
-      loopback         : in  slv(2 downto 0));
+      loopback         : in  slv(2 downto 0);
+      -- DRP port
+      drpClk           : in  sl := '0';
+      drpRdy           : out slv((LANE_CNT_G-1) downto 0);
+      drpEn            : in  slv((LANE_CNT_G-1) downto 0)         := (others=>'0');
+      drpWe            : in  slv((LANE_CNT_G-1) downto 0)         := (others=>'0');
+      drpAddr          : in  Slv9Array((LANE_CNT_G-1) downto 0)   := (others=>(others=>'0'));
+      drpDi            : in  Slv16Array((LANE_CNT_G-1) downto 0)  := (others=>(others=>'0'));
+      drpDo            : out Slv16Array((LANE_CNT_G-1) downto 0));
 end Pgp2Gtx7MultiLane;
 
 -- Define architecture
@@ -439,7 +447,15 @@ begin
             txDataIn         => phyTxLanesOut(i).data,
             txCharIsKIn      => phyTxLanesOut(i).dataK,
             txBufStatusOut   => open,
-            loopbackIn       => loopback);
+            loopbackIn       => loopback,
+            drpClk           => drpClk,
+            drpRdy           => drpRdy(i),
+            drpEn            => drpEn(i),
+            drpWe            => drpWe(i),
+            drpAddr          => drpAddr(i),
+            drpDi            => drpDi(i),
+            drpDo            => drpDo(i)
+         );
 
 
    end generate GTX7_CORE_GEN;
