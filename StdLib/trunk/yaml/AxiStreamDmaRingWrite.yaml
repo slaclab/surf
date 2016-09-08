@@ -7,217 +7,261 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &AxiStreamDmaRingWrite
-  name: AxiStreamDmaRingWrite
+AxiStreamDmaRingWrite: &AxiStreamDmaRingWrite
+  class: MMIODev
+  configPrio: 1
   description: DMA Ring Buffer Manager
   size: 0x1000
   metadata:
-    - numBuffers: &numBuffers 4
-    - destEnums: &destEnums
-        - name: Default
+    numBuffers: &numBuffers 4
+    destEnums: &destEnums
+        - name: Software
           value: 0
-    - destHidden: &destHidden true
+        - name: Auto-Readout
+          value: 1
+    destHidden: &destHidden true
   #########
-  IntField:
-  #########
+  children:
     #########################################################
-    - offset: 0x000 
+    StartAddr:
+      at:
+        offset: 0x000
+        nelms: *numBuffers
+        stride: 8
+      class: IntField
       name: StartAddr
       mode: RW
-      nelms: *numBuffers
-      stride: 8
       sizeBits: 64
-      description: 
     #########################################################
-    - offset: 0x200
+    EndAddr:
+      at:
+        offset: 0x200
+        nelms: *numBuffers
+        stride: 8
+      class: IntField
       name: EndAddr
       mode: RW
-      nelms: *numBuffers
-      stride: 8
       sizeBits: 64
-      description: 
     #########################################################
-    - offset: 0x400
+    WrAddr:
+      at:
+        offset: 0x400
+        nelms: *numBuffers
+        stride: 8
+      class: IntField
       name: WrAddr
       mode: RO
-      nelms: *numBuffers
-      stride: 8
       sizeBits: 64
-      description: 
     #########################################################
-    - offset: 0x600
+    TriggerAddr:
+      at:
+        offset: 0x600
+        nelms: *numBuffers
+        stride: 8
+      class: IntField
       name: TriggerAddr
       mode: RO
-      nelms: *numBuffers
-      stride: 8
       sizeBits: 64
-      description: 
     #########################################################
-    - offset: 0x800
+    Enabled:
+      at:
+        offset: 0x800
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Enabled
       mode: RW
-      nelms: *numBuffers
-      stride: 4
       lsBit: 0
       sizeBits: 1
-      description: 
     #########################################################
-    - offset: 0x800
+    Mode:
+      at:
+        offset: 0x800
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Mode
       mode: RW
-      nelms: *numBuffers
-      stride: 4
       lsBit: 1
       sizeBits: 1
-      enums: 
+      enums:
         - name: Wrap
+          class: Enum
           value: 0
-        - name: DoneWhenFull 
+        - name: DoneWhenFull
+          class: Enum
           value: 1
-      description:
-     #########################################################
-    - offset: 0x800
+    ##########################################################
+    Init:
+      at:
+        offset: 0x800
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Init
       mode: RW
-      nelms: *numBuffers
-      stride: 4
       lsBit: 2
       sizeBits: 1
       hidden: true
-      description:
     #########################################################
-    - offset: 0x800
+    SoftTrigger:
+      at:
+        offset: 0x800
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: SoftTrigger
       mode: RW
-      nelms: *numBuffers
-      stride: 4
       lsBit: 3
       sizeBits: 1
       hidden: true
-      description:
-   
     #########################################################
-    - offset: 0x800
+    MsgDest:
+      at:
+        offset: 0x800
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: MsgDest
       mode: RW
-      nelms: *numBuffers
-      stride: 4
       lsBit: 4
       sizeBits: 4
-      enums : *destEnums
-      hidden: *destHidden
-      description: 
-
+      enums: *destEnums
+      hidden: true
     #########################################################
-    - offset: 0x802
+    FramesAfterTrigger:
+      at:
+        offset: 0x802
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: FramesAfterTrigger
       mode: RW
-      nelms: *numBuffers
-      stride: 4
       lsBit: 0
       sizeBits: 16
-      description: 
-
     #########################################################
-    - offset: 0xA00
+    Empty:
+      at:
+        offset: 0xA00
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Empty
-      mode: RO      
-      nelms: *numBuffers
+      mode: RO
       sizeBits: 1
       lsBit: 0
-      stride: 4
-      description: 
     #########################################################
-    - offset: 0xA00
+    Full:
+      at:
+        offset: 0xA00
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Full
-      mode: RO      
-      nelms: *numBuffers
+      mode: RO
       sizeBits: 1
       lsBit: 1
-      stride: 4
-      description: 
     #########################################################
-    - offset: 0xA00
+    Done:
+      at:
+        offset: 0xA00
+        stride: 4
+        nelms: *numBuffers
+      class: IntField
       name: Done
-      mode: RO      
-      nelms: *numBuffers
+      mode: RO
       sizeBits: 1
       lsBit: 2
-      stride: 4
-      description: 
     #########################################################
-    - offset: 0xA00
+    Triggered:
+      at:
+        offset: 0xA00
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Triggered
-      mode: RO      
-      nelms: *numBuffers
+      mode: RO
       sizeBits: 1
       lsBit: 3
-      stride: 4
-      description: 
     #########################################################
-    - offset: 0xA00
+    Error:
+      at:
+        offset: 0xA00
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: Error
-      mode: RO      
-      nelms: *numBuffers
+      mode: RO
       sizeBits: 1
       lsBit: 4
-      stride: 4
-      description: 
     #########################################################
-    - offset: 0xA01 # Same constant value for every buffer so only define one
+    BurstSize:
+      at:
+        offset: 0xA01 # Same constant value for every buffer so only define one
+      class: IntField
       name: BurstSize
-      mode: RO      
+      mode: RO
       sizeBits: 4
       lsBit: 0
-      description:
     #########################################################
-    - offset: 0xA02
+    FramesSinceTrigger:
+      at:
+        offset: 0xA02
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
       name: FramesSinceTrigger
-      mode: RO 
-      nelms: *numBuffers
+      mode: RO
       sizeBits: 16
       lsBit: 0
-      stride: 4
-      description:
-
-  #########
-  Commands:
-  #########
     #########################################################
-    - name: Initialize
-      description: |
-        Initialize the buffer. Reset the write pointer to
-        StartAddr. Clear the Done field.
+    Initialize:
+      name: Initialize
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: "Initialize the buffer. Reset the write pointer to StartAddr. Clear the Done field."
       nelms: *numBuffers
       sequence:
-        - entry: Init[0]
-          value: 0x1        
-        - entry: Init[1]
-          value: 0x1        
-        - entry: Init[2]
-          value: 0x1        
-        - entry: Init[3]
-          value: 0x1        
-        - entry: Init[0]
-          value: 0x0
-        - entry: Init[1]
-          value: 0x0
-        - entry: Init[2]
-          value: 0x0
-        - entry: Init[3]
-          value: 0x0
+      - entry: Init[0]
+        value: 0x1
+      - entry: Init[1]
+        value: 0x1
+      - entry: Init[2]
+        value: 0x1
+      - entry: Init[3]
+        value: 0x1
+      - entry: Init[0]
+        value: 0x0
+      - entry: Init[1]
+        value: 0x0
+      - entry: Init[2]
+        value: 0x0
+      - entry: Init[3]
+        value: 0x0
     #########################################################
-    - name: C_SoftTrigger
+    C_SoftTrigger:
+      name: C_SoftTrigger
+      class: SequenceCommand
+      at:
+        offset: 0x0
       description: Send a trigger to the buffer
       nelms: *numBuffers
       sequence:
-        - entry: SoftTrigger 
-          value: 0x1        
-        - entry: SoftTrigger 
-          value: 0x0
-    - name: SoftTriggerAll
+      - entry: SoftTrigger
+        value: 0x1
+      - entry: SoftTrigger
+        value: 0x0
+    #########################################################
+    SoftTriggerAll:
+      name: SoftTriggerAll
+      class: SequenceCommand
+      at:
+        offset: 0x0
       description: Send a trigger to the buffer
       sequence:
-        - entry: SoftTrigger
-          value: 1
+      - entry: SoftTrigger
+        value: 1
