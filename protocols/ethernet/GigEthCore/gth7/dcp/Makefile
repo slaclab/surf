@@ -5,6 +5,7 @@ target: dcp
 # Define target part
 export PRJ_PART = XC7VX690TFFG1761-3
 
+export PROJECT = GigEthGth7CoreDcp
 export TOP_DIR = $(abspath $(PWD))
 export MODULES = $(abspath ../../../../../..)
 
