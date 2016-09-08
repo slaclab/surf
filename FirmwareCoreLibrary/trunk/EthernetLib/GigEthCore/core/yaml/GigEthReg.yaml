@@ -7,83 +7,109 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &GigEthReg 
-  name: GigEthReg
+GigEthReg: &GigEthReg 
+  class: MMIODev
   description: GigEthReg 
   size: 0x1000
   #########
-  IntField:
+  children:
   #########
-    #########################################################
-    - offset: 0x000
-      name: StatusCounters
-      nelms: 9
+    #########################################################:
+    StatusCounters:
+      class: IntField
+      at:
+        offset: 0x000
+        nelms: 9
       mode: RO
       description: Status Counters
-    #########################################################
-    - offset: 0x100
-      name: StatusVector
+    #########################################################:
+    StatusVector:
+      class: IntField
+      at:
+        offset: 0x100:
       sizeBits: 9       
       mode: RO
       description: Status Vector   
-    #########################################################
-    - offset: 0x108
-      name: PhyStatus
+    #########################################################:
+    PhyStatus:
+      class: IntField
+      at:
+        offset: 0x108:
       sizeBits: 8      
       mode: RO
       description: PhyStatus              
-    #########################################################
-    - offset: 0x200
-      name: MacAddress
+    #########################################################:
+    MacAddress:
+      class: IntField
+      at:
+        offset: 0x200
       sizeBits: 48      
       mode: RO
       description: MAC Address (big-Endian)
-    #########################################################
-    - offset: 0x218
-      name: InterFrameGap
+    #########################################################:
+    InterFrameGap:
+      class: IntField
+      at:
+        offset: 0x218
       sizeBits: 4      
       mode: RO
       description: InterFrameGap    
-    #########################################################
-    - offset: 0x21C
-      name: PauseTime
+    #########################################################:
+    PauseTime:
+      class: IntField
+      at:
+        offset: 0x21C
       sizeBits: 16      
       mode: RO
       description: PauseTime  
-    #########################################################
-    - offset: 0x228
-      name: FilterEnable
+    #########################################################:
+    FilterEnable:
+      class: IntField
+      at:
+        offset: 0x228
       sizeBits: 1    
       mode: RO
       description: FilterEnable 
-    #########################################################
-    - offset: 0x22C
-      name: PauseEnable
+    #########################################################:
+    PauseEnable:
+      class: IntField
+      at:
+        offset: 0x22C
       sizeBits: 1    
       mode: RO
       description: PauseEnable            
-    #########################################################
-    - offset: 0xF00
-      name: RollOverEn
+    #########################################################:
+    RollOverEn:
+      class: IntField
+      at:
+        offset: 0xF00
       sizeBits: 9    
       mode: RW
       description: RollOverEn        
-    #########################################################
-    - offset: 0xFF4
-      name: CounterReset
+    #########################################################:
+    CounterReset:
+      class: IntField
+      at:
+        offset: 0xFF4
       sizeBits: 1    
       mode: WO
       description: CounterReset  
-    #########################################################
-    - offset: 0xFF8
-      name: SoftReset
+    #########################################################:
+    SoftReset:
+      class: IntField
+      at:
+        offset: 0xFF8
       sizeBits: 1    
       mode: WO
       description: SoftReset    
-    #########################################################
-    - offset: 0xFFC
-      name: HardReset
+    #########################################################:
+    HardReset:
+      class: IntField
+      at:
+        offset: 0xFFC
       sizeBits: 1    
       mode: WO
       description: HardReset          
