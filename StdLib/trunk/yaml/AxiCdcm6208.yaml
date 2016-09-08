@@ -7,7 +7,7 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-#schmeaversion 3.0.0
+#schemaversion 3.0.0
 #once
 
 AxiCdcm6208: &AxiCdcm6208 
