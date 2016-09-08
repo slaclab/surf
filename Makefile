@@ -6,8 +6,13 @@ target: dcp
 export PRJ_PART = XC7K325TFFG900-2
 
 # List of build core directories.
-export MODULE_DIRS = $(PROJ_DIR)/../../modules/StdLib  \
+export MODULE_DIRS = $(PROJ_DIR)/../../modules/surf/base  \
+                     $(PROJ_DIR)/../../modules/surf/axi  \
+                     $(PROJ_DIR)/../../modules/surf/xilinx/general  \
+                     $(PROJ_DIR)/../../modules/surf/xilinx/7Series/general  \
+                     $(PROJ_DIR)/../../modules/surf/protocols/ssi \
+                     $(PROJ_DIR)/../../modules/surf/protocols/srp \
                      $(PROJ_DIR)
 
 # Use top level makefile
-include ../../modules/StdLib/build/system_vivado_v1.mk
+include ../../modules/ruckus/system_vivado_v1.mk
