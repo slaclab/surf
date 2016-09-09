@@ -1,0 +1,2 @@
+# coregen/Salt7SeriesCore.xci
+ 
