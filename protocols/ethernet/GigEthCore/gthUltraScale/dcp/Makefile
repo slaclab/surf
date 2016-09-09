@@ -5,14 +5,18 @@ target: dcp
 # Define target part
 export PRJ_PART = XCKU040-FFVA1156-2-E
 
+export PROJECT = GigEthGthUltraScaleCoreDcp
+export TOP_DIR = $(abspath $(PWD))
+export MODULES = $(abspath ../../../../../..)
+
 # List of build core directories.
-export MODULE_DIRS = $(PROJ_DIR)/../../modules/surf/base  \
-                     $(PROJ_DIR)/../../modules/surf/axi  \
-                     $(PROJ_DIR)/../../modules/surf/xilinx/general  \
-                     $(PROJ_DIR)/../../modules/surf/xilinx/7Series/general  \
-                     $(PROJ_DIR)/../../modules/surf/protocols/ssi \
-                     $(PROJ_DIR)/../../modules/surf/protocols/srp \
+export MODULE_DIRS = $(MODULES)/modules/surf/base  \
+                     $(MODULES)/modules/surf/axi  \
+                     $(MODULES)/modules/surf/xilinx/general  \
+                     $(MODULES)/modules/surf/xilinx/7Series/general  \
+                     $(MODULES)/modules/surf/protocols/ssi \
+                     $(MODULES)/modules/surf/protocols/srp \
                      $(PROJ_DIR)
 
 # Use top level makefile
-include ../../modules/ruckus/system_vivado_v1.mk
+include $(MODULES)/ruckus/system_vivado_v1.mk
