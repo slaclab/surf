@@ -1,0 +1,15 @@
+vhdl work Version.vhd
+
+vhdl work hdl/XauiGtx7Core_block.vhd
+vhdl work hdl/XauiGtx7Core_cl_clocking.vhd
+vhdl work hdl/XauiGtx7Core_cl_resets.vhd
+vhdl work hdl/XauiGtx7Core_ff_synchronizer.vhd
+vhdl work hdl/xauigtx7core_gt_wrapper.vhd
+vhdl work hdl/xauigtx7core_gt_wrapper_gt.vhd
+vhdl work hdl/XauiGtx7Core_gt_wrapper_tx_sync_manual.vhd
+vhdl work hdl/XauiGtx7Core_gt_wrapper_tx_sync_manual_block.vhd
+vhdl work hdl/XauiGtx7Core_gt_wrapper_tx_sync_manual_sync_pulse.vhd
+vhdl work hdl/XauiGtx7Core_reset_counter.vhd
+
+vhdl xaui_v12_1 hdl/xaui_v12_1_rfs.vhd
+
