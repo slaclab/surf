@@ -1,13 +1,15 @@
 -------------------------------------------------------------------------------
--- Title         : 10G MAC / Import Interface
--- Project       : RCE 10G-bit MAC
+-- Title      : 1GbE/10GbE Ethernet MAC
 -------------------------------------------------------------------------------
--- File          : EthMacImport.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 02/11/2008
+-- File       : EthMacRxImportXgmii.vhd
+-- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2008-02-11
+-- Last update: 2016-09-08
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- PIC Import block for 10G MAC core for the RCE.
+-- Description: 10GbE Import MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,24 +19,8 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 02/11/2008: created.
--- 02/23/2008: Fixed error which occurs when receiving back to back packets with
---             an idle charactor removal. crcShift4 had not cleared in time.
--- 02/29/2008: Incoming data is now ignored when phy is not ready. Byte order
---             is swapped at PIC interface. 
--- 06/06/2008: Removed header/payload re-alignment. Added automated pause frame
---             reception and transmission.
--- 08/05/2008: Added extra stages to frameShift shift register and added 
---             end detect shift register. These two shift registers replace
---             the function of crcShift register lines that are always asserted
---             in some back to back frame cases.
--- 04/22/2014: Adapted for AXI Streaming interface.
--- 09/21/2015: Removed PPI specifc hooks and pause frame reception.
--- 01/13/2016: Added SOF
--------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -43,33 +29,25 @@ use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacImport is 
+entity EthMacRxImportXgmii is 
    generic (
-      TPD_G : time := 1 ns
-   );
+      TPD_G : time := 1 ns);
    port ( 
-
-      -- Clock and reset
-      ethClk           : in  sl;
-      ethClkRst        : in  sl;
-
+      -- Clock and Reset
+      ethClk      : in  sl;
+      ethRst      : in  sl;
       -- AXIS Interface   
       macIbMaster      : out AxiStreamMasterType;
-
       -- PHY Interface
       phyRxd           : in  slv(63 downto 0);
       phyRxc           : in  slv(7  downto 0);
+      -- Configuration and status
       phyReady         : in  sl;
-
-      -- Status
       rxCountEn        : out sl;
-      rxCrcError       : out sl
-   );
-end EthMacImport;
+      rxCrcError       : out sl);
+end EthMacRxImportXgmii;
 
-
--- Define architecture
-architecture EthMacImport of EthMacImport is
+architecture rtl of EthMacRxImportXgmii is
 
    -- Local Signals
    signal frameShift0      : sl;
@@ -156,7 +134,7 @@ begin
       if rising_edge(ethClk) then
          varMaster := AXI_STREAM_MASTER_INIT_C;
 
-         if ethClkRst = '1' then
+         if ethRst = '1' then
          else
             varMaster.tData(63 downto 0) := macData;
             varMaster.tLast              := intLastLine;
@@ -186,7 +164,8 @@ begin
    rxCountEn  <= intAdvance and intLastLine and crcGood;
 
    -- Logic to dermine CRC width and valid clear timing.
-   process ( phyRxc, rxdAlign, phyRxcDly, crcDataWidth, crcDataValid ) begin
+   process ( phyRxc, rxdAlign, phyRxcDly, crcDataWidth, crcDataValid ) 
+   begin
 
       -- Non shifted data
       if rxdAlign = '0' then
@@ -230,9 +209,10 @@ begin
 
 
    -- Delay stages and input to CRC block   
-   process ( ethClk ) begin
+   process ( ethClk ) 
+   begin
       if rising_edge(ethClk) then
-         if ethClkRst = '1' then
+         if ethRst = '1' then
             frameShift0    <= '0'           after TPD_G;
             frameShift1    <= '0'           after TPD_G;
             frameShift2    <= '0'           after TPD_G;
@@ -340,9 +320,9 @@ begin
          ADDR_WIDTH_G       => 4,
          INIT_G             => "0",
          FULL_THRES_G       => 1,
-         EMPTY_THRES_G      => 1
-      ) port map (
-         rst           => ethClkRst,
+         EMPTY_THRES_G      => 1) 
+      port map (
+         rst           => ethRst,
          wr_clk        => ethClk,
          wr_en         => crcDataValid,
          din           => crcFifoIn,
@@ -361,14 +341,13 @@ begin
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
-         empty         => open
-      );
-
-
+         empty         => open);
+         
    -- Delay stages for output of CRC delay chain
-   process ( ethClk ) begin
+   process ( ethClk ) 
+   begin
       if rising_edge(ethClk) then
-         if ethClkRst = '1' then
+         if ethRst = '1' then
             macSize      <= (others=>'0') after TPD_G;
             macData      <= (others=>'0') after TPD_G;
             crcShift0    <= '0'           after TPD_G;
@@ -461,7 +440,7 @@ begin
    ------------------------------------------
 
    -- CRC Input
-   crcReset            <= crcInit or ethClkRst or (not phyReady);
+   crcReset            <= crcInit or ethRst or (not phyReady);
    crcIn(63 downto 56) <= crcFifoIn(7  downto  0);
    crcIn(55 downto 48) <= crcFifoIn(15 downto  8);
    crcIn(47 downto 40) <= crcFifoIn(23 downto 16);
@@ -474,15 +453,14 @@ begin
    -- CRC
    U_Crc32 : entity work.Crc32Parallel
       generic map (
-         BYTE_WIDTH_G => 8
-      ) port map (
+         TPD_G => TPD_G,
+         BYTE_WIDTH_G => 8) 
+      port map (
          crcOut        => crcOut,
          crcClk        => ethClk,
          crcDataValid  => crcDataValid,
          crcDataWidth  => crcDataWidth,
          crcIn         => crcIn,
-         crcReset      => crcReset
-      ); 
+         crcReset      => crcReset); 
 
-end EthMacImport;
-
+end rtl;
