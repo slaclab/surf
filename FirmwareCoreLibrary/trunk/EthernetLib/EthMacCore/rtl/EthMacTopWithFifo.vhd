@@ -109,7 +109,7 @@ begin
       port map (
          -- Clocks
          ethClk      => ethClk,
-         ethClkRst   => ethClkRst,
+         ethRst      => ethClkRst,
          -- Primary Interface, TX
          sPrimMaster => macTxAxisMaster,
          sPrimSlave  => macTxAxisSlave,

@@ -50,7 +50,7 @@ entity EthMacTop is
    port (
       -- Clock and Reset
       ethClk       : in  sl;
-      ethClkRst    : in  sl;
+      ethRst       : in  sl;
       -- Primary Interface, TX
       sPrimMaster  : in  AxiStreamMasterType;
       sPrimSlave   : out AxiStreamSlaveType;
@@ -117,7 +117,7 @@ begin
       port map (
          -- Clocks
          ethClk         => ethClk,
-         ethRst         => ethClkRst,
+         ethRst         => ethRst,
          -- Primary Interface
          sPrimMaster    => sPrimMaster,
          sPrimSlave     => sPrimSlave,
@@ -185,7 +185,7 @@ begin
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
-         ethRst       => ethClkRst,
+         ethRst       => ethRst,
          -- Primary Interface
          mPrimMaster  => mPrimMaster,
          mPrimCtrl    => mPrimCtrl,
