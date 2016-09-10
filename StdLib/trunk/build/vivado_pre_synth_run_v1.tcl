@@ -33,5 +33,8 @@ exec mv ${PROJ_DIR}/Version.new ${PROJ_DIR}/Version.vhd
 # Message Filtering Script
 source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
 
+# Refer to http://www.xilinx.com/support/answers/65415.html
+set_param synth.elaboration.rodinMoreOptions {rt::set_parameter ignoreVhdlAssertStmts false}
+
 # Target specific pre_synth_run script
 SourceTclFile ${VIVADO_DIR}/pre_synth_run.tcl

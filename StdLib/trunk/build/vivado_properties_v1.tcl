@@ -66,6 +66,11 @@ if { ${VIVADO_VERSION} <= 2014.2 } {
    set_property xsim.rangecheck false     [get_filesets sim_1]
    set_property xsim.unifast false        [get_filesets sim_1]
 }   
+
+# Refer to http://www.xilinx.com/support/answers/65415.html
+if { ${VIVADO_VERSION} >=  2016.1 } {
+   set_property STEPS.SYNTH_DESIGN.ARGS.ASSERT true [get_runs synth_1]
+}
    
 # Prevent Vivado from doing power optimization (which can optimize out register chains)
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
