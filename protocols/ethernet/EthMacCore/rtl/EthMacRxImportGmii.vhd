@@ -1,16 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 1G MAC / Import Interface
+-- Title      : 1GbE/10GbE Ethernet MAC
 -------------------------------------------------------------------------------
--- File       : EthMacImportGmii.vhd
+-- File       : EthMacRxImportGmii.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Co-Author  : Jeff Olsen  <jjo@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-04
--- Last update: 2016-09-06
+-- Last update: 2016-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 1GigE Import MAC core with GMII interface
+-- Description: 1GbE Import MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -31,26 +31,26 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacImportGmii is
+entity EthMacRxImportGmii is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- Clock and reset
+      -- Clock and Reset
       ethClk      : in  sl;
-      ethClkRst   : in  sl;
+      ethRst      : in  sl;
       -- AXIS Interface   
       macIbMaster : out AxiStreamMasterType;
       -- PHY Interface
       gmiiRxDv    : in  sl;
       gmiiRxEr    : in  sl;
       gmiiRxd     : in  slv(7 downto 0);
+      -- Configuration and status
       phyReady    : in  sl;
-      -- Status
       rxCountEn   : out sl;
       rxCrcError  : out sl);
-end EthMacImportGmii;
+end EthMacRxImportGmii;
 
-architecture rtl of EthMacImportGmii is
+architecture rtl of EthMacRxImportGmii is
 
    constant SFD_C : slv(7 downto 0) := x"D5";
    constant AXI_CONFIG_C : AxiStreamConfigType := (
@@ -129,16 +129,16 @@ begin
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
-         sAxisRst    => ethClkRst,
+         sAxisRst    => ethRst,
          sAxisMaster => macMaster,                   -- 8-bit AXI stream interface  
          sAxisSlave  => open,
          -- Master Port
          mAxisClk    => ethClk,
-         mAxisRst    => ethClkRst,
+         mAxisRst    => ethRst,
          mAxisMaster => macIbMaster,                 -- 64-bit AXI stream interface
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  
 
-   comb : process (crcIn, crcOut, ethClkRst, gmiiRxDv, gmiiRxEr, gmiiRxd, phyReady, r) is
+   comb : process (crcIn, crcOut, ethRst, gmiiRxDv, gmiiRxEr, gmiiRxd, phyReady, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -161,7 +161,7 @@ begin
       v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
 
       -- Check for CRC reset
-      v.crcReset := r.delRxDvSr(2) or ethClkRst or (not phyReady);
+      v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
 
       -- State Machine
       case r.state is
@@ -219,7 +219,7 @@ begin
       end case;
 
       -- Reset
-      if (ethClkRst = '1') then
+      if (ethRst = '1') then
          v := REG_INIT_C;
       end if;
 

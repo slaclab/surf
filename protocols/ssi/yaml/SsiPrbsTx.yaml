@@ -7,98 +7,133 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &SsiPrbsTx 
-  name: SsiPrbsTx
+SsiPrbsTx: &SsiPrbsTx
+  class: MMIODev
+  configPrio: 1
   description: SsiPrbsTx
   size: 0x100
-  #########
-  IntField:
-  #########
+  children:
     #########################################################
-    - offset: 0x00 
+    AxiEn:
+      at:
+        offset: 0x00
+      class: IntField
       name: AxiEn
       mode: RW
       lsBit: 0
-      sizeBits: 1        
-      description: ""
+      sizeBits: 1
+      description: ''
     #########################################################
-    - offset: 0x00 
+    TxEn:
+      at:
+        offset: 0x00
+      class: IntField
       name: TxEn
       mode: RW
       lsBit: 1
-      sizeBits: 1        
-      description: ""  
+      sizeBits: 1
+      description: ''
     #########################################################
-    - offset: 0x00 
+    Busy:
+      at:
+        offset: 0x00
+      class: IntField
       name: Busy
       mode: RO
       lsBit: 2
-      sizeBits: 1        
-      description: ""   
+      sizeBits: 1
+      description: ''
     #########################################################
-    - offset: 0x00 
+    Overflow:
+      at:
+        offset: 0x00
+      class: IntField
       name: Overflow
       mode: RO
       lsBit: 3
-      sizeBits: 1        
-      description: ""         
+      sizeBits: 1
+      description: ''
     #########################################################
-    - offset: 0x00 
+    OneShot:
+      at:
+        offset: 0x00
+      class: IntField
       name: OneShot
       mode: WO
       lsBit: 4
-      sizeBits: 1        
-      description: ""      
+      sizeBits: 1
+      description: ''
     #########################################################
-    - offset: 0x00 
+    FwCnt:
+      at:
+        offset: 0x00
+      class: IntField
       name: FwCnt
       mode: RW
       lsBit: 5
-      sizeBits: 1        
-      description: ""   
+      sizeBits: 1
+      description: ''
     #########################################################
-    - offset: 0x04 
+    PacketLength:
+      at:
+        offset: 0x04
+      class: IntField
       name: PacketLength
       mode: RW
-      description: ""  
+      description: ''
     #########################################################
-    - offset: 0x08
+    tDest:
+      at:
+        offset: 0x08
+      class: IntField
       name: tDest
       mode: RW
       lsBit: 0
-      sizeBits: 8       
-      description: ""   
+      sizeBits: 8
+      description: ''
     #########################################################
-    - offset: 0x09
+    tId:
+      at:
+        offset: 0x09
+      class: IntField
       name: tId
       mode: RW
       lsBit: 0
-      sizeBits: 8       
-      description: ""         
+      sizeBits: 8
+      description: ''
     #########################################################
-    - offset: 0x0C
+    DataCount:
+      at:
+        offset: 0x0C
+      class: IntField
       name: DataCount
       mode: RO
-      description: ""   
+      description: ''
     #########################################################
-    - offset: 0x10
+    EventCount:
+      at:
+        offset: 0x10
+      class: IntField
       name: EventCount
       mode: RO
-      description: ""   
+      description: ''
     #########################################################
-    - offset: 0x14
+    RandomData:
+      at:
+        offset: 0x14
+      class: IntField
       name: RandomData
       mode: RO
-      description: ""         
+      description: ''
     #########################################################
-  #########
-  Commands:
-  #########
-    #########################################################
-    - name: C_OneShot
-      description: ""
+    C_OneShot:
+      name: C_OneShot
+      class: SequenceCommand
+      description: ''
       sequence:
-        - entry: OneShot
-          value: 0x1   
+      - entry: OneShot
+        value: 0x1
     #########################################################

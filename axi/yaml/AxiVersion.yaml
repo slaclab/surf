@@ -7,101 +7,111 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &AxiVersion 
-  name: AxiVersion
+AxiVersion: &AxiVersion 
+  class: MMIODev
+  configPrio: 1
   description: AXI-Lite Version Module
   size: 0x1000
-  #########
-  IntField:
-  #########
+  children:
     #########################################################
-    - offset: 0x00 
-      name: FpgaVersion
+    FpgaVersion:
+      at:
+        offset: 0x00 
+      class: IntField
       mode: RO
       description: FPGA Firmware Version Number 
     #########################################################
-    - offset: 0x04
-      name: ScratchPad
+    ScratchPad:
+      at:
+        offset: 0x04
+      class: IntField
       mode: RW
       description: Register to test reads and writes
     #########################################################
-    - offset: 0x08
-      name: DeviceDna
+    DeviceDna:
+      at:
+        offset: 0x08
+      class: IntField
       sizeBits: 64
       mode: RO
       description: Xilinx Device DNA value burned into FPGA
     #########################################################
-    - offset: 0x10
-      name: FdSerial
+    FdSerial:
+      at:
+        offset: 0x10
+      class: IntField
       sizeBits: 64
       mode: RO
       description: Board ID value read from DS2411 chip
     #########################################################
-    - offset: 0x18
-      name: MasterReset
+    MasterReset:
+      at:
+        offset: 0x18
+      class: IntField
       mode: WO
       sizeBits: 1
       description: Optional User Reset 
     #########################################################
-    - offset: 0x1C
-      name: FpgaReload
+    FpgaReload:
+      at:
+        offset: 0x1C
+      class: IntField
       mode: RW
       sizeBits: 1
       description: Optional Reload the FPGA from the attached PROM
     #########################################################
-    - offset: 0x20
-      name: FpgaReloadAddress
+    FpgaReloadAddress:
+      at:
+        offset: 0x20
+      class: IntField
       mode: RW
       description: Reload start address
     #########################################################
-    - offset: 0x24
-      name: Counter
+    Counter:
+      at:
+        offset: 0x24
+      class: IntField
       mode: RO
       description: Free running counter
     #########################################################
-    - offset: 0x28
-      name: FpgaReloadHalt
+    FpgaReloadHalt:
+      at:
+        offset: 0x28
+      class: IntField
       mode: RW
       sizeBits: 1
       description: Used to halt automatic reloads via AxiVersion
     #########################################################
-    - offset: 0x2C
-      name: UpTimeCnt
+    UpTimeCnt:
+      at:
+        offset: 0x2C
+      class: IntField
       mode: RO
       description: Number of seconds since last reset
     #########################################################
-    - offset: 0x30
-      name: DeviceId
+    DeviceId:
+      at:
+        offset: 0x30
+      class: IntField
       mode: RO
       description: Device Identification 
     #########################################################
-    - offset: 0x400
-      name: UserConstants
-      nelms: 64
+    UserConstants:
+      at:
+        offset: 0x400
+        nelms: 64
+      class: IntField
       mode: RO
       description: Optional user input values 
     #########################################################
-    - offset: 0x800
-      name: BuildStamp
-      nelms: 64
+    BuildStamp:
+      at:
+        offset: 0x800
+        nelms: 64
+      class: IntField
       sizeBits: 8
       mode: RO
       description: Firmware Build String
-    #########################################################
-  #########
-  Commands:
-  #########
-    #########################################################
-    - name: C_MasterReset
-      description: Perform a logical reset 
-      sequence:
-        - entry: MasterReset
-          value: 0x1
-    #########################################################
-    - name: C_FpgaReload
-      description: Reload the FPGA from the attached PROM 
-      sequence:
-        - entry: FpgaReload
-          value: 0x1        
-    #########################################################

@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : 1GbE/10GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacPkg.vhd
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2015-09-21
+-- Last update: 2016-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,8 +22,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -56,9 +56,9 @@ package EthMacPkg is
       filtEnable    : sl;
       pauseEnable   : sl;
       pauseTime     : slv(15 downto 0);
-      interFrameGap : slv(3  downto 0);
-      txShift       : slv(3  downto 0);
-      rxShift       : slv(3  downto 0);
+      interFrameGap : slv(3 downto 0);
+      txShift       : slv(3 downto 0);
+      rxShift       : slv(3 downto 0);
       ipCsumEn      : sl;
       tcpCsumEn     : sl;
       udpCsumEn     : sl;
@@ -71,41 +71,41 @@ package EthMacPkg is
       pauseEnable   => '1',
       pauseTime     => x"00FF",
       interFrameGap => x"3",
-      txShift       => (others=>'0'),
-      rxShift       => (others=>'0'),
-      ipCsumEn      => '0',
-      tcpCsumEn     => '0',
-      udpCsumEn     => '0',
-      dropOnPause   => '0'
-   );
+      txShift       => (others => '0'),
+      rxShift       => (others => '0'),
+      ipCsumEn      => '1',
+      tcpCsumEn     => '1',
+      udpCsumEn     => '1',
+      dropOnPause   => '0');
 
    type EthMacConfigArray is array (natural range<>) of EthMacConfigType;
 
-
    -- Generic XMAC Status
    type EthMacStatusType is record
-      rxPauseCnt    : sl;
-      txPauseCnt    : sl;
-      rxCountEn     : sl;
-      rxOverFlow    : sl;
-      rxCrcErrorCnt : sl;
-      txCountEn     : sl;
-      txUnderRunCnt : sl;
-      txNotReadyCnt : sl;
+      rxPauseCnt     : sl;
+      vlanRxPauseCnt : slv(7 downto 0);
+      txPauseCnt     : sl;
+      vlanTxPauseCnt : slv(7 downto 0);
+      rxCountEn      : sl;
+      rxOverFlow     : sl;
+      rxCrcErrorCnt  : sl;
+      txCountEn      : sl;
+      txUnderRunCnt  : sl;
+      txNotReadyCnt  : sl;
    end record EthMacStatusType;
 
    constant ETH_MAC_STATUS_INIT_C : EthMacStatusType := (
-      rxPauseCnt    => '0',
-      txPauseCnt    => '0',
-      rxCountEn     => '0',
-      rxOverFlow    => '0',
-      rxCrcErrorCnt => '0',
-      txCountEn     => '0',
-      txUnderRunCnt => '0',
-      txNotReadyCnt => '0'
-   );
+      rxPauseCnt     => '0',
+      vlanRxPauseCnt => (others => '0'),
+      txPauseCnt     => '0',
+      vlanTxPauseCnt => (others => '0'),
+      rxCountEn      => '0',
+      rxOverFlow     => '0',
+      rxCrcErrorCnt  => '0',
+      txCountEn      => '0',
+      txUnderRunCnt  => '0',
+      txNotReadyCnt  => '0');
 
    type EthMacStatusArray is array (natural range<>) of EthMacStatusType;
 
 end package EthMacPkg;
-

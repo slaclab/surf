@@ -1,13 +1,15 @@
 -------------------------------------------------------------------------------
--- Title         : 10G MAC / Export
--- Project       : RCE 10G-bit MAC
+-- Title      : 1GbE/10GbE Ethernet MAC
 -------------------------------------------------------------------------------
--- File          : EthMacExport.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 02/11/2008
+-- File       : EthMacTxExportXgmii.vhd
+-- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2008-02-11
+-- Last update: 2016-09-08
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- PIC Export block for 10G MAC core for the RCE.
+-- Description: 10GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,23 +19,8 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 02/11/2008: created.
--- 02/23/2008: Fixed error which incorrectly detected short frame if the 
---             data available signal was de-asserted with the last line signal.
--- 02/29/2008: Outgoing data is now dumped when phy is not ready. Byte order
---             is swapped at PIC interface. 
--- 03/31/2008: Fixed errror where status was not generated properly in error
---             situation. 
--- 05/09/2008: Removed header/payload re-alignment. Added automated pause frame
---             reception and transmission.
--- 08/05/2008: Added two clock delay following tx of pause frames.
--- 11/12/2008: Added padding for frames under 64 bytes.
--- 04/22/2014: Adapted for AXI Stream interface.
--- 09/21/2015: Removed PPI specifc hooks and pause frame reception.
--------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -42,39 +29,30 @@ use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacExport is 
+entity EthMacTxExportXgmii is 
    generic (
-      TPD_G : time := 1 ns
-   );
+      TPD_G : time := 1 ns);
    port ( 
-
-      -- Clock and reset
-      ethClk           : in  sl;
-      ethClkRst        : in  sl;
-
+      -- Clock and Reset
+      ethClk         : in  sl;
+      ethRst         : in  sl;
       -- AXIS Interface   
       macObMaster      : in  AxiStreamMasterType;
       macObSlave       : out AxiStreamSlaveType;
-
       -- XAUI Interface
       phyTxd           : out slv(63 downto 0);
       phyTxc           : out slv(7  downto 0);
       phyReady         : in  sl;
-
       -- Configuration
       interFrameGap    : in  slv(3  downto 0);
       macAddress       : in  slv(47 downto 0);
-
       -- Errors
       txCountEn        : out sl;
       txUnderRun       : out sl;
-      txLinkNotReady   : out sl
-   );
-end EthMacExport;
+      txLinkNotReady   : out sl);
+end EthMacTxExportXgmii;
 
-
--- Define architecture
-architecture EthMacExport of EthMacExport is
+architecture rtl of EthMacTxExportXgmii is
 
    -- Local Signals
    signal intAdvance       : sl;
@@ -172,7 +150,7 @@ begin
    -- State machine logic
    process ( ethClk ) begin
       if rising_edge(ethClk) then
-         if ethClkRst = '1' then
+         if ethRst = '1' then
             curState        <= ST_IDLE_C     after TPD_G;
             intError        <= '0'           after TPD_G;
             stateCount      <= (others=>'0') after TPD_G;
@@ -205,7 +183,7 @@ begin
    intLastValidByte <= "111" when curState=ST_PAD_C else onesCount(macObMaster.tKeep(7 downto 1));
    
    -- State machine
-   process (curState, macObMaster, intError, phyReady, ethClkRst, stateCount, interFrameGap, intRunt ) begin
+   process (curState, macObMaster, intError, phyReady, ethRst, stateCount, interFrameGap, intRunt ) begin
 
       -- Init
       txCountEn      <= '0';
@@ -227,7 +205,7 @@ begin
             crcInit       <= '1';
             
             -- Wait for start flag
-            if macObMaster.tValid = '1' and ethClkRst = '0' then
+            if macObMaster.tValid = '1' and ethRst = '0' then
 
                -- Phy is ready
                if phyReady = '1' then
@@ -340,7 +318,7 @@ begin
    -- Format data for input into CRC delay FIFO.
    process ( ethClk ) begin
       if rising_edge(ethClk) then
-         if ethClkRst = '1' then
+         if ethRst = '1' then
             frameShift0    <= '0'           after TPD_G;
             frameShift1    <= '0'           after TPD_G;
             txEnable0      <= '0'           after TPD_G;
@@ -448,7 +426,7 @@ begin
          FULL_THRES_G       => 1,
          EMPTY_THRES_G      => 1
       ) port map (
-         rst           => ethClkRst,
+         rst           => ethRst,
          wr_clk        => ethClk,
          wr_en         => txEnable0,
          din           => crcFifoIn,
@@ -474,7 +452,7 @@ begin
    -- Output Stage to PHY
    process ( ethClk ) begin
       if rising_edge(ethClk) then
-         if ethClkRst = '1' then
+         if ethRst = '1' then
             phyTxd  <= (others=>'0') after TPD_G;
             phyTxc  <= (others=>'0') after TPD_G;
             nxtEOF  <= '0'           after TPD_G;
@@ -570,7 +548,7 @@ begin
    ------------------------------------------
 
    -- CRC Input
-   crcReset               <= crcInit or ethClkRst or (not phyReady);
+   crcReset               <= crcInit or ethRst or (not phyReady);
    crcInAdj(63 downto 56) <= crcIn(7  downto  0);
    crcInAdj(55 downto 48) <= crcIn(15 downto  8);
    crcInAdj(47 downto 40) <= crcIn(23 downto 16);
@@ -599,5 +577,5 @@ begin
    crcTx(15 downto  8) <= crcOut(23 downto 16);
    crcTx(7  downto  0) <= crcOut(31 downto 24);
 
-end EthMacExport;
+end rtl;
 

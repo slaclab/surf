@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : 1GbE/10GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTopWithFifo.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-29
--- Last update: 2016-07-15
+-- Last update: 2016-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -105,12 +105,11 @@ begin
          BYP_ETH_TYPE_G  => x"0000",
          SHIFT_EN_G      => false,
          FILT_EN_G       => false,
-         CSUM_EN_G       => false,
          GMII_EN_G       => GMII_EN_G)
       port map (
          -- Clocks
          ethClk      => ethClk,
-         ethClkRst   => ethClkRst,
+         ethRst      => ethClkRst,
          -- Primary Interface, TX
          sPrimMaster => macTxAxisMaster,
          sPrimSlave  => macTxAxisSlave,
