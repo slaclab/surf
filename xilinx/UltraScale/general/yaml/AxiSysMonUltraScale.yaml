@@ -7,224 +7,335 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &AxiSysMonUltraScale 
+AxiSysMonUltraScale: &AxiSysMonUltraScale
   name: AxiSysMonUltraScale
-  description: AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
+  class: MMIODev
+  configPrio: 1
+  description: AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and
+    UG580)
   size: 0x800
-  #########
-  IntField:
-  #########
+  children:
     #########################################################
-    # - offset: 0x00 
-      # name: SRR
-      # mode: WO
-      # description: |
-        # The Software Reset register permits you to reset the System Management Wizard IP core 
-        # including the SYSMON hard macro output ports (except JTAG-related outputs) 
-        # independently of other IP cores in the systems. To activate a software reset, write 
-        # 0x0000_000A to the register. Any other access, read or write, has undefined results.
-    #########################################################
-    - offset: 0x04 
+    SR:
+      at:
+        offset: 0x04
+      class: IntField
       name: SR
       mode: RO
       description: Status Register
     #########################################################
-    - offset: 0x08
+    AOSR:
+      at:
+        offset: 0x08
+      class: IntField
       name: AOSR
       mode: RO
-      description: Alarm Output Status Register    
+      description: Alarm Output Status Register
     #########################################################
-    - offset: 0x0C
+    CONVSTR:
+      at:
+        offset: 0x0C
+      class: IntField
       name: CONVSTR
       mode: WO
       description: CONVST Register
     #########################################################
-    - offset: 0x10
+    SYSMONRR:
+      at:
+        offset: 0x10
+      class: IntField
       name: SYSMONRR
       mode: WO
-      description: SYSMON Hard Macro Reset Register  
+      description: SYSMON Hard Macro Reset Register
     #########################################################
-    - offset: 0x5C
+    GIER:
+      at:
+        offset: 0x5C
+      class: IntField
       name: GIER
       mode: RW
-      description: Global Interrupt Enable Register   
+      description: Global Interrupt Enable Register
     #########################################################
-    - offset: 0x60
+    IPISR:
+      at:
+        offset: 0x60
+      class: IntField
       name: IPISR
       mode: RO
       description: IP Interrupt Status Register
     #########################################################
-    - offset: 0x68
+    IPIER:
+      at:
+        offset: 0x68
+      class: IntField
       name: IPIER
       mode: RW
-      description: IP Interrupt Enable Register   
+      description: IP Interrupt Enable Register
     #########################################################
-    - offset: 0x400
+    Temperature:
+      at:
+        offset: 0x400
+      class: IntField
       name: Temperature
       mode: RO
-      description: Temperature's ADC value  
+      description: Temperature's ADC value
     #########################################################
-    - offset: 0x404
+    VCCINT:
+      at:
+        offset: 0x404
+      class: IntField
       name: VCCINT
       mode: RO
-      description: VCCINT's ADC value     
+      description: VCCINT's ADC value
     #########################################################
-    - offset: 0x408
+    VCCAUX:
+      at:
+        offset: 0x408
+      class: IntField
       name: VCCAUX
       mode: RO
-      description: VCCAUX's ADC value     
+      description: VCCAUX's ADC value
     #########################################################
-    - offset: 0x40C
+    VP_VN:
+      at:
+        offset: 0x40C
+      class: IntField
       name: VP_VN
       mode: RO
-      description: VP/VN's ADC value      
+      description: VP/VN's ADC value
     #########################################################
-    - offset: 0x410
+    VREFP:
+      at:
+        offset: 0x410
+      class: IntField
       name: VREFP
       mode: RO
-      description: VREFP's ADC value  
+      description: VREFP's ADC value
     #########################################################
-    - offset: 0x414
+    VREFN:
+      at:
+        offset: 0x414
+      class: IntField
       name: VREFN
       mode: RO
-      description: VREFN's ADC value    
+      description: VREFN's ADC value
     #########################################################
-    - offset: 0x418
+    VBRAM:
+      at:
+        offset: 0x418
+      class: IntField
       name: VBRAM
       mode: RO
-      description: VBRAM's ADC value  
+      description: VBRAM's ADC value
     #########################################################
-    - offset: 0x420
+    SupplyOffset:
+      at:
+        offset: 0x420
+      class: IntField
       name: SupplyOffset
       mode: RO
-      description: Supply Offset     
+      description: Supply Offset
     #########################################################
-    - offset: 0x424
+    ADCOffset:
+      at:
+        offset: 0x424
+      class: IntField
       name: ADCOffset
       mode: RO
-      description: ADC Offset   
+      description: ADC Offset
     #########################################################
-    - offset: 0x428
+    GainError:
+      at:
+        offset: 0x428
+      class: IntField
       name: GainError
       mode: RO
-      description: Gain Error        
+      description: Gain Error
     #########################################################
-    - offset: 0x440
+    VAUXP_VAUXN:
+      at:
+        offset: 0x440
+        nelms: 16
+      class: IntField
       name: VAUXP_VAUXN
-      nelms: 16
       mode: RO
-      description: VAUXP_VAUXN's ADC values       
+      description: VAUXP_VAUXN's ADC values
     #########################################################
-    - offset: 0x480
+    MaxTemp:
+      at:
+        offset: 0x480
+      class: IntField
       name: MaxTemp
       mode: RO
       description: maximum temperature measurement
     #########################################################
-    - offset: 0x484
+    MaxVCCINT:
+      at:
+        offset: 0x484
+      class: IntField
       name: MaxVCCINT
       mode: RO
-      description: maximum VCCINT measurement      
+      description: maximum VCCINT measurement
     #########################################################
-    - offset: 0x488
+    MaxVCCAUX:
+      at:
+        offset: 0x488
+      class: IntField
       name: MaxVCCAUX
       mode: RO
-      description: maximum VCCAUX measurement  
+      description: maximum VCCAUX measurement
     #########################################################
-    - offset: 0x48C
+    MaxVBRAM:
+      at:
+        offset: 0x48C
+      class: IntField
       name: MaxVBRAM
       mode: RO
-      description: maximum VBRAM measurement  
+      description: maximum VBRAM measurement
     #########################################################
-    - offset: 0x490
+    MinTemp:
+      at:
+        offset: 0x490
+      class: IntField
       name: MinTemp
       mode: RO
       description: minimum temperature measurement
     #########################################################
-    - offset: 0x494
+    MinVCCINT:
+      at:
+        offset: 0x494
+      class: IntField
       name: MinVCCINT
       mode: RO
-      description: minimum VCCINT measurement      
+      description: minimum VCCINT measurement
     #########################################################
-    - offset: 0x498
+    MinVCCAUX:
+      at:
+        offset: 0x498
+      class: IntField
       name: MinVCCAUX
       mode: RO
-      description: minimum VCCAUX measurement  
+      description: minimum VCCAUX measurement
     #########################################################
-    - offset: 0x49C
+    MinVBRAM:
+      at:
+        offset: 0x49C
+      class: IntField
       name: MinVBRAM
       mode: RO
-      description: minimum VBRAM measurement        
+      description: minimum VBRAM measurement
     #########################################################
-    - offset: 0x4E0
+    I2C_Address:
+      at:
+        offset: 0x4E0
+      class: IntField
       name: I2C_Address
       mode: RO
       description: I2C Address
     #########################################################
-    - offset: 0x4FC
+    FlagRegister:
+      at:
+        offset: 0x4FC
+      class: IntField
       name: FlagRegister
       mode: RO
-      description: Flag Register   
+      description: Flag Register
     #########################################################
-    - offset: 0x500
+    ConfigurationRegister:
+      at:
+        offset: 0x500
+        nelms: 4
+      class: IntField
       name: ConfigurationRegister
-      nelms: 4
       mode: RW
-      description: Configuration Registers 
+      description: Configuration Registers
     #########################################################
-    - offset: 0x518
+    SequenceRegister8:
+      at:
+        offset: 0x518
+      class: IntField
       name: SequenceRegister8
       mode: RW
-      description: Sequence Register 8  
+      description: Sequence Register 8
     #########################################################
-    - offset: 0x51C
+    SequenceReg9:
+      at:
+        offset: 0x51C
+      class: IntField
       name: SequenceReg9
       mode: RW
       description: Sequence Register 9
     #########################################################
-    - offset: 0x520
+    SequenceReg_7_0:
+      at:
+        offset: 0x520
+        nelms: 8
+      class: IntField
       name: SequenceReg_7_0
-      nelms: 8
       mode: RW
       description: Sequence Register [7:0]
     #########################################################
-    - offset: 0x540
+    AlarmThresholdReg_8_0:
+      at:
+        offset: 0x540
+        nelms: 9
+      class: IntField
       name: AlarmThresholdReg_8_0
-      nelms: 9
       mode: RW
       description: Alarm Threshold Register [8:0]
     #########################################################
-    - offset: 0x570
+    AlarmThresholdReg12:
+      at:
+        offset: 0x570
+      class: IntField
       name: AlarmThresholdReg12
       mode: RW
-      description: Alarm Threshold Register 12    
+      description: Alarm Threshold Register 12
     #########################################################
-    - offset: 0x580
+    AlarmThresholdReg16:
+      at:
+        offset: 0x580
+      class: IntField
       name: AlarmThresholdReg16
       mode: RW
       description: Alarm Threshold Register 16
     #########################################################
-    - offset: 0x580
+    AlarmThresholdReg_25_16:
+      at:
+        offset: 0x580
+        nelms: 8
+      class: IntField
       name: AlarmThresholdReg_25_16
-      nelms: 8
       mode: RW
-      description: Alarm Threshold Register [25:16]  
+      description: Alarm Threshold Register [25:16]
     #########################################################
-    - offset: 0x600
+    VUSER:
+      at:
+        offset: 0x600
+        nelms: 4
+      class: IntField
       name: VUSER
-      nelms: 4
       mode: RO
       description: VUSER[4:0] supply monitor measurement
     #########################################################
-    - offset: 0x680
+    MAX_VUSER:
+      at:
+        offset: 0x680
+        nelms: 4
+      class: IntField
       name: MAX_VUSER
-      nelms: 4
       mode: RO
       description: Maximum VUSER[4:0] supply monitor measurement
     #########################################################
-    - offset: 0x6A0
+    MIN_VUSER:
+      at:
+        offset: 0x6A0
+        nelms: 4
+      class: IntField
       name: MIN_VUSER
-      nelms: 4
       mode: RO
       description: Minimum VUSER[4:0] supply monitor measurement
     #########################################################

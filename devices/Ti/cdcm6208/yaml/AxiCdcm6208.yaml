@@ -1,4 +1,3 @@
-
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
@@ -8,24 +7,28 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &AxiCdcm6208 
-  name: AxiCdcm6208
+AxiCdcm6208: &AxiCdcm6208 
+  class: MMIODev
+  configPrio: 1
   description: "AxiCdcm6208 Module"
   size: 0x00100
   #########
-  IntField:
+  children:
   #########
-  
     #########################################################
     #
     #   Control registers
     #
     #########################################################
-    - offset: 0x000
-      name: Cdcm6208
+    Cdcm6208:
+      class: IntField
+      at:
+        offset: 0x000
+        nelms: 21
       sizeBits: 16
-      nelms: 21
       mode: RW
       description: "Cdcm6208 Control Registers"
     #########################################################
@@ -33,36 +36,46 @@ Device: &AxiCdcm6208
     #   Status registers
     #
     #########################################################
-    - offset: 0x054
-      name: SEL_REF
+    SEL_REF:
+      class: IntField
+      at:
+        offset: 0x054
       lsBit: 0
       sizeBits: 1
       mode: RO
       description: "Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary"
     ##########################################################
-    - offset: 0x054
-      name: LOS_REF
+    LOS_REF:
+      class: IntField
+      at:
+        offset: 0x054
       lsBit: 1
       sizeBits: 1
       mode: RO
       description: "Loss of reference input: 0 => Reference input present 1 => Loss of reference input."
     ##########################################################
-    - offset: 0x054
-      name: PLL_UNLOCK
+    PLL_UNLOCK:
+      class: IntField
+      at:
+        offset: 0x054
       lsBit: 2
       sizeBits: 1
       mode: RO
       description: "Indicates unlock status for PLL (digital):0 => PLL locked 1 => PLL unlocked"
     #########################################################
-    - offset: 0x0A0
-      name: DIE_REVISION
+    DIE_REVISION:
+      class: IntField
+      at:
+        offset: 0x0A0
       lsBit: 0
       sizeBits: 3
       mode: RO
       description: "Indicates the silicon die revision (Read only): 2:0 DIE_REVISION 00X --> Engineering Prototypes 010 --> Production Materia"
     #########################################################
-    - offset: 0x0A0
-      name: VCO_VERSION
+    VCO_VERSION:
+      class: IntField
+      at:
+        offset: 0x0A0
       lsBit: 3
       sizeBits: 3
       mode: RO

@@ -1,16 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 1G MAC / Export Interface
+-- Title      : 1GbE/10GbE Ethernet MAC
 -------------------------------------------------------------------------------
--- File       : EthMacExportGmii.vhd
+-- File       : EthMacTxExportGmii.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Co-Author  : Jeff Olsen  <jjo@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-04
--- Last update: 2016-09-06
+-- Last update: 2016-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 1GigE Export MAC core with GMII interface
+-- Description: 1GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -31,13 +31,13 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacExportGmii is
+entity EthMacTxExportGmii is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- Clock and reset
+      -- Clock and Reset
       ethClk         : in  sl;
-      ethClkRst      : in  sl;
+      ethRst         : in  sl;
       -- AXIS Interface   
       macObMaster    : in  AxiStreamMasterType;
       macObSlave     : out AxiStreamSlaveType;
@@ -47,15 +47,14 @@ entity EthMacExportGmii is
       gmiiTxd        : out slv(7 downto 0);
       phyReady       : in  sl;
       -- Configuration
-      interFrameGap  : in  slv(3 downto 0);
       macAddress     : in  slv(47 downto 0);
       -- Status
       txCountEn      : out sl;
       txUnderRun     : out sl;
       txLinkNotReady : out sl);
-end EthMacExportGmii;
+end EthMacTxExportGmii;
 
-architecture rtl of EthMacExportGmii is
+architecture rtl of EthMacTxExportGmii is
    
    constant AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
@@ -149,16 +148,16 @@ begin
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
-         sAxisRst    => ethClkRst,
+         sAxisRst    => ethRst,
          sAxisMaster => macObMaster,                 -- 64-bit AXI stream interface 
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,
-         mAxisRst    => ethClkRst,
+         mAxisRst    => ethRst,
          mAxisMaster => macMaster,                   -- 8-bit AXI stream interface 
          mAxisSlave  => macSlave);  
 
-   comb : process (crcOut, ethClkRst, macMaster, phyReady, r) is
+   comb : process (crcOut, ethRst, macMaster, phyReady, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -181,7 +180,7 @@ begin
             v.gmiiTxEn := '0';
             v.gmiiTxEr := '0';
             -- Wait for start flag
-            if ((macMaster.tValid = '1') and (ethClkRst = '0')) then
+            if ((macMaster.tValid = '1') and (ethRst = '0')) then
                -- Phy is ready
                if phyReady = '1' then
                   v.state := TX_PREAMBLE_S;
@@ -281,7 +280,7 @@ begin
       end case;
 
       -- Reset
-      if (ethClkRst = '1') then
+      if (ethRst = '1') then
          v := REG_INIT_C;
       end if;
 
