@@ -7,7 +7,7 @@ export PRJ_PART = XCKU040-FFVA1156-2-E
 
 export PROJECT = GigEthGthUltraScaleCoreDcp
 export TOP_DIR = $(abspath $(PWD))
-export MODULES = $(abspath ../../../../../..)
+export MODULES = $(abspath ../../../../..)
 
 # List of build core directories.
 export MODULE_DIRS = $(PROJ_DIR)
