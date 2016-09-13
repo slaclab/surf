@@ -1,0 +1,165 @@
+vhdl work pgp/pgp2b/core/rtl/Pgp2bPkg.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bRxPhy.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bRxCell.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bRx.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bTxPhy.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bTxCell.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bTxSched.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bTx.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bLane.vhd
+vhdl work pgp/pgp2b/core/rtl/Pgp2bAxi.vhd
+
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7FixedLat.vhd
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7FixedLatWrapper.vhd
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7MultiLane.vhd
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7VarLat.vhd
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7VarLatWrapper.vhd
+
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGtp7FixedLat.vhd
+vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGtp7FixedLatWrapper.vhd
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7MultiLane.vhd
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7VarLat.vhd
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7VarLatWrapper.vhd
+
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtx7FixedLat.vhd
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtx7FixedLatWrapper.vhd
+vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7MultiLane.vhd
+vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7VarLat.vhd
+vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7VarLatWrapper.vhd
+
+vhdl work glink/core/rtl/GLinkPkg.vhd
+vhdl work glink/core/rtl/GLinkEncoder.vhd
+vhdl work glink/core/rtl/GLinkDecoder.vhd
+vhdl work glink/core/rtl/GLinkTxToRx.vhd
+
+vhdl work glink/gtp7/rtl/GLinkGtp7FixedLat.vhd
+
+vhdl work glink/gtx7/rtl/GLinkGtx7FixedLat.vhd
+vhdl work glink/gtx7/rtl/GLinkGtx7Core.vhd
+vhdl work glink/gtx7/rtl/GLinkGtx7RxRst.vhd
+
+vhdl work spi/rtl/SpiMaster.vhd
+vhdl work spi/rtl/SpiSlave.vhd
+vhdl work spi/rtl/AxiSpiMaster.vhd
+
+vhdl work i2c/rtl/AxiI2cEeprom.vhd
+vhdl work i2c/rtl/AxiI2cEepromCore.vhd
+vhdl work i2c/rtl/AxiI2cMasterCore.vhd
+vhdl work i2c/rtl/AxiI2cMasterPkg.vhd
+vhdl work i2c/rtl/AxiI2cRegMaster.vhd
+vhdl work i2c/rtl/I2cMaster.vhd
+vhdl work i2c/rtl/I2cPkg.vhd
+vhdl work i2c/rtl/I2cRegMaster.vhd
+vhdl work i2c/rtl/I2cRegMasterAxiBridge.vhd
+vhdl work i2c/rtl/I2cRegMasterMux.vhd
+vhdl work i2c/rtl/I2cRegSlave.vhd
+vhdl work i2c/rtl/I2cSlave.vhd
+vhdl work i2c/rtl/i2c_master_bit_ctrl.vhd
+vhdl work i2c/rtl/i2c_master_byte_ctrl.vhd
+vhdl work i2c/rtl/stdlib.vhd
+
+vhdl work jesd204b/rtl/Jesd204bPkg.vhd
+vhdl work jesd204b/rtl/AlignFrRepCh.vhd
+vhdl work jesd204b/rtl/SyncFsmRx.vhd
+vhdl work jesd204b/rtl/SysrefDly.vhd
+vhdl work jesd204b/rtl/LmfcGen.vhd
+vhdl work jesd204b/rtl/IlasGen.vhd
+vhdl work jesd204b/rtl/AlignChGen.vhd
+vhdl work jesd204b/rtl/TestStreamTx.vhd
+vhdl work jesd204b/rtl/JesdRxLane.vhd
+vhdl work jesd204b/rtl/JesdTxTest.vhd
+vhdl work jesd204b/rtl/SyncFsmTxTest.vhd
+vhdl work jesd204b/rtl/JesdTxLane.vhd
+vhdl work jesd204b/rtl/SyncFsmTx.vhd
+vhdl work jesd204b/rtl/AxiLiteRxRegItf.vhd
+vhdl work jesd204b/rtl/AxiLiteTxRegItf.vhd
+vhdl work jesd204b/rtl/AxiStreamLaneTx.vhd
+vhdl work jesd204b/rtl/AxiStreamLaneRx.vhd
+vhdl work jesd204b/rtl/TestSigGen.vhd
+vhdl work jesd204b/rtl/Jesd204bTx.vhd
+vhdl work jesd204b/rtl/Jesd204bRx.vhd
+vhdl work jesd204b/rtl/Jesd204bRxGtx7.vhd
+vhdl work jesd204b/rtl/Jesd204bTxGtx7.vhd
+vhdl work jesd204b/rtl/Jesd204bTxGthUltra.vhd
+vhdl work jesd204b/rtl/Jesd204bRxGthUltra.vhd
+
+vhdl work rssi/rtl/RssiPkg.vhd
+vhdl work rssi/rtl/Chksum.vhd
+vhdl work rssi/rtl/RssiAxiLiteRegItf.vhd
+vhdl work rssi/rtl/HeaderReg.vhd
+vhdl work rssi/rtl/Monitor.vhd
+vhdl work rssi/rtl/ConnFSM.vhd
+vhdl work rssi/rtl/TxFSM.vhd
+vhdl work rssi/rtl/RxFSM.vhd
+vhdl work rssi/rtl/RssiCore.vhd
+vhdl work rssi/rtl/RssiCoreWrapper.vhd
+
+vhdl work saci/rtl/SaciMasterPkg.vhd
+vhdl work saci/rtl/SaciMaster.vhd
+vhdl work saci/rtl/SaciMasterSync.vhd
+vhdl work saci/rtl/SaciMaster2.vhd
+vhdl work saci/rtl/AxiLiteSaciMaster.vhd
+vhdl work saci/rtl/SaciSlave.vhd
+vhdl work saci/rtl/SaciMultiPixel.vhd
+vhdl work saci/rtl/SaciMultiPixelPkg.vhd
+vhdl work saci/rtl/SaciPrepRdout.vhd
+
+vhdl work salt/core/rtl/SaltDelayCtrl.vhd 
+vhdl work salt/core/rtl/SaltPkg.vhd 
+vhdl work salt/core/rtl/SaltRx.vhd 
+vhdl work salt/core/rtl/SaltTx.vhd 
+
+vhdl work salt/xilinx7/rtl/Salt7Series.vhd
+vhdl work salt/xilinx7/dcp/images/Salt7SeriesCore.dcp 
+
+vhdl work salt/xilinxUltraScale/rtl/SaltUltraScale.vhd
+vhdl work salt/xilinxUltraScale/coregen/SaltUltraScaleCore.dcp
+vhdl work salt/xilinxUltraScale/dcp/images/SaltUltraScaleRxOnly.dcp
+
+vhdl work pcie/AxiPcieEvrCardG2/rtl/AxiPcieEvrCardG2Core.vhd
+vhdl work pcie/AxiPcieEvrCardG2/rtl/AxiPcieEvrCardG2IpCoreWrapper.vhd
+vhdl work pcie/AxiPcieEvrCardG2/coregen/AxiPcieEvrCardG2IpCore.dcp
+
+vhdl work pcie/core/rtl/AxiPciePkg.vhd
+vhdl work pcie/core/rtl/AxiPcieDma.vhd
+vhdl work pcie/core/rtl/AxiPcieReg.vhd
+
+vhdl work pcie/AxiPciePgpCardG3/rtl/AxiPciePgpCardG3Core.vhd
+vhdl work pcie/AxiPciePgpCardG3/rtl/AxiPciePgpCardG3IpCoreWrapper.vhd
+vhdl work pcie/AxiPciePgpCardG3/coregen/AxiPciePgpCardG3IpCore.dcp
+
+vhdl work pcie/AxiPciePgpCardG4/rtl/AxiPciePgpCardG4Core.vhd
+vhdl work pcie/AxiPciePgpCardG4/rtl/AxiPciePgpCardG4IpCoreWrapper.vhd
+vhdl work pcie/AxiPciePgpCardG4/rtl/AxiPcieCrossbarIpCoreWrapper.vhd
+vhdl work pcie/AxiPciePgpCardG4/rtl/DdrMem.vhd
+vhdl work pcie/AxiPciePgpCardG4/coregen/AxiPciePgpCardG4IpCore.dcp
+vhdl work pcie/AxiPciePgpCardG4/coregen/AxiPcieCrossbarIpCore.dcp
+vhdl work pcie/AxiPciePgpCardG4/coregen/MigCore.dcp
+
+vhdl work srp/rtl/AxiLiteSrpV0.vhd
+vhdl work srp/rtl/SrpV0AxiLite.vhd
+vhdl work srp/rtl/SrpV3Axi.vhd
+vhdl work srp/rtl/SrpV3AxiLite.vhd
+vhdl work srp/rtl/SrpV3AxiLiteFull.vhd
+vhdl work srp/rtl/SrpV3Core.vhd
+vhdl work srp/rtl/SrpV3Pkg.vhd
+
+vhdl work ssi/rtl/SsiFifo.vhd
+vhdl work ssi/rtl/SsiFrameFilter.vhd
+vhdl work ssi/rtl/SsiFrameLimiter.vhd
+vhdl work ssi/rtl/SsiInsertSof.vhd
+vhdl work ssi/rtl/SsiPkg.vhd
+vhdl work ssi/rtl/SsiPrbsRx.vhd
+vhdl work ssi/rtl/SsiPrbsTx.vhd
+
+vhdl work ssi/rtl/UartAxiLiteMaster.vhd
+vhdl work ssi/rtl/UartBrg.vhd
+vhdl work ssi/rtl/UartRx.vhd
+vhdl work ssi/rtl/UartTx.vhd
+vhdl work ssi/rtl/UartWrapper.vhd
+
+vhdl work ssp/rtl/SspDecoder.vhd
+vhdl work ssp/rtl/SspDeframer.vhd
+vhdl work ssp/rtl/SspEncoder.vhd
+vhdl work ssp/rtl/SspFramer.vhd
+vhdl work ssp/rtl/SspPkg.vhd
