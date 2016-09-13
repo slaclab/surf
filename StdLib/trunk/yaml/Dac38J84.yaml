@@ -27,7 +27,7 @@ Dac38J84: &Dac38J84
       name: DacReg
       sizeBits: 16
       mode: RW
-      description: DAC Registers[125:0]
+      description: "DAC Registers[125:0]"
     #########################################################    
     LaneBufferDelay:
       at:
@@ -50,12 +50,12 @@ Dac38J84: &Dac38J84
     LinkErrCnt:
       at:
         offset: 0x104
+        stride: 4
       class: IntField
       name: LinkErrCnt
       sizeBits: 16
-        stride: 4
       mode: RO
-      description: Link[3:0] Error Count
+      description: "Link[3:0] Error Count"
     #########################################################    
     ReadFifoEmpty:
       at:
@@ -67,7 +67,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 0
       mode: RO
-      description: ReadFifoEmpty[7:0]
+      description: "ReadFifoEmpty[7:0]"
     #########################################################    
     ReadFifoUnderflow:
       at:
@@ -79,7 +79,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 1
       mode: RO
-      description: ReadFifoUnderflow[7:0]
+      description: "ReadFifoUnderflow[7:0]"
     #########################################################    
     ReadFifoFull:
       at:
@@ -91,7 +91,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 2
       mode: RO
-      description: ReadFifoFull[7:0]
+      description: "ReadFifoFull[7:0]"
     #########################################################    
     ReadFifoOverflow:
       at:
@@ -103,7 +103,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 3
       mode: RO
-      description: ReadFifoOverflow[7:0]
+      description: "ReadFifoOverflow[7:0]"
     #########################################################    
     DispErr:
       at:
@@ -115,7 +115,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 0
       mode: RO
-      description: DispErr[7:0]
+      description: "DispErr[7:0]"
     #########################################################    
     NotitableErr:
       at:
@@ -127,7 +127,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 1
       mode: RO
-      description: NotitableErr[7:0]
+      description: "NotitableErr[7:0]"
     #########################################################    
     CodeSyncErr:
       at:
@@ -139,7 +139,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 2
       mode: RO
-      description: CodeSyncErr[7:0]
+      description: "CodeSyncErr[7:0]"
     #########################################################    
     FirstDataMatchErr:
       at:
@@ -151,7 +151,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 3
       mode: RO
-      description: FirstDataMatchErr[7:0]
+      description: "FirstDataMatchErr[7:0]"
     #########################################################    
     ElasticBuffOverflow:
       at:
@@ -163,7 +163,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 4
       mode: RO
-      description: ElasticBuffOverflow[7:0]
+      description: "ElasticBuffOverflow[7:0]"
     #########################################################    
     LinkConfigErr:
       at:
@@ -175,7 +175,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 5
       mode: RO
-      description: LinkConfigErr[7:0]
+      description: "LinkConfigErr[7:0]"
     #########################################################    
     FrameAlignErr:
       at:
@@ -187,7 +187,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 6
       mode: RO
-      description: FrameAlignErr[7:0]
+      description: "FrameAlignErr[7:0]"
     #########################################################    
     MultiFrameAlignErr:
       at:
@@ -199,7 +199,7 @@ Dac38J84: &Dac38J84
       sizeBits: 1
       lsBit: 7
       mode: RO
-      description: MultiFrameAlignErr[7:0]
+      description: "MultiFrameAlignErr[7:0]"
     #########################################################    
     Serdes1pllAlarm:
       at:
@@ -238,7 +238,7 @@ Dac38J84: &Dac38J84
       name: LaneLoss
       sizeBits: 8
       mode: RO
-      description: LaneLoss[7:0]
+      description: "LaneLoss[7:0]"
     #########################################################    
     LaneAlarm:
       at:
@@ -247,7 +247,7 @@ Dac38J84: &Dac38J84
       name: LaneAlarm
       sizeBits: 8
       mode: RO
-      description: LaneAlarm[7:0]
+      description: "LaneAlarm[7:0]"
     #########################################################    
     ID:
       at:
@@ -282,24 +282,24 @@ Dac38J84: &Dac38J84
       class: SequenceCommand
       description: Clear all the DAC alarms
       sequence:
-      - entry: DacReg[100]
-        value: 0xFFFF
-      - entry: DacReg[101]
-        value: 0xFFFF
-      - entry: DacReg[102]
-        value: 0xFFFF
-      - entry: DacReg[103]
-        value: 0xFFFF
-      - entry: DacReg[104]
-        value: 0xFFFF
-      - entry: DacReg[105]
-        value: 0xFFFF
-      - entry: DacReg[106]
-        value: 0xFFFF
-      - entry: DacReg[107]
-        value: 0xFFFF
-      - entry: DacReg[108]
-        value: 0xFFFF
+        - entry: DacReg[100]
+          value: 0xFFFF
+        - entry: DacReg[101]
+          value: 0xFFFF
+        - entry: DacReg[102]
+          value: 0xFFFF
+        - entry: DacReg[103]
+          value: 0xFFFF
+        - entry: DacReg[104]
+          value: 0xFFFF
+        - entry: DacReg[105]
+          value: 0xFFFF
+        - entry: DacReg[106]
+          value: 0xFFFF
+        - entry: DacReg[107]
+          value: 0xFFFF
+        - entry: DacReg[108]
+          value: 0xFFFF
     #########################################################
     InitDac:
       name: InitDac
