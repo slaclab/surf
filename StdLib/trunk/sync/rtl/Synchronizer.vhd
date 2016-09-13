@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2014-04-14
+-- Last update: 2016-09-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,10 +36,10 @@ entity Synchronizer is
       BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration      
       INIT_G         : slv      := "0");
    port (
-      clk     : in  sl;                      -- clock to be SYNC'd to
-      rst     : in  sl := not RST_POLARITY_G;-- Optional reset
-      dataIn  : in  sl;                      -- Data to be 'synced'
-      dataOut : out sl);                     -- synced data
+      clk     : in  sl;                 -- clock to be SYNC'd to
+      rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
+      dataIn  : in  sl;                 -- Data to be 'synced'
+      dataOut : out sl);                -- synced data
 end Synchronizer;
 
 architecture rtl of Synchronizer is
@@ -52,10 +52,10 @@ architecture rtl of Synchronizer is
    -------------------------------
    -- XST/Synplify Attributes
    -------------------------------
-   
+
    -- ASYNC_REG require for Vivado but breaks ISE/XST synthesis
-   attribute ASYNC_REG      : string;
-   attribute ASYNC_REG of crossDomainSyncReg : signal is "TRUE";   
+   attribute ASYNC_REG                       : string;
+   attribute ASYNC_REG of crossDomainSyncReg : signal is "TRUE";
 
    -- Synplify Pro: disable shift-register LUT (SRL) extraction
    attribute syn_srlstyle                       : string;
@@ -84,16 +84,11 @@ begin
 
    assert (STAGES_G >= 2) report "STAGES_G must be >= 2" severity failure;
 
-   GEN_ASYNC : if (BYPASS_SYNC_G = false) generate
+   GEN : if (BYPASS_SYNC_G = false) generate
 
       comb : process (crossDomainSyncReg, dataIn, rst) is
       begin
          rin <= crossDomainSyncReg(STAGES_G-2 downto 0) & dataIn;
-
-         -- Synchronous Reset
-         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-            rin <= INIT_C;
-         end if;
 
          if (OUT_POLARITY_G = '1') then
             dataOut <= crossDomainSyncReg(STAGES_G-1);
@@ -103,19 +98,34 @@ begin
          
       end process comb;
 
-      seq : process (clk, rst) is
-      begin
-         if (rising_edge(clk)) then
-            crossDomainSyncReg <= rin after TPD_G;
-         end if;
-         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-            crossDomainSyncReg <= INIT_C after TPD_G;
-         end if;
-      end process seq;
+      ASYNC_RST : if (RST_ASYNC_G) generate
+         seq : process (clk, rst) is
+         begin
+            if (rising_edge(clk)) then
+               crossDomainSyncReg <= rin after TPD_G;
+            end if;
+            if (rst = RST_POLARITY_G) then
+               crossDomainSyncReg <= INIT_C after TPD_G;
+            end if;
+         end process seq;
+      end generate ASYNC_RST;
+
+      SYNC_RST : if (not RST_ASYNC_G) generate
+         seq : process (clk) is
+         begin
+            if (rising_edge(clk)) then
+               if (rst = RST_POLARITY_G) then
+                  crossDomainSyncReg <= INIT_C after TPD_G;
+               else
+                  crossDomainSyncReg <= rin after TPD_G;
+               end if;
+            end if;
+         end process seq;
+      end generate SYNC_RST;
 
    end generate;
 
-   GEN_SYNC : if (BYPASS_SYNC_G = true) generate
+   BYPASS : if (BYPASS_SYNC_G = true) generate
 
       dataOut <= dataIn when(OUT_POLARITY_G = '1') else not(dataIn);
       
