@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
--- File       : EthMacTxToe.vhd
+-- File       : EthMacTxImportXlgmii.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-08
--- Last update: 2016-09-09
+-- Created    : 2016-09-13
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: TX TCP Offload Engine (TOE) module
+-- Description: 40GbE Export MAC core with XLGMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -29,31 +29,36 @@ use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacTxToe is
+entity EthMacTxImportXlgmii is
    generic (
-      TPD_G   : time    := 1 ns;
-      JUMBO_G : boolean := false;
-      VLAN_G  : boolean := false);
+      TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
-      ethClk      : in  sl;
-      ethRst      : in  sl;
-      -- Configurations
-      ipCsumEn    : in  sl;
-      tcpCsumEn   : in  sl;
-      udpCsumEn   : in  sl;
-      -- Outbound data to MAC
-      sAxisMaster : in  AxiStreamMasterType;
-      sAxisSlave  : out AxiStreamSlaveType;
-      mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);
-end EthMacTxToe;
+      ethClk         : in  sl;
+      ethRst         : in  sl;
+      -- AXIS Interface   
+      macObMaster    : in  AxiStreamMasterType;
+      macObSlave     : out AxiStreamSlaveType;
+      -- XLGMII PHY Interface
+      phyTxd         : out slv(127 downto 0);
+      phyTxc         : out slv(15 downto 0);
+      phyReady       : in  sl;
+      -- Configuration
+      macAddress     : in  slv(47 downto 0);
+      -- Errors
+      txCountEn      : out sl;
+      txUnderRun     : out sl;
+      txLinkNotReady : out sl);
+end EthMacTxImportXlgmii;
 
-architecture rtl of EthMacTxToe is
+architecture rtl of EthMacTxImportXlgmii is
 
 begin
-
-   mAxisMaster <= sAxisMaster;
-   sAxisSlave  <= mAxisSlave;
-
+   -- Place holder for future code
+   macObSlave     <= AXI_STREAM_SLAVE_FORCE_C;
+   phyTxd         <= (others => '0');
+   phyTxc         <= (others => '0');
+   txCountEn      <= '0';
+   txUnderRun     <= '0';
+   txLinkNotReady <= '0';
 end rtl;
