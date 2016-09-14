@@ -62,22 +62,22 @@ proc ArchiveProject { } {
    archive_project $::env(IMAGES_DIR)/$::env(PROJECT)_project.xpr.zip -force -include_config_settings
    
    ## Restore the TCL configurations
-   set_property STEPS.SYNTH_DESIGN.TCL.PRE                 ${SYNTH_PRE}    [get_runs synth_1]
-   set_property STEPS.SYNTH_DESIGN.TCL.POST                ${SYNTH_POST}   [get_runs synth_1]
-   set_property STEPS.OPT_DESIGN.TCL.PRE                   ${OPT_PRE}      [get_runs impl_1]
-   set_property STEPS.OPT_DESIGN.TCL.POST                  ${OPT_POST}     [get_runs impl_1]
-   set_property STEPS.POWER_OPT_DESIGN.TCL.PRE             ${PWR_PRE}      [get_runs impl_1]
-   set_property STEPS.POWER_OPT_DESIGN.TCL.POST            ${PWR_POST}     [get_runs impl_1]
-   set_property STEPS.PLACE_DESIGN.TCL.PRE                 ${PLACE_PRE}    [get_runs impl_1]
-   set_property STEPS.PLACE_DESIGN.TCL.POST                ${PLACE_POST}   [get_runs impl_1]
-   set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.TCL.PRE  ${PWR_OPT_PRE}  [get_runs impl_1]
-   set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.TCL.POST ${PWR_OPT_POST} [get_runs impl_1]
-   set_property STEPS.PHYS_OPT_DESIGN.TCL.PRE              ${PHYS_OPT_PRE} [get_runs impl_1]
-   set_property STEPS.PHYS_OPT_DESIGN.TCL.POST             ${PHYS_OPT_POST}[get_runs impl_1]
-   set_property STEPS.ROUTE_DESIGN.TCL.PRE                 ${ROUTE_PRE}    [get_runs impl_1]
-   set_property STEPS.ROUTE_DESIGN.TCL.POST                ${ROUTE_POST}   [get_runs impl_1]
-   set_property STEPS.WRITE_BITSTREAM.TCL.PRE              ${WRITE_PRE}    [get_runs impl_1]   
-   set_property STEPS.WRITE_BITSTREAM.TCL.POST             ${WRITE_POST}   [get_runs impl_1]     
+   set_property STEPS.SYNTH_DESIGN.TCL.PRE                 ${SYNTH_PRE}     [get_runs synth_1]
+   set_property STEPS.SYNTH_DESIGN.TCL.POST                ${SYNTH_POST}    [get_runs synth_1]
+   set_property STEPS.OPT_DESIGN.TCL.PRE                   ${OPT_PRE}       [get_runs impl_1]
+   set_property STEPS.OPT_DESIGN.TCL.POST                  ${OPT_POST}      [get_runs impl_1]
+   set_property STEPS.POWER_OPT_DESIGN.TCL.PRE             ${PWR_PRE}       [get_runs impl_1]
+   set_property STEPS.POWER_OPT_DESIGN.TCL.POST            ${PWR_POST}      [get_runs impl_1]
+   set_property STEPS.PLACE_DESIGN.TCL.PRE                 ${PLACE_PRE}     [get_runs impl_1]
+   set_property STEPS.PLACE_DESIGN.TCL.POST                ${PLACE_POST}    [get_runs impl_1]
+   set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.TCL.PRE  ${PWR_OPT_PRE}   [get_runs impl_1]
+   set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.TCL.POST ${PWR_OPT_POST}  [get_runs impl_1]
+   set_property STEPS.PHYS_OPT_DESIGN.TCL.PRE              ${PHYS_OPT_PRE}  [get_runs impl_1]
+   set_property STEPS.PHYS_OPT_DESIGN.TCL.POST             ${PHYS_OPT_POST} [get_runs impl_1]
+   set_property STEPS.ROUTE_DESIGN.TCL.PRE                 ${ROUTE_PRE}     [get_runs impl_1]
+   set_property STEPS.ROUTE_DESIGN.TCL.POST                ${ROUTE_POST}    [get_runs impl_1]
+   set_property STEPS.WRITE_BITSTREAM.TCL.PRE              ${WRITE_PRE}     [get_runs impl_1]   
+   set_property STEPS.WRITE_BITSTREAM.TCL.POST             ${WRITE_POST}    [get_runs impl_1]     
 }
 
 # Custom TLC source function
