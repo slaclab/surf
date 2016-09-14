@@ -278,7 +278,8 @@ Dac38J84: &Dac38J84
       description: InitJesd
     #########################################################    
     ClearAlarms:
-      name: ClearAlarms
+      at:
+        offset: 0x0
       class: SequenceCommand
       description: Clear all the DAC alarms
       sequence:
@@ -302,7 +303,8 @@ Dac38J84: &Dac38J84
           value: 0xFFFF
     #########################################################
     InitDac:
-      name: InitDac
+      at:
+        offset: 0x0
       class: SequenceCommand
       description: Initialization sequence for the DAC JESD core
       sequence:
