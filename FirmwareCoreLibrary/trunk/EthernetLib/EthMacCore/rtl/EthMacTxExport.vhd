@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExport.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,8 +30,8 @@ use work.StdRtlPkg.all;
 
 entity EthMacTxExport is
    generic (
-      TPD_G     : time    := 1 ns;
-      GMII_EN_G : boolean := false);    -- False = XGMII Interface only, True = GMII Interface only
+      TPD_G      : time   := 1 ns;
+      PHY_TYPE_G : string := "XGMII");
    port (
       -- Clock and Reset
       ethClk         : in  sl;
@@ -39,9 +39,12 @@ entity EthMacTxExport is
       -- AXIS Interface   
       macObMaster    : in  AxiStreamMasterType;
       macObSlave     : out AxiStreamSlaveType;
+      -- XLGMII PHY Interface
+      xlgmiiTxd      : out slv(127 downto 0);
+      xlgmiiTxc      : out slv(15 downto 0);
       -- XGMII PHY Interface
-      phyTxd         : out slv(63 downto 0);
-      phyTxc         : out slv(7 downto 0);
+      xgmiiTxd       : out slv(63 downto 0);
+      xgmiiTxc       : out slv(7 downto 0);
       -- GMII PHY Interface
       gmiiTxEn       : out sl;
       gmiiTxEr       : out sl;
@@ -58,7 +61,37 @@ architecture mapping of EthMacTxExport is
 
 begin
 
-   U_10G_EXPORT : if (GMII_EN_G = false) generate
+   assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacTxExport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
+
+   U_40G : if (PHY_TYPE_G = "XLGMII") generate
+      U_XLGMII : entity work.EthMacTxImportXlgmii
+         generic map (
+            TPD_G => TPD_G) 
+         port map (
+            -- Clock and Reset
+            ethClk         => ethClk,
+            ethRst         => ethRst,
+            -- AXIS Interface 
+            macObMaster    => macObMaster,
+            macObSlave     => macObSlave,
+            -- XLGMII PHY Interface
+            phyTxd         => xlgmiiTxd,
+            phyTxc         => xlgmiiTxc,
+            -- Configuration and status
+            phyReady       => phyReady,
+            macAddress     => macAddress,
+            txCountEn      => txCountEn,
+            txUnderRun     => txUnderRun,
+            txLinkNotReady => txLinkNotReady);
+      -- Unused output ports
+      xgmiiTxd <= (others => '0');
+      xgmiiTxc <= (others => '0');
+      gmiiTxEn <= '0';
+      gmiiTxEr <= '0';
+      gmiiTxd  <= (others => '0');
+   end generate;
+
+   U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity work.EthMacTxExportXgmii
          generic map (
             TPD_G => TPD_G) 
@@ -70,8 +103,8 @@ begin
             macObMaster    => macObMaster,
             macObSlave     => macObSlave,
             -- XGMII PHY Interface
-            phyTxd         => phyTxd,
-            phyTxc         => phyTxc,
+            phyTxd         => xgmiiTxd,
+            phyTxc         => xgmiiTxc,
             -- Configuration and status
             phyReady       => phyReady,
             interFrameGap  => x"3",
@@ -80,12 +113,14 @@ begin
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
       -- Unused output ports
-      gmiiTxEn <= '0';
-      gmiiTxEr <= '0';
-      gmiiTxd  <= (others => '0');
+      xlgmiiTxd <= (others => '0');
+      xlgmiiTxc <= (others => '0');
+      gmiiTxEn  <= '0';
+      gmiiTxEr  <= '0';
+      gmiiTxd   <= (others => '0');
    end generate;
 
-   U_1G_EXPORT : if (GMII_EN_G = true) generate
+   U_1G : if (PHY_TYPE_G = "GMII") generate
       U_GMII : entity work.EthMacTxExportGmii
          generic map (
             TPD_G => TPD_G) 
@@ -107,8 +142,10 @@ begin
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
       -- Unused output ports
-      phyTxd <= (others => '0');
-      phyTxc <= (others => '0');
+      xlgmiiTxd <= (others => '0');
+      xlgmiiTxc <= (others => '0');
+      xgmiiTxd  <= (others => '0');
+      xgmiiTxc  <= (others => '0');
    end generate;
 
 end mapping;

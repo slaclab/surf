@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTop.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,17 +36,17 @@ entity EthMacTop is
       -- MAC Configurations
       PAUSE_EN_G      : boolean                  := true;
       PAUSE_512BITS_G : positive range 1 to 1024 := 8;
-      GMII_EN_G       : boolean                  := false;  -- False = XGMII Interface only, True = GMII Interface only
+      PHY_TYPE_G      : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
+      TX_EOFE_DROP_G  : boolean                  := true;
+      JUMBO_G         : boolean                  := true;
       -- Non-VLAN Configurations
       FILT_EN_G       : boolean                  := false;
       BYP_EN_G        : boolean                  := false;
       BYP_ETH_TYPE_G  : slv(15 downto 0)         := x"0000";
       SHIFT_EN_G      : boolean                  := false;
-      JUMBO_G         : boolean                  := false;
       -- VLAN Configurations
       VLAN_EN_G       : boolean                  := false;
-      VLAN_CNT_G      : positive range 1 to 8    := 1;
-      VLAN_JUMBO_G    : boolean                  := false);   
+      VLAN_CNT_G      : positive range 1 to 8    := 1);      
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -69,20 +69,25 @@ entity EthMacTop is
       -- VLAN Interfaces, RX
       mVlanMaster  : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
       mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+      -- XLGMII PHY Interface
+      xlgmiiRxd    : in  slv(127 downto 0);
+      xlgmiiRxc    : in  slv(15 downto 0);
+      xlgmiiTxd    : out slv(127 downto 0);
+      xlgmiiTxc    : out slv(15 downto 0);
       -- XGMII PHY Interface
-      phyTxd       : out slv(63 downto 0);
-      phyTxc       : out slv(7 downto 0);
-      phyRxd       : in  slv(63 downto 0);
-      phyRxc       : in  slv(7 downto 0);
-      phyReady     : in  sl;
+      xgmiiRxd     : in  slv(63 downto 0);
+      xgmiiRxc     : in  slv(7 downto 0);
+      xgmiiTxd     : out slv(63 downto 0);
+      xgmiiTxc     : out slv(7 downto 0);
       -- GMII PHY Interface
-      gmiiRxDv     : in  sl                                          := '0';
-      gmiiRxEr     : in  sl                                          := '0';
-      gmiiRxd      : in  slv(7 downto 0)                             := x"00";
+      gmiiRxDv     : in  sl;
+      gmiiRxEr     : in  sl;
+      gmiiRxd      : in  slv(7 downto 0);
       gmiiTxEn     : out sl;
       gmiiTxEr     : out sl;
       gmiiTxd      : out slv(7 downto 0);
       -- Configuration and status
+      phyReady     : in  sl;
       ethConfig    : in  EthMacConfigType;
       ethStatus    : out EthMacStatusType);
 end EthMacTop;
@@ -105,15 +110,15 @@ begin
          -- MAC Configurations
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G,
-         GMII_EN_G       => GMII_EN_G,
+         PHY_TYPE_G      => PHY_TYPE_G,
+         TX_EOFE_DROP_G  => TX_EOFE_DROP_G,
+         JUMBO_G         => JUMBO_G,
          -- Non-VLAN Configurations
          BYP_EN_G        => BYP_EN_G,
          SHIFT_EN_G      => SHIFT_EN_G,
-         JUMBO_G         => JUMBO_G,
          -- VLAN Configurations
          VLAN_EN_G       => VLAN_EN_G,
-         VLAN_CNT_G      => VLAN_CNT_G,
-         VLAN_JUMBO_G    => VLAN_JUMBO_G)
+         VLAN_CNT_G      => VLAN_CNT_G)
       port map (
          -- Clocks
          ethClk         => ethClk,
@@ -127,26 +132,28 @@ begin
          -- VLAN Interfaces
          sVlanMasters   => sVlanMasters,
          sVlanSlaves    => sVlanSlaves,
+         -- XLGMII PHY Interface
+         xlgmiiTxd      => xlgmiiTxd,
+         xlgmiiTxc      => xlgmiiTxc,
          -- XGMII PHY Interface
-         phyTxd         => phyTxd,
-         phyTxc         => phyTxc,
-         phyReady       => phyReady,
+         xgmiiTxd       => xgmiiTxd,
+         xgmiiTxc       => xgmiiTxc,
          -- GMII PHY Interface
          gmiiTxEn       => gmiiTxEn,
          gmiiTxEr       => gmiiTxEr,
          gmiiTxd        => gmiiTxd,
-         -- Configurations
-         ethConfig      => ethConfig,
          -- Flow control Interface
          clientPause    => intCtrl.pause,
          rxPauseReq     => rxPauseReq,
          rxPauseValue   => rxPauseValue,
          pauseTx        => ethStatus.txPauseCnt,
          pauseVlanTx    => ethStatus.vlantxPauseCnt,
-         -- Status
+         -- Configuration and status
+         phyReady       => phyReady,
+         ethConfig      => ethConfig,
          txCountEn      => ethStatus.txCountEn,
          txUnderRun     => ethStatus.txUnderRunCnt,
-         txLinkNotReady => ethStatus.txNotReadyCnt);
+         txLinkNotReady => ethStatus.txNotReadyCnt);          
 
    ---------------------      
    -- Flow Control Logic
@@ -171,17 +178,16 @@ begin
          TPD_G          => TPD_G,
          -- MAC Configurations
          PAUSE_EN_G     => PAUSE_EN_G,
-         GMII_EN_G      => GMII_EN_G,
+         PHY_TYPE_G     => PHY_TYPE_G,
+         JUMBO_G        => JUMBO_G,
          -- Non-VLAN Configurations
          FILT_EN_G      => FILT_EN_G,
          BYP_EN_G       => BYP_EN_G,
          BYP_ETH_TYPE_G => BYP_ETH_TYPE_G,
          SHIFT_EN_G     => SHIFT_EN_G,
-         JUMBO_G        => JUMBO_G,
          -- VLAN Configurations
          VLAN_EN_G      => VLAN_EN_G,
-         VLAN_CNT_G     => VLAN_CNT_G,
-         VLAN_JUMBO_G   => VLAN_JUMBO_G)
+         VLAN_CNT_G     => VLAN_CNT_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -195,9 +201,12 @@ begin
          -- Vlan Interfaces
          mVlanMaster  => mVlanMaster,
          mVlanCtrl    => mVlanCtrl,
+         -- XLGMII PHY Interface
+         xlgmiiRxd    => xlgmiiRxd,
+         xlgmiiRxc    => xlgmiiRxc,
          -- XGMII PHY Interface
-         phyRxd       => phyRxd,
-         phyRxc       => phyRxc,
+         xgmiiRxd     => xgmiiRxd,
+         xgmiiRxc     => xgmiiRxc,
          -- GMII PHY Interface
          gmiiRxDv     => gmiiRxDv,
          gmiiRxEr     => gmiiRxEr,

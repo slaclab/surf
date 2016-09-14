@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
--- File       : EthMacRxToe.vhd
+-- File       : EthMacRxImportXlgmii.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-08
--- Last update: 2016-09-09
+-- Created    : 2016-09-13
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: RX TCP Offload Engine (TOE) module
+-- Description: 40GbE Import MAC core with XLGMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Ethernet Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -29,28 +29,29 @@ use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacRxToe is
+entity EthMacRxImportXlgmii is
    generic (
-      TPD_G   : time    := 1 ns;
-      JUMBO_G : boolean := false;
-      VLAN_G  : boolean := false);
+      TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
       ethRst      : in  sl;
-      -- Configurations
-      ipCsumEn    : in  sl;
-      tcpCsumEn   : in  sl;
-      udpCsumEn   : in  sl;
-      -- Inbound data from MAC
-      sAxisMaster : in  AxiStreamMasterType;
-      mAxisMaster : out AxiStreamMasterType);
-end EthMacRxToe;
+      -- AXIS Interface   
+      macIbMaster : out AxiStreamMasterType;
+      -- XLGMII PHY Interface
+      phyRxd      : in  slv(127 downto 0);
+      phyRxc      : in  slv(15 downto 0);
+      -- Configuration and status
+      phyReady    : in  sl;
+      rxCountEn   : out sl;
+      rxCrcError  : out sl);
+end EthMacRxImportXlgmii;
 
-architecture rtl of EthMacRxToe is
+architecture rtl of EthMacRxImportXlgmii is
 
 begin
-
-   mAxisMaster <= sAxisMaster;
-
+   -- Place holder for future code
+   macIbMaster <= AXI_STREAM_MASTER_INIT_C;
+   rxCountEn   <= '0';
+   rxCrcError  <= '0';
 end rtl;

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-11
--- Last update: 2016-08-16
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,10 +28,11 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.EthMacPkg.all;
 
 package IpV4EnginePkg is
 
-   constant IP_ENGINE_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(16);
+   constant IP_ENGINE_CONFIG_C : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
 
    -- EtherTypes
    constant ARP_TYPE_C  : slv(15 downto 0) := x"0608";  -- EtherType = ARP = 0x0806

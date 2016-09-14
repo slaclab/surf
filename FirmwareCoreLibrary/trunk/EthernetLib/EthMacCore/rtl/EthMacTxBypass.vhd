@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTxBypass.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,23 +55,20 @@ architecture rtl of EthMacTxBypass is
    type StateType is (
       IDLE_S,
       PRIM_S,
-      BYP_S,
-      DUMP_S);
+      BYP_S);
 
    type RegType is record
-      state     : StateType;
-      dump      : sl;
-      outMaster : AxiStreamMasterType;
-      primSlave : AxiStreamSlaveType;
-      bypSlave  : AxiStreamSlaveType;
+      mAxisMaster : AxiStreamMasterType;
+      sPrimSlave  : AxiStreamSlaveType;
+      sBypSlave   : AxiStreamSlaveType;
+      state       : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state     => IDLE_S,
-      dump      => '1',
-      outMaster => AXI_STREAM_MASTER_INIT_C,
-      primSlave => AXI_STREAM_SLAVE_INIT_C,
-      bypSlave  => AXI_STREAM_SLAVE_INIT_C);
+      mAxisMaster => AXI_STREAM_MASTER_INIT_C,
+      sPrimSlave  => AXI_STREAM_SLAVE_INIT_C,
+      sBypSlave   => AXI_STREAM_SLAVE_INIT_C,
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -91,93 +88,72 @@ begin
 
          -- Clear tValid on ready assertion
          if mAxisSlave.tReady = '1' then
-            v.outMaster.tValid := '0';
+            v.mAxisMaster.tValid := '0';
          end if;
 
          -- Clear ready
-         v.primSlave.tReady := '0';
-         v.bypSlave.tReady  := '0';
+         v.sPrimSlave.tReady := '0';
+         v.sBypSlave.tReady  := '0';
 
          -- State Machine
          case r.state is
-
-            -- IDLE, wait for frame
+            ----------------------------------------------------------------------   
             when IDLE_S =>
-               v.dump := '0';
-
-               -- Bypass frame request
-               if sBypMaster.tValid = '1' then
-                  v.state := BYP_S;
-
-               -- Primary frame request
-               elsif sPrimMaster.tValid = '1' then
-                  v.state := PRIM_S;
-
-               end if;
-
-            -- Passing primary data
-            when PRIM_S =>
-
-               -- Fill chain
-               if v.outMaster.tValid = '0' then
-                  v.primSlave.tReady := '1';
-                  v.outMaster        := sPrimMaster;
-
-                  -- Last of frame
-                  if sPrimMaster.tValid = '1' and sPrimMaster.tLast = '1' then
-                     v.state := IDLE_S;
-
-                  -- Bypass pre-empt
-                  elsif sBypMaster.tValid = '1' then
-                     v.state           := BYP_S;
-                     v.dump            := '1';
-                     v.outMaster.tLast := '1';
-
-                     -- Mark frame in error
-                     axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.outMaster, EMAC_EOFE_BIT_C, '1');
-                  end if;
-               end if;
-
-            -- Sending pre-empt data
-            when BYP_S =>
-
-               -- Assert ready when dumping
-               v.primSlave.tReady := r.dump;
-
-               -- Detect last dump of primary data
-               if sPrimMaster.tValid = '1' and sPrimMaster.tLast = '1' then
-                  v.dump := '0';
-               end if;
-
-               -- Fill chain
-               if v.outMaster.tValid = '0' then
-                  v.bypSlave.tReady := '1';
-                  v.outMaster       := sBypMaster;
-
-                  -- Last of frame
-                  if sBypMaster.tValid = '1' and sBypMaster.tLast = '1' then
-
-                     -- Still dumping primary data
-                     if v.dump = '1' then
-                        v.state := DUMP_S;
-
-                     else
-                        v.state := IDLE_S;
+               -- Check if ready to move data
+               if v.mAxisMaster.tValid = '0' then
+                  -- Check for Bypass frame request
+                  if (sBypMaster.tValid = '1') then
+                     -- Accept the data
+                     v.sBypSlave.tReady := '1';
+                     -- Move data
+                     v.mAxisMaster      := sBypMaster;
+                     -- Check for no EOF
+                     if sBypMaster.tLast = '0' then
+                        -- Next state
+                        v.state := BYP_S;
+                     end if;
+                  -- Check for Primary frame request
+                  elsif (sPrimMaster.tValid = '1') then
+                     -- Accept the data
+                     v.sPrimSlave.tReady := '1';
+                     -- Move data
+                     v.mAxisMaster       := sPrimMaster;
+                     -- Check for no EOF
+                     if sPrimMaster.tLast = '0' then
+                        -- Next state
+                        v.state := PRIM_S;
                      end if;
                   end if;
                end if;
-
-            -- Dump data
-            when DUMP_S =>
-
-               -- Accept all data
-               v.primSlave.tReady := '1';
-
-               -- Dump until last primary data
-               if sPrimMaster.tValid = '1' and sPrimMaster.tLast = '1' then
-                  v.state := IDLE_S;
+            ----------------------------------------------------------------------   
+            when PRIM_S =>
+               -- Check if ready to move data
+               if (v.mAxisMaster.tValid = '0') and (sPrimMaster.tValid = '1') then
+                  -- Accept the data
+                  v.sPrimSlave.tReady := '1';
+                  -- Move the data
+                  v.mAxisMaster       := sPrimMaster;
+                  -- Check for EOF
+                  if (sPrimMaster.tLast = '1') then
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
                end if;
-
+            ----------------------------------------------------------------------   
+            when BYP_S =>
+               -- Check if ready to move data
+               if (v.mAxisMaster.tValid = '0') and (sBypMaster.tValid = '1') then
+                  -- Accept the data
+                  v.sBypSlave.tReady := '1';
+                  -- Move the data
+                  v.mAxisMaster      := sBypMaster;
+                  -- Check for EOF
+                  if (sBypMaster.tLast = '1') then
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
+               end if;
+         ----------------------------------------------------------------------   
          end case;
 
          -- Reset
@@ -189,9 +165,9 @@ begin
          rin <= v;
 
          -- Outputs 
-         mAxisMaster <= r.outMaster;
-         sPrimSlave  <= v.primSlave;
-         sBypSlave   <= v.bypSlave;
+         sPrimSlave  <= v.sPrimSlave;
+         sBypSlave   <= v.sBypSlave;
+         mAxisMaster <= r.mAxisMaster;
 
       end process;
 
