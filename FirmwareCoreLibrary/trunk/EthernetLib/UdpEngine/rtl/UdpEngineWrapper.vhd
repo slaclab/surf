@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-08-17
+-- Last update: 2016-09-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,31 +28,23 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity UdpEngineWrapper is
    generic (
       -- Simulation Generics
       TPD_G               : time            := 1 ns;
-      SIM_ERROR_HALT_G    : boolean         := false;
-      -- UDP General Generic
-      RX_MTU_G            : positive        := 1500;
-      RX_FORWARD_EOFE_G   : boolean         := false;
-      TX_FORWARD_EOFE_G   : boolean         := false;
-      TX_CALC_CHECKSUM_G  : boolean         := true;
       -- UDP Server Generics
       SERVER_EN_G         : boolean         := true;
       SERVER_SIZE_G       : positive        := 1;
       SERVER_PORTS_G      : PositiveArray   := (0 => 8192);
-      SERVER_MTU_G        : positive        := 1500;
       -- UDP Client Generics
       CLIENT_EN_G         : boolean         := true;
       CLIENT_SIZE_G       : positive        := 1;
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
-      CLIENT_MTU_G        : positive        := 1500;
       CLIENT_EXT_CONFIG_G : boolean         := false;
       AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
-      -- IPv4/ARP/DHCP Generics
+      -- General IPv4/ARP/DHCP Generics
       DHCP_G              : boolean         := false;
       CLK_FREQ_G          : real            := 156.25E+06;          -- In units of Hz
       COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
@@ -128,13 +120,12 @@ begin
    ------------------
    IpV4Engine_Inst : entity work.IpV4Engine
       generic map (
-         TPD_G            => TPD_G,
-         SIM_ERROR_HALT_G => SIM_ERROR_HALT_G,
-         PROTOCOL_SIZE_G  => 1,
-         PROTOCOL_G       => (0 => UDP_C),
-         CLIENT_SIZE_G    => CLIENT_SIZE_G,
-         CLK_FREQ_G       => CLK_FREQ_G,
-         VLAN_G           => VLAN_G)
+         TPD_G           => TPD_G,
+         PROTOCOL_SIZE_G => 1,
+         PROTOCOL_G      => (0 => UDP_C),
+         CLIENT_SIZE_G   => CLIENT_SIZE_G,
+         CLK_FREQ_G      => CLK_FREQ_G,
+         VLAN_G          => VLAN_G)
       port map (
          -- Local Configurations
          localMac             => localMac,
@@ -164,27 +155,19 @@ begin
    UdpEngine_Inst : entity work.UdpEngine
       generic map (
          -- Simulation Generics
-         TPD_G              => TPD_G,
-         SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
-         -- UDP General Generic
-         RX_MTU_G           => RX_MTU_G,
-         RX_FORWARD_EOFE_G  => RX_FORWARD_EOFE_G,
-         TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
-         TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
+         TPD_G          => TPD_G,
          -- UDP Server Generics
-         SERVER_EN_G        => SERVER_EN_G,
-         SERVER_SIZE_G      => SERVER_SIZE_G,
-         SERVER_PORTS_G     => SERVER_PORTS_G,
-         SERVER_MTU_G       => SERVER_MTU_G,
+         SERVER_EN_G    => SERVER_EN_G,
+         SERVER_SIZE_G  => SERVER_SIZE_G,
+         SERVER_PORTS_G => SERVER_PORTS_G,
          -- UDP Client Generics
-         CLIENT_EN_G        => CLIENT_EN_G,
-         CLIENT_SIZE_G      => CLIENT_SIZE_G,
-         CLIENT_PORTS_G     => CLIENT_PORTS_G,
-         CLIENT_MTU_G       => CLIENT_MTU_G,
+         CLIENT_EN_G    => CLIENT_EN_G,
+         CLIENT_SIZE_G  => CLIENT_SIZE_G,
+         CLIENT_PORTS_G => CLIENT_PORTS_G,
          -- UDP ARP/DHCP Generics
-         DHCP_G             => DHCP_G,
-         CLK_FREQ_G         => CLK_FREQ_G,
-         COMM_TIMEOUT_G     => COMM_TIMEOUT_G)  
+         DHCP_G         => DHCP_G,
+         CLK_FREQ_G     => CLK_FREQ_G,
+         COMM_TIMEOUT_G => COMM_TIMEOUT_G)  
       port map (
          -- Local Configurations
          localMac         => localMac,
