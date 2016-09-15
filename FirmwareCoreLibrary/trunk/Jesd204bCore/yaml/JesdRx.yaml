@@ -9,32 +9,35 @@
 ##############################################################################
 #schemaversion 3.0.0
 #once
-
 JesdRx: &JesdRx
   class: MMIODev
   configPrio: 1
   description: JESD RX Module
   size: 0x200
+  metadata:
+    numRxLanes: &numRxLanes 6
+  #########
   children:
+    #########################################################
     Enable:
       at:
         offset: 0x00
       class: IntField
       name: Enable
-      sizeBits: 8
+      sizeBits: *numRxLanes
       mode: RW
-      description: Enable[7:0]
-    SysrefDelay:
-    ######################################################### 
+      description: "Enable mask. Example: 0x3F Enable ln0 to ln5."
+    #########################################################    
+    SysrefDelay: 
       at:
         offset: 0x04
       class: IntField
       name: SysrefDelay
       sizeBits: 5
       mode: RW
-      description: Sets the synchronisation delay in clock cycles
-    SubClass:
+      description: "Sets the system reference delay in clock cycles. Use if you want to reduce the latency (The latency is indicated by ElBuffLatency status). "
     #########################################################    
+    SubClass:    
       at:
         offset: 0x10
       class: IntField
@@ -42,9 +45,9 @@ JesdRx: &JesdRx
       sizeBits: 1
       lsBit: 0
       mode: RW
-      description: SubClass
-    ReplaceEnable:
-    #########################################################  
+      description: "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency."
+    #########################################################    
+    ReplaceEnable:  
       at:
         offset: 0x10
       class: IntField
@@ -59,9 +62,9 @@ JesdRx: &JesdRx
         - name:  Enabled
           class: Enum
           value: 1
-      description: Jesd Character Replacement Enable (Leave Enabled in normal operation).
-    ResetGTs:
-    #########################################################  
+      description: "ReplaceEnable. Replace the control characters with data. (Should be 1 use 0 only for debug)."
+    #########################################################    
+    ResetGTs:  
       at:
         offset: 0x10
       class: IntField
@@ -69,9 +72,9 @@ JesdRx: &JesdRx
       sizeBits: 1
       lsBit: 2
       mode: RW
-      description: ResetGTs
-    ClearErrors:
-    #########################################################    
+      description: "ResetGTs. Request reset of the GT modules."
+    #########################################################     
+    ClearErrors:   
       at:
         offset: 0x10
       class: IntField
@@ -79,9 +82,9 @@ JesdRx: &JesdRx
       sizeBits: 1
       lsBit: 3
       mode: RW
-      description: ClearErrors
-    InvertSync:
-    ######################################################### 
+      description: "Clear Jesd Errors and reset the status counters."
+    #########################################################    
+    InvertSync: 
       at:
         offset: 0x10
       class: IntField
@@ -96,10 +99,9 @@ JesdRx: &JesdRx
         - name: Inverted
           class: Enum
           value: 1
-      description: Invert Sync. Sync output has to be inverted in some systems depending
-        on signal polarities on the PCB.
-    ScrambleEnable:
-    ######################################################### 
+      description: "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB."
+    #########################################################    
+    ScrambleEnable: 
       at:
         offset: 0x10
       class: IntField
@@ -114,201 +116,199 @@ JesdRx: &JesdRx
         - name: Enabled
           class: Enum
           value: 1
-      description: Enable data Scrambling.
-    GTXReady:
-    #########################################################        
+      description: "ScrambleEnable. Enable data scrambling (More info in Jesd204b standard)."
+    #########################################################            
+    GTReady:
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
-      name: GTXReady
+      name: GTReady
       sizeBits: 1
       lsBit: 0
       mode: RO
-      description: GTXReady[7:0]
-    DataValid:
-    #########################################################        
+      description: "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data."
+    #########################################################    
+    DataValid:        
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: DataValid
       sizeBits: 1
       lsBit: 1
       mode: RO
-      description: DataValid[7:0]
-    AlignErr:
-    #########################################################        
+      description: "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard)."
+    #########################################################     
+    AlignErr:       
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: AlignErr
       sizeBits: 1
       lsBit: 2
       mode: RO
-      description: AlignErr[7:0]
-    nSync:
-    #########################################################        
+      description: "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronisation."
+    #########################################################    
+    nSync:        
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: nSync
       sizeBits: 1
       lsBit: 3
       mode: RO
-      description: nSync[7:0]
-    RxBuffUfl:
-    #########################################################        
+      description: "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed."
+    #########################################################    
+    RxBuffUfl:        
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: RxBuffUfl
       sizeBits: 1
       lsBit: 4
       mode: RO
-      description: RxBuffUfl[7:0]
-    RxBuffOfl:
-    #########################################################        
+      description: "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronisation."
+    #########################################################    
+    RxBuffOfl:        
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: RxBuffOfl
       sizeBits: 1
       lsBit: 5
       mode: RO
-      description: RxBuffOfl[7:0]
-    PositionErr:
-    #########################################################        
+      description: "Jesd elastic buffer overflow. This error will trigger JESD re-synchronisation."
+    #########################################################    
+    PositionErr:        
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: PositionErr
       sizeBits: 1
       lsBit: 6
       mode: RO
-      description: PositionErr[7:0]
-    RxEnabled:
-    #########################################################        
+      description: "The position of K28.5 character during code group synchronisation is wrong. This error will trigger JESD re-synchronisation."
+    #########################################################    
+    RxEnabled:        
       at:
         offset: 0x040
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: RxEnabled
       sizeBits: 1
       lsBit: 7
       mode: RO
-      description: RxEnabled[7:0]
-    SysRefDetected:
-    #########################################################        
+      description: "Rx Lane Enabled. Indicates if the lane had been enabled in configuration."
+    #########################################################     
+    SysRefDetected:       
       at:
         offset: 0x041
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: SysRefDetected
       sizeBits: 1
       lsBit: 0
       mode: RO
-      description: SysRefDetected[7:0]
-    CommaDetected:
-    #########################################################        
+      description: "System Reference input has been Detected."
+    #########################################################    
+    CommaDetected:        
       at:
         offset: 0x041
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: CommaDetected
       sizeBits: 1
       lsBit: 1
       mode: RO
-      description: CommaDetected[7:0]
-    DisparityErr:
-    #########################################################        
+      description: "The K28.5 characters detected in the serial stream. "
+    #########################################################     
+    DisparityErr:       
       at:
         offset: 0x041
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: DisparityErr
       sizeBits: 4
       lsBit: 2
       mode: RO
-      description: DisparityErr[7:0]
-    DecErr:
-    #########################################################        
+      description:  "Latched High when the data byte on RXDATA arrives with the wrong disparity. Indicates bad serial connection (Check HW)."
+    #########################################################    
+    NotInTableErr:        
       at:
         offset: 0x041
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
-      name: DecErr
+      name: NotInTableErr
       sizeBits: 4
       lsBit: 6
       mode: RO
-      description: DecErr[7:0]
-    ElBuffLatency:
-    #########################################################        
+      description: "NotInTableErr. When GT decoder received s 10-bit character that cannot be mapped into a valid 8B/10B character. Indicates bad serial connection (Check HW)."
+    #########################################################    
+    ElBuffLatency:        
       at:
         offset: 0x042
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: ElBuffLatency
       sizeBits: 4
       lsBit: 2
       mode: RO
-      description: ElBuffLatency[7:0]
-    Threshold_Low:
-    #########################################################     
+      description: "Jesd204b elastic buffer latency in c-c. Can be adjusted by Sysref delay."
+    #########################################################    
+    ThresholdLow:     
       at:
         offset: 0xC0
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
-      name: Threshold_Low
+      name: ThresholdLow
       sizeBits: 16
       mode: RW
-      description: Threshold_Low[7:0]. Debug funtionality. Threshold for generating
-        a digital signal from the ADC data.
-    Threshold_High:
-    #########################################################   
+      description: "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data."
+    #########################################################    
+    ThresholdHigh:   
       at:
         offset: 0xC2
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
-      name: Threshold_High
+      name: ThresholdHigh
       sizeBits: 16
       mode: RW
-      description: Threshold_High[7:0]. Debug funtionality. Threshold for generating
-        a digital signal from the ADC data.
-    StatusValidCnt:
-    #########################################################   
+      description: "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data."
+    #########################################################    
+    StatusValidCnt:   
       at:
         offset: 0x100
         stride: 4
-        nelms: 8
+        nelms: *numRxLanes
       class: IntField
       name: StatusValidCnt
       sizeBits: 32
-      mode: RW
-      description: StatusValidCnt[7:0]. Shows stability of JESD lanes. Counts number
-        of JESD re-syncronisations.
-    C_ClearErrors:
-      name: C_ClearErrors
+      mode: RO
+      description: "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
+    #########################################################    
+    ClearRxErrors:
+      name: ClearRxErrors
       class: SequenceCommand
       at:
         offset: 0x0
@@ -319,8 +319,8 @@ JesdRx: &JesdRx
       - entry: ClearErrors
         value: 0x0
     #########################################################
-    C_ResetGTs:
-      name: C_ResetGTs
+    ResetRxGTs:
+      name: ResetRxGTs
       class: SequenceCommand
       at:
         offset: 0x0
