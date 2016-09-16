@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : 1GbE/10GbE/40GbE Ethernet IPv4/ARP/ICMP Module
 -------------------------------------------------------------------------------
 -- File       : IcmpEngine.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-16
--- Last update: 2016-08-17
+-- Last update: 2016-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity IcmpEngine is
    generic (
@@ -93,7 +93,7 @@ begin
       end if;
 
       -- Update the variable
-      eofe := ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibIcmpMaster);
+      eofe := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, ibIcmpMaster);
 
       ------------------------------------------------
       -- Notes: Non-Standard IPv4 Pseudo Header Format
@@ -121,7 +121,7 @@ begin
                -- Accept the data
                v.ibIcmpSlave.tReady := '1';
                -- Check for SOF with no EOF
-               if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibIcmpMaster) = '1') and (ibIcmpMaster.tLast = '0') then
+               if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibIcmpMaster) = '1') and (ibIcmpMaster.tLast = '0') then
                   -- Copy IPv4 base header
                   v.tData(63 downto 0)   := ibIcmpMaster.tData(63 downto 0);
                   -- Swap the IP addresses
@@ -155,7 +155,7 @@ begin
                   -- Send the IPv4 base header
                   v.obIcmpMaster.tValid   := '1';
                   v.obIcmpMaster.tData    := r.tData;
-                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.obIcmpMaster, '1');
+                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, '1');
                   -- Next state
                   v.state                 := TX_HDR_S;
                else
@@ -180,7 +180,7 @@ begin
                v.obIcmpMaster.tLast                := ibIcmpMaster.tLast;
                if ibIcmpMaster.tLast = '1' then
                   -- Echo back EOFE 
-                  ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obIcmpMaster, eofe);
+                  ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, eofe);
                   -- Next state
                   v.state := IDLE_S;
                else
@@ -201,7 +201,7 @@ begin
                v.obIcmpMaster.tLast  := ibIcmpMaster.tLast;
                if ibIcmpMaster.tLast = '1' then
                   -- Echo back EOFE 
-                  ssiSetUserEofe(IP_ENGINE_CONFIG_C, v.obIcmpMaster, eofe);
+                  ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, eofe);
                   -- Next state
                   v.state := IDLE_S;
                end if;

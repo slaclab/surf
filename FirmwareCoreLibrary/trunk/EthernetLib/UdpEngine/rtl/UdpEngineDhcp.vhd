@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : 1GbE/10GbE/40GbE Ethernet UDP/DHCP Module
 -------------------------------------------------------------------------------
 -- File       : UdpEngineDhcp.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-12
--- Last update: 2016-09-15
+-- Last update: 2016-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
