@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTxShift.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------

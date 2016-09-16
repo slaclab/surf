@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacRxImport.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-09
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,21 +31,24 @@ use work.EthMacPkg.all;
 
 entity EthMacRxImport is
    generic (
-      TPD_G     : time    := 1 ns;
-      GMII_EN_G : boolean := false);
+      TPD_G      : time   := 1 ns;
+      PHY_TYPE_G : string := "XGMII");
    port (
       -- Clock and Reset
       ethClk      : in  sl;
       ethRst      : in  sl;
       -- AXIS Interface   
       macIbMaster : out AxiStreamMasterType;
+      -- XLGMII PHY Interface
+      xlgmiiRxd   : in  slv(127 downto 0);
+      xlgmiiRxc   : in  slv(15 downto 0);
       -- XGMII PHY Interface
-      phyRxd      : in  slv(63 downto 0);
-      phyRxc      : in  slv(7 downto 0);
+      xgmiiRxd    : in  slv(63 downto 0);
+      xgmiiRxc    : in  slv(7 downto 0);
       -- GMII PHY Interface
-      gmiiRxDv    : in  sl              := '0';
-      gmiiRxEr    : in  sl              := '0';
-      gmiiRxd     : in  slv(7 downto 0) := x"00";
+      gmiiRxDv    : in  sl;
+      gmiiRxEr    : in  sl;
+      gmiiRxd     : in  slv(7 downto 0);
       -- Configuration and status
       phyReady    : in  sl;
       rxCountEn   : out sl;
@@ -56,7 +59,28 @@ architecture mapping of EthMacRxImport is
 
 begin
 
-   U_10G_IMPORT : if (GMII_EN_G = false) generate
+   assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacRxImport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
+
+   U_40G : if (PHY_TYPE_G = "XLGMII") generate
+      U_XLGMII : entity work.EthMacRxImportXlgmii
+         generic map (
+            TPD_G => TPD_G) 
+         port map (
+            -- Clock and Reset
+            ethClk      => ethClk,
+            ethRst      => ethRst,
+            -- AXIS Interface 
+            macIbMaster => macIbMaster,
+            -- XLGMII PHY Interface
+            phyRxd      => xlgmiiRxd,
+            phyRxc      => xlgmiiRxc,
+            -- Configuration and status
+            phyReady    => phyReady,
+            rxCountEn   => rxCountEn,
+            rxCrcError  => rxCrcError);
+   end generate;
+
+   U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity work.EthMacRxImportXgmii
          generic map (
             TPD_G => TPD_G) 
@@ -67,15 +91,15 @@ begin
             -- AXIS Interface 
             macIbMaster => macIbMaster,
             -- XGMII PHY Interface
-            phyRxd      => phyRxd,
-            phyRxc      => phyRxc,
+            phyRxd      => xgmiiRxd,
+            phyRxc      => xgmiiRxc,
             -- Configuration and status
             phyReady    => phyReady,
             rxCountEn   => rxCountEn,
             rxCrcError  => rxCrcError);
    end generate;
 
-   U_1G_IMPORT : if (GMII_EN_G = true) generate
+   U_1G : if (PHY_TYPE_G = "GMII") generate
       U_GMII : entity work.EthMacRxImportGmii
          generic map (
             TPD_G => TPD_G) 

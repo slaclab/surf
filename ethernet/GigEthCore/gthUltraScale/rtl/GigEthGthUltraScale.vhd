@@ -4,7 +4,7 @@
 -- File       : GigEthGthUltraScale.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Last update: 2016-02-09
+-- Last update: 2016-09-14
 -- Last update: 2016-02-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
@@ -134,7 +134,7 @@ begin
    U_MAC : entity work.EthMacTopWithFifo
       generic map (
          TPD_G         => TPD_G,
-         GMII_EN_G     => true,         -- True = GMII Interface only   
+         PHY_TYPE_G    => "GMII",
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- DMA Interface 
@@ -149,12 +149,17 @@ begin
          ethClkRst   => sysRst125,
          ethConfig   => config.macConfig,
          ethStatus   => status.macStatus,
-         -- XGMII PHY Interface
-         phyTxd      => open,
-         phyTxc      => open,
-         phyRxd      => (others => '0'),
-         phyRxc      => (others => '0'),
          phyReady    => status.phyReady,
+         -- XLGMII PHY Interface
+         xlgmiiRxd   => (others => '0'),
+         xlgmiiRxc   => (others => '0'),
+         xlgmiiTxd   => open,
+         xlgmiiTxc   => open,
+         -- XGMII PHY Interface
+         xgmiiRxd    => (others => '0'),
+         xgmiiRxc    => (others => '0'),
+         xgmiiTxd    => open,
+         xgmiiTxc    => open,
          -- GMII PHY Interface
          gmiiRxDv    => gmiiRxDv,
          gmiiRxEr    => gmiiRxEr,

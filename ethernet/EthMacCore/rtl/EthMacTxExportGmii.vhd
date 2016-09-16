@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExportGmii.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Co-Author  : Jeff Olsen  <jjo@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-04
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 use work.EthMacPkg.all;
 
 entity EthMacTxExportGmii is
@@ -41,7 +40,7 @@ entity EthMacTxExportGmii is
       -- AXIS Interface   
       macObMaster    : in  AxiStreamMasterType;
       macObSlave     : out AxiStreamSlaveType;
-      -- PHY Interface
+      -- GMII PHY Interface
       gmiiTxEn       : out sl;
       gmiiTxEr       : out sl;
       gmiiTxd        : out slv(7 downto 0);
@@ -58,7 +57,7 @@ architecture rtl of EthMacTxExportGmii is
    
    constant AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
-      TDATA_BYTES_C => 1,
+      TDATA_BYTES_C => 1,               -- 8-bit AXI stream interface
       TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
       TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
@@ -128,7 +127,7 @@ architecture rtl of EthMacTxExportGmii is
 
 begin
 
-   RX_DATA_MUX : entity work.AxiStreamFifo
+   DATA_MUX : entity work.AxiStreamFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -143,13 +142,13 @@ begin
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,  -- 64-bit AXI stream interface  
+         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface  
          MASTER_AXI_CONFIG_G => AXI_CONFIG_C)        -- 8-bit AXI stream interface          
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macObMaster,                 -- 64-bit AXI stream interface 
+         sAxisMaster => macObMaster,                 -- 128-bit AXI stream interface 
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-08-17
+-- Last update: 2016-09-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,32 +29,24 @@ use work.AxiStreamPkg.all;
 entity UdpEngine is
    generic (
       -- Simulation Generics
-      TPD_G              : time          := 1 ns;
-      SIM_ERROR_HALT_G   : boolean       := false;
-      -- UDP General Generic
-      RX_MTU_G           : positive      := 1500;
-      RX_FORWARD_EOFE_G  : boolean       := false;
-      TX_FORWARD_EOFE_G  : boolean       := false;
-      TX_CALC_CHECKSUM_G : boolean       := true;
+      TPD_G          : time          := 1 ns;
       -- UDP Server Generics
-      SERVER_EN_G        : boolean       := true;
-      SERVER_SIZE_G      : positive      := 1;
-      SERVER_PORTS_G     : PositiveArray := (0 => 8192);
-      SERVER_MTU_G       : positive      := 1500;
+      SERVER_EN_G    : boolean       := true;
+      SERVER_SIZE_G  : positive      := 1;
+      SERVER_PORTS_G : PositiveArray := (0 => 8192);
       -- UDP Client Generics
-      CLIENT_EN_G        : boolean       := true;
-      CLIENT_SIZE_G      : positive      := 1;
-      CLIENT_PORTS_G     : PositiveArray := (0 => 8193);
-      CLIENT_MTU_G       : positive      := 1500;
-      -- UDP ARP/DHCP Generics
-      DHCP_G             : boolean       := false;
-      CLK_FREQ_G         : real          := 156.25E+06;             -- In units of Hz
-      COMM_TIMEOUT_G     : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      CLIENT_EN_G    : boolean       := true;
+      CLIENT_SIZE_G  : positive      := 1;
+      CLIENT_PORTS_G : PositiveArray := (0 => 8193);
+      -- General UDP/ARP/DHCP Generics
+      DHCP_G         : boolean       := false;
+      CLK_FREQ_G     : real          := 156.25E+06;                 -- In units of Hz
+      COMM_TIMEOUT_G : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);    --  big-Endian configuration
-      localIpIn        : in  slv(31 downto 0);    --  big-Endian configuration 
-      dhcpIpOut        : out slv(31 downto 0);    --  big-Endian configuration 
+      localMac         : in  slv(47 downto 0);                      --  big-Endian configuration
+      localIpIn        : in  slv(31 downto 0);                      --  big-Endian configuration 
+      dhcpIpOut        : out slv(31 downto 0);                      --  big-Endian configuration 
       -- Interface to IPV4 Engine  
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
@@ -113,17 +105,14 @@ begin
 
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
-         TPD_G             => TPD_G,
-         SIM_ERROR_HALT_G  => SIM_ERROR_HALT_G,
-         RX_MTU_G          => RX_MTU_G,
-         RX_FORWARD_EOFE_G => RX_FORWARD_EOFE_G,
-         SERVER_EN_G       => SERVER_EN_G,
-         DHCP_G            => DHCP_G,
-         SERVER_SIZE_G     => SERVER_SIZE_G,
-         SERVER_PORTS_G    => SERVER_PORTS_G,
-         CLIENT_EN_G       => CLIENT_EN_G,
-         CLIENT_SIZE_G     => CLIENT_SIZE_G,
-         CLIENT_PORTS_G    => CLIENT_PORTS_G) 
+         TPD_G          => TPD_G,
+         DHCP_G         => DHCP_G,
+         SERVER_EN_G    => SERVER_EN_G,
+         SERVER_SIZE_G  => SERVER_SIZE_G,
+         SERVER_PORTS_G => SERVER_PORTS_G,
+         CLIENT_EN_G    => CLIENT_EN_G,
+         CLIENT_SIZE_G  => CLIENT_SIZE_G,
+         CLIENT_PORTS_G => CLIENT_PORTS_G) 
       port map (
          -- Local Configurations
          localIp          => localIp,
@@ -152,11 +141,10 @@ begin
       U_UdpEngineDhcp : entity work.UdpEngineDhcp
          generic map (
             -- Simulation Generics
-            TPD_G            => TPD_G,
-            SIM_ERROR_HALT_G => SIM_ERROR_HALT_G,
+            TPD_G          => TPD_G,
             -- UDP ARP/DHCP Generics
-            CLK_FREQ_G       => CLK_FREQ_G,
-            COMM_TIMEOUT_G   => COMM_TIMEOUT_G)             
+            CLK_FREQ_G     => CLK_FREQ_G,
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G)             
          port map (
             -- Local Configurations
             localMac     => localMac,
@@ -185,13 +173,9 @@ begin
       
       U_UdpEngineTx : entity work.UdpEngineTx
          generic map (
-            TPD_G              => TPD_G,
-            SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
-            TX_MTU_G           => SERVER_MTU_G,
-            TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
-            TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
-            SIZE_G             => SERVER_SIZE_G,
-            PORT_G             => SERVER_PORTS_G)    
+            TPD_G  => TPD_G,
+            SIZE_G => SERVER_SIZE_G,
+            PORT_G => SERVER_PORTS_G)    
          port map (
             -- Interface to IPV4 Engine  
             obUdpMaster  => obUdpMasters(0),
@@ -238,13 +222,9 @@ begin
 
       U_UdpEngineTx : entity work.UdpEngineTx
          generic map (
-            TPD_G              => TPD_G,
-            SIM_ERROR_HALT_G   => SIM_ERROR_HALT_G,
-            TX_MTU_G           => CLIENT_MTU_G,
-            TX_FORWARD_EOFE_G  => TX_FORWARD_EOFE_G,
-            TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_G,
-            SIZE_G             => CLIENT_SIZE_G,
-            PORT_G             => CLIENT_PORTS_G)    
+            TPD_G  => TPD_G,
+            SIZE_G => CLIENT_SIZE_G,
+            PORT_G => CLIENT_PORTS_G)    
          port map (
             -- Interface to IPV4 Engine  
             obUdpMaster => obUdpMasters(1),

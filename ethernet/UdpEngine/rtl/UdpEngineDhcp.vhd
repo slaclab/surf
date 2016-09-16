@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-12
--- Last update: 2016-08-18
+-- Last update: 2016-09-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,22 +28,20 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
-use work.UdpEnginePkg.all;
+use work.EthMacPkg.all;
 
 entity UdpEngineDhcp is
    generic (
       -- Simulation Generics
-      TPD_G            : time     := 1 ns;
-      SIM_ERROR_HALT_G : boolean  := false;
+      TPD_G          : time     := 1 ns;
       -- UDP ARP/DHCP Generics
-      CLK_FREQ_G       : real     := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G   : positive := 30);  
+      CLK_FREQ_G     : real     := 156.25E+06;  -- In units of Hz
+      COMM_TIMEOUT_G : positive := 30);  
    port (
       -- Local Configurations
-      localMac     : in  slv(47 downto 0);        --  big-Endian configuration
-      localIp      : in  slv(31 downto 0);        --  big-Endian configuration 
-      dhcpIp       : out slv(31 downto 0);        --  big-Endian configuration       
+      localMac     : in  slv(47 downto 0);      --  big-Endian configuration
+      localIp      : in  slv(31 downto 0);      --  big-Endian configuration 
+      dhcpIp       : out slv(31 downto 0);      --  big-Endian configuration       
       -- Interface to DHCP Engine  
       ibDhcpMaster : in  AxiStreamMasterType;
       ibDhcpSlave  : out AxiStreamSlaveType;
@@ -157,7 +155,7 @@ begin
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => IP_ENGINE_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => DHCP_CONFIG_C)          
       port map (
          -- Slave Port
@@ -573,7 +571,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => DHCP_CONFIG_C,
-         MASTER_AXI_CONFIG_G => IP_ENGINE_CONFIG_C)        
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)        
       port map (
          -- Slave Port
          sAxisClk    => clk,

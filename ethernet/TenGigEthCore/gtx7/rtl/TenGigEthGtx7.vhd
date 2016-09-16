@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2016-02-19
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -212,6 +212,7 @@ begin
    U_MAC : entity work.EthMacTopWithFifo
       generic map (
          TPD_G         => TPD_G,
+         PHY_TYPE_G    => "XGMII",
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- DMA Interface 
@@ -226,12 +227,24 @@ begin
          ethClkRst   => phyRst,
          ethConfig   => config.macConfig,
          ethStatus   => status.macStatus,
-         -- XGMII PHY Interface   
-         phyTxd      => phyTxd,
-         phyTxc      => phyTxc,
-         phyRxd      => phyRxd,
-         phyRxc      => phyRxc,
-         phyReady    => status.phyReady);
+         phyReady    => status.phyReady,
+         -- XLGMII PHY Interface
+         xlgmiiRxd   => (others => '0'),
+         xlgmiiRxc   => (others => '0'),
+         xlgmiiTxd   => open,
+         xlgmiiTxc   => open,
+         -- XGMII PHY Interface
+         xgmiiRxd    => phyRxd,
+         xgmiiRxc    => phyRxc,
+         xgmiiTxd    => phyTxd,
+         xgmiiTxc    => phyTxc,
+         -- GMII PHY Interface
+         gmiiRxDv    => '0',
+         gmiiRxEr    => '0',
+         gmiiRxd     => (others => '0'),
+         gmiiTxEn    => open,
+         gmiiTxEr    => open,
+         gmiiTxd     => open);     
 
    -----------------
    -- 10GBASE-R core
