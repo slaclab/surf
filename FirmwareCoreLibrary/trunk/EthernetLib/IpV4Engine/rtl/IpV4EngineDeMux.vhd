@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : 1GbE/10GbE/40GbE Ethernet IPv4/ARP/ICMP Module
 -------------------------------------------------------------------------------
 -- File       : IpV4EngineDeMux.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-08-12
+-- Last update: 2016-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity IpV4EngineDeMux is
    generic (
@@ -107,7 +107,7 @@ begin
             -- Accept for data
             v.obMacSlave.tReady := '1';
             -- Check for SOF and not EOF
-            if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obMacMaster) = '1') and (obMacMaster.tLast = '0') then
+            if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, obMacMaster) = '1') and (obMacMaster.tLast = '0') then
                -- Reset the flags
                v.arpSel  := '0';
                v.ipv4Sel := '0';
@@ -118,8 +118,8 @@ begin
                      v.arpSel      := '1';
                      v.ibArpMaster := obMacMaster;
                   end if;
-               -- Check for a valid IPV4 EtherType
-               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) then
+               -- Check for a valid IPV4 EtherType and (IPVersion + Header length)
+               elsif (obMacMaster.tData(111 downto 96) = IPV4_TYPE_C) and (obMacMaster.tData(119 downto 112) = x"45") then
                   -- Check the destination MAC address
                   if(obMacMaster.tData(47 downto 0) = BROADCAST_MAC_C) or (obMacMaster.tData(47 downto 0) = localMac) then
                      v.ipv4Sel      := '1';
@@ -147,7 +147,7 @@ begin
                   -- Accept for data
                   v.obMacSlave.tReady := '1';
                   -- Check for SOF and not EOF
-                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, obMacMaster) = '1') and (obMacMaster.tLast = '0') then
+                  if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, obMacMaster) = '1') and (obMacMaster.tLast = '0') then
                      -- Check for a valid VLAN EtherType
                      if (obMacMaster.tData(111 downto 96) = VLAN_TYPE_C) then
                         -- Reset the flags
@@ -168,8 +168,8 @@ begin
                         v.arpSel      := '1';
                         v.ibArpMaster := r.dly;
                      end if;
-                  -- Check for a valid IPV4 EtherType
-                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) then
+                  -- Check for a valid IPV4 EtherType and (IPVersion + Header length)
+                  elsif (obMacMaster.tData(15 downto 0) = IPV4_TYPE_C) and (obMacMaster.tData(23 downto 16) = x"45") then
                      -- Check the destination MAC address
                      if(r.dly.tData(47 downto 0) = BROADCAST_MAC_C) or (r.dly.tData(47 downto 0) = localMac) then
                         v.ipv4Sel      := '1';
