@@ -418,7 +418,7 @@ begin
    U_TxPipeline : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         PIPE_STAGES_G => 0)
       port map (
          axisClk     => clk,
          axisRst     => rst,
@@ -430,6 +430,7 @@ begin
    U_DeMux : entity work.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
+         PIPE_STAGES_G => 1,
          NUM_MASTERS_G => 2)
       port map (
          -- Clock and reset
