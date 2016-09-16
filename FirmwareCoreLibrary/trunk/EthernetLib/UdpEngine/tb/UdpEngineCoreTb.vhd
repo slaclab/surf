@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity UdpEngineCoreTb is
    generic (
@@ -136,7 +136,7 @@ begin
                v.ibClientMaster.tValid := '1';
                -- Check for SOF
                if r.txWordCnt = 0 then
-                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.ibClientMaster, '1');
+                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.ibClientMaster, '1');
                end if;
                -- Send data
                v.ibClientMaster.tdata := toSlv((r.txWordCnt*16)+r.txByteCnt+1, 128);
@@ -177,7 +177,7 @@ begin
                -- Accept the data
                v.obClientSlave.tReady := '1';
                -- Check for SOF
-               if (r.rxWordCnt = 0) and (ssiGetUserSof(IP_ENGINE_CONFIG_C, obClientMaster) = '0') then
+               if (r.rxWordCnt = 0) and (ssiGetUserSof(EMAC_AXIS_CONFIG_C, obClientMaster) = '0') then
                   v.failed(1) := '1';
                end if;
                -- Increment the counter

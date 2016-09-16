@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity IpV4EngineLoopback is
    generic (
@@ -117,7 +117,7 @@ begin
          -- Move the data
          v.obProtocolMaster := ibProtocolMaster;
          -- Check if SOF
-         if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibProtocolMaster) = '1') then
+         if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibProtocolMaster) = '1') then
             -- Swap the source and destination IP addresses in the IPv4 Pseudo Header 
             v.obProtocolMaster.tData(95 downto 64)  := ibProtocolMaster.tData(127 downto 96);
             v.obProtocolMaster.tData(127 downto 96) := ibProtocolMaster.tData(95 downto 64);
