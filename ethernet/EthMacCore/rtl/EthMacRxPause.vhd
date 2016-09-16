@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacRxPause.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,31 +54,25 @@ end EthMacRxPause;
 architecture rtl of EthMacRxPause is
 
    type StateType is (
-      FILL_S,
+      IDLE_S,
       PAUSE_S,
-      PASS_S,
-      DROP_S);
+      DUMP_S,
+      PASS_S);
 
    type RegType is record
-      state      : StateType;
-      pauseValue : slv(15 downto 0);
-      pauseEn    : sl;
-      r0Master   : AxiStreamMasterType;
-      r1Master   : AxiStreamMasterType;
-      r2Master   : AxiStreamMasterType;
-      outMaster  : AxiStreamMasterType;
-      outMasters : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+      pauseEn      : sl;
+      pauseValue   : slv(15 downto 0);
+      mAxisMaster  : AxiStreamMasterType;
+      mAxisMasters : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+      state        : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state      => FILL_S,
-      pauseValue => (others => '0'),
-      pauseEn    => '0',
-      r0Master   => AXI_STREAM_MASTER_INIT_C,
-      r1Master   => AXI_STREAM_MASTER_INIT_C,
-      r2Master   => AXI_STREAM_MASTER_INIT_C,
-      outMaster  => AXI_STREAM_MASTER_INIT_C,
-      outMasters => (others => AXI_STREAM_MASTER_INIT_C));
+      pauseEn      => '0',
+      pauseValue   => (others => '0'),
+      mAxisMaster  => AXI_STREAM_MASTER_INIT_C,
+      mAxisMasters => (others => AXI_STREAM_MASTER_INIT_C),
+      state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -92,79 +86,82 @@ begin
 
       comb : process (ethRst, r, sAxisMaster) is
          variable v : RegType;
+         variable i : natural;
       begin
          -- Latch the current value
          v := r;
 
-         -- Pipeline
-         v.r0Master := sAxisMaster;
-
-         -- Clear valid
-         v.pauseEn := '0';
+         -- Reset flags
+         v.pauseEn            := '0';
+         v.mAxisMaster.tValid := '0';
+         for i in (VLAN_CNT_G-1) downto 0 loop
+            v.mAxisMasters(i).tValid := '0';
+         end loop;
 
          -- State Machine
          case r.state is
-
-            -- Pre-fill pipeline
-            when FILL_S =>
-
-               v.outMaster.tValid := '0';
-
-               if r.r1Master.tValid /= '1' then
-                  v.r1Master := r.r0Master;
-               end if;
-
-               if r.r2Master.tValid /= '1' then
-                  v.r1Master := r.r0Master;
-                  v.r2Master := r.r1Master;
-               end if;
-
-               -- Pipeline is full
-               if r.r0Master.tValid = '1' and r.r1Master.tValid = '1' and r.r2Master.tValid = '1' then
-
-                  -- Detect pause frame 
-                  if r.r2Master.tData(47 downto 0) = x"010000c28001" and  -- Det MAC
-                     r.r1Master.tData(63 downto 32) = x"01000888" then    -- Mac Type, Mac OpCode
-
-                     v.pauseValue(7 downto 0)  := r.r0Master.tData(15 downto 8);
-                     v.pauseValue(15 downto 8) := r.r0Master.tData(7 downto 0);
-
-                     v.r1Master.tValid := '0';
-                     v.r2Master.tValid := '0';
-                     v.state           := PAUSE_S;
+            ----------------------------------------------------------------------
+            when IDLE_S =>
+               -- Check for data
+               if (sAxisMaster.tValid = '1') then
+                  -- Check for pause frame
+                  if (sAxisMaster.tData(47 downto 0) = x"010000c28001") and  -- DST MAC (Pause MAC Address)
+                     (sAxisMaster.tData(127 downto 112) = x"01000888") then  -- Mac Type, Mac OpCode
+                     -- Check for no EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next State
+                        v.state := PAUSE_S;
+                     end if;
                   else
-                     v.r1Master  := r.r0Master;
-                     v.r2Master  := r.r1Master;
-                     v.outMaster := r.r2Master;
-                     v.state     := PASS_S;
+                     -- Move the data
+                     v.mAxisMaster := sAxisMaster;
+                     -- Check for no EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next State
+                        v.state := PASS_S;
+                     end if;
                   end if;
                end if;
-
-            -- Pause frame dump
+            ----------------------------------------------------------------------
             when PAUSE_S =>
-               v.r1Master.tValid  := '0';
-               v.r2Master.tValid  := '0';
-               v.outMaster.tValid := '0';
-
-               if r.r0Master.tValid = '1' and r.r0Master.tLast = '1' then
-                  v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, r.r0Master, EMAC_EOFE_BIT_C);
-                  v.state   := FILL_S;
+               ----------------------------------------------------------------------------------------------------------
+               -- Refer to https://www.safaribooksonline.com/library/view/ethernet-the-definitive/1565926609/ch04s02.html
+               ----------------------------------------------------------------------------------------------------------            
+               -- Check for data
+               if (sAxisMaster.tValid = '1') then
+                  -- Latch the pause data
+                  v.pauseValue(7 downto 0)  := sAxisMaster.tData(15 downto 8);
+                  v.pauseValue(15 downto 8) := sAxisMaster.tData(7 downto 0);
+                  -- Check for a EOF
+                  if (sAxisMaster.tLast = '1') then
+                     -- Set the pause
+                     v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                     -- Next State
+                     v.state   := IDLE_S;
+                  else
+                     -- Next State
+                     v.state := DUMP_S;
+                  end if;
                end if;
-
-            -- Frame pass
+            ----------------------------------------------------------------------
+            when DUMP_S =>
+               -- Check for a valid EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Set the pause
+                  v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                  -- Next State
+                  v.state   := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
             when PASS_S =>
-               v.r1Master  := r.r0Master;
-               v.r2Master  := r.r1Master;
-               v.outMaster := r.r2Master;
-
-               if r.r2Master.tValid = '1' and r.r2Master.tLast = '1' then
-                  v.state := FILL_S;
+               -- Move the data
+               v.mAxisMaster := sAxisMaster;
+               -- Check for a valid EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
-
-            -- Default
-            when others =>
-               v.state := FILL_S;
-
+         ----------------------------------------------------------------------
          end case;
 
          -- Reset
@@ -176,8 +173,8 @@ begin
          rin <= v;
 
          -- Outputs
-         mAxisMaster  <= r.outMaster;
-         mAxisMasters <= r.outMasters;
+         mAxisMaster  <= r.mAxisMaster;
+         mAxisMasters <= r.mAxisMasters;
          rxPauseReq   <= r.pauseEn;
          rxPauseValue <= r.pauseValue;
 

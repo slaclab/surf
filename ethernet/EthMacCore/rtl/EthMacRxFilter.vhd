@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacRxFilter.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,20 +52,18 @@ end EthMacRxFilter;
 architecture rtl of EthMacRxFilter is
 
    type StateType is (
-      HEAD_S,
+      IDLE_S,
       DROP_S,
       PASS_S);
 
    type RegType is record
-      state     : StateType;
-      regMaster : AxiStreamMasterType;
-      outMaster : AxiStreamMasterType;
+      state       : StateType;
+      mAxisMaster : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state     => HEAD_S,
-      regMaster => AXI_STREAM_MASTER_INIT_C,
-      outMaster => AXI_STREAM_MASTER_INIT_C);
+      state       => IDLE_S,
+      mAxisMaster => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -83,61 +81,66 @@ begin
          -- Latch the current value
          v := r;
 
-         -- Pipeline
-         v.regMaster := sAxisMaster;
-         v.outMaster := r.regMaster;
+         -- Move the data
+         v.mAxisMaster := sAxisMaster;
 
          -- State Machine
          case r.state is
-
-            -- Waiting for header
-            when HEAD_S =>
-
-               -- Frame is present
-               if r.regMaster.tValid = '1' then
-
+            ----------------------------------------------------------------------
+            when IDLE_S =>
+               -- Check for data
+               if (sAxisMaster.tValid = '1') then
                   -- Drop frames when pause is asserted to avoid downstream errors
-                  if mAxisCtrl.pause = '1' and dropOnPause = '1' then
-                     v.state            := DROP_S;
-                     v.outMaster.tValid := '0';
-
+                  if (mAxisCtrl.pause = '1') and (dropOnPause = '1') then
+                     -- Drop the packet
+                     v.mAxisMaster.tValid := '0';
+                     -- Check for no EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next State
+                        v.state := DROP_S;
+                     end if;
                   -- Local match, broadcast or multicast
-                  elsif filtEnable = '0' or
-                     r.regMaster.tData(47 downto 0) = macAddress or         -- Local
-                     r.regMaster.tData(0) = '1' or                          -- Multicast
-                     r.regMaster.tData(47 downto 0) = x"FFFFFFFFFFFF" then  -- Broadcast
-
-                     v.state := PASS_S;
-
+                  elsif (filtEnable = '0') or
+                     (sAxisMaster.tData(47 downto 0) = macAddress) or         -- Local
+                     (sAxisMaster.tData(0) = '1') or                          -- Multicast
+                     (sAxisMaster.tData(47 downto 0) = x"FFFFFFFFFFFF") then  -- Broadcast
+                     -- Check for no EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next State
+                        v.state := PASS_S;
+                     end if;
                   -- Drop frame
                   else
-                     v.state            := DROP_S;
-                     v.outMaster.tValid := '0';
+                     -- Drop the packet
+                     v.mAxisMaster.tValid := '0';
+                     -- Check for no EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next State
+                        v.state := DROP_S;
+                     end if;
                   end if;
                end if;
-
-            -- Dropping frame
+            ----------------------------------------------------------------------
             when DROP_S =>
-               v.outMaster.tValid := '0';
-
-               if r.regMaster.tValid = '1' and r.regMaster.tLast = '1' then
-                  v.state := HEAD_S;
+               -- Drop the packet
+               v.mAxisMaster.tValid := '0';
+               -- Check for a valid EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
-
-            -- Pass frame
+            ----------------------------------------------------------------------
             when PASS_S =>
-               if r.regMaster.tValid = '1' and r.regMaster.tLast = '1' then
-                  v.state := HEAD_S;
+               -- Check for a valid EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
-
-            -- Default
-            when others =>
-               v.state := HEAD_S;
-
+         ----------------------------------------------------------------------
          end case;
 
          -- Reset
-         if ethRst = '1' then
+         if (ethRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -145,7 +148,7 @@ begin
          rin <= v;
 
          -- Outputs 
-         mAxisMaster <= r.outMaster;
+         mAxisMaster <= r.mAxisMaster;
 
       end process;
 
@@ -163,4 +166,3 @@ begin
    end generate;
 
 end rtl;
-

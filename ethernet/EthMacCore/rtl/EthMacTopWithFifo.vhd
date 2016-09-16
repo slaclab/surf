@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTopWithFifo.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-29
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use work.EthMacPkg.all;
 entity EthMacTopWithFifo is
    generic (
       TPD_G         : time                := 1 ns;
-      GMII_EN_G     : boolean             := false;  -- False = XGMII Interface only, True = GMII Interface only      
+      PHY_TYPE_G    : string              := "XGMII";  -- "GMII", "XGMII", or "XLGMII"  
       AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- DMA Interface 
@@ -43,18 +43,23 @@ entity EthMacTopWithFifo is
       -- Ethernet Interface
       ethClk      : in  sl;
       ethClkRst   : in  sl;
+      phyReady    : in  sl;
       ethConfig   : in  EthMacConfigType;
       ethStatus   : out EthMacStatusType;
+      -- XLGMII PHY Interface
+      xlgmiiRxd   : in  slv(127 downto 0);
+      xlgmiiRxc   : in  slv(15 downto 0);
+      xlgmiiTxd   : out slv(127 downto 0);
+      xlgmiiTxc   : out slv(15 downto 0);
       -- XGMII PHY Interface
-      phyTxd      : out slv(63 downto 0);
-      phyTxc      : out slv(7 downto 0);
-      phyRxd      : in  slv(63 downto 0);
-      phyRxc      : in  slv(7 downto 0);
-      phyReady    : in  sl;
+      xgmiiRxd    : in  slv(63 downto 0);
+      xgmiiRxc    : in  slv(7 downto 0);
+      xgmiiTxd    : out slv(63 downto 0);
+      xgmiiTxc    : out slv(7 downto 0);
       -- GMII PHY Interface
-      gmiiRxDv    : in  sl              := '0';
-      gmiiRxEr    : in  sl              := '0';
-      gmiiRxd     : in  slv(7 downto 0) := x"00";
+      gmiiRxDv    : in  sl;
+      gmiiRxEr    : in  sl;
+      gmiiRxd     : in  slv(7 downto 0);
       gmiiTxEn    : out sl;
       gmiiTxEr    : out sl;
       gmiiTxd     : out slv(7 downto 0));
@@ -72,15 +77,42 @@ begin
    ----------
    -- TX FIFO
    ----------
+   -- U_MacTxFifo : entity work.AxiStreamFifo
+   -- generic map (
+   -- TPD_G               => TPD_G,
+   -- INT_PIPE_STAGES_G   => 0,
+   -- PIPE_STAGES_G       => 1,
+   -- FIFO_ADDR_WIDTH_G   => 10,
+   -- VALID_THOLD_G       => 0,      -- Only when full frame is ready
+   -- SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
+   -- MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+   -- port map (
+   -- sAxisClk    => dmaClk,
+   -- sAxisRst    => dmaClkRst,
+   -- sAxisMaster => dmaObMaster,
+   -- sAxisSlave  => dmaObSlave,
+   -- mAxisClk    => ethClk,
+   -- mAxisRst    => ethClkRst,
+   -- mAxisMaster => macTxAxisMaster,
+   -- mAxisSlave  => macTxAxisSlave);
+   
    U_MacTxFifo : entity work.AxiStreamFifo
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 10,
-         VALID_THOLD_G       => 0,      -- Only when full frame is ready
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         -- FIFO configurations
+         BRAM_EN_G           => false,
+         USE_BUILT_IN_G      => false,
+         GEN_SYNC_FIFO_G     => false,
+         CASCADE_SIZE_G      => 1,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)        
       port map (
          sAxisClk    => dmaClk,
          sAxisRst    => dmaClkRst,
@@ -89,7 +121,7 @@ begin
          mAxisClk    => ethClk,
          mAxisRst    => ethClkRst,
          mAxisMaster => macTxAxisMaster,
-         mAxisSlave  => macTxAxisSlave);
+         mAxisSlave  => macTxAxisSlave);      
 
    --------------------
    -- Ethernet MAC core
@@ -105,9 +137,9 @@ begin
          BYP_ETH_TYPE_G  => x"0000",
          SHIFT_EN_G      => false,
          FILT_EN_G       => false,
-         GMII_EN_G       => GMII_EN_G)
+         PHY_TYPE_G      => PHY_TYPE_G)
       port map (
-         -- Clocks
+         -- Clock and Reset
          ethClk      => ethClk,
          ethRst      => ethClkRst,
          -- Primary Interface, TX
@@ -116,12 +148,16 @@ begin
          -- Primary Interface, RX
          mPrimMaster => macRxAxisMaster,
          mPrimCtrl   => macRxAxisCtrl,
+         -- XLGMII PHY Interface
+         xlgmiiRxd   => xlgmiiRxd,
+         xlgmiiRxc   => xlgmiiRxc,
+         xlgmiiTxd   => xlgmiiTxd,
+         xlgmiiTxc   => xlgmiiTxc,
          -- XGMII PHY Interface
-         phyTxd      => phyTxd,
-         phyTxc      => phyTxc,
-         phyRxd      => phyRxd,
-         phyRxc      => phyRxc,
-         phyReady    => phyReady,
+         xgmiiRxd    => xgmiiRxd,
+         xgmiiRxc    => xgmiiRxc,
+         xgmiiTxd    => xgmiiTxd,
+         xgmiiTxc    => xgmiiTxc,
          -- GMII PHY Interface
          gmiiRxDv    => gmiiRxDv,
          gmiiRxEr    => gmiiRxEr,
@@ -130,6 +166,7 @@ begin
          gmiiTxEr    => gmiiTxEr,
          gmiiTxd     => gmiiTxd,
          -- Configuration and status
+         phyReady    => phyReady,
          ethConfig   => ethConfig,
          ethStatus   => ethStatus);
 

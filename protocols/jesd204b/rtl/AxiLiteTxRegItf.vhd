@@ -18,7 +18,7 @@
 --                   bit 0: JESD Subclass (Default '1')
 --                   bit 1: Enable control character replacement(Default '1')
 --                   bit 2: Reset MGTs (Default '0') 
---                   bit 3: Clear Registered errors (Default '0')  (Not used-Reserved)
+--                   bit 3: Clear Status counter(Default '0') 
 --                   bit 4: Invert nSync (Default '1'-inverted)
 --                   bit 5: Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').
 --                   bit 6: Enable scrambling (Default '0') 
@@ -164,8 +164,37 @@ architecture rtl of AxiLiteTxRegItf is
 
    -- Synced status signals
    signal s_statusTxArr : txStatuRegisterArray(L_G-1 downto 0);
-
+   signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
+   signal s_adcValids   : slv(L_G-1 downto 0);
+   
 begin
+
+   ----------------------------------------------------------------------------------------------
+   -- Data Valid Status Counter
+   ----------------------------------------------------------------------------------------------
+   GEN_LANES : for I in L_G-1 downto 0 generate
+      s_adcValids(I) <= statusTxArr_i(I)(1);
+   end generate GEN_LANES;
+   
+   
+   U_SyncStatusVector : entity work.SyncStatusVector
+   generic map (
+      TPD_G          => TPD_G,
+      OUT_POLARITY_G => '1',
+      CNT_RST_EDGE_G => true,
+      CNT_WIDTH_G    => 32,
+      WIDTH_G        => L_G)     
+   port map (
+      -- Input Status bit Signals (wrClk domain)
+      statusIn             => s_adcValids,
+      -- Output Status bit Signals (rdClk domain)  
+      statusOut            => open,
+      -- Status Bit Counters Signals (rdClk domain) 
+      cntRstIn             => r.commonCtrl(3),
+      cntOut               => s_statusCnt,
+      -- Clocks and Reset Ports
+      wrClk                => devClk_i,
+      rdClk                => axiClk_i);
 
    -- Convert address to integer (lower two bits of address are always '0')
    s_RdAddr <= slvToInt(axilReadMaster.araddr(9 downto 2));
@@ -246,6 +275,14 @@ begin
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
                      v.axilReadSlave.rdata(7 downto 0) := r.signalSelectArr(I);
+                  end if;
+               end loop;
+            when 16#40# to 16#4F# =>
+               for I in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     for J in 31 downto 0 loop
+                        v.axilReadSlave.rdata(J) := s_statusCnt(I,J);
+                     end loop;
                   end if;
                end loop;
             when others =>
@@ -490,6 +527,5 @@ begin
             dout   => sigTypeArr_o(I)
             );
    end generate GEN_1;
-
 ---------------------------------------------------------------------
 end rtl;

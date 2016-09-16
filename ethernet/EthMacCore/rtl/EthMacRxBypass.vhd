@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacRxBypass.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,24 +50,20 @@ end EthMacRxBypass;
 architecture rtl of EthMacRxBypass is
 
    type StateType is (
-      HEAD_S,
+      IDLE_S,
       PRIM_S,
       BYP_S);
 
    type RegType is record
-      state      : StateType;
-      regMasterA : AxiStreamMasterType;
-      regMasterB : AxiStreamMasterType;
-      primMaster : AxiStreamMasterType;
-      bypMaster  : AxiStreamMasterType;
+      mPrimMaster : AxiStreamMasterType;
+      mBypMaster  : AxiStreamMasterType;
+      state       : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state      => HEAD_S,
-      regMasterA => AXI_STREAM_MASTER_INIT_C,
-      regMasterB => AXI_STREAM_MASTER_INIT_C,
-      primMaster => AXI_STREAM_MASTER_INIT_C,
-      bypMaster  => AXI_STREAM_MASTER_INIT_C);
+      mPrimMaster => AXI_STREAM_MASTER_INIT_C,
+      mBypMaster  => AXI_STREAM_MASTER_INIT_C,
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -85,51 +81,54 @@ begin
          -- Latch the current value
          v := r;
 
-         -- Pipeline
-         v.regMasterA := sAxisMaster;
-         v.regMasterB := r.regMasterA;
-         v.primMaster := r.regMasterB;
-         v.bypMaster  := r.regMasterB;
-
          -- Clear valid
-         v.primMaster.tValid := '0';
-         v.bypMaster.tValid  := '0';
+         v.mBypMaster.tValid  := '0';
+         v.mPrimMaster.tValid := '0';
 
          -- State Machine
          case r.state is
-
-            -- Waiting for header
-            when HEAD_S =>
-
-               -- Frame is present
-               if r.regMasterB.tValid = '1' then
-
-                  -- ID matches bypass
-                  if r.regMasterA.tData(47 downto 32) = BYP_ETH_TYPE_G then
-                     v.state            := BYP_S;
-                     v.bypMaster.tValid := '1';
+            ----------------------------------------------------------------------         
+            when IDLE_S =>
+               -- Check for data
+               if sAxisMaster.tValid = '1' then
+                  -- Check for bypass EtherType
+                  if sAxisMaster.tData(111 downto 96) = BYP_ETH_TYPE_G then
+                     -- Move data
+                     v.mBypMaster := sAxisMaster;
+                     -- Check for no EOF
+                     if sAxisMaster.tLast = '0' then
+                        -- Next state
+                        v.state := BYP_S;
+                     end if;
                   else
-                     v.state             := PRIM_S;
-                     v.primMaster.tValid := '1';
+                     -- Move data
+                     v.mPrimMaster := sAxisMaster;
+                     -- Check for no EOF
+                     if sAxisMaster.tLast = '0' then
+                        -- Next state
+                        v.state := PRIM_S;
+                     end if;
                   end if;
                end if;
-
-            -- Bypass
+            ----------------------------------------------------------------------         
             when BYP_S =>
-               v.bypMaster.tValid := r.regMasterB.tValid;
-
-               if r.regMasterB.tValid = '1' and r.regMasterB.tLast = '1' then
-                  v.state := HEAD_S;
+               -- Move data
+               v.mBypMaster := sAxisMaster;
+               -- Check for a valid EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
                end if;
-
-            -- Prim
+            ----------------------------------------------------------------------         
             when PRIM_S =>
-               v.primMaster.tValid := r.regMasterB.tValid;
-
-               if r.regMasterB.tValid = '1' and r.regMasterB.tLast = '1' then
-                  v.state := HEAD_S;
+               -- Move data
+               v.mPrimMaster := sAxisMaster;
+               -- Check for a valid EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
                end if;
-
+         ----------------------------------------------------------------------         
          end case;
 
          -- Reset
@@ -141,8 +140,8 @@ begin
          rin <= v;
 
          -- Outputs 
-         mPrimMaster <= r.primMaster;
-         mBypMaster  <= r.bypMaster;
+         mPrimMaster <= r.mPrimMaster;
+         mBypMaster  <= r.mBypMaster;
 
       end process;
 

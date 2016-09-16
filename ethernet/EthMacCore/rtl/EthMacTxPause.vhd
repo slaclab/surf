@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTxPause.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,11 +70,10 @@ architecture rtl of EthMacTxPause is
 
    type StateType is (
       IDLE_S,
-      PASS_S,
-      TX_S);
+      PAUSE_S,
+      PASS_S);
 
    type RegType is record
-      state       : StateType;
       locPauseCnt : slv(15 downto 0);
       remPauseCnt : slv(15 downto 0);
       txCount     : slv(1 downto 0);
@@ -82,13 +81,13 @@ architecture rtl of EthMacTxPause is
       remPreCnt   : slv(CNT_BITS_C-1 downto 0);
       pauseTx     : sl;
       pauseVlanTx : slv(7 downto 0);
-      outMaster   : AxiStreamMasterType;
-      outSlave    : AxiStreamSlaveType;
+      mAxisMaster : AxiStreamMasterType;
+      sAxisSlave  : AxiStreamSlaveType;
       vlanSlaves  : AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+      state       : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state       => IDLE_S,
       locPauseCnt => (others => '0'),
       remPauseCnt => (others => '0'),
       txCount     => (others => '0'),
@@ -96,9 +95,10 @@ architecture rtl of EthMacTxPause is
       remPreCnt   => (others => '0'),
       pauseTx     => '0',
       pauseVlanTx => (others => '0'),
-      outMaster   => AXI_STREAM_MASTER_INIT_C,
-      outSlave    => AXI_STREAM_SLAVE_INIT_C,
-      vlanSlaves  => (others => AXI_STREAM_SLAVE_INIT_C));
+      mAxisMaster => AXI_STREAM_MASTER_INIT_C,
+      sAxisSlave  => AXI_STREAM_SLAVE_INIT_C,
+      vlanSlaves  => (others => AXI_STREAM_SLAVE_INIT_C),
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -123,101 +123,110 @@ begin
          v.pauseTx   := '0';
 
          -- Local pause count tracking
-         if pauseEnable = '0' then
+         if (pauseEnable = '0') then
             v.locPauseCnt := (others => '0');
-         elsif rxPauseReq = '1' then
+         elsif (rxPauseReq = '1') then
             v.locPauseCnt := rxPauseValue;
             v.locPreCnt   := (others => '1');
-         elsif r.locPauseCnt /= 0 and r.locPreCnt = 0 then
+         elsif (r.locPauseCnt /= 0) and (r.locPreCnt = 0) then
             v.locPauseCnt := r.locPauseCnt - 1;
          end if;
 
          -- Remote pause count tracking
-         if r.remPauseCnt /= 0 and r.remPreCnt = 0 then
+         if (r.remPauseCnt /= 0) and (r.remPreCnt = 0) then
             v.remPauseCnt := r.remPauseCnt - 1;
          end if;
 
          -- Clear tValid on ready assertion
-         if mAxisSlave.tReady = '1' then
-            v.outMaster.tValid := '0';
+         if (mAxisSlave.tReady = '1') then
+            v.mAxisMaster.tValid := '0';
          end if;
 
          -- Clear ready
-         v.outSlave   := AXI_STREAM_SLAVE_INIT_C;
+         v.sAxisSlave := AXI_STREAM_SLAVE_INIT_C;
          v.vlanSlaves := (others => AXI_STREAM_SLAVE_INIT_C);
 
          -- State Machine
          case r.state is
-
-            -- IDLE, wait for frame
+            ----------------------------------------------------------------------
             when IDLE_S =>
-               v.txCount := (others => '0');
-
-               -- Pause transmit needed
-               if clientPause = '1' and r.remPauseCnt = 0 and pauseEnable = '1' and phyReady = '1' then
-                  v.state := TX_S;
-
+               -- Check if we need to transmit pause
+               if (clientPause = '1') and (r.remPauseCnt = 0) and (pauseEnable = '1') and (phyReady = '1') then
+                  -- Next state
+                  v.state := PAUSE_S;
                -- Transmit required and not paused by received pause count
-               elsif sAxisMaster.tValid = '1' and r.locPauseCnt = 0 then
+               elsif (sAxisMaster.tValid = '1') and (r.locPauseCnt = 0) then
+                  -- Next state
                   v.state := PASS_S;
                end if;
-
-            -- Pause transmit
-            when TX_S =>
-
-               if v.outMaster.tValid = '0' then
-                  v.outMaster        := AXI_STREAM_MASTER_INIT_C;
-                  v.outMaster.tValid := '1';
-                  v.txCount          := r.txCount + 1;
-
-                  -- Select output data
-                  case r.txCount is
-
-                     -- Src Id, Upper 2 Bytes + Dest Id, All 6 bytes
-                     when "00" =>
-                        v.outMaster.tData(63 downto 48) := macAddress(15 downto 0);
-                        v.outMaster.tData(47 downto 0)  := x"010000C28001";
-
-                     -- Pause Op-code + Length/Type Field + Src Id, Lower 4 bytes
-                     when "01" =>
-                        v.outMaster.tData(63 downto 48) := x"0100";
-                        v.outMaster.tData(47 downto 32) := x"0888";
-                        v.outMaster.tData(31 downto 0)  := macAddress(47 downto 16);
-
-                     -- Pause length and padding
-                     when "10" =>
-                        v.outMaster.tData(63 downto 16) := (others => '0');
-                        v.outMaster.tData(15 downto 8)  := pauseTime(7 downto 0);
-                        v.outMaster.tData(7 downto 0)   := pauseTime(15 downto 8);
-
-                     -- padding
-                     when others =>
-                        v.outMaster.tLast := '1';
-                        v.remPauseCnt     := pauseTime;
-                        v.remPreCnt       := (others => '1');
-                        v.pauseTx         := '1';
-                        v.state           := IDLE_S;
-
-                  end case;
+            ----------------------------------------------------------------------
+            when PAUSE_S =>
+               ----------------------------------------------------------------------------------------------------------
+               -- Refer to https://www.safaribooksonline.com/library/view/ethernet-the-definitive/1565926609/ch04s02.html
+               ----------------------------------------------------------------------------------------------------------
+               -- Check if ready to move data
+               if (v.mAxisMaster.tValid = '0') then
+                  -- Reset the bus to defaults
+                  v.mAxisMaster        := AXI_STREAM_MASTER_INIT_C;
+                  -- Performing a write operation
+                  v.mAxisMaster.tValid := '1';
+                  -- Increment the counter
+                  v.txCount            := r.txCount + 1;
+                  -- Check the flag
+                  if (r.txCount = 0) then
+                     -- DST MAC (Pause MAC Address)
+                     v.mAxisMaster.tData(47 downto 0)    := x"010000C28001";
+                     -- SRC MAC (local MAC address)
+                     v.mAxisMaster.tData(95 downto 48)   := macAddress;
+                     -- MAC Control Type
+                     v.mAxisMaster.tData(111 downto 96)  := x"0888";
+                     -- Pause Op-code
+                     v.mAxisMaster.tData(127 downto 112) := x"0100";                -- 2 bytes
+                  elsif (r.txCount = 1) then
+                     -- Pause length
+                     v.mAxisMaster.tData(7 downto 0)    := pauseTime(15 downto 8);  -- 1 bytes
+                     v.mAxisMaster.tData(15 downto 8)   := pauseTime(7 downto 0);   -- 1 bytes
+                     -- Zero Padding
+                     v.mAxisMaster.tData(127 downto 16) := (others => '0');         -- 14 bytes
+                  elsif (r.txCount = 2) then
+                     -- Zero Padding
+                     v.mAxisMaster.tData := (others => '0');
+                     v.mAxisMaster.tKeep := x"FFFF";  -- 16 bytes    
+                  else
+                     -- Zero Padding
+                     v.mAxisMaster.tData := (others => '0');
+                     v.mAxisMaster.tKeep := x"0FFF";  -- 12 bytes (Fixed frame size = 46 bytes)
+                     -- Set EOF
+                     v.mAxisMaster.tLast := '1';
+                     -- Latch the Pause time   
+                     v.remPauseCnt       := pauseTime;
+                     v.remPreCnt         := (others => '1');
+                     v.pauseTx           := '1';
+                     -- Reset the counter
+                     v.txCount           := (others => '0');
+                     -- Next state
+                     v.state             := IDLE_S;
+                  end if;
                end if;
-
-            -- Passing data
+            ----------------------------------------------------------------------
             when PASS_S =>
-
-               -- Fill chain
-               if v.outMaster.tValid = '0' then
-                  v.outSlave.tReady := '1';
-                  v.outMaster       := sAxisMaster;
-
-                  if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
+               -- Check if ready to move data
+               if (v.mAxisMaster.tValid = '0') and (sAxisMaster.tValid = '1') then
+                  -- Accept the data
+                  v.sAxisSlave.tReady := '1';
+                  -- Move the data
+                  v.mAxisMaster       := sAxisMaster;
+                  -- Check for EOF
+                  if (sAxisMaster.tLast = '1') then
+                     -- Next state
                      v.state := IDLE_S;
                   end if;
                end if;
-
+         ----------------------------------------------------------------------
          end case;
 
          -- Reset
-         if ethRst = '1' then
+         if (ethRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -225,8 +234,8 @@ begin
          rin <= v;
 
          -- Outputs 
-         mAxisMaster <= r.outMaster;
-         sAxisSlave  <= v.outSlave;
+         mAxisMaster <= r.mAxisMaster;
+         sAxisSlave  <= v.sAxisSlave;
          sAxisSlaves <= v.vlanSlaves;
          pauseTx     <= r.pauseTx;
          pauseVlanTx <= r.pauseVlanTx;

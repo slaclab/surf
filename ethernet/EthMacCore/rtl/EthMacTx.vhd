@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacTx.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,15 +36,15 @@ entity EthMacTx is
       -- MAC Configurations
       PAUSE_EN_G      : boolean                  := true;
       PAUSE_512BITS_G : positive range 1 to 1024 := 8;
-      GMII_EN_G       : boolean                  := false;
+      PHY_TYPE_G      : string                   := "XGMII";
+      TX_EOFE_DROP_G  : boolean                  := true;
+      JUMBO_G         : boolean                  := true;
       -- Non-VLAN Configurations
       BYP_EN_G        : boolean                  := false;
       SHIFT_EN_G      : boolean                  := false;
-      JUMBO_G         : boolean                  := false;
       -- VLAN Configurations
       VLAN_EN_G       : boolean                  := false;
-      VLAN_CNT_G      : positive range 1 to 8    := 1;
-      VLAN_JUMBO_G    : boolean                  := false);
+      VLAN_CNT_G      : positive range 1 to 8    := 1);
    port (
       -- Clock and Reset
       ethClk         : in  sl;
@@ -58,9 +58,12 @@ entity EthMacTx is
       -- VLAN Interfaces
       sVlanMasters   : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       sVlanSlaves    : out AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+      -- XLGMII PHY Interface
+      xlgmiiTxd      : out slv(127 downto 0);
+      xlgmiiTxc      : out slv(15 downto 0);
       -- XGMII PHY Interface
-      phyTxd         : out slv(63 downto 0);
-      phyTxc         : out slv(7 downto 0);
+      xgmiiTxd       : out slv(63 downto 0);
+      xgmiiTxc       : out slv(7 downto 0);
       -- GMII PHY Interface
       gmiiTxEn       : out sl;
       gmiiTxEr       : out sl;
@@ -137,11 +140,12 @@ begin
    -------------------------
    -- TX Non-VLAN TOE Module
    -------------------------
-   U_Toe : entity work.EthMacTxToe
+   U_Csum : entity work.EthMacTxCsum
       generic map (
-         TPD_G   => TPD_G,
-         JUMBO_G => JUMBO_G,
-         VLAN_G  => false) 
+         TPD_G          => TPD_G,
+         TX_EOFE_DROP_G => TX_EOFE_DROP_G,
+         JUMBO_G        => JUMBO_G,
+         VLAN_G         => false) 
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -162,11 +166,12 @@ begin
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_CNT_G-1) downto 0 generate
-         U_Toe : entity work.EthMacTxToe
+         U_Csum : entity work.EthMacTxCsum
             generic map (
-               TPD_G   => TPD_G,
-               JUMBO_G => VLAN_JUMBO_G,
-               VLAN_G  => true) 
+               TPD_G          => TPD_G,
+               TX_EOFE_DROP_G => TX_EOFE_DROP_G,
+               JUMBO_G        => JUMBO_G,
+               VLAN_G         => true) 
             port map (
                -- Clock and Reset
                ethClk      => ethClk,
@@ -229,8 +234,8 @@ begin
    -----------------------
    U_Export : entity work.EthMacTxExport
       generic map (
-         TPD_G     => TPD_G,
-         GMII_EN_G => GMII_EN_G)
+         TPD_G      => TPD_G,
+         PHY_TYPE_G => PHY_TYPE_G)
       port map (
          -- Clock and reset
          ethClk         => ethClk,
@@ -238,9 +243,12 @@ begin
          -- AXIS Interface   
          macObMaster    => macObMaster,
          macObSlave     => macObSlave,
+         -- XLGMII PHY Interface
+         xlgmiiTxd      => xlgmiiTxd,
+         xlgmiiTxc      => xlgmiiTxc,
          -- XGMII PHY Interface
-         phyTxd         => phyTxd,
-         phyTxc         => phyTxc,
+         xgmiiTxd       => xgmiiTxd,
+         xgmiiTxc       => xgmiiTxc,
          -- GMII PHY Interface
          gmiiTxEn       => gmiiTxEn,
          gmiiTxEr       => gmiiTxEr,

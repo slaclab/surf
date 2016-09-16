@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 1GbE/10GbE Ethernet MAC
+-- Title      : 1GbE/10GbE/40GbE Ethernet MAC
 -------------------------------------------------------------------------------
 -- File       : EthMacRx.vhd
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-09
+-- Last update: 2016-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,17 +35,16 @@ entity EthMacRx is
       TPD_G          : time                  := 1 ns;
       -- MAC Configurations
       PAUSE_EN_G     : boolean               := true;
-      GMII_EN_G      : boolean               := false;  -- False = XGMII Interface only, True = GMII Interface only
+      PHY_TYPE_G     : string                := "XGMII";
+      JUMBO_G        : boolean               := true;
       -- Non-VLAN Configurations
       FILT_EN_G      : boolean               := false;
       BYP_EN_G       : boolean               := false;
       BYP_ETH_TYPE_G : slv(15 downto 0)      := x"0000";
       SHIFT_EN_G     : boolean               := false;
-      JUMBO_G        : boolean               := false;
       -- VLAN Configurations
       VLAN_EN_G      : boolean               := false;
-      VLAN_CNT_G     : positive range 1 to 8 := 1;
-      VLAN_JUMBO_G   : boolean               := false);   
+      VLAN_CNT_G     : positive range 1 to 8 := 1);
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -59,13 +58,16 @@ entity EthMacRx is
       -- VLAN Interfaces
       mVlanMaster  : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
       mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+      -- XLGMII PHY Interface
+      xlgmiiRxd    : in  slv(127 downto 0);
+      xlgmiiRxc    : in  slv(15 downto 0);
       -- XGMII PHY Interface
-      phyRxd       : in  slv(63 downto 0);
-      phyRxc       : in  slv(7 downto 0);
+      xgmiiRxd     : in  slv(63 downto 0);
+      xgmiiRxc     : in  slv(7 downto 0);
       -- GMII PHY Interface
-      gmiiRxDv     : in  sl                                        := '0';
-      gmiiRxEr     : in  sl                                        := '0';
-      gmiiRxd      : in  slv(7 downto 0)                           := x"00";
+      gmiiRxDv     : in  sl;
+      gmiiRxEr     : in  sl;
+      gmiiRxd      : in  slv(7 downto 0);
       -- Flow Control Interface
       rxPauseReq   : out sl;
       rxPauseValue : out slv(15 downto 0);
@@ -92,17 +94,20 @@ begin
    -------------------
    U_Import : entity work.EthMacRxImport
       generic map (
-         TPD_G     => TPD_G,
-         GMII_EN_G => GMII_EN_G)
+         TPD_G      => TPD_G,
+         PHY_TYPE_G => PHY_TYPE_G)
       port map (
          -- Clock and reset
          ethClk      => ethClk,
          ethRst      => ethRst,
          -- AXIS Interface   
          macIbMaster => macIbMaster,
+         -- XLGMII PHY Interface
+         xlgmiiRxd   => xlgmiiRxd,
+         xlgmiiRxc   => xlgmiiRxc,
          -- XGMII PHY Interface
-         phyRxd      => phyRxd,
-         phyRxc      => phyRxc,
+         xgmiiRxd    => xgmiiRxd,
+         xgmiiRxc    => xgmiiRxc,
          -- GMII PHY Interface
          gmiiRxDv    => gmiiRxDv,
          gmiiRxEr    => gmiiRxEr,
@@ -137,7 +142,7 @@ begin
    -------------------------
    -- RX Non-VLAN TOE Module
    -------------------------
-   U_Toe : entity work.EthMacRxToe
+   U_Csum : entity work.EthMacRxCsum
       generic map (
          TPD_G   => TPD_G,
          JUMBO_G => JUMBO_G,
@@ -160,10 +165,10 @@ begin
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_CNT_G-1) downto 0 generate
-         U_Toe : entity work.EthMacRxToe
+         U_Csum : entity work.EthMacRxCsum
             generic map (
                TPD_G   => TPD_G,
-               JUMBO_G => VLAN_JUMBO_G,
+               JUMBO_G => JUMBO_G,
                VLAN_G  => true) 
             port map (
                -- Clock and Reset
