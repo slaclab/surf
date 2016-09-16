@@ -28,8 +28,6 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.UdpEnginePkg.all;
-use work.IpV4EnginePkg.all;
 use work.EthMacPkg.all;
 
 entity RawEthFramerTb is end RawEthFramerTb;
@@ -53,11 +51,7 @@ architecture testbed of RawEthFramerTb is
    constant MAC_ADDR_C : Slv48Array(2 downto 0) := (0 => x"010300564400", 1 => x"020300564400", 2 => x"030300564400");
    constant IP_ADDR_C  : Slv32Array(2 downto 0) := (0 => x"0A02A8C0", 1 => x"0B02A8C0", 2 => x"0C02A8C0");
    
-   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := (
-      0 => ite(BYPASS_UDP_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
-      1 => ite(BYPASS_UDP_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
-      2 => IP_ENGINE_CONFIG_C,
-      3 => IP_ENGINE_CONFIG_C);   
+   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := ( others => EMAC_AXIS_CONFIG_C); 
 
    signal clk : sl;
    signal rst : sl;
@@ -272,10 +266,10 @@ begin
             WINDOW_ADDR_SIZE_G       => SERVER_WINDOW_ADDR_SIZE_C,
             MAX_NUM_OUTS_SEG_G       => SERVER_MAX_NUM_OUTS_SEG_C,
             PIPE_STAGES_G            => 1,
-            APP_INPUT_AXIS_CONFIG_G  => IP_ENGINE_CONFIG_C,
-            APP_OUTPUT_AXIS_CONFIG_G => IP_ENGINE_CONFIG_C,
-            TSP_INPUT_AXIS_CONFIG_G  => ite(BYPASS_UDP_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
-            TSP_OUTPUT_AXIS_CONFIG_G => ite(BYPASS_UDP_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
+            APP_INPUT_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            APP_OUTPUT_AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C,
+            TSP_INPUT_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            TSP_OUTPUT_AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C,
             MAX_RETRANS_CNT_G        => 1,
             MAX_CUM_ACK_CNT_G        => 1)
          port map (
@@ -314,10 +308,10 @@ begin
             WINDOW_ADDR_SIZE_G       => CLIENT_WINDOW_ADDR_SIZE_C,
             MAX_NUM_OUTS_SEG_G       => CLIENT_MAX_NUM_OUTS_SEG_C,
             PIPE_STAGES_G            => 1,
-            APP_INPUT_AXIS_CONFIG_G  => IP_ENGINE_CONFIG_C,
-            APP_OUTPUT_AXIS_CONFIG_G => IP_ENGINE_CONFIG_C,
-            TSP_INPUT_AXIS_CONFIG_G  => ite(BYPASS_UDP_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
-            TSP_OUTPUT_AXIS_CONFIG_G => ite(BYPASS_UDP_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
+            APP_INPUT_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            APP_OUTPUT_AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C,
+            TSP_INPUT_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            TSP_OUTPUT_AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C,
             MAX_RETRANS_CNT_G        => 1,
             MAX_CUM_ACK_CNT_G        => 1)        
          port map (
@@ -366,7 +360,7 @@ begin
          FIFO_PAUSE_THRESH_G        => 2**8,
          PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-         MASTER_AXI_STREAM_CONFIG_G => ite(BYPASS_RSSI_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
+         MASTER_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_PIPE_STAGES_G   => 1)
       port map (
          mAxisClk     => clk,
@@ -391,7 +385,7 @@ begin
          FIFO_PAUSE_THRESH_G       => 2**8,
          PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G               => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-         SLAVE_AXI_STREAM_CONFIG_G => ite(BYPASS_RSSI_C, EMAC_AXIS_CONFIG_C, IP_ENGINE_CONFIG_C),
+         SLAVE_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C,
          SLAVE_AXI_PIPE_STAGES_G   => 0)
       port map (
          errorDet    => errorDet(0),
