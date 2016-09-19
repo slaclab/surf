@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity IpV4EngineCoreTb is
    generic (
@@ -192,7 +192,7 @@ begin
                v.obProtocolMaster.tValid := '1';
                if r.txCnt = 0 then
                   v.txCnt                                 := r.txCnt + 1;
-                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.obProtocolMaster, '1');
+                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.obProtocolMaster, '1');
                   v.obProtocolMaster.tdata(47 downto 0)   := r.remoteMac;  -- Remote IP address
                   v.obProtocolMaster.tdata(63 downto 48)  := VID_G;        -- VLAN's ID
                   v.obProtocolMaster.tdata(95 downto 64)  := LOCAL_IP_G;   -- Source IPv4 Address
@@ -249,7 +249,7 @@ begin
                   -- Increment the counter
                   v.rxCnt := r.rxCnt + 1;
                   -- Check for errors
-                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibProtocolMaster) = '0')
+                  if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibProtocolMaster) = '0')
                      or (ibProtocolMaster.tdata(47 downto 0) /= r.remoteMac)   -- Remote IP address
                      or (ibProtocolMaster.tdata(95 downto 64) /= REMOTE_IP_G)  -- Source IPv4 Address
                      or (ibProtocolMaster.tdata(127 downto 96) /= LOCAL_IP_G) then  -- Destination IPv4 Address

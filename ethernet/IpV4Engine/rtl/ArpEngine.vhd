@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : 1GbE/10GbE/40GbE Ethernet IPv4/ARP/ICMP Module
 -------------------------------------------------------------------------------
 -- File       : ArpEngine.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-08-17
+-- Last update: 2016-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.IpV4EnginePkg.all;
+use work.EthMacPkg.all;
 
 entity ArpEngine is
    generic (
@@ -212,7 +212,7 @@ begin
                -- Word[0]
                if r.cnt = 0 then
                   v.tData(0) := ibArpMaster.tData;
-                  if (ssiGetUserSof(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
+                  if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibArpMaster) = '1') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
                   else
@@ -237,7 +237,7 @@ begin
                      v.cnt := r.cnt + 1;
                   else
                      -- Check for EOFE error
-                     if (ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
+                     if (ssiGetUserEofe(EMAC_AXIS_CONFIG_C, ibArpMaster) = '1') then
                         -- Next state
                         v.state := IDLE_S;
                      else
@@ -249,7 +249,7 @@ begin
                else
                   if ibArpMaster.tLast = '1' then
                      -- Check for EOFE error
-                     if (ssiGetUserEofe(IP_ENGINE_CONFIG_C, ibArpMaster) = '1') then
+                     if (ssiGetUserEofe(EMAC_AXIS_CONFIG_C, ibArpMaster) = '1') then
                         -- Next state
                         v.state := IDLE_S;
                      else
@@ -380,7 +380,7 @@ begin
                -- Increment the counter
                v.cnt                := r.cnt + 1;
                if r.cnt = 0 then
-                  ssiSetUserSof(IP_ENGINE_CONFIG_C, v.txArpMaster, '1');
+                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txArpMaster, '1');
                elsif r.cnt = 2 then
                   -- Set the EOF flag
                   v.txArpMaster.tLast := '1';

@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2016-09-14
+-- Last update: 2016-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
 package EthMacPkg is
 
@@ -118,6 +117,10 @@ package EthMacPkg is
    constant UDP_C  : slv(7 downto 0) := x"11";  -- Protocol = UDP  = 0x11
    constant TCP_C  : slv(7 downto 0) := x"06";  -- Protocol = TCP  = 0x06
    constant ICMP_C : slv(7 downto 0) := x"01";  -- Protocol = ICMP = 0x01
+
+   -- DHCP Constants
+   constant DHCP_CPORT : slv(15 downto 0) := x"4400";  -- Port = 68 = 0x0044
+   constant DHCP_SPORT : slv(15 downto 0) := x"4300";  -- Port = 67 = 0x0043
    
    procedure GetIpV4Summation (
       -- Header data
@@ -150,6 +153,8 @@ package EthMacPkg is
       valid   : inout sl;
       csum    : inout slv(15 downto 0));    
 
+   function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array;
+   
 end package EthMacPkg;
 
 package body EthMacPkg is
@@ -331,5 +336,20 @@ package body EthMacPkg is
       end if;
       
    end procedure;
+
+   function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array is
+      variable i      : natural;
+      variable vec    : slv(15 downto 0);
+      variable retVar : Slv16Array((portSize-1) downto 0);
+   begin
+      for i in (portSize-1) downto 0 loop
+         -- Convert the NaturalArray into 16-bit SLV
+         vec                    := toSlv(portNum(i), 16);
+         -- Convert to big Endian
+         retVar(i)(15 downto 8) := vec(7 downto 0);
+         retVar(i)(7 downto 0)  := vec(15 downto 8);
+      end loop;
+      return retVar;
+   end function;
 
 end package body EthMacPkg;
