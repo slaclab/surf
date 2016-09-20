@@ -15,7 +15,7 @@ Dac38J84: &Dac38J84
   description: DAC38J84 Module
   size: 0x200
   class: MMIODev
-  configPrio: 1
+  configPrio: 2
   metadata:
     numTxLanes: &numTxLanes 2
   children:
