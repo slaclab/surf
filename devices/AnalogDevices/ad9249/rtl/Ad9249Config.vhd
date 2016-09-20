@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-06-27
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ entity Ad9249Config is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      adcPdwn : out   slv(NUM_CHIPS_G*2-1 downto 0);
+      adcPdwn : out   slv(NUM_CHIPS_G-1 downto 0);
       adcSclk : out   sl;
       adcSdio : inout sl;
       adcCsb  : out   slv(NUM_CHIPS_G*2-1 downto 0)
@@ -71,7 +71,7 @@ architecture rtl of Ad9249Config is
    signal coreSDout : sl;
    signal coreCsb   : slv(NUM_CHIPS_G*2-1 downto 0);
 
-   constant CHIP_SEL_WIDTH_C : integer                       := bitSize(NUM_CHIPS_G*2);
+   constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G*2);
    constant PWDN_ADDR_BIT_C  : integer                       := 10 + CHIP_SEL_WIDTH_C;
    constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := (PWDN_ADDR_BIT_C => '1', others => '0');
 
@@ -86,7 +86,7 @@ architecture rtl of Ad9249Config is
       chipSel        : slv(CHIP_SEL_WIDTH_C-1 downto 0);
       wrData         : slv(23 downto 0);
       wrEn           : sl;
-      pdwn           : slv(NUM_CHIPS_G*2-1 downto 0);
+      pdwn           : slv(NUM_CHIPS_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -117,7 +117,7 @@ begin
 
             -- Chip powerdown signal is local registers
             for i in 0 to NUM_CHIPS_G-1 loop
-               axiSlaveRegister(axilEp, PWDN_ADDR_C + i*4, 0, v.pdwn(i*2+1 downto i*2));
+               axiSlaveRegister(axilEp, PWDN_ADDR_C + i*4, 0, v.pdwn(i));
             end loop;
 
             -- Any other address is forwarded to the chip via SPI
