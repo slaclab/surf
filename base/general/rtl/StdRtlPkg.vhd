@@ -120,15 +120,11 @@ package StdRtlPkg is
    -- conv_std_logic_vector functions
    function toSlv(ARG : integer; SIZE : integer) return slv;
 
-   -- gets real multiplication
-   function getRealMult (A, B : real) return real;
-   function getRealMult (A    : integer; B : real) return real;
-   function getRealMult (A    : real; B : integer) return real;
-   
-   -- gets real division
-   function getRealDiv (A, B : real) return real;
-   function getRealDiv (A    : integer; B : real) return real;
-   function getRealDiv (A    : real; B : integer) return real;
+   -- gets real multiplication and division with integers
+   function "*" (L    : integer; R : real) return real;
+   function "*" (L    : real; R : integer) return real;
+   function "/" (L    : integer; R : real) return real;
+   function "/" (L    : real; R : integer) return real;
 
    function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
 
@@ -1121,40 +1117,28 @@ package body StdRtlPkg is
       return slv(to_unsigned(ARG, SIZE));
    end;
 
-   -----------------------------
-   -- gets real multiplication
-   -----------------------------      
-   function getRealMult (A, B : real) return real is
-   begin
-      return real(A*B);
-   end function;
 
-   function getRealMult (A : integer; B : real) return real is
+   -------------------------------------------------------------------------------------------------
+   -- Multiply and divide reals and integer
+   -------------------------------------------------------------------------------------------------
+   function "*" (L : real; R : integer)      return real is
    begin
-      return real(real(A)*B);
-   end function;
+      return real(L*real(R));
+   end function "*";
 
-   function getRealMult (A : real; B : integer) return real is
+   function "*" (L : integer; R : real) return real is
    begin
-      return real(A*real(B));
+      return real(real(R)*L);
    end function;
    
-   -----------------------------
-   -- gets real division
-   -----------------------------      
-   function getRealDiv (A, B : real) return real is
+   function "/" (L : integer; R : real) return real is
    begin
-      return real(A/B);
+      return real(real(L)/R);
    end function;
 
-   function getRealDiv (A : integer; B : real) return real is
+   function "/" (L : real; R : integer) return real is
    begin
-      return real(real(A)/B);
-   end function;
-
-   function getRealDiv (A : real; B : integer) return real is
-   begin
-      return real(A/real(B));
+      return real(L/real(R));
    end function;   
 
    -------------------------------------------------------------------------------------------------

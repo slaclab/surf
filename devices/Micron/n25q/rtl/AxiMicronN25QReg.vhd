@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2016-06-24
+-- Last update: 2016-09-20
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ end AxiMicronN25QReg;
 
 architecture rtl of AxiMicronN25QReg is
 
-   constant DOUBLE_SCK_FREQ_C : real    := getRealMult(SPI_CLK_FREQ_G, 2.0);
+   constant DOUBLE_SCK_FREQ_C : real    := SPI_CLK_FREQ_G * 2.0;
    constant SCK_HALF_PERIOD_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, DOUBLE_SCK_FREQ_C))-1;
    constant MIN_CS_WIDTH_C    : natural := (getTimeRatio(AXI_CLK_FREQ_G, 2.0E+7));
    constant MAX_SCK_CNT_C     : natural := ite((SCK_HALF_PERIOD_C > MIN_CS_WIDTH_C), SCK_HALF_PERIOD_C, MIN_CS_WIDTH_C);

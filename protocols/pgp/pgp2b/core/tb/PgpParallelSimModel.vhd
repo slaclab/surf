@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-14
--- Last update: 2016-03-01
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,9 +66,9 @@ end PgpParallelSimModel;
 architecture mapping of PgpParallelSimModel is
 
    constant SPEED_OF_LIGHT_C    : real    := 299792458.0;  -- speed of light in a vacuum (m/s)
-   constant SPEED_OF_FIBER_C    : real    := getRealDiv(SPEED_OF_LIGHT_C, INDEX_OF_REFRACTION_G);  -- speed of light in a fiber (m/s)
-   constant CLK_PER_METER_C     : real    := getRealDiv(CLK_FREQ_G, SPEED_OF_FIBER_C);  -- # of clock cycles per meter
-   constant CABLE_DELAY_FLOAT_C : real    := getRealMult(CABLE_LENGTH_G, CLK_PER_METER_C);
+   constant SPEED_OF_FIBER_C    : real    := SPEED_OF_LIGHT_C / INDEX_OF_REFRACTION_G;  -- speed of light in a fiber (m/s)
+   constant CLK_PER_METER_C     : real    := CLK_FREQ_G / SPEED_OF_FIBER_C;  -- # of clock cycles per meter
+   constant CABLE_DELAY_FLOAT_C : real    := CABLE_LENGTH_G * CLK_PER_METER_C;
    constant CABLE_DELAY_C       : natural := getTimeRatio(CABLE_DELAY_FLOAT_C, 1.0);
 
    -- 2 bytes of 8B10B is 20 bits
