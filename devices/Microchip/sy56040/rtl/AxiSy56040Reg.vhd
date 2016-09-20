@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-12
--- Last update: 2015-11-09
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,10 +52,10 @@ end AxiSy56040Reg;
 
 architecture rtl of AxiSy56040Reg is
 
-   constant PULSE_WIDTH_C : real    := 10.0E-9;                       -- units of seconds
-   constant PULSE_FREQ_C  : real    := getRealDiv(1, PULSE_WIDTH_C);  -- units of Hz
+   constant PULSE_WIDTH_C : real    := 10.0E-9;              -- units of seconds
+   constant PULSE_FREQ_C  : real    := 1.0 / PULSE_WIDTH_C;  -- units of Hz
    constant MAX_CNT_C     : natural := getTimeRatio(AXI_CLK_FREQ_G, PULSE_FREQ_C);
-   
+
    type stateType is (
       IDLE_S,
       SETUP_S,
@@ -75,7 +75,7 @@ architecture rtl of AxiSy56040Reg is
       -- Status Machine
       state         : StateType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       sin           => (others => '0'),
       sout          => (others => '0'),
@@ -117,7 +117,7 @@ begin
             if (axiStatus.readEnable = '1') then
                -- Reset the register
                v.axiReadSlave.rdata := (others => '0');
-               axiReadResp := AXI_RESP_OK_C;
+               axiReadResp          := AXI_RESP_OK_C;
                -- Decode address and assign read data
                case (axiReadMaster.araddr(3 downto 0)) is
                   when x"0" =>          -- OUT[0] Mapping
@@ -222,7 +222,7 @@ begin
       xBarSout      <= r.sout;
       xBarConfig    <= r.load;
       xBarLoad      <= r.load;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -231,5 +231,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;
