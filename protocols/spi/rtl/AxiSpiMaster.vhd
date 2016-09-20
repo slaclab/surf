@@ -6,7 +6,7 @@
 --            : Uros Legat Modified <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-01-12
--- Last update: 2015-11-04
+-- Last update: 2016-06-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ use unisim.vcomponents.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
---use work.I2cPkg.all;
 
 entity AxiSpiMaster is
    generic (
@@ -46,6 +45,9 @@ entity AxiSpiMaster is
       AXI_ERROR_RESP_G  : slv(1 downto 0) := AXI_RESP_DECERR_C;
       ADDRESS_SIZE_G    : natural         := 15;
       DATA_SIZE_G       : natural         := 8;
+      MODE_G            : string          := "RW";  -- Or "WO" (write only),  "RO" (read only)
+      CPHA_G            : sl              := '0';
+      CPOL_G            : sl              := '0';
       CLK_PERIOD_G      : real            := 6.4E-9;
       SPI_SCLK_PERIOD_G : real            := 100.0E-6
       );
@@ -68,7 +70,7 @@ end entity AxiSpiMaster;
 architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs
-   constant PACKET_SIZE_C : positive := 1+ ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
+   constant PACKET_SIZE_C : positive := ite(MODE_G = "RW", 1, 0) + ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
 
    signal rdData : slv(PACKET_SIZE_C-1 downto 0);
    signal rdEn   : sl;
@@ -109,25 +111,49 @@ begin
          when WAIT_AXI_TXN_S =>
 
             if (axiStatus.writeEnable = '1') then
-               -- Write bit
-               v.wrData(PACKET_SIZE_C-1)                                 := '0';
-               -- Address (make sure that the assigned AXI address in the crossbar is big enough)               
-               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
-               -- Data
-               v.wrData(DATA_SIZE_G-1 downto 0)                          := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
-               v.wrEn                                                    := '1';
-               v.state                                                   := WAIT_CYCLE_S;
+               if (MODE_G = "RO") then
+                  axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+               else
+
+                  -- No write bit when mode is write-only
+                  if (MODE_G /= "WO") then
+                     v.wrData(PACKET_SIZE_C-1) := '0';
+                  end if;
+
+                  -- Address (make sure that the assigned AXI address in the crossbar is big enough)
+                  if (ADDRESS_SIZE_G > 0) then
+                     v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
+                  end if;
+                  -- Data
+                  v.wrData(DATA_SIZE_G-1 downto 0) := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
+                  v.wrEn                           := '1';
+                  v.state                          := WAIT_CYCLE_S;
+               end if;
             end if;
 
             if (axiStatus.readEnable = '1') then
-               -- Read bit
-               v.wrData(PACKET_SIZE_C-1)                                 := '1';
-               -- Address               
-               v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);
-               -- Make bus float to Z so slave can drive during data segment
-               v.wrData(DATA_SIZE_G-1 downto 0)                          := (others => '1');
-               v.wrEn                                                    := '1';
-               v.state                                                   := WAIT_CYCLE_S;
+               if (MODE_G = "WO") then
+                  axiSlaveReadResponse(v.axiReadSlave, AXI_ERROR_RESP_G);
+               else
+
+                  -- No read bit when mode is read-only
+                  if (MODE_G /= "RO") then
+                     v.wrData(PACKET_SIZE_C-1) := '1';
+                  end if;
+
+                  -- Address
+                  if (ADDRESS_SIZE_G > 0) then
+                     v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);
+                     -- Setting data segment to all 1 allows it to float so that slave side can drive it
+                     -- in shared sdio configurations
+                     v.wrData(DATA_SIZE_G-1 downto 0)                          := (others => '1');
+                  end if;
+
+                  -- If there are no address bits, readback will reuse the last wrData when shifting
+
+                  v.wrEn  := '1';
+                  v.state := WAIT_CYCLE_S;
+               end if;
             end if;
 
          when WAIT_CYCLE_S =>
@@ -161,7 +187,7 @@ begin
 
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -176,8 +202,8 @@ begin
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,
          DATA_SIZE_G       => PACKET_SIZE_C,
-         CPHA_G            => '0',                -- Sample on leading edge
-         CPOL_G            => '0',                -- Sample on rising edge
+         CPHA_G            => CPHA_G,
+         CPOL_G            => CPOL_G,
          CLK_PERIOD_G      => CLK_PERIOD_G,       -- 8.0E-9,
          SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)  --ite(SIMULATION_G, 100.0E-9, 100.0E-6))
       port map (
