@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-20
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -119,7 +119,7 @@ begin
          r.ipv4Hdr,
          r.tKeep,
          r.tData,
-         r.protLen(EMAC_CSUM_PIPELINE_C),
+         r.protLen(EMAC_CSUM_PIPELINE_C-1),
          r.protCsum(EMAC_CSUM_PIPELINE_C),
          r.calc,
          v.calc,
