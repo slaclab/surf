@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-20
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -197,10 +197,10 @@ begin
       -- Check for UDP frame
       if (r.udpDet(EMAC_CSUM_PIPELINE_C-1) = '1') then
          -- Multiple length by 2 to combine UDP length and IPV4 Pseudo Header's length together
-         v.len := r.protLen(EMAC_CSUM_PIPELINE_C-1)(14 downto 0) & '0';
+         v.len := r.protLen(EMAC_CSUM_PIPELINE_C-2)(14 downto 0) & '0';
       else
          -- TCP only has IPV4 Pseudo Header's length together
-         v.len := r.protLen(EMAC_CSUM_PIPELINE_C-1);
+         v.len := r.protLen(EMAC_CSUM_PIPELINE_C-2);
       end if;
 
       -- State Machine

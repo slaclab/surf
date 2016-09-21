@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2016-09-20
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -118,16 +118,18 @@ package EthMacPkg is
       txNotReadyCnt  => '0');
    type EthMacStatusArray is array (natural range<>) of EthMacStatusType;
 
-   constant EMAC_CSUM_PIPELINE_C : natural := 2;
+   constant EMAC_CSUM_PIPELINE_C : natural := 3;
    type EthMacCsumAccumType is record
       step : slv(EMAC_CSUM_PIPELINE_C downto 0);
       sum1 : Slv32Array(1 downto 0);
       sum3 : slv(31 downto 0);
+      sum5 : slv(15 downto 0);
    end record EthMacCsumAccumType;
    constant ETH_MAC_CSUM_ACCUM_INIT_C : EthMacCsumAccumType := (
       step => (others => '0'),
       sum1 => (others => (others => '0')),
-      sum3 => (others => '0'));
+      sum3 => (others => '0'),
+      sum5 => (others => '0'));
    type EthMacCsumAccumArray is array (natural range<>) of EthMacCsumAccumType;
 
    function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array;
@@ -197,7 +199,6 @@ package body EthMacPkg is
       variable sum3A   : Slv32Array(1 downto 0);
       variable sum3B   : Slv32Array(1 downto 0);
       variable sum4    : Slv32Array(1 downto 0);
-      variable sum5    : Slv16Array(1 downto 0);
    begin
       -- Convert to 32-bit (little Endian) words
       lenProt := x"0000" & len;
@@ -272,17 +273,19 @@ package body EthMacPkg is
 
       -- Summation: Level5
       for i in 1 downto 0 loop
-         sum5(i) := sum4(i)(31 downto 16) + sum4(i)(15 downto 0);
+         v(i).sum5 := sum4(i)(31 downto 16) + sum4(i)(15 downto 0);
       end loop;
 
       -- Perform 1's complement
-      ipCsum := not(sum5(0));
-      if (sum5(1) = x"FFFF") then
-         csum := sum5(1);
+      v(0).step(3) := r(0).step(2);
+      v(1).step(3) := r(1).step(2);
+      ipCsum       := not(r(0).sum5);
+      if (r(1).sum5 = x"FFFF") then
+         csum := r(1).sum5;
       -- Note: The UDP checksum is calculated using one's complement arithmetic (RFC 793), 
       --       and 0xffff is equivalent to 0x0000; they are -0 and +0 respectively.
       else
-         csum := not(sum5(1));
+         csum := not(r(1).sum5);
       end if;
 
       -- Check for valid inbound checksum
