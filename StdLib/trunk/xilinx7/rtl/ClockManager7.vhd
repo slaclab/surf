@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-28
--- Last update: 2016-08-24
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ entity ClockManager7 is
       FB_BUFG_G              : boolean                          := true;
       OUTPUT_BUFG_G          : boolean                          := true;
       RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
+      RST_PIPE_STAGES_G      : natural                          := 2;
       NUM_CLOCKS_G           : integer range 1 to 7;
       AXI_ERROR_RESP_G       : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
       -- MMCM attributes
@@ -320,7 +321,8 @@ begin
             IN_POLARITY_G   => '0',
             OUT_POLARITY_G  => RST_POLARITY_C(i),
             BYPASS_SYNC_G   => false,
-            RELEASE_DELAY_G => RST_HOLD_C(i))
+            RELEASE_DELAY_G => RST_HOLD_C(i),
+            PIPE_STAGES_G   => RST_PIPE_STAGES_G)
          port map (
             clk      => clkOutLoc(i),
             asyncRst => lockedLoc,
