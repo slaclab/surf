@@ -4,8 +4,8 @@
 -- File       : GigEthGthUltraScale.vhd
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Last update: 2016-09-14
--- Last update: 2016-02-07
+-- Created    : 2016-02-07
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -131,42 +131,32 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTopWithFifo
+   U_MAC : entity work.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "GMII",
-         AXIS_CONFIG_G => AXIS_CONFIG_G)
+         PRIM_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- DMA Interface 
-         dmaClk      => dmaClk,
-         dmaClkRst   => dmaRst,
-         dmaIbMaster => dmaIbMaster,
-         dmaIbSlave  => dmaIbSlave,
-         dmaObMaster => dmaObMaster,
-         dmaObSlave  => dmaObSlave,
+         -- Primary Interface
+         primClk         => dmaClk,
+         primRst         => dmaRst,
+         ibMacPrimMaster => dmaObMaster,
+         ibMacPrimSlave  => dmaObSlave,
+         obMacPrimMaster => dmaIbMaster,
+         obMacPrimSlave  => dmaIbSlave,
          -- Ethernet Interface
-         ethClk      => sysClk125,
-         ethClkRst   => sysRst125,
-         ethConfig   => config.macConfig,
-         ethStatus   => status.macStatus,
-         phyReady    => status.phyReady,
-         -- XLGMII PHY Interface
-         xlgmiiRxd   => (others => '0'),
-         xlgmiiRxc   => (others => '0'),
-         xlgmiiTxd   => open,
-         xlgmiiTxc   => open,
-         -- XGMII PHY Interface
-         xgmiiRxd    => (others => '0'),
-         xgmiiRxc    => (others => '0'),
-         xgmiiTxd    => open,
-         xgmiiTxc    => open,
+         ethClk          => sysClk125,
+         ethRst          => sysRst125,
+         ethConfig       => config.macConfig,
+         ethStatus       => status.macStatus,
+         phyReady        => status.phyReady,
          -- GMII PHY Interface
-         gmiiRxDv    => gmiiRxDv,
-         gmiiRxEr    => gmiiRxEr,
-         gmiiRxd     => gmiiRxd,
-         gmiiTxEn    => gmiiTxEn,
-         gmiiTxEr    => gmiiTxEr,
-         gmiiTxd     => gmiiTxd);            
+         gmiiRxDv        => gmiiRxDv,
+         gmiiRxEr        => gmiiRxEr,
+         gmiiRxd         => gmiiRxd,
+         gmiiTxEn        => gmiiTxEn,
+         gmiiTxEr        => gmiiTxEr,
+         gmiiTxd         => gmiiTxd);        
 
    ------------------
    -- 1000BASE-X core

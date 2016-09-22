@@ -33,7 +33,7 @@ use work.EthMacPkg.all;
 entity EthMacTxCsum is
    generic (
       TPD_G          : time    := 1 ns;
-      TX_EOFE_DROP_G : boolean := true;
+      DROP_ERR_PKT_G : boolean := true;
       JUMBO_G        : boolean := true;
       VLAN_G         : boolean := false);
    port (
@@ -447,7 +447,7 @@ begin
             -- Move data
             v.txMaster      := mMaster;
             -- Check if not forwarding EOFE frames
-            if (TX_EOFE_DROP_G = true) and (eofeDet = '1') then
+            if (DROP_ERR_PKT_G = true) and (eofeDet = '1') then
                -- Do NOT move data
                v.txMaster.tValid := '0';
             end if;

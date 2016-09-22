@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-14
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,10 +54,10 @@ entity EthMacRx is
       mPrimCtrl    : in  AxiStreamCtrlType;
       -- Bypass Interface
       mBypMaster   : out AxiStreamMasterType;
-      mBypCtrl     : in  AxiStreamCtrlType                         := AXI_STREAM_CTRL_UNUSED_C;
+      mBypCtrl     : in  AxiStreamCtrlType;
       -- VLAN Interfaces
-      mVlanMaster  : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+      mVlanMasters : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+      mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0);
       -- XLGMII PHY Interface
       xlgmiiRxd    : in  slv(127 downto 0);
       xlgmiiRxc    : in  slv(15 downto 0);
@@ -180,13 +180,13 @@ begin
                udpCsumEn   => '1',
                -- Outbound data to MAC
                sAxisMaster => pauseMasters(i),
-               mAxisMaster => mVlanMaster(i));
+               mAxisMaster => mVlanMasters(i));
       end generate GEN_VEC;
    end generate;
 
    BYPASS_VLAN : if (VLAN_EN_G = false) generate
       -- Terminate Unused buses
-      mVlanMaster <= (others => AXI_STREAM_MASTER_INIT_C);
+      mVlanMasters <= (others => AXI_STREAM_MASTER_INIT_C);
    end generate;
 
    -------------------
