@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-21
+-- Last update: 2016-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -302,6 +302,7 @@ begin
    U_RxFifo : entity work.EthMacRxFifo
       generic map (
          TPD_G             => TPD_G,
+         JUMBO_G           => JUMBO_G,
          DROP_ERR_PKT_G    => DROP_ERR_PKT_G,
          PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
          PRIM_CONFIG_G     => PRIM_CONFIG_G,
