@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : SsiFrameFilter.vhd
+-- File       : SsiObFrameFilter.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-01
+-- Last update: 2016-09-22
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,28 +32,28 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity SsiFrameFilter is
+entity SsiObFrameFilter is
    generic (
-      -- General Configurations
       TPD_G             : time    := 1 ns;
+      VALID_THOLD_G     : natural := 1;
       EN_FRAME_FILTER_G : boolean := true;
-      -- AXI Stream Port Configurations
-      AXIS_CONFIG_G     : AxiStreamConfigType);      
+      AXIS_CONFIG_G     : AxiStreamConfigType);        
    port (
-      -- Slave Port
+      -- Slave Port (AXIS FIFO Read Interface)
       sAxisMaster    : in  AxiStreamMasterType;
+      sTLastTUser    : in  slv(127 downto 0);
       sAxisSlave     : out AxiStreamSlaveType;
-      sAxisDropWrite : out sl;          -- Word dropped status output
-      sAxisTermFrame : out sl;          -- Frame dropped status output
-      -- Master Port
+      -- Master Port  
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
+      mAxisDropWrite : out sl;          -- Word dropped status output
+      mAxisTermFrame : out sl;          -- Frame dropped status output
       -- Clock and Reset
       axisClk        : in  sl;
       axisRst        : in  sl);
-end SsiFrameFilter;
+end SsiObFrameFilter;
 
-architecture rtl of SsiFrameFilter is
+architecture rtl of SsiObFrameFilter is
 
    type StateType is (
       IDLE_S,
@@ -81,20 +81,25 @@ architecture rtl of SsiFrameFilter is
    
 begin
 
+   assert ( AXIS_CONFIG_G.TUSER_BITS_C >= 2)  report "SsiObFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;   
+
    NO_FILTER : if (EN_FRAME_FILTER_G = false) generate
 
       mAxisMaster <= sAxisMaster;
       sAxisSlave  <= mAxisSlave;
 
-      sAxisDropWrite <= '0';
-      sAxisTermFrame <= '0';
+      mAxisDropWrite <= '0';
+      mAxisTermFrame <= '0';
       
    end generate;
 
    ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
 
-      comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
-         variable v : RegType;
+      comb : process (axisRst, mAxisSlave, r, sAxisMaster, sTLastTUser) is
+         variable v    : RegType;
+         variable sof  : sl;
+         variable eof  : AxiStreamMasterType;
+         variable eofe : sl;
       begin
          -- Latch the current value
          v := r;
@@ -103,67 +108,83 @@ begin
          v.wordDropped  := '0';
          v.frameDropped := '0';
          v.slave        := AXI_STREAM_SLAVE_INIT_C;
-         if mAxisSlave.tReady = '1' then
+         if (mAxisSlave.tReady = '1') then
             v.master.tValid := '0';
          end if;
 
-         -- Check if ready to move data
-         if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
-            -- Accept the data
-            v.slave.tReady := '1';
-            -- Move the data bus
-            v.master       := sAxisMaster;
-            -- State Machine
-            case (r.state) is
-               ----------------------------------------------------------------------
-               when IDLE_S =>
+         -- Initialize the bus
+         eof       := AXI_STREAM_MASTER_INIT_C;
+         eof.tUser := sTLastTUser;
+
+         -- Get the SOF/EOFE status
+         sof := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);
+
+         -- Get the EOFE status
+         if (VALID_THOLD_G = 0) then
+            eofe := ssiGetUserEofe(AXIS_CONFIG_G, eof);
+         else
+            eofe := '0';
+         end if;
+
+         -- State Machine
+         case (r.state) is
+            ----------------------------------------------------------------------
+            when IDLE_S =>
+               -- Check if ready to move data
+               if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+                  -- Accept the data
+                  v.slave.tReady := '1';
                   -- Check for SOF
-                  if ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1' then
+                  if (sof = '1') and (eofe = '0') then
+                     -- Move the data bus
+                     v.master := sAxisMaster;
                      -- Latch tDest
-                     v.tDest := sAxisMaster.tDest;
+                     v.tDest  := sAxisMaster.tDest;
                      -- Check for no EOF
-                     if sAxisMaster.tLast = '0' then
+                     if (sAxisMaster.tLast = '0') then
                         -- Next state
                         v.state := MOVE_S;
                      end if;
                   else
-                     -- Blow off the data
-                     v.master.tValid := '0';
-                     -- Strobe the error flags
-                     v.wordDropped   := '1';
-                     -- Check for EOF flag 
-                     if sAxisMaster.tLast = '1' then
-                        v.frameDropped := '1';
-                     end if;
-                  end if;
-               ----------------------------------------------------------------------
-               when MOVE_S =>
-                  -- Force the tDest
-                  v.master.tDest := r.tDest;
-                  -- Check for EOF   
-                  if sAxisMaster.tLast = '1' then
-                     -- Next state
-                     v.state := IDLE_S;
-                  end if;
-                  -- Check for SSI framing errors
-                  if (ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster) = '1') or   -- Check for invalid SOF
-                                       (r.tDest /= sAxisMaster.tDest) then  -- Check for change in tDest
-                     -- Set the EOF flag
-                     v.master.tLast := '1';
-                     -- Set the EOFE flag
-                     ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
                      -- Strobe the error flags
                      v.wordDropped  := '1';
                      v.frameDropped := sAxisMaster.tLast;
-                     -- Next state
-                     v.state        := IDLE_S;
                   end if;
+               end if;
             ----------------------------------------------------------------------
-            end case;
-         end if;
+            when MOVE_S =>
+               -- Check if ready to move data
+               if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+                  -- Check for SSI framing errors (repeated SOF or interleaved frame)
+                  if (sof = '1') or (r.tDest /= sAxisMaster.tDest) then
+                     -- Terminate the frame
+                     v.master.tValid := '1';
+                     -- Set the EOF flag
+                     v.master.tLast  := '1';
+                     -- Set the EOFE flag
+                     ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+                     -- Strobe the error flags
+                     v.wordDropped   := '1';
+                     v.frameDropped  := sAxisMaster.tLast;
+                     -- Next state
+                     v.state         := IDLE_S;
+                  else
+                     -- Accept the data
+                     v.slave.tReady := '1';
+                     -- Move the data bus
+                     v.master       := sAxisMaster;
+                     -- Check for EOF   
+                     if (sAxisMaster.tLast = '1') then
+                        -- Next state
+                        v.state := IDLE_S;
+                     end if;
+                  end if;
+               end if;
+         ----------------------------------------------------------------------
+         end case;
 
          -- Synchronous Reset
-         if axisRst = '1' then
+         if (axisRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -173,8 +194,8 @@ begin
          -- Outputs
          sAxisSlave     <= v.slave;
          mAxisMaster    <= r.master;
-         sAxisDropWrite <= r.wordDropped;
-         sAxisTermFrame <= r.frameDropped;
+         mAxisDropWrite <= r.wordDropped;
+         mAxisTermFrame <= r.frameDropped;
          
       end process comb;
 
