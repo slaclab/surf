@@ -14,7 +14,7 @@ Adc16Dx370: &Adc16Dx370
   name: Adc16Dx370
   description: ADC16Dx370 Module
   class: MMIODev
-  configPrio: 1
+  configPrio: 2
   size: 0x00100000
   children:
     AdcReg_0x0000:
