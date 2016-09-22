@@ -119,7 +119,8 @@ vhdl work ssi/rtl/SsiCmdMaster.vhd
 vhdl work ssi/rtl/SsiCmdMasterPkg.vhd
 vhdl work ssi/rtl/SsiCmdMasterPulser.vhd
 vhdl work ssi/rtl/SsiFifo.vhd
-vhdl work ssi/rtl/SsiFrameFilter.vhd
+vhdl work ssi/rtl/SsiIbFrameFilter.vhd
+vhdl work ssi/rtl/SsiObFrameFilter.vhd
 vhdl work ssi/rtl/SsiPkg.vhd
 vhdl work ssi/rtl/SsiPrbsRx.vhd
 vhdl work ssi/rtl/SsiPrbsTx.vhd
