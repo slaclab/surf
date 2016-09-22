@@ -4,8 +4,8 @@
 -- File       : EthMacTb.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-20
--- Last update: 2016-09-20
+-- Created    : 2016-09-20
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -129,78 +129,54 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC0 : entity work.EthMacTopWithFifo
+   U_MAC0 : entity work.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
-         AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         PRIM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          -- DMA Interface 
-         dmaClk      => clk,
-         dmaClkRst   => rst,
-         dmaIbMaster => obMacMasters(0),
-         dmaIbSlave  => obMacSlaves(0),
-         dmaObMaster => ibMacMasters(0),
-         dmaObSlave  => ibMacSlaves(0),
+         primClk         => clk,
+         primRst         => rst,
+         ibMacPrimMaster => obMacMasters(0),
+         ibMacPrimSlave  => obMacSlaves(0),
+         obMacPrimMaster => ibMacMasters(0),
+         obMacPrimSlave  => ibMacSlaves(0),
          -- Ethernet Interface
-         ethClk      => clk,
-         ethClkRst   => rst,
-         ethConfig   => ethConfig(0),
-         phyReady    => phyReady,
-         -- XLGMII PHY Interface
-         xlgmiiRxd   => (others => '0'),
-         xlgmiiRxc   => (others => '0'),
-         xlgmiiTxd   => open,
-         xlgmiiTxc   => open,
+         ethClk          => clk,
+         ethRst          => rst,
+         ethConfig       => ethConfig(0),
+         phyReady        => phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd    => phyD(0),
-         xgmiiRxc    => phyC(0),
-         xgmiiTxd    => phyD(1),
-         xgmiiTxc    => phyC(1),
-         -- GMII PHY Interface
-         gmiiRxDv    => '0',
-         gmiiRxEr    => '0',
-         gmiiRxd     => (others => '0'),
-         gmiiTxEn    => open,
-         gmiiTxEr    => open,
-         gmiiTxd     => open);  
+         xgmiiRxd        => phyD(0),
+         xgmiiRxc        => phyC(0),
+         xgmiiTxd        => phyD(1),
+         xgmiiTxc        => phyC(1));  
    ethConfig(0).macAddress <= MAC_ADDR_C(0);
 
-   U_MAC1 : entity work.EthMacTopWithFifo
+   U_MAC1 : entity work.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
-         AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         PRIM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          -- DMA Interface 
-         dmaClk      => clk,
-         dmaClkRst   => rst,
-         dmaIbMaster => obMacMasters(1),
-         dmaIbSlave  => obMacSlaves(1),
-         dmaObMaster => ibMacMasters(1),
-         dmaObSlave  => ibMacSlaves(1),
+         primClk         => clk,
+         primRst         => rst,
+         ibMacPrimMaster => obMacMasters(1),
+         ibMacPrimSlave  => obMacSlaves(1),
+         obMacPrimMaster => ibMacMasters(1),
+         obMacPrimSlave  => ibMacSlaves(1),
          -- Ethernet Interface
-         ethClk      => clk,
-         ethClkRst   => rst,
-         ethConfig   => ethConfig(1),
-         phyReady    => phyReady,
-         -- XLGMII PHY Interface
-         xlgmiiRxd   => (others => '0'),
-         xlgmiiRxc   => (others => '0'),
-         xlgmiiTxd   => open,
-         xlgmiiTxc   => open,
+         ethClk          => clk,
+         ethRst          => rst,
+         ethConfig       => ethConfig(1),
+         phyReady        => phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd    => phyD(1),
-         xgmiiRxc    => phyC(1),
-         xgmiiTxd    => phyD(0),
-         xgmiiTxc    => phyC(0),
-         -- GMII PHY Interface
-         gmiiRxDv    => '0',
-         gmiiRxEr    => '0',
-         gmiiRxd     => (others => '0'),
-         gmiiTxEn    => open,
-         gmiiTxEr    => open,
-         gmiiTxd     => open);  
+         xgmiiRxd        => phyD(1),
+         xgmiiRxc        => phyC(1),
+         xgmiiTxd        => phyD(0),
+         xgmiiTxc        => phyC(0));  
    ethConfig(1).macAddress <= MAC_ADDR_C(1);
 
    ----------------------

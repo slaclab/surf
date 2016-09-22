@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-09-14
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -172,42 +172,30 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTopWithFifo
+   U_MAC : entity work.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
-         AXIS_CONFIG_G => AXIS_CONFIG_G)
+         PRIM_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- DMA Interface 
-         dmaClk      => dmaClk,
-         dmaClkRst   => dmaRst,
-         dmaIbMaster => dmaIbMaster,
-         dmaIbSlave  => dmaIbSlave,
-         dmaObMaster => dmaObMaster,
-         dmaObSlave  => dmaObSlave,
+         -- Primary Interface
+         primClk         => dmaClk,
+         primRst         => dmaRst,
+         ibMacPrimMaster => dmaObMaster,
+         ibMacPrimSlave  => dmaObSlave,
+         obMacPrimMaster => dmaIbMaster,
+         obMacPrimSlave  => dmaIbSlave,
          -- Ethernet Interface
-         ethClk      => phyClock,
-         ethClkRst   => phyReset,
-         ethConfig   => config.macConfig,
-         ethStatus   => status.macStatus,
-         phyReady    => status.phyReady,
-         -- XLGMII PHY Interface
-         xlgmiiRxd   => (others => '0'),
-         xlgmiiRxc   => (others => '0'),
-         xlgmiiTxd   => open,
-         xlgmiiTxc   => open,
+         ethClk          => phyClock,
+         ethRst          => phyReset,
+         ethConfig       => config.macConfig,
+         ethStatus       => status.macStatus,
+         phyReady        => status.phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd    => phyRxd,
-         xgmiiRxc    => phyRxc,
-         xgmiiTxd    => phyTxd,
-         xgmiiTxc    => phyTxc,
-         -- GMII PHY Interface
-         gmiiRxDv    => '0',
-         gmiiRxEr    => '0',
-         gmiiRxd     => (others => '0'),
-         gmiiTxEn    => open,
-         gmiiTxEr    => open,
-         gmiiTxd     => open);     
+         xgmiiRxd        => phyRxd,
+         xgmiiRxc        => phyRxc,
+         xgmiiTxd        => phyTxd,
+         xgmiiTxc        => phyTxc);     
 
    -----------------
    -- 10GBASE-R core

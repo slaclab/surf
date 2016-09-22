@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-14
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,73 +32,143 @@ use work.EthMacPkg.all;
 entity EthMacTop is
    generic (
       -- Simulation Generics
-      TPD_G           : time                     := 1 ns;
+      TPD_G             : time                     := 1 ns;
       -- MAC Configurations
-      PAUSE_EN_G      : boolean                  := true;
-      PAUSE_512BITS_G : positive range 1 to 1024 := 8;
-      PHY_TYPE_G      : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
-      TX_EOFE_DROP_G  : boolean                  := true;
-      JUMBO_G         : boolean                  := true;
+      PAUSE_EN_G        : boolean                  := true;
+      PAUSE_512BITS_G   : positive range 1 to 1024 := 8;
+      PHY_TYPE_G        : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
+      DROP_ERR_PKT_G    : boolean                  := true;
+      JUMBO_G           : boolean                  := true;
       -- Non-VLAN Configurations
-      FILT_EN_G       : boolean                  := false;
-      BYP_EN_G        : boolean                  := false;
-      BYP_ETH_TYPE_G  : slv(15 downto 0)         := x"0000";
-      SHIFT_EN_G      : boolean                  := false;
+      SHIFT_EN_G        : boolean                  := false;
+      FILT_EN_G         : boolean                  := false;
+      PRIM_COMMON_CLK_G : boolean                  := false;
+      PRIM_CONFIG_G     : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
+      BYP_EN_G          : boolean                  := false;
+      BYP_ETH_TYPE_G    : slv(15 downto 0)         := x"0000";
+      BYP_COMMON_CLK_G  : boolean                  := false;
+      BYP_CONFIG_G      : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
       -- VLAN Configurations
-      VLAN_EN_G       : boolean                  := false;
-      VLAN_CNT_G      : positive range 1 to 8    := 1);      
+      VLAN_EN_G         : boolean                  := false;
+      VLAN_CNT_G        : positive range 1 to 8    := 1;
+      VLAN_COMMON_CLK_G : boolean                  := false;
+      VLAN_CONFIG_G     : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);      
    port (
-      -- Clock and Reset
-      ethClk       : in  sl;
-      ethRst       : in  sl;
-      -- Primary Interface, TX
-      sPrimMaster  : in  AxiStreamMasterType;
-      sPrimSlave   : out AxiStreamSlaveType;
-      -- Primary Interface, RX
-      mPrimMaster  : out AxiStreamMasterType;
-      mPrimCtrl    : in  AxiStreamCtrlType;
-      -- Bypass interface, TX
-      sBypMaster   : in  AxiStreamMasterType                         := AXI_STREAM_MASTER_INIT_C;
-      sBypSlave    : out AxiStreamSlaveType;
-      -- Bypass Interface, RX
-      mBypMaster   : out AxiStreamMasterType;
-      mBypCtrl     : in  AxiStreamCtrlType                           := AXI_STREAM_CTRL_UNUSED_C;
-      -- VLAN Interfaces, TX
-      sVlanMasters : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      sVlanSlaves  : out AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
-      -- VLAN Interfaces, RX
-      mVlanMaster  : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+      -- Core Clock and Reset
+      ethClk           : in  sl;
+      ethRst           : in  sl;
+      -- Primary Interface
+      primClk          : in  sl;
+      primRst          : in  sl;
+      ibMacPrimMaster  : in  AxiStreamMasterType;
+      ibMacPrimSlave   : out AxiStreamSlaveType;
+      obMacPrimMaster  : out AxiStreamMasterType;
+      obMacPrimSlave   : in  AxiStreamSlaveType;
+      -- Bypass interface
+      bypClk           : in  sl                                          := '0';
+      bypRst           : in  sl                                          := '0';
+      ibMacBypMaster   : in  AxiStreamMasterType                         := AXI_STREAM_MASTER_INIT_C;
+      ibMacBypSlave    : out AxiStreamSlaveType;
+      obMacBypMaster   : out AxiStreamMasterType;
+      obMacBypSlave    : in  AxiStreamSlaveType                          := AXI_STREAM_SLAVE_FORCE_C;
+      -- VLAN Interfaces
+      vlanClk          : in  sl                                          := '0';
+      vlanRst          : in  sl                                          := '0';
+      ibMacVlanMasters : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      ibMacVlanSlaves  : out AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+      obMacVlanMasters : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+      obMacVlanSlaves  : in  AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       -- XLGMII PHY Interface
-      xlgmiiRxd    : in  slv(127 downto 0);
-      xlgmiiRxc    : in  slv(15 downto 0);
-      xlgmiiTxd    : out slv(127 downto 0);
-      xlgmiiTxc    : out slv(15 downto 0);
+      xlgmiiRxd        : in  slv(127 downto 0)                           := (others => '0');
+      xlgmiiRxc        : in  slv(15 downto 0)                            := (others => '0');
+      xlgmiiTxd        : out slv(127 downto 0);
+      xlgmiiTxc        : out slv(15 downto 0);
       -- XGMII PHY Interface
-      xgmiiRxd     : in  slv(63 downto 0);
-      xgmiiRxc     : in  slv(7 downto 0);
-      xgmiiTxd     : out slv(63 downto 0);
-      xgmiiTxc     : out slv(7 downto 0);
+      xgmiiRxd         : in  slv(63 downto 0)                            := (others => '0');
+      xgmiiRxc         : in  slv(7 downto 0)                             := (others => '0');
+      xgmiiTxd         : out slv(63 downto 0);
+      xgmiiTxc         : out slv(7 downto 0);
       -- GMII PHY Interface
-      gmiiRxDv     : in  sl;
-      gmiiRxEr     : in  sl;
-      gmiiRxd      : in  slv(7 downto 0);
-      gmiiTxEn     : out sl;
-      gmiiTxEr     : out sl;
-      gmiiTxd      : out slv(7 downto 0);
+      gmiiRxDv         : in  sl                                          := '0';
+      gmiiRxEr         : in  sl                                          := '0';
+      gmiiRxd          : in  slv(7 downto 0)                             := (others => '0');
+      gmiiTxEn         : out sl;
+      gmiiTxEr         : out sl;
+      gmiiTxd          : out slv(7 downto 0);
       -- Configuration and status
-      phyReady     : in  sl;
-      ethConfig    : in  EthMacConfigType;
-      ethStatus    : out EthMacStatusType);
+      phyReady         : in  sl;
+      ethConfig        : in  EthMacConfigType;
+      ethStatus        : out EthMacStatusType);
 end EthMacTop;
 
 architecture mapping of EthMacTop is
 
+   signal sPrimMaster : AxiStreamMasterType;
+   signal sPrimSlave  : AxiStreamSlaveType;
+   signal mPrimMaster : AxiStreamMasterType;
+   signal mPrimCtrl   : AxiStreamCtrlType;
+
+   signal sBypMaster : AxiStreamMasterType;
+   signal sBypSlave  : AxiStreamSlaveType;
+   signal mBypMaster : AxiStreamMasterType;
+   signal mBypCtrl   : AxiStreamCtrlType;
+
+   signal sVlanMasters : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+   signal sVlanSlaves  : AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+   signal mVlanMasters : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+   signal mVlanCtrl    : AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0);
+
    signal rxPauseReq   : sl;
    signal rxPauseValue : slv(15 downto 0);
-   signal intCtrl      : AxiStreamCtrlType;
+   signal flowCtrl     : AxiStreamCtrlType;
 
 begin
+
+   -- Status signals (VLAN pause not supported yet)
+   ethStatus.vlanRxPauseCnt <= (others => '0');
+   ethStatus.rxPauseCnt     <= rxPauseReq;
+   ethStatus.rxOverFlow     <= flowCtrl.overflow;
+
+   ----------
+   -- TX FIFO
+   ----------
+   U_TxFifo : entity work.EthMacTxFifo
+      generic map (
+         TPD_G             => TPD_G,
+         PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
+         PRIM_CONFIG_G     => PRIM_CONFIG_G,
+         BYP_EN_G          => BYP_EN_G,
+         BYP_COMMON_CLK_G  => BYP_COMMON_CLK_G,
+         BYP_CONFIG_G      => BYP_CONFIG_G,
+         VLAN_EN_G         => VLAN_EN_G,
+         VLAN_CNT_G        => VLAN_CNT_G,
+         VLAN_COMMON_CLK_G => VLAN_COMMON_CLK_G,
+         VLAN_CONFIG_G     => VLAN_CONFIG_G)
+      port map (
+         -- Master Clock and Reset
+         mClk         => ethClk,
+         mRst         => ethRst,
+         -- Primary Interface
+         sPrimClk     => primClk,
+         sPrimRst     => primRst,
+         sPrimMaster  => ibMacPrimMaster,
+         sPrimSlave   => ibMacPrimSlave,
+         mPrimMaster  => sPrimMaster,
+         mPrimSlave   => sPrimSlave,
+         -- Bypass interface
+         sBypClk      => bypClk,
+         sBypRst      => bypRst,
+         sBypMaster   => ibMacBypMaster,
+         sBypSlave    => ibMacBypSlave,
+         mBypMaster   => sBypMaster,
+         mBypSlave    => sBypSlave,
+         -- VLAN Interfaces
+         sVlanClk     => vlanClk,
+         sVlanRst     => vlanRst,
+         sVlanMasters => ibMacVlanMasters,
+         sVlanSlaves  => ibMacVlanSlaves,
+         mVlanMasters => sVlanMasters,
+         mVlanSlaves  => sVlanSlaves);
 
    ------------
    -- TX Module
@@ -111,7 +181,7 @@ begin
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G,
          PHY_TYPE_G      => PHY_TYPE_G,
-         TX_EOFE_DROP_G  => TX_EOFE_DROP_G,
+         DROP_ERR_PKT_G  => DROP_ERR_PKT_G,
          JUMBO_G         => JUMBO_G,
          -- Non-VLAN Configurations
          BYP_EN_G        => BYP_EN_G,
@@ -143,7 +213,7 @@ begin
          gmiiTxEr       => gmiiTxEr,
          gmiiTxd        => gmiiTxd,
          -- Flow control Interface
-         clientPause    => intCtrl.pause,
+         clientPause    => flowCtrl.pause,
          rxPauseReq     => rxPauseReq,
          rxPauseValue   => rxPauseValue,
          pauseTx        => ethStatus.txPauseCnt,
@@ -158,16 +228,22 @@ begin
    ---------------------      
    -- Flow Control Logic
    ---------------------      
-
-   -- Pass control signals (VLAN pause not supported yet)
-   intCtrl.pause    <= mPrimCtrl.pause or mBypCtrl.pause;
-   intCtrl.overflow <= mPrimCtrl.overflow or mBypCtrl.overflow;
-   intCtrl.idle     <= '0';
-
-   -- Status signals (VLAN pause not supported yet)
-   ethStatus.vlanRxPauseCnt <= (others => '0');
-   ethStatus.rxPauseCnt     <= rxPauseReq;
-   ethStatus.rxOverFlow     <= intCtrl.overflow;
+   U_FlowCtrl : entity work.EthMacFlowCtrl
+      generic map (
+         TPD_G      => TPD_G,
+         BYP_EN_G   => BYP_EN_G,
+         VLAN_EN_G  => VLAN_EN_G,
+         VLAN_CNT_G => VLAN_CNT_G)
+      port map (
+         -- Clock and Reset
+         ethClk   => ethRst,
+         ethRst   => ethRst,
+         -- Inputs
+         primCtrl => mPrimCtrl,
+         bypCtrl  => mBypCtrl,
+         vlanCtrl => mVlanCtrl,
+         -- Output
+         flowCtrl => flowCtrl);
 
    ------------
    -- RX Module
@@ -198,8 +274,8 @@ begin
          -- Bypass Interface
          mBypMaster   => mBypMaster,
          mBypCtrl     => mBypCtrl,
-         -- Vlan Interfaces
-         mVlanMaster  => mVlanMaster,
+         -- VLAN Interfaces
+         mVlanMasters => mVlanMasters,
          mVlanCtrl    => mVlanCtrl,
          -- XLGMII PHY Interface
          xlgmiiRxd    => xlgmiiRxd,
@@ -219,5 +295,47 @@ begin
          ethConfig    => ethConfig,
          rxCountEn    => ethStatus.rxCountEn,
          rxCrcError   => ethStatus.rxCrcErrorCnt);
+
+   ----------
+   -- RX FIFO
+   ----------         
+   U_RxFifo : entity work.EthMacRxFifo
+      generic map (
+         TPD_G             => TPD_G,
+         DROP_ERR_PKT_G    => DROP_ERR_PKT_G,
+         PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
+         PRIM_CONFIG_G     => PRIM_CONFIG_G,
+         BYP_EN_G          => BYP_EN_G,
+         BYP_COMMON_CLK_G  => BYP_COMMON_CLK_G,
+         BYP_CONFIG_G      => BYP_CONFIG_G,
+         VLAN_EN_G         => VLAN_EN_G,
+         VLAN_CNT_G        => VLAN_CNT_G,
+         VLAN_COMMON_CLK_G => VLAN_COMMON_CLK_G,
+         VLAN_CONFIG_G     => VLAN_CONFIG_G)
+      port map (
+         -- Slave Clock and Reset
+         sClk         => ethClk,
+         sRst         => ethRst,
+         -- Primary Interface
+         mPrimClk     => primClk,
+         mPrimRst     => primRst,
+         sPrimMaster  => mPrimMaster,
+         sPrimCtrl    => mPrimCtrl,
+         mPrimMaster  => obMacPrimMaster,
+         mPrimSlave   => obMacPrimSlave,
+         -- Bypass interface
+         mBypClk      => bypClk,
+         mBypRst      => bypRst,
+         sBypMaster   => mBypMaster,
+         sBypCtrl     => mBypCtrl,
+         mBypMaster   => obMacBypMaster,
+         mBypSlave    => obMacBypSlave,
+         -- VLAN Interfaces
+         mVlanClk     => vlanClk,
+         mVlanRst     => vlanRst,
+         sVlanMasters => mVlanMasters,
+         sVlanCtrl    => mVlanCtrl,
+         mVlanMasters => obMacVlanMasters,
+         mVlanSlaves  => obMacVlanSlaves);
 
 end mapping;

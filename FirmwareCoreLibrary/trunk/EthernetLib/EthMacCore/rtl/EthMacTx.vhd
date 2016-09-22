@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-14
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ entity EthMacTx is
       PAUSE_EN_G      : boolean                  := true;
       PAUSE_512BITS_G : positive range 1 to 1024 := 8;
       PHY_TYPE_G      : string                   := "XGMII";
-      TX_EOFE_DROP_G  : boolean                  := true;
+      DROP_ERR_PKT_G  : boolean                  := true;
       JUMBO_G         : boolean                  := true;
       -- Non-VLAN Configurations
       BYP_EN_G        : boolean                  := false;
@@ -53,10 +53,10 @@ entity EthMacTx is
       sPrimMaster    : in  AxiStreamMasterType;
       sPrimSlave     : out AxiStreamSlaveType;
       -- Bypass interface
-      sBypMaster     : in  AxiStreamMasterType                         := AXI_STREAM_MASTER_INIT_C;
+      sBypMaster     : in  AxiStreamMasterType;
       sBypSlave      : out AxiStreamSlaveType;
       -- VLAN Interfaces
-      sVlanMasters   : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      sVlanMasters   : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
       sVlanSlaves    : out AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
       -- XLGMII PHY Interface
       xlgmiiTxd      : out slv(127 downto 0);
@@ -143,7 +143,7 @@ begin
    U_Csum : entity work.EthMacTxCsum
       generic map (
          TPD_G          => TPD_G,
-         TX_EOFE_DROP_G => TX_EOFE_DROP_G,
+         DROP_ERR_PKT_G => DROP_ERR_PKT_G,
          JUMBO_G        => JUMBO_G,
          VLAN_G         => false) 
       port map (
@@ -169,7 +169,7 @@ begin
          U_Csum : entity work.EthMacTxCsum
             generic map (
                TPD_G          => TPD_G,
-               TX_EOFE_DROP_G => TX_EOFE_DROP_G,
+               DROP_ERR_PKT_G => DROP_ERR_PKT_G,
                JUMBO_G        => JUMBO_G,
                VLAN_G         => true) 
             port map (
