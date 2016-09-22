@@ -43,6 +43,7 @@ entity SsiObFrameFilter is
       sAxisMaster    : in  AxiStreamMasterType;
       sTLastTUser    : in  slv(127 downto 0);
       sAxisSlave     : out AxiStreamSlaveType;
+      overflow       : in  sl;
       -- Master Port  
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
@@ -81,7 +82,7 @@ architecture rtl of SsiObFrameFilter is
    
 begin
 
-   assert ( AXIS_CONFIG_G.TUSER_BITS_C >= 2)  report "SsiObFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;   
+   assert (AXIS_CONFIG_G.TUSER_BITS_C >= 2) report "SsiObFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
 
    NO_FILTER : if (EN_FRAME_FILTER_G = false) generate
 
@@ -95,7 +96,7 @@ begin
 
    ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
 
-      comb : process (axisRst, mAxisSlave, r, sAxisMaster, sTLastTUser) is
+      comb : process (axisRst, mAxisSlave, overflow, r, sAxisMaster, sTLastTUser) is
          variable v    : RegType;
          variable sof  : sl;
          variable eof  : AxiStreamMasterType;
@@ -119,9 +120,15 @@ begin
          -- Get the SOF/EOFE status
          sof := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);
 
-         -- Get the EOFE status
+         -- Check for FIFO caching
          if (VALID_THOLD_G = 0) then
+            -- Get the EOFE status
             eofe := ssiGetUserEofe(AXIS_CONFIG_G, eof);
+            -- Check for a frame larger than the FIFO depth
+            if (sAxisMaster.tValid = '0') and (overflow = '1') then
+               -- Blow off the data
+               v.slave.tReady := '1';
+            end if;
          else
             eofe := '0';
          end if;

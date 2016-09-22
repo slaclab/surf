@@ -82,6 +82,7 @@ architecture mapping of SsiFifo is
    signal txMaster     : AxiStreamMasterType;
    signal txSlave      : AxiStreamSlaveType;
    signal txTLastTUser : slv(127 downto 0);
+   signal overflow     : sl;
    
 begin
 
@@ -148,6 +149,21 @@ begin
          mAxisSlave      => txSlave,
          mTLastTUser     => txTLastTUser);      
 
+   GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
+      overflow <= rxCtrl.overflow;
+   end generate;
+
+   GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
+      Sync_Overflow : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => mAxisClk,
+            rst     => mAxisRst,
+            dataIn  => rxCtrl.overflow,
+            dataOut => overflow);             
+   end generate;
+
    U_ObFilter : entity work.SsiObFrameFilter
       generic map (
          TPD_G             => TPD_G,
@@ -159,6 +175,7 @@ begin
          sAxisMaster    => txMaster,
          sAxisSlave     => txSlave,
          sTLastTUser    => txTLastTUser,
+         overflow       => overflow,
          -- Master Port
          mAxisMaster    => mAxisMaster,
          mAxisSlave     => mAxisSlave,
