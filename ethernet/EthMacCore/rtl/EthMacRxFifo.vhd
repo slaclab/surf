@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-09-21
+-- Last update: 2016-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ use work.EthMacPkg.all;
 entity EthMacRxFifo is
    generic (
       TPD_G             : time                := 1 ns;
+      JUMBO_G           : boolean             := true;
       DROP_ERR_PKT_G    : boolean             := true;
       PRIM_COMMON_CLK_G : boolean             := false;
       PRIM_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
@@ -69,24 +70,30 @@ end EthMacRxFifo;
 
 architecture mapping of EthMacRxFifo is
 
-   constant CASCADE_SIZE_C      : positive := 1;
-   constant FIFO_ADDR_WIDTH_C   : positive := 11;
-   constant FIFO_PAUSE_THRESH_C : positive := 511;
+   constant INT_PIPE_STAGES_C   : natural  := 0;
+   constant PIPE_STAGES_C       : natural  := 1;
+   constant VALID_THOLD_C       : natural  := ite(DROP_ERR_PKT_G, 0, 1);
+   constant CASCADE_SIZE_C      : positive := ite(JUMBO_G, 4, 2);
+   constant CASCADE_PAUSE_SEL_C : natural  := 0;
+   constant FIFO_ADDR_WIDTH_C   : positive := 9;
+   constant FIFO_PAUSE_THRESH_C : positive := 500;
 
 begin
 
-   U_Fifo : entity work.AxiStreamFifo
+   U_Fifo : entity work.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
+         INT_PIPE_STAGES_G   => INT_PIPE_STAGES_C,
+         PIPE_STAGES_G       => PIPE_STAGES_C,
          SLAVE_READY_EN_G    => false,
-         VALID_THOLD_G       => 1,
+         EN_FRAME_FILTER_G   => true,
+         VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
          BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_C,
+         CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_C,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
          -- AXI Stream Port Configurations
@@ -108,18 +115,20 @@ begin
    end generate;
 
    BYP_ENABLED : if (BYP_EN_G = true) generate
-      U_Fifo : entity work.AxiStreamFifo
+      U_Fifo : entity work.SsiFifo
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
-            INT_PIPE_STAGES_G   => 0,
-            PIPE_STAGES_G       => 1,
+            INT_PIPE_STAGES_G   => INT_PIPE_STAGES_C,
+            PIPE_STAGES_G       => PIPE_STAGES_C,
             SLAVE_READY_EN_G    => false,
-            VALID_THOLD_G       => 1,
+            EN_FRAME_FILTER_G   => true,
+            VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
             BRAM_EN_G           => true,
-            GEN_SYNC_FIFO_G     => BYP_COMMON_CLK_G,
+            GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             CASCADE_SIZE_G      => CASCADE_SIZE_C,
+            CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_C,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
             -- AXI Stream Port Configurations
@@ -143,18 +152,20 @@ begin
 
    VLAN_ENABLED : if (VLAN_EN_G = true) generate
       GEN_VEC : for i in (VLAN_CNT_G-1) downto 0 generate
-         U_Fifo : entity work.AxiStreamFifo
+         U_Fifo : entity work.SsiFifo
             generic map (
                -- General Configurations
                TPD_G               => TPD_G,
-               INT_PIPE_STAGES_G   => 0,
-               PIPE_STAGES_G       => 1,
+               INT_PIPE_STAGES_G   => INT_PIPE_STAGES_C,
+               PIPE_STAGES_G       => PIPE_STAGES_C,
                SLAVE_READY_EN_G    => false,
-               VALID_THOLD_G       => 1,
+               EN_FRAME_FILTER_G   => true,
+               VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
                BRAM_EN_G           => true,
-               GEN_SYNC_FIFO_G     => VLAN_COMMON_CLK_G,
+               GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                CASCADE_SIZE_G      => CASCADE_SIZE_C,
+               CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_C,
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
                FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
                -- AXI Stream Port Configurations
