@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-13
--- Last update: 2014-04-14
+-- Last update: 2016-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,14 +48,12 @@ architecture rtl of SynchronizerEdge is
    constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G = "0", slvZero(STAGES_G), INIT_G);
 
    type RegType is record
-      syncData    : sl;
       syncDataDly : sl;
       dataOut     : sl;
       risingEdge  : sl;
       fallingEdge : sl;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      '0',
       '0',
       (not OUT_POLARITY_G),
       (not OUT_POLARITY_G),
