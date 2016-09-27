@@ -13,7 +13,7 @@
 
 Lmk04828: &Lmk04828
   class: MMIODev
-  configPrio: 3
+  configPrio: 1
   description: LMK04828 Module
   size: 0x800
   children:
