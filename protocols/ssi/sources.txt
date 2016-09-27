@@ -1,5 +1,6 @@
 vhdl work rtl/SsiFifo.vhd
-vhdl work rtl/SsiFrameFilter.vhd
+vhdl work rtl/SsiIbFrameFilter.vhd
+vhdl work rtl/SsiObFrameFilter.vhd
 vhdl work rtl/SsiFrameLimiter.vhd
 vhdl work rtl/SsiInsertSof.vhd
 vhdl work rtl/SsiPkg.vhd

@@ -145,7 +145,8 @@ vhdl work srp/rtl/SrpV3Core.vhd
 vhdl work srp/rtl/SrpV3Pkg.vhd
 
 vhdl work ssi/rtl/SsiFifo.vhd
-vhdl work ssi/rtl/SsiFrameFilter.vhd
+vhdl work ssi/rtl/SsiIbFrameFilter.vhd
+vhdl work ssi/rtl/SsiObFrameFilter.vhd
 vhdl work ssi/rtl/SsiFrameLimiter.vhd
 vhdl work ssi/rtl/SsiInsertSof.vhd
 vhdl work ssi/rtl/SsiPkg.vhd

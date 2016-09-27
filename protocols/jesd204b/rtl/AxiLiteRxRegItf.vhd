@@ -64,6 +64,7 @@ entity AxiLiteRxRegItf is
       -- General Configurations
       TPD_G            : time            := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+      AXI_ADDR_WIDTH_G    : positive     := 10;
       -- JESD 
       -- Number of RX lanes (1 to 8)
       L_G              : positive        := 2
@@ -176,11 +177,11 @@ begin
       rdClk                => axiClk_i); 
    
    -- Convert address to integer (lower two bits of address are always '0')
-   s_RdAddr <= slvToInt(axilReadMaster.araddr(9 downto 2));
-   s_WrAddr <= slvToInt(axilWriteMaster.awaddr(9 downto 2));
+   s_RdAddr <= slvToInt(axilReadMaster.araddr(AXI_ADDR_WIDTH_G-1 downto 2));
+   s_WrAddr <= slvToInt(axilWriteMaster.awaddr(AXI_ADDR_WIDTH_G-1 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, r, s_RdAddr,
-                   s_WrAddr, s_statusRxArr) is
+                   s_WrAddr, s_statusRxArr, s_statusCnt) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
