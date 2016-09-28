@@ -236,7 +236,7 @@ begin
          VLAN_CNT_G => VLAN_CNT_G)
       port map (
          -- Clock and Reset
-         ethClk   => ethRst,
+         ethClk   => ethClk,
          ethRst   => ethRst,
          -- Inputs
          primCtrl => mPrimCtrl,
