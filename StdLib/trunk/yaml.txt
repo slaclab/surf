@@ -9,6 +9,7 @@ manual yaml/AxiXadc.yaml
 manual yaml/AxiCdcm6208.yaml
 
 manual yaml/SsiPrbsTx.yaml
+manual yaml/SsiPrbsRx.yaml
 
 manual yaml/Adc16Dx370.yaml
 manual yaml/Dac38J84.yaml

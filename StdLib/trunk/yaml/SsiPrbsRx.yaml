@@ -1,0 +1,164 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+#schemaversion 3.0.0
+#once
+
+SsiPrbsRx: &SsiPrbsRx
+  class: MMIODev
+  configPrio: 1
+  description: SsiPrbsRx
+  size: 0x400
+  children:
+    #########################################################
+    MissedPacketCnt:
+      at:
+        offset: 0x00
+      class: IntField
+      name: MissedPacketCnt
+      mode: RO
+      description: Number of missed packets
+    #########################################################
+    LengthErrCnt:
+      at:
+        offset: 0x04
+      class: IntField
+      name: LengthErrCnt
+      mode: RO
+      description: Number of packets that were the wrong length    
+    #########################################################
+    EofeErrCnt:
+      at:
+        offset: 0x08
+      class: IntField
+      name: EofeErrCnt
+      mode: RO
+      description: Number of EOFE errors    
+    #########################################################
+    DataBusErrCnt:
+      at:
+        offset: 0x0C
+      class: IntField
+      name: DataBusErrCnt
+      mode: RO
+      description: Number of data bus errors      
+    #########################################################
+    WordStrbErrCnt:
+      at:
+        offset: 0x10
+      class: IntField
+      name: WordStrbErrCnt
+      mode: RO
+      description: Number of word errors   
+    #########################################################
+    BitStrbErrCnt:
+      at:
+        offset: 0x14
+      class: IntField
+      name: BitStrbErrCnt
+      mode: RO
+      description: Number of bit errors   
+    #########################################################
+    RxFifoOverflowCnt:
+      at:
+        offset: 0x18
+      class: IntField
+      name: RxFifoOverflowCnt
+      mode: RO
+      description: ''
+    #########################################################
+    RxFifoPauseCnt:
+      at:
+        offset: 0x1C
+      class: IntField
+      name: RxFifoPauseCnt
+      mode: RO
+      description: ''  
+    #########################################################
+    TxFifoOverflowCnt:
+      at:
+        offset: 0x20
+      class: IntField
+      name: TxFifoOverflowCnt
+      mode: RO
+      description: ''  
+    #########################################################
+    TxFifoPauseCnt:
+      at:
+        offset: 0x24
+      class: IntField
+      name: TxFifoPauseCnt
+      mode: RO
+      description: ''  
+    #########################################################
+    Dummy:
+      at:
+        offset: 0x28
+      class: IntField
+      name: Dummy
+      mode: RW
+      description: ''        
+    #########################################################
+    Status:
+      at:
+        offset: 0x1C0
+      class: IntField
+      name: Status
+      mode: RO
+      description: '' 
+    #########################################################
+    PacketLength:
+      at:
+        offset: 0x1C4
+      class: IntField
+      name: PacketLength
+      mode: RO
+      description: ''  
+    #########################################################
+    PacketRate:
+      at:
+        offset: 0x1C8
+      class: IntField
+      name: PacketRate
+      mode: RO
+      description: '' 
+    #########################################################
+    BitErrCnt:
+      at:
+        offset: 0x1CC
+      class: IntField
+      name: BitErrCnt
+      mode: RO
+      description: '' 
+    #########################################################
+    WordErrCnt:
+      at:
+        offset: 0x1D0
+      class: IntField
+      name: WordErrCnt
+      mode: RO
+      description: ''       
+    #########################################################
+    RolloverEnable:
+      at:
+        offset: 0x3C0
+      class: IntField
+      name: RolloverEnable
+      mode: RW
+      description: ''         
+    #########################################################
+    CntRst:
+      at:
+        offset: 0x3FC
+      class: IntField
+      name: CntRst
+      sizeBits: 1
+      mode: WO
+      description: Status counter reset      
+    #########################################################
