@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-09-21
+-- Last update: 2016-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ entity TenGigEthGthUltraScale is
       TPD_G            : time                := 1 ns;
       REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz      
       -- AXI-Lite Configurations
+      EN_AXI_REG_G     : boolean             := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
@@ -417,6 +418,7 @@ begin
    U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
          TPD_G            => TPD_G,
+         EN_AXI_REG_G     => EN_AXI_REG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- Local Configurations
