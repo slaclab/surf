@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-09-16
+-- Last update: 2016-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,11 +58,12 @@ entity UdpEngine is
       arpAckMasters    : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
       arpAckSlaves     : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       -- Interface to UDP Server engine(s)
+      serverRemotePort : out Slv16Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
+      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       obServerMasters  : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
       ibServerMasters  : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
       ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to UDP Client engine(s)
       clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
       clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);  --  big-Endian configuration
@@ -80,9 +81,9 @@ architecture mapping of UdpEngine is
    signal clientRemoteDet : slv(CLIENT_SIZE_G-1 downto 0);
    signal clientRemoteMac : Slv48Array(CLIENT_SIZE_G-1 downto 0);
 
-   signal serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
-   signal remoteIp         : Slv32Array(SERVER_SIZE_G-1 downto 0);
-   signal serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
+   signal remotePort      : Slv16Array(SERVER_SIZE_G-1 downto 0);
+   signal remoteIp        : Slv32Array(SERVER_SIZE_G-1 downto 0);
+   signal serverRemoteMac : Slv48Array(SERVER_SIZE_G-1 downto 0);
 
    signal obUdpMasters : AxiStreamMasterArray(1 downto 0);
    signal obUdpSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -100,8 +101,9 @@ begin
    assert ((SERVER_EN_G = true) or (CLIENT_EN_G = true)) report
       "UdpEngine: Either SERVER_EN_G or CLIENT_EN_G must be true" severity failure;
    
-   serverRemoteIp <= remoteIp;          -- Debug Only
-   dhcpIpOut      <= localIp;
+   serverRemotePort <= remotePort;      -- Debug Only
+   serverRemoteIp   <= remoteIp;        -- Debug Only
+   dhcpIpOut        <= localIp;
 
    U_UdpEngineRx : entity work.UdpEngineRx
       generic map (
@@ -120,7 +122,7 @@ begin
          ibUdpMaster      => ibUdpMaster,
          ibUdpSlave       => ibUdpSlave,
          -- Interface to UDP Server engine(s)
-         serverRemotePort => serverRemotePort,
+         serverRemotePort => remotePort,
          serverRemoteIp   => remoteIp,
          serverRemoteMac  => serverRemoteMac,
          obServerMasters  => obServerMasters,
@@ -182,7 +184,7 @@ begin
             obUdpSlave   => obUdpSlaves(0),
             -- Interface to User Application
             localIp      => localIp,
-            remotePort   => serverRemotePort,
+            remotePort   => remotePort,
             remoteIp     => remoteIp,
             remoteMac    => serverRemoteMac,
             ibMasters    => ibServerMasters,

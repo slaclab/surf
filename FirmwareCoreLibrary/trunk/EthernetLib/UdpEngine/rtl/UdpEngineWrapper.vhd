@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-09-16
+-- Last update: 2016-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,10 +46,10 @@ entity UdpEngineWrapper is
       AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
       -- General IPv4/ARP/DHCP Generics
       DHCP_G              : boolean         := false;
-      CLK_FREQ_G          : real            := 156.25E+06;          -- In units of Hz
+      CLK_FREQ_G          : real            := 156.25E+06;                   -- In units of Hz
       COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
-      TTL_G               : slv(7 downto 0) := x"20";               -- IPv4's Time-To-Live (TTL)
-      VLAN_G              : boolean         := false);              -- true = VLAN support       
+      TTL_G               : slv(7 downto 0) := x"20";   -- IPv4's Time-To-Live (TTL)
+      VLAN_G              : boolean         := false);  -- true = VLAN support       
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);      --  big-Endian configuration
@@ -67,7 +67,6 @@ entity UdpEngineWrapper is
       obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       ibServerMasters  : in  AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       ibServerSlaves   : out AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
-      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);  --  big-Endian configuration
       -- Interface to UDP Client engine(s)
       obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
@@ -111,7 +110,9 @@ architecture rtl of UdpEngineWrapper is
    signal obUdpMaster : AxiStreamMasterType;
    signal obUdpSlave  : AxiStreamSlaveType;
 
-   signal dhcpIp : slv(31 downto 0);
+   signal serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
+   signal serverRemoteIp   : Slv32Array(SERVER_SIZE_G-1 downto 0);
+   signal dhcpIp           : slv(31 downto 0);
 
 begin
 
@@ -184,11 +185,12 @@ begin
          arpAckMasters    => arpAckMasters,
          arpAckSlaves     => arpAckSlaves,
          -- Interface to UDP Server engine(s)
+         serverRemotePort => serverRemotePort,
+         serverRemoteIp   => serverRemoteIp,
          obServerMasters  => obServerMasters,
          obServerSlaves   => obServerSlaves,
          ibServerMasters  => ibServerMasters,
          ibServerSlaves   => ibServerSlaves,
-         serverRemoteIp   => serverRemoteIp,
          -- Interface to UDP Client engine(s)
          clientRemotePort => r.clientRemotePort,
          clientRemoteIp   => r.clientRemoteIp,
@@ -200,7 +202,8 @@ begin
          clk              => clk,
          rst              => rst);  
 
-   comb : process (axilReadMaster, axilWriteMaster, clientRemoteIp, clientRemotePort, r, rst) is
+   comb : process (axilReadMaster, axilWriteMaster, clientRemoteIp, clientRemotePort, r, rst,
+                   serverRemoteIp, serverRemotePort) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
       variable i      : natural;
@@ -211,10 +214,15 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(regCon, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- Map the read registers
+      -- Map the read/write registers
       for i in CLIENT_SIZE_G-1 downto 0 loop
-         axiSlaveRegister(regCon, toSlv((8*i)+0, 12), 0, v.clientRemotePort(i));
-         axiSlaveRegister(regCon, toSlv((8*i)+4, 12), 0, v.clientRemoteIp(i));
+         axiSlaveRegister(regCon, toSlv((8*i)+0, 12), 0, v.clientRemotePort(i));  --  big-Endian configuration
+         axiSlaveRegister(regCon, toSlv((8*i)+4, 12), 0, v.clientRemoteIp(i));  --  big-Endian configuration
+      end loop;
+      -- Map the read only registers
+      for i in SERVER_SIZE_G-1 downto 0 loop
+         axiSlaveRegisterR(regCon, toSlv((8*i)+0+2048, 12), 0, serverRemotePort(i));  --  big-Endian configuration
+         axiSlaveRegisterR(regCon, toSlv((8*i)+4+2048, 12), 0, serverRemoteIp(i));  --  big-Endian configuration
       end loop;
 
       -- Closeout the transaction
