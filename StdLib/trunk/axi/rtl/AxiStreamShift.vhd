@@ -5,7 +5,7 @@
 -- File       : AxiStreamShift.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-05
+-- Last update: 2016-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,10 +37,11 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamShift is
    generic (
-      TPD_G          : time := 1 ns;
-      AXIS_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      ADD_VALID_EN_G : boolean := false
-   );
+      TPD_G          : time                  := 1 ns;
+      AXIS_CONFIG_G  : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C;
+      PIPE_STAGES_G  : integer range 0 to 16 := 0;
+      ADD_VALID_EN_G : boolean               := false
+      );
    port (
 
       -- Clock and reset
@@ -48,9 +49,9 @@ entity AxiStreamShift is
       axisRst : in sl;
 
       -- Start control
-      axiStart    : in  sl;
-      axiShiftDir : in  sl; -- 0 = left (lsb to msb)
-      axiShiftCnt : in  slv(3 downto 0);
+      axiStart    : in sl;
+      axiShiftDir : in sl;              -- 0 = left (lsb to msb)
+      axiShiftCnt : in slv(3 downto 0);
 
       -- Slaves
       sAxisMaster : in  AxiStreamMasterType;
@@ -59,7 +60,7 @@ entity AxiStreamShift is
       -- Master
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
-   );
+      );
 end AxiStreamShift;
 
 architecture structure of AxiStreamShift is
@@ -78,7 +79,7 @@ architecture structure of AxiStreamShift is
    constant REG_INIT_C : RegType := (
       state      => S_IDLE_C,
       shiftDir   => '0',
-      shiftBytes => (others=>'0'),
+      shiftBytes => (others => '0'),
       slave      => AXI_STREAM_SLAVE_INIT_C,
       master     => AXI_STREAM_MASTER_INIT_C,
       delay      => AXI_STREAM_MASTER_INIT_C
@@ -88,12 +89,12 @@ architecture structure of AxiStreamShift is
    signal rin : RegType;
 
    -- Set shift ranges
-   procedure shiftData ( shiftBytes : in    slv(3 downto 0); 
-                         shiftDir   : in    sl;
-                         shiftFirst : in    boolean;
-                         mInput     : in    AxiStreamMasterType;
-                         mDelay     : in    AxiStreamMasterType;
-                         mOut       : inout AxiStreamMasterType ) is
+   procedure shiftData (shiftBytes : in    slv(3 downto 0);
+                        shiftDir   : in    sl;
+                        shiftFirst : in    boolean;
+                        mInput     : in    AxiStreamMasterType;
+                        mDelay     : in    AxiStreamMasterType;
+                        mOut       : inout AxiStreamMasterType) is
       variable shiftInt  : positive;
       variable lDiv      : positive;
       variable rDiv      : positive;
@@ -125,8 +126,8 @@ architecture structure of AxiStreamShift is
                mOut.tUser((i*user)+(user-1) downto (i*user)) := mDelay.tUser(((i+rDiv)*user)+(user-1) downto (i+rDiv)*user);
 
                if shiftFirst then
-                  mOut.tStrb(i) := ite(ADD_VALID_EN_G = true,'1','0');
-                  mOut.tKeep(i) := ite(ADD_VALID_EN_G = true,'1','0');
+                  mOut.tStrb(i) := ite(ADD_VALID_EN_G = true, '1', '0');
+                  mOut.tKeep(i) := ite(ADD_VALID_EN_G = true, '1', '0');
                else
                   mOut.tStrb(i) := mDelay.tStrb(i+rDiv);
                   mOut.tKeep(i) := mDelay.tKeep(i+rDiv);
@@ -139,8 +140,8 @@ architecture structure of AxiStreamShift is
             else
                mOut.tData((i*8)+7 downto (i*8))              := mInput.tData(((i-lDiv)*8)+7 downto (i-lDiv)*8);
                mOut.tUser((i*user)+(user-1) downto (i*user)) := mInput.tUser(((i-lDiv)*user)+(user-1) downto (i-lDiv)*user);
-               mOut.tStrb(i) := mInput.tStrb(i-lDiv) and (not mDelay.tLast);
-               mOut.tKeep(i) := mInput.tKeep(i-lDiv) and (not mDelay.tLast);
+               mOut.tStrb(i)                                 := mInput.tStrb(i-lDiv) and (not mDelay.tLast);
+               mOut.tKeep(i)                                 := mInput.tKeep(i-lDiv) and (not mDelay.tLast);
             end if;
          end loop;
 
@@ -164,9 +165,12 @@ architecture structure of AxiStreamShift is
       end if;
    end procedure;
 
+   signal pipeAxisMaster : AxiStreamMasterType;
+   signal pipeAxisSlave  : AxiStreamSlaveType;
+
 begin
 
-   comb : process (axisRst, mAxisSlave, r, sAxisMaster, axiStart, axiShiftDir, axiShiftCnt ) is
+   comb : process (axiShiftCnt, axiShiftDir, axiStart, axisRst, pipeAxisSlave, r, sAxisMaster) is
       variable v       : RegType;
       variable sMaster : AxiStreamMasterType;
    begin
@@ -176,7 +180,7 @@ begin
       v.slave.tReady := '0';
 
       -- Data shift
-      shiftData ( r.shiftBytes, r.shiftDir, (r.state = S_FIRST_C), sAxisMaster, r.delay, sMaster);
+      shiftData (r.shiftBytes, r.shiftDir, (r.state = S_FIRST_C), sAxisMaster, r.delay, sMaster);
 
       -- State machine
       case r.state is
@@ -200,8 +204,8 @@ begin
 
             -- Keep sampling shift configuration if start is held
             if axiStart = '1' then
-               v.shiftDir     := axiShiftDir;
-               v.shiftBytes   := axiShiftCnt;
+               v.shiftDir   := axiShiftDir;
+               v.shiftBytes := axiShiftCnt;
             end if;
 
             if sAxisMaster.tValid = '1' then
@@ -223,7 +227,7 @@ begin
          when S_SHIFT_C =>
 
             -- Advance pipeline
-            if r.master.tValid = '0' or mAxisSlave.tReady = '1' then
+            if r.master.tValid = '0' or pipeAxisSlave.tReady = '1' then
                v.slave.tReady := '1';
 
                if sAxisMaster.tValid = '1' then
@@ -248,7 +252,7 @@ begin
 
          -- Last transfer
          when S_LAST_C =>
-            if mAxisSlave.tReady = '1' then
+            if pipeAxisSlave.tReady = '1' then
                v.state         := S_IDLE_C;
                v.master.tValid := '0';
             end if;
@@ -260,10 +264,22 @@ begin
 
       rin <= v;
 
-      sAxisSlave  <= v.slave;
-      mAxisMaster <= r.master;
+      sAxisSlave     <= v.slave;
+      pipeAxisMaster <= r.master;
 
    end process comb;
+
+   U_Pipeline : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
+      port map (
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => pipeAxisMaster,
+         sAxisSlave  => pipeAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);   
 
    seq : process (axisClk) is
    begin
