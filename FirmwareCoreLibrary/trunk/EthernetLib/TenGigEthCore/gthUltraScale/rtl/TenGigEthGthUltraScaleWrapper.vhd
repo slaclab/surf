@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-04-19
+-- Last update: 2016-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ entity TenGigEthGthUltraScaleWrapper is
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
+      EN_AXI_REG_G      : boolean                          := false;
       AXI_ERROR_RESP_G  : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
@@ -150,6 +151,7 @@ begin
             TPD_G            => TPD_G,
             REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
             -- AXI-Lite Configurations
+            EN_AXI_REG_G     => EN_AXI_REG_G,
             AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
             -- AXI Streaming Configurations
             AXIS_CONFIG_G    => AXIS_CONFIG_G(i))       

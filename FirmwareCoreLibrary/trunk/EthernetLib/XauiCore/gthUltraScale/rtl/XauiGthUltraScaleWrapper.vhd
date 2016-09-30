@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-04-21
+-- Last update: 2016-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ entity XauiGthUltraScaleWrapper is
       XAUI_20GIGE_G     : boolean             := false;
       REF_CLK_FREQ_G    : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
       -- AXI-Lite Configurations
+      EN_AXI_REG_G      : boolean             := false;
       AXI_ERROR_RESP_G  : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
@@ -145,6 +146,7 @@ begin
          XAUI_20GIGE_G    => XAUI_20GIGE_G,
          REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
          -- AXI-Lite Configurations
+         EN_AXI_REG_G     => EN_AXI_REG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          -- AXI Streaming Configurations
          AXIS_CONFIG_G    => AXIS_CONFIG_G)       
