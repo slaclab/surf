@@ -134,6 +134,11 @@ begin
                if r.iMaster.arlen = 0 then
                   -- Set the flag
                   v.iSlave.rlast := '1';
+                  -- Check if request in pipeline
+                  if intReadMaster.arvalid = '1' then
+                     -- Preset the counter
+                     v.latency := LATENCY_G;
+                  end if;
                   -- Next state
                   v.state        := IDLE_S;
                else
