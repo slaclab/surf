@@ -360,6 +360,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,

@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2015-04-15
--- Last update: 2016-02-12
+-- Last update: 2016-09-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ entity AxiLiteRxRegItf is
       -- General Configurations
       TPD_G            : time            := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
-      AXI_ADDR_WIDTH_G    : positive     := 10;
+      AXI_ADDR_WIDTH_G : positive        := 10;
       -- JESD 
       -- Number of RX lanes (1 to 8)
       L_G              : positive        := 2
@@ -146,36 +146,36 @@ architecture rtl of AxiLiteRxRegItf is
    signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
-   
+
 begin
-   
+
    ----------------------------------------------------------------------------------------------
    -- Data Valid Status Counter
    ----------------------------------------------------------------------------------------------
    GEN_LANES : for I in L_G-1 downto 0 generate
       s_adcValids(I) <= statusRxArr_i(I)(1);
    end generate GEN_LANES;
-   
-   
+
+
    U_SyncStatusVector : entity work.SyncStatusVector
-   generic map (
-      TPD_G          => TPD_G,
-      OUT_POLARITY_G => '1',
-      CNT_RST_EDGE_G => true,
-      CNT_WIDTH_G    => 32,
-      WIDTH_G        => L_G)     
-   port map (
-      -- Input Status bit Signals (wrClk domain)
-      statusIn             => s_adcValids,
-      -- Output Status bit Signals (rdClk domain)  
-      statusOut            => open,
-      -- Status Bit Counters Signals (rdClk domain) 
-      cntRstIn             => r.commonCtrl(3),
-      cntOut               => s_statusCnt,
-      -- Clocks and Reset Ports
-      wrClk                => devClk_i,
-      rdClk                => axiClk_i); 
-   
+      generic map (
+         TPD_G          => TPD_G,
+         OUT_POLARITY_G => '1',
+         CNT_RST_EDGE_G => true,
+         CNT_WIDTH_G    => 32,
+         WIDTH_G        => L_G)
+      port map (
+         -- Input Status bit Signals (wrClk domain)
+         statusIn  => s_adcValids,
+         -- Output Status bit Signals (rdClk domain)  
+         statusOut => open,
+         -- Status Bit Counters Signals (rdClk domain) 
+         cntRstIn  => r.commonCtrl(3),
+         cntOut    => s_statusCnt,
+         -- Clocks and Reset Ports
+         wrClk     => devClk_i,
+         rdClk     => axiClk_i);
+
    -- Convert address to integer (lower two bits of address are always '0')
    s_RdAddr <= slvToInt(axilReadMaster.araddr(AXI_ADDR_WIDTH_G-1 downto 2));
    s_WrAddr <= slvToInt(axilWriteMaster.awaddr(AXI_ADDR_WIDTH_G-1 downto 2));
@@ -262,7 +262,7 @@ begin
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
                      for J in 31 downto 0 loop
-                        v.axilReadSlave.rdata(J) := s_statusCnt(I,J);
+                        v.axilReadSlave.rdata(J) := s_statusCnt(I, J);
                      end loop;
                   end if;
                end loop;

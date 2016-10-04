@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-23
+-- Last update: 2016-09-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,10 +60,9 @@ architecture rtl of EthMacTxCsum is
       IPV4_HDR0_S,
       IPV4_HDR1_S,
       MOVE_S,
-      DRAIN_S); 
+      BLOWOFF_S); 
 
    type RegType is record
-      move     : sl;
       tranWr   : sl;
       eofeDet  : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       ipv4Det  : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -88,7 +87,6 @@ architecture rtl of EthMacTxCsum is
       state    : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      move     => '0',
       tranWr   => '0',
       eofeDet  => (others => '0'),
       ipv4Det  => (others => '0'),
@@ -215,7 +213,6 @@ begin
             v.udpDet(0)  := '0';
             v.tcpDet(0)  := '0';
             v.tcpFlag    := '0';
-            v.move       := '0';
             -- Reset accumulators
             v.ipv4Len(0) := toSlv(20, 16);
             v.protLen(0) := (others => '0');
@@ -317,18 +314,8 @@ begin
                   if (v.ipv4Hdr(9) = TCP_C) then
                      v.tcpDet(0) := '1';
                   end if;
-                  -- Check for no IPv4/UDP/TCP (used for BYPASS ETH channel)
-                  if (v.ipv4Det(0) = '0') and (v.udpDet(0) = '0') and (v.tcpDet(0) = '0') then
-                     -- Set the flag
-                     v.move   := '1';
-                     -- Write the transaction data
-                     v.tranWr := '1';
-                     -- Next state
-                     v.state  := DRAIN_S;
-                  else
-                     -- Next state
-                     v.state := IPV4_HDR1_S;
-                  end if;
+                  -- Next state
+                  v.state := IPV4_HDR1_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -423,7 +410,7 @@ begin
                      -- Write the transaction data
                      v.tranWr     := '1';
                      -- Next state
-                     v.state      := DRAIN_S;
+                     v.state      := BLOWOFF_S;
                   else
                      -- Write the transaction data
                      v.tranWr := '1';
@@ -433,15 +420,11 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when DRAIN_S =>
+         when BLOWOFF_S =>
             -- Check if ready to move data
             if (rxMaster.tValid = '1') and (v.sMaster.tValid = '0') then
                -- Accept the data
                v.rxSlave.tReady := '1';
-               -- Move data
-               v.sMaster        := rxMaster;
-               -- Override the tValid
-               v.sMaster.tValid := r.move;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Next state

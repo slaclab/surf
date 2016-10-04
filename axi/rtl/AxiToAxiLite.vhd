@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-03-06
--- Last update: 2016-09-01
+-- Last update: 2016-09-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,8 +57,8 @@ begin
    axilWriteMaster.awaddr  <= axiWriteMaster.awaddr(31 downto 0);
    axilWriteMaster.awprot  <= axiWriteMaster.awprot;
    axilWriteMaster.awvalid <= axiWriteMaster.awvalid;
-   axilWriteMaster.wdata   <= axiWriteMaster.wdata(31 downto 0);
-   axilWriteMaster.wstrb   <= axiWriteMaster.wstrb(3 downto 0);
+--   axilWriteMaster.wdata   <= axiWriteMaster.wdata(31 downto 0);
+--   axilWriteMaster.wstrb   <= axiWriteMaster.wstrb(3 downto 0);
    axilWriteMaster.wvalid  <= axiWriteMaster.wvalid;
    axilWriteMaster.bready  <= axiWriteMaster.bready;
 
@@ -77,6 +77,23 @@ begin
    axiReadSlave.rlast   <= '1';
    axiReadSlave.rvalid  <= axilReadSlave.rvalid;
 
+   --
+   -- Collapse Axi wdata onto 32-bit AxiLite wdata
+   --   Assumes only active 32 bits are asserted,
+   --     otherwise could use wstrb to pick correct 32 bits
+   --
+   process(axiWriteMaster)
+      variable i     : integer;
+      variable wdata : slv(31 downto 0);
+   begin
+      wdata := (others=>'0');
+      for i in 0 to 31 loop
+         wdata := wdata or axiWriteMaster.wdata(32*i+31 downto 32*i);
+      end loop;
+      axilWriteMaster.wdata <= wdata;
+      axilWriteMaster.wstrb <= x"F";
+   end process;
+  
    process(axilReadSlave)
       variable i     : integer;
       variable rdata : slv(1023 downto 0);

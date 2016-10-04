@@ -131,6 +131,8 @@ SsiPrbsTx: &SsiPrbsTx
     #########################################################
     C_OneShot:
       name: C_OneShot
+      at:
+        offset: 0x0      
       class: SequenceCommand
       description: ''
       sequence:
