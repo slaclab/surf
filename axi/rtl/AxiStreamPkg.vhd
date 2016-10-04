@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2016-08-03
+-- Last update: 2016-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -96,8 +96,8 @@ package AxiStreamPkg is
 
    function axiStreamMasterInit (constant config : AxiStreamConfigType) return AxiStreamMasterType;
 
-   function getSlvSize (c : AxiStreamConfigType) return integer;
-   function toSlv (din : AxiStreamMasterType; c: AxiStreamConfigType) return slv;
+   function getSlvSize (c          : AxiStreamConfigType) return integer;
+   function toSlv (din             : AxiStreamMasterType; c : AxiStreamConfigType) return slv;
    function toAxiStreamMaster (din : slv; valid : sl; c : AxiStreamConfigType) return AxiStreamMasterType;
 
    -------------------------------------------------------------------------------------------------
@@ -165,6 +165,9 @@ package AxiStreamPkg is
       bytePos    : in    integer := -1);  -- -1 = last
 
    function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;
+   function ite(i : boolean; t : AxiStreamMasterType; e : AxiStreamMasterType) return AxiStreamMasterType;
+   function ite(i : boolean; t : AxiStreamSlaveType; e : AxiStreamSlaveType) return AxiStreamSlaveType;
+   function ite(i : boolean; t : AxiStreamCtrlType; e : AxiStreamCtrlType) return AxiStreamCtrlType;
    function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
    function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
@@ -172,7 +175,6 @@ package AxiStreamPkg is
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
    function getTKeep (tKeep : slv) return natural;
-
 
 end package AxiStreamPkg;
 
@@ -291,6 +293,21 @@ package body AxiStreamPkg is
    end procedure;
 
    function ite (i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiStreamMasterType; e : AxiStreamMasterType) return AxiStreamMasterType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiStreamSlaveType; e : AxiStreamSlaveType) return AxiStreamSlaveType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiStreamCtrlType; e : AxiStreamCtrlType) return AxiStreamCtrlType is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
@@ -556,13 +573,13 @@ package body AxiStreamPkg is
 
       -- Keep
       size := size + ite(c.TKEEP_MODE_C = TKEEP_NORMAL_C, c.TDATA_BYTES_C,
-                        ite(c.TKEEP_MODE_C = TKEEP_COMP_C, bitSize(c.TDATA_BYTES_C-1), 0));
+                         ite(c.TKEEP_MODE_C = TKEEP_COMP_C, bitSize(c.TDATA_BYTES_C-1), 0));
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
-                        ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C, c.TDATA_BYTES_C * c.TUSER_BITS_C));
+                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C, c.TDATA_BYTES_C * c.TUSER_BITS_C));
 
-      size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0); -- Strobe bits
+      size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0);  -- Strobe bits
       size := size + c.TDEST_BITS_C;
       size := size + c.TID_BITS_C;
 
@@ -570,7 +587,7 @@ package body AxiStreamPkg is
 
    end function;
 
-   function toSlv (din : AxiStreamMasterType; c: AxiStreamConfigType) return slv is
+   function toSlv (din : AxiStreamMasterType; c : AxiStreamConfigType) return slv is
       variable size     : integer              := getSlvSize(c);
       variable retValue : slv(size-1 downto 0) := (others => '0');
       variable i        : integer              := 0;
@@ -587,13 +604,13 @@ package body AxiStreamPkg is
          assignSlv(i, retValue, din.tKeep(c.TDATA_BYTES_C-1 downto 0));
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          -- Assume lsb is present
-         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1)),bitSize(c.TDATA_BYTES_C-1)));
+         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1)), bitSize(c.TDATA_BYTES_C-1)));
       end if;
       -- TKEEP Fixed uses 0 bits
 
       -- Pack user bits
       if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din,  0), c.TUSER_BITS_C));  -- First byte
+         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, 0), c.TUSER_BITS_C));  -- First byte
          assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
 
       elsif c.TUSER_MODE_C = TUSER_LAST_C then
@@ -625,10 +642,10 @@ package body AxiStreamPkg is
    end function;
 
    function toAxiStreamMaster (din : slv; valid : sl; c : AxiStreamConfigType) return AxiStreamMasterType is
-      variable master : AxiStreamMasterType := axiStreamMasterInit(c);
+      variable master : AxiStreamMasterType            := axiStreamMasterInit(c);
       variable user   : slv(c.TUSER_BITS_C-1 downto 0) := (others => '0');
       variable keep   : slv(bitSize(c.TDATA_BYTES_C-1)-1 downto 0);
-      variable i      : integer := 0;
+      variable i      : integer                        := 0;
    begin
 
       -- Set valid, 
@@ -646,14 +663,14 @@ package body AxiStreamPkg is
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          assignRecord(i, din, keep);
          master.tKeep := genTKeep(conv_integer(keep)+1);
-      else -- KEEP_MODE_C = TKEEP_FIXED_C
+      else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(c.TDATA_BYTES_C);
       end if;
 
       -- get user bits
       if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
          assignRecord(i, din, user);
-         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), 0);   -- First byte
+         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), 0);  -- First byte
 
          assignRecord(i, din, user);
          axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte

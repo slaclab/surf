@@ -87,7 +87,7 @@ architecture rtl of AxiReadPathFifo is
 
    constant ADDR_BITS_C  : integer := AXI_CONFIG_G.ADDR_WIDTH_C - ADDR_LSB_G;
    constant ID_BITS_C    : integer := ite(ID_FIXED_EN_G,0,AXI_CONFIG_G.ID_BITS_C);
-   constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G,0,4);
+   constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G,0,AXI_CONFIG_G.LEN_BITS_C);
    constant SIZE_BITS_C  : integer := ite(SIZE_FIXED_EN_G,0,3);
    constant BURST_BITS_C : integer := ite(BURST_FIXED_EN_G,0,2);
    constant LOCK_BITS_C  : integer := ite(LOCK_FIXED_EN_G,0,2);

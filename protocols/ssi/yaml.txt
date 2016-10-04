@@ -1,0 +1,2 @@
+manual yaml/SsiPrbsTx.yaml
+manual yaml/SsiPrbsRx.yaml

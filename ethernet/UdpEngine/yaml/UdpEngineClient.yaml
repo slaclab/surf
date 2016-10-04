@@ -10,8 +10,8 @@
 #schemaversion 3.0.0
 #once
 
-UdpEngineWrapper: &UdpEngineWrapper 
-  description: UdpEngineWrapper 
+UdpEngineClient: &UdpEngineClient 
+  description: UdpEngineClient 
   class: MMIODev
   configPrio: 1
   size: 0x8

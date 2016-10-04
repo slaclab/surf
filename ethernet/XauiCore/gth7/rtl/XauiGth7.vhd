@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2016-09-21
+-- Last update: 2016-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ entity XauiGth7 is
    generic (
       TPD_G            : time                := 1 ns;
       -- AXI-Lite Configurations
+      EN_AXI_REG_G     : boolean             := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
@@ -193,6 +194,7 @@ begin
    U_XauiReg : entity work.XauiReg
       generic map (
          TPD_G            => TPD_G,
+         EN_AXI_REG_G     => EN_AXI_REG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- Local Configurations

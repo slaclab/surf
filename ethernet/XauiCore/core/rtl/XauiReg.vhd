@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2016-07-13
+-- Last update: 2016-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ use work.XauiPkg.all;
 entity XauiReg is
    generic (
       TPD_G            : time            := 1 ns;
+      EN_AXI_REG_G     : boolean         := false;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
    port (
       -- Local Configurations
@@ -74,181 +75,219 @@ architecture rtl of XauiReg is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
-   signal cntOut    : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
+   signal statusOut    : slv(STATUS_SIZE_C-1 downto 0);
+   signal cntOut       : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
+   signal localMacSync : slv(47 downto 0);
    
 begin
 
-   SyncStatusVec_Inst : entity work.SyncStatusVector
-      generic map (
-         TPD_G          => TPD_G,
-         OUT_POLARITY_G => '1',
-         CNT_RST_EDGE_G => true,
-         COMMON_CLK_G   => false,
-         CNT_WIDTH_G    => 32,
-         WIDTH_G        => STATUS_SIZE_C)     
-      port map (
-         -- Input Status bit Signals (wrClk domain)
-         statusIn(0)            => status.phyReady,
-         statusIn(1)            => status.macStatus.rxPauseCnt,
-         statusIn(2)            => status.macStatus.txPauseCnt,
-         statusIn(3)            => status.macStatus.rxCountEn,
-         statusIn(4)            => status.macStatus.rxOverFlow,
-         statusIn(5)            => status.macStatus.rxCrcErrorCnt,
-         statusIn(6)            => status.macStatus.txCountEn,
-         statusIn(7)            => status.macStatus.txUnderRunCnt,
-         statusIn(8)            => status.macStatus.txNotReadyCnt,
-         statusIn(9)            => status.areset,
-         statusIn(10)           => status.clkLock,
-         statusIn(18 downto 11) => status.statusVector,
-         statusIn(24 downto 19) => status.debugVector,
-         statusIn(31 downto 25) => (others => '0'),
-         -- Output Status bit Signals (rdClk domain)           
-         statusOut              => statusOut,
-         -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn               => r.cntRst,
-         rollOverEnIn           => r.rollOverEn,
-         cntOut                 => cntOut,
-         -- Clocks and Reset Ports
-         wrClk                  => phyClk,
-         rdClk                  => axiClk);
+   GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-   -------------------------------
-   -- Configuration Register
-   -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac, r, statusOut) is
-      variable v      : RegType;
-      variable regCon : AxiLiteEndPointType;
-      variable rdPntr : natural;
-   begin
-      -- Latch the current value
-      v := r;
+      U_AxiLiteEmpty : entity work.AxiLiteEmpty
+         generic map (
+            TPD_G            => TPD_G,
+            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         port map (
+            axiClk         => axiClk,
+            axiClkRst      => axiRst,
+            axiReadMaster  => axiReadMaster,
+            axiReadSlave   => axiReadSlave,
+            axiWriteMaster => axiWriteMaster,
+            axiWriteSlave  => axiWriteSlave);
 
-      -- Determine the transaction type
-      axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+      Sync_Config : entity work.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 48)
+         port map (
+            clk     => phyClk,
+            dataIn  => localMac,
+            dataOut => localMacSync);             
 
-      -- Reset strobe signals
-      v.cntRst         := '0';
-      v.config.softRst := '0';
-      v.hardRst        := '0';
+      process (localMacSync) is
+         variable retVar : XauiConfig;
+      begin
+         retVar                      := XAUI_CONFIG_INIT_C;
+         retVar.macConfig.macAddress := localMacSync;
+         config                      <= retVar;
+      end process;
 
-      -- Calculate the read pointer
-      rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
+   end generate;
 
-      -- Register Mapping
-      axiSlaveRegisterR(regCon, "0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
-      axiSlaveRegisterR(regCon, x"100", 0, statusOut);
-      --axiSlaveRegisterR(regCon, x"104", 0, status.macStatus.rxPauseValue);
+   GEN_REG : if (EN_AXI_REG_G = true) generate
+      
+      SyncStatusVec_Inst : entity work.SyncStatusVector
+         generic map (
+            TPD_G          => TPD_G,
+            OUT_POLARITY_G => '1',
+            CNT_RST_EDGE_G => true,
+            COMMON_CLK_G   => false,
+            CNT_WIDTH_G    => 32,
+            WIDTH_G        => STATUS_SIZE_C)     
+         port map (
+            -- Input Status bit Signals (wrClk domain)
+            statusIn(0)            => status.phyReady,
+            statusIn(1)            => status.macStatus.rxPauseCnt,
+            statusIn(2)            => status.macStatus.txPauseCnt,
+            statusIn(3)            => status.macStatus.rxCountEn,
+            statusIn(4)            => status.macStatus.rxOverFlow,
+            statusIn(5)            => status.macStatus.rxCrcErrorCnt,
+            statusIn(6)            => status.macStatus.txCountEn,
+            statusIn(7)            => status.macStatus.txUnderRunCnt,
+            statusIn(8)            => status.macStatus.txNotReadyCnt,
+            statusIn(9)            => status.areset,
+            statusIn(10)           => status.clkLock,
+            statusIn(18 downto 11) => status.statusVector,
+            statusIn(24 downto 19) => status.debugVector,
+            statusIn(31 downto 25) => (others => '0'),
+            -- Output Status bit Signals (rdClk domain)           
+            statusOut              => statusOut,
+            -- Status Bit Counters Signals (rdClk domain) 
+            cntRstIn               => r.cntRst,
+            rollOverEnIn           => r.rollOverEn,
+            cntOut                 => cntOut,
+            -- Clocks and Reset Ports
+            wrClk                  => phyClk,
+            rdClk                  => axiClk);
 
-      axiSlaveRegister(regCon, x"200", 0, v.config.macConfig.macAddress(31 downto 0));
-      axiSlaveRegister(regCon, x"204", 0, v.config.macConfig.macAddress(47 downto 32));
-      --axiSlaveRegister(regCon, x"208", 0, v.config.macConfig.byteSwap);
+      -------------------------------
+      -- Configuration Register
+      -------------------------------  
+      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac, r, statusOut) is
+         variable v      : RegType;
+         variable regCon : AxiLiteEndPointType;
+         variable rdPntr : natural;
+      begin
+         -- Latch the current value
+         v := r;
 
-      --axiSlaveRegister(regCon, x"210", 0, v.config.macConfig.txShift);
-      --axiSlaveRegister(regCon, x"214", 0, v.config.macConfig.txShiftEn);
-      axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
-      axiSlaveRegister(regCon, x"21C", 0, v.config.macConfig.pauseTime);
+         -- Determine the transaction type
+         axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      --axiSlaveRegister(regCon, x"220", 0, v.config.macConfig.rxShift);
-      --axiSlaveRegister(regCon, x"224", 0, v.config.macConfig.rxShiftEn);
-      axiSlaveRegister(regCon, x"228", 0, v.config.macConfig.filtEnable);
-      axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
+         -- Reset strobe signals
+         v.cntRst         := '0';
+         v.config.softRst := '0';
+         v.hardRst        := '0';
 
-      axiSlaveRegister(regCon, x"230", 0, v.config.configVector);
+         -- Calculate the read pointer
+         rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
 
-      axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
-      axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
-      axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);
-      axiSlaveRegister(regCon, x"FFC", 0, v.hardRst);
+         -- Register Mapping
+         axiSlaveRegisterR(regCon, "0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
+         axiSlaveRegisterR(regCon, x"100", 0, statusOut);
+         --axiSlaveRegisterR(regCon, x"104", 0, status.macStatus.rxPauseValue);
 
-      -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+         axiSlaveRegister(regCon, x"200", 0, v.config.macConfig.macAddress(31 downto 0));
+         axiSlaveRegister(regCon, x"204", 0, v.config.macConfig.macAddress(47 downto 32));
+         --axiSlaveRegister(regCon, x"208", 0, v.config.macConfig.byteSwap);
 
-      -- Synchronous Reset
-      if (axiRst = '1') or (v.hardRst = '1') then
-         v.cntRst     := '1';
-         v.rollOverEn := (others => '0');
-         v.config     := XAUI_CONFIG_INIT_C;
-         if (axiRst = '1') then
-            v.axiReadSlave  := AXI_LITE_READ_SLAVE_INIT_C;
-            v.axiWriteSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
+         --axiSlaveRegister(regCon, x"210", 0, v.config.macConfig.txShift);
+         --axiSlaveRegister(regCon, x"214", 0, v.config.macConfig.txShiftEn);
+         axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
+         axiSlaveRegister(regCon, x"21C", 0, v.config.macConfig.pauseTime);
+
+         --axiSlaveRegister(regCon, x"220", 0, v.config.macConfig.rxShift);
+         --axiSlaveRegister(regCon, x"224", 0, v.config.macConfig.rxShiftEn);
+         axiSlaveRegister(regCon, x"228", 0, v.config.macConfig.filtEnable);
+         axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
+
+         axiSlaveRegister(regCon, x"230", 0, v.config.configVector);
+
+         axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
+         axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
+         axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);
+         axiSlaveRegister(regCon, x"FFC", 0, v.hardRst);
+
+         -- Closeout the transaction
+         axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+
+         -- Synchronous Reset
+         if (axiRst = '1') or (v.hardRst = '1') then
+            v.cntRst     := '1';
+            v.rollOverEn := (others => '0');
+            v.config     := XAUI_CONFIG_INIT_C;
+            if (axiRst = '1') then
+               v.axiReadSlave  := AXI_LITE_READ_SLAVE_INIT_C;
+               v.axiWriteSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
+            end if;
          end if;
-      end if;
 
-      -- Update the MAC address
-      v.config.macConfig.macAddress := localMac;
+         -- Update the MAC address
+         v.config.macConfig.macAddress := localMac;
 
-      -- Register the variable for next clock cycle
-      rin <= v;
+         -- Register the variable for next clock cycle
+         rin <= v;
 
-      -- Outputs
-      axiReadSlave  <= r.axiReadSlave;
-      axiWriteSlave <= r.axiWriteSlave;
+         -- Outputs
+         axiReadSlave  <= r.axiReadSlave;
+         axiWriteSlave <= r.axiWriteSlave;
 
-   end process comb;
+      end process comb;
 
-   seq : process (axiClk) is
-   begin
-      if rising_edge(axiClk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
+      seq : process (axiClk) is
+      begin
+         if rising_edge(axiClk) then
+            r <= rin after TPD_G;
+         end if;
+      end process seq;
 
-   -- There is a Synchronizer one layer up for software reset
-   config.softRst <= r.config.softRst;
+      -- There is a Synchronizer one layer up for software reset
+      config.softRst <= r.config.softRst;
 
-   SyncIn_macAddress : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 48)
-      port map (
-         wr_clk => axiClk,
-         din    => r.config.macConfig.macAddress,
-         rd_clk => phyClk,
-         dout   => config.macConfig.macAddress); 
+      SyncIn_macAddress : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 48)
+         port map (
+            wr_clk => axiClk,
+            din    => r.config.macConfig.macAddress,
+            rd_clk => phyClk,
+            dout   => config.macConfig.macAddress); 
 
-   SyncIn_pauseTime : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 16)
-      port map (
-         wr_clk => axiClk,
-         din    => r.config.macConfig.pauseTime,
-         rd_clk => phyClk,
-         dout   => config.macConfig.pauseTime);          
+      SyncIn_pauseTime : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16)
+         port map (
+            wr_clk => axiClk,
+            din    => r.config.macConfig.pauseTime,
+            rd_clk => phyClk,
+            dout   => config.macConfig.pauseTime);          
 
-   SyncIn_macConfig : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 17)
-      port map (
-         wr_clk            => axiClk,
-         din(3 downto 0)   => r.config.macConfig.interFrameGap,
-         din(7 downto 4)   => r.config.macConfig.txShift,
-         din(11 downto 8)  => r.config.macConfig.rxShift,
-         din(12)           => r.config.macConfig.filtEnable,
-         din(13)           => r.config.macConfig.pauseEnable,
-         din(14)           => r.config.macConfig.ipCsumEn,
-         din(15)           => r.config.macConfig.tcpCsumEn,
-         din(16)           => r.config.macConfig.udpCsumEn,
-         rd_clk            => phyClk,
-         dout(3 downto 0)  => config.macConfig.interFrameGap,
-         dout(7 downto 4)  => config.macConfig.txShift,
-         dout(11 downto 8) => config.macConfig.rxShift,
-         dout(12)          => config.macConfig.filtEnable,
-         dout(13)          => config.macConfig.pauseEnable,
-         dout(14)          => config.macConfig.ipCsumEn,
-         dout(15)          => config.macConfig.tcpCsumEn,
-         dout(16)          => config.macConfig.udpCsumEn);
+      SyncIn_macConfig : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 17)
+         port map (
+            wr_clk            => axiClk,
+            din(3 downto 0)   => r.config.macConfig.interFrameGap,
+            din(7 downto 4)   => r.config.macConfig.txShift,
+            din(11 downto 8)  => r.config.macConfig.rxShift,
+            din(12)           => r.config.macConfig.filtEnable,
+            din(13)           => r.config.macConfig.pauseEnable,
+            din(14)           => r.config.macConfig.ipCsumEn,
+            din(15)           => r.config.macConfig.tcpCsumEn,
+            din(16)           => r.config.macConfig.udpCsumEn,
+            rd_clk            => phyClk,
+            dout(3 downto 0)  => config.macConfig.interFrameGap,
+            dout(7 downto 4)  => config.macConfig.txShift,
+            dout(11 downto 8) => config.macConfig.rxShift,
+            dout(12)          => config.macConfig.filtEnable,
+            dout(13)          => config.macConfig.pauseEnable,
+            dout(14)          => config.macConfig.ipCsumEn,
+            dout(15)          => config.macConfig.tcpCsumEn,
+            dout(16)          => config.macConfig.udpCsumEn);
 
-   SyncIn_configVector : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 7)
-      port map (
-         wr_clk => axiClk,
-         din    => r.config.configVector,
-         rd_clk => phyClk,
-         dout   => config.configVector);    
+      SyncIn_configVector : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 7)
+         port map (
+            wr_clk => axiClk,
+            din    => r.config.configVector,
+            rd_clk => phyClk,
+            dout   => config.configVector);    
 
+   end generate;
+   
 end rtl;
