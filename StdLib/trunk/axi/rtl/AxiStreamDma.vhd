@@ -47,7 +47,7 @@ entity AxiStreamDma is
       AXI_CONFIG_G      : AxiConfigType              := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)            := "01";
       AXI_CACHE_G       : slv(3 downto 0)            := "1111";
-      MAX_PEND_G        : integer range 0 to (2**24) := 0
+      PEND_THRESH_G     : natural                    := 0
    );
    port (
 
@@ -509,7 +509,7 @@ begin
          AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_BURST_G      => AXI_BURST_G,
          AXI_CACHE_G      => AXI_CACHE_G,
-         MAX_PEND_G       => MAX_PEND_G 
+         PEND_THRESH_G    => PEND_THRESH_G 
       ) port map (
          axiClk          => axiClk,
          axiRst          => axiRst,
