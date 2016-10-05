@@ -43,7 +43,8 @@ entity AxiStreamDmaWrite is
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
-      ACK_WAIT_BVALID_G : boolean             := true);
+      ACK_WAIT_BVALID_G : boolean             := true;
+      PIPE_STAGES_G    : natural              := 1);
    port (
 
       -- Clock/Reset
@@ -108,7 +109,10 @@ architecture structure of AxiStreamDmaWrite is
    signal intAxisSlave  : AxiStreamSlaveType;
 
    signal wDataDebug : slv(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
-
+   
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";   
+   
 begin
 
    wDataDebug <= r.wMaster.wdata(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
@@ -121,6 +125,7 @@ begin
    U_AxiStreamShift : entity work.AxiStreamShift
       generic map (
          TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G
          ) port map (
             axisClk     => axiClk,
