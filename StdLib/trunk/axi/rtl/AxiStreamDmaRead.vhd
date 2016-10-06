@@ -341,7 +341,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when LAST_S =>
-            -- Hold until last transfer (required for LastTUser_Remapping process)
+            -- Hold until last transfer (required for Remap_mAxisMaster process)
             if (mMaster.tValid = '1') and (mMaster.tLast = '1') and (mSlave.tReady = '1') then
                -- Next state
                v.state := DONE_S;
