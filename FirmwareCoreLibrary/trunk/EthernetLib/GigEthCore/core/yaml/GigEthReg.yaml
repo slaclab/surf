@@ -48,15 +48,7 @@ GigEthReg: &GigEthReg
         offset: 0x200
       sizeBits: 48      
       mode: RO
-      description: MAC Address (big-Endian)
-    #########################################################:
-    InterFrameGap:
-      class: IntField
-      at:
-        offset: 0x218
-      sizeBits: 4      
-      mode: RO
-      description: InterFrameGap    
+      description: MAC Address (big-Endian)  
     #########################################################:
     PauseTime:
       class: IntField
