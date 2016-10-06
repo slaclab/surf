@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-21
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ entity EthMacTx is
       JUMBO_G         : boolean                  := true;
       -- Non-VLAN Configurations
       BYP_EN_G        : boolean                  := false;
-      SHIFT_EN_G      : boolean                  := false;
       -- VLAN Configurations
       VLAN_EN_G       : boolean                  := false;
       VLAN_CNT_G      : positive range 1 to 8    := 1);
@@ -84,37 +83,16 @@ end EthMacTx;
 
 architecture mapping of EthMacTx is
 
-   signal shiftMaster  : AxiStreamMasterType;
-   signal shiftSlave   : AxiStreamSlaveType;
    signal bypassMaster : AxiStreamMasterType;
    signal bypassSlave  : AxiStreamSlaveType;
-   signal toeMaster    : AxiStreamMasterType;
-   signal toeSlave     : AxiStreamSlaveType;
-   signal toeMasters   : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-   signal toeSlaves    : AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+   signal csumMaster   : AxiStreamMasterType;
+   signal csumSlave    : AxiStreamSlaveType;
+   signal csumMasters  : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+   signal csumSlaves   : AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
    signal macObMaster  : AxiStreamMasterType;
    signal macObSlave   : AxiStreamSlaveType;
 
 begin
-
-   ------------------
-   -- TX Shift Module
-   ------------------
-   U_Shift : entity work.EthMacTxShift
-      generic map (
-         TPD_G      => TPD_G,
-         SHIFT_EN_G => SHIFT_EN_G) 
-      port map (
-         -- Clock and Reset
-         ethClk      => ethClk,
-         ethRst      => ethRst,
-         -- AXIS Interface
-         sAxisMaster => sPrimMaster,
-         sAxisSlave  => sPrimSlave,
-         mAxisMaster => shiftMaster,
-         mAxisSlave  => shiftSlave,
-         -- Configuration
-         txShift     => ethConfig.txShift);
 
    -------------------
    -- TX Bypass Module
@@ -128,8 +106,8 @@ begin
          ethClk      => ethClk,
          ethRst      => ethRst,
          -- Incoming primary traffic
-         sPrimMaster => shiftMaster,
-         sPrimSlave  => shiftSlave,
+         sPrimMaster => sPrimMaster,
+         sPrimSlave  => sPrimSlave,
          -- Incoming bypass traffic
          sBypMaster  => sBypMaster,
          sBypSlave   => sBypSlave,
@@ -137,9 +115,9 @@ begin
          mAxisMaster => bypassMaster,
          mAxisSlave  => bypassSlave);
 
-   -------------------------
-   -- TX Non-VLAN TOE Module
-   -------------------------
+   ------------------------------
+   -- TX Non-VLAN Checksum Module
+   ------------------------------
    U_Csum : entity work.EthMacTxCsum
       generic map (
          TPD_G          => TPD_G,
@@ -157,12 +135,12 @@ begin
          -- Outbound data to MAC
          sAxisMaster => bypassMaster,
          sAxisSlave  => bypassSlave,
-         mAxisMaster => toeMaster,
-         mAxisSlave  => toeSlave);
+         mAxisMaster => csumMaster,
+         mAxisSlave  => csumSlave);
 
-   ---------------------
-   -- TX VLAN TOE Module
-   ---------------------         
+   --------------------------         
+   -- TX VLAN Checksum Module
+   --------------------------         
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_CNT_G-1) downto 0 generate
@@ -183,15 +161,15 @@ begin
                -- Outbound data to MAC
                sAxisMaster => sVlanMasters(i),
                sAxisSlave  => sVlanSlaves(i),
-               mAxisMaster => toeMasters(i),
-               mAxisSlave  => toeSlaves(i));
+               mAxisMaster => csumMasters(i),
+               mAxisSlave  => csumSlaves(i));
       end generate GEN_VEC;
    end generate;
 
    BYPASS_VLAN : if (VLAN_EN_G = false) generate
       -- Terminate Unused buses
       sVlanSlaves <= (others => AXI_STREAM_SLAVE_FORCE_C);
-      toeMasters  <= (others => AXI_STREAM_MASTER_INIT_C);
+      csumMasters <= (others => AXI_STREAM_MASTER_INIT_C);
    end generate;
 
    ------------------
@@ -209,10 +187,10 @@ begin
          ethClk       => ethClk,
          ethRst       => ethRst,
          -- Incoming data from client
-         sAxisMaster  => toeMaster,
-         sAxisSlave   => toeSlave,
-         sAxisMasters => toeMasters,
-         sAxisSlaves  => toeSlaves,
+         sAxisMaster  => csumMaster,
+         sAxisSlave   => csumSlave,
+         sAxisMasters => csumMasters,
+         sAxisSlaves  => csumSlaves,
          -- Outgoing data to MAC
          mAxisMaster  => macObMaster,
          mAxisSlave   => macObSlave,

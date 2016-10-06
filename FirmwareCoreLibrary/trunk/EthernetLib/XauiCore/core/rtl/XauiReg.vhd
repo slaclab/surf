@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2016-09-29
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ begin
 
          --axiSlaveRegister(regCon, x"210", 0, v.config.macConfig.txShift);
          --axiSlaveRegister(regCon, x"214", 0, v.config.macConfig.txShiftEn);
-         axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
+         --axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
          axiSlaveRegister(regCon, x"21C", 0, v.config.macConfig.pauseTime);
 
          --axiSlaveRegister(regCon, x"220", 0, v.config.macConfig.rxShift);
