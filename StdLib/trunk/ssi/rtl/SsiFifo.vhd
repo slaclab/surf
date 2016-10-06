@@ -50,7 +50,7 @@ entity SsiFifo is
       CASCADE_PAUSE_SEL_G : natural               := 0;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48 := 9;
       FIFO_FIXED_THRESH_G : boolean               := true;
-      FIFO_PAUSE_THRESH_G : positive              := 500;
+      FIFO_PAUSE_THRESH_G : positive              := 1;
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType   := SSI_CONFIG_INIT_C;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType   := SSI_CONFIG_INIT_C);  
