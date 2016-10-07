@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-12
--- Last update: 2016-02-16
+-- Last update: 2016-10-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ entity AxiPcieDma is
    generic (
       TPD_G            : time                   := 1 ns;
       DMA_SIZE_G       : positive range 1 to 16 := 1;
+      PEND_THRESH_G    : natural                := 0;
       USE_IP_CORE_G    : boolean                := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C;
       AXIS_CONFIG_G    : AxiStreamConfigArray);
@@ -210,7 +211,8 @@ begin
             AXIS_CONFIG_G     => PCIE_AXIS_CONFIG_C,
             AXI_CONFIG_G      => AXI_CONFIG_C,
             AXI_BURST_G       => "01",    -- INCR 
-            AXI_CACHE_G       => "0000")  -- Device Non-bufferable 
+            AXI_CACHE_G       => "0000",  -- Device Non-bufferable 
+            PEND_THRESH_G     => PEND_THRESH_G)
          port map (
             axiClk          => axiClk,
             axiRst          => axiRst,
