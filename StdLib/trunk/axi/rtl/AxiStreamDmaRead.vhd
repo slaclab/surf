@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-10-04
+-- Last update: 2016-10-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,9 +20,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/25/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -192,9 +189,9 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Update the variables
-            v.rMaster := axiReadMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G);
-            v.dmaAck  := AXI_READ_DMA_ACK_INIT_C;
             v.dmaReq  := dmaReq;
+            v.rMaster := axiReadMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G);
+            -- Reset the counters
             v.shift   := (others => '0');
             v.reqCnt  := (others => '0');
             v.ackCnt  := (others => '0');
@@ -205,16 +202,19 @@ begin
             end if;
             -- Check for DMA request 
             if (dmaReq.request = '1') then
+               -- Reset the flags and counters
+               v.dmaAck.readError  := '0';
+               v.dmaAck.errorValue := (others => '0');
                -- Set the flags
-               v.shiftEn       := '1';
-               v.first         := '1';
+               v.shiftEn           := '1';
+               v.first             := '1';
                -- Latch the value
-               v.size          := dmaReq.size;
-               v.reqSize       := dmaReq.size;
-               v.sMaster.tDest := dmaReq.dest;
-               v.sMaster.tId   := dmareq.id;
+               v.size              := dmaReq.size;
+               v.reqSize           := dmaReq.size;
+               v.sMaster.tDest     := dmaReq.dest;
+               v.sMaster.tId       := dmareq.id;
                -- Next state
-               v.reqState      := FIRST_S;
+               v.reqState          := FIRST_S;
             end if;
          ----------------------------------------------------------------------
          when FIRST_S =>
@@ -374,6 +374,15 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Forward the state of the state machine
+      if v.state = IDLE_S then
+         -- Set the flag
+         v.dmaAck.idle := '1';
+      else
+         -- Reset the flag
+         v.dmaAck.idle := '0';
+      end if;
 
       -- Reset      
       if (axiRst = '1') then

@@ -1,8 +1,13 @@
 -------------------------------------------------------------------------------
--- Title         : AXI-4 DMA Controller Package File
--- File          : AxiDmaPkg.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 05/06/2013
+-- Title      : AXI-4 DMA Controller Package File
+-- Project    : General Purpose Core
+-------------------------------------------------------------------------------
+-- File       : AxiStreamDmaRead.vhd
+-- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Created    : 2013-05-06
+-- Last update: 2016-10-07
+-- Platform   : 
+-- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Package file for AXI DMA Controller
@@ -15,6 +20,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -51,6 +57,7 @@ package AxiDmaPkg is
 
    -- Base Record
    type AxiWriteDmaAckType is record
+      idle       : sl;
       done       : sl;
       size       : slv(31 downto 0);
       overflow   : sl;
@@ -64,6 +71,7 @@ package AxiDmaPkg is
 
    -- Initialization constants
    constant AXI_WRITE_DMA_ACK_INIT_C : AxiWriteDmaAckType := ( 
+      idle       => '1',
       done       => '0',
       size       => (others=>'0'),
       overflow   => '0',
@@ -113,6 +121,7 @@ package AxiDmaPkg is
 
    -- Base Record
    type AxiReadDmaAckType is record
+      idle       : sl;
       done       : sl;
       readError  : sl;
       errorValue : slv(1 downto 0);
@@ -120,6 +129,7 @@ package AxiDmaPkg is
 
    -- Initialization constants
    constant AXI_READ_DMA_ACK_INIT_C : AxiReadDmaAckType := ( 
+      idle       => '1',
       done       => '0',
       readError  => '0',
       errorValue => "00"
