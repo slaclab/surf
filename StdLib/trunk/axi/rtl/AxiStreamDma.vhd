@@ -210,6 +210,14 @@ architecture structure of AxiStreamDma is
    signal ibAck              : AxiWriteDmaAckType;
    signal ibReq              : AxiWriteDmaReqType;
 
+   -- attribute dont_touch          : string;
+   -- attribute dont_touch of ob    : signal is "true";    
+   -- attribute dont_touch of obAck : signal is "true";    
+   -- attribute dont_touch of obReq : signal is "true";    
+   -- attribute dont_touch of ib    : signal is "true";    
+   -- attribute dont_touch of ibAck : signal is "true";    
+   -- attribute dont_touch of ibReq : signal is "true";    
+   
 begin
 
    U_CrossEnGen: if AXIL_COUNT_G = 1 generate
