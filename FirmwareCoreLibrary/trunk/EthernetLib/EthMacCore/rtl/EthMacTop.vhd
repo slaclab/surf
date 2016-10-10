@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-10-06
+-- Last update: 2016-10-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -120,6 +120,11 @@ architecture mapping of EthMacTop is
    signal rxPauseReq   : sl;
    signal rxPauseValue : slv(15 downto 0);
    signal flowCtrl     : AxiStreamCtrlType;
+
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of rxPauseReq   : signal is "true";
+   -- attribute dont_touch of rxPauseValue : signal is "true";
+   -- attribute dont_touch of flowCtrl     : signal is "true";
 
 begin
 
