@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-22
+-- Last update: 2016-10-12
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ entity SsiObFrameFilter is
    port (
       -- Slave Port (AXIS FIFO Read Interface)
       sAxisMaster    : in  AxiStreamMasterType;
-      sTLastTUser    : in  slv(127 downto 0);
+      sTLastTUser    : in  slv(7 downto 0);
       sAxisSlave     : out AxiStreamSlaveType;
       overflow       : in  sl;
       -- Master Port  
@@ -58,6 +58,7 @@ architecture rtl of SsiObFrameFilter is
 
    type StateType is (
       IDLE_S,
+      BLOWOFF_S,
       MOVE_S);        
 
    type RegType is record
@@ -113,23 +114,15 @@ begin
             v.master.tValid := '0';
          end if;
 
-         -- Initialize the bus
-         eof       := AXI_STREAM_MASTER_INIT_C;
-         eof.tUser := sTLastTUser;
-
-         -- Get the SOF/EOFE status
+         -- Get the SOF status
          sof := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);
 
          -- Check for FIFO caching
          if (VALID_THOLD_G = 0) then
             -- Get the EOFE status
-            eofe := ssiGetUserEofe(AXIS_CONFIG_G, eof);
-            -- Check for a frame larger than the FIFO depth
-            if (sAxisMaster.tValid = '0') and (overflow = '1') then
-               -- Blow off the data
-               v.slave.tReady := '1';
-            end if;
+            eofe := sTLastTUser(SSI_EOFE_C);
          else
+            -- Reset the flag
             eofe := '0';
          end if;
 
@@ -137,12 +130,23 @@ begin
          case (r.state) is
             ----------------------------------------------------------------------
             when IDLE_S =>
+               -- Check for FIFO caching and a frame larger than the FIFO depth
+               if (VALID_THOLD_G = 0) and (overflow = '1') then
+                  -- Blowoff the data
+                  v.slave.tReady := '1';
+                  -- Next state
+                  v.state        := BLOWOFF_S;
+                  -- Check for non-EOF or tValid not set
+                  if (sAxisMaster.tLast = '0') or (sAxisMaster.tValid = '0') then
+                     -- Next state
+                     v.state := BLOWOFF_S;
+                  end if;
                -- Check if ready to move data
-               if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+               elsif (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
                   -- Accept the data
                   v.slave.tReady := '1';
                   -- Check for SOF
-                  if (sof = '1') and (eofe = '0') then
+                  if (sof = '1') and (eofe = '0') and (overflow = '0') then
                      -- Move the data bus
                      v.master := sAxisMaster;
                      -- Latch tDest
@@ -156,34 +160,51 @@ begin
                      -- Strobe the error flags
                      v.wordDropped  := '1';
                      v.frameDropped := sAxisMaster.tLast;
+                     -- Check for non-EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next state
+                        v.state := BLOWOFF_S;
+                     end if;
                   end if;
+               end if;
+            ----------------------------------------------------------------------
+            when BLOWOFF_S =>
+               -- Blowoff the data
+               v.slave.tReady := '1';
+               -- Strobe the error flags
+               v.wordDropped  := '1';
+               v.frameDropped := sAxisMaster.tLast;
+               -- Check for EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when MOVE_S =>
                -- Check if ready to move data
                if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+                  -- Accept the data
+                  v.slave.tReady := '1';
+                  -- Move the data bus
+                  v.master       := sAxisMaster;
+                  -- Check for EOF   
+                  if (sAxisMaster.tLast = '1') then
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
                   -- Check for SSI framing errors (repeated SOF or interleaved frame)
-                  if (sof = '1') or (r.tDest /= sAxisMaster.tDest) then
-                     -- Terminate the frame
-                     v.master.tValid := '1';
+                  if (sof = '1') or (r.tDest /= sAxisMaster.tDest) or (overflow = '1') then
                      -- Set the EOF flag
-                     v.master.tLast  := '1';
+                     v.master.tLast := '1';
                      -- Set the EOFE flag
                      ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
                      -- Strobe the error flags
-                     v.wordDropped   := '1';
-                     v.frameDropped  := sAxisMaster.tLast;
-                     -- Next state
-                     v.state         := IDLE_S;
-                  else
-                     -- Accept the data
-                     v.slave.tReady := '1';
-                     -- Move the data bus
-                     v.master       := sAxisMaster;
-                     -- Check for EOF   
-                     if (sAxisMaster.tLast = '1') then
+                     v.wordDropped  := '1';
+                     v.frameDropped := sAxisMaster.tLast;
+                     -- Check for non-EOF
+                     if (sAxisMaster.tLast = '0') then
                         -- Next state
-                        v.state := IDLE_S;
+                        v.state := BLOWOFF_S;
                      end if;
                   end if;
                end if;
