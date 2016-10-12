@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-22
+-- Last update: 2016-10-12
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,6 +58,7 @@ architecture rtl of SsiIbFrameFilter is
 
    type StateType is (
       IDLE_S,
+      BLOWOFF_S,
       MOVE_S);        
 
    type RegType is record
@@ -82,7 +83,7 @@ architecture rtl of SsiIbFrameFilter is
    
 begin
 
-   assert ( AXIS_CONFIG_G.TUSER_BITS_C >= 2)  report "SsiIbFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;   
+   assert (AXIS_CONFIG_G.TUSER_BITS_C >= 2) report "SsiIbFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
 
    sAxisCtrl <= mAxisCtrl;
 
@@ -98,7 +99,7 @@ begin
 
    ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
 
-      comb : process (axisRst, mAxisCtrl, mAxisSlave, r, sAxisMaster) is
+      comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
          variable v   : RegType;
          variable sof : sl;
       begin
@@ -113,23 +114,8 @@ begin
             v.master.tValid := '0';
          end if;
 
-         -- Check for overflow and not using tReady
-         if (mAxisCtrl.overflow = '1') and (SLAVE_READY_EN_G = false) then
-            -- Terminate the frame
-            v.master.tValid := '1';
-            -- Set the EOF flag
-            v.master.tLast  := '1';
-            -- Set the EOFE flag
-            ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
-            -- Strobe the error flags
-            v.wordDropped   := sAxisMaster.tValid;
-            v.frameDropped  := sAxisMaster.tValid and sAxisMaster.tLast;
-            -- Next state
-            v.state         := IDLE_S;
-         end if;
-         
          -- Get the SOF status
-         sof  := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);         
+         sof := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);
 
          -- State Machine
          case (r.state) is
@@ -139,8 +125,8 @@ begin
                if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
                   -- Accept the data
                   v.slave.tReady := '1';
-                  -- Check for SOF
-                  if (sof = '1')then
+                  -- Check for SOF and no overflow
+                  if (sof = '1') then
                      -- Move the data bus
                      v.master := sAxisMaster;
                      -- Latch tDest
@@ -154,34 +140,51 @@ begin
                      -- Strobe the error flags
                      v.wordDropped  := '1';
                      v.frameDropped := sAxisMaster.tLast;
+                     -- Check for non-EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next state
+                        v.state := BLOWOFF_S;
+                     end if;
                   end if;
+               end if;
+            ----------------------------------------------------------------------
+            when BLOWOFF_S =>
+               -- Blowoff the data
+               v.slave.tReady := '1';
+               -- Strobe the error flags
+               v.wordDropped  := '1';
+               v.frameDropped := sAxisMaster.tLast;
+               -- Check for EOF
+               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when MOVE_S =>
                -- Check if ready to move data
                if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+                  -- Accept the data
+                  v.slave.tReady := '1';
+                  -- Move the data bus
+                  v.master       := sAxisMaster;
+                  -- Check for EOF   
+                  if (sAxisMaster.tLast = '1') then
+                     -- Next state
+                     v.state := IDLE_S;
+                  end if;
                   -- Check for SSI framing errors (repeated SOF or interleaved frame)
                   if (sof = '1') or (r.tDest /= sAxisMaster.tDest) then
-                     -- Terminate the frame
-                     v.master.tValid := '1';
                      -- Set the EOF flag
-                     v.master.tLast  := '1';
+                     v.master.tLast := '1';
                      -- Set the EOFE flag
                      ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
                      -- Strobe the error flags
-                     v.wordDropped   := '1';
-                     v.frameDropped  := sAxisMaster.tLast;
-                     -- Next state
-                     v.state         := IDLE_S;
-                  else
-                     -- Accept the data
-                     v.slave.tReady := '1';
-                     -- Move the data bus
-                     v.master       := sAxisMaster;
-                     -- Check for EOF   
-                     if (sAxisMaster.tLast = '1') then
+                     v.wordDropped  := '1';
+                     v.frameDropped := sAxisMaster.tLast;
+                     -- Check for non-EOF
+                     if (sAxisMaster.tLast = '0') then
                         -- Next state
-                        v.state := IDLE_S;
+                        v.state := BLOWOFF_S;
                      end if;
                   end if;
                end if;
@@ -210,7 +213,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
 end rtl;

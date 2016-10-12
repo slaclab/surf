@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-22
+-- Last update: 2016-10-12
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -75,13 +75,14 @@ end SsiFifo;
 
 architecture mapping of SsiFifo is
    
-   signal rxMaster : AxiStreamMasterType;
-   signal rxSlave  : AxiStreamSlaveType;
-   signal rxCtrl   : AxiStreamCtrlType;
+   signal rxMaster   : AxiStreamMasterType;
+   signal rxSlave    : AxiStreamSlaveType;
+   signal rxCtrl     : AxiStreamCtrlType;
+   signal sAxisReset : sl;
 
    signal txMaster     : AxiStreamMasterType;
    signal txSlave      : AxiStreamSlaveType;
-   signal txTLastTUser : slv(127 downto 0);
+   signal txTLastTUser : slv(7 downto 0);
    signal overflow     : sl;
    
 begin
@@ -108,9 +109,9 @@ begin
          mAxisCtrl      => rxCtrl,
          -- Clock and Reset
          axisClk        => sAxisClk,
-         axisRst        => sAxisRst);   
+         axisRst        => sAxisRst);  
 
-   U_Fifo : entity work.AxiStreamFifo
+   U_Fifo : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -136,7 +137,7 @@ begin
       port map (
          -- Slave Port
          sAxisClk        => sAxisClk,
-         sAxisRst        => sAxisRst,
+         sAxisRst        => sAxisReset,
          sAxisMaster     => rxMaster,
          sAxisSlave      => rxSlave,
          sAxisCtrl       => rxCtrl,
@@ -148,6 +149,8 @@ begin
          mAxisMaster     => txMaster,
          mAxisSlave      => txSlave,
          mTLastTUser     => txTLastTUser);      
+
+   sAxisReset <= (sAxisRst or (rxCtrl.overflow and not(rxCtrl.idle))) when(EN_FRAME_FILTER_G) else sAxisRst;
 
    GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
       overflow <= rxCtrl.overflow;
@@ -184,5 +187,6 @@ begin
          -- Clock and Reset
          axisClk        => mAxisClk,
          axisRst        => mAxisRst);          
+
 
 end mapping;
