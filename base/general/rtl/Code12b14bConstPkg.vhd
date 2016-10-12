@@ -25,8 +25,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.Code7b8bPkg.all;
-use work.TextUtilPkg.all;
 
 package Code12b14bUtilPkg is
 
