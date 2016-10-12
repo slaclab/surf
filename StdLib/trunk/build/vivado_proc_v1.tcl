@@ -265,6 +265,18 @@ proc CopyBdCoresDebug { } {
    }
 } 
 
+proc CreateFpgaBit { } {   
+   # Get variables
+   set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
+   source -quiet ${VIVADO_BUILD_DIR}/vivado_messages_v1.tcl
+   #########################################################
+   ## Check if need to include YAML files with the .BIT file
+   #########################################################
+   exec cp -f ${IMPL_DIR}/${PROJECT}.bit ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.bit
+   exec gzip -c -f -9 ${IMPL_DIR}/${PROJECT}.bit > ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.bit.gz
+}
+
 proc CreateYamlTarGz { } {   
    # Get variables
    set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
