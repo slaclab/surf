@@ -167,6 +167,9 @@ architecture structure of AxiStreamShift is
 
    signal pipeAxisMaster : AxiStreamMasterType;
    signal pipeAxisSlave  : AxiStreamSlaveType;
+   
+--   attribute dont_touch      : string;
+--   attribute dont_touch of r : signal is "TRUE";    
 
 begin
 

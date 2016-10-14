@@ -1,2 +1,3 @@
 vhdl work tb/SsiFifoTb.vhd
 vhdl work tb/SsiPrbsTb.vhd
+vhdl work tb/SsiFilterTb.vhd

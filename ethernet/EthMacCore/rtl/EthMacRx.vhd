@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-21
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ entity EthMacRx is
       FILT_EN_G      : boolean               := false;
       BYP_EN_G       : boolean               := false;
       BYP_ETH_TYPE_G : slv(15 downto 0)      := x"0000";
-      SHIFT_EN_G     : boolean               := false;
       -- VLAN Configurations
       VLAN_EN_G      : boolean               := false;
       VLAN_CNT_G     : positive range 1 to 8 := 1);
@@ -83,9 +82,8 @@ architecture mapping of EthMacRx is
    signal macIbMaster  : AxiStreamMasterType;
    signal pauseMaster  : AxiStreamMasterType;
    signal pauseMasters : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-   signal toeMaster    : AxiStreamMasterType;
+   signal csumMaster   : AxiStreamMasterType;
    signal bypassMaster : AxiStreamMasterType;
-   signal filterMaster : AxiStreamMasterType;
 
 begin
 
@@ -139,9 +137,9 @@ begin
          rxPauseReq   => rxPauseReq,
          rxPauseValue => rxPauseValue);
 
-   -------------------------
-   -- RX Non-VLAN TOE Module
-   -------------------------
+   ------------------------------
+   -- RX Non-VLAN Checksum Module
+   ------------------------------
    U_Csum : entity work.EthMacRxCsum
       generic map (
          TPD_G   => TPD_G,
@@ -157,11 +155,11 @@ begin
          udpCsumEn   => ethConfig.udpCsumEn,
          -- Outbound data to MAC
          sAxisMaster => pauseMaster,
-         mAxisMaster => toeMaster);
+         mAxisMaster => csumMaster);
 
-   ---------------------
-   -- RX VLAN TOE Module
-   ---------------------         
+   --------------------------         
+   -- RX VLAN Checksum Module
+   --------------------------         
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_CNT_G-1) downto 0 generate
@@ -202,7 +200,7 @@ begin
          ethClk      => ethClk,
          ethRst      => ethRst,
          -- Incoming data from MAC
-         sAxisMaster => toeMaster,
+         sAxisMaster => csumMaster,
          -- Outgoing primary data 
          mPrimMaster => bypassMaster,
          -- Outgoing bypass data 
@@ -222,28 +220,11 @@ begin
          -- Incoming data from MAC
          sAxisMaster => bypassMaster,
          -- Outgoing data
-         mAxisMaster => filterMaster,
+         mAxisMaster => mPrimMaster,
          mAxisCtrl   => mPrimCtrl,
          -- Configuration
          dropOnPause => ethConfig.dropOnPause,
          macAddress  => ethConfig.macAddress,
          filtEnable  => ethConfig.filtEnable);   
-
-   ------------------
-   -- RX Shift Module
-   ------------------   
-   U_Shift : entity work.EthMacRxShift
-      generic map (
-         TPD_G      => TPD_G,
-         SHIFT_EN_G => SHIFT_EN_G) 
-      port map (
-         -- Clock and Reset
-         ethClk      => ethClk,
-         ethRst      => ethRst,
-         -- AXIS Interface
-         sAxisMaster => filterMaster,
-         mAxisMaster => mPrimMaster,
-         -- Configuration
-         rxShift     => ethConfig.rxShift);   
 
 end mapping;

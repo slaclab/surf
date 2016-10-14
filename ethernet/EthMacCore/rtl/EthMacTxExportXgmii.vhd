@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2008-02-11
--- Last update: 2016-09-14
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,7 +44,6 @@ entity EthMacTxExportXgmii is
       phyTxc         : out slv(7 downto 0);
       phyReady       : in  sl;
       -- Configuration
-      interFrameGap  : in  slv(3 downto 0);
       macAddress     : in  slv(47 downto 0);
       -- Errors
       txCountEn      : out sl;
@@ -53,6 +52,8 @@ entity EthMacTxExportXgmii is
 end EthMacTxExportXgmii;
 
 architecture rtl of EthMacTxExportXgmii is
+
+   constant INTERGAP_C : slv(3 downto 0) := x"3";
 
    constant AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
@@ -225,7 +226,7 @@ begin
    intLastValidByte <= "111" when curState = ST_PAD_C else onesCount(macMaster.tKeep(7 downto 1));
 
    -- State machine
-   process (curState, ethRst, intError, intRunt, interFrameGap, macMaster, phyReady, stateCount)
+   process (curState, ethRst, intError, intRunt, macMaster, phyReady, stateCount)
    begin
 
       -- Init
@@ -325,7 +326,7 @@ begin
             intLastLine   <= '0';
 
             -- Wait for gap, min 3 clocks
-            if stateCount >= interFrameGap and stateCount >= 3 then
+            if stateCount >= INTERGAP_C and stateCount >= 3 then
                nxtState <= ST_IDLE_C;
             else
                nxtState <= curState;

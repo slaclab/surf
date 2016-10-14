@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-22
+-- Last update: 2016-10-12
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ entity SsiFifo is
       CASCADE_PAUSE_SEL_G : natural               := 0;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48 := 9;
       FIFO_FIXED_THRESH_G : boolean               := true;
-      FIFO_PAUSE_THRESH_G : positive              := 500;
+      FIFO_PAUSE_THRESH_G : positive              := 1;
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType   := SSI_CONFIG_INIT_C;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType   := SSI_CONFIG_INIT_C);  
@@ -75,13 +75,14 @@ end SsiFifo;
 
 architecture mapping of SsiFifo is
    
-   signal rxMaster : AxiStreamMasterType;
-   signal rxSlave  : AxiStreamSlaveType;
-   signal rxCtrl   : AxiStreamCtrlType;
+   signal rxMaster   : AxiStreamMasterType;
+   signal rxSlave    : AxiStreamSlaveType;
+   signal rxCtrl     : AxiStreamCtrlType;
+   signal sAxisReset : sl;
 
    signal txMaster     : AxiStreamMasterType;
    signal txSlave      : AxiStreamSlaveType;
-   signal txTLastTUser : slv(127 downto 0);
+   signal txTLastTUser : slv(7 downto 0);
    signal overflow     : sl;
    
 begin
@@ -108,9 +109,9 @@ begin
          mAxisCtrl      => rxCtrl,
          -- Clock and Reset
          axisClk        => sAxisClk,
-         axisRst        => sAxisRst);   
+         axisRst        => sAxisRst);  
 
-   U_Fifo : entity work.AxiStreamFifo
+   U_Fifo : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -129,14 +130,14 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         CASCADE_PAUSE_SEL_G => (CASCADE_SIZE_G-1),
+         CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)      
       port map (
          -- Slave Port
          sAxisClk        => sAxisClk,
-         sAxisRst        => sAxisRst,
+         sAxisRst        => sAxisReset,
          sAxisMaster     => rxMaster,
          sAxisSlave      => rxSlave,
          sAxisCtrl       => rxCtrl,
@@ -148,6 +149,8 @@ begin
          mAxisMaster     => txMaster,
          mAxisSlave      => txSlave,
          mTLastTUser     => txTLastTUser);      
+
+   sAxisReset <= (sAxisRst or (rxCtrl.overflow and not(rxCtrl.idle))) when(EN_FRAME_FILTER_G) else sAxisRst;
 
    GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
       overflow <= rxCtrl.overflow;
@@ -184,5 +187,6 @@ begin
          -- Clock and Reset
          axisClk        => mAxisClk,
          axisRst        => mAxisRst);          
+
 
 end mapping;

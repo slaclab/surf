@@ -16,6 +16,7 @@ EthMacPhy: &EthMacPhy
   description: EthMacPhy
   size: 0x1000
   children:
+    #########################################################
     StatusCounters:
       at:
         offset: 0x000
@@ -24,8 +25,8 @@ EthMacPhy: &EthMacPhy
       name: StatusCounters
       mode: RO
       description: Status Counters
-    StatusVector:
     #########################################################
+    StatusVector:
       at:
         offset: 0x100
       class: IntField
@@ -33,8 +34,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 32
       mode: RO
       description: Status Vector
-    MacAddress:
     #########################################################
+    MacAddress:
       at:
         offset: 0x200
       class: IntField
@@ -42,17 +43,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 48
       mode: RO
       description: MAC Address (big-Endian)
-    InterFrameGap:
     #########################################################
-      at:
-        offset: 0x218
-      class: IntField
-      name: InterFrameGap
-      sizeBits: 4
-      mode: RO
-      description: InterFrameGap
     PauseTime:
-    #########################################################
       at:
         offset: 0x21C
       class: IntField
@@ -60,8 +52,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 16
       mode: RO
       description: PauseTime
-    FilterEnable:
     #########################################################
+    FilterEnable:
       at:
         offset: 0x228
       class: IntField
@@ -69,8 +61,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 1
       mode: RO
       description: FilterEnable
-    PauseEnable:
     #########################################################
+    PauseEnable:
       at:
         offset: 0x22C
       class: IntField
@@ -78,8 +70,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 1
       mode: RO
       description: PauseEnable
-    RollOverEn:
     #########################################################
+    RollOverEn:
       at:
         offset: 0xF00
       class: IntField
@@ -87,8 +79,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 32
       mode: RW
       description: RollOverEn
-    CounterReset:
     #########################################################
+    CounterReset:
       at:
         offset: 0xFF4
       class: IntField
@@ -96,8 +88,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 1
       mode: WO
       description: CounterReset
-    SoftReset:
     #########################################################
+    SoftReset:
       at:
         offset: 0xFF8
       class: IntField
@@ -105,8 +97,8 @@ EthMacPhy: &EthMacPhy
       sizeBits: 1
       mode: WO
       description: SoftReset
-    HardReset:
     #########################################################
+    HardReset:
       at:
         offset: 0xFFC
       class: IntField
@@ -114,3 +106,4 @@ EthMacPhy: &EthMacPhy
       sizeBits: 1
       mode: WO
       description: HardReset
+    #########################################################

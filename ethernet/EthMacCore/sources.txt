@@ -11,7 +11,6 @@ vhdl work rtl/EthMacRxImportXgmii.vhd
 vhdl work rtl/EthMacRxImportXlgmii.vhd
 vhdl work rtl/EthMacRxFifo.vhd
 vhdl work rtl/EthMacRxPause.vhd
-vhdl work rtl/EthMacRxShift.vhd
 
 vhdl work rtl/EthMacTop.vhd
 
@@ -24,4 +23,3 @@ vhdl work rtl/EthMacTxExportXgmii.vhd
 vhdl work rtl/EthMacTxExportXlgmii.vhd
 vhdl work rtl/EthMacTxFifo.vhd
 vhdl work rtl/EthMacTxPause.vhd
-vhdl work rtl/EthMacTxShift.vhd

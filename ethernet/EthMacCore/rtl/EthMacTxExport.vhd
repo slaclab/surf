@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-14
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -107,7 +107,6 @@ begin
             phyTxc         => xgmiiTxc,
             -- Configuration and status
             phyReady       => phyReady,
-            interFrameGap  => x"3",
             macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,

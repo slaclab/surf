@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-09-22
+-- Last update: 2016-10-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,13 +70,13 @@ end EthMacRxFifo;
 
 architecture mapping of EthMacRxFifo is
 
-   constant INT_PIPE_STAGES_C   : natural  := 0;
+   constant INT_PIPE_STAGES_C   : natural  := 1;
    constant PIPE_STAGES_C       : natural  := 1;
    constant VALID_THOLD_C       : natural  := ite(DROP_ERR_PKT_G, 0, 1);
-   constant CASCADE_SIZE_C      : positive := ite(JUMBO_G, 4, 2);
-   constant CASCADE_PAUSE_SEL_C : natural  := ite(JUMBO_G, 1, 0);
-   constant FIFO_ADDR_WIDTH_C   : positive := 9;
-   constant FIFO_PAUSE_THRESH_C : positive := 500;
+   constant FIFO_ADDR_WIDTH_C   : positive := 11;
+   constant CASCADE_SIZE_C      : positive := 1;
+   constant FIFO_PAUSE_THRESH_C : positive := 510;
+   constant CASCADE_PAUSE_SEL_C : natural  := 0;
 
 begin
 
