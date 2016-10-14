@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-09-22
+-- Last update: 2016-10-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,6 @@ entity EthMacTop is
       DROP_ERR_PKT_G    : boolean                  := true;
       JUMBO_G           : boolean                  := true;
       -- Non-VLAN Configurations
-      SHIFT_EN_G        : boolean                  := false;
       FILT_EN_G         : boolean                  := false;
       PRIM_COMMON_CLK_G : boolean                  := false;
       PRIM_CONFIG_G     : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
@@ -122,6 +121,11 @@ architecture mapping of EthMacTop is
    signal rxPauseValue : slv(15 downto 0);
    signal flowCtrl     : AxiStreamCtrlType;
 
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of rxPauseReq   : signal is "true";
+   -- attribute dont_touch of rxPauseValue : signal is "true";
+   -- attribute dont_touch of flowCtrl     : signal is "true";
+
 begin
 
    -- Status signals (VLAN pause not supported yet)
@@ -185,7 +189,6 @@ begin
          JUMBO_G         => JUMBO_G,
          -- Non-VLAN Configurations
          BYP_EN_G        => BYP_EN_G,
-         SHIFT_EN_G      => SHIFT_EN_G,
          -- VLAN Configurations
          VLAN_EN_G       => VLAN_EN_G,
          VLAN_CNT_G      => VLAN_CNT_G)
@@ -260,7 +263,6 @@ begin
          FILT_EN_G      => FILT_EN_G,
          BYP_EN_G       => BYP_EN_G,
          BYP_ETH_TYPE_G => BYP_ETH_TYPE_G,
-         SHIFT_EN_G     => SHIFT_EN_G,
          -- VLAN Configurations
          VLAN_EN_G      => VLAN_EN_G,
          VLAN_CNT_G     => VLAN_CNT_G)

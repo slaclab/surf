@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-05-04
+-- Last update: 2016-10-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,9 +20,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/25/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -43,7 +40,8 @@ entity AxiStreamDmaWrite is
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
-      ACK_WAIT_BVALID_G : boolean             := true);
+      ACK_WAIT_BVALID_G : boolean             := true;
+      PIPE_STAGES_G     : natural             := 1);
    port (
 
       -- Clock/Reset
@@ -109,6 +107,9 @@ architecture structure of AxiStreamDmaWrite is
 
    signal wDataDebug : slv(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
 
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";   
+   
 begin
 
    wDataDebug <= r.wMaster.wdata(AXI_CONFIG_G.DATA_BYTES_C*8-1 downto 0);
@@ -121,6 +122,7 @@ begin
    U_AxiStreamShift : entity work.AxiStreamShift
       generic map (
          TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G
          ) port map (
             axisClk     => axiClk,
@@ -138,7 +140,7 @@ begin
    selReady <= axiWriteSlave.wready when AXI_READY_EN_G else '1';
    selPause <= '0'                  when AXI_READY_EN_G else axiWriteCtrl.pause;
 
-   comb : process (axiRst, r, intAxisMaster, axiWriteSlave, dmaReq, selReady, selPause) is
+   comb : process (axiRst, axiWriteSlave, dmaReq, intAxisMaster, r, selPause, selReady) is
       variable v     : RegType;
       variable bytes : natural;         --slv(bitSize(DATA_BYTES_C)-1 downto 0);
    begin
@@ -259,9 +261,9 @@ begin
                v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
 
                -- Address and size increment
-               v.dmaReq.address := r.dmaReq.address + DATA_BYTES_C;
+               v.dmaReq.address                        := r.dmaReq.address + DATA_BYTES_C;
                v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
-               
+
                if r.last = '0' then
                   v.dmaAck.size := r.dmaAck.size + bytes;
                end if;
@@ -313,7 +315,7 @@ begin
                v.wMaster.awvalid := '0';
             end if;
 
-            if (selReady = '1' and v.wMaster.awvalid = '0') then  
+            if (selReady = '1' and v.wMaster.awvalid = '0') then
                if r.last = '1' then
                   v.state := S_WAIT_C;
                elsif r.dmaAck.overflow = '1' or r.dmaAck.writeError = '1' then
@@ -356,13 +358,24 @@ begin
             v.state := S_IDLE_C;
       end case;
 
+      -- Forward the state of the state machine
+      if (v.state = S_IDLE_C) then
+         -- Set the flag
+         v.dmaAck.idle := '1';
+      else
+         -- Reset the flag
+         v.dmaAck.idle := '0';
+      end if;
+
+      -- Reset      
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-
+      -- Register the variable for next clock cycle      
       rin <= v;
 
+      -- Outputs   
       dmaAck         <= r.dmaAck;
       intAxisSlave   <= v.slave;
       axiWriteMaster <= r.wMaster;

@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2016-09-21
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,30 +66,24 @@ package EthMacPkg is
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record
-      macAddress    : slv(47 downto 0);
-      filtEnable    : sl;
-      pauseEnable   : sl;
-      pauseTime     : slv(15 downto 0);
-      interFrameGap : slv(3 downto 0);
-      txShift       : slv(3 downto 0);
-      rxShift       : slv(3 downto 0);
-      ipCsumEn      : sl;
-      tcpCsumEn     : sl;
-      udpCsumEn     : sl;
-      dropOnPause   : sl;
+      macAddress  : slv(47 downto 0);
+      filtEnable  : sl;
+      pauseEnable : sl;
+      pauseTime   : slv(15 downto 0);
+      ipCsumEn    : sl;
+      tcpCsumEn   : sl;
+      udpCsumEn   : sl;
+      dropOnPause : sl;
    end record EthMacConfigType;
    constant ETH_MAC_CONFIG_INIT_C : EthMacConfigType := (
-      macAddress    => EMAC_ADDR_INIT_C,
-      filtEnable    => '1',
-      pauseEnable   => '1',
-      pauseTime     => x"00FF",
-      interFrameGap => x"3",
-      txShift       => (others => '0'),
-      rxShift       => (others => '0'),
-      ipCsumEn      => '1',
-      tcpCsumEn     => '1',
-      udpCsumEn     => '1',
-      dropOnPause   => '0');
+      macAddress  => EMAC_ADDR_INIT_C,
+      filtEnable  => '1',
+      pauseEnable => '1',
+      pauseTime   => x"00FF",
+      ipCsumEn    => '1',
+      tcpCsumEn   => '1',
+      udpCsumEn   => '1',
+      dropOnPause => '0');
    type EthMacConfigArray is array (natural range<>) of EthMacConfigType;
 
    -- Generic XMAC Status

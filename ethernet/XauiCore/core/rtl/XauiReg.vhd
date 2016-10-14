@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2016-09-29
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ begin
 
          --axiSlaveRegister(regCon, x"210", 0, v.config.macConfig.txShift);
          --axiSlaveRegister(regCon, x"214", 0, v.config.macConfig.txShiftEn);
-         axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
+         --axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
          axiSlaveRegister(regCon, x"21C", 0, v.config.macConfig.pauseTime);
 
          --axiSlaveRegister(regCon, x"220", 0, v.config.macConfig.rxShift);
@@ -254,29 +254,25 @@ begin
             rd_clk => phyClk,
             dout   => config.macConfig.pauseTime);          
 
-      SyncIn_macConfig : entity work.SynchronizerFifo
+      SyncIn_macConfig : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => 17)
+            TPD_G    => TPD_G,
+            STAGES_G => 2,
+            WIDTH_G  => 5) 
          port map (
-            wr_clk            => axiClk,
-            din(3 downto 0)   => r.config.macConfig.interFrameGap,
-            din(7 downto 4)   => r.config.macConfig.txShift,
-            din(11 downto 8)  => r.config.macConfig.rxShift,
-            din(12)           => r.config.macConfig.filtEnable,
-            din(13)           => r.config.macConfig.pauseEnable,
-            din(14)           => r.config.macConfig.ipCsumEn,
-            din(15)           => r.config.macConfig.tcpCsumEn,
-            din(16)           => r.config.macConfig.udpCsumEn,
-            rd_clk            => phyClk,
-            dout(3 downto 0)  => config.macConfig.interFrameGap,
-            dout(7 downto 4)  => config.macConfig.txShift,
-            dout(11 downto 8) => config.macConfig.rxShift,
-            dout(12)          => config.macConfig.filtEnable,
-            dout(13)          => config.macConfig.pauseEnable,
-            dout(14)          => config.macConfig.ipCsumEn,
-            dout(15)          => config.macConfig.tcpCsumEn,
-            dout(16)          => config.macConfig.udpCsumEn);
+            clk        => phyClk,
+            -- Input Data
+            dataIn(0)  => r.config.macConfig.filtEnable,
+            dataIn(1)  => r.config.macConfig.pauseEnable,
+            dataIn(2)  => r.config.macConfig.ipCsumEn,
+            dataIn(3)  => r.config.macConfig.tcpCsumEn,
+            dataIn(4)  => r.config.macConfig.udpCsumEn,
+            -- Output Data
+            dataOut(0) => config.macConfig.filtEnable,
+            dataOut(1) => config.macConfig.pauseEnable,
+            dataOut(2) => config.macConfig.ipCsumEn,
+            dataOut(3) => config.macConfig.tcpCsumEn,
+            dataOut(4) => config.macConfig.udpCsumEn);  
 
       SyncIn_configVector : entity work.SynchronizerFifo
          generic map (
