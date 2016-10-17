@@ -76,6 +76,8 @@ package Code12b14bPkg is
 
 --    type K56Array is array (natural range <>) of K56EntryType;
 
+   function toString (code : slv(11 downto 0); k : sl) return string;
+
 
    type Encode7b8bType is record
       in7b    : slv(6 downto 0);
@@ -135,7 +137,7 @@ package Code12b14bPkg is
 
    type EncodeTableType is record
       k78    : Encode7b8bArray(0 to 0);
-      k56 : Encode5b6bArray(0 to 16);
+      k56    : Encode5b6bArray(0 to 16);
       data78 : Encode7b8bArray(0 to 127);
       data56 : Encode5b6bArray(0 to 31);
    end record;
@@ -164,6 +166,19 @@ package Code12b14bPkg is
 end package Code12b14bPkg;
 
 package body Code12b14bPkg is
+
+   function toString (
+      code : slv(11 downto 0);
+      k    : sl)
+      return string is
+      variable s : string(1 to 8);
+   begin
+      s := resize(ite(k = '1', "K.", "D.") &
+                  integer'image(conv_integer(code(6 downto 0))) &
+                  "." &
+                  integer'image(conv_integer(code(11 downto 7))), 8);
+      return s;
+   end function toString;
 
    -- Determine the disparity of a vector
    function getDisparity (vec : slv) return BlockDisparityType is
@@ -308,11 +323,11 @@ package body Code12b14bPkg is
          ret(i).out8b   := a(i);
          ret(i).outDisp := getDisparity(ret(i).out8b);
          ret(i).altDisp := getDisparity(not ret(i).out8b);
---         if (ret(i).outDisp /= 0) then
-         ret(i).alt8b   := not (ret(i).out8b);
---          else
---             ret(i).alt8b := ret(i).out8b;
---          end if;
+         if (ret(i).outDisp /= 0) then
+            ret(i).alt8b := not (ret(i).out8b);
+         else
+            ret(i).alt8b := ret(i).out8b;
+         end if;
       end loop;
       return ret;
    end function makeEncode7b8bTable;
@@ -344,11 +359,14 @@ package body Code12b14bPkg is
          ret(i).out6b   := a(i);
          ret(i).outDisp := getDisparity(ret(i).out6b);
          ret(i).altDisp := getDisparity(not ret(i).out6b);
---         if (ret(i).outDisp /= 0) then
-         ret(i).alt6b   := not (ret(i).out6b);
---          else
---             ret(i).alt6b := ret(i).out6b;
---          end if;
+         if (ret(i).outDisp /= 0) then
+            ret(i).alt6b := not (ret(i).out6b);
+         else
+            ret(i).alt6b := ret(i).out6b;
+         end if;
+         if (ret(i).out6b = "000111") then
+            ret(i).alt6b := "111000";
+         end if;
       end loop;
       return ret;
    end function makeEncode5b6bTable;
@@ -594,9 +612,9 @@ package body Code12b14bPkg is
       -- Need to check for valid k5/6 code
       if (dataKout = '1') then
          for i in CODES_C.k56'range loop
-            if (dataIn8 = CODES_C.k56(i).out6b or
-                dataIn8 = CODES_C.k56(i).alt6b) then
-               dataOut7  := CODES_C.k56(i).in5b;
+            if (dataIn6 = CODES_C.k56(i).out6b or
+                dataIn6 = CODES_C.k56(i).alt6b) then
+               dataOut5  := CODES_C.k56(i).in5b;
                dataKOut  := '1';
                valid56   := '1';
                codeError := '0';
@@ -615,16 +633,17 @@ package body Code12b14bPkg is
                exit;
             end if;
          end loop;
-      end if;
 
-      for i in CODES_C.data56'range loop
-         if (dataIn6 = CODES_C.data56(i).out6b or
-             dataIn6 = CODES_C.data56(i).alt6b) then
-            dataOut5 := CODES_C.data56(i).in5b;
-            valid56  := '1';
-            exit;
-         end if;
-      end loop;
+         for i in CODES_C.data56'range loop
+            if (dataIn6 = CODES_C.data56(i).out6b or
+                dataIn6 = CODES_C.data56(i).alt6b) then
+               dataOut5 := CODES_C.data56(i).in5b;
+               valid56  := '1';
+               exit;
+            end if;
+         end loop;
+
+      end if;
 
       if (valid56 = '1' and valid78 = '1') then
          codeError := '0';
