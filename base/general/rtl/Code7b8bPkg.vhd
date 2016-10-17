@@ -6,10 +6,8 @@ use work.StdRtlPkg.all;
 
 package Code7b8bPkg is
 
-   type Code8bArray is array (0 to 127) of slv(7 downto 0);
-
    --Exp
-   constant CODE_8B_C : Code8bArray := (
+   constant CODE_8B_C : slv8Array(0 to 127) := (
       "01011000",                       -- 0
       "00011001",                       -- 1
       "00011010",                       -- 2
