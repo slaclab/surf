@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-11
--- Last update: 2016-10-11
+-- Last update: 2016-10-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,18 +27,19 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.Code12b14bPkg.all;
+use work.Code12b14bConstPkg.all;
 use work.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------
 
-entity Encoder12b14bTb is
+entity Code12b14bTb is
 
-end entity Encoder12b14bTb;
+end entity Code12b14bTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of Encoder12b14bTb is
+architecture sim of Code12b14bTb is
 
    -- component generics
    constant TPD_G          : time     := 1 ns;
@@ -49,25 +50,35 @@ architecture sim of Encoder12b14bTb is
    signal clk      : sl;                        -- [in]
    signal clkEn    : sl := '1';                 -- [in]
    signal rst      : sl := not RST_POLARITY_G;  -- [in]
-   signal dispIn   : slv(1 downto 0);
-   signal dataIn   : slv(11 downto 0);          -- [in]
-   signal dataKIn  : sl := '0';                 -- [in]
-   signal dataOut  : slv(13 downto 0);          -- [out]
-   signal dispOut  : slv(1 downto 0);
-   signal invalidK : sl;                        -- [out]
+   signal encDispIn   : slv(1 downto 0);
+   signal encDataIn   : slv(11 downto 0) := (others => '0');          -- [in]
+   signal encDataKIn  : sl := '0';                 -- [in]
+   signal encDataOut  : slv(13 downto 0);          -- [out]
+   signal encDispOut  : slv(1 downto 0);
+   signal encInvalidK : sl;                        -- [out]
 
    signal started         : boolean := false;
    shared variable runVar : integer := 0;
    signal run             : integer := 0;
-   signal lastDataOut     : slv(13 downto 0);
+   signal lastEncDataOut     : slv(13 downto 0);
 
-   signal dispInInt : DisparityOutType;
-   signal dispOutInt : DisparityOutType;
+   signal encDispInInt : BlockDisparityType;
+   signal encDispOutInt : BlockDisparityType;
+
+   -------------------------------------------------------------------------------------------------
+
+   signal decDataIn    : slv(13 downto 0);          -- [in]
+   signal decDispIn    : slv(1 downto 0) := "01";           -- [in]
+   signal decDataOut   : slv(11 downto 0);          -- [out]
+   signal decDataKOut  : sl;                        -- [out]
+   signal decDispOut   : slv(1 downto 0);           -- [out]
+   signal decCodeError : sl;                        -- [out]
+   signal decDispError : sl;                        -- [out]
 
 begin
 
-   dispInInt <= toDisparityOutType(dispIn);
-   dispOutInt <= toDisparityOutType(dispOut);
+   encDispInInt <= toBlockDisparityType(encDispIn);
+   encDispOutInt <= toBlockDisparityType(encDispOut);
 
    -- component instantiation
    U_Encoder12b14b : entity work.Encoder12b14b
@@ -75,17 +86,17 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         DEBUG_DISP_G => true)
+         DEBUG_DISP_G => false)
       port map (
          clk      => clk,               -- [in]
          clkEn    => clkEn,             -- [in]
          rst      => rst,               -- [in]
-         dataIn   => dataIn,            -- [in]
-         dispIn   => dispIn,
-         dataKIn  => dataKIn,           -- [in]
-         dataOut  => dataOut,           -- [out]
-         dispOut  => dispOut,
-         invalidK => invalidK);         -- [out]
+         dataIn   => encDataIn,            -- [in]
+         dispIn   => encDispIn,
+         dataKIn  => encDataKIn,           -- [in]
+         dataOut  => encDataOut,           -- [out]
+         dispOut  => encDispOut);
+--          invalidK => invalidK);         -- [out]
 
 
    U_ClkRst_1 : entity work.ClkRst
@@ -111,21 +122,21 @@ begin
          b  : in slv(11 downto 0);
          bk : in sl)
       is
-         variable disparity : DisparityOutType;
+         variable disparity : BlockDisparityType;
       begin
          disparity        := -2;
          while (disparity <= 4) loop
             wait until clk = '0';
-            dispIn  <= toSlv(disparity);
-            dataIn  <= a;
-            dataKIn <= ak;
+            encDispIn  <= toSlv(disparity);
+            encDataIn  <= a;
+            encDataKIn <= ak;
             wait until clk = '1';
             started <= true;
-            runVar  := 0;
+--            runVar  := 0;
             wait until clk = '0';
-            dispIn  <= dispOut;
-            dataIn  <= b;
-            dataKIn <= bk;
+            encDispIn  <= encDispOut;
+            encDataIn  <= b;
+            encDataKIn <= bk;
             wait until clk = '1';
 
             disparity := disparity + 2;
@@ -138,10 +149,10 @@ begin
          return boolean is
       begin
          for i in K_CODE_TABLE_C'range loop
-            if (K_CODE_TABLE_C(i).k12 = d and
-                d /= K_120_3_C and
-                d /= K_120_11_C and
-                d /= K_120_19_C) then
+            if (K_CODE_TABLE_C(i).k12 = d) then
+--                 d /= K_120_3_C and
+--                 d /= K_120_11_C and
+--                 d /= K_120_19_C) then
 --               print("Sending K Code: " & str(K_CODE_TABLE_C(i).k12));
                return true;
             end if;
@@ -155,7 +166,13 @@ begin
       wait until rst = '0';
       wait until clk = '1';
 
-      for i in 3000 to 2**12-1 loop
+      encDataIn <= K_120_3_C;
+      encDataKIn <= '1';
+
+      wait for 1 us;
+      wait until clk = '1';
+
+      for i in 2600 to 2**12-1 loop
          print("i: " & str(i));
          for j in 0 to 2**12-1 loop
             a := conv_std_logic_vector(i, 12);
@@ -189,31 +206,40 @@ begin
       if (started) then
          for i in 0 to 13 loop
             if (runVar = 0) then
-               if (dataOut(i) = '1') then
+               if (encDataOut(i) = '1') then
                   runVar := runVar + 1;
                else
                   runVar := runVar - 1;
                end if;
             elsif (runVar > 0) then
-               if (dataOut(i) = '1') then
+               if (encDataOut(i) = '1') then
                   runVar := runVar + 1;
                else
                   runVar := -1;
                end if;
             elsif (runVar < 0) then
-               if (dataOut(i) = '0') then
+               if (encDataOut(i) = '0') then
                   runVar := runVar - 1;
                else
                   runVar := 1;
                end if;
             end if;
 
-            assert (runVar < 7 and runVar > -7) report "Run length violation: "&
-               "dataOut: " & str(dataOut) & " runVar: " & str(runVar) & " lastDataOut: " & str(lastDataOut)
+            assert ((runVar < 7 and runVar > -7) or
+                    (encDataOut = K_120_3_CODE_C) or
+                    (encDataOut = K_120_11_CODE_C) or
+                    (encDataOut = K_120_19_CODE_C))
+               report "Run length violation: "&
+               "encDataOut: " & str(encDataOut) &
+               " runVar: " & str(runVar) &
+               " lastEncDataOut: " & str(lastEncDataOut)
                severity failure;
 
          end loop;
-         lastDataOut <= dataOut;
+         lastEncDataOut <= encDataOut;
+
+         assert (decDispError = '0') report "Disparity Error" severity failure;
+         assert (decCodeError = '0') report "Code Error" severity failure;
       end if;
 
       run <= runVar;
@@ -221,7 +247,27 @@ begin
    end process monitor;
 
 
-
+   -------------------------------------------------------------------------------------------------
+   -- Decoder
+   -------------------------------------------------------------------------------------------------
+   decDataIn <= encDataOut;
+   U_Decoder12b14b_1: entity work.Decoder12b14b
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DEBUG_DISP_G   => false)
+      port map (
+         clk       => clk,              -- [in]
+         clkEn     => clkEn,            -- [in]
+         rst       => rst,              -- [in]
+         dataIn    => decDataIn,           -- [in]
+         dispIn    => decDispIn,           -- [in]
+         dataOut   => decDataOut,          -- [out]
+         dataKOut  => decDataKOut,         -- [out]
+         dispOut   => decDispOut,          -- [out]
+         codeError => decCodeError,        -- [out]
+         dispError => decDispError);       -- [out]
 
 end architecture sim;
 

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2014-07-15
+-- Last update: 2016-10-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,8 +30,8 @@ entity Encoder8b10b is
    generic (
       TPD_G          : time     := 1 ns;
       NUM_BYTES_G    : positive := 2;
-      RST_POLARITY_G : sl       := '1';
-      RST_ASYNC_G    : boolean  := false);
+      RST_POLARITY_G : sl       := '0';
+      RST_ASYNC_G    : boolean  := true);
    port (
       clk     : in  sl;
       clkEn   : in  sl := '1';  -- Optional Clock Enable
