@@ -88,6 +88,7 @@ package EthMacPkg is
 
    -- Generic XMAC Status
    type EthMacStatusType is record
+      rxFifoDropCnt  : sl;
       rxPauseCnt     : sl;
       vlanRxPauseCnt : slv(7 downto 0);
       txPauseCnt     : sl;
@@ -100,6 +101,7 @@ package EthMacPkg is
       txNotReadyCnt  : sl;
    end record EthMacStatusType;
    constant ETH_MAC_STATUS_INIT_C : EthMacStatusType := (
+      rxFifoDropCnt  => '0',
       rxPauseCnt     => '0',
       vlanRxPauseCnt => (others => '0'),
       txPauseCnt     => '0',
