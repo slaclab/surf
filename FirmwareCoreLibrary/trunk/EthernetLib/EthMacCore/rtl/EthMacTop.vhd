@@ -331,6 +331,8 @@ begin
          -- Slave Clock and Reset
          sClk         => ethClk,
          sRst         => ethRst,
+         -- Status (sClk domain)
+         rxFifoDrop   => ethStatus.rxFifoDropCnt,
          -- Primary Interface
          mPrimClk     => primClk,
          mPrimRst     => primRst,

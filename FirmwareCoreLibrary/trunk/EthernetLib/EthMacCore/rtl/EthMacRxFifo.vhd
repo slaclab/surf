@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-10-13
+-- Last update: 2016-10-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,6 +50,8 @@ entity EthMacRxFifo is
       -- Clock and Reset
       sClk         : in  sl;
       sRst         : in  sl;
+      -- Status (sClk domain)
+      rxFifoDrop   : out sl;
       -- Primary Interface
       mPrimClk     : in  sl;
       mPrimRst     : in  sl;
@@ -77,7 +79,19 @@ architecture mapping of EthMacRxFifo is
 
    constant VALID_THOLD_C : natural := ite(DROP_ERR_PKT_G, 0, 1);
 
+   signal primDrop  : sl                         := '0';
+   signal bypDrop   : sl                         := '0';
+   signal vlanDrops : slv(VLAN_CNT_G-1 downto 0) := (others => '0');
+
 begin
+
+   process(sClk)
+   begin
+      if rising_edge(sClk) then
+         -- Register to help with timing
+         rxFifoDrop <= primDrop or bypDrop or uOr(vlanDrops) after TPD_G;
+      end if;
+   end process;
 
    U_Fifo : entity work.SsiFifo
       generic map (
@@ -87,6 +101,7 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,
          EN_FRAME_FILTER_G   => true,
+         OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
          BRAM_EN_G           => true,
@@ -99,14 +114,15 @@ begin
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)        
       port map (
-         sAxisClk    => sClk,
-         sAxisRst    => sRst,
-         sAxisMaster => sPrimMaster,
-         sAxisCtrl   => sPrimCtrl,
-         mAxisClk    => mPrimClk,
-         mAxisRst    => mPrimRst,
-         mAxisMaster => mPrimMaster,
-         mAxisSlave  => mPrimSlave);    
+         sAxisClk       => sClk,
+         sAxisRst       => sRst,
+         sAxisMaster    => sPrimMaster,
+         sAxisCtrl      => sPrimCtrl,
+         sAxisTermFrame => primDrop,
+         mAxisClk       => mPrimClk,
+         mAxisRst       => mPrimRst,
+         mAxisMaster    => mPrimMaster,
+         mAxisSlave     => mPrimSlave);    
 
    BYP_DISABLED : if (BYP_EN_G = false) generate
       sBypCtrl   <= AXI_STREAM_CTRL_UNUSED_C;
@@ -122,6 +138,7 @@ begin
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => false,
             EN_FRAME_FILTER_G   => true,
+            OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
             BRAM_EN_G           => true,
@@ -134,14 +151,15 @@ begin
             SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => BYP_CONFIG_G)        
          port map (
-            sAxisClk    => sClk,
-            sAxisRst    => sRst,
-            sAxisMaster => sBypMaster,
-            sAxisCtrl   => sBypCtrl,
-            mAxisClk    => mBypClk,
-            mAxisRst    => mBypRst,
-            mAxisMaster => mBypMaster,
-            mAxisSlave  => mBypSlave);    
+            sAxisClk       => sClk,
+            sAxisRst       => sRst,
+            sAxisMaster    => sBypMaster,
+            sAxisCtrl      => sBypCtrl,
+            sAxisTermFrame => bypDrop,
+            mAxisClk       => mBypClk,
+            mAxisRst       => mBypRst,
+            mAxisMaster    => mBypMaster,
+            mAxisSlave     => mBypSlave);    
    end generate;
 
    VLAN_DISABLED : if (VLAN_EN_G = false) generate
@@ -159,6 +177,7 @@ begin
                PIPE_STAGES_G       => PIPE_STAGES_G,
                SLAVE_READY_EN_G    => false,
                EN_FRAME_FILTER_G   => true,
+               OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
                BRAM_EN_G           => true,
@@ -171,14 +190,15 @@ begin
                SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => VLAN_CONFIG_G)
             port map (
-               sAxisClk    => sClk,
-               sAxisRst    => sRst,
-               sAxisMaster => sVlanMasters(i),
-               sAxisCtrl   => sVlanCtrl(i),
-               mAxisClk    => mVlanClk,
-               mAxisRst    => mVlanRst,
-               mAxisMaster => mVlanMasters(i),
-               mAxisSlave  => mVlanSlaves(i));    
+               sAxisClk       => sClk,
+               sAxisRst       => sRst,
+               sAxisMaster    => sVlanMasters(i),
+               sAxisCtrl      => sVlanCtrl(i),
+               sAxisTermFrame => vlanDrops(i),
+               mAxisClk       => mVlanClk,
+               mAxisRst       => mVlanRst,
+               mAxisMaster    => mVlanMasters(i),
+               mAxisSlave     => mVlanSlaves(i));    
       end generate GEN_VEC;
    end generate;
    
