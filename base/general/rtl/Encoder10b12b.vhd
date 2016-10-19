@@ -28,33 +28,33 @@ use work.Code10b12bPkg.all;
 entity Encoder10b12b is
 
    generic (
-      TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '0';
-      RST_ASYNC_G    : boolean  := true;
-      CLK_EN_G : boolean := false;
-      DEBUG_DISP_G   : boolean  := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';
+      RST_ASYNC_G    : boolean := true;
+      CLK_EN_G       : boolean := false;
+      DEBUG_DISP_G   : boolean := false);
    port (
-      clk      : in  sl;
-      clkEn    : in  sl := '1';                 -- Optional Clock Enable
-      rst      : in  sl := not RST_POLARITY_G;  -- Optional Reset
-      dataIn   : in  slv(9 downto 0);
-      dispIn   : in  sl;
-      dataKIn  : in  sl;
-      dataOut  : out slv(11 downto 0);
-      dispOut  : out sl);
+      clk     : in  sl;
+      clkEn   : in  sl := '1';                 -- Optional Clock Enable
+      rst     : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      dataIn  : in  slv(9 downto 0);
+      dispIn  : in  sl;
+      dataKIn : in  sl;
+      dataOut : out slv(11 downto 0);
+      dispOut : out sl);
 
 end entity Encoder10b12b;
 
 architecture rtl of Encoder10b12b is
 
    type RegType is record
-      dispOut  : sl;
-      dataOut  : slv(11 downto 0);
+      dispOut : sl;
+      dataOut : slv(11 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dispOut  => '0',
-      dataOut  => (others => '0'));
+      dispOut => '0',
+      dataOut => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -62,8 +62,8 @@ architecture rtl of Encoder10b12b is
 begin
 
    comb : process (dataIn, dataKIn, dispIn, r, rst) is
-      variable v          : RegType;
-      variable dispInTmp  : sl;
+      variable v         : RegType;
+      variable dispInTmp : sl;
    begin
       v := r;
 
@@ -74,11 +74,11 @@ begin
       end if;
 
       encode10b12b(
-         dataIn   => dataIn,
-         dataKIn  => dataKIn,
-         dispIn   => dispInTmp,
-         dataOut  => v.dataOut,
-         dispOut  => v.dispOut);
+         dataIn  => dataIn,
+         dataKIn => dataKIn,
+         dispIn  => dispInTmp,
+         dataOut => v.dataOut,
+         dispOut => v.dispOut);
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then

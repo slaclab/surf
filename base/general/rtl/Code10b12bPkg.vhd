@@ -33,57 +33,61 @@ package Code10b12bPkg is
    -------------------------------------------------------------------------------------------------
    function toString (code : slv(9 downto 0); k : sl) return string;
 
+   subtype DisparityType is integer range -1 to 1;
+   function conv (d : sl) return DisparityType;
+   function conv (d : DisparityType) return sl;
+
    -------------------------------------------------------------------------------------------------
    -- 5B6B Code Constants
    -------------------------------------------------------------------------------------------------
    type Code5b6bType is record
       out6b   : slv(5 downto 0);
-      expDisp : sl;
-      outDisp : sl;
+      expDisp : DisparityType;
+      outDisp : DisparityType;
    end record Code5b6bType;
 
    type Code5b6bArray is array (natural range <>) of Code5b6bType;
 
    constant CODE_TABLE_C : Code5b6bArray(0 to 31) := (
-      ("000110", '1', '0'),
-      ("010001", '1', '0'),
-      ("010010", '1', '0'),
-      ("100011", 'X', 'X'),
-      ("010100", '1', '0'),
-      ("100101", 'X', 'X'),
-      ("100110", 'X', 'X'),
-      ("000111", '1', 'X'),             -- D.7 Special case
-      ("011000", '1', '0'),
-      ("101001", 'X', 'X'),
-      ("101010", 'X', 'X'),
-      ("001011", 'X', 'X'),
-      ("101100", 'X', 'X'),
-      ("001101", 'X', 'X'),
-      ("001110", 'X', 'X'),
-      ("111010", '0', '1'),
-      ("110110", '0', '1'),
-      ("110001", 'X', 'X'),
-      ("110010", 'X', 'X'),
-      ("010011", 'X', 'X'),
-      ("110100", 'X', 'X'),
-      ("010101", 'X', 'X'),
-      ("010110", 'X', 'X'),
-      ("010111", '0', '1'),
-      ("001100", '1', '0'),
-      ("011001", 'X', 'X'),
-      ("011010", 'X', 'X'),
-      ("011011", '0', '1'),
-      ("011100", 'X', 'X'),
-      ("011101", '0', '1'),
-      ("011110", '0', '1'),
-      ("110101", '0', '1'));
+      ("000110", 1, -1),
+      ("010001", 1, -1),
+      ("010010", 1, -1),
+      ("100011", 0, 0),
+      ("010100", 1, -1),
+      ("100101", 0, 0),
+      ("100110", 0, 0),
+      ("000111", 1, 0),                 -- D.7 Special case
+      ("011000", 1, -1),
+      ("101001", 0, 0),
+      ("101010", 0, 0),
+      ("001011", 0, 0),
+      ("101100", 0, 0),
+      ("001101", 0, 0),
+      ("001110", 0, 0),
+      ("000101", 1, -1),                -- ("111010", -1, 1),
+      ("001001", 1, -1),                -- ("110110", -1, 1),
+      ("110001", 0, 0),
+      ("110010", 0, 0),
+      ("010011", 0, 0),
+      ("110100", 0, 0),
+      ("010101", 0, 0),
+      ("010110", 0, 0),
+      ("101000", 1, -1),                -- ("010111", -1, 1),
+      ("001100", 1, -1),
+      ("011001", 0, 0),
+      ("011010", 0, 0),
+      ("100100", 1, -1),                -- ("011011", -1, 1),
+      ("011100", 0, 0),
+      ("100010", 1, -1),                -- ("011101", -1, 1),
+      ("100001", 1, -1),                -- ("011110", -1, 1),
+      ("001010", 1, -1));               -- ("110101", -1, 1));
 
    procedure encode10b12b (
-      dataIn   : in  slv(11 downto 0);
-      dataKIn  : in  sl;
-      dispIn   : in  sl;
-      dataOut  : out slv(13 downto 0);
-      dispOut  : out sl);
+      dataIn  : in  slv(9 downto 0);
+      dataKIn : in  sl;
+      dispIn  : in  sl;
+      dataOut : out slv(11 downto 0);
+      dispOut : out sl);
 
 --    procedure decode10b12b (
 --       dataIn    : in    slv(13 downto 0);
@@ -108,20 +112,38 @@ package body Code10b12bPkg is
       return s;
    end function toString;
 
+   function conv (d : sl) return DisparityType is
+   begin
+      if (d = '1') then
+         return 1;
+      else
+         return -1;
+      end if;
+   end function conv;
+
+   function conv (d : DisparityType) return sl is
+   begin
+      if (d = -1) then
+         return '0';
+      else
+         return '1';
+      end if;
+   end function conv;
+
    procedure encode10b12b (
-      dataIn   : in  slv(9 downto 0);
-      dataKIn  : in  sl;
-      dispIn   : in  sl;
-      dataOut  : out slv(11 downto 0);
-      dispOut  : out sl)
+      dataIn  : in  slv(9 downto 0);
+      dataKIn : in  sl;
+      dispIn  : in  sl;
+      dataOut : out slv(11 downto 0);
+      dispOut : out sl)
    is
-      variable tmp : Code5b6bType;
-      variable lowWordIn : slv(4 downto 0);
-      variable lowWordOut : slv(5 downto 0);
-      variable lowDispOut : sl;
-      variable highWordIn : slv(4 downto 0);
+      variable tmp         : Code5b6bType;
+      variable lowWordIn   : slv(4 downto 0);
+      variable lowWordOut  : slv(5 downto 0);
+      variable lowDispOut  : DisparityType;
+      variable highWordIn  : slv(4 downto 0);
       variable highWordOut : slv(5 downto 0);
-      variable highDispOut : sl;
+      variable highDispOut : DisparityType;
    begin
 
       -- First, split in input word in two
@@ -132,31 +154,31 @@ package body Code10b12bPkg is
       tmp := CODE_TABLE_C(conv_integer(lowWordIn));
 
       -- Decide whether to invert
-      if (tmp.expDisp /= 'X') then
-         if (dispIn /= tmp.expDisp) then
+      if (tmp.expDisp /= 0) then
+         if (conv(dispIn) /= tmp.expDisp) then
             lowWordOut := not tmp.out6b;
-            lowDispOut := not tmp.outDisp;
+            lowDispOut := tmp.outDisp * (-1);
          else
             lowWordOut := tmp.out6b;
             lowDispOut := tmp.outDisp;
          end if;
       else
          lowWordOut := tmp.out6b;
-         lowDispOut := dispIn;
+         lowDispOut := conv(dispIn);
       end if;
 
       -- If selected code has even disparity,
       -- use dispIn to decide upper word disparity
-      if (lowDispOut = 'X') then
-         lowDispOut := dispIn;
+      if (lowDispOut = 0) then
+         lowDispOut := conv(dispIn);
       end if;
 
       -- K.28 is not in the table. Set it manually here
       if (dataKIn = '1') then
-         if (lowWordIn = "11100") then
+--         if (lowWordIn = "11100") then
             lowWordOut := "111100";
-            lowDispOut := '1';
-         end if;
+            lowDispOut := 1;
+--         end if;
       end if;
 
 
@@ -164,10 +186,10 @@ package body Code10b12bPkg is
       tmp := CODE_TABLE_C(conv_integer(highWordIn));
 
       -- Decide whether to invert
-      if (tmp.expDisp /= 'X') then
+      if (tmp.expDisp /= 0) then
          if (lowDispOut /= tmp.expDisp) then
             highWordOut := not tmp.out6b;
-            highDispOut := not tmp.outDisp;
+            highDispOut := tmp.outDisp * (-1);
          else
             highWordOut := tmp.out6b;
             highDispOut := tmp.outDisp;
@@ -177,7 +199,7 @@ package body Code10b12bPkg is
          highDispOut := lowDispOut;
       end if;
 
-      if (highDispOut = 'X') then
+      if (highDispOut = 0) then
          highDispOut := lowDispOut;
       end if;
 
@@ -185,11 +207,11 @@ package body Code10b12bPkg is
       if (dataKIn = '1') then
          if (highWordIn = "11100") then
             highWordOut := not "111100";
-            highDispOut := dispIn;
+            highDispOut := conv(dispIn);
          end if;
       end if;
 
-      dispOut := highDispOut;
+      dispOut := conv(highDispOut);
       dataOut := highWordOut & lowWordOut;
 
    end procedure;
