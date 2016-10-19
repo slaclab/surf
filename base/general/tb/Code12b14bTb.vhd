@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-11
--- Last update: 2016-10-17
+-- Last update: 2016-10-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,43 +42,50 @@ end entity Code12b14bTb;
 architecture sim of Code12b14bTb is
 
    -- component generics
-   constant TPD_G          : time     := 1 ns;
-   constant RST_POLARITY_G : sl       := '1';
-   constant RST_ASYNC_G    : boolean  := false;
+   constant TPD_G          : time    := 1 ns;
+   constant RST_POLARITY_G : sl      := '1';
+   constant RST_ASYNC_G    : boolean := false;
 
    -- component ports
-   signal clk      : sl;                        -- [in]
-   signal clkEn    : sl := '1';                 -- [in]
-   signal rst      : sl := not RST_POLARITY_G;  -- [in]
+   signal clk         : sl;                                      -- [in]
+   signal clkEn       : sl               := '1';                 -- [in]
+   signal rst         : sl               := not RST_POLARITY_G;  -- [in]
    signal encDispIn   : slv(1 downto 0);
-   signal encDataIn   : slv(11 downto 0) := (others => '0');          -- [in]
-   signal encDataKIn  : sl := '0';                 -- [in]
-   signal encDataOut  : slv(13 downto 0);          -- [out]
+   signal encDataIn   : slv(11 downto 0) := (others => '0');     -- [in]
+   signal encDataKIn  : sl               := '0';                 -- [in]
+   signal encDataOut  : slv(13 downto 0);                        -- [out]
    signal encDispOut  : slv(1 downto 0);
-   signal encInvalidK : sl;                        -- [out]
+   signal encInvalidK : sl;                                      -- [out]
 
    signal started         : boolean := false;
    shared variable runVar : integer := 0;
    signal run             : integer := 0;
-   signal lastEncDataOut     : slv(13 downto 0);
+   signal lastEncDataOut  : slv(13 downto 0);
 
-   signal encDispInInt : BlockDisparityType;
-   signal encDispOutInt : BlockDisparityType;
+   signal encDispInInt    : BlockDisparityType;
+   signal encDispOutInt   : BlockDisparityType;
+   signal encDataInString : string(1 to 8);
+
+--   signal startSet : sl := '0';
 
    -------------------------------------------------------------------------------------------------
 
-   signal decDataIn    : slv(13 downto 0);          -- [in]
-   signal decDispIn    : slv(1 downto 0) := "01";           -- [in]
-   signal decDataOut   : slv(11 downto 0);          -- [out]
-   signal decDataKOut  : sl;                        -- [out]
-   signal decDispOut   : slv(1 downto 0);           -- [out]
-   signal decCodeError : sl;                        -- [out]
-   signal decDispError : sl;                        -- [out]
+   signal decDataIn    : slv(13 downto 0);         -- [in]
+   signal decDispIn    : slv(1 downto 0) := "01";  -- [in]
+   signal decDataOut   : slv(11 downto 0);         -- [out]
+   signal decDataKOut  : sl;                       -- [out]
+   signal decDispOut   : slv(1 downto 0);          -- [out]
+   signal decCodeError : sl;                       -- [out]
+   signal decDispError : sl;                       -- [out]
+
+
 
 begin
 
-   encDispInInt <= toBlockDisparityType(encDispIn);
+   encDispInInt  <= toBlockDisparityType(encDispIn);
    encDispOutInt <= toBlockDisparityType(encDispOut);
+
+   encDataInString <= toString(encDataIn, encDataKIn);
 
    -- component instantiation
    U_Encoder12b14b : entity work.Encoder12b14b
@@ -86,22 +93,22 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         DEBUG_DISP_G => false)
+         DEBUG_DISP_G   => true)
       port map (
-         clk      => clk,               -- [in]
-         clkEn    => clkEn,             -- [in]
-         rst      => rst,               -- [in]
-         dataIn   => encDataIn,            -- [in]
-         dispIn   => encDispIn,
-         dataKIn  => encDataKIn,           -- [in]
-         dataOut  => encDataOut,           -- [out]
-         dispOut  => encDispOut);
+         clk     => clk,                -- [in]
+         clkEn   => clkEn,              -- [in]
+         rst     => rst,                -- [in]
+         dataIn  => encDataIn,          -- [in]
+         dispIn  => encDispIn,
+         dataKIn => encDataKIn,         -- [in]
+         dataOut => encDataOut,         -- [out]
+         dispOut => encDispOut);
 --          invalidK => invalidK);         -- [out]
 
 
    U_ClkRst_1 : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => 10 ns,
+         CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1 ns,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 5 us,
@@ -115,7 +122,7 @@ begin
    main : process is
       variable a : slv(11 downto 0);
       variable b : slv(11 downto 0);
-      
+
       procedure doComb (
          a  : in slv(11 downto 0);
          ak : in sl;
@@ -130,16 +137,20 @@ begin
             encDispIn  <= toSlv(disparity);
             encDataIn  <= a;
             encDataKIn <= ak;
+            decDispIn  <= decDispOut;
             wait until clk = '1';
-            started <= true;
+            started    <= true;
+--            startSet <= ite(disparity = -2, '1', '0') after 1 ns;
+--            first := '0';
 --            runVar  := 0;
             wait until clk = '0';
             encDispIn  <= encDispOut;
             encDataIn  <= b;
             encDataKIn <= bk;
+            decDispIn  <= toSlv(disparity);
             wait until clk = '1';
-
-            disparity := disparity + 2;
+--            startSet <= '0' after 1 ns;
+            disparity  := disparity + 2;
          end loop;
 
       end procedure doComb;
@@ -166,14 +177,14 @@ begin
       wait until rst = '0';
       wait until clk = '1';
 
-      encDataIn <= K_120_3_C;
+      encDataIn  <= K_120_3_C;
       encDataKIn <= '1';
 
       wait for 1 us;
       wait until clk = '1';
 
-      for i in 2600 to 2**12-1 loop
-         print("i: " & str(i));
+      for i in 0 to 2**12-1 loop
+         print("i: " & toString(conv_std_logic_vector(i, 12), '0'));
          for j in 0 to 2**12-1 loop
             a := conv_std_logic_vector(i, 12);
             b := conv_std_logic_vector(j, 12);
@@ -195,6 +206,8 @@ begin
          end loop;
 
       end loop;
+
+      stop(0);
 
    end process;
 
@@ -251,23 +264,23 @@ begin
    -- Decoder
    -------------------------------------------------------------------------------------------------
    decDataIn <= encDataOut;
-   U_Decoder12b14b_1: entity work.Decoder12b14b
+   U_Decoder12b14b_1 : entity work.Decoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         DEBUG_DISP_G   => false)
+         DEBUG_DISP_G   => true)
       port map (
          clk       => clk,              -- [in]
          clkEn     => clkEn,            -- [in]
          rst       => rst,              -- [in]
-         dataIn    => decDataIn,           -- [in]
-         dispIn    => decDispIn,           -- [in]
-         dataOut   => decDataOut,          -- [out]
-         dataKOut  => decDataKOut,         -- [out]
-         dispOut   => decDispOut,          -- [out]
-         codeError => decCodeError,        -- [out]
-         dispError => decDispError);       -- [out]
+         dataIn    => decDataIn,        -- [in]
+         dispIn    => decDispIn,        -- [in]
+         dataOut   => decDataOut,       -- [out]
+         dataKOut  => decDataKOut,      -- [out]
+         dispOut   => decDispOut,       -- [out]
+         codeError => decCodeError,     -- [out]
+         dispError => decDispError);    -- [out]
 
 end architecture sim;
 
