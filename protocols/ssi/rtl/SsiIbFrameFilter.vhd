@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-10-12
+-- Last update: 2016-10-17
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ end SsiIbFrameFilter;
 architecture rtl of SsiIbFrameFilter is
 
    type StateType is (
+      INIT_S,
       IDLE_S,
       BLOWOFF_S,
       MOVE_S);        
@@ -76,7 +77,7 @@ architecture rtl of SsiIbFrameFilter is
       tDest        => x"00",
       master       => AXI_STREAM_MASTER_INIT_C,
       slave        => AXI_STREAM_SLAVE_INIT_C,
-      state        => IDLE_S);
+      state        => INIT_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -99,7 +100,7 @@ begin
 
    ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
 
-      comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
+      comb : process (axisRst, mAxisCtrl, mAxisSlave, r, sAxisMaster) is
          variable v   : RegType;
          variable sof : sl;
       begin
@@ -119,6 +120,13 @@ begin
 
          -- State Machine
          case (r.state) is
+            ----------------------------------------------------------------------
+            when INIT_S =>
+               -- Wait for FIFO to initialize
+               if (mAxisSlave.tReady = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
             ----------------------------------------------------------------------
             when IDLE_S =>
                -- Check if ready to move data

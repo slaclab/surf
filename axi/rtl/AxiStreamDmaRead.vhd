@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-10-07
+-- Last update: 2016-10-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -189,12 +189,11 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Update the variables
-            v.dmaReq  := dmaReq;
-            v.rMaster := axiReadMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G);
+            v.dmaReq := dmaReq;
             -- Reset the counters
-            v.shift   := (others => '0');
-            v.reqCnt  := (others => '0');
-            v.ackCnt  := (others => '0');
+            v.shift  := (others => '0');
+            v.reqCnt := (others => '0');
+            v.ackCnt := (others => '0');
             -- Align shift and address to transfer size
             if (DATA_BYTES_C /= 1) then
                v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
@@ -435,21 +434,17 @@ begin
          mAxisSlave  => mSlave);
 
    Remap_mAxisMaster : process (mMaster, r) is
-      variable tmp      : AxiStreamMasterType;
-      variable lastUser : slv(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0);
+      variable tmp : AxiStreamMasterType;
    begin
+      -- Latch the current value
       tmp := mMaster;
-      -- Mask off the unused tStrb and tKeep bits
-      if (DATA_BYTES_C /= 16) then
-         tmp.tKeep(15 downto DATA_BYTES_C) := (others => '0');
-         tmp.tStrb(15 downto DATA_BYTES_C) := (others => '0');
-      end if;
       -- Check for tLast
       if mMaster.tLast = '1' then
          axiStreamSetUserField (AXIS_CONFIG_G, tmp, r.dmaReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
       -- Note: This is done here (instead of "comb" process) to prevent a crazy long logic chain
       -- Note: For the "1 byte" case, lastUser will overwrite the firstUser value.
       end if;
+      -- Outputs
       axisMaster <= tmp;
    end process;
 
