@@ -1,154 +1,287 @@
 ##############################################################################
-## This file is part of 'SLAC JESD204b Core'.
+## This file is part of 'SLAC Firmware Standard Library'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
 ## top-level directory of this distribution and at: 
 ##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC JESD204b Core', including this file, 
+## No part of 'SLAC Firmware Standard Library', including this file, 
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &JesdTx 
-  name: JesdTx
-  description: "JESD TX Module"
-  size: 0x100
+JesdTx: &JesdTx
+  class: MMIODev
+  configPrio: 1
+  description: JESD TX Module
+  size: 0x200
+  metadata:
+    numTxLanes: &numTxLanes 2
   #########
-  IntField:
-  #########
+  children:
     #########################################################
-    - offset: 0x00
+    Enable:
+      at:
+        offset: 0x00
+      class: IntField
       name: Enable
-      sizeBits: 8
+      sizeBits: *numTxLanes
       mode: RW
-      description: "Enable[7:0]"       
-    #########################################################    
-    - offset: 0x10
+      description: "Enable mask. Example: 0x3 Enable ln0 and ln1."
+    #########################################################      
+    SubClass:
+      at:
+        offset: 0x10
+      class: IntField
       name: SubClass
       sizeBits: 1
-      lsBit: 0      
+      lsBit: 0
       mode: RW
-      description: "SubClass"
-    #########################################################  
-    - offset: 0x10
+      description: "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency."
+    ######################################################### 
+    ReplaceEnable:
+      at:
+        offset: 0x10
+      class: IntField
       name: ReplaceEnable
       sizeBits: 1
-      lsBit: 1      
+      lsBit: 1
       mode: RW
-      description: "ReplaceEnable"
-    #########################################################  
-    - offset: 0x10
+      description: "ReplaceEnable. Replace the control characters with data. (Should be 1 use 0 only for debug)."
+    #########################################################    
+    ResetGTs:
+      at:
+        offset: 0x10
+      class: IntField
       name: ResetGTs
       sizeBits: 1
-      lsBit: 2 
+      lsBit: 2
       mode: RW
-      description: "ResetGTs"
-    ######################################################### 
-    - offset: 0x10
+      description: "ResetGTs. Request reset of the GT modules."
+    #########################################################     
+    ClearErrors:   
+      at:
+        offset: 0x10
+      class: IntField
+      name: ClearErrors
+      sizeBits: 1
+      lsBit: 3
+      mode: RW
+      description: "Clear Jesd Errors and reset the status counters."
+    #########################################################      
+    InvertSync:
+      at:
+        offset: 0x10
+      class: IntField
       name: InvertSync
       sizeBits: 1
       lsBit: 4
       mode: RW
-      description: "InvertSync"
+      description: "InvertSync. Invert sync input (the AMC card schematics should be checkes if inverted). "
     ######################################################### 
-    - offset: 0x10
-      name: ScrambleEnable
+    TestSigEnable:
+      at:
+        offset: 0x10
+      class: IntField
+      name: TestSigEnable
       sizeBits: 1
       lsBit: 5
       mode: RW
-      description: "ScrambleEnable"
-    ######################################################### 
-    - offset: 0x14
+      description: "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB."
+    #########################################################    
+    ScrambleEnable:
+      at:
+        offset: 0x10
+      class: IntField
+      name: ScrambleEnable
+      sizeBits: 1
+      lsBit: 6
+      mode: RW
+      enums:
+        - name: Disabled
+          class: Enum
+          value: 0
+        - name: Enabled
+          class: Enum
+          value: 1
+      description: "ScrambleEnable. Enable data scrambling (More info in Jesd204b standard). "
+    #########################################################    
+    RampStep:
+      at:
+        offset: 0x14
+      class: IntField
       name: RampStep
       sizeBits: 16
       mode: RW
       description: "Ramp increment step and a period of the wave in c-c"
-    ######################################################### 
-    - offset: 0x16
+    #########################################################    
+    SquarePeriod:
+      at:
+        offset: 0x16
+      class: IntField
       name: SquarePeriod
       sizeBits: 16
       mode: RW
       description: "Ramp increment step and a period of the wave in c-c"
-    ######################################################### 
-    - offset: 0x18
+    #########################################################     
+    LowAmplitudeVal:
+      at:
+        offset: 0x18
+      class: IntField
       name: LowAmplitudeVal
       mode: RW
-      description: "Low value of the square waveform amplitude" 
-    ######################################################### 
-    - offset: 0x1C
+      description: Low value of the square waveform amplitude
+    #########################################################      
+    HighAmplitudeVal:
+      at:
+        offset: 0x1C
+      class: IntField
       name: HighAmplitudeVal
       mode: RW
-      description: "High value of the square waveform amplitude"
-    #########################################################        
-    - offset: 0x040
-      name:  GTXReady
-      sizeBits: 1    
+      description: High value of the square waveform amplitude
+    #########################################################      
+    GTReady:
+      at:
+        offset: 0x040
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: GTReady
+      sizeBits: 1
       lsBit: 0
-      stride: 4
-      nelms: 8       
       mode: RO
-      description: "GTXReady[7:0]"
-    #########################################################        
-    - offset: 0x040
-      name:  DataValid
-      sizeBits: 1    
+      description: "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data."
+    #########################################################      
+    DataValid:        
+      at:
+        offset: 0x040
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: DataValid
+      sizeBits: 1
       lsBit: 1
-      stride: 4
-      nelms: 8       
       mode: RO
-      description: "DataValid[7:0]" 
-    #########################################################        
-    - offset: 0x040
-      name:  IlasActive
-      sizeBits: 1    
+      description: "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard)."
+    #########################################################
+    IlasActive:       
+      at:
+        offset: 0x040
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: IlasActive
+      sizeBits: 1
       lsBit: 2
-      stride: 4
-      nelms: 8       
       mode: RO
-      description: "IlasActive[7:0]"
-    #########################################################        
-    - offset: 0x040
-      name:  nSync
-      sizeBits: 1    
+      description: "ILA sequence Active. Only 1 for 4 multiframe clock cycles then it drops (More info in Jesd204b standard)."
+    #########################################################
+    nSync:       
+      at:
+        offset: 0x040
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: nSync
+      sizeBits: 1
       lsBit: 3
-      stride: 4
-      nelms: 8       
       mode: RO
-      description: "nSync[7:0]"
-    #########################################################        
-    - offset: 0x040
-      name:  TxEnabled
-      sizeBits: 1    
+      description: "nSync. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed."
+    #########################################################    
+    TxEnabled:        
+      at:
+        offset: 0x040
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: TxEnabled
+      sizeBits: 1
       lsBit: 4
-      stride: 4
-      nelms: 8       
       mode: RO
-      description: "TxEnabled[7:0]"
-    #########################################################        
-    - offset: 0x040
-      name:  SysRefDetected
-      sizeBits: 1    
+      description: "Tx Lane Enabled. Indicates if the lane had been enabled in configuration."
+    #########################################################     
+    SysRefDetected:       
+      at:
+        offset: 0x040
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: SysRefDetected
+      sizeBits: 1
       lsBit: 5
-      stride: 4
-      nelms: 8       
       mode: RO
-      description: "SysRefDetected[7:0]"       
-    #########################################################        
-    - offset: 0x080
-      name:  data_out_mux
-      sizeBits: 4    
+      description: "System Reference input has been Detected."
+    #########################################################     
+    dataOutMux:       
+      at:
+        offset: 0x080
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: dataOutMux
+      sizeBits: 4
       lsBit: 0
-      stride: 4
-      nelms: 8          
-      mode: RO
-      description: "data_out_mux[7:0]: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream, b011 - Test data"
-    #########################################################        
-    - offset: 0x080
-      name:  test_out_mux
-      sizeBits: 4    
-      lsBit: 4
-      stride: 4
-      nelms: 8          
       mode: RW
-      description: "data_out_mux[7:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero" 
-    #########################################################        
-    
+      enums:
+        - name: OutputZero
+          class: Enum
+          value: 0
+        - name: UserData
+          class: Enum
+          value: 1
+        - name: AxiStream
+          class: Enum
+          value: 2
+        - name: TestData
+          class: Enum
+          value: 3          
+      description: "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data"
+    #########################################################    
+    testOutMux:
+      at:
+        offset: 0x080
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: testOutMux
+      sizeBits: 4
+      lsBit: 4
+      mode: RW
+      enums:
+        - name: SawIncrement
+          class: Enum
+          value: 0
+        - name: SawDecrement
+          class: Enum
+          value: 1
+        - name: SquareWave
+          class: Enum
+          value: 2
+        - name: OutputZero
+          class: Enum
+          value: 3 
+      description: "test_out_mux[1:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero" 
+    #########################################################          
+    StatusValidCnt:
+      at:
+        offset: 0x100
+        stride: 4
+        nelms: *numTxLanes
+      class: IntField
+      name: StatusValidCnt
+      sizeBits: 32
+      mode: RO
+      description: "StatusValidCnt[31:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
+    #########################################################    
+    ClearTxStatus:
+      name: ClearTxStatus
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: "Clear the status valid counter of TX lanes."
+      sequence:
+      - entry: ClearErrors
+        value: 0x1
+      - entry: ClearErrors
+        value: 0x0
+    #########################################################

@@ -57,8 +57,8 @@ package StdRtlPkg is
    -- Very useful functions
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
-   function log2 (constant number    : integer) return natural;
-   function bitSize (constant number : natural) return positive;
+--    function log2 (constant number    : integer) return natural;
+--    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
    function wordCount (number : positive; wordSize : positive := 8) return natural; 
 
@@ -92,7 +92,7 @@ package StdRtlPkg is
   
    -- Functions for counting the number of '1' in a slv bus
    function onesCount (vec : slv) return unsigned;
-   function onesCount (vec : slv) return slv;   
+--   function onesCount (vec : slv) return slv;   
 
    -- Gray Code functions
    function grayEncode (vec : unsigned) return unsigned;
@@ -120,21 +120,17 @@ package StdRtlPkg is
    -- conv_std_logic_vector functions
    function toSlv(ARG : integer; SIZE : integer) return slv;
 
-   -- gets real multiplication
-   function getRealMult (A, B : real) return real;
-   function getRealMult (A    : integer; B : real) return real;
-   function getRealMult (A    : real; B : integer) return real;
-   
-   -- gets real division
-   function getRealDiv (A, B : real) return real;
-   function getRealDiv (A    : integer; B : real) return real;
-   function getRealDiv (A    : real; B : integer) return real;
+   -- gets real multiplication and division with integers
+   function "*" (L    : integer; R : real) return real;
+   function "*" (L    : real; R : integer) return real;
+   function "/" (L    : integer; R : real) return real;
+   function "/" (L    : real; R : integer) return real;
 
-   function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
+--   function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
 
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
-   function getTimeRatio (T1, T2 : real) return natural;
+--   function getTimeRatio (T1, T2 : real) return natural;
 
    procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    slv);
    procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    sl);
@@ -717,27 +713,27 @@ package body StdRtlPkg is
    -- Arg: number - integer to find log2 of
    -- Returns: Integer containing log base two of input.
    ---------------------------------------------------------------------------------------------------------------------
-   function log2(constant number : integer) return natural is
-   begin
-      if (number < 2) then
-         return 1;
-      end if;
-      return integer(ceil(ieee.math_real.log2(real(number))));
-   end function;
+--    function log2(constant number : integer) return natural is
+--    begin
+--       if (number < 2) then
+--          return 1;
+--       end if;
+--       return integer(ceil(ieee.math_real.log2(real(number))));
+--    end function;
 
    -- Find number of bits needed to store a number
-   function bitSize (constant number : natural ) return positive is
-   begin
-      if (number = 0 or number = 1) then
-         return 1;
-      else
-         if (isPowerOf2(number)) then
-            return log2(number) + 1;
-         else
-            return log2(number);
-         end if;
-      end if;
-   end function;
+--    function bitSize (constant number : natural ) return positive is
+--    begin
+--       if (number = 0 or number = 1) then
+--          return 1;
+--       else
+--          if (isPowerOf2(number)) then
+--             return log2(number) + 1;
+--          else
+--             return log2(number);
+--          end if;
+--       end if;
+--    end function;
 
    -- NOTE: XST will crap its pants if you try to pass a constant to this function
    function bitReverse (a : slv) return slv is
@@ -913,63 +909,63 @@ package body StdRtlPkg is
    -- Functions for counting the number of '1' in a slv bus
    -----------------------------------------------------------------------------
    -- New Non-recursive onesCount Function
-   function onesCount (vec : slv)
-      return unsigned is
-      variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
-   begin
-      for i in vec'range loop
-         if vec(i) = '1' then
-            retVar := retVar + 1;
-         end if;
-      end loop;
-      return retVar;
-   end function;     
+--    function onesCount (vec : slv)
+--       return unsigned is
+--       variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
+--    begin
+--       for i in vec'range loop
+--          if vec(i) = '1' then
+--             retVar := retVar + 1;
+--          end if;
+--       end loop;
+--       return retVar;
+--    end function;     
    
    -- -- Old Recursive onesCount Function
-   -- function onesCount (vec : slv) return unsigned is
-      -- variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
-      -- variable bottomVar : slv(topVar'low-1 downto vec'low);
-      -- variable tmpVar    : slv(2 downto 0);
-   -- begin
-      -- if (vec'length = 1) then
-         -- return '0' & unsigned(vec);
-      -- end if;
+   function onesCount (vec : slv) return unsigned is
+      variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
+      variable bottomVar : slv(topVar'low-1 downto vec'low);
+      variable tmpVar    : slv(2 downto 0);
+   begin
+      if (vec'length = 1) then
+         return '0' & unsigned(vec);
+      end if;
 
-      -- if (vec'length = 2) then
-         -- return uAnd(vec) & uXor(vec);
-      -- end if;
+      if (vec'length = 2) then
+         return uAnd(vec) & uXor(vec);
+      end if;
 
-      -- if (vec'length = 3) then
-         -- tmpVar := vec;
-         -- case tmpVar is
-            -- when "000"  => return "00";
-            -- when "001"  => return "01";
-            -- when "010"  => return "01";
-            -- when "011"  => return "10";
-            -- when "100"  => return "01";
-            -- when "101"  => return "10";
-            -- when "110"  => return "10";
-            -- when "111"  => return "11";
-            -- when others => return "00";
-         -- end case;
-      -- end if;
+      if (vec'length = 3) then
+         tmpVar := vec;
+         case tmpVar is
+            when "000"  => return "00";
+            when "001"  => return "01";
+            when "010"  => return "01";
+            when "011"  => return "10";
+            when "100"  => return "01";
+            when "101"  => return "10";
+            when "110"  => return "10";
+            when "111"  => return "11";
+            when others => return "00";
+         end case;
+      end if;
 
-      -- topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
-      -- bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
+      topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
+      bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
 
-      -- return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
-   -- end function;  
+      return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
+   end function;  
 
    -- SLV variant   
-   function onesCount (vec : slv)
-      return slv is
-      variable retVar : slv((bitSize(vec'length)-1) downto 0);      
-      variable cntVar : unsigned((bitSize(vec'length)-1) downto 0);
-   begin
-      cntVar := onesCount(vec);
-      retVar := slv(cntVar);
-      return retVar;
-   end function;   
+--    function onesCount (vec : slv)
+--       return slv is
+--       variable retVar : slv((bitSize(vec'length)-1) downto 0);      
+--       variable cntVar : unsigned((bitSize(vec'length)-1) downto 0);
+--    begin
+--       cntVar := onesCount(vec);
+--       retVar := slv(cntVar);
+--       return retVar;
+--    end function;   
 
    -----------------------------------------------------------------------------
    -- Functions for encoding and decoding grey codes
@@ -1010,7 +1006,6 @@ package body StdRtlPkg is
    -- SLV variant
    function grayDecode (vec : slv)
       return slv is
-      variable retVar : slv(vec'range) := (others => '0');
    begin
       return slv(grayDecode(unsigned(vec)));
    end function;
@@ -1121,78 +1116,66 @@ package body StdRtlPkg is
       return slv(to_unsigned(ARG, SIZE));
    end;
 
-   -----------------------------
-   -- gets real multiplication
-   -----------------------------      
-   function getRealMult (A, B : real) return real is
-   begin
-      return real(A*B);
-   end function;
 
-   function getRealMult (A : integer; B : real) return real is
+   -------------------------------------------------------------------------------------------------
+   -- Multiply and divide reals and integer
+   -------------------------------------------------------------------------------------------------
+   function "*" (L : real; R : integer)      return real is
    begin
-      return real(real(A)*B);
-   end function;
+      return real(L*real(R));
+   end function "*";
 
-   function getRealMult (A : real; B : integer) return real is
+   function "*" (L : integer; R : real) return real is
    begin
-      return real(A*real(B));
+      return real(real(R)*L);
    end function;
    
-   -----------------------------
-   -- gets real division
-   -----------------------------      
-   function getRealDiv (A, B : real) return real is
+   function "/" (L : integer; R : real) return real is
    begin
-      return real(A/B);
+      return real(real(L)/R);
    end function;
 
-   function getRealDiv (A : integer; B : real) return real is
+   function "/" (L : real; R : integer) return real is
    begin
-      return real(real(A)/B);
-   end function;
-
-   function getRealDiv (A : real; B : integer) return real is
-   begin
-      return real(A/real(B));
+      return real(L/real(R));
    end function;   
 
    -------------------------------------------------------------------------------------------------
    -- Simulates an ADC conversion
    -------------------------------------------------------------------------------------------------
-   function adcConversion (
-      ain      : real;
-      low      : real;
-      high     : real;
-      bits     : positive;
-      twosComp : boolean)
-      return slv is
-      variable tmpR : real;
-      variable tmpI : integer;
+--    function adcConversion (
+--       ain      : real;
+--       low      : real;
+--       high     : real;
+--       bits     : positive;
+--       twosComp : boolean)
+--       return slv is
+--       variable tmpR : real;
+--       variable tmpI : integer;
 
-      variable retSigned   : signed(bits-1 downto 0);
-      variable retUnsigned : unsigned(bits-1 downto 0);
-   begin
-      tmpR := ain;
+--       variable retSigned   : signed(bits-1 downto 0);
+--       variable retUnsigned : unsigned(bits-1 downto 0);
+--    begin
+--       tmpR := ain;
 
-      -- Constrain input to full scale range
-      tmpR := realmin(high, tmpR);
-      tmpR := realmax(low, tmpR);
+--       -- Constrain input to full scale range
+--       tmpR := realmin(high, tmpR);
+--       tmpR := realmax(low, tmpR);
 
-      -- Scale to [0,1] or [-.5,.5]
-      tmpR := (tmpR-low)/(high-low) + ite(twosComp, -0.5, 0.0);
+--       -- Scale to [0,1] or [-.5,.5]
+--       tmpR := (tmpR-low)/(high-low) + ite(twosComp, -0.5, 0.0);
 
-      -- Scale to number of bits
-      tmpR := tmpR * real(2**bits);
+--       -- Scale to number of bits
+--       tmpR := tmpR * real(2**bits);
 
-      if (twosComp) then
-         retSigned := to_signed(integer(round(tmpR)), bits);
-         return slv(retSigned);
-      else
-         retUnsigned := to_unsigned(integer(round(tmpR)), bits);
-         return slv(retUnsigned);
-      end if;
-   end function adcConversion;
+--       if (twosComp) then
+--          retSigned := to_signed(integer(round(tmpR)), bits);
+--          return slv(retSigned);
+--       else
+--          retUnsigned := to_unsigned(integer(round(tmpR)), bits);
+--          return slv(retUnsigned);
+--       end if;
+--    end function adcConversion;
 
    -----------------------------
    -- gets a time ratio
@@ -1202,10 +1185,10 @@ package body StdRtlPkg is
       return natural(T1/T2);
    end function;
 
-   function getTimeRatio (T1, T2 : real) return natural is
-   begin
-      return natural(ROUND(abs(T1/T2)));
-   end function;
+--    function getTimeRatio (T1, T2 : real) return natural is
+--    begin
+--       return natural(ROUND(abs(T1/T2)));
+--    end function;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
@@ -1254,7 +1237,6 @@ package body StdRtlPkg is
       vector : inout slv;
       value  : in    sl)
    is
-      variable low : integer;
    begin
       vector(i) := value;
       i := i+1;
@@ -1277,7 +1259,6 @@ package body StdRtlPkg is
       vector : in    slv;
       value  : inout sl)
    is
-      variable low : integer;
    begin
       value := vector(i);
       i   := i+1;

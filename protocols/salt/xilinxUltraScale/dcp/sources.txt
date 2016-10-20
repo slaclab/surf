@@ -1,0 +1,26 @@
+vhdl work Version.vhd
+
+vhdl work hdl/SaltUltraScaleCore_block.vhd
+vhdl work hdl/SaltUltraScaleCore_reset_sync.vhd
+vhdl work hdl/SaltUltraScaleCore_reset_wtd_timer.vhd
+vhdl work hdl/SaltUltraScaleCore_sync_block.vhd
+vhdl work hdl/SaltUltraScaleRxOnly.vhd
+
+vhdl work hdl/sgmii_adapt/SaltUltraScaleCore_clk_gen.vhd
+vhdl work hdl/sgmii_adapt/SaltUltraScaleCore_johnson_cntr.vhd
+vhdl work hdl/sgmii_adapt/SaltUltraScaleCore_rx_rate_adapt.vhd
+vhdl work hdl/sgmii_adapt/SaltUltraScaleCore_sgmii_adapt.vhd
+vhdl work hdl/sgmii_adapt/SaltUltraScaleCore_tx_rate_adapt.vhd
+
+vhdl    work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_decode_8b10b_lut_base.vhd
+vhdl    work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_decode_8b10b_pkg.vhd
+verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_delay_controller_wrap.v
+vhdl    work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_encode_8b10b_lut_base.vhd
+vhdl    work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_encode_8b10b_pkg.vhd
+verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_gearbox_4_to_10.v
+verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_gearbox_10_to_4.v
+verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_lvds_transceiver_ser8.v
+verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_serdes_1_to_10_ser8.v
+verilog work hdl/sgmii_lvds_transceiver/SaltUltraScaleCore_serdes_10_to_1_ser8.v
+
+vhdl gig_ethernet_pcs_pma_v15_1_0 hdl/gig_ethernet_pcs_pma_v15_1_rfs.vhd

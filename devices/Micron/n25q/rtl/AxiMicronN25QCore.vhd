@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-03
--- Last update: 2016-06-24
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ begin
       report "SPI_CLK_FREQ_G must be <= 50.0E+6"
       severity failure;
    -- Check AXI_CLK_FREQ_G >= 2*SPI_CLK_FREQ_G
-   assert (AXI_CLK_FREQ_G >= getRealMult(2.0, SPI_CLK_FREQ_G))
+   assert (AXI_CLK_FREQ_G >= 2.0 * SPI_CLK_FREQ_G);
       report "AXI_CLK_FREQ_G must be >= 2*SPI_CLK_FREQ_G"
       severity failure;
 

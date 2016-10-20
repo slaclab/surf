@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-04-25
+-- Last update: 2016-09-20
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ end AxiAd5780Reg;
 
 architecture rtl of AxiAd5780Reg is
 
-   constant DOUBLE_SCK_FREQ_C      : real             := getRealMult(SPI_CLK_FREQ_G, 2.0E+0);
+   constant DOUBLE_SCK_FREQ_C      : real             := SPI_CLK_FREQ_G * 2.0E+0;
    constant HALF_SCK_PERIOD_C      : natural          := (getTimeRatio(AXI_CLK_FREQ_G, DOUBLE_SCK_FREQ_C))-1;
    constant HALF_SCK_PERIOD_INIT_C : slv(31 downto 0) := toSlv(HALF_SCK_PERIOD_C, 32);
 

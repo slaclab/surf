@@ -29,7 +29,8 @@ use work.AxiLitePkg.all;
 
 entity AxiLiteAsync is
    generic (
-      TPD_G           : time                  := 1 ns;
+      TPD_G            : time                  := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
       COMMON_CLK_G    : boolean               := false;    
       NUM_ADDR_BITS_G : natural               := 32;
       PIPE_STAGES_G   : integer range 0 to 16 := 0);
@@ -243,7 +244,7 @@ begin
    readMastToSlaveWrite  <= mAxiReadSlave.rvalid and (not readMastToSlaveFull);
 
    -- Data Out
-   sAxiReadSlave.rresp <= ite(m2sRst = '0', readMastToSlaveDout(1 downto 0), AXI_RESP_SLVERR_C);
+   sAxiReadSlave.rresp <= ite(m2sRst = '0', readMastToSlaveDout(1 downto 0), AXI_ERROR_RESP_G);
    sAxiReadSlave.rdata <= readMastToSlaveDout(33 downto 2);
 
    -- Read control and valid
@@ -430,7 +431,7 @@ begin
    writeMastToSlaveWrite  <= mAxiWriteSlave.bvalid and (not writeMastToSlaveFull);
 
    -- Data Out
-   sAxiWriteSlave.bresp <= ite(m2sRst = '0', writeMastToSlaveDout, AXI_RESP_SLVERR_C);
+   sAxiWriteSlave.bresp <= ite(m2sRst = '0', writeMastToSlaveDout, AXI_ERROR_RESP_G);
 
    -- Read control and valid
    sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');

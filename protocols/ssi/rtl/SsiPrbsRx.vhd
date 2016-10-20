@@ -226,6 +226,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => SLAVE_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
@@ -519,6 +520,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,

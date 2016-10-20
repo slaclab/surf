@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-02-06
--- Last update: 2016-03-16
+-- Last update: 2016-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,21 +42,9 @@ entity SynchronizerOneShot is
 end SynchronizerOneShot;
 
 architecture rtl of SynchronizerOneShot is
-   
-   type RegType is record
-      pulseDly : sl;
-      dataOut  : sl;
-   end record RegType;
-   constant REG_INIT_C : RegType := (
-      pulseDly => '1',
-      dataOut  => (not OUT_POLARITY_G));
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
 
    signal pulseRst : sl;
-   signal pulse    : sl;
-   
+
 begin
 
    RstSync_Inst : entity work.RstSync
@@ -65,60 +53,22 @@ begin
          RELEASE_DELAY_G => RELEASE_DELAY_G,
          BYPASS_SYNC_G   => BYPASS_SYNC_G,
          IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => '1')   
+         OUT_POLARITY_G  => '1')
       port map (
          clk      => clk,
          asyncRst => dataIn,
-         syncRst  => pulseRst); 
+         syncRst  => pulseRst);
 
-   Sync_Pulse : entity work.Synchronizer
+   Sync_Pulse : entity work.SynchronizerEdge
       generic map (
-         TPD_G         => TPD_G,
-         BYPASS_SYNC_G => BYPASS_SYNC_G)      
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         OUT_POLARITY_G => OUT_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => BYPASS_SYNC_G)
       port map (
-         clk     => clk,
-         dataIn  => pulseRst,
-         dataOut => pulse);         
-
-   comb : process (pulse, r, rst) is
-      variable v : RegType;
-   begin
-      -- Latch the current value
-      v := r;
-
-      -- Reset strobe signals
-      v.dataOut := not OUT_POLARITY_G;
-
-      -- Keep a record of the last pulse
-      v.pulseDly := pulse;
-
-      -- Check for a rising edge of the syncRst
-      if (pulse = '1') and (r.pulseDly = '0') then
-         v.dataOut := OUT_POLARITY_G;
-      end if;
-
-      -- Sync Reset
-      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-      -- Outputs
-      dataOut <= r.dataOut;
-      
-   end process comb;
-
-   seq : process (clk, rst) is
-   begin
-      if rising_edge(clk) then
-         r <= rin after TPD_G;
-      end if;
-      -- Async Reset
-      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-         r <= REG_INIT_C after TPD_G;
-      end if;
-   end process seq;
+         clk        => clk,
+         dataIn     => pulseRst,
+         risingEdge => dataOut);
 
 end architecture rtl;

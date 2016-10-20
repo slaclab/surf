@@ -1,0 +1,6 @@
+vhdl work rtl/ArpEngine.vhd
+vhdl work rtl/IcmpEngine.vhd
+vhdl work rtl/IpV4Engine.vhd
+vhdl work rtl/IpV4EngineDeMux.vhd
+vhdl work rtl/IpV4EngineRx.vhd
+vhdl work rtl/IpV4EngineTx.vhd

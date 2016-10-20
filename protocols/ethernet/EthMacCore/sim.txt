@@ -1,1 +1,0 @@
-vhdl work tb/eth_mac_test.vhd

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2015-03-20
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ end AxiAds42lb69Pll;
 
 architecture mapping of AxiAds42lb69Pll is
 
-   constant ADC_CLK_PERIOD_NS_C : real := getRealDiv(1.0E+9, ADC_CLK_FREQ_G);
+   constant ADC_CLK_PERIOD_NS_C : real := 1.0E+9 / ADC_CLK_FREQ_G;
 
    signal clkFeedBack    : sl;
    signal clkFeedBackIn  : sl;

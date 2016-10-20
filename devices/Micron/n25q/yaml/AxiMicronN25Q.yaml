@@ -7,39 +7,53 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &AxiMicronN25Q 
+AxiMicronN25Q: &AxiMicronN25Q 
   name: AxiMicronN25Q
   description: AXI-Lite Micron N25Q and Micron MT25Q PROM
+  class: MMIODev
+  configPrio: 1
   size: 0x400
   #########
-  IntField:
+  children:
   #########
     #########################################################
-    - offset: 0x00 
-      name: Test
+    Test:
+      at:
+        offset: 0x00 
+      class: IntField
       mode: RW
       description: Scratch Pad tester register
     #########################################################
-    - offset: 0x04 
-      name: Addr32BitMode
+    Addr32BitMode:
+      at:
+        offset: 0x04 
+      class: IntField
       sizeBits: 1      
       mode: RW
       description: Enable 32-bit PROM mode
     #########################################################
-    - offset: 0x08
-      name: Addr   
+    Addr:
+      at:
+        offset: 0x08
+      class: IntField
       mode: RW
       description: Address Register  
     #########################################################
-    - offset: 0x0C
-      name: Cmd   
+    Cmd:
+      at:
+        offset: 0x0C
+      class: IntField
       mode: RW
       description: Command Register        
     #########################################################
-    - offset: 0x200
-      name: Data   
-      nelms: 64      
+    Data:
+      at:
+        offset: 0x200
+        nelms: 64      
+      class: IntField
       mode: RW
       description: Data Register Array
     #########################################################
