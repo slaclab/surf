@@ -25,43 +25,51 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.Code10b12bPkg.all;
 
-entity Encoder10b12b is
+entity Decoder10b12b is
 
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';
-      RST_ASYNC_G    : boolean := true;
-      USE_CLK_EN_G       : boolean := false;
+      RST_POLARITY_G : sl      := '0';
+      RST_ASYNC_G    : boolean := false;
+      USE_CLK_EN_G   : boolean := false;
       DEBUG_DISP_G   : boolean := false);
    port (
-      clk     : in  sl;
-      clkEn   : in  sl := '1';                 -- Optional Clock Enable
-      rst     : in  sl := not RST_POLARITY_G;  -- Optional Reset
-      dataIn  : in  slv(9 downto 0);
-      dispIn  : in  sl;
-      dataKIn : in  sl;
-      dataOut : out slv(11 downto 0);
-      dispOut : out sl);
+      clk       : in  sl;
+      clkEn     : in  sl := '1';                 -- Optional Clock Enable
+      rst       : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      dataIn    : in  slv(11 downto 0);
+      dispIn    : in  sl;
+      dataOut   : out slv(9 downto 0);
+      dataKOut  : out sl;
+      dispOut   : out sl;
+      codeError : out sl;
+      dispError : out sl);
 
-end entity Encoder10b12b;
+end entity Decoder10b12b;
 
-architecture rtl of Encoder10b12b is
+architecture rtl of Decoder10b12b is
 
    type RegType is record
-      dispOut : sl;
-      dataOut : slv(11 downto 0);
+      dispOut   : sl;
+      dataOut   : slv(9 downto 0);
+      dataKOut  : sl;
+      codeError : sl;
+      dispError : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dispOut => '0',
-      dataOut => (others => '0'));
+      dispOut   => '0',
+      dataOut   => (others => '0'),
+      dataKOut  => '0',
+      codeError => '0',
+      dispError => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (dataIn, dataKIn, dispIn, r, rst) is
+   comb : process (dataIn, dispIn, r, rst) is
       variable v         : RegType;
       variable dispInTmp : sl;
    begin
@@ -73,21 +81,26 @@ begin
          dispInTmp := dispIn;
       end if;
 
-      encode10b12b(
-         dataIn  => dataIn,
-         dataKIn => dataKIn,
-         dispIn  => dispInTmp,
-         dataOut => v.dataOut,
-         dispOut => v.dispOut);
+      decode10b12b(
+         dataIn    => dataIn,
+         dispIn    => dispInTmp,
+         dataOut   => v.dataOut,
+         dataKOut  => v.dataKOut,
+         dispOut   => v.dispOut,
+         codeError => v.codeError,
+         dispError => v.dispError);
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
-      rin     <= v;
-      dataOut <= r.dataOut;
-      dispOut <= r.dispOut;
+      rin       <= v;
+      dataOut   <= r.dataOut;
+      dataKOut  <= r.dataKOut;
+      dispOut   <= r.dispOut;
+      codeError <= r.codeError;
+      dispError <= r.dispError;
    end process comb;
 
    seq : process (clk, rst) is

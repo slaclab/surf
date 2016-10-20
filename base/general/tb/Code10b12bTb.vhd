@@ -68,13 +68,13 @@ architecture sim of Code10b12bTb is
 
    -------------------------------------------------------------------------------------------------
 
---    signal decDataIn    : slv(11 downto 0);  -- [in]
---    signal decDispIn    : sl;                -- [in]
---    signal decDataOut   : slv(9 downto 0);   -- [out]
---    signal decDataKOut  : sl;                -- [out]
---    signal decDispOut   : sl;                -- [out]
---    signal decCodeError : sl;                -- [out]
---    signal decDispError : sl;                -- [out]
+   signal decDataIn    : slv(11 downto 0);  -- [in]
+   signal decDispIn    : sl;                -- [in]
+   signal decDataOut   : slv(9 downto 0);   -- [out]
+   signal decDataKOut  : sl;                -- [out]
+   signal decDispOut   : sl;                -- [out]
+   signal decCodeError : sl;                -- [out]
+   signal decDispError : sl;                -- [out]
 
 
 
@@ -91,7 +91,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         DEBUG_DISP_G   => true)
+         DEBUG_DISP_G   => false)
       port map (
          clk     => clk,                -- [in]
          clkEn   => clkEn,              -- [in]
@@ -131,28 +131,28 @@ begin
          encDispIn  <= '0';
          encDataIn  <= a;
          encDataKIn <= ak;
---         decDispIn  <= decDispOut;
+         decDispIn  <= decDispOut;
          wait until clk = '1';
          started    <= true;
          wait until clk = '0';
          encDispIn  <= encDispOut;
          encDataIn  <= b;
          encDataKIn <= bk;
---         decDispIn  <= toSlv(disparity);
+         decDispIn  <= '0';
          wait until clk = '1';
 
          wait until clk = '0';
          encDispIn  <= '1';
          encDataIn  <= a;
          encDataKIn <= ak;
---         decDispIn  <= decDispOut;
+         decDispIn  <= decDispOut;
          wait until clk = '1';
          started    <= true;
          wait until clk = '0';
          encDispIn  <= encDispOut;
          encDataIn  <= b;
          encDataKIn <= bk;
---         decDispIn  <= toSlv(disparity);
+         decDispIn  <= '1';
          wait until clk = '1';
 
       end procedure doComb;
@@ -162,7 +162,7 @@ begin
          return boolean is
       begin
          if ((d(4 downto 0) = "11100") and
-             ((d(9 downto 5) /= "11100") or
+             (d(9 downto 5) /= "11100")) then
 --             ((CODE_TABLE_C(conv_integer(d(9 downto 5))).outDisp = 0))) then
             return true;
          else
@@ -177,7 +177,7 @@ begin
       wait until rst = '0';
       wait until clk = '1';
 
-      encDataIn  <= "1110011100";
+      encDataIn  <= "0001111100";
       encDataKIn <= '1';
 
       wait for 1 us;
@@ -239,34 +239,35 @@ begin
          lastEncDataOut <= encDataOut;
 
 
---          assert (decDispError = '0') report "Disparity Error" severity failure;
---          assert (decCodeError = '0') report "Code Error" severity failure;
+     
       end if;
 
    end process monitor;
-
+   
+   assert (decDispError = '0' or not started) report "Disparity Error" severity failure;
+   assert (decCodeError = '0' or not started) report "Code Error" severity failure;
 
    -------------------------------------------------------------------------------------------------
    -- Decoder
    -------------------------------------------------------------------------------------------------
---    decDataIn <= encDataOut;
---    U_Decoder10b12b_1 : entity work.Decoder10b12b
---       generic map (
---          TPD_G          => TPD_G,
---          RST_POLARITY_G => RST_POLARITY_G,
---          RST_ASYNC_G    => RST_ASYNC_G,
---          DEBUG_DISP_G   => true)
---       port map (
---          clk       => clk,              -- [in]
---          clkEn     => clkEn,            -- [in]
---          rst       => rst,              -- [in]
---          dataIn    => decDataIn,        -- [in]
---          dispIn    => decDispIn,        -- [in]
---          dataOut   => decDataOut,       -- [out]
---          dataKOut  => decDataKOut,      -- [out]
---          dispOut   => decDispOut,       -- [out]
---          codeError => decCodeError,     -- [out]
---          dispError => decDispError);    -- [out]
+   decDataIn <= encDataOut;
+   U_Decoder10b12b_1 : entity work.Decoder10b12b
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DEBUG_DISP_G   => false)
+      port map (
+         clk       => clk,              -- [in]
+         clkEn     => clkEn,            -- [in]
+         rst       => rst,              -- [in]
+         dataIn    => decDataIn,        -- [in]
+         dispIn    => decDispIn,        -- [in]
+         dataOut   => decDataOut,       -- [out]
+         dataKOut  => decDataKOut,      -- [out]
+         dispOut   => decDispOut,       -- [out]
+         codeError => decCodeError,     -- [out]
+         dispError => decDispError);    -- [out]
 
 end architecture sim;
 
