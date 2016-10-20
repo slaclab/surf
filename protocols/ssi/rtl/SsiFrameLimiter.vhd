@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-20
--- Last update: 2016-09-02
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ end SsiFrameLimiter;
 
 architecture rtl of SsiFrameLimiter is
 
-   constant TIMEOUT_C : natural := getTimeRatio(getRealMult(MAXIS_CLK_FREQ_G, TIMEOUT_G), 1.0);
+   constant TIMEOUT_C : natural := getTimeRatio(MAXIS_CLK_FREQ_G * TIMEOUT_G, 1.0);
 
    type StateType is (
       IDLE_S,

@@ -43,11 +43,12 @@ entity AxiStreamDma is
       AXIL_BASE_ADDR_G  : slv(31 downto 0)           := x"00000000";
       AXI_READY_EN_G    : boolean                    := false;
       AXIS_READY_EN_G   : boolean                    := false;
+      AXIS_VALID_THOLD_G : natural                   := 1;-- Should be the same as inbound DMA AXIS FIFO
       AXIS_CONFIG_G     : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G      : AxiConfigType              := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)            := "01";
       AXI_CACHE_G       : slv(3 downto 0)            := "1111";
-      MAX_PEND_G        : integer range 0 to (2**24) := 0
+      PEND_THRESH_G     : natural                    := 0
    );
    port (
 
@@ -210,6 +211,14 @@ architecture structure of AxiStreamDma is
    signal ibAck              : AxiWriteDmaAckType;
    signal ibReq              : AxiWriteDmaReqType;
 
+   -- attribute dont_touch          : string;
+   -- attribute dont_touch of ob    : signal is "true";    
+   -- attribute dont_touch of obAck : signal is "true";    
+   -- attribute dont_touch of obReq : signal is "true";    
+   -- attribute dont_touch of ib    : signal is "true";    
+   -- attribute dont_touch of ibAck : signal is "true";    
+   -- attribute dont_touch of ibReq : signal is "true";    
+   
 begin
 
    U_CrossEnGen: if AXIL_COUNT_G = 1 generate
@@ -401,12 +410,13 @@ begin
    -------------------------------------
    U_IbDma : entity work.AxiStreamDmaWrite
       generic map (
-         TPD_G            => TPD_G,
-         AXI_READY_EN_G   => AXI_READY_EN_G,
-         AXIS_CONFIG_G    => AXIS_CONFIG_G,
-         AXI_CONFIG_G     => AXI_CONFIG_G,
-         AXI_BURST_G      => AXI_BURST_G,
-         AXI_CACHE_G      => AXI_CACHE_G
+         TPD_G              => TPD_G,
+         AXI_READY_EN_G     => AXI_READY_EN_G,
+         AXIS_VALID_THOLD_G => AXIS_VALID_THOLD_G,
+         AXIS_CONFIG_G      => AXIS_CONFIG_G,
+         AXI_CONFIG_G       => AXI_CONFIG_G,
+         AXI_BURST_G        => AXI_BURST_G,
+         AXI_CACHE_G        => AXI_CACHE_G
       ) port map (
          axiClk          => axiClk,
          axiRst          => axiRst,
@@ -509,7 +519,7 @@ begin
          AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_BURST_G      => AXI_BURST_G,
          AXI_CACHE_G      => AXI_CACHE_G,
-         MAX_PEND_G       => MAX_PEND_G 
+         PEND_THRESH_G    => PEND_THRESH_G 
       ) port map (
          axiClk          => axiClk,
          axiRst          => axiRst,

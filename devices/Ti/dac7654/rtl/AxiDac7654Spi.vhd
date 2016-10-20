@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-22
--- Last update: 2014-09-25
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ end AxiDac7654Spi;
 
 architecture rtl of AxiDac7654Spi is
 
-   constant AXI_CLK_PERIOD_C : real    := getRealDiv(1.0, AXI_CLK_FREQ_G);
+   constant AXI_CLK_PERIOD_C : real    := 1.0 / AXI_CLK_FREQ_G;
    constant MAX_CNT_C        : natural := getTimeRatio(166.4E-9, AXI_CLK_PERIOD_C);
 
    type StateType is (

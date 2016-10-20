@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-10-02
--- Last update: 2014-09-24
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,19 +42,19 @@ entity AxiAd9467Pll is
       pllLocked  : out sl;
       -- ADC Reference Signals
       adcClk     : in  sl;
-      adcRst     : in  sl);                
+      adcRst     : in  sl);
 end AxiAd9467Pll;
 
 architecture mapping of AxiAd9467Pll is
 
-   constant ADC_CLK_PERIOD_C    : real := getRealDiv(1, ADC_CLK_FREQ_G);
-   constant ADC_CLK_PERIOD_NS_C : real := getRealMult(1.0E+9, ADC_CLK_PERIOD_C);
-   constant CLKFBOUT_MULT_F_C   : real := getRealDiv(1.0E+9, ADC_CLK_FREQ_G);
+   constant ADC_CLK_PERIOD_C    : real := 1.0 / ADC_CLK_FREQ_G;
+   constant ADC_CLK_PERIOD_NS_C : real := 1.0E+9 * ADC_CLK_PERIOD_C;
+   constant CLKFBOUT_MULT_F_C   : real := 1.0E+9 / ADC_CLK_FREQ_G;
 
-   signal clkFeedBackIn,
-      clkFeedBack,
-      clkFeedBackOut : sl;
-   
+   signal clkFeedBackIn  : sl;
+   signal clkFeedBack    : sl;
+   signal clkFeedBackOut : sl;
+
 begin
 
    IBUFGDS_Inst : IBUFGDS
@@ -119,12 +119,12 @@ begin
    BUFH_West : BUFH
       port map (
          I => clkFeedBack,
-         O => clkFeedBackOut);     
+         O => clkFeedBackOut);
 
    ClkOutBufDiff_Inst : entity work.ClkOutBufDiff
       port map (
          clkIn   => clkFeedBackOut,
          clkOutP => adcClkOutP,
-         clkOutN => adcClkOutN);      
+         clkOutN => adcClkOutN);
 
 end mapping;

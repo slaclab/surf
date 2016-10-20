@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2016-05-23
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ architecture rtl of AxiMicronP30Reg is
 
    constant HALF_CYCLE_PERIOD_C : real := 128.0E-9;  -- units of seconds
 
-   constant HALF_CYCLE_FREQ_C : real := getRealDiv(1, HALF_CYCLE_PERIOD_C);  -- units of Hz
+   constant HALF_CYCLE_FREQ_C : real := 1.0 / HALF_CYCLE_PERIOD_C;  -- units of Hz
 
    constant MAX_CNT_C : natural := getTimeRatio(AXI_CLK_FREQ_G, HALF_CYCLE_FREQ_C);
 

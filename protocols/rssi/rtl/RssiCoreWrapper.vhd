@@ -5,7 +5,7 @@
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory (Cosylab)
 -- Created    : 2016-02-25
--- Last update: 2016-07-12
+-- Last update: 2016-09-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ use work.AxiLitePkg.all;
 entity RssiCoreWrapper is
    generic (
       TPD_G               : time                := 1 ns;
-      MAX_PACKET_BYTES_G  : positive            := 1024;
       CLK_FREQUENCY_G     : real                := 100.0E+6;  -- In units of Hz
       TIMEOUT_UNIT_G      : real                := 1.0E-6;    -- In units of seconds
       SERVER_G            : boolean             := true;  -- Module is server or client 
@@ -169,7 +168,7 @@ begin
       U_Packetizer : entity work.AxiStreamPacketizer
          generic map (
             TPD_G                => TPD_G,
-            MAX_PACKET_BYTES_G   => MAX_PACKET_BYTES_G,
+            MAX_PACKET_BYTES_G   => MAX_SEG_SIZE_G,
             INPUT_PIPE_STAGES_G  => 0,
             OUTPUT_PIPE_STAGES_G => 1)
          port map (

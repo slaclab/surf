@@ -34,6 +34,7 @@ use work.AxiLitePkg.all;
 entity Ad9249ConfigNoPullup is
    generic (
       TPD_G             : time            := 1 ns;
+      DEN_POLARITY_G : sl := '1';
       CLK_PERIOD_G      : real            := 8.0e-9;
       CLK_EN_PERIOD_G   : real            := 16.0e-9;
       NUM_CHIPS_G       : positive        := 1;
@@ -55,7 +56,7 @@ entity Ad9249ConfigNoPullup is
       adcSDout          : out std_logic;
       adcSDEn           : out std_logic;
       adcCsb            : out std_logic_vector(NUM_CHIPS_G*2-1 downto 0);
-      adcPdwn           : out std_logic_vector(NUM_CHIPS_G*2-1 downto 0)
+      adcPdwn           : out std_logic_vector(NUM_CHIPS_G-1 downto 0)
    );
 end Ad9249ConfigNoPullup;
 
@@ -109,7 +110,7 @@ architecture rtl of Ad9249ConfigNoPullup is
       wrData         : slv(23 downto 0);
       adcWrReq       : sl;
       adcRdReq       : sl;
-      pdwn           : slv(NUM_CHIPS_G*2-1 downto 0);
+      pdwn           : slv(NUM_CHIPS_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -148,7 +149,7 @@ begin
             v.chipSel              := axilWriteMaster.awaddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank select
             v.adcWrReq             := '1';
          elsif (axilWriteMaster.awaddr(PWDN_ADDR_BIT_C downto 0) = PWDN_ADDR_C) then
-            v.pdwn := axilWriteMaster.wdata(NUM_CHIPS_G*2-1 downto 0);
+            v.pdwn := axilWriteMaster.wdata(NUM_CHIPS_G-1 downto 0);
             axiSlaveWriteResponse(v.axilWriteSlave,AXI_RESP_OK_C);
          else
             axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, AXIL_ERR_RESP_G);
@@ -166,7 +167,7 @@ begin
             v.adcRdReq             := '1';
             
          elsif (axilReadMaster.araddr(PWDN_ADDR_BIT_C downto 0) = PWDN_ADDR_C) then
-            v.axilReadSlave.rdata(NUM_CHIPS_G*2-1 downto 0) := r.pdwn;
+            v.axilReadSlave.rdata(NUM_CHIPS_G-1 downto 0) := r.pdwn;
             axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
          else
             axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, AXIL_ERR_RESP_G);
@@ -252,7 +253,7 @@ begin
    -- ADC data
    adcSDout <= locSDout when adcSDir = '0' else '1';
    -- Enable for the top level tri-state
-   adcSDEn  <= not(adcSDir);
+   adcSDEn  <= ite(DEN_POLARITY_G = '1', not adcSDir, adcSDir);
 
    -- Control shift memory register
    process ( axilClk ) begin

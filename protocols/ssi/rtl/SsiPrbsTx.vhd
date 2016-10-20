@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2016-09-01
+-- Last update: 2016-09-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,9 +82,9 @@ architecture rtl of SsiPrbsTx is
       TDATA_BYTES_C => PRBS_BYTES_C,
       TDEST_BITS_C  => 8,
       TID_BITS_C    => 8,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TKEEP_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TKEEP_MODE_C,
       TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+      TUSER_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TUSER_MODE_C);
 
    type StateType is (
       IDLE_S,
@@ -360,6 +360,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,

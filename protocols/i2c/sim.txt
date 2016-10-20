@@ -1,3 +1,3 @@
 vhdl work sim/i2cRamSlave.vhd
 vhdl work sim/i2cRegMasterSimPkg.vhd
-vhdl work i2c/sim/i2cRegTb.vhd
+vhdl work sim/i2cRegTb.vhd

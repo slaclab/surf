@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2016-06-27
+-- Last update: 2016-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,7 +63,8 @@ entity Ad9249ReadoutGroup is
       adcSerial : in Ad9249SerialGroupType;
 
       -- Deserialized ADC Data
-      adcStreams : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0));
+      adcStreamClk : in  sl;
+      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0));
 end Ad9249ReadoutGroup;
 
 -- Define architecture
@@ -174,18 +175,18 @@ begin
          rst     => axilRst,
          dataIn  => adcR.locked,
          dataOut => lockedSync);
-   
+
    SynchronizerVec_1 : entity work.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,
          WIDTH_G  => 14)
       port map (
-         clk     => axilClk,                   
+         clk     => axilClk,
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
-   
+
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
@@ -195,8 +196,8 @@ begin
    begin
       v := axilR;
 
-      v.dataDelaySet  := (others => '0');
-      v.frameDelaySet := '0';
+      v.dataDelaySet        := (others => '0');
+      v.frameDelaySet       := '0';
       v.axilReadSlave.rdata := (others => '0');
 
       -- Fix this
@@ -224,7 +225,7 @@ begin
       end loop;
       axiSlaveRegisterR(axilEp, X"20", 0, curDelayFrame);
 
-      
+
       -- Debug output to see how many times the shift has needed a relock
       axiSlaveRegisterR(axilEp, X"30", 0, lockedFallCount);
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
@@ -445,7 +446,7 @@ begin
          wr_clk => adcBitClkR,
          wr_en  => '1',                 --Always write data
          din    => fifoDataIn,
-         rd_clk => axilClk,
+         rd_clk => adcStreamClk,
          rd_en  => fifoDataValid,
          valid  => fifoDataValid,
          dout   => fifoDataOut);

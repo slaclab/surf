@@ -1,0 +1,28 @@
+vhdl work Version.vhd
+
+vhdl work hdl/GigEthGthUltraScaleCore.vhd
+vhdl work hdl/GigEthGthUltraScaleCore_block.vhd
+vhdl work hdl/GigEthGthUltraScaleCore_reset_sync.vhd
+vhdl work hdl/GigEthGthUltraScaleCore_sync_block.vhd
+
+vhdl work hdl/transceiver/GigEthGthUltraScaleCore_transceiver.vhd
+
+verilog work hdl/transceiver/GigEthGthUltraScaleCore_gt.v
+verilog work hdl/transceiver/GigEthGthUltraScaleCore_gt_gthe3_channel_wrapper.v
+verilog work hdl/transceiver/GigEthGthUltraScaleCore_gt_gtwizard_gthe3.v
+verilog work hdl/transceiver/GigEthGthUltraScaleCore_gt_gtwizard_top.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_bit_synchronizer.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gthe3_channel.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gthe3_cpll_cal.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gthe3_cpll_cal_freq_counter.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_buffbypass_rx.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_buffbypass_tx.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_reset.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_userclk_rx.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_userclk_tx.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_userdata_rx.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_gtwiz_userdata_tx.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_reset_inv_synchronizer.v
+verilog work hdl/transceiver/gtwizard_ultrascale_v1_6_reset_synchronizer.v
+
+vhdl gig_ethernet_pcs_pma_v15_2_0 hdl/gig_ethernet_pcs_pma_v15_2_rfs.vhd

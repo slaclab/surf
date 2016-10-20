@@ -382,9 +382,27 @@ begin
       -------------------------------------------------------
       
       wait for CLK_PERIOD_C*10000;
-      --connRq1_i <= '0'; 
-      --connRq0_i <= '0';       
+      connRq1_i <= '0'; 
+      connRq0_i <= '0';       
             
+      -------------------------------------------------------
+      -- Inject fault into RSSI0
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject0_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject0_i <= '0';
+
+      -------------------------------------------------------
+      Inject fault into RSSI1
+      wait for CLK_PERIOD_C*10000;
+      -- 
+      inject1_i <= '1';
+      wait for CLK_PERIOD_C*20000;
+      -- 
+      inject1_i <= '0';
+      
       -------------------------------------------------------
       -- Inject fault into RSSI0
       wait for CLK_PERIOD_C*10000;
@@ -398,25 +416,7 @@ begin
       -- Inject fault into RSSI1
       wait for CLK_PERIOD_C*10000;
       -- 
-      --inject1_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject1_i <= '0';
-      
-      -------------------------------------------------------
-      -- Inject fault into RSSI0
-      wait for CLK_PERIOD_C*10000;
-      -- 
-      --inject0_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      --inject0_i <= '0';
-
-      -------------------------------------------------------
-      -- Inject fault into RSSI1
-      wait for CLK_PERIOD_C*10000;
-      -- 
-     -- inject1_i <= '1';
+      inject1_i <= '1';
       wait for CLK_PERIOD_C*20000;
       -- 
       inject1_i <= '0';
@@ -425,8 +425,8 @@ begin
       -- Inject fault into RSSI0 and RSSI1 Repeatedly
       wait for CLK_PERIOD_C*10000;
       -- 
-      --inject0_i <= '1';
-      --inject1_i <= '1';
+      inject0_i <= '1';
+      inject1_i <= '1';
       wait for CLK_PERIOD_C*20000;
       -- 
       inject0_i <= '0';

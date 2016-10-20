@@ -7,8 +7,12 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
-Device: &AxiEmpty 
+AxiEmpty: &AxiEmpty 
   name: AxiEmpty
   description: AxiEmpty Module as a placeholder for future module
+  class: MMIODev
+  configPrio: 1
   size: 0x0

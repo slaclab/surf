@@ -275,8 +275,9 @@ architecture rtl of RssiCore is
    signal bandwidth  : Slv64Array(1 downto 0);   
    
    -- attribute dont_touch                   : string;
+   -- attribute dont_touch of bandwidth      : signal is "TRUE";     
    -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";     
-   -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";     
+   -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";   
 
 ----------------------------------------------------------------------
 begin
