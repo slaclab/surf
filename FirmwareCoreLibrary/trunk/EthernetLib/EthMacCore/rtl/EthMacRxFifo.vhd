@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-10-20
+-- Last update: 2016-10-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -80,19 +80,11 @@ architecture rtl of EthMacRxFifo is
 
    constant VALID_THOLD_C : natural := ite(DROP_ERR_PKT_G, 0, 1);
 
-   type StateType is (
-      INIT_S,
-      WAIT_S,
-      REG_S);   
-
    type RegType is record
       rxFifoDrop : sl;
-      state      : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      rxFifoDrop => '0',
-      state      => INIT_S);      
-
+      rxFifoDrop => '0');
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
@@ -222,35 +214,8 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the flag
-      v.rxFifoDrop := '0';
-
       -- OR-ing drop flags together
-      drop := primDrop or bypDrop or uOr(vlanDrops);
-
-      -- State Machine
-      case r.state is
-         ----------------------------------------------------------------------
-         when INIT_S =>
-            -- Wait for first drop after reset
-            if (drop = '1') then
-               -- Next state
-               v.state := WAIT_S;
-            end if;
-         ----------------------------------------------------------------------
-         when WAIT_S =>
-            -- Wait for first drop after reset
-            if (drop = '0') then
-               -- Next state
-               v.state := REG_S;
-            end if;
-         ----------------------------------------------------------------------
-         when REG_S =>
-            -- Forward the drop frame flag
-            -- v.rxFifoDrop := drop;
-            v.rxFifoDrop := '0';
-      ----------------------------------------------------------------------
-      end case;
+      v.rxFifoDrop := primDrop or bypDrop or uOr(vlanDrops);
 
       -- Reset
       if (sRst = '1') or (phyReady = '0') then
