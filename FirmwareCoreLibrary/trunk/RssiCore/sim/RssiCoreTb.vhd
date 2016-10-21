@@ -395,7 +395,7 @@ begin
       inject0_i <= '0';
 
       -------------------------------------------------------
-      Inject fault into RSSI1
+      -- Inject fault into RSSI1
       wait for CLK_PERIOD_C*10000;
       -- 
       inject1_i <= '1';
