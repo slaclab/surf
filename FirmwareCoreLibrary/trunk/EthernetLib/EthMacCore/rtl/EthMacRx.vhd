@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-10-06
+-- Last update: 2016-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,7 +43,8 @@ entity EthMacRx is
       BYP_ETH_TYPE_G : slv(15 downto 0)      := x"0000";
       -- VLAN Configurations
       VLAN_EN_G      : boolean               := false;
-      VLAN_CNT_G     : positive range 1 to 8 := 1);
+      VLAN_SIZE_G    : positive range 1 to 8 := 1;
+      VLAN_VID_G     : Slv12Array            := (0 => x"001"));
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -55,8 +56,8 @@ entity EthMacRx is
       mBypMaster   : out AxiStreamMasterType;
       mBypCtrl     : in  AxiStreamCtrlType;
       -- VLAN Interfaces
-      mVlanMasters : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0);
+      mVlanMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+      mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_SIZE_G-1 downto 0);
       -- XLGMII PHY Interface
       xlgmiiRxd    : in  slv(127 downto 0);
       xlgmiiRxc    : in  slv(15 downto 0);
@@ -81,7 +82,7 @@ architecture mapping of EthMacRx is
 
    signal macIbMaster  : AxiStreamMasterType;
    signal pauseMaster  : AxiStreamMasterType;
-   signal pauseMasters : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
+   signal pauseMasters : AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
    signal csumMaster   : AxiStreamMasterType;
    signal bypassMaster : AxiStreamMasterType;
 
@@ -120,10 +121,11 @@ begin
    ------------------
    U_Pause : entity work.EthMacRxPause
       generic map (
-         TPD_G      => TPD_G,
-         PAUSE_EN_G => PAUSE_EN_G,
-         VLAN_EN_G  => VLAN_EN_G,
-         VLAN_CNT_G => VLAN_CNT_G)         
+         TPD_G       => TPD_G,
+         PAUSE_EN_G  => PAUSE_EN_G,
+         VLAN_EN_G   => VLAN_EN_G,
+         VLAN_SIZE_G => VLAN_SIZE_G,
+         VLAN_VID_G  => VLAN_VID_G)         
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -162,7 +164,7 @@ begin
    --------------------------         
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
-      for i in (VLAN_CNT_G-1) downto 0 generate
+      for i in (VLAN_SIZE_G-1) downto 0 generate
          U_Csum : entity work.EthMacRxCsum
             generic map (
                TPD_G   => TPD_G,
