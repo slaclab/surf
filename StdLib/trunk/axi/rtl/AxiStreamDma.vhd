@@ -43,7 +43,6 @@ entity AxiStreamDma is
       AXIL_BASE_ADDR_G  : slv(31 downto 0)           := x"00000000";
       AXI_READY_EN_G    : boolean                    := false;
       AXIS_READY_EN_G   : boolean                    := false;
-      AXIS_VALID_THOLD_G : natural                   := 1;-- Should be the same as inbound DMA AXIS FIFO
       AXIS_CONFIG_G     : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G      : AxiConfigType              := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)            := "01";
@@ -412,7 +411,6 @@ begin
       generic map (
          TPD_G              => TPD_G,
          AXI_READY_EN_G     => AXI_READY_EN_G,
-         AXIS_VALID_THOLD_G => AXIS_VALID_THOLD_G,
          AXIS_CONFIG_G      => AXIS_CONFIG_G,
          AXI_CONFIG_G       => AXI_CONFIG_G,
          AXI_BURST_G        => AXI_BURST_G,
