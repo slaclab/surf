@@ -106,7 +106,7 @@ begin
                if (sAxisMaster.tValid = '1') then
                   -- Check for pause frame
                   if (sAxisMaster.tData(47 downto 0) = x"010000c28001") and  -- DST MAC (Pause MAC Address)
-                     (sAxisMaster.tData(127 downto 112) = x"01000888") then  -- Mac Type, Mac OpCode
+                     (sAxisMaster.tData(127 downto 96) = x"01000888") then  -- Mac Type, Mac OpCode
                      -- Check for no EOF
                      if (sAxisMaster.tLast = '0') then
                         -- Next State

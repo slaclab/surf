@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-10-12
+-- Last update: 2016-10-17
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,7 +59,8 @@ architecture rtl of SsiObFrameFilter is
    type StateType is (
       IDLE_S,
       BLOWOFF_S,
-      MOVE_S);        
+      MOVE_S,
+      TERM_S);        
 
    type RegType is record
       wordDropped  : sl;
@@ -193,7 +194,7 @@ begin
                      v.state := IDLE_S;
                   end if;
                   -- Check for SSI framing errors (repeated SOF or interleaved frame)
-                  if (sof = '1') or (r.tDest /= sAxisMaster.tDest) or (overflow = '1') then
+                  if (sof = '1') or (r.tDest /= sAxisMaster.tDest) then
                      -- Set the EOF flag
                      v.master.tLast := '1';
                      -- Set the EOFE flag
@@ -201,12 +202,39 @@ begin
                      -- Strobe the error flags
                      v.wordDropped  := '1';
                      v.frameDropped := sAxisMaster.tLast;
-                     -- Check for non-EOF
-                     if (sAxisMaster.tLast = '0') then
-                        -- Next state
-                        v.state := BLOWOFF_S;
-                     end if;
+                     -- Next state
+                     v.state        := IDLE_S;
                   end if;
+               end if;
+               -- Check for overflow event
+               if (overflow = '1') then
+                  -- Check if moving data
+                  if (v.master.tValid = '1') then
+                     -- Set the EOF flag
+                     v.master.tLast := '1';
+                     -- Set the EOFE flag
+                     ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+                     -- Strobe the error flags
+                     v.wordDropped  := '1';
+                     v.frameDropped := sAxisMaster.tLast;
+                     -- Next state
+                     v.state        := IDLE_S;
+                  else
+                     -- Next state
+                     v.state := TERM_S;
+                  end if;
+               end if;
+            ----------------------------------------------------------------------
+            when TERM_S =>
+               -- Check if ready to move data
+               if (v.master.tValid = '0') then
+                  -- Set the EOF flag
+                  v.master.tValid := '1';
+                  v.master.tLast  := '1';
+                  -- Set the EOFE flag
+                  ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+                  -- Next state
+                  v.state         := IDLE_S;
                end if;
          ----------------------------------------------------------------------
          end case;

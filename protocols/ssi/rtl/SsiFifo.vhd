@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-10-12
+-- Last update: 2016-10-17
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity SsiFifo is
       PIPE_STAGES_G       : natural               := 1;
       SLAVE_READY_EN_G    : boolean               := true;
       EN_FRAME_FILTER_G   : boolean               := true;
+      OR_DROP_FLAGS_G     : boolean               := false;
       VALID_THOLD_G       : natural               := 1;
       -- FIFO configurations
       BRAM_EN_G           : boolean               := true;
@@ -84,6 +85,16 @@ architecture mapping of SsiFifo is
    signal txSlave      : AxiStreamSlaveType;
    signal txTLastTUser : slv(7 downto 0);
    signal overflow     : sl;
+
+   signal sDropWrite     : sl;
+   signal sDropWriteSync : sl;
+   signal sTermFrame     : sl;
+   signal sTermFrameSync : sl;
+
+   signal mDropWrite     : sl;
+   signal mDropWriteSync : sl;
+   signal mTermFrame     : sl;
+   signal mTermFrameSync : sl;
    
 begin
 
@@ -101,15 +112,15 @@ begin
          sAxisMaster    => sAxisMaster,
          sAxisSlave     => sAxisSlave,
          sAxisCtrl      => sAxisCtrl,
-         sAxisDropWrite => sAxisDropWrite,
-         sAxisTermFrame => sAxisTermFrame,
+         sAxisDropWrite => sDropWrite,
+         sAxisTermFrame => sTermFrame,
          -- Master Port
          mAxisMaster    => rxMaster,
          mAxisSlave     => rxSlave,
          mAxisCtrl      => rxCtrl,
          -- Clock and Reset
          axisClk        => sAxisClk,
-         axisRst        => sAxisRst);  
+         axisRst        => sAxisReset);  
 
    U_Fifo : entity work.AxiStreamFifoV2
       generic map (
@@ -182,11 +193,69 @@ begin
          -- Master Port
          mAxisMaster    => mAxisMaster,
          mAxisSlave     => mAxisSlave,
-         mAxisDropWrite => mAxisDropWrite,
-         mAxisTermFrame => mAxisTermFrame,
+         mAxisDropWrite => mDropWrite,
+         mAxisTermFrame => mTermFrame,
          -- Clock and Reset
          axisClk        => mAxisClk,
          axisRst        => mAxisRst);          
 
+   
+   ORING_DROP : if (OR_DROP_FLAGS_G = true) generate
+      
+      GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
+         sAxisDropWrite <= sDropWrite or mDropWrite;
+         sAxisTermFrame <= sTermFrame or mTermFrame;
+         mAxisDropWrite <= sDropWrite or mDropWrite;
+         mAxisTermFrame <= sTermFrame or mTermFrame;
+      end generate;
+
+      GEN_ASYNC : if (GEN_SYNC_FIFO_G = false) generate
+         
+         sAxisDropWrite <= sDropWrite or mDropWriteSync;
+         sAxisTermFrame <= sTermFrame or mTermFrameSync;
+         mAxisDropWrite <= sDropWriteSync or mDropWrite;
+         mAxisTermFrame <= sTermFrameSync or mTermFrame;
+
+         Sync_0 : entity work.SynchronizerOneShot
+            generic map (
+               TPD_G => TPD_G)
+            port map (
+               clk     => sAxisClk,
+               dataIn  => mDropWrite,
+               dataOut => mDropWriteSync);  
+
+         Sync_1 : entity work.SynchronizerOneShot
+            generic map (
+               TPD_G => TPD_G)
+            port map (
+               clk     => sAxisClk,
+               dataIn  => mTermFrame,
+               dataOut => mTermFrameSync);   
+
+         Sync_2 : entity work.SynchronizerOneShot
+            generic map (
+               TPD_G => TPD_G)
+            port map (
+               clk     => mAxisClk,
+               dataIn  => sDropWrite,
+               dataOut => sDropWriteSync);  
+
+         Sync_3 : entity work.SynchronizerOneShot
+            generic map (
+               TPD_G => TPD_G)
+            port map (
+               clk     => mAxisClk,
+               dataIn  => sTermFrame,
+               dataOut => sTermFrameSync);                  
+
+      end generate;
+   end generate;
+
+   NO_ORING_DROP : if (OR_DROP_FLAGS_G = false) generate
+      sAxisDropWrite <= sDropWrite;
+      sAxisTermFrame <= sTermFrame;
+      mAxisDropWrite <= mDropWrite;
+      mAxisTermFrame <= mTermFrame;
+   end generate;
 
 end mapping;
