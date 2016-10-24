@@ -5,7 +5,7 @@
 -- File       : AxiStreamShift.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-09-30
+-- Last update: 2016-10-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ architecture structure of AxiStreamShift is
 
    signal pipeAxisMaster : AxiStreamMasterType;
    signal pipeAxisSlave  : AxiStreamSlaveType;
-   
+
 --   attribute dont_touch      : string;
 --   attribute dont_touch of r : signal is "TRUE";    
 
@@ -177,6 +177,7 @@ begin
       variable v       : RegType;
       variable sMaster : AxiStreamMasterType;
    begin
+      -- Latch the current value 
       v := r;
 
       -- Init Ready
@@ -261,12 +262,21 @@ begin
             end if;
       end case;
 
+      -- Mask off the unused tStrb and tKeep bits
+      if (AXIS_CONFIG_G.TDATA_BYTES_C /= 16) then
+         v.master.tKeep(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+         v.master.tStrb(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+      end if;
+
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle  
       rin <= v;
 
+      -- Outputs 
       sAxisSlave     <= v.slave;
       pipeAxisMaster <= r.master;
 
