@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once AxiSy56040.yaml
 
 AxiSy56040: &AxiSy56040 
   description: AXI-Lite Microchip SY56040 and Microchip SY58040
