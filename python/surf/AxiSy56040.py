@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+#-----------------------------------------------------------------------------
+# Title      : PyRogue Device AxiSy56040
+#-----------------------------------------------------------------------------
+# File       : AxiSy56040.py
+# Author     : Ryan Herbst, rherbst@slac.stanford.edu
+# Created    : 2016-10-24
+# Last update: 2016-10-24
+#-----------------------------------------------------------------------------
+# Description:
+# Device creator for AxiSy56040
+# Auto created from ../surf/devices/Microchip/sy56040/yaml/AxiSy56040.yaml
+#-----------------------------------------------------------------------------
+# This file is part of the rogue software platform. It is subject to 
+# the license terms in the LICENSE.txt file found in the top-level directory 
+# of this distribution and at: 
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+# No part of the rogue software platform, including this file, may be 
+# copied, modified, propagated, or distributed except according to the terms 
+# contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
+import pyrogue
+
+def create(name, offset, memBase=None, hidden=False):
+
+    dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
+                         hidden=hidden,size=0x10,
+                         description='AXI-Lite Microchip SY56040 and Microchip SY58040')
+
+    dev.add(pyrogue.Variable(name='OutputConfig_0',
+                             description='Output Configuration Register Array',
+                             hidden=False, enum=None, offset=0x0, bitSize=2, bitOffset=0, base='uint', mode='RW'))
+
+    dev.add(pyrogue.Variable(name='OutputConfig_1',
+                             description='Output Configuration Register Array',
+                             hidden=False, enum=None, offset=0x4, bitSize=2, bitOffset=0, base='uint', mode='RW'))
+
+    dev.add(pyrogue.Variable(name='OutputConfig_2',
+                             description='Output Configuration Register Array',
+                             hidden=False, enum=None, offset=0x8, bitSize=2, bitOffset=0, base='uint', mode='RW'))
+
+    dev.add(pyrogue.Variable(name='OutputConfig_3',
+                             description='Output Configuration Register Array',
+                             hidden=False, enum=None, offset=0xc, bitSize=2, bitOffset=0, base='uint', mode='RW'))
+
