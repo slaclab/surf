@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+#-----------------------------------------------------------------------------
+# Title      : PyRogue Device AxiCdcm6208
+#-----------------------------------------------------------------------------
+# File       : AxiCdcm6208.py
+# Author     : Ryan Herbst, rherbst@slac.stanford.edu
+# Created    : 2016-10-24
+# Last update: 2016-10-24
+#-----------------------------------------------------------------------------
+# Description:
+# Device creator for AxiCdcm6208
+# Auto created from ../surf/devices/Ti/cdcm6208/yaml/AxiCdcm6208.yaml
+#-----------------------------------------------------------------------------
+# This file is part of the rogue software platform. It is subject to 
+# the license terms in the LICENSE.txt file found in the top-level directory 
+# of this distribution and at: 
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+# No part of the rogue software platform, including this file, may be 
+# copied, modified, propagated, or distributed except according to the terms 
+# contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
+import pyrogue
+
+def create(name, offset, memBase=None, hidden=False):
+
+    dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
+                         hidden=hidden,size=0x100,
+                         description='AxiCdcm6208 Module')
+
+    dev.add(pyrogue.Variable(name='Cdcm6208',
+                             description='Cdcm6208 Control Registers',
+                             hidden=False, enum=None, offset=0x0, bitSize=336, bitOffset=0, base='uint', mode='RW'))
+
+    dev.add(pyrogue.Variable(name='SEL_REF',
+                             description='Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary',
+                             hidden=False, enum=None, offset=0x54, bitSize=1, bitOffset=0, base='uint', mode='RO'))
+
+    dev.add(pyrogue.Variable(name='LOS_REF',
+                             description='Loss of reference input: 0 => Reference input present 1 => Loss of reference input.',
+                             hidden=False, enum=None, offset=0x54, bitSize=1, bitOffset=1, base='uint', mode='RO'))
+
+    dev.add(pyrogue.Variable(name='PLL_UNLOCK',
+                             description='Indicates unlock status for PLL (digital):0 => PLL locked 1 => PLL unlocked',
+                             hidden=False, enum=None, offset=0x54, bitSize=1, bitOffset=2, base='uint', mode='RO'))
+
+    dev.add(pyrogue.Variable(name='DIE_REVISION',
+                             description='Indicates the silicon die revision (Read only): 2:0 DIE_REVISION 00X --> Engineering Prototypes 010 --> Production Materia',
+                             hidden=False, enum=None, offset=0xa0, bitSize=3, bitOffset=0, base='uint', mode='RO'))
+
+    dev.add(pyrogue.Variable(name='VCO_VERSION',
+                             description='Indicates the device version (Read only):5:3 VCO_VERSION 000 => CDCM6208V1 001 => CDCM6208V2',
+                             hidden=False, enum=None, offset=0xa0, bitSize=3, bitOffset=3, base='uint', mode='RO'))
+

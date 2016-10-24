@@ -29,7 +29,7 @@ GigEthReg: &GigEthReg
     StatusVector:
       class: IntField
       at:
-        offset: 0x100:
+        offset: 0x100
       sizeBits: 9       
       mode: RO
       description: Status Vector   
@@ -37,7 +37,7 @@ GigEthReg: &GigEthReg
     PhyStatus:
       class: IntField
       at:
-        offset: 0x108:
+        offset: 0x108
       sizeBits: 8      
       mode: RO
       description: PhyStatus              
