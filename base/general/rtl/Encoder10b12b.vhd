@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2016-10-20
+-- Last update: 2016-10-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,16 +29,16 @@ entity Encoder10b12b is
 
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';
+      RST_POLARITY_G : sl      := '0';
       RST_ASYNC_G    : boolean := true;
-      USE_CLK_EN_G       : boolean := false;
+      USE_CLK_EN_G   : boolean := false;
       DEBUG_DISP_G   : boolean := false);
    port (
       clk     : in  sl;
       clkEn   : in  sl := '1';                 -- Optional Clock Enable
       rst     : in  sl := not RST_POLARITY_G;  -- Optional Reset
       dataIn  : in  slv(9 downto 0);
-      dispIn  : in  sl;
+      dispIn  : in  sl := '0';
       dataKIn : in  sl;
       dataOut : out slv(11 downto 0);
       dispOut : out sl);
