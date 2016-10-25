@@ -22,17 +22,18 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='udpEngineClient', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x8,
                          description='UdpEngineClient')
 
-    dev.add(pyrogue.Variable(name='ClientRemotePort',
+    dev.add(pyrogue.Variable(name='clientRemotePort',
                              description='ClientRemotePort (big-Endian configuration)',
                              hidden=False, enum=None, offset=0x0, bitSize=16, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='ClientRemoteIp',
+    dev.add(pyrogue.Variable(name='clientRemoteIp',
                              description='ClientRemoteIp (big-Endian configuration)',
                              hidden=False, enum=None, offset=0x4, bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
+    return dev

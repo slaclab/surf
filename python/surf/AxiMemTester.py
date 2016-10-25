@@ -22,45 +22,46 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='axiMemTester', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x1000,
                          description='AXI4 Memory Tester Module')
 
-    dev.add(pyrogue.Variable(name='Passed',
+    dev.add(pyrogue.Variable(name='passed',
                              description='Passed Memory Test',
                              hidden=False, enum=None, offset=0x100, bitSize=1, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='Failed',
+    dev.add(pyrogue.Variable(name='failed',
                              description='Failed Memory Test',
                              hidden=False, enum=None, offset=0x104, bitSize=1, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='WriteTimer',
+    dev.add(pyrogue.Variable(name='writeTimer',
                              description='Write Timer',
                              hidden=False, enum=None, offset=0x108, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ReadTimer',
+    dev.add(pyrogue.Variable(name='readTimer',
                              description='Read Timer',
                              hidden=False, enum=None, offset=0x10c, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='StartAddress',
+    dev.add(pyrogue.Variable(name='startAddress',
                              description='Start Address',
                              hidden=False, enum=None, offset=0x110, bitSize=64, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='StopAddress',
+    dev.add(pyrogue.Variable(name='stopAddress',
                              description='Stop Address',
                              hidden=False, enum=None, offset=0x118, bitSize=64, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ADDR_WIDTH_C',
+    dev.add(pyrogue.Variable(name='aDDR_WIDTH_C',
                              description='AXI4 Address Bus Width (units of bits)',
                              hidden=False, enum=None, offset=0x120, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='DATA_BYTES_C',
+    dev.add(pyrogue.Variable(name='dATA_BYTES_C',
                              description='AXI4 Data Bus Width (units of bits)',
                              hidden=False, enum=None, offset=0x124, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ID_BITS_C',
+    dev.add(pyrogue.Variable(name='iD_BITS_C',
                              description='AXI4 ID Bus Width (units of bits)',
                              hidden=False, enum=None, offset=0x128, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
+    return dev

@@ -22,33 +22,34 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='axiCdcm6208', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x100,
                          description='AxiCdcm6208 Module')
 
-    dev.add(pyrogue.Variable(name='Cdcm6208',
+    dev.add(pyrogue.Variable(name='cdcm6208',
                              description='Cdcm6208 Control Registers',
                              hidden=False, enum=None, offset=0x0, bitSize=336, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='SEL_REF',
+    dev.add(pyrogue.Variable(name='sEL_REF',
                              description='Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary',
                              hidden=False, enum=None, offset=0x54, bitSize=1, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='LOS_REF',
+    dev.add(pyrogue.Variable(name='lOS_REF',
                              description='Loss of reference input: 0 => Reference input present 1 => Loss of reference input.',
                              hidden=False, enum=None, offset=0x54, bitSize=1, bitOffset=1, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='PLL_UNLOCK',
+    dev.add(pyrogue.Variable(name='pLL_UNLOCK',
                              description='Indicates unlock status for PLL (digital):0 => PLL locked 1 => PLL unlocked',
                              hidden=False, enum=None, offset=0x54, bitSize=1, bitOffset=2, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='DIE_REVISION',
+    dev.add(pyrogue.Variable(name='dIE_REVISION',
                              description='Indicates the silicon die revision (Read only): 2:0 DIE_REVISION 00X --> Engineering Prototypes 010 --> Production Materia',
                              hidden=False, enum=None, offset=0xa0, bitSize=3, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='VCO_VERSION',
+    dev.add(pyrogue.Variable(name='vCO_VERSION',
                              description='Indicates the device version (Read only):5:3 VCO_VERSION 000 => CDCM6208V1 001 => CDCM6208V2',
                              hidden=False, enum=None, offset=0xa0, bitSize=3, bitOffset=3, base='uint', mode='RO'))
 
+    return dev

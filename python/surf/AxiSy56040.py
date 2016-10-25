@@ -22,25 +22,26 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='axiSy56040', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x10,
                          description='AXI-Lite Microchip SY56040 and Microchip SY58040')
 
-    dev.add(pyrogue.Variable(name='OutputConfig_0',
+    dev.add(pyrogue.Variable(name='outputConfig_0',
                              description='Output Configuration Register Array',
                              hidden=False, enum=None, offset=0x0, bitSize=2, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='OutputConfig_1',
+    dev.add(pyrogue.Variable(name='outputConfig_1',
                              description='Output Configuration Register Array',
                              hidden=False, enum=None, offset=0x4, bitSize=2, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='OutputConfig_2',
+    dev.add(pyrogue.Variable(name='outputConfig_2',
                              description='Output Configuration Register Array',
                              hidden=False, enum=None, offset=0x8, bitSize=2, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='OutputConfig_3',
+    dev.add(pyrogue.Variable(name='outputConfig_3',
                              description='Output Configuration Register Array',
                              hidden=False, enum=None, offset=0xc, bitSize=2, bitOffset=0, base='uint', mode='RW'))
 
+    return dev

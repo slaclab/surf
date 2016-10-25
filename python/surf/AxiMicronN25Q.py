@@ -22,29 +22,30 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='axiMicronN25Q', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x400,
                          description='AXI-Lite Micron N25Q and Micron MT25Q PROM')
 
-    dev.add(pyrogue.Variable(name='Test',
+    dev.add(pyrogue.Variable(name='test',
                              description='Scratch Pad tester register',
                              hidden=False, enum=None, offset=0x0, bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Addr32BitMode',
+    dev.add(pyrogue.Variable(name='addr32BitMode',
                              description='Enable 32-bit PROM mode',
                              hidden=False, enum=None, offset=0x4, bitSize=1, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Addr',
+    dev.add(pyrogue.Variable(name='addr',
                              description='Address Register',
                              hidden=False, enum=None, offset=0x8, bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Cmd',
+    dev.add(pyrogue.Variable(name='cmd',
                              description='Command Register',
                              hidden=False, enum=None, offset=0xc, bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Data',
+    dev.add(pyrogue.Variable(name='data',
                              description='Data Register Array',
                              hidden=False, enum=None, offset=0x200, bitSize=2048, bitOffset=0, base='uint', mode='RW'))
 
+    return dev
