@@ -22,64 +22,65 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='ssiPrbsTx', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x100,
                          description='SsiPrbsTx')
 
-    dev.add(pyrogue.Variable(name='AxiEn',
+    dev.add(pyrogue.Variable(name='axiEn',
                              description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=0, base='uint', mode='RW'))
+                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=0, base='bool', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='TxEn',
+    dev.add(pyrogue.Variable(name='txEn',
                              description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=1, base='uint', mode='RW'))
+                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=1, base='bool', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Busy',
+    dev.add(pyrogue.Variable(name='busy',
                              description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=2, base='uint', mode='RO'))
+                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=2, base='bool', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='Overflow',
+    dev.add(pyrogue.Variable(name='overflow',
                              description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=3, base='uint', mode='RO'))
+                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=3, base='bool', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='OneShot',
+    dev.add(pyrogue.Variable(name='oneShotCmd',
                              description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=4, base='uint', mode='WO'))
+                             hidden=True, enum=None, offset=0x0, bitSize=1, bitOffset=4, base='bool', mode='SL'))
 
-    dev.add(pyrogue.Variable(name='FwCnt',
+    dev.add(pyrogue.Variable(name='fwCnt',
                              description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=5, base='uint', mode='RW'))
+                             hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=5, base='bool', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='PacketLength',
+    dev.add(pyrogue.Variable(name='packetLength',
                              description='',
                              hidden=False, enum=None, offset=0x4, bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='tDest',
                              description='',
-                             hidden=False, enum=None, offset=0x8, bitSize=8, bitOffset=0, base='uint', mode='RW'))
+                             hidden=False, enum=None, offset=0x8, bitSize=8, bitOffset=0, base='hex', mode='RW'))
 
     dev.add(pyrogue.Variable(name='tId',
                              description='',
-                             hidden=False, enum=None, offset=0x2, bitSize=8, bitOffset=16, base='uint', mode='RW'))
+                             hidden=False, enum=None, offset=0x8, bitSize=8, bitOffset=8, base='hex', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='DataCount',
+    dev.add(pyrogue.Variable(name='dataCount', pollEn=True,
                              description='',
                              hidden=False, enum=None, offset=0xc, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='EventCount',
+    dev.add(pyrogue.Variable(name='eventCount', pollEn=True,
                              description='',
                              hidden=False, enum=None, offset=0x10, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='RandomData',
+    dev.add(pyrogue.Variable(name='randomData', pollEn=True,
                              description='',
-                             hidden=False, enum=None, offset=0x14, bitSize=32, bitOffset=0, base='uint', mode='RO'))
+                             hidden=False, enum=None, offset=0x14, bitSize=32, bitOffset=0, base='hex', mode='RO'))
 
-    dev.add(pyrogue.Command(name='C_OneShot',
+    dev.add(pyrogue.Command(name='oneShot',
                             description='',
-                            hidden=False, base=None,
+                            hidden=False, base='None',
                             function="""\
-                                     dev.OneShot.set(1)
-                                     """
+                                     dev.oneShotCmd.set(1)
+                                     """))
 
+    return dev

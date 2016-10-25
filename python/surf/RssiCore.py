@@ -22,153 +22,154 @@
 
 import pyrogue
 
-def create(name, offset, memBase=None, hidden=False):
+def create(name='rssiCore', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x100,
                          description='RSSI module')
 
-    dev.add(pyrogue.Variable(name='OpenConn',
+    dev.add(pyrogue.Variable(name='openConn',
                              description='Open Connection Request (Server goes to listen state, Client actively requests the connection by sending SYN segment)',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='CloseConn',
+    dev.add(pyrogue.Variable(name='closeConn',
                              description='Close Connection Request (Send a RST Segment to peer and close the connection)',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=1, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Mode',
+    dev.add(pyrogue.Variable(name='mode',
                              description='Mode:'0': Use internal parameters from generics,'1': Use parameters from registers',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=2, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='HeaderChksumEn',
+    dev.add(pyrogue.Variable(name='headerChksumEn',
                              description='Header checksum: '1': Enable calculation and check, '0': Disable check and insert 0 in place of header checksum',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=3, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='InjectFault',
+    dev.add(pyrogue.Variable(name='injectFault',
                              description='Inject fault to the next packet header checksum (Default '0'). Acts on rising edge - injects exactly one fault in next segment',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=4, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='InitSeqN',
+    dev.add(pyrogue.Variable(name='initSeqN',
                              description='Initial sequence number [7:0]',
                              hidden=False, enum=None, offset=0x4, bitSize=8, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='Version',
+    dev.add(pyrogue.Variable(name='version',
                              description='Version register [3:0]',
                              hidden=False, enum=None, offset=0x8, bitSize=4, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='MaxOutsSeg',
+    dev.add(pyrogue.Variable(name='maxOutsSeg',
                              description='Maximum out standing segments [7:0]',
                              hidden=False, enum=None, offset=0xc, bitSize=8, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='MaxSegSize',
+    dev.add(pyrogue.Variable(name='maxSegSize',
                              description='Maximum segment size [15:0]',
                              hidden=False, enum=None, offset=0x10, bitSize=16, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='RetransTimeout',
+    dev.add(pyrogue.Variable(name='retransTimeout',
                              description='Retransmission timeout [15:0]',
                              hidden=False, enum=None, offset=0x14, bitSize=16, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='CumAckTimeout',
+    dev.add(pyrogue.Variable(name='cumAckTimeout',
                              description='Cumulative acknowledgment timeout [15:0]',
                              hidden=False, enum=None, offset=0x18, bitSize=16, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='NullSegTimeout',
+    dev.add(pyrogue.Variable(name='nullSegTimeout',
                              description='Null segment timeout [15:0]',
                              hidden=False, enum=None, offset=0x1c, bitSize=16, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='MaxNumRetrans',
+    dev.add(pyrogue.Variable(name='maxNumRetrans',
                              description='Maximum number of retransmissions [7:0]',
                              hidden=False, enum=None, offset=0x20, bitSize=8, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='MaxCumAck',
+    dev.add(pyrogue.Variable(name='maxCumAck',
                              description='Maximum cumulative acknowledgments [7:0]',
                              hidden=False, enum=None, offset=0x24, bitSize=8, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='MaxOutOfSeq',
+    dev.add(pyrogue.Variable(name='maxOutOfSeq',
                              description='Max out of sequence segments (EACK) [7:0]',
                              hidden=False, enum=None, offset=0x28, bitSize=8, bitOffset=0, base='uint', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='ConnectionActive',
+    dev.add(pyrogue.Variable(name='connectionActive',
                              description='Connection Active',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ErrMaxRetrans',
+    dev.add(pyrogue.Variable(name='errMaxRetrans',
                              description='Maximum retransmissions exceeded retransMax.',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=1, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ErrNullTout',
+    dev.add(pyrogue.Variable(name='errNullTout',
                              description='Null timeout reached (server) nullTout.',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=2, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ErrAck',
+    dev.add(pyrogue.Variable(name='errAck',
                              description='Error in acknowledgment mechanism.',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=3, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ErrSsiFrameLen',
+    dev.add(pyrogue.Variable(name='errSsiFrameLen',
                              description='SSI Frame length too long',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=4, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ErrConnTout',
+    dev.add(pyrogue.Variable(name='errConnTout',
                              description='Connection to peer timed out. Timeout defined in generic PEER_CONN_TIMEOUT_G (Default: 1000 ms)',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=5, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ParamRejected',
+    dev.add(pyrogue.Variable(name='paramRejected',
                              description='Client rejected the connection (parameters out of range), Server proposed new parameters (parameters out of range)',
                              hidden=False, enum=None, offset=0x40, bitSize=1, bitOffset=6, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ValidCnt',
+    dev.add(pyrogue.Variable(name='validCnt',
                              description='Number of valid segments [31:0]',
                              hidden=False, enum=None, offset=0x44, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='DropCnt',
+    dev.add(pyrogue.Variable(name='dropCnt',
                              description='Number of dropped segments [31:0]',
                              hidden=False, enum=None, offset=0x48, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='RetransmitCnt',
+    dev.add(pyrogue.Variable(name='retransmitCnt',
                              description='Counts all retransmission requests within the active connection [31:0]',
                              hidden=False, enum=None, offset=0x4c, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='ReconnectCnt',
+    dev.add(pyrogue.Variable(name='reconnectCnt',
                              description='Counts all reconnections from reset [31:0]',
                              hidden=False, enum=None, offset=0x50, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='FrameRate_0',
+    dev.add(pyrogue.Variable(name='frameRate_0',
                              description='Frame Rate (in units of Hz)',
                              hidden=False, enum=None, offset=0x54, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='FrameRate_1',
+    dev.add(pyrogue.Variable(name='frameRate_1',
                              description='Frame Rate (in units of Hz)',
                              hidden=False, enum=None, offset=0x58, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='Bandwidth_0',
+    dev.add(pyrogue.Variable(name='bandwidth_0',
                              description='Bandwidth (in units of bytes per second)',
                              hidden=False, enum=None, offset=0x5c, bitSize=64, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='Bandwidth_1',
+    dev.add(pyrogue.Variable(name='bandwidth_1',
                              description='Bandwidth (in units of bytes per second)',
                              hidden=False, enum=None, offset=0x64, bitSize=64, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Command(name='C_OpenConn',
+    dev.add(pyrogue.Command(name='c_OpenConn',
                             description='Open connection request',
-                            hidden=False, base=None,
+                            hidden=False, base='None',
                             function="""\
-                                     dev.OpenConn.set(1)
-                                     dev.OpenConn.set(0)
-                                     """
+                                     dev.openConn.set(1)
+                                     dev.openConn.set(0)
+                                     """))
 
-    dev.add(pyrogue.Command(name='C_CloseConn',
+    dev.add(pyrogue.Command(name='c_CloseConn',
                             description='Close connection request',
-                            hidden=False, base=None,
+                            hidden=False, base='None',
                             function="""\
-                                     dev.CloseConn.set(1)
-                                     dev.CloseConn.set(0)
-                                     """
+                                     dev.closeConn.set(1)
+                                     dev.closeConn.set(0)
+                                     """))
 
-    dev.add(pyrogue.Command(name='C_InjectFault',
+    dev.add(pyrogue.Command(name='c_InjectFault',
                             description='Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission',
-                            hidden=False, base=None,
+                            hidden=False, base='None',
                             function="""\
-                                     dev.InjectFault.set(1)
-                                     dev.InjectFault.set(0)
-                                     """
+                                     dev.injectFault.set(1)
+                                     dev.injectFault.set(0)
+                                     """))
 
+    return dev
