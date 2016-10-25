@@ -15,14 +15,14 @@ vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7MultiLane.vhd
 vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7VarLat.vhd
 vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGth7VarLatWrapper.vhd
 
-vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGtp7FixedLat.vhd
-vhdl work pgp/pgp2b/gth7/rtl/Pgp2bGtp7FixedLatWrapper.vhd
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7FixedLat.vhd
+vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7FixedLatWrapper.vhd
 vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7MultiLane.vhd
 vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7VarLat.vhd
 vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtp7VarLatWrapper.vhd
 
-vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtx7FixedLat.vhd
-vhdl work pgp/pgp2b/gtp7/rtl/Pgp2bGtx7FixedLatWrapper.vhd
+vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7FixedLat.vhd
+vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7FixedLatWrapper.vhd
 vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7MultiLane.vhd
 vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7VarLat.vhd
 vhdl work pgp/pgp2b/gtx7/rtl/Pgp2bGtx7VarLatWrapper.vhd
@@ -153,14 +153,16 @@ vhdl work ssi/rtl/SsiPkg.vhd
 vhdl work ssi/rtl/SsiPrbsRx.vhd
 vhdl work ssi/rtl/SsiPrbsTx.vhd
 
-vhdl work ssi/rtl/UartAxiLiteMaster.vhd
-vhdl work ssi/rtl/UartBrg.vhd
-vhdl work ssi/rtl/UartRx.vhd
-vhdl work ssi/rtl/UartTx.vhd
-vhdl work ssi/rtl/UartWrapper.vhd
+vhdl work uart/rtl/UartAxiLiteMaster.vhd
+vhdl work uart/rtl/UartBrg.vhd
+vhdl work uart/rtl/UartRx.vhd
+vhdl work uart/rtl/UartTx.vhd
+vhdl work uart/rtl/UartWrapper.vhd
 
-vhdl work ssp/rtl/SspDecoder.vhd
 vhdl work ssp/rtl/SspDeframer.vhd
-vhdl work ssp/rtl/SspEncoder.vhd
 vhdl work ssp/rtl/SspFramer.vhd
-vhdl work ssp/rtl/SspPkg.vhd
+vhdl work ssp/rtl/SspEncoder8b10b.vhd
+vhdl work ssp/rtl/SspEncoder10b12b.vhd
+vhdl work ssp/rtl/SspDecoder8b10b.vhd
+vhdl work ssp/rtl/SspDecoder10b12b.vhd
+

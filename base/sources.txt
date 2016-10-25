@@ -26,6 +26,9 @@ vhdl work general/rtl/SlvDelay.vhd
 vhdl work general/rtl/StdRtlPkg.vhd
 vhdl work general/rtl/TextUtilPkg.vhd
 vhdl work general/rtl/WatchDogRst.vhd
+vhdl work general/rtl/Code10b12bPkg.vhd
+vhdl work general/rtl/Encoder10b12b.vhd
+vhdl work general/rtl/Decoder10b12b.vhd
 vhdl work ram/rtl/DualPortRam.vhd
 vhdl work ram/rtl/OctalPortRam.vhd
 vhdl work ram/rtl/QuadPortRam.vhd
