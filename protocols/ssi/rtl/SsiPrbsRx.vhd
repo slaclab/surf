@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2014-11-07
+-- Last update: 2016-10-25
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ entity SsiPrbsRx is
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
+      PRBS_SEED_SIZE_G           : natural range 8 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType        := ssiAxiStreamConfig(4);
@@ -91,7 +91,7 @@ end SsiPrbsRx;
 architecture rtl of SsiPrbsRx is
 
    constant MAX_CNT_C                : slv(31 downto 0)    := (others => '1');
-   constant PRBS_BYTES_C             : natural             := PRBS_SEED_SIZE_G / 8;
+   constant PRBS_BYTES_C             : natural             := wordCount(PRBS_SEED_SIZE_G, 8);
    constant SLAVE_PRBS_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
    constant MASTER_PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
    
@@ -218,7 +218,7 @@ architecture rtl of SsiPrbsRx is
    
 begin
 
-   assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
+--   assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
 
    sAxisCtrl <= axisCtrl(0);
 
