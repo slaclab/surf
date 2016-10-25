@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-09-21
+-- Last update: 2016-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,10 +30,10 @@ use work.AxiStreamPkg.all;
 
 entity EthMacFlowCtrl is
    generic (
-      TPD_G      : time                  := 1 ns;
-      BYP_EN_G   : boolean               := false;
-      VLAN_EN_G  : boolean               := false;
-      VLAN_CNT_G : positive range 1 to 8 := 1);
+      TPD_G       : time                  := 1 ns;
+      BYP_EN_G    : boolean               := false;
+      VLAN_EN_G   : boolean               := false;
+      VLAN_SIZE_G : positive range 1 to 8 := 1);
    port (
       -- Clock and Reset
       ethClk   : in  sl;
@@ -41,7 +41,7 @@ entity EthMacFlowCtrl is
       -- Inputs
       primCtrl : in  AxiStreamCtrlType;
       bypCtrl  : in  AxiStreamCtrlType;
-      vlanCtrl : in  AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0);
+      vlanCtrl : in  AxiStreamCtrlArray(VLAN_SIZE_G-1 downto 0);
       -- Output
       flowCtrl : out AxiStreamCtrlType);
 end EthMacFlowCtrl;
@@ -89,7 +89,7 @@ begin
       -- Check if VLAN interface is enabled
       if (VLAN_EN_G) then
          -- Loop through the channels
-         for i in (VLAN_CNT_G-1) downto 0 loop
+         for i in (VLAN_SIZE_G-1) downto 0 loop
             -- Sample the VLAN pause
             if (vlanCtrl(i).pause = '1') then
                v.flowCtrl.pause := '1';

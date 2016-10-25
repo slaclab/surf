@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-10-17
+-- Last update: 2016-10-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ entity EthMacRxFifo is
       BYP_COMMON_CLK_G    : boolean             := false;
       BYP_CONFIG_G        : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
       VLAN_EN_G           : boolean             := false;
-      VLAN_CNT_G          : positive            := 1;
+      VLAN_SIZE_G         : positive            := 1;
       VLAN_COMMON_CLK_G   : boolean             := false;
       VLAN_CONFIG_G       : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
@@ -51,6 +51,7 @@ entity EthMacRxFifo is
       sClk         : in  sl;
       sRst         : in  sl;
       -- Status (sClk domain)
+      phyReady     : in  sl;
       rxFifoDrop   : out sl;
       -- Primary Interface
       mPrimClk     : in  sl;
@@ -69,29 +70,33 @@ entity EthMacRxFifo is
       -- VLAN Interfaces
       mVlanClk     : in  sl;
       mVlanRst     : in  sl;
-      sVlanMasters : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      sVlanCtrl    : out AxiStreamCtrlArray(VLAN_CNT_G-1 downto 0);
-      mVlanMasters : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0));
+      sVlanMasters : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+      sVlanCtrl    : out AxiStreamCtrlArray(VLAN_SIZE_G-1 downto 0);
+      mVlanMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+      mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0));
 end EthMacRxFifo;
 
-architecture mapping of EthMacRxFifo is
+architecture rtl of EthMacRxFifo is
 
    constant VALID_THOLD_C : natural := ite(DROP_ERR_PKT_G, 0, 1);
 
-   signal primDrop  : sl                         := '0';
-   signal bypDrop   : sl                         := '0';
-   signal vlanDrops : slv(VLAN_CNT_G-1 downto 0) := (others => '0');
+   type RegType is record
+      rxFifoDrop : sl;
+   end record RegType;
+   constant REG_INIT_C : RegType := (
+      rxFifoDrop => '0');
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
+   signal primDrop  : sl                          := '0';
+   signal bypDrop   : sl                          := '0';
+   signal vlanDrops : slv(VLAN_SIZE_G-1 downto 0) := (others => '0');
+
+--   attribute dont_touch      : string;
+--   attribute dont_touch of r : signal is "TRUE";   
+   
+   
 begin
-
-   process(sClk)
-   begin
-      if rising_edge(sClk) then
-         -- Register to help with timing
-         rxFifoDrop <= primDrop or bypDrop or uOr(vlanDrops) after TPD_G;
-      end if;
-   end process;
 
    U_Fifo : entity work.SsiFifo
       generic map (
@@ -168,7 +173,7 @@ begin
    end generate;
 
    VLAN_ENABLED : if (VLAN_EN_G = true) generate
-      GEN_VEC : for i in (VLAN_CNT_G-1) downto 0 generate
+      GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
          U_Fifo : entity work.SsiFifo
             generic map (
                -- General Configurations
@@ -201,5 +206,35 @@ begin
                mAxisSlave     => mVlanSlaves(i));    
       end generate GEN_VEC;
    end generate;
+
+   comb : process (bypDrop, phyReady, primDrop, r, sRst, vlanDrops) is
+      variable v    : RegType;
+      variable drop : sl;
+   begin
+      -- Latch the current value
+      v := r;
+
+      -- OR-ing drop flags together
+      v.rxFifoDrop := primDrop or bypDrop or uOr(vlanDrops);
+
+      -- Reset
+      if (sRst = '1') or (phyReady = '0') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs        
+      rxFifoDrop <= r.rxFifoDrop;
+      
+   end process comb;
+
+   seq : process (sClk) is
+   begin
+      if rising_edge(sClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
    
-end mapping;
+end rtl;
