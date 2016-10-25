@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2016-09-22
+-- Last update: 2016-10-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -49,9 +49,10 @@ entity SsiPrbsTx is
       -- PRBS Configurations
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
+      PRBS_INCREMENT_G           : boolean                    := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
       MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_COMP_C);
-      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);      
+      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);
    port (
       -- Master Port (mAxisClk)
       mAxisClk        : in  sl;
@@ -90,7 +91,7 @@ architecture rtl of SsiPrbsTx is
       IDLE_S,
       SEED_RAND_S,
       LENGTH_S,
-      DATA_S);  
+      DATA_S);
 
    type RegType is record
       busy           : sl;
@@ -111,7 +112,7 @@ architecture rtl of SsiPrbsTx is
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
-   
+
    constant REG_INIT_C : RegType := (
       busy           => '1',
       overflow       => '0',
@@ -125,7 +126,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          => '0',
       oneShot        => '0',
       trig           => '0',
-      cntData        => '0',
+      cntData        => toSl(PRBS_INCREMENT_G),
       tDest          => X"00",
       tId            => X"00",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -136,7 +137,7 @@ architecture rtl of SsiPrbsTx is
 
    signal txSlave : AxiStreamSlaveType;
    signal txCtrl  : AxiStreamCtrlType;
-   
+
 begin
 
    assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
@@ -326,9 +327,9 @@ begin
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);
                   -- Reset the busy flag
-                  v.busy               := '0';
+                  v.busy  := '0';
                   -- Next State
-                  v.state              := IDLE_S;
+                  v.state := IDLE_S;
                end if;
             end if;
       ----------------------------------------------------------------------
@@ -346,7 +347,7 @@ begin
       busy           <= r.busy;
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
-      
+
    end process comb;
 
    seq : process (locClk) is
@@ -390,6 +391,6 @@ begin
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);  
+         mAxisSlave  => mAxisSlave);
 
 end rtl;
