@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2016-10-20
+-- Last update: 2016-10-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ entity Decoder10b12b is
       clkEn     : in  sl := '1';                 -- Optional Clock Enable
       rst       : in  sl := not RST_POLARITY_G;  -- Optional Reset
       dataIn    : in  slv(11 downto 0);
-      dispIn    : in  sl;
+      dispIn    : in  sl := '0';
       dataOut   : out slv(9 downto 0);
       dataKOut  : out sl;
       dispOut   : out sl;
