@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst  <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-21
--- Last update: 2016-10-06
+-- Last update: 2016-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ package EthMacPkg is
    constant EMAC_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16,
-      TDEST_BITS_C  => 0,
+      TDEST_BITS_C  => 8,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
@@ -88,30 +88,26 @@ package EthMacPkg is
 
    -- Generic XMAC Status
    type EthMacStatusType is record
-      rxFifoDropCnt  : sl;
-      rxPauseCnt     : sl;
-      vlanRxPauseCnt : slv(7 downto 0);
-      txPauseCnt     : sl;
-      vlanTxPauseCnt : slv(7 downto 0);
-      rxCountEn      : sl;
-      rxOverFlow     : sl;
-      rxCrcErrorCnt  : sl;
-      txCountEn      : sl;
-      txUnderRunCnt  : sl;
-      txNotReadyCnt  : sl;
+      rxFifoDropCnt : sl;
+      rxPauseCnt    : sl;
+      txPauseCnt    : sl;
+      rxCountEn     : sl;
+      rxOverFlow    : sl;
+      rxCrcErrorCnt : sl;
+      txCountEn     : sl;
+      txUnderRunCnt : sl;
+      txNotReadyCnt : sl;
    end record EthMacStatusType;
    constant ETH_MAC_STATUS_INIT_C : EthMacStatusType := (
-      rxFifoDropCnt  => '0',
-      rxPauseCnt     => '0',
-      vlanRxPauseCnt => (others => '0'),
-      txPauseCnt     => '0',
-      vlanTxPauseCnt => (others => '0'),
-      rxCountEn      => '0',
-      rxOverFlow     => '0',
-      rxCrcErrorCnt  => '0',
-      txCountEn      => '0',
-      txUnderRunCnt  => '0',
-      txNotReadyCnt  => '0');
+      rxFifoDropCnt => '0',
+      rxPauseCnt    => '0',
+      txPauseCnt    => '0',
+      rxCountEn     => '0',
+      rxOverFlow    => '0',
+      rxCrcErrorCnt => '0',
+      txCountEn     => '0',
+      txUnderRunCnt => '0',
+      txNotReadyCnt => '0');
    type EthMacStatusArray is array (natural range<>) of EthMacStatusType;
 
    constant EMAC_CSUM_PIPELINE_C : natural := 3;

@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once JesdRx.yaml
 JesdRx: &JesdRx
   class: MMIODev
   configPrio: 1

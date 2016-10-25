@@ -5,7 +5,7 @@
 -- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-22
--- Last update: 2016-10-06
+-- Last update: 2016-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,7 +43,8 @@ entity EthMacTx is
       BYP_EN_G        : boolean                  := false;
       -- VLAN Configurations
       VLAN_EN_G       : boolean                  := false;
-      VLAN_CNT_G      : positive range 1 to 8    := 1);
+      VLAN_SIZE_G     : positive range 1 to 8    := 1;
+      VLAN_VID_G      : Slv12Array               := (0 => x"001"));
    port (
       -- Clock and Reset
       ethClk         : in  sl;
@@ -55,8 +56,8 @@ entity EthMacTx is
       sBypMaster     : in  AxiStreamMasterType;
       sBypSlave      : out AxiStreamSlaveType;
       -- VLAN Interfaces
-      sVlanMasters   : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      sVlanSlaves    : out AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+      sVlanMasters   : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+      sVlanSlaves    : out AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
       -- XLGMII PHY Interface
       xlgmiiTxd      : out slv(127 downto 0);
       xlgmiiTxc      : out slv(15 downto 0);
@@ -72,7 +73,6 @@ entity EthMacTx is
       rxPauseReq     : in  sl;
       rxPauseValue   : in  slv(15 downto 0);
       pauseTx        : out sl;
-      pauseVlanTx    : out slv(7 downto 0);
       -- Configuration and status
       phyReady       : in  sl;
       ethConfig      : in  EthMacConfigType;
@@ -87,8 +87,8 @@ architecture mapping of EthMacTx is
    signal bypassSlave  : AxiStreamSlaveType;
    signal csumMaster   : AxiStreamMasterType;
    signal csumSlave    : AxiStreamSlaveType;
-   signal csumMasters  : AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-   signal csumSlaves   : AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
+   signal csumMasters  : AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+   signal csumSlaves   : AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
    signal macObMaster  : AxiStreamMasterType;
    signal macObSlave   : AxiStreamSlaveType;
 
@@ -123,7 +123,8 @@ begin
          TPD_G          => TPD_G,
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
          JUMBO_G        => JUMBO_G,
-         VLAN_G         => false) 
+         VLAN_G         => false,
+         VID_G          => x"001") 
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -143,13 +144,14 @@ begin
    --------------------------         
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
-      for i in (VLAN_CNT_G-1) downto 0 generate
+      for i in (VLAN_SIZE_G-1) downto 0 generate
          U_Csum : entity work.EthMacTxCsum
             generic map (
                TPD_G          => TPD_G,
                DROP_ERR_PKT_G => DROP_ERR_PKT_G,
                JUMBO_G        => JUMBO_G,
-               VLAN_G         => true) 
+               VLAN_G         => true,
+               VID_G          => VLAN_VID_G(i)) 
             port map (
                -- Clock and Reset
                ethClk      => ethClk,
@@ -181,7 +183,7 @@ begin
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G,
          VLAN_EN_G       => VLAN_EN_G,
-         VLAN_CNT_G      => VLAN_CNT_G)        
+         VLAN_SIZE_G     => VLAN_SIZE_G)        
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -204,8 +206,7 @@ begin
          pauseEnable  => ethConfig.pauseEnable,
          pauseTime    => ethConfig.pauseTime,
          macAddress   => ethConfig.macAddress,
-         pauseTx      => pauseTx,
-         pauseVlanTx  => pauseVlanTx);
+         pauseTx      => pauseTx);
 
    -----------------------
    -- TX MAC Export Module 

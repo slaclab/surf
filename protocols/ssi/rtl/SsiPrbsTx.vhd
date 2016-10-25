@@ -49,6 +49,7 @@ entity SsiPrbsTx is
       -- PRBS Configurations
       PRBS_SEED_SIZE_G           : natural range 8 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
+      PRBS_INCREMENT_G           : boolean                    := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
       MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_COMP_C);
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);
@@ -125,7 +126,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          => '0',
       oneShot        => '0',
       trig           => '0',
-      cntData        => '0',
+      cntData        => toSl(PRBS_INCREMENT_G),
       tDest          => X"00",
       tId            => X"00",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -330,9 +331,9 @@ begin
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);
                   -- Reset the busy flag
-                  v.busy               := '0';
+                  v.busy  := '0';
                   -- Next State
-                  v.state              := IDLE_S;
+                  v.state := IDLE_S;
                end if;
             end if;
       ----------------------------------------------------------------------
