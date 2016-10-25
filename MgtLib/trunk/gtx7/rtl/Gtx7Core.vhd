@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2015-04-29
+-- Last update: 2016-09-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
 entity Gtx7Core is
-   
+
    generic (
       TPD_G : time := 1 ns;
 
@@ -228,20 +228,20 @@ entity Gtx7Core is
       txDataIn       : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
-      txPolarityIn   : in  sl             := '0';
+      txPolarityIn   : in  sl               := '0';
       -- Debug Interface   
-      txPowerDown    : in slv(1 downto 0) := "00";
-      rxPowerDown    : in slv(1 downto 0) := "00";
-      loopbackIn     : in slv(2 downto 0) := "000";
-      txPreCursor    : in slv(4 downto 0) := (others => '0');
-      txPostCursor   : in slv(4 downto 0) := (others => '0');
-      txDiffCtrl     : in slv(3 downto 0) := "1000";         
+      txPowerDown    : in  slv(1 downto 0)  := "00";
+      rxPowerDown    : in  slv(1 downto 0)  := "00";
+      loopbackIn     : in  slv(2 downto 0)  := "000";
+      txPreCursor    : in  slv(4 downto 0)  := (others => '0');
+      txPostCursor   : in  slv(4 downto 0)  := (others => '0');
+      txDiffCtrl     : in  slv(3 downto 0)  := "1000";
       -- DRP Interface (drpClk Domain)      
-      drpClk         : in  sl := '0';
+      drpClk         : in  sl               := '0';
       drpRdy         : out sl;
-      drpEn          : in  sl := '0';
-      drpWe          : in  sl := '0';
-      drpAddr        : in  slv(8 downto 0) := "000000000";
+      drpEn          : in  sl               := '0';
+      drpWe          : in  sl               := '0';
+      drpAddr        : in  slv(8 downto 0)  := "000000000";
       drpDi          : in  slv(15 downto 0) := X"0000";
       drpDo          : out slv(15 downto 0));
 
@@ -334,7 +334,7 @@ architecture rtl of Gtx7Core is
 
    signal rxRunPhAlignment     : sl;
    signal rxPhaseAlignmentDone : sl;
-   signal rxAlignReset         : sl;
+   signal rxAlignReset         : sl := '0';
    signal rxDlySReset          : sl;    -- GT RXDLYSRESET
    signal rxDlySResetDone      : sl;    -- GT RXDLYSRESETDONE
    signal rxPhAlignDone        : sl;    -- GT RXPHALIGNDONE
@@ -383,7 +383,7 @@ architecture rtl of Gtx7Core is
    signal txCharIsKFull,
       txCharDispMode,
       txCharDispVal : slv(7 downto 0) := (others => '0');
-   
+
 --   attribute KEEP_HIERARCHY : string;
 --   attribute KEEP_HIERARCHY of
 --      Gtx7RxRst_Inst,
@@ -394,7 +394,7 @@ architecture rtl of Gtx7Core is
 --      RstSync_Tx,
 --      PhaseAlign_Tx,
 --      Gtx7TxManualPhaseAligner_1 : label is "TRUE";
-   
+
 begin
 
    rxOutClkOut <= rxOutClkBufg;
@@ -454,7 +454,6 @@ begin
    -- Mux proper PLL RefClkLost signal on rxPllRefClkLost
    rxPllRefClkLost <= cPllRefClkLost when (RX_PLL_G = "CPLL") else qPllRefClkLostIn when (RX_PLL_G = "QPLL") else '0';
 
-   rxAlignReset   <= '0';               -- Unused?!?
    rxUserResetInt <= rxUserResetIn or rxAlignReset;
    rxRstTxUserRdy <= txUserRdyInt when RX_USRCLK_SRC_G = "TXOUTCLK" else '1';
 
@@ -583,7 +582,8 @@ begin
             DLYSRESET            => rxDlySReset,           -- To gt
             DLYSRESETDONE        => rxDlySResetDone,       -- From gt
             RECCLKSTABLE         => rxRecClkStable);
-      rxSlide <= rxSlideIn;                                -- User controlled rxSlide
+      rxSlide      <= rxSlideIn;                           -- User controlled rxSlide
+      rxAlignReset <= '0';
    end generate;
 
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
@@ -610,6 +610,7 @@ begin
       rxPhaseAlignmentDone <= '1';
       rxSlide              <= rxSlideIn;
       rxDlySReset          <= '0';
+      rxAlignReset         <= '0';
    end generate;
 
    --------------------------------------------------------------------------------------------------
@@ -693,7 +694,7 @@ begin
    -- Only used when bypassing buffer
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
-      
+
       PhaseAlign_Tx : entity work.Gtx7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
@@ -853,7 +854,7 @@ begin
          PCS_PCIE_EN => ("FALSE"),
 
          ---------------------------PCS Attributes----------------------------
-         PCS_RSVD_ATTR => ite(RX_ALIGN_MODE_G="FIXED_LAT", X"000000000002", X"000000000000"),  --UG476 pg 241
+         PCS_RSVD_ATTR => ite(RX_ALIGN_MODE_G = "FIXED_LAT", X"000000000002", X"000000000000"),  --UG476 pg 241
 
          -------------RX Buffer Attributes------------
          RXBUF_ADDR_MODE            => RX_BUF_ADDR_MODE_G,
@@ -1036,7 +1037,7 @@ begin
          DRPDO            => drpDo,
          DRPEN            => drpEn,
          DRPRDY           => drpRdy,
-         DRPWE            => drpWe,         
+         DRPWE            => drpWe,
          ------------------------- Channel - Ref Clock Ports ------------------------
          GTGREFCLK        => gtGRefClk,
          GTNORTHREFCLK0   => gtNorthRefClk0,
@@ -1163,7 +1164,7 @@ begin
          RXCDRRESETRSV    => '0',
          RXELECIDLE       => open,
          RXELECIDLEMODE   => "11",
-         RXLPMEN          => RXLPMEN_C, 
+         RXLPMEN          => RXLPMEN_C,
          RXLPMHFHOLD      => rxLpmHfHold,
          RXLPMHFOVRDEN    => '0',
          RXLPMLFHOLD      => rxLpmLfHold,
