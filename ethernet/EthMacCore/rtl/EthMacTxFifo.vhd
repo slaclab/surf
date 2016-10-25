@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-09-21
+-- Last update: 2016-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ entity EthMacTxFifo is
       BYP_COMMON_CLK_G  : boolean             := false;
       BYP_CONFIG_G      : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
       VLAN_EN_G         : boolean             := false;
-      VLAN_CNT_G        : positive            := 1;
+      VLAN_SIZE_G       : positive            := 1;
       VLAN_COMMON_CLK_G : boolean             := false;
       VLAN_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
@@ -60,10 +60,10 @@ entity EthMacTxFifo is
       -- VLAN Interfaces
       sVlanClk     : in  sl;
       sVlanRst     : in  sl;
-      sVlanMasters : in  AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      sVlanSlaves  : out AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0);
-      mVlanMasters : out AxiStreamMasterArray(VLAN_CNT_G-1 downto 0);
-      mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_CNT_G-1 downto 0));
+      sVlanMasters : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+      sVlanSlaves  : out AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
+      mVlanMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
+      mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0));
 end EthMacTxFifo;
 
 architecture mapping of EthMacTxFifo is
@@ -157,7 +157,7 @@ begin
       end generate;
 
       VLAN_FIFO : if ((VLAN_COMMON_CLK_G = false) or (VLAN_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
-         GEN_VEC : for i in (VLAN_CNT_G-1) downto 0 generate
+         GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
             U_Fifo : entity work.AxiStreamFifo
                generic map (
                   -- General Configurations

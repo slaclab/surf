@@ -36,7 +36,6 @@ entity AxiStreamDmaWrite is
    generic (
       TPD_G              : time                := 1 ns;
       AXI_READY_EN_G     : boolean             := false;
-      AXIS_VALID_THOLD_G : natural             := 1;  -- Should be the same as inbound DMA AXIS FIFO
       AXIS_CONFIG_G      : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G       : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G        : slv(1 downto 0)     := "01";
