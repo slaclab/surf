@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2014-08-27
+-- Last update: 2016-10-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,23 +22,32 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
 use work.StdRtlPkg.all;
-use work.Code8b10bPkg.all;
-use work.SspPkg.all;
 
 entity SspFramer is
-   
+
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '0';
-      RST_ASYNC_G    : boolean := true);
+      TPD_G           : time    := 1 ns;
+      RST_POLARITY_G  : sl      := '0';
+      RST_ASYNC_G     : boolean := true;
+      AUTO_FRAME_G    : boolean := true;
+      WORD_SIZE_G     : integer := 16;
+      K_SIZE_G        : integer := 2;
+      SSP_IDLE_CODE_G : slv;
+      SSP_IDLE_K_G    : slv;
+      SSP_SOF_CODE_G  : slv;
+      SSP_SOF_K_G     : slv;
+      SSP_EOF_CODE_G  : slv;
+      SSP_EOF_K_G     : slv);
 
    port (
       clk      : in  sl;
       rst      : in  sl := RST_POLARITY_G;
       valid    : in  sl;
-      dataIn   : in  slv(15 downto 0);
-      dataOut  : out slv(15 downto 0);
-      dataKOut : out slv(1 downto 0));
+      sof      : in  sl := '0';
+      eof      : in  sl := '0';
+      dataIn   : in  slv(WORD_SIZE_G-1 downto 0);
+      dataOut  : out slv(WORD_SIZE_G-1 downto 0);
+      dataKOut : out slv(K_SIZE_G-1 downto 0));
 
 end entity SspFramer;
 
@@ -49,50 +58,62 @@ architecture rtl of SspFramer is
 
    type RegType is record
       mode       : sl;
-      dataInLast : slv(15 downto 0);
+      eofLast    : sl;
+      eof        : sl;
+      dataInLast : slv(WORD_SIZE_G-1 downto 0);
       validLast  : sl;
-      dataOut    : slv(15 downto 0);
-      dataKOut   : slv(1 downto 0);
+      dataOut    : slv(WORD_SIZE_G-1 downto 0);
+      dataKOut   : slv(K_SIZE_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       mode       => '0',
+      eofLast    => '0',
+      eof        => '0',
       dataInLast => (others => '0'),
       validLast  => '0',
-      dataKOut   => "01",
-      dataOut    => SSP_IDLE_CHAR_C);
+      dataKOut   => SSP_IDLE_K_G,
+      dataOut    => SSP_IDLE_CODE_G);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (dataIn, r, rst, valid) is
+   comb : process (dataIn, eof, r, rst, sof, valid) is
       variable v : RegType;
    begin
       v := r;
 
       v.dataInLast := dataIn;
       v.validLast  := valid;
+      v.eofLast    := eof;
 
       -- Send commas while waiting for valid, then send SOF
       if (r.mode = IDLE_MODE_C) then
-         v.dataOut  := SSP_IDLE_CHAR_C;
-         v.dataKOut := "01";
-         if (valid = '1') then
-            v.dataOut  := SSP_SOF_CHAR_C;
-            v.dataKOut := "01";
+         v.dataOut  := SSP_IDLE_CODE_G;
+         v.dataKOut := SSP_IDLE_K_G;
+         if (valid = '1' and (sof = '1' or AUTO_FRAME_G)) then
+            v.dataOut  := SSP_SOF_CODE_G;
+            v.dataKOut := SSP_SOF_K_G;
             v.mode     := DATA_MODE_C;
          end if;
 
       -- Send pipline delayed data, send eof when delayed valid falls
       elsif (r.mode = DATA_MODE_C) then
          v.dataOut  := r.dataInLast;
-         v.dataKOut := "00";
+         v.dataKOut := slvZero(K_SIZE_G);
+         v.eof      := r.validLast and r.eofLast;
          if (r.validLast = '0') then
-            v.dataOut  := SSP_EOF_CHAR_C;
-            v.dataKOut := "01";
-            v.mode     := IDLE_MODE_C;
+            if (AUTO_FRAME_G or r.eof = '1') then
+               v.dataOut  := SSP_EOF_CODE_G;
+               v.dataKOut := SSP_EOF_K_G;
+               v.mode     := IDLE_MODE_C;
+            else
+               -- if not auto framing and valid drops, insert idle char
+               v.dataOut  := SSP_IDLE_CODE_G;
+               v.dataKOut := SSP_EOF_K_G;
+            end if;
          end if;
 
       end if;
