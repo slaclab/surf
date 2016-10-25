@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2016-10-20
+-- Last update: 2016-10-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,14 @@ use work.StdRtlPkg.all;
 --use work.TextUtilPkg.all;
 
 package Code10b12bPkg is
+
+   -- Delcare input constants for commas and other important K_CODES
+   constant K_28_3_C  : slv(9 downto 0) := "0001111100";  -- 0x07C -> 0x8FC, 0x703
+   constant K_28_11_C : slv(9 downto 0) := "0101111100";  -- 0x17C -> 0x2FC, 0xD03
+   constant K_28_19_C : slv(9 downto 0) := "1001111100";  -- 0x27C -> 0x4FC, 0xB03
+
+   constant K_28_10_C : slv(9 downto 0) := "0101011100";  -- 0x15C -> 0xABC, 0x543
+   constant K_28_21_C : slv(9 downto 0) := "1010111100";  -- 0x2BC -> 0x57C, 0xA83
 
    -------------------------------------------------------------------------------------------------
    -- Disparity types and helper functions
@@ -299,6 +307,7 @@ package body Code10b12bPkg is
       variable highWordValid : sl;
       variable inputDisp     : integer;
       variable runDisp       : integer;
+      variable k28Disp : integer;
    begin
 
 --      print("------------");
@@ -354,6 +363,11 @@ package body Code10b12bPkg is
           (lowWordIn = not(K_CODE_TABLE_C(28).out6b))) then
 
          lowWordOut   := conv_std_logic_vector(28, 5);
+         if (lowWordIn = K_CODE_TABLE_C(28).out6b) then
+            k28Disp := K_CODE_TABLE_C(28).outDisp;
+         else
+            k28Disp := (-1)*K_CODE_TABLE_C(28).outDisp;
+         end if;
          dataKOut     := '1';
          lowWordValid := '1';
       end if;
@@ -363,8 +377,8 @@ package body Code10b12bPkg is
       if (dataKout = '1') then
          for i in K_CODE_TABLE_C'range loop
             tmp := K_CODE_TABLE_C(i);
-            if ((highWordIn = tmp.out6b) or
-                ((highWordIn = not (tmp.out6b)) and (tmp.expDisp /= 0))) then
+            if (((highWordIn = tmp.out6b) and ((k28Disp = tmp.expDisp) or (tmp.expDisp = 0))) or
+                ((highWordIn = not (tmp.out6b)) and ((k28Disp = (-1)*(tmp.expDisp))))) then
 
                highWordOut   := conv_std_logic_vector(i, 5);
                dataKOut      := '1';
