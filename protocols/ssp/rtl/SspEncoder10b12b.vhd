@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2016-10-20
+-- Last update: 2016-10-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,9 +28,9 @@ entity SspEncoder10b12b is
 
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';
-      RST_ASYNC_G    : boolean := false;
-      AUTO_FRAME_G   : boolean := false);
+      RST_POLARITY_G : sl      := '0';
+      RST_ASYNC_G    : boolean := true;
+      AUTO_FRAME_G   : boolean := true);
    port (
       clk     : in  sl;
       rst     : in  sl := RST_POLARITY_G;
@@ -78,8 +78,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         USE_CLK_EN_G   => false,
-         DEBUG_DISP_G   => false)
+         USE_CLK_EN_G   => false)
       port map (
          clk     => clk,
          rst     => rst,
