@@ -15,166 +15,6 @@
 --
 --------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
---synopsys synthesis_off
-library SYNOPSYS;
-use SYNOPSYS.attributes.all;
---synopsys synthesis_on
-
-
-package std_logic_misc is
-
-    -- output-strength types
-
-    type STRENGTH is (strn_X01, strn_X0H, strn_XL1, strn_X0Z, strn_XZ1, 
-		      strn_WLH, strn_WLZ, strn_WZH, strn_W0H, strn_WL1);
-
-
---synopsys synthesis_off
-
-    type MINOMAX is array (1 to 3) of TIME;
-    
-
-    ---------------------------------------------------------------------
-    --
-    -- functions for mapping the STD_(U)LOGIC according to STRENGTH
-    --
-    ---------------------------------------------------------------------
-
-    function strength_map(input: STD_ULOGIC; strn: STRENGTH) return STD_LOGIC;
-
-    function strength_map_z(input:STD_ULOGIC; strn:STRENGTH) return STD_LOGIC;
-
-    ---------------------------------------------------------------------
-    --
-    -- conversion functions for STD_ULOGIC_VECTOR and STD_LOGIC_VECTOR
-    --
-    ---------------------------------------------------------------------
-
---synopsys synthesis_on
-    function Drive (V: STD_ULOGIC_VECTOR) return STD_LOGIC_VECTOR;
-
-    function Drive (V: STD_LOGIC_VECTOR) return STD_ULOGIC_VECTOR;
---synopsys synthesis_off
-
-    attribute CLOSELY_RELATED_TCF of Drive: function is TRUE;
-
-    ---------------------------------------------------------------------
-    --
-    -- conversion functions for sensing various types
-    -- (the second argument allows the user to specify the value to
-    --  be returned when the network is undriven)
-    --
-    ---------------------------------------------------------------------
-
-    function Sense (V: STD_ULOGIC; vZ, vU, vDC: STD_ULOGIC) return STD_LOGIC;
-
-    function Sense (V: STD_ULOGIC_VECTOR; vZ, vU, vDC: STD_ULOGIC) 
-    					   return STD_LOGIC_VECTOR;
-    function Sense (V: STD_ULOGIC_VECTOR; vZ, vU, vDC: STD_ULOGIC) 
-    					   return STD_ULOGIC_VECTOR;
-
-    function Sense (V: STD_LOGIC_VECTOR; vZ, vU, vDC: STD_ULOGIC) 
-    					   return STD_LOGIC_VECTOR;
-    function Sense (V: STD_LOGIC_VECTOR; vZ, vU, vDC: STD_ULOGIC) 
-    					   return STD_ULOGIC_VECTOR;
-
---synopsys synthesis_on
-
-
-    ---------------------------------------------------------------------
-    --
-    --	Function: STD_LOGIC_VECTORtoBIT_VECTOR STD_ULOGIC_VECTORtoBIT_VECTOR
-    --
-    --	Purpose: Conversion fun. from STD_(U)LOGIC_VECTOR to BIT_VECTOR
-    --
-    --	Mapping:	0, L --> 0
-    --			1, H --> 1
-    --			X, W --> vX if Xflag is TRUE
-    --			X, W --> 0  if Xflag is FALSE
-    --			Z --> vZ if Zflag is TRUE
-    --			Z --> 0  if Zflag is FALSE
-    --			U --> vU if Uflag is TRUE
-    --			U --> 0  if Uflag is FALSE
-    --			- --> vDC if DCflag is TRUE
-    --			- --> 0  if DCflag is FALSE
-    --
-    ---------------------------------------------------------------------
-
-    function STD_LOGIC_VECTORtoBIT_VECTOR (V: STD_LOGIC_VECTOR
---synopsys synthesis_off
-    	; vX, vZ, vU, vDC: BIT := '0'; 
-    	  Xflag, Zflag, Uflag, DCflag: BOOLEAN := FALSE
---synopsys synthesis_on
-    	) return BIT_VECTOR;
-
-    function STD_ULOGIC_VECTORtoBIT_VECTOR (V: STD_ULOGIC_VECTOR
---synopsys synthesis_off
-    	; vX, vZ, vU, vDC: BIT := '0'; 
-    	  Xflag, Zflag, Uflag, DCflag: BOOLEAN := FALSE
---synopsys synthesis_on
-    	) return BIT_VECTOR;
-    
-
-    ---------------------------------------------------------------------
-    --
-    --	Function: STD_ULOGICtoBIT
-    --
-    --	Purpose: Conversion function from STD_(U)LOGIC to BIT
-    --
-    --	Mapping:	0, L --> 0
-    --			1, H --> 1
-    --			X, W --> vX if Xflag is TRUE
-    --			X, W --> 0  if Xflag is FALSE
-    --			Z --> vZ if Zflag is TRUE
-    --			Z --> 0  if Zflag is FALSE
-    --			U --> vU if Uflag is TRUE
-    --			U --> 0  if Uflag is FALSE
-    --			- --> vDC if DCflag is TRUE
-    --			- --> 0  if DCflag is FALSE
-    --
-    ---------------------------------------------------------------------
-
-    function STD_ULOGICtoBIT (V: STD_ULOGIC
---synopsys synthesis_off
-    	; vX, vZ, vU, vDC: BIT := '0'; 
-    	  Xflag, Zflag, Uflag, DCflag: BOOLEAN := FALSE
---synopsys synthesis_on
-    	) return BIT;
-
-        --------------------------------------------------------------------
-        function AND_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01;
-        function NAND_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01;
-        function OR_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01;
-        function NOR_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01;
-        function XOR_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01;
-        function XNOR_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01;
-    
-        function AND_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01;
-        function NAND_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01;
-        function OR_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01;
-        function NOR_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01;
-        function XOR_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01;
-        function XNOR_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01;
-    
---synopsys synthesis_off
-	
-        function fun_BUF3S(Input, Enable: UX01; Strn: STRENGTH) return STD_LOGIC;
-        function fun_BUF3SL(Input, Enable: UX01; Strn: STRENGTH) return STD_LOGIC;
-        function fun_MUX2x1(Input0, Input1, Sel: UX01) return UX01;
-
-        function fun_MAJ23(Input0, Input1, Input2: UX01) return UX01;
-        function fun_WiredX(Input0, Input1: std_ulogic) return STD_LOGIC;
-
---synopsys synthesis_on
-
--- Exemplar Synthesis Directive Attributes.
-        attribute IS_SIGNED : BOOLEAN ;
-        attribute SYNTHESIS_RETURN : STRING ;	
-end;
-
-
 package body std_logic_misc is
 
 --synopsys synthesis_off
@@ -260,13 +100,9 @@ package body std_logic_misc is
 --synopsys synthesis_off
         alias Value: STD_LOGIC_VECTOR (V'length-1 downto 0) is V;
 --synopsys synthesis_on
-        -- Exemplar added synthesis directive.
-        variable result : STD_ULOGIC_VECTOR(V'length-1 downto 0) ;
-        attribute SYNTHESIS_RETURN of result:variable is "FEED_THROUGH" ;
     begin
 --synopsys synthesis_off
-    	result :=  STD_ULOGIC_VECTOR(Value);
-        return result;
+    	return STD_ULOGIC_VECTOR(Value);
 --synopsys synthesis_on
     end Drive;
 
@@ -277,13 +113,9 @@ package body std_logic_misc is
 --synopsys synthesis_off
         alias Value: STD_ULOGIC_VECTOR (V'length-1 downto 0) is V;
 --synopsys synthesis_on
-        -- Exemplar added synthesis directive.
-        variable result : STD_LOGIC_VECTOR(V'length-1 downto 0) ;
-        attribute SYNTHESIS_RETURN of result:variable is "FEED_THROUGH" ;
     begin
 --synopsys synthesis_off
-    	result := STD_LOGIC_VECTOR(Value);
-        return result;
+    	return STD_LOGIC_VECTOR(Value);
 --synopsys synthesis_on
     end Drive;
 --synopsys synthesis_off
@@ -425,12 +257,9 @@ package body std_logic_misc is
     		   ) return BIT_VECTOR is
       -- pragma built_in SYN_FEED_THRU
       -- pragma subpgm_id 396
-      variable Result: BIT_VECTOR (V'length-1 downto 0);
-      -- Exemplar added synthesis directive.
-        attribute SYNTHESIS_RETURN of result:variable is "FEED_THROUGH" ;
 --synopsys synthesis_off
     	alias Value: STD_LOGIC_VECTOR (V'length-1 downto 0) is V;
-    	
+    	variable Result: BIT_VECTOR (V'length-1 downto 0);
 --synopsys synthesis_on
     begin
 --synopsys synthesis_off
@@ -521,12 +350,9 @@ package body std_logic_misc is
     		   ) return BIT_VECTOR is
       -- pragma built_in SYN_FEED_THRU
       -- pragma subpgm_id 397
-      variable Result: BIT_VECTOR (V'length-1 downto 0);
-      -- Exemplar added synthesis directive.
-        attribute SYNTHESIS_RETURN of result:variable is "FEED_THROUGH" ;
 --synopsys synthesis_off
     	alias Value: STD_ULOGIC_VECTOR (V'length-1 downto 0) is V;
- 
+    	variable Result: BIT_VECTOR (V'length-1 downto 0);
 --synopsys synthesis_on
     begin
 --synopsys synthesis_off
@@ -618,8 +444,6 @@ package body std_logic_misc is
       -- pragma built_in SYN_FEED_THRU
       -- pragma subpgm_id 398
     	variable Result: BIT;
-        -- Exemplar added synthesis directive.
-        attribute SYNTHESIS_RETURN of result:variable is "FEED_THROUGH" ;
     begin
 --synopsys synthesis_off
     	case V is
@@ -683,8 +507,6 @@ package body std_logic_misc is
     function AND_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01 is
 	-- pragma subpgm_id 399
 	variable result: STD_LOGIC;
-        -- Exemplar added synthesis directive.
-        attribute SYNTHESIS_RETURN of result:variable is "REDUCE_AND" ;
     begin
 	result := '1';
 	for i in ARG'range loop
@@ -702,8 +524,6 @@ package body std_logic_misc is
     function OR_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01 is
 	-- pragma subpgm_id 401
 	variable result: STD_LOGIC;
-        -- Exemplar added synthesis directive.
-    attribute SYNTHESIS_RETURN of result:variable is "REDUCE_OR" ;
     begin
 	result := '0';
 	for i in ARG'range loop
@@ -721,8 +541,6 @@ package body std_logic_misc is
     function XOR_REDUCE(ARG: STD_LOGIC_VECTOR) return UX01 is
 	-- pragma subpgm_id 403
 	variable result: STD_LOGIC;
-        -- Exemplar added synthesis directive.
-        attribute SYNTHESIS_RETURN of result:variable is "REDUCE_XOR" ;
     begin
 	result := '0';
 	for i in ARG'range loop
@@ -740,8 +558,6 @@ package body std_logic_misc is
     function AND_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01 is
 	-- pragma subpgm_id 405
 	variable result: STD_LOGIC;
-        -- Exemplar added synthesis directive.
-        attribute SYNTHESIS_RETURN of result:variable is "REDUCE_AND" ;
     begin
 	result := '1';
 	for i in ARG'range loop
@@ -759,8 +575,6 @@ package body std_logic_misc is
     function OR_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01 is
 	-- pragma subpgm_id 407
 	variable result: STD_LOGIC;
-        -- Exemplar added synthesis directive :
-        attribute SYNTHESIS_RETURN of result:variable is "REDUCE_OR" ;
     begin
 	result := '0';
 	for i in ARG'range loop
@@ -778,8 +592,6 @@ package body std_logic_misc is
     function XOR_REDUCE(ARG: STD_ULOGIC_VECTOR) return UX01 is
 	-- pragma subpgm_id 409
 	variable result: STD_LOGIC;
-        -- Exemplar added synthesis directive :
-        attribute SYNTHESIS_RETURN of result:variable is "REDUCE_XOR" ;
     begin
 	result := '0';
 	for i in ARG'range loop
@@ -990,12 +802,8 @@ package body std_logic_misc is
                 ( 'U', 'X', '0', '1', 'L', 'W', 'L', 'W', 'X' ), -- | L |
                 ( 'U', 'X', '0', '1', 'H', 'W', 'W', 'H', 'X' ), -- | H |
                 ( 'U', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X' ));-- | - |
-        -- Exemplar added synthesis directive :
-        variable result : STD_LOGIC ;
-        attribute SYNTHESIS_RETURN of result:variable is "WIRED_THREE_STATE" ;
     begin
-	result :=  resolution_table(Input0, Input1);
-        return result;
+	return resolution_table(Input0, Input1);
     end fun_WiredX;
 
 --synopsys synthesis_on

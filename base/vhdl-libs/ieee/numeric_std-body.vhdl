@@ -51,821 +51,6 @@
 --   Version:  2.4
 --   Date   :  12 April 1995
 -- -----------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-
-package NUMERIC_STD is
-  constant CopyRightNotice: STRING
-      := "Copyright 1995 IEEE. All rights reserved.";
-
-  --============================================================================
-  -- Numeric array type definitions
-  --============================================================================
-
-  type UNSIGNED is array (NATURAL range <>) of STD_LOGIC;
-  type SIGNED is array (NATURAL range <>) of STD_LOGIC;
-
-  --============================================================================
-  -- Arithmetic Operators:
-  --===========================================================================
-
-  -- Id: A.1
-  function "abs" (ARG: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0).
-  -- Result: Returns the absolute value of a SIGNED vector ARG.
-
-  -- Id: A.2
-  function "-" (ARG: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0).
-  -- Result: Returns the value of the unary minus operation on a
-  --         SIGNED vector ARG.
-
-  --============================================================================
-
-  -- Id: A.3
-  function "+" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(MAX(L'LENGTH, R'LENGTH)-1 downto 0).
-  -- Result: Adds two UNSIGNED vectors that may be of different lengths.
-
-  -- Id: A.4
-  function "+" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(MAX(L'LENGTH, R'LENGTH)-1 downto 0).
-  -- Result: Adds two SIGNED vectors that may be of different lengths.
-
-  -- Id: A.5
-  function "+" (L: UNSIGNED; R: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0).
-  -- Result: Adds an UNSIGNED vector, L, with a non-negative INTEGER, R.
-
-  -- Id: A.6
-  function "+" (L: NATURAL; R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0).
-  -- Result: Adds a non-negative INTEGER, L, with an UNSIGNED vector, R.
-
-  -- Id: A.7
-  function "+" (L: INTEGER; R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0).
-  -- Result: Adds an INTEGER, L(may be positive or negative), to a SIGNED
-  --         vector, R.
-
-  -- Id: A.8
-  function "+" (L: SIGNED; R: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0).
-  -- Result: Adds a SIGNED vector, L, to an INTEGER, R.
-
-  --============================================================================
-
-  -- Id: A.9
-  function "-" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(MAX(L'LENGTH, R'LENGTH)-1 downto 0).
-  -- Result: Subtracts two UNSIGNED vectors that may be of different lengths.
-
-  -- Id: A.10
-  function "-" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(MAX(L'LENGTH, R'LENGTH)-1 downto 0).
-  -- Result: Subtracts a SIGNED vector, R, from another SIGNED vector, L,
-  --         that may possibly be of different lengths.
-
-  -- Id: A.11
-  function "-" (L: UNSIGNED;R: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0).
-  -- Result: Subtracts a non-negative INTEGER, R, from an UNSIGNED vector, L.
-
-  -- Id: A.12
-  function "-" (L: NATURAL; R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0).
-  -- Result: Subtracts an UNSIGNED vector, R, from a non-negative INTEGER, L.
-
-  -- Id: A.13
-  function "-" (L: SIGNED; R: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0).
-  -- Result: Subtracts an INTEGER, R, from a SIGNED vector, L.
-
-  -- Id: A.14
-  function "-" (L: INTEGER; R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0).
-  -- Result: Subtracts a SIGNED vector, R, from an INTEGER, L.
-
-  --============================================================================
-
-  -- Id: A.15
-  function "*" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED((L'LENGTH+R'LENGTH-1) downto 0).
-  -- Result: Performs the multiplication operation on two UNSIGNED vectors
-  --         that may possibly be of different lengths.
-
-  -- Id: A.16
-  function "*" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED((L'LENGTH+R'LENGTH-1) downto 0)
-  -- Result: Multiplies two SIGNED vectors that may possibly be of
-  --         different lengths.
-
-  -- Id: A.17
-  function "*" (L: UNSIGNED; R: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED((L'LENGTH+L'LENGTH-1) downto 0).
-  -- Result: Multiplies an UNSIGNED vector, L, with a non-negative
-  --         INTEGER, R. R is converted to an UNSIGNED vector of
-  --         SIZE L'LENGTH before multiplication.
-
-  -- Id: A.18
-  function "*" (L: NATURAL; R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED((R'LENGTH+R'LENGTH-1) downto 0).
-  -- Result: Multiplies an UNSIGNED vector, R, with a non-negative
-  --         INTEGER, L. L is converted to an UNSIGNED vector of
-  --         SIZE R'LENGTH before multiplication.
-
-  -- Id: A.19
-  function "*" (L: SIGNED; R: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED((L'LENGTH+L'LENGTH-1) downto 0)
-  -- Result: Multiplies a SIGNED vector, L, with an INTEGER, R. R is
-  --         converted to a SIGNED vector of SIZE L'LENGTH before
-  --         multiplication.
-
-  -- Id: A.20
-  function "*" (L: INTEGER; R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED((R'LENGTH+R'LENGTH-1) downto 0)
-  -- Result: Multiplies a SIGNED vector, R, with an INTEGER, L. L is
-  --         converted to a SIGNED vector of SIZE R'LENGTH before
-  --         multiplication.
-
-  --============================================================================
-  --
-  -- NOTE: If second argument is zero for "/" operator, a severity level
-  --       of ERROR is issued.
-
-  -- Id: A.21
-  function "/" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Divides an UNSIGNED vector, L, by another UNSIGNED vector, R.
-
-  -- Id: A.22
-  function "/" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Divides an SIGNED vector, L, by another SIGNED vector, R.
-
-  -- Id: A.23
-  function "/" (L: UNSIGNED; R: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Divides an UNSIGNED vector, L, by a non-negative INTEGER, R.
-  --         If NO_OF_BITS(R) > L'LENGTH, result is truncated to L'LENGTH.
-
-  -- Id: A.24
-  function "/" (L: NATURAL; R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0)
-  -- Result: Divides a non-negative INTEGER, L, by an UNSIGNED vector, R.
-  --         If NO_OF_BITS(L) > R'LENGTH, result is truncated to R'LENGTH.
-
-  -- Id: A.25
-  function "/" (L: SIGNED; R: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Divides a SIGNED vector, L, by an INTEGER, R.
-  --         If NO_OF_BITS(R) > L'LENGTH, result is truncated to L'LENGTH.
-
-  -- Id: A.26
-  function "/" (L: INTEGER; R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0)
-  -- Result: Divides an INTEGER, L, by a SIGNED vector, R.
-  --         If NO_OF_BITS(L) > R'LENGTH, result is truncated to R'LENGTH.
-
-  --============================================================================
-  --
-  -- NOTE: If second argument is zero for "rem" operator, a severity level
-  --       of ERROR is issued.
-
-  -- Id: A.27
-  function "rem" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L rem R" where L and R are UNSIGNED vectors.
-
-  -- Id: A.28
-  function "rem" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L rem R" where L and R are SIGNED vectors.
-
-  -- Id: A.29
-  function "rem" (L: UNSIGNED; R: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Computes "L rem R" where L is an UNSIGNED vector and R is a
-  --         non-negative INTEGER.
-  --         If NO_OF_BITS(R) > L'LENGTH, result is truncated to L'LENGTH.
-
-  -- Id: A.30
-  function "rem" (L: NATURAL; R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L rem R" where R is an UNSIGNED vector and L is a
-  --         non-negative INTEGER.
-  --         If NO_OF_BITS(L) > R'LENGTH, result is truncated to R'LENGTH.
-
-  -- Id: A.31
-  function "rem" (L: SIGNED; R: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Computes "L rem R" where L is SIGNED vector and R is an INTEGER.
-  --         If NO_OF_BITS(R) > L'LENGTH, result is truncated to L'LENGTH.
-
-  -- Id: A.32
-  function "rem" (L: INTEGER; R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L rem R" where R is SIGNED vector and L is an INTEGER.
-  --         If NO_OF_BITS(L) > R'LENGTH, result is truncated to R'LENGTH.
-
-  --============================================================================
-  --
-  -- NOTE: If second argument is zero for "mod" operator, a severity level
-  --       of ERROR is issued.
-
-  -- Id: A.33
-  function "mod" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L mod R" where L and R are UNSIGNED vectors.
-
-  -- Id: A.34
-  function "mod" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L mod R" where L and R are SIGNED vectors.
-
-  -- Id: A.35
-  function "mod" (L: UNSIGNED; R: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Computes "L mod R" where L is an UNSIGNED vector and R
-  --         is a non-negative INTEGER.
-  --         If NO_OF_BITS(R) > L'LENGTH, result is truncated to L'LENGTH.
-
-  -- Id: A.36
-  function "mod" (L: NATURAL; R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L mod R" where R is an UNSIGNED vector and L
-  --         is a non-negative INTEGER.
-  --         If NO_OF_BITS(L) > R'LENGTH, result is truncated to R'LENGTH.
-
-  -- Id: A.37
-  function "mod" (L: SIGNED; R: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Computes "L mod R" where L is a SIGNED vector and
-  --         R is an INTEGER.
-  --         If NO_OF_BITS(R) > L'LENGTH, result is truncated to L'LENGTH.
-
-  -- Id: A.38
-  function "mod" (L: INTEGER; R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(R'LENGTH-1 downto 0)
-  -- Result: Computes "L mod R" where L is an INTEGER and
-  --         R is a SIGNED vector.
-  --         If NO_OF_BITS(L) > R'LENGTH, result is truncated to R'LENGTH.
-
-  --============================================================================
-  -- Comparison Operators
-  --============================================================================
-
-  -- Id: C.1
-  function ">" (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L > R" where L and R are UNSIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.2
-  function ">" (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L > R" where L and R are SIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.3
-  function ">" (L: NATURAL; R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L > R" where L is a non-negative INTEGER and
-  --         R is an UNSIGNED vector.
-
-  -- Id: C.4
-  function ">" (L: INTEGER; R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L > R" where L is a INTEGER and
-  --         R is a SIGNED vector.
-
-  -- Id: C.5
-  function ">" (L: UNSIGNED; R: NATURAL) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L > R" where L is an UNSIGNED vector and
-  --         R is a non-negative INTEGER.
-
-  -- Id: C.6
-  function ">" (L: SIGNED; R: INTEGER) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L > R" where L is a SIGNED vector and
-  --         R is a INTEGER.
-
-  --============================================================================
-
-  -- Id: C.7
-  function "<" (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L < R" where L and R are UNSIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.8
-  function "<" (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L < R" where L and R are SIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.9
-  function "<" (L: NATURAL; R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L < R" where L is a non-negative INTEGER and
-  --         R is an UNSIGNED vector.
-
-  -- Id: C.10
-  function "<" (L: INTEGER; R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L < R" where L is an INTEGER and
-  --         R is a SIGNED vector.
-
-  -- Id: C.11
-  function "<" (L: UNSIGNED; R: NATURAL) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L < R" where L is an UNSIGNED vector and
-  --         R is a non-negative INTEGER.
-
-  -- Id: C.12
-  function "<" (L: SIGNED; R: INTEGER) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L < R" where L is a SIGNED vector and
-  --         R is an INTEGER.
-
-  --============================================================================
-
-  -- Id: C.13
-  function "<=" (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L <= R" where L and R are UNSIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.14
-  function "<=" (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L <= R" where L and R are SIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.15
-  function "<=" (L: NATURAL; R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L <= R" where L is a non-negative INTEGER and
-  --         R is an UNSIGNED vector.
-
-  -- Id: C.16
-  function "<=" (L: INTEGER; R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L <= R" where L is an INTEGER and
-  --         R is a SIGNED vector.
-
-  -- Id: C.17
-  function "<=" (L: UNSIGNED; R: NATURAL) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L <= R" where L is an UNSIGNED vector and
-  --         R is a non-negative INTEGER.
-
-  -- Id: C.18
-  function "<=" (L: SIGNED; R: INTEGER) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L <= R" where L is a SIGNED vector and
-  --         R is an INTEGER.
-
-  --============================================================================
-
-  -- Id: C.19
-  function ">=" (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L >= R" where L and R are UNSIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.20
-  function ">=" (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L >= R" where L and R are SIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.21
-  function ">=" (L: NATURAL; R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L >= R" where L is a non-negative INTEGER and
-  --         R is an UNSIGNED vector.
-
-  -- Id: C.22
-  function ">=" (L: INTEGER; R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L >= R" where L is an INTEGER and
-  --         R is a SIGNED vector.
-
-  -- Id: C.23
-  function ">=" (L: UNSIGNED; R: NATURAL) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L >= R" where L is an UNSIGNED vector and
-  --         R is a non-negative INTEGER.
-
-  -- Id: C.24
-  function ">=" (L: SIGNED; R: INTEGER) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L >= R" where L is a SIGNED vector and
-  --         R is an INTEGER.
-
-  --============================================================================
-
-  -- Id: C.25
-  function "=" (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L = R" where L and R are UNSIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.26
-  function "=" (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L = R" where L and R are SIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.27
-  function "=" (L: NATURAL; R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L = R" where L is a non-negative INTEGER and
-  --         R is an UNSIGNED vector.
-
-  -- Id: C.28
-  function "=" (L: INTEGER; R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L = R" where L is an INTEGER and
-  --         R is a SIGNED vector.
-
-  -- Id: C.29
-  function "=" (L: UNSIGNED; R: NATURAL) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L = R" where L is an UNSIGNED vector and
-  --         R is a non-negative INTEGER.
-
-  -- Id: C.30
-  function "=" (L: SIGNED; R: INTEGER) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L = R" where L is a SIGNED vector and
-  --         R is an INTEGER.
-
-  --============================================================================
-
-  -- Id: C.31
-  function "/=" (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L /= R" where L and R are UNSIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.32
-  function "/=" (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L /= R" where L and R are SIGNED vectors possibly
-  --         of different lengths.
-
-  -- Id: C.33
-  function "/=" (L: NATURAL; R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L /= R" where L is a non-negative INTEGER and
-  --         R is an UNSIGNED vector.
-
-  -- Id: C.34
-  function "/=" (L: INTEGER; R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L /= R" where L is an INTEGER and
-  --         R is a SIGNED vector.
-
-  -- Id: C.35
-  function "/=" (L: UNSIGNED; R: NATURAL) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L /= R" where L is an UNSIGNED vector and
-  --         R is a non-negative INTEGER.
-
-  -- Id: C.36
-  function "/=" (L: SIGNED; R: INTEGER) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: Computes "L /= R" where L is a SIGNED vector and
-  --         R is an INTEGER.
-
-  --============================================================================
-  -- Shift and Rotate Functions
-  --============================================================================
-
-  -- Id: S.1
-  function SHIFT_LEFT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a shift-left on an UNSIGNED vector COUNT times.
-  --         The vacated positions are filled with '0'.
-  --         The COUNT leftmost elements are lost.
-
-  -- Id: S.2
-  function SHIFT_RIGHT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a shift-right on an UNSIGNED vector COUNT times.
-  --         The vacated positions are filled with '0'.
-  --         The COUNT rightmost elements are lost.
-
-  -- Id: S.3
-  function SHIFT_LEFT (ARG: SIGNED; COUNT: NATURAL) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a shift-left on a SIGNED vector COUNT times.
-  --         The vacated positions are filled with '0'.
-  --         The COUNT leftmost elements are lost.
-
-  -- Id: S.4
-  function SHIFT_RIGHT (ARG: SIGNED; COUNT: NATURAL) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a shift-right on a SIGNED vector COUNT times.
-  --         The vacated positions are filled with the leftmost
-  --         element, ARG'LEFT. The COUNT rightmost elements are lost.
-
-  --============================================================================
-
-  -- Id: S.5
-  function ROTATE_LEFT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a rotate-left of an UNSIGNED vector COUNT times.
-
-  -- Id: S.6
-  function ROTATE_RIGHT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a rotate-right of an UNSIGNED vector COUNT times.
-
-  -- Id: S.7
-  function ROTATE_LEFT (ARG: SIGNED; COUNT: NATURAL) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a logical rotate-left of a SIGNED
-  --         vector COUNT times.
-
-  -- Id: S.8
-  function ROTATE_RIGHT (ARG: SIGNED; COUNT: NATURAL) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: Performs a logical rotate-right of a SIGNED
-  --         vector COUNT times.
-
-  --============================================================================
-
-  --============================================================================
-
-  ------------------------------------------------------------------------------
-  --   Note : Function S.9 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.9
-  function "sll" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: SHIFT_LEFT(ARG, COUNT)
-
-  ------------------------------------------------------------------------------
-  -- Note : Function S.10 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.10
-  function "sll" (ARG: SIGNED; COUNT: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: SHIFT_LEFT(ARG, COUNT)
-
-  ------------------------------------------------------------------------------
-  --   Note : Function S.11 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.11
-  function "srl" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: SHIFT_RIGHT(ARG, COUNT)
-
-  ------------------------------------------------------------------------------
-  --   Note : Function S.12 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.12
-  function "srl" (ARG: SIGNED; COUNT: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: SIGNED(SHIFT_RIGHT(UNSIGNED(ARG), COUNT))
-
-  ------------------------------------------------------------------------------
-  --   Note : Function S.13 is not compatible with VHDL 1076-1987. Comment
-  -- out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.13
-  function "rol" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: ROTATE_LEFT(ARG, COUNT)
-
-  ------------------------------------------------------------------------------
-  --   Note : Function S.14 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.14
-  function "rol" (ARG: SIGNED; COUNT: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: ROTATE_LEFT(ARG, COUNT)
-
-  ------------------------------------------------------------------------------
-  -- Note : Function S.15 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.15
-  function "ror" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED;
-  -- Result subtype: UNSIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: ROTATE_RIGHT(ARG, COUNT)
-
-  ------------------------------------------------------------------------------
-  --   Note : Function S.16 is not compatible with VHDL 1076-1987. Comment
-  --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  ------------------------------------------------------------------------------
-  -- Id: S.16
-  function "ror" (ARG: SIGNED; COUNT: INTEGER) return SIGNED;
-  -- Result subtype: SIGNED(ARG'LENGTH-1 downto 0)
-  -- Result: ROTATE_RIGHT(ARG, COUNT)
-
-  --============================================================================
-  --   RESIZE Functions
-  --============================================================================
-
-  -- Id: R.1
-  function RESIZE (ARG: SIGNED; NEW_SIZE: NATURAL) return SIGNED;
-  -- Result subtype: SIGNED(NEW_SIZE-1 downto 0)
-  -- Result: Resizes the SIGNED vector ARG to the specified size.
-  --         To create a larger vector, the new [leftmost] bit positions
-  --         are filled with the sign bit (ARG'LEFT). When truncating,
-  --         the sign bit is retained along with the rightmost part.
-
-  -- Id: R.2
-  function RESIZE (ARG: UNSIGNED; NEW_SIZE: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(NEW_SIZE-1 downto 0)
-  -- Result: Resizes the SIGNED vector ARG to the specified size.
-  --         To create a larger vector, the new [leftmost] bit positions
-  --         are filled with '0'. When truncating, the leftmost bits
-  --         are dropped.
-
-  --============================================================================
-  -- Conversion Functions
-  --============================================================================
-
-  -- Id: D.1
-  function TO_INTEGER (ARG: UNSIGNED) return NATURAL;
-  -- Result subtype: NATURAL. Value cannot be negative since parameter is an
-  --             UNSIGNED vector.
-  -- Result: Converts the UNSIGNED vector to an INTEGER.
-
-  -- Id: D.2
-  function TO_INTEGER (ARG: SIGNED) return INTEGER;
-  -- Result subtype: INTEGER
-  -- Result: Converts a SIGNED vector to an INTEGER.
-
-  -- Id: D.3
-  function TO_UNSIGNED (ARG, SIZE: NATURAL) return UNSIGNED;
-  -- Result subtype: UNSIGNED(SIZE-1 downto 0)
-  -- Result: Converts a non-negative INTEGER to an UNSIGNED vector with
-  --         the specified SIZE.
-
-  -- Id: D.4
-  function TO_SIGNED (ARG: INTEGER; SIZE: NATURAL) return SIGNED;
-  -- Result subtype: SIGNED(SIZE-1 downto 0)
-  -- Result: Converts an INTEGER to a SIGNED vector of the specified SIZE.
-
-  --============================================================================
-  -- Logical Operators
-  --============================================================================
-
-  -- Id: L.1
-  function "not" (L: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Termwise inversion
-
-  -- Id: L.2
-  function "and" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector AND operation
-
-  -- Id: L.3
-  function "or" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector OR operation
-
-  -- Id: L.4
-  function "nand" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector NAND operation
-
-  -- Id: L.5
-  function "nor" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector NOR operation
-
-  -- Id: L.6
-  function "xor" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector XOR operation
-
-  -- ---------------------------------------------------------------------------
-  -- Note : Function L.7 is not compatible with VHDL 1076-1987. Comment
-  -- out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  -- ---------------------------------------------------------------------------
-  -- Id: L.7
-  function "xnor" (L, R: UNSIGNED) return UNSIGNED;
-  -- Result subtype: UNSIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector XNOR operation
-
-  -- Id: L.8
-  function "not" (L: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Termwise inversion
-
-  -- Id: L.9
-  function "and" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector AND operation
-
-  -- Id: L.10
-  function "or" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector OR operation
-
-  -- Id: L.11
-  function "nand" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector NAND operation
-
-  -- Id: L.12
-  function "nor" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector NOR operation
-
-  -- Id: L.13
-  function "xor" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector XOR operation
-
-  -- ---------------------------------------------------------------------------
-  -- Note : Function L.14 is not compatible with VHDL 1076-1987. Comment
-  -- out the function (declaration and body) for VHDL 1076-1987 compatibility.
-  -- ---------------------------------------------------------------------------
-  -- Id: L.14
-  function "xnor" (L, R: SIGNED) return SIGNED;
-  -- Result subtype: SIGNED(L'LENGTH-1 downto 0)
-  -- Result: Vector XNOR operation
-
-  --============================================================================
-  -- Match Functions
-  --============================================================================
-
-  -- Id: M.1
-  function STD_MATCH (L, R: STD_ULOGIC) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: terms compared per STD_LOGIC_1164 intent
-
-  -- Id: M.2
-  function STD_MATCH (L, R: UNSIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: terms compared per STD_LOGIC_1164 intent
-
-  -- Id: M.3
-  function STD_MATCH (L, R: SIGNED) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: terms compared per STD_LOGIC_1164 intent
-
-  -- Id: M.4
-  function STD_MATCH (L, R: STD_LOGIC_VECTOR) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: terms compared per STD_LOGIC_1164 intent
-
-  -- Id: M.5
-  function STD_MATCH (L, R: STD_ULOGIC_VECTOR) return BOOLEAN;
-  -- Result subtype: BOOLEAN
-  -- Result: terms compared per STD_LOGIC_1164 intent
-
-  --============================================================================
-  -- Translation Functions
-  --============================================================================
-
-  -- Id: T.1
-  function TO_01 (S: UNSIGNED; XMAP: STD_LOGIC := '0') return UNSIGNED;
-  -- Result subtype: UNSIGNED(S'RANGE)
-  -- Result: Termwise, 'H' is translated to '1', and 'L' is translated
-  --         to '0'. If a value other than '0'|'1'|'H'|'L' is found,
-  --         the array is set to (others => XMAP), and a warning is
-  --         issued.
-
-  -- Id: T.2
-  function TO_01 (S: SIGNED; XMAP: STD_LOGIC := '0') return SIGNED;
-  -- Result subtype: SIGNED(S'RANGE)
-  -- Result: Termwise, 'H' is translated to '1', and 'L' is translated
-  --         to '0'. If a value other than '0'|'1'|'H'|'L' is found,
-  --         the array is set to (others => XMAP), and a warning is
-  --         issued.
-
-  -- Exemplar Synthesis Directives 
-  -- Directives are in the form of the following two attributes :
--- Verific : re-declaration of attributes causes use-clause inclusion conflicts if re-declared here.
-  attribute SYNTHESIS_RETURN : STRING ;
-  attribute IS_SIGNED : BOOLEAN ;
-
-  -- The SYNTHESIS_RETURN attribute is set on a return variable inside a function.
-  -- Exemplar will recognize the attribute and replace the function body by a 
-  -- built-in definition for synthesis. 
-  -- The variable on which the attribute is set defines the return (index) range
-  -- of the function.
-  -- The IS_SIGNED attribute is set on array parameters of the function that
-  -- should be interpreted as 2-complement values.
-  -- MSB is always the left most bit in an array (both for parameters and for
-  -- return values).
-end NUMERIC_STD;
 
 --==============================================================================
 --============================= Package Body ===================================
@@ -1008,8 +193,6 @@ package body NUMERIC_STD is
     constant ARG_L: INTEGER := ARG'LENGTH-1;
     alias XARG: STD_LOGIC_VECTOR(ARG_L downto 0) is ARG;
     variable RESULT: STD_LOGIC_VECTOR(ARG_L downto 0) := (others => '0');
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SLL" ;
   begin
     if COUNT <= ARG_L then
       RESULT(ARG_L downto COUNT) := XARG(ARG_L-COUNT downto 0);
@@ -1022,8 +205,6 @@ package body NUMERIC_STD is
     constant ARG_L: INTEGER := ARG'LENGTH-1;
     alias XARG: STD_LOGIC_VECTOR(ARG_L downto 0) is ARG;
     variable RESULT: STD_LOGIC_VECTOR(ARG_L downto 0) := (others => '0');
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SRL" ;
   begin
     if COUNT <= ARG_L then
       RESULT(ARG_L-COUNT downto 0) := XARG(ARG_L downto COUNT);
@@ -1037,8 +218,6 @@ package body NUMERIC_STD is
     alias XARG: STD_LOGIC_VECTOR(ARG_L downto 0) is ARG;
     variable RESULT: STD_LOGIC_VECTOR(ARG_L downto 0);
     variable XCOUNT: NATURAL := COUNT;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SRA" ;
   begin
     if ((ARG'LENGTH <= 1) or (XCOUNT = 0)) then return ARG;
     else
@@ -1056,8 +235,6 @@ package body NUMERIC_STD is
     alias XARG: STD_LOGIC_VECTOR(ARG_L downto 0) is ARG;
     variable RESULT: STD_LOGIC_VECTOR(ARG_L downto 0) := XARG;
     variable COUNTM: INTEGER;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ROL" ;
   begin
     COUNTM := COUNT mod (ARG_L + 1);
     if COUNTM /= 0 then
@@ -1073,8 +250,6 @@ package body NUMERIC_STD is
     alias XARG: STD_LOGIC_VECTOR(ARG_L downto 0) is ARG;
     variable RESULT: STD_LOGIC_VECTOR(ARG_L downto 0) := XARG;
     variable COUNTM: INTEGER;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ROR" ;
   begin
     COUNTM := COUNT mod (ARG_L + 1);
     if COUNTM /= 0 then
@@ -1154,9 +329,6 @@ package body NUMERIC_STD is
     constant ARG_LEFT: INTEGER := ARG'LENGTH-1;
     alias XARG: SIGNED(ARG_LEFT downto 0) is ARG;
     variable RESULT: SIGNED(ARG_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of ARG:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ABS" ;
   begin
     if ARG'LENGTH < 1 then return NAS;
     end if;
@@ -1175,10 +347,6 @@ package body NUMERIC_STD is
     alias XARG: SIGNED(ARG_LEFT downto 0) is ARG;
     variable RESULT, XARG01 : SIGNED(ARG_LEFT downto 0);
     variable CBIT: STD_LOGIC := '1';
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of ARG:constant is TRUE ;
-    attribute IS_SIGNED of RESULT:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "UMINUS" ;
   begin
     if ARG'LENGTH < 1 then return NAS;
     end if;
@@ -1199,8 +367,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(SIZE-1 downto 0);
     variable R01 : UNSIGNED(SIZE-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of L01:variable is "ADD" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAU;
     end if;
@@ -1218,11 +384,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(SIZE-1 downto 0);
     variable R01 : SIGNED(SIZE-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of L01:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of L01:variable is "ADD" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAS;
     end if;
@@ -1266,8 +427,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(SIZE-1 downto 0);
     variable R01 : UNSIGNED(SIZE-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of L01:variable is "SUB" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAU;
     end if;
@@ -1285,11 +444,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(SIZE-1 downto 0);
     variable R01 : SIGNED(SIZE-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of L01:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of L01:variable is "SUB" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAS;
     end if;
@@ -1339,8 +493,6 @@ package body NUMERIC_STD is
     variable RESULT: UNSIGNED((L'LENGTH+R'LENGTH-1) downto 0) :=
         (others => '0');
     variable ADVAL: UNSIGNED((L'LENGTH+R'LENGTH-1) downto 0);
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "MULT" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAU;
     end if;
@@ -1367,11 +519,6 @@ package body NUMERIC_STD is
     variable XR: SIGNED(R_LEFT downto 0);
     variable RESULT: SIGNED((L_LEFT+R_LEFT+1) downto 0) := (others => '0');
     variable ADVAL: SIGNED((L_LEFT+R_LEFT+1) downto 0);
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of result:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "MULT" ;
   begin
     if ((L_LEFT < 0) or (R_LEFT < 0)) then return NAS;
     end if;
@@ -1429,8 +576,6 @@ package body NUMERIC_STD is
     variable XR: UNSIGNED(R_LEFT downto 0);
     variable FQUOT: UNSIGNED(L'LENGTH-1 downto 0);
     variable FREMAIN: UNSIGNED(R'LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of FQUOT:variable is "DIV" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAU;
     end if;
@@ -1457,11 +602,6 @@ package body NUMERIC_STD is
     variable XNUM: UNSIGNED(L'LENGTH-1 downto 0);
     variable XDENOM: UNSIGNED(R'LENGTH-1 downto 0);
     variable QNEG: BOOLEAN := FALSE;
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of FQUOT:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of FQUOT:variable is "DIV" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAS;
     end if;
@@ -1493,9 +633,6 @@ package body NUMERIC_STD is
   function "/" (L: UNSIGNED; R: NATURAL) return UNSIGNED is
     constant R_LENGTH: NATURAL := MAX(L'LENGTH, UNSIGNED_NUM_BITS(R));
     variable XR, QUOT: UNSIGNED(R_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (L'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "DIV" ;
   begin
     if (L'LENGTH < 1) then return NAU;
     end if;
@@ -1512,9 +649,6 @@ package body NUMERIC_STD is
   function "/" (L: NATURAL; R: UNSIGNED) return UNSIGNED is
     constant L_LENGTH: NATURAL := MAX(UNSIGNED_NUM_BITS(L), R'LENGTH);
     variable XL, QUOT: UNSIGNED(L_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (R'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "DIV" ;
   begin
     if (R'LENGTH < 1) then return NAU;
     end if;
@@ -1534,11 +668,6 @@ package body NUMERIC_STD is
   function "/" (L: SIGNED; R: INTEGER) return SIGNED is
     constant R_LENGTH: NATURAL := MAX(L'LENGTH, SIGNED_NUM_BITS(R));
     variable XR, QUOT: SIGNED(R_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (L'LENGTH-1 downto 0) ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of result:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "DIV" ;
   begin
     if (L'LENGTH < 1) then return NAS;
     end if;
@@ -1555,11 +684,6 @@ package body NUMERIC_STD is
   function "/" (L: INTEGER; R: SIGNED) return SIGNED is
     constant L_LENGTH: NATURAL := MAX(SIGNED_NUM_BITS(L), R'LENGTH);
     variable XL, QUOT: SIGNED(L_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (R'LENGTH-1 downto 0) ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of result:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "DIV" ;
   begin
     if (R'LENGTH < 1) then return NAS;
     end if;
@@ -1587,8 +711,6 @@ package body NUMERIC_STD is
     variable XR: UNSIGNED(R_LEFT downto 0);
     variable FQUOT: UNSIGNED(L'LENGTH-1 downto 0);
     variable FREMAIN: UNSIGNED(R'LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of FREMAIN:variable is "REM" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAU;
     end if;
@@ -1613,10 +735,6 @@ package body NUMERIC_STD is
     variable XNUM: UNSIGNED(L'LENGTH-1 downto 0);
     variable XDENOM: UNSIGNED(R'LENGTH-1 downto 0);
     variable RNEG: BOOLEAN := FALSE;
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of FREMAIN:variable is "REM" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAS;
     end if;
@@ -1648,9 +766,6 @@ package body NUMERIC_STD is
   function "rem" (L: UNSIGNED; R: NATURAL) return UNSIGNED is
     constant R_LENGTH: NATURAL := MAX(L'LENGTH, UNSIGNED_NUM_BITS(R));
     variable XR, XREM: UNSIGNED(R_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (L'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "REM" ;
   begin
     if (L'LENGTH < 1) then return NAU;
     end if;
@@ -1670,9 +785,6 @@ package body NUMERIC_STD is
   function "rem" (L: NATURAL; R: UNSIGNED) return UNSIGNED is
     constant L_LENGTH: NATURAL := MAX(UNSIGNED_NUM_BITS(L), R'LENGTH);
     variable XL, XREM: UNSIGNED(L_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (R'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "REM" ;
   begin
     XL := TO_UNSIGNED(L, L_LENGTH);
     XREM := XL rem R;
@@ -1690,10 +802,6 @@ package body NUMERIC_STD is
   function "rem" (L: SIGNED; R: INTEGER) return SIGNED is
     constant R_LENGTH: NATURAL := MAX(L'LENGTH, SIGNED_NUM_BITS(R));
     variable XR, XREM: SIGNED(R_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (L'LENGTH-1 downto 0) ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "REM" ;
   begin
     if (L'LENGTH < 1) then return NAS;
     end if;
@@ -1713,10 +821,6 @@ package body NUMERIC_STD is
   function "rem" (L: INTEGER; R: SIGNED) return SIGNED is
     constant L_LENGTH: NATURAL := MAX(SIGNED_NUM_BITS(L), R'LENGTH);
     variable XL, XREM: SIGNED(L_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (R'LENGTH-1 downto 0) ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "REM" ;
   begin
     if (R'LENGTH < 1) then return NAS;
     end if;
@@ -1744,8 +848,6 @@ package body NUMERIC_STD is
     variable XR: UNSIGNED(R_LEFT downto 0);
     variable FQUOT: UNSIGNED(L'LENGTH-1 downto 0);
     variable FREMAIN: UNSIGNED(R'LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of FREMAIN:variable is "MOD" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAU;
     end if;
@@ -1772,11 +874,6 @@ package body NUMERIC_STD is
     variable XNUM: UNSIGNED(L'LENGTH-1 downto 0);
     variable XDENOM: UNSIGNED(R'LENGTH-1 downto 0);
     variable RNEG: BOOLEAN := FALSE;
-    -- Exemplar synthesis directives :
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of FREMAIN:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of FREMAIN:variable is "MOD" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then return NAS;
     end if;
@@ -1812,9 +909,6 @@ package body NUMERIC_STD is
   function "mod" (L: UNSIGNED; R: NATURAL) return UNSIGNED is
     constant R_LENGTH: NATURAL := MAX(L'LENGTH, UNSIGNED_NUM_BITS(R));
     variable XR, XREM: UNSIGNED(R_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (L'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "MOD" ;
   begin
     if (L'LENGTH < 1) then return NAU;
     end if;
@@ -1834,9 +928,6 @@ package body NUMERIC_STD is
   function "mod" (L: NATURAL; R: UNSIGNED) return UNSIGNED is
     constant L_LENGTH: NATURAL := MAX(UNSIGNED_NUM_BITS(L), R'LENGTH);
     variable XL, XREM: UNSIGNED(L_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (R'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "MOD" ;
   begin
     if (R'LENGTH < 1) then return NAU;
     end if;
@@ -1856,11 +947,6 @@ package body NUMERIC_STD is
   function "mod" (L: SIGNED; R: INTEGER) return SIGNED is
     constant R_LENGTH: NATURAL := MAX(L'LENGTH, SIGNED_NUM_BITS(R));
     variable XR, XREM: SIGNED(R_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (L'LENGTH-1 downto 0) ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of result:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "MOD" ;
   begin
     if (L'LENGTH < 1) then return NAS;
     end if;
@@ -1880,11 +966,6 @@ package body NUMERIC_STD is
   function "mod" (L: INTEGER; R: SIGNED) return SIGNED is
     constant L_LENGTH: NATURAL := MAX(SIGNED_NUM_BITS(L), R'LENGTH);
     variable XL, XREM: SIGNED(L_LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (R'LENGTH-1 downto 0) ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute IS_SIGNED of result:variable is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "MOD" ;
   begin
     if (R'LENGTH < 1) then return NAS;
     end if;
@@ -1911,9 +992,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(L_LEFT downto 0);
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GT" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -1941,11 +1019,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(L_LEFT downto 0);
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GT" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -1969,9 +1042,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: UNSIGNED(R_LEFT downto 0) is R;
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GT" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -1996,10 +1066,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: SIGNED(R_LEFT downto 0) is R;
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GT" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2024,9 +1090,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: UNSIGNED(L_LEFT downto 0) is L;
     variable L01 : UNSIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GT" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2051,10 +1114,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: SIGNED(L_LEFT downto 0) is L;
     variable L01 : SIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GT" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2085,9 +1144,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(L_LEFT downto 0);
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LT" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2115,11 +1171,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(L_LEFT downto 0);
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LT" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2143,9 +1194,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: UNSIGNED(R_LEFT downto 0) is R;
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LT" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2170,10 +1218,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: SIGNED(R_LEFT downto 0) is R;
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LT" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2198,9 +1242,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: UNSIGNED(L_LEFT downto 0) is L;
     variable L01 : UNSIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LT" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2225,10 +1266,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: SIGNED(L_LEFT downto 0) is L;
     variable L01 : SIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LT" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2259,9 +1296,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(L_LEFT downto 0);
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LTE" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2289,11 +1323,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(L_LEFT downto 0);
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LTE" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2317,9 +1346,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: UNSIGNED(R_LEFT downto 0) is R;
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LTE" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2344,10 +1370,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: SIGNED(R_LEFT downto 0) is R;
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LTE" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2372,9 +1394,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: UNSIGNED(L_LEFT downto 0) is L;
     variable L01 : UNSIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LTE" ;
   begin
     if (L_LEFT < 0) then
       assert NO_WARNING
@@ -2399,10 +1418,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: SIGNED(L_LEFT downto 0) is L;
     variable L01 : SIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "LTE" ;
   begin
     if (L_LEFT < 0) then
       assert NO_WARNING
@@ -2433,9 +1448,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(L_LEFT downto 0);
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GTE" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2463,11 +1475,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(L_LEFT downto 0);
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GTE" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2491,9 +1498,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: UNSIGNED(R_LEFT downto 0) is R;
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GTE" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2518,10 +1522,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: SIGNED(R_LEFT downto 0) is R;
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GTE" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2546,9 +1546,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: UNSIGNED(L_LEFT downto 0) is L;
     variable L01 : UNSIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GTE" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2573,10 +1570,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: SIGNED(L_LEFT downto 0) is L;
     variable L01 : SIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "GTE" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2607,9 +1600,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(L_LEFT downto 0);
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "EQ" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2637,11 +1627,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(L_LEFT downto 0);
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "EQ" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2665,9 +1650,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: UNSIGNED(R_LEFT downto 0) is R;
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "EQ" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2692,10 +1674,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: SIGNED(R_LEFT downto 0) is R;
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "EQ" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2720,9 +1698,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: UNSIGNED(L_LEFT downto 0) is L;
     variable L01 : UNSIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "EQ" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2747,10 +1722,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: SIGNED(L_LEFT downto 0) is L;
     variable L01 : SIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "EQ" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2781,9 +1752,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : UNSIGNED(L_LEFT downto 0);
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "NEQ" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2811,11 +1779,6 @@ package body NUMERIC_STD is
     constant SIZE: NATURAL := MAX(L'LENGTH, R'LENGTH);
     variable L01 : SIGNED(L_LEFT downto 0);
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "NEQ" ;
   begin
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -2839,9 +1802,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: UNSIGNED(R_LEFT downto 0) is R;
     variable R01 : UNSIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "NEQ" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2866,10 +1826,6 @@ package body NUMERIC_STD is
     constant R_LEFT: INTEGER := R'LENGTH-1;
     alias XR: SIGNED(R_LEFT downto 0) is R;
     variable R01 : SIGNED(R_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of R:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "NEQ" ;
   begin
     if (R'LENGTH < 1) then
       assert NO_WARNING
@@ -2894,9 +1850,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: UNSIGNED(L_LEFT downto 0) is L;
     variable L01 : UNSIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "NEQ" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2921,10 +1874,6 @@ package body NUMERIC_STD is
     constant L_LEFT: INTEGER := L'LENGTH-1;
     alias XL: SIGNED(L_LEFT downto 0) is L;
     variable L01 : SIGNED(L_LEFT downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : BOOLEAN ;
-    attribute IS_SIGNED of L:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "NEQ" ;
   begin
     if (L'LENGTH < 1) then
       assert NO_WARNING
@@ -2948,7 +1897,6 @@ package body NUMERIC_STD is
 
   -- Id: S.1
   function SHIFT_LEFT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED is
-    -- Exemplar directives are in XSLL
   begin
     if (ARG'LENGTH < 1) then return NAU;
     end if;
@@ -2957,7 +1905,6 @@ package body NUMERIC_STD is
 
   -- Id: S.2
   function SHIFT_RIGHT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED is
-    -- Exemplar directives are in XSRL
   begin
     if (ARG'LENGTH < 1) then return NAU;
     end if;
@@ -2966,7 +1913,6 @@ package body NUMERIC_STD is
 
   -- Id: S.3
   function SHIFT_LEFT (ARG: SIGNED; COUNT: NATURAL) return SIGNED is
-    -- Exemplar directives are in XSLL
   begin
     if (ARG'LENGTH < 1) then return NAS;
     end if;
@@ -2975,7 +1921,6 @@ package body NUMERIC_STD is
 
   -- Id: S.4
   function SHIFT_RIGHT (ARG: SIGNED; COUNT: NATURAL) return SIGNED is
-    -- Exemplar directives are in XSRA
   begin
     if (ARG'LENGTH < 1) then return NAS;
     end if;
@@ -2986,7 +1931,6 @@ package body NUMERIC_STD is
 
   -- Id: S.5
   function ROTATE_LEFT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED is
-    -- Exemplar directives are in XROL
   begin
     if (ARG'LENGTH < 1) then return NAU;
     end if;
@@ -2995,7 +1939,6 @@ package body NUMERIC_STD is
 
   -- Id: S.6
   function ROTATE_RIGHT (ARG: UNSIGNED; COUNT: NATURAL) return UNSIGNED is
-    -- Exemplar directives are in XROR
   begin
     if (ARG'LENGTH < 1) then return NAU;
     end if;
@@ -3005,7 +1948,6 @@ package body NUMERIC_STD is
 
   -- Id: S.7
   function ROTATE_LEFT (ARG: SIGNED; COUNT: NATURAL) return SIGNED is
-    -- Exemplar directives are in XROL
   begin
     if (ARG'LENGTH < 1) then return NAS;
     end if;
@@ -3014,7 +1956,6 @@ package body NUMERIC_STD is
 
   -- Id: S.8
   function ROTATE_RIGHT (ARG: SIGNED; COUNT: NATURAL) return SIGNED is
-    -- Exemplar directives are in XROR
   begin
     if (ARG'LENGTH < 1) then return NAS;
     end if;
@@ -3022,6 +1963,7 @@ package body NUMERIC_STD is
   end ROTATE_RIGHT;
 
   --============================================================================
+--START-!V87
 
   ------------------------------------------------------------------------------
   -- Note : Function S.9 is not compatible with VHDL 1076-1987. Comment
@@ -3029,9 +1971,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.9
   function "sll" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SLL" ;
   begin
     if (COUNT >= 0) then
       return SHIFT_LEFT(ARG, COUNT);
@@ -3046,9 +1985,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.10
   function "sll" (ARG: SIGNED; COUNT: INTEGER) return SIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SLL" ;
   begin
     if (COUNT >= 0) then
       return SHIFT_LEFT(ARG, COUNT);
@@ -3063,9 +1999,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.11
   function "srl" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SRL" ;
   begin
     if (COUNT >= 0) then
       return SHIFT_RIGHT(ARG, COUNT);
@@ -3080,9 +2013,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.12
   function "srl" (ARG: SIGNED; COUNT: INTEGER) return SIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "SRL" ;
   begin
     if (COUNT >= 0) then
       return SIGNED(SHIFT_RIGHT(UNSIGNED(ARG), COUNT));
@@ -3097,9 +2027,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.13
   function "rol" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ROL" ;
   begin
     if (COUNT >= 0) then
       return ROTATE_LEFT(ARG, COUNT);
@@ -3114,9 +2041,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.14
   function "rol" (ARG: SIGNED; COUNT: INTEGER) return SIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ROL" ;
   begin
     if (COUNT >= 0) then
       return ROTATE_LEFT(ARG, COUNT);
@@ -3131,9 +2055,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.15
   function "ror" (ARG: UNSIGNED; COUNT: INTEGER) return UNSIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : UNSIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ROR" ;
   begin
     if (COUNT >= 0) then
       return ROTATE_RIGHT(ARG, COUNT);
@@ -3148,9 +2069,6 @@ package body NUMERIC_STD is
   ------------------------------------------------------------------------------
   -- Id: S.16
   function "ror" (ARG: SIGNED; COUNT: INTEGER) return SIGNED is
-    -- Exemplar synthesis directives :
-    variable RESULT : SIGNED (ARG'LENGTH-1 downto 0) ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "ROR" ;
   begin
     if (COUNT >= 0) then
       return ROTATE_RIGHT(ARG, COUNT);
@@ -3159,6 +2077,7 @@ package body NUMERIC_STD is
     end if;
   end "ror";
 
+--END-!V87
   --============================================================================
 
   -- Id: D.1
@@ -3167,8 +2086,6 @@ package body NUMERIC_STD is
     alias XXARG: UNSIGNED(ARG_LEFT downto 0) is ARG;
     variable XARG: UNSIGNED(ARG_LEFT downto 0);
     variable RESULT: NATURAL := 0;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (ARG'LENGTH < 1) then
       assert NO_WARNING
@@ -3195,10 +2112,6 @@ package body NUMERIC_STD is
   -- Id: D.2
   function TO_INTEGER (ARG: SIGNED) return INTEGER is
     variable XARG: SIGNED(ARG'LENGTH-1 downto 0);
-    -- Exemplar synthesis directives :
-    variable RESULT : INTEGER ;
-    attribute IS_SIGNED of ARG:constant is TRUE ;
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (ARG'LENGTH < 1) then
       assert NO_WARNING
@@ -3224,8 +2137,6 @@ package body NUMERIC_STD is
   function TO_UNSIGNED (ARG, SIZE: NATURAL) return UNSIGNED is
     variable RESULT: UNSIGNED(SIZE-1 downto 0);
     variable I_VAL: NATURAL := ARG;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (SIZE < 1) then return NAU;
     end if;
@@ -3249,8 +2160,6 @@ package body NUMERIC_STD is
     variable RESULT: SIGNED(SIZE-1 downto 0);
     variable B_VAL: STD_LOGIC := '0';
     variable I_VAL: INTEGER := ARG;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (SIZE < 1) then return NAS;
     end if;
@@ -3281,9 +2190,6 @@ package body NUMERIC_STD is
     alias INVEC: SIGNED(ARG'LENGTH-1 downto 0) is ARG;
     variable RESULT: SIGNED(NEW_SIZE-1 downto 0) := (others => '0');
     constant BOUND: INTEGER := MIN(ARG'LENGTH, RESULT'LENGTH)-2;
-    -- VERIFIC: The RESIZE() function for signed does NOT behave the same as the FEEDTHROUGH pragma does. It does truncation a bit different. Cannot use pragma. Issue 2044
-    -- attribute IS_SIGNED of ARG:constant is TRUE ;
-    ---attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (NEW_SIZE < 1) then return NAS;
     end if;
@@ -3301,8 +2207,6 @@ package body NUMERIC_STD is
     constant ARG_LEFT: INTEGER := ARG'LENGTH-1;
     alias XARG: UNSIGNED(ARG_LEFT downto 0) is ARG;
     variable RESULT: UNSIGNED(NEW_SIZE-1 downto 0) := (others => '0');
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (NEW_SIZE < 1) then return NAU;
     end if;
@@ -3367,6 +2271,7 @@ package body NUMERIC_STD is
     return RESULT;
   end "xor";
 
+--START-!V87
   ------------------------------------------------------------------------------
   -- Note : Function L.7 is not compatible with VHDL 1076-1987. Comment
   -- out the function (declaration and body) for VHDL 1076-1987 compatibility.
@@ -3378,6 +2283,7 @@ package body NUMERIC_STD is
     RESULT := UNSIGNED(STD_LOGIC_VECTOR(L) xnor STD_LOGIC_VECTOR(R));
     return RESULT;
   end "xnor";
+--END-!V87
 
   -- Id: L.8
   function "not" (L: SIGNED) return SIGNED is
@@ -3427,6 +2333,7 @@ package body NUMERIC_STD is
     return RESULT;
   end "xor";
 
+--START-!V87
   ------------------------------------------------------------------------------
   -- Note : Function L.14 is not compatible with VHDL 1076-1987. Comment
   --   out the function (declaration and body) for VHDL 1076-1987 compatibility.
@@ -3438,6 +2345,7 @@ package body NUMERIC_STD is
     RESULT := SIGNED(STD_LOGIC_VECTOR(L) xnor STD_LOGIC_VECTOR(R));
     return RESULT;
   end "xnor";
+--END-!V87
 
   --============================================================================
 
@@ -3583,8 +2491,6 @@ package body NUMERIC_STD is
     variable RESULT: UNSIGNED(S'LENGTH-1 downto 0);
     variable BAD_ELEMENT: BOOLEAN := FALSE;
     alias XS: UNSIGNED(S'LENGTH-1 downto 0) is S;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (S'LENGTH < 1) then
       assert NO_WARNING
@@ -3612,8 +2518,6 @@ package body NUMERIC_STD is
     variable RESULT: SIGNED(S'LENGTH-1 downto 0);
     variable BAD_ELEMENT: BOOLEAN := FALSE;
     alias XS: SIGNED(S'LENGTH-1 downto 0) is S;
-    -- Exemplar synthesis directives :
-    attribute SYNTHESIS_RETURN of RESULT:variable is "FEED_THROUGH" ;
   begin
     if (S'LENGTH < 1) then
       assert NO_WARNING
@@ -3639,4 +2543,3 @@ package body NUMERIC_STD is
   --============================================================================
 
 end NUMERIC_STD;
-

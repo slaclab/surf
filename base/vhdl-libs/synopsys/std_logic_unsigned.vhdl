@@ -22,9 +22,6 @@
 --		definitions						--
 --									--
 --------------------------------------------------------------------------
--- Modifications :
--- Attributes added for Xilinx specific optimizations
---------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.std_logic_1164.all;
@@ -75,10 +72,6 @@ package STD_LOGIC_UNSIGNED is
     function SHR(ARG:STD_LOGIC_VECTOR;COUNT: STD_LOGIC_VECTOR) return STD_LOGIC_VECTOR;
 
     function CONV_INTEGER(ARG: STD_LOGIC_VECTOR) return INTEGER;
-
-    attribute foreign of ">"[STD_LOGIC_VECTOR, STD_LOGIC_VECTOR return BOOLEAN]:function is "ieee_std_logic_unsigned_Greater_StdV_StdV"; 
-
-    attribute foreign of "="[STD_LOGIC_VECTOR, STD_LOGIC_VECTOR return BOOLEAN]:function is "ieee_std_logic_unsigned_Equal_StdV_StdV"; 
 
 -- remove this since it is already in std_logic_arith
 --    function CONV_STD_LOGIC_VECTOR(ARG: INTEGER; SIZE: INTEGER) return STD_LOGIC_VECTOR;
