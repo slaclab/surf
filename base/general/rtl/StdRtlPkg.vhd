@@ -57,8 +57,8 @@ package StdRtlPkg is
    -- Very useful functions
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
---    function log2 (constant number    : integer) return natural;
---    function bitSize (constant number : natural) return positive;
+   function log2 (constant number    : integer) return natural;
+   function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
    function wordCount (number : positive; wordSize : positive := 8) return natural; 
 
@@ -713,27 +713,27 @@ package body StdRtlPkg is
    -- Arg: number - integer to find log2 of
    -- Returns: Integer containing log base two of input.
    ---------------------------------------------------------------------------------------------------------------------
---    function log2(constant number : integer) return natural is
---    begin
---       if (number < 2) then
---          return 1;
---       end if;
---       return integer(ceil(ieee.math_real.log2(real(number))));
---    end function;
+   function log2(constant number : integer) return natural is
+   begin
+      if (number < 2) then
+         return 1;
+      end if;
+      return integer(ceil(ieee.math_real.log2(real(number))));
+   end function;
 
    -- Find number of bits needed to store a number
---    function bitSize (constant number : natural ) return positive is
---    begin
---       if (number = 0 or number = 1) then
---          return 1;
---       else
---          if (isPowerOf2(number)) then
---             return log2(number) + 1;
---          else
---             return log2(number);
---          end if;
---       end if;
---    end function;
+   function bitSize (constant number : natural ) return positive is
+   begin
+      if (number = 0 or number = 1) then
+         return 1;
+      else
+         if (isPowerOf2(number)) then
+            return log2(number) + 1;
+         else
+            return log2(number);
+         end if;
+      end if;
+   end function;
 
    -- NOTE: XST will crap its pants if you try to pass a constant to this function
    function bitReverse (a : slv) return slv is
