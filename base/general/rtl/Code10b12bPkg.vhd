@@ -270,12 +270,12 @@ package body Code10b12bPkg is
       end if;
 
       -- Handle K.28.28 case
-      if (dataKIn = '1') then
-         if (highWordIn = "11100") then
-            highWordOut := not "111100";
-            highDispOut := conv(dispIn);
-         end if;
-      end if;
+--       if (dataKIn = '1') then
+--          if (highWordIn = "11100") then
+--             highWordOut := not "111100";
+--             highDispOut := conv(dispIn);
+--          end if;
+--       end if;
 
       dispOut := conv(highDispOut);
       dataOut := highWordOut & lowWordOut;
