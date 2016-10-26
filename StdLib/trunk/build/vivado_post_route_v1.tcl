@@ -30,12 +30,6 @@ if { [CheckTiming false] == true } {
    if { ${VIVADO_VERSION} >= 2015.3 } {
       exec cp -f ${IMPL_DIR}/${topLevel}_routed.dcp ${OUT_DIR}/IncrementalBuild.dcp
    }
-   
-   ########################################################
-   ## Make a copy of the .bit file and .bit.gz
-   ######################################################## 
-   exec cp -f ${IMPL_DIR}/${topLevel}.bit ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.bit
-   exec gzip -c -f -9 ${IMPL_DIR}/${topLevel}.bit > ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.bit.gz
 
    #########################################################
    ## Check if need to include YAML files with the .BIT file
