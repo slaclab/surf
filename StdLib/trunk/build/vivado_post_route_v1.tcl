@@ -27,7 +27,8 @@ if { [CheckTiming false] == true } {
    ## in an "incremental compile" build
    ########################################################
    if { ${VIVADO_VERSION} >= 2015.3 } {
-      exec cp -f ${IMPL_DIR}/${PROJECT}_routed.dcp ${OUT_DIR}/IncrementalBuild.dcp
+      set topLevel [get_property top [current_fileset]]
+      exec cp -f ${IMPL_DIR}/${topLevel}_routed.dcp ${OUT_DIR}/IncrementalBuild.dcp
    }
    
    ########################################################
