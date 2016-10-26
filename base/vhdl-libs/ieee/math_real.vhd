@@ -1,0 +1,14 @@
+-------------------------------------------------------------------------------
+--              Standard VHDL Mathematical Packages (IEEE Std 1076.2-1996,
+--              MATH_REAL)
+--              
+--    NOTE:     Xilinx Inc is unable to redistribute source code of 
+--              Standard VHDL Mathematical Packages to our customers 
+--              due to IEEE's copyright. However, distribution of a
+--              compiled form is allowed and we do have compiled form of 
+--              math_real available in $XILINX/vhdl/xst/ieee directory.
+--
+--              VHDL source code of math_real can be licensed from IEEE
+--              by directly contacting them. For more information on this
+--              visit ieee's website at http://stdsbbs.ieee.org
+-------------------------------------------------------------------------------
