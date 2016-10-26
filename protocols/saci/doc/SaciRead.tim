@@ -1,0 +1,143 @@
+Timing Analyzer Settings 
+     TA_Version:        0.957
+     Time_Scale:        1.0E-9
+     Time_Per_Division: 343.0
+     Number_Divisions:   159
+     Start_Time:        0.0
+     End_Time:          3600.0
+Digital_Signal
+     Position:          1
+     Name:              saciSelL
+     Start_State:       H
+     Number_Edges:      4
+     Rise_Time:         5.0
+     Fall_Time:         5.0
+          Edge
+              Min:             100.000999
+              Max:             100.000999
+              State:            L
+          Edge_End
+          Edge
+              Min:             3451.225999
+              Max:             3451.225999
+              State:            H
+          Edge_End
+          Edge
+              Min:             3602.990999
+              Max:             3602.990999
+              State:            L
+          Edge_End
+          Edge
+              Min:             3619.501
+              Max:             3619.501
+              State:            H
+          Edge_End
+Digital_Signal_End
+Digital_Clock
+     Position:          2
+     Name:              saciClk
+     Frequency:         2.0E7
+     Duty_Cycle:        50
+     Jitter:            0.0
+     Start_Delay:       0.0
+     Start_State:       H
+     Rise_Time:         5.0
+     Fall_Time:         5.0
+Digital_Clock_End
+Digital_Signal
+     Position:          3
+     Name:              saciCmd
+     Start_State:       L
+     Number_Edges:      5
+     Rise_Time:         5.0
+     Fall_Time:         5.0
+     Height:            24
+          Edge
+              Min:             150.000999
+              Max:             150.000999
+              State:            H
+          Edge_End
+          Edge
+              Min:             200.000999
+              Max:             200.000999
+              State:            L
+          Edge_End
+          Edge
+              Min:             250.001
+              Max:             250.001
+              State:            CMD
+          Edge_End
+          Edge
+              Min:             550.000999
+              Max:             550.000999
+              State:            ADDR
+          Edge_End
+          Edge
+              Min:             1200.000999
+              Max:             1200.000999
+              State:            L
+          Edge_End
+Digital_Signal_End
+Digital_Signal
+     Position:          4
+     Name:              saciRsp
+     Start_State:       Z
+     Number_Edges:      8
+     Rise_Time:         5.0
+     Fall_Time:         5.0
+     Height:            24
+          Edge
+              Min:             100.000999
+              Max:             100.000999
+              State:            L
+          Edge_End
+          Edge
+              Min:             1450.000999
+              Max:             1450.000999
+              State:            H
+          Edge_End
+          Edge
+              Min:             1500.000999
+              Max:             1500.000999
+              State:            L
+          Edge_End
+          Edge
+              Min:             1550.000999
+              Max:             1550.000999
+              State:            CMD
+          Edge_End
+          Edge
+              Min:             1850.000999
+              Max:             1850.000999
+              State:            ADDR
+          Edge_End
+          Edge
+              Min:             2450.001000
+              Max:             2450.001000
+              State:            DATA
+          Edge_End
+          Edge
+              Min:             3350.001000
+              Max:             3350.001000
+              State:            L
+          Edge_End
+          Edge
+              Min:             3550.001000
+              Max:             3550.001000
+              State:            Z
+          Edge_End
+Digital_Signal_End
+StateBar
+     State_Name:        Start
+     Line_Type:         Solid
+     Edge_Position:     5
+     State_Color:       #000000
+     Font_Name:         Dialog
+     Font_Style:        0
+     Font_Size:         12
+     Signal_Type:       DigitalSignal
+     Signal_Name:       saciCmd
+     Edge_At:           0
+     OffsetX:           0
+     OffsetY:           0
+StateBar_End
