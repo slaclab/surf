@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2016-10-25
+-- Last update: 2016-10-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -220,15 +220,8 @@ package body Code10b12bPkg is
       tmp := D_CODE_TABLE_C(conv_integer(lowWordIn));
       if (dataKIn = '1') then
          tmp := K_CODE_TABLE_C(conv_integer(lowWordIn));
+--         tmp := K_CODE_TABLE_C(28);
       end if;
-
-      -- K.28 is not in the table. Set it manually here
---       if (dataKIn = '1') then
---          if (lowWordIn = "11100") then
---             tmp := K_28_CODE_C;
---          end if;
---       end if;
-
 
       -- Decide whether to invert
       if (tmp.expDisp /= 0) then
