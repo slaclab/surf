@@ -120,8 +120,8 @@ architecture rtl of AxiStreamDmaWrite is
    signal rdEn          : sl;
    signal lastDet       : sl;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "true";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";
    
 begin
 
