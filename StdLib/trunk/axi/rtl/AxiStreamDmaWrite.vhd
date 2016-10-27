@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-10-15
+-- Last update: 2016-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,14 +34,15 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaWrite is
    generic (
-      TPD_G              : time                := 1 ns;
-      AXI_READY_EN_G     : boolean             := false;
-      AXIS_CONFIG_G      : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G       : AxiConfigType       := AXI_CONFIG_INIT_C;
-      AXI_BURST_G        : slv(1 downto 0)     := "01";
-      AXI_CACHE_G        : slv(3 downto 0)     := "1111";
-      ACK_WAIT_BVALID_G  : boolean             := true;
-      PIPE_STAGES_G      : natural             := 1);
+      TPD_G             : time                := 1 ns;
+      AXI_READY_EN_G    : boolean             := false;
+      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
+      AXI_BURST_G       : slv(1 downto 0)     := "01";
+      AXI_CACHE_G       : slv(3 downto 0)     := "1111";
+      ACK_WAIT_BVALID_G : boolean             := true;
+      PIPE_STAGES_G     : natural             := 1;
+      BYP_SHIFT_G       : boolean             := false);
    port (
       -- Clock/Reset
       axiClk         : in  sl;
@@ -60,9 +61,10 @@ end AxiStreamDmaWrite;
 
 architecture rtl of AxiStreamDmaWrite is
 
-   constant DATA_BYTES_C : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C   : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
+   constant DATA_BYTES_C      : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
+   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
+   constant FIFO_ADDR_WIDTH_C : natural         := (AXI_CONFIG_G.LEN_BITS_C+1);
 
    type StateType is (
       IDLE_S,
@@ -74,41 +76,49 @@ architecture rtl of AxiStreamDmaWrite is
       DONE_S);
 
    type RegType is record
-      dmaReq   : AxiWriteDmaReqType;
-      dmaAck   : AxiWriteDmaAckType;
-      shift    : slv(3 downto 0);
-      shiftEn  : sl;
-      first    : sl;
-      last     : sl;
-      reqCount : slv(31 downto 0);
-      ackCount : slv(31 downto 0);
-      stCount  : slv(15 downto 0);
-      awlen    : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
-      wMaster  : AxiWriteMasterType;
-      slave    : AxiStreamSlaveType;
-      state    : StateType;
+      dmaReq    : AxiWriteDmaReqType;
+      dmaAck    : AxiWriteDmaAckType;
+      threshold : slv(FIFO_ADDR_WIDTH_C-1 downto 0);
+      shift     : slv(3 downto 0);
+      shiftEn   : sl;
+      first     : sl;
+      last      : sl;
+      reqCount  : slv(31 downto 0);
+      ackCount  : slv(31 downto 0);
+      stCount   : slv(15 downto 0);
+      awlen     : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+      wMaster   : AxiWriteMasterType;
+      slave     : AxiStreamSlaveType;
+      state     : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dmaReq   => AXI_WRITE_DMA_REQ_INIT_C,
-      dmaAck   => AXI_WRITE_DMA_ACK_INIT_C,
-      shift    => (others => '0'),
-      shiftEn  => '0',
-      first    => '0',
-      last     => '0',
-      reqCount => (others => '0'),
-      ackCount => (others => '0'),
-      stCount  => (others => '0'),
-      awlen    => (others => '0'),
-      wMaster  => axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G),
-      slave    => AXI_STREAM_SLAVE_INIT_C,
-      state    => IDLE_S);
+      dmaReq    => AXI_WRITE_DMA_REQ_INIT_C,
+      dmaAck    => AXI_WRITE_DMA_ACK_INIT_C,
+      threshold => (others => '1'),
+      shift     => (others => '0'),
+      shiftEn   => '0',
+      first     => '0',
+      last      => '0',
+      reqCount  => (others => '0'),
+      ackCount  => (others => '0'),
+      stCount   => (others => '0'),
+      awlen     => (others => '0'),
+      wMaster   => axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G),
+      slave     => AXI_STREAM_SLAVE_INIT_C,
+      state     => IDLE_S);
 
    signal r             : RegType := REG_INIT_C;
    signal rin           : RegType;
    signal pause         : sl;
+   signal shiftMaster   : AxiStreamMasterType;
+   signal shiftSlave    : AxiStreamSlaveType;
+   signal cache         : AxiStreamCtrlType;
    signal intAxisMaster : AxiStreamMasterType;
    signal intAxisSlave  : AxiStreamSlaveType;
+   signal wrEn          : sl;
+   signal rdEn          : sl;
+   signal lastDet       : sl;
 
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "true";
@@ -125,7 +135,8 @@ begin
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
-         AXIS_CONFIG_G => AXIS_CONFIG_G) 
+         AXIS_CONFIG_G => AXIS_CONFIG_G,
+         BYP_SHIFT_G   => BYP_SHIFT_G) 
       port map (
          axisClk     => axiClk,
          axisRst     => axiRst,
@@ -134,17 +145,65 @@ begin
          axiShiftCnt => r.shift,
          sAxisMaster => axisMaster,
          sAxisSlave  => axisSlave,
-         mAxisMaster => intAxisMaster,
-         mAxisSlave  => intAxisSlave);
+         mAxisMaster => shiftMaster,
+         mAxisSlave  => shiftSlave);
 
-   comb : process (axiRst, axiWriteSlave, dmaReq, intAxisMaster, pause, r) is
-      variable v     : RegType;
-      variable bytes : natural;
+   U_Cache : entity work.AxiStreamFifoV2
+      generic map (
+         TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => PIPE_STAGES_G,
+         PIPE_STAGES_G       => PIPE_STAGES_G,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 1,
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => true,
+         CASCADE_SIZE_G      => 1,
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_FIXED_THRESH_G => false,  -- Using r.threshold
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
+      port map (
+         -- Slave Port
+         sAxisClk        => axiClk,
+         sAxisRst        => axiRst,
+         sAxisMaster     => shiftMaster,
+         sAxisSlave      => shiftSlave,
+         sAxisCtrl       => cache,
+         -- FIFO Port
+         fifoPauseThresh => r.threshold,
+         -- Master Port
+         mAxisClk        => axiClk,
+         mAxisRst        => axiRst,
+         mAxisMaster     => intAxisMaster,
+         mAxisSlave      => intAxisSlave);    
+
+   wrEn <= shiftMaster.tValid and shiftMaster.tLast and shiftSlave.tReady;
+   rdEn <= intAxisMaster.tValid and intAxisMaster.tLast and intAxisSlave.tReady;
+
+   U_Last : entity work.FifoSync
+      generic map (
+         TPD_G        => TPD_G,
+         BYP_RAM_G    => true,
+         FWFT_EN_G    => true,
+         ADDR_WIDTH_G => FIFO_ADDR_WIDTH_C)
+      port map (
+         clk   => axiClk,
+         rst   => axiRst,
+         wr_en => wrEn,
+         rd_en => rdEn,
+         din   => (others => '0'),
+         valid => lastDet);
+
+   comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster, lastDet, pause, r) is
+      variable v       : RegType;
+      variable bytes   : natural;
+      variable ibValid : sl;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset strobing Signals
+      ibValid        := '0';
       v.slave.tReady := '0';
       v.shiftEn      := '0';
       if (axiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
@@ -177,17 +236,23 @@ begin
       -- Count number of bytes in return data
       bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
 
+      -- Check the AXI stream data cache
+      if (lastDet = '1') or (cache.pause = '1') then
+         ibValid := '1';
+      end if;
+
       -- State machine
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Update the variables
-            v.dmaReq   := dmaReq;
-            -- Reset the counters
-            v.reqCount := (others => '0');
-            v.ackCount := (others => '0');
-            v.shift    := (others => '0');
-            v.stCount  := (others => '0');
+            v.dmaReq    := dmaReq;
+            -- Reset the counters and threshold
+            v.reqCount  := (others => '0');
+            v.ackCount  := (others => '0');
+            v.shift     := (others => '0');
+            v.stCount   := (others => '0');
+            v.threshold := (others => '1');
             -- Align shift and address to transfer size
             if (DATA_BYTES_C /= 1) then
                v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
@@ -230,14 +295,17 @@ begin
                   end if;
                end if;
                -- Latch AXI awlen value
-               v.awlen := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               -- Update the threshold
+               v.threshold := '0' & v.awlen;
+               v.threshold := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.
                if dmaReq.request = '0' then
                   -- Next state
                   v.state := IDLE_S;
                -- Check if enough room and data to move
-               elsif (pause = '0') and (intAxisMaster.tValid = '1') then
+               elsif (pause = '0') and (ibValid = '1') then
                   -- Set the flag
                   v.wMaster.awvalid := '1';
                   -- Increment the counter
@@ -258,14 +326,17 @@ begin
                   v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                end if;
                -- Latch AXI awlen value
-               v.awlen := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               -- Update the threshold
+               v.threshold := '0' & v.awlen;
+               v.threshold := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.
                if dmaReq.request = '0' then
                   -- Next state
                   v.state := IDLE_S;
                -- Check if enough room and data to move
-               elsif (pause = '0') and (intAxisMaster.tValid = '1') then
+               elsif (pause = '0') and (ibValid = '1') then
                   -- Set the flag
                   v.wMaster.awvalid := '1';
                   -- Increment the counter
@@ -276,6 +347,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
+            -- Reset the threshold
+            v.threshold := (others => '1');
             -- Check if ready to move data
             if (v.wMaster.wvalid = '0') and ((intAxisMaster.tValid = '1') or (r.last = '1')) then
                -- Accept the data

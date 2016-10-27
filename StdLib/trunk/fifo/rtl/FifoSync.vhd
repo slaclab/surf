@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2016-06-30
+-- Last update: 2016-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ entity FifoSync is
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean                    := false;
       BRAM_EN_G      : boolean                    := true;
+      BYP_RAM_G      : boolean                    := false;
       FWFT_EN_G      : boolean                    := false;
       USE_DSP48_G    : string                     := "no";
       ALTERA_SYN_G   : boolean                    := false;
@@ -313,28 +314,34 @@ begin
    portB.addr <= raddr;
    portB.din  <= (others => '0');
 
-   SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
-      generic map(
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',         -- portB.rst already converted to active high
-         BRAM_EN_G      => BRAM_EN_G,
-         ALTERA_SYN_G   => ALTERA_SYN_G,
-         ALTERA_RAM_G   => ALTERA_RAM_G,
-         DATA_WIDTH_G   => DATA_WIDTH_G,
-         ADDR_WIDTH_G   => ADDR_WIDTH_G,
-         INIT_G         => INIT_C)
-      port map (
-         -- Port A
-         clka  => portA.clk,
-         ena   => portA.en,
-         wea   => portA.we,
-         addra => portA.addr,
-         dina  => portA.din,
-         -- Port B
-         clkb  => portB.clk,
-         enb   => portB.en,
-         rstb  => '0',                  -- Rely on rd/wr ptrs
-         addrb => portB.addr,
-         doutb => portB.dout);     
+   BYP_RAM : if (BYP_RAM_G = true) generate
+      portB.dout <= (others => '0');
+   end generate;
+
+   GEN_RAM : if (BYP_RAM_G = false) generate
+      SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
+         generic map(
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',      -- portB.rst already converted to active high
+            BRAM_EN_G      => BRAM_EN_G,
+            ALTERA_SYN_G   => ALTERA_SYN_G,
+            ALTERA_RAM_G   => ALTERA_RAM_G,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            ADDR_WIDTH_G   => ADDR_WIDTH_G,
+            INIT_G         => INIT_C)
+         port map (
+            -- Port A
+            clka  => portA.clk,
+            ena   => portA.en,
+            wea   => portA.we,
+            addra => portA.addr,
+            dina  => portA.din,
+            -- Port B
+            clkb  => portB.clk,
+            enb   => portB.en,
+            rstb  => '0',               -- Rely on rd/wr ptrs
+            addrb => portB.addr,
+            doutb => portB.dout);  
+   end generate;
 
 end rtl;
