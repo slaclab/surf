@@ -135,8 +135,8 @@ architecture rtl of UdpEngineDhcp is
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
