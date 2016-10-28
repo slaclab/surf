@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2016-09-26
+-- Last update: 2016-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,6 +22,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.math_real.all;
 
 use work.StdRtlPkg.all;
 
@@ -479,7 +480,7 @@ begin
          EXAMPLE_SIMULATION     => 0,
          GT_TYPE                => "GTX",
          EQ_MODE                => RX_EQUALIZER_G,
-         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
+         STABLE_CLOCK_PERIOD    => natural(ROUND(abs(STABLE_CLOCK_PERIOD_G / 1.0E-9))),
          RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK           => stableClkIn,
@@ -528,24 +529,24 @@ begin
          I => rxOutClk,
          O => rxOutClkBufg);
 
-   GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
-      Gtx7RecClkMonitor_Inst : entity work.Gtx7RecClkMonitor
-         generic map (
-            COUNTER_UPPER_VALUE      => 15,
-            GCLK_COUNTER_UPPER_VALUE => 15,
-            CLOCK_PULSES             => 164,
-            EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
-         port map (
-            GT_RST        => gtRxReset,
-            REF_CLK       => gtRxRefClkBufg,
-            RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
-            SYSTEM_CLK    => stableClkIn,
-            PLL_LK_DET    => rxPllLock,
-            RECCLK_STABLE => rxRecClkStable,
-            EXEC_RESTART  => rxRecClkMonitorRestart);
-   end generate;
+--    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
+--       Gtx7RecClkMonitor_Inst : entity work.Gtx7RecClkMonitor
+--          generic map (
+--             COUNTER_UPPER_VALUE      => 15,
+--             GCLK_COUNTER_UPPER_VALUE => 15,
+--             CLOCK_PULSES             => 164,
+--             EXAMPLE_SIMULATION       => ite(SIMULATION_G, 1, 0))
+--          port map (
+--             GT_RST        => gtRxReset,
+--             REF_CLK       => gtRxRefClkBufg,
+--             RX_REC_CLK0   => rxOutClkBufg,  -- Only works if rxOutClkOut fed back on rxUsrClkIn through bufg
+--             SYSTEM_CLK    => stableClkIn,
+--             PLL_LK_DET    => rxPllLock,
+--             RECCLK_STABLE => rxRecClkStable,
+--             EXEC_RESTART  => rxRecClkMonitorRestart);
+--    end generate;
 
-   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
+--   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
       rxRecClkMonitorRestart <= '0';
       process(stableClkIn)
       begin
@@ -563,7 +564,7 @@ begin
             end if;
          end if;
       end process;
-   end generate RX_NO_RECCLK_MON_GEN;
+--   end generate RX_NO_RECCLK_MON_GEN;
 
    -------------------------------------------------------------------------------------------------
    -- Phase alignment needed when rx buffer is disabled
@@ -656,7 +657,7 @@ begin
       generic map (
          TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
-         STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
+         STABLE_CLOCK_PERIOD    => natural(ROUND(abs(STABLE_CLOCK_PERIOD_G / 1.0E-9))),
          RETRY_COUNTER_BITWIDTH => 8)
       port map (
          STABLE_CLOCK      => stableClkIn,
