@@ -724,21 +724,6 @@
         </spirit:configurableElementValues>
       </spirit:componentInstance>
       <spirit:componentInstance>
-        <spirit:instanceName>axi_intc_0</spirit:instanceName>
-        <spirit:componentRef spirit:library="ip" spirit:name="axi_intc" spirit:vendor="xilinx.com" spirit:version="4.1"/>
-        <spirit:configurableElementValues>
-          <spirit:configurableElementValue spirit:referenceId="bd:xciName">MicroblazeBasicCore_axi_intc_0_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_KIND_OF_INTR">0xFFFFFC00</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_NUM_SW_INTR">10</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_KIND_OF_LVL">0xFFFFFFFF</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_IRQ_IS_LEVEL">0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_KIND_OF_EDGE">0xFFFFFFFF</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_HAS_FAST">1</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_S_AXI_ACLK_FREQ_MHZ">156.25</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_PROCESSOR_CLK_FREQ_MHZ">156.25</spirit:configurableElementValue>
-        </spirit:configurableElementValues>
-      </spirit:componentInstance>
-      <spirit:componentInstance>
         <spirit:instanceName>axi_timer_0</spirit:instanceName>
         <spirit:componentRef spirit:library="ip" spirit:name="axi_timer" spirit:vendor="xilinx.com" spirit:version="2.0"/>
         <spirit:configurableElementValues>
@@ -787,16 +772,6 @@
         <spirit:activeInterface spirit:busRef="S00_AXI" spirit:componentRef="microblaze_0_axi_periph"/>
       </spirit:interconnection>
       <spirit:interconnection>
-        <spirit:name>axi_intc_0_interrupt</spirit:name>
-        <spirit:activeInterface spirit:busRef="INTERRUPT" spirit:componentRef="microblaze_0"/>
-        <spirit:activeInterface spirit:busRef="interrupt" spirit:componentRef="axi_intc_0"/>
-      </spirit:interconnection>
-      <spirit:interconnection>
-        <spirit:name>microblaze_0_axi_periph_M01_AXI</spirit:name>
-        <spirit:activeInterface spirit:busRef="M01_AXI" spirit:componentRef="microblaze_0_axi_periph"/>
-        <spirit:activeInterface spirit:busRef="s_axi" spirit:componentRef="axi_intc_0"/>
-      </spirit:interconnection>
-      <spirit:interconnection>
         <spirit:name>microblaze_0_axi_periph_M02_AXI</spirit:name>
         <spirit:activeInterface spirit:busRef="M02_AXI" spirit:componentRef="microblaze_0_axi_periph"/>
         <spirit:activeInterface spirit:busRef="S_AXI" spirit:componentRef="axi_timer_0"/>
@@ -813,8 +788,6 @@
         <spirit:externalPortReference spirit:portRef="clk"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0" spirit:portRef="Clk"/>
         <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="slowest_sync_clk"/>
-        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="s_axi_aclk"/>
-        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="processor_clk"/>
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="s_axi_aclk"/>
         <spirit:internalPortReference spirit:componentRef="mdm_1" spirit:portRef="S_AXI_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_local_memory" spirit:portRef="LMB_Clk"/>
@@ -829,7 +802,6 @@
         <spirit:name>rst_clk_wiz_1_100M_mb_reset</spirit:name>
         <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="mb_reset"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0" spirit:portRef="Reset"/>
-        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="processor_rst"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_clk_wiz_1_100M_bus_struct_reset</spirit:name>
@@ -850,7 +822,6 @@
       <spirit:adHocConnection>
         <spirit:name>rst_clk_wiz_1_100M_peripheral_aresetn</spirit:name>
         <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="peripheral_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="mdm_1" spirit:portRef="S_AXI_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="S00_ARESETN"/>
@@ -875,11 +846,6 @@
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="capturetrig0"/>
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="capturetrig1"/>
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="freeze"/>
-      </spirit:adHocConnection>
-      <spirit:adHocConnection>
-        <spirit:name>xlconcat_0_dout</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="xlconcat_0" spirit:portRef="dout"/>
-        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="intr"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>axi_timer_0_interrupt</spirit:name>
@@ -2614,12 +2580,6 @@
             <spirit:displayName>/M_AXI_DP/Reg</spirit:displayName>
             <spirit:addressOffset>0x80000000</spirit:addressOffset>
             <spirit:range>2G</spirit:range>
-          </spirit:segment>
-          <spirit:segment>
-            <spirit:name>SEG_axi_intc_0_Reg</spirit:name>
-            <spirit:displayName>/axi_intc_0/S_AXI/Reg</spirit:displayName>
-            <spirit:addressOffset>0x00010000</spirit:addressOffset>
-            <spirit:range>64K</spirit:range>
           </spirit:segment>
           <spirit:segment>
             <spirit:name>SEG_axi_timer_0_Reg</spirit:name>
