@@ -686,7 +686,6 @@
           <spirit:configurableElementValue spirit:referenceId="C_NUMBER_OF_PC_BRK">4</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_FSL_LINKS">1</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_USE_EXTENDED_FSL_INSTR">1</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_USE_INTERRUPT">2</spirit:configurableElementValue>
         </spirit:configurableElementValues>
         <bd:hdl_attributes/>
       </spirit:componentInstance>
@@ -703,10 +702,10 @@
         </spirit:configurableElementValues>
       </spirit:componentInstance>
       <spirit:componentInstance>
-        <spirit:instanceName>rst_clk_wiz_1_100M</spirit:instanceName>
+        <spirit:instanceName>proc_sys_reset_0</spirit:instanceName>
         <spirit:componentRef spirit:library="ip" spirit:name="proc_sys_reset" spirit:vendor="xilinx.com" spirit:version="5.0"/>
         <spirit:configurableElementValues>
-          <spirit:configurableElementValue spirit:referenceId="bd:xciName">MicroblazeBasicCore_rst_clk_wiz_1_100M_0</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">MicroblazeBasicCore_proc_sys_reset_0_0</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_AUX_RESET_HIGH">1</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_AUX_RST_WIDTH">1</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_EXT_RST_WIDTH">1</spirit:configurableElementValue>
@@ -749,6 +748,13 @@
           <spirit:configurableElementValue spirit:referenceId="IN2_WIDTH">1</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
+      <spirit:componentInstance>
+        <spirit:instanceName>axi_intc_0</spirit:instanceName>
+        <spirit:componentRef spirit:library="ip" spirit:name="axi_intc" spirit:vendor="xilinx.com" spirit:version="4.1"/>
+        <spirit:configurableElementValues>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">MicroblazeBasicCore_axi_intc_0_1</spirit:configurableElementValue>
+        </spirit:configurableElementValues>
+      </spirit:componentInstance>
     </spirit:componentInstances>
     <spirit:interconnections>
       <spirit:interconnection>
@@ -781,13 +787,23 @@
         <spirit:activeInterface spirit:busRef="M03_AXI" spirit:componentRef="microblaze_0_axi_periph"/>
         <spirit:activeInterface spirit:busRef="S_AXI" spirit:componentRef="mdm_1"/>
       </spirit:interconnection>
+      <spirit:interconnection>
+        <spirit:name>axi_intc_0_interrupt</spirit:name>
+        <spirit:activeInterface spirit:busRef="interrupt" spirit:componentRef="axi_intc_0"/>
+        <spirit:activeInterface spirit:busRef="INTERRUPT" spirit:componentRef="microblaze_0"/>
+      </spirit:interconnection>
+      <spirit:interconnection>
+        <spirit:name>microblaze_0_axi_periph_M01_AXI</spirit:name>
+        <spirit:activeInterface spirit:busRef="s_axi" spirit:componentRef="axi_intc_0"/>
+        <spirit:activeInterface spirit:busRef="M01_AXI" spirit:componentRef="microblaze_0_axi_periph"/>
+      </spirit:interconnection>
     </spirit:interconnections>
     <spirit:adHocConnections>
       <spirit:adHocConnection>
         <spirit:name>microblaze_0_Clk</spirit:name>
         <spirit:externalPortReference spirit:portRef="clk"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0" spirit:portRef="Clk"/>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="slowest_sync_clk"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="slowest_sync_clk"/>
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="s_axi_aclk"/>
         <spirit:internalPortReference spirit:componentRef="mdm_1" spirit:portRef="S_AXI_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_local_memory" spirit:portRef="LMB_Clk"/>
@@ -797,31 +813,32 @@
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="M01_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="M02_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="M03_ACLK"/>
+        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="s_axi_aclk"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_clk_wiz_1_100M_mb_reset</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="mb_reset"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="mb_reset"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0" spirit:portRef="Reset"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_clk_wiz_1_100M_bus_struct_reset</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="bus_struct_reset"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="bus_struct_reset"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_local_memory" spirit:portRef="SYS_Rst"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>mdm_1_debug_sys_rst</spirit:name>
         <spirit:internalPortReference spirit:componentRef="mdm_1" spirit:portRef="Debug_SYS_Rst"/>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="mb_debug_sys_rst"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="mb_debug_sys_rst"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>reset_1</spirit:name>
         <spirit:externalPortReference spirit:portRef="reset"/>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="ext_reset_in"/>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="aux_reset_in"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="ext_reset_in"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="aux_reset_in"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_clk_wiz_1_100M_peripheral_aresetn</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="peripheral_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="peripheral_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_timer_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="mdm_1" spirit:portRef="S_AXI_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="S00_ARESETN"/>
@@ -829,16 +846,17 @@
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="M01_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="M03_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="M02_ARESETN"/>
+        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="s_axi_aresetn"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_clk_wiz_1_100M_interconnect_aresetn</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="interconnect_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="interconnect_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="microblaze_0_axi_periph" spirit:portRef="ARESETN"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>dcm_locked_1</spirit:name>
         <spirit:externalPortReference spirit:portRef="dcm_locked"/>
-        <spirit:internalPortReference spirit:componentRef="rst_clk_wiz_1_100M" spirit:portRef="dcm_locked"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="dcm_locked"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>gnd_0_dout</spirit:name>
@@ -856,6 +874,7 @@
         <spirit:name>mdm_1_Interrupt</spirit:name>
         <spirit:internalPortReference spirit:componentRef="mdm_1" spirit:portRef="Interrupt"/>
         <spirit:internalPortReference spirit:componentRef="xlconcat_0" spirit:portRef="In2"/>
+        <spirit:internalPortReference spirit:componentRef="axi_intc_0" spirit:portRef="intr"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>In0_1</spirit:name>
@@ -2580,6 +2599,12 @@
             <spirit:displayName>/M_AXI_DP/Reg</spirit:displayName>
             <spirit:addressOffset>0x80000000</spirit:addressOffset>
             <spirit:range>2G</spirit:range>
+          </spirit:segment>
+          <spirit:segment>
+            <spirit:name>SEG_axi_intc_0_Reg</spirit:name>
+            <spirit:displayName>/axi_intc_0/S_AXI/Reg</spirit:displayName>
+            <spirit:addressOffset>0x00010000</spirit:addressOffset>
+            <spirit:range>64K</spirit:range>
           </spirit:segment>
           <spirit:segment>
             <spirit:name>SEG_axi_timer_0_Reg</spirit:name>
