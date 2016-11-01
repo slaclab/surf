@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-10-14
+-- Last update: 2016-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,7 +41,8 @@ entity AxiStreamDmaRead is
       AXI_BURST_G     : slv(1 downto 0)     := "01";
       AXI_CACHE_G     : slv(3 downto 0)     := "1111";
       PIPE_STAGES_G   : natural             := 1;
-      PEND_THRESH_G   : natural             := 0);  -- In units of bytes
+      PEND_THRESH_G   : natural             := 0;  -- In units of bytes
+      BYP_SHIFT_G     : boolean             := false);      
    port (
       -- Clock/Reset
       axiClk        : in  sl;
@@ -421,7 +422,8 @@ begin
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
-         AXIS_CONFIG_G => AXIS_CONFIG_G) 
+         AXIS_CONFIG_G => AXIS_CONFIG_G,
+         BYP_SHIFT_G   => BYP_SHIFT_G) 
       port map (
          axisClk     => axiClk,
          axisRst     => axiRst,
