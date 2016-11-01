@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-10-27
+-- Last update: 2016-11-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,6 +60,7 @@ entity Pgp2bGtx7FixedLatWrapper is
       RX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
       RX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
       -- MGT Configurations
+      PMA_RSV_G               : bit_vector           := x"00018480";
       RX_OS_CFG_G             : bit_vector           := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G            : sl                   := '0';       -- Set by wizard
@@ -128,6 +129,7 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
    signal gtClk1 : sl := '0';
 
    signal txRefClk : sl := '0';
+   signal txOutClk : sl := '0';
    signal rxRefClk : sl := '0';
 
    signal stableClkRef  : sl := '0';
@@ -142,6 +144,7 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
    signal pgpRxRecClk     : sl;
    signal pgpRxRecClkRst  : sl;
    signal pgpRxClkLoc     : sl;
+   signal pgpRxReset      : sl;
    signal pgpRxMmcmReset  : sl;
    signal pgpRxMmcmLocked : sl;
 
@@ -163,7 +166,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Bring in the refclocks through IBUFDS_GTE2 instances
    -------------------------------------------------------------------------------------------------
-   BUFDS_GTE2_0_GEN : if (TX_REFCLK_SRC_G = "gtRefClk0" or RX_REFCLK_SRC_G = "gtRefClk0") generate
+   BUFDS_GTE2_0_GEN : if (TX_REFCLK_SRC_G = "gtClk0" or RX_REFCLK_SRC_G = "gtClk0") generate
       IBUFDS_GTE2_0 : IBUFDS_GTE2
          port map (
             I     => gtClk0P,
@@ -173,7 +176,7 @@ begin
             O     => gtClk0);
    end generate;
 
-   IBUFDS_GTE2_1_GEN : if (TX_REFCLK_SRC_G = "gtRefClk1" or RX_REFCLK_SRC_G = "gtRefClk1") generate
+   IBUFDS_GTE2_1_GEN : if (TX_REFCLK_SRC_G = "gtClk1" or RX_REFCLK_SRC_G = "gtClk1") generate
       IBUFDS_GTE2_1 : IBUFDS_GTE2
          port map (
             I     => gtClk1P,
@@ -202,6 +205,11 @@ begin
 
    -- Power Up Reset      
    PwrUpRst_Inst : entity work.PwrUpRst
+      generic map (
+         TPD_G          => TPD_G,
+         SIM_SPEEDUP_G  => SIMULATION_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1')
       port map (
          arst   => extRst,
          clk    => stableClk,
@@ -276,6 +284,23 @@ begin
       end generate;
    end generate NO_TX_CM_GEN;
 
+   -- PGP RX Reset
+   PGP_TX_CLK_BUFG : if (RX_REFCLK_SRC_G /= STABLE_CLK_SRC_G) generate
+      RstSync_pgpTxRst : entity work.RstSync
+         generic map (
+            TPD_G           => TPD_G,
+            RELEASE_DELAY_G => 16,
+            OUT_REG_RST_G   => true)
+         port map (
+            clk      => pgpRxClkLoc,    -- [in]
+            asyncRst => extRst,         -- [in]
+            syncRst  => pgpRxReset);    -- [out]
+   end generate;
+
+   NO_PGP_TX_CLK_BUFG : if (RX_REFCLK_SRC_G = STABLE_CLK_SRC_G) generate
+      pgpRxReset <= stableRst;
+   end generate;
+
    -------------------------------------------------------------------------------------------------
    -- Determine PLL clocks
    -------------------------------------------------------------------------------------------------
@@ -325,11 +350,14 @@ begin
          TXOUT_DIV_G           => GTX7_CFG_C.TXOUT_DIV_G,
          RX_CLK25_DIV_G        => GTX7_CFG_C.RX_CLK25_DIV_G,
          TX_CLK25_DIV_G        => GTX7_CFG_C.TX_CLK25_DIV_G,
---      PMA_RSV_G => PMA_RSV_G,
+         PMA_RSV_G             => PMA_RSV_G,
          RX_OS_CFG_G           => RX_OS_CFG_G,
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
+         TX_BUF_EN_G           => false,
+         TX_OUTCLK_SRC_G       => "PLLREFCLK",
+         TX_PHASE_ALIGN_G      => "MANUAL",
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
@@ -348,7 +376,8 @@ begin
          gtQPllLock       => qPllLock,
          gtQPllRefClkLost => qPllRefClkLost,
          gtQPllReset      => qPllReset,
-         gtRxRefClkBufg   => '0',       -- Probably can remove this
+         gtRxRefClkBufg   => '0',          -- Probably can remove this
+         gtTxOutClk       => txOutClk,
          -- Gt Serial IO
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,
@@ -358,7 +387,7 @@ begin
          pgpTxReset       => pgpTxReset,
          pgpTxClk         => pgpTxClk,
          -- Rx clocking
-         pgpRxReset       => '0',          --extRst,    
+         pgpRxReset       => pgpRxReset,   --extRst,    
          pgpRxRecClk      => pgpRxRecClk,
          pgpRxRecClkRst   => pgpRxRecClkRst,
          pgpRxClk         => pgpRxClkLoc,  -- RecClk fed back, optionally though MMCM
@@ -423,11 +452,13 @@ begin
    end generate RxClkMmcmGen;
 
    RxClkNoMmcmGen : if (not RX_CM_EN_G) generate
-      pgpRxClkLoc        <= pgpRxRecClk;
-      pgpRxRstOut        <= pgpRxRecClkRst;
+      pgpRxClkLoc     <= pgpRxRecClk;
+      pgpRxRstOut     <= pgpRxRecClkRst;
       pgpRxMmcmLocked <= '1';
    end generate RxClkNoMmcmGen;
 
    pgpRxClkOut <= pgpRxClkLoc;
+
+   stableClkOut <= stableClk;
 
 end rtl;
