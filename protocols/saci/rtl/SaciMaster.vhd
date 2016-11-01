@@ -24,7 +24,7 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
-use work.SynchronizePkg.all;
+-- use work.SynchronizePkg.all;
 use work.SaciMasterPkg.all;
 
 entity SaciMaster is
@@ -50,6 +50,57 @@ entity SaciMaster is
 end entity SaciMaster;
 
 architecture rtl of SaciMaster is
+
+  type SynchronizerType is record
+    tmp  : sl;
+    sync : sl;
+    last : sl;
+  end record;
+
+  type SynchronizerArray is array (natural range <>) of SynchronizerType;
+  
+  constant SYNCHRONIZER_INIT_0_C : SynchronizerType := (tmp => '0', sync => '0', last => '0');
+  constant SYNCHRONIZER_INIT_1_C : SynchronizerType := (tmp => '1', sync => '1', last => '1');  
+
+  procedure synchronize (
+    input   : in  sl;
+    current : in  SynchronizerType;
+    nextOut : out SynchronizerType) is
+  begin
+    nextOut.tmp  := input;
+    nextOut.sync := current.tmp;
+    nextOut.last := current.sync;
+  end procedure;
+
+  -- Simplified. Can be used when v := r has already been called.
+  procedure synchronize (
+    var   : inout SynchronizerType;
+    input : in    sl) is
+  begin
+    var.last := var.sync;
+    var.sync := var.tmp;
+    var.tmp  := input;
+  end procedure synchronize;
+
+  procedure synchronize (
+    input   : in  slv;
+    current : in  SynchronizerArray;
+    nextOut : out SynchronizerArray) is
+  begin
+    for i in input'range loop
+      synchronize(input(i), current(i), nextOut(i));
+    end loop;
+  end procedure;
+
+  -- Simplified. Can be used when v := r has already been called.
+  procedure synchronize (
+    var   : inout SynchronizerArray;
+    input : in    slv) is
+  begin
+    for i in input'range loop
+      synchronize(var(i), input(i));
+    end loop;
+  end procedure synchronize;
 
   procedure shiftInLeft (
     i : in  sl;

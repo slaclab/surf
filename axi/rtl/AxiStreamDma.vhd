@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : SSI Stream DMA Controller
+-- Title      : AXI Stream DMA Controller
 -- Project    : General Purpose Core
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDma.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2014-05-05
+-- Last update: 2016-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -19,9 +19,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/25/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -37,24 +34,22 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDma is
    generic (
-      TPD_G             : time                       := 1 ns;
-      FREE_ADDR_WIDTH_G : integer                    := 9;
-      AXIL_COUNT_G      : integer range 1 to 2       := 1;
-      AXIL_BASE_ADDR_G  : slv(31 downto 0)           := x"00000000";
-      AXI_READY_EN_G    : boolean                    := false;
-      AXIS_READY_EN_G   : boolean                    := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType              := AXI_CONFIG_INIT_C;
-      AXI_BURST_G       : slv(1 downto 0)            := "01";
-      AXI_CACHE_G       : slv(3 downto 0)            := "1111";
-      PEND_THRESH_G     : natural                    := 0
-   );
+      TPD_G             : time                 := 1 ns;
+      FREE_ADDR_WIDTH_G : integer              := 9;
+      AXIL_COUNT_G      : integer range 1 to 2 := 1;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)     := x"00000000";
+      AXI_READY_EN_G    : boolean              := false;
+      AXIS_READY_EN_G   : boolean              := false;
+      AXIS_CONFIG_G     : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType        := AXI_CONFIG_INIT_C;
+      AXI_BURST_G       : slv(1 downto 0)      := "01";
+      AXI_CACHE_G       : slv(3 downto 0)      := "1111";
+      PEND_THRESH_G     : natural              := 0;
+      BYP_SHIFT_G       : boolean              := false);
    port (
-
       -- Clock/Reset
       axiClk          : in  sl;
       axiRst          : in  sl;
-
       -- Register Access & Interrupt
       axilReadMaster  : in  AxiLiteReadMasterArray(AXIL_COUNT_G-1 downto 0);
       axilReadSlave   : out AxiLiteReadSlaveArray(AXIL_COUNT_G-1 downto 0);
@@ -63,21 +58,18 @@ entity AxiStreamDma is
       interrupt       : out sl;
       online          : out sl;
       acknowledge     : out sl;
-
-      -- SSI 
+      -- AXI Stream Interface 
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       mAxisMaster     : out AxiStreamMasterType;
       mAxisSlave      : in  AxiStreamSlaveType;
       mAxisCtrl       : in  AxiStreamCtrlType;
-
       -- AXI Interface
       axiReadMaster   : out AxiReadMasterType;
       axiReadSlave    : in  AxiReadSlaveType;
       axiWriteMaster  : out AxiWriteMasterType;
       axiWriteSlave   : in  AxiWriteSlaveType;
-      axiWriteCtrl    : in  AxiCtrlType
-   );
+      axiWriteCtrl    : in  AxiCtrlType);
 end AxiStreamDma;
 
 architecture structure of AxiStreamDma is
@@ -85,7 +77,7 @@ architecture structure of AxiStreamDma is
    constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH_G;
    constant POP_ADDR_WIDTH_C  : integer := FREE_ADDR_WIDTH_G;
 
-   constant POP_FIFO_PFULL_C  : integer := (2**POP_ADDR_WIDTH_C) - 10;
+   constant POP_FIFO_PFULL_C : integer := (2**POP_ADDR_WIDTH_C) - 10;
 
    constant POP_FIFO_COUNT_C  : integer := 2;
    constant PUSH_FIFO_COUNT_C : integer := 2;
@@ -95,25 +87,29 @@ architecture structure of AxiStreamDma is
 
    constant CROSSBAR_CONN_C : slv(15 downto 0) := x"FFFF";
 
-   constant LOC_INDEX_C       : natural          := 0;
-   constant LOC_BASE_ADDR_C   : slv(31 downto 0) := AXIL_BASE_ADDR_G(31 downto 12) & x"000";
-   constant LOC_NUM_BITS_C    : natural          := 10;
+   constant LOC_INDEX_C     : natural          := 0;
+   constant LOC_BASE_ADDR_C : slv(31 downto 0) := AXIL_BASE_ADDR_G(31 downto 12) & x"000";
+   constant LOC_NUM_BITS_C  : natural          := 10;
 
    constant FIFO_INDEX_C     : natural          := 1;
    constant FIFO_BASE_ADDR_C : slv(31 downto 0) := AXIL_BASE_ADDR_G(31 downto 12) & x"400";
    constant FIFO_NUM_BITS_C  : natural          := 10;
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
-      LOC_INDEX_C => (
+      LOC_INDEX_C     => (
          baseAddr     => LOC_BASE_ADDR_C,
          addrBits     => LOC_NUM_BITS_C,
          connectivity => CROSSBAR_CONN_C),
-      FIFO_INDEX_C => (
+      FIFO_INDEX_C    => (
          baseAddr     => FIFO_BASE_ADDR_C,
          addrBits     => FIFO_NUM_BITS_C,
          connectivity => CROSSBAR_CONN_C));
 
-   type StateType is (S_IDLE_C, S_WAIT_C, S_FIFO_0_C, S_FIFO_1_C);
+   type StateType is (
+      IDLE_S,
+      WAIT_S,
+      FIFO_0_S,
+      FIFO_1_S);
 
    type RegType is record
       maxRxSize     : slv(23 downto 0);
@@ -130,7 +126,7 @@ architecture structure of AxiStreamDma is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      maxRxSize     => (others=>'0'),
+      maxRxSize     => (others => '0'),
       interrupt     => '0',
       intEnable     => '0',
       intAck        => '0',
@@ -140,8 +136,7 @@ architecture structure of AxiStreamDma is
       txEnable      => '0',
       fifoClear     => '1',
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C
-      );
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -156,13 +151,12 @@ architecture structure of AxiStreamDma is
    end record IbType;
 
    constant IB_INIT_C : IbType := (
-      state        => S_IDLE_C,
+      state        => IDLE_S,
       intPending   => '0',
       ibReq        => AXI_WRITE_DMA_REQ_INIT_C,
       popFifoWrite => '0',
-      popFifoDin   => (others=>'0'),
-      pushFifoRead => '0'
-      );
+      popFifoDin   => (others => '0'),
+      pushFifoRead => '0');
 
    signal ib   : IbType := IB_INIT_C;
    signal ibin : IbType;
@@ -177,145 +171,140 @@ architecture structure of AxiStreamDma is
    end record ObType;
 
    constant OB_INIT_C : ObType := (
-      state        => S_IDLE_C,
+      state        => IDLE_S,
       intPending   => '0',
       obReq        => AXI_READ_DMA_REQ_INIT_C,
       popFifoWrite => '0',
-      popFifoDin   => (others=>'0'),
-      pushFifoRead => '0'
-      );
+      popFifoDin   => (others => '0'),
+      pushFifoRead => '0');
 
    signal ob   : ObType := OB_INIT_C;
    signal obin : ObType;
 
-   signal intReadMasters     : AxiLiteReadMasterArray(1 downto 0);
-   signal intReadSlaves      : AxiLiteReadSlaveArray(1 downto 0);
-   signal intWriteMasters    : AxiLiteWriteMasterArray(1 downto 0);
-   signal intWriteSlaves     : AxiLiteWriteSlaveArray(1 downto 0);
+   signal intReadMasters  : AxiLiteReadMasterArray(1 downto 0);
+   signal intReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
+   signal intWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
+   signal intWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
 
-   signal popFifoClk         : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal popFifoRst         : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal popFifoValid       : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal popFifoWrite       : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal popFifoPFull       : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal popFifoDin         : Slv32Array(POP_FIFO_COUNT_C-1 downto 0);
-   signal pushFifoClk        : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal pushFifoRst        : slv(POP_FIFO_COUNT_C-1 downto 0);
-   signal pushFifoValid      : slv(PUSH_FIFO_COUNT_C-1 downto 0);
-   signal pushFifoDout       : Slv36Array(PUSH_FIFO_COUNT_C-1 downto 0);
-   signal pushFifoRead       : slv(PUSH_FIFO_COUNT_C-1 downto 0);
+   signal popFifoClk    : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoRst    : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoValid  : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoWrite  : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoPFull  : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal popFifoDin    : Slv32Array(POP_FIFO_COUNT_C-1 downto 0);
+   signal pushFifoClk   : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal pushFifoRst   : slv(POP_FIFO_COUNT_C-1 downto 0);
+   signal pushFifoValid : slv(PUSH_FIFO_COUNT_C-1 downto 0);
+   signal pushFifoDout  : Slv36Array(PUSH_FIFO_COUNT_C-1 downto 0);
+   signal pushFifoRead  : slv(PUSH_FIFO_COUNT_C-1 downto 0);
 
-   signal obAck              : AxiReadDmaAckType;
-   signal obReq              : AxiReadDmaReqType;
-   signal ibAck              : AxiWriteDmaAckType;
-   signal ibReq              : AxiWriteDmaReqType;
+   signal obAck : AxiReadDmaAckType;
+   signal obReq : AxiReadDmaReqType;
+   signal ibAck : AxiWriteDmaAckType;
+   signal ibReq : AxiWriteDmaReqType;
 
    -- attribute dont_touch          : string;
-   -- attribute dont_touch of ob    : signal is "true";    
-   -- attribute dont_touch of obAck : signal is "true";    
-   -- attribute dont_touch of obReq : signal is "true";    
-   -- attribute dont_touch of ib    : signal is "true";    
-   -- attribute dont_touch of ibAck : signal is "true";    
-   -- attribute dont_touch of ibReq : signal is "true";    
+   -- attribute dont_touch of ob    : signal is "true";
+   -- attribute dont_touch of obAck : signal is "true";
+   -- attribute dont_touch of obReq : signal is "true";
+   -- attribute dont_touch of ib    : signal is "true";
+   -- attribute dont_touch of ibAck : signal is "true";
+   -- attribute dont_touch of ibReq : signal is "true";
    
 begin
 
-   U_CrossEnGen: if AXIL_COUNT_G = 1 generate
-      U_AxiCrossbar : entity work.AxiLiteCrossbar 
+   process (axiClk) is
+   begin
+      if rising_edge(axiClk) then
+         r  <= rin  after TPD_G;
+         ib <= ibin after TPD_G;
+         ob <= obin after TPD_G;
+      end if;
+   end process;
+
+   U_CrossEnGen : if AXIL_COUNT_G = 1 generate
+      U_AxiCrossbar : entity work.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
             NUM_MASTER_SLOTS_G => 2,
             DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
-            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C 
-         ) port map (
-            axiClk              => axiClk,
-            axiClkRst           => axiRst,
-            sAxiWriteMasters    => axilWriteMaster,
-            sAxiWriteSlaves     => axilWriteSlave,
-            sAxiReadMasters     => axilReadMaster,
-            sAxiReadSlaves      => axilReadSlave,
-            mAxiWriteMasters    => intWriteMasters,
-            mAxiWriteSlaves     => intWriteSlaves,
-            mAxiReadMasters     => intReadMasters,
-            mAxiReadSlaves      => intReadSlaves
-         );
+            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C) 
+         port map (
+            axiClk           => axiClk,
+            axiClkRst        => axiRst,
+            sAxiWriteMasters => axilWriteMaster,
+            sAxiWriteSlaves  => axilWriteSlave,
+            sAxiReadMasters  => axilReadMaster,
+            sAxiReadSlaves   => axilReadSlave,
+            mAxiWriteMasters => intWriteMasters,
+            mAxiWriteSlaves  => intWriteSlaves,
+            mAxiReadMasters  => intReadMasters,
+            mAxiReadSlaves   => intReadSlaves);
    end generate;
 
-   U_CrossDisGen: if AXIL_COUNT_G = 2 generate
+   U_CrossDisGen : if AXIL_COUNT_G = 2 generate
       intWriteMasters <= axilWriteMaster;
       axilWriteSlave  <= intWriteSlaves;
       intReadMasters  <= axilReadMaster;
       axilReadSlave   <= intReadSlaves;
    end generate;
 
-   U_SwFifos : entity work.AxiLiteFifoPushPop 
+   U_SwFifos : entity work.AxiLiteFifoPushPop
       generic map (
-         TPD_G              => TPD_G,
-         POP_FIFO_COUNT_G   => 2,
-         POP_SYNC_FIFO_G    => true,
-         POP_BRAM_EN_G      => true,
-         POP_ADDR_WIDTH_G   => POP_ADDR_WIDTH_C,
-         POP_FULL_THRES_G   => POP_FIFO_PFULL_C,
-         LOOP_FIFO_EN_G     => false,
-         LOOP_FIFO_COUNT_G  => 1,
-         LOOP_BRAM_EN_G     => false,
-         LOOP_ADDR_WIDTH_G  => 9,
-         PUSH_FIFO_COUNT_G  => 2,
-         PUSH_SYNC_FIFO_G   => true,
-         PUSH_BRAM_EN_G     => true,
-         PUSH_ADDR_WIDTH_G  => PUSH_ADDR_WIDTH_C,
-         RANGE_LSB_G        => 8,
-         VALID_POSITION_G   => 31,
-         VALID_POLARITY_G   => '1',
-         ALTERA_SYN_G       => false,
-         ALTERA_RAM_G       => "M9K",
-         USE_BUILT_IN_G     => false,
-         XIL_DEVICE_G       => "7SERIES"
-      ) port map (
-         axiClk             => axiClk,
-         axiClkRst          => axiRst,
-         axiReadMaster      => intReadMasters(1),
-         axiReadSlave       => intReadSlaves(1),
-         axiWriteMaster     => intWriteMasters(1),
-         axiWriteSlave      => intWriteSlaves(1),
-         popFifoValid       => popFifoValid,
-         popFifoClk         => popFifoClk,
-         popFifoRst         => popFifoRst,
-         popFifoWrite       => popFifoWrite,
-         popFifoDin         => popFifoDin,
-         popFifoFull        => open,
-         popFifoAFull       => open,
-         popFifoPFull       => popFifoPFull,
-         pushFifoClk        => pushFifoClk,
-         pushFifoRst        => pushFifoRst,
-         pushFifoValid      => pushFifoValid,
-         pushFifoDout       => pushFifoDout,
-         pushFifoRead       => pushFifoRead
-      );
+         TPD_G             => TPD_G,
+         POP_FIFO_COUNT_G  => 2,
+         POP_SYNC_FIFO_G   => true,
+         POP_BRAM_EN_G     => true,
+         POP_ADDR_WIDTH_G  => POP_ADDR_WIDTH_C,
+         POP_FULL_THRES_G  => POP_FIFO_PFULL_C,
+         LOOP_FIFO_EN_G    => false,
+         LOOP_FIFO_COUNT_G => 1,
+         LOOP_BRAM_EN_G    => false,
+         LOOP_ADDR_WIDTH_G => 9,
+         PUSH_FIFO_COUNT_G => 2,
+         PUSH_SYNC_FIFO_G  => true,
+         PUSH_BRAM_EN_G    => true,
+         PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
+         RANGE_LSB_G       => 8,
+         VALID_POSITION_G  => 31,
+         VALID_POLARITY_G  => '1',
+         ALTERA_SYN_G      => false,
+         ALTERA_RAM_G      => "M9K",
+         USE_BUILT_IN_G    => false,
+         XIL_DEVICE_G      => "7SERIES") 
+      port map (
+         axiClk         => axiClk,
+         axiClkRst      => axiRst,
+         axiReadMaster  => intReadMasters(1),
+         axiReadSlave   => intReadSlaves(1),
+         axiWriteMaster => intWriteMasters(1),
+         axiWriteSlave  => intWriteSlaves(1),
+         popFifoValid   => popFifoValid,
+         popFifoClk     => popFifoClk,
+         popFifoRst     => popFifoRst,
+         popFifoWrite   => popFifoWrite,
+         popFifoDin     => popFifoDin,
+         popFifoFull    => open,
+         popFifoAFull   => open,
+         popFifoPFull   => popFifoPFull,
+         pushFifoClk    => pushFifoClk,
+         pushFifoRst    => pushFifoRst,
+         pushFifoValid  => pushFifoValid,
+         pushFifoDout   => pushFifoDout,
+         pushFifoRead   => pushFifoRead);
 
-   U_ClkRstGen: for i in 0 to 1 generate
+   U_ClkRstGen : for i in 0 to 1 generate
       popFifoClk(i)  <= axiClk;
-      popFifoRst(i)  <= r.fifoClear; 
+      popFifoRst(i)  <= r.fifoClear;
       pushFifoClk(i) <= axiClk;
-      pushFifoRst(i) <= r.fifoClear; 
+      pushFifoRst(i) <= r.fifoClear;
    end generate;
-
 
    -------------------------------------
    -- Local Register Space
    -------------------------------------
-
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (r, axiRst, intReadMasters, intWriteMasters, popFifoValid, ib, ob ) is
+   process (axiRst, ib, intReadMasters, intWriteMasters, ob, popFifoValid, r) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -353,7 +342,7 @@ begin
 
       -- Read
       if (axiStatus.readEnable = '1') then
-         v.axiReadSlave.rdata := (others=>'0');
+         v.axiReadSlave.rdata := (others => '0');
 
          case intReadMasters(0).araddr(4 downto 2) is
             when "000" =>
@@ -403,40 +392,30 @@ begin
       
    end process;
 
-
    -------------------------------------
    -- Inbound Controller
    -------------------------------------
    U_IbDma : entity work.AxiStreamDmaWrite
       generic map (
-         TPD_G              => TPD_G,
-         AXI_READY_EN_G     => AXI_READY_EN_G,
-         AXIS_CONFIG_G      => AXIS_CONFIG_G,
-         AXI_CONFIG_G       => AXI_CONFIG_G,
-         AXI_BURST_G        => AXI_BURST_G,
-         AXI_CACHE_G        => AXI_CACHE_G
-      ) port map (
-         axiClk          => axiClk,
-         axiRst          => axiRst,
-         dmaReq          => ibReq,
-         dmaAck          => ibAck,
-         axisMaster      => sAxisMaster,
-         axisSlave       => sAxisSlave,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave,
-         axiWriteCtrl    => axiWriteCtrl
-      );
+         TPD_G          => TPD_G,
+         AXI_READY_EN_G => AXI_READY_EN_G,
+         AXIS_CONFIG_G  => AXIS_CONFIG_G,
+         AXI_CONFIG_G   => AXI_CONFIG_G,
+         AXI_BURST_G    => AXI_BURST_G,
+         AXI_CACHE_G    => AXI_CACHE_G,
+         BYP_SHIFT_G    => BYP_SHIFT_G) 
+      port map (
+         axiClk         => axiClk,
+         axiRst         => axiRst,
+         dmaReq         => ibReq,
+         dmaAck         => ibAck,
+         axisMaster     => sAxisMaster,
+         axisSlave      => sAxisSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave,
+         axiWriteCtrl   => axiWriteCtrl);
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         ib <= ibin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (ib, r, axiRst, ibAck, pushFifoValid, pushFifoDout, popFifoPFull ) is
+   process (axiRst, ib, ibAck, popFifoPFull, pushFifoDout, pushFifoValid, r) is
       variable v : IbType;
    begin
       v := ib;
@@ -446,41 +425,41 @@ begin
 
       case ib.state is
 
-         when S_IDLE_C =>
+         when IDLE_S =>
             v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 0);
             v.ibReq.maxSize := x"00" & r.maxRxSize;
 
             if pushFifoValid(IB_FIFO_C) = '1' and popFifoPFull(IB_FIFO_C) = '0' then
                v.ibReq.request := '1';
                v.pushFifoRead  := '1';
-               v.state         := S_WAIT_C;
+               v.state         := WAIT_S;
             end if;
 
-         when S_WAIT_C =>
+         when WAIT_S =>
             v.popFifoDin := "1" & ib.ibReq.address(30 downto 0);
 
             if ibAck.done = '1' then
                v.popFifoWrite := '1';
-               v.state        := S_FIFO_0_C;
+               v.state        := FIFO_0_S;
             end if;
 
-         when S_FIFO_0_C =>
+         when FIFO_0_S =>
             v.popFifoDin(31 downto 24) := x"E0";
-            v.popFifoDin(23 downto  0) := ibAck.size(23 downto 0);
+            v.popFifoDin(23 downto 0)  := ibAck.size(23 downto 0);
             v.popFifoWrite             := '1';
-            v.state                    := S_FIFO_1_C;
+            v.state                    := FIFO_1_S;
 
-         when S_FIFO_1_C =>
+         when FIFO_1_S =>
             v.popFifoDin(31 downto 26) := x"F" & "00";
             v.popFifoDin(25)           := ibAck.overflow;
             v.popFifoDin(24)           := ibAck.writeError;
             v.popFifoDin(23 downto 16) := ibAck.lastUser;
-            v.popFifoDin(15 downto  8) := ibAck.firstUser;
-            v.popFifoDin(7  downto  0) := ibAck.dest;
+            v.popFifoDin(15 downto 8)  := ibAck.firstUser;
+            v.popFifoDin(7 downto 0)   := ibAck.dest;
             v.popFifoWrite             := '1';
             v.ibReq.request            := '0';
             v.intPending               := '1';
-            v.state                    := S_IDLE_C;
+            v.state                    := IDLE_S;
 
       end case;
 
@@ -505,41 +484,31 @@ begin
 
    end process;
 
-
    -------------------------------------
    -- Outbound Controller
    -------------------------------------
-   U_ObDma : entity work.AxiStreamDmaRead 
+   U_ObDma : entity work.AxiStreamDmaRead
       generic map (
-         TPD_G            => TPD_G,
-         AXIS_READY_EN_G  => AXIS_READY_EN_G,
-         AXIS_CONFIG_G    => AXIS_CONFIG_G,
-         AXI_CONFIG_G     => AXI_CONFIG_G,
-         AXI_BURST_G      => AXI_BURST_G,
-         AXI_CACHE_G      => AXI_CACHE_G,
-         PEND_THRESH_G    => PEND_THRESH_G 
-      ) port map (
-         axiClk          => axiClk,
-         axiRst          => axiRst,
-         dmaReq          => obReq,
-         dmaAck          => obAck,
-         axisMaster      => mAxisMaster,
-         axisSlave       => mAxisSlave,
-         axisCtrl        => mAxisCtrl,
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave
-      );
+         TPD_G           => TPD_G,
+         AXIS_READY_EN_G => AXIS_READY_EN_G,
+         AXIS_CONFIG_G   => AXIS_CONFIG_G,
+         AXI_CONFIG_G    => AXI_CONFIG_G,
+         AXI_BURST_G     => AXI_BURST_G,
+         AXI_CACHE_G     => AXI_CACHE_G,
+         PEND_THRESH_G   => PEND_THRESH_G,
+         BYP_SHIFT_G     => BYP_SHIFT_G) 
+      port map (
+         axiClk        => axiClk,
+         axiRst        => axiRst,
+         dmaReq        => obReq,
+         dmaAck        => obAck,
+         axisMaster    => mAxisMaster,
+         axisSlave     => mAxisSlave,
+         axisCtrl      => mAxisCtrl,
+         axiReadMaster => axiReadMaster,
+         axiReadSlave  => axiReadSlave);
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         ob <= obin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (ob, r, axiRst, obAck, pushFifoValid, pushFifoDout ) is
+   process (axiRst, ob, obAck, pushFifoDout, pushFifoValid, r) is
       variable v : ObType;
    begin
       v := ob;
@@ -549,58 +518,58 @@ begin
 
       case ob.state is
 
-         when S_IDLE_C =>
+         when IDLE_S =>
             v.obReq.address := pushFifoDout(OB_FIFO_C)(31 downto 0);
 
             if pushFifoValid(OB_FIFO_C) = '1' then
-               v.pushFifoRead  := '1';
+               v.pushFifoRead := '1';
 
                if pushFifoDout(OB_FIFO_C)(35 downto 32) = 3 then
-                  v.popFifoDin    := "1" & pushFifoDout(OB_FIFO_C)(30 downto 0);
-                  v.popFifoWrite  := '1';
+                  v.popFifoDin   := "1" & pushFifoDout(OB_FIFO_C)(30 downto 0);
+                  v.popFifoWrite := '1';
 
                elsif pushFifoDout(OB_FIFO_C)(35 downto 32) = 0 then
-                  v.state := S_FIFO_0_C;
+                  v.state := FIFO_0_S;
                end if;
             end if;
 
-         when S_FIFO_0_C =>
+         when FIFO_0_S =>
             v.obReq.size := x"00" & pushFifoDout(OB_FIFO_C)(23 downto 0);
 
             if pushFifoValid(OB_FIFO_C) = '1' then
-               v.pushFifoRead  := '1';
-               
+               v.pushFifoRead := '1';
+
                if pushFifoDout(OB_FIFO_C)(35 downto 32) /= 1 then
-                  v.state := S_IDLE_C;
+                  v.state := IDLE_S;
                else
-                  v.state := S_FIFO_1_C;
+                  v.state := FIFO_1_S;
                end if;
             end if;
 
-         when S_FIFO_1_C =>
+         when FIFO_1_S =>
             v.obReq.lastUser  := pushFifoDout(OB_FIFO_C)(23 downto 16);
-            v.obReq.firstUser := pushFifoDout(OB_FIFO_C)(15 downto  8);
-            v.obReq.dest      := pushFifoDout(OB_FIFO_C)(7  downto  0);
-            v.obReq.id        := (others=>'0');
+            v.obReq.firstUser := pushFifoDout(OB_FIFO_C)(15 downto 8);
+            v.obReq.dest      := pushFifoDout(OB_FIFO_C)(7 downto 0);
+            v.obReq.id        := (others => '0');
 
             if pushFifoValid(OB_FIFO_C) = '1' then
-               v.pushFifoRead  := '1';
+               v.pushFifoRead := '1';
 
                if pushFifoDout(OB_FIFO_C)(35 downto 32) /= 2 then
-                  v.state := S_IDLE_C;
+                  v.state := IDLE_S;
                else
                   v.obReq.request := '1';
-                  v.state         := S_WAIT_C;
+                  v.state         := WAIT_S;
                end if;
             end if;
 
-         when S_WAIT_C =>
+         when WAIT_S =>
             if obAck.done = '1' then
                v.obReq.request := '0';
                v.popFifoDin    := "1" & ob.obReq.address(30 downto 0);
                v.popFifoWrite  := '1';
                v.intPending    := '1';
-               v.state         := S_IDLE_C;
+               v.state         := IDLE_S;
             end if;
 
       end case;
@@ -625,6 +594,5 @@ begin
       pushFifoRead(OB_FIFO_C) <= v.pushFifoRead;
 
    end process;
-
+   
 end structure;
-

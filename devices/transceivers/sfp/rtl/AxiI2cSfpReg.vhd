@@ -56,15 +56,13 @@ end AxiI2cSfpReg;
 architecture rtl of AxiI2cSfpReg is
 
    constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (
-      0             => (
-         i2cAddress => "0001010000",    -- Configuration PROM
-         i2cTenbit  => '0',
+      0             => MakeI2cAxiLiteDevType(
+         i2cAddress => "1010000",    -- Configuration PROM
          dataSize   => 8,               -- in units of bits
          addrSize   => 8,               -- in units of bits
          endianness => '1'),            -- Big endian 
-      1             => (
-         i2cAddress => "0001010001",    -- Diagnostic Monitoring 
-         i2cTenbit  => '0',
+      1             => MakeI2cAxiLiteDevType(
+         i2cAddress => "1010001",    -- Diagnostic Monitoring 
          dataSize   => 8,               -- in units of bits
          addrSize   => 8,               -- in units of bits
          endianness => '1'));           -- Big endian   
