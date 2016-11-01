@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-08-24
+-- Last update: 2016-11-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ entity Pgp2bGtx7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "4.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;  --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;                 --units of seconds
       -- CPLL Settings - Defaults to 2.5 Gbps operation 
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       CPLL_FBDIV_G          : integer    := 4;
@@ -52,17 +52,19 @@ entity Pgp2bGtx7Fixedlat is
       TXOUT_DIV_G           : integer    := 2;
       RX_CLK25_DIV_G        : integer    := 5;
       TX_CLK25_DIV_G        : integer    := 5;
-
-      PMA_RSV_G    : bit_vector := x"00018480";
-      RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
-
-      -- RX Equalizer Attributes
-      RX_DFE_KL_CFG2_G : bit_vector := x"3008E56A";  -- Set by wizard
+      -- Low level GTX RX settings
+      PMA_RSV_G             : bit_vector := x"00018480";
+      RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
+      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXDFEXYDEN_G          : sl         := '0';                    -- Set by wizard
+      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
+      -- Allow TX to run in var lat mode by altering these generics
+      TX_BUF_EN_G           : boolean    := false;
+      TX_OUTCLK_SRC_G       : string     := "PLLREFCLK";
+      TX_PHASE_ALIGN_G      : string     := "MANUAL";
       -- Configure PLL sources
-      TX_PLL_G         : string     := "QPLL";
-      RX_PLL_G         : string     := "CPLL";
+      TX_PLL_G              : string     := "QPLL";
+      RX_PLL_G              : string     := "CPLL";
 
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -84,6 +86,7 @@ entity Pgp2bGtx7Fixedlat is
       gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
       gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
+      gtTxOutClk       : out sl;
 
       -- Gt Serial IO
       gtRxN : in  sl;                   -- GT Serial Receive Negative
@@ -152,7 +155,7 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    signal gtRxResetDoneL : sl;
    signal gtRxUserReset  : sl;
 
---   signal pgpRxResetInt  : sl;
+   signal pgpRxResetInt : sl;
 --   signal pgpRxReset1    : sl;
 
    -- PgpRx Signals
@@ -166,7 +169,6 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    --------------------------------------------------------------------------------------------------
    -- Tx Signals
    --------------------------------------------------------------------------------------------------
-   signal gtTxOutClk : sl;
    signal gtTxUsrClk : sl;
 
    signal gtTxResetDone : sl;
@@ -181,8 +183,10 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    signal drpAddr : slv(8 downto 0);
    signal drpDi   : slv(15 downto 0);
    signal drpDo   : slv(15 downto 0);
-   
+
 begin
+
+   pgpRxResetInt <= pgpRxReset or gtRxResetDoneL;
 
    --------------------------------------------------------------------------------------------------
    -- PGP Core
@@ -207,7 +211,7 @@ begin
          phyTxLanesOut    => phyTxLanesOut,
          phyTxReady       => gtTxResetDone,  --phyTxReady,  -- Use txResetDone
          pgpRxClk         => pgpRxClk,
-         pgpRxClkRst      => gtRxResetDoneL,  -- Hold in reset until gtp rx is up
+         pgpRxClkRst      => pgpRxResetInt,  --gtRxResetDoneL,  -- Hold in reset until gtp rx is up
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
@@ -216,7 +220,7 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => open  --gtRxUserReset,        -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => gtRxUserReset   -- Ignore phyRxInit, rx will reset on its own
          );
 
    --------------------------------------------------------------------------------------------------
@@ -247,12 +251,6 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Data Path
    --------------------------------------------------------------------------------------------------
-
-   -- Wrap txOutClk back to TxUsrClk to get sim to lock the alignment
---   TX_USR_CLK_BUFG : BUFG
---      port map (
---         I => gtTxOutClk,
---         O => gtTxUsrClk);
    gtTxUsrClk <= pgpTxClk;
 
    --------------------------------------------------------------------------------------------------
@@ -282,10 +280,10 @@ begin
          RX_EXT_DATA_WIDTH_G   => 20,
          RX_INT_DATA_WIDTH_G   => 20,
          RX_8B10B_EN_G         => false,
-         TX_BUF_EN_G           => false,
-         TX_OUTCLK_SRC_G       => "PLLREFCLK",
-         TX_DLY_BYPASS_G       => '0',
-         TX_PHASE_ALIGN_G      => "MANUAL",
+         TX_BUF_EN_G           => TX_BUF_EN_G,
+         TX_OUTCLK_SRC_G       => TX_OUTCLK_SRC_G,
+         TX_DLY_BYPASS_G       => toSl(not TX_BUF_EN_G),
+         TX_PHASE_ALIGN_G      => TX_PHASE_ALIGN_G,
          RX_BUF_EN_G           => false,
          RX_OUTCLK_SRC_G       => "OUTCLKPMA",
          RX_USRCLK_SRC_G       => "RXOUTCLK",
@@ -337,7 +335,7 @@ begin
          rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
-         rxUserResetIn    => pgpRxReset,
+         rxUserResetIn    => gtRxUserReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
@@ -365,7 +363,7 @@ begin
          drpWe            => drpWe,
          drpAddr          => drpAddr,
          drpDi            => drpDi,
-         drpDo            => drpDo);            
+         drpDo            => drpDo);
 
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
@@ -375,7 +373,7 @@ begin
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 16)      
+         DATA_WIDTH_G     => 16)
       port map (
          -- AXI-Lite Port
          axilClk         => axilClk,
@@ -392,6 +390,6 @@ begin
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo);         
+         drpDo           => drpDo);
 
 end rtl;
