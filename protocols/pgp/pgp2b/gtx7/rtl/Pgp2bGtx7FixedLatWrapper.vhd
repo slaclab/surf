@@ -92,7 +92,7 @@ entity Pgp2bGtx7FixedLatWrapper is
       pgpTxIn          : in  Pgp2bTxInType;
       pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0);
+      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
