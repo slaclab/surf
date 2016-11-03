@@ -96,7 +96,7 @@ entity Pgp2bGtx7Fixedlat is
 
       -- Tx Clocking
       pgpTxReset : in sl;
-      pgpTxClk   : in sl;               -- ????
+      pgpTxClk   : in sl;
 
       -- Rx clocking
       pgpRxReset      : in  sl;
@@ -142,10 +142,6 @@ end Pgp2bGtx7Fixedlat;
 architecture rtl of Pgp2bGtx7Fixedlat is
 
    --------------------------------------------------------------------------------------------------
-   -- Shared GT Signals
-   --------------------------------------------------------------------------------------------------
-
-   --------------------------------------------------------------------------------------------------
    -- Rx Signals
    --------------------------------------------------------------------------------------------------
    -- Rx Clocks
@@ -156,7 +152,6 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    signal gtRxUserReset  : sl;
 
    signal pgpRxResetInt : sl;
---   signal pgpRxReset1    : sl;
 
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
@@ -244,8 +239,6 @@ begin
 
    dataValid <= not (uOr(phyRxLanesIn(0).decErr) or uOr(phyRxLanesIn(0).dispErr));
 
---   pgpRxResetInt <= pgpRxReset1 or pgpRxReset;
-
    pgpRxRecClkRst <= gtRxResetDoneL;
 
    --------------------------------------------------------------------------------------------------
@@ -271,7 +264,7 @@ begin
          TXOUT_DIV_G           => TXOUT_DIV_G,
          RX_CLK25_DIV_G        => RX_CLK25_DIV_G,
          TX_CLK25_DIV_G        => TX_CLK25_DIV_G,
---         PMA_RSV_G              => PMA_RSV_G,
+         PMA_RSV_G             => PMA_RSV_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          TX_EXT_DATA_WIDTH_G   => 16,
@@ -357,6 +350,9 @@ begin
          txCharIsKIn      => phyTxLanesOut(0).dataK,
          txBufStatusOut   => open,      -- Not using tx buff
          loopbackIn       => pgpRxIn.loopback,
+         txPreCursor      => txPreCursor,
+         txPostCursor     => txPostCursor,
+         txDiffCtrl       => txDiffCtrl,
          drpClk           => axilClk,
          drpRdy           => drpRdy,
          drpEn            => drpEn,
