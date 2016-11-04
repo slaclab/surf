@@ -130,7 +130,7 @@ package StdRtlPkg is
 
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
---   function getTimeRatio (T1, T2 : real) return natural;
+   function getTimeRatio (T1, T2 : real) return natural;
 
    procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    slv);
    procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    sl);
@@ -1185,10 +1185,10 @@ package body StdRtlPkg is
       return natural(T1/T2);
    end function;
 
---    function getTimeRatio (T1, T2 : real) return natural is
---    begin
---       return natural(ROUND(abs(T1/T2)));
---    end function;
+   function getTimeRatio (T1, T2 : real) return natural is
+   begin
+      return natural(ROUND(abs(T1/T2)));
+   end function;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
