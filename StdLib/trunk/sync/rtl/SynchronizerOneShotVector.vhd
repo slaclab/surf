@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-11
--- Last update: 2014-04-14
+-- Last update: 2016-11-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,12 +31,13 @@ entity SynchronizerOneShotVector is
       RST_POLARITY_G  : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean  := false;  -- Reset is asynchronous
       BYPASS_SYNC_G   : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
-      RELEASE_DELAY_G : positive := 3;      -- Delay between deassertion of async and sync resets
+      RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G  : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
-      WIDTH_G         : integer  := 16);
+      PULSE_WIDTH_G   : positive := 1;  -- one-shot pulse width duration (units of clk cycles)
+      WIDTH_G         : positive := 16);
    port (
-      clk     : in  sl;                        -- Clock to be SYNC'd to
+      clk     : in  sl;                 -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
       dataIn  : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
       dataOut : out slv(WIDTH_G-1 downto 0));  -- synced data
@@ -76,7 +77,8 @@ begin
             BYPASS_SYNC_G   => BYPASS_SYNC_G,
             RELEASE_DELAY_G => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
-            OUT_POLARITY_G  => OUT_POLARITY_C(i))      
+            OUT_POLARITY_G  => OUT_POLARITY_C(i),
+            PULSE_WIDTH_G   => PULSE_WIDTH_G)      
          port map (
             clk     => clk,
             rst     => rst,
