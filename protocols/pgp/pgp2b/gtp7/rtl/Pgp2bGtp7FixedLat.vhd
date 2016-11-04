@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-08-24
+-- Last update: 2016-11-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -56,12 +56,12 @@ entity Pgp2bGtp7FixedLat is
       RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard      
 
       -- Allow TX to run in var lat mode by altering these generics
-      TX_BUF_EN_G           : boolean    := false;
-      TX_OUTCLK_SRC_G       : string     := "PLLREFCLK";
-      TX_PHASE_ALIGN_G      : string     := "MANUAL";
+      TX_BUF_EN_G      : boolean := false;
+      TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";
+      TX_PHASE_ALIGN_G : string  := "MANUAL";
       -- Configure PLL sources
-      TX_PLL_G : string := "PLL0";
-      RX_PLL_G : string := "PLL1";
+      TX_PLL_G         : string  := "PLL0";
+      RX_PLL_G         : string  := "PLL1";
 
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -81,6 +81,7 @@ entity Pgp2bGtp7FixedLat is
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
       gtQPllReset      : out slv(1 downto 0);
       gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
+      gtTxOutClk       : out sl;
 
       -- Gt Serial IO
       gtRxN : in  sl;                   -- GT Serial Receive Negative
@@ -349,7 +350,7 @@ begin
          drpWe            => drpWe,
          drpAddr          => drpAddr,
          drpDi            => drpDi,
-         drpDo            => drpDo);            
+         drpDo            => drpDo);
 
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
@@ -359,7 +360,7 @@ begin
          EN_ARBITRATION_G => true,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 16)      
+         DATA_WIDTH_G     => 16)
       port map (
          -- AXI-Lite Port
          axilClk         => axilClk,
@@ -381,11 +382,11 @@ begin
 
    U_RstSync : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)      
+         TPD_G => TPD_G)
       port map (
          clk      => stableClk,
          asyncRst => axilRst,
-         syncRst  => stableRst);        
+         syncRst  => stableRst);
 
 end rtl;
 
