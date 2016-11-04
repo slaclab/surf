@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-02
--- Last update: 2015-02-05
+-- Last update: 2016-11-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,6 +52,8 @@ package Gtp7CfgPkg is
 
    function getGtp7QPllCfg (refClkFreq : real; lineRate : real) return Gtp7QPllCfgType;
 
+   function ite (i : boolean; t : Gtp7QPllCfgType; e : Gtp7QPllCfgType) return Gtp7QPllCfgType;
+
 
 end package Gtp7CfgPkg;
 
@@ -76,7 +78,7 @@ package body Gtp7CfgPkg is
          mloop : for m in QPLL_REFCLK_DIV_VALIDS_C'range loop
             n2loop : for n2 in QPLL_FBDIV_VALIDS_C'range loop
                n1loop : for n1 in QPLL_FBDIV_45_VALIDS_C'range loop
-                  
+
                   pllClk := refClkFreq * real(QPLL_FBDIV_VALIDS_C(n2) * QPLL_FBDIV_45_VALIDS_C(n1)) /
                             real(QPLL_REFCLK_DIV_VALIDS_C(m));
                   rate := pllClk * 2.0 / real(QPLL_OUT_DIV_VALIDS_C(d));
@@ -112,6 +114,15 @@ package body Gtp7CfgPkg is
       return ret;
 
    end function;
+
+   function ite (i : boolean; t : Gtp7QPllCfgType; e : Gtp7QPllCfgType) return Gtp7QPllCfgType is
+   begin
+      if (i) then
+         return t;
+      else
+         return e;
+      end if;
+   end function ite;
 
 
 end package body Gtp7CfgPkg;
