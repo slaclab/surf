@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-11-03
+-- Last update: 2016-11-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.Gtp7CfgPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -67,8 +68,8 @@ entity Pgp2bGtp7FixedLatWrapper is
       STABLE_CLK_SRC_G        : string               := "gtClk0";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string               := "gtClk0";
       RX_REFCLK_SRC_G         : string               := "gtClk1";
-      PLL0_CFG_G              : Gtx7CPllCfgType      := getGtp7QPllCfg(250.0E6, 3.125E9);
-      PLL1_CFG_G              : Gtx7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
+      PLL0_CFG_G              : Gtp7QPllCfgType      := getGtp7QPllCfg(250.0E6, 3.125E9);
+      PLL1_CFG_G              : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
       TX_PLL_G                : string               := "PLL0";
       RX_PLL_G                : string               := "PLL1");
    port (
@@ -122,8 +123,8 @@ end Pgp2bGtp7FixedLatWrapper;
 
 architecture rtl of Pgp2bGtp7FixedLatWrapper is
 
-   constant TX_QPLL_CFG_C : Gtp7CfgType := ite(TX_PLL_G = "PLL0", PLL0_CFG_G, PLL1_CFG_G);
-   constant RX_QPLL_CFG_C : Gtp7CfgType := ite(RX_PLL_G = "PLL0", PLL0_CFG_G, PLL1_CFG_G);   
+   constant TX_QPLL_CFG_C : Gtp7QPllCfgType := ite(TX_PLL_G = "PLL0", PLL0_CFG_G, PLL1_CFG_G);
+   constant RX_QPLL_CFG_C : Gtp7QPllCfgType := ite(RX_PLL_G = "PLL0", PLL0_CFG_G, PLL1_CFG_G);   
 
    signal gtClk0 : sl := '0';
    signal gtClk1 : sl := '0';
@@ -321,7 +322,7 @@ begin
    rxPllLock <= ite((RX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
 
 
-      QPllCore_0 : entity work.Gtx7QuadPll
+      QPllCore_0 : entity work.Gtp7QuadPll
          generic map (
             QPLL_REFCLK_SEL_G  => "001",
             QPLL_FBDIV_G       => PLL0_CFG_G.QPLL_FBDIV_G,
@@ -337,7 +338,7 @@ begin
             qPllReset      => qPllReset(0));
 
    PLL1_GEN: if (TX_PLL_G /= RX_PLL_G) generate
-      QPllCore_1 : entity work.Gtx7QuadPll
+      QPllCore_1 : entity work.Gtp7QuadPll
          generic map (
             QPLL_REFCLK_SEL_G  => "001",
             QPLL_FBDIV_G       => PLL1_CFG_G.QPLL_FBDIV_G,
