@@ -142,9 +142,10 @@ begin
    ----------------------------------
    -- Input FIFO 
    ----------------------------------
-   SlaveAxiStreamFifo : entity work.AxiStreamFifo
+   SlaveAxiStreamFifo : entity work.SsiFifo
       generic map (
          TPD_G               => TPD_G,
+         EN_FRAME_FILTER_G   => true,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          BRAM_EN_G           => BRAM_EN_G,
@@ -168,10 +169,8 @@ begin
          mAxisClk    => axiLiteClk,
          mAxisRst    => axiLiteRst,
          mAxisMaster => sFifoAxisMaster,
-         mAxisSlave  => sFifoAxisSlave);
-
-
-
+         mAxisSlave  => sFifoAxisSlave);     
+         
    -------------------------------------
    -- Master State Machine
    -------------------------------------
@@ -420,7 +419,7 @@ begin
    ----------------------------------
    -- Output FIFO 
    ----------------------------------
-   MasterAxiStreamFifo : entity work.AxiStreamFifo
+   MasterAxiStreamFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G => 0,

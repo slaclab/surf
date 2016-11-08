@@ -2,10 +2,10 @@
 -- Title      : 
 -------------------------------------------------------------------------------
 -- File       : SrpV3Core.vhd
--- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
+-- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-06-30
+-- Last update: 2016-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -147,7 +147,6 @@ architecture rtl of SrpV3Core is
    signal rxMaster       : AxiStreamMasterType;
    signal rxSlave        : AxiStreamSlaveType;
    signal rxCtrl         : AxiStreamCtrlType;
-   signal rxTLastTUser   : AxiStreamMasterType;
    signal txSlave        : AxiStreamSlaveType;
    signal srpRdMasterInt : AxiStreamMasterType;
    signal srpRdSlaveInt  : AxiStreamSlaveType;
@@ -161,10 +160,11 @@ begin
 
    sAxisCtrl <= sCtrl;
 
-   RX_FIFO : entity work.AxiStreamFifo
+   RX_FIFO : entity work.SsiFifo
       generic map (
          -- General Configurations
          TPD_G                  => TPD_G,
+         EN_FRAME_FILTER_G      => true,
          PIPE_STAGES_G          => PIPE_STAGES_G,
          SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
          VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
@@ -176,7 +176,6 @@ begin
          ALTERA_SYN_G           => ALTERA_SYN_G,
          ALTERA_RAM_G           => ALTERA_RAM_G,
          FIFO_ADDR_WIDTH_G      => 9,   -- 2kB/FIFO = 32-bits x 512 entries
-         LAST_FIFO_ADDR_WIDTH_G => 4,
          CASCADE_SIZE_G         => 3,   -- 6kB = 3 FIFOs x 2 kB/FIFO
          CASCADE_PAUSE_SEL_G    => 2,   -- Set pause select on top FIFO
          FIFO_FIXED_THRESH_G    => true,
@@ -195,8 +194,7 @@ begin
          mAxisClk    => srpClk,
          mAxisRst    => srpRst,
          mAxisMaster => rxMaster,
-         mAxisSlave  => rxSlave,
-         mTLastTUser => rxTLastTUser.tUser);
+         mAxisSlave  => rxSlave);
 
    GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
       rxCtrl <= sCtrl;
@@ -225,8 +223,7 @@ begin
             dataOut => rxCtrl.overflow);
    end generate;
 
-   comb : process (r, rxCtrl, rxMaster, rxTLastTUser, srpAck, srpRdMasterInt, srpRst, srpWrSlaveInt,
-                   txSlave) is
+   comb : process (r, rxCtrl, rxMaster, srpAck, srpRdMasterInt, srpRst, srpWrSlaveInt, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -323,11 +320,9 @@ begin
                -- Increment the header count
                v.hdrCnt := r.hdrCnt + 1;
 
-               -- Assign EOFE
-               v.eofe := ssiGetUserEofe(SRP_AXIS_CONFIG_C, rxTLastTUser);
 
                -- Check for tLast or EOFE
-               if rxMaster.tLast = '1' or v.eofe = '1' then
+               if rxMaster.tLast = '1' then
                   -- Set the flags
                   v.frameError := '1';
                   -- Next State
@@ -656,6 +651,11 @@ begin
 
       end case;
 
+      -- Update the EOFE flag
+      if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
+         v.eofe := ssiGetUserEofe(SRP_AXIS_CONFIG_C, rxMaster);
+      end if;
+
       -- Reset
       if (srpRst = '1') then
          v := REG_INIT_C;
@@ -679,7 +679,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifo
+   TX_FIFO : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
