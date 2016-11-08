@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2016-10-24
+-- Last update: 2016-11-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -72,8 +72,8 @@ architecture rtl of SspFramer is
       eof        => '0',
       dataInLast => (others => '0'),
       validLast  => '0',
-      dataKOut   => SSP_IDLE_K_G,
-      dataOut    => SSP_IDLE_CODE_G);
+      dataKOut   => (others => '0'),
+      dataOut    => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
