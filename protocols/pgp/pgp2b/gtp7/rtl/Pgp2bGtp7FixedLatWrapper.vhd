@@ -36,24 +36,25 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7FixedLatWrapper is
    generic (
       TPD_G                   : time                 := 1 ns;
-      SIM_GTRESET_SPEEDUP_G   : string               := "FALSE";
+      SIM_GTRESET_SPEEDUP_G   : boolean              := false;
       SIM_VERSION_G           : string               := "1.0";
       SIMULATION_G            : boolean              := false;
       -- PGP Settings
       VC_INTERLEAVE_G         : integer              := 0;         -- No interleave Frames
       PAYLOAD_CNT_TOP_G       : integer              := 7;         -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4 := 4;
-      AXI_ERROR_RESP_G        : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      AXIL_ERROR_RESP_G       : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      AXIL_BASE_ADDR_G        : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G             : boolean              := true;      -- Enable TX direction
       RX_ENABLE_G             : boolean              := true;      -- Enable RX direction
       -- CM Configurations
-      TX_CM_EN_G              : boolean              := false;
+      TX_CM_EN_G              : boolean              := true;
       TX_CM_TYPE_G            : string               := "MMCM";
       TX_CM_CLKIN_PERIOD_G    : real                 := 8.000;
       TX_CM_DIVCLK_DIVIDE_G   : natural              := 8;
       TX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
       TX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
-      RX_CM_EN_G              : boolean              := false;
+      RX_CM_EN_G              : boolean              := true;
       RX_CM_TYPE_G            : string               := "MMCM";
       RX_CM_CLKIN_PERIOD_G    : real                 := 8.000;
       RX_CM_DIVCLK_DIVIDE_G   : natural              := 8;
@@ -67,11 +68,11 @@ entity Pgp2bGtp7FixedLatWrapper is
       -- PLL and clock configurations
       STABLE_CLK_SRC_G        : string               := "gtClk0";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string               := "gtClk0";
-      RX_REFCLK_SRC_G         : string               := "gtClk1";
-      PLL0_CFG_G              : Gtp7QPllCfgType      := getGtp7QPllCfg(250.0E6, 3.125E9);
-      PLL1_CFG_G              : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
+      RX_REFCLK_SRC_G         : string               := "gtClk0";
+      TX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
+      RX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
       TX_PLL_G                : string               := "PLL0";
-      RX_PLL_G                : string               := "PLL1");
+      RX_PLL_G                : string               := "PLL0");
    port (
       -- Manual Reset
       stableClkIn      : in  sl                               := '0';
@@ -81,7 +82,7 @@ entity Pgp2bGtp7FixedLatWrapper is
       rxPllLock        : out sl;
       -- Output internally configured clocks
       pgpTxClkOut      : out sl;
-      pgpTxRstOut : out sl;
+      pgpTxRstOut      : out sl;
       pgpRxClkOut      : out sl;
       pgpRxRstOut      : out sl;
       stableClkOut     : out sl;
@@ -123,8 +124,10 @@ end Pgp2bGtp7FixedLatWrapper;
 
 architecture rtl of Pgp2bGtp7FixedLatWrapper is
 
-   constant TX_QPLL_CFG_C : Gtp7QPllCfgType := ite(TX_PLL_G = "PLL0", PLL0_CFG_G, PLL1_CFG_G);
-   constant RX_QPLL_CFG_C : Gtp7QPllCfgType := ite(RX_PLL_G = "PLL0", PLL0_CFG_G, PLL1_CFG_G);   
+   constant PLL0_CFG_C : Gtp7QPllCfgType := ite(TX_PLL_G = "PLL0", TX_PLL_CFG_G, RX_PLL_CFG_G);
+   constant PLL1_CFG_C : Gtp7QPllCfgType := ite(TX_PLL_G = "PLL1", TX_PLL_CFG_G, RX_PLL_CFG_G);
+
+   constant SIM_GTRESET_SPEEDUP_C : string := ite(SIM_GTRESET_SPEEDUP_G, "TRUE", "FALSE");
 
    signal gtClk0 : sl := '0';
    signal gtClk1 : sl := '0';
@@ -153,9 +156,14 @@ architecture rtl of Pgp2bGtp7FixedLatWrapper is
    signal qPllOutClk     : slv(1 downto 0) := "00";
    signal qPllOutRefClk  : slv(1 downto 0) := "00";
    signal qPllLock       : slv(1 downto 0) := "00";
-   signal pllLockDetClk  : slv(1 downto 0) := "00";
+   signal qPllLockDetClk : slv(1 downto 0) := "00";
    signal qPllRefClkLost : slv(1 downto 0) := "00";
    signal qPllReset      : slv(1 downto 0) := "00";
+
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_INIT_C);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0)   := (others => AXI_LITE_READ_SLAVE_INIT_C);
 
 begin
 
@@ -282,25 +290,19 @@ begin
       end generate;
    end generate NO_TX_CM_GEN;
 
-   pgpTxRstOut <= pgpTxReset;      
+   pgpTxRstOut <= pgpTxReset;
+   pgpTxClkOut <= pgpTxClk;
 
    -- PGP RX Reset
-   PGP_RX_RST : if (RX_REFCLK_SRC_G /= STABLE_CLK_SRC_G) generate
-      RstSync_pgpTxRst : entity work.RstSync
-         generic map (
-            TPD_G           => TPD_G,
-            RELEASE_DELAY_G => 16,
-            OUT_REG_RST_G   => true)
-         port map (
-            clk      => pgpRxClkLoc,    -- [in]
-            asyncRst => extRst,         -- [in]
-            syncRst  => pgpRxReset);    -- [out]
-   end generate;
-
-   PGP_RX_RST_STABLE_RST : if (RX_REFCLK_SRC_G = STABLE_CLK_SRC_G) generate
-      pgpRxReset <= stableRst;
-   end generate;
-
+   RstSync_pgpRxRst : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G,
+         RELEASE_DELAY_G => 16,
+         OUT_REG_RST_G   => true)
+      port map (
+         clk      => pgpRxClkLoc,       -- [in]
+         asyncRst => extRst,            -- [in]
+         syncRst  => pgpRxReset);       -- [out]
 
 
    -------------------------------------------------------------------------------------------------
@@ -315,61 +317,58 @@ begin
                     '0';
 
    -- Double check this. I think the pllLockDetClk must be different from the pll refclk
-   pllLockDetClk <= stableClk;
+   qPllLockDetClk(0) <= stableClk when ((TX_PLL_G = "PLL0") or (RX_PLL_G = "PLL0")) else '0';
+   qPllLockDetClk(1) <= stableClk when ((TX_PLL_G = "PLL1") or (RX_PLL_G = "PLL1")) else '0';
 
    -- Set the status outputs
    txPllLock <= ite((TX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
    rxPllLock <= ite((RX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
 
 
-      QPllCore_0 : entity work.Gtp7QuadPll
-         generic map (
-            QPLL_REFCLK_SEL_G  => "001",
-            QPLL_FBDIV_G       => PLL0_CFG_G.QPLL_FBDIV_G,
-            QPLL_FBDIV_RATIO_G => PLL0_CFG_G.QPLL_FBDIV_RATIO_G,
-            QPLL_REFCLK_DIV_G  => PLL0_CFG_G.QPLL_REFCLK_DIV_G)
-         port map (
-            qPllRefClk     => qPllRefClk(0),
-            qPllOutClk     => qPllOutClk(0),
-            qPllOutRefClk  => qPllOutRefClk(0),
-            qPllLock       => qPllLock(0),
-            qPllLockDetClk => pllLockDetClk(0),
-            qPllRefClkLost => qPllRefClkLost(0),
-            qPllReset      => qPllReset(0));
-
-   PLL1_GEN: if (TX_PLL_G /= RX_PLL_G) generate
-      QPllCore_1 : entity work.Gtp7QuadPll
-         generic map (
-            QPLL_REFCLK_SEL_G  => "001",
-            QPLL_FBDIV_G       => PLL1_CFG_G.QPLL_FBDIV_G,
-            QPLL_FBDIV_RATIO_G => PLL1_CFG_G.QPLL_FBDIV_RATIO_G,
-            QPLL_REFCLK_DIV_G  => PLL1_CFG_G.QPLL_REFCLK_DIV_G)
-         port map (
-            qPllRefClk     => qPllRefClk(1),
-            qPllOutClk     => qPllOutClk(1),
-            qPllOutRefClk  => qPllOutRefClk(1),
-            qPllLock       => qPllLock(1),
-            qPllLockDetClk => pllLockDetClk(1),
-            qPllRefClkLost => qPllRefClkLost(1),
-            qPllReset      => qPllReset(1));
-   end generate PLL1_GEN;
+   U_Gtp7QuadPll_1 : entity work.Gtp7QuadPll
+      generic map (
+         TPD_G                => TPD_G,
+         AXI_ERROR_RESP_G     => AXIL_ERROR_RESP_G,
+         SIM_RESET_SPEEDUP_G  => SIM_GTRESET_SPEEDUP_C,
+         SIM_VERSION_G        => SIM_VERSION_G,
+         PLL0_REFCLK_SEL_G    => "001",
+         PLL0_FBDIV_IN_G      => PLL0_CFG_C.QPLL_FBDIV_G,
+         PLL0_FBDIV_45_IN_G   => PLL0_CFG_C.QPLL_FBDIV_45_G,
+         PLL0_REFCLK_DIV_IN_G => PLL0_CFG_C.QPLL_REFCLK_DIV_G,
+         PLL1_REFCLK_SEL_G    => "001",
+         PLL1_FBDIV_IN_G      => PLL1_CFG_C.QPLL_FBDIV_G,
+         PLL1_FBDIV_45_IN_G   => PLL1_CFG_C.QPLL_FBDIV_45_G,
+         PLL1_REFCLK_DIV_IN_G => PLL1_CFG_C.QPLL_REFCLK_DIV_G)
+      port map (
+         qPllRefClk      => qPllRefClk,              -- [in]
+         qPllOutClk      => qPllOutClk,              -- [out]
+         qPllOutRefClk   => qPllOutRefClk,           -- [out]
+         qPllLock        => qPllLock,                -- [out]
+         qPllLockDetClk  => qPllLockDetClk,          -- [in]
+         qPllRefClkLost  => qPllRefClkLost,          -- [out]
+         qPllReset       => qPllReset,               -- [in]
+         axilClk         => axilClk,                 -- [in]
+         axilRst         => axilRst,                 -- [in]
+         axilReadMaster  => locAxilReadMasters(1),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(1),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(1),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(1));  -- [out]
 
 
    Pgp2bGtp7Fixedlat_Inst : entity work.Pgp2bGtp7FixedLat
       generic map (
          TPD_G                 => TPD_G,
-         SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
+         SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_C,
          SIM_VERSION_G         => SIM_VERSION_G,
          SIMULATION_G          => SIMULATION_G,
          STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout
-         RXOUT_DIV_G           => RX_PLL_CFG_C.RXOUT_DIV_G,
-         TXOUT_DIV_G           => TX_PLL_CFG_C.TXOUT_DIV_G,
-         RX_CLK25_DIV_G        => RX_PLL_CFG_C.RX_CLK25_DIV_G,
-         TX_CLK25_DIV_G        => TX_PLL_CFG_C.TX_CLK25_DIV_G,
+         RXOUT_DIV_G           => RX_PLL_CFG_G.OUT_DIV_G,
+         TXOUT_DIV_G           => TX_PLL_CFG_G.OUT_DIV_G,
+         RX_CLK25_DIV_G        => RX_PLL_CFG_G.CLK25_DIV_G,
+         TX_CLK25_DIV_G        => TX_PLL_CFG_G.CLK25_DIV_G,
          PMA_RSV_G             => PMA_RSV_G,
          RX_OS_CFG_G           => RX_OS_CFG_G,
          RXCDR_CFG_G           => RXCDR_CFG_G,
-         RXDFEXYDEN_G          => RXDFEXYDEN_G,
          TX_BUF_EN_G           => false,
          TX_OUTCLK_SRC_G       => "PLLREFCLK",
          TX_PHASE_ALIGN_G      => "MANUAL",
@@ -378,7 +377,7 @@ begin
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G           => NUM_VC_EN_G,
-         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
+         AXI_ERROR_RESP_G      => AXIL_ERROR_RESP_G,
          TX_ENABLE_G           => TX_ENABLE_G,
          RX_ENABLE_G           => RX_ENABLE_G)
       port map (
@@ -426,10 +425,10 @@ begin
          -- AXI-Lite Interface 
          axilClk          => axilClk,
          axilRst          => axilRst,
-         axilReadMaster   => axilReadMaster,
-         axilReadSlave    => axilReadSlave,
-         axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave);
+         axilReadMaster   => locAxilReadMasters(0),
+         axilReadSlave    => locAxilReadSlaves(0),
+         axilWriteMaster  => locAxilWriteMasters(0),
+         axilWriteSlave   => locAxilWriteSlaves(0));
 
    -------------------------------------------------------------------------------------------------
    -- Clock manager to clean up recovered clock
@@ -473,5 +472,28 @@ begin
    pgpRxClkOut <= pgpRxClkLoc;
 
    stableClkOut <= stableClk;
+
+   -------------------------------------------------------------------------------------------------
+   -- AXI-Lite crossbar
+   -------------------------------------------------------------------------------------------------
+   U_AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => 2,
+         DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
+         MASTERS_CONFIG_G   => genAxiLiteConfig(2, AXIL_BASE_ADDR_G, 16, 12),
+         DEBUG_G            => true)
+      port map (
+         axiClk              => axilClk,              -- [in]
+         axiClkRst           => axilRst,              -- [in]
+         sAxiWriteMasters(0) => axilWriteMaster,      -- [in]
+         sAxiWriteSlaves(0)  => axilWriteSlave,       -- [out]
+         sAxiReadMasters(0)  => axilReadMaster,       -- [in]
+         sAxiReadSlaves(0)   => axilReadSlave,        -- [out]
+         mAxiWriteMasters    => locAxilWriteMasters,  -- [out]
+         mAxiWriteSlaves     => locAxilWriteSlaves,   -- [in]
+         mAxiReadMasters     => locAxilReadMasters,   -- [out]
+         mAxiReadSlaves      => locAxilReadSlaves);   -- [in]
 
 end rtl;
