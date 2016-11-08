@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-06-17
+-- Last update: 2016-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -146,12 +146,11 @@ architecture rtl of SrpV3AxiLite is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal sCtrl        : AxiStreamCtrlType;
-   signal rxMaster     : AxiStreamMasterType;
-   signal rxSlave      : AxiStreamSlaveType;
-   signal rxCtrl       : AxiStreamCtrlType;
-   signal rxTLastTUser : AxiStreamMasterType;
-   signal txSlave      : AxiStreamSlaveType;
+   signal sCtrl    : AxiStreamCtrlType;
+   signal rxMaster : AxiStreamMasterType;
+   signal rxSlave  : AxiStreamSlaveType;
+   signal rxCtrl   : AxiStreamCtrlType;
+   signal txSlave  : AxiStreamSlaveType;
 
    -- attribute dont_touch                    : string;
    -- attribute dont_touch of r               : signal is "TRUE";
@@ -160,10 +159,11 @@ begin
 
    sAxisCtrl <= sCtrl;
 
-   RX_FIFO : entity work.AxiStreamFifo
+   RX_FIFO : entity work.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         EN_FRAME_FILTER_G   => true,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          VALID_THOLD_G       => 0,  -- = 0 = only when frame ready                                                                 
@@ -193,8 +193,7 @@ begin
          mAxisClk    => axilClk,
          mAxisRst    => axilRst,
          mAxisMaster => rxMaster,
-         mAxisSlave  => rxSlave,
-         mTLastTUser => rxTLastTUser.tUser);  
+         mAxisSlave  => rxSlave);  
 
    GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
       rxCtrl <= sCtrl;
@@ -223,8 +222,7 @@ begin
             dataOut => rxCtrl.overflow);            
    end generate;
 
-   comb : process (axilRst, mAxilReadSlave, mAxilWriteSlave, r, rxCtrl, rxMaster, rxTLastTUser,
-                   txSlave) is
+   comb : process (axilRst, mAxilReadSlave, mAxilWriteSlave, r, rxCtrl, rxMaster, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -286,12 +284,10 @@ begin
                   v.tid            := (others => '0');
                   v.addr           := (others => '0');
                   v.reqSize        := (others => '0');
-                  -- Update the EOFE flag
-                  v.eofe           := ssiGetUserEofe(AXIS_CONFIG_C, rxTLastTUser);
-                  -- Check for tLast or EOFE
-                  if (rxMaster.tLast = '1') or (v.eofe = '1') then
+                  -- Check for tLast
+                  if (rxMaster.tLast = '1') then
                      -- Set the flags
-                     v.frameError := rxMaster.tLast;
+                     v.frameError := '1';
                      -- Next State
                      v.state      := HDR_RESP_S;
                   else
@@ -687,6 +683,11 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Update the EOFE flag
+      if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
+         v.eofe := ssiGetUserEofe(AXIS_CONFIG_C, rxMaster);
+      end if;
+
       -- Reset
       if (axilRst = '1') then
          v := REG_INIT_C;
@@ -709,7 +710,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifo
+   TX_FIFO : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
