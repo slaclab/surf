@@ -150,7 +150,7 @@ if { ${VIVADO_VERSION} <= 2014.2 } {
    set_property compxlib.vcs_compiled_library_dir ${simLibOutDir} [current_project]
    
    # Launch the scripts generator 
-   launch_simulation -absolute_path -scripts_only    
+   export_simulation -absolute_path -force -simulator vcs -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/
 }   
 
 ########################################################
@@ -287,9 +287,9 @@ if { ${VIVADO_VERSION} <= 2014.2 } {
    }
    
 ################################################
-## Else this is Vivado Version 2014.3 (or later)
+## Else if Vivado Version 2016.2 (or earlier)
 ################################################   
-} else {
+} elseif { ${VIVADO_VERSION} <= 2016.2 } {
 
    ####################################
    ## Customization of the setup script 
@@ -401,6 +401,56 @@ if { ${VIVADO_VERSION} <= 2014.2 } {
    file delete -force ${simTbOutDir}/simulate.sh   
    file delete -force ${simTbOutDir}/simulate.log   
    file delete -force ${simTbOutDir}/${simTbFileName}.do   
+   
+################################################
+## Else this is Vivado Version 2016.3 (or later)
+################################################     
+} else {
+   ########################################################
+   ## Customization of the executable bash (.sh) script 
+   ########################################################
+
+   # open the files
+   set in  [open ${simTbOutDir}/vcs/${simTbFileName}.sh r]
+   set out [open ${simTbOutDir}/sim_vcs_mx.sh  w]
+
+   # Find and replace the AFS path 
+   while { [eof ${in}] != 1 } {
+      
+      gets ${in} line
+
+      set simString "  simulate"
+      if { ${line} == ${simString} } {
+         set simString "  source ${simTbOutDir}/setup_env.sh"
+         puts ${out} ${simString}
+      } else {              
+      
+         # Insert -nc flags into the vhdlan_opts and vlogan_opts options
+         set line [string map {" -l v" " -nc -l v"} ${line}]
+         
+         # Replace ${simTbFileName}_simv with the simv
+         set replaceString "${simTbFileName}_simv simv"
+         set line [string map ${replaceString}  ${line}]       
+
+         # Write to file
+          puts ${out} ${line}  
+      }      
+   }
+
+   # Close the files
+   close ${in}
+   close ${out}
+
+   # Update the permissions
+   exec chmod 0755 ${simTbOutDir}/sim_vcs_mx.sh
+   
+   # Copy the .do file
+   exec cp -f ${simTbOutDir}/vcs/simulate.do ${simTbOutDir}/simulate.do
+   
+   # Copy the glbl.v file
+   if { [file exists ${simTbOutDir}/vcs/glbl.v] == 1 } {
+      exec cp -f ${simTbOutDir}/vcs/glbl.v ${simTbOutDir}/glbl.v 
+   }
 }
 
 ########################################################
