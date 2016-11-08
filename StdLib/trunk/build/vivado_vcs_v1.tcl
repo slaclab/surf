@@ -59,7 +59,26 @@ update_compile_order -quiet -fileset sim_1
 ## Compile the libraries for VCS
 ########################################################
 set simLibOutDir ${OUT_DIR}/vcs_library
-compile_simlib -simulator vcs_mx -library unisim -library simprim -library axi_bfm -directory ${simLibOutDir}
+
+###############################################
+## Check for Vivado Version 2016.2 (or earlier)
+###############################################
+if { ${VIVADO_VERSION} <= 2016.2 } {
+
+   compile_simlib -simulator vcs_mx -library unisim -library simprim -library axi_bfm -directory ${simLibOutDir}
+   
+################################################
+## Else this is Vivado Version 2016.3 (or later)
+################################################   
+} else {
+   compile_simlib -directory ${simLibOutDir} \
+                  -family [get_property FAMILY [get_property  {PART} [current_project]]] \
+                  -simulator vcs_mx \
+                  -no_ip_compile \
+                  -library axi_bfm \
+                  -library unisim \
+                  -library simprim
+}   
 
 ########################################################
 ## Enable the LIBRARY_SCAN parameter 
