@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifoV2.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2016-09-02
--- Last update: 2016-10-21
+-- Last update: 2016-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoDin         : slv(FIFO_BITS_C-1 downto 0);
    signal fifoWrite       : sl;
    signal fifoWriteLast   : sl;
-   signal fifoWriteUser   : slv(FIFO_USER_BITS_C-1 downto 0);
+   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
    signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull       : sl;
@@ -161,7 +161,7 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoDout        : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead        : sl;
    signal fifoReadLast    : sl;
-   signal fifoReadUser    : slv(FIFO_USER_BITS_C-1 downto 0);
+   signal fifoReadUser    : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
    signal fifoValidInt    : sl;
    signal fifoValid       : sl;
    signal fifoValidLast   : sl;
@@ -288,7 +288,7 @@ begin
             USE_BUILT_IN_G     => false,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
-            DATA_WIDTH_G       => FIFO_USER_BITS_C,
+            DATA_WIDTH_G       => maximum(FIFO_USER_BITS_C, 1),
             ADDR_WIDTH_G       => LAST_FIFO_ADDR_WIDTH_C,
             INIT_G             => "0",
             FULL_THRES_G       => 1,

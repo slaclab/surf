@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2016-09-30
+-- Last update: 2016-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -235,12 +235,17 @@ package body AxiStreamPkg is
       return slv is
 
       variable pos : integer;
-      variable ret : slv(axisConfig.TUSER_BITS_C-1 downto 0);
+      variable ret : slv(maximum(axisConfig.TUSER_BITS_C-1, 0) downto 0);
    begin
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
 
       ret := axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos)));
+
+      -- Handle TUSER_BITS_C=0 case
+      if (axisConfig.TUSER_BITS_C = 0 or axisConfig.TUSER_MODE_C = TUSER_NONE_C) then
+         ret := (others => '0');
+      end if;
 
       return(ret);
    end function;
@@ -252,7 +257,7 @@ package body AxiStreamPkg is
       bytePos    : integer := -1)       -- -1 = last
       return sl is
 
-      variable user : slv(axisConfig.TUSER_BITS_C-1 downto 0);
+      variable user : slv(maximum(axisConfig.TUSER_BITS_C-1, 0) downto 0);
    begin
 
       user := axiStreamGetuserField(axisConfig, axisMaster, bytePos);
@@ -271,8 +276,12 @@ package body AxiStreamPkg is
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
 
-      axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto
-                       ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
+      if (axisConfig.TUSER_BITS_C > 0 and axisConfig.TUSER_MODE_C /= TUSER_NONE_C) then
+         axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto
+                          ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
+      else
+         axisMaster.tUser := (others => '0');
+      end if;
 
    end procedure;
 
@@ -577,7 +586,9 @@ package body AxiStreamPkg is
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
-                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C, c.TDATA_BYTES_C * c.TUSER_BITS_C));
+                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
+                             ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
+                                 0)));  -- TUSER_NONE_C
 
       size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0);  -- Strobe bits
       size := size + c.TDEST_BITS_C;
@@ -609,17 +620,19 @@ package body AxiStreamPkg is
       -- TKEEP Fixed uses 0 bits
 
       -- Pack user bits
-      if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, 0), c.TUSER_BITS_C));  -- First byte
-         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
+      if (c.TUSER_BITS_C > 0 and c.TUSER_MODE_C /= TUSER_NONE_C) then
+         if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
+            assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, 0), c.TUSER_BITS_C));  -- First byte
+            assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
 
-      elsif c.TUSER_MODE_C = TUSER_LAST_C then
-         assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
+         elsif c.TUSER_MODE_C = TUSER_LAST_C then
+            assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, -1), c.TUSER_BITS_C));  -- Last valid byte
 
-      else
-         for j in 0 to c.TDATA_BYTES_C-1 loop
-            assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, j), c.TUSER_BITS_C));
-         end loop;
+         elsif c.TUSER_MODE_C = TUSER_NORMAL_C then
+            for j in 0 to c.TDATA_BYTES_C-1 loop
+               assignSlv(i, retValue, resize(axiStreamGetUserField(c, din, j), c.TUSER_BITS_C));
+            end loop;
+         end if;
       end if;
 
       -- Strobe is optional
@@ -642,10 +655,10 @@ package body AxiStreamPkg is
    end function;
 
    function toAxiStreamMaster (din : slv; valid : sl; c : AxiStreamConfigType) return AxiStreamMasterType is
-      variable master : AxiStreamMasterType            := axiStreamMasterInit(c);
-      variable user   : slv(c.TUSER_BITS_C-1 downto 0) := (others => '0');
+      variable master : AxiStreamMasterType                        := axiStreamMasterInit(c);
+      variable user   : slv(maximum(c.TUSER_BITS_C-1, 1) downto 0) := (others => '0');
       variable keep   : slv(bitSize(c.TDATA_BYTES_C-1)-1 downto 0);
-      variable i      : integer                        := 0;
+      variable i      : integer                                    := 0;
    begin
 
       -- Set valid, 
@@ -668,22 +681,26 @@ package body AxiStreamPkg is
       end if;
 
       -- get user bits
-      if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
-         assignRecord(i, din, user);
-         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), 0);  -- First byte
-
-         assignRecord(i, din, user);
-         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte
-
-      elsif c.TUSER_MODE_C = TUSER_LAST_C then
-         assignRecord(i, din, user);
-         axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte
-
-      else
-         for j in 0 to c.TDATA_BYTES_C-1 loop
+      if (c.TUSER_BITS_C > 0 and c.TUSER_MODE_C /= TUSER_NONE_C) then
+         if c.TUSER_MODE_C = TUSER_FIRST_LAST_C then
             assignRecord(i, din, user);
-            axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), j);
-         end loop;
+            axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), 0);  -- First byte
+
+            assignRecord(i, din, user);
+            axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte
+
+         elsif c.TUSER_MODE_C = TUSER_LAST_C then
+            assignRecord(i, din, user);
+            axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), -1);  -- Last valid byte
+
+         elsif (c.TUSER_MODE_C = TUSER_NORMAL_C) then
+            for j in 0 to c.TDATA_BYTES_C-1 loop
+               assignRecord(i, din, user);
+               axiStreamSetUserField (c, master, resize(user, c.TUSER_BITS_C), j);
+            end loop;
+         end if;
+      else
+         user := (others => '0');
       end if;
 
       -- Strobe is optional
