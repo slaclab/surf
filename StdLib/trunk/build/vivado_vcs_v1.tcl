@@ -123,9 +123,9 @@ if { ${VIVADO_VERSION} <= 2014.2 } {
    export_simulation -absolute_path -force -simulator vcs_mx -lib_map_path ${simLibOutDir} -directory ${simTbOutDir}/
    
 ################################################
-## Else this is Vivado Version 2014.3 (or later)
+## Else if Vivado Version 2016.2 (or earlier)
 ################################################   
-} else {
+} elseif { ${VIVADO_VERSION} <= 2016.2 } {
 
    # Save the current top level simulation testbed value
    set simTbOutDir ${OUT_DIR}/${PROJECT}_project.sim/sim_1/behav
@@ -133,6 +133,21 @@ if { ${VIVADO_VERSION} <= 2014.2 } {
    # Configure Vivado to generate the VCS scripts
    set_property target_simulator "VCS" [current_project]
    set_property compxlib.compiled_library_dir ${simLibOutDir} [current_project]
+   
+   # Launch the scripts generator 
+   launch_simulation -absolute_path -scripts_only    
+   
+################################################
+## Else this is Vivado Version 2016.3 (or later)
+################################################     
+} else {
+
+   # Save the current top level simulation testbed value
+   set simTbOutDir ${OUT_DIR}/${PROJECT}_project.sim/sim_1/behav
+
+   # Configure Vivado to generate the VCS scripts
+   set_property target_simulator "VCS" [current_project]
+   set_property compxlib.vcs_compiled_library_dir ${simLibOutDir} [current_project]
    
    # Launch the scripts generator 
    launch_simulation -absolute_path -scripts_only    
