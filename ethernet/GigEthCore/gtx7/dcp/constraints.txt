@@ -1,1 +1,0 @@
-hdl/GigEthGtx7Core.xdc 

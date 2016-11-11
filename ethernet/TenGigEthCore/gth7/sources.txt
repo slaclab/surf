@@ -1,6 +1,0 @@
-
-vhdl work rtl/TenGigEthGth7Wrapper.vhd
-vhdl work rtl/TenGigEthGth7.vhd
-vhdl work rtl/TenGigEthGth7Clk.vhd
-
-vhdl work coregen/TenGigEthGth7Core.dcp

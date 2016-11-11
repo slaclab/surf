@@ -1,5 +1,0 @@
-
-vhdl work rtl/GigEthGth7Wrapper.vhd
-vhdl work rtl/GigEthGth7.vhd
-
-vhdl work dcp/images/GigEthGth7Core.dcp 
