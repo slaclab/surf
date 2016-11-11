@@ -1,5 +1,0 @@
-vhdl work rtl/AxiAd5780Pkg.vhd
-
-vhdl work rtl/AxiAd5780Core.vhd
-vhdl work rtl/AxiAd5780Reg.vhd
-vhdl work rtl/AxiAd5780Ser.vhd

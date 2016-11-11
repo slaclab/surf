@@ -1,3 +1,0 @@
-vhdl work rtl/AxiPciePkg.vhd
-vhdl work rtl/AxiPcieDma.vhd
-vhdl work rtl/AxiPcieReg.vhd

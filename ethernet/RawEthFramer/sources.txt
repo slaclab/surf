@@ -1,7 +1,0 @@
-
-vhdl work rtl/RawEthFramerPkg.vhd
-
-vhdl work rtl/RawEthFramerWrapper.vhd
-vhdl work rtl/RawEthFramer.vhd
-vhdl work rtl/RawEthFramerRx.vhd
-vhdl work rtl/RawEthFramerTx.vhd

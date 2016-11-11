@@ -1,8 +1,0 @@
-
-vhdl work rtl/TenGigEthGthUltraScaleWrapper.vhd
-vhdl work rtl/TenGigEthGthUltraScale.vhd
-vhdl work rtl/TenGigEthGthUltraScaleClk.vhd
-vhdl work rtl/TenGigEthGthUltraScaleRst.vhd
-
-vhdl work coregen/TenGigEthGthUltraScale156p25MHzCore.dcp
-vhdl work coregen/TenGigEthGthUltraScale312p5MHzCore.dcp

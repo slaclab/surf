@@ -1,1 +1,0 @@
-hdl/Salt7SeriesCore.xdc

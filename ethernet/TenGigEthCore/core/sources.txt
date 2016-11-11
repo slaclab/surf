@@ -1,4 +1,0 @@
-
-vhdl work rtl/TenGigEthPkg.vhd
-vhdl work rtl/TenGigEthReg.vhd
-vhdl work rtl/TenGigEthRst.vhd
