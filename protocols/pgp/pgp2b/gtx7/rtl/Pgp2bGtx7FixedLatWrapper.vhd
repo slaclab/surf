@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-11-01
+-- Last update: 2016-11-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ entity Pgp2bGtx7FixedLatWrapper is
       RX_PLL_G                : string               := "CPLL");
    port (
       -- Manual Reset
-      stableClkIn      : in  sl                     := '0';
+      stableClkIn      : in  sl                               := '0';
       extRst           : in  sl;
       -- Status and Clock Signals
       txPllLock        : out sl;
@@ -99,25 +99,25 @@ entity Pgp2bGtx7FixedLatWrapper is
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
-      gtgClk           : in  sl                     := '0';
-      gtClk0P          : in  sl                     := '0';
-      gtClk0N          : in  sl                     := '0';
-      gtClk1P          : in  sl                     := '0';
-      gtClk1N          : in  sl                     := '0';
+      gtgClk           : in  sl                               := '0';
+      gtClk0P          : in  sl                               := '0';
+      gtClk0N          : in  sl                               := '0';
+      gtClk1P          : in  sl                               := '0';
+      gtClk1N          : in  sl                               := '0';
       gtTxP            : out sl;
       gtTxN            : out sl;
       gtRxP            : in  sl;
       gtRxN            : in  sl;
       -- Debug Interface 
-      txPreCursor      : in  slv(4 downto 0)        := (others => '0');
-      txPostCursor     : in  slv(4 downto 0)        := (others => '0');
-      txDiffCtrl       : in  slv(3 downto 0)        := "1000";
+      txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
+      txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
+      txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
       -- AXI-Lite Interface 
-      axilClk          : in  sl                     := '0';
-      axilRst          : in  sl                     := '0';
-      axilReadMaster   : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilClk          : in  sl                               := '0';
+      axilRst          : in  sl                               := '0';
+      axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave    : out AxiLiteReadSlaveType;
-      axilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGtx7FixedLatWrapper;
 
@@ -285,21 +285,15 @@ begin
    end generate NO_TX_CM_GEN;
 
    -- PGP RX Reset
-   PGP_TX_CLK_BUFG : if (RX_REFCLK_SRC_G /= STABLE_CLK_SRC_G) generate
-      RstSync_pgpTxRst : entity work.RstSync
-         generic map (
-            TPD_G           => TPD_G,
-            RELEASE_DELAY_G => 16,
-            OUT_REG_RST_G   => true)
-         port map (
-            clk      => pgpRxClkLoc,    -- [in]
-            asyncRst => extRst,         -- [in]
-            syncRst  => pgpRxReset);    -- [out]
-   end generate;
-
-   NO_PGP_TX_CLK_BUFG : if (RX_REFCLK_SRC_G = STABLE_CLK_SRC_G) generate
-      pgpRxReset <= stableRst;
-   end generate;
+   RstSync_pgpTxRst : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G,
+         RELEASE_DELAY_G => 16,
+         OUT_REG_RST_G   => true)
+      port map (
+         clk      => pgpRxClkLoc,       -- [in]
+         asyncRst => extRst,            -- [in]
+         syncRst  => pgpRxReset);       -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- Determine PLL clocks
