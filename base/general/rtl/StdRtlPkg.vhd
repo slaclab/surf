@@ -91,8 +91,8 @@ package StdRtlPkg is
    function oddParity (vec  : slv) return sl;
   
    -- Functions for counting the number of '1' in a slv bus
-   function onesCount (vec : slv) return unsigned;
---   function onesCount (vec : slv) return slv;   
+--   function onesCount (vec : slv) return unsigned;
+   function onesCount (vec : slv) return slv;   
 
    -- Gray Code functions
    function grayEncode (vec : unsigned) return unsigned;
@@ -909,52 +909,52 @@ package body StdRtlPkg is
    -- Functions for counting the number of '1' in a slv bus
    -----------------------------------------------------------------------------
    -- New Non-recursive onesCount Function
---    function onesCount (vec : slv)
---       return unsigned is
---       variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
---    begin
---       for i in vec'range loop
---          if vec(i) = '1' then
---             retVar := retVar + 1;
---          end if;
---       end loop;
---       return retVar;
---    end function;     
+   function onesCount (vec : slv)
+      return slv is
+      variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
+   begin
+      for i in vec'range loop
+         if vec(i) = '1' then
+            retVar := retVar + 1;
+         end if;
+      end loop;
+      return slv(retVar);
+   end function;     
    
    -- -- Old Recursive onesCount Function
-   function onesCount (vec : slv) return unsigned is
-      variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
-      variable bottomVar : slv(topVar'low-1 downto vec'low);
-      variable tmpVar    : slv(2 downto 0);
-   begin
-      if (vec'length = 1) then
-         return '0' & unsigned(vec);
-      end if;
+--    function onesCount (vec : slv) return unsigned is
+--       variable topVar    : slv(vec'high downto vec'low+(vec'length/2));
+--       variable bottomVar : slv(topVar'low-1 downto vec'low);
+--       variable tmpVar    : slv(2 downto 0);
+--    begin
+--       if (vec'length = 1) then
+--          return '0' & unsigned(vec);
+--       end if;
 
-      if (vec'length = 2) then
-         return uAnd(vec) & uXor(vec);
-      end if;
+--       if (vec'length = 2) then
+--          return uAnd(vec) & uXor(vec);
+--       end if;
 
-      if (vec'length = 3) then
-         tmpVar := vec;
-         case tmpVar is
-            when "000"  => return "00";
-            when "001"  => return "01";
-            when "010"  => return "01";
-            when "011"  => return "10";
-            when "100"  => return "01";
-            when "101"  => return "10";
-            when "110"  => return "10";
-            when "111"  => return "11";
-            when others => return "00";
-         end case;
-      end if;
+--       if (vec'length = 3) then
+--          tmpVar := vec;
+--          case tmpVar is
+--             when "000"  => return "00";
+--             when "001"  => return "01";
+--             when "010"  => return "01";
+--             when "011"  => return "10";
+--             when "100"  => return "01";
+--             when "101"  => return "10";
+--             when "110"  => return "10";
+--             when "111"  => return "11";
+--             when others => return "00";
+--          end case;
+--       end if;
 
-      topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
-      bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
+--       topVar    := vec(vec'high downto (vec'high+1)-((vec'length+1)/2));
+--       bottomVar := vec(vec'high-((vec'length+1)/2) downto vec'low);
 
-      return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
-   end function;  
+--       return ('0' & onesCount(topVar)) + ('0' & onesCount(bottomVar));
+--    end function;  
 
    -- SLV variant   
 --    function onesCount (vec : slv)
