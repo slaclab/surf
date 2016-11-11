@@ -1,5 +1,0 @@
-
-vhdl work rtl/GigEthGthUltraScaleWrapper.vhd
-vhdl work rtl/GigEthGthUltraScale.vhd
- 
-vhdl work coregen/GigEthGthUltraScaleCore.dcp  

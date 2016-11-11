@@ -1,3 +1,0 @@
-vhdl work tb/IpV4EngineTb.vhd    
-vhdl work tb/IpV4EngineCoreTb.vhd    
-vhdl work tb/IpV4EngineLoopback.vhd

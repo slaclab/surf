@@ -1,8 +1,0 @@
-vhdl work rtl/AxiAd9467Core.vhd
-vhdl work rtl/AxiAd9467Deser.vhd
-vhdl work rtl/AxiAd9467DeserBit.vhd
-vhdl work rtl/AxiAd9467Mon.vhd
-vhdl work rtl/AxiAd9467Pkg.vhd
-vhdl work rtl/AxiAd9467Pll.vhd
-vhdl work rtl/AxiAd9467Reg.vhd
-vhdl work rtl/AxiAd9467Spi.vhd

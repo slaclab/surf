@@ -1,7 +1,0 @@
-vhdl work rtl/AxiLiteSrpV0.vhd
-vhdl work rtl/SrpV0AxiLite.vhd
-vhdl work rtl/SrpV3Axi.vhd
-vhdl work rtl/SrpV3AxiLite.vhd
-vhdl work rtl/SrpV3AxiLiteFull.vhd
-vhdl work rtl/SrpV3Core.vhd
-vhdl work rtl/SrpV3Pkg.vhd

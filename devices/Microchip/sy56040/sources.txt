@@ -1,3 +1,0 @@
-vhdl work rtl/AxiSy56040Pkg.vhd
-vhdl work rtl/AxiSy56040Core.vhd
-vhdl work rtl/AxiSy56040Reg.vhd

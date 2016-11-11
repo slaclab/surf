@@ -1,4 +1,0 @@
-## Sourcing the .dcp file in the sources.txt
-#coregen/AxiPciePgpCardG4IpCore.xci
-#coregen/AxiPcieCrossbarIpCore.xci
-#coregen/MigCore.xci

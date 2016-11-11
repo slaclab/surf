@@ -1,4 +1,0 @@
-vhdl work rtl/AxiI2cQsfpPkg.vhd
-
-vhdl work rtl/AxiI2cQsfpCore.vhd
-vhdl work rtl/AxiI2cQsfpReg.vhd

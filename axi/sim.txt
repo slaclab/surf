@@ -1,8 +1,0 @@
-##vhdl work tb/AxiLiteAsyncTb.vhd
-##vhdl work tb/AxiStreamMuxTb.vhd
-##vhdl work tb/AxiStreamPipelineTb.vhd
-##vhdl work tb/dma_read_tb.vhd
-##vhdl work tb/dma_tb.vhd
-##vhdl work tb/fifo_tb.vhd
-##vhdl work tb/stream_tb.vhd
-##vhdl work tb/vcs_tb.vhd
