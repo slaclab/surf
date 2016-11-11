@@ -1,2 +1,0 @@
-vhdl work rtl/AxiMicronN25QCore.vhd
-vhdl work rtl/AxiMicronN25QReg.vhd

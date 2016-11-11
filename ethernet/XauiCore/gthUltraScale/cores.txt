@@ -1,7 +1,0 @@
-# Using the .dcp instead of the .xci (see sources.txt) 
-# coregen/XauiGthUltraScale125MHz10GigECore.xci  
-# coregen/XauiGthUltraScale125MHz20GigECore.xci  
-# coregen/XauiGthUltraScale156p25MHz10GigECore.xci  
-# coregen/XauiGthUltraScale156p25MHz20GigECore.xci  
-# coregen/XauiGthUltraScale312p5MHz10GigECore.xci  
-# coregen/XauiGthUltraScale312p5MHz20GigECore.xci  

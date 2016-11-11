@@ -1,2 +1,0 @@
-vhdl work tb/UdpEngineTb.vhd    
-vhdl work tb/UdpEngineCoreTb.vhd    

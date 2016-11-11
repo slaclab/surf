@@ -1,9 +1,0 @@
-vhdl work rtl/SaciMasterPkg.vhd
-vhdl work rtl/SaciMaster.vhd
-vhdl work rtl/SaciMasterSync.vhd
-vhdl work rtl/SaciMaster2.vhd
-vhdl work rtl/AxiLiteSaciMaster.vhd
-vhdl work rtl/SaciSlave.vhd
-vhdl work rtl/SaciMultiPixel.vhd
-vhdl work rtl/SaciMultiPixelPkg.vhd
-vhdl work rtl/SaciPrepRdout.vhd

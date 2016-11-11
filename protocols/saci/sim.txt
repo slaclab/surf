@@ -1,4 +1,0 @@
-vhdl work sim/AxiLiteSaciMasterTb.vhd
-vhdl work sim/SaciSlaveWrapper.vhd
-vhdl work sim/SaciSlave2.vhd
-vhdl work sim/SaciSlaveRam.vhd

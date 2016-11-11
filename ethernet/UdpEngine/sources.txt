@@ -1,6 +1,0 @@
-vhdl work rtl/UdpEngineWrapper.vhd
-vhdl work rtl/UdpEngine.vhd
-vhdl work rtl/UdpEngineRx.vhd
-vhdl work rtl/UdpEngineArp.vhd
-vhdl work rtl/UdpEngineDhcp.vhd
-vhdl work rtl/UdpEngineTx.vhd

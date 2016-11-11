@@ -1,2 +1,0 @@
-manual yaml/UdpEngineClient.yaml
-manual yaml/UdpEngineServer.yaml

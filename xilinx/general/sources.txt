@@ -1,5 +1,0 @@
-vhdl work rtl/ClkOutBufDiff.vhd
-vhdl work rtl/ClkOutBufSingle.vhd
-vhdl work rtl/DeviceDna.vhd
-vhdl work rtl/DspAddSub.vhd
-vhdl work rtl/Iprog.vhd
