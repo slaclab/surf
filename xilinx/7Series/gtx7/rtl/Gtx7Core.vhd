@@ -381,9 +381,9 @@ architecture rtl of Gtx7Core is
 
    -- Tx Data Signals
    signal txDataFull : slv(63 downto 0) := (others => '0');
-   signal txCharIsKFull,
-      txCharDispMode,
-      txCharDispVal : slv(7 downto 0) := (others => '0');
+   signal txCharIsKFull  : slv(7 downto 0)  := (others => '0');
+   signal txCharDispMode : slv(7 downto 0)  := (others => '0');
+   signal txCharDispVal  : slv(7 downto 0)  := (others => '0');
 
 --   attribute KEEP_HIERARCHY : string;
 --   attribute KEEP_HIERARCHY of
