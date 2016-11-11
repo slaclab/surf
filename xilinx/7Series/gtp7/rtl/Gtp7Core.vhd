@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2015-04-24
+-- Last update: 2016-11-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -549,6 +549,7 @@ begin
             DLYSRESETDONE        => rxDlySResetDone,       -- From gt
             RECCLKSTABLE         => rxRecClkStable);
       rxSlide <= rxSlideIn;                                -- User controlled rxSlide
+      rxAlignReset <= '0';
    end generate;
 
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
@@ -639,34 +640,6 @@ begin
          RESET_PHALIGNMENT => txResetPhaseAlignment,  -- Used for manual alignment
          PHALIGNMENT_DONE  => txPhaseAlignmentDone,
          RETRY_COUNTER     => open);                  -- Might be interesting to look at
-
---   txPllRefClkLost <= qPllRefClkLostIn(0) when TX_PLL0_USED_C     else qPllRefClkLostIn(1);
---   txPllLock       <= qPllLockIn(0)       when TX_PLL0_USED_C     else qPllLockIn(1);
---   txPllResets(0)  <= txPllReset          when TX_PLL0_USED_C     else '0';
---   txPllResets(1)  <= txPllReset          when not TX_PLL0_USED_C else '0';
---   Gtp7TxRst2_1 : entity work.Gtp7TxRst2
---      generic map (
---         TPD_G                 => TPD_G,
---         STABLE_CLOCK_PERIOD_G => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9))
---      port map (
---         stableClock         => stableClkIn,
---         txUserClk           => txUsrClkIn,
---         txOutClk            => txOutClk,
---         softReset           => txUserResetIn,
---         gtTxReset           => gtTxReset,
---         txResetDone         => txResetDone,
---         pllReset            => txPllReset,
---         pllRefClkLost       => txPllRefClkLost,
---         pllLock             => txPllLock,
---         txPmaResetDone      => txPmaResetDone,
---         mmcmReset           => txMmcmResetOut,
---         mmcmLocked          => txMmcmLockedIn,
---         txFsmResetDone      => txFsmResetDone,
---         txUserRdy           => txUserRdyInt,
---         runPhaseAlignment   => txRunPhaseAlignment,
---         resetPhaseAlignment => txResetPhaseAlignment,
---         phaseAlignmentDone  => txPhaseAlignmentDone,
---         retryCount          => open);
 
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
