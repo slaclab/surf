@@ -22,3 +22,6 @@ vhdl work rtl/Jesd204bRxGtx7.vhd
 vhdl work rtl/Jesd204bTxGtx7.vhd
 vhdl work rtl/Jesd204bTxGthUltra.vhd
 vhdl work rtl/Jesd204bRxGthUltra.vhd
+
+vhdl work rtl/Jesd16bTo32b.vhd
+vhdl work rtl/Jesd32bTo16b.vhd
