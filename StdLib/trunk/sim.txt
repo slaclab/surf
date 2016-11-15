@@ -14,6 +14,7 @@ vhdl work axi/tb/AxiLiteAsyncTb.vhd
 vhdl work axi/tb/vcs_tb.vhd
 vhdl work axi/tb/fifo_tb.vhd
 vhdl work axi/tb/dma_read_tb.vhd
+vhdl work axi/tb/rogue_tb.vhd
 vhdl work axi/tb/AxiReadEmulate.vhd
 vhdl work axi/simlink/rtl/AxiSimMaster.vhd
 vhdl work axi/simlink/rtl/AxiSimMasterWrap.vhd
@@ -23,6 +24,8 @@ vhdl work axi/simlink/rtl/AxiStreamSimWrap.vhd
 vhdl work axi/simlink/rtl/AxiStreamSim.vhd
 vhdl work axi/simlink/rtl/AxiStreamSimIb.vhd
 vhdl work axi/simlink/rtl/AxiStreamSimOb.vhd
+vhdl work axi/simlink/rtl/RogueStreamSim.vhd
+vhdl work axi/simlink/rtl/RogueStreamSimWrap.vhd
 
 vhdl work ssi/tb/SsiPrbsTb.vhd
 vhdl work ssi/tb/SsiFifoTb.vhd
