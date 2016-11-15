@@ -334,7 +334,7 @@ begin
                   burstLast   <= '0' after TPD_G;
                else
                   -- Check if for burst mode
-                  if (burstEn = '1') and (burstLast = '0') then
+                  if (burstEn = '1') and (burstLast = '0') and (fifoRead = '1') then
                      -- Increment the counter
                      burstCnt <= burstCnt + 1 after TPD_G;
                      -- Check the counter
