@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-01
--- Last update: 2016-06-17
+-- Last update: 2016-11-15
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -99,9 +99,24 @@ architecture rtl of AxiLiteSaciMaster is
    signal fail   : sl;
    signal rdData : slv(31 downto 0);
 
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";   
 
 begin
 
+   assert (AXIL_CLK_PERIOD_G < 1.0)
+      report "AXIL_CLK_PERIOD_G must be < 1.0 seconds" severity failure;
+   assert (AXIL_TIMEOUT_G < 1.0)
+      report "AXIL_TIMEOUT_G must be < 1.0 seconds" severity failure;
+   assert (SACI_CLK_PERIOD_G < 1.0)
+      report "SACI_CLK_PERIOD_G must be < 1.0 seconds" severity failure;
+   assert (AXIL_CLK_PERIOD_G < AXIL_TIMEOUT_G)
+      report "AXIL_CLK_PERIOD_G must be < AXIL_TIMEOUT_G" severity failure;
+   assert (AXIL_CLK_PERIOD_G < SACI_CLK_PERIOD_G)
+      report "AXIL_CLK_PERIOD_G must be < SACI_CLK_PERIOD_G" severity failure;
+   assert (SACI_CLK_PERIOD_G < AXIL_TIMEOUT_G)
+      report "SACI_CLK_PERIOD_G must be < AXIL_TIMEOUT_G" severity failure;
+   
    U_SaciMaster2_1 : entity work.SaciMaster2
       generic map (
          TPD_G              => TPD_G,
@@ -153,7 +168,7 @@ begin
          when IDLE_S =>
             -- Reset the timer
             v.saciRst := '0';
-            v.timer := 0;
+            v.timer   := 0;
             -- Check for a write request
             if (axilStatus.writeEnable = '1') then
                -- SACI Commands
@@ -187,8 +202,8 @@ begin
          when SACI_REQ_S =>
             if (ack = '1' and fail = '1') or (r.timer = TIMEOUT_C) then
                -- Set the error flags
-               resp  := AXIL_ERROR_RESP_G;
-               v.req := '0';
+               resp      := AXIL_ERROR_RESP_G;
+               v.req     := '0';
                v.saciRst := '1';
             elsif (ack = '1') then
                -- Reset the flag
