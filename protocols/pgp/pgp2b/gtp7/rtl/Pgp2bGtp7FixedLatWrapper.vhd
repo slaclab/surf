@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-11-04
+-- Last update: 2016-11-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,13 +40,13 @@ entity Pgp2bGtp7FixedLatWrapper is
       SIM_VERSION_G           : string               := "1.0";
       SIMULATION_G            : boolean              := false;
       -- PGP Settings
-      VC_INTERLEAVE_G         : integer              := 0;         -- No interleave Frames
-      PAYLOAD_CNT_TOP_G       : integer              := 7;         -- Top bit for payload counter
+      VC_INTERLEAVE_G         : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G       : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4 := 4;
       AXIL_ERROR_RESP_G       : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       AXIL_BASE_ADDR_G        : slv(31 downto 0)     := (others => '0');
-      TX_ENABLE_G             : boolean              := true;      -- Enable TX direction
-      RX_ENABLE_G             : boolean              := true;      -- Enable RX direction
+      TX_ENABLE_G             : boolean              := true;           -- Enable TX direction
+      RX_ENABLE_G             : boolean              := true;           -- Enable RX direction
       -- CM Configurations
       TX_CM_EN_G              : boolean              := true;
       TX_CM_TYPE_G            : string               := "MMCM";
@@ -64,9 +64,9 @@ entity Pgp2bGtp7FixedLatWrapper is
       PMA_RSV_G               : bit_vector           := x"00018480";
       RX_OS_CFG_G             : bit_vector           := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G            : sl                   := '0';       -- Set by wizard
+      RXDFEXYDEN_G            : sl                   := '0';            -- Set by wizard
       -- PLL and clock configurations
-      STABLE_CLK_SRC_G        : string               := "gtClk0";  -- or "gtClk0" or "gtClk1"
+      STABLE_CLK_SRC_G        : string               := "stableClkIn";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string               := "gtClk0";
       RX_REFCLK_SRC_G         : string               := "gtClk0";
       TX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
@@ -129,8 +129,10 @@ architecture rtl of Pgp2bGtp7FixedLatWrapper is
 
    constant SIM_GTRESET_SPEEDUP_C : string := ite(SIM_GTRESET_SPEEDUP_G, "TRUE", "FALSE");
 
-   signal gtClk0 : sl := '0';
-   signal gtClk1 : sl := '0';
+   signal gtClk0     : sl := '0';
+   signal gtClk0Div2 : sl;
+   signal gtClk1     : sl := '0';
+   signal gtClk1Div2 : sl;
 
    signal txRefClk : sl := '0';
    signal txOutClk : sl := '0';
@@ -178,7 +180,7 @@ begin
             I     => gtClk0P,
             IB    => gtClk0N,
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => gtClk0Div2,
             O     => gtClk0);
    end generate;
 
@@ -188,7 +190,7 @@ begin
             I     => gtClk1P,
             IB    => gtClk1N,
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => gtClk1Div2,
             O     => gtClk1);
    end generate;
 
@@ -196,7 +198,9 @@ begin
    -- Create the stable clock and reset
    -------------------------------------------------------------------------------------------------
    stableClkRef <= gtClk0 when STABLE_CLK_SRC_G = "gtClk0" else
+                   gtClk0Div2 when STABLE_CLK_SRC_G = "gtClk0Div2" else
                    gtClk1 when STABLE_CLK_SRC_G = "gtClk1" else
+                   gtClk1Div2 when STABLE_CLK_SRC_G = "gtClk1Div2" else
                    '0';
 
 
