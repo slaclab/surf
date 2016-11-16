@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2016-07-11
+-- Last update: 2016-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -188,7 +188,7 @@ begin
    end generate;
 
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial,
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
                    fpgaEnReload, r, userValues) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
