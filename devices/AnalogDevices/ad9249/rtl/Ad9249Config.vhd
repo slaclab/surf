@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-11-14
+-- Last update: 2016-11-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ architecture rtl of Ad9249Config is
    signal coreCsb   : slv(NUM_CHIPS_G*2-1 downto 0);
 
    constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G*2);
-   constant PWDN_ADDR_BIT_C  : integer                       := 10 + CHIP_SEL_WIDTH_C;
+   constant PWDN_ADDR_BIT_C  : integer                       := 11 + CHIP_SEL_WIDTH_C;
    constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := (PWDN_ADDR_BIT_C => '1', others => '0');
 
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_SPI_TXN_DONE_S);
@@ -124,10 +124,10 @@ begin
             if (axilEp.axiStatus.writeEnable = '1' and axilWriteMaster.awaddr(PWDN_ADDR_BIT_C) = '0') then
                v.wrData(23)           := '0';                                 -- Write bit
                v.wrData(22 downto 21) := "00";                                -- Number of bytes (1)
-               v.wrData(20 downto 16) := "00000";                             -- Unused address bits
-               v.wrData(15 downto 8)  := axilWriteMaster.awaddr(9 downto 2);  -- Address
+               v.wrData(20 downto 17) := "00000";                             -- Unused address bits
+               v.wrData(16 downto 8)  := axilWriteMaster.awaddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);   -- Data
-               v.chipSel              := axilWriteMaster.awaddr(10+CHIP_SEL_WIDTH_C-1 downto 10);  -- Bank select
+               v.chipSel              := axilWriteMaster.awaddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
@@ -135,11 +135,11 @@ begin
             if (axilEp.axiStatus.readEnable = '1' and axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
                v.wrData(23)           := '1';              -- read bit
                v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
-               v.wrData(20 downto 16) := "00000";          -- Unused address bits
-               v.wrData(15 downto 8)  := axilReadMaster.araddr(9 downto 2);  -- Address
+               v.wrData(20 downto 17) := "00000";          -- Unused address bits
+               v.wrData(16 downto 8)  := axilReadMaster.araddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
                                                            -- drive during data segment
-               v.chipSel              := axilReadMaster.araddr(10+CHIP_SEL_WIDTH_C-1 downto 10);  -- Bank Select
+               v.chipSel              := axilReadMaster.araddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank Select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
