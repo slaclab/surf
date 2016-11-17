@@ -303,7 +303,7 @@ begin
             end if;
 
          when X"001" =>                 -- chip_id
-            v.rdData(7 downto 0) := X"09";
+            v.rdData(7 downto 0) := X"92";
 
          when X"002" =>                 -- chip_grade
             v.rdData(6 downto 4) := "011";
