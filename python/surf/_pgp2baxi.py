@@ -76,10 +76,10 @@ class Pgp2bAxi(pr.Device):
         for offset, name in enumerate(_countVars):
             self.add(pr.Variable(name=name, offset=((offset*4)+0x28), bitSize=32, bitOffset=0, mode="RO", base='hex'))
 
-        self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'hex', description = "",
+        self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
                              getFunction = _convertFrequency));
 
-        self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'hex', description = "",
+        self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
                              getFunction = _convertFrequency));
         
         self.add(pr.Variable(name="LastTxOpCode", offset = 0x70, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
