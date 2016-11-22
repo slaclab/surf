@@ -114,12 +114,12 @@ class Ad9249ReadoutGroup(pr.Device):
                                  base = 'hex',
                                  mode = "RO"))
             
-        # How does this reg reset back to 0?
         self.add(pr.Command(name="LostLockCountReset",
-                             description = "Reset LostLockCount",
-                             offset = 0x38,
-                             bitSize = 1,
-                             bitOffset = 0))
+                            description = "Reset LostLockCount",
+                            function = pr.Command.toggle
+                            offset = 0x38,
+                            bitSize = 1,
+                            bitOffset = 0))
 
         
 
