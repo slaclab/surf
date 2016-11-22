@@ -285,3 +285,15 @@ JesdTx: &JesdTx
       - entry: ClearErrors
         value: 0x0
     #########################################################
+    ResetTxGTs:
+      name: ResetTxGTs
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: Toggle the reset of all TX MGTs
+      sequence:
+      - entry: ResetGTs
+        value: 0x1
+      - entry: ResetGTs
+        value: 0x0
+    #########################################################
