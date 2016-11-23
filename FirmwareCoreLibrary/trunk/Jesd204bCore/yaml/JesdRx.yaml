@@ -269,11 +269,23 @@ JesdRx: &JesdRx
         nelms: *numRxLanes
       class: IntField
       name: ElBuffLatency
-      sizeBits: 4
+      sizeBits: 8
       lsBit: 2
       mode: RO
       description: "Jesd204b elastic buffer latency in c-c. Can be adjusted by Sysref delay."
-    #########################################################    
+    #########################################################
+    CDRStable:        
+      at:
+        offset: 0x043
+        stride: 4
+        nelms: *numRxLanes
+      class: IntField
+      name: CDRStable
+      sizeBits: 1
+      lsBit: 2
+      mode: RO
+      description: "GT CDR stable status."
+    #########################################################     
     ThresholdLow:     
       at:
         offset: 0xC0
