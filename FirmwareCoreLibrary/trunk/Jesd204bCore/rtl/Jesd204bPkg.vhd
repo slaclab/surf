@@ -32,7 +32,7 @@ package Jesd204bPkg is
 
    -- Register or counter widths
    constant SYSRF_DLY_WIDTH_C : positive := 5;
-   constant RX_STAT_WIDTH_C   : positive := 18 + 2*GT_WORD_SIZE_C;
+   constant RX_STAT_WIDTH_C   : positive := 19 + 2*GT_WORD_SIZE_C;
    constant TX_STAT_WIDTH_C   : positive := 6;
 
    -- AXI packet size at powerup
@@ -54,13 +54,17 @@ package Jesd204bPkg is
       dispErr : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data has disparity error
       decErr  : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data not in table
       rstDone : sl;
+      cdrStable : sl;
    end record jesdGtRxLaneType;
+   
    constant JESD_GT_RX_LANE_INIT_C : jesdGtRxLaneType := (
-      data    => (others => '0'),
-      dataK   => (others => '0'),
-      dispErr => (others => '0'),
-      decErr  => (others => '0'),
-      rstDone => '0');
+      data        => (others => '0'),
+      dataK       => (others => '0'),
+      dispErr     => (others => '0'),
+      decErr      => (others => '0'),
+      rstDone     => '0',
+      cdrStable   => '0'      
+      );
 
    type jesdGtTxLaneType is record
       data  : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data

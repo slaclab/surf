@@ -308,6 +308,6 @@ begin
    nSync_o      <= s_nSync;
    dataValid_o  <= s_sampleDataValid;
    sampleData_o <= endianSwapSlv(s_sampleData, GT_WORD_SIZE_C);
-   status_o     <= s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
+   status_o     <= r_jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;
