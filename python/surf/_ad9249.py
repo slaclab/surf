@@ -4,7 +4,9 @@ import pyrogue as pr
 class Ad9249ConfigGroup(pr.Device):
     def __init__(self, name, offset=0, memBase=None, hidden=False):
         super(self.__class__, self).__init__(name, "Configure one side of an AD9249 ADC",
-                                             0x200, memBase, offset, hidden)
+                                             memBase, offset, hidden)
+
+
 
         # AD9249 bank configuration registers
         self.add(pr.Variable(name="ChipId", offset=0x04, bitSize=8, bitOffset=0, mode="RO"))
@@ -16,10 +18,13 @@ class Ad9249ConfigGroup(pr.Device):
         self.add(pr.Variable(name="DutyCycleStabilizer", offset=0x24, bitSize=1, bitOffset=0,
                              enum = {0:"Off", 1: "On"}))
 
+
+        
+
 class Ad9249ChipConfig(pr.Device):
     def __init__(self, name, offset=0, memBase=None, hidden=False):
         super(self.__class__, self).__init__(name, "Configure one side of an AD9249 ADC",
-                                             0x400, memBase, offset, hidden)
+                                             memBase, offset, hidden)
 
         self.add(Ad9249ConfigGroup("Bank0Config", 0x0000));
         self.add(Ad9249ConfigGroup("Bank1Config", 0x0200));        
@@ -29,7 +34,7 @@ class Ad9249Config(pr.Device):
 
     def __init__(self, name, offset=0, memBase=None, hidden=False, chips=1):
         super(self.__class__, self).__init__(name, "Configuration of Ad9249 ADC",
-                                             0x1000, memBase, offset, hidden)
+                                             memBase, offset, hidden)
 
         PDWN_ADDR = int(pow(2,11))
         
@@ -62,7 +67,7 @@ class Ad9249ReadoutGroup(pr.Device):
         assert (channels > 0 and channels <= 8), "channels (%r) must be between 0 and 8" % (channels)
         
         super(self.__class__, self).__init__(name, "Configure readout of 1 bank of an AD9249",
-                                             0x10000, memBase, offset, hidden)
+                                             memBase, offset, hidden)
         
         for i in xrange(channels):
             self.add(pr.Variable(name="ChannelDelay["+str(i)+"]",
@@ -116,7 +121,7 @@ class Ad9249ReadoutGroup(pr.Device):
             
         self.add(pr.Command(name="LostLockCountReset",
                             description = "Reset LostLockCount",
-                            function = pr.Command.toggle
+                            function = pr.Command.toggle,
                             offset = 0x38,
                             bitSize = 1,
                             bitOffset = 0))
