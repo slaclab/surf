@@ -23,7 +23,7 @@ import pyrogue as pr
 class Pgp2bAxi(pr.Device):
     def __init__(self, name="Pgp2bAxi", memBase=None, offset=0, hidden=False):
         super(self.__class__, self).__init__(name, "Configuration and status of a downstream PGP link",
-                                             0x100, memBase, offset, hidden)
+                                             memBase, offset, hidden)
 
         #self.add(pr.Command(
         #    name="CountReset",
