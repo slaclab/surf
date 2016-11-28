@@ -12,8 +12,7 @@
 ## Get variables and Custom Procedures
 ########################################################
 set VIVADO_BUILD_DIR $::env(VIVADO_BUILD_DIR)
-source -quiet ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
-source -quiet ${VIVADO_BUILD_DIR}/vivado_proc_v1.tcl
+source ${VIVADO_BUILD_DIR}/vivado_env_var_v1.tcl
 
 # Common Variable
 set ProjYamlDir "${OUT_DIR}/${PROJECT}_project.yaml"
@@ -36,3 +35,4 @@ exec cp -f ${VIVADO_BUILD_DIR}/../LICENSE.txt ${ProjYamlDir}/.
 
 # Compress the project's YAML directory to the target's image directory
 exec tar -zcvf  ${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.tar.gz -C ${OUT_DIR} ${PROJECT}_project.yaml
+puts "${IMAGES_DIR}/${PROJECT}_${PRJ_VERSION}.tar.gz"
