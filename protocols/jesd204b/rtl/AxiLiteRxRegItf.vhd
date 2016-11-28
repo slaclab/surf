@@ -17,7 +17,7 @@
 --               0x04 (RW)- Common control register:
 --                   bit 0: JESD Subclass (Default '1')
 --                   bit 1: Enable control character replacement(Default '1')
---                   bit 2: Reset MGTs (Default '0')
+--                   bit 2: Reset MGTs (Default '1')
 --                   bit 3: Clear Registered errors (Default '0')
 --                   bit 4: Invert nSync (Default '1'-inverted) 
 --                   bit 5: Scrambling support enable (Default '0'- Disabled)                      
@@ -35,12 +35,14 @@
 --                   bit 10-13: Disparity error
 --                   bit 14-17: Not in table Error
 --                   bit 18-25: Elastic buffer latency (c-c)
+--                   bit 26: CDR Stable
 --               0x2X (RW) - Lane X test module control
 --                   bit 11-8: Lane delay (Number of JESD clock cycles)
 --                   bit 3-0:  Lane alignment within one clock cycle (Valid values= "0001", "0010","0100","1000")
 --               0x3X (RW) - Lane X test signal thresholds 
 --                   bit 31-16: High threshold
 --                   bit 15-0:  Low threshold
+--               0x4X (RO) - Status valid counters 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -125,7 +127,7 @@ architecture rtl of AxiLiteRxRegItf is
 
    constant REG_INIT_C : RegType := (
       enableRx       => (others => '0'),
-      commonCtrl     => "010011",
+      commonCtrl     => "010111",
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => x"0000"),
       testSigThr     => (others => x"A000_5000"),
