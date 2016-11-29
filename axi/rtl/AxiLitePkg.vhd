@@ -654,7 +654,9 @@ package body AxiLitePkg is
       -- Offset as measured from addr[1:0]="00"
       constant ABS_OFFSET_C    : integer                    := offset + (to_integer(unsigned(ADDR_C(1 downto 0)))*8);
       -- Normalized address and offset (for when addr[1:0]!=00)
-      constant NORMAL_ADDR_C   : slv(ADDR_LEN_C-1 downto 0) := slv((unsigned(ADDR_C)) + ((ABS_OFFSET_C/32)*4));
+      constant NORMAL_ADDR_C   : slv(ADDR_LEN_C-1 downto 0) := ite(ABS_OFFSET_C /= 0,
+                                                                   slv((unsigned(slv(ADDR_C))) + ((ABS_OFFSET_C/32)*4)),
+                                                                   ADDR_C);
       constant NORMAL_OFFSET_C : integer                    := ABS_OFFSET_C mod 32;
       -- Most significant register bit before wrapping to the next word address
       constant REG_HIGH_BIT_C  : integer                    := minimum(31-NORMAL_OFFSET_C+reg'low, reg'high);
@@ -764,7 +766,7 @@ package body AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       regs        : inout slv32Array;
-      name : in string := "NoName")
+      name        : in    string := "NoName")
    is
    begin
       for i in regs'range loop
@@ -786,7 +788,9 @@ package body AxiLitePkg is
       tmp := regs(to_integer(unsigned(ep.axiReadMaster.araddr(ADDR_BITS_C+2-1 downto 2))));
 
       addrLocal                           := addr;
-      addrLocal(ADDR_BITS_C+2-1 downto 0) := (others => '-');
+      addrLocal(ADDR_BITS_C+2-1 downto 2) := (others => '-');
+      addrLocal(1 downto 0)               := "00";
+      print("MULTI! - Addr: " & hstr(addrLocal));
       axiSlaveRegister(ep, addrLocal, 0, tmp);
    end procedure;
 
