@@ -1,3 +1,0 @@
-## Using the .dcp instead of the .xci (see sources.txt) 
-## Note: Use the .XCI instead of .DCP for doing simulation
-# coregen/Salt7SeriesCore.xci

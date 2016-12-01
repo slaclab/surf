@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-09-30
+-- Last update: 2016-11-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -202,8 +202,8 @@ begin
          clk              => clk,
          rst              => rst);  
 
-   comb : process (axilReadMaster, axilWriteMaster, clientRemoteIp, clientRemotePort, r, rst,
-                   serverRemoteIp, serverRemotePort) is
+   comb : process (axilReadMaster, axilWriteMaster, clientRemoteIp, clientRemotePort, dhcpIp,
+                   localMac, r, rst, serverRemoteIp, serverRemotePort) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
       variable i      : natural;
@@ -224,6 +224,9 @@ begin
          axiSlaveRegisterR(regCon, toSlv((8*i)+0+2048, 12), 0, serverRemotePort(i));  --  big-Endian configuration
          axiSlaveRegisterR(regCon, toSlv((8*i)+4+2048, 12), 0, serverRemoteIp(i));  --  big-Endian configuration
       end loop;
+
+      axiSlaveRegisterR(regCon, x"FF4", 0, dhcpIp);
+      axiSlaveRegisterR(regCon, x"FF8", 0, localMac);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);

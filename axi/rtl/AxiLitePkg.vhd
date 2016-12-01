@@ -307,38 +307,55 @@ package AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv := "X");
+      constVal    : in    slv    := "X";
+      name        : in    string := "NoName");
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv;
+      name        : in    string);
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    slv);
+      reg         : in    slv;
+      name        : in    string := "NoName");
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl := 'X');
+      constVal    : in    sl     := 'X';
+      name        : in    string := "NoName");
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout sl;
+      name        : in    string);
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    sl);
+      reg         : in    sl;
+      name        : in    string := "NoName");
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
-      regs        : inout slv32Array);
+      regs        : inout slv32Array;
+      name        : in    string := "NoName");
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       regs        : in    slv32Array);
-
-
 
    procedure axiSlaveDefault (
       variable ep            : inout AxiLiteEndpointType;
@@ -628,56 +645,79 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv := "X")
+      constVal    : in    slv    := "X";
+      name        : in    string := "NoName")
    is
       -- Need to remap addr range to be (length-1 downto 0)
-      constant ADDR_LEN_C     : integer                    := addr'length;
-      constant ADDR_C         : slv(ADDR_LEN_C-1 downto 0) := addr;
-      constant REG_HIGH_BIT_C : integer                    := minimum(31-offset+reg'low, reg'high);
-      constant BUS_HIGH_BIT_C : integer                    := minimum(offset+reg'length-1, 31);
-      variable strobeMask     : slv(3 downto 0)            := (others => '-');
-   begin
+      constant ADDR_LEN_C      : integer                    := addr'length;
+      constant ADDR_C          : slv(ADDR_LEN_C-1 downto 0) := addr;
+      -- Offset as measured from addr[1:0]="00"
+      constant ABS_OFFSET_C    : integer                    := offset + (to_integer(unsigned(ADDR_C(1 downto 0)))*8);
+      -- Normalized address and offset (for when addr[1:0]!=00)
+      constant NORMAL_ADDR_C   : slv(ADDR_LEN_C-1 downto 0) := slv((unsigned(ADDR_C)) + ((ABS_OFFSET_C/32)*4));
+      constant NORMAL_OFFSET_C : integer                    := ABS_OFFSET_C mod 32;
+      -- Most significant register bit before wrapping to the next word address
+      constant REG_HIGH_BIT_C  : integer                    := minimum(31-NORMAL_OFFSET_C+reg'low, reg'high);
+      -- Most significant data bus bit to be used in this recursion (max out at 31)
+      constant BUS_HIGH_BIT_C  : integer                    := minimum(NORMAL_OFFSET_C+reg'length-1, 31);
 
-      for i in BUS_HIGH_BIT_C downto offset loop
+      variable strobeMask : slv(3 downto 0) := (others => '-');
+   begin
+      print(name /= "NoName", "AXI register - " & name & " Addr: " & hstr(NORMAL_ADDR_C) & " offset: " & str(NORMAL_OFFSET_C) &
+            " size: " & str(reg'length));
+
+      for i in BUS_HIGH_BIT_C downto NORMAL_OFFSET_C loop
          strobeMask(i/8) := '1';
       end loop;
 
       -- Read must come first so as not to overwrite the variable if read and write happen at once
       if (ep.axiStatus.readEnable = '1') then
-         if (std_match(ep.axiReadMaster.araddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2))) then
-            ep.axiReadSlave.rdata(BUS_HIGH_BIT_C downto offset) := reg(REG_HIGH_BIT_C downto reg'low);
+         if (std_match(ep.axiReadMaster.araddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2))) then
+            ep.axiReadSlave.rdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C) := reg(REG_HIGH_BIT_C downto reg'low);
             axiSlaveReadResponse(ep.axiReadSlave);
          end if;
       end if;
 
       if (ep.axiStatus.writeEnable = '1') then
-         if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2)) and
+         if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
              std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
             if (constVal /= "X") then
                reg(REG_HIGH_BIT_C downto reg'low) := constVal;
             else
-               reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto offset);
+               reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
             end if;
             axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;
       end if;
 
       if (REG_HIGH_BIT_C < reg'high) then
-         axiSlaveRegister(ep, slv(unsigned(ADDR_C)+4), 0, reg(reg'high downto REG_HIGH_BIT_C+1));
+         axiSlaveRegister(ep, slv(unsigned(NORMAL_ADDR_C)+4), 0, reg(reg'high downto REG_HIGH_BIT_C+1), "X", string(name & "_CONT"));
       end if;
 
+   end procedure;
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv;
+      name        : in    string)
+   is
+   begin
+      axiSlaveRegister(ep, addr, offset, reg, "X", name);
    end procedure;
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    slv)
+      reg         : in    slv;
+      name        : in    string := "NoName")
    is
       variable regTmp : slv(reg'length-1 downto 0);
    begin
       regTmp := reg;
-      axiSlaveRegister(ep, addr, offset, regTmp);
+      axiSlaveRegister(ep, addr, offset, regTmp, "X", name);
    end procedure;
 
    procedure axiSlaveRegister (
@@ -685,37 +725,50 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl := 'X')
+      constVal    : in    sl     := 'X';
+      name        : in    string := "NoName")
    is
       variable tmpReg : slv(0 downto 0);
       variable tmpVal : slv(0 downto 0);
    begin
       tmpReg(0) := reg;
       tmpVal(0) := constVal;
-      axiSlaveRegister(ep, addr, offset, tmpReg, tmpVal);
+      axiSlaveRegister(ep, addr, offset, tmpReg, tmpVal, name);
       reg       := tmpReg(0);
+   end procedure;
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout sl;
+      name        : in    string) is
+   begin
+      axiSlaveRegister(ep, addr, offset, reg, 'X', name);
    end procedure;
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    sl)
+      reg         : in    sl;
+      name        : in    string := "NoName")
    is
       variable tmp : slv(0 downto 0);
    begin
       tmp(0) := reg;
-      axiSlaveRegisterR(ep, addr, offset, tmp);
+      axiSlaveRegisterR(ep, addr, offset, tmp, name);
    end procedure;
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
-      regs        : inout slv32Array)
+      regs        : inout slv32Array;
+      name : in string := "NoName")
    is
    begin
       for i in regs'range loop
-         axiSlaveRegister(ep, slv(unsigned(addr) + to_unsigned(i*4, addr'length)), 0, regs(i));
+         axiSlaveRegister(ep, slv(unsigned(addr) + to_unsigned(i*4, addr'length)), 0, regs(i), string(name & "[" & str(i) & "]"));
       end loop;
 
    end procedure;

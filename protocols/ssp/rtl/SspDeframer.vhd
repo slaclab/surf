@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2014-08-22
+-- Last update: 2016-10-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -22,22 +22,27 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
 use work.StdRtlPkg.all;
-use work.Code8b10bPkg.all;
-use work.SspPkg.all;
 
 entity SspDeframer is
-   
-   generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '0';
-      RST_ASYNC_G    : boolean := true);
 
+   generic (
+      TPD_G           : time    := 1 ns;
+      RST_POLARITY_G  : sl      := '0';
+      RST_ASYNC_G     : boolean := true;
+      WORD_SIZE_G     : integer := 16;
+      K_SIZE_G        : integer := 2;
+      SSP_IDLE_CODE_G : slv;
+      SSP_IDLE_K_G    : slv;
+      SSP_SOF_CODE_G  : slv;
+      SSP_SOF_K_G     : slv;
+      SSP_EOF_CODE_G  : slv;
+      SSP_EOF_K_G     : slv);
    port (
       clk     : in  sl;
       rst     : in  sl := RST_POLARITY_G;
-      dataIn  : in  slv(15 downto 0);
-      dataKIn : in  slv(1 downto 0);
-      dataOut : out slv(15 downto 0);
+      dataKIn : in  slv(K_SIZE_G-1 downto 0);
+      dataIn  : in  slv(WORD_SIZE_G-1 downto 0);
+      dataOut : out slv(WORD_SIZE_G-1 downto 0);
       valid   : out sl;
       sof     : out sl;
       eof     : out sl;
@@ -52,25 +57,36 @@ architecture rtl of SspDeframer is
    constant WAIT_EOF_S : sl := '1';
 
    type RegType is record
-      state       : sl;
-      dataInLast  : slv(15 downto 0);
-      dataKInLast : slv(1 downto 0);
-      dataOut     : slv(15 downto 0);
-      valid       : sl;
-      sof         : sl;
-      eof         : sl;
-      eofe        : sl;
+      state : sl;
+
+      -- Internal
+      iDataOut : slv(WORD_SIZE_G-1 downto 0);
+      iValid   : sl;
+      iSof     : sl;
+      iEof     : sl;
+      iEofe    : sl;
+
+      -- Output registers
+      dataOut : slv(WORD_SIZE_G-1 downto 0);
+      valid   : sl;
+      sof     : sl;
+      eof     : sl;
+      eofe    : sl;
+
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state       => WAIT_SOF_S,
-      dataInLast  => (others => '0'),
-      dataKInLast => (others => '0'),
-      dataOut     => (others => '0'),
-      valid       => '0',
-      sof         => '0',
-      eof         => '0',
-      eofe        => '0');
+      state    => WAIT_SOF_S,
+      iDataOut => (others => '0'),
+      iValid   => '0',
+      iSof     => '0',
+      iEof     => '0',
+      iEofe    => '0',
+      dataOut  => (others => '0'),
+      valid    => '0',
+      sof      => '0',
+      eof      => '0',
+      eofe     => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -82,54 +98,91 @@ begin
    begin
       v := r;
 
-      v.dataOut := dataIn;
-      v.valid   := '0';
-      v.sof     := '0';
-      v.eof     := '0';
-      v.eofe    := '0';
+--      v.iDataOut := dataIn;
+--      v.iValid := '0';
 
       if (r.state = WAIT_SOF_S) then
-         
-         if (dataKIn = "01") then
-            if (dataIn = SSP_SOF_CHAR_C) then
+
+         v.iSof  := '0';
+         v.iEof  := '0';
+         v.iEofe := '0';
+
+         if (dataKin /= slvZero(K_SIZE_G)) then
+
+            if (dataKIn = SSP_IDLE_K_G) and (dataIn = SSP_IDLE_CODE_G) then
+               -- Ignore idle codes
+               v.iSof   := '0';
+               v.iEof   := '0';
+               v.iEofe  := '0';
+               v.iValid := '0';
+
+            elsif (dataKIn = SSP_SOF_K_G) and (dataIn = SSP_SOF_CODE_G) then
                -- Correct SOF
-               v.sof   := '1';
-               v.valid := '1';
-               v.state := WAIT_EOF_S;
-            elsif (dataIn /= SSP_IDLE_CHAR_C) then
-               -- Incorrect SOF or IDLE
-               v.eof   := '1';
-               v.eofe  := '1';
-               v.valid := '1';
+               v.iSof   := '1';
+               v.iValid := '0';
+               v.state  := WAIT_EOF_S;
+
+            else
+               -- Invalid K Code
+               v.iEof   := '1';
+               v.iEofe  := '1';
+               v.iValid := '1';
             end if;
-         else
-            -- Incorrect IDLE
-            v.eof   := '1';
-            v.eofe  := '1';
-            v.valid := '1';
          end if;
 
       elsif (r.state = WAIT_EOF_S) then
-         
-         v.valid := '1';
-         if (dataKIn = "01") then
-            v.state := WAIT_SOF_S;
-            if (dataIn = SSP_EOF_CHAR_C) then
-               -- Correct EOF
-               v.eof := '1';
+
+         -- Expect data to come
+         -- Will be overridden if IDLE char seen
+         v.iValid   := '1';
+         v.iDataOut := dataIn;
+
+         -- sof is asserted without valid in previous state
+         -- Hold it until the first data arrives
+         if (r.iValid = '1') then
+            v.iSof := '0';
+         end if;
+
+
+         if (dataKin /= slvZero(K_SIZE_G)) then
+
+            if (dataKin = SSP_EOF_K_G and dataIn = SSP_EOF_CODE_G) then
+               v.iEof   := '1';
+               v.iValid := '0';
+               v.state  := WAIT_SOF_S;
+
+            elsif (dataKIn = SSP_IDLE_K_G and dataIn = SSP_IDLE_CODE_G) then
+               -- Ignore idle codes that arrive mid frame
+               v.iValid := '0';
+
             else
-               -- Incorrect EOF
-               v.eof  := '1';
-               v.eofe := '1';
+               -- Unknown and/or incorrect K CODE
+               v.iValid := '0';
+               v.iEof   := '1';
+               v.iEofe  := '1';
+               v.state  := WAIT_SOF_S;
             end if;
-         elsif (dataKin /= "00") then
-            -- Incorrect dataK
-            v.state := WAIT_SOF_S;
-            v.eof   := '1';
-            v.eofe  := '1';
+
          end if;
 
       end if;
+
+      ----------------------------------------------------------------------------------------------
+      -- Delay buffer to output SOF on first valid and EOF/EOFE on last valid
+      ----------------------------------------------------------------------------------------------
+      v.valid := '0';
+      if ((v.iValid = '1' or v.iEof = '1') and r.iValid = '1') then
+         -- If new data arrived an existing data is waiting,
+         -- Advance the pipeline and output the waiting data
+         v.valid   := '1';
+         v.sof     := r.iSof;
+         v.eof     := v.iEof;
+         v.eofe    := v.iEofe;
+         v.dataOut := r.iDataOut;
+      end if;
+
+
+
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -139,7 +192,7 @@ begin
       dataOut <= r.dataOut;
       valid   <= r.valid;
       sof     <= r.sof;
-      eof     <= r.eof;
+      Eof     <= r.eof;
       eofe    <= r.eofe;
 
    end process comb;

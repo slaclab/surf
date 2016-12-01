@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2016-07-11
+-- Last update: 2016-11-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,6 +76,7 @@ architecture rtl of AxiVersion is
 
    constant RELOAD_COUNT_C : integer := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
    constant TIMEOUT_1HZ_C  : natural := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
+   constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
    subtype RomType is Slv32Array(0 to 63);
 
@@ -188,7 +189,7 @@ begin
    end generate;
 
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial,
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
                    fpgaEnReload, r, userValues) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
@@ -214,7 +215,7 @@ begin
 
       axiSlaveRegister(axilEp, X"01C", 0, v.fpgaReload);
       axiSlaveRegister(axilEp, X"020", 0, v.fpgaReloadAddr);
-      axiSlaveRegister(axilEp, X"024", 0, v.counter, X"00000000");
+      axiSlaveRegister(axilEp, X"024", 0, v.counter, COUNTER_ZERO_C);
       axiSlaveRegister(axilEp, X"028", 0, v.haltReload);
       axiSlaveRegisterR(axilEp, X"02C", 0, r.upTimeCnt);
       axiSlaveRegisterR(axilEp, X"030", 0, DEVICE_ID_G);

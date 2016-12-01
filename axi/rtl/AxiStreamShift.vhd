@@ -5,7 +5,7 @@
 -- File       : AxiStreamShift.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-10-14
+-- Last update: 2016-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,30 +40,25 @@ entity AxiStreamShift is
       TPD_G          : time                  := 1 ns;
       AXIS_CONFIG_G  : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
-      ADD_VALID_EN_G : boolean               := false
-      );
+      ADD_VALID_EN_G : boolean               := false;
+      BYP_SHIFT_G    : boolean               := false);
    port (
-
       -- Clock and reset
-      axisClk : in sl;
-      axisRst : in sl;
-
+      axisClk     : in  sl;
+      axisRst     : in  sl;
       -- Start control
-      axiStart    : in sl;
-      axiShiftDir : in sl;              -- 0 = left (lsb to msb)
-      axiShiftCnt : in slv(3 downto 0);
-
-      -- Slaves
+      axiStart    : in  sl;
+      axiShiftDir : in  sl;             -- 0 = left (lsb to msb)
+      axiShiftCnt : in  slv(3 downto 0);
+      -- Slave
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-
       -- Master
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType
-      );
+      mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamShift;
 
-architecture structure of AxiStreamShift is
+architecture rtl of AxiStreamShift is
 
    type StateType is (S_IDLE_C, S_FIRST_C, S_SHIFT_C, S_LAST_C);
 
@@ -173,132 +168,141 @@ architecture structure of AxiStreamShift is
 
 begin
 
-   comb : process (axiShiftCnt, axiShiftDir, axiStart, axisRst, pipeAxisSlave, r, sAxisMaster) is
-      variable v       : RegType;
-      variable sMaster : AxiStreamMasterType;
-   begin
-      -- Latch the current value 
-      v := r;
+   BYP_SHIFT : if (BYP_SHIFT_G = true) generate
+      mAxisMaster <= sAxisMaster;
+      sAxisSlave  <= mAxisSlave;
+   end generate;
 
-      -- Init Ready
-      v.slave.tReady := '0';
+   GEN_SHIFT : if (BYP_SHIFT_G = false) generate
 
-      -- Data shift
-      shiftData (r.shiftBytes, r.shiftDir, (r.state = S_FIRST_C), sAxisMaster, r.delay, sMaster);
+      comb : process (axiShiftCnt, axiShiftDir, axiStart, axisRst, pipeAxisSlave, r, sAxisMaster) is
+         variable v       : RegType;
+         variable sMaster : AxiStreamMasterType;
+      begin
+         -- Latch the current value 
+         v := r;
 
-      -- State machine
-      case r.state is
+         -- Init Ready
+         v.slave.tReady := '0';
 
-         -- IDLE
-         when S_IDLE_C =>
-            v.slave      := AXI_STREAM_SLAVE_INIT_C;
-            v.master     := AXI_STREAM_MASTER_INIT_C;
-            v.delay      := AXI_STREAM_MASTER_INIT_C;
-            v.shiftDir   := axiShiftDir;
-            v.shiftBytes := axiShiftCnt;
+         -- Data shift
+         shiftData (r.shiftBytes, r.shiftDir, (r.state = S_FIRST_C), sAxisMaster, r.delay, sMaster);
 
-            -- Shift start request
-            if axiStart = '1' then
-               v.state := S_FIRST_C;
-            end if;
+         -- State machine
+         case r.state is
 
-         -- First shift
-         when S_FIRST_C =>
-            v.slave.tReady := '1';
-
-            -- Keep sampling shift configuration if start is held
-            if axiStart = '1' then
+            -- IDLE
+            when S_IDLE_C =>
+               v.slave      := AXI_STREAM_SLAVE_INIT_C;
+               v.master     := AXI_STREAM_MASTER_INIT_C;
+               v.delay      := AXI_STREAM_MASTER_INIT_C;
                v.shiftDir   := axiShiftDir;
                v.shiftBytes := axiShiftCnt;
-            end if;
 
-            if sAxisMaster.tValid = '1' then
-               v.delay := sAxisMaster;
-               v.state := S_SHIFT_C;
+               -- Shift start request
+               if axiStart = '1' then
+                  v.state := S_FIRST_C;
+               end if;
 
-               -- Left or no shift
-               if r.shiftDir = '0' or r.shiftBytes = 0 then
-                  v.master := sMaster;
+            -- First shift
+            when S_FIRST_C =>
+               v.slave.tReady := '1';
+
+               -- Keep sampling shift configuration if start is held
+               if axiStart = '1' then
+                  v.shiftDir   := axiShiftDir;
+                  v.shiftBytes := axiShiftCnt;
+               end if;
+
+               if sAxisMaster.tValid = '1' then
+                  v.delay := sAxisMaster;
+                  v.state := S_SHIFT_C;
+
+                  -- Left or no shift
+                  if r.shiftDir = '0' or r.shiftBytes = 0 then
+                     v.master := sMaster;
+
+                     -- Frame is done
+                     if sMaster.tLast = '1' then
+                        v.state := S_LAST_C;
+                     end if;
+                  end if;
+               end if;
+
+            -- Move a frame until tLast
+            when S_SHIFT_C =>
+
+               -- Advance pipeline
+               if r.master.tValid = '0' or pipeAxisSlave.tReady = '1' then
+                  v.slave.tReady := '1';
+
+                  if sAxisMaster.tValid = '1' then
+                     v.delay  := sAxisMaster;
+                     v.master := sMaster;
+                  else
+                     v.master.tValid := '0';
+                  end if;
 
                   -- Frame is done
                   if sMaster.tLast = '1' then
+                     v.master := sMaster;
+
+                     -- Last is is delayed block
+                     if r.delay.tLast = '1' then
+                        v.slave.tReady := '0';
+                     end if;
+
                      v.state := S_LAST_C;
                   end if;
                end if;
-            end if;
 
-         -- Move a frame until tLast
-         when S_SHIFT_C =>
-
-            -- Advance pipeline
-            if r.master.tValid = '0' or pipeAxisSlave.tReady = '1' then
-               v.slave.tReady := '1';
-
-               if sAxisMaster.tValid = '1' then
-                  v.delay  := sAxisMaster;
-                  v.master := sMaster;
-               else
+            -- Last transfer
+            when S_LAST_C =>
+               if pipeAxisSlave.tReady = '1' then
+                  v.state         := S_IDLE_C;
                   v.master.tValid := '0';
                end if;
+         end case;
 
-               -- Frame is done
-               if sMaster.tLast = '1' then
-                  v.master := sMaster;
+         -- Mask off the unused tStrb and tKeep bits
+         if (AXIS_CONFIG_G.TDATA_BYTES_C /= 16) then
+            v.master.tKeep(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+            v.master.tStrb(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+         end if;
 
-                  -- Last is is delayed block
-                  if r.delay.tLast = '1' then
-                     v.slave.tReady := '0';
-                  end if;
+         -- Reset
+         if (axisRst = '1') then
+            v := REG_INIT_C;
+         end if;
 
-                  v.state := S_LAST_C;
-               end if;
-            end if;
+         -- Register the variable for next clock cycle  
+         rin <= v;
 
-         -- Last transfer
-         when S_LAST_C =>
-            if pipeAxisSlave.tReady = '1' then
-               v.state         := S_IDLE_C;
-               v.master.tValid := '0';
-            end if;
-      end case;
+         -- Outputs 
+         sAxisSlave     <= v.slave;
+         pipeAxisMaster <= r.master;
 
-      -- Mask off the unused tStrb and tKeep bits
-      if (AXIS_CONFIG_G.TDATA_BYTES_C /= 16) then
-         v.master.tKeep(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
-         v.master.tStrb(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
-      end if;
+      end process comb;
 
-      -- Reset
-      if (axisRst = '1') then
-         v := REG_INIT_C;
-      end if;
+      U_Pipeline : entity work.AxiStreamPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => PIPE_STAGES_G)
+         port map (
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            sAxisMaster => pipeAxisMaster,
+            sAxisSlave  => pipeAxisSlave,
+            mAxisMaster => mAxisMaster,
+            mAxisSlave  => mAxisSlave);   
 
-      -- Register the variable for next clock cycle  
-      rin <= v;
+      seq : process (axisClk) is
+      begin
+         if (rising_edge(axisClk)) then
+            r <= rin after TPD_G;
+         end if;
+      end process seq;
+      
+   end generate;
 
-      -- Outputs 
-      sAxisSlave     <= v.slave;
-      pipeAxisMaster <= r.master;
-
-   end process comb;
-
-   U_Pipeline : entity work.AxiStreamPipeline
-      generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
-      port map (
-         axisClk     => axisClk,
-         axisRst     => axisRst,
-         sAxisMaster => pipeAxisMaster,
-         sAxisSlave  => pipeAxisSlave,
-         mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);   
-
-   seq : process (axisClk) is
-   begin
-      if (rising_edge(axisClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
-end structure;
+end rtl;

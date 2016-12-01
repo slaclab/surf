@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-09-06
+-- Last update: 2016-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,16 +45,16 @@ entity AxiStreamMux is
       TDEST_LOW_G    : integer range 0 to 7  := 0;
       ILEAVE_EN_G    : boolean               := false);  -- Set to true if interleaving dests, arbitrate on gaps
    port (
+      -- Clock and reset
+      axisClk      : in  sl;
+      axisRst      : in  sl;
       -- Slaves
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
       disableSel   : in  slv(NUM_SLAVES_G-1 downto 0) := (others => '0');
       -- Master
       mAxisMaster  : out AxiStreamMasterType;
-      mAxisSlave   : in  AxiStreamSlaveType;
-      -- Clock and reset
-      axisClk      : in  sl;
-      axisRst      : in  sl);
+      mAxisSlave   : in  AxiStreamSlaveType);
 end AxiStreamMux;
 
 architecture structure of AxiStreamMux is

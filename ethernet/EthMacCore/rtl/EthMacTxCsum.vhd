@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-28
+-- Last update: 2016-10-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,10 +32,11 @@ use work.EthMacPkg.all;
 
 entity EthMacTxCsum is
    generic (
-      TPD_G          : time    := 1 ns;
-      DROP_ERR_PKT_G : boolean := true;
-      JUMBO_G        : boolean := true;
-      VLAN_G         : boolean := false);
+      TPD_G          : time             := 1 ns;
+      DROP_ERR_PKT_G : boolean          := true;
+      JUMBO_G        : boolean          := true;
+      VLAN_G         : boolean          := false;
+      VID_G          : slv(11 downto 0) := x"001");
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -238,7 +239,12 @@ begin
                      end if;
                      -- Fill in the IPv4 header checksum
                      v.ipv4Hdr(0) := rxMaster.tData(119 downto 112);  -- IPVersion + Header length
-                     v.ipv4Hdr(1) := rxMaster.tData(127 downto 120);  -- DSCP and ECN                          
+                     v.ipv4Hdr(1) := rxMaster.tData(127 downto 120);  -- DSCP and ECN     
+                  else
+                     -- Add the IEEE 802.1Q header
+                     v.sMaster.tData(111 downto 96)  := VLAN_TYPE_C;
+                     v.sMaster.tData(119 downto 112) := x"0" & VID_G(11 downto 8);
+                     v.sMaster.tData(127 downto 120) := VID_G(7 downto 0);
                   end if;
                   -- Next state
                   v.state := IPV4_HDR0_S;

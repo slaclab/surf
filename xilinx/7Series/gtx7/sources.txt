@@ -1,9 +1,0 @@
-vhdl work rtl/Gtx7CfgPkg.vhd
-vhdl work rtl/Gtx7AutoPhaseAligner.vhd
-vhdl work rtl/Gtx7Core.vhd
-vhdl work rtl/Gtx7QuadPll.vhd
-vhdl work rtl/Gtx7RecClkMonitor.vhd
-vhdl work rtl/Gtx7RxFixedLatPhaseAligner.vhd
-vhdl work rtl/Gtx7RxRst.vhd
-vhdl work rtl/Gtx7TxManualPhaseAligner.vhd
-vhdl work rtl/Gtx7TxRst.vhd
