@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-11-14
--- Last update: 2016-11-14
+-- Last update: 2016-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ entity Ad9249 is
       sdio : inout sl;
       csb  : in    slv(1 downto 0));
 
-end entity Ad9249Group;
+end entity Ad9249;
 
 architecture top of Ad9249 is
 

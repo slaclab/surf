@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : Ad9252Serializer.vhd
+-- File       : Ad9249Serializer.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-02-22
--- Last update: 2013-09-29
+-- Last update: 2016-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use work.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-entity Ad9252Serializer is
+entity Ad9249Serializer is
    
    port (
       clk    : in sl;                   -- Serial High speed clock
@@ -31,9 +31,9 @@ entity Ad9252Serializer is
       iData : in  slv(13 downto 0);
       oData : out sl);
 
-end entity Ad9252Serializer;
+end entity Ad9249Serializer;
 
-architecture rtl of Ad9252Serializer is
+architecture rtl of Ad9249Serializer is
 
    signal shift1 : sl;
    signal shift2 : sl;
