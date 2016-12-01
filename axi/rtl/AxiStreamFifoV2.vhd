@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifoV2.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2016-09-02
--- Last update: 2016-11-07
+-- Last update: 2016-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -227,7 +227,9 @@ begin
    fifoDin       <= toSlv(fifoWriteMaster, FIFO_CONFIG_C);
    fifoWrite     <= fifoWriteMaster.tValid and fifoReady;
    fifoWriteLast <= fifoWriteMaster.tValid and fifoReady and fifoWriteMaster.tLast;
-   fifoWriteUser <= resize(axiStreamGetUserField(FIFO_CONFIG_C, fifoWriteMaster, -1), FIFO_USER_BITS_C);
+   fifoWriteUser <= ite(FIFO_USER_BITS_C > 0,
+                        resize(axiStreamGetUserField(FIFO_CONFIG_C, fifoWriteMaster, -1), FIFO_USER_BITS_C),
+                        "0");
 
    fifoWriteSlave.tReady <= fifoReady;
 
