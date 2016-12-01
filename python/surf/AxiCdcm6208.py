@@ -4,8 +4,8 @@
 #-----------------------------------------------------------------------------
 # File       : AxiCdcm6208.py
 # Author     : Ryan Herbst, rherbst@slac.stanford.edu
-# Created    : 2016-10-24
-# Last update: 2016-10-24
+# Created    : 2016-12-01
+# Last update: 2016-12-01
 #-----------------------------------------------------------------------------
 # Description:
 # Device creator for AxiCdcm6208

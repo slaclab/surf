@@ -4,8 +4,8 @@
 #-----------------------------------------------------------------------------
 # File       : Dac38J84.py
 # Author     : Ryan Herbst, rherbst@slac.stanford.edu
-# Created    : 2016-10-24
-# Last update: 2016-10-24
+# Created    : 2016-12-01
+# Last update: 2016-12-01
 #-----------------------------------------------------------------------------
 # Description:
 # Device creator for Dac38J84
