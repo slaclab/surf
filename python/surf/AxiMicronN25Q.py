@@ -34,18 +34,18 @@ def create(name='axiMicronN25Q', offset=0, memBase=None, hidden=False):
 
     dev.add(pyrogue.Variable(name='addr32BitMode',
                              description='Enable 32-bit PROM mode',
-                             hidden=False, enum=None, offset=0x4, bitSize=1, bitOffset=0, base='uint', mode='RW'))
+                             hidden=True, enum=None, offset=0x4, bitSize=1, bitOffset=0, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='addr',
                              description='Address Register',
-                             hidden=False, enum=None, offset=0x8, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+                             hidden=True, enum=None, offset=0x8, bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='cmd',
                              description='Command Register',
-                             hidden=False, enum=None, offset=0xc, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='data',
-                             description='Data Register Array',
-                             hidden=False, enum=None, offset=0x200, bitSize=2048, bitOffset=0, base='uint', mode='RW'))
+                             hidden=True, enum=None, offset=0xc, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+                             
+    for i in range(0,64):                         
+        dev.add(pyrogue.Variable(name='data%02i'%(i), description='Data Register[%02i]'%(i),
+                             hidden=True, enum=None, offset=(0x200+(i*4)), bitSize=32, bitOffset=0, base='uint', mode='RW'))
 
     return dev

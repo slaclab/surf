@@ -74,7 +74,7 @@ begin
       report "SPI_CLK_FREQ_G must be <= 50.0E+6"
       severity failure;
    -- Check AXI_CLK_FREQ_G >= 2*SPI_CLK_FREQ_G
-   assert (AXI_CLK_FREQ_G >= 2.0 * SPI_CLK_FREQ_G);
+   assert (AXI_CLK_FREQ_G >= 2.0 * SPI_CLK_FREQ_G)
       report "AXI_CLK_FREQ_G must be >= 2*SPI_CLK_FREQ_G"
       severity failure;
 

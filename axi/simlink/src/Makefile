@@ -6,8 +6,8 @@ CC     := gcc
 DEF    := 
 OUT    := $(SIMLINK_PWD)
 OBJ    := $(SIMLINK_PWD)/.obj
-CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include
-LFLAGS := -lrt -pthread 
+CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include -DVCS_VERSION=$(VCS_VERSION) -I$(ZMQ_DIR)/include
+LFLAGS := -lrt -pthread  -lzmq -L$(ZMQ_DIR)/lib
 LIB    := $(OUT)/libAxiSim.so
 
 # Local Sources

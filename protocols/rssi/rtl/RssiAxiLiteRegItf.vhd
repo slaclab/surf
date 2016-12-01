@@ -198,13 +198,13 @@ begin
   s_RdAddr <= conv_integer(axilReadMaster.araddr(9 downto 2));
   s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
 
-  comb : process (axiRst_i, axilReadMaster, axilWriteMaster,
-                  r, s_RdAddr, s_WrAddr, s_status, s_dropCnt, s_validCnt, s_reconCnt, s_resendCnt) is
-    variable v             : RegType;
-    variable axilStatus    : AxiLiteStatusType;
-    variable axilWriteResp : slv(1 downto 0);
-    variable axilReadResp  : slv(1 downto 0);
-  begin
+   comb : process (axiRst_i, axilReadMaster, axilWriteMaster, bandwidth_i, frameRate_i, r, s_RdAddr,
+                   s_WrAddr, s_dropCnt, s_reconCnt, s_resendCnt, s_status, s_validCnt) is
+      variable v             : RegType;
+      variable axilStatus    : AxiLiteStatusType;
+      variable axilWriteResp : slv(1 downto 0);
+      variable axilReadResp  : slv(1 downto 0);
+   begin
     -- Latch the current value
     v := r;
 

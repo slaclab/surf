@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once JesdTx.yaml
 
 JesdTx: &JesdTx
   class: MMIODev
@@ -283,5 +283,17 @@ JesdTx: &JesdTx
       - entry: ClearErrors
         value: 0x1
       - entry: ClearErrors
+        value: 0x0
+    #########################################################
+    ResetTxGTs:
+      name: ResetTxGTs
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: Toggle the reset of all TX MGTs
+      sequence:
+      - entry: ResetGTs
+        value: 0x1
+      - entry: ResetGTs
         value: 0x0
     #########################################################

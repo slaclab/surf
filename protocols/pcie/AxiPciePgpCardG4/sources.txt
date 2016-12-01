@@ -1,8 +1,0 @@
-vhdl work rtl/AxiPciePgpCardG4Core.vhd
-vhdl work rtl/AxiPciePgpCardG4IpCoreWrapper.vhd
-vhdl work rtl/AxiPcieCrossbarIpCoreWrapper.vhd
-vhdl work rtl/DdrMem.vhd
-
-vhdl work coregen/AxiPciePgpCardG4IpCore.dcp
-vhdl work coregen/AxiPcieCrossbarIpCore.dcp
-vhdl work coregen/MigCore.dcp

@@ -5,7 +5,7 @@
 -- File       : AxiStreamFifoV2.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2016-09-02
--- Last update: 2016-09-02
+-- Last update: 2016-11-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,16 +35,16 @@ entity AxiStreamFifoV2 is
    generic (
 
       -- General Configurations
-      TPD_G               : time                       := 1 ns;
-      INT_PIPE_STAGES_G   : natural range 0 to 16      := 0;  -- Internal FIFO setting
-      PIPE_STAGES_G       : natural range 0 to 16      := 1;
-      SLAVE_READY_EN_G    : boolean                    := true;
+      TPD_G             : time                  := 1 ns;
+      INT_PIPE_STAGES_G : natural range 0 to 16 := 0;  -- Internal FIFO setting
+      PIPE_STAGES_G     : natural range 0 to 16 := 1;
+      SLAVE_READY_EN_G  : boolean               := true;
 
       -- Valid threshold should always be 1 when using interleaved tdest
-      VALID_THOLD_G       : integer range 0 to (2**24) := 1;  -- =1 = normal operation
-                                                              -- =0 = only when frame ready
-                                                              -- >1 = only when frame ready or # entries
-
+      VALID_THOLD_G       : integer range 0 to (2**24) := 1;      -- =1 = normal operation
+                                                                  -- =0 = only when frame ready
+                                                                  -- >1 = only when frame ready or # entries
+      VALID_BURST_MODE_G  : boolean                    := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
@@ -60,14 +60,14 @@ entity AxiStreamFifoV2 is
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
       -- CUSOTM uses passed FIFO_DATA_WIDTH_G
-      INT_WIDTH_SELECT_G  : string                     := "WIDE";
-      INT_DATA_WIDTH_G    : natural range 1 to 16      := 16;
+      INT_WIDTH_SELECT_G : string                := "WIDE";
+      INT_DATA_WIDTH_G   : natural range 1 to 16 := 16;
 
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
       -- Set >4 for custom size.
       -- Use at own risk. Overflow of tLast fifo is not checked      
-      LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;  
+      LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;
 
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
@@ -109,16 +109,16 @@ architecture rtl of AxiStreamFifoV2 is
       TSTRB_EN_C => SLAVE_AXI_CONFIG_G.TSTRB_EN_C and MASTER_AXI_CONFIG_G.TSTRB_EN_C,
 
       -- Determine FIFO data bytes
-      TDATA_BYTES_C => ite(INT_WIDTH_SELECT_G = "CUSTOM",INT_DATA_WIDTH_G,
-                          ite(INT_WIDTH_SELECT_G = "WIDE",
+      TDATA_BYTES_C => ite(INT_WIDTH_SELECT_G = "CUSTOM", INT_DATA_WIDTH_G,
+                           ite(INT_WIDTH_SELECT_G = "WIDE",
 
-                             -- Using wider of the two
-                             ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
-                                 SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C),
+                               -- Using wider of the two
+                               ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
+                                   SLAVE_AXI_CONFIG_G.TDATA_BYTES_C, MASTER_AXI_CONFIG_G.TDATA_BYTES_C),
 
-                                -- Use narrower of the two
-                                ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
-                                    MASTER_AXI_CONFIG_G.TDATA_BYTES_C, SLAVE_AXI_CONFIG_G.TDATA_BYTES_C))),
+                               -- Use narrower of the two
+                               ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C,
+                                   MASTER_AXI_CONFIG_G.TDATA_BYTES_C, SLAVE_AXI_CONFIG_G.TDATA_BYTES_C))),
 
       -- Use the lesser of the two DEST widths
       TDEST_BITS_C => ite(SLAVE_AXI_CONFIG_G.TDEST_BITS_C > MASTER_AXI_CONFIG_G.TDEST_BITS_C,
@@ -133,8 +133,8 @@ architecture rtl of AxiStreamFifoV2 is
                           MASTER_AXI_CONFIG_G.TUSER_BITS_C, SLAVE_AXI_CONFIG_G.TUSER_BITS_C),
 
       -- Use slave settings for tkeep and tuser mode
-      TKEEP_MODE_C  => SLAVE_AXI_CONFIG_G.TKEEP_MODE_C,
-      TUSER_MODE_C  => SLAVE_AXI_CONFIG_G.TUSER_MODE_C);
+      TKEEP_MODE_C => SLAVE_AXI_CONFIG_G.TKEEP_MODE_C,
+      TUSER_MODE_C => SLAVE_AXI_CONFIG_G.TUSER_MODE_C);
 
    constant FIFO_BITS_C : integer := getSlvSize(FIFO_CONFIG_C);
 
@@ -151,7 +151,7 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoDin         : slv(FIFO_BITS_C-1 downto 0);
    signal fifoWrite       : sl;
    signal fifoWriteLast   : sl;
-   signal fifoWriteUser   : slv(FIFO_USER_BITS_C-1 downto 0);
+   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
    signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull       : sl;
@@ -161,11 +161,15 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoDout        : slv(FIFO_BITS_C-1 downto 0);
    signal fifoRead        : sl;
    signal fifoReadLast    : sl;
-   signal fifoReadUser    : slv(FIFO_USER_BITS_C-1 downto 0);
+   signal fifoReadUser    : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
    signal fifoValidInt    : sl;
    signal fifoValid       : sl;
    signal fifoValidLast   : sl;
    signal fifoInFrame     : sl;
+
+   signal burstEn   : sl;
+   signal burstLast : sl;
+   signal burstCnt  : natural range 0 to VALID_THOLD_G := 0;
 
    ---------------
    -- Sync Signals
@@ -184,20 +188,19 @@ begin
    -------------------------
    -- Slave Resize
    -------------------------
-   U_SlaveResize: entity work.AxiStreamResize 
+   U_SlaveResize : entity work.AxiStreamResize
       generic map (
          TPD_G               => TPD_G,
          READY_EN_G          => SLAVE_READY_EN_G,
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => FIFO_CONFIG_C
-      ) port map (
-         axisClk     => sAxisClk,
-         axisRst     => sAxisRst,
-         sAxisMaster => sAxisMaster,
-         sAxisSlave  => sAxisSlave,
-         mAxisMaster => fifoWriteMaster,
-         mAxisSlave  => fifoWriteSlave
-      );
+         MASTER_AXI_CONFIG_G => FIFO_CONFIG_C) 
+         port map (
+            axisClk     => sAxisClk,
+            axisRst     => sAxisRst,
+            sAxisMaster => sAxisMaster,
+            sAxisSlave  => sAxisSlave,
+            mAxisMaster => fifoWriteMaster,
+            mAxisSlave  => fifoWriteSlave);
 
    -------------------------
    -- FIFO
@@ -221,13 +224,13 @@ begin
    fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
 
    -- Map bits
-   fifoDin       <= toSlv(fifoWriteMaster,FIFO_CONFIG_C);
+   fifoDin       <= toSlv(fifoWriteMaster, FIFO_CONFIG_C);
    fifoWrite     <= fifoWriteMaster.tValid and fifoReady;
    fifoWriteLast <= fifoWriteMaster.tValid and fifoReady and fifoWriteMaster.tLast;
-   fifoWriteUser <= resize(axiStreamGetUserField(FIFO_CONFIG_C,fifoWriteMaster,-1),FIFO_USER_BITS_C);
+   fifoWriteUser <= resize(axiStreamGetUserField(FIFO_CONFIG_C, fifoWriteMaster, -1), FIFO_USER_BITS_C);
 
    fifoWriteSlave.tReady <= fifoReady;
-                   
+
    U_Fifo : entity work.FifoCascade
       generic map (
          TPD_G              => TPD_G,
@@ -249,31 +252,22 @@ begin
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
          INIT_G             => "0",
          FULL_THRES_G       => FIFO_PAUSE_THRESH_G,
-         EMPTY_THRES_G      => 1
-         )
+         EMPTY_THRES_G      => 1)
       port map (
          rst           => sAxisRst,
          wr_clk        => sAxisClk,
          wr_en         => fifoWrite,
          din           => fifoDin,
          wr_data_count => fifoWrCount,
-         wr_ack        => open,
          overflow      => sAxisCtrl.overflow,
          prog_full     => fifoPFull,
          progFullVec   => fifoPFullVec,
          almost_full   => fifoAFull,
-         full          => open,
-         not_full      => open,
          rd_clk        => mAxisClk,
          rd_en         => fifoRead,
          dout          => fifoDout,
          rd_data_count => fifoRdCount,
-         valid         => fifoValidInt,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open
-         );
+         valid         => fifoValidInt);
 
    U_LastFifoEnGen : if VALID_THOLD_G /= 1 generate
 
@@ -294,62 +288,88 @@ begin
             USE_BUILT_IN_G     => false,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
-            DATA_WIDTH_G       => FIFO_USER_BITS_C,
+            DATA_WIDTH_G       => maximum(FIFO_USER_BITS_C, 1),
             ADDR_WIDTH_G       => LAST_FIFO_ADDR_WIDTH_C,
             INIT_G             => "0",
             FULL_THRES_G       => 1,
-            EMPTY_THRES_G      => 1
-            )
+            EMPTY_THRES_G      => 1)
          port map (
-            rst           => sAxisRst,
-            wr_clk        => sAxisClk,
-            wr_en         => fifoWriteLast,
-            din           => fifoWriteUser,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => open,
-            not_full      => open,
-            rd_clk        => mAxisClk,
-            rd_en         => fifoReadLast,
-            dout          => fifoReadUser,
-            rd_data_count => open,
-            valid         => fifoValidLast,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
+            rst    => sAxisRst,
+            wr_clk => sAxisClk,
+            wr_en  => fifoWriteLast,
+            din    => fifoWriteUser,
+            rd_clk => mAxisClk,
+            rd_en  => fifoReadLast,
+            dout   => fifoReadUser,
+            valid  => fifoValidLast);
 
-      process (mAxisClk) is
-      begin
-         if (rising_edge(mAxisClk)) then
+      U_PreFillMode : if ((VALID_BURST_MODE_G = false) or (VALID_THOLD_G = 0)) generate
+         
+         process (mAxisClk) is
+         begin
+            if (rising_edge(mAxisClk)) then
 
-            -- Stop output if fifo valid goes away, wait until another block is ready
-            if mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0' then
-               fifoInFrame <= '0' after TPD_G;
+               -- Stop output if fifo valid goes away, wait until another block is ready
+               if mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0' then
+                  fifoInFrame <= '0' after TPD_G;
 
-            -- Start output when a block or end of frame is available
-            elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
-               fifoInFrame <= '1' after TPD_G;
+               -- Start output when a block or end of frame is available
+               elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
+                  fifoInFrame <= '1' after TPD_G;
+               end if;
             end if;
-         end if;
-      end process;
+         end process;
+
+      end generate;
+
+      U_BurstMode : if ((VALID_BURST_MODE_G = true) and (VALID_THOLD_G /= 0)) generate
+         
+         process (mAxisClk) is
+         begin
+            if (rising_edge(mAxisClk)) then
+               if (mAxisRst = '1') or (fifoReadLast = '1') then
+                  -- Reset the flags
+                  fifoInFrame <= '0' after TPD_G;
+                  burstEn     <= '0' after TPD_G;
+                  burstLast   <= '0' after TPD_G;
+               else
+                  -- Check if for burst mode
+                  if (burstEn = '1') and (burstLast = '0') and (fifoRead = '1') then
+                     -- Increment the counter
+                     burstCnt <= burstCnt + 1 after TPD_G;
+                     -- Check the counter
+                     if burstCnt = (VALID_THOLD_G-1) then
+                        -- Reset the flags
+                        fifoInFrame <= '0' after TPD_G;
+                        burstEn     <= '0' after TPD_G;
+                     end if;
+                  end if;
+                  if (fifoValidLast = '1') or ((fifoRdCount >= VALID_THOLD_G) and (burstEn = '0')) then
+                     -- Set the flags
+                     burstEn     <= '1'           after TPD_G;
+                     burstLast   <= fifoValidLast after TPD_G;
+                     fifoInFrame <= '1'           after TPD_G;
+                     -- Reset the counter
+                     burstCnt    <= 0             after TPD_G;
+                  end if;
+               end if;
+            end if;
+         end process;
+         
+      end generate;
 
       fifoValid <= fifoValidInt and fifoInFrame;
-
+      
    end generate;
 
    U_LastFifoDisGen : if VALID_THOLD_G = 1 generate
       fifoValidLast <= '0';
       fifoInFrame   <= '0';
-      fifoReadUser  <= (others=>'0');
+      fifoReadUser  <= (others => '0');
       fifoValid     <= fifoValidInt;
    end generate;
 
-   mTLastTUser <= resize(fifoReadUser,8);
+   mTLastTUser <= resize(fifoReadUser, 8);
 
    -- Map output Signals
    fifoReadMaster <= toAxiStreamMaster (fifoDout, fifoValid, FIFO_CONFIG_C);
@@ -360,20 +380,19 @@ begin
    -------------------------
    -- Master Resize
    -------------------------
-   U_MasterResize: entity work.AxiStreamResize 
+   U_MasterResize : entity work.AxiStreamResize
       generic map (
          TPD_G               => TPD_G,
          READY_EN_G          => true,
          SLAVE_AXI_CONFIG_G  => FIFO_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G
-      ) port map (
-         axisClk     => mAxisClk,
-         axisRst     => mAxisRst,
-         sAxisMaster => fifoReadMaster,
-         sAxisSlave  => fifoReadSlave,
-         mAxisMaster => axisMaster,
-         mAxisSlave  => axisSlave
-      );
+         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G) 
+      port map (
+            axisClk     => mAxisClk,
+            axisRst     => mAxisRst,
+            sAxisMaster => fifoReadMaster,
+            sAxisSlave  => fifoReadSlave,
+            mAxisMaster => axisMaster,
+            mAxisSlave  => axisSlave);
 
    -------------------------
    -- Idle Generation
@@ -397,8 +416,7 @@ begin
    U_Pipe : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G
-         )
+         PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          -- Clock and Reset
          axisClk     => mAxisClk,

@@ -1,2 +1,0 @@
-vhdl work sim/Chksum_tb.vhd
-vhdl work sim/RssiCoreTb.vhd

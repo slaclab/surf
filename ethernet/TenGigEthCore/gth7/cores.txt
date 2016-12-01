@@ -1,2 +1,0 @@
-# Using the .dcp instead of the .xci (see sources.txt) 
-# coregen/TenGigEthGth7Core.xci
