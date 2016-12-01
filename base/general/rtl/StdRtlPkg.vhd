@@ -126,7 +126,7 @@ package StdRtlPkg is
    function "/" (L    : integer; R : real) return real;
    function "/" (L    : real; R : integer) return real;
 
---   function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
+   function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
 
    --gets a time ratio
    function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
@@ -1143,39 +1143,39 @@ package body StdRtlPkg is
    -------------------------------------------------------------------------------------------------
    -- Simulates an ADC conversion
    -------------------------------------------------------------------------------------------------
---    function adcConversion (
---       ain      : real;
---       low      : real;
---       high     : real;
---       bits     : positive;
---       twosComp : boolean)
---       return slv is
---       variable tmpR : real;
---       variable tmpI : integer;
+   function adcConversion (
+      ain      : real;
+      low      : real;
+      high     : real;
+      bits     : positive;
+      twosComp : boolean)
+      return slv is
+      variable tmpR : real;
+      variable tmpI : integer;
 
---       variable retSigned   : signed(bits-1 downto 0);
---       variable retUnsigned : unsigned(bits-1 downto 0);
---    begin
---       tmpR := ain;
+      variable retSigned   : signed(bits-1 downto 0);
+      variable retUnsigned : unsigned(bits-1 downto 0);
+   begin
+      tmpR := ain;
 
---       -- Constrain input to full scale range
---       tmpR := realmin(high, tmpR);
---       tmpR := realmax(low, tmpR);
+      -- Constrain input to full scale range
+      tmpR := realmin(high, tmpR);
+      tmpR := realmax(low, tmpR);
 
---       -- Scale to [0,1] or [-.5,.5]
---       tmpR := (tmpR-low)/(high-low) + ite(twosComp, -0.5, 0.0);
+      -- Scale to [0,1] or [-.5,.5]
+      tmpR := (tmpR-low)/(high-low) + ite(twosComp, -0.5, 0.0);
 
---       -- Scale to number of bits
---       tmpR := tmpR * real(2**bits);
+      -- Scale to number of bits
+      tmpR := tmpR * real(2**bits);
 
---       if (twosComp) then
---          retSigned := to_signed(integer(round(tmpR)), bits);
---          return slv(retSigned);
---       else
---          retUnsigned := to_unsigned(integer(round(tmpR)), bits);
---          return slv(retUnsigned);
---       end if;
---    end function adcConversion;
+      if (twosComp) then
+         retSigned := to_signed(integer(round(tmpR)), bits);
+         return slv(retSigned);
+      else
+         retUnsigned := to_unsigned(integer(round(tmpR)), bits);
+         return slv(retUnsigned);
+      end if;
+   end function adcConversion;
 
    -----------------------------
    -- gets a time ratio
