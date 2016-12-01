@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-11-14
+-- Last update: 2016-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ entity Pgp2bGtp7FixedLatWrapper is
       -- MGT Configurations
       PMA_RSV_G               : bit_vector           := x"00018480";
       RX_OS_CFG_G             : bit_vector           := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G             : bit_vector           := x"00003000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G            : sl                   := '0';            -- Set by wizard
       -- PLL and clock configurations
       STABLE_CLK_SRC_G        : string               := "stableClkIn";  -- or "gtClk0" or "gtClk1"
@@ -199,7 +199,7 @@ begin
    -------------------------------------------------------------------------------------------------
    stableClkRef <= gtClk0 when STABLE_CLK_SRC_G = "gtClk0" else
                    gtClk0Div2 when STABLE_CLK_SRC_G = "gtClk0Div2" else
-                   gtClk1 when STABLE_CLK_SRC_G = "gtClk1" else
+                   gtClk1     when STABLE_CLK_SRC_G = "gtClk1" else
                    gtClk1Div2 when STABLE_CLK_SRC_G = "gtClk1Div2" else
                    '0';
 
@@ -321,8 +321,10 @@ begin
                     '0';
 
    -- Double check this. I think the pllLockDetClk must be different from the pll refclk
-   qPllLockDetClk(0) <= stableClk when ((TX_PLL_G = "PLL0") or (RX_PLL_G = "PLL0")) else '0';
-   qPllLockDetClk(1) <= stableClk when ((TX_PLL_G = "PLL1") or (RX_PLL_G = "PLL1")) else '0';
+--    qPllLockDetClk(0) <= stableClk when ((TX_PLL_G = "PLL0") or (RX_PLL_G = "PLL0")) else '0';
+--    qPllLockDetClk(1) <= stableClk when ((TX_PLL_G = "PLL1") or (RX_PLL_G = "PLL1")) else '0';
+   qPllLockDetClk(0) <= '0';
+   qPllLockDetClk(1) <= '0';
 
    -- Set the status outputs
    txPllLock <= ite((TX_PLL_G = "PLL0"), qPllLock(0), qPllLock(1));
@@ -349,7 +351,7 @@ begin
          qPllOutRefClk   => qPllOutRefClk,           -- [out]
          qPllLock        => qPllLock,                -- [out]
          qPllLockDetClk  => qPllLockDetClk,          -- [in]
-         qPllRefClkLost  => qPllRefClkLost,          -- [out]
+         qPllRefClkLost  => open,                    -- [out]
          qPllReset       => qPllReset,               -- [in]
          axilClk         => axilClk,                 -- [in]
          axilRst         => axilRst,                 -- [in]
