@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-14
--- Last update: 2016-11-14
+-- Last update: 2016-12-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ architecture behavioral of Ad9249Group is
    end record ConfigRegType;
 
    constant CONFIG_REG_INIT_C : ConfigRegType := (
-      sample          => (others => (others => (others => '0')));
+      sample          => (others => (others => (others => '0'))),
       rdData          => X"00000000",
       lsbFirst        => '0',
       softReset       => '0',
@@ -213,14 +213,14 @@ begin
    U_CtrlClockManager7 : entity work.ClockManager7
       generic map (
          TPD_G            => TPD_G,
-         TYPE_G           => "PLL",
+         TYPE_G           => "MMCM",
          INPUT_BUFG_G     => false,
          FB_BUFG_G        => true,
          NUM_CLOCKS_G     => 4,
          BANDWIDTH_G      => "HIGH",
-         CLKIN_PERIOD_G   => ADC_CLK_PERIOD_G,
+         CLKIN_PERIOD_G   => CLK_PERIOD_C,
          DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
-         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_F_G,
+         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
          CLKOUT0_DIVIDE_G => CLK_DCO_DIVIDE_G,
          CLKOUT1_DIVIDE_G => CLK_FCO_DIVIDE_G,
          CLKOUT2_DIVIDE_G => CLK_FCO_DIVIDE_G,
@@ -233,7 +233,7 @@ begin
          clkOut(0) => fClk,
          clkOut(1) => dClk,
          clkOut(2) => dco,
-         clkOut(0) => fco,
+         clkOut(3) => fco,
          locked    => locked);
 
 
@@ -344,10 +344,10 @@ begin
          -------------------------------------------------------------------------------------------
          when X"008" =>                 -- modes
             v.rdData(2 downto 0) := r.global.pdwnMode;
-            v.rdData(5)          := r.global.pwdnPin;
+            v.rdData(5)          := r.global.pdwnPin;
             if (wrEn = '1') then
                v.tmpGlobal.pdwnMode := wrData(2 downto 0);
-               v.tmpGlobal.pwdnPin  := wrData(5);
+               v.tmpGlobal.pdwnPin  := wrData(5);
             end if;
 
          when X"009" =>                 -- clock
