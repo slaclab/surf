@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2016-11-07
+-- Last update: 2016-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -240,7 +240,9 @@ package body AxiStreamPkg is
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
 
-      ret := axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos)));
+      ret := ite(axisConfig.TUSER_BITS_C>0,
+                 axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))),
+                 "0");
 
       -- Handle TUSER_BITS_C=0 case
       if (axisConfig.TUSER_BITS_C = 0 or axisConfig.TUSER_MODE_C = TUSER_NONE_C) then
