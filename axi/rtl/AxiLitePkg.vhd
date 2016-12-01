@@ -665,8 +665,8 @@ package body AxiLitePkg is
 
       variable strobeMask : slv(3 downto 0) := (others => '-');
    begin
-      print(name /= "NoName", "AXI register - " & name & " Addr: " & hstr(NORMAL_ADDR_C) & " offset: " & str(NORMAL_OFFSET_C) &
-            " size: " & str(reg'length));
+--       print("AXI register - " & name & " Addr: " & hstr(NORMAL_ADDR_C) & " offset: " & str(NORMAL_OFFSET_C) &
+--             " size: " & str(reg'length));
 
       for i in BUS_HIGH_BIT_C downto NORMAL_OFFSET_C loop
          strobeMask(i/8) := '1';
@@ -790,7 +790,7 @@ package body AxiLitePkg is
       addrLocal                           := addr;
       addrLocal(ADDR_BITS_C+2-1 downto 2) := (others => '-');
       addrLocal(1 downto 0)               := "00";
-      print("MULTI! - Addr: " & hstr(addrLocal));
+--      print("MULTI! - Addr: " & hstr(addrLocal));
       axiSlaveRegister(ep, addrLocal, 0, tmp);
    end procedure;
 
