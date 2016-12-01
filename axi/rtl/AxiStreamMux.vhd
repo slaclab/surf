@@ -5,7 +5,7 @@
 -- File       : AxiStreamMux.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-11-07
+-- Last update: 2016-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ architecture structure of AxiStreamMux is
    constant REG_INIT_C : RegType := (
       state  => IDLE_S,
       acks   => (others => '0'),
-      ackNum => (others => '1'),
+      ackNum => toSlv(NUM_SLAVES_G-1, DEST_SIZE_C),
       valid  => '0',
       slaves => (others => AXI_STREAM_SLAVE_INIT_C),
       master => AXI_STREAM_MASTER_INIT_C);
