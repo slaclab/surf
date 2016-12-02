@@ -5,7 +5,7 @@
 -- File       : AxiStreamDmaWrite.vhd
 -- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2014-04-25
--- Last update: 2016-10-27
+-- Last update: 2016-12-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,7 +42,8 @@ entity AxiStreamDmaWrite is
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
       ACK_WAIT_BVALID_G : boolean             := true;
       PIPE_STAGES_G     : natural             := 1;
-      BYP_SHIFT_G       : boolean             := false);
+      BYP_SHIFT_G       : boolean             := false;
+      BYP_CACHE_G       : boolean             := false);
    port (
       -- Clock/Reset
       axiClk         : in  sl;
@@ -148,51 +149,66 @@ begin
          mAxisMaster => shiftMaster,
          mAxisSlave  => shiftSlave);
 
-   U_Cache : entity work.AxiStreamFifoV2
-      generic map (
-         TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => PIPE_STAGES_G,
-         PIPE_STAGES_G       => PIPE_STAGES_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         BRAM_EN_G           => true,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
-         FIFO_FIXED_THRESH_G => false,  -- Using r.threshold
-         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
-      port map (
-         -- Slave Port
-         sAxisClk        => axiClk,
-         sAxisRst        => axiRst,
-         sAxisMaster     => shiftMaster,
-         sAxisSlave      => shiftSlave,
-         sAxisCtrl       => cache,
-         -- FIFO Port
-         fifoPauseThresh => r.threshold,
-         -- Master Port
-         mAxisClk        => axiClk,
-         mAxisRst        => axiRst,
-         mAxisMaster     => intAxisMaster,
-         mAxisSlave      => intAxisSlave);    
+   GEN_CACHE : if (BYP_CACHE_G = false) generate
+      
+      U_Cache : entity work.AxiStreamFifoV2
+         generic map (
+            TPD_G               => TPD_G,
+            INT_PIPE_STAGES_G   => PIPE_STAGES_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
+            SLAVE_READY_EN_G    => true,
+            VALID_THOLD_G       => 1,
+            BRAM_EN_G           => true,
+            GEN_SYNC_FIFO_G     => true,
+            CASCADE_SIZE_G      => 1,
+            FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+            FIFO_FIXED_THRESH_G => false,  -- Using r.threshold
+            SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
+            MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
+         port map (
+            -- Slave Port
+            sAxisClk        => axiClk,
+            sAxisRst        => axiRst,
+            sAxisMaster     => shiftMaster,
+            sAxisSlave      => shiftSlave,
+            sAxisCtrl       => cache,
+            -- FIFO Port
+            fifoPauseThresh => r.threshold,
+            -- Master Port
+            mAxisClk        => axiClk,
+            mAxisRst        => axiRst,
+            mAxisMaster     => intAxisMaster,
+            mAxisSlave      => intAxisSlave);    
 
-   wrEn <= shiftMaster.tValid and shiftMaster.tLast and shiftSlave.tReady;
-   rdEn <= intAxisMaster.tValid and intAxisMaster.tLast and intAxisSlave.tReady;
+      wrEn <= shiftMaster.tValid and shiftMaster.tLast and shiftSlave.tReady;
+      rdEn <= intAxisMaster.tValid and intAxisMaster.tLast and intAxisSlave.tReady;
 
-   U_Last : entity work.FifoSync
-      generic map (
-         TPD_G        => TPD_G,
-         BYP_RAM_G    => true,
-         FWFT_EN_G    => true,
-         ADDR_WIDTH_G => FIFO_ADDR_WIDTH_C)
-      port map (
-         clk   => axiClk,
-         rst   => axiRst,
-         wr_en => wrEn,
-         rd_en => rdEn,
-         din   => (others => '0'),
-         valid => lastDet);
+      U_Last : entity work.FifoSync
+         generic map (
+            TPD_G        => TPD_G,
+            BYP_RAM_G    => true,
+            FWFT_EN_G    => true,
+            ADDR_WIDTH_G => FIFO_ADDR_WIDTH_C)
+         port map (
+            clk   => axiClk,
+            rst   => axiRst,
+            wr_en => wrEn,
+            rd_en => rdEn,
+            din   => (others => '0'),
+            valid => lastDet);            
+
+   end generate;
+
+   BYP_CACHE : if (BYP_CACHE_G = true) generate
+
+      intAxisMaster  <= shiftMaster;
+      shiftSlave     <= intAxisSlave;
+      cache.pause    <= '1';
+      cache.overflow <= '0';
+      cache.idle     <= '0';
+      lastDet        <= '0';
+      
+   end generate;
 
    comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster, lastDet, pause, r) is
       variable v       : RegType;
