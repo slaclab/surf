@@ -21,7 +21,7 @@
 import pyrogue
 import collections
 
-def create(name='axiVersion', offset=0, memBase=None, hidden=False):
+def create(name='axiVersion', offset=0, memBase=None, hidden=False, enabled=True):
     """Create the axiVersion device"""
 
     # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
@@ -30,7 +30,7 @@ def create(name='axiVersion', offset=0, memBase=None, hidden=False):
     # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
     # blocks will be updated.
     dev = pyrogue.Device(name=name, memBase=memBase, offset=offset, hidden=hidden, size=0x1000,
-                         description='AXI-Lite based common version block')
+                         description='AXI-Lite based common version block', enabled=enabled)
 
     #############################################
     # Create block / variable combinations
