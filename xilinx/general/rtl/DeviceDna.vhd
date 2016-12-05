@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-17
--- Last update: 2016-04-13
+-- Last update: 2016-12-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -44,10 +44,40 @@ end DeviceDna;
 
 architecture rtl of DeviceDna is
 
+   component DeviceDna7Series is
+      generic (
+         TPD_G           : time;
+         USE_SLOWCLK_G   : boolean;
+         BUFR_CLK_DIV_G  : string;
+         RST_POLARITY_G  : sl;
+         SIM_DNA_VALUE_G : bit_vector);
+      port (
+         clk      : in  sl;
+         rst      : in  sl;
+         slowClk  : in  sl := '0';
+         dnaValue : out slv(63 downto 0);
+         dnaValid : out sl);
+   end component DeviceDna7Series;
+   
+   component DeviceDnaUltraScale is
+      generic (
+         TPD_G           : time;
+         USE_SLOWCLK_G   : boolean;
+         BUFR_CLK_DIV_G  : natural;
+         RST_POLARITY_G  : sl;
+         SIM_DNA_VALUE_G : slv);
+      port (
+         clk      : in  sl;
+         rst      : in  sl;
+         slowClk  : in  sl := '0';
+         dnaValue : out slv(63 downto 0);
+         dnaValid : out sl);
+   end component DeviceDnaUltraScale;
+   
 begin
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
-      DeviceDna7Series_Inst : entity work.DeviceDna7Series
+      DeviceDna7Series_Inst : DeviceDna7Series
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
@@ -63,7 +93,7 @@ begin
    end generate;
 
    GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
-      DeviceDnaUltraScale_Inst : entity work.DeviceDnaUltraScale
+      DeviceDnaUltraScale_Inst : DeviceDnaUltraScale
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
