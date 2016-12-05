@@ -75,6 +75,7 @@ use ieee.std_logic_unsigned.all;
 entity Gtp7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
+      SIMULATION_G : boolean := false;
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
       TX_PLL0_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
@@ -106,10 +107,10 @@ entity Gtp7RxRst is
          RUN_PHALIGNMENT          : out std_logic;
          PHALIGNMENT_DONE         : in  std_logic;
          RESET_PHALIGNMENT        : out std_logic                                            := '0';
-         RXDFEAGCHOLD             : out std_logic;
-         RXDFELFHOLD              : out std_logic;
-         RXLPMLFHOLD              : out std_logic;
-         RXLPMHFHOLD              : out std_logic;
+         RXDFEAGCHOLD             : out std_logic := '0';
+         RXDFELFHOLD              : out std_logic := '0';
+         RXLPMLFHOLD              : out std_logic := '0';
+         RXLPMHFHOLD              : out std_logic := '0';
          RETRY_COUNTER            : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of 
                                         -- Retries it took to get the transceiver up and running
          );
@@ -179,7 +180,6 @@ architecture RTL of Gtp7RxRst is
    signal rxpmaresetdone_i                : std_logic                              := '0';
    signal rxpmaresetdone_ss               : std_logic                              := '0';
    signal rxpmaresetdone_sync             : std_logic;
-   signal rxpmaresetdone_s                : std_logic;
    signal pmaresetdone_fallingedge_detect : std_logic;
 
    signal run_phase_alignment_int    : std_logic := '0';
@@ -203,7 +203,7 @@ architecture RTL of Gtp7RxRst is
    signal pll1lock_ris_edge : std_logic := '0';
    signal phalignment_done_sync : std_logic := '0';
 
-   signal fsmCnt : std_logic_vector(15 downto 0);
+   signal fsmCnt : std_logic_vector(15 downto 0) := (others => '0');
 
 --   attribute dont_touch : string;
 --   attribute dont_touch of rx_state,
@@ -640,7 +640,7 @@ begin
                   --Release of the MMCM-reset. Waiting for the MMCM to lock.
                   check_tlock_max <= '1';
 
-                  if rxpmaresetdone_sync = '1' and pmaresetdone_fallingedge_detect = '1' then
+                  if rxpmaresetdone_sync = '1' and (pmaresetdone_fallingedge_detect = '1' or SIMULATION_G) then
                      mmcm_reset_i   <= '0';
                      reset_time_out <= '0';
                   end if;
