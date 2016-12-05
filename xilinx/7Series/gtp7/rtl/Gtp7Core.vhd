@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2016-11-03
+-- Last update: 2016-12-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
 entity Gtp7Core is
-   
+
    generic (
       TPD_G : time := 1 ns;
 
@@ -210,22 +210,22 @@ entity Gtp7Core is
       txDataIn       : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
-      txPolarityIn   : in  sl              := '0';
+      txPolarityIn   : in  sl               := '0';
       -- Debug Interface      
-      txPowerDown    : in  slv(1 downto 0) := "00";
-      rxPowerDown    : in  slv(1 downto 0) := "00";
-      loopbackIn     : in  slv(2 downto 0) := "000";
-      txPreCursor    : in  slv(4 downto 0) := (others => '0');
-      txPostCursor   : in  slv(4 downto 0) := (others => '0');
-      txDiffCtrl     : in  slv(3 downto 0) := "1000";   
+      txPowerDown    : in  slv(1 downto 0)  := "00";
+      rxPowerDown    : in  slv(1 downto 0)  := "00";
+      loopbackIn     : in  slv(2 downto 0)  := "000";
+      txPreCursor    : in  slv(4 downto 0)  := (others => '0');
+      txPostCursor   : in  slv(4 downto 0)  := (others => '0');
+      txDiffCtrl     : in  slv(3 downto 0)  := "1000";
       -- DRP Interface (stableClkIn Domain)
       drpGnt         : out sl;
       drpRdy         : out sl;
-      drpEn          : in  sl := '0';
-      drpWe          : in  sl := '0';
-      drpAddr        : in  slv(8 downto 0) := "000000000";
+      drpEn          : in  sl               := '0';
+      drpWe          : in  sl               := '0';
+      drpAddr        : in  slv(8 downto 0)  := "000000000";
       drpDi          : in  slv(15 downto 0) := X"0000";
-      drpDo          : out slv(15 downto 0));      
+      drpDo          : out slv(15 downto 0));
 end entity Gtp7Core;
 
 architecture rtl of Gtp7Core is
@@ -284,8 +284,6 @@ architecture rtl of Gtp7Core is
    signal rxOutClkBufg : sl;
 
    signal rxPllResets     : slv(1 downto 0);
-   signal rxPllReset      : sl;
-   signal rxPllRefClkLost : sl;
    signal rxPllLock       : sl;
 
    signal gtRxReset    : sl;            -- GT GTRXRESET
@@ -327,9 +325,6 @@ architecture rtl of Gtp7Core is
    signal txOutClk : sl;
 
    signal txPllResets     : slv(1 downto 0);
-   signal txPllReset      : sl;
-   signal txPllRefClkLost : sl;
-   signal txPllLock       : sl;
 
    signal gtTxReset    : sl;            -- GT GTTXRESET
    signal txResetDone  : sl;            -- GT TXRESETDONE
@@ -369,8 +364,8 @@ architecture rtl of Gtp7Core is
    signal drpRstDi   : slv(15 downto 0);
    signal drpRstRdy  : sl;
    signal drpRstEn   : sl;
-   signal drpRstWe   : sl;   
-   signal drpRstDone : sl;   
+   signal drpRstWe   : sl;
+   signal drpRstDone : sl;
    signal gtRxRst    : sl;
 
 begin
@@ -434,6 +429,7 @@ begin
    Gtp7RxRst_Inst : entity work.Gtp7RxRst
       generic map (
          TPD_G                  => TPD_G,
+         SIMULATION_G => SIMULATION_G,
          STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C,
@@ -512,23 +508,23 @@ begin
 --   end generate;
 
 --   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
-      rxRecClkMonitorRestart <= '0';
-      process(stableClkIn)
-      begin
-         if rising_edge(stableClkIn) then
-            if gtRxReset = '1' then
-               rxRecClkStable <= '0' after TPD_G;
-               rxCdrLockCnt   <= 0   after TPD_G;
-            elsif rxRecClkStable = '0' then
-               if rxCdrLockCnt = WAIT_TIME_CDRLOCK_C then
-                  rxRecClkStable <= '1'          after TPD_G;
-                  rxCdrLockCnt   <= rxCdrLockCnt after TPD_G;
-               else
-                  rxCdrLockCnt <= rxCdrLockCnt + 1 after TPD_G;
-               end if;
+   rxRecClkMonitorRestart <= '0';
+   process(stableClkIn)
+   begin
+      if rising_edge(stableClkIn) then
+         if gtRxReset = '1' then
+            rxRecClkStable <= '0' after TPD_G;
+            rxCdrLockCnt   <= 0   after TPD_G;
+         elsif rxRecClkStable = '0' then
+            if rxCdrLockCnt = WAIT_TIME_CDRLOCK_C then
+               rxRecClkStable <= '1'          after TPD_G;
+               rxCdrLockCnt   <= rxCdrLockCnt after TPD_G;
+            else
+               rxCdrLockCnt <= rxCdrLockCnt + 1 after TPD_G;
             end if;
          end if;
-      end process;
+      end if;
+   end process;
 --   end generate RX_NO_RECCLK_MON_GEN;
 
    -------------------------------------------------------------------------------------------------
@@ -548,7 +544,7 @@ begin
             DLYSRESET            => rxDlySReset,           -- To gt
             DLYSRESETDONE        => rxDlySResetDone,       -- From gt
             RECCLKSTABLE         => rxRecClkStable);
-      rxSlide <= rxSlideIn;                                -- User controlled rxSlide
+      rxSlide      <= rxSlideIn;                           -- User controlled rxSlide
       rxAlignReset <= '0';
    end generate;
 
@@ -659,7 +655,7 @@ begin
    -- Only used when bypassing buffer
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
-      
+
       PhaseAlign_Tx : entity work.Gtp7AutoPhaseAligner
          generic map (
             GT_TYPE => GT_TYPE_C)
@@ -1272,26 +1268,38 @@ begin
          --------------- Transmit Ports - TX Receiver Detection Ports  --------------
          TXDETECTRX           => '0',
          ------------------ Transmit Ports - pattern Generator Ports ----------------
-         TXPRBSSEL            => "000");  
+         TXPRBSSEL            => "000");
 
 
    ------------------------- Soft Fix for Production Silicon----------------------
-   Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
-      port map(
-         RST_IN         => rxUserResetIn,
-         GTRXRESET_IN   => gtRxReset,
-         RXPMARESETDONE => rxPmaResetDone,
-         GTRXRESET_OUT  => gtRxRst,
-         DRP_OP_DONE    => drpRstDone,
-         DRPCLK         => stableClkIn,
-         DRPEN          => drpRstEn,
-         DRPADDR        => drpRstAddr,
-         DRPWE          => drpRstWe,
-         DRPDO          => drpRstDo,
-         DRPDI          => drpRstDi,
-         DRPRDY         => drpRstRdy); 
 
-   drpGnt     <= drpRstDone;         
+   GEN_RST_SEQ : if (SIMULATION_G = false) generate
+      Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
+         port map(
+            RST_IN         => rxUserResetIn,
+            GTRXRESET_IN   => gtRxReset,
+            RXPMARESETDONE => rxPmaResetDone,
+            GTRXRESET_OUT  => gtRxRst,
+            DRP_OP_DONE    => drpRstDone,
+            DRPCLK         => stableClkIn,
+            DRPEN          => drpRstEn,
+            DRPADDR        => drpRstAddr,
+            DRPWE          => drpRstWe,
+            DRPDO          => drpRstDo,
+            DRPDI          => drpRstDi,
+            DRPRDY         => drpRstRdy);
+   end generate GEN_RST_SEQ;
+
+   NO_RST_SEQ : if (SIMULATION_G) generate
+      gtRxRst    <= gtRxReset;
+      drpRstDone <= '1';
+      drpRstEn   <= '0';
+      drpRstAddr <= (others => '0');
+      drpRstWe   <= '0';
+      drpRstDi   <= (others => '0');
+   end generate NO_RST_SEQ;
+
+   drpGnt     <= drpRstDone;
    drpRstRdy  <= drpMuxRdy when(drpRstDone = '0') else '0';
    drpRdy     <= drpMuxRdy when(drpRstDone = '1') else '0';
    drpMuxEn   <= drpEn     when(drpRstDone = '1') else drpRstEn;
@@ -1299,6 +1307,6 @@ begin
    drpMuxAddr <= drpAddr   when(drpRstDone = '1') else drpRstAddr;
    drpMuxDi   <= drpDi     when(drpRstDone = '1') else drpRstDi;
    drpRstDo   <= drpMuxDo;
-   drpDo      <= drpMuxDo;          
-         
+   drpDo      <= drpMuxDo;
+
 end architecture rtl;
