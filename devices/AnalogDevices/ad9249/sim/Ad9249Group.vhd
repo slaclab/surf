@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-14
--- Last update: 2016-12-01
+-- Last update: 2016-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -221,11 +221,11 @@ begin
          CLKIN_PERIOD_G   => CLK_PERIOD_C,
          DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
          CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
-         CLKOUT0_DIVIDE_G => CLK_DCO_DIVIDE_G,
-         CLKOUT1_DIVIDE_G => CLK_FCO_DIVIDE_G,
-         CLKOUT2_DIVIDE_G => CLK_FCO_DIVIDE_G,
+         CLKOUT0_DIVIDE_G => CLK_FCO_DIVIDE_G,
+         CLKOUT1_DIVIDE_G => CLK_DCO_DIVIDE_G,
+         CLKOUT2_DIVIDE_G => CLK_DCO_DIVIDE_G,
          CLKOUT2_PHASE_G  => 90.0,
-         CLKOUT3_DIVIDE_G => CLK_DCO_DIVIDE_G,
+         CLKOUT3_DIVIDE_G => CLK_FCO_DIVIDE_G,
          CLKOUT3_PHASE_G  => 257.143)
       port map (
          clkIn     => clk,
