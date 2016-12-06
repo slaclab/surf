@@ -35,4 +35,3 @@ $(OBJ)/%.o: $(LOC_DIR)/%.c $(LOC_DIR)/%.h
 # Compile Library
 $(OUT)/%.so: $(LOC_OBJ)
 	$(CC) -shared $(DEF) $(OBJ)/* -o $@ $(LFLAGS) 
-   
