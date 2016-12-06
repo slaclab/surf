@@ -79,7 +79,7 @@ def create(name='axiVersion', offset=0, memBase=None, hidden=False, enabled=True
                              offset=0x28, bitSize=1, bitOffset=0, base='bool', mode='RW'))
 
     dev.add(pyrogue.Variable(name='upTimeCnt', description='Number of seconds since reset', pollEn=True,
-                             offset=0x2C, bitSize=32, bitOffset=0, base='hex', mode='RO'))
+                             offset=0x2C, bitSize=32, bitOffset=0, base='uint', units="seconds", mode='RO'))
 
     dev.add(pyrogue.Variable(name='deviceId', description='Device identification',
                              offset=0x30, bitSize=32, bitOffset=0, base='hex', mode='RO'))
