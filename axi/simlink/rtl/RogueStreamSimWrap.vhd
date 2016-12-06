@@ -8,33 +8,39 @@
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity RogueStreamSimWrap is 
+entity RogueStreamSimWrap is
    generic (
-      TPD_G            : time                   := 1 ns;
-      DEST_ID_G        : integer range 0 to 255 := 1;
-      AXIS_CONFIG_G    : AxiStreamConfigTYpe    := AXI_STREAM_CONFIG_INIT_C
-   );
-   port ( 
+      TPD_G               : time                   := 1 ns;
+      DEST_ID_G           : integer range 0 to 255 := 1;
+      COMMON_MASTER_CLK_G : boolean                := false;
+      COMMON_SLAVE_CLK_G  : boolean                := false;
+      AXIS_CONFIG_G       : AxiStreamConfigType    := AXI_STREAM_CONFIG_INIT_C
+      );
+   port (
 
-      -- Clock and reset
-      axisClk     : in  sl;
-      axisClkRst  : in  sl;
+      -- Main Clock and reset used internally
+      clk : in sl;
+      rst : in sl;
 
       -- Slave
+      sAxisClk    : in  sl;             -- Set COMMON_SLAVE_CLK_G if same as clk input
+      sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
 
       -- Master
+      mAxisClk    : in  sl;             -- Set COMMON_MASTER_CLK_G if same as clk input
+      mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
-   );
+      );
 end RogueStreamSimWrap;
 
 -- Define architecture
@@ -61,71 +67,71 @@ begin
    ------------------------------------
    -- Inbound
    ------------------------------------
-   U_IbFifo: entity work.AxiStreamFifo
+   U_IbFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
-         GEN_SYNC_FIFO_G     => true,
+         GEN_SYNC_FIFO_G     => COMMON_SLAVE_CLK_G,
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => INT_CONFIG_C)
       port map (
-         sAxisClk    => axisClk,
-         sAxisRst    => axisClkRst,
+         sAxisClk    => sAxisClk,
+         sAxisRst    => sAxisRst,
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
-         mAxisClk    => axisClk,
-         mAxisRst    => axisClkRst,
+         mAxisClk    => clk,
+         mAxisRst    => rst,
          mAxisMaster => ibMaster,
          mAxisSlave  => ibSlave);
 
    ------------------------------------
    -- Sim Core
    ------------------------------------
-   U_RogueStreamSim: entity work.RogueStreamSim 
+   U_RogueStreamSim : entity work.RogueStreamSim
       port map(
-         clock        => axisClk,
-         reset        => axisClkRst,
-         dest         => toSlv(DEST_ID_G,8),
-         obValid      => obMaster.tValid,
-         obReady      => obSlave.tReady,
-         obDataLow    => obMaster.tData(31 downto  0),
-         obDataHigh   => obMaster.tData(63 downto 32),
-         obUserLow    => obMaster.tUser(31 downto  0),
-         obUserHigh   => obMaster.tUser(63 downto 32),
-         obKeep       => obMaster.tKeep(7  downto  0),
-         obLast       => obMaster.tLast,
-         ibValid      => ibMaster.tValid,
-         ibReady      => ibSlave.tReady,
-         ibDataLow    => ibMaster.tData(31 downto  0),
-         ibDataHigh   => ibMaster.tData(63 downto 32),
-         ibUserLow    => ibMaster.tUser(31 downto  0),
-         ibUserHigh   => ibMaster.tUser(63 downto 32),
-         ibKeep       => ibMaster.tKeep(7  downto  0),
-         ibLast       => ibMaster.tLast);
+         clock      => clk,
+         reset      => rst,
+         dest       => toSlv(DEST_ID_G, 8),
+         obValid    => obMaster.tValid,
+         obReady    => obSlave.tReady,
+         obDataLow  => obMaster.tData(31 downto 0),
+         obDataHigh => obMaster.tData(63 downto 32),
+         obUserLow  => obMaster.tUser(31 downto 0),
+         obUserHigh => obMaster.tUser(63 downto 32),
+         obKeep     => obMaster.tKeep(7 downto 0),
+         obLast     => obMaster.tLast,
+         ibValid    => ibMaster.tValid,
+         ibReady    => ibSlave.tReady,
+         ibDataLow  => ibMaster.tData(31 downto 0),
+         ibDataHigh => ibMaster.tData(63 downto 32),
+         ibUserLow  => ibMaster.tUser(31 downto 0),
+         ibUserHigh => ibMaster.tUser(63 downto 32),
+         ibKeep     => ibMaster.tKeep(7 downto 0),
+         ibLast     => ibMaster.tLast);
 
-   obMaster.tStrb  <= (others=>'1');
-   obMaster.tDest  <= toSlv(DEST_ID_G,8);
-   obMaster.tId    <= (others=>'0');
+   obMaster.tStrb <= (others => '1');
+   obMaster.tDest <= toSlv(DEST_ID_G, 8);
+   obMaster.tId   <= (others => '0');
 
-   obMaster.tKeep(15  downto  8) <= (others=>'0');
-   obMaster.tData(127 downto 64) <= (others=>'0');
-   obMaster.tUser(127 downto 64) <= (others=>'0');
+   obMaster.tKeep(15 downto 8)   <= (others => '0');
+   obMaster.tData(127 downto 64) <= (others => '0');
+   obMaster.tUser(127 downto 64) <= (others => '0');
 
    ------------------------------------
    -- Outbound
    ------------------------------------
-   U_ObFifo: entity work.AxiStreamFifo
+   U_ObFifo : entity work.AxiStreamFifo
       generic map (
          TPD_G               => TPD_G,
-         GEN_SYNC_FIFO_G     => true,
+         GEN_SYNC_FIFO_G     => COMMON_MASTER_CLK_G,
          SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         sAxisClk    => axisClk,
-         sAxisRst    => axisClkRst,
+         sAxisClk    => clk,
+         sAxisRst    => rst,
          sAxisMaster => obMaster,
          sAxisSlave  => obSlave,
-         mAxisClk    => axisClk,
-         mAxisRst    => axisClkRst,
+         mAxisClk    => mAxisClk,
+         mAxisRst    => mAxisRst,
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
