@@ -237,11 +237,13 @@ void RogueStreamSimInit(vhpiHandleT compInst) {
    data->zmqCtx    = NULL;
    data->zmqIbSrv  = NULL;
    data->zmqObSrv  = NULL;
+   data->dest      = 256;
 
    time(&(data->ltime));
    data->rxCount = 0;
    data->txCount = 0;
    data->errCount = 0;
+   data->ackCount = 0;
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -269,7 +271,7 @@ void RogueStreamSimUpdate ( void *userPtr ) {
    }
 
    // Port not yet assigned
-   if ( data->dest == 0 ) {
+   if ( data->dest == 256 ) {
       data->dest = getInt(s_dest);
       zmqRestart(data);
    }
@@ -341,9 +343,10 @@ void RogueStreamSimUpdate ( void *userPtr ) {
             if ( data->obValid == 0 && data->obSize > 0 ) {
 
                // First user
-               if ( data->obSize == 0 ) setInt(s_obUserLow,data->obFuser);
+               if ( data->obCount == 0 ) setInt(s_obUserLow,data->obFuser);
                else setInt(s_obUserLow,0);
                setInt(s_obUserHigh,0);
+               
               
                // Get data
                dHigh = 0;
