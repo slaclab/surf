@@ -20,7 +20,9 @@
 --                   bit 2: Reset MGTs (Default '1')
 --                   bit 3: Clear Registered errors (Default '0')
 --                   bit 4: Invert nSync (Default '1'-inverted) 
---                   bit 5: Scrambling support enable (Default '0'- Disabled)                      
+--                   bit 5: Scrambling support enable (Default '0'- Disabled) 
+--               0x05 (RW)- LinkErrorMask
+--                   bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr or s_alignErr                     
 --               0x1X (R) - Lane X status
 --                   bit 0: GT Reset done
 --                   bit 1: Received data valid
@@ -104,6 +106,7 @@ entity AxiLiteRxRegItf is
       gtReset_o         : out sl;
       clearErr_o        : out sl;
       invertSync_o      : out sl;
+      linkErrMask_o     : out slv(5 downto 0);
       axisPacketSize_o  : out slv(23 downto 0)
       );
 end AxiLiteRxRegItf;
@@ -114,6 +117,7 @@ architecture rtl of AxiLiteRxRegItf is
       -- JESD Control (RW)
       enableRx       : slv(L_G-1 downto 0);
       commonCtrl     : slv(5 downto 0);
+      linkErrMask    : slv(5 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       testTXItf      : Slv16Array(L_G-1 downto 0);
       testSigThr     : Slv32Array(L_G-1 downto 0);
@@ -128,6 +132,7 @@ architecture rtl of AxiLiteRxRegItf is
    constant REG_INIT_C : RegType := (
       enableRx       => (others => '0'),
       commonCtrl     => "010111",
+      linkErrMask    => "111111",
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => x"0000"),
       testSigThr     => (others => x"A000_5000"),
@@ -210,6 +215,8 @@ begin
                v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
             when 16#04# =>              -- ADDR (16)
                v.commonCtrl := axilWriteMaster.wdata(5 downto 0);
+            when 16#05# =>              -- ADDR (20)
+               v.linkErrMask := axilWriteMaster.wdata(5 downto 0);
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -242,6 +249,8 @@ begin
                v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
             when 16#04# =>              -- ADDR (16)
                v.axilReadSlave.rdata(5 downto 0) := r.commonCtrl;
+            when 16#05# =>              -- ADDR (16)
+               v.axilReadSlave.rdata(5 downto 0) := r.linkErrMask;
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -414,7 +423,21 @@ begin
          dataIn  => r.commonCtrl(5),
          dataOut => scrEnable_o
          );
-
+   
+   Sync_OUT9 : entity work.SynchronizerVector
+      generic map (
+         TPD_G => TPD_G,
+         WIDTH_G => 6
+         )
+      port map (
+         clk     => devClk_i,
+         rst     => devRst_i,
+         dataIn  => r.linkErrMask,
+         dataOut => linkErrMask_o
+         );
+   
+   
+   
    SyncFifo_OUT8 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
