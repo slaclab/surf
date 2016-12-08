@@ -19,28 +19,29 @@
 #define s_clock        0
 #define s_reset        1
 #define s_dest         2
+#define s_uid          3
 
-#define s_obValid      3
-#define s_obReady      4
-#define s_obDataLow    5
-#define s_obDataHigh   6
-#define s_obUserLow    7
-#define s_obUserHigh   8
-#define s_obKeep       9
-#define s_obLast       10
+#define s_obValid      4
+#define s_obReady      5
+#define s_obDataLow    6
+#define s_obDataHigh   7
+#define s_obUserLow    8
+#define s_obUserHigh   9
+#define s_obKeep       10
+#define s_obLast       11
 
-#define s_ibValid      11
-#define s_ibReady      12
-#define s_ibDataLow    13
-#define s_ibDataHigh   14
-#define s_ibUserLow    15
-#define s_ibUserHigh   16
-#define s_ibKeep       17
-#define s_ibLast       18
+#define s_ibValid      12
+#define s_ibReady      13
+#define s_ibDataLow    14
+#define s_ibDataHigh   15
+#define s_ibUserLow    16
+#define s_ibUserHigh   17
+#define s_ibKeep       18
+#define s_ibLast       19
 
-#define s_opCode       19
-#define s_opCodeEn     20
-#define s_remData      21
+#define s_opCode       20
+#define s_opCodeEn     21
+#define s_remData      22
 
 #define MAX_FRAME 2000000
 #define IB_PORT_BASE 5000
@@ -65,6 +66,7 @@ typedef struct {
 
    uint32_t  currClk;
    uint32_t  dest;
+   uint32_t  uid;
    time_t    ltime;
 
    uint32_t  rxCount;

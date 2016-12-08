@@ -31,10 +31,10 @@ void zmqRestart(RogueStreamSimData *data) {
    uint32_t ocPort;
    uint32_t sbPort;
 
-   ibPort = IB_PORT_BASE + data->dest;
-   obPort = OB_PORT_BASE + data->dest;
-   ocPort = OC_PORT_BASE + data->dest;
-   sbPort = SB_PORT_BASE + data->dest;
+   ibPort = IB_PORT_BASE + (data->uid*100) + data->dest;
+   obPort = OB_PORT_BASE + (data->uid*100) + data->dest;
+   ocPort = OC_PORT_BASE + (data->uid*100) + data->dest;
+   sbPort = SB_PORT_BASE + (data->uid*100) + data->dest;
 
    if ( data->zmqIbSrv != NULL ) zmq_close(data->zmqIbSrv);
    if ( data->zmqObSrv != NULL ) zmq_close(data->zmqObSrv);
@@ -54,8 +54,8 @@ void zmqRestart(RogueStreamSimData *data) {
    data->zmqSbSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
    data->zmqOcSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
 
-   vhpi_printf("zmqRestart: Opening Destination %i : ib = %i, Ob = %i, Code = %i, Side Data = %i\n",
-         data->dest,ibPort,obPort,ocPort,sbPort);
+   vhpi_printf("zmqRestart: Destination %i : id = %i, ib = %i, Ob = %i, Code = %i, Side Data = %i\n",
+         data->dest,data->uid,ibPort,obPort,ocPort,sbPort);
 
    sprintf(buffer,"tcp://*:%i",ibPort);
    if ( zmq_bind(data->zmqIbSrv,buffer) ) {
@@ -276,12 +276,13 @@ void RogueStreamSimInit(vhpiHandleT compInst) {
    RogueStreamSimData *data      = (RogueStreamSimData *) malloc(sizeof(RogueStreamSimData));
 
    // Get port count
-   portData->portCount = 22;
+   portData->portCount = 23;
 
    // Set port directions
    portData->portDir[s_clock]      = vhpiIn; 
    portData->portDir[s_reset]      = vhpiIn; 
    portData->portDir[s_dest]       = vhpiIn; 
+   portData->portDir[s_uid]        = vhpiIn; 
 
    portData->portDir[s_obValid]    = vhpiOut;
    portData->portDir[s_obReady]    = vhpiIn;
@@ -309,6 +310,7 @@ void RogueStreamSimInit(vhpiHandleT compInst) {
    portData->portWidth[s_clock]      = 1;
    portData->portWidth[s_reset]      = 1;
    portData->portWidth[s_dest]       = 8;
+   portData->portWidth[s_uid]        = 6;
 
    portData->portWidth[s_obValid]    = 1;
    portData->portWidth[s_obReady]    = 1;
@@ -371,6 +373,7 @@ void RogueStreamSimUpdate ( void *userPtr ) {
    // Port not yet assigned
    if ( data->dest == 256 ) {
       data->dest = getInt(s_dest);
+      data->uid  = getInt(s_uid);
       zmqRestart(data);
    }
 
