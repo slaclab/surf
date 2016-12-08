@@ -205,17 +205,17 @@ begin
       if (axilStatus.writeEnable = '1') then
          axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          case (s_WrAddr) is
-            when 16#00# =>              -- ADDR (0)
+            when 16#00# =>              -- ADDR (0x00)
                v.enableRx := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#01# =>              -- ADDR (4)
+            when 16#01# =>              -- ADDR (0x04)
                v.sysrefDlyRx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
-            when 16#02# =>              -- ADDR (8)
+            when 16#02# =>              -- ADDR (0x08)
                v.axisTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#03# =>              -- ADDR (12)
+            when 16#03# =>              -- ADDR (0x0C)
                v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
-            when 16#04# =>              -- ADDR (16)
+            when 16#04# =>              -- ADDR (0x10)
                v.commonCtrl := axilWriteMaster.wdata(5 downto 0);
-            when 16#05# =>              -- ADDR (20)
+            when 16#05# =>              -- ADDR (0x14)
                v.linkErrMask := axilWriteMaster.wdata(5 downto 0);
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
@@ -239,17 +239,17 @@ begin
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
-            when 16#00# =>              -- ADDR (0)
+            when 16#00# =>              -- ADDR (0x0)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableRx;
-            when 16#01# =>              -- ADDR (4)
+            when 16#01# =>              -- ADDR (0x04)
                v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyRx;
-            when 16#02# =>              -- ADDR (8)
+            when 16#02# =>              -- ADDR (0x08)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.axisTrigger;
-            when 16#03# =>              -- ADDR (12)
+            when 16#03# =>              -- ADDR (0x0C)
                v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
-            when 16#04# =>              -- ADDR (16)
+            when 16#04# =>              -- ADDR (0x10)
                v.axilReadSlave.rdata(5 downto 0) := r.commonCtrl;
-            when 16#05# =>              -- ADDR (16)
+            when 16#05# =>              -- ADDR (0x14)
                v.axilReadSlave.rdata(5 downto 0) := r.linkErrMask;
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
