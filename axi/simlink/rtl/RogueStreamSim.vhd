@@ -18,6 +18,7 @@ entity RogueStreamSim is port (
       clock        : in    std_logic;
       reset        : in    std_logic;
       dest         : in    std_logic_vector(7  downto 0);
+      uid          : in    std_logic_vector(5  downto 0);
 
       obValid      : out   std_logic;
       obReady      : in    std_logic;
