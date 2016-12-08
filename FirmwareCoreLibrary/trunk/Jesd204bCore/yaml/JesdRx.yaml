@@ -117,7 +117,16 @@ JesdRx: &JesdRx
           class: Enum
           value: 1
       description: "ScrambleEnable. Enable data scrambling (More info in Jesd204b standard)."
-    #########################################################            
+    #########################################################
+    LinkErrMask:   
+      at:
+        offset: 0x14
+      class: IntField
+      name: LinkErrMask
+      sizeBits: 6
+      mode: RW
+      description: "Mask Enable the errors to that are required to brake the link. bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr & s_alignErr"
+    #########################################################      
     GTReady:
       at:
         offset: 0x040
