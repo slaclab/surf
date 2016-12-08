@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-10
--- Last update: 2016-06-30
+-- Last update: 2016-12-08
 -- Platform   : Vivado 2013.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,10 +32,10 @@ use unisim.vcomponents.all;
 
 entity XadcSimpleCore is
    generic (
-      TPD_G             : time            := 1 ns;
+      TPD_G              : time   := 1 ns;
       SIM_DEVICE_G       : string := "7SERIES";
       SIM_MONITOR_FILE_G : string := "design.txt";
-      
+
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
 
       -- Global XADC configurations
@@ -175,11 +175,13 @@ architecture rtl of XadcSimpleCore is
       ret(4 downto 0) := SING_ADC_CH_SEL_G;
       ret(7 downto 5) := (others => '0');
       ret(8)          := toSl(SING_ACQ_EN_G);
-      case SAMPLING_MODE_G is
-         when "CONTINUOUS"   => ret(9) := '0';
-         when "EVENT-DRIVEN" => ret(9) := '1';
-         when others         => ret(9) := '0';
-      end case;
+      if (SAMPLING_MODE_G = "CONTINUOUS") then
+         ret(9) := '0';
+      elsif (SAMPLING_MODE_G = "EVENT-DRIVEN") then
+         ret(9) := '1';
+      else
+         ret(9) := '0';
+      end if;
       ret(10)           := toSl(SING_BIPOLAR_G);
       ret(11)           := toSl(MUX_EN_G);
       ret(13 downto 12) := SAMPLE_AVG_G;
@@ -203,15 +205,21 @@ architecture rtl of XadcSimpleCore is
       ret(9)  := toSl(not VCCPINT_ALM_EN_G);
       ret(10) := toSl(not VCCPAUX_ALM_EN_G);
       ret(11) := toSl(not VCCODDR_ALM_EN_G);
-      case SEQUENCER_MODE_G is
-         when "DEFAULT"        => ret(15 downto 12) := "0000";
-         when "SINGLE_PASS"    => ret(15 downto 12) := "0001";
-         when "CONTINUOUS"     => ret(15 downto 12) := "0010";
-         when "SINGLE_CHANNEL" => ret(15 downto 12) := "0011";
-         when "SIMULTANEOUS"   => ret(15 downto 12) := "0100";
-         when "INDEPENDENT"    => ret(15 downto 12) := "1000";
-         when others           => ret(15 downto 12) := "0000";
-      end case;
+      if (SEQUENCER_MODE_G = "DEFAULT") then
+         ret(15 downto 12) := "0000";
+      elsif (SEQUENCER_MODE_G = "SINGLE_PASS") then
+         ret(15 downto 12) := "0001";
+      elsif (SEQUENCER_MODE_G = "CONTINUOUS") then
+         ret(15 downto 12) := "0010";
+      elsif(SEQUENCER_MODE_G = "SINGLE_CHANNEL") then
+         ret(15 downto 12) := "0011";
+      elsif(SEQUENCER_MODE_G = "SIMULTANEOUS") then
+         ret(15 downto 12) := "0100";
+      elsif(SEQUENCER_MODE_G = "INDEPENDENT") then
+         ret(15 downto 12) := "1000";
+      else
+         ret(15 downto 12) := "0000";
+      end if;
       return to_bitvector(ret);
    end function INIT_41_C;
 
