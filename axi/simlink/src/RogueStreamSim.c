@@ -28,30 +28,60 @@ void zmqRestart(RogueStreamSimData *data) {
    char buffer[100];
    uint32_t ibPort;
    uint32_t obPort;
+   uint32_t ocPort;
+   uint32_t sbPort;
 
    ibPort = IB_PORT_BASE + data->dest;
    obPort = OB_PORT_BASE + data->dest;
+   ocPort = OC_PORT_BASE + data->dest;
+   sbPort = SB_PORT_BASE + data->dest;
 
    if ( data->zmqIbSrv != NULL ) zmq_close(data->zmqIbSrv);
    if ( data->zmqObSrv != NULL ) zmq_close(data->zmqObSrv);
+   if ( data->zmqOcSrv != NULL ) zmq_close(data->zmqOcSrv);
+   if ( data->zmqSbSrv != NULL ) zmq_close(data->zmqSbSrv);
    if ( data->zmqCtx   != NULL ) zmq_term(data->zmqCtx);
 
+   data->zmqCtx   = NULL;
    data->zmqIbSrv = NULL;
    data->zmqObSrv = NULL;
-   data->zmqCtx   = NULL;
+   data->zmqSbSrv = NULL;
+   data->zmqOcSrv = NULL;
  
    data->zmqCtx = zmq_ctx_new();
    data->zmqIbSrv = zmq_socket(data->zmqCtx,ZMQ_REQ);
    data->zmqObSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
+   data->zmqSbSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
+   data->zmqOcSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
+
+   vhpi_printf("zmqRestart: Opening Destination %i : ib = %i, Ob = %i, Code = %i, Side Data = %i\n",
+         data->dest,ibPort,obPort,ocPort,sbPort);
 
    sprintf(buffer,"tcp://*:%i",ibPort);
-   zmq_bind(data->zmqIbSrv,buffer);
+   if ( zmq_bind(data->zmqIbSrv,buffer) ) {
+      vhpi_assert("zmqRestart: Failed to bind inbound port",vhpiFatal);
+      return;
+   }
 
    sprintf(buffer,"tcp://*:%i",obPort);
-   zmq_bind(data->zmqObSrv,buffer);
+   if ( zmq_bind(data->zmqObSrv,buffer) ) {
+      vhpi_assert("zmqRestart: Failed to bind outbound port",vhpiFatal);
+      return;
+   }
 
-   vhpi_printf("zmqRestart: Destination %i listening at inbound port %i and outbound port %i\n",
-         data->dest,ibPort,obPort);
+   sprintf(buffer,"tcp://*:%i",ocPort);
+   if ( zmq_bind(data->zmqOcSrv,buffer) ) {
+      vhpi_assert("zmqRestart: Failed to bind opcode port",vhpiFatal);
+      return;
+   }
+
+   sprintf(buffer,"tcp://*:%i",sbPort);
+   if ( zmq_bind(data->zmqSbSrv,buffer) ) {
+      vhpi_assert("zmqRestart: Failed to bind sideband port",vhpiFatal);
+      return;
+   }
+
+   vhpi_printf("zmqRestart: Success!\n");
 }
 
 
@@ -92,7 +122,7 @@ void zmqSend ( RogueStreamSimData *data ) {
 }
 
 // Receive data if it is available
-int zmqRecv ( RogueStreamSimData *data ) {
+int zmqRecvData ( RogueStreamSimData *data ) {
    int64_t   more;
    size_t    more_size = sizeof(more);
    uint32_t  cnt;
@@ -120,7 +150,7 @@ int zmqRecv ( RogueStreamSimData *data ) {
       rsize = zmq_msg_size(&msg);
 
       switch (cnt) {
-         case 0:
+         case 0: // Byte 1 is 
             if ( rsize != 1 ) err++;
             else data->obFuser = rd[0];
             break;
@@ -156,7 +186,7 @@ int zmqRecv ( RogueStreamSimData *data ) {
 }
 
 // Ack received data
-void zmqAck ( RogueStreamSimData *data ) {
+void zmqAckData ( RogueStreamSimData *data ) {
    zmq_msg_t msg;
    int32_t   ret;
 
@@ -167,6 +197,77 @@ void zmqAck ( RogueStreamSimData *data ) {
    if ( ret < 0 ) data->errCount++;
 }
 
+// Receive opcode if it is available
+int zmqRecvOcData ( RogueStreamSimData *data ) {
+   int32_t   ret;
+   uint8_t * rd;
+   uint32_t  rsize;
+   zmq_msg_t tMsg;
+   zmq_msg_t rMsg;
+
+   rsize = 0;
+
+   data->ocDataEn = 0;
+
+   zmq_msg_init(&rMsg);
+   if ( zmq_msg_recv(&rMsg,data->zmqOcSrv,ZMQ_DONTWAIT) < 0 ) {
+      zmq_msg_close(&rMsg);
+      return(0);
+   }
+
+   rd    = zmq_msg_data(&rMsg);
+   rsize = zmq_msg_size(&rMsg);
+
+   if ( rsize == 1 ) {
+      data->ocData   = rd[0];
+      data->ocDataEn = 1;
+      data->ocCount++;
+
+      // Ack
+      zmq_msg_init_size(&tMsg,1);
+      ((uint8_t *)zmq_msg_data(&tMsg))[0] = 0xFF;
+      ret = zmq_msg_send(&tMsg,data->zmqOcSrv,0);
+      zmq_msg_close(&tMsg);
+      if ( ret < 0 ) data->errCount++;
+   }
+   zmq_msg_close(&rMsg);
+   return(rsize);
+}
+
+// Receive side data if it is available
+int zmqRecvSbData ( RogueStreamSimData *data ) {
+   int32_t   ret;
+   uint8_t * rd;
+   uint32_t  rsize;
+   zmq_msg_t rMsg;
+   zmq_msg_t tMsg;
+
+   rsize = 0;
+
+   zmq_msg_init(&rMsg);
+   if ( zmq_msg_recv(&rMsg,data->zmqSbSrv,ZMQ_DONTWAIT) < 0 ) {
+      zmq_msg_close(&rMsg);
+      return(0);
+   }
+
+   rd    = zmq_msg_data(&rMsg);
+   rsize = zmq_msg_size(&rMsg);
+
+   if ( rsize == 1 ) {
+      data->sbData = rd[0];
+      data->sbCount++;
+
+      // Ack
+      zmq_msg_init_size(&tMsg,1);
+      ((uint8_t *)zmq_msg_data(&tMsg))[0] = 0xFF;
+      ret = zmq_msg_send(&tMsg,data->zmqSbSrv,0);
+      zmq_msg_close(&tMsg);
+      if ( ret < 0 ) data->errCount++;
+   }
+   zmq_msg_close(&rMsg);
+   return(rsize);
+}
+
 // Init function
 void RogueStreamSimInit(vhpiHandleT compInst) { 
 
@@ -175,7 +276,7 @@ void RogueStreamSimInit(vhpiHandleT compInst) {
    RogueStreamSimData *data      = (RogueStreamSimData *) malloc(sizeof(RogueStreamSimData));
 
    // Get port count
-   portData->portCount = 19;
+   portData->portCount = 22;
 
    // Set port directions
    portData->portDir[s_clock]      = vhpiIn; 
@@ -200,6 +301,10 @@ void RogueStreamSimInit(vhpiHandleT compInst) {
    portData->portDir[s_ibKeep]     = vhpiIn;
    portData->portDir[s_ibLast]     = vhpiIn;
 
+   portData->portDir[s_opCode]     = vhpiOut;
+   portData->portDir[s_opCodeEn]   = vhpiOut;
+   portData->portDir[s_remData]    = vhpiOut;
+
    // Set port widths
    portData->portWidth[s_clock]      = 1;
    portData->portWidth[s_reset]      = 1;
@@ -223,27 +328,20 @@ void RogueStreamSimInit(vhpiHandleT compInst) {
    portData->portWidth[s_ibKeep]     = 8;
    portData->portWidth[s_ibLast]     = 1;
 
+   portData->portWidth[s_opCode]     = 8;
+   portData->portWidth[s_opCodeEn]   = 1;
+   portData->portWidth[s_remData]    = 8;
+
    // Create data structure to hold state
    portData->stateData = data;
 
    // State update function
    portData->stateUpdate = *RogueStreamSimUpdate;
 
-   // Init data structure
-   data->currClk   = 0;
-   data->obSize    = 0;
-   data->ibSize    = 0;
-   data->obCount   = 0;
-   data->zmqCtx    = NULL;
-   data->zmqIbSrv  = NULL;
-   data->zmqObSrv  = NULL;
-   data->dest      = 256;
-
+   // Init
+   memset(data,0, sizeof(RogueStreamSimData));
+   data->dest = 256;
    time(&(data->ltime));
-   data->rxCount = 0;
-   data->txCount = 0;
-   data->errCount = 0;
-   data->ackCount = 0;
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -266,8 +364,8 @@ void RogueStreamSimUpdate ( void *userPtr ) {
    time(&ctime);
    if ( ctime != data->ltime ) {
       data->ltime = ctime;
-      vhpi_printf("update: RxCount = %i, TxCount = %i, errCount = %i\n",
-            data->rxCount,data->txCount,data->errCount);
+      vhpi_printf("update: RxCount = %i, TxCount = %i, OcCount = %i, SbCount = %i, errCount = %i\n",
+            data->rxCount,data->txCount,data->ocCount,data->sbCount,data->errCount);
    }
 
    // Port not yet assigned
@@ -331,7 +429,7 @@ void RogueStreamSimUpdate ( void *userPtr ) {
             }
 
             // Not in frame
-            if ( data->obSize == 0 ) zmqRecv(data);
+            if ( data->obSize == 0 ) zmqRecvData(data);
 
             // Data accepted
             if ( getInt(s_obReady) ) {
@@ -379,13 +477,23 @@ void RogueStreamSimUpdate ( void *userPtr ) {
                   setInt(s_obLast,1);
                   data->obSize  = 0;
                   data->obCount = 0;
-                  zmqAck(data);
+                  zmqAckData(data);
                }
             }
 
             // Output valid
             setInt(s_obValid,data->obValid);
          }
+
+         // Sideband update
+         zmqRecvSbData(data);
+         setInt(s_remData,data->sbData);
+
+         // Sideband update
+         zmqRecvOcData(data);
+         setInt(s_opCode,data->ocData);
+         setInt(s_opCodeEn,data->ocDataEn);
+
       }
    }
 }

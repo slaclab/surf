@@ -38,9 +38,15 @@
 #define s_ibKeep       17
 #define s_ibLast       18
 
+#define s_opCode       19
+#define s_opCodeEn     20
+#define s_remData      21
+
 #define MAX_FRAME 2000000
 #define IB_PORT_BASE 5000
 #define OB_PORT_BASE 6000
+#define OC_PORT_BASE 7000
+#define SB_PORT_BASE 8000
 
 // Structure to track state
 typedef struct {
@@ -65,10 +71,18 @@ typedef struct {
    uint32_t  txCount;
    uint32_t  ackCount;
    uint32_t  errCount;
+   uint32_t  ocCount;
+   uint32_t  sbCount;
+
+   uint8_t   sbData;
+   uint8_t   ocData;
+   uint8_t   ocDataEn;
 
    void *    zmqCtx;
    void *    zmqIbSrv;
    void *    zmqObSrv;
+   void *    zmqSbSrv;
+   void *    zmqOcSrv;
   
 } RogueStreamSimData;
 
@@ -85,7 +99,16 @@ void zmqRestart(RogueStreamSimData *data);
 void zmqSend ( RogueStreamSimData *data );
 
 // Receive data if it is available
-int zmqRecv ( RogueStreamSimData *data );
+int zmqRecvData ( RogueStreamSimData *data );
+
+// Ack received data
+void zmqAckData ( RogueStreamSimData *data );
+
+// Receive opcode if it is available
+int zmqRecvOcData ( RogueStreamSimData *data );
+
+// Receive side data if it is available
+int zmqRecvSbData ( RogueStreamSimData *data );
 
 #endif
 

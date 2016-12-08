@@ -39,7 +39,12 @@ entity RogueStreamSimWrap is
       mAxisClk    : in  sl;             -- Set COMMON_MASTER_CLK_G if same as clk input
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType
+      mAxisSlave  : in  AxiStreamSlaveType;
+
+      -- Sideband Clock and reset, clocked with clk and rst
+      opCode      : out slv(7 downto 0);
+      opCodeEn    : out sl;
+      remData     : out slv(7 downto 0)
       );
 end RogueStreamSimWrap;
 
@@ -106,7 +111,10 @@ begin
          ibUserLow  => ibMaster.tUser(31 downto 0),
          ibUserHigh => ibMaster.tUser(63 downto 32),
          ibKeep     => ibMaster.tKeep(7 downto 0),
-         ibLast     => ibMaster.tLast);
+         ibLast     => ibMaster.tLast,
+         opCode     => opCode,
+         opCodeEn   => opCodeEn,
+         remData    => remData);
 
    obMaster.tStrb <= (others => '1');
    obMaster.tDest <= toSlv(DEST_ID_G, 8);
