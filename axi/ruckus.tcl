@@ -6,3 +6,4 @@ loadSource -dir "$::DIR_PATH/rtl/"
 
 # Load Simulation
 loadSource -sim_only -dir "$::DIR_PATH/tb/"
+loadSource -sim_only -dir "$::DIR_PATH/simlink/rtl"
