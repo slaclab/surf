@@ -289,7 +289,8 @@ package AxiLitePkg is
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
       variable axiStatus     : in    AxiLiteStatusType;
-      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C;
+      extTxn                 : in    sl              := '0');
 
 
    -------------------------------------------------------------------------------------------------
@@ -361,7 +362,8 @@ package AxiLitePkg is
       variable ep            : inout AxiLiteEndpointType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
-      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C);
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C;
+      extTxn                 : in    sl              := '0');
 
 
    -------------------------------------------------------------------------------------------------
@@ -604,13 +606,14 @@ package body AxiLitePkg is
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
       variable axiStatus     : in    AxiLiteStatusType;
-      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C) is
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C;
+      extTxn                 : in    sl              := '0') is
    begin
-      if (axiStatus.writeEnable = '1' and axiWriteSlave.awready = '0') then
+      if (axiStatus.writeEnable = '1' and axiWriteSlave.awready = '0' and extTxn = '0') then
          axiSlaveWriteResponse(axiWriteSlave, axiResp);
       end if;
 
-      if (axiStatus.readEnable = '1' and axiReadSlave.arready = '0') then
+      if (axiStatus.readEnable = '1' and axiReadSlave.arready = '0' and extTxn = '0') then
          axiSlaveReadResponse(axiReadSlave, axiResp);
       end if;
    end procedure;
@@ -649,19 +652,19 @@ package body AxiLitePkg is
       name        : in    string := "NoName")
    is
       -- Need to remap addr range to be (length-1 downto 0)
-      constant ADDR_LEN_C      : integer                    := addr'length;
-      constant ADDR_C          : slv(ADDR_LEN_C-1 downto 0) := addr;
+      constant ADDR_LEN_C   : integer                    := addr'length;
+      constant ADDR_C       : slv(ADDR_LEN_C-1 downto 0) := addr;
       -- Offset as measured from addr[1:0]="00"
-      constant ABS_OFFSET_C    : integer                    := offset + (to_integer(unsigned(ADDR_C(1 downto 0)))*8);
+      constant ABS_OFFSET_C : integer                    := offset + (to_integer(unsigned(ADDR_C(1 downto 0)))*8);
       -- Normalized address and offset (for when addr[1:0]!=00)
-      constant NORMAL_ADDR_C   : slv(ADDR_LEN_C-1 downto 0) := ite(ABS_OFFSET_C /= 0,
-                                                                   slv((unsigned(slv(ADDR_C))) + ((ABS_OFFSET_C/32)*4)),
-                                                                   ADDR_C);
-      constant NORMAL_OFFSET_C : integer                    := ABS_OFFSET_C mod 32;
+      constant NORMAL_ADDR_C : slv(ADDR_LEN_C-1 downto 0) := ite(ABS_OFFSET_C /= 0,
+                                                                 slv((unsigned(slv(ADDR_C))) + ((ABS_OFFSET_C/32)*4)),
+                                                                 ADDR_C);
+      constant NORMAL_OFFSET_C : integer := ABS_OFFSET_C mod 32;
       -- Most significant register bit before wrapping to the next word address
-      constant REG_HIGH_BIT_C  : integer                    := minimum(31-NORMAL_OFFSET_C+reg'low, reg'high);
+      constant REG_HIGH_BIT_C  : integer := minimum(31-NORMAL_OFFSET_C+reg'low, reg'high);
       -- Most significant data bus bit to be used in this recursion (max out at 31)
-      constant BUS_HIGH_BIT_C  : integer                    := minimum(NORMAL_OFFSET_C+reg'length-1, 31);
+      constant BUS_HIGH_BIT_C  : integer := minimum(NORMAL_OFFSET_C+reg'length-1, 31);
 
       variable strobeMask : slv(3 downto 0) := (others => '-');
    begin
@@ -798,13 +801,14 @@ package body AxiLitePkg is
       variable ep            : inout AxiLiteEndpointType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
       variable axiReadSlave  : inout AxiLiteReadSlaveType;
-      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C) is
+      axiResp                : in    slv(1 downto 0) := AXI_RESP_OK_C;
+      extTxn                 : in    sl              := '0') is
    begin
-      if (ep.axiStatus.writeEnable = '1' and ep.axiWriteSlave.awready = '0') then
+      if (ep.axiStatus.writeEnable = '1' and ep.axiWriteSlave.awready = '0' and extTxn = '0') then
          axiSlaveWriteResponse(ep.axiWriteSlave, axiResp);
       end if;
 
-      if (ep.axiStatus.readEnable = '1' and ep.axiReadSlave.arready = '0') then
+      if (ep.axiStatus.readEnable = '1' and ep.axiReadSlave.arready = '0' and extTxn = '0') then
          axiSlaveReadResponse(ep.axiReadSlave, axiResp);
       end if;
       axiWriteSlave := ep.axiWriteSlave;
