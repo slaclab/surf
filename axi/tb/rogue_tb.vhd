@@ -31,6 +31,9 @@ architecture rogue_tb of rogue_tb is
    signal sAxisSlave  : AxiStreamSlaveType;
    signal mAxisMaster : AxiStreamMasterType;
    signal mAxisSlave  : AxiStreamSlaveType;
+   signal opCode      : slv(7 downto 0);
+   signal opCodeEn    : sl;
+   signal remData     : slv(7 downto 0);
 
 begin
 
@@ -50,16 +53,25 @@ begin
 
    U_RogueSim: entity work.RogueStreamSimWrap
       generic map (
-         TPD_G            => 1 ns,
-         DEST_ID_G        => 1,
+         TPD_G               => 1 ns,
+         DEST_ID_G           => 20,
+         COMMON_MASTER_CLK_G => true,
+         COMMON_SLAVE_CLK_G  => true,
          AXIS_CONFIG_G    => AXI_STREAM_CONFIG_INIT_C)
       port map ( 
-         axisClk     => axiClk,
-         axisClkRst  => axiClkRst,
+         clk         => axiClk,
+         rst         => axiClkRst,
+         sAxisClk    => axiClk,
+         sAxisRst    => axiClkRst,
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
+         mAxisClk    => axiClk,
+         mAxisRst    => axiClkRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);
+         mAxisSlave  => mAxisSlave,
+         opCode      => opCode,
+         opCodeEn    => opCodeEn,
+         remData     => remData);
 
    sAxisMaster <= mAxisMaster;
    mAxisSlave  <= sAxisSlave;

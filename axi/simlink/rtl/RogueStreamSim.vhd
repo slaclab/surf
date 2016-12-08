@@ -35,7 +35,11 @@ entity RogueStreamSim is port (
       ibUserLow    : in    std_logic_vector(31 downto 0);
       ibUserHigh   : in    std_logic_vector(31 downto 0);
       ibKeep       : in    std_logic_vector(7  downto 0);
-      ibLast       : in    std_logic
+      ibLast       : in    std_logic;
+
+      opCode       : out   std_logic_vector(7 downto 0);
+      opCodeEn     : out   std_logic;
+      remData      : out   std_logic_vector(7 downto 0)
    );
 end RogueStreamSim;
 
