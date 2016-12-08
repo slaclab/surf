@@ -68,13 +68,20 @@ typedef struct {
    uint32_t  dest;
    uint32_t  uid;
    time_t    ltime;
-
+  
    uint32_t  rxCount;
    uint32_t  txCount;
    uint32_t  ackCount;
    uint32_t  errCount;
    uint32_t  ocCount;
    uint32_t  sbCount;
+
+   uint32_t  lRxCount;
+   uint32_t  lTxCount;
+   uint32_t  lOcCount;
+   uint32_t  lSbCount;
+   uint32_t  lAckCount;
+   uint32_t  lErrCount; 
 
    uint8_t   sbData;
    uint8_t   ocData;

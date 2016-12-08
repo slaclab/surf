@@ -364,10 +364,24 @@ void RogueStreamSimUpdate ( void *userPtr ) {
    RogueStreamSimData *data = (RogueStreamSimData*)(portData->stateData);
 
    time(&ctime);
-   if ( ctime != data->ltime ) {
-      data->ltime = ctime;
-      vhpi_printf("update: RxCount = %i, TxCount = %i, OcCount = %i, SbCount = %i, errCount = %i\n",
-            data->rxCount,data->txCount,data->ocCount,data->sbCount,data->errCount);
+   if (ctime != data->ltime &&
+       ((data->lRxCount != data->rxCount) ||
+        (data->lTxCount != data->rxCount) ||
+	(data->lOcCount != data->ocCount) ||
+	(data->lSbCount != data->sbCount) ||
+        (data->lAckCount != data->ackCount) ||
+        (data->lErrCount != data->errCount))) {
+
+     data->ltime = ctime;
+     data->lRxCount = data->rxCount;
+     data->lTxCount = data->rxCount;
+     data->lOcCount = data->ocCount;
+     data->lSbCount = data->sbCount;
+     data->lAckCount = data->ackCount;
+     data->lErrCount = data->errCount;
+      
+      vhpi_printf("Update dest %i: RxCount = %i, TxCount = %i, OcCount = %i, SbCount = %i, errCount = %i\n",
+                  data->dest, data->rxCount,data->txCount,data->ocCount, data->sbCount, data->errCount);
    }
 
    // Port not yet assigned
