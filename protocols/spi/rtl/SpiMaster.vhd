@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-24
--- Last update: 2016-06-07
+-- Last update: 2016-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ entity SpiMaster is
       dataSize : in slv(log2(DATA_SIZE_G)-1 downto 0) := toSlv(DATA_SIZE_G-1, log2(DATA_SIZE_G));
       rdEn    : out sl;
       rdData  : out slv(DATA_SIZE_G-1 downto 0);
+      shiftCount : out slv(bitSize(DATA_SIZE_G)-1 downto 0);
       --SPI interface
       spiCsL  : out slv(NUM_CHIPS_G-1 downto 0);
       spiSclk : out sl;
@@ -194,6 +195,7 @@ begin
 
       rdEn   <= r.rdEn;
       rdData <= r.rdData;
+      shiftCount <= r.dataCounter;
       
    end process comb;
 
