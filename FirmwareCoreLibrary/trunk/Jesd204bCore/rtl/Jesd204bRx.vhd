@@ -174,6 +174,7 @@ architecture rtl of Jesd204bRx is
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_G-1 downto 0);
    signal s_pause    : sl;
+   signal s_linkErrMask : slv(5 downto 0);
 
 begin
    -- Check JESD generics
@@ -203,6 +204,7 @@ begin
          devClk_i          => devClk_i,
          devRst_i          => devRst_i,
          statusRxArr_i     => s_statusRxArr,
+         linkErrMask_o     => s_linkErrMask,
          sysrefDlyRx_o     => s_sysrefDlyRx,
          enableRx_o        => s_enableRx,
          replEnable_o      => s_replEnable,
@@ -352,6 +354,7 @@ begin
             sysRef_i     => s_sysrefRe,  -- Rising-edge of SYSREF
             enable_i     => s_enableRx(I),
             clearErr_i   => s_clearErr,
+            linkErrMask_i=> s_linkErrMask,
             replEnable_i => s_replEnable,
             scrEnable_i  => s_scrEnable,
             status_o     => s_statusRxArr(I),
