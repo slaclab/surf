@@ -125,7 +125,7 @@ JesdRx: &JesdRx
       name: LinkErrMask
       sizeBits: 6
       mode: RW
-      description: "Mask Enable the errors to that are required to brake the link. bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr & s_alignErr"
+      description: "Mask Enable the errors that are required to brake the link. bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr & s_alignErr"
     #########################################################      
     GTReady:
       at:
