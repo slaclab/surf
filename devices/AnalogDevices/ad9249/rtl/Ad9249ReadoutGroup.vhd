@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2016-11-18
+-- Last update: 2016-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ architecture rtl of Ad9249ReadoutGroup is
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
       slip       : sl;
-      count      : slv(8 downto 0);
+      count      : slv(5 downto 0);
       locked     : sl;
       fifoWrData : Slv16Array(NUM_CHANNELS_G-1 downto 0);
    end record;

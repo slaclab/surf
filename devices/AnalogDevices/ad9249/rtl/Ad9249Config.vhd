@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-11-17
+-- Last update: 2016-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,14 +66,17 @@ architecture rtl of Ad9249Config is
    signal rdEn   : sl;
 
    -- Adc Core Chip IO
-   signal coreSclk  : sl;
-   signal coreSDin  : sl;
-   signal coreSDout : sl;
-   signal coreCsb   : slv(NUM_CHIPS_G*2-1 downto 0);
+   signal coreSclk   : sl;
+   signal coreSDin   : sl;
+   signal coreSDout  : sl;
+   signal coreCsb    : slv(NUM_CHIPS_G*2-1 downto 0);
+   signal sdioDir    : sl;
+   signal shiftCount : slv(bitSize(24)-1 downto 0);
+
 
    constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G*2);
    constant PWDN_ADDR_BIT_C  : integer                       := 11 + CHIP_SEL_WIDTH_C;
-   constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := (PWDN_ADDR_BIT_C => '1', others => '0');
+   constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := toSlv(2**PWDN_ADDR_BIT_C, PWDN_ADDR_BIT_C+1);
 
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_SPI_TXN_DONE_S);
 
@@ -122,11 +125,11 @@ begin
 
             -- Any other address is forwarded to the chip via SPI
             if (axilEp.axiStatus.writeEnable = '1' and axilWriteMaster.awaddr(PWDN_ADDR_BIT_C) = '0') then
-               v.wrData(23)           := '0';                                 -- Write bit
-               v.wrData(22 downto 21) := "00";                                -- Number of bytes (1)
-               v.wrData(20 downto 17) := "00000";                             -- Unused address bits
+               v.wrData(23)           := '0';      -- Write bit
+               v.wrData(22 downto 21) := "00";     -- Number of bytes (1)
+               v.wrData(20 downto 17) := "0000";  -- Unused address bits
                v.wrData(16 downto 8)  := axilWriteMaster.awaddr(10 downto 2);  -- Address
-               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);   -- Data
+               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);    -- Data
                v.chipSel              := axilWriteMaster.awaddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
@@ -135,7 +138,7 @@ begin
             if (axilEp.axiStatus.readEnable = '1' and axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
                v.wrData(23)           := '1';              -- read bit
                v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
-               v.wrData(20 downto 17) := "00000";          -- Unused address bits
+               v.wrData(20 downto 17) := "0000";          -- Unused address bits
                v.wrData(16 downto 8)  := axilReadMaster.araddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
                                                            -- drive during data segment
@@ -143,6 +146,8 @@ begin
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
+
+            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXIL_ERR_RESP_G, v.wrEn);            
 
          when WAIT_CYCLE_S =>
             -- Wait 1 cycle for rdEn to drop
@@ -156,18 +161,20 @@ begin
                if (r.wrData(23) = '0') then
                   -- Finish write
                   axiSlaveWriteResponse(axilEp.axiWriteSlave);
+                  v.axilWriteSlave := axilEp.axiWriteSlave;
                else
                   -- Finish read
                   axilEp.axiReadSlave.rdata             := (others => '0');
                   axilEp.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
                   axiSlaveReadResponse(axilEp.axiReadSlave);
+                  v.axilReadSlave := axilEp.axiReadSlave;
                end if;
             end if;
 
          when others => null;
       end case;
 
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXIL_ERR_RESP_G);
+
 
       if (axilRst = '1') then
          v := REG_INIT_C;
@@ -199,39 +206,43 @@ begin
          CLK_PERIOD_G      => AXIL_CLK_PERIOD_G,
          SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 100.0E-9, SCLK_PERIOD_G))
       port map (
-         clk     => axilClk,
-         sRst    => axilRst,
-         chipSel => r.chipSel,
-         wrEn    => r.wrEn,
-         wrData  => r.wrData,
-         rdEn    => rdEn,
-         rdData  => rdData,
-         spiCsL  => coreCsb,
-         spiSclk => coreSclk,
-         spiSdi  => coreSDout,
-         spiSdo  => coreSDin);
+         clk        => axilClk,
+         sRst       => axilRst,
+         chipSel    => r.chipSel,
+         wrEn       => r.wrEn,
+         wrData     => r.wrData,
+         rdEn       => rdEn,
+         rdData     => rdData,
+         shiftCount => shiftCount,
+         spiCsL     => coreCsb,
+         spiSclk    => coreSclk,
+         spiSdi     => coreSDout,
+         spiSdo     => coreSDin);
 
    -- Bus lines float to Z when not being driven to '0'.
    -- Lines should all have resistor pullups off chip
-   SCLK_OBUFT : OBUFT
-      port map (
-         I => '0',
-         O => adcSclk,
-         T => coreSclk);
+--    SCLK_OBUFT : OBUFT
+--       port map (
+--          I => '0',
+--          O => adcSclk,
+--          T => coreSclk);
+   adcSclk <= coreSclk;
 
+   sdioDir <= '1' when shiftCount >= 16 else '0';
    SDIO_IOBUFT : IOBUF
       port map (
-         I  => '0',
+         I  => coreSDout,
          O  => coreSDin,
          IO => adcSdio,
-         T  => coreSDout);
+         T  => sdioDir);
 
-   CSB_OBUFT : for i in NUM_CHIPS_G*2-1 downto 0 generate
-      CSB0_OBUFT : OBUFT
-         port map (
-            I => '0',
-            O => adcCsb(i),
-            T => coreCsb(i));
-   end generate;
+--    CSB_OBUFT : for i in NUM_CHIPS_G*2-1 downto 0 generate
+--       CSB0_OBUFT : OBUFT
+--          port map (
+--             I => '0',
+--             O => adcCsb(i),
+--             T => coreCsb(i));
+--    end generate;
+   adcCsb <= coreCsb;
 
 end architecture rtl;

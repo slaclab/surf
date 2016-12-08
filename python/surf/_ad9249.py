@@ -1,5 +1,5 @@
 import pyrogue as pr
-
+import math
 
 class Ad9249ConfigGroup(pr.Device):
     def __init__(self, name, offset=0, memBase=None, hidden=False):
@@ -36,7 +36,7 @@ class Ad9249Config(pr.Device):
         super(self.__class__, self).__init__(name, "Configuration of Ad9249 ADC",
                                              memBase, offset, hidden)
 
-        PDWN_ADDR = int(pow(2,11))
+        PDWN_ADDR = int(pow(2,11+math.log(chips*2,2)))
         
         # First add all of the powerdown GPIOs
         if chips == 1:
@@ -48,7 +48,7 @@ class Ad9249Config(pr.Device):
                                  base = 'bool',
                                  mode = "RW"))
             self.add(Ad9249ConfigGroup("Bank0Config", 0x0000));
-            self.add(Ad9249ConfigGroup("Bank1Config", 0x0200));
+            self.add(Ad9249ConfigGroup("Bank1Config", 0x0800));
         else:
             for i in range(chips):
                 self.add(pr.Variable(name = "Pdwn" + chip,

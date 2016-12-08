@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-14
--- Last update: 2016-12-05
+-- Last update: 2016-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -144,7 +144,6 @@ architecture behavioral of Ad9249Group is
    type Slv14x8Array is array (natural range <>) of Slv14Array(7 downto 0);
 
    type ConfigRegType is record
-      sample          : Slv14x8Array(16 downto 0);  -- slv(13 downto 0);
       rdData          : slv(31 downto 0);
       lsbFirst        : sl;
       softReset       : sl;
@@ -153,11 +152,9 @@ architecture behavioral of Ad9249Group is
       tmpChannel      : ChannelConfigType;
       global          : GlobalConfigType;
       channel         : ChannelConfigArray(9 downto 0);
-      word            : sl;
    end record ConfigRegType;
 
    constant CONFIG_REG_INIT_C : ConfigRegType := (
-      sample          => (others => (others => (others => '0'))),
       rdData          => X"00000000",
       lsbFirst        => '0',
       softReset       => '0',
@@ -165,27 +162,49 @@ architecture behavioral of Ad9249Group is
       tmpGlobal       => GLOBAL_CONFIG_INIT_C,
       tmpChannel      => CHANNEL_CONFIG_INIT_C,
       global          => GLOBAL_CONFIG_INIT_C,
-      channel         => (others => CHANNEL_CONFIG_INIT_C),
-      word            => '0');
+      channel         => (others => CHANNEL_CONFIG_INIT_C));
 
    signal r   : ConfigRegType := CONFIG_REG_INIT_C;
    signal rin : ConfigRegType;
+
+   -------------------------------------------------------------------------------------------------
+
+   type AdcRegType is record
+      sample : Slv14x8Array(16 downto 0);  -- slv(13 downto 0);
+      word   : sl;
+   end record AdcRegType;
+
+   constant ADC_REG_INIT_C : AdcRegType := (
+      sample => (others => (others => (others => '0'))),
+      word   => '0');
+
+   signal adcR   : AdcRegType := ADC_REG_INIT_C;
+   signal adcRin : AdcRegType;
+
 
    -------------------------------------------------------------------------------------------------
    -- Output constants and signals
    -------------------------------------------------------------------------------------------------
 --   constant DCLK_PERIOD_C : time := CLK_PERIOD_G / 7.0;
 
-   signal pllRst   : sl;
-   signal locked   : sl;
-   signal rst      : sl;
-   signal dClk     : sl;
-   signal fClk     : sl;
-   signal dco      : sl;
-   signal fco      : sl;
-   signal serData  : slv(7 downto 0);
+   signal pllRst  : sl;
+   signal locked  : sl;
+   signal rst     : sl;
+   signal dClk    : sl;
+   signal fClk    : sl;
+   signal dco     : sl;
+   signal fco     : sl;
+   signal serData : slv(7 downto 0);
+   signal cfgClk  : sl;
 
 begin
+
+   U_ClkRst_1 : entity work.ClkRst
+      generic map (
+         CLK_PERIOD_G => 4 ns)
+      port map (
+         clkP => cfgClk);               -- [out]
+
 
    -------------------------------------------------------------------------------------------------
    -- Create local clocks
@@ -255,7 +274,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk       => fClk,
+         clk       => cfgClk,
          sclk      => sclk,
          sdio      => sdio,
          csb       => csb,
@@ -475,11 +494,26 @@ begin
 
       end case;
 
+      rin <= v;
+
+   end process comb;
+
+   seq : process (cfgClk) is
+   begin
+      if (rising_edge(cfgClk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+   adcComb : process (adcR) is
+      variable v : AdcRegType := ADC_REG_INIT_C;
+   begin
+      v        := adcR;
       ----------------------------------------------------------------------------------------------
       -- ADC Sampling
       ----------------------------------------------------------------------------------------------
-      v.word := not r.word;
-      v.sample := r.sample(15 downto 0) & r.sample(0);
+      v.word   := not adcR.word;
+      v.sample := adcR.sample(15 downto 0) & adcR.sample(0);
       for i in 7 downto 0 loop
          if (r.channel(i).powerDown = '0') then
             case (r.channel(i).outputTestMode) is
@@ -492,15 +526,15 @@ begin
                when "0011" =>           -- -FS short
                   v.sample(0)(i) := "00000000000000";
                when "0100" =>           -- checkerboard
-                  v.sample(0)(i) := ite(r.word = '0', "10101010101010", "01010101010101");
+                  v.sample(0)(i) := ite(adcR.word = '0', "10101010101010", "01010101010101");
                when "0101" =>           -- pn23 (not implemented)
-                  v.sample(0)(i) := (others => '0');  --(scrambler(zero, r.pn23, PN_LONG_TAPS_C, v.pn23, v.sample(i));
+                  v.sample(0)(i) := (others => '0');  --(scrambler(zero, adcR.pn23, PN_LONG_TAPS_C, v.pn23, v.sample(i));
                when "0110" =>           -- pn9 (not implemented)
-                  v.sample(0)(i) := (others => '0');  --scrambler(zero, r.pn9, PN_SHORT_TAPS_C, v.pn9, v.sample(i));
+                  v.sample(0)(i) := (others => '0');  --scrambler(zero, adcR.pn9, PN_SHORT_TAPS_C, v.pn9, v.sample(i));
                when "0111" =>           -- one/zero toggle
-                  v.sample(0)(i) := ite(r.word = '0', "11111111111111", "00000000000000");
+                  v.sample(0)(i) := ite(adcR.word = '0', "11111111111111", "00000000000000");
                when "1000" =>           -- user input
-                  v.sample(0)(i) := ite(r.word = '0', r.channel(i).userPattern1(13 downto 0), r.channel(i).userPattern2(13 downto 0));
+                  v.sample(0)(i) := ite(adcR.word = '0', r.channel(i).userPattern1(13 downto 0), r.channel(i).userPattern2(13 downto 0));
                when "1001" =>           -- 1/0 bit toggle
                   v.sample(0)(i) := "10101010101010";
                when "1010" =>           -- 1x sync
@@ -518,16 +552,15 @@ begin
          end if;
       end loop;
 
-      rin <= v;
+      adcRin <= v;
+   end process adcComb;
 
-   end process comb;
-
-   seq : process (fClk) is
+   adcSeq : process (fClk) is
    begin
       if (rising_edge(fClk)) then
-         r <= rin after TPD_G;
+         adcR <= adcRin after TPD_G;
       end if;
-   end process seq;
+   end process adcSeq;
 
    -------------------------------------------------------------------------------------------------
    -- Output
@@ -538,7 +571,7 @@ begin
             clk    => dClk,
             clkDiv => fClk,
             rst    => rst,
-            iData  => r.sample(16)(i),
+            iData  => adcR.sample(16)(i),
             oData  => serData(i));
 
       DATA_OUT_BUFF : OBUFDS

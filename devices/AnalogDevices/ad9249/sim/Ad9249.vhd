@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-11-14
--- Last update: 2016-11-30
+-- Last update: 2016-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,6 +64,7 @@ begin
          I  => clkP,
          IB => clkN,
          O  => clk);
+
 
 
    U_Ad9249Group_0 : entity work.Ad9249Group
