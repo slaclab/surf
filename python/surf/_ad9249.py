@@ -2,29 +2,52 @@ import pyrogue as pr
 import math
 
 class Ad9249ConfigGroup(pr.Device):
-    def __init__(self, name, offset=0, memBase=None, hidden=False):
-        super(self.__class__, self).__init__(name, "Configure one side of an AD9249 ADC",
-                                             memBase, offset, hidden)
-
-
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(description="Configure one side of an AD9249 ADC",
+                                             **kwargs)
 
         # AD9249 bank configuration registers
         self.add(pr.Variable(name="ChipId", offset=0x04, bitSize=8, bitOffset=0, mode="RO"))
         self.add(pr.Variable(name="ChipGrade", offset=0x08, bitSize=3, bitOffset=4, mode="RO"))
-        self.add(pr.Variable(name="ExternalPdwnMode", offset=0x20, bitSize=1, bitOffset=5,
-                             enum = {0:"Full Power Down", 1: "Standby"}))
-        self.add(pr.Variable(name="InternalPdwnMode", offset=0x20, bitSize=2, bitOffset=0,
-                             enum = {0:"Chip Run", 1: "Full Power Down", 2: "Standby", 3: "Digital Reset"}))
-        self.add(pr.Variable(name="DutyCycleStabilizer", offset=0x24, bitSize=1, bitOffset=0,
-                             enum = {0:"Off", 1: "On"}))
-
 
         
+        self.add(pr.Variable(name="ExternalPdwnMode", offset=0x20, bitSize=1, bitOffset=5, base='enum',
+                             enum = {0:"Full Power Down", 1: "Standby"}))
+        self.add(pr.Variable(name="InternalPdwnMode", offset=0x20, bitSize=2, bitOffset=0, base='enum',
+                             enum = {0:"Chip Run", 1: "Full Power Down", 2: "Standby", 3: "Digital Reset"}))
+        self.add(pr.Variable(name="DutyCycleStabilizer", offset=0x24, bitSize=1, bitOffset=0, base='enum',
+                             enum = {0:"Off", 1: "On"}))
+
+        self.add(pr.Variable(name='ClockDivide', offset=(0xb*4), bitSize=3, bitOffset=0, base='enum',
+                             enum={i : "Divide by {:d}".format(i+1) for i in xrange(8)}))
+
+        self.add(pr.Variable(name='ChopMode', offset=(0x0c*4), bitSize=1, bitOffset=2, base='enum',
+                             enum={0: 'off', 1: 'on'}))
+
+        self.add(pr.Variable(name="DevIndexMask[7:4]", offset=0x10, bitSize=4, bitOffset=0, mode='RW', base='bin'))
+        self.add(pr.Variable(name="DevIndexMask[3:0]", offset=0x14, bitSize=4, bitOffset=0, mode='RW', base='bin'))
+        self.add(pr.Variable(name="DevIndexMask[DCO:FCO]", offset=0x14, bitSize=2, bitOffset=04, mode='RW', base='bin'))                
+                
+
+        self.add(pr.Variable(name='UserTestModeCfg', offset=(0x0D*4), bitSize=2, bitOffset=6, base='enum',
+                             enum={0: 'single', 1: 'alternate', 2: 'single once', 3: 'alternate once'}))
+        
+
+        self.add(pr.Variable(name="OutputTestMode", offset=(0x0D*4), bitSize=4, bitOffset=0, mode='RW', base='enum',
+                             enum={0: "Off", 1: "Midscale Short", 2: "Positive FS", 3: "Negative FS",
+                                    4: "Alternating checkerboard", 5: "PN23", 6: "PN9", 7: "1/0-word toggle",
+                                    8: "User Input", 9: "1/0-bit Toggle", 10: "1x sync", 11: "One bit high",
+                                    12: "mixed bit frequency"}))
+
+        self.add(pr.Variable(name='OffsetAdjust', offset=(0x10*4), bitSize=8, bitOffset=0))
+
+
+                     
 
 class Ad9249ChipConfig(pr.Device):
-    def __init__(self, name, offset=0, memBase=None, hidden=False):
-        super(self.__class__, self).__init__(name, "Configure one side of an AD9249 ADC",
-                                             memBase, offset, hidden)
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(description="Configure one side of an AD9249 ADC",
+                                             **kwargs)
 
         self.add(Ad9249ConfigGroup("Bank0Config", 0x0000));
         self.add(Ad9249ConfigGroup("Bank1Config", 0x0200));        
@@ -32,9 +55,9 @@ class Ad9249ChipConfig(pr.Device):
         
 class Ad9249Config(pr.Device):
 
-    def __init__(self, name, offset=0, memBase=None, hidden=False, chips=1):
-        super(self.__class__, self).__init__(name, "Configuration of Ad9249 ADC",
-                                             memBase, offset, hidden)
+    def __init__(self, chips=1, **kwargs):
+        super(self.__class__, self).__init__(description="Configuration of Ad9249 ADC",
+                                             **kwargs)
 
         PDWN_ADDR = int(pow(2,11+math.log(chips*2,2)))
         
@@ -47,8 +70,8 @@ class Ad9249Config(pr.Device):
                                  bitOffset = 0,
                                  base = 'bool',
                                  mode = "RW"))
-            self.add(Ad9249ConfigGroup("Bank0Config", 0x0000));
-            self.add(Ad9249ConfigGroup("Bank1Config", 0x0800));
+            self.add(Ad9249ConfigGroup(name="Bank0Config", offset=0x0000));
+            self.add(Ad9249ConfigGroup(name="Bank1Config", offset=0x0800));
         else:
             for i in range(chips):
                 self.add(pr.Variable(name = "Pdwn" + chip,
@@ -58,16 +81,16 @@ class Ad9249Config(pr.Device):
                                      bitOffset = 0,
                                      base = 'bool',
                                      mode = "RW"))
-                self.add(Ad9249ChipConfig("Ad9249Chip"+chip, 0))
+                self.add(Ad9249ChipConfig(name="Ad9249Chip"+chip, offset=(i*(0x800))))
   
 
 class Ad9249ReadoutGroup(pr.Device):
-    def __init__(self, name, offset=0, memBase=None, hidden=False, channels=8):
+    def __init__(self, channels=8, **kwargs):
 
         assert (channels > 0 and channels <= 8), "channels (%r) must be between 0 and 8" % (channels)
         
-        super(self.__class__, self).__init__(name, "Configure readout of 1 bank of an AD9249",
-                                             memBase, offset, hidden)
+        super(self.__class__, self).__init__(description="Configure readout of 1 bank of an AD9249",
+                                             **kwargs)
         
         for i in xrange(channels):
             self.add(pr.Variable(name="ChannelDelay["+str(i)+"]",
