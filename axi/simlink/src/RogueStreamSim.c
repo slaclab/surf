@@ -364,7 +364,7 @@ void RogueStreamSimUpdate ( void *userPtr ) {
    RogueStreamSimData *data = (RogueStreamSimData*)(portData->stateData);
 
    time(&ctime);
-   if (ctime != data->ltime &&
+   if ((ctime != data->ltime)  &&
        ((data->lRxCount != data->rxCount) ||
         (data->lTxCount != data->rxCount) ||
 	(data->lOcCount != data->ocCount) ||
