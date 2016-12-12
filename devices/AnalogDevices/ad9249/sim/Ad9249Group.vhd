@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-14
--- Last update: 2016-12-06
+-- Last update: 2016-12-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -148,8 +148,6 @@ architecture behavioral of Ad9249Group is
       lsbFirst        : sl;
       softReset       : sl;
       channelConfigEn : slv(9 downto 0);
-      tmpGlobal       : GlobalConfigType;
-      tmpChannel      : ChannelConfigType;
       global          : GlobalConfigType;
       channel         : ChannelConfigArray(9 downto 0);
    end record ConfigRegType;
@@ -158,9 +156,7 @@ architecture behavioral of Ad9249Group is
       rdData          => X"00000000",
       lsbFirst        => '0',
       softReset       => '0',
-      channelConfigEn => "0000000000",
-      tmpGlobal       => GLOBAL_CONFIG_INIT_C,
-      tmpChannel      => CHANNEL_CONFIG_INIT_C,
+      channelConfigEn => "1111111111",
       global          => GLOBAL_CONFIG_INIT_C,
       channel         => (others => CHANNEL_CONFIG_INIT_C));
 
@@ -218,8 +214,13 @@ begin
    process is
    begin
       pllRst <= '1';
-      wait for 100 us;
+      wait for 1 us;
+      wait until clk = '1';
+      wait until clk = '1';
+      wait until clk = '1';
+      wait until clk = '1';
       pllRst <= '0';
+      wait until locked = '1';
       wait until locked = '0';
    end process;
 
@@ -346,18 +347,7 @@ begin
 
          when X"0FF" =>                 -- device update
             if (wrEn = '1') then
-               v.global := r.tmpGlobal;
-               for i in 9 downto 0 loop
-                  if (r.channelConfigEn(i) = '1') then
-                     v.channel(i) := r.tmpChannel;
-                     if (r.tmpChannel.resetPnLongGen = '1') then
-                        v.channel(i).pn23 := PN_LONG_INIT_C;
-                     end if;
-                     if (r.tmpChannel.resetPnShortGen = '1') then
-                        v.channel(i).pn9 := PN_SHORT_INIT_C;
-                     end if;
-                  end if;
-               end loop;
+
             end if;
 
          -------------------------------------------------------------------------------------------
@@ -365,26 +355,30 @@ begin
             v.rdData(2 downto 0) := r.global.pdwnMode;
             v.rdData(5)          := r.global.pdwnPin;
             if (wrEn = '1') then
-               v.tmpGlobal.pdwnMode := wrData(2 downto 0);
-               v.tmpGlobal.pdwnPin  := wrData(5);
+               v.global.pdwnMode := wrData(2 downto 0);
+               v.global.pdwnPin  := wrData(5);
             end if;
 
          when X"009" =>                 -- clock
             v.rdData(0) := r.global.stabilizer;
             if (wrEn = '1') then
-               v.tmpGlobal.stabilizer := wrData(0);
+               v.global.stabilizer := wrData(0);
             end if;
 
          when X"00B" =>                 -- Clock Divide
             v.rdData(2 downto 0) := r.global.clockDivRatio;
             if (wrEn = '1') then
-               v.tmpGlobal.clockDivRatio := wrData(2 downto 0);
+               v.global.clockDivRatio := wrData(2 downto 0);
             end if;
 
          when X"00C" =>                 -- Enhancement Control
             v.rdData(2) := activeChannel.chopMode;
             if (wrEn = '1') then
-               v.tmpChannel.chopMode := wrData(2);
+               for i in 9 downto 0 loop
+                  if (v.channelConfigEn(i) = '1') then
+                     v.channel(i).chopMode := wrData(2);
+                  end if;
+               end loop;
             end if;
 
          when X"00D" =>                 -- test_io
@@ -393,16 +387,24 @@ begin
             v.rdData(4)          := activeChannel.resetPnShortGen;
             v.rdData(3 downto 0) := activeChannel.outputTestMode;
             if (wrEn = '1') then
-               v.tmpChannel.userTestMode    := wrData(7 downto 6);
-               v.tmpChannel.resetPnLongGen  := wrData(5);
-               v.tmpChannel.resetPnShortGen := wrData(4);
-               v.tmpChannel.outputTestMode  := wrData(3 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).userTestMode    := wrData(7 downto 6);
+                     v.channel(i).resetPnLongGen  := wrData(5);
+                     v.channel(i).resetPnShortGen := wrData(4);
+                     v.channel(i).outputTestMode  := wrData(3 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"010" =>
             v.rdData(7 downto 0) := activeChannel.offsetAdjust;
             if (wrEn = '1') then
-               v.tmpChannel.offsetAdjust := wrData(7 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).offsetAdjust := wrData(7 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"014" =>                 -- output_mode
@@ -410,9 +412,9 @@ begin
             v.rdData(2)          := r.global.outputInvert;
             v.rdData(1 downto 0) := r.global.binFormat;
             if (wrEn = '1') then
-               v.tmpGlobal.outputLvds   := wrData(6);
-               v.tmpGlobal.outputInvert := wrData(2);
-               v.tmpGlobal.binFormat    := wrData(1 downto 0);
+               v.global.outputLvds   := wrData(6);
+               v.global.outputInvert := wrData(2);
+               v.global.binFormat    := wrData(1 downto 0);
             end if;
 
          when X"015" =>                 -- output_adjust
@@ -420,44 +422,64 @@ begin
             v.rdData(5 downto 4) := r.global.termination;
             v.rdData(0)          := r.global.driveStrength;
             if (wrEn = '1') then
-               v.tmpGlobal.termination   := wrData(5 downto 4);
-               v.tmpGlobal.driveStrength := wrData(0);
+               v.global.termination   := wrData(5 downto 4);
+               v.global.driveStrength := wrData(0);
             end if;
 
          when X"016" =>                 -- output_phase
             v.rdData(3 downto 0) := activeChannel.outputPhase;
             if (wrEn = '1') then
-               v.tmpChannel.outputPhase := wrData(3 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).outputPhase := wrData(3 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"018" =>                 -- VREF
             v.rdData(2 downto 0) := r.global.fullScaleAdj;
             if (wrEn = '1') then
-               v.tmpGlobal.fullScaleAdj := wrData(2 downto 0);
+               v.global.fullScaleAdj := wrData(2 downto 0);
             end if;
 
          when X"019" =>                 -- user_patt1_lsb
             v.rdData(7 downto 0) := activeChannel.userPattern1(7 downto 0);
             if (wrEn = '1') then
-               v.tmpChannel.userPattern1(7 downto 0) := wrData(7 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).userPattern1(7 downto 0) := wrData(7 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"01A" =>                 -- user_patt1_msb
             v.rdData(7 downto 0) := activeChannel.userPattern1(15 downto 8);
             if (wrEn = '1') then
-               v.tmpChannel.userPattern1(15 downto 8) := wrData(7 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).userPattern1(15 downto 8) := wrData(7 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"01B" =>                 -- user_patt2_lsb
             v.rdData(7 downto 0) := activeChannel.userPattern2(7 downto 0);
             if (wrEn = '1') then
-               v.tmpChannel.userPattern2(7 downto 0) := wrData(7 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).userPattern2(7 downto 0) := wrData(7 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"01C" =>                 -- user_patt2_msb
             v.rdData(7 downto 0) := activeChannel.userPattern2(15 downto 8);
             if (wrEn = '1') then
-               v.tmpChannel.userPattern2(15 downto 8) := wrData(7 downto 0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).userPattern2(15 downto 8) := wrData(7 downto 0);
+                  end if;
+               end loop;
             end if;
 
          when X"021" =>                 -- serial_control
@@ -465,17 +487,21 @@ begin
             v.rdData(3)          := r.global.lowRate;
             v.rdData(2 downto 0) := r.global.bits;
             if (wrEn = '1') then
-               v.tmpGlobal.lsbFirst := wrData(7);
-               v.tmpGlobal.lowRate  := wrData(3);
-               v.tmpGlobal.bits     := wrData(2 downto 0);
+               v.global.lsbFirst := wrData(7);
+               v.global.lowRate  := wrData(3);
+               v.global.bits     := wrData(2 downto 0);
             end if;
 
          when X"022" =>                 -- serial_ch_stat
             v.rdData(1) := activeChannel.outputReset;
             v.rdData(0) := activeChannel.powerDown;
             if (wrEn = '1') then
-               v.tmpChannel.outputReset := wrData(1);
-               v.tmpChannel.powerDown   := wrData(0);
+               for i in 9 downto 0 loop
+                  if (r.channelConfigEn(i) = '1') then
+                     v.channel(i).outputReset := wrData(1);
+                     v.channel(i).powerDown   := wrData(0);
+                  end if;
+               end loop;
             end if;
 
          when X"100" =>
@@ -483,9 +509,9 @@ begin
             v.rdData(5 downto 4) := r.global.resolution;
             v.rdData(6)          := r.global.resSampleOverride;
             if (wrEn = '1') then
-               v.tmpGlobal.sampleRate        := wrData(2 downto 0);
-               v.tmpGlobal.resolution        := wrData(5 downto 4);
-               v.tmpGlobal.resSampleOverride := wrData(6);
+               v.global.sampleRate        := wrData(2 downto 0);
+               v.global.resolution        := wrData(5 downto 4);
+               v.global.resSampleOverride := wrData(6);
             end if;
 
 
