@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-12-06
+-- Last update: 2016-12-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,11 +36,9 @@ entity Ad9249Config is
    generic (
       TPD_G             : time            := 1 ns;
       NUM_CHIPS_G       : positive        := 1;
-      SIMULATION_G      : boolean         := false;
       SCLK_PERIOD_G     : real            := 1.0e-6;
       AXIL_CLK_PERIOD_G : real            := 8.0e-9;
       AXIL_ERR_RESP_G   : slv(1 downto 0) := AXI_RESP_DECERR_C);
-
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -204,7 +202,7 @@ begin
          CPHA_G            => '0',      -- Sample on leading edge
          CPOL_G            => '0',      -- Sample on rising edge
          CLK_PERIOD_G      => AXIL_CLK_PERIOD_G,
-         SPI_SCLK_PERIOD_G => ite(SIMULATION_G, 100.0E-9, SCLK_PERIOD_G))
+         SPI_SCLK_PERIOD_G => SCLK_PERIOD_G)
       port map (
          clk        => axilClk,
          sRst       => axilRst,
@@ -228,7 +226,8 @@ begin
 --          T => coreSclk);
    adcSclk <= coreSclk;
 
-   sdioDir <= '1' when shiftCount >= 16 else '0';
+   -- Allow input when doing a read and in the data segment of the shift operation
+   sdioDir <= '1' when shiftCount >= 16 and r.wrData(23)='1' else '0';
    SDIO_IOBUFT : IOBUF
       port map (
          I  => coreSDout,
