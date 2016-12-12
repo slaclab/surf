@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2016-12-05
+-- Last update: 2016-12-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -64,7 +64,8 @@ entity Ad9249ReadoutGroup is
 
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0));
+      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
+      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
 end Ad9249ReadoutGroup;
 
 -- Define architecture
@@ -140,8 +141,11 @@ architecture rtl of Ad9249ReadoutGroup is
    signal fifoDataValid : sl;
    signal fifoDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal fifoDataIn    : slv(NUM_CHANNELS_G*16-1 downto 0);
+   signal fifoDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
-   signal fifoDataTmp : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   signal debugDataValid : sl;
+   signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
+   signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);   
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -201,9 +205,9 @@ begin
       v.frameDelaySet       := '0';
       v.axilReadSlave.rdata := (others => '0');
 
-      -- Fix this
-      if (fifoDataValid = '1') then
-         v.readoutDebug0 := fifoDataTmp;
+      -- Store last two samples read from ADC
+      if (debugDataValid = '1') then
+         v.readoutDebug0 := debugDataTmp;
          v.readoutDebug1 := axilR.readoutDebug0;
       end if;
 
@@ -429,6 +433,7 @@ begin
    glue : for i in NUM_CHANNELS_G-1 downto 0 generate
       fifoDataIn(i*16+15 downto i*16)  <= adcR.fifoWrData(i);
       fifoDataTmp(i)                   <= fifoDataOut(i*16+15 downto i*16);
+      debugDataTmp(i)                  <= debugDataOut(i*16+15 downto i*16);
       adcStreams(i).tdata(15 downto 0) <= fifoDataTmp(i);
       adcStreams(i).tDest              <= toSlv(i, 8);
       adcStreams(i).tValid             <= fifoDataValid;
@@ -451,6 +456,24 @@ begin
          rd_en  => fifoDataValid,
          valid  => fifoDataValid,
          dout   => fifoDataOut);
+
+   U_DataFifoDebug : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         DATA_WIDTH_G => NUM_CHANNELS_G*16,
+         ADDR_WIDTH_G => 4,
+         INIT_G       => "0")
+      port map (
+         rst    => adcBitRst,
+         wr_clk => adcBitClkR,
+         wr_en  => '1',                 --Always write data
+         din    => fifoDataIn,
+         rd_clk => axilClk,
+         rd_en  => debugDataValid,
+         valid  => debugDataValid,
+         dout   => debugDataOut);
+
 
 end rtl;
 
