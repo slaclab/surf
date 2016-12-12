@@ -21,9 +21,9 @@
 import pyrogue as pr
 
 class Pgp2bAxi(pr.Device):
-    def __init__(self, name="Pgp2bAxi", memBase=None, offset=0, hidden=False):
-        super(self.__class__, self).__init__(name, "Configuration and status of a downstream PGP link",
-                                             memBase, offset, hidden)
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(
+            description="Configuration and status of a downstream PGP link", **kwargs)
 
         #self.add(pr.Command(
         #    name="CountReset",
@@ -64,16 +64,14 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.Variable(name="RxRemLinkData", offset = 0x24, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
         
-        #self.add(pr.Variable(name="RxCellErrorCount", offset = 0x28, bitSize = 32, bitOffset = 0, mode = "RO", base = 'bool', description = ""));
-
-        _countVars = [
+        countVars = [
             "RxCellErrorCount", "RxLinkDownCount", "RxLinkErrorCount",
             "RxRemOverflow0Count", "RxRemOverflow1Count", "RxRemOverflow2Count", "RxRemOverflow3Count",
             "RxFrameErrorCoumt", "RxFrameCount",
             "TxLocOverflow0Count","TxLocOverflow1Count","TxLocOverflow2Count","TxLocOverflow3Count",
             "TxFrameCount"]
 
-        for offset, name in enumerate(_countVars):
+        for offset, name in enumerate(countVars):
             self.add(pr.Variable(name=name, offset=((offset*4)+0x28), bitSize=32, bitOffset=0, mode="RO", base='hex'))
 
         self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
@@ -90,31 +88,19 @@ class Pgp2bAxi(pr.Device):
         
         self.add(pr.Variable(name="RxOpCodeCount", offset = 0x7C, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
-        #self.add(pr.Command(name="ResetRx", function=_resetRx))
-        #self.add(pr.Command(name="Flush", function=_flush))        
+        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
+        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
+        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
 
-
-        def _resetRx(self, cmd=None, arg=None):
-            self.ResetRxVar.set(1)
-            self.ResetRxVar.set(0)            
-
-        def _flush(self, cmd=None, arg=None):
-            self.FlushVar.set(1)
-            self.FlushVar.set(0)
-
-        def _countReset(self, cmd=None, arg=None):
-            self.CountReset.set(1)
-            self.CountReset.set(0)
-            
         def _resetFunc(dev, rstType):
             """Application specific reset function"""
             if rstType == 'soft':
-                self._flush()
+                self.Flush()
             elif rstType == 'hard':
-                self._resetRx()
+                self.ResetRx()
             elif rstType == 'count':
-                self._countReset()
+                self.CountReset()
                                         
 def _convertFrequency(dev, var):
-    return '{:f} Mhz'.format(var._getRawUInt() * 1e-6)
+    return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
     

@@ -23,11 +23,10 @@
 import pyrogue as pr
     
 class Xadc(pr.Device):
-    def __init__(self, name='Xadc', offset=0, memBase=None, hidden=False, auxChannels=0, zynq=False):
+    def __init__(self, auxChannels=0, zynq=False, **kwargs):
         super(self.__class__, self).__init__(
-            name=name,
-            description='AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)',
-            memBase=memBase, offset=offset, hidden=hidden)
+            description='AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)', **kwargs)
+            
 
         def addPair(name, offset, bitSize, bitOffset, description, function):
             """Add a Raw ADC register variable and corresponding converted value Variable"""
