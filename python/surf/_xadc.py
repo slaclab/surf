@@ -308,7 +308,7 @@ class Xadc(pr.Device):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
-        return '%0.1f'%(fpValue)    
+        return '%0.1f degC'%(fpValue)    
 
     @staticmethod
     def convVoltage(dev, var):
@@ -317,6 +317,12 @@ class Xadc(pr.Device):
         return '%0.3f V'%(fpValue)
         
 
+    def simpleView(self):
+        # Hide all the variable
+        self.hideVariables(hidden=True)
+        # Then unhide the most interesting ones
+        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
+        self.hideVariables(hidden=False, variables=vars)
         
      
                 
