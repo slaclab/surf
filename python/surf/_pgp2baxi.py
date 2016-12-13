@@ -69,7 +69,7 @@ class Pgp2bAxi(pr.Device):
             "RxRemOverflow0Count", "RxRemOverflow1Count", "RxRemOverflow2Count", "RxRemOverflow3Count",
             "RxFrameErrorCoumt", "RxFrameCount",
             "TxLocOverflow0Count","TxLocOverflow1Count","TxLocOverflow2Count","TxLocOverflow3Count",
-            "TxFrameCount"]
+            "TxFrameErrorCount", "TxFrameCount"]
 
         for offset, name in enumerate(countVars):
             self.add(pr.Variable(name=name, offset=((offset*4)+0x28), bitSize=32, bitOffset=0, mode="RO", base='hex'))
