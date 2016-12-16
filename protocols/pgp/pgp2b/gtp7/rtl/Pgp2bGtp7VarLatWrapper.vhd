@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-09-20
+-- Last update: 2016-12-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7VarLatWrapper is
    generic (
       TPD_G                : time                    := 1 ns;
+      SIMULATION_G         : boolean                 := false;
       -- MMCM Configurations (Defaults: gtClkP = 125 MHz Configuration)
       CLKIN_PERIOD_G       : real                    := 16.0;  -- gtClkP/2
       DIVCLK_DIVIDE_G      : natural range 1 to 106  := 2;
@@ -98,7 +99,7 @@ entity Pgp2bGtp7VarLatWrapper is
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);   
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp2bGtp7VarLatWrapper;
 
 architecture mapping of Pgp2bGtp7VarLatWrapper is
@@ -108,8 +109,10 @@ architecture mapping of Pgp2bGtp7VarLatWrapper is
    signal stableClock : sl;
    signal extRstSync  : sl;
 
-   signal pgpClock : sl;
-   signal pgpReset : sl;
+   signal pgpClock        : sl;
+   signal pgpTxRecClk     : sl;
+   signal pgpReset        : sl;
+   signal pgpTxMmcmLocked : sl;
 
    signal pllRefClk        : slv(1 downto 0);
    signal pllLockDetClk    : slv(1 downto 0);
@@ -147,12 +150,17 @@ begin
          asyncRst => extRst,
          syncRst  => extRstSync);
 
+--    U_BUFG_PGP : BUFG
+--       port map (
+--          I => pgpTxRecClk,
+--          O => pgpClock);
+
    ClockManager7_Inst : entity work.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => false,
+         INPUT_BUFG_G       => true,
+         FB_BUFG_G          => true,
          RST_IN_POLARITY_G  => '1',
          NUM_CLOCKS_G       => 1,
          -- MMCM attributes
@@ -162,10 +170,11 @@ begin
          CLKFBOUT_MULT_F_G  => CLKFBOUT_MULT_F_G,
          CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G)
       port map(
-         clkIn     => stableClock,
+         clkIn     => pgpTxRecClk,
          rstIn     => extRstSync,
          clkOut(0) => pgpClock,
-         rstOut(0) => pgpReset);
+         rstOut(0) => open,
+         locked    => pgpTxMmcmLocked);
 
    -- PLL0 Port Mapping
    pllRefClk(0)     <= refClk;
@@ -180,6 +189,7 @@ begin
    Quad_Pll_Inst : entity work.Gtp7QuadPll
       generic map (
          TPD_G                => TPD_G,
+         SIM_RESET_SPEEDUP_G  => ite(SIMULATION_G, "TRUE", "FALSE"),
          PLL0_REFCLK_SEL_G    => QPLL_REFCLK_SEL_G,
          PLL0_FBDIV_IN_G      => QPLL_FBDIV_IN_G,
          PLL0_FBDIV_45_IN_G   => QPLL_FBDIV_45_IN_G,
@@ -199,26 +209,27 @@ begin
 
    Pgp2bGtp7VarLat_Inst : entity work.Pgp2bGtp7VarLat
       generic map (
-         TPD_G             => TPD_G,
+         TPD_G                 => TPD_G,
+         SIM_GTRESET_SPEEDUP_G => ite(SIMULATION_G, "TRUE", "FALSE"),
          -- MGT Configurations
-         RXOUT_DIV_G       => RXOUT_DIV_G,
-         TXOUT_DIV_G       => TXOUT_DIV_G,
-         RX_CLK25_DIV_G    => RX_CLK25_DIV_G,
-         TX_CLK25_DIV_G    => TX_CLK25_DIV_G,
-         RX_OS_CFG_G       => RX_OS_CFG_G,
-         RXCDR_CFG_G       => RXCDR_CFG_G,
-         RXLPM_INCM_CFG_G  => RXLPM_INCM_CFG_G,
-         RXLPM_IPCM_CFG_G  => RXLPM_IPCM_CFG_G,
+         RXOUT_DIV_G           => RXOUT_DIV_G,
+         TXOUT_DIV_G           => TXOUT_DIV_G,
+         RX_CLK25_DIV_G        => RX_CLK25_DIV_G,
+         TX_CLK25_DIV_G        => TX_CLK25_DIV_G,
+         RX_OS_CFG_G           => RX_OS_CFG_G,
+         RXCDR_CFG_G           => RXCDR_CFG_G,
+         RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
+         RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
          -- Configure PLL sources
-         TX_PLL_G          => "PLL0",
-         RX_PLL_G          => "PLL1",
+         TX_PLL_G              => "PLL0",
+         RX_PLL_G              => "PLL1",
          -- Configure PGP
-         RX_ENABLE_G       => RX_ENABLE_G,
-         TX_ENABLE_G       => TX_ENABLE_G,
-         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
-         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         NUM_VC_EN_G       => NUM_VC_EN_G)
+         RX_ENABLE_G           => RX_ENABLE_G,
+         TX_ENABLE_G           => TX_ENABLE_G,
+         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
+         PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
+         VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
+         NUM_VC_EN_G           => NUM_VC_EN_G)
       port map (
          -- GT Clocking
          stableClk        => stableClock,
@@ -233,11 +244,11 @@ begin
          gtRxP            => gtRxP,
          gtRxN            => gtRxN,
          -- Tx Clocking
-         pgpTxReset       => pgpReset,
-         pgpTxRecClk      => open,
+         pgpTxReset       => extRstSync,
+         pgpTxRecClk      => pgpTxRecClk,
          pgpTxClk         => pgpClock,
          pgpTxMmcmReset   => open,
-         pgpTxMmcmLocked  => '1',
+         pgpTxMmcmLocked  => pgpTxMmcmLocked,
          -- Rx clocking
          pgpRxReset       => pgpReset,
          pgpRxRecClk      => open,
@@ -266,6 +277,6 @@ begin
          axilReadMaster   => axilReadMaster,
          axilReadSlave    => axilReadSlave,
          axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave);                 
+         axilWriteSlave   => axilWriteSlave);
 
 end mapping;
