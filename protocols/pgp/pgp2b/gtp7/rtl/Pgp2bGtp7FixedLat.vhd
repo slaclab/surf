@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-11-03
+-- Last update: 2016-12-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,8 +90,10 @@ entity Pgp2bGtp7FixedLat is
       gtTxP : out sl;                   -- GT Serial Transmit Positive
 
       -- Tx Clocking
-      pgpTxReset : in sl;
-      pgpTxClk   : in sl;
+      pgpTxReset      : in  sl;
+      pgpTxClk        : in  sl;
+      pgpTxMmcmReset  : out sl := '0';
+      pgpTxMmcmLocked : in  sl := '1';
 
       -- Rx clocking
       pgpRxReset      : in  sl;
@@ -333,8 +335,8 @@ begin
          txUsrClkIn       => gtTxUsrClk,
          txUsrClk2In      => gtTxUsrClk,
          txUserRdyOut     => open,      -- Not sure what to do with this
-         txMmcmResetOut   => open,      -- No Tx MMCM in Fixed Latency mode
-         txMmcmLockedIn   => '1',
+         txMmcmResetOut   => pgpTxMmcmReset,               -- No Tx MMCM in Fixed Latency mode
+         txMmcmLockedIn   => pgpTxMmcmLocked,
          txUserResetIn    => pgpTxReset,
          txResetDoneOut   => gtTxResetDone,
          txDataIn         => phyTxLanesOut(0).data,
