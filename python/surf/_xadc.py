@@ -302,13 +302,29 @@ class Xadc(pr.Device):
                              When this bit is a logic 1, the ADC is using the internal 
                              voltage reference. When this bit is a logic 0, the external 
                              reference is being used."""))
+
+        self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
+                             getFunction=Xadc.getTemp, setFunction=Xadc.setTemp))
         
     @staticmethod
     def convTemp(dev, var):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
-        return '%0.1f degC'%(fpValue)    
+        return '%0.1f degC'%(fpValue)
+
+    @staticmethod
+    def getTemp(dev, var):
+        value   = var._block.getUInt(var.bitOffset, var.bitSize)
+        fpValue = value*(503.975/4096.0)
+        fpValue -= 273.15
+        return '%0.1f degC'%(fpValue)
+    
+    @staticmethod
+    def setTemp(dev, var, value):
+        ivalue = int((int(value) + 273.15)*(4096/503.975))
+        print 'Setting Temp thresh to {:x}'.format(ivalue)
+        var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
     @staticmethod
     def convVoltage(dev, var):
@@ -321,7 +337,7 @@ class Xadc(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
+        vars = ["Temperature", "VccInt", "VccAux", "VccBram", 'OT Limit']
         self.hideVariables(hidden=False, variables=vars)
         
      
