@@ -75,12 +75,12 @@ use ieee.std_logic_unsigned.all;
 entity Gtp7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
-      SIMULATION_G : boolean := false;
+      SIMULATION_G           : boolean               := false;
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
       TX_PLL0_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
       RX_PLL0_USED           : boolean               := false   -- share these two generic values
-      );     
+      );
    port (STABLE_CLOCK             : in  std_logic;  --Stable Clock, either a stable clock from the PCB
                                                     --or reference-clock present at startup.
          RXUSERCLK                : in  std_logic;  --RXUSERCLK as used in the design
@@ -107,10 +107,10 @@ entity Gtp7RxRst is
          RUN_PHALIGNMENT          : out std_logic;
          PHALIGNMENT_DONE         : in  std_logic;
          RESET_PHALIGNMENT        : out std_logic                                            := '0';
-         RXDFEAGCHOLD             : out std_logic := '0';
-         RXDFELFHOLD              : out std_logic := '0';
-         RXLPMLFHOLD              : out std_logic := '0';
-         RXLPMHFHOLD              : out std_logic := '0';
+         RXDFEAGCHOLD             : out std_logic                                            := '0';
+         RXDFELFHOLD              : out std_logic                                            := '0';
+         RXLPMLFHOLD              : out std_logic                                            := '0';
+         RXLPMHFHOLD              : out std_logic                                            := '0';
          RETRY_COUNTER            : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of 
                                         -- Retries it took to get the transceiver up and running
          );
@@ -194,25 +194,54 @@ architecture RTL of Gtp7RxRst is
 
    signal refclk_lost : std_logic;
 
-   signal data_valid_sync   : std_logic := '0';
-   signal pll0lock_sync     : std_logic := '0';
-   signal pll1lock_sync     : std_logic := '0';
-   signal pll0lock_prev     : std_logic := '0';
-   signal pll1lock_prev     : std_logic := '0';
-   signal pll0lock_ris_edge : std_logic := '0';
-   signal pll1lock_ris_edge : std_logic := '0';
+   signal data_valid_sync       : std_logic := '0';
+   signal pll0lock_sync         : std_logic := '0';
+   signal pll1lock_sync         : std_logic := '0';
+   signal pll0lock_prev         : std_logic := '0';
+   signal pll1lock_prev         : std_logic := '0';
+   signal pll0lock_ris_edge     : std_logic := '0';
+   signal pll1lock_ris_edge     : std_logic := '0';
    signal phalignment_done_sync : std_logic := '0';
 
    signal fsmCnt : std_logic_vector(15 downto 0) := (others => '0');
 
---   attribute dont_touch : string;
---   attribute dont_touch of rx_state,
---      reset_time_out,
---      recclk_mon_restart_count,
---      retry_counter_int,
---      data_valid_sync,
---      gtrxreset_i : signal is "TRUE";
-   
+   attribute mark_debug : string;
+   attribute mark_debug of
+      SOFT_RESET,
+      RXPMARESETDONE,
+      RXOUTCLK,
+      PLL0REFCLKLOST,
+      PLL1REFCLKLOST,
+      PLL0LOCK,
+      PLL1LOCK,
+      RXRESETDONE,
+      MMCM_LOCK,
+      RECCLK_STABLE,
+      RECCLK_MONITOR_RESTART,
+      DATA_VALID,
+      TXUSERRDY,
+      DONT_RESET_ON_DATA_ERROR,
+      GTRXRESET,
+      MMCM_RESET,
+      PLL0_RESET,
+      PLL1_RESET,
+      RX_FSM_RESET_DONE,
+      RXUSERRDY,
+      RUN_PHALIGNMENT,
+      PHALIGNMENT_DONE,
+      RESET_PHALIGNMENT,
+      RXDFEAGCHOLD,
+      RXDFELFHOLD,
+      RXLPMLFHOLD,
+      RXLPMHFHOLD,
+      rx_state,
+      reset_time_out,
+      recclk_mon_restart_count,
+      retry_counter_int,
+      data_valid_sync,
+      rx_fsm_reset_done_int,
+      gtrxreset_i : signal is "TRUE";
+
 begin
 
    --Alias section, signals used within this module mapped to output ports:
@@ -472,7 +501,7 @@ begin
          dataIn  => PHALIGNMENT_DONE,
          dataOut => phalignment_done_sync);
 
-   
+
    timeout_buffer_bypass : process(RXUSERCLK)
    begin
       if rising_edge(RXUSERCLK) then
@@ -535,7 +564,7 @@ begin
             fsmCnt                  <= (others => '0');
 
          else
-            
+
             case rx_state is
                when INIT =>
                   --Initial state after configuration. This state will be left after
@@ -543,7 +572,7 @@ begin
                   if init_wait_done = '1' then
                      rx_state <= ASSERT_ALL_RESETS;
                   end if;
-                  
+
                when ASSERT_ALL_RESETS =>
                   --This is the state into which the FSM will always jump back if any
                   --time-outs will occur. 
@@ -581,7 +610,7 @@ begin
                      rx_state       <= RELEASE_PLL_RESET;
                      reset_time_out <= '1';
                   end if;
-                  
+
                when RELEASE_PLL_RESET =>
                   --PLL-Reset of the GTX gets released and the time-out counter
                   --starts running.
@@ -620,7 +649,7 @@ begin
                   if RECCLK_STABLE = '1' then
                      rx_state       <= RELEASE_MMCM_RESET;
                      reset_time_out <= '1';
-                     
+
                   end if;
 
                   if recclk_mon_restart_count = 2 then
@@ -635,7 +664,7 @@ begin
                      end if;
                      rx_state <= ASSERT_ALL_RESETS;
                   end if;
-                  
+
                when RELEASE_MMCM_RESET =>
                   --Release of the MMCM-reset. Waiting for the MMCM to lock.
                   check_tlock_max <= '1';
@@ -660,7 +689,7 @@ begin
                      end if;
                      rx_state <= ASSERT_ALL_RESETS;
                   end if;
-                  
+
                when WAIT_RESET_DONE =>
                   --When TXOUTCLK is the source for RXUSRCLK, RXUSERRDY depends on TXUSERRDY
                   --If RXOUTCLK is the source for RXUSRCLK, TXUSERRDY can be tied to '1'
@@ -683,7 +712,7 @@ begin
                      end if;
                      rx_state <= ASSERT_ALL_RESETS;
                   end if;
-                  
+
                when DO_PHASE_ALIGNMENT =>
                   --The direct handling of the signals for the Phase Alignment is done outside
                   --this state-machine. 
@@ -706,7 +735,7 @@ begin
                      end if;
                      rx_state <= ASSERT_ALL_RESETS;
                   end if;
-                  
+
                when MONITOR_DATA_VALID =>
                   reset_time_out <= '0';
                   if(time_out_100us = '1' and data_valid_sync = '0' and DONT_RESET_ON_DATA_ERROR = '0' and reset_time_out = '0') then
@@ -723,7 +752,7 @@ begin
                      rx_fsm_reset_done_int <= '0';
                      reset_time_out        <= '1';
                   end if;
-                  
+
                when FSM_DONE =>
                   reset_time_out <= '0';
                   if data_valid_sync = '0' then
