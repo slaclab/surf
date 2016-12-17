@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-25
--- Last update: 2016-04-13
+-- Last update: 2016-12-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,9 +76,14 @@ architecture rtl of DeviceDna7Series is
    signal locClk  : sl;
    signal locRst  : sl;
 
+   signal locClkInv : sl;
+   signal locClkInvR : sl;
+
 begin
 
    locClk <= slowClk when(USE_SLOWCLK_G) else divClk;
+
+   locClkInv <= not locClk;
 
    BUFR_Inst : BUFR
       generic map (
@@ -89,6 +94,17 @@ begin
          CE  => '1',
          CLR => '0',
          O   => divClk);
+
+   DNA_CLK_INV_BUFR : BUFR
+      generic map (
+         BUFR_DIVIDE => "1",
+         SIM_DEVICE  => "7SERIES")
+      port map (
+         I   => locClkInv,
+         CE  => '1',
+         CLR => '0',
+         O   => locClkInvR);
+   
 
    RstSync_Inst : entity work.RstSync
       generic map (
@@ -153,9 +169,9 @@ begin
 
    end process comb;
 
-   sync : process (locClk) is
+   sync : process (locClkInvR) is
    begin
-      if (falling_edge(locClk)) then
+      if (rising_edge(locClkInvR)) then
          r <= rin after TPD_G;
       end if;
    end process sync;
