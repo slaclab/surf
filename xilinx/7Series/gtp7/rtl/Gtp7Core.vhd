@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-06-29
--- Last update: 2016-12-01
+-- Last update: 2016-12-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -272,7 +272,7 @@ architecture rtl of Gtp7Core is
 
    constant GT_TYPE_C : string := "GTP";
 
-   constant WAIT_TIME_CDRLOCK_C : integer := ite(SIM_GTRESET_SPEEDUP_G = "TRUE", 16, 65520);
+   constant WAIT_TIME_CDRLOCK_C : integer := ite(SIM_GTRESET_SPEEDUP_G = "TRUE", 16, 165520);
 
    --------------------------------------------------------------------------------------------------
    -- Signals
