@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
--- Last update: 2014-01-30
+-- Last update: 2016-12-16
 -- Platform   : Xilinx 7 Series
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
 entity Gtp7RxFixedLatPhaseAligner is
-   
+
    generic (
       TPD_G       : time            := 1 ns;
       WORD_SIZE_G : integer         := 20;
@@ -48,7 +48,7 @@ entity Gtp7RxFixedLatPhaseAligner is
       COMMA_3_G   : slv             := "XXXXXXXXXXXXXXXXXXXX");
    port (
       rxUsrClk             : in  sl;
-      rxRunPhAlignment     : in  sl;  -- From RxRst, active low reset, not clocked by rxUsrClk
+      rxRunPhAlignment     : in  sl;    -- From RxRst, active low reset, not clocked by rxUsrClk
       rxData               : in  slv(WORD_SIZE_G-1 downto 0);  -- Encoded raw rx data
       rxReset              : out sl;
       rxSlide              : out sl;    -- RXSLIDE input to GTX
@@ -58,7 +58,7 @@ end entity Gtp7RxFixedLatPhaseAligner;
 
 architecture rtl of Gtp7RxFixedLatPhaseAligner is
 
-   constant SLIDE_WAIT_C : integer := 32;  -- Dictated by UG476 GTX Tranceiver Guide
+   constant SLIDE_WAIT_C : integer := 64;  -- Dictated by UG476 GTX Tranceiver Guide
 
    type StateType is (SEARCH_S, RESET_S, SLIDE_S, SLIDE_WAIT_S, ALIGNED_S);
 
@@ -84,7 +84,10 @@ architecture rtl of Gtp7RxFixedLatPhaseAligner is
    signal r, rin : RegType := REG_RESET_C;
 
    signal rxRunPhAlignmentSync : sl;
-   
+
+   attribute mark_debug                           : string;
+   attribute mark_debug of r                : signal is "TRUE";
+
 begin
 
    -- Must use async resets since rxUsrClk can drop out
@@ -134,7 +137,7 @@ begin
          when RESET_S =>
             -- Async reset will eventually get everything back to SEARCH_S state
             v.rxReset := '1';
-            
+
          when SLIDE_S =>
             v.rxSlide := '1';
             v.state   := SLIDE_WAIT_S;
@@ -154,7 +157,7 @@ begin
          when ALIGNED_S =>
             v.rxPhaseAlignmentDone := '1';
             -- Gtx7RxRst module will reset this module back to SEARCH_S if alignment is lost
-            
+
       end case;
 
       rin <= v;
@@ -174,5 +177,5 @@ begin
          r <= REG_RESET_C after TPD_G;
       end if;
    end process;
-   
+
 end architecture rtl;
