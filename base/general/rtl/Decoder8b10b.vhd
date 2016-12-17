@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2013-08-02
+-- Last update: 2016-12-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,6 +63,10 @@ architecture rtl of Decoder8b10b is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   attribute mark_debug : string;
+   attribute mark_debug of r, dataIn, rst : signal is "TRUE";
+
 
 begin
 
