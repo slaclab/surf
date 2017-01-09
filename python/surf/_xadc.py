@@ -174,7 +174,7 @@ class Xadc(pr.Device):
                 VrefN, thus 1 LSB = 3V/4096. The data is MSB justified in 
                 the 16-bit register.      """)
 
-        for i in xrange(auxChannels):
+        for i in range(auxChannels):
             self.add(pr.Variable(name='Aux[{:d}]Raw'.format(i),
                                  offset=(i*4)+0x240, bitSize=12, bitOffset=4, base='hex', mode='RO',
                                  description="""
@@ -323,7 +323,7 @@ class Xadc(pr.Device):
     @staticmethod
     def setTemp(dev, var, value):
         ivalue = int((int(value) + 273.15)*(4096/503.975))
-        print 'Setting Temp thresh to {:x}'.format(ivalue)
+        print( 'Setting Temp thresh to {:x}'.format(ivalue) )
         var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
     @staticmethod

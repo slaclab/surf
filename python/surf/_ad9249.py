@@ -26,7 +26,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.Variable(name="DevIndexMask[7:4]", offset=0x10, bitSize=4, bitOffset=0, mode='RW', base='bin'))
         self.add(pr.Variable(name="DevIndexMask[3:0]", offset=0x14, bitSize=4, bitOffset=0, mode='RW', base='bin'))
-        self.add(pr.Variable(name="DevIndexMask[DCO:FCO]", offset=0x14, bitSize=2, bitOffset=04, mode='RW', base='bin'))                
+        self.add(pr.Variable(name="DevIndexMask[DCO:FCO]", offset=0x14, bitSize=2, bitOffset=0x4, mode='RW', base='bin'))                
                 
 
         self.add(pr.Variable(name='UserTestModeCfg', offset=(0x0D*4), bitSize=2, bitOffset=6, base='enum',
