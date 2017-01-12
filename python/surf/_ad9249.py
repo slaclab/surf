@@ -19,7 +19,7 @@ class Ad9249ConfigGroup(pr.Device):
                              enum = {0:"Off", 1: "On"}))
 
         self.add(pr.Variable(name='ClockDivide', offset=(0xb*4), bitSize=3, bitOffset=0, base='enum',
-                             enum={i : "Divide by {:d}".format(i+1) for i in xrange(8)}))
+                             enum={i : "Divide by {:d}".format(i+1) for i in range(8)}))
 
         self.add(pr.Variable(name='ChopMode', offset=(0x0c*4), bitSize=1, bitOffset=2, base='enum',
                              enum={0: 'off', 1: 'on'}))
@@ -49,8 +49,8 @@ class Ad9249ChipConfig(pr.Device):
         super(self.__class__, self).__init__(description="Configure one side of an AD9249 ADC",
                                              **kwargs)
 
-        self.add(Ad9249ConfigGroup("Bank0Config", 0x0000));
-        self.add(Ad9249ConfigGroup("Bank1Config", 0x0200));        
+        self.add(Ad9249ConfigGroup("BankConfig[0]", 0x0000));
+        self.add(Ad9249ConfigGroup("BankConfig[1]", 0x0200));        
 
         
 class Ad9249Config(pr.Device):
@@ -70,8 +70,8 @@ class Ad9249Config(pr.Device):
                                  bitOffset = 0,
                                  base = 'bool',
                                  mode = "RW"))
-            self.add(Ad9249ConfigGroup(name="Bank0Config", offset=0x0000));
-            self.add(Ad9249ConfigGroup(name="Bank1Config", offset=0x0800));
+            self.add(Ad9249ConfigGroup(name="BankConfig[0]", offset=0x0000));
+            self.add(Ad9249ConfigGroup(name="BankConfig[1]", offset=0x0800));
         else:
             for i in range(chips):
                 self.add(pr.Variable(name = "Pdwn" + chip,
@@ -81,7 +81,7 @@ class Ad9249Config(pr.Device):
                                      bitOffset = 0,
                                      base = 'bool',
                                      mode = "RW"))
-                self.add(Ad9249ChipConfig(name="Ad9249Chip"+chip, offset=(i*(0x800))))
+                self.add(Ad9249ChipConfig(name="Ad9249Chip[{:d}]".format(chip), offset=(i*(0x800))))
   
 
 class Ad9249ReadoutGroup(pr.Device):
@@ -92,7 +92,7 @@ class Ad9249ReadoutGroup(pr.Device):
         super(self.__class__, self).__init__(description="Configure readout of 1 bank of an AD9249",
                                              **kwargs)
         
-        for i in xrange(channels):
+        for i in range(channels):
             self.add(pr.Variable(name="ChannelDelay["+str(i)+"]",
                                  description = "IDELAY value for serial channel " + str(i),
                                  offset = i*4,
@@ -133,8 +133,8 @@ class Ad9249ReadoutGroup(pr.Device):
                              base = 'hex',
                              mode = "RO"))
 
-        for i in xrange(channels):
-            self.add(pr.Variable(name="AdcChannel{:d}".format(i),
+        for i in range(channels):
+            self.add(pr.Variable(name="AdcChannel[{:d}]".format(i),
                                  description = 'Last deserialized channel {:d} ADC value for debug'.format(i),
                                  offset = 0x80 + (i*4),
                                  bitSize = 32,
