@@ -71,14 +71,14 @@ def create(name='axiVersion', offset=0, memBase=None, hidden=False, enabled=True
     dev.add(pyrogue.Variable(name='fpgaReloadAddress', description='Reload start address',
                              offset=0x20, bitSize=32, bitOffset=0, base='hex', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='counter', description='Free running counter', pollEn=True,
+    dev.add(pyrogue.Variable(name='counter', description='Free running counter', pollInterval=1,
                              offset=0x24, bitSize=32, bitOffset=0, base='hex', mode='RO'))
 
     # Bool is not used locally. Access will occur just as a uint or hex. The GUI will know how to display it.
     dev.add(pyrogue.Variable(name='fpgaReloadHalt', description='Used to halt automatic reloads via AxiVersion',
                              offset=0x28, bitSize=1, bitOffset=0, base='bool', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='upTimeCnt', description='Number of seconds since reset', pollEn=True,
+    dev.add(pyrogue.Variable(name='upTimeCnt', description='Number of seconds since reset', pollInterval=1,
                              offset=0x2C, bitSize=32, bitOffset=0, base='uint', units="seconds", mode='RO'))
 
     dev.add(pyrogue.Variable(name='deviceId', description='Device identification',
@@ -160,5 +160,6 @@ def resetFunc(dev,rstType):
     elif rstType == 'hard':
         dev.masterResetVar.post(1)
     elif rstType == 'count':
+        print('AxiVersion countReset')
         dev.counter.set(0)
 
