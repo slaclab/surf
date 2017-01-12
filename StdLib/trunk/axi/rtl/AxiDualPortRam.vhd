@@ -73,7 +73,7 @@ end entity AxiDualPortRam;
 architecture rtl of AxiDualPortRam is
 
    -- Number of Axi address bits that need to be manually decoded
-   constant AXI_DEC_BITS_C : integer := (DATA_WIDTH_G-1)/32;
+   constant AXI_DEC_BITS_C : integer := ite(DATA_WIDTH_G <= 32, 0, log2((DATA_WIDTH_G-1)/32));
    subtype AXI_DEC_ADDR_RANGE_C is integer range 1+AXI_DEC_BITS_C downto 2;
    subtype AXI_RAM_ADDR_RANGE_C is integer range ADDR_WIDTH_G+AXI_DEC_ADDR_RANGE_C'high downto AXI_DEC_ADDR_RANGE_C'high+1;
 
