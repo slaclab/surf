@@ -20,301 +20,60 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue
+import pyrogue as pr
+import functools as ft
 
-def create(name='axiStreamDmaRingWrite', offset=0, memBase=None, hidden=False):
+class AxiStreamDmaRingWrite(pr.Device):
+    def __init__(self, numBuffers, msgDestEnum=None, **kwargs):
+        super(self.__class__, self).__init__(description='DMA Ring Buffer Manager', **kwargs)
 
-    dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
-                         hidden=hidden,size=0x1000,
-                         description='DMA Ring Buffer Manager')
+        assert 2 <= numBuffers <= 64, "numBuffers ({:d}) must be between 2 and 64 (inclusive)".format(numBuffers)
 
-    dev.add(pyrogue.Variable(name='startAddr_0',
-                             description='',
-                             hidden=False, enum=None, offset=0x0, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        if msgDestEnum is None:
+            msgDestEnum = {0: 'Software', 1: 'Auto-Readout'}
 
-    dev.add(pyrogue.Variable(name='startAddr_1',
-                             description='',
-                             hidden=False, enum=None, offset=0x8, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables = ft.partial(self.addVariables, numBuffers)
+        addCommands = ft.partial(self.addCommands, numBuffers)
 
-    dev.add(pyrogue.Variable(name='startAddr_2',
-                             description='',
-                             hidden=False, enum=None, offset=0x10, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables(8, name='StartAddr', offset=0x000, bitSize=64, bitOffset=0, base='hex', mode='RW')
 
-    dev.add(pyrogue.Variable(name='startAddr_3',
-                             description='',
-                             hidden=False, enum=None, offset=0x18, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables(8, name='EndAddr', offset=0x200, bitSize=64, bitOffset=0, base='hex', mode='RW')
 
-    dev.add(pyrogue.Variable(name='endAddr_0',
-                             description='',
-                             hidden=False, enum=None, offset=0x200, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables(8, name='WrAddr', offset=0x400, bitSize=64, bitOffset=0, base='hex', mode='RO')
 
-    dev.add(pyrogue.Variable(name='endAddr_1',
-                             description='',
-                             hidden=False, enum=None, offset=0x208, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables(8, name='TriggerAddr', offset=0x600, bitSize=64, bitOffset=0, base='hex', mode='RO')
 
-    dev.add(pyrogue.Variable(name='endAddr_2',
-                             description='',
-                             hidden=False, enum=None, offset=0x210, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables(4, name='BufEnabled', offset=0x800, bitSize=1, bitOffset=0, base='bool', mode='RW')
 
-    dev.add(pyrogue.Variable(name='endAddr_3',
-                             description='',
-                             hidden=False, enum=None, offset=0x218, bitSize=64, bitOffset=0, base='uint', mode='RW'))
+        addVariables(4, name='BufMode', offset=0x800, enum={0: 'Wrap', 1: 'DoneWhenFull'}, bitSize=1, bitOffset=1, mode='RW')
 
-    dev.add(pyrogue.Variable(name='wrAddr_0',
-                             description='',
-                             hidden=False, enum=None, offset=0x400, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addCommands(4, name='BufInit', offset=0x800, bitSize=1, bitOffset=2, mode='RW', function=pr.Command.toggle)
 
-    dev.add(pyrogue.Variable(name='wrAddr_1',
-                             description='',
-                             hidden=False, enum=None, offset=0x408, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addCommands(4, name='SoftTrigger', offset=0x800, bitSize=1, bitOffset=3, function=pr.Command.toggle)
 
-    dev.add(pyrogue.Variable(name='wrAddr_2',
-                             description='',
-                             hidden=False, enum=None, offset=0x410, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addVariables(4, name='MsgDest',  offset=0x800, enum=msgDestEnum, bitSize=4, bitOffset=4, mode='RW')
 
-    dev.add(pyrogue.Variable(name='wrAddr_3',
-                             description='',
-                             hidden=False, enum=None, offset=0x418, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addVariables(4, name='FramesAfterTrigger', offset=0x800, bitSize=16, bitOffset=16, base='hex', mode='RW')
 
-    dev.add(pyrogue.Variable(name='triggerAddr_0',
-                             description='',
-                             hidden=False, enum=None, offset=0x600, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addVariables(4, name='Empty', offset=0xa00, bitSize=1, bitOffset=0, base='bool', mode='RO')
 
-    dev.add(pyrogue.Variable(name='triggerAddr_1',
-                             description='',
-                             hidden=False, enum=None, offset=0x608, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addVariables(4, name='Full', offset=0xa00, bitSize=1, bitOffset=1, base='bool', mode='RO')
 
-    dev.add(pyrogue.Variable(name='triggerAddr_2',
-                             description='',
-                             hidden=False, enum=None, offset=0x610, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addVariables(4, name='Done', offset=0xa00, bitSize=1, bitOffset=2, base='bool', mode='RO')
 
-    dev.add(pyrogue.Variable(name='triggerAddr_3',
-                             description='',
-                             hidden=False, enum=None, offset=0x618, bitSize=64, bitOffset=0, base='uint', mode='RO'))
+        addVariables(4, name='Triggered', offset=0xa00, bitSize=1, bitOffset=3, base='bool', mode='RO')
 
-    dev.add(pyrogue.Variable(name='enabled_0',
-                             description='',
-                             hidden=False, enum=None, offset=0x800, bitSize=1, bitOffset=0, base='uint', mode='RW'))
+        addVariables(4, name='Error', offset=0xa00, bitSize=1, bitOffset=4, base='bool', mode='RO')
 
-    dev.add(pyrogue.Variable(name='enabled_1',
-                             description='',
-                             hidden=False, enum=None, offset=0x804, bitSize=1, bitOffset=0, base='uint', mode='RW'))
+        addVariables(4, name='BurstSize', offset=0xa00, bitSize=4, bitOffset=8, base='hex', mode='RO')
 
-    dev.add(pyrogue.Variable(name='enabled_2',
-                             description='',
-                             hidden=False, enum=None, offset=0x808, bitSize=1, bitOffset=0, base='uint', mode='RW'))
+        addVariables(4, name='FramesSinceTrigger', offset=0xa00, bitSize=16, bitOffset=16, base='hex', mode='RO')
 
-    dev.add(pyrogue.Variable(name='enabled_3',
-                             description='',
-                             hidden=False, enum=None, offset=0x80c, bitSize=1, bitOffset=0, base='uint', mode='RW'))
+        @self.command()
+        def SoftTriggerAll(dev, cmd, arg):
+            for t in self.SoftTrigger.values():
+                self.t()
 
-    dev.add(pyrogue.Variable(name='mode_0',
-                             description='',
-                             hidden=False, enum={0: 'Wrap', 1: 'DoneWhenFull'}, offset=0x800, bitSize=1, bitOffset=1, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='mode_1',
-                             description='',
-                             hidden=False, enum={0: 'Wrap', 1: 'DoneWhenFull'}, offset=0x804, bitSize=1, bitOffset=1, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='mode_2',
-                             description='',
-                             hidden=False, enum={0: 'Wrap', 1: 'DoneWhenFull'}, offset=0x808, bitSize=1, bitOffset=1, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='mode_3',
-                             description='',
-                             hidden=False, enum={0: 'Wrap', 1: 'DoneWhenFull'}, offset=0x80c, bitSize=1, bitOffset=1, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='init_0',
-                             description='',
-                             hidden=True, enum=None, offset=0x800, bitSize=1, bitOffset=2, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='init_1',
-                             description='',
-                             hidden=True, enum=None, offset=0x804, bitSize=1, bitOffset=2, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='init_2',
-                             description='',
-                             hidden=True, enum=None, offset=0x808, bitSize=1, bitOffset=2, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='init_3',
-                             description='',
-                             hidden=True, enum=None, offset=0x80c, bitSize=1, bitOffset=2, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='softTrigger_0',
-                             description='',
-                             hidden=True, enum=None, offset=0x800, bitSize=1, bitOffset=3, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='softTrigger_1',
-                             description='',
-                             hidden=True, enum=None, offset=0x804, bitSize=1, bitOffset=3, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='softTrigger_2',
-                             description='',
-                             hidden=True, enum=None, offset=0x808, bitSize=1, bitOffset=3, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='softTrigger_3',
-                             description='',
-                             hidden=True, enum=None, offset=0x80c, bitSize=1, bitOffset=3, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='msgDest_0',
-                             description='',
-                             hidden=True, enum={0: 'Software', 1: 'Auto-Readout'}, offset=0x800, bitSize=4, bitOffset=4, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='msgDest_1',
-                             description='',
-                             hidden=True, enum={0: 'Software', 1: 'Auto-Readout'}, offset=0x804, bitSize=4, bitOffset=4, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='msgDest_2',
-                             description='',
-                             hidden=True, enum={0: 'Software', 1: 'Auto-Readout'}, offset=0x808, bitSize=4, bitOffset=4, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='msgDest_3',
-                             description='',
-                             hidden=True, enum={0: 'Software', 1: 'Auto-Readout'}, offset=0x80c, bitSize=4, bitOffset=4, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='framesAfterTrigger_0',
-                             description='',
-                             hidden=False, enum=None, offset=0x800, bitSize=16, bitOffset=16, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='framesAfterTrigger_1',
-                             description='',
-                             hidden=False, enum=None, offset=0x804, bitSize=16, bitOffset=16, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='framesAfterTrigger_2',
-                             description='',
-                             hidden=False, enum=None, offset=0x808, bitSize=16, bitOffset=16, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='framesAfterTrigger_3',
-                             description='',
-                             hidden=False, enum=None, offset=0x80c, bitSize=16, bitOffset=16, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='empty_0',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=1, bitOffset=0, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='empty_1',
-                             description='',
-                             hidden=False, enum=None, offset=0xa04, bitSize=1, bitOffset=0, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='empty_2',
-                             description='',
-                             hidden=False, enum=None, offset=0xa08, bitSize=1, bitOffset=0, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='empty_3',
-                             description='',
-                             hidden=False, enum=None, offset=0xa0c, bitSize=1, bitOffset=0, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='full_0',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=1, bitOffset=1, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='full_1',
-                             description='',
-                             hidden=False, enum=None, offset=0xa04, bitSize=1, bitOffset=1, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='full_2',
-                             description='',
-                             hidden=False, enum=None, offset=0xa08, bitSize=1, bitOffset=1, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='full_3',
-                             description='',
-                             hidden=False, enum=None, offset=0xa0c, bitSize=1, bitOffset=1, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='done_0',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=1, bitOffset=2, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='done_1',
-                             description='',
-                             hidden=False, enum=None, offset=0xa04, bitSize=1, bitOffset=2, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='done_2',
-                             description='',
-                             hidden=False, enum=None, offset=0xa08, bitSize=1, bitOffset=2, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='done_3',
-                             description='',
-                             hidden=False, enum=None, offset=0xa0c, bitSize=1, bitOffset=2, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='triggered_0',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=1, bitOffset=3, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='triggered_1',
-                             description='',
-                             hidden=False, enum=None, offset=0xa04, bitSize=1, bitOffset=3, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='triggered_2',
-                             description='',
-                             hidden=False, enum=None, offset=0xa08, bitSize=1, bitOffset=3, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='triggered_3',
-                             description='',
-                             hidden=False, enum=None, offset=0xa0c, bitSize=1, bitOffset=3, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='error_0',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=1, bitOffset=4, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='error_1',
-                             description='',
-                             hidden=False, enum=None, offset=0xa04, bitSize=1, bitOffset=4, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='error_2',
-                             description='',
-                             hidden=False, enum=None, offset=0xa08, bitSize=1, bitOffset=4, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='error_3',
-                             description='',
-                             hidden=False, enum=None, offset=0xa0c, bitSize=1, bitOffset=4, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='burstSize',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=4, bitOffset=8, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='framesSinceTrigger_0',
-                             description='',
-                             hidden=False, enum=None, offset=0xa00, bitSize=16, bitOffset=16, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='framesSinceTrigger_1',
-                             description='',
-                             hidden=False, enum=None, offset=0xa04, bitSize=16, bitOffset=16, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='framesSinceTrigger_2',
-                             description='',
-                             hidden=False, enum=None, offset=0xa08, bitSize=16, bitOffset=16, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Variable(name='framesSinceTrigger_3',
-                             description='',
-                             hidden=False, enum=None, offset=0xa0c, bitSize=16, bitOffset=16, base='uint', mode='RO'))
-
-    dev.add(pyrogue.Command(name='initialize',
-                            description='Initialize the buffer. Reset the write pointer to StartAddr. Clear the Done field.',
-                            hidden=False, base='None',
-                            function="""\
-                                     dev.init_0.set(1)
-                                     dev.init_1.set(1)
-                                     dev.init_2.set(1)
-                                     dev.init_3.set(1)
-                                     dev.init_0.set(0)
-                                     dev.init_1.set(0)
-                                     dev.init_2.set(0)
-                                     dev.init_3.set(0)
-                                     """))
-
-    dev.add(pyrogue.Command(name='c_SoftTrigger',
-                            description='Send a trigger to the buffer',
-                            hidden=False, base='None',
-                            function="""\
-                                     dev.softTrigger.set(1)
-                                     dev.softTrigger.set(0)
-                                     """))
-
-    dev.add(pyrogue.Command(name='softTriggerAll',
-                            description='Send a trigger to the buffer',
-                            hidden=False, base='None',
-                            function="""\
-                                     dev.softTrigger.set(1)
-                                     """))
-
-    return dev
+    def _softReset(self):
+        for c in self.BufInit.values():
+            c()
