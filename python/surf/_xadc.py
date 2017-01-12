@@ -45,6 +45,7 @@ class Xadc(pr.Device):
                 temperature sensor transfer function shown in Figure 2-8, 
                 page 31 of UG480 (v1.2) """)
 
+        self.Temperature.pollInterval = 5
 
         addPair(name='MaxTemperature',offset=0x280, bitSize=12, bitOffset=4, function=Xadc.convTemp,
                 description="""
@@ -76,6 +77,8 @@ class Xadc(pr.Device):
                 supply sensor transfer function shown in Figure 2-9, 
                 page 32 of UG480 (v1.2)     """)
 
+        self.VccInt.pollInterval = 5
+
         addPair(name='MaxVccInt', offset=0x284, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
                 description="""
                 Maximum VccInt measurement recorded since power-up 
@@ -102,6 +105,8 @@ class Xadc(pr.Device):
                 supply sensor transfer function shown in Figure 2-9, 
                 page 32 of UG480 (v1.2)""")
 
+        self.VccAux.pollInterval = 5        
+
         addPair(name='MaxVccAux', offset=0x288, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
                 description="""
                 Maximum VccAux measurement recorded since power-up 
@@ -126,6 +131,8 @@ class Xadc(pr.Device):
                 16-bit register (Read Only). The 12 MSBs correspond to the 
                 supply sensor transfer function shown in Figure 2-9, 
                 page 32 of UG480 (v1.2)""")
+
+        self.VccBram.pollInterval = 5                
 
         addPair(name='MaxVccBram', offset=0x28c, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
                 description="""
