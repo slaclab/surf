@@ -145,15 +145,7 @@ architecture RTL of GLinkGtx7RxRst is
    signal plllock_sync          : std_logic := '0';
    signal phalignment_done_sync : std_logic := '0';
    
-  signal fsmCnt : std_logic_vector(15 downto 0);   
-  
-   attribute mark_debug : string;
-   attribute mark_debug of rx_state,
-      reset_time_out,
-      recclk_mon_restart_count,
-      retry_counter_int,
-      time_out_wait_bypass_s3,
-      data_valid_sync : signal is "TRUE";    
+  signal fsmCnt : std_logic_vector(15 downto 0);     
    
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of 

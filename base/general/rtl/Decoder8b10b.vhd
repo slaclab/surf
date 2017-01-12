@@ -64,10 +64,6 @@ architecture rtl of Decoder8b10b is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   attribute mark_debug : string;
-   attribute mark_debug of r, dataIn, rst : signal is "TRUE";
-
-
 begin
 
    comb : process (r, dataIn, rst) is

@@ -85,9 +85,6 @@ architecture rtl of Gtp7RxFixedLatPhaseAligner is
 
    signal rxRunPhAlignmentSync : sl;
 
-   attribute mark_debug                           : string;
-   attribute mark_debug of r                : signal is "TRUE";
-
 begin
 
    -- Must use async resets since rxUsrClk can drop out

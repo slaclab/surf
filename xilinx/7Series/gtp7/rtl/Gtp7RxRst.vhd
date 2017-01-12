@@ -205,43 +205,6 @@ architecture RTL of Gtp7RxRst is
 
    signal fsmCnt : std_logic_vector(15 downto 0) := (others => '0');
 
-   attribute mark_debug : string;
-   attribute mark_debug of
-      SOFT_RESET,
-      RXPMARESETDONE,
-      RXOUTCLK,
-      PLL0REFCLKLOST,
-      PLL1REFCLKLOST,
-      PLL0LOCK,
-      PLL1LOCK,
-      RXRESETDONE,
-      MMCM_LOCK,
-      RECCLK_STABLE,
-      RECCLK_MONITOR_RESTART,
-      DATA_VALID,
-      TXUSERRDY,
-      DONT_RESET_ON_DATA_ERROR,
-      GTRXRESET,
-      MMCM_RESET,
-      PLL0_RESET,
-      PLL1_RESET,
-      RX_FSM_RESET_DONE,
-      RXUSERRDY,
-      RUN_PHALIGNMENT,
-      PHALIGNMENT_DONE,
-      RESET_PHALIGNMENT,
-      RXDFEAGCHOLD,
-      RXDFELFHOLD,
-      RXLPMLFHOLD,
-      RXLPMHFHOLD,
-      rx_state,
-      reset_time_out,
-      recclk_mon_restart_count,
-      retry_counter_int,
-      data_valid_sync,
-      rx_fsm_reset_done_int,
-      gtrxreset_i : signal is "TRUE";
-
 begin
 
    --Alias section, signals used within this module mapped to output ports:

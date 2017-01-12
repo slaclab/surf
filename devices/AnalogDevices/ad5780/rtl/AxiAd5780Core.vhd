@@ -58,14 +58,6 @@ architecture rtl of AxiAd5780Core is
 
    signal dacRst     : sl;
    signal dacDataMux : slv(17 downto 0);
-
-   -- Mark the Vivado Debug Signals
-   attribute mark_debug : string;
-   attribute mark_debug of
-      status,
-      config,
-      dacRst,
-      dacDataMux : signal is "TRUE";
    
 begin
 
