@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-12-16
+-- Last update: 2017-01-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,6 +45,7 @@ entity Pgp2bGtp7FixedLatWrapper is
       NUM_VC_EN_G             : integer range 1 to 4 := 4;
       AXIL_ERROR_RESP_G       : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       AXIL_BASE_ADDR_G        : slv(31 downto 0)     := (others => '0');
+      EXT_RST_POLARITY_G : sl := '1';
       TX_ENABLE_G             : boolean              := true;        -- Enable TX direction
       RX_ENABLE_G             : boolean              := true;        -- Enable RX direction
       -- CM Configurations
@@ -68,7 +69,7 @@ entity Pgp2bGtp7FixedLatWrapper is
       -- PLL and clock configurations
       STABLE_CLK_SRC_G        : string               := "stableClkIn";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string               := "gtClk0";
-      TX_USER_CLK_SRC_G       : string               := "txRefClk";  -- Could be TX_REF_CLK instead
+      TX_USER_CLK_SRC_G       : string               := "txRefClk";  -- Could be txOutClk instead
       RX_REFCLK_SRC_G         : string               := "gtClk0";
       TX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
       RX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
@@ -221,7 +222,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          SIM_SPEEDUP_G  => SIMULATION_G,
-         IN_POLARITY_G  => '1',
+         IN_POLARITY_G  => EXT_RST_POLARITY_G,
          OUT_POLARITY_G => '1')
       port map (
          arst   => extRst,
