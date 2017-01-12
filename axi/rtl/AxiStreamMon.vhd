@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-14
--- Last update: 2016-07-14
+-- Last update: 2017-01-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ use work.AxiStreamPkg.all;
 entity AxiStreamMon is
    generic (
       TPD_G           : time                := 1 ns;
+      COMMON_CLK_G    : boolean             := false;  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G : real                := 156.25E+6;  -- units of Hz
       AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -42,8 +43,8 @@ entity AxiStreamMon is
       -- Status Interface
       statusClk  : in  sl;
       statusRst  : in  sl;
-      frameRate  : out slv(31 downto 0);                   -- units of Hz
-      bandwidth  : out slv(63 downto 0));                  -- units of Byte/s
+      frameRate  : out slv(31 downto 0);               -- units of Hz
+      bandwidth  : out slv(63 downto 0));              -- units of Byte/s
 end AxiStreamMon;
 
 architecture rtl of AxiStreamMon is
@@ -60,7 +61,7 @@ architecture rtl of AxiStreamMon is
       accum     : slv(39 downto 0);
       bandwidth : slv(39 downto 0);
    end record;
-   
+
    constant REG_INIT_C : RegType := (
       frameSent => '0',
       tValid    => '0',
@@ -68,7 +69,7 @@ architecture rtl of AxiStreamMon is
       updated   => '0',
       timer     => 0,
       accum     => (others => '0'),
-      bandwidth => (others => '0'));   
+      bandwidth => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -77,13 +78,13 @@ architecture rtl of AxiStreamMon is
 
    -- attribute dont_touch          : string;
    -- attribute dont_touch of r     : signal is "true";   
-   
+
 begin
 
    U_packetRate : entity work.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
-         COMMON_CLK_G   => false,
+         COMMON_CLK_G   => COMMON_CLK_G,
          REF_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
          REFRESH_RATE_G => 1.0,              -- units of Hz
          CNT_WIDTH_G    => 32)               -- Counters' width
@@ -94,7 +95,7 @@ begin
          trigRateOut => frameRate,
          -- Clocks
          locClk      => statusClk,
-         refClk      => axisClk);  
+         refClk      => axisClk);
 
    comb : process (axisMaster, axisRst, axisSlave, r) is
       variable v : RegType;
@@ -148,7 +149,7 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-      
+
    end process comb;
 
    seq : process (axisClk) is
@@ -161,14 +162,15 @@ begin
    SyncOut_bandwidth : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => 40)
       port map (
          wr_clk => axisClk,
          wr_en  => r.updated,
          din    => r.bandwidth,
          rd_clk => statusClk,
-         dout   => bw);       
+         dout   => bw);
 
    bandwidth <= x"000000" & bw;
-   
+
 end rtl;
