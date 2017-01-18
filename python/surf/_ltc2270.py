@@ -26,8 +26,8 @@ class Ltc2270(pr.Device):
         super(self.__class__, self).__init__(name, "Ltc2270 Module",
                                              memBase, offset, hidden)
                                              
-        self.add(pr.Variable(name='softReset',description='SoftReset',
-                offset=0x000, bitSize=1, bitOffset=7, base='bool', mode='WO', hidden=False)) 
+        self.add(pr.Variable(name='DacReset',description='DacReset',
+                offset=0x000, bitSize=1, bitOffset=7, base='bool', mode='RW')) 
               
         self.add(pr.Variable(name='PwrDwn',
                 description='PwrDwn',

@@ -27,11 +27,11 @@ class UdpClient(pr.Device):
         super(self.__class__, self).__init__(name, "UDP Client module",
                                              memBase, offset, hidden)
                                              
-        self.add(pr.Variable(name='clientRemotePort',
-                description='ClientRemotePort (big-Endian configuration)',
+        self.add(pr.Variable(name='remotePort',
+                description='remotePort (big-Endian configuration)',
                 hidden=False, enum=None, offset=0x0, bitSize=16, bitOffset=0, base='hex', mode='RW'))
 
-        self.add(pr.Variable(name='clientRemoteIp',
-                description='ClientRemoteIp (big-Endian configuration)',
+        self.add(pr.Variable(name='remoteIp',
+                description='remoteIp (big-Endian configuration)',
                 hidden=False, enum=None, offset=0x4, bitSize=32, bitOffset=0, base='hex', mode='RW'))
                 
