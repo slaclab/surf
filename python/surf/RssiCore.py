@@ -37,15 +37,15 @@ def create(name='rssiCore', offset=0, memBase=None, hidden=False):
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=1, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='mode',
-                             description='Mode:'0': Use internal parameters from generics,'1': Use parameters from registers',
+                             description='Mode:\'0\': Use internal parameters from generics,\'1\': Use parameters from registers',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=2, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='headerChksumEn',
-                             description='Header checksum: '1': Enable calculation and check, '0': Disable check and insert 0 in place of header checksum',
+                             description='Header checksum: \'1\': Enable calculation and check, \'0\': Disable check and insert 0 in place of header checksum',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=3, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='injectFault',
-                             description='Inject fault to the next packet header checksum (Default '0'). Acts on rising edge - injects exactly one fault in next segment',
+                             description='Inject fault to the next packet header checksum (Default \'0\'). Acts on rising edge - injects exactly one fault in next segment',
                              hidden=False, enum=None, offset=0x0, bitSize=1, bitOffset=4, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='initSeqN',
