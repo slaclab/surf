@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : PyRogue Device UdpEngineClient
+# Title      : PyRogue Device UdpServer
 #-----------------------------------------------------------------------------
-# File       : UdpEngineClient.py
+# File       : UdpServer.py
 # Author     : Ryan Herbst, rherbst@slac.stanford.edu
 # Created    : 2016-12-01
 # Last update: 2016-12-01
 #-----------------------------------------------------------------------------
 # Description:
-# Device creator for UdpEngineClient
-# Auto created from ../surf/ethernet/UdpEngine/yaml/UdpEngineClient.yaml
+# Device creator for UdpServer
+# Auto created from ../surf/ethernet/UdpEngine/yaml/UdpServer.yaml
 #-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to 
 # the license terms in the LICENSE.txt file found in the top-level directory 
@@ -20,20 +20,18 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue
+import pyrogue as pr
 
-def create(name='udpEngineClient', offset=0, memBase=None, hidden=False):
+class UdpServer(pr.Device):
+    def __init__(self, name="UdpServer", memBase=None, offset=0, hidden=False):
+        super(self.__class__, self).__init__(name, "UDP Server module",
+                                             memBase, offset, hidden)
 
-    dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
-                         hidden=hidden,size=0x8,
-                         description='UdpEngineClient')
+        self.add(pr.Variable(name='serverRemotePort',
+                description='ServerRemotePort (big-Endian configuration)',
+                hidden=False, enum=None, offset=0x0, bitSize=16, bitOffset=0, base='hex', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='clientRemotePort',
-                             description='ClientRemotePort (big-Endian configuration)',
-                             hidden=False, enum=None, offset=0x0, bitSize=16, bitOffset=0, base='uint', mode='RW'))
-
-    dev.add(pyrogue.Variable(name='clientRemoteIp',
-                             description='ClientRemoteIp (big-Endian configuration)',
-                             hidden=False, enum=None, offset=0x4, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-
-    return dev
+        self.add(pr.Variable(name='serverRemoteIp',
+                description='ServerRemoteIp (big-Endian configuration)',
+                hidden=False, enum=None, offset=0x4, bitSize=32, bitOffset=0, base='hex', mode='RO'))
+                
