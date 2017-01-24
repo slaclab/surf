@@ -344,7 +344,7 @@ class Xadc(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["Temperature", "VccInt", "VccAux", "VccBram", 'OT Limit']
+        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
         
      
