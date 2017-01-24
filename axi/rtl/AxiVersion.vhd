@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2016-11-18
+-- Last update: 2017-01-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -200,6 +200,19 @@ begin
       -- Reset strobes
       v.masterReset := '0';
 
+      ---------------------------------
+      -- First Stage Boot Loader (FSBL)
+      ---------------------------------
+      -- Check if timer enabled
+      if fpgaEnReload = '1' then
+         v.counter := v.counter + 1;
+      end if;
+
+      -- Check for reload condition
+      if AUTO_RELOAD_EN_G and (r.counter = RELOAD_COUNT_C) and (fpgaEnReload = '1') and (r.haltReload = '0') then
+         v.fpgaReload := '1';
+      end if;
+
       ------------------------      
       -- AXI-Lite Transactions
       ------------------------      
@@ -233,20 +246,6 @@ begin
          v.upTimeCnt := r.upTimeCnt + 1;
       else
          v.timer := r.timer + 1;
-      end if;
-
-      ---------------------------------
-      -- First Stage Boot Loader (FSBL)
-      ---------------------------------
-
-      -- Check if timer enabled
-      if fpgaEnReload = '1' then
-         v.counter := r.counter + 1;
-      end if;
-
-      -- Check for reload condition
-      if AUTO_RELOAD_EN_G and (r.counter = RELOAD_COUNT_C) and (fpgaEnReload = '1') and (r.haltReload = '0') then
-         v.fpgaReload := '1';
       end if;
 
       --------
