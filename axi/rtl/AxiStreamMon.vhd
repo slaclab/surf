@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-14
--- Last update: 2017-01-11
+-- Last update: 2017-01-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,15 +36,19 @@ entity AxiStreamMon is
       AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- AXIS Stream Interface
-      axisClk    : in  sl;
-      axisRst    : in  sl;
-      axisMaster : in  AxiStreamMasterType;
-      axisSlave  : in  AxiStreamSlaveType;
+      axisClk      : in  sl;
+      axisRst      : in  sl;
+      axisMaster   : in  AxiStreamMasterType;
+      axisSlave    : in  AxiStreamSlaveType;
       -- Status Interface
-      statusClk  : in  sl;
-      statusRst  : in  sl;
-      frameRate  : out slv(31 downto 0);               -- units of Hz
-      bandwidth  : out slv(63 downto 0));              -- units of Byte/s
+      statusClk    : in  sl;
+      statusRst    : in  sl;
+      frameRate    : out slv(31 downto 0);             -- units of Hz
+      frameRateMax : out slv(31 downto 0);             -- units of Hz
+      frameRateMin : out slv(31 downto 0);             -- units of Hz
+      bandwidth    : out slv(63 downto 0);             -- units of Byte/s
+      bandwidthMax : out slv(63 downto 0);             -- units of Byte/s
+      bandwidthMin : out slv(63 downto 0));            -- units of Byte/s
 end AxiStreamMon;
 
 architecture rtl of AxiStreamMon is
@@ -53,28 +57,38 @@ architecture rtl of AxiStreamMon is
    constant TIMEOUT_C : natural := getTimeRatio(AXIS_CLK_FREQ_G, 1.0)-1;
 
    type RegType is record
-      frameSent : sl;
-      tValid    : sl;
-      tKeep     : slv(15 downto 0);
-      updated   : sl;
-      timer     : natural range 0 to TIMEOUT_C;
-      accum     : slv(39 downto 0);
-      bandwidth : slv(39 downto 0);
+      armed        : sl;
+      frameSent    : sl;
+      tValid       : sl;
+      tKeep        : slv(15 downto 0);
+      updated      : sl;
+      updateStat   : sl;
+      timer        : natural range 0 to TIMEOUT_C;
+      accum        : slv(39 downto 0);
+      bandwidth    : slv(39 downto 0);
+      bandwidthMax : slv(39 downto 0);
+      bandwidthMin : slv(39 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
-      frameSent => '0',
-      tValid    => '0',
-      tKeep     => (others => '0'),
-      updated   => '0',
-      timer     => 0,
-      accum     => (others => '0'),
-      bandwidth => (others => '0'));
+      armed        => '0',
+      frameSent    => '0',
+      tValid       => '0',
+      tKeep        => (others => '0'),
+      updated      => '0',
+      updateStat   => '0',
+      timer        => 0,
+      accum        => (others => '0'),
+      bandwidth    => (others => '0'),
+      bandwidthMax => (others => '0'),
+      bandwidthMin => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal bw : slv(39 downto 0);
+   signal bw    : slv(39 downto 0);
+   signal bwMax : slv(39 downto 0);
+   signal bwMin : slv(39 downto 0);
 
    -- attribute dont_touch          : string;
    -- attribute dont_touch of r     : signal is "true";   
@@ -90,12 +104,16 @@ begin
          CNT_WIDTH_G    => 32)               -- Counters' width
       port map (
          -- Trigger Input (locClk domain)
-         trigIn      => r.frameSent,
+         trigIn         => r.frameSent,
          -- Trigger Rate Output (locClk domain)
-         trigRateOut => frameRate,
+         trigRateOut    => frameRate,
+         trigRateOutMax => frameRateMax,
+         trigRateOutMin => frameRateMin,
          -- Clocks
-         locClk      => statusClk,
-         refClk      => axisClk);
+         locClk         => statusClk,
+         locRst         => statusRst,
+         refClk         => axisClk,
+         refRst         => axisRst);
 
    comb : process (axisMaster, axisRst, axisSlave, r) is
       variable v : RegType;
@@ -104,8 +122,9 @@ begin
       v := r;
 
       -- Reset strobing signals
-      v.tValid  := '0';
-      v.updated := '0';
+      v.tValid     := '0';
+      v.updated    := '0';
+      v.updateStat := '0';
 
       -- Check for end of frame
       v.frameSent := axisMaster.tValid and axisMaster.tLast and axisSlave.tReady;
@@ -142,9 +161,37 @@ begin
          end if;
       end if;
 
+      -- Check for update previous clock cycle
+      if (r.updated = '1') then
+         -- Set the flag
+         v.updateStat := '1';
+         -- Check if first time after reset
+         if (r.armed = '0') then
+            -- Set the flag
+            v.armed        := '1';
+            -- Pass the current values to the statistics measurements
+            v.bandwidthMax := r.bandwidth;
+            v.bandwidthMin := r.bandwidth;
+         else
+            -- Compare for max. value
+            if (r.bandwidth > r.bandwidthMax) then
+               -- Update the statistics measurement
+               v.bandwidthMax := r.accum;
+            end if;
+            -- Compare for min. value
+            if (r.bandwidth < r.bandwidthMin) then
+               -- Update the statistics measurement
+               v.bandwidthMin := r.bandwidth;
+            end if;
+         end if;
+      end if;
+
       -- Reset
       if axisRst = '1' then
-         v := REG_INIT_C;
+         -- Re-arm and reset statistics measurements only
+         v.armed        := '0';
+         v.bandwidthMax := r.bandwidth;
+         v.bandwidthMin := r.bandwidth;
       end if;
 
       -- Register the variable for next clock cycle
@@ -171,6 +218,32 @@ begin
          rd_clk => statusClk,
          dout   => bw);
 
-   bandwidth <= x"000000" & bw;
+   SyncOut_bandwidthMax : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => 40)
+      port map (
+         wr_clk => axisClk,
+         wr_en  => r.updateStat,
+         din    => r.bandwidthMax,
+         rd_clk => statusClk,
+         dout   => bwMax);
+
+   SyncOut_bandwidthMin : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => 40)
+      port map (
+         wr_clk => axisClk,
+         wr_en  => r.updateStat,
+         din    => r.bandwidthMin,
+         rd_clk => statusClk,
+         dout   => bwMin);
+
+   bandwidth    <= x"000000" & bw;
+   bandwidthMax <= x"000000" & bwMax;
+   bandwidthMin <= x"000000" & bwMin;
 
 end rtl;
