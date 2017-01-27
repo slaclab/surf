@@ -313,6 +313,9 @@ class Xadc(pr.Device):
         self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
                              getFunction=Xadc.getTemp, setFunction=Xadc.setTemp))
         
+        # Default to simple view
+        self.simpleView()
+        
     @staticmethod
     def convTemp(dev, var):
         value   = var.dependencies[0].get(read=False)
@@ -339,7 +342,6 @@ class Xadc(pr.Device):
         fpValue = value*(732.0E-6)
         return '%0.3f'%(fpValue)
         
-
     def simpleView(self):
         # Hide all the variable
         self.hideVariables(hidden=True)
@@ -347,5 +349,3 @@ class Xadc(pr.Device):
         vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
         
-     
-                
