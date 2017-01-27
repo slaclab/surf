@@ -28,16 +28,16 @@ class Xadc(pr.Device):
             description='AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)', **kwargs)
             
 
-        def addPair(name, offset, bitSize, bitOffset, description, function):
+        def addPair(name, offset, bitSize, units, bitOffset, description, function):
             """Add a Raw ADC register variable and corresponding converted value Variable"""
             self.add(pr.Variable(name=name+"Raw", offset=offset, bitSize=bitSize, bitOffset=bitOffset,
                                  base='hex', mode='RO', description=description))
             
-            self.add(pr.Variable(name=name, mode = 'RO', base='string',
+            self.add(pr.Variable(name=name, mode = 'RO', base='string', units=units,
                                  getFunction=function, dependencies=[self.variables[name+"Raw"]]))
 
         #Temperature
-        addPair(name='Temperature',offset=0x200, bitSize=12, bitOffset=4, function=Xadc.convTemp,
+        addPair(name='Temperature',offset=0x200, bitSize=12, bitOffset=4, units="degC", function=Xadc.convTemp,
                 description="""
                 The result of the on-chip temperature sensor measurement is 
                 stored in this location. The data is MSB justified in the 
@@ -47,12 +47,12 @@ class Xadc(pr.Device):
 
         self.Temperature.pollInterval = 5
 
-        addPair(name='MaxTemperature',offset=0x280, bitSize=12, bitOffset=4, function=Xadc.convTemp,
+        addPair(name='MaxTemperature',offset=0x280, bitSize=12, bitOffset=4, units="degC", function=Xadc.convTemp,
                 description="""
                 Maximum temperature measurement recorded since 
                 power-up or the last AxiXadc reset (Read Only).""")
         
-        addPair(name='MinTemperature',offset=0x290, bitSize=12, bitOffset=4, function=Xadc.convTemp,
+        addPair(name='MinTemperature',offset=0x290, bitSize=12, bitOffset=4, units="degC", function=Xadc.convTemp,
                 description="""
                 Minimum temperature measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
@@ -69,7 +69,7 @@ class Xadc(pr.Device):
              
 
         # VCCINT
-        addPair(name='VccInt',offset=0x204, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='VccInt',offset=0x204, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 The result of the on-chip VccInt supply monitor measurement 
                 is stored at this location. The data is MSB justified in the 
@@ -79,12 +79,12 @@ class Xadc(pr.Device):
 
         self.VccInt.pollInterval = 5
 
-        addPair(name='MaxVccInt', offset=0x284, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='MaxVccInt', offset=0x284, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 Maximum VccInt measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
 
-        addPair(name='MinVccInt', offset=0x294, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='MinVccInt', offset=0x294, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 Minimum VccInt measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
@@ -97,7 +97,7 @@ class Xadc(pr.Device):
         
 
         #VCCAUX
-        addPair(name='VccAux', offset=0x208, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='VccAux', offset=0x208, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 The result of the on-chip VccAux supply monitor measurement 
                 is stored at this location. The data is MSB justified in the 
@@ -107,12 +107,12 @@ class Xadc(pr.Device):
 
         self.VccAux.pollInterval = 5        
 
-        addPair(name='MaxVccAux', offset=0x288, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='MaxVccAux', offset=0x288, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 Maximum VccAux measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
 
-        addPair(name='MinVccAux', offset=0x298, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='MinVccAux', offset=0x298, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 Minimum VccAux measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
@@ -124,7 +124,7 @@ class Xadc(pr.Device):
         
 
         #VCCBRAM
-        addPair(name='VccBram', offset=0x218, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='VccBram', offset=0x218, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 The result of the on-chip VccBram supply monitor measurement 
                 is stored at this location. The data is MSB justified in the 
@@ -134,12 +134,12 @@ class Xadc(pr.Device):
 
         self.VccBram.pollInterval = 5                
 
-        addPair(name='MaxVccBram', offset=0x28c, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='MaxVccBram', offset=0x28c, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 Maximum VccBram measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
 
-        addPair(name='MinVccBram',offset=0x29c, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='MinVccBram',offset=0x29c, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 Minimum VccBram measurement recorded since power-up 
                 or the last AxiXadc reset (Read Only).""")
@@ -151,7 +151,7 @@ class Xadc(pr.Device):
         
 
         #VIN
-        addPair(name='Vin', offset=0x20c, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='Vin', offset=0x20c, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 The result of a conversion on the dedicated analog input 
                 channel is stored in this register. The data is MSB justified 
@@ -161,7 +161,7 @@ class Xadc(pr.Device):
                 settings.""")
 
 
-        addPair(name='Vrefp', offset=0x210, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='Vrefp', offset=0x210, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 The result of a conversion on the reference input VrefP is 
                 stored in this register. The 12 MSBs correspond to the ADC 
@@ -170,7 +170,7 @@ class Xadc(pr.Device):
                 when measuring VrefP.""")
 
 
-        addPair(name='Vrefn', offset=0x214, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+        addPair(name='Vrefn', offset=0x214, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                 description="""
                 The result of a conversion on the reference input VREFN is 
                 stored in this register (Read Only). This channel is measured in bipolar 
@@ -195,7 +195,7 @@ class Xadc(pr.Device):
 
         if zynq:
             # VCCPINT
-            addPair(name='VccpInt', offset=0x234, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='VccpInt', offset=0x234, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     The result of a conversion on the PS supply, VccpInt is 
                     stored in this register. The 12 MSBs correspond to the ADC 
@@ -203,12 +203,12 @@ class Xadc(pr.Device):
                     MSB justified in the 16-bit register (Zynq Only and Read Only).
                     The supply sensor is used when measuring VccpInt.""")
 
-            addPair(name='MaxVccpInt', offset=0x20, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='MaxVccpInt', offset=0x20, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     Maximum VccpInt measurement recorded since power-up 
                     or the last AxiXadc reset (Zynq Only and Read Only).""")
 
-            addPair(name='MinVccpInt', offset=0x2b0, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='MinVccpInt', offset=0x2b0, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     Minimum VccpInt measurement recorded since power-up 
                     or the last AxiXadc reset (Zynq Only and Read Only).""")
@@ -221,7 +221,7 @@ class Xadc(pr.Device):
             
             
             # VCCPAUX
-            addPair(name='VccpAux', offset=0x238, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='VccpAux', offset=0x238, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     The result of a conversion on the PS supply, VccpAux is 
                     stored in this register. The 12 MSBs correspond to the ADC 
@@ -229,12 +229,12 @@ class Xadc(pr.Device):
                     MSB justified in the 16-bit register (Zynq Only and Read Only). 
                     The supply sensor is used when measuring VccpAux.""")
 
-            addPair(name='MaxVccpAux', offset=0x2a4, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='MaxVccpAux', offset=0x2a4, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     Maximum VccpAux measurement recorded since power-up 
                     or the last AxiXadc reset (Zynq Only and Read Only).""")
 
-            addPair(name='MinVccpAux', offset=0x2b4, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='MinVccpAux', offset=0x2b4, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     Minimum VccpAux measurement recorded since power-up 
                     or the last AxiXadc reset (Zynq Only and Read Only).""")
@@ -246,7 +246,7 @@ class Xadc(pr.Device):
                  
 
             # VCCPDDR
-            addPair(name='VccpDdr', offset=0x23c, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='VccpDdr', offset=0x23c, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     The result of a conversion on the PS supply, VccpDdr is 
                     stored in this register. The 12 MSBs correspond to the ADC 
@@ -254,13 +254,13 @@ class Xadc(pr.Device):
                     MSB justified in the 16-bit register (Zynq Only and Read Only). 
                     The supply sensor is used when measuring VccpDdr.""")
 
-            addPair(name='MaxVccpDdr', offset=0x2a8, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='MaxVccpDdr', offset=0x2a8, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     Maximum VccpDdr measurement recorded since power-up 
                     or the last AxiXadc reset (Zynq Only and Read Only).""")
             
 
-            addPair(name='MinVccpDdr', offset=0x2b8, bitSize=12, bitOffset=4, function=Xadc.convVoltage,
+            addPair(name='MinVccpDdr', offset=0x2b8, bitSize=12, bitOffset=4, units="V", function=Xadc.convVoltage,
                     description="""
                     Minimum VccpDdr measurement recorded since power-up 
                     or the last AxiXadc reset (Zynq Only and Read Only).""")
@@ -318,14 +318,14 @@ class Xadc(pr.Device):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
-        return '%0.1f degC'%(fpValue)
+        return '%0.1f'%(fpValue)
 
     @staticmethod
     def getTemp(dev, var):
         value   = var._block.getUInt(var.bitOffset, var.bitSize)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
-        return '%0.1f degC'%(fpValue)
+        return '%0.1f'%(fpValue)
     
     @staticmethod
     def setTemp(dev, var, value):
@@ -337,7 +337,7 @@ class Xadc(pr.Device):
     def convVoltage(dev, var):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(732.0E-6)
-        return '%0.3f V'%(fpValue)
+        return '%0.3f'%(fpValue)
         
 
     def simpleView(self):
