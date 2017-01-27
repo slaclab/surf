@@ -150,22 +150,7 @@ begin
          axilReadMaster  => axilReadMaster,   -- [in]
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave);  -- [out]
-
-   
-   U_ClkRst_1 : entity work.ClkRst
-      generic map (
-         CLK_PERIOD_G      => 10 ns,
-         CLK_DELAY_G       => 1 ns,
-         RST_START_DELAY_G => 0 ns,
-         RST_HOLD_TIME_G   => 5 us,
-         SYNC_RESET_G      => true)
-      port map (
-         clkP => ,
-         clkN => ,
-         rst  => ,
-         rstL => );
-   
+         axilWriteSlave  => axilWriteSlave);  -- [out] 
 
 end architecture tb;
 
