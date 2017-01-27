@@ -33,7 +33,7 @@ class MicronP30(pr.Device):
                 offset=0x04, bitSize=32, bitOffset=0, base='hex', mode='RW', hidden=True))                 
 
         self.add(pr.Variable(name='readReg',description='readReg',
-                offset=0x08, bitSize=16, bitOffset=0, base='hex', mode='RW', hidden=True))     
+                offset=0x08, bitSize=16, bitOffset=0, base='hex', mode='RO', hidden=True))     
 
         self.add(pr.Variable(name='test',description='test',
                 offset=0x0C, bitSize=32, bitOffset=0, base='hex', mode='RW', hidden=False))          
