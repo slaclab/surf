@@ -23,11 +23,12 @@
 LIBRARY ieee;
 use work.all;
 use ieee.std_logic_1164.all;
-use IEEE.NUMERIC_STD.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.GLinkPkg.all;
 use work.AxiLitePkg.all;
+use work.GlinkPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -57,7 +58,12 @@ entity GLinkRx is
       
       -- Deserialized output (byteClk domain)
       rxData            : out slv(19 downto 0);
-      rxReady           : out sl    -- every 2nd rxData is valid
+      rxReady           : out sl;   -- every 2nd rxData is valid
+      
+      -- Debug
+      testEn            : out sl;
+      testAddr          : out slv(4 downto 0)
+      
    );
 end GLinkRx;
 
@@ -65,7 +71,7 @@ end GLinkRx;
 -- Define architecture
 architecture RTL of GLinkRx is
    
-   type StateType is (BIT_SLIP_S, SLIP_WAIT_S, PT0_CHECK_S, PT1_CHECK_S, INSYNC_S);
+   type StateType is (BIT_SLIP_S, SLIP_WAIT_S, PT0_CHECK_S, INSYNC_S);
    
    type RegType is record
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -77,11 +83,16 @@ architecture RTL of GLinkRx is
       delay          : slv(4 downto 0);
       delayEn        : sl;
       waitCnt        : integer range 0 to 15;
-      iserdeseOut    : slv(9 downto 0);
+      tryCnt         : integer range 0 to 31;
+      lockErrCnt     : integer range 0 to 2**16-1;
+      iserdeseOutD1  : slv(9 downto 0);
+      iserdeseOutD2  : slv(9 downto 0);
       cimtWord       : slv(19 downto 0);
       valid          : sl;
       rxData         : slv(19 downto 0);
       rxReady        : sl;
+      testEn         : sl;
+      testAddr       : slv(4 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -94,11 +105,16 @@ architecture RTL of GLinkRx is
       delay          => (others=>'0'),
       delayEn        => '0',
       waitCnt        => 0,
-      iserdeseOut    => (others=>'0'),
+      tryCnt         => 0,
+      lockErrCnt     => 0,
+      iserdeseOutD1  => (others=>'0'),
+      iserdeseOutD2  => (others=>'0'),
       cimtWord       => (others=>'0'),
       valid          => '0',
       rxData         => (others=>'0'),
-      rxReady        => '0'
+      rxReady        => '0',
+      testEn         => '0',
+      testAddr       => (others=>'0')
    );
 
    signal axilR   : RegType := REG_INIT_C;
@@ -108,18 +124,17 @@ architecture RTL of GLinkRx is
    signal serDataBuf    : sl;
    signal serDin        : sl;
    signal serDinDly     : sl;
-   signal patternOk     : sl;
+   signal idleWord      : sl;
    
+   --signal cimtWord      : slv(19 downto 0);
    signal delayCurr     : slv(4 downto 0);
    signal iserdeseOut   : slv(9 downto 0);
    signal shift1        : sl;
    signal shift2        : sl;
    
-   constant GLINK_VALID_IDLE_WORDS_C : Slv20Array(0 to 2) := (
-      GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C, 
-      GLINK_IDLE_WORD_FF1L_C & GLINK_CONTROL_WORD_C, 
-      GLINK_IDLE_WORD_FF1H_C & GLINK_CONTROL_WORD_C
-   );
+   attribute keep : string;                              -- for chipscope
+   attribute keep of iserdeseOut : signal is "true";     -- for chipscope
+   attribute keep of idleWord : signal is "true";        -- for chipscope
    
    attribute IODELAY_GROUP : string;
    attribute IODELAY_GROUP of U_IDELAYE2 : label is IODELAY_GROUP_G;
@@ -251,16 +266,14 @@ begin
       OCLK         => '0',
       OCLKB        => '0',
       O            => open            -- unregistered output of ISERDESE1
-   ); 
+   );
    
-   patternOk <= '1' when 
-      axilR.cimtWord = GLINK_VALID_IDLE_WORDS_C(0) or 
-      axilR.cimtWord = GLINK_VALID_IDLE_WORDS_C(1) or 
-      axilR.cimtWord = GLINK_VALID_IDLE_WORDS_C(2) 
+   -- look for TEM idle data word
+   idleWord <= '1' when
+      std_match(axilR.cimtWord, "010101010101000-1101") or std_match(axilR.cimtWord, "010101010101000-1011") or std_match(axilR.cimtWord, "101010101010111-0010") or std_match(axilR.cimtWord, "101010101010111-0100")
       else '0';
    
-   
-   axilComb : process (axilR, axilReadMaster, byteRst, axilWriteMaster, delayCurr, patternOk, iserdeseOut) is
+   axilComb : process (axilR, axilReadMaster, byteRst, axilWriteMaster, delayCurr, iserdeseOut, idleWord) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -283,6 +296,11 @@ begin
       -- override delay readout with the current value from the IDELAYE2
       axiSlaveRegisterR(axilEp, X"00", 0, delayCurr);
       axiSlaveRegisterR(axilEp, X"08", 0, axilR.locked);
+      axiSlaveRegisterR(axilEp, X"0C", 0, std_logic_vector(to_unsigned(axilR.lockErrCnt,16)));
+      
+      -- test pattern registers
+      axiSlaveRegister(axilEp, X"100", 0, v.testEn);
+      axiSlaveRegister(axilEp, X"104", 0, v.testAddr);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
       
@@ -299,6 +317,7 @@ begin
 
          when SLIP_WAIT_S =>
             if axilR.waitCnt >= 15 then
+               v.waitCnt   := 0;
                v.state := PT0_CHECK_S;
             else 
                v.waitCnt := axilR.waitCnt + 1;
@@ -306,51 +325,65 @@ begin
 
          when PT0_CHECK_S =>
             if axilR.valid = '1' then
-               if patternOk = '0' then
-                  v.state := BIT_SLIP_S;
-               else
-                  v.state := PT1_CHECK_S;
-               end if;
-            end if;
-         
-         when PT1_CHECK_S =>
-            if axilR.valid = '1' then
-               if patternOk = '0' then
-                  v.state := BIT_SLIP_S;
-               else
+               if idleWord = '1' then
+                  v.tryCnt := 0;
                   v.state := INSYNC_S;
+               else
+                  if axilR.tryCnt /= 31 then
+                     v.tryCnt := axilR.tryCnt + 1;
+                  else
+                     v.delay := std_logic_vector(unsigned(delayCurr) + to_unsigned(1, 5));
+                     v.delayEn := '1';
+                     v.tryCnt := 0;
+                  end if;
+                  v.state := BIT_SLIP_S;
                end if;
             end if;
          
          when INSYNC_S => 
             v.locked := '1';
-            if axilR.resync = '1' then
-               v.resync := '0';
+            if axilR.valid = '1' and not isValidWord(toGLinkWord(axilR.cimtWord)) then
                v.locked := '0';
+               v.delay := std_logic_vector(unsigned(delayCurr) + to_unsigned(1, 5));
+               v.delayEn := '1';
                v.state  := BIT_SLIP_S;
+               -- lock error counter can be reset only via the reg access
+               if axilR.lockErrCnt /= 65535 then 
+                  v.lockErrCnt := axilR.lockErrCnt + 1;  
+               end if;
             end if;
          
          when others => null;
          
       end case;
       
+      -- latch whole cimt word
+      v.valid := not axilR.valid;
+      if axilR.valid = '1' then
+         v.cimtWord  := axilR.iserdeseOutD2 & axilR.iserdeseOutD1;
+      end if;
+      
+      -- reset state machine whenever resync requested 
+      if axilR.resync = '1' then
+         v.resync := '0';
+         v.valid := '0';
+         v.cimtWord := (others=>'0');
+         v.lockErrCnt := 0;
+         v.locked := '0';
+         v.state  := BIT_SLIP_S;
+      end if;
+      
       -------------------------------------------------------------------------------------------------
       -- output registers
       -------------------------------------------------------------------------------------------------
       
-      -- word deserializer
-      if axilR.valid = '1' then
-         v.cimtWord  := axilR.iserdeseOut & iserdeseOut;
-         v.valid     := '0';
-      else
-         v.valid     := '1';
-      end if;
+      -- 10 bit words pipeline
+      v.iserdeseOutD1 := iserdeseOut;
+      v.iserdeseOutD2 := axilR.iserdeseOutD1;
       
-      v.iserdeseOut := iserdeseOut;
-      
-      
+      -- output register
       v.rxData    := axilR.cimtWord;
-      if axilR.locked = '1' then
+      if axilR.locked = '1' or axilR.testEn = '1' then
          v.rxReady := axilR.valid;
       else
          v.rxReady := '0';
@@ -367,6 +400,9 @@ begin
       axilReadSlave  <= axilR.axilReadSlave;
       rxData         <= axilR.rxData;
       rxReady        <= axilR.rxReady;
+      -- debug signals
+      testAddr       <= axilR.testAddr;
+      testEn         <= axilR.testEn;
       
    end process;
 
