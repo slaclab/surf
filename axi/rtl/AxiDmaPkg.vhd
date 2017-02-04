@@ -3,10 +3,7 @@
 -- Project    : General Purpose Core
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRead.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
 -- Created    : 2013-05-06
--- Last update: 2016-10-07
--- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
@@ -25,11 +22,24 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
 
 package AxiDmaPkg is
 
    -------------------------------------
-   -- Write DMA Request
+   -- Write DMA Axi-Stream Configuration
+   -------------------------------------
+   constant AXIS_WRITE_DMA_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   -------------------------------------
+   -- Write DMA Request (AxiStreamDmaWrite)
    -------------------------------------
 
    -- Base Record
@@ -52,7 +62,7 @@ package AxiDmaPkg is
    type AxiWriteDmaReqArray is array (natural range<>) of AxiWriteDmaReqType;
 
    -------------------------------------
-   -- Write DMA Acknowledge
+   -- Write DMA Acknowledge (AxiStreamDmaWrite)
    -------------------------------------
 
    -- Base Record
@@ -87,7 +97,7 @@ package AxiDmaPkg is
    type AxiWriteDmaAckArray is array (natural range<>) of AxiWriteDmaAckType;
 
    -------------------------------------
-   -- Read DMA Request
+   -- Read DMA Request (AxiStreamDmaRead)
    -------------------------------------
 
    -- Base Record
@@ -116,7 +126,7 @@ package AxiDmaPkg is
    type AxiReadDmaReqArray is array (natural range<>) of AxiReadDmaReqType;
 
    -------------------------------------
-   -- Read DMA Acknowledge
+   -- Read DMA Acknowledge (AxiStreamDmaRead)
    -------------------------------------
 
    -- Base Record
@@ -140,148 +150,202 @@ package AxiDmaPkg is
 
 
    -------------------------------------
-   -- DMA Write Descriptor Request 
+   -- DMA Write Descriptor Request (AxiStreamDmaV2)
+   -- Issued from dma write engine to request a free 
+   -- descriptor from the pool.
    -------------------------------------
 
-   type AxiWriteDescReqType is record
+   type AxiWriteDmaDescReqType is record
       valid      : sl;
       dest       : slv(7 downto 0);
    end record;
 
-   constant AXI_WRITE_DESC_REQ_INIT_C : AxiWriteDescReqType := ( 
+   constant AXI_WRITE_DMA_DESC_REQ_INIT_C : AxiWriteDmaDescReqType := ( 
       valid      => '0',
       dest       => (others=>'0')
    );
 
-   type AxiWriteDescReqArray is array (natural range<>) of AxiWriteDescReqType;
+   type AxiWriteDmaDescReqArray is array (natural range<>) of AxiWriteDmaDescReqType;
 
-   constant AXI_WRITE_DESC_REQ_SIZE_C : integer := 8;
+   constant AXI_WRITE_DMA_DESC_REQ_SIZE_C : integer := 8;
 
-   function toSlv (r : AxiWriteDescReqType ) return slv;
-   function toAxiWriteDescReq (din : slv; valid : sl) return AxiWriteDescReqType;
+   function toSlv (r : AxiWriteDmaDescReqType ) return slv;
+   function toAxiWriteDmaDescReq (din : slv; valid : sl) return AxiWriteDmaDescReqType;
 
 
    -------------------------------------
-   -- DMA Write Descriptor Ack
+   -- DMA Write Descriptor Ack (AxiStreamDmaV2)
+   -- Returned to dma write engine in response to
+   -- AxiWriteDescReqType.
    -------------------------------------
 
-   type AxiWriteDescAckType is record
+   type AxiWriteDmaDescAckType is record
       valid      : sl;
       address    : slv(63 downto 0);
-      drop       : sl;
-      maxSize    : slv(31 downto 0);
-      contEn     : sl;
-      buffId     : slv(7 downto 0);
+      dropEn     : sl;              
+      maxSize    : slv(23 downto 0);
+      contEn     : sl;              
+      buffId     : slv(11 downto 0);
    end record;
 
-   constant AXI_WRITE_DESC_ACK_INIT_C : AxiWriteDescAckType := ( 
+   constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := ( 
       valid      => '0',
       address    => (others=>'0'),
-      drop       => '0',
+      dropEn     => '0',
       maxSize    => (others=>'0'),
       contEn     => '0',
       buffId     => (others=>'0')
    );
 
-   type AxiWriteDescAckArray is array (natural range<>) of AxiWriteDescAckType;
+   type AxiWriteDmaDescAckArray is array (natural range<>) of AxiWriteDmaDescAckType;
 
-   constant AXI_WRITE_DESC_ACK_SIZE_C : integer := 106;
+   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 102;
 
-   function toSlv (r : AxiWriteDescAckType ) return slv;
-   function toAxiWriteDescAck (din : slv; valid : sl) return AxiWriteDescAckType;
-
+   function toSlv (r : AxiWriteDmaDescAckType ) return slv;
+   function toAxiWriteDmaDescAck (din : slv; valid : sl) return AxiWriteDmaDescAckType;
 
    -------------------------------------
-   -- DMA Write Descriptor Return
+   -- DMA Write Descriptor Return (AxiStreamDmaV2)
+   -- Returned from dma engine when frame is complete
    -------------------------------------
 
-   type AxiWriteDescRetType is record
+   type AxiWriteDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(7 downto 0);
-      firstUser  : slv(7 downto 0);
-      lastUser   : slv(7 downto 0);
-      size       : slv(31 downto 0);
-      id         : slv(7 downto 0);
-      errDet     : sl;
-      errValue   : slv(1 downto 0);
+      buffId     : slv(11 downto 0); 
+      firstUser  : slv(7  downto 0);
+      lastUser   : slv(7  downto 0);
+      size       : slv(23 downto 0);
       continue   : sl;
-      overflow   : sl;
-      dest       : slv(7 downto 0);
-      reqCount   : slv(31 downto 0);
+      result     : slv(2  downto 0);
+      dest       : slv(7  downto 0);
    end record;
 
-   constant AXI_WRITE_DESC_RET_INIT_C : AxiWriteDescRetType := ( 
+   constant AXI_WRITE_DMA_DESC_RET_INIT_C : AxiWriteDmaDescRetType := ( 
       valid      => '0',
       buffId     => (others=>'0'),
       firstUser  => (others=>'0'),
       lastUser   => (others=>'0'),
       size       => (others=>'0'),
-      id         => (others=>'0'),
-      errDet     => '0',
-      errValue   => (others=>'0'),
       continue   => '0',
-      overflow   => '0',
-      dest       => (others=>'0'),
-      reqCount   => (others=>'0')
+      result     => (others=>'0'),
+      dest       => (others=>'0')
    );
 
-   type AxiWriteDescRetArray is array (natural range<>) of AxiWriteDescRetType;
+   type AxiWriteDmaDescRetArray is array (natural range<>) of AxiWriteDmaDescRetType;
 
-   constant AXI_WRITE_DESC_RET_SIZE_C : integer := 109;
+   constant AXI_WRITE_DMA_DESC_RET_SIZE_C : integer := 64;
 
-   function toSlv (r : AxiWriteDescRetType ) return slv;
-   function toAxiWriteDescRet (din : slv; valid : sl) return AxiWriteDescRetType;
-
+   function toSlv (r : AxiWriteDmaDescRetType ) return slv;
+   function toAxiWriteDmaDescRet (din : slv; valid : sl) return AxiWriteDmaDescRetType;
 
    -------------------------------------
-   -- DMA Write Tracking 
+   -- DMA Write Tracking (AxiStreamDmaV2)
+   -- Memory entry for tracking an in progress transaction.
    -------------------------------------
 
-   type AxiWriteTrackType is record
+   type AxiWriteDmaTrackType is record
       address    : slv(63 downto 0);
-      maxSize    : slv(31 downto 0);
-      size       : slv(31 downto 0);
+      maxSize    : slv(23 downto 0);
+      size       : slv(23 downto 0);
       firstUser  : slv(7 downto 0);
       lastUser   : slv(7 downto 0);
-      id         : slv(7 downto 0);
       contEn     : sl;
+      dropEn     : sl;
       inUse      : sl;
       buffId     : slv(7 downto 0);
    end record;
 
-   constant AXI_WRITE_TRACK_INIT_C : AxiWriteTrackType := ( 
+   constant AXI_WRITE_DMA_TRACK_INIT_C : AxiWriteDmaTrackType := ( 
       address    => (others=>'0'),
       maxSize    => (others=>'0'),
       size       => (others=>'0'),
       firstUser  => (others=>'0'),
       lastUser   => (others=>'0'),
-      id         => (others=>'0'),
       contEn     => '0',
+      dropEn     => '0',
       inUse      => '0',
       buffId     => (others=>'0')
    );
 
-   type AxiWriteTrackArray is array (natural range<>) of AxiWriteTrackType;
+   type AxiWriteDmaTrackArray is array (natural range<>) of AxiWriteDmaTrackType;
 
-   constant AXI_WRITE_TRACK_SIZE_C : integer := 162;
+   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 139;
 
-   function toSlv (r : AxiWriteTrackType ) return slv;
-   function toAxiWriteTrack (din : slv; valid : sl) return AxiWriteTrackType;
+   function toSlv (r : AxiWriteDmaTrackType ) return slv;
+   function toAxiWriteDmaTrack (din : slv; valid : sl) return AxiWriteDmaTrackType;
+
+   -------------------------------------
+   -- DMA Read Descriptor Request (AxiStreamDmaV2)
+   -- Passed to DMA engine to initiate a read.
+   -------------------------------------
+
+   type AxiReadDmaDescReqType is record
+      valid      : sl;
+      address    : slv(63 downto 0);
+      buffId     : slv(10 downto 0); 
+      firstUser  : slv(7  downto 0);
+      lastUser   : slv(7  downto 0);
+      size       : slv(23 downto 0);
+      continue   : sl;
+      dest       : slv(7  downto 0);
+   end record;
+
+   constant AXI_READ_DMA_DESC_REQ_INIT_C : AxiReadDmaDescReqType := ( 
+      valid      => '0',
+      address    => (others=>'0'),
+      buffId     => (others=>'0'),
+      firstUser  => (others=>'0'),
+      lastUser   => (others=>'0'),
+      size       => (others=>'0'),
+      continue   => '0',
+      dest       => (others=>'0')
+   );
+
+   type AxiReadDmaDescReqArray is array (natural range<>) of AxiReadDmaDescReqType;
+
+   constant AXI_READ_DMA_DESC_REQ_SIZE_C : integer := 125;
+
+   function toSlv (r : AxiReadDmaDescReqType ) return slv;
+   function toAxiReadDmaDescReq (din : slv; valid : sl) return AxiReadDmaDescReqType;
+
+   -------------------------------------
+   -- DMA Read Descriptor Return (AxiStreamDmaV2)
+   -- Returned from dma engine when frame is complete
+   -------------------------------------
+
+   type AxiReadDmaDescRetType is record
+      valid      : sl;
+      buffId     : slv(11 downto 0); 
+      result     : slv(2  downto 0);
+   end record;
+
+   constant AXI_READ_DMA_DESC_RET_INIT_C : AxiReadDmaDescRetType := ( 
+      valid      => '0',
+      buffId     => (others=>'0'),
+      result     => (others=>'0')
+   );
+
+   type AxiReadDmaDescRetArray is array (natural range<>) of AxiReadDmaDescRetType;
+
+   constant AXI_READ_DMA_DESC_RET_SIZE_C : integer := 15;
+
+   function toSlv (r : AxiReadDmaDescRetType ) return slv;
+   function toAxiReadDmaDescRet (din : slv; valid : sl) return AxiReadDmaDescRetType;
 
 end package AxiDmaPkg;
 
 package body AxiDmaPkg is
 
-   function toSlv (r : AxiWriteDescReqType ) return slv is
-      variable retValue : slv(AXI_WRITE_DESC_REQ_SIZE_C-1 downto 0) := (others => '0');
+   function toSlv (r : AxiWriteDmaDescReqType ) return slv is
+      variable retValue : slv(AXI_WRITE_DMA_DESC_REQ_SIZE_C-1 downto 0) := (others => '0');
       variable i        : integer := 0;
    begin
       assignSlv(i, retValue, r.dest);
       return(retValue);
    end function;
 
-   function toAxiWriteDescReq (din : slv; valid : sl) return AxiWriteDescReqType is
-      variable desc : AxiWriteDescReqType := AXI_WRITE_DESC_REQ_INIT_C;
+   function toAxiWriteDmaDescReq (din : slv; valid : sl) return AxiWriteDmaDescReqType is
+      variable desc : AxiWriteDmaDescReqType := AXI_WRITE_DMA_DESC_REQ_INIT_C;
       variable i    : integer := 0;
    begin
       desc.valid := valid;
@@ -289,51 +353,47 @@ package body AxiDmaPkg is
       return(desc);
    end function;
 
-   function toSlv (r : AxiWriteDescAckType ) return slv is
-      variable retValue : slv(AXI_WRITE_DESC_ACK_SIZE_C-1 downto 0) := (others => '0');
+   function toSlv (r : AxiWriteDmaDescAckType ) return slv is
+      variable retValue : slv(AXI_WRITE_DMA_DESC_ACK_SIZE_C-1 downto 0) := (others => '0');
       variable i        : integer := 0;
    begin
       assignSlv(i, retValue, r.address);
-      assignSlv(i, retValue, r.drop);
+      assignSlv(i, retValue, r.dropEn);
       assignSlv(i, retValue, r.maxSize);
       assignSlv(i, retValue, r.contEn);
       assignSlv(i, retValue, r.buffId);
       return(retValue);
    end function;
 
-   function toAxiWriteDescAck (din : slv; valid : sl) return AxiWriteDescAckType is
-      variable desc : AxiWriteDescAckType := AXI_WRITE_DESC_ACK_INIT_C;
+   function toAxiWriteDmaDescAck (din : slv; valid : sl) return AxiWriteDmaDescAckType is
+      variable desc : AxiWriteDmaDescAckType := AXI_WRITE_DMA_DESC_ACK_INIT_C;
       variable i    : integer := 0;
    begin
       desc.valid := valid;
       assignRecord(i, din, desc.address);
-      assignRecord(i, din, desc.drop);
+      assignRecord(i, din, desc.dropEn);
       assignRecord(i, din, desc.maxSize);
       assignRecord(i, din, desc.contEn);
       assignRecord(i, din, desc.buffId);
       return(desc);
    end function;
 
-   function toSlv (r : AxiWriteDescRetType ) return slv is
-      variable retValue : slv(AXI_WRITE_DESC_RET_SIZE_C-1 downto 0) := (others => '0');
+   function toSlv (r : AxiWriteDmaDescRetType ) return slv is
+      variable retValue : slv(AXI_WRITE_DMA_DESC_RET_SIZE_C-1 downto 0) := (others => '0');
       variable i        : integer := 0;
    begin
       assignSlv(i, retValue, r.buffId);
       assignSlv(i, retValue, r.firstUser);
       assignSlv(i, retValue, r.lastUser);
       assignSlv(i, retValue, r.size);
-      assignSlv(i, retValue, r.id);
-      assignSlv(i, retValue, r.errDet);
-      assignSlv(i, retValue, r.errValue);
       assignSlv(i, retValue, r.continue);
-      assignSlv(i, retValue, r.overflow);
+      assignSlv(i, retValue, r.result);
       assignSlv(i, retValue, r.dest);
-      assignSlv(i, retValue, r.reqCount);
       return(retValue);
    end function;
 
-   function toAxiWriteDescRet (din : slv; valid : sl) return AxiWriteDescRetType is
-      variable desc : AxiWriteDescRetType := AXI_WRITE_DESC_RET_INIT_C;
+   function toAxiWriteDmaDescRet (din : slv; valid : sl) return AxiWriteDmaDescRetType is
+      variable desc : AxiWriteDmaDescRetType := AXI_WRITE_DMA_DESC_RET_INIT_C;
       variable i    : integer := 0;
    begin
       desc.valid := valid;
@@ -341,18 +401,14 @@ package body AxiDmaPkg is
       assignRecord(i, din, desc.firstUser);
       assignRecord(i, din, desc.lastUser);
       assignRecord(i, din, desc.size);
-      assignRecord(i, din, desc.id);
-      assignRecord(i, din, desc.errDet);
-      assignRecord(i, din, desc.errValue);
       assignRecord(i, din, desc.continue);
-      assignRecord(i, din, desc.overflow);
+      assignRecord(i, din, desc.result);
       assignRecord(i, din, desc.dest);
-      assignRecord(i, din, desc.reqCount);
       return(desc);
    end function;
 
-   function toSlv (r : AxiWriteTrackType ) return slv is
-      variable retValue : slv(AXI_WRITE_TRACK_SIZE_C-1 downto 0) := (others => '0');
+   function toSlv (r : AxiWriteDmaTrackType ) return slv is
+      variable retValue : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0) := (others => '0');
       variable i        : integer := 0;
    begin
       assignSlv(i, retValue, r.address);
@@ -360,15 +416,15 @@ package body AxiDmaPkg is
       assignSlv(i, retValue, r.size);
       assignSlv(i, retValue, r.firstUser);
       assignSlv(i, retValue, r.lastUser);
-      assignSlv(i, retValue, r.id);
       assignSlv(i, retValue, r.contEn);
+      assignSlv(i, retValue, r.dropEn);
       assignSlv(i, retValue, r.inUse);
       assignSlv(i, retValue, r.buffId);
       return(retValue);
    end function;
 
-   function toAxiWriteTrack (din : slv; valid : sl) return AxiWriteTrackType is
-      variable desc : AxiWriteTrackType := AXI_WRITE_TRACK_INIT_C;
+   function toAxiWriteDmaTrack (din : slv; valid : sl) return AxiWriteDmaTrackType is
+      variable desc : AxiWriteDmaTrackType := AXI_WRITE_DMA_TRACK_INIT_C;
       variable i    : integer := 0;
    begin
       assignRecord(i, din, desc.address);
@@ -376,10 +432,58 @@ package body AxiDmaPkg is
       assignRecord(i, din, desc.size);
       assignRecord(i, din, desc.firstUser);
       assignRecord(i, din, desc.lastUser);
-      assignRecord(i, din, desc.id);
       assignRecord(i, din, desc.contEn);
+      assignRecord(i, din, desc.dropEn);
       assignRecord(i, din, desc.inUse);
       assignRecord(i, din, desc.buffId);
+      return(desc);
+   end function;
+
+   function toSlv (r : AxiReadDmaDescReqType ) return slv is
+      variable retValue : slv(AXI_READ_DMA_DESC_REQ_SIZE_C-1 downto 0) := (others => '0');
+      variable i        : integer := 0;
+   begin
+      assignSlv(i, retValue, r.address);
+      assignSlv(i, retValue, r.buffId);
+      assignSlv(i, retValue, r.firstUser);
+      assignSlv(i, retValue, r.lastUser);
+      assignSlv(i, retValue, r.size);
+      assignSlv(i, retValue, r.continue);
+      assignSlv(i, retValue, r.dest);
+      return(retValue);
+   end function;
+
+   function toAxiReadDmaDescReq (din : slv; valid : sl) return AxiReadDmaDescReqType is
+      variable desc : AxiReadDmaDescReqType := AXI_READ_DMA_DESC_REQ_INIT_C;
+      variable i    : integer := 0;
+   begin
+      desc.valid := valid;
+      assignRecord(i, din, desc.address);
+      assignRecord(i, din, desc.buffId);
+      assignRecord(i, din, desc.firstUser);
+      assignRecord(i, din, desc.lastUser);
+      assignRecord(i, din, desc.size);
+      assignRecord(i, din, desc.continue);
+      assignRecord(i, din, desc.dest);
+      return(desc);
+   end function;
+
+   function toSlv (r : AxiReadDmaDescRetType ) return slv is
+      variable retValue : slv(AXI_READ_DMA_DESC_RET_SIZE_C-1 downto 0) := (others => '0');
+      variable i        : integer := 0;
+   begin
+      assignSlv(i, retValue, r.buffId);
+      assignSlv(i, retValue, r.result);
+      return(retValue);
+   end function;
+
+   function toAxiReadDmaDescRet (din : slv; valid : sl) return AxiReadDmaDescRetType is
+      variable desc : AxiReadDmaDescRetType := AXI_READ_DMA_DESC_RET_INIT_C;
+      variable i    : integer := 0;
+   begin
+      desc.valid := valid;
+      assignRecord(i, din, desc.buffId);
+      assignRecord(i, din, desc.result);
       return(desc);
    end function;
 
