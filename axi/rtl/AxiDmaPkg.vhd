@@ -183,9 +183,9 @@ package AxiDmaPkg is
       valid      : sl;
       address    : slv(63 downto 0);
       dropEn     : sl;              
-      maxSize    : slv(23 downto 0);
+      maxSize    : slv(31 downto 0);
       contEn     : sl;              
-      buffId     : slv(11 downto 0);
+      buffId     : slv(15 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := ( 
@@ -199,7 +199,7 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescAckArray is array (natural range<>) of AxiWriteDmaDescAckType;
 
-   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 102;
+   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 114;
 
    function toSlv (r : AxiWriteDmaDescAckType ) return slv;
    function toAxiWriteDmaDescAck (din : slv; valid : sl) return AxiWriteDmaDescAckType;
@@ -211,13 +211,14 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(11 downto 0); 
+      buffId     : slv(15 downto 0); 
       firstUser  : slv(7  downto 0);
       lastUser   : slv(7  downto 0);
-      size       : slv(23 downto 0);
+      size       : slv(31 downto 0);
       continue   : sl;
       result     : slv(2  downto 0);
       dest       : slv(7  downto 0);
+      id         : slv(7  downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_RET_INIT_C : AxiWriteDmaDescRetType := ( 
@@ -228,12 +229,13 @@ package AxiDmaPkg is
       size       => (others=>'0'),
       continue   => '0',
       result     => (others=>'0'),
-      dest       => (others=>'0')
+      dest       => (others=>'0'),
+      id         => (others=>'0')
    );
 
    type AxiWriteDmaDescRetArray is array (natural range<>) of AxiWriteDmaDescRetType;
 
-   constant AXI_WRITE_DMA_DESC_RET_SIZE_C : integer := 64;
+   constant AXI_WRITE_DMA_DESC_RET_SIZE_C : integer := 84;
 
    function toSlv (r : AxiWriteDmaDescRetType ) return slv;
    function toAxiWriteDmaDescRet (din : slv; valid : sl) return AxiWriteDmaDescRetType;
@@ -245,14 +247,15 @@ package AxiDmaPkg is
 
    type AxiWriteDmaTrackType is record
       address    : slv(63 downto 0);
-      maxSize    : slv(23 downto 0);
-      size       : slv(23 downto 0);
-      firstUser  : slv(7 downto 0);
+      maxSize    : slv(31 downto 0);
+      size       : slv(31 downto 0);
+      firstUser  : slv(7 downto 0);  
       lastUser   : slv(7 downto 0);
       contEn     : sl;
       dropEn     : sl;
       inUse      : sl;
-      buffId     : slv(7 downto 0);
+      id         : slv(7  downto 0);
+      buffId     : slv(15 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_TRACK_INIT_C : AxiWriteDmaTrackType := ( 
@@ -264,12 +267,13 @@ package AxiDmaPkg is
       contEn     => '0',
       dropEn     => '0',
       inUse      => '0',
+      id         => (others=>'0'),
       buffId     => (others=>'0')
    );
 
    type AxiWriteDmaTrackArray is array (natural range<>) of AxiWriteDmaTrackType;
 
-   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 139;
+   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 171;
 
    function toSlv (r : AxiWriteDmaTrackType ) return slv;
    function toAxiWriteDmaTrack (din : slv; valid : sl) return AxiWriteDmaTrackType;
@@ -282,11 +286,12 @@ package AxiDmaPkg is
    type AxiReadDmaDescReqType is record
       valid      : sl;
       address    : slv(63 downto 0);
-      buffId     : slv(10 downto 0); 
+      buffId     : slv(15 downto 0); 
       firstUser  : slv(7  downto 0);
       lastUser   : slv(7  downto 0);
-      size       : slv(23 downto 0);
+      size       : slv(31 downto 0);
       continue   : sl;
+      id         : slv(7  downto 0);
       dest       : slv(7  downto 0);
    end record;
 
@@ -298,12 +303,13 @@ package AxiDmaPkg is
       lastUser   => (others=>'0'),
       size       => (others=>'0'),
       continue   => '0',
+      id         => (others=>'0'),
       dest       => (others=>'0')
    );
 
    type AxiReadDmaDescReqArray is array (natural range<>) of AxiReadDmaDescReqType;
 
-   constant AXI_READ_DMA_DESC_REQ_SIZE_C : integer := 125;
+   constant AXI_READ_DMA_DESC_REQ_SIZE_C : integer := 145;
 
    function toSlv (r : AxiReadDmaDescReqType ) return slv;
    function toAxiReadDmaDescReq (din : slv; valid : sl) return AxiReadDmaDescReqType;
@@ -315,7 +321,7 @@ package AxiDmaPkg is
 
    type AxiReadDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(11 downto 0); 
+      buffId     : slv(15 downto 0); 
       result     : slv(2  downto 0);
    end record;
 
@@ -327,7 +333,7 @@ package AxiDmaPkg is
 
    type AxiReadDmaDescRetArray is array (natural range<>) of AxiReadDmaDescRetType;
 
-   constant AXI_READ_DMA_DESC_RET_SIZE_C : integer := 15;
+   constant AXI_READ_DMA_DESC_RET_SIZE_C : integer := 19;
 
    function toSlv (r : AxiReadDmaDescRetType ) return slv;
    function toAxiReadDmaDescRet (din : slv; valid : sl) return AxiReadDmaDescRetType;
@@ -389,6 +395,7 @@ package body AxiDmaPkg is
       assignSlv(i, retValue, r.continue);
       assignSlv(i, retValue, r.result);
       assignSlv(i, retValue, r.dest);
+      assignSlv(i, retValue, r.id);
       return(retValue);
    end function;
 
@@ -404,6 +411,7 @@ package body AxiDmaPkg is
       assignRecord(i, din, desc.continue);
       assignRecord(i, din, desc.result);
       assignRecord(i, din, desc.dest);
+      assignRecord(i, din, desc.id);
       return(desc);
    end function;
 
@@ -419,6 +427,7 @@ package body AxiDmaPkg is
       assignSlv(i, retValue, r.contEn);
       assignSlv(i, retValue, r.dropEn);
       assignSlv(i, retValue, r.inUse);
+      assignSlv(i, retValue, r.id);
       assignSlv(i, retValue, r.buffId);
       return(retValue);
    end function;
@@ -435,6 +444,7 @@ package body AxiDmaPkg is
       assignRecord(i, din, desc.contEn);
       assignRecord(i, din, desc.dropEn);
       assignRecord(i, din, desc.inUse);
+      assignRecord(i, din, desc.id);
       assignRecord(i, din, desc.buffId);
       return(desc);
    end function;
@@ -449,6 +459,7 @@ package body AxiDmaPkg is
       assignSlv(i, retValue, r.lastUser);
       assignSlv(i, retValue, r.size);
       assignSlv(i, retValue, r.continue);
+      assignSlv(i, retValue, r.id);
       assignSlv(i, retValue, r.dest);
       return(retValue);
    end function;
@@ -464,6 +475,7 @@ package body AxiDmaPkg is
       assignRecord(i, din, desc.lastUser);
       assignRecord(i, din, desc.size);
       assignRecord(i, din, desc.continue);
+      assignRecord(i, din, desc.id);
       assignRecord(i, din, desc.dest);
       return(desc);
    end function;

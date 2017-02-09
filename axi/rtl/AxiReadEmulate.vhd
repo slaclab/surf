@@ -25,6 +25,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+use work.TextUtilPkg.all;
 use work.StdRtlPkg.all;
 use work.AxiPkg.all;
 
@@ -32,7 +33,8 @@ entity AxiReadEmulate is
    generic (
       TPD_G        : time          := 1 ns;
       LATENCY_G    : natural       := 31;
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C);
+      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C;
+      SIM_DEBUG_G  : boolean       := false);
    port (
       -- Clock/Reset
       axiClk        : in  sl;
@@ -128,6 +130,8 @@ begin
                   v.iSlave.rdata(i*8+7 downto i*8) := v.cnt(7 downto 0);
                   v.cnt                            := v.cnt + 1;
                end loop;
+               print(SIM_DEBUG_G, "AxiReadEmulate( addr:" & hstr(r.iMaster.araddr+r.cnt) & ", data: " & hstr(v.iSlave.rdata(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0)) & ")");
+
                -- Echo the read ID
                v.iSlave.rid := r.iMaster.arid;
                -- Check if transaction is completed
