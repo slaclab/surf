@@ -41,6 +41,9 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.Variable(name='OffsetAdjust', offset=(0x10*4), bitSize=8, bitOffset=0))
 
+        self.add(pr.Variable(name='OutputInvert', offset=(0x14*4), bitSize=1, bitOffset=2, base='bool'))
+        self.add(pr.Variable(name='OutputFormat', offset=(0x14*4), bitSize=1, bitOffset=0, base='enum',
+                             enum={1: 'Twos Compliment', 0: 'Offset Binary'}))
 
                      
 
