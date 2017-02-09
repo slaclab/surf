@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2016-11-30
+-- Last update: 2017-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -658,7 +658,7 @@ package body AxiStreamPkg is
 
    function toAxiStreamMaster (din : slv; valid : sl; c : AxiStreamConfigType) return AxiStreamMasterType is
       variable master : AxiStreamMasterType                        := axiStreamMasterInit(c);
-      variable user   : slv(maximum(c.TUSER_BITS_C-1, 1) downto 0) := (others => '0');
+      variable user   : slv(maximum(c.TUSER_BITS_C-1, 0) downto 0) := (others => '0');
       variable keep   : slv(bitSize(c.TDATA_BYTES_C-1)-1 downto 0);
       variable i      : integer                                    := 0;
    begin
