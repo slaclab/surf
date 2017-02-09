@@ -308,50 +308,31 @@ package AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv    := "X";
-      name        : in    string := "NoName");
-
-   procedure axiSlaveRegister (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout slv;
-      name        : in    string);
+      constVal    : in    slv    := "X");
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    slv;
-      name        : in    string := "NoName");
+      reg         : in    slv);
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl     := 'X';
-      name        : in    string := "NoName");
-
-   procedure axiSlaveRegister (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout sl;
-      name        : in    string);
+      constVal    : in    sl := 'X');
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    sl;
-      name        : in    string := "NoName");
+      reg         : in    sl);
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
-      regs        : inout slv32Array;
-      name        : in    string := "NoName");
+      regs        : inout slv32Array);
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
@@ -648,8 +629,7 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv    := "X";
-      name        : in    string := "NoName")
+      constVal    : in    slv    := "X")
    is
       -- Need to remap addr range to be (length-1 downto 0)
       constant ADDR_LEN_C   : integer                    := addr'length;
@@ -668,8 +648,6 @@ package body AxiLitePkg is
 
       variable strobeMask : slv(3 downto 0) := (others => '-');
    begin
---       print("AXI register - " & name & " Addr: " & hstr(NORMAL_ADDR_C) & " offset: " & str(NORMAL_OFFSET_C) &
---             " size: " & str(reg'length));
 
       for i in BUS_HIGH_BIT_C downto NORMAL_OFFSET_C loop
          strobeMask(i/8) := '1';
@@ -696,33 +674,21 @@ package body AxiLitePkg is
       end if;
 
       if (REG_HIGH_BIT_C < reg'high) then
-         axiSlaveRegister(ep, slv(unsigned(NORMAL_ADDR_C)+4), 0, reg(reg'high downto REG_HIGH_BIT_C+1), "X", string(name & "_CONT"));
+         axiSlaveRegister(ep, slv(unsigned(NORMAL_ADDR_C)+4), 0, reg(reg'high downto REG_HIGH_BIT_C+1), "X");
       end if;
 
-   end procedure;
-
-   procedure axiSlaveRegister (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout slv;
-      name        : in    string)
-   is
-   begin
-      axiSlaveRegister(ep, addr, offset, reg, "X", name);
    end procedure;
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    slv;
-      name        : in    string := "NoName")
+      reg         : in    slv)
    is
       variable regTmp : slv(reg'length-1 downto 0);
    begin
       regTmp := reg;
-      axiSlaveRegister(ep, addr, offset, regTmp, "X", name);
+      axiSlaveRegister(ep, addr, offset, regTmp, "X");
    end procedure;
 
    procedure axiSlaveRegister (
@@ -730,50 +696,37 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl     := 'X';
-      name        : in    string := "NoName")
+      constVal    : in    sl     := 'X')
    is
       variable tmpReg : slv(0 downto 0);
       variable tmpVal : slv(0 downto 0);
    begin
       tmpReg(0) := reg;
       tmpVal(0) := constVal;
-      axiSlaveRegister(ep, addr, offset, tmpReg, tmpVal, name);
+      axiSlaveRegister(ep, addr, offset, tmpReg, tmpVal);
       reg       := tmpReg(0);
-   end procedure;
-
-   procedure axiSlaveRegister (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout sl;
-      name        : in    string) is
-   begin
-      axiSlaveRegister(ep, addr, offset, reg, 'X', name);
    end procedure;
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    sl;
-      name        : in    string := "NoName")
+      reg         : in    sl)
    is
       variable tmp : slv(0 downto 0);
    begin
       tmp(0) := reg;
-      axiSlaveRegisterR(ep, addr, offset, tmp, name);
+      axiSlaveRegisterR(ep, addr, offset, tmp);
    end procedure;
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
-      regs        : inout slv32Array;
-      name        : in    string := "NoName")
+      regs        : inout slv32Array)
    is
    begin
       for i in regs'range loop
-         axiSlaveRegister(ep, slv(unsigned(addr) + to_unsigned(i*4, addr'length)), 0, regs(i), string(name & "[" & str(i) & "]"));
+         axiSlaveRegister(ep, slv(unsigned(addr) + to_unsigned(i*4, addr'length)), 0, regs(i));
       end loop;
 
    end procedure;
