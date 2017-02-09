@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-12-05
--- Last update: 2016-12-12
+-- Last update: 2017-02-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,10 +37,11 @@ use work.Pgp2bPkg.all;
 entity RoguePgpSim is
 
    generic (
-      TPD_G       : time                   := 1 ns;
-      FIXED_LAT_G : boolean                := false;
-      USER_ID_G   : integer range 0 to 100 := 1;
-      NUM_VC_EN_G : integer range 1 to 4   := 4);
+      TPD_G           : time                   := 1 ns;
+      FIXED_LAT_G     : boolean                := false;
+      RX_CLK_PERIOD_G : real                   := 8.0e-9;
+      USER_ID_G       : integer range 0 to 100 := 1;
+      NUM_VC_EN_G     : integer range 1 to 4   := 4);
 
    port (
       refClkP : in sl;
@@ -63,6 +64,8 @@ entity RoguePgpSim is
 end entity RoguePgpSim;
 
 architecture sim of RoguePgpSim is
+
+   constant RX_CLK_PERIOD_C : time := RX_CLK_PERIOD_G * (1000 ms);
 
    signal pgpClk : sl := '0';
    signal pgpRst : sl := '0';
@@ -96,13 +99,14 @@ begin
    NORMAL : if (not FIXED_LAT_G) generate
       pgpRxClk <= pgpClk;
       pgpRxRst <= pgpRst;
+      rxClk    <= pgpClk;
    end generate NORMAL;
 
    -- If fixed late, create an internal clock to emulate recovered clock
    FIXED_LAT : if (FIXED_LAT_G) generate
       U_ClkRst_1 : entity work.ClkRst
          generic map (
-            CLK_PERIOD_G    => 6.4 ns,
+            CLK_PERIOD_G    => RX_CLK_PERIOD_C,
             CLK_DELAY_G     => 0.14159 ns,
             RST_HOLD_TIME_G => 30 ns,
             SYNC_RESET_G    => true)
