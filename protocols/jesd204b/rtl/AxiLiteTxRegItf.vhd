@@ -200,7 +200,7 @@ begin
    s_RdAddr <= slvToInt(axilReadMaster.araddr(9 downto 2));
    s_WrAddr <= slvToInt(axilWriteMaster.awaddr(9 downto 2));
 
-   comb : process (axilReadMaster, axilWriteMaster, r, axiRst_i, s_statusTxArr, s_RdAddr, s_WrAddr) is
+   comb : process (axilReadMaster, axilWriteMaster, r, axiRst_i, s_statusTxArr, s_RdAddr, s_WrAddr, s_statusCnt) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);

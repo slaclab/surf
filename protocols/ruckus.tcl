@@ -5,7 +5,6 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/glink"
 loadRuckusTcl "$::DIR_PATH/i2c"
 loadRuckusTcl "$::DIR_PATH/jesd204b"
-loadRuckusTcl "$::DIR_PATH/pcie"
 loadRuckusTcl "$::DIR_PATH/pgp"
 loadRuckusTcl "$::DIR_PATH/rssi"
 loadRuckusTcl "$::DIR_PATH/saci"
