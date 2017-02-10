@@ -187,7 +187,7 @@ begin
          axiReadSlave  => axiReadSlave);             -- [in]
 
 
-   comb : process (r, rdDmaAck, srpReq, wrDmaAck) is
+   comb : process (r, axiRst, rdDmaAck, srpReq, wrDmaAck) is
       variable v         : RegType;
       variable addrError : sl;
    begin

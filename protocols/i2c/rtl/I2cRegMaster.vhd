@@ -274,6 +274,7 @@ begin
       i2cMasterIn.wrValid  <= r.i2cMasterIn.wrValid;
       i2cMasterIn.wrData   <= r.i2cMasterIn.wrData;
       i2cMasterIn.rdAck    <= r.i2cMasterIn.rdAck;
+      i2cMasterIn.busReq   <= r.i2cMasterIn.busReq;
 
       -- Outputs
       regOut <= r.regOut;
