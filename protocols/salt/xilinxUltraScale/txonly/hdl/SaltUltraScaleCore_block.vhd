@@ -504,18 +504,13 @@ sgmii_clk_r <= sgmii_clk_r_i;
 
    );
 
-   process(clk125m)
-   begin
-      if rising_edge(clk125m) then
-         rxchariscomma(0) <= txcharisk;-- not sure if I should do this or actually drive it with K28.5 detection
-         rxcharisk(0)     <= txcharisk;
-         rxclkcorcnt      <= (others=>'0');
-         rxdata           <= txdata;
-         rxdisperr        <= (others=>'0');
-         rxnotintable     <= (others=>'0');
-         rxrundisp        <= (others=>'0');
-      end if;
-   end process;
+   rxchariscomma(0) <= '1';
+   rxcharisk(0)     <= '1';
+   rxclkcorcnt      <= (others=>'0');
+   rxdata           <= "10111100";  -- K28.5, 0xBC (Comma)
+   rxdisperr        <= (others=>'0');
+   rxnotintable     <= (others=>'0');
+   rxrundisp        <= (others=>'0');
 
    -----------------------------------------------------------------------------
    --  Component Instantiation for the LVDS Transceiver

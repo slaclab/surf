@@ -1,7 +1,7 @@
 -- Copyright 1986-2015 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2015.3 (lin64) Build 1368829 Mon Sep 28 20:06:39 MDT 2015
--- Date        : Fri Feb 10 17:06:56 2017
+-- Date        : Fri Feb 10 18:03:36 2017
 -- Host        : rdsrv117 running 64-bit Red Hat Enterprise Linux Server release 6.8 (Santiago)
 -- Command     : write_vhdl -force -mode synth_stub
 --               /u/re/ruckman/projects/git/amc-carrier-project-template/firmware/submodules/surf/protocols/salt/xilinxUltraScale/txonly/images/SaltUltraScaleTxOnly_00000001.vhd
