@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2016-01-22
+-- Last update: 2017-02-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,6 +26,9 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity SaltUltraScale is
    generic (
@@ -62,7 +65,7 @@ entity SaltUltraScale is
       mAxisClk      : in  sl;
       mAxisRst      : in  sl;
       mAxisMaster   : out AxiStreamMasterType;
-      mAxisSlave    : in  AxiStreamSlaveType);    
+      mAxisSlave    : in  AxiStreamSlaveType);
 end SaltUltraScale;
 
 architecture mapping of SaltUltraScale is
@@ -146,6 +149,45 @@ architecture mapping of SaltUltraScale is
          reset                : in  std_logic;  -- Asynchronous reset for entire core.
          signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
    end component;
+   
+   component SaltUltraScaleTxOnly
+      port (
+         -----------------------------
+         -- LVDS transceiver Interface
+         -----------------------------
+         txp                  : out std_logic;  -- Differential +ve of serial transmission from PMA to PMD.
+         txn                  : out std_logic;  -- Differential -ve of serial transmission from PMA to PMD.
+         clk125m              : in  std_logic;
+         mmcm_locked          : in  std_logic;
+         sgmii_clk_r          : out std_logic;  -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
+         sgmii_clk_f          : out std_logic;  -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
+         sgmii_clk_en         : out std_logic;  -- Clock enable for client MAC
+         ----------------
+         -- Speed Control
+         ----------------
+         speed_is_10_100      : in  std_logic;  -- Core should operate at either 10Mbps or 100Mbps speeds
+         speed_is_100         : in  std_logic;  -- Core should operate at 100Mbps speed
+         clk625               : in  std_logic;
+         clk312               : in  std_logic;
+         -----------------
+         -- GMII Interface
+         -----------------
+         gmii_txd             : in  std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
+         gmii_tx_en           : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_tx_er           : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_rxd             : out std_logic_vector(7 downto 0);  -- Received Data to client MAC.
+         gmii_rx_dv           : out std_logic;  -- Received control signal to client MAC.
+         gmii_rx_er           : out std_logic;  -- Received control signal to client MAC.
+         gmii_isolate         : out std_logic;  -- Tristate control to electrically isolate GMII.
+         ---------------
+         -- General IO's
+         ---------------
+         configuration_vector : in  std_logic_vector(4 downto 0);  -- Alternative to MDIO interface.
+         status_vector        : out std_logic_vector(15 downto 0);  -- Core status.
+         reset                : in  std_logic;  -- Asynchronous reset for entire core.
+         signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
+   end component;
+   
 
    signal config : slv(4 downto 0);
    signal status : slv(15 downto 0);
@@ -156,7 +198,7 @@ architecture mapping of SaltUltraScale is
    signal rxEn   : sl;
    signal rxErr  : sl;
    signal rxData : slv(7 downto 0);
-   
+
 begin
 
    linkUp <= status(0);
@@ -235,8 +277,8 @@ begin
             -----------------
             -- GMII Interface
             -----------------
-            gmii_txd             => txData,
-            gmii_tx_en           => txEn,
+            gmii_txd             => x"00",
+            gmii_tx_en           => '0',
             gmii_tx_er           => '0',
             gmii_rxd             => rxData,
             gmii_rx_dv           => rxEn,
@@ -252,15 +294,13 @@ begin
    end generate;
 
    TX_ONLY : if (TX_ENABLE_G = true) and (RX_ENABLE_G = false) generate
-      U_SaltUltraScaleCore : SaltUltraScaleCore
+      U_SaltUltraScaleCore : SaltUltraScaleTxOnly
          port map(
             -----------------------------
             -- LVDS transceiver Interface
             -----------------------------
             txp                  => txP,
             txn                  => txN,
-            rxp                  => rxP,
-            rxn                  => rxN,
             clk125m              => clk125MHz,
             mmcm_locked          => mmcmLocked,
             sgmii_clk_r          => open,
@@ -273,16 +313,15 @@ begin
             speed_is_100         => '0',
             clk625               => clk625MHz,
             clk312               => clk312MHz,
-            idelay_rdy_in        => iDelayCtrlRdy,
             -----------------
             -- GMII Interface
             -----------------
             gmii_txd             => txData,
             gmii_tx_en           => txEn,
             gmii_tx_er           => '0',
-            gmii_rxd             => rxData,
-            gmii_rx_dv           => rxEn,
-            gmii_rx_er           => rxErr,
+            gmii_rxd             => open,
+            gmii_rx_dv           => open,
+            gmii_rx_er           => open,
             gmii_isolate         => open,
             ---------------
             -- General IO's
@@ -309,7 +348,7 @@ begin
             txEn        => txEn,
             txData      => txData,
             clk         => clk125MHz,
-            rst         => rst125MHz);            
+            rst         => rst125MHz);
    end generate;
 
    TX_DISABLE : if (TX_ENABLE_G = false) generate
@@ -337,14 +376,14 @@ begin
             rxErr       => rxErr,
             rxData      => rxData,
             clk         => clk125MHz,
-            rst         => rst125MHz);               
+            rst         => rst125MHz);
 
    end generate;
 
    RX_DISABLE : if (RX_ENABLE_G = false) generate
-      
+
       mAxisMaster <= AXI_STREAM_MASTER_INIT_C;
-      
+
    end generate;
 
 end mapping;
