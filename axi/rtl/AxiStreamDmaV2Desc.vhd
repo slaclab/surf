@@ -52,8 +52,8 @@ entity AxiStreamDmaV2Desc is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Additional signals
       interrupt       : out sl;
-      online          : out sl;
-      acknowledge     : out sl;
+      online          : out slv(CHAN_COUNT_G-1 downto 0);
+      acknowledge     : out slv(CHAN_COUNT_G-1 downto 0);
       -- DMA write descriptor request, ack and return
       dmaWrDescReq    : in  AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
       dmaWrDescAck    : out AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
@@ -131,8 +131,8 @@ architecture rtl of AxiStreamDmaV2Desc is
       dropEn          : sl;
       enable          : sl;
       intEnable       : sl;
-      online          : sl;
-      acknowledge     : sl;
+      online          : slv(CHAN_COUNT_G-1 downto 0);
+      acknowledge     : slv(CHAN_COUNT_G-1 downto 0);
       fifoReset       : sl;
       intAckEn        : sl;
       intAckCount     : slv(15 downto 0);
@@ -186,8 +186,8 @@ architecture rtl of AxiStreamDmaV2Desc is
       dropEn             => '0',
       enable             => '0',
       intEnable          => '0',
-      online             => '0',
-      acknowledge        => '0',
+      online             => (others=>'0'),
+      acknowledge        => (others=>'0'),
       fifoReset          => '1',
       intAckEn           => '0',
       intAckCount        => (others=>'0'),
@@ -367,7 +367,7 @@ begin
       v.rdFifoRd    := '0';
       v.wrFifoWr    := '0';
       v.wrFifoRd    := '0';
-      v.acknowledge := '0';
+      v.acknowledge := (others=>'0');
 
       -----------------------------
       -- Register access
