@@ -91,7 +91,7 @@ begin
    U_DmaDesc: entity work.AxiStreamDmaV2Desc
       generic map (
          TPD_G                 => TPD_G,
-         CHAN_COUNT_G          => 1,
+         CHAN_COUNT_G          => CHAN_COUNT_G,
          AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
          AXI_READY_EN_G        => AXI_READY_EN_G,
          AXI_CONFIG_G          => AXI_DESC_CONFIG_G,
