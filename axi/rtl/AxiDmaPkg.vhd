@@ -246,37 +246,39 @@ package AxiDmaPkg is
    -------------------------------------
 
    type AxiWriteDmaTrackType is record
+      dest       : slv(7  downto 0);
+      inUse      : sl;
       address    : slv(63 downto 0);
       maxSize    : slv(31 downto 0);
       size       : slv(31 downto 0);
       firstUser  : slv(7 downto 0);  
-      lastUser   : slv(7 downto 0);
       contEn     : sl;
       dropEn     : sl;
-      inUse      : sl;
       id         : slv(7  downto 0);
       buffId     : slv(15 downto 0);
+      overflow   : sl;
    end record;
 
    constant AXI_WRITE_DMA_TRACK_INIT_C : AxiWriteDmaTrackType := ( 
+      dest       => (others=>'0'),
+      inUse      => '0',
       address    => (others=>'0'),
       maxSize    => (others=>'0'),
       size       => (others=>'0'),
       firstUser  => (others=>'0'),
-      lastUser   => (others=>'0'),
       contEn     => '0',
       dropEn     => '0',
-      inUse      => '0',
       id         => (others=>'0'),
-      buffId     => (others=>'0')
+      buffId     => (others=>'0'),
+      overflow   => '0'
    );
 
    type AxiWriteDmaTrackArray is array (natural range<>) of AxiWriteDmaTrackType;
 
-   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 171;
+   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 172;
 
    function toSlv (r : AxiWriteDmaTrackType ) return slv;
-   function toAxiWriteDmaTrack (din : slv; valid : sl) return AxiWriteDmaTrackType;
+   function toAxiWriteDmaTrack (din : slv ) return AxiWriteDmaTrackType;
 
    -------------------------------------
    -- DMA Read Descriptor Request (AxiStreamDmaV2)
@@ -419,33 +421,35 @@ package body AxiDmaPkg is
       variable retValue : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0) := (others => '0');
       variable i        : integer := 0;
    begin
+      assignSlv(i, retValue, r.dest);
+      assignSlv(i, retValue, r.inUse);
       assignSlv(i, retValue, r.address);
       assignSlv(i, retValue, r.maxSize);
       assignSlv(i, retValue, r.size);
       assignSlv(i, retValue, r.firstUser);
-      assignSlv(i, retValue, r.lastUser);
       assignSlv(i, retValue, r.contEn);
       assignSlv(i, retValue, r.dropEn);
-      assignSlv(i, retValue, r.inUse);
       assignSlv(i, retValue, r.id);
       assignSlv(i, retValue, r.buffId);
+      assignSlv(i, retValue, r.overflow);
       return(retValue);
    end function;
 
-   function toAxiWriteDmaTrack (din : slv; valid : sl) return AxiWriteDmaTrackType is
+   function toAxiWriteDmaTrack (din : slv) return AxiWriteDmaTrackType is
       variable desc : AxiWriteDmaTrackType := AXI_WRITE_DMA_TRACK_INIT_C;
       variable i    : integer := 0;
    begin
+      assignRecord(i, din, desc.dest);
+      assignRecord(i, din, desc.inUse);
       assignRecord(i, din, desc.address);
       assignRecord(i, din, desc.maxSize);
       assignRecord(i, din, desc.size);
       assignRecord(i, din, desc.firstUser);
-      assignRecord(i, din, desc.lastUser);
       assignRecord(i, din, desc.contEn);
       assignRecord(i, din, desc.dropEn);
-      assignRecord(i, din, desc.inUse);
       assignRecord(i, din, desc.id);
       assignRecord(i, din, desc.buffId);
+      assignRecord(i, din, desc.overflow);
       return(desc);
    end function;
 
