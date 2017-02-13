@@ -67,8 +67,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    type ReqStateType is (
       IDLE_S,
-      FIRST_S,
-      NEXT_S);
+      ADDR_S);
 
    type StateType is (
       IDLE_S,
@@ -205,16 +204,16 @@ begin
                v.sMaster.tDest := dmaRdDescReq.dest;
                v.sMaster.tId   := dmaRdDescReq.id;
                -- Next state
-               v.reqState      := FIRST_S;
+               v.reqState      := ADDR_S;
             end if;
          ----------------------------------------------------------------------
-         when FIRST_S =>
+         when ADDR_S =>
             -- Check if ready to make memory request
             if (r.rMaster.arvalid = '0') then
                -- Set the memory address 
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Determine transfer size to align address to 16-transfer boundaries
-               -- This initial alignment will ensure that we never cross a 4k boundary
+               -- Determine transfer size to align address to transfer size boundaries
+               -- This will ensure that we never cross a 4k boundary
                if (ARLEN_C > 0) then
                   -- Set the burst length
                   v.rMaster.arlen := ARLEN_C - r.dmaRdDescReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
@@ -223,40 +222,12 @@ begin
                      v.rMaster.arlen := resize(r.reqSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                   end if;
                end if;
-               -- There is enough room in the FIFO for a burst
-               if (pause = '0') then
-                  -- Set the flag
-                  v.rMaster.arvalid := '1';
-                  -- Update the request size
-                  reqLen    := DATA_BYTES_C*(conv_integer(v.rMaster.arlen) + 1);
-                  v.reqCnt  := toSlv(reqLen, 32);
-                  v.reqSize := r.reqSize - reqLen;
-                  -- Update next address
-                  v.dmaRdDescReq.address                        := r.dmaRdDescReq.address + reqLen;
-                  v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
-                  -- Next state
-                  v.reqState := NEXT_S;
-                  v.state    := MOVE_S;
-               end if;
-            end if;
-         ----------------------------------------------------------------------
-         when NEXT_S =>
-            -- Check if ready to make memory request
-            if (r.rMaster.arvalid = '0') then
-               -- Set the memory address          
-               v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Bursts after the FIRST are guaranteed to be aligned
-               v.rMaster.arlen := ARLEN_C;
-               -- Limit read burst size
-               if (r.reqSize(31 downto ADDR_LSB_C) < v.rMaster.arlen) then
-                  v.rMaster.arlen := resize(r.reqSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
-               end if;
                -- Check for the following:
                --    1) There is enough room in the FIFO for a burst 
                --    2) pending flag
                --    3) Last transaction already completed
                if (pause = '0') and (pending = false) and (r.reqCnt < r.dmaRdDescReq.size) then
-                  -- Set the flag            
+                  -- Set the flag
                   v.rMaster.arvalid := '1';
                   -- Update the request size
                   reqLen    := DATA_BYTES_C*(conv_integer(v.rMaster.arlen) + 1);
@@ -265,6 +236,8 @@ begin
                   -- Update next address
                   v.dmaRdDescReq.address                        := r.dmaRdDescReq.address + reqLen;
                   v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+                  -- Next state
+                  v.state := MOVE_S;
                end if;
             end if;
       ----------------------------------------------------------------------
