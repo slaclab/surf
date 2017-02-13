@@ -537,7 +537,7 @@ begin
          ----------------------------------------------------------------------
          when WRITE_S =>
             if CHAN_COUNT_G > 1 then
-               descIndex := conv_integer(r.descRetNum(DESC_SIZE_C downto 1));
+               descIndex := conv_integer(r.descRetNum(DESC_SIZE_C-1 downto 1));
             else
                descIndex := 0;
             end if;
@@ -551,7 +551,6 @@ begin
             v.axiWriteMaster.wstrb := resize(x"FF",128);
 
             -- Descriptor data
-            v.axiWriteMaster.wdata(63 downto 56) := dmaWrDescRet(descIndex).dest;
             v.axiWriteMaster.wdata(55 downto 32) := dmaWrDescRet(descIndex).size(23 downto 0);
             v.axiWriteMaster.wdata(31 downto 24) := dmaWrDescRet(descIndex).firstUser;
             v.axiWriteMaster.wdata(23 downto 16) := dmaWrDescRet(descIndex).lastUser;
@@ -561,7 +560,7 @@ begin
 
             -- Encoded channel into upper destination bits
             if CHAN_COUNT_G > 1 then
-               v.axiWriteMaster.wdata(63 downto 64-CHAN_SIZE_C) := r.descRetNum(CHAN_SIZE_C downto 1);
+               v.axiWriteMaster.wdata(63 downto 64-CHAN_SIZE_C) := toSlv(descIndex,CHAN_SIZE_C);
             end if;
 
             v.axiWriteMaster.awvalid := '1';
@@ -574,7 +573,7 @@ begin
          ----------------------------------------------------------------------
          when READ_S =>
             if CHAN_COUNT_G > 1 then
-               descIndex := conv_integer(r.descRetNum(DESC_SIZE_C downto 1));
+               descIndex := conv_integer(r.descRetNum(DESC_SIZE_C-1 downto 1));
             else
                descIndex := 0;
             end if;
@@ -668,6 +667,7 @@ begin
       -- Upper dest bits select channel
       if CHAN_COUNT_G > 1 then
          rdIndex := conv_integer(dmaRdReq.dest(7 downto 8-CHAN_COUNT_G));
+         dmaRdReq.dest(7 downto 8-CHAN_COUNT_G) := (others=>'0');
       else
          rdIndex := 0;
       end if;
