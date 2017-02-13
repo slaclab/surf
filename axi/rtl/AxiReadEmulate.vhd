@@ -1,11 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream DMA Read
+-- Title      : AXI Read Emulate
 -- Project    : General Purpose Core
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaRead.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- File       : AxiReadEmulate.vhd
 -- Created    : 2016-09-30
--- Last update: 2016-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -88,7 +86,7 @@ begin
          mAxiReadSlave  => intReadSlave);
 
    comb : process (axiRst, intReadMaster, r) is
-      variable v : RegType;
+      variable v    : RegType;
    begin
       -- Latch the current value  
       v := r;
