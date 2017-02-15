@@ -166,7 +166,7 @@ begin
    end generate;
 
    -- State transition sync logic. 
-   process (pgpRxClk)
+   process (pgpRxClk, pgpRxClkRst)
    begin
 
       if pgpRxClkRst = '1' then
