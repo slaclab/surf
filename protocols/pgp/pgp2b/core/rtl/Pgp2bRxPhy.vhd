@@ -426,7 +426,7 @@ begin
 
 
 -- Receive data pipeline
-   process (pgpRxClk)
+   process (pgpRxClk, pgpRxClkRst)
    begin
       if pgpRxClkRst = '1' then
          dly0RxData    <= (others => '0') after TPD_G;
@@ -454,7 +454,7 @@ begin
 
 
 -- Link init ordered set detect
-   process (pgpRxClk)
+   process (pgpRxClk, pgpRxClkRst)
    begin
       if pgpRxClkRst = '1' then
          rxDetectLts      <= '0'             after TPD_G;
