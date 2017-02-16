@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2017-01-12
+-- Last update: 2017-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,23 +21,22 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.Version.all;
---use work.TextUtilPkg.all;
 
 entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;
+      BUILD_INFO_G       : BuildInfoType;
       SIM_DNA_VALUE_G    : slv                    := X"000000000000000000000000";
       AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_DECERR_C;
       DEVICE_ID_G        : slv(31 downto 0)       := (others => '0');
-      CLK_PERIOD_G       : real                   := 8.0E-9;     -- units of seconds
+      CLK_PERIOD_G       : real                   := 8.0E-9;  -- units of seconds
       XIL_DEVICE_G       : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
       EN_DEVICE_DNA_G    : boolean                := false;
       EN_DS2411_G        : boolean                := false;
@@ -45,7 +44,7 @@ entity AxiVersion is
       USE_SLOWCLK_G      : boolean                := false;
       BUFR_CLK_DIV_G     : positive               := 8;
       AUTO_RELOAD_EN_G   : boolean                := false;
-      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;       -- units of seconds
+      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;  -- units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
    port (
       -- AXI-Lite Interface
@@ -64,8 +63,8 @@ entity AxiVersion is
       upTimeCnt      : out   slv(31 downto 0);
       -- Optional: Serial Number outputs
       slowClk        : in    sl                  := '0';
-      dnaValueOut    : out   slv(63 downto 0);
-      fdSerialOut    : out   slv(63 downto 0);
+      dnaValueOut    : out   slv(127 downto 0);
+      fdValueOut     : out   slv(63 downto 0);
       -- Optional: user values
       userValues     : in    Slv32Array(0 to 63) := (others => X"00000000");
       -- Optional: DS2411 interface
@@ -74,25 +73,24 @@ end AxiVersion;
 
 architecture rtl of AxiVersion is
 
-   constant RELOAD_COUNT_C : integer := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
-   constant TIMEOUT_1HZ_C  : natural := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
+   constant RELOAD_COUNT_C : integer          := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
+   constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
    constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
    subtype RomType is Slv32Array(0 to 63);
 
    function makeStringRom return RomType is
       variable ret : RomType := (others => (others => '0'));
-      variable c   : character;
    begin
-      for i in BUILD_STAMP_C'range loop
-         c := BUILD_STAMP_C(i);
-         ret((i-1)/4)(8*((i-1) mod 4)+7 downto 8*((i-1) mod 4)) :=
-            toSlv(character'pos(c), 8);
+      for i in 0 to 255 loop         
+         ret(i/4)(8*(i mod 4)+7 downto 8*(i mod 4)) := BUILD_INFO_G(2047-(8*i) downto 2040-(8*i));
       end loop;
       return ret;
    end function makeStringRom;
 
-   constant STRING_ROM_C : RomType := makeStringRom;
+   constant BUILD_STRING_ROM_C : RomType := makeStringRom;
+   constant FW_VERSION_C       : slv(31 downto 0)  := BUILD_INFO_G(2079 downto 2048);
+   constant GIT_HASH_C         : slv(159 downto 0) := BUILD_INFO_G(2239 downto 2080);
 
    type RegType is record
       upTimeCnt      : slv(31 downto 0);
@@ -125,24 +123,22 @@ architecture rtl of AxiVersion is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaValid     : sl               := '0';
-   signal dnaValue     : slv(63 downto 0) := (others => '0');
-   signal fdValid      : sl               := '0';
-   signal fdSerial     : slv(63 downto 0) := (others => '0');
-   signal masterRstDet : sl               := '0';
-   signal asyncRst     : sl               := '0';
+   signal dnaValue     : slv(127 downto 0) := (others => '0');
+   signal fdValue      : slv(63 downto 0)  := (others => '0');
+   signal masterRstDet : sl                := '0';
+   signal asyncRst     : sl                := '0';
 
-   attribute rom_style                   : string;
-   attribute rom_style of STRING_ROM_C   : constant is "distributed";
-   attribute rom_extract                 : string;
-   attribute rom_extract of STRING_ROM_C : constant is "TRUE";
-   attribute syn_keep                    : string;
-   attribute syn_keep of STRING_ROM_C    : constant is "TRUE";
+   attribute rom_style                         : string;
+   attribute rom_style of BUILD_STRING_ROM_C   : constant is "distributed";
+   attribute rom_extract                       : string;
+   attribute rom_extract of BUILD_STRING_ROM_C : constant is "TRUE";
+   attribute syn_keep                          : string;
+   attribute syn_keep of BUILD_STRING_ROM_C    : constant is "TRUE";
 
 begin
 
    dnaValueOut <= dnaValue;
-   fdSerialOut <= fdSerial;
+   fdValueOut  <= fdValue;
 
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
       DeviceDna_1 : entity work.DeviceDna
@@ -156,8 +152,7 @@ begin
             clk      => axiClk,
             rst      => axiRst,
             slowClk  => slowClk,
-            dnaValue => dnaValue,
-            dnaValid => dnaValid);
+            dnaValue => dnaValue);
    end generate GEN_DEVICE_DNA;
 
    GEN_DS2411 : if (EN_DS2411_G) generate
@@ -169,8 +164,7 @@ begin
             clk       => axiClk,
             rst       => axiRst,
             fdSerSdio => fdSerSdio,
-            fdSerial  => fdSerial,
-            fdValid   => fdValid);
+            fdValue   => fdValue);
    end generate GEN_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
@@ -188,8 +182,7 @@ begin
             bootAddress => r.fpgaReloadAddr);
    end generate;
 
-
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValid, dnaValue, fdSerial, fdValid,
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValue, fdValue,
                    fpgaEnReload, r, userValues) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
@@ -220,21 +213,28 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      axiSlaveRegisterR(axilEp, X"000", 0, FPGA_VERSION_C);
-      axiSlaveRegister(axilEp, X"004", 0, v.scratchPad);
-      axiSlaveRegisterR(axilEp, X"008", 0, ite(dnaValid = '1', dnaValue, X"0000000000000000"));
-      axiSlaveRegisterR(axilEp, X"010", 0, ite(fdValid = '1', fdSerial, X"0000000000000000"));
-      axiSlaveRegister(axilEp, X"018", 0, v.masterReset);
+      axiSlaveRegisterR(axilEp, x"000", 0, FW_VERSION_C);
+      axiSlaveRegister(axilEp, x"004", 0, v.scratchPad);
+      axiSlaveRegisterR(axilEp, x"008", 0, r.upTimeCnt);
 
-      axiSlaveRegister(axilEp, X"01C", 0, v.fpgaReload);
-      axiSlaveRegister(axilEp, X"020", 0, v.fpgaReloadAddr);
-      axiSlaveRegister(axilEp, X"024", 0, v.counter, COUNTER_ZERO_C);
-      axiSlaveRegister(axilEp, X"028", 0, v.haltReload);
-      axiSlaveRegisterR(axilEp, X"02C", 0, r.upTimeCnt);
-      axiSlaveRegisterR(axilEp, X"030", 0, DEVICE_ID_G);
+      axiSlaveRegister(axilEp, x"100", 0, v.haltReload);
+      axiSlaveRegister(axilEp, x"104", 0, v.fpgaReload);
+      axiSlaveRegister(axilEp, x"108", 0, v.fpgaReloadAddr);
+      axiSlaveRegister(axilEp, x"10C", 0, v.masterReset);
 
-      axiSlaveRegisterR(axilEp, X"400", userValues);
-      axiSlaveRegisterR(axilEp, X"800", STRING_ROM_C);
+      axiSlaveRegisterR(axilEp, x"300", 0, fdValue);
+      axiSlaveRegisterR(axilEp, x"400", 0, DEVICE_ID_G);
+      axiSlaveRegisterR(axilEp, x"500", userValues);
+      
+      -- axiSlaveRegisterR(axilEp, x"600", 0, GIT_HASH_C);-- axiSlaveRegisterR() Broken, only first 32-bit show up in software
+      axiSlaveRegisterR(axilEp, x"600", 0, GIT_HASH_C(31 downto 0));
+      axiSlaveRegisterR(axilEp, x"604", 0, GIT_HASH_C(63 downto 32));
+      axiSlaveRegisterR(axilEp, x"608", 0, GIT_HASH_C(95 downto 64));
+      axiSlaveRegisterR(axilEp, x"60C", 0, GIT_HASH_C(127 downto 96));
+      axiSlaveRegisterR(axilEp, x"610", 0, GIT_HASH_C(159 downto 128));
+      
+      axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
+      axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
 

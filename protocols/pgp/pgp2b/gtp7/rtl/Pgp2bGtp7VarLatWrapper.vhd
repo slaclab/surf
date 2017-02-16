@@ -37,11 +37,11 @@ entity Pgp2bGtp7VarLatWrapper is
    generic (
       TPD_G                : time                    := 1 ns;
       SIMULATION_G         : boolean                 := false;
-      -- MMCM Configurations (Defaults: gtClkP = 125 MHz Configuration)
-      CLKIN_PERIOD_G       : real                    := 16.0;  -- gtClkP/2
-      DIVCLK_DIVIDE_G      : natural range 1 to 106  := 2;
-      CLKFBOUT_MULT_F_G    : real range 1.0 to 64.0  := 31.875;
-      CLKOUT0_DIVIDE_F_G   : real range 1.0 to 128.0 := 6.375;
+      -- MMCM Configurations
+      CLKIN_PERIOD_G       : real                    := 6.4;
+      DIVCLK_DIVIDE_G      : natural range 1 to 106  := 1;
+      CLKFBOUT_MULT_F_G    : real range 1.0 to 64.0  := 6.0;
+      CLKOUT0_DIVIDE_F_G   : real range 1.0 to 128.0 := 6.0;
       -- Quad PLL Configurations (Defaults: gtClkP = 125 MHz Configuration)
       QPLL_REFCLK_SEL_G    : bit_vector              := "001";
       QPLL_FBDIV_IN_G      : natural range 1 to 5    := 5;

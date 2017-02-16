@@ -43,7 +43,7 @@ entity DS2411Core is
       -- ID Prom Signals
       fdSerSdio : inout sl;
       -- Serial Number
-      fdSerial  : out   slv(63 downto 0);
+      fdValue   : out   slv(63 downto 0);
       fdValid   : out   sl);
 end DS2411Core;
 
@@ -69,13 +69,17 @@ architecture rtl of DS2411Core is
    signal timeCnt      : slv(31 downto 0) := (others => '0');
    signal bitCnt       : slv(5 downto 0)  := (others => '0');
    signal setOutLowInv : sl;
+   signal fdSerial     : slv(63 downto 0)  := (others => '0');
 
 begin
 
+   fdValue <= fdSerial when(fdValidSet = '1') else (others => '0');
+
    SIN_GEN : if (SIMULATION_G = true) generate
-      fdSerSdio <= 'Z';
-      fdValid   <= '1';
-      fdSerial  <= SIM_OUTPUT_G;
+      fdSerSdio  <= 'Z';
+      fdValid    <= '1';
+      fdValidSet <= '1';
+      fdSerial   <= SIM_OUTPUT_G;
    end generate;
 
    NORMAL_GEN : if (SIMULATION_G = false) generate

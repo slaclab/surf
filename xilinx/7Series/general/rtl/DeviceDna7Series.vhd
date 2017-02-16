@@ -41,7 +41,7 @@ entity DeviceDna7Series is
       clk      : in  sl;
       rst      : in  sl;
       slowClk  : in  sl := '0';
-      dnaValue : out slv(63 downto 0);
+      dnaValue : out slv(55 downto 0);
       dnaValid : out sl);
 end DeviceDna7Series;
 
@@ -54,7 +54,7 @@ architecture rtl of DeviceDna7Series is
    type RegType is record
       state    : StateType;
       bitCount : natural range 0 to DNA_SHIFT_LENGTH_C-1;
-      dnaValue : slv(63 downto 0);
+      dnaValue : slv(DNA_SHIFT_LENGTH_C-1 downto 0);
       dnaValid : sl;
       dnaRead  : sl;
       dnaShift : sl;
@@ -143,7 +143,7 @@ begin
             -- Check the shift strobe status
             if r.dnaShift = '1' then
                -- Shift register
-               v.dnaValue := r.dnaValue(62 downto 0) & dnaDout;
+               v.dnaValue := r.dnaValue(DNA_SHIFT_LENGTH_C-2 downto 0) & dnaDout;
                -- Increment the counter
                v.bitCount := r.bitCount + 1;
                -- Check the counter value
@@ -191,7 +191,6 @@ begin
          TPD_G    => TPD_G,
          STAGES_G => 3)
       port map (
-         rst     => rst,
          clk     => clk,
          dataIn  => r.dnaValid,
          dataOut => dnaValid);
@@ -200,11 +199,10 @@ begin
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,
-         WIDTH_G  => 64)
+         WIDTH_G  => 56)
       port map (
-         rst     => rst,
          clk     => clk,
-         dataIn  => r.dnaValue,
+         dataIn  => r.dnaValue(63 downto 8),
          dataOut => dnaValue);
 
 end rtl;
