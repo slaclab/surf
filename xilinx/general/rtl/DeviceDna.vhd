@@ -38,7 +38,7 @@ entity DeviceDna is
       clk      : in  sl;
       rst      : in  sl;
       slowClk  : in  sl := '0';
-      dnaValue : out slv(63 downto 0);
+      dnaValue : out slv(127 downto 0);
       dnaValid : out sl);
 end DeviceDna;
 
@@ -55,7 +55,7 @@ architecture rtl of DeviceDna is
          clk      : in  sl;
          rst      : in  sl;
          slowClk  : in  sl := '0';
-         dnaValue : out slv(63 downto 0);
+         dnaValue : out slv(55 downto 0);
          dnaValid : out sl);
    end component DeviceDna7Series;
    
@@ -70,7 +70,7 @@ architecture rtl of DeviceDna is
          clk      : in  sl;
          rst      : in  sl;
          slowClk  : in  sl := '0';
-         dnaValue : out slv(63 downto 0);
+         dnaValue : out slv(95 downto 0);
          dnaValid : out sl);
    end component DeviceDnaUltraScale;
    
@@ -88,8 +88,9 @@ begin
             clk      => clk,
             rst      => rst,
             slowClk  => slowClk,
-            dnaValue => dnaValue,
+            dnaValue => dnaValue(55 downto 0),
             dnaValid => dnaValid);
+      dnaValue(127 downto 56) <= (others=>'0');
    end generate;
 
    GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
@@ -104,8 +105,9 @@ begin
             clk      => clk,
             rst      => rst,
             slowClk  => slowClk,
-            dnaValue => dnaValue,
+            dnaValue => dnaValue(95 downto 0),
             dnaValid => dnaValid);
+      dnaValue(127 downto 96) <= (others=>'0');
    end generate;
 
 end rtl;

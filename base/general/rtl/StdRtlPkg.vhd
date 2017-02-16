@@ -30,7 +30,13 @@ package StdRtlPkg is
    -- Typing std_logic(_vector) is annoying
    subtype sl is std_logic;
    subtype slv is std_logic_vector;
-
+   
+   -- Build Information:
+   -- BUILD_INFO_G(2047 downto 0)    = buildString
+   -- BUILD_INFO_G(2079 downto 2048) = fwVersion
+   -- BUILD_INFO_G(2239 downto 2080) = gitHash
+   subtype BuildInfoType is slv(2239 downto 0); 
+ 
    -- Declare arrays of built in types
    --type SlvArray     is array (natural range <>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
    type IntegerArray  is array (natural range <>) of integer;

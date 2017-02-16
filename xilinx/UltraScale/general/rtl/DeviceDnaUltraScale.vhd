@@ -41,20 +41,20 @@ entity DeviceDnaUltraScale is
       clk      : in  sl;
       rst      : in  sl;
       slowClk  : in  sl := '0';
-      dnaValue : out slv(63 downto 0);
+      dnaValue : out slv(95 downto 0);
       dnaValid : out sl);
 end DeviceDnaUltraScale;
 
 architecture rtl of DeviceDnaUltraScale is
    
-   constant DNA_SHIFT_LENGTH_C : natural := 64;
+   constant DNA_SHIFT_LENGTH_C : natural := 96;
 
    type StateType is (READ_S, SHIFT_S, DONE_S);
 
    type RegType is record
       state    : StateType;
       bitCount : natural range 0 to DNA_SHIFT_LENGTH_C-1;
-      dnaValue : slv(63 downto 0);
+      dnaValue : slv(DNA_SHIFT_LENGTH_C-1 downto 0);
       dnaValid : sl;
       dnaRead  : sl;
       dnaShift : sl;
@@ -126,7 +126,7 @@ begin
             -- Check the shift strobe status
             if r.dnaShift = '1' then
                -- Shift register
-               v.dnaValue := r.dnaValue(62 downto 0) & dnaDout;
+               v.dnaValue := r.dnaValue(DNA_SHIFT_LENGTH_C-2 downto 0) & dnaDout;
                -- Increment the counter
                v.bitCount := r.bitCount + 1;
                -- Check the counter value
@@ -158,7 +158,7 @@ begin
          r <= rin after TPD_G;
       end if;
    end process sync;
-
+   
    DNA_PORT_I : DNA_PORTE2
       generic map (
          SIM_DNA_VALUE => SIM_DNA_VALUE_G)
@@ -168,18 +168,24 @@ begin
          SHIFT => r.dnaShift,
          DIN   => '0',
          DOUT  => dnaDout);
-
-   SyncFifo : entity work.SynchronizerFifo
+         
+   SyncValid : entity work.Synchronizer
       generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 65)
+         TPD_G    => TPD_G,
+         STAGES_G => 3)
       port map (
-         rst               => locRst,
-         wr_clk            => locClk,
-         din(64)           => r.dnaValid,
-         din(63 downto 0)  => r.dnaValue,
-         rd_clk            => clk,
-         dout(64)          => dnaValid,
-         dout(63 downto 0) => dnaValue);                
+         clk     => clk,
+         dataIn  => r.dnaValid,
+         dataOut => dnaValid);
+
+   SyncData : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2,
+         WIDTH_G  => DNA_SHIFT_LENGTH_C)
+      port map (
+         clk     => clk,
+         dataIn  => r.dnaValue,
+         dataOut => dnaValue);                           
 
 end rtl;
