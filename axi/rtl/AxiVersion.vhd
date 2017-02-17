@@ -223,8 +223,8 @@ begin
       axiSlaveRegister(axilEp, x"10C", 0, v.masterReset);
 
       axiSlaveRegisterR(axilEp, x"300", 0, fdValue);
-      axiSlaveRegisterR(axilEp, x"400", 0, DEVICE_ID_G);
-      axiSlaveRegisterR(axilEp, x"500", userValues);
+      axiSlaveRegisterR(axilEp, x"400", userValues);
+      axiSlaveRegisterR(axilEp, x"500", 0, DEVICE_ID_G);
       
       -- axiSlaveRegisterR(axilEp, x"600", 0, GIT_HASH_C);-- axiSlaveRegisterR() Broken, only first 32-bit show up in software
       axiSlaveRegisterR(axilEp, x"600", 0, GIT_HASH_C(31 downto 0));
