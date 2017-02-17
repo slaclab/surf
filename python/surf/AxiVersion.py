@@ -74,22 +74,22 @@ def create(name='axiVersion', offset=0, memBase=None, hidden=False, expand=True,
                              
     dev.add(pyrogue.Variable(name='fdValue', description='Board ID value read from DS2411 chip',
                              offset=0x300, bitSize=64, bitOffset=0, base='hex', mode='RO'))
-                             
-    dev.add(pyrogue.Variable(name='deviceId', description='Device identification',
-                             offset=0x400, bitSize=32, bitOffset=0, base='hex', mode='RO'))
 #    for i in range(0,64):
 #
 #        # Example of using setFunction and getFunction passed as strings. The scope is local to 
 #        # the variable object with the passed value available as 'value' in the scope.
 #        # The get function must set the 'value' variable as a result of the function.
 #        dev.add(pyrogue.Variable(name='userConstant_%02i'%(i), description='Optional user input values',
-#                                 offset=0x500+(i*4), bitSize=32, bitOffset=0, base='hex', mode='RW',
+#                                 offset=0x400+(i*4), bitSize=32, bitOffset=0, base='hex', mode='RW',
 #                                 getFunction="""\
 #                                             value = self._block.getUInt(self.bitOffset,self.bitSize)
 #                                             """,
 #                                 setFunction="""\
 #                                             self._block.setUInt(self.bitOffset,self.bitSize,value)
-#                                             """))
+#                                             """))      
+    dev.add(pyrogue.Variable(name='deviceId', description='Device identification',
+                             offset=0x500, bitSize=32, bitOffset=0, base='hex', mode='RO'))
+                             
     dev.add(pyrogue.Variable(name='gitHash', description='GIT SHA-1 Hash',
                              offset=0x600, bitSize=160, bitOffset=0, base='hex', mode='RO'))
 
