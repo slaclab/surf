@@ -30,13 +30,7 @@ package StdRtlPkg is
    -- Typing std_logic(_vector) is annoying
    subtype sl is std_logic;
    subtype slv is std_logic_vector;
-   
-   -- Build Information:
-   -- BUILD_INFO_G(2047 downto 0)    = buildString
-   -- BUILD_INFO_G(2079 downto 2048) = fwVersion
-   -- BUILD_INFO_G(2239 downto 2080) = gitHash
-   subtype BuildInfoType is slv(2239 downto 0); 
- 
+    
    -- Declare arrays of built in types
    --type SlvArray     is array (natural range <>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
    type IntegerArray  is array (natural range <>) of integer;
@@ -680,6 +674,18 @@ package StdRtlPkg is
    -- Mux a SlVectorArray into an SLV
    function muxSlVectorArray (vec : SlVectorArray; addr : natural; allowOutOfRange : boolean := false) return slv; 
    
+   -- Build Information:
+   -- BUILD_INFO_G(2047 downto 0)    = buildString
+   -- BUILD_INFO_G(2079 downto 2048) = fwVersion
+   -- BUILD_INFO_G(2239 downto 2080) = gitHash
+   subtype BuildInfoType is slv(2239 downto 0); 
+   type BuildInfoRetType is record
+      buildString : Slv32Array(0 to 63);
+      fwVersion   : slv(31 downto 0);
+      gitHash     : slv(159 downto 0);
+   end record;   
+   function toBuildInfo (din : slv) return BuildInfoRetType;   
+   
 end StdRtlPkg;
 
 package body StdRtlPkg is
@@ -1294,5 +1300,17 @@ package body StdRtlPkg is
       ret(1 to top) := tmp(1 to top);
       return ret;
    end function resize;
+   
+   function toBuildInfo (din : slv) return BuildInfoRetType is
+      variable ret : BuildInfoRetType;
+      variable i   : natural;
+   begin
+      for i in 0 to 255 loop         
+         ret.buildString(i/4)(8*(i mod 4)+7 downto 8*(i mod 4)) := din(2047-(8*i) downto 2040-(8*i));
+      end loop;
+      ret.fwVersion := din(2079 downto 2048); 
+      ret.gitHash   := din(2239 downto 2080);  
+      return ret;
+   end function;   
 
 end package body StdRtlPkg;

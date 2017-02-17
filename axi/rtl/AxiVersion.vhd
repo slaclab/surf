@@ -77,20 +77,8 @@ architecture rtl of AxiVersion is
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
    constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
-   subtype RomType is Slv32Array(0 to 63);
-
-   function makeStringRom return RomType is
-      variable ret : RomType := (others => (others => '0'));
-   begin
-      for i in 0 to 255 loop         
-         ret(i/4)(8*(i mod 4)+7 downto 8*(i mod 4)) := BUILD_INFO_G(2047-(8*i) downto 2040-(8*i));
-      end loop;
-      return ret;
-   end function makeStringRom;
-
-   constant BUILD_STRING_ROM_C : RomType := makeStringRom;
-   constant FW_VERSION_C       : slv(31 downto 0)  := BUILD_INFO_G(2079 downto 2048);
-   constant GIT_HASH_C         : slv(159 downto 0) := BUILD_INFO_G(2239 downto 2080);
+   constant BUILD_INFO_C       : BuildInfoRetType    := toBuildInfo(BUILD_INFO_G);
+   constant BUILD_STRING_ROM_C : Slv32Array(0 to 63) := BUILD_INFO_C.buildString;
 
    type RegType is record
       upTimeCnt      : slv(31 downto 0);
@@ -118,7 +106,6 @@ architecture rtl of AxiVersion is
       fpgaReloadAddr => AUTO_RELOAD_ADDR_G,
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
-
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -213,7 +200,7 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      axiSlaveRegisterR(axilEp, x"000", 0, FW_VERSION_C);
+      axiSlaveRegisterR(axilEp, x"000", 0, BUILD_INFO_C.fwVersion);
       axiSlaveRegister(axilEp, x"004", 0, v.scratchPad);
       axiSlaveRegisterR(axilEp, x"008", 0, r.upTimeCnt);
 
@@ -226,12 +213,12 @@ begin
       axiSlaveRegisterR(axilEp, x"400", userValues);
       axiSlaveRegisterR(axilEp, x"500", 0, DEVICE_ID_G);
       
-      -- axiSlaveRegisterR(axilEp, x"600", 0, GIT_HASH_C);-- axiSlaveRegisterR() Broken, only first 32-bit show up in software
-      axiSlaveRegisterR(axilEp, x"600", 0, GIT_HASH_C(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"604", 0, GIT_HASH_C(63 downto 32));
-      axiSlaveRegisterR(axilEp, x"608", 0, GIT_HASH_C(95 downto 64));
-      axiSlaveRegisterR(axilEp, x"60C", 0, GIT_HASH_C(127 downto 96));
-      axiSlaveRegisterR(axilEp, x"610", 0, GIT_HASH_C(159 downto 128));
+      -- axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash);-- axiSlaveRegisterR() Broken, only first 32-bit show up in software
+      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash(31 downto 0));
+      axiSlaveRegisterR(axilEp, x"604", 0, BUILD_INFO_C.gitHash(63 downto 32));
+      axiSlaveRegisterR(axilEp, x"608", 0, BUILD_INFO_C.gitHash(95 downto 64));
+      axiSlaveRegisterR(axilEp, x"60C", 0, BUILD_INFO_C.gitHash(127 downto 96));
+      axiSlaveRegisterR(axilEp, x"610", 0, BUILD_INFO_C.gitHash(159 downto 128));
       
       axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
       axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
