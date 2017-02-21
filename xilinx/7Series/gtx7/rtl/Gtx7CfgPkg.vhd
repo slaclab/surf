@@ -59,12 +59,16 @@ package Gtx7CfgPkg is
    -- QPLL
    -------------------------------------------------------------------------------------------------
    type Gtx7QPllCfgType is record
+      QPLL_CFG_G         : bit_vector(27 downto 0);
       QPLL_REFCLK_DIV_G  : integer;
       QPLL_FBDIV_RATIO_G : bit;
       QPLL_FBDIV_G       : bit_vector(9 downto 0);
       OUT_DIV_G          : integer;
       CLK25_DIV_G        : integer;
    end record Gtx7QPllCfgType;
+
+   constant QPLL_CFG_VCO_UPPER_C : bit_vector := x"0680181";
+   constant QPLL_CFG_VCO_LOWER_C : bit_vector := x"06801C1";
 
    constant QPLL_REFCLK_DIV_VALIDS_C : IntegerArray := (1, 2, 3, 4);
    constant QPLL_FBDIV_INT_VALIDS_C  : IntegerArray := (16, 20, 32, 40, 64, 66, 80, 100);
@@ -211,24 +215,28 @@ package body Gtx7CfgPkg is
 --                  "rate: " &   real'image(rate) & lf                  
 --                  severity note;
 
-               if (((vcoClk >= QPLL_LOWER_BAND_LOW_C and vcoClk <= QPLL_LOWER_BAND_HIGH_C) or
-                    (vcoClk >= QPLL_UPPER_BAND_LOW_C and vcoClk <= QPLL_UPPER_BAND_HIGH_C))
-                   and rate = lineRate) then
-
-                  ret.QPLL_REFCLK_DIV_G := QPLL_REFCLK_DIV_VALIDS_C(m);
-                  ret.QPLL_FBDIV_G      := getQPllFbdiv(QPLL_FBDIV_INT_VALIDS_C(n));
-                  if (QPLL_FBDIV_INT_VALIDS_C(n) = 66) then
-                     ret.QPLL_FBDIV_RATIO_G := '0';
-                  else
-                     ret.QPLL_FBDIV_RATIO_G := '1';
+               if ( rate = lineRate) then
+                  if (vcoClk >= QPLL_LOWER_BAND_LOW_C and vcoClk <= QPLL_LOWER_BAND_HIGH_C) then
+                     ret.QPLL_CFG_G := QPLL_CFG_VCO_LOWER_C;
+                     found := true;
+                  elsif (vcoClk >= QPLL_UPPER_BAND_LOW_C and vcoClk <= QPLL_UPPER_BAND_HIGH_C) then
+                     ret.QPLL_CFG_G := QPLL_CFG_VCO_UPPER_C;
+                     found := true;
                   end if;
-                  ret.OUT_DIV_G   := QPLL_OUT_DIV_VALIDS_C(d);
-                  ret.CLK25_DIV_G := integer(refClkFreq / 25.0E6);
-
-                  found           := true;
---                  report "FOUND!!!" severity note;
-
-                  exit dloop;
+                   
+                  if (found) then
+                     ret.QPLL_REFCLK_DIV_G := QPLL_REFCLK_DIV_VALIDS_C(m);
+                     ret.QPLL_FBDIV_G      := getQPllFbdiv(QPLL_FBDIV_INT_VALIDS_C(n));
+                     if (QPLL_FBDIV_INT_VALIDS_C(n) = 66) then
+                        ret.QPLL_FBDIV_RATIO_G := '0';
+                     else
+                        ret.QPLL_FBDIV_RATIO_G := '1';
+                     end if;
+                     ret.OUT_DIV_G   := QPLL_OUT_DIV_VALIDS_C(d);
+                     ret.CLK25_DIV_G := integer(refClkFreq / 25.0E6);
+--                     report "FOUND!!!" severity note;
+                     exit dloop;
+                  end if;
                end if;
             end loop;
          end loop;
