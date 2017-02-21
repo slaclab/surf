@@ -262,7 +262,7 @@ package body Gtx7CfgPkg is
          ret.TXOUT_DIV_G    := qPllCfg.OUT_DIV_G;
          ret.TX_CLK25_DIV_G := qPllCfg.CLK25_DIV_G;
       else
-         assert (true) report "Gtx7CfgPkg: getGtx7Cfg: Illegal TX PLL type: " & txPll severity failure;
+         assert (false) report "Gtx7CfgPkg: getGtx7Cfg: Illegal TX PLL type: " & txPll severity failure;
       end if;
 
       if (rxPll = "CPLL") then
@@ -272,7 +272,7 @@ package body Gtx7CfgPkg is
          ret.RXOUT_DIV_G    := qPllCfg.OUT_DIV_G;
          ret.RX_CLK25_DIV_G := qPllCfg.CLK25_DIV_G;
       else
-         assert (true) report "Gtx7CfgPkg: getGtx7Cfg: Illegal RX PLL type: " & rxPll severity failure;
+         assert (false) report "Gtx7CfgPkg: getGtx7Cfg: Illegal RX PLL type: " & rxPll severity failure;
       end if;
 
       return ret;
