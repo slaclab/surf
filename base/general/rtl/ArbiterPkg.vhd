@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2016-05-11
+-- Last update: 2017-02-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,11 +61,11 @@ package body ArbiterPkg is
          end if;
       end loop;
 
-      -- Convert integer to unsigned
-      ret := to_unsigned(bestReq, ret'length);
+      -- Add p to rotated select and mod by length to undo the rotation
+      bestReq := (bestReq + p) mod v'length;
 
-      -- Add p to encoded value to undo the rotation
-      ret := resize((ret + p) mod v'length, ret'length);
+      -- Convert integer to unsigned      
+      ret := to_unsigned(bestReq, ret'length)
 
       return slv(ret);
    end function priorityEncode;
