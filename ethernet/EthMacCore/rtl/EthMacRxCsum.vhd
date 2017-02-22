@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-09-21
+-- Last update: 2017-02-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,16 +51,18 @@ end EthMacRxCsum;
 architecture rtl of EthMacRxCsum is
 
    constant MAX_FRAME_SIZE_C : natural := ite(JUMBO_G, 9000, 1500);
-   
+
    type StateType is (
       IDLE_S,
       IPV4_HDR0_S,
       IPV4_HDR1_S,
       MOVE_S,
-      BLOWOFF_S); 
+      BLOWOFF_S);
 
    type RegType is record
       valid        : slv(1 downto 0);
+      fragSof      : sl;
+      fragDet      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       eofeDet      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       ipv4Det      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       udpDet       : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -80,6 +82,8 @@ architecture rtl of EthMacRxCsum is
    end record RegType;
    constant REG_INIT_C : RegType := (
       valid        => (others => '0'),
+      fragSof      => '0',
+      fragDet      => (others => '0'),
       eofeDet      => (others => '0'),
       ipv4Det      => (others => '0'),
       udpDet       => (others => '0'),
@@ -95,7 +99,7 @@ architecture rtl of EthMacRxCsum is
       tData        => (others => '0'),
       mAxisMaster  => AXI_STREAM_MASTER_INIT_C,
       mAxisMasters => (others => AXI_STREAM_MASTER_INIT_C),
-      state        => IDLE_S);      
+      state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -106,14 +110,14 @@ architecture rtl of EthMacRxCsum is
    -- attribute dont_touch of r : signal is "TRUE";
 
 begin
-   
+
    comb : process (ethRst, ipCsumEn, r, sAxisMaster, tcpCsumEn, udpCsumEn) is
       variable v     : RegType;
       variable dummy : Slv16Array(1 downto 0);
    begin
       -- Latch the current value
       v := r;
-      
+
       GetEthMacCsum (
          r.udpDet(EMAC_CSUM_PIPELINE_C),
          r.mAxisMaster.tLast,
@@ -131,6 +135,7 @@ begin
 
       -- Pipeline alignment to GetEthMacCsum()
       v.mAxisMasters := r.mAxisMasters(EMAC_CSUM_PIPELINE_C downto 0) & r.mAxisMaster;
+      v.fragDet      := r.fragDet(EMAC_CSUM_PIPELINE_C downto 0) & r.fragDet(0);
       v.eofeDet      := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
       v.ipv4Det      := r.ipv4Det(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Det(0);
       v.udpDet       := r.udpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.udpDet(0);
@@ -153,7 +158,7 @@ begin
             axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, not(r.valid(0)));
          end if;
          -- Check if UDP is detected and being checked
-         if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (r.udpDet(EMAC_CSUM_PIPELINE_C+1) = '1') and (udpCsumEn = '1') then
+         if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (r.udpDet(EMAC_CSUM_PIPELINE_C+1) = '1') and (udpCsumEn = '1') and (r.fragDet(EMAC_CSUM_PIPELINE_C+1) = '0') then
             -- Forward the result of checksum calculation
             axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_UDPERR_BIT_C, not(r.valid(1)));
             axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, not(r.valid(1)));
@@ -165,7 +170,7 @@ begin
             end if;
          end if;
          -- Check if TCP is detected and being checked
-         if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (r.tcpDet(EMAC_CSUM_PIPELINE_C+1) = '1') and (tcpCsumEn = '1') then
+         if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (r.tcpDet(EMAC_CSUM_PIPELINE_C+1) = '1') and (tcpCsumEn = '1') and (r.fragDet(EMAC_CSUM_PIPELINE_C+1) = '0') then
             -- Forward the result of checksum calculation
             axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_TCPERR_BIT_C, not(r.valid(1)));
             axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, not(r.valid(1)));
@@ -177,6 +182,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the flags and counter
+            v.fragDet(0) := '0';
             v.eofeDet(0) := '0';
             v.ipv4Det(0) := '0';
             v.udpDet(0)  := '0';
@@ -223,8 +229,8 @@ begin
                      v.ipv4Hdr(3)         := sAxisMaster.tData(15 downto 8);  -- IPV4_Length(7 downto 0)                     
                      v.ipv4Hdr(4)         := sAxisMaster.tData(23 downto 16);  -- IPV4_ID(15 downto 8)
                      v.ipv4Hdr(5)         := sAxisMaster.tData(31 downto 24);  -- IPV4_ID(7 downto 0)
-                     v.ipv4Hdr(6)         := sAxisMaster.tData(39 downto 32);  -- Flags and Fragment Offsets
-                     v.ipv4Hdr(7)         := sAxisMaster.tData(47 downto 40);  -- Flags and Fragment Offsets
+                     v.ipv4Hdr(6)         := sAxisMaster.tData(39 downto 32);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
+                     v.ipv4Hdr(7)         := sAxisMaster.tData(47 downto 40);  -- Fragment Offsets(7 downto 0)
                      v.ipv4Hdr(8)         := sAxisMaster.tData(55 downto 48);  -- Time-To-Live
                      v.ipv4Hdr(9)         := sAxisMaster.tData(63 downto 56);  -- Protocol
                      v.ipv4Hdr(10)        := sAxisMaster.tData(71 downto 64);  -- IPV4_Checksum(15 downto 8)
@@ -251,8 +257,8 @@ begin
                      v.ipv4Hdr(3)         := sAxisMaster.tData(47 downto 40);  -- IPV4_Length(7 downto 0)                     
                      v.ipv4Hdr(4)         := sAxisMaster.tData(55 downto 48);  -- IPV4_ID(15 downto 8)
                      v.ipv4Hdr(5)         := sAxisMaster.tData(63 downto 56);  -- IPV4_ID(7 downto 0)
-                     v.ipv4Hdr(6)         := sAxisMaster.tData(71 downto 64);  -- Flags and Fragment Offsets
-                     v.ipv4Hdr(7)         := sAxisMaster.tData(79 downto 72);  -- Flags and Fragment Offsets
+                     v.ipv4Hdr(6)         := sAxisMaster.tData(71 downto 64);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
+                     v.ipv4Hdr(7)         := sAxisMaster.tData(79 downto 72);  -- Fragment Offsets(7 downto 0)
                      v.ipv4Hdr(8)         := sAxisMaster.tData(87 downto 80);  -- Time-To-Live
                      v.ipv4Hdr(9)         := sAxisMaster.tData(95 downto 88);  -- Protocol
                      v.ipv4Hdr(10)        := sAxisMaster.tData(103 downto 96);  -- IPV4_Checksum(15 downto 8)
@@ -274,6 +280,12 @@ begin
                   if (v.ipv4Hdr(9) = TCP_C) then
                      v.tcpDet(0) := '1';
                   end if;
+                  -- Check for fragmentation
+                  if (v.ipv4Hdr(6)(7) = '1') or (v.ipv4Hdr(6)(4 downto 0) /= 0) or (v.ipv4Hdr(7) /= 0) then
+                     -- Set the flags
+                     v.fragDet(0) := '1';
+                     v.fragSof    := '1';
+                  end if;
                   -- Next state
                   v.state := IPV4_HDR1_S;
                end if;
@@ -290,8 +302,8 @@ begin
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(18) := sAxisMaster.tData(7 downto 0);    -- Destination IP Address
-                  v.ipv4Hdr(19) := sAxisMaster.tData(15 downto 8);   -- Destination IP Address    
+                  v.ipv4Hdr(18) := sAxisMaster.tData(7 downto 0);  -- Destination IP Address
+                  v.ipv4Hdr(19) := sAxisMaster.tData(15 downto 8);  -- Destination IP Address    
                   -- Check for UDP data with inbound checksum
                   if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
                      -- Mask off inbound UDP checksum
@@ -307,8 +319,8 @@ begin
                   v.byteCnt := getTKeep(sAxisMaster.tKeep) + 18;
                else
                   -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(14) := sAxisMaster.tData(7 downto 0);    -- Source IP Address
-                  v.ipv4Hdr(15) := sAxisMaster.tData(15 downto 8);   -- Source IP Address
+                  v.ipv4Hdr(14) := sAxisMaster.tData(7 downto 0);  -- Source IP Address
+                  v.ipv4Hdr(15) := sAxisMaster.tData(15 downto 8);  -- Source IP Address
                   v.ipv4Hdr(16) := sAxisMaster.tData(23 downto 16);  -- Destination IP Address
                   v.ipv4Hdr(17) := sAxisMaster.tData(31 downto 24);  -- Destination IP Address               
                   v.ipv4Hdr(18) := sAxisMaster.tData(39 downto 32);  -- Destination IP Address
@@ -394,6 +406,14 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Check for first TUSER on the output AXIS stream
+      if (axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
+         -- Set the fragmentation flag
+         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragSof, 0);
+         -- Reset the flag
+         v.fragSof := '0';
+      end if;
+
       -- Reset
       if (ethRst = '1') then
          v := REG_INIT_C;
@@ -405,7 +425,7 @@ begin
       -- Outputs        
       mAxisMaster <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);
       dbg         <= dummy;
-      
+
    end process comb;
 
    seq : process (ethClk) is
@@ -414,5 +434,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

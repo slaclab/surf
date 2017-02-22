@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2017-02-21
+-- Last update: 2017-02-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -65,6 +65,7 @@ architecture rtl of EthMacTxCsum is
 
    type RegType is record
       tranWr   : sl;
+      fragDet  : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       eofeDet  : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       ipv4Det  : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       udpDet   : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -90,6 +91,7 @@ architecture rtl of EthMacTxCsum is
    end record RegType;
    constant REG_INIT_C : RegType := (
       tranWr   => '0',
+      fragDet  => (others => '0'),
       eofeDet  => (others => '0'),
       ipv4Det  => (others => '0'),
       udpDet   => (others => '0'),
@@ -126,6 +128,7 @@ architecture rtl of EthMacTxCsum is
    signal txSlave  : AxiStreamSlaveType;
 
    signal tranPause : sl;
+   signal fragDet   : sl;
    signal eofeDet   : sl;
    signal ipv4Det   : sl;
    signal udpDet    : sl;
@@ -138,6 +141,7 @@ architecture rtl of EthMacTxCsum is
 
    -- attribute dont_touch              : string;
    -- attribute dont_touch of r         : signal is "TRUE";
+   -- attribute dont_touch of fragDet   : signal is "TRUE";
    -- attribute dont_touch of eofeDet   : signal is "TRUE";
    -- attribute dont_touch of ipv4Det   : signal is "TRUE";
    -- attribute dont_touch of udpDet    : signal is "TRUE";
@@ -164,9 +168,10 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (eofeDet, ethRst, ipCsumEn, ipv4Csum, ipv4Det, ipv4Len,
-                   mMaster, protCsum, protLen, r, rxMaster, sSlave, tcpCsumEn,
-                   tcpDet, tranPause, tranValid, txSlave, udpCsumEn, udpDet) is
+   comb : process (eofeDet, ethRst, fragDet, ipCsumEn, ipv4Csum, ipv4Det,
+                   ipv4Len, mMaster, protCsum, protLen, r, rxMaster, sSlave,
+                   tcpCsumEn, tcpDet, tranPause, tranValid, txSlave, udpCsumEn,
+                   udpDet) is
       variable v     : RegType;
       variable dummy : slv(1 downto 0);
    begin
@@ -203,6 +208,7 @@ begin
          v.protCsum);
 
       -- Pipeline alignment to GetEthMacCsum()
+      v.fragDet := r.fragDet(EMAC_CSUM_PIPELINE_C downto 0) & r.fragDet(0);
       v.eofeDet := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
       v.ipv4Det := r.ipv4Det(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Det(0);
       v.udpDet  := r.udpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.udpDet(0);
@@ -224,6 +230,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the flags
+            v.fragDet(0) := '0';
             v.eofeDet(0) := '0';
             v.ipv4Det(0) := '0';
             v.udpDet(0)  := '0';
@@ -293,8 +300,8 @@ begin
                      -- Fill in the IPv4 header checksum
                      v.ipv4Hdr(4)         := rxMaster.tData(23 downto 16);  -- IPV4_ID(15 downto 8)
                      v.ipv4Hdr(5)         := rxMaster.tData(31 downto 24);  -- IPV4_ID(7 downto 0)
-                     v.ipv4Hdr(6)         := rxMaster.tData(39 downto 32);  -- Flags and Fragment Offsets
-                     v.ipv4Hdr(7)         := rxMaster.tData(47 downto 40);  -- Flags and Fragment Offsets
+                     v.ipv4Hdr(6)         := rxMaster.tData(39 downto 32);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
+                     v.ipv4Hdr(7)         := rxMaster.tData(47 downto 40);  -- Fragment Offsets(7 downto 0)
                      v.ipv4Hdr(8)         := rxMaster.tData(55 downto 48);  -- Time-To-Live
                      v.ipv4Hdr(9)         := rxMaster.tData(63 downto 56);  -- Protocol
                      v.ipv4Hdr(12)        := rxMaster.tData(87 downto 80);  -- Source IP Address
@@ -317,8 +324,8 @@ begin
                      v.ipv4Hdr(1)         := rxMaster.tData(31 downto 24);  -- DSCP and ECN
                      v.ipv4Hdr(4)         := rxMaster.tData(55 downto 48);  -- IPV4_ID(15 downto 8)
                      v.ipv4Hdr(5)         := rxMaster.tData(63 downto 56);  -- IPV4_ID(7 downto 0)
-                     v.ipv4Hdr(6)         := rxMaster.tData(71 downto 64);  -- Flags and Fragment Offsets
-                     v.ipv4Hdr(7)         := rxMaster.tData(79 downto 72);  -- Flags and Fragment Offsets
+                     v.ipv4Hdr(6)         := rxMaster.tData(71 downto 64);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
+                     v.ipv4Hdr(7)         := rxMaster.tData(79 downto 72);  -- Fragment Offsets(7 downto 0)
                      v.ipv4Hdr(8)         := rxMaster.tData(87 downto 80);  -- Time-To-Live
                      v.ipv4Hdr(9)         := rxMaster.tData(95 downto 88);  -- Protocol
                      v.ipv4Hdr(12)        := rxMaster.tData(119 downto 112);  -- Source IP Address
@@ -334,6 +341,10 @@ begin
                   -- Check for TCP protocol
                   if (v.ipv4Hdr(9) = TCP_C) then
                      v.tcpDet(0) := '1';
+                  end if;
+                  -- Check for fragmentation
+                  if (v.ipv4Hdr(6)(7) = '1') or (v.ipv4Hdr(6)(4 downto 0) /= 0) or (v.ipv4Hdr(7) /= 0) then
+                     v.fragDet(0) := '1';
                   end if;
                   -- Next state
                   v.state := IPV4_HDR1_S;
@@ -520,8 +531,8 @@ begin
                   end if;
                end if;
             end if;
-            -- Check for UDP checksum/length insertion 
-            if (ipv4Det = '1') and (udpDet = '1') and (r.mvCnt = 2) then
+            -- Check for UDP checksum/length insertion and no fragmentation
+            if (ipv4Det = '1') and (udpDet = '1') and (fragDet = '0') and (r.mvCnt = 2) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Check if firmware checksum enabled
@@ -563,8 +574,8 @@ begin
                   end if;
                end if;
             end if;
-            -- Check for TCP checksum insertion 
-            if (ipv4Det = '1') and (tcpDet = '1') and (r.mvCnt = 3) then
+            -- Check for TCP checksum insertion and no fragmentation
+            if (ipv4Det = '1') and (tcpDet = '1') and (fragDet = '0') and (r.mvCnt = 3) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Check if firmware checksum enabled
@@ -662,7 +673,7 @@ begin
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
          FWFT_EN_G    => true,
-         DATA_WIDTH_G => 68,
+         DATA_WIDTH_G => 69,
          ADDR_WIDTH_G => 4,
          FULL_THRES_G => 8)
       port map (
@@ -670,6 +681,7 @@ begin
          rst                => ethRst,
          --Write Ports (wr_clk domain)
          wr_en              => r.calc(0).step(EMAC_CSUM_PIPELINE_C),
+         din(68)            => r.fragDet(EMAC_CSUM_PIPELINE_C+1),
          din(67)            => r.eofeDet(EMAC_CSUM_PIPELINE_C+1),
          din(66)            => r.ipv4Det(EMAC_CSUM_PIPELINE_C+1),
          din(65)            => r.udpDet(EMAC_CSUM_PIPELINE_C+1),
@@ -681,6 +693,7 @@ begin
          prog_full          => tranPause,
          --Read Ports (rd_clk domain)
          rd_en              => r.tranRd,
+         dout(68)           => fragDet,
          dout(67)           => eofeDet,
          dout(66)           => ipv4Det,
          dout(65)           => udpDet,

@@ -47,8 +47,11 @@ package EthMacPkg is
    constant DHCP_CPORT : slv(15 downto 0) := x"4400";  -- Port = 68 = 0x0044
    constant DHCP_SPORT : slv(15 downto 0) := x"4300";  -- Port = 67 = 0x0043   
 
-   -- EOF Bit
+   -- First TUSER Bits
+   constant EMAC_FRAG_BIT_C   : integer := 0;
    constant EMAC_SOF_BIT_C    : integer := 1;
+   
+   -- Last TUSER Bits
    constant EMAC_EOFE_BIT_C   : integer := 0;
    constant EMAC_IPERR_BIT_C  : integer := 1;
    constant EMAC_TCPERR_BIT_C : integer := 2;
