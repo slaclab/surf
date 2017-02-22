@@ -115,6 +115,7 @@ begin
       v := r;
       
       GetEthMacCsum (
+         r.udpDet(EMAC_CSUM_PIPELINE_C),
          r.mAxisMaster.tLast,
          r.ipv4Hdr,
          r.tKeep,

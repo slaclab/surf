@@ -128,6 +128,7 @@ package EthMacPkg is
    
    procedure GetEthMacCsum (
       -- Input 
+      udpDet  : in    sl;
       last    : in    sl;
       hdr     : in    Slv8Array(19 downto 0);  -- IPv4 Header
       tKeep   : in    slv(15 downto 0);        -- TCP/Data tKeep
@@ -164,6 +165,7 @@ package body EthMacPkg is
    
    procedure GetEthMacCsum (
       -- Input 
+      udpDet  : in    sl;
       last    : in    sl;
       hdr     : in    Slv8Array(19 downto 0);  -- IPv4 Header
       tKeep   : in    slv(15 downto 0);        -- TCP/Data tKeep
@@ -272,12 +274,14 @@ package body EthMacPkg is
       v(0).step(3) := r(0).step(2);
       v(1).step(3) := r(1).step(2);
       ipCsum       := not(r(0).sum5);
-      if (r(1).sum5 = x"FFFF") then
-         csum := r(1).sum5;
-      -- Note: The UDP checksum is calculated using one's complement arithmetic (RFC 793), 
-      --       and 0xffff is equivalent to 0x0000; they are -0 and +0 respectively.
-      else
-         csum := not(r(1).sum5);
+      csum         := not(r(1).sum5);
+      
+      -- UDP checksum is calculated using one's complement arithmetic (RFC 793).
+      -- UDP has a special case where 0x0000 is reserved for "no checksum computed". 
+      -- Thus 0x0000 is illegal and when calculated following the standard 
+      -- algorithm, replaced with 0xFFFF.
+      if (udpDet = '1') and (csum = x"0000") then
+         csum := x"FFFF";         
       end if;
 
       -- Check for valid inbound checksum
@@ -287,8 +291,13 @@ package body EthMacPkg is
          ipValid := '0';
       end if;
 
-      if (csum = ibcsum) then
+      -- Check for UDP special case of 0x0000 checksum
+      if (udpDet = '1') and (ibcsum = x"0000") then
          valid := '1';
+      -- check the standard checksum calculation
+      elsif (ibcsum = csum) then
+         valid := '1';
+      -- Else not a valid checksum
       else
          valid := '0';
       end if;

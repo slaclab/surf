@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-10-20
+-- Last update: 2017-02-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ architecture rtl of EthMacTxCsum is
       IPV4_HDR0_S,
       IPV4_HDR1_S,
       MOVE_S,
-      BLOWOFF_S); 
+      BLOWOFF_S);
 
    type RegType is record
       tranWr   : sl;
@@ -81,6 +81,7 @@ architecture rtl of EthMacTxCsum is
       tData    : slv(127 downto 0);
       tranRd   : sl;
       mvCnt    : natural range 0 to 4;
+      dbg      : slv(5 downto 0);
       rxSlave  : AxiStreamSlaveType;
       txMaster : AxiStreamMasterType;
       mSlave   : AxiStreamSlaveType;
@@ -105,11 +106,12 @@ architecture rtl of EthMacTxCsum is
       tData    => (others => '0'),
       tranRd   => '0',
       mvCnt    => 0,
+      dbg      => (others => '0'),
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
       mSlave   => AXI_STREAM_SLAVE_INIT_C,
       sMaster  => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);      
+      state    => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -134,8 +136,19 @@ architecture rtl of EthMacTxCsum is
    signal protCsum  : slv(15 downto 0);
    signal tranValid : sl;
 
---   attribute dont_touch      : string;
---   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch              : string;
+   -- attribute dont_touch of r         : signal is "TRUE";
+   -- attribute dont_touch of eofeDet   : signal is "TRUE";
+   -- attribute dont_touch of ipv4Det   : signal is "TRUE";
+   -- attribute dont_touch of udpDet    : signal is "TRUE";
+   -- attribute dont_touch of tcpDet    : signal is "TRUE";
+   -- attribute dont_touch of ipv4Len   : signal is "TRUE";
+   -- attribute dont_touch of ipv4Csum  : signal is "TRUE";
+   -- attribute dont_touch of protLen   : signal is "TRUE";
+   -- attribute dont_touch of protCsum  : signal is "TRUE";
+   -- attribute dont_touch of tranValid : signal is "TRUE";
+   -- attribute dont_touch of mMaster   : signal is "TRUE";
+   -- attribute dont_touch of mSlave    : signal is "TRUE";
 
 begin
 
@@ -149,11 +162,11 @@ begin
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
          mAxisMaster => rxMaster,
-         mAxisSlave  => rxSlave);   
+         mAxisSlave  => rxSlave);
 
-   comb : process (eofeDet, ethRst, ipCsumEn, ipv4Csum, ipv4Det, ipv4Len, mMaster, protCsum,
-                   protLen, r, rxMaster, sSlave, tcpCsumEn, tcpDet, tranPause, tranValid, txSlave,
-                   udpCsumEn, udpDet) is
+   comb : process (eofeDet, ethRst, ipCsumEn, ipv4Csum, ipv4Det, ipv4Len,
+                   mMaster, protCsum, protLen, r, rxMaster, sSlave, tcpCsumEn,
+                   tcpDet, tranPause, tranValid, txSlave, udpCsumEn, udpDet) is
       variable v     : RegType;
       variable dummy : slv(1 downto 0);
    begin
@@ -163,6 +176,7 @@ begin
       -- Reset the flags
       v.tranWr  := '0';
       v.tranRd  := '0';
+      v.dbg     := (others => '0');
       v.tKeep   := (others => '0');
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
       if sSlave.tReady = '1' then
@@ -174,6 +188,7 @@ begin
       end if;
 
       GetEthMacCsum (
+         r.udpDet(EMAC_CSUM_PIPELINE_C),
          r.tranWr,
          r.ipv4Hdr,
          r.tKeep,
@@ -185,7 +200,7 @@ begin
          dummy(0),                      -- Unused in TX CSUM
          v.ipv4Csum,
          dummy(1),                      -- Unused in TX CSUM
-         v.protCsum);        
+         v.protCsum);
 
       -- Pipeline alignment to GetEthMacCsum()
       v.eofeDet := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
@@ -284,7 +299,7 @@ begin
                      v.ipv4Hdr(9)         := rxMaster.tData(63 downto 56);  -- Protocol
                      v.ipv4Hdr(12)        := rxMaster.tData(87 downto 80);  -- Source IP Address
                      v.ipv4Hdr(13)        := rxMaster.tData(95 downto 88);  -- Source IP Address
-                     v.ipv4Hdr(14)        := rxMaster.tData(103 downto 96);   -- Source IP Address
+                     v.ipv4Hdr(14)        := rxMaster.tData(103 downto 96);  -- Source IP Address
                      v.ipv4Hdr(15)        := rxMaster.tData(111 downto 104);  -- Source IP Address
                      v.ipv4Hdr(16)        := rxMaster.tData(119 downto 112);  -- Destination IP Address
                      v.ipv4Hdr(17)        := rxMaster.tData(127 downto 120);  -- Destination IP Address    
@@ -338,8 +353,8 @@ begin
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(18) := rxMaster.tData(7 downto 0);    -- Destination IP Address
-                  v.ipv4Hdr(19) := rxMaster.tData(15 downto 8);   -- Destination IP Address   
+                  v.ipv4Hdr(18) := rxMaster.tData(7 downto 0);  -- Destination IP Address
+                  v.ipv4Hdr(19) := rxMaster.tData(15 downto 8);  -- Destination IP Address   
                   -- Check for UDP data with inbound length/checksum
                   if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
                      -- Mask off inbound UDP length/checksum
@@ -350,8 +365,8 @@ begin
                   v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 2;
                else
                   -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);    -- Source IP Address
-                  v.ipv4Hdr(15) := rxMaster.tData(15 downto 8);   -- Source IP Address
+                  v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);  -- Source IP Address
+                  v.ipv4Hdr(15) := rxMaster.tData(15 downto 8);  -- Source IP Address
                   v.ipv4Hdr(16) := rxMaster.tData(23 downto 16);  -- Destination IP Address
                   v.ipv4Hdr(17) := rxMaster.tData(31 downto 24);  -- Destination IP Address               
                   v.ipv4Hdr(18) := rxMaster.tData(39 downto 32);  -- Destination IP Address
@@ -442,7 +457,7 @@ begin
 
       -- Fill in the IPv4 header
       v.ipv4Hdr(2) := v.ipv4Len(0)(15 downto 8);  -- IPV4_Length(15 downto 8)
-      v.ipv4Hdr(3) := v.ipv4Len(0)(7 downto 0);   -- IPV4_Length(7 downto 0)        
+      v.ipv4Hdr(3) := v.ipv4Len(0)(7 downto 0);  -- IPV4_Length(7 downto 0)        
 
       -- Wait for the transaction data 
       if (tranValid = '1') and (r.tranRd = '0') then
@@ -463,50 +478,118 @@ begin
                v.mvCnt := r.mvCnt + 1;
             end if;
             -- Check for IPv4 checksum/length insertion 
-            if (ipv4Det = '1') and (ipCsumEn = '1') and (r.mvCnt = 1) then
+            if (ipv4Det = '1') and (r.mvCnt = 1) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
-                  -- Overwrite the data field
-                  v.txMaster.tData(7 downto 0)   := ipv4Len(15 downto 8);
-                  v.txMaster.tData(15 downto 8)  := ipv4Len(7 downto 0);
-                  v.txMaster.tData(71 downto 64) := ipv4Csum(15 downto 8);
-                  v.txMaster.tData(79 downto 72) := ipv4Csum(7 downto 0);
+                  -- Check if firmware checksum enabled
+                  if (ipCsumEn = '1') then
+                     -- Overwrite the data field
+                     v.txMaster.tData(7 downto 0)   := ipv4Len(15 downto 8);
+                     v.txMaster.tData(15 downto 8)  := ipv4Len(7 downto 0);
+                     v.txMaster.tData(71 downto 64) := ipv4Csum(15 downto 8);
+                     v.txMaster.tData(79 downto 72) := ipv4Csum(7 downto 0);
+                  end if;
+                  -- Check for mismatch between firmware/software IPv4 length
+                  if (ipv4Len(15 downto 8) /= mMaster.tData(7 downto 0)) or (ipv4Len(7 downto 0) /= mMaster.tData(15 downto 8)) then
+                     -- Set the flag
+                     v.dbg(0) := '1';
+                  end if;
+                  -- Check for mismatch between firmware/software IPv4 checksum
+                  if (ipv4Csum(15 downto 8) /= mMaster.tData(71 downto 64)) or (ipv4Csum(7 downto 0) /= mMaster.tData(79 downto 72)) then
+                     -- Set the flag
+                     v.dbg(1) := '1';
+                  end if;
                else
-                  -- Overwrite the data field
-                  v.txMaster.tData(39 downto 32)   := ipv4Len(15 downto 8);
-                  v.txMaster.tData(47 downto 40)   := ipv4Len(7 downto 0);
-                  v.txMaster.tData(103 downto 96)  := ipv4Csum(15 downto 8);
-                  v.txMaster.tData(111 downto 104) := ipv4Csum(7 downto 0);
+                  -- Check if firmware checksum enabled
+                  if (ipCsumEn = '1') then
+                     -- Overwrite the data field
+                     v.txMaster.tData(39 downto 32)   := ipv4Len(15 downto 8);
+                     v.txMaster.tData(47 downto 40)   := ipv4Len(7 downto 0);
+                     v.txMaster.tData(103 downto 96)  := ipv4Csum(15 downto 8);
+                     v.txMaster.tData(111 downto 104) := ipv4Csum(7 downto 0);
+                  end if;
+                  -- Check for mismatch between firmware/software IPv4 length
+                  if (ipv4Len(15 downto 8) /= mMaster.tData(39 downto 32)) or (ipv4Len(7 downto 0) /= mMaster.tData(47 downto 40)) then
+                     -- Set the flag
+                     v.dbg(0) := '1';
+                  end if;
+                  -- Check for mismatch between firmware/software IPv4 checksum
+                  if (ipv4Csum(15 downto 8) /= mMaster.tData(103 downto 96)) or (ipv4Csum(7 downto 0) /= mMaster.tData(111 downto 104)) then
+                     -- Set the flag
+                     v.dbg(1) := '1';
+                  end if;
                end if;
             end if;
             -- Check for UDP checksum/length insertion 
-            if (ipv4Det = '1') and (udpDet = '1') and (udpCsumEn = '1') and (r.mvCnt = 2) then
+            if (ipv4Det = '1') and (udpDet = '1') and (r.mvCnt = 2) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
-                  -- Overwrite the data field
-                  v.txMaster.tData(55 downto 48) := protLen(15 downto 8);
-                  v.txMaster.tData(63 downto 56) := protLen(7 downto 0);
-                  v.txMaster.tData(71 downto 64) := protCsum(15 downto 8);
-                  v.txMaster.tData(79 downto 72) := protCsum(7 downto 0);
+                  -- Check if firmware checksum enabled
+                  if (udpCsumEn = '1') then
+                     -- Overwrite the data field
+                     v.txMaster.tData(55 downto 48) := protLen(15 downto 8);
+                     v.txMaster.tData(63 downto 56) := protLen(7 downto 0);
+                     v.txMaster.tData(71 downto 64) := protCsum(15 downto 8);
+                     v.txMaster.tData(79 downto 72) := protCsum(7 downto 0);
+                  end if;
+                  -- Check for mismatch between firmware/software UDP length
+                  if (protLen(15 downto 8) /= mMaster.tData(55 downto 48)) or (protLen(7 downto 0) /= mMaster.tData(63 downto 56)) then
+                     -- Set the flag
+                     v.dbg(2) := '1';
+                  end if;
+                  -- Check for mismatch between firmware/software UDP checksum
+                  if (protCsum(15 downto 8) /= mMaster.tData(71 downto 64)) or (protCsum(7 downto 0) /= mMaster.tData(79 downto 72)) then
+                     -- Set the flag
+                     v.dbg(3) := '1';
+                  end if;
                else
-                  -- Overwrite the data field
-                  v.txMaster.tData(87 downto 80)   := protLen(15 downto 8);
-                  v.txMaster.tData(95 downto 88)   := protLen(7 downto 0);
-                  v.txMaster.tData(103 downto 96)  := protCsum(15 downto 8);
-                  v.txMaster.tData(111 downto 104) := protCsum(7 downto 0);
+                  -- Check if firmware checksum enabled
+                  if (udpCsumEn = '1') then
+                     -- Overwrite the data field
+                     v.txMaster.tData(87 downto 80)   := protLen(15 downto 8);
+                     v.txMaster.tData(95 downto 88)   := protLen(7 downto 0);
+                     v.txMaster.tData(103 downto 96)  := protCsum(15 downto 8);
+                     v.txMaster.tData(111 downto 104) := protCsum(7 downto 0);
+                  end if;
+                  -- Check for mismatch between firmware/software UDP length
+                  if (protLen(15 downto 8) /= mMaster.tData(87 downto 80)) or (protLen(7 downto 0) /= mMaster.tData(95 downto 88)) then
+                     -- Set the flag
+                     v.dbg(2) := '1';
+                  end if;
+                  -- Check for mismatch between firmware/software UDP checksum
+                  if (protCsum(15 downto 8) /= mMaster.tData(103 downto 96)) or (protCsum(7 downto 0) /= mMaster.tData(111 downto 104)) then
+                     -- Set the flag
+                     v.dbg(3) := '1';
+                  end if;
                end if;
             end if;
             -- Check for TCP checksum insertion 
-            if (ipv4Det = '1') and (tcpDet = '1') and (tcpCsumEn = '1') and (r.mvCnt = 3) then
+            if (ipv4Det = '1') and (tcpDet = '1') and (r.mvCnt = 3) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
-                  -- Overwrite the data field
-                  v.txMaster.tData(23 downto 16) := protCsum(15 downto 8);
-                  v.txMaster.tData(31 downto 24) := protCsum(7 downto 0);
+                  -- Check if firmware checksum enabled
+                  if (tcpCsumEn = '1') then
+                     -- Overwrite the data field
+                     v.txMaster.tData(23 downto 16) := protCsum(15 downto 8);
+                     v.txMaster.tData(31 downto 24) := protCsum(7 downto 0);
+                  end if;
+                  -- Check for mismatch between firmware/software TCP checksum
+                  if (protCsum(15 downto 8) /= mMaster.tData(23 downto 16)) or (protCsum(7 downto 0) /= mMaster.tData(31 downto 24)) then
+                     -- Set the flag
+                     v.dbg(4) := '1';
+                  end if;
                else
-                  -- Overwrite the data field
-                  v.txMaster.tData(55 downto 48) := protCsum(15 downto 8);
-                  v.txMaster.tData(63 downto 56) := protCsum(7 downto 0);
+                  -- Check if firmware checksum enabled
+                  if (tcpCsumEn = '1') then
+                     -- Overwrite the data field
+                     v.txMaster.tData(55 downto 48) := protCsum(15 downto 8);
+                     v.txMaster.tData(63 downto 56) := protCsum(7 downto 0);
+                  end if;
+                  -- Check for mismatch between firmware/software TCP checksum
+                  if (protCsum(15 downto 8) /= mMaster.tData(55 downto 48)) or (protCsum(7 downto 0) /= mMaster.tData(63 downto 56)) then
+                     -- Set the flag
+                     v.dbg(4) := '1';
+                  end if;
                end if;
             end if;
             -- Check for tLast
@@ -515,6 +598,7 @@ begin
                v.mvCnt  := 0;
                -- Forward the EOFE               
                axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
+               v.dbg(5) := eofeDet;
                -- Accept the data
                v.tranRd := '1';
             end if;
@@ -534,7 +618,7 @@ begin
       sMaster  <= r.sMaster;
       mSlave   <= v.mSlave;
       txMaster <= r.txMaster;
-      
+
    end process comb;
 
    seq : process (ethClk) is
@@ -560,7 +644,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB per FIFO
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
@@ -571,7 +655,7 @@ begin
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
          mAxisMaster => mMaster,
-         mAxisSlave  => mSlave);   
+         mAxisSlave  => mSlave);
 
    Fifo_Trans : entity work.FifoSync
       generic map (
@@ -605,7 +689,7 @@ begin
          dout(47 downto 32) => ipv4Csum,
          dout(31 downto 16) => protLen,
          dout(15 downto 0)  => protCsum,
-         valid              => tranValid);      
+         valid              => tranValid);
 
    U_TxPipeline : entity work.AxiStreamPipeline
       generic map (
@@ -617,6 +701,6 @@ begin
          sAxisMaster => txMaster,
          sAxisSlave  => txSlave,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);    
+         mAxisSlave  => mAxisSlave);
 
 end rtl;
