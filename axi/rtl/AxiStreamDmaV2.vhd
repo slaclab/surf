@@ -40,11 +40,7 @@ entity AxiStreamDmaV2 is
       AXIS_READY_EN_G   : boolean                := false;
       AXIS_CONFIG_G     : AxiStreamConfigType    := AXI_STREAM_CONFIG_INIT_C;
       AXI_DESC_CONFIG_G : AxiConfigType          := AXI_CONFIG_INIT_C;
-      AXI_DESC_BURST_G  : slv(1 downto 0)        := "01";
-      AXI_DESC_CACHE_G  : slv(3 downto 0)        := "1111";
       AXI_DMA_CONFIG_G  : AxiConfigType          := AXI_CONFIG_INIT_C;
-      AXI_DMA_BURST_G   : slv(1 downto 0)        := "01";
-      AXI_DMA_CACHE_G   : slv(3 downto 0)        := "1111";
       CHAN_COUNT_G      : integer range 1 to 16  := 1;
       RD_PIPE_STAGES_G  : natural                := 1;
       RD_PEND_THRESH_G  : natural                := 0);  -- In units of bytes
@@ -86,6 +82,8 @@ architecture structure of AxiStreamDmaV2 is
    signal dmaRdDescRet      : AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
    signal dmaRdDescRetAck   : slv(CHAN_COUNT_G-1 downto 0);
 
+   signal axiCache : slv(3 downto 0);
+
 begin
 
    U_DmaDesc: entity work.AxiStreamDmaV2Desc
@@ -95,9 +93,8 @@ begin
          AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
          AXI_READY_EN_G        => AXI_READY_EN_G,
          AXI_CONFIG_G          => AXI_DESC_CONFIG_G,
-         AXI_BURST_G           => AXI_DESC_BURST_G,
-         AXI_CACHE_G           => AXI_DESC_CACHE_G,
-         DESC_AWIDTH_G         => DESC_AWIDTH_G)
+         DESC_AWIDTH_G         => DESC_AWIDTH_G,
+         ACK_WAIT_BVALID_G     => true)
       port map (
          -- Clock/Reset
          axiClk             => axiClk,
@@ -117,6 +114,7 @@ begin
          dmaRdDescAck       => dmaRdDescAck,
          dmaRdDescRet       => dmaRdDescRet,
          dmaRdDescRetAck    => dmaRdDescRetAck,
+         axiCache           => axiCache,
          axiWriteMaster     => axiWriteMaster(0),
          axiWriteSlave      => axiWriteSlave(0),
          axiWriteCtrl       => axiWriteCtrl(0));
@@ -129,8 +127,6 @@ begin
             AXIS_READY_EN_G => AXIS_READY_EN_G,
             AXIS_CONFIG_G   => AXIS_CONFIG_G,
             AXI_CONFIG_G    => AXI_DMA_CONFIG_G,
-            AXI_BURST_G     => AXI_DMA_BURST_G,
-            AXI_CACHE_G     => AXI_DMA_CACHE_G,
             PIPE_STAGES_G   => RD_PIPE_STAGES_G,
             PEND_THRESH_G   => RD_PEND_THRESH_G)
          port map (
@@ -141,6 +137,7 @@ begin
             dmaRdDescRet       => dmaRdDescRet(i),
             dmaRdDescRetAck    => dmaRdDescRetAck(i),
             dmaRdIdle          => open,
+            axiCache           => axiCache,
             -- Streaming Interface 
             axisMaster      => mAxisMaster(i),
             axisSlave       => mAxisSlave(i),
@@ -154,8 +151,6 @@ begin
             AXI_READY_EN_G    => AXI_READY_EN_G,
             AXIS_CONFIG_G     => AXIS_CONFIG_G,
             AXI_CONFIG_G      => AXI_DMA_CONFIG_G,
-            AXI_BURST_G       => AXI_DMA_BURST_G,
-            AXI_CACHE_G       => AXI_DMA_CACHE_G,
             ACK_WAIT_BVALID_G => true)
          port map (
             axiClk           => axiClk,
@@ -165,6 +160,7 @@ begin
             dmaWrDescRet     => dmaWrDescRet(i),
             dmaWrDescRetAck  => dmaWrDescRetAck(i),
             dmaWrIdle        => open,
+            axiCache         => axiCache,
             axisMaster       => sAxisMaster(i),
             axisSlave        => sAxisSlave(i),
             axiWriteMaster   => axiWriteMaster(i+1),

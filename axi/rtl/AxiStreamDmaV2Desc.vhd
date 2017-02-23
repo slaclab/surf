@@ -23,6 +23,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
 use work.AxiPkg.all;
@@ -38,9 +39,8 @@ entity AxiStreamDmaV2Desc is
       AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C;
       AXI_READY_EN_G   : boolean                := false;
       AXI_CONFIG_G     : AxiConfigType          := AXI_CONFIG_INIT_C;
-      AXI_BURST_G      : slv(1 downto 0)        := "01";
-      AXI_CACHE_G      : slv(3 downto 0)        := "1111";
-      DESC_AWIDTH_G    : integer range 4 to 12  := 12);
+      DESC_AWIDTH_G    : integer range 4 to 12  := 12;
+      ACK_WAIT_BVALID_G : boolean               := true);
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -64,6 +64,8 @@ entity AxiStreamDmaV2Desc is
       dmaRdDescAck    : in  slv(CHAN_COUNT_G-1 downto 0);
       dmaRdDescRet    : in  AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
       dmaRdDescRetAck : out slv(CHAN_COUNT_G-1 downto 0);
+      -- Config
+      axiCache        : out slv(3 downto 0);
       -- AXI Interface
       axiWriteMaster  : out AxiWriteMasterType;
       axiWriteSlave   : in  AxiWriteSlaveType;
@@ -136,6 +138,8 @@ architecture rtl of AxiStreamDmaV2Desc is
       fifoReset       : sl;
       intAckEn        : sl;
       intAckCount     : slv(15 downto 0);
+      descCache       : slv(3  downto 0);
+      buffCache       : slv(3  downto 0);
 
       -- FIFOs
       fifoDin         : slv(31 downto 0);
@@ -157,6 +161,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       wrReqAcks       : slv(CHAN_COUNT_G-1 downto 0);
 
       -- Desc Return
+      descRetList     : slv(DESC_COUNT_C-1 downto 0);
       descState       : DescStateType;
       descRetNum      : slv(DESC_SIZE_C-1 downto 0);
       descRetAcks     : slv(DESC_COUNT_C-1 downto 0);
@@ -177,7 +182,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       dmaRdDescRetAck    => (others=>'0'),
       axilReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axiWriteMaster     => axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G),
+      axiWriteMaster     => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
       buffBaseAddr       => (others => '0'),
       wrBaseAddr         => (others => '0'),
       rdBaseAddr         => (others => '0'),
@@ -191,6 +196,8 @@ architecture rtl of AxiStreamDmaV2Desc is
       fifoReset          => '1',
       intAckEn           => '0',
       intAckCount        => (others=>'0'),
+      descCache          => (others=>'0'),
+      buffCache          => (others=>'0'),
       fifoDin            => (others=>'0'),
       wrFifoWr           => '0',
       rdFifoWr           => (others=>'0'),
@@ -206,6 +213,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       wrReqValid         => '0',
       wrReqNum           => (others=>'0'),
       wrReqAcks          => (others=>'0'),
+      descRetList        => (others=>'0'),
       descState          => IDLE_S,
       descRetNum         => (others=>'0'),
       descRetAcks        => (others=>'0'),
@@ -230,6 +238,23 @@ architecture rtl of AxiStreamDmaV2Desc is
 
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "true";
+
+   procedure axiWrDetect (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      reg         : inout sl)
+   is
+      -- Need to remap addr range to be (length-1 downto 0)
+      constant ADDR_LEN_C : integer := addr'length;
+      constant ADDR_C     : slv(ADDR_LEN_C-1 downto 0) := addr;
+   begin
+      if (ep.axiStatus.writeEnable = '1') then
+         if std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2)) then
+            reg := '1';
+            axiSlaveWriteResponse(ep.axiWriteSlave);
+         end if;
+      end if;
+   end procedure;
 
 begin
 
@@ -351,7 +376,7 @@ begin
 
       variable v            : RegType;
       variable wrReqList    : slv(CHAN_COUNT_G-1 downto 0);
-      variable descRetList  : slv(DESC_COUNT_C-1 downto 0);
+      --variable descRetList  : slv(DESC_COUNT_C-1 downto 0);
       variable descRetValid : sl;
       variable descIndex    : natural;
       variable dmaRdReq     : AxiReadDmaDescReqType;
@@ -394,20 +419,21 @@ begin
 
       axiSlaveRegisterR(regCon, x"034", 0, toSlv(CHAN_COUNT_G,8));
       axiSlaveRegisterR(regCon, x"038", 0, toSlv(DESC_AWIDTH_G,8));
-      axiSlaveRegisterR(regCon, x"03C", 0, AXI_CACHE_G);
+      axiSlaveRegister(regCon, x"03C", 0, v.descCache);
+      axiSlaveRegister(regCon, x"03C", 8, v.buffCache);
 
-      axiSlaveRegister(regCon, x"040", 15, v.rdFifoWr(0), '1');
       axiSlaveRegister(regCon, x"040",  0, v.fifoDin);
+      axiWrDetect(regCon, x"040", v.rdFifoWr(0));
 
-      axiSlaveRegister(regCon, x"044", 23, v.rdFifoWr(1), '1');
       axiSlaveRegister(regCon, x"044",  0, v.fifoDin);
+      axiWrDetect(regCon, x"044", v.rdFifoWr(1));
 
-      axiSlaveRegister(regCon, x"048", 16, v.wrFifoWr, '1');
       axiSlaveRegister(regCon, x"048",  0, v.fifoDin);
+      axiWrDetect(regCon, x"048", v.wrFifoWr);
 
-      axiSlaveRegister(regCon, x"04C", 16, v.intAckEn, '1');
       axiSlaveRegister(regCon, x"04C",  0, v.intAckCount);
       axiSlaveRegister(regCon, x"04C", 17, v.intEnable);
+      axiWrDetect(regCon, x"04C", v.intAckEn);
 
       axiSlaveRegisterR(regCon, x"050", 0, r.intReqCount);
       axiSlaveRegisterR(regCon, x"054", 0, r.wrIndex);
@@ -495,6 +521,9 @@ begin
       v.dmaWrDescRetAck := (others=>'0');
       v.dmaRdDescRetAck := (others=>'0');
 
+      -- Axi Cache
+      v.axiWriteMaster.awcache := r.descCache;
+
       -- Reset strobing Signals
       if (axiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
          v.axiWriteMaster.awvalid := '0';
@@ -514,15 +543,15 @@ begin
          when IDLE_S =>
 
             -- Format requests
-            descRetList := (others=>'0');
+            v.descRetList := (others=>'0');
             for i in 0 to CHAN_COUNT_G-1 loop
-               descRetList(i*2)   := dmaWrDescRet(i).valid;
-               descRetList(i*2+1) := dmaRdDescRet(i).valid;
+               v.descRetList(i*2)   := dmaWrDescRet(i).valid;
+               v.descRetList(i*2+1) := dmaRdDescRet(i).valid;
             end loop;
 
             -- Aribrate between requesters
             if r.enable = '1' and pause = '0' then
-               arbitrate(descRetList, r.descRetNum, v.descRetNum, descRetValid, v.descRetAcks);
+               arbitrate(v.descRetList, r.descRetNum, v.descRetNum, descRetValid, v.descRetAcks);
 
                -- Valid request
                if descRetValid = '1' then
@@ -551,6 +580,7 @@ begin
             v.axiWriteMaster.wstrb := resize(x"FF",128);
 
             -- Descriptor data
+            v.axiWriteMaster.wdata(63 downto 56) := dmaWrDescRet(descIndex).dest;
             v.axiWriteMaster.wdata(55 downto 32) := dmaWrDescRet(descIndex).size(23 downto 0);
             v.axiWriteMaster.wdata(31 downto 24) := dmaWrDescRet(descIndex).firstUser;
             v.axiWriteMaster.wdata(23 downto 16) := dmaWrDescRet(descIndex).lastUser;
@@ -602,7 +632,8 @@ begin
 
          ----------------------------------------------------------------------
          when WAIT_S =>
-            if v.axiWriteMaster.awvalid = '0' and v.axiWriteMaster.wvalid = '0' then
+            if v.axiWriteMaster.awvalid = '0' and v.axiWriteMaster.wvalid = '0' and 
+               (axiWriteSlave.bvalid = '1' or ACK_WAIT_BVALID_G = FALSE ) then
                v.intReqEn  := '1';
                v.descState := IDLE_S;
             end if;
@@ -612,15 +643,17 @@ begin
 
       end case;
 
-      -- Track outstanding software transactions
-      if r.enable = '0' then
-         v.intAckEn    := '0';
-         v.intReqEn    := '0';
-         v.intReqCount := (others=>'0');
-
+      -- Driver interrupt
+      if r.intReqCount /= 0 then
+         v.interrupt := v.intEnable;
+      else
+         v.interrupt := '0';
+      end if;
+     
       -- Ack from software
-      elsif r.intAckEn = '1' then
-         v.intAckEn := '0';
+      if r.intAckEn = '1' then
+         v.intAckEn  := '0';
+         v.interrupt := '0';
 
          -- Just in case
          if r.intAckCount > r.intReqCount then
@@ -635,11 +668,12 @@ begin
          v.intReqEn := '0';
       end if;
 
-      -- Driver interrupt
-      if r.intReqCount /= 0 then
-         v.interrupt := v.intEnable;
-      else
-         v.interrupt := '0';
+      -- Engine disabled
+      if r.enable = '0' then
+         v.intAckEn    := '0';
+         v.intReqEn    := '0';
+         v.intReqCount := (others=>'0');
+         v.interrupt   := '0';
       end if;
 
       --------------------------------------
@@ -658,16 +692,16 @@ begin
       dmaRdReq.valid               := r.rdAddrValid;
       dmaRdReq.address             := r.buffBaseAddr & r.rdAddr;
       dmaRdReq.dest                := rdFifoDout(63 downto 56);
-      dmaRdReq.size(23 downto 0)   := '0' & rdFifoDout(54 downto 32); -- Bit 23 is temp marker
+      dmaRdReq.size(23 downto 0)   := rdFifoDout(55 downto 32);
       dmaRdReq.firstUser           := rdFifoDout(31 downto 24);
       dmaRdReq.lastUser            := rdFifoDout(23 downto 16);
-      dmaRdReq.buffId(11 downto 0) := '0' & rdFifoDout(14 downto  4); -- Bit 15 is temp marker
+      dmaRdReq.buffId(11 downto 0) := rdFifoDout(15 downto  4);
       dmaRdReq.continue            := rdFifoDout(3);
 
       -- Upper dest bits select channel
       if CHAN_COUNT_G > 1 then
-         rdIndex := conv_integer(dmaRdReq.dest(7 downto 8-CHAN_COUNT_G));
-         dmaRdReq.dest(7 downto 8-CHAN_COUNT_G) := (others=>'0');
+         rdIndex := conv_integer(dmaRdReq.dest(7 downto 8-CHAN_SIZE_C));
+         dmaRdReq.dest(7 downto 8-CHAN_SIZE_C) := (others=>'0');
       else
          rdIndex := 0;
       end if;
@@ -704,6 +738,7 @@ begin
       dmaRdDescReq      <= r.dmaRdDescReq;
       dmaRdDescRetAck   <= r.dmaRdDescRetAck;
       axiWriteMaster    <= r.axiWriteMaster;
+      axiCache          <= r.buffCache;
       
    end process comb;
 

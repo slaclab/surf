@@ -36,8 +36,6 @@ entity AxiStreamDmaV2Write is
       AXI_READY_EN_G    : boolean             := false;
       AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
-      AXI_BURST_G       : slv(1 downto 0)     := "01";
-      AXI_CACHE_G       : slv(3 downto 0)     := "1111";
       ACK_WAIT_BVALID_G : boolean             := true);
    port (
       -- Clock/Reset
@@ -48,7 +46,9 @@ entity AxiStreamDmaV2Write is
       dmaWrDescAck    : in  AxiWriteDmaDescAckType;
       dmaWrDescRet    : out AxiWriteDmaDescRetType;
       dmaWrDescRetAck : in  sl;
+      -- Config and status
       dmaWrIdle       : out sl;
+      axiCache        : in  slv(3 downto 0);
       -- Streaming Interface 
       axisMaster      : in  AxiStreamMasterType;
       axisSlave       : out AxiStreamSlaveType;
@@ -102,7 +102,7 @@ architecture rtl of AxiStreamDmaV2Write is
       ackCount      => (others => '0'),
       stCount       => (others => '0'),
       awlen         => (others => '0'),
-      wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', AXI_BURST_G, AXI_CACHE_G),
+      wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
       slave         => AXI_STREAM_SLAVE_INIT_C,
       state         => RESET_S,
       lastUser      => (others=>'0'),
@@ -118,8 +118,8 @@ architecture rtl of AxiStreamDmaV2Write is
    signal trackDout     : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackData     : AxiWriteDmaTrackType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "true";
    
 begin
 
@@ -136,7 +136,7 @@ begin
 
    -- State machine
    comb : process (axiRst, axiWriteSlave, dmaWrDescAck, dmaWrDescRetAck, 
-                   intAxisMaster, trackData, pause, r) is
+                   intAxisMaster, trackData, pause, r, axiCache) is
       variable v       : RegType;
       variable bytes   : natural;
    begin
@@ -145,6 +145,9 @@ begin
 
       -- Clear stream slave
       v.slave.tReady := '0';
+
+      -- Cache setting
+      v.wMaster.awcache := axiCache;
 
       -- Reset AXI Signals
       if (axiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
@@ -244,8 +247,6 @@ begin
                   v.state := ADDR_S;
                end if;
             end if;
-            v.reqCount := (others => '0');
-            v.ackCount := (others => '0');
          ----------------------------------------------------------------------
          when ADDR_S =>
             -- Reset counter, continue and last user
@@ -302,7 +303,6 @@ begin
                   -- after state machine returns to idle due to dropEn being set.
                   -- Return will follow pad with inUse = '0'
                   v.state := PAD_S;
-
                -- We are able to push more data
                elsif v.wMaster.wvalid = '0' then
                   -- Accept the data
@@ -333,7 +333,7 @@ begin
                      v.dmaWrTrack.inUse := '0';
                      -- Pad write if transaction is not done, return will following PAD because inUse = 0
                      if (AWLEN_C = 0) or (r.awlen = 0) then
-                        v.state := RETURN_S;
+                        v.state   := RETURN_S;
                      else
                         v.state := PAD_S;
                      end if;
@@ -359,8 +359,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when PAD_S =>
+            v.stCount := (others=>'0');
             -- We are able to push more data
             if v.wMaster.wvalid = '0' then
+               v.wMaster.wvalid := '1';
                v.wMaster.wstrb := (others=>'0');
                -- Check for last AXI transfer
                if (AWLEN_C = 0) or (r.awlen = 0) then
@@ -394,7 +396,7 @@ begin
                -- Init record
                v.dmaWrTrack.inUse := '0';
                -- Wait for all transactions to complete before returning descriptor
-               if (r.ackCount >= r.reqCount) or (ACK_WAIT_BVALID_G = false) then
+               if (r.ackCount = r.reqCount) or (ACK_WAIT_BVALID_G = false) then
                   v.dmaWrDescRet.valid := '1';
                   v.state := IDLE_S;
                -- Check for ACK timeout   
@@ -402,11 +404,15 @@ begin
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
                   v.dmaWrDescRet.valid := '1';
-                  v.state := IDLE_S;
+                  v.reqCount := (others => '0');
+                  v.ackCount := (others => '0');
+                  v.state    := IDLE_S;
                else
                   -- Increment the counter
                   v.stCount := r.stCount + 1;
                end if;
+            else
+               v.stCount := (others=>'0');
             end if;
          ----------------------------------------------------------------------
          when DUMP_S =>

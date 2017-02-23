@@ -36,8 +36,6 @@ entity AxiStreamDmaV2Read is
       AXIS_READY_EN_G : boolean             := false;
       AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G    : AxiConfigType       := AXI_CONFIG_INIT_C;
-      AXI_BURST_G     : slv(1 downto 0)     := "01";
-      AXI_CACHE_G     : slv(3 downto 0)     := "1111";
       PIPE_STAGES_G   : natural             := 1;
       PEND_THRESH_G   : natural             := 0);  -- In units of bytes
    port (
@@ -49,7 +47,9 @@ entity AxiStreamDmaV2Read is
       dmaRdDescAck    : out sl;
       dmaRdDescRet    : out AxiReadDmaDescRetType;
       dmaRdDescRetAck : in  sl;
+      -- Config and status
       dmaRdIdle       : out sl;
+      axiCache        : in  slv(3 downto 0);
       -- Streaming Interface 
       axisMaster      : out AxiStreamMasterType;
       axisSlave       : in  AxiStreamSlaveType;
@@ -105,7 +105,7 @@ architecture rtl of AxiStreamDmaV2Read is
       dmaRdDescRet => AXI_READ_DMA_DESC_RET_INIT_C,
       first        => '0',
       leftovers    => '0',
-      rMaster      => axiReadMasterInit(AXI_CONFIG_G, AXI_BURST_G, AXI_CACHE_G),
+      rMaster      => axiReadMasterInit(AXI_CONFIG_G, "01", "0000"),
       sMaster      => axiStreamMasterInit(AXIS_CONFIG_G),
       reqState     => IDLE_S,
       state        => IDLE_S);
@@ -116,8 +116,8 @@ architecture rtl of AxiStreamDmaV2Read is
    signal sSlave     : AxiStreamSlaveType;
    signal mSlave     : AxiStreamSlaveType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -127,13 +127,16 @@ begin
 
    pause <= '0' when (AXIS_READY_EN_G) else axisCtrl.pause;
 
-   comb : process (axiReadSlave, axiRst, dmaRdDescReq, dmaRdDescRetAck,  pause, r, sSlave) is
+   comb : process (axiReadSlave, axiRst, dmaRdDescReq, dmaRdDescRetAck,  pause, r, sSlave, axiCache) is
       variable v        : RegType;
       variable reqLen   : natural;
       variable pending  : boolean;
    begin
       -- Latch the current value   
       v := r;
+
+      -- AXI Cache Setting
+      v.rMaster.arcache := axiCache;
 
       -- Reset strobing Signals
       v.rMaster.rready := '0';
