@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2017-02-22
+-- Last update: 2017-02-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ package body ArbiterPkg is
       variable bestReq  : integer;
       variable rotatedV : unsigned(v'range);
       variable ret      : unsigned(bitSize(v'length-1)-1 downto 0) := (others => '0');
+      variable bestReqU : unsigned(ret'length downto 0);
    begin
 --      print("priorityEncode(" & str(v) & ", " & str(p) & ")");
       -- Rotate input by n to give n top priority
@@ -61,11 +62,11 @@ package body ArbiterPkg is
          end if;
       end loop;
 
-      -- Add p to rotated select and mod by length to undo the rotation
-      bestReq := (bestReq + p) mod v'length;
+      -- Convert integer to unsigned
+      bestReqU := to_unsigned(bestReq, bestReqU'length);
 
-      -- Convert integer to unsigned      
-      ret := to_unsigned(bestReq, ret'length)
+      -- Add p to rotated select and mod by length to undo the rotation
+      ret := resize((bestReqU+p) mod v'length, ret'length);
 
       return slv(ret);
    end function priorityEncode;
