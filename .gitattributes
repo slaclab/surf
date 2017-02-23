@@ -1,0 +1,2 @@
+*.dcp filter=lfs diff=lfs merge=lfs -text
+*.elf filter=lfs diff=lfs merge=lfs -text
