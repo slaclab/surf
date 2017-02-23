@@ -245,6 +245,8 @@ begin
                v.rxSlave.tReady := '1';
                -- Move data
                v.sMaster        := rxMaster;
+               -- Set the flag
+               v.fragDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
@@ -341,10 +343,6 @@ begin
                   -- Check for TCP protocol
                   if (v.ipv4Hdr(9) = TCP_C) then
                      v.tcpDet(0) := '1';
-                  end if;
-                  -- Check for fragmentation
-                  if (v.ipv4Hdr(6)(7) = '1') or (v.ipv4Hdr(6)(4 downto 0) /= 0) or (v.ipv4Hdr(7) /= 0) then
-                     v.fragDet(0) := '1';
                   end if;
                   -- Next state
                   v.state := IPV4_HDR1_S;
