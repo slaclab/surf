@@ -28,6 +28,6 @@ class GenericMemory(pr.Device):
         super(self.__class__, self).__init__(name, "genericmemory module",
                                              memBase, offset, hidden)
         digits = len(str(abs(elements-1)))        
-        for i in xrange(elements):
+        for i in range(elements):
             self.add(pr.Variable(name='Mem_%.*i'%(digits, i), description='Mem_%.*i'%(digits, i),
                 offset=(i*0x4), bitSize=bitSize, bitOffset=bitOffset, base=base, mode=mode))
