@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-08-02
+-- Last update: 2017-02-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ entity AxiStreamDmaRingWrite is
       TPD_G                : time                     := 1 ns;
       BUFFERS_G            : natural range 2 to 64    := 64;
       BURST_SIZE_BYTES_G   : natural range 4 to 2**17 := 4096;
+      ENABLE_UNALIGN_G     : boolean                  := false;
       TRIGGER_USER_BIT_G   : natural range 0 to 7     := 2;
       AXIL_BASE_ADDR_G     : slv(31 downto 0)         := (others => '0');
       DATA_AXIS_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
@@ -206,7 +207,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       trigger          => '0',
       softTrigger      => (others => '0'),
       eofe             => '0',
-      bufferEnabled    => (others => '1'),
+      bufferEnabled    => (others => '0'),
       bufferEmpty      => (others => '1'),
       bufferFull       => (others => '0'),
       bufferDone       => (others => '1'),
@@ -545,9 +546,14 @@ begin
             -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
             -- bits to zero for optimization.
             v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := nextRamDout;
-            v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0)                  := (others => '0');
+            if not ENABLE_UNALIGN_G then
+              v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0)                  := (others => '0');
+              v.dmaReq.drop                                                := v.status(DONE_C);
+            else
+              --  status(DONE_C) indicates a push, but maybe more than one
+              v.dmaReq.drop                                                := '0';
+            end if;
             v.dmaReq.request                                             := '1';
-            v.dmaReq.drop                                                := v.status(DONE_C);
             v.state                                                      := WAIT_DMA_DONE_S;
 
          when WAIT_DMA_DONE_S =>
@@ -619,7 +625,7 @@ begin
          v.bufferError(conv_integer(r.wrRamAddr))     := r.status(ERROR_C);
       end if;
 
-      if(modeWrValid = '1' and modeWrData(ENABLED_C) = '1' and modeWrStrobe(ENABLED_C/8) = '1') then
+      if(modeWrValid = '1' and modeWrStrobe(ENABLED_C/8) = '1') then
          v.bufferEnabled(conv_integer(modeWrAddr)) := modeWrData(ENABLED_C);
       end if;
 
