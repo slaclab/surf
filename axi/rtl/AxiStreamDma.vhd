@@ -409,7 +409,7 @@ begin
          AXI_CONFIG_G   => AXI_CONFIG_G,
          AXI_BURST_G    => AXI_BURST_G,
          AXI_CACHE_G    => AXI_CACHE_G,
-         SW_CACHE_EN    => true,
+         SW_CACHE_EN_G  => true,
          BYP_SHIFT_G    => BYP_SHIFT_G) 
       port map (
          axiClk         => axiClk,
@@ -503,7 +503,7 @@ begin
          AXI_CONFIG_G    => AXI_CONFIG_G,
          AXI_BURST_G     => AXI_BURST_G,
          AXI_CACHE_G     => AXI_CACHE_G,
-         SW_CACHE_EN     => true,
+         SW_CACHE_EN_G   => true,
          PEND_THRESH_G   => PEND_THRESH_G,
          BYP_SHIFT_G     => BYP_SHIFT_G) 
       port map (
