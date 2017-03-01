@@ -40,6 +40,7 @@ entity AxiStreamDmaWrite is
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
+      SW_CACHE_EN_G     : boolean             := false,
       ACK_WAIT_BVALID_G : boolean             := true;
       PIPE_STAGES_G     : natural             := 1;
       BYP_SHIFT_G       : boolean             := false;
@@ -51,6 +52,7 @@ entity AxiStreamDmaWrite is
       -- DMA Control Interface
       dmaReq         : in  AxiWriteDmaReqType;
       dmaAck         : out AxiWriteDmaAckType;
+      swCache        : in  slv(3 downto 0) := "0000";
       -- Streaming Interface 
       axisMaster     : in  AxiStreamMasterType;
       axisSlave      : out AxiStreamSlaveType;
@@ -210,13 +212,18 @@ begin
       
    end generate;
 
-   comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster, lastDet, pause, r) is
+   comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster, lastDet, pause, r, swCache) is
       variable v       : RegType;
       variable bytes   : natural;
       variable ibValid : sl;
    begin
       -- Latch the current value
       v := r;
+
+      -- Set cache value if enabled in software
+      if SW_CACHE_EN_G then
+         v.wMaster.awcache := swCache;
+      end if;
 
       -- Reset strobing Signals
       ibValid        := '0';
