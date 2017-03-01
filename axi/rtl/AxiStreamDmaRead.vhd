@@ -40,6 +40,7 @@ entity AxiStreamDmaRead is
       AXI_CONFIG_G    : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G     : slv(1 downto 0)     := "01";
       AXI_CACHE_G     : slv(3 downto 0)     := "1111";
+      SW_CACHE_EN_G   : boolean             := false,
       PIPE_STAGES_G   : natural             := 1;
       PEND_THRESH_G   : natural             := 0;  -- In units of bytes
       BYP_SHIFT_G     : boolean             := false);      
@@ -50,6 +51,7 @@ entity AxiStreamDmaRead is
       -- DMA Control Interface 
       dmaReq        : in  AxiReadDmaReqType;
       dmaAck        : out AxiReadDmaAckType;
+      swCache       : in  slv(3 downto 0) := "0000";
       -- Streaming Interface 
       axisMaster    : out AxiStreamMasterType;
       axisSlave     : in  AxiStreamSlaveType;
@@ -132,7 +134,7 @@ begin
 
    pause <= '0' when (AXIS_READY_EN_G) else axisCtrl.pause;
 
-   comb : process (axiReadSlave, axiRst, dmaReq, mMaster, mSlave, pause, r, sSlave) is
+   comb : process (axiReadSlave, axiRst, dmaReq, mMaster, mSlave, pause, r, sSlave, swCache) is
       variable v        : RegType;
       variable readSize : integer;
       variable reqLen   : natural;
@@ -140,6 +142,11 @@ begin
    begin
       -- Latch the current value   
       v := r;
+
+      -- Set cache value if enabled in software
+      if SW_CACHE_EN_G then
+         v.rMaster.arcache := swCache;
+      end if;
 
       -- Reset strobing Signals
       v.rMaster.rready := '0';
