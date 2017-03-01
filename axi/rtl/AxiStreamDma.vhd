@@ -328,9 +328,9 @@ begin
                v.fifoClear := intWriteMasters(0).wdata(0);
             when x"0C" =>
                v.intEnable := intWriteMasters(0).wdata(0);
-            when x"10" =>
-               v.maxRxSize := intWriteMasters(0).wdata(23 downto 0);
             when x"14" =>
+               v.maxRxSize := intWriteMasters(0).wdata(23 downto 0);
+            when x"18" =>
                v.online      := intWriteMasters(0).wdata(0);
                v.acknowledge := intWriteMasters(0).wdata(1);
             when x"1C" =>
