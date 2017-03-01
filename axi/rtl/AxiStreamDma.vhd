@@ -121,6 +121,7 @@ architecture structure of AxiStreamDma is
       rxEnable      : sl;
       txEnable      : sl;
       fifoClear     : sl;
+      swCache       : slv(3 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -135,6 +136,7 @@ architecture structure of AxiStreamDma is
       rxEnable      => '0',
       txEnable      => '0',
       fifoClear     => '1',
+      swCache       => AXI_CACHE_G,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -317,22 +319,24 @@ begin
       -- Write
       if (axiStatus.writeEnable = '1') then
 
-         case intWriteMasters(0).awaddr(4 downto 2) is
-            when "000" =>
+         case intWriteMasters(0).awaddr(7 downto 0) is
+            when x"00" =>
                v.rxEnable := intWriteMasters(0).wdata(0);
-            when "001" =>
+            when x"04" =>
                v.txEnable := intWriteMasters(0).wdata(0);
-            when "010" =>
+            when x"08" =>
                v.fifoClear := intWriteMasters(0).wdata(0);
-            when "011" =>
+            when x"0C" =>
                v.intEnable := intWriteMasters(0).wdata(0);
-            when "101" =>
+            when x"10" =>
                v.maxRxSize := intWriteMasters(0).wdata(23 downto 0);
-            when "110" =>
+            when x"14" =>
                v.online      := intWriteMasters(0).wdata(0);
                v.acknowledge := intWriteMasters(0).wdata(1);
-            when "111" =>
+            when x"1C" =>
                v.intAck := intWriteMasters(0).wdata(0);
+            when x"20" =>
+               v.swCache := intWriteMasters(0).wdata(3 downto 0);
             when others =>
                null;
          end case;
@@ -344,26 +348,28 @@ begin
       if (axiStatus.readEnable = '1') then
          v.axiReadSlave.rdata := (others => '0');
 
-         case intReadMasters(0).araddr(4 downto 2) is
-            when "000" =>
+         case intReadMasters(0).araddr(7 downto 0) is
+            when x"00" =>
                v.axiReadSlave.rdata(0) := r.rxEnable;
-            when "001" =>
+            when x"04" =>
                v.axiReadSlave.rdata(0) := r.txEnable;
-            when "010" =>
+            when x"08" =>
                v.axiReadSlave.rdata(0) := r.fifoClear;
-            when "011" =>
+            when x"0C" =>
                v.axiReadSlave.rdata(0) := r.intEnable;
-            when "100" =>
+            when x"10" =>
                v.axiReadSlave.rdata(0) := popFifoValid(IB_FIFO_C);
                v.axiReadSlave.rdata(1) := popFifoValid(OB_FIFO_C);
-            when "101" =>
+            when x"14" =>
                v.axiReadSlave.rdata(23 downto 0) := r.maxRxSize;
-            when "110" =>
+            when x"18" =>
                v.axiReadSlave.rdata(0) := r.online;
                v.axiReadSlave.rdata(1) := r.acknowledge;
-            when "111" =>
+            when x"1C" =>
                v.axiReadSlave.rdata(0) := ib.intPending;
                v.axiReadSlave.rdata(1) := ob.intPending;
+            when x"20" =>
+               v.axiReadSlave.rdata(3 downto 0) := r.swCache;
             when others =>
                null;
          end case;
@@ -403,12 +409,14 @@ begin
          AXI_CONFIG_G   => AXI_CONFIG_G,
          AXI_BURST_G    => AXI_BURST_G,
          AXI_CACHE_G    => AXI_CACHE_G,
+         SW_CACHE_EN    => true,
          BYP_SHIFT_G    => BYP_SHIFT_G) 
       port map (
          axiClk         => axiClk,
          axiRst         => axiRst,
          dmaReq         => ibReq,
          dmaAck         => ibAck,
+         swCache        => r.swCache,
          axisMaster     => sAxisMaster,
          axisSlave      => sAxisSlave,
          axiWriteMaster => axiWriteMaster,
@@ -495,6 +503,7 @@ begin
          AXI_CONFIG_G    => AXI_CONFIG_G,
          AXI_BURST_G     => AXI_BURST_G,
          AXI_CACHE_G     => AXI_CACHE_G,
+         SW_CACHE_EN     => true,
          PEND_THRESH_G   => PEND_THRESH_G,
          BYP_SHIFT_G     => BYP_SHIFT_G) 
       port map (
@@ -502,6 +511,7 @@ begin
          axiRst        => axiRst,
          dmaReq        => obReq,
          dmaAck        => obAck,
+         swCache       => r.swCache,
          axisMaster    => mAxisMaster,
          axisSlave     => mAxisSlave,
          axisCtrl      => mAxisCtrl,
