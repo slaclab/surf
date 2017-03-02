@@ -13,9 +13,10 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.Version.all;
 
 package SaciMultiPixelPkg is
+
+   constant FPGA_VERSION_C : slv(31 downto 0) := x"00000000";
 
    type MultiPixelWriteType is record
       asic       : slv(1 downto 0);
