@@ -44,6 +44,7 @@ entity AxiStreamMux is
       TDEST_LOW_G    : integer range 0 to 7  := 0; -- LSB of updated tdest for INDEX
       ILEAVE_EN_G    : boolean               := false; -- Set to true if interleaving dests, arbitrate on gaps
       ILEAVE_REARB_G : natural               := 0); -- Max number of transactions between arbitrations, 0 = unlimited
+   port (
       -- Clock and reset
       axisClk      : in  sl;
       axisRst      : in  sl;
