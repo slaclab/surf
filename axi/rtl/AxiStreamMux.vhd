@@ -41,10 +41,9 @@ entity AxiStreamMux is
       MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
       TDEST_ROUTES_G : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
-      TDEST_HIGH_G   : integer range 0 to 7  := 7;
-      TDEST_LOW_G    : integer range 0 to 7  := 0;
-      ILEAVE_EN_G    : boolean               := false);  -- Set to true if interleaving dests, arbitrate on gaps
-   port (
+      TDEST_LOW_G    : integer range 0 to 7  := 0; -- LSB of updated tdest for INDEX
+      ILEAVE_EN_G    : boolean               := false; -- Set to true if interleaving dests, arbitrate on gaps
+      ILEAVE_REARB_G : natural               := 0); -- Max number of transactions between arbitrations, 0 = unlimited
       -- Clock and reset
       axisClk      : in  sl;
       axisRst      : in  sl;
@@ -61,6 +60,7 @@ architecture structure of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
    constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
+   constant ACNT_SIZE_G : integer := bitSize(ILEAVE_REARB_G);
 
    type StateType is (
       IDLE_S,
@@ -71,6 +71,7 @@ architecture structure of AxiStreamMux is
       acks   : slv(ARB_BITS_C-1 downto 0);
       ackNum : slv(DEST_SIZE_C-1 downto 0);
       valid  : sl;
+      arbCnt : slv(ACNT_SIZE_G-1 downto 0);
       slaves : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
       master : AxiStreamMasterType;
    end record RegType;
@@ -80,6 +81,7 @@ architecture structure of AxiStreamMux is
       acks   => (others => '0'),
       ackNum => toSlv(NUM_SLAVES_G-1, DEST_SIZE_C),
       valid  => '0',
+      arbCnt => (others=>'0'),
       slaves => (others => AXI_STREAM_SLAVE_INIT_C),
       master => AXI_STREAM_MASTER_INIT_C);
 
@@ -92,8 +94,8 @@ architecture structure of AxiStreamMux is
 
 begin
 
-   assert (MODE_G /= "INDEXED" or (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)))
-      report "In INDEXED mode, TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
+   assert (MODE_G /= "INDEXED" or (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)))
+      report "In INDEXED mode, TDest range 7 downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_SLAVES_G=" & integer'image(NUM_SLAVES_G)
       severity error;
 
@@ -186,6 +188,7 @@ begin
                   v.state := MOVE_S;
                end if;
             end if;
+            v.arbCnt := (others=>'0');
          ----------------------------------------------------------------------
          when MOVE_S =>
             -- Check if need to move data
@@ -193,10 +196,15 @@ begin
                -- Accept the data
                v.slaves(conv_integer(r.ackNum)).tReady := '1';
                -- Move the AXIS data
-               v.master                                := selData;
+               v.master := selData;
+               v.arbCnt := r.arbCnt + 1;
                -- Check for tLast
                if selData.tLast = '1' then
                   -- Next state
+                  v.state := IDLE_S;
+
+               -- Rearbitrate after n transactions if enabled
+               elsif (ILEAVE_EN_G = true) and (ILEAVE_REARB_G /= 0) and (v.arbCnt = ILEAVE_REARB_G) then
                   v.state := IDLE_S;
                end if;
 
