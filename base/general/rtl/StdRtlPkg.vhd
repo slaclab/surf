@@ -684,7 +684,15 @@ package StdRtlPkg is
       fwVersion   : slv(31 downto 0);
       gitHash     : slv(159 downto 0);
    end record;   
-   function toBuildInfo (din : slv) return BuildInfoRetType;   
+   function toBuildInfo (din : slv) return BuildInfoRetType;
+   function toSlv (      din : BuildInfoRetType) return BuildInfoType;
+
+   constant BUILD_INFO_DEFAULT_C : BuildInfoRetType := (
+      buildString =>  (others => (others => '0')),
+      fwVersion => X"00000000",
+      gitHash => (others => '0'));
+
+   constant BUILD_INFO_DEFAULT_SLV_C : BuildInfoType := (others => '0');
    
 end StdRtlPkg;
 
@@ -1311,6 +1319,17 @@ package body StdRtlPkg is
       ret.fwVersion := din(2079 downto 2048); 
       ret.gitHash   := din(2239 downto 2080);  
       return ret;
-   end function;   
+   end function;
+
+   function toSlv (din : BuildInfoRetType) return BuildInfoType is
+      variable ret : BuildInfoType;
+   begin
+      for i in 0 to 255 loop
+         ret(2047-(8*i) downto 2040-(8*i)) := din.buildString(i/4)(8*(i mod 4)+7 downto 8*(i mod 4));
+      end loop;
+      ret(2079 downto 2048) := din.fwVersion;
+      ret(2239 downto 2080) := din.gitHash;
+      return ret;
+   end function toSlv;
 
 end package body StdRtlPkg;
