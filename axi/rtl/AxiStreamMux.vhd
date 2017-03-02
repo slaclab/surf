@@ -205,7 +205,7 @@ begin
                   v.state := IDLE_S;
 
                -- Rearbitrate after n transactions if enabled
-               elsif (ILEAVE_EN_G = true) and (ILEAVE_REARB_G /= 0) and (v.arbCnt = ILEAVE_REARB_G) then
+               elsif (ILEAVE_EN_G = true) and (ILEAVE_REARB_G /= 0) and (r.arbCnt = (ILEAVE_REARB_G-1)) then
                   v.state := IDLE_S;
                end if;
 
