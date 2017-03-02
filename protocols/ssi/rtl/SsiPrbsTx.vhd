@@ -37,6 +37,7 @@ entity SsiPrbsTx is
       TPD_G                      : time                       := 1 ns;
       AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- FIFO Configurations
+      VALID_THOLD_G              : integer range 0 to (2**24) := 1;
       BRAM_EN_G                  : boolean                    := true;
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
@@ -368,7 +369,7 @@ begin
          INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
+         VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
