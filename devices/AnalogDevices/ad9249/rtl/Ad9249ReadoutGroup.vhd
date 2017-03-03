@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2017-03-01
+-- Last update: 2017-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ begin
          dataOut    => open,
          cntOut     => lockedFallCount,
          wrClk      => adcBitClkR,
-         wrRst      => adcBitRst,
+         wrRst      => '0',
          rdClk      => axilClk,
          rdRst      => axilRst);
 
