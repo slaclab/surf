@@ -64,15 +64,15 @@ def create(name='ssiPrbsTx', offset=0, memBase=None, hidden=False):
                              description='',
                              hidden=False, enum=None, offset=0x8, bitSize=8, bitOffset=8, base='hex', mode='RW'))
 
-    dev.add(pyrogue.Variable(name='dataCount', pollEn=True,
+    dev.add(pyrogue.Variable(name='dataCount', pollInterval=1,
                              description='',
                              hidden=False, enum=None, offset=0xc, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='eventCount', pollEn=True,
+    dev.add(pyrogue.Variable(name='eventCount', pollInterval=1,
                              description='',
                              hidden=False, enum=None, offset=0x10, bitSize=32, bitOffset=0, base='uint', mode='RO'))
 
-    dev.add(pyrogue.Variable(name='randomData', pollEn=True,
+    dev.add(pyrogue.Variable(name='randomData', pollInterval=1,
                              description='',
                              hidden=False, enum=None, offset=0x14, bitSize=32, bitOffset=0, base='hex', mode='RO'))
 
