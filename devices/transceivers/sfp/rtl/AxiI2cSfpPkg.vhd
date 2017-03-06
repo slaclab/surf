@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : AxiI2cSfpPkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-04-18
+-- Last update: 2016-09-20
+-------------------------------------------------------------------------------
+-- Description: AXI-Lite interface to SFP
 ------------------------------------------------------------------------------
 -- This file is part of 'AXI-Lite SFP I2C Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

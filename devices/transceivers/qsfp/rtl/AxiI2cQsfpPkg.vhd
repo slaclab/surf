@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : AxiI2cQsfpPkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-10-21
+-- Last update: 2016-09-20
+-------------------------------------------------------------------------------
+-- Description:
 ------------------------------------------------------------------------------
 -- This file is part of 'AXI-Lite QSFP I2C Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

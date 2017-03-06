@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiI2cQsfpReg.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
 -- Last update: 2015-07-20
--- Platform   : Vivado 2013.3
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -55,15 +50,13 @@ end AxiI2cQsfpReg;
 architecture rtl of AxiI2cQsfpReg is
 
    constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (
-      0             => (
-         i2cAddress => "0001010000",    -- Configuration PROM
-         i2cTenbit  => '0',
+      0             => MakeI2cAxiLiteDevType(
+         i2cAddress => "1010000",    -- Configuration PROM
          dataSize   => 8,               -- in units of bits
          addrSize   => 8,               -- in units of bits
          endianness => '1'),            -- Big endian 
-      1             => (
-         i2cAddress => "0001010001",    -- Diagnostic Monitoring 
-         i2cTenbit  => '0',
+      1             => MakeI2cAxiLiteDevType(
+         i2cAddress => "1010001",    -- Diagnostic Monitoring 
          dataSize   => 8,               -- in units of bits
          addrSize   => 8,               -- in units of bits
          endianness => '1'));           -- Big endian   
@@ -86,7 +79,6 @@ begin
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
          TPD_G               => TPD_G,
-         I2C_REG_ADDR_SIZE_G => 8,
          DEVICE_MAP_G        => DEVICE_MAP_C,
          EN_USER_REG_G       => true,
          NUM_WRITE_REG_G     => NUM_WRITE_REG_C-1,

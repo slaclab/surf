@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiI2cCxpReg.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
 -- Last update: 2014-10-21
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -58,15 +53,15 @@ architecture rtl of AxiI2cCxpReg is
    constant RX_INDEX_C : natural := 1;
 
    constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (
-      TX_INDEX_C    => (
-         i2cAddress => "0001010000",    -- TX Memory Map
-         i2cTenbit  => '0',
-         dataSize   => 8,               -- In units of bits
+      TX_INDEX_C    => MakeI2cAxiLiteDevType(
+         i2cAddress => "1010000",    -- TX Memory Map
+         dataSize   => 8,               -- in units of bits
+         addrSize   => 8,               -- in units of bits
          endianness => '1'),            -- Big Endian  
-      RX_INDEX_C    => (
-         i2cAddress => "0001010100",    -- RX Memory Map
-         i2cTenbit  => '0',
-         dataSize   => 8,               -- In units of bits
+      RX_INDEX_C    => MakeI2cAxiLiteDevType(
+         i2cAddress => "1010100",    -- RX Memory Map
+         dataSize   => 8,               -- in units of bits
+         addrSize   => 8,               -- in units of bits
          endianness => '1'));           -- Big Endian           
 
    constant NUM_WRITE_REG_C : positive := 3;
@@ -92,7 +87,6 @@ begin
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
          TPD_G               => TPD_G,
-         I2C_REG_ADDR_SIZE_G => 8,
          DEVICE_MAP_G        => DEVICE_MAP_C,
          EN_USER_REG_G       => true,
          NUM_WRITE_REG_G     => (NUM_WRITE_REG_C-1),
