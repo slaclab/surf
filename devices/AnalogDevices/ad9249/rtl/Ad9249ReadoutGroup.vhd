@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2017-03-03
+-- Last update: 2017-03-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -410,7 +410,7 @@ begin
             v.fifoWrData(i) := "00" & adcData(i);
          else
             -- Not locked
-            v.fifoWrData(i) := "10" & "00000000000000";
+            v.fifoWrData(i) := (others => '1'); --"10" & "00000000000000";
          end if;
       end loop;
 
