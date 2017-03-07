@@ -91,6 +91,7 @@ begin
          TPD_G                 => TPD_G,
          CHAN_COUNT_G          => CHAN_COUNT_G,
          AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
+         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
          AXI_READY_EN_G        => AXI_READY_EN_G,
          AXI_CONFIG_G          => AXI_DESC_CONFIG_G,
          DESC_AWIDTH_G         => DESC_AWIDTH_G,
