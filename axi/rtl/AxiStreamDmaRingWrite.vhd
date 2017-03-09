@@ -33,7 +33,6 @@ use work.AxiPkg.all;
 use work.AxiDmaPkg.all;
 use work.AxiStreamDmaRingPkg.all;
 
-
 entity AxiStreamDmaRingWrite is
    generic (
       TPD_G                : time                     := 1 ns;
@@ -43,7 +42,9 @@ entity AxiStreamDmaRingWrite is
       AXIL_BASE_ADDR_G     : slv(31 downto 0)         := (others => '0');
       DATA_AXIS_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
       STATUS_AXIS_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(1);
-      AXI_WRITE_CONFIG_G   : AxiConfigType            := axiConfig(32, 8, 1, 8));
+      AXI_WRITE_CONFIG_G   : AxiConfigType            := axiConfig(32, 8, 1, 8);
+      BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
+      BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
       -- AXI-Lite Interface for local registers 
       axilClk         : in  sl;
@@ -409,7 +410,9 @@ begin
          AXI_CONFIG_G      => AXI_WRITE_CONFIG_G,
          AXI_BURST_G       => "01",         -- INCR
          AXI_CACHE_G       => "0011",       -- Cacheable
-         ACK_WAIT_BVALID_G => false)        -- Don't wait for BVALID before acking
+         ACK_WAIT_BVALID_G => false,
+         BYP_SHIFT_G       => BYP_SHIFT_G,  -- Bypass both because we do not want them to back-pressure
+         BYP_CACHE_G       => BYP_CACHE_G)  -- Bypass both because we do not want them to back-pressure                
       port map (
          axiClk         => axiClk,          -- [in]
          axiRst         => axiRst,          -- [in]
