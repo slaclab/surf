@@ -143,6 +143,18 @@ AxiStreamDmaRingWrite: &AxiStreamDmaRingWrite
       lsBit: 0
       sizeBits: 16
     #########################################################
+    Status:
+      at:
+        offset: 0xA00
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
+      name: Status
+      mode: RW
+      sizeBits: 32
+      lsBit: 0
+      description: Include all of the status bits in one access
+    #########################################################
     Empty:
       at:
         offset: 0xA00

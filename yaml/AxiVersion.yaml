@@ -112,7 +112,7 @@ AxiVersion: &AxiVersion
     BuildStamp:
       at:
         offset: 0x800
-        nelms: 64
+        nelms: 256
       class: IntField
       sizeBits: 8
       mode: RO
