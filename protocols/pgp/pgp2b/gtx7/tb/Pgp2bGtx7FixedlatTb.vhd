@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "Pgp2bGtx7FixedLatWrapper"
+-- Title      : Testbench for design "Pgp2bGtx7FixedLat"
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7FixedLatWrapperTb.vhd
+-- File       : Pgp2bGtx7FixedLatTb.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-27
@@ -25,13 +25,13 @@ use ieee.std_logic_1164.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity Pgp2bGtx7FixedLatWrapperTb is
+entity Pgp2bGtx7FixedLatTb is
 
-end entity Pgp2bGtx7FixedLatWrapperTb;
+end entity Pgp2bGtx7FixedLatTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture tb of Pgp2bGtx7FixedLatWrapperTb is
+architecture tb of Pgp2bGtx7FixedLatTb is
 
    -- component generics
    constant VC_INTERLEAVE_G         : integer              := 0;
