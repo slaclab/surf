@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once Adc16Dx370.yaml
 
 Adc16Dx370: &Adc16Dx370
   name: Adc16Dx370

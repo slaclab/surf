@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once SsiPrbsTx.yaml
 
 SsiPrbsTx: &SsiPrbsTx
   class: MMIODev

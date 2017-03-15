@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once AxiCdcm6208.yaml
 
 AxiCdcm6208: &AxiCdcm6208 
   class: MMIODev
