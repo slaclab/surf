@@ -150,7 +150,7 @@ AxiStreamDmaRingWrite: &AxiStreamDmaRingWrite
         stride: 4
       class: IntField
       name: Status
-      mode: RW
+      mode: RO
       sizeBits: 32
       lsBit: 0
       description: Include all of the status bits in one access
