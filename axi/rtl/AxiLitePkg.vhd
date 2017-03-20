@@ -378,7 +378,11 @@ package AxiLitePkg is
       data                  : out slv;
       debug                 : in  boolean := false);
 
-
+   function ite(i : boolean; t : AxiLiteReadMasterType;  e : AxiLiteReadMasterType)  return AxiLiteReadMasterType;
+   function ite(i : boolean; t : AxiLiteReadSlaveType;   e : AxiLiteReadSlaveType)   return AxiLiteReadSlaveType;
+   function ite(i : boolean; t : AxiLiteWriteMasterType; e : AxiLiteWriteMasterType) return AxiLiteWriteMasterType;
+   function ite(i : boolean; t : AxiLiteWriteSlaveType;  e : AxiLiteWriteSlaveType)  return AxiLiteWriteSlaveType;
+   
 end AxiLitePkg;
 
 package body AxiLitePkg is
@@ -924,5 +928,26 @@ package body AxiLitePkg is
 
    end procedure axiLiteBusSimRead;
 
+   function ite (i : boolean; t : AxiLiteReadMasterType; e : AxiLiteReadMasterType) return AxiLiteReadMasterType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiLiteReadSlaveType; e : AxiLiteReadSlaveType) return AxiLiteReadSlaveType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiLiteWriteMasterType; e : AxiLiteWriteMasterType) return AxiLiteWriteMasterType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiLiteWriteSlaveType; e : AxiLiteWriteSlaveType) return AxiLiteWriteSlaveType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+   
+   
 end package body AxiLitePkg;
 
