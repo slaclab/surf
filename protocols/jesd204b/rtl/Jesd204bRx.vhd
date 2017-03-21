@@ -170,7 +170,9 @@ architecture rtl of Jesd204bRx is
 
    -- Record containing GT signals
    signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
-
+   signal s_rawData     : slv32Array(L_G-1 downto 0);
+   
+   
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_G-1 downto 0);
    signal s_pause    : sl;
@@ -185,7 +187,11 @@ begin
    -----------------------------------------------------------
    -- AXI Lite AXI clock domain crossed
    -----------------------------------------------------------
-
+   
+   GEN_rawData : for I in L_G-1 downto 0 generate
+      s_rawData(I) <= s_jesdGtRxArr(I).data;
+   end generate GEN_rawData;
+   
    -- axiLite register interface
    AxiLiteRegItf_INST : entity work.AxiLiteRxRegItf
       generic map (
@@ -204,6 +210,7 @@ begin
          devClk_i          => devClk_i,
          devRst_i          => devRst_i,
          statusRxArr_i     => s_statusRxArr,
+         rawData_i         => s_rawData, 
          linkErrMask_o     => s_linkErrMask,
          sysrefDlyRx_o     => s_sysrefDlyRx,
          enableRx_o        => s_enableRx,

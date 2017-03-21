@@ -91,7 +91,8 @@ entity AxiLiteRxRegItf is
       -- JESD registers
       -- Status
       statusRxArr_i : in rxStatuRegisterArray(L_G-1 downto 0);
-
+      rawData_i     : in slv32Array(L_G-1 downto 0);
+      
       -- Control
       sysrefDlyRx_o     : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       enableRx_o        : out slv(L_G-1 downto 0);
@@ -151,8 +152,10 @@ architecture rtl of AxiLiteRxRegItf is
 
    -- Synced status signals
    signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
+   signal s_rawData     : slv32Array(L_G-1 downto 0);
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
+   
 
 begin
 
@@ -188,7 +191,7 @@ begin
    s_WrAddr <= slvToInt(axilWriteMaster.awaddr(AXI_ADDR_WIDTH_G-1 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, r, s_RdAddr,
-                   s_WrAddr, s_statusRxArr, s_statusCnt) is
+                   s_WrAddr, s_statusRxArr, s_statusCnt, s_rawData) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -277,6 +280,12 @@ begin
                      end loop;
                   end if;
                end loop;
+            when 16#50# to 16#5F# =>
+               for I in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     v.axilReadSlave.rdata := s_rawData(I);
+                  end if;
+               end loop;
             when others =>
                axilReadResp := AXI_ERROR_RESP_G;
          end case;
@@ -317,7 +326,23 @@ begin
             rd_clk => axiClk_i,
             dout   => s_statusRxArr(I)
             );
+            
+            
+      SyncFifo_IN1 : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 32
+            )
+         port map (
+            wr_clk => devClk_i,
+            din    => rawData_i(I),
+            rd_clk => axiClk_i,
+            dout   => s_rawData(I)
+            );
    end generate GEN_0;
+   
+   
+   
 
    -- Output assignment and synchronisation
 
