@@ -31,11 +31,17 @@
 --                bit 9: Comma (K28.5) detected
 --                bit 10-13: Disparity error
 --                bit 14-17: Not in table Error
---
+--                bit 18-25: 8-bit buffer latency
+--                bit 26: CDR Status of the GTH (Not used in yaml)
 --
 --          Note: sampleData_o is little endian and not byteswapped
 --                First sample in time:  sampleData_o(15 downto 0) 
 --                Second sample in time: sampleData_o(31 downto 16)
+--
+--          Note: The output ADC sample data can be inverted.
+--                     inv_i:     '1' Inverted,      '0' Normal
+--                If inverted the mode can be chosen:
+--                     invMode_i: '1' Offset binary, '0' Twos complement 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -97,7 +103,11 @@ entity JesdRxLane is
       -- One or more RX modules requested synchronisation
       nSyncAny_i   : in sl;
       nSyncAnyD1_i : in sl;
-
+      
+      -- Invert ADC data
+      inv_i     : in sl:='0';
+      invMode_i : in sl:='0';
+      
       -- Synchronisation request output 
       nSync_o : out sl;
 
@@ -114,13 +124,17 @@ architecture rtl of JesdRxLane is
 
 -- Register
    type RegType is record
-      bufWeD1 : sl;
-      errReg  : slv(ERR_REG_WIDTH_C-1 downto 0);
+      bufWeD1        : sl;
+      errReg         : slv(ERR_REG_WIDTH_C-1 downto 0);
+      sampleData     : slv(sampleData_o'range);
+      sampleDataValid: sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      bufWeD1 => '0',
-      errReg  => (others => '0')
+      bufWeD1        => '0',
+      errReg         => (others => '0'),
+      sampleData     => (others => '0'),
+      sampleDataValid=> '0'
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -266,10 +280,12 @@ begin
 
    -- Synchronous process function:
    -- - Registering of errors
-   -- - Delay the s_bufWe to use it for s_bufRe 
+   -- - Delay the s_bufWe to use it for s_bufRe
+   -- - Inverting ADC data
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
-   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync) is
+   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync,
+                   s_sampleData, s_sampleDataValid) is
       variable v : RegType;
    begin
       v := r;
@@ -289,7 +305,17 @@ begin
       if (clearErr_i = '1') then
          v.errReg := REG_INIT_C.errReg;
       end if;
-
+      
+      -- Invert sample data
+      v.sampleDataValid := s_sampleDataValid;
+      
+      if (inv_i = '1') then
+      -- Invert sample data      
+         v.sampleData :=  invData(s_sampleData, invMode_i, F_G, GT_WORD_SIZE_C);
+      else
+         v.sampleData :=  s_sampleData;
+      end if;
+      
       -- Reset registers
       if (devRst_i = '1') then
          v := REG_INIT_C;
@@ -306,10 +332,9 @@ begin
    end process seq;
 
    -- Output assignment
-   -- nSync_o      <= s_nSync or not enable_i;
    nSync_o      <= s_nSync;
-   dataValid_o  <= s_sampleDataValid;
-   sampleData_o <= endianSwapSlv(s_sampleData, GT_WORD_SIZE_C);
+   dataValid_o  <= r.sampleDataValid;
+   sampleData_o <= endianSwapSlv(r.sampleData, GT_WORD_SIZE_C);
    status_o     <= r_jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

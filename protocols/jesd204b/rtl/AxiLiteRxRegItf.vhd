@@ -98,6 +98,8 @@ entity AxiLiteRxRegItf is
       enableRx_o        : out slv(L_G-1 downto 0);
       replEnable_o      : out sl;
       scrEnable_o       : out sl;
+      invertData_o      : out slv(L_G-1 downto 0);   
+      invertMode_o      : out slv(L_G-1 downto 0); 
       dlyTxArr_o        : out Slv4Array(L_G-1 downto 0);     -- 1 to 16 clock cycles
       alignTxArr_o      : out alignTxArray(L_G-1 downto 0);  -- 0001, 0010, 0100, 1000
       thresoldLowArr_o  : out Slv16Array(L_G-1 downto 0);    -- Test signal threshold low
@@ -117,6 +119,8 @@ architecture rtl of AxiLiteRxRegItf is
    type RegType is record
       -- JESD Control (RW)
       enableRx       : slv(L_G-1 downto 0);
+      invertData     : slv(L_G-1 downto 0);      
+      invertMode     : slv(L_G-1 downto 0);      
       commonCtrl     : slv(5 downto 0);
       linkErrMask    : slv(5 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
@@ -132,6 +136,8 @@ architecture rtl of AxiLiteRxRegItf is
 
    constant REG_INIT_C : RegType := (
       enableRx       => (others => '0'),
+      invertData     => (others => '0'),      
+      invertMode     => (others => '0'),      
       commonCtrl     => "010111",
       linkErrMask    => "111111",
       sysrefDlyRx    => (others => '0'),
@@ -220,6 +226,10 @@ begin
                v.commonCtrl := axilWriteMaster.wdata(5 downto 0);
             when 16#05# =>              -- ADDR (0x14)
                v.linkErrMask := axilWriteMaster.wdata(5 downto 0);
+            when 16#06# =>              -- ADDR (0x18)
+               v.invertData  := axilWriteMaster.wdata(L_G-1 downto 0);
+            when 16#07# =>              -- ADDR (0x1C)
+               v.invertMode  := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -254,6 +264,10 @@ begin
                v.axilReadSlave.rdata(5 downto 0) := r.commonCtrl;
             when 16#05# =>              -- ADDR (0x14)
                v.axilReadSlave.rdata(5 downto 0) := r.linkErrMask;
+            when 16#06# =>              -- ADDR (0x18)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
+            when 16#07# =>              -- ADDR (0x1C)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertMode;
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -475,6 +489,28 @@ begin
          dout   => axisTrigger_o
          );
 
+   SyncFifo_OUT9 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => L_G
+         )
+      port map (
+         wr_clk => axiClk_i,
+         din    => r.invertData,
+         rd_clk => devClk_i,
+         dout   => invertData_o
+         );
+   SyncFifo_OUT10 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => L_G
+         )
+      port map (
+         wr_clk => axiClk_i,
+         din    => r.invertMode,
+         rd_clk => devClk_i,
+         dout   => invertMode_o
+         );         
 
    GEN_1 : for I in L_G-1 downto 0 generate
       SyncFifo_OUT0 : entity work.SynchronizerFifo
@@ -525,6 +561,5 @@ begin
             dout   => thresoldLowArr_o(I)
             );
    end generate GEN_1;
-
 ---------------------------------------------------------------------
 end rtl;

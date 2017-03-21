@@ -118,7 +118,12 @@ package Jesd204bPkg is
 
    -- Output offset binary zero
    function outSampleZero(F_int : positive; bytes_int : positive) return std_logic_vector;
-
+   
+   -- Invert functions
+   
+   -- Invert signed 
+   function invSigned(input : slv) return std_logic_vector;
+   function invData(data : slv; offsetBinary : sl; F_int : positive; bytes_int : positive) return std_logic_vector;
    
 end Jesd204bPkg;
 
@@ -299,9 +304,6 @@ package body Jesd204bPkg is
       end if;
    end endianSwapSlv;
 
-
-
-
    -- Align the data within the data buffer according to the position of the byte alignment word
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
    begin
@@ -367,11 +369,43 @@ package body Jesd204bPkg is
       vSlv := (others => '0');
 
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-         vSlv(I*8*F_int+15) := '1';
+         vSlv(I*8*F_int+8*F_int-1) := '1';
       end loop;
 
       return vSlv;
 
    end outSampleZero;
+   
+   -- Invert Signed
+   function invSigned(input : slv) return std_logic_vector is
+      variable vOutput : signed(input'range);
+   begin
+      vOutput := 0 - signed(input);
+      return std_logic_vector(vOutput);
+   end invSigned;
+   
+   -- Output zero sample data depending on word size and Frame size
+   function invData(data : slv; offsetBinary : sl; F_int : positive; bytes_int : positive) return std_logic_vector is
+      constant SAMPLES_IN_WORD_C : positive := (bytes_int/F_int);
+      variable vSlv              : slv((bytes_int*8)-1 downto 0);
+   begin
+      
+      vSlv := data;
+
+      for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+         -- If offset binary convert to signed
+         vSlv(I*8*F_int+8*F_int-1) := vSlv(I*8*F_int+8*F_int-1) xor offsetBinary;
+         
+         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));
+         
+         -- If offset binary convert back to offset binary         
+         vSlv(I*8*F_int+8*F_int-1) := vSlv(I*8*F_int+8*F_int-1) xor offsetBinary;        
+      end loop;
+
+      return vSlv;
+
+   end invData;
+   
+   
 --------------------------------------------------------------------------------------------
 end package body Jesd204bPkg;

@@ -143,6 +143,9 @@ architecture rtl of Jesd204bRx is
    signal s_enableRx    : slv(L_G-1 downto 0);
    signal s_replEnable  : sl;
    signal s_scrEnable   : sl;
+   signal s_invertData  : slv(L_G-1 downto 0);   
+   signal s_invertMode  : slv(L_G-1 downto 0);   
+   
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
    -- User reset (from AXI lite register)
@@ -171,8 +174,7 @@ architecture rtl of Jesd204bRx is
    -- Record containing GT signals
    signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
    signal s_rawData     : slv32Array(L_G-1 downto 0);
-   
-   
+
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_G-1 downto 0);
    signal s_pause    : sl;
@@ -210,7 +212,7 @@ begin
          devClk_i          => devClk_i,
          devRst_i          => devRst_i,
          statusRxArr_i     => s_statusRxArr,
-         rawData_i         => s_rawData, 
+         rawData_i         => s_rawData,
          linkErrMask_o     => s_linkErrMask,
          sysrefDlyRx_o     => s_sysrefDlyRx,
          enableRx_o        => s_enableRx,
@@ -223,6 +225,8 @@ begin
          gtReset_o         => s_gtReset,
          clearErr_o        => s_clearErr,
          invertSync_o      => s_invertSync,
+         invertData_o      => s_invertData,
+         invertMode_o      => s_invertMode,         
          thresoldHighArr_o => s_thresoldHighArr,
          thresoldLowArr_o  => s_thresoldLowArr,
          axisPacketSize_o  => s_axisPacketSizeReg
@@ -364,6 +368,8 @@ begin
             linkErrMask_i=> s_linkErrMask,
             replEnable_i => s_replEnable,
             scrEnable_i  => s_scrEnable,
+            inv_i        => s_invertData(I), 
+            invMode_i    => s_invertMode(I),
             status_o     => s_statusRxArr(I),
             r_jesdGtRx   => s_jesdGtRxArr(I),
             lmfc_i       => s_lmfc,
