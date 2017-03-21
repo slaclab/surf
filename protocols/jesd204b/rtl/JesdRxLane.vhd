@@ -285,7 +285,7 @@ begin
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
    comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync,
-                   s_sampleData, s_sampleDataValid) is
+                   s_sampleData, s_sampleDataValid, inv_i, invMode_i) is
       variable v : RegType;
    begin
       v := r;
