@@ -11,7 +11,8 @@
 -------------------------------------------------------------------------------
 -- Description: 
 --     Scrambles incoming data if enabled
---     
+--     Inverts incoming data if enabled
+--
 --     Replaces data with F and A characters.
 --     A(K28.3) - x"7C" - Inserted at the end of a multiframe.   
 --     F(K28.7) - x"FC" - Inserted at the end of a frame.
@@ -20,8 +21,7 @@
 --     Disabled: The characters are inserted if two corresponding octets in consecutive samples have the same value.
 --     Enabled:  The characters are inserted it the corresponding octet has the same value as the inserted character.    
 --     
---     1 c-c data latency if scrambling disabled
---     2 c-c data latency if scrambling enabled
+--     3 c-c data latency
 --       
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC JESD204b Core'.
@@ -60,6 +60,10 @@ entity AlignChGen is
       -- Valid data from Tx FSM
       dataValid_i : in sl;
 
+      -- Invert ADC data
+      inv_i     : in sl:='0';
+      invMode_i : in sl:='0';
+      
       -- 
       sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);
 
@@ -76,19 +80,21 @@ architecture rtl of AlignChGen is
 
    -- Register type
    type RegType is record
-      descrData   : slv(sampleData_o'range);
-      sampleDataD1 : slv(sampleData_o'range);
-      sampleDataD2 : slv(sampleData_o'range);
-      sampleKD1    : slv(sampleK_o'range);
-      lmfcD1       : sl;
+      sampleDataReg : slv(sampleData_o'range);
+      sampleDataInv : slv(sampleData_o'range);
+      sampleDataD1  : slv(sampleData_o'range);
+      sampleDataD2  : slv(sampleData_o'range);
+      sampleKD1     : slv(sampleK_o'range);
+      lmfcD1        : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      descrData    => (others => '0'),   
-      sampleDataD1 => (others => '0'),
-      sampleDataD2 => (others => '0'),
-      sampleKD1    => (others => '0'),
-      lmfcD1       => '0'
+      sampleDataReg => (others => '0'), 
+      sampleDataInv => (others => '0'),             
+      sampleDataD1  => (others => '0'),
+      sampleDataD2  => (others => '0'),
+      sampleKD1     => (others => '0'),
+      lmfcD1        => '0'
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -98,7 +104,8 @@ architecture rtl of AlignChGen is
 begin
 
 
-   comb : process (r, rst, sampleData_i, dataValid_i, enable_i, lmfc_i, scrEnable_i) is
+   comb : process (r, rst, sampleData_i, dataValid_i, enable_i, lmfc_i, scrEnable_i,
+                   inv_i, invMode_i) is
       variable v            : RegType;
       variable v_sampleData : slv(sampleData_o'range);
       variable v_sampleK    : slv(sampleK_o'range);
@@ -108,18 +115,26 @@ begin
    begin
       v := r;
       
-      -- Register data before scrambling
-      v.descrData := sampleData_i;      
+      -- Register data
+      v.sampleDataReg := sampleData_i;
       
-      -- Multiplex sample data input depending on scrEnable_i setting
+      -- Invert Data if enabled
+      if (inv_i = '1') then
+      -- Invert sample data      
+         v.sampleDataInv :=  invData(r.sampleDataReg, invMode_i, F_G, GT_WORD_SIZE_C);
+      else
+         v.sampleDataInv :=  r.sampleDataReg;
+      end if;
+     
+      -- Scramble Data if enabled
       if scrEnable_i = '1' then
          -- Scramble the data if scrambling enabled
          for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
-            v.sampleDataD1 := lfsrShift(v.sampleDataD1, JESD_PRBS_TAPS_C, r.descrData(i));
+            v.sampleDataD1 := lfsrShift(v.sampleDataD1, JESD_PRBS_TAPS_C, r.sampleDataInv(i));
          end loop;
       else
          -- Use the data from the input if scrambling disabled 
-         v.sampleDataD1 := sampleData_i;
+         v.sampleDataD1 := r.sampleDataInv;
       end if;
 
 

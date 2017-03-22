@@ -66,8 +66,10 @@ entity JesdTxLane is
       -- Control register
       enable_i       : in  sl;
       replEnable_i   : in  sl;
-      scrEnable_i : in sl;      
-
+      scrEnable_i    : in sl;      
+      inv_i          : in sl;
+      invMode_i      : in sl;
+      
       -- Local multi frame clock
       lmfc_i         : in  sl;
 
@@ -141,34 +143,36 @@ begin
    ----------------------------------------------------     
    -- Initial Synchronisation Data Sequence (ILAS)
    ilasGen_INST: entity work.IlasGen
-   generic map (
-      TPD_G => TPD_G,
-      F_G   => F_G)
-   port map (
-      clk        => devClk_i,
-      rst        => devRst_i,
-      enable_i   => enable_i,
-      ilas_i     => s_ila,
-      lmfc_i     => lmfc_i,
-      ilasData_o => s_ilaDataMux,
-      ilasK_o    => s_ilaKMux);
+      generic map (
+         TPD_G => TPD_G,
+         F_G   => F_G)
+      port map (
+         clk        => devClk_i,
+         rst        => devRst_i,
+         enable_i   => enable_i,
+         ilas_i     => s_ila,
+         lmfc_i     => lmfc_i,
+         ilasData_o => s_ilaDataMux,
+         ilasK_o    => s_ilaKMux);
       
    ----------------------------------------------------     
    -- Sample data with added synchronisation characters TODO
    AlignChGen_INST: entity work.AlignChGen
-   generic map (
-      TPD_G => TPD_G,
-      F_G   => F_G)
-   port map (
-      clk          => devClk_i,
-      rst          => devRst_i,
-      enable_i     => replEnable_i,
-      scrEnable_i  => scrEnable_i,
-      lmfc_i       => lmfc_i,
-      dataValid_i  => s_dataValid,
-      sampleData_i => sampleData_i,
-      sampleData_o => s_sampleDataMux,
-      sampleK_o    => s_sampleKMux);
+      generic map (
+         TPD_G => TPD_G,
+         F_G   => F_G)
+      port map (
+         clk          => devClk_i,
+         rst          => devRst_i,
+         enable_i     => replEnable_i,
+         scrEnable_i  => scrEnable_i,
+         inv_i        => inv_i, 
+         invMode_i    => invMode_i,
+         lmfc_i       => lmfc_i,
+         dataValid_i  => s_dataValid,
+         sampleData_i => sampleData_i,
+         sampleData_o => s_sampleDataMux,
+         sampleK_o    => s_sampleKMux);
  
    ----------------------------------------------------
    -- Output multiplexers   

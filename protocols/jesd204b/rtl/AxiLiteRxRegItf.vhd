@@ -23,6 +23,8 @@
 --                   bit 5: Scrambling support enable (Default '0'- Disabled) 
 --               0x05 (RW)- LinkErrorMask
 --                   bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr & s_alignErr                     
+--               0x06 (RW)- Mask Enable the ADC data inversion. 1-Inverted, 0-normal.
+--               0x07 (RW)- Mask Mode. 1-Offset Binary, 0-Twos complement.
 --               0x1X (R) - Lane X status
 --                   bit 0: GT Reset done
 --                   bit 1: Received data valid

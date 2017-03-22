@@ -121,6 +121,8 @@ architecture rtl of Jesd204bTx is
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
    signal s_dataValid    : slv(L_G-1 downto 0);
    signal s_swTriggerReg : slv(L_G-1 downto 0);
+   signal s_invertData   : slv(L_G-1 downto 0);   
+   signal s_invertMode   : slv(L_G-1 downto 0); 
    
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
@@ -193,6 +195,8 @@ begin
       enableTx_o      => s_enableTx,
       replEnable_o    => s_replEnable,
       scrEnable_o     => s_scrEnable,
+      invertData_o    => s_invertData,
+      invertMode_o    => s_invertMode,
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
@@ -338,24 +342,26 @@ begin
    -- JESD Transmitter modules (one module per Lane)
    generateTxLanes : for I in L_G-1 downto 0 generate
       JesdTxLane_INST: entity work.JesdTxLane
-      generic map (
-         TPD_G       => TPD_G,
-         F_G         => F_G,
-         K_G         => K_G)
-      port map (
-         devClk_i     => devClk_i,
-         devRst_i     => devRst_i,
-         subClass_i   => s_subClass,    -- From AXI lite
-         enable_i     => s_enableTx(I), -- From AXI lite
-         replEnable_i => s_replEnable,  -- From AXI lite
-         scrEnable_i  => s_scrEnable,   -- From AXI lite
-         lmfc_i       => s_lmfc,
-         nSync_i      => s_nSyncSync,
-         gtTxReady_i  => gtTxReady_i(I),
-         sysRef_i     => s_sysrefRe,
-         status_o     => s_statusTxArr(I), -- To AXI lite
-         sampleData_i => s_sampleDataArr(I),
-         r_jesdGtTx   => r_jesdGtTxArr(I));
+         generic map (
+            TPD_G       => TPD_G,
+            F_G         => F_G,
+            K_G         => K_G)
+         port map (
+            devClk_i     => devClk_i,
+            devRst_i     => devRst_i,
+            subClass_i   => s_subClass,     -- From AXI lite
+            enable_i     => s_enableTx(I),  -- From AXI lite
+            replEnable_i => s_replEnable,   -- From AXI lite
+            scrEnable_i  => s_scrEnable,    -- From AXI lite
+            inv_i        => s_invertData(I),-- From AXI lite
+            invMode_i    => s_invertMode(I),-- From AXI lite
+            lmfc_i       => s_lmfc,
+            nSync_i      => s_nSyncSync,
+            gtTxReady_i  => gtTxReady_i(I),
+            sysRef_i     => s_sysrefRe,
+            status_o     => s_statusTxArr(I), -- To AXI lite
+            sampleData_i => s_sampleDataArr(I),
+            r_jesdGtTx   => r_jesdGtTxArr(I));
    end generate generateTxLanes;
     
    -- Output assignment
