@@ -140,20 +140,20 @@ JesdTx: &JesdTx
       mode: RW
       description: High value of the square waveform amplitude
     #########################################################
-    InvertAdcData:   
+    InvertDacData:   
       at:
         offset: 0x20
       class: IntField
-      name: InvertAdcData
+      name: InvertDacData
       sizeBits: *numTxLanes
       mode: RW
-      description: "Mask Enable the ADC data inversion. 1-Inverted, 0-normal."
+      description: "Mask Enable the DAC data inversion. 1-Inverted, 0-normal."
     #########################################################
-    InvertAdcDataMode:   
+    InvertDacDataMode:   
       at:
         offset: 0x24
       class: IntField
-      name: InvertAdcDataMode
+      name: InvertDacDataMode
       sizeBits: *numTxLanes
       mode: RW
       description: "Mask Mode. 1-Offset Binary, 0-Twos complement."
