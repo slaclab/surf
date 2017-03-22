@@ -166,7 +166,6 @@ begin
          enable_i     => replEnable_i,
          scrEnable_i  => scrEnable_i,
          inv_i        => inv_i, 
-         invMode_i    => invMode_i,
          lmfc_i       => lmfc_i,
          dataValid_i  => s_dataValid,
          sampleData_i => sampleData_i,
