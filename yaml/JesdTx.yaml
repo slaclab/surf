@@ -145,7 +145,7 @@ JesdTx: &JesdTx
         offset: 0x20
       class: IntField
       name: InvertAdcData
-      sizeBits: *numRxLanes
+      sizeBits: *numTxLanes
       mode: RW
       description: "Mask Enable the ADC data inversion. 1-Inverted, 0-normal."
     #########################################################
@@ -154,7 +154,7 @@ JesdTx: &JesdTx
         offset: 0x24
       class: IntField
       name: InvertAdcDataMode
-      sizeBits: *numRxLanes
+      sizeBits: *numTxLanes
       mode: RW
       description: "Mask Mode. 1-Offset Binary, 0-Twos complement."
     #########################################################       
