@@ -122,7 +122,6 @@ architecture rtl of Jesd204bTx is
    signal s_dataValid    : slv(L_G-1 downto 0);
    signal s_swTriggerReg : slv(L_G-1 downto 0);
    signal s_invertData   : slv(L_G-1 downto 0);   
-   signal s_invertMode   : slv(L_G-1 downto 0); 
    
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
@@ -196,7 +195,6 @@ begin
       replEnable_o    => s_replEnable,
       scrEnable_o     => s_scrEnable,
       invertData_o    => s_invertData,
-      invertMode_o    => s_invertMode,
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
@@ -354,7 +352,6 @@ begin
             replEnable_i => s_replEnable,   -- From AXI lite
             scrEnable_i  => s_scrEnable,    -- From AXI lite
             inv_i        => s_invertData(I),-- From AXI lite
-            invMode_i    => s_invertMode(I),-- From AXI lite
             lmfc_i       => s_lmfc,
             nSync_i      => s_nSyncSync,
             gtTxReady_i  => gtTxReady_i(I),

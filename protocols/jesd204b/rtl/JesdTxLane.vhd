@@ -68,7 +68,6 @@ entity JesdTxLane is
       replEnable_i   : in  sl;
       scrEnable_i    : in sl;      
       inv_i          : in sl;
-      invMode_i      : in sl;
       
       -- Local multi frame clock
       lmfc_i         : in  sl;

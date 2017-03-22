@@ -123,7 +123,7 @@ package Jesd204bPkg is
    
    -- Invert signed 
    function invSigned(input : slv) return std_logic_vector;
-   function invData(data : slv; offsetBinary : sl; F_int : positive; bytes_int : positive) return std_logic_vector;
+   function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector;
    
 end Jesd204bPkg;
 
@@ -380,12 +380,12 @@ package body Jesd204bPkg is
    function invSigned(input : slv) return std_logic_vector is
       variable vOutput : signed(input'range);
    begin
-      vOutput := 0 - signed(input);
+      vOutput := - signed(input);
       return std_logic_vector(vOutput);
    end invSigned;
    
    -- Output zero sample data depending on word size and Frame size
-   function invData(data : slv; offsetBinary : sl; F_int : positive; bytes_int : positive) return std_logic_vector is
+   function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector is
       constant SAMPLES_IN_WORD_C : positive := (bytes_int/F_int);
       variable vSlv              : slv((bytes_int*8)-1 downto 0);
    begin
@@ -393,13 +393,7 @@ package body Jesd204bPkg is
       vSlv := data;
 
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-         -- If offset binary convert to signed
-         vSlv(I*8*F_int+8*F_int-1) := vSlv(I*8*F_int+8*F_int-1) xor offsetBinary;
-         
-         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));
-         
-         -- If offset binary convert back to offset binary         
-         vSlv(I*8*F_int+8*F_int-1) := vSlv(I*8*F_int+8*F_int-1) xor offsetBinary;        
+         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));      
       end loop;
 
       return vSlv;

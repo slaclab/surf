@@ -106,7 +106,6 @@ entity JesdRxLane is
       
       -- Invert ADC data
       inv_i     : in sl:='0';
-      invMode_i : in sl:='0';
       
       -- Synchronisation request output 
       nSync_o : out sl;
@@ -285,7 +284,7 @@ begin
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
    comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync,
-                   s_sampleData, s_sampleDataValid, inv_i, invMode_i) is
+                   s_sampleData, s_sampleDataValid, inv_i) is
       variable v : RegType;
    begin
       v := r;
@@ -311,7 +310,7 @@ begin
       
       if (inv_i = '1') then
       -- Invert sample data      
-         v.sampleData :=  invData(s_sampleData, invMode_i, F_G, GT_WORD_SIZE_C);
+         v.sampleData :=  invData(s_sampleData, F_G, GT_WORD_SIZE_C);
       else
          v.sampleData :=  s_sampleData;
       end if;

@@ -148,15 +148,6 @@ JesdTx: &JesdTx
       sizeBits: *numTxLanes
       mode: RW
       description: "Mask Enable the DAC data inversion. 1-Inverted, 0-normal."
-    #########################################################
-    InvertDacDataMode:   
-      at:
-        offset: 0x24
-      class: IntField
-      name: InvertDacDataMode
-      sizeBits: *numTxLanes
-      mode: RW
-      description: "Mask Mode. 1-Offset Binary, 0-Twos complement."
     #########################################################       
     GTReady:
       at:

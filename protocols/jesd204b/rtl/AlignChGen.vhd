@@ -62,7 +62,6 @@ entity AlignChGen is
 
       -- Invert ADC data
       inv_i     : in sl:='0';
-      invMode_i : in sl:='0';
       
       -- 
       sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);
@@ -105,7 +104,7 @@ begin
 
 
    comb : process (r, rst, sampleData_i, dataValid_i, enable_i, lmfc_i, scrEnable_i,
-                   inv_i, invMode_i) is
+                   inv_i) is
       variable v            : RegType;
       variable v_sampleData : slv(sampleData_o'range);
       variable v_sampleK    : slv(sampleK_o'range);
@@ -121,7 +120,7 @@ begin
       -- Invert Data if enabled
       if (inv_i = '1') then
       -- Invert sample data      
-         v.sampleDataInv :=  invData(r.sampleDataReg, invMode_i, F_G, GT_WORD_SIZE_C);
+         v.sampleDataInv :=  invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
       else
          v.sampleDataInv :=  r.sampleDataReg;
       end if;

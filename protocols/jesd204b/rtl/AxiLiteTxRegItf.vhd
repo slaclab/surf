@@ -28,7 +28,6 @@
 --               0x06 (RW)- Square wave test signal amplitude low
 --               0x07 (RW)- Square wave test signal amplitude high
 --               0x08 (RW)- Mask Enable the ADC data inversion. 1-Inverted, 0-normal.
---               0x09 (RW)- Mask Mode. 1-Offset Binary, 0-Twos complement.
 --               0x1X (R) - Lane X status
 --                   bit 0: GT Reset done
 --                   bit 1: Transmuting valid data
@@ -104,7 +103,6 @@ entity AxiLiteTxRegItf is
       replEnable_o    : out sl;
       scrEnable_o     : out sl;
       invertData_o    : out slv(L_G-1 downto 0);   
-      invertMode_o    : out slv(L_G-1 downto 0);
       swTrigger_o     : out slv(L_G-1 downto 0);
       rampStep_o      : out slv(PER_STEP_WIDTH_C-1 downto 0);
       squarePeriod_o  : out slv(PER_STEP_WIDTH_C-1 downto 0);
@@ -127,7 +125,6 @@ architecture rtl of AxiLiteTxRegItf is
       -- JESD Control (RW)
       enableTx        : slv(L_G-1 downto 0);
       invertData      : slv(L_G-1 downto 0);      
-      invertMode      : slv(L_G-1 downto 0); 
       commonCtrl      : slv(6 downto 0);
       sysrefDlyTx     : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       swTrigger       : slv(L_G-1 downto 0);
@@ -145,7 +142,6 @@ architecture rtl of AxiLiteTxRegItf is
    constant REG_INIT_C : RegType := (
       enableTx        => (others => '0'),
       invertData     => (others => '0'),      
-      invertMode     => (others => '0'),
       commonCtrl      => "0110011",
       sysrefDlyTx     => (others => '0'),
       swTrigger       => (others => '0'),
@@ -242,9 +238,7 @@ begin
             when 16#07# =>              -- ADDR (0x1C)
                v.posAmplitude := axilWriteMaster.wdata(F_G*8-1 downto 0);
             when 16#08# =>              -- ADDR (0x20)
-               v.invertData  := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#09# =>              -- ADDR (0x24)
-               v.invertMode  := axilWriteMaster.wdata(L_G-1 downto 0);              
+               v.invertData  := axilWriteMaster.wdata(L_G-1 downto 0);            
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -279,8 +273,6 @@ begin
                v.axilReadSlave.rdata(F_G*8-1 downto 0) := r.posAmplitude;
             when 16#08# =>              -- ADDR (0x20)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
-            when 16#09# =>              -- ADDR (0x24)
-               v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertMode;
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -527,18 +519,7 @@ begin
          din    => r.invertData,
          rd_clk => devClk_i,
          dout   => invertData_o
-         );   
-   SyncFifo_OUT15 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => L_G
-         )
-      port map (
-         wr_clk => axiClk_i,
-         din    => r.invertMode,
-         rd_clk => devClk_i,
-         dout   => invertMode_o
-         );    
+         );  
 
    GEN_1 : for I in L_G-1 downto 0 generate
       SyncFifo_OUT0 : entity work.SynchronizerFifo

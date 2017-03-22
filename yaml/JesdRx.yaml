@@ -135,16 +135,7 @@ JesdRx: &JesdRx
       sizeBits: *numRxLanes
       mode: RW
       description: "Mask Enable the ADC data inversion. 1-Inverted, 0-normal."
-    #########################################################
-    InvertAdcDataMode:   
-      at:
-        offset: 0x1C
-      class: IntField
-      name: InvertAdcDataMode
-      sizeBits: *numRxLanes
-      mode: RW
-      description: "Mask Mode. 1-Offset Binary, 0-Twos complement."
-    #########################################################    
+    #########################################################  
     GTReady:
       at:
         offset: 0x040
