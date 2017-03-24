@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream FIFO / Re-sizer, Version 2
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamFifoV2.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-02
 -- Last update: 2016-11-30
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to serve as an async FIFO for AXI Streams. This block also allows the

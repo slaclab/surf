@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : AXI-4 Package File
--------------------------------------------------------------------------------
 -- File       : AxiPkg.vhd
--- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
 -- Last update: 2016-04-26
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Package file for AXI Busses
+-- Description: AXI4 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

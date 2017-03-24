@@ -1,16 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Write Path FIFO
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiReadPathFifo.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
 -- Last update: 2014-05-01
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- FIFO for AXI write path transactions.
+-- Description: FIFO for AXI write path transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -19,9 +13,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/25/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;

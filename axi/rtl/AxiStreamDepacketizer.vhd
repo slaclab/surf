@@ -1,17 +1,13 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiStreamDepacketizer
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
 -- Last update: 2016-07-13
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Formats an AXI-Stream for a transport link.
--- Sideband fields are placed into the data stream in a header.
--- Long frames are broken into smaller packets.
+-- Description: AXI stream DePacketerizer Module (non-interleave only)
+--    Formats an AXI-Stream for a transport link.
+--    Sideband fields are placed into the data stream in a header.
+--    Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

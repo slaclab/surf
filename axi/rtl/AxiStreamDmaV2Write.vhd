@@ -1,11 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream DMA Write, Version 2
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Write.vhd
--- Created    : 2017-02-09
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2017-02-02
+-- Last update: 2017-02-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame into memory using an AXI

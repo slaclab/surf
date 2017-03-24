@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream De-Multiplexer
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDeMux.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
 -- Last update: 2016-09-06
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect a single incoming AXI stream to multiple outgoing AXI
@@ -20,9 +15,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/25/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;

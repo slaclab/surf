@@ -1,13 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Read Emulate
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiReadEmulate.vhd
--- Created    : 2016-09-30
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-04-02
+-- Last update: 2016-04-26
 -------------------------------------------------------------------------------
--- Description:
+-- Description: AXI4 Read Emulation Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

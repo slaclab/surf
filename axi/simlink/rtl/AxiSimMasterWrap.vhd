@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : AxiSimMasterWrap.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-07-21
+-- Last update: 2016-07-21
+-------------------------------------------------------------------------------
+-- Description: Wrapper for AXI Master Simulation Module 
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -7,6 +14,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;

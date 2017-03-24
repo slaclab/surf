@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiStreamUnpacker.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-26
 -- Last update: 2015-03-31
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Takes 8 80-bit (5x16) adc frames and reformats them into
+-- Description: Takes 8 80-bit (5x16) ADC frames and reformats them into
 --              7 80 bit (5x14) frames.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.

@@ -1,4 +1,11 @@
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- File       : RogueStreamSim.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-12-05
+-- Last update: 2017-02-02
+-------------------------------------------------------------------------------
+-- Description: Rogue Stream Simulation Module
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
@@ -6,7 +13,7 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 LIBRARY ieee;
 USE work.ALL;

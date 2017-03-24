@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI-Lite Ring Buffer
--------------------------------------------------------------------------------
 -- File       : AxiLiteRingBuffer.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
 -- Last update: 2016-02-05
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------
@@ -15,7 +10,7 @@
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

@@ -1,16 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiLiteMaster.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-09
 -- Last update: 2016-03-09
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
---
+-- Description: AXI-Lite Master module controlled via REQ/ACK interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -19,9 +13,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/09/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;

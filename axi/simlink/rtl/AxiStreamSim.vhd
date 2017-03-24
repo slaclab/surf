@@ -1,12 +1,10 @@
 -------------------------------------------------------------------------------
--- Title         : SSI Lib, Simulation Link
--- Project       : General Purpose Core
+-- File       : AxiStreamSim.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-04-18
+-- Last update: 2014-04-18
 -------------------------------------------------------------------------------
--- File          : AxiStreamSim.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 04/18/2014
--------------------------------------------------------------------------------
--- Description:
+-- Description: SSI Lib, Simulation Link
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -16,14 +14,12 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 04/18/2014: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 

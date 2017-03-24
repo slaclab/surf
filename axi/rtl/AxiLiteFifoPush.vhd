@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : AXI Lite FIFO Write Module
--- File          : AxiLiteFifoPush.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 09/03/2013
+-- File       : AxiLiteFifoPush.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-04-02
+-- Last update: 2016-04-26
 -------------------------------------------------------------------------------
 -- Description:
 -- Supports writing of general purpose FIFOs from the AxiLite bus.
@@ -16,9 +16,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 04/02/2013: created.
--------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.ALL;
