@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : AxiMicronP30Pkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-06-23
+-- Last update: 2017-03-24
+-------------------------------------------------------------------------------
+-- Description:
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Micron P30 Support Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

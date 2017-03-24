@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiMicronP30Core.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2016-05-23
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Last update: 2017-03-24
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to FLASH Memory
 --
@@ -75,9 +70,9 @@ begin
       IOBUF_inst : IOBUF
          port map (
             O  => flashDout(i),         -- Buffer output
-            IO => flashInOut.dq(i),     -- Buffer inout port (connect directly to top-level port)
+            IO => flashInOut.dq(i),  -- Buffer inout port (connect directly to top-level port)
             I  => flashDin(i),          -- Buffer input
-            T  => flashTri);            -- 3-state enable input, high=input, low=output     
+            T  => flashTri);  -- 3-state enable input, high=input, low=output     
    end generate GEN_IOBUF;
 
    AxiMicronP30Reg_Inst : entity work.AxiMicronP30Reg
@@ -87,10 +82,13 @@ begin
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
          PIPE_STAGES_G    => PIPE_STAGES_G,
          AXI_CONFIG_G     => AXI_CONFIG_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G) 
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- FLASH Interface 
          flashAddr      => flashOut.addr,
+         flashAdv       => flashOut.adv,
+         flashClk       => flashOut.clk,
+         flashRstL      => flashOut.rstL,
          flashCeL       => flashOut.ceL,
          flashOeL       => flashOut.oeL,
          flashWeL       => flashOut.weL,
@@ -109,10 +107,6 @@ begin
          sAxisSlave     => sAxisSlave,
          -- Clocks and Resets
          axiClk         => axiClk,
-         axiRst         => axiRst); 
-
-   flashOut.adv  <= '0';
-   flashOut.clk  <= '1';
-   flashOut.rstL <= not(axiRst);
-   
+         axiRst         => axiRst);
+         
 end mapping;
