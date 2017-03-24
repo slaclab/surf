@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, Crc32 Implementation
--- Project       : General Purpose Core
--------------------------------------------------------------------------------
--- File          : Crc32Parallel.vhd
--- Author        : Kurtis Nishimura, kurtisn@slac.stanford.edu
--- Created       : 08/25/2014
+-- File       : Crc32.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-05-01
+-- Last update: 2017-02-23
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of an 1-to-8-byte input CRC32 calculation.
@@ -31,11 +29,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 08/25/2014: created.
--- 08/26/2014: Modified to accommodate a reset and valid simultaneously.  This
---             should match the behavior of the original CRC32Rtl.vhd.
 -------------------------------------------------------------------------------
 
 library ieee;

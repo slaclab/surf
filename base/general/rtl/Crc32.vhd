@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, Crc32 Implementation
--- Project       : General Purpose Core
--------------------------------------------------------------------------------
--- File          : Crc32.vhd
--- Author        : Kurtis Nishimura, kurtisn@slac.stanford.edu
--- Created       : 04/21/2014
+-- File       : Crc32.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-05-01
+-- Last update: 2017-02-23
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of a generic N-byte input CRC32 calculation.
@@ -25,14 +23,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/21/2014: created.
--- 04/30/2014: modified to go back to original Crc32Rtl names, so this module
---             can be used as a drop-in replacement.  Updated to match group 
---             coding conventions.
--- 08/26/2014: Modified to accommodate a reset and valid simultaneously.  This
---             should match the behavior of the original CRC32Rtl.vhd.
 -------------------------------------------------------------------------------
 
 library ieee;

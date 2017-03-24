@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : Code8b10bPkg.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-02
--- Last update: 2014-07-14
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Created    : 2016-10-12
+-- Last update: 2016-10-12
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: 8B10B Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

@@ -1,18 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : FifoAsyncBuiltIn.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
 -- Last update: 2014-07-14
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Xilinx's builtin
---
--- Dependencies:  ^/StdLib/trunk/rtl/RstSync.vhd
---                ^/StdLib/trunk/rtl/SynchronizerVector.vhd
+-- Description: Wrapper for Xilinx's built-in ASYNC FIFO module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

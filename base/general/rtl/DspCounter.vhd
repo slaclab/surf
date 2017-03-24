@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : DspCounter.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-12
 -- Last update: 2013-08-02
--- Platform   : ISE 14.5
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: XST will infer DSP resources for this counter
+-- Description: Example of Counter that infers a DSP48 via "use_dsp48" attribute
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

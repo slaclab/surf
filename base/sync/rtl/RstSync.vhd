@@ -1,14 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : Reset Synchronizer
--- Project    : 
--------------------------------------------------------------------------------
 -- File       : RstSync.vhd
--- Standard   : VHDL'93/02, Math Packages
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-05-01
+-- Last update: 2017-02-23
 -------------------------------------------------------------------------------
 -- Description: Synchronizes the trailing edge of an asynchronous reset to a
 --              given clock.
---
--- Dependencies:  ^/StdLib/trunk/rtl/Synchronizer.vhd
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
