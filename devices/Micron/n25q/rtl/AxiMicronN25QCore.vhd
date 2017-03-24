@@ -1,25 +1,18 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiMicronN25QCore.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-03
 -- Last update: 2016-09-20
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to N25Q FLASH Memory IC
---
---    Note: This module doesn't support DSPI or QSPI interface yet.
---
---    Note: Set the addrBits on the crossbar for this module to 10 bits wide
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Micron Device Library'.
+-- Note: This module doesn't support DSPI or QSPI interface yet.
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Micron Device Library', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

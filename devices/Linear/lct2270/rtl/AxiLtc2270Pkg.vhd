@@ -1,12 +1,19 @@
-------------------------------------------------------------------------------
--- This file is part of 'AXI-Lite LTC2270 Core'.
+-------------------------------------------------------------------------------
+-- File       : AxiLtc2270Pkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-04-21
+-- Last update: 2014-04-21
+-------------------------------------------------------------------------------
+-- Description: AxiLtc2270 Package File
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'AXI-Lite LTC2270 Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 

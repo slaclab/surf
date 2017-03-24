@@ -1,25 +1,18 @@
 -------------------------------------------------------------------------------
--- Title         : ADC Configuration Controller
--- Project       : 
+-- File       : Ad9249ConfigNoPullup.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-09-23
+-- Last update: 2016-12-12
 -------------------------------------------------------------------------------
--- File          : Ad9249ConfigNoPullup.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 03/29/2011
+-- Description: AD9249 Configuration/Status Module (no pullup version)
 -------------------------------------------------------------------------------
--- Description:
--- This block controls shift of data in and out of the external ADC
--------------------------------------------------------------------------------
--- This file is part of 'AXI-Lite AD9249 Core Firmware'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'AXI-Lite AD9249 Core Firmware', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 03/29/2011: created.
--- 06/28/2016: Added AXIL bus (mkwiatko@slac.stanford.edu)
 -------------------------------------------------------------------------------
 
 library ieee;

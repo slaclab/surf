@@ -1,17 +1,18 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : Ad9249.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : Ad9249Group.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-14
--- Last update: 2016-12-12
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Created    : 2016-11-14
+-- Last update: 2016-12-06
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: AD9249 Group Module
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
