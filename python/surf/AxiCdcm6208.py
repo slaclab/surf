@@ -25,12 +25,13 @@ import pyrogue
 def create(name='axiCdcm6208', offset=0, memBase=None, hidden=False):
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
-                         hidden=hidden,size=0x100,
-                         description='AxiCdcm6208 Module')
+                        hidden=hidden,size=0x100,
+                        description='AxiCdcm6208 Module')
 
-    dev.add(pyrogue.Variable(name='cdcm6208',
-                             description='Cdcm6208 Control Registers',
-                             hidden=False, enum=None, offset=0x0, bitSize=336, bitOffset=0, base='uint', mode='RW'))
+    for i in range(21):
+        dev.add(pyrogue.Variable(name='cdcm6208_%02i'%(i),
+                        description='Cdcm6208 Control Registers_%02i'%(i),
+                        hidden=False, enum=None, offset=0x0, bitSize=16, bitOffset=0, base='uint', mode='RW'))
 
     dev.add(pyrogue.Variable(name='sEL_REF',
                              description='Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary',

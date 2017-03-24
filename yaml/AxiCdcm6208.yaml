@@ -27,8 +27,9 @@ AxiCdcm6208: &AxiCdcm6208
       class: IntField
       at:
         offset: 0x000
+        stride: 4
         nelms: 21
-      sizeBits: 16
+      sizeBits: 32
       mode: RW
       description: "Cdcm6208 Control Registers"
     #########################################################
