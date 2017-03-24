@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AXI Version Module
+# Title      : PyRogue _pgp2baxi Module
 #-----------------------------------------------------------------------------
-# File       : pyrogue/devices/axi_version.py
-# Author     : Ryan Herbst, rherbst@slac.stanford.edu
+# File       : _pgp2baxi.py
 # Created    : 2016-09-29
 # Last update: 2016-09-29
 #-----------------------------------------------------------------------------
 # Description:
-# PyRogue AXI Version Module
+# PyRogue _pgp2baxi Module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to 
-# the license terms in the LICENSE.txt file found in the top-level directory 
-# of this distribution and at: 
+# This file is part of 'SLAC Firmware Standard Library'.
+# It is subject to the license terms in the LICENSE.txt file found in the 
+# top-level directory of this distribution and at: 
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-# No part of the rogue software platform, including this file, may be 
-# copied, modified, propagated, or distributed except according to the terms 
-# contained in the LICENSE.txt file.
+# No part of 'SLAC Firmware Standard Library', including this file, 
+# may be copied, modified, propagated, or distributed except according to 
+# the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
+
 import pyrogue as pr
 
 class Pgp2bAxi(pr.Device):
