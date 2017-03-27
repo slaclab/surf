@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : Uart Transmitter
--------------------------------------------------------------------------------
 -- File       : UartTx.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
 -- Last update: 2016-06-28
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Uart Transmitter
 -------------------------------------------------------------------------------
 -- This file is part of <PROJECT_NAME>. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory

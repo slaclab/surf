@@ -1,17 +1,18 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "SspEncoder"
--------------------------------------------------------------------------------
 -- File       : SspEncoderTb.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-08-27
 -- Last update: 2016-09-06
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "SspEncoder"
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- This file is part of StdLib. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of StdLib, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;

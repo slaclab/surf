@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : 
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : Gtx7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
 -- Last update: 2014-01-30
--- Platform   : Xilinx 7 Series
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Used in conjunction for a Xilinx 7 Series GTX.

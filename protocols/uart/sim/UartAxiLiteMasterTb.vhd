@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "UartAxiLiteMaster"
--------------------------------------------------------------------------------
 -- File       : UartAxiLiteMasterTb.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-27
 -- Last update: 2016-06-28
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "UartAxiLiteMaster"
 -------------------------------------------------------------------------------
 -- This file is part of <PROJECT_NAME>. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
