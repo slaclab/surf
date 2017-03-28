@@ -1,23 +1,18 @@
 -------------------------------------------------------------------------------
--- Title      : Example Code
--------------------------------------------------------------------------------
 -- File       : Pgp2bGth7VarLatWrapper.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-01
 -- Last update: 2016-08-24
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Example PGP 3.125 Gbps front end wrapper
--- Note: Default generic configurations are for the Digilent NetFPGA-SUME development board
+-- Note: Default generic configurations are for the Diligent NetFPGA-SUME development board
 -- Note: Default uses FPGA fabric clock = 156.25 MHz reference clock
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

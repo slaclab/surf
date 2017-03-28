@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : PGP Register Block
--- File          : Pgp2bAxi.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 05/20/2014
+-- File       : Pgp2bAxi.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2009-05-27
+-- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
@@ -88,16 +88,13 @@
 --       Bits    4  = Local Link Ready
 --       Bits  3:0  = Remote Overflow Status
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 03/21/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;

@@ -1,30 +1,26 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, V2, Top Level RX/TX
--- Project       : General Purpose Core
--------------------------------------------------------------------------------
--- File          : Pgp2bLane.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 04/07/2014
+-- File       : Pgp2bLane.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2009-05-27
+-- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Top Level Transmit/Receive interface module for the Pretty Good Protocol core. 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/07/2014: created.
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 use work.StdRtlPkg.all;
 use work.Pgp2bPkg.all;
 use work.AxiStreamPkg.all;
