@@ -1,21 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : GigEthReg.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
 -- Last update: 2016-10-06
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: AXI-Lite 1GbE Register Interface
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Ethernet Library'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Ethernet Library', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
