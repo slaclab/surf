@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- File       : RssiAxiLiteRegItf.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-15
 -- Last update: 2016-01-19
 -- Platform   : 

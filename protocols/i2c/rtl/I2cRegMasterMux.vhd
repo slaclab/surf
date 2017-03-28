@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : I2cRegMasterMux.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-21
 -- Last update: 2013-11-20
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Multiplexes access to a single I2cRegMaster module
 -- Attached devices may also lock others out in order to execute multiple
@@ -27,6 +22,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 use work.StdRtlPkg.all;
 use work.I2cPkg.all;
 

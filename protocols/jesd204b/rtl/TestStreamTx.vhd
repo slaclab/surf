@@ -1,26 +1,22 @@
 -------------------------------------------------------------------------------
--- Title      : Test Data Stream Generator
--------------------------------------------------------------------------------
 -- File       : TestStreamTx.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2015-04-15
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Outputs a saw, ramp, or square wave test signal data stream for testing
+-- Description: Test Data Stream Generator
+--  Outputs a saw, ramp, or square wave test signal data stream for testing
 --  Saw signal increment (type_i = 00): Ramp step is determined by rampStep_i.
 --  Saw signal decrement (type_i = 01): Ramp step is determined by rampStep_i.             
 --  Square wave(type_i = 10): Period is squarePeriod_i. Duty cycle is 50%.              
 --                            Amplitude is determined by posAmplitude_i and negAmplitude_i.
 --                            pulse_o is a binary equivalent of the analogue square wave.      
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

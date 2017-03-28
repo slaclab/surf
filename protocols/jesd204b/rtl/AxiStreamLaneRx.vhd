@@ -1,15 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : Single lane JESD AXI stream data transmit control 
--------------------------------------------------------------------------------
 -- File       : AxiStreamLaneRx.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
 -- Last update: 2015-04-29
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   This module sends the data from RX JESD lane 
+-- Description: Single lane JESD AXI stream data transmit control   
+--              This module sends the data from RX JESD lane 
 --                on Virtual Channel Lane.
 --                - When data is requested by trigger_i = '1'.
 --                - the module sends data a packet at the time to AXI stream FIFO.
@@ -17,14 +13,15 @@
 --                Note: Tx pause must indicate that the AXI stream FIFO can hold the whole data packet.
 --                Note: The data transmission is enabled only if JESD data is valid dataReady_i='1'. 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

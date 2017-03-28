@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- File       : RssiCoreWrapper.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-25
 -- Last update: 2016-09-09
 -- Platform   : 

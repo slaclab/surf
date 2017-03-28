@@ -1,15 +1,12 @@
 -------------------------------------------------------------------------------
--- Title      : Axi-lite interface for register access  
--------------------------------------------------------------------------------
 -- File       : AxiLiteRxRegItf.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-09-23
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:  Register decoding for JESD RX core
+-- Description:  AXI-Lite interface for register access 
+--
+--             Register decoding for JESD RX core
 --               0x00 (RW)- Enable RX lanes (L_G downto 1)
 --               0x01 (RW)- SYSREF delay (5 bit)
 --               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1)
@@ -47,14 +44,15 @@
 --                   bit 15-0:  Low threshold
 --               0x4X (RO) - Status valid counters 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

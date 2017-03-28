@@ -1,15 +1,12 @@
 -------------------------------------------------------------------------------
--- Title      : Align bytes and replace control characters with data
--------------------------------------------------------------------------------
 -- File       : AlignFrRepCh.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-02-12
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: What is supported 
+-- Description: Align bytes and replace control characters with data
+--
+-- What is supported:
 --              Frame sizes 1, 2, 4
 --              GT Word sizes 2, 4  <--- I don't think 2 word is supported because hard coded in Jesd204bPkg.vhd
 --
@@ -22,11 +19,11 @@
 --                First sample in time:  sampleData_o(31 downto 16) 
 --                Second sample in time: sampleData_o(15 downto 0)   
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

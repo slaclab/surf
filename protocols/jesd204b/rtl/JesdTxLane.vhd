@@ -1,19 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : JesdTx transmit single lane module
--------------------------------------------------------------------------------
 -- File       : JesdTxLane.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2015-04-24
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Transmitter for JESD204b standard.
+-- Description: JesdTx transmit single lane module
+--              Transmitter for JESD204b standard.
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency
 --              Features:
---              - Synchronisation FSM
+--              - Synchronization FSM
 --              - Comma transmission
 --              - ILA Sequence generation
 --              - Control character generation:
@@ -23,22 +19,23 @@
 --                bit 0: GT Reset done
 --                bit 1: Transmuting valid data
 --                bit 2: Transmitting ILA sequence
---                bit 3: Synchronisation input status 
+--                bit 3: Synchronization input status 
 --                bit 4: TX module enabled status
 --                bit 5: SysRef detected (active only when the lane is enabled)
 --
---          Note: sampleData_i should be big endian and not byteswapped
+--          Note: sampleData_i should be big endian and not byte swapped
 --                First sample in time:  sampleData_i(31 downto 16)
 --                Second sample in time: sampleData_i(15 downto 0)
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;

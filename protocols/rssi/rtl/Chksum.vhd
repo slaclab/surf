@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- File       : Chksum.vhd
 -- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2015-08-09
 -- Platform   : 

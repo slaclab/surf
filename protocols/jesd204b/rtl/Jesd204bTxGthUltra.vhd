@@ -1,29 +1,26 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b module containing the gth ultrascale MGT transmitter modules
--------------------------------------------------------------------------------
 -- File       : Jesd204bTxGthUltra.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2015-04-14
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Wrapper module for JESD.
+-- Description: JESD204b module containing the GTH Ultrascale MGT transmitter modules
+--              Wrapper module for JESD.
 --              GTH coregen generated core 2 GTH modules
 --              Note: Intended only for two serial lanes L_G=2.
 --                    7.4 GHz lane rate and 370MHz reference, Freerunning clk 185 MHz
 --                    If different amount of lanes or freq is required the Core has to be regenerated 
 --                    by Xilinx Coregen. 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 library unisim;
 use unisim.vcomponents.all;

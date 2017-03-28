@@ -1,26 +1,22 @@
 -------------------------------------------------------------------------------
--- Title      : Single lane JESD AXI stream data receive control
--------------------------------------------------------------------------------
 -- File       : AxiStreamLaneTx.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
 -- Last update: 2015-04-29
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   This module receives the data on Virtual Channel Lane
+-- Description: Single lane JESD AXI stream data receive control  
+--                This module receives the data on Virtual Channel Lane
 --                and sends it to JESD TX lane.
 --                When the rxAxisMaster_i.tvalid = '1'
 --                the module sends data over JESD to DAC.
 --                Otherwise it sends zero.
---                Note: The data reception is enabled only if JESD synchronisation is in data valid state dataReady_i='1'.
+--                Note: The data reception is enabled only if JESD synchronization is in data valid state dataReady_i='1'.
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
