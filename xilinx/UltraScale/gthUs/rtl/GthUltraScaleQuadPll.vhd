@@ -4,7 +4,7 @@
 -- Created    : 2015-04-08
 -- Last update: 2016-03-08
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC MGT Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

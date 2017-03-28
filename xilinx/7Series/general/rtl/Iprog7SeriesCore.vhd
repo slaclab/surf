@@ -4,7 +4,7 @@
 -- Created    : 2015-09-09
 -- Last update: 2015-09-10
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Wrapper for Xilinx 7-Series IPROG CMD
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -14,13 +14,13 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-
 
 entity Iprog7SeriesCore is
    generic (

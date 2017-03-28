@@ -4,13 +4,13 @@
 -- Created    : 2014-10-21
 -- Last update: 2014-10-21
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Example of a simple XADC IP core w/ AXI-Lite
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC XADC Support Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC XADC Support Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

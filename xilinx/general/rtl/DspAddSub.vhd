@@ -4,7 +4,7 @@
 -- Created    : 2013-07-12
 -- Last update: 2013-07-12
 -------------------------------------------------------------------------------
--- Description: XST will infer DSP resources for this Adder/Subtracter
+-- Description: Example of VHDL inferred DSP resources for Adder/Subtracter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
