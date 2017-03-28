@@ -7,6 +7,8 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once AxiMicronP30.yaml
 
 AxiMicronP30: &AxiMicronP30 
   name: AxiMicronP30
