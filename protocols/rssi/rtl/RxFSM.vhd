@@ -1,15 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : Receiver FSM
--------------------------------------------------------------------------------
 -- File       : RxFSM.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
 -- Last update: 2016-06-23
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Receiver has the following functionality:
+-- Description: Receiver FSM
+--              Receiver has the following functionality:
 --              Transport side FSM. Receive check and save segments to RX buffer.
 --               - WAIT_SOF Waits for Transport side SOF,  
 --               - CHECK Determines the segment type and checks:
@@ -35,14 +31,15 @@
 --                       Increment txBufferAddr. 
 --                       Register the received SeqN for acknowledgment.
 -------------------------------------------------------------------------------
--- This file is part of 'Reliable SLAC Streaming Interface Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Reliable SLAC Streaming Interface Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

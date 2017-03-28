@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Register Slave Block
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : SsiAxiLiteMaster.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-09
 -- Last update: 2015-05-29
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block for Register protocol.
@@ -49,9 +44,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 04/09/2014: created.
 -------------------------------------------------------------------------------
 
 library ieee;

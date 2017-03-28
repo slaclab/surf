@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : SPI Slave
--------------------------------------------------------------------------------
 -- File       : SpiSlave.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-27
 -- Last update: 2014-03-14
--- Platform   : 
--- Standard   : VHDL'93
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Generic SPI Slave Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

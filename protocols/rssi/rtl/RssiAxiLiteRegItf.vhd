@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Axi-lite interface for register access  
--------------------------------------------------------------------------------
 -- File       : RssiAxiLiteRegItf.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-15
 -- Last update: 2016-01-19
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:  Register decoding for RSSI core
 --               0x00 (RW)- Control register [4:0]:
@@ -61,14 +56,15 @@
 --                0x14 (R)- Counts all reconnections from reset [31:0]:
 --                   The value rests to 0 when module is reset.
 ------------------------------------------------------------------------------
--- This file is part of 'Reliable SLAC Streaming Interface Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Reliable SLAC Streaming Interface Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

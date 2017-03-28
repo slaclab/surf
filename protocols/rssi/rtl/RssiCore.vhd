@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Reliable SSI top module
--------------------------------------------------------------------------------
 -- File       : RssiCore.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2016-05-13
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: The module is based upon RUDP (Cisco implementation) RFC-908, RFC-1151, draft-ietf-sigtran-reliable-udp-00.
 --              The specifications in the drafts are modified by internal simplifications and improvements.
@@ -30,11 +25,11 @@
 --    statusReg_o(6) : Client rejected the connection (parameters out of range)
 --                     Server proposed new parameters (parameters out of range)               
 -------------------------------------------------------------------------------
--- This file is part of 'Reliable SLAC Streaming Interface Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Reliable SLAC Streaming Interface Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

@@ -1,15 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : Transmitter FSM
--------------------------------------------------------------------------------
 -- File       : TxFSM.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2016-01-27
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Transmitter has the following functionality:
+-- Description: Transmitter FSM
+--              Transmitter has the following functionality:
 --              Handle buffer addresses and buffer window (firstUnackAddr,nextSentAddr,lastSentAddr, bufferFull, bufferEmpty)
 --              Application side FSM. Receive SSI frame and store into TX data buffer.
 --                   - IDLE Waits until buffer window is free (not bufferFull),
@@ -33,14 +29,15 @@
 --              Note:Sequence number is incremented with sending SYN, DATA, NULL, and RST segments.
 --              Note:Only the following segments are saved into Tx buffer DATA, NULL, and RST.
 -------------------------------------------------------------------------------
--- This file is part of 'Reliable SLAC Streaming Interface Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Reliable SLAC Streaming Interface Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

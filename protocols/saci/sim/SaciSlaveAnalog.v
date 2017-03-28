@@ -1,4 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
+// File       : SaciSlaveAnalog.vhd
+// Company    : SLAC National Accelerator Laboratory
+// Created    : 2016-06-17
+// Last update: 2016-06-17
+//////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
 // It is subject to the license terms in the LICENSE.txt file found in the 
 // top-level directory of this distribution and at: 
@@ -7,6 +12,7 @@
 // may be copied, modified, propagated, or distributed except according to 
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
+
 // Edge Module Definition
 module SaciSlaveAnalog 
     (input wire  CLK,

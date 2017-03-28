@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : SaciSlave
--------------------------------------------------------------------------------
 -- File       : SaciSlave.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-07-12
 -- Last update: 2013-03-05
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Slave module for SACI interface.
 -------------------------------------------------------------------------------
@@ -19,6 +14,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;

@@ -1,21 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : SLAC Asynchronous Logic Transceiver (SALT)
--------------------------------------------------------------------------------
 -- File       : SaltDelayCtrl.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-16
 -- Last update: 2016-06-21
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for IDELAYCTRL
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Asynchronous Logic Transceiver'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Asynchronous Logic Transceiver', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -32,7 +27,7 @@ entity SaltDelayCtrl is
    generic (
       TPD_G           : time    := 1 ns;
       SIM_DEVICE_G    : string  := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
-      REF_RST_SYNC_G  : boolean := true;       -- Syncronize refRst to refClk.
+      REF_RST_SYNC_G  : boolean := true;       -- Synchronize refRst to refClk.
       IODELAY_GROUP_G : string  := "SALT_IODELAY_GRP");
    port (
       iDelayCtrlRdy : out sl;
