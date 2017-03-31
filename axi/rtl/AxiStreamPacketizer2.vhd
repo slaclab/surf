@@ -1,11 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacketizer
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-29
--- Last update: 2017-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,8 +31,11 @@ entity AxiStreamPacketizer2 is
 
    generic (
       TPD_G                : time             := 1 ns;
+      CRC_EN_G             : boolean          := false;
+      CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       MAX_PACKET_BYTES_G   : integer          := 256*8;    -- Must be a multiple of 8
-      MIN_TKEEP_G          : slv(15 downto 0) := X"0001";  -- tKeep to use for tail txns.
+      MIN_TKEEP_G          : slv(15 downto 0) := X"0001";  -- tKeep to use for tail txns
+      OUTPUT_SSI_G         : boolean          := true;
       INPUT_PIPE_STAGES_G  : integer          := 0;
       OUTPUT_PIPE_STAGES_G : integer          := 0);
    port (
@@ -57,56 +56,58 @@ architecture rtl of AxiStreamPacketizer2 is
 
    -- Packetizer constants
    constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
+
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 8,
-      TDEST_BITS_C  => 8,               -- 0?
-      TID_BITS_C    => 8,               -- 0?
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 8,               -- 2?
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => ite(OUTPUT_SSI_G, 2, 0),
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-   constant VERSION_C : slv(3 downto 0) := "0001";
 
    type StateType is (HEADER_S, MOVE_S, TAIL_S);
 
    type RegType is record
       state            : StateType;
-      frameNumber      : slv(11 downto 0);
-      packetNumber     : slv(23 downto 0);
+      packetNumber     : slv(31 downto 0);
+      packetActive     : sl;
       activeTDest      : slv(7 downto 0);
       ramWe            : sl;
-      ramRdRdy         : slv(2 downto 0);
       wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
       eof              : sl;
+      lastByteCount    : slv(2 downto 0);
       tUserLast        : slv(7 downto 0);
       rearbitrate      : sl;
+      crcDataValid     : sl;
+      crcDataWidth     : slv(2 downto 0);
+      crcReset         : sl;
       inputAxisSlaves  : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
       outputAxisMaster : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state            => HEADER_S,
-      frameNumber      => (others => '0'),
       packetNumber     => (others => '0'),
+      packetActive     => '0',
       activeTDest      => (others => '0'),
       ramWe            => '0',
       ramRdRdy         => (others => '0'),
       wordCount        => (others => '0'),
       eof              => '0',
       tUserLast        => (others => '0'),
-      acks             => (others => '0'),
-      ackNum           => (others => '1'),
-      valid            => '0',
       rearbitrate      => '0',
+      crcDataValid     => '0',
+      crcDataWidth     => (others => '0'),
+      crcReset         => '0',
       inputAxisSlaves  => (others => AXI_STREAM_SLAVE_INIT_C),
       outputAxisMaster => axiStreamMasterInit(AXIS_CONFIG_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal packetNumberOut : slv(23 downto 0);
-   signal frameNumberOut  : slv(11 downto 0);
+   signal packetNumberOut : slv(31 downto 0);
+   signal packetActiveOut : sl;
 
    signal inputAxisMaster  : AxiStreamMasterType;
    signal inputAxisSlave   : AxiStreamSlaveType;
@@ -140,27 +141,45 @@ begin
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
+         BRAM_EN_G    => false,
          REG_EN_G     => false,
          DOA_REG_G    => false,
          DOB_REG_G    => false,
          BYTE_WR_EN_G => false,
-         DATA_WIDTH_G => 36,
+         DATA_WIDTH_G => 33,
          ADDR_WIDTH_G => 8)
       port map (
-         clka                => axisClk,          -- [in]
-         wea                 => r.ramWe,          -- [in]
-         rsta                => axisRst,          -- [in]
-         addra               => r.activeTDest,    -- [in]
-         dina(23 downto 0)   => r.packetNumber,   -- [in]
-         dina(35 downto 24)  => r.frameNumber,    -- [in]
-         douta(23 downto 0)  => packetNumberOut,  -- [out]
-         douta(35 downto 24) => frameNumberOut);  -- [out]
+         clka               => axisClk,                -- [in]
+         rsta               => axisRst,                -- [in]
+         wea                => r.ramWe,                -- [in]
+         addra              => r.activeTDest,          -- [in]
+         dina(31 downto 0)  => r.packetNumber,         -- [in]
+         dina(32)           => r.packetActive          -- [in]
+         clkb               => axisClk,                -- [in]
+         rstb               => axisRst,                -- [in]
+         addrb              => inputAxisMaster.tDest,  -- [in]
+         doutb(31 downto 0) => packetNumberOut,        -- [out]
+         doutb(32)          => packetActiveOut);       --[out]
+
+   U_Crc32_1 : entity work.Crc32
+      generic map (
+         TPD_G            => TPD_G,
+         INPUT_REGISTER_G => false,
+         BYTE_WIDTH_G     => 8,
+         CRC_INIT_G       => X"FFFFFFFF",
+         CRC_POLY_G       => CRC_POLY_G)
+      port map (
+         crcOut       => crcOut,                              -- [out]
+         crcClk       => axisClk,                             -- [in]
+         crcDataValid => rin.crcDataValid,                    -- [in]
+         crcDataWidth => rin.crcDataWidth,                    -- [in]
+         crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
+         crcReset     => rin.crcReset);                       -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- Accumulation sequencing, DMA ring buffer, and AXI-Lite logic
    -------------------------------------------------------------------------------------------------
-   comb : process (axisRst, frameNumberOut, inputAxisMaster, outputAxisSlave, packetNumberOut, r) is
+   comb : process (axisRst, inputAxisMaster, outputAxisSlave, packetNumberOut, r) is
       variable v : RegType;
    begin
       v := r;
@@ -173,31 +192,36 @@ begin
       v.inputAxisSlave.tReady := '0';
 
       -- Don't write new packet number by default
-      v.ramWe    := '0';
-      v.ramRdRdy := '0' & r.ramRdRdy(2 downto 1);
+      v.ramWe := '0';
 
+      -- Don't activate CRC by default
+      v.crcDataValid := '0';
+
+      -- Main state machine
       case r.state is
          when HEADER_S =>
+            -- Place header on output when new data arrived
             v.wordCount := (others => '0');
-
-            -- Place header on output when new data arrived and previous output clear                           
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0' and r.ramRdRdy(0) = '1') then
+            v.crcReset  := '1';
+            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
                v.outputAxisMaster.tValid              := inputAxisMaster.tValid;
-               v.outputAxisMaster.tData(3 downto 0)   := VERSION_C;
-               v.outputAxisMaster.tData(15 downto 4)  := frameNumberOut;
-               v.outputAxisMaster.tData(39 downto 16) := packetNumberOut;
+               v.outputAxisMaster.tData(31 downto 0)  := packetNumberOut;
+               v.outputAxisMaster.tData(32)           := packetActiveOut;
                v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
                v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
                v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
                axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
-               v.state                                := MOVE_S;
                v.packetNumber                         := packetNumberOut + 1;
-               v.frameNumber                          := frameNumberOut;
+               v.packetActive                         := '1';
                v.activeTDest                          := inputAxisMaster.tDest;
+               v.state                                := MOVE_S;
             end if;
 
          when MOVE_S =>
+            v.crcReset      := '0';
+            v.lastByteCount := "000";
+            v.crcDataWidth  := "111";
             if (inputAxisMaster.tvalid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Accept the data
                v.inputAxisSlave.tReady := '1';
@@ -224,60 +248,38 @@ begin
                   v.outputAxisMaster.tValid := '0';  -- And transmission
                end if;
 
-               -- End of frame
+               -- End of frame, append tail
                if (inputAxisMaster.tLast = '1') then
-                  -- Increment frame number, clear packetNumber
-                  v.frameNumber  := r.frameNumber + 1;
-                  v.packetNumber := (others => '0');
-                  v.ramWe        := '1';
-                  v.state        := HEADER_S;
-
-                  -- Need to either append tail to current txn or put tail on next txn (TAIL_S)
-                  -- depending on tKeep
-                  v.outputAxisMaster.tKeep := MIN_TKEEP_G or (inputAxisMaster.tKeep(14 downto 0) & '1');
-
-                  case (inputAxisMaster.tKeep) is
-                     when X"0000" =>
-                        v.outputAxisMaster.tData(7 downto 0) := '1' & inputAxisMaster.tUser(6 downto 0);
-                     when X"0001" =>
-                        v.outputAxisMaster.tData(15 downto 8) := '1' & inputAxisMaster.tUser(14 downto 8);
-                     when X"0003" =>
-                        v.outputAxisMaster.tData(23 downto 16) := '1' & inputAxisMaster.tUser(22 downto 16);
-                     when X"0007" =>
-                        v.outputAxisMaster.tData(31 downto 24) := '1' & inputAxisMaster.tUser(30 downto 24);
-                     when X"000F" =>
-                        v.outputAxisMaster.tData(39 downto 32) := '1' & inputAxisMaster.tUser(38 downto 32);
-                     when X"001F" =>
-                        v.outputAxisMaster.tData(47 downto 40) := '1' & inputAxisMaster.tUser(46 downto 40);
-                     when X"003F" =>
-                        v.outputAxisMaster.tData(55 downto 48) := '1' & inputAxisMaster.tUser(54 downto 48);
-                     when X"007F" =>
-                        v.outputAxisMaster.tData(63 downto 56) := '1' & inputAxisMaster.tUser(62 downto 56);
-                     when others =>     --X"0FFF" or anything else
-                        -- Full tkeep. Add new word for tail
-                        v.outputAxisMaster.tKeep := inputAxisMaster.tKeep;
-                        v.state                  := TAIL_S;
-                        v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
-                        v.eof                    := '1';
-                        v.outputAxisMaster.tLast := '0';
-                  end case;
+                  v.packetNumber           := (others => '0');
+                  v.packetActive           := '0';
+                  v.state                  := TAIL_S;
+                  v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                  v.eof                    := '1';
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 3);
+                  v.crcDataWidth           := toSlv(getTKeep(inputAxisMaster.tKeep)-1, 3);
+                  v.outputAxisMaster.tLast := '0';
                end if;
+
+               v.crcDataValid := v.outputAxisMaster.tValid;
             end if;
 
          when TAIL_S =>
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
-               v.outputAxisMaster.tValid            := '1';
-               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;  --X"0001";
-               v.outputAxisMaster.tData             := (others => '0');
-               v.outputAxisMaster.tData(7)          := r.eof;
-               v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);
-               v.outputAxisMaster.tUser             := (others => '0');
-               v.outputAxisMaster.tLast             := '1';
-               v.eof                                := '0';       -- Clear EOF for next frame
-               v.tUserLast                          := (others => '0');
-               v.ramWe                              := '1';
-               v.state                              := HEADER_S;  -- Go to idle and wait for new data
+               v.outputAxisMaster.tValid              := '1';
+               v.outputAxisMaster.tKeep               := X"00FF";
+               v.outputAxisMaster.tData               := (others => '0');
+               v.outputAxisMaster.tData(8)            := r.eof;
+               v.outputAxisMaster.tData(7 downto 0)   := r.tUserLast;
+               v.outputAxisMaster.tData(18 downto 16) := r.lastByteCount;
+               v.outputAxisMaster.tData(63 downto 32) := ite(CRC_EN_G, crcOut, X"00000000");
+               -- Myabe set tuser when SSI enabled?
+               v.outputAxisMaster.tUser               := (others => '0');
+               v.outputAxisMaster.tLast               := '1';
+               v.eof                                  := '0';       -- Clear EOF for next frame
+               v.tUserLast                            := (others => '0');
+               v.ramWe                                := '1';
+               v.state                                := HEADER_S;  -- Go to idle and wait for new data
             end if;
 
       end case;
