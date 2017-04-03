@@ -74,7 +74,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    type RegType is record
       idle         : sl;
-      pendBytes    : slv(31 downto 0);
+      --pendBytes    : slv(31 downto 0);
       size         : slv(31 downto 0); -- Decrementing counter used in data collection engine
       reqSize      : slv(31 downto 0); -- Decrementing counter used in request engine
       reqCnt       : slv(31 downto 0); -- Total bytes requested
@@ -92,7 +92,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    constant REG_INIT_C : RegType := (
       idle         => '0',
-      pendBytes    => (others => '0'),
+      --pendBytes    => (others => '0'),
       size         => (others => '0'),
       reqSize      => (others => '0'),
       reqCnt       => (others => '0'),
@@ -127,6 +127,7 @@ begin
    comb : process (axiReadSlave, axiRst, dmaRdDescReq, dmaRdDescRetAck,  pause, r, sSlave, axiCache) is
       variable v        : RegType;
       variable reqLen   : natural;
+      variable pendBytes: natural;
       variable pending  : boolean;
    begin
       -- Latch the current value   
@@ -149,7 +150,8 @@ begin
       end if;
 
       -- Calculate the pending bytes
-      v.pendBytes := r.reqCnt - r.ackCnt;
+      --v.pendBytes := r.reqCnt - r.ackCnt;
+      pendBytes := conv_integer(r.reqCnt - r.ackCnt);
 
       -- Update variables
       reqLen  := 0;
@@ -157,11 +159,13 @@ begin
 
       -- Check for the threshold = zero case
       if (PEND_THRESH_G = 0) then
-         if (r.pendBytes = 0) then
+         --if (r.pendBytes = 0) then
+         if (pendBytes = 0) then
             pending := false;
          end if;
       else
-         if (r.pendBytes < PEND_THRESH_G) then
+         --if (r.pendBytes < PEND_THRESH_G) then
+         if (pendBytes < PEND_THRESH_G) then
             pending := false;
          end if;
       end if;
@@ -251,10 +255,14 @@ begin
             v.rMaster.rready := '1';
          ----------------------------------------------------------------------
          when MOVE_S =>
+
+            -- Flow control
+            if (v.sMaster.tValid = '0') then
+               v.rMaster.rready := '1';
+            end if;
+
             -- Check if ready to move data
             if (v.sMaster.tValid = '0') and (axiReadSlave.rvalid = '1') then
-               -- Accept the data 
-               v.rMaster.rready := '1';
                -- Move the data
                v.sMaster.tValid                             := '1';
                v.sMaster.tData((DATA_BYTES_C*8)-1 downto 0) := axiReadSlave.rdata((DATA_BYTES_C*8)-1 downto 0);

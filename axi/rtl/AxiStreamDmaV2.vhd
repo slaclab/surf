@@ -117,6 +117,9 @@ begin
          axiWriteSlave      => axiWriteSlave(0),
          axiWriteCtrl       => axiWriteCtrl(0));
 
+   -- Read channel 0 unused.
+   axiReadMaster(0) <= AXI_READ_MASTER_INIT_C;
+
    U_ChanGen: for i in 0 to CHAN_COUNT_G-1 generate
 
       U_DmaRead: entity work.AxiStreamDmaV2Read 
