@@ -154,7 +154,7 @@ begin
          wea                => r.ramWe,                -- [in]
          addra              => r.activeTDest,          -- [in]
          dina(31 downto 0)  => r.packetNumber,         -- [in]
-         dina(32)           => r.packetActive          -- [in]
+         dina(32)           => r.packetActive,         -- [in]
          clkb               => axisClk,                -- [in]
          rstb               => axisRst,                -- [in]
          addrb              => inputAxisMaster.tDest,  -- [in]

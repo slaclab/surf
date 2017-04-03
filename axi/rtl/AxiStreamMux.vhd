@@ -2,7 +2,7 @@
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-03-30
+-- Last update: 2017-04-03
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -200,13 +200,15 @@ begin
                   v.state := IDLE_S;
 
 
-               elsif (INTERLEAVE_EN_G = true) and
-                  ((INTERLEAVE_MAX_TXNS_G /= 0) and (r.arbCnt = (INTERLEAVE_MAX_TXNS_G-1)) or
-                   rearbitrate = '1' or disableSel(r.ackNum) = '1') then
+               elsif (INTERLEAVE_EN_G) then
+                  if ((INTERLEAVE_MAX_TXNS_G /= 0) and (r.arbCnt = INTERLEAVE_MAX_TXNS_G-1)) or
+                     rearbitrate = '1' or
+                     disableSel(conv_integer(r.ackNum)) = '1' then
                   -- rearbitrate after ILEAVE_MAX_TXNS_G txns
                   -- Or upon manual rearbitration input
                   -- Or selected channel being disabled                  
-                  v.state := IDLE_S;
+                     v.state := IDLE_S;
+                  end if;
                end if;
 
             -- RE-arbitrate on gaps if interleaving frames
