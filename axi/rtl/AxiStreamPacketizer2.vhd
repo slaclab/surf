@@ -33,8 +33,7 @@ entity AxiStreamPacketizer2 is
       TPD_G                : time             := 1 ns;
       CRC_EN_G             : boolean          := false;
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : integer          := 256*8;    -- Must be a multiple of 8
-      MIN_TKEEP_G          : slv(15 downto 0) := X"0001";  -- tKeep to use for tail txns
+      MAX_PACKET_BYTES_G   : integer          := 256*8;  -- Must be a multiple of 8
       OUTPUT_SSI_G         : boolean          := true;
       INPUT_PIPE_STAGES_G  : integer          := 0;
       OUTPUT_PIPE_STAGES_G : integer          := 0);
@@ -43,9 +42,9 @@ entity AxiStreamPacketizer2 is
       axisClk : in sl;
       axisRst : in sl;
 
-      rearbitrate  : out sl;
-      sAxisMasters : in  AxiStreamMasterType;
-      sAxisSlaves  : out AxiStreamSlaveType;
+      rearbitrate : out sl;
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType;
 
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
@@ -82,7 +81,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataValid     : sl;
       crcDataWidth     : slv(2 downto 0);
       crcReset         : sl;
-      inputAxisSlaves  : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterType;
    end record RegType;
 
@@ -92,15 +91,15 @@ architecture rtl of AxiStreamPacketizer2 is
       packetActive     => '0',
       activeTDest      => (others => '0'),
       ramWe            => '0',
-      ramRdRdy         => (others => '0'),
       wordCount        => (others => '0'),
       eof              => '0',
+      lastByteCount    => (others => '0'),
       tUserLast        => (others => '0'),
       rearbitrate      => '0',
       crcDataValid     => '0',
       crcDataWidth     => (others => '0'),
       crcReset         => '0',
-      inputAxisSlaves  => (others => AXI_STREAM_SLAVE_INIT_C),
+      inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => axiStreamMasterInit(AXIS_CONFIG_C));
 
    signal r   : RegType := REG_INIT_C;
@@ -113,6 +112,8 @@ architecture rtl of AxiStreamPacketizer2 is
    signal inputAxisSlave   : AxiStreamSlaveType;
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
+
+   signal crcOut : slv(31 downto 0);
 
 begin
 
@@ -179,7 +180,8 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Accumulation sequencing, DMA ring buffer, and AXI-Lite logic
    -------------------------------------------------------------------------------------------------
-   comb : process (axisRst, inputAxisMaster, outputAxisSlave, packetNumberOut, r) is
+   comb : process (axisRst, crcOut, inputAxisMaster, outputAxisSlave, packetActiveOut,
+                   packetNumberOut, r) is
       variable v : RegType;
    begin
       v := r;
@@ -244,7 +246,7 @@ begin
                if (inputAxisMaster.tDest /= r.activeTDest) then
                   v.state                   := TAIL_S;
                   v.inputAxisSlave.tReady   := '0';  -- Hold acceptance of new data
-                  v.outputAxisMaster        <= r.outputAxisMaster;
+                  v.outputAxisMaster        := r.outputAxisMaster;
                   v.outputAxisMaster.tValid := '0';  -- And transmission
                end if;
 
@@ -295,7 +297,7 @@ begin
 
       rin <= v;
 
-      inputAxisSlaves  <= v.inputAxisSlaves;
+      inputAxisSlave  <= v.inputAxisSlave;
       outputAxisMaster <= r.outputAxisMaster;
 
    end process comb;
