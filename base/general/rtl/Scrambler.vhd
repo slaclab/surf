@@ -28,7 +28,7 @@ entity Scrambler is
 
    generic (
       TPD_G            : time         := 1 ns;
-      DIRECTION_G : string := "SCRAMBLER";  -- or DESCRAMBLER
+      DIRECTION_G      : string       := "SCRAMBLER";  -- or DESCRAMBLER
       DATA_WIDTH_G     : integer      := 64;
       SIDEBAND_WIDTH_G : integer      := 2;
       TAPS_G           : IntegerArray := (0 => 39, 1 => 58));
@@ -46,25 +46,25 @@ end entity Scrambler;
 
 architecture rtl of Scrambler is
 
-   constant SCRAMBLER_WIDTH_C : integer := max(TAPS_G)-1;
+   constant SCRAMBLER_WIDTH_C : integer := maximum(TAPS_G);
 
    type RegType is record
       scrambler   : slv(SCRAMBLER_WIDTH_C-1 downto 0);
       dataOut     : slv(DATA_WIDTH_G-1 downto 0);
       sidebandOut : slv(SIDEBAND_WIDTH_G-1 downto 0);
-   end record RegTyoe;
+   end record RegType;
 
    constant REG_INIT_C : RegType := (
       scrambler   => (others => '0'),
       dataOut     => (others => '0'),
       sidebandOut => (others => '0'));
 
-   signal r : RegType := REG_INIT_C;
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (r) is
+   comb : process (dataIn, inputEn, r, rst, sidebandIn) is
       variable v : RegType;
    begin
       v := r;
@@ -75,7 +75,7 @@ begin
          for i in 0 to DATA_WIDTH_G-1 loop
             v.dataOut(i) := dataIn(i);
             for j in TAPS_G'range loop
-               v.dataOut(i) := v.dataOut(i) xor r.scrambler(TAPS_G(j)-1);
+               v.dataOut(i) := v.dataOut(i) xor v.scrambler(TAPS_G(j)-1);
             end loop;
             if (DIRECTION_G = "SCRAMBLER") then
                v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & v.dataOut(i);
@@ -90,12 +90,13 @@ begin
          v := REG_INIT_C;
       end if;
 
+      rin         <= v;
       dataOut     <= r.dataOut;
       sidebandOut <= r.sidebandOut;
 
    end process comb;
 
-   seq: process (clk) is
+   seq : process (clk) is
    begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;
