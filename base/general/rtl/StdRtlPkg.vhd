@@ -1143,7 +1143,7 @@ package body StdRtlPkg is
          end if;
       end loop;
       return max;
-   end function maximum;
+   end function minimum;
    -----------------------------
    -- conv_std_logic_vector functions
    -- without calling the STD_LOGIC_ARITH library
