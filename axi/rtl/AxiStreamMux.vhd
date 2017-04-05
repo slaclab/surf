@@ -2,7 +2,7 @@
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-04-03
+-- Last update: 2017-04-05
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -35,7 +35,7 @@ entity AxiStreamMux is
       PIPE_STAGES_G              : integer range 0 to 16 := 0;
       TDEST_LOW_G                : integer range 0 to 7  := 0;  -- LSB of updated tdest for INDEX
       INTERLEAVE_EN_G            : boolean               := false;  -- Set to true if interleaving dests, arbitrate on gaps
-      INTERLEAVE_REARB_NOVALID_G : boolean               := false;  -- Rearbitrate when tValid drops on selected channel
+      INTERLEAVE_ON_NOTVALID_G : boolean               := false;  -- Rearbitrate when tValid drops on selected channel
       INTERLEAVE_MAX_TXNS_G      : natural               := 0);  -- Max number of transactions between arbitrations, 0 = unlimited
    port (
       -- Clock and reset
@@ -123,7 +123,7 @@ begin
       sAxisMastersTmp <= tmp;
    end process;
 
-   comb : process (axisRst, disableSel, pipeAxisSlave, r, sAxisMastersTmp) is
+   comb : process (axisRst, disableSel, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -213,7 +213,7 @@ begin
 
             -- RE-arbitrate on gaps if interleaving frames
             elsif (v.master.tValid = '0') and (selData.tValid = '0') and
-               (INTERLEAVE_EN_G and INTERLEAVE_REARB_NOVALID_G) then
+               (INTERLEAVE_EN_G and INTERLEAVE_ON_NOTVALID_G) then
                v.state := IDLE_S;
             end if;
       ----------------------------------------------------------------------
