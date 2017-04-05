@@ -33,9 +33,10 @@ use work.Pgp3Pkg.all;
 entity Pgp3TxProtocol is
 
    generic (
-      TPD_G            : time    := 1 ns;
-      SKP_INTERVAL_G   : integer := 5000;
-      SKP_BURST_SIZE_G : integer := 8);
+      TPD_G            : time                  := 1 ns;
+      NUM_VC_G         : integer range 1 to 16 := 4;
+      SKP_INTERVAL_G   : integer               := 5000;
+      SKP_BURST_SIZE_G : integer               := 8);
 
    port (
       -- User Transmit interface
@@ -43,7 +44,7 @@ entity Pgp3TxProtocol is
       pgpTxRst    : in  sl;
       pgpTxIn     : in  Pgp3TxInType;
       pgpTxOut    : out Pgp3TxOutType;
-      pgpTxMaster : in  AxiStreamMasterType
+      pgpTxMaster : in  AxiStreamMasterType;
       pgpTxSlave  : out AxiStreamSlaveType;
 
       -- Status of local receive fifos
@@ -52,7 +53,7 @@ entity Pgp3TxProtocol is
 
       -- Output data (to scrambler)
       phyTxData   : out slv(63 downto 0);
-      phyTxHeader : out sl(1 downto 0));
+      phyTxHeader : out slv(1 downto 0));
 
 end entity Pgp3TxProtocol;
 
@@ -103,7 +104,7 @@ begin
       if (pgpTxMaster.tValid = '1') then
          v.pgpTxSlave.tReady := '1';    -- Accept the data
 
-         if (ssiGetUserSof(AXIS_CONFIG_C, pgpTxMaster) = '1') then
+         if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
             -- SOF/SOC, format SOF/SOC char from data
             v.phyTxData               := (others => '0');
             v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(32) = '1', SOF_C, SOC_C);
@@ -133,7 +134,7 @@ begin
          v.skpCount               := (others => '0');
          v.pgpTxSlave.tReady      := '0';  -- Override any data acceptance.
          v.phyTxData              := (others => '0');
-         v.phyTxData(63 downto 0) := SKP_C;
+         v.phyTxData(63 downto 56) := SKP_C;
          v.phyTxHeader            := K_HEADER_C;
       end if;
 

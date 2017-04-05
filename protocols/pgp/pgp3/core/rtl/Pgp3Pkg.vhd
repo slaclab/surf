@@ -26,7 +26,15 @@ use work.SsiPkg.all;
 
 package Pgp3Pkg is
 
-   constant PGP3_AXIS_CONFIG_C : AxiStreamConfigType := ();
+   constant PGP3_VERSION_C : slv(2 downto 0) := "011";
+
+   constant PGP3_AXIS_CONFIG_C : AxiStreamConfigType :=
+      ssiAxiStreamConfig(
+         dataBytes => 8,
+         tKeepMode => TKEEP_COMP_C,
+         tUserMode => TUSER_FIRST_LAST_C,
+         tDestBits => 4,
+         tUserBits => 2);
 
    -- Define K code BTFs
    constant IDLE_C : slv(7 downto 0)   := X"99";
@@ -40,6 +48,8 @@ package Pgp3Pkg is
    constant D_HEADER_C : slv(1 downto 0) := "01";
    constant K_HEADER_C : slv(1 downto 0) := "10";
 
+   constant SCRAMBLER_TAPS_C : IntegerArray(0 to 1) := (0 => 39, 1 => 58);
+
    type Pgp3TxInType is record
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
@@ -47,13 +57,57 @@ package Pgp3Pkg is
    end record Pgp3TxInType;
 
    type Pgp3TxOutType is record
-      locOverflow : slv(15 downto 0);   -
-      locPause : slv(15 downto 0);
-      phyTxReady : sl;
-      linkReady : sl;
-      frameTx : sl;                     -- A good frame was transmitted
-      frameTxErr : sl;                  -- An errored frame was transmitted
+      locOverflow : slv(15 downto 0);
+      locPause    : slv(15 downto 0);
+      phyTxReady  : sl;
+      linkReady   : sl;
+      frameTx     : sl;                 -- A good frame was transmitted
+      frameTxErr  : sl;                 -- An errored frame was transmitted
    end record Pgp3TxOutType;
 
+   function makeLinkInfo (
+      locRxFifoCtrl  : AxiStreamCtrlArray;
+      locRxLinkReady : sl)
+      return slv;
+
+   procedure extractLinkInfo (
+      linkInfo       : in    slv(39 downto 0);
+      remRxFifoCtrl  : inout AxiStreamCtrlArray;
+      remRxLinkReady : inout sl;
+      version        : inout slv(2 downto 0));
 
 end package Pgp3Pkg;
+
+package body Pgp3Pkg is
+
+   function makeLinkInfo (
+      locRxFifoCtrl  : AxiStreamCtrlArray;
+      locRxLinkReady : sl)
+      return slv
+   is
+      variable ret : slv(39 downto 0) := (others => '0');
+   begin
+      for i in locRxFifoCtrl'range loop
+         ret(i)    := locRxFifoCtrl(i).pause;
+         ret(i+16) := locRxFifoCtrl(i).overflow;
+      end loop;
+      ret(32)           := locRxLinkReady;
+      ret(35 downto 33) := PGP3_VERSION_C;
+      return ret;
+   end function makeLinkInfo;
+
+   procedure extractLinkInfo (
+      linkInfo       : in    slv(39 downto 0);
+      remRxFifoCtrl  : inout AxiStreamCtrlArray;
+      remRxLinkReady : inout sl;
+      version        : inout slv(2 downto 0)) is
+   begin
+      for i in remRxFifoCtrl'range loop
+         remRxFifoCtrl(i).pause    := linkInfo(i);
+         remRxFifoCtrl(i).overflow := linkInfo(i+16);
+      end loop;
+      remRxLinkReady := linkInfo(32);
+      version        := linkInfo(35 downto 33);
+   end procedure extractLinkInfo;
+
+end package body Pgp3Pkg;

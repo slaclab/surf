@@ -30,8 +30,18 @@ use work.Pgp3Pkg.all;
 entity Pgp3Tx is
 
    generic (
-      TPD_G : time := 1 ns);
-
+      TPD_G                        : time                  := 1 ns;
+      -- PGP configuration
+      NUM_VC_G                     : integer range 1 to 16 := 1;
+      TX_CELL_WORDS_MAX_G          : integer               := 256;  -- Number of 64-bit words per cell
+      SKP_INTERVAL_G               : integer               := 5000;
+      SKP_BURST_SIZE_G             : integer               := 8;
+      -- Mux configuration
+      MUX_MODE_G                   : string                := "ROUTED";  -- Or "ROUTED"
+      MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
+      MUX_INTERLEAVE_EN_G          : boolean               := true;
+      MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true);
    port (
       -- Transmit interface
       pgpTxClk     : in  sl;
@@ -44,17 +54,171 @@ entity Pgp3Tx is
 
       -- Status of receive and remote FIFOs (Asynchronous)
       locRxFifoStatus : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      locRxLinkReady  : in sl;
       remRxFifoStatus : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      remRxLinkReady  : in sl;
 
-      phyTxClk : in sl;
-      phyTxReady : in sl;
-      phyTxData : out slv(63 downto 0);
-      phyTxHeader : out sl(1 downto 0);
-
-
-      );
-
-
-
-
+      -- PHY interface
+--      phyTxClk    : in  sl;
+      phyTxReady  : in  sl;
+      phyTxData   : out slv(63 downto 0);
+      phyTxHeader : out slv(1 downto 0));
 end entity Pgp3Tx;
+
+architecture rtl of Pgp3Tx is
+
+   -- Synchronized statuses
+   signal syncLocRxFifoStatus : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+   signal syncLocRxLinkReady  : sl;
+   signal syncRemRxFifoStatus : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+   signal syncRemRxLinkReady  : sl;
+
+   -- Pipeline signals
+   signal disableSel          : slv(NUM_VC_G-1 downto 0);
+   signal rearbitrate         : sl := '0';
+   signal muxedTxMaster       : AxiStreamMasterType;
+   signal muxedTxSlave        : AxiStreamSlaveType;
+   signal packetizedTxMaster  : AxiStreamMasterType;
+   signal packetizedTxSlave   : AxiStreamSlaveType;
+   signal unscrambledTxData   : slv(63 downto 0);
+   signal unscrambledTxHeader : slv(1 downto 0);
+
+
+begin
+
+   -- Synchronize remote link and fifo status to tx clock
+   U_Synchronizer_REM : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => pgpTxClk,                                -- [in]
+         rst     => pgpTxRst,                                -- [in]
+         dataIn  => remRxLinkReady,                          -- [in]
+         dataOut => syncRemRxLinkReady);                     -- [out]
+   REM_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
+      U_SynchronizerVector_1 : entity work.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 2)
+         port map (
+            clk        => pgpTxClk,                          -- [in]
+            rst        => pgpTxRst,                          -- [in]
+            dataIn(0)  => remRxFifoStatus(i).pause,          -- [in]
+            dataIn(1)  => remRxFifoStatus(i).overflow,       -- [in]
+            dataOut(0) => syncRemRxFifoStatus(i).pause,      -- [out]
+            dataOut(1) => syncRemRxFifoStatus(i).overflow);  -- [out]
+   end generate;
+
+   -- Drive synchronized remote fifo status out onto pgpTxCtrl
+   pgpTxCtrl <= syncRemRxFifoStatus;
+
+   -- Synchronize local rx status
+   U_Synchronizer_LOC : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => pgpTxClk,                                -- [in]
+         rst     => pgpTxRst,                                -- [in]
+         dataIn  => locRxLinkReady,                          -- [in]
+         dataOut => syncLocRxLinkReady);                     -- [out]
+   LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
+      U_SynchronizerVector_1 : entity work.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 2)
+         port map (
+            clk        => pgpTxClk,                          -- [in]
+            rst        => pgpTxRst,                          -- [in]
+            dataIn(0)  => locRxFifoStatus(i).pause,          -- [in]
+            dataIn(1)  => locRxFifoStatus(i).overflow,       -- [in]
+            dataOut(0) => syncLocRxFifoStatus(i).pause,      -- [out]
+            dataOut(1) => syncLocRxFifoStatus(i).overflow);  -- [out]
+   end generate;
+
+   -- Use synchronized remote status to disable channels from mux selection
+   DISABLE_SEL_GEN : for i in NUM_VC_G-1 downto 0 generate
+      disableSel(i) <= syncRemRxFifoStatus(i).pause or syncRemRxFifoStatus(i).overflow;
+   end generate DISABLE_SEL_GEN;
+
+   -- Multiplex the incomming tx streams with interleaving
+   U_AxiStreamMux_1 : entity work.AxiStreamMux
+      generic map (
+         TPD_G                    => TPD_G,
+         NUM_SLAVES_G             => NUM_VC_G,
+         MODE_G                   => MUX_MODE_G,
+         PIPE_STAGES_G            => 0,
+         TDEST_LOW_G              => MUX_TDEST_LOW_G,
+         INTERLEAVE_EN_G          => MUX_INTERLEAVE_EN_G,
+         INTERLEAVE_ON_NOTVALID_G => MUX_INTERLEAVE_ON_NOTVALID_G,
+         INTERLEAVE_MAX_TXNS_G    => TX_CELL_WORDS_MAX_G)
+      port map (
+         axisClk      => pgpTxClk,       -- [in]
+         axisRst      => pgpTxRst,       -- [in]
+         disableSel   => disableSel,     -- [in]
+         rearbitrate  => rearbitrate,    -- [in]
+         sAxisMasters => pgpTxMasters,   -- [in]
+         sAxisSlaves  => pgpTxSlaves,    -- [out]
+         mAxisMaster  => muxedTxMaster,  -- [out]
+         mAxisSlave   => muxedTxSlave);  -- [in]
+
+   -- Feed muxed stream to packetizer
+   -- Note that the mux is doing the work of chunking
+   -- Packetizer applies packet formatting and CRC
+   -- rearbitrate signal doesn't really do anything (yet)
+   U_AxiStreamPacketizer2_1 : entity work.AxiStreamPacketizer2
+      generic map (
+         TPD_G                => TPD_G,
+         CRC_EN_G             => true,
+         CRC_POLY_G           => X"04C11DB7",
+         MAX_PACKET_BYTES_G   => TX_CELL_WORDS_MAX_G*8,
+         OUTPUT_SSI_G         => true,
+         INPUT_PIPE_STAGES_G  => 0,
+         OUTPUT_PIPE_STAGES_G => 0)
+      port map (
+         axisClk     => pgpTxClk,            -- [in]
+         axisRst     => pgpTxRst,            -- [in]
+         rearbitrate => rearbitrate,         -- [out]
+         sAxisMaster => muxedTxMaster,       -- [in]
+         sAxisSlave  => muxedTxSlave,        -- [out]
+         mAxisMaster => packetizedTxMaster,  -- [out]
+         mAxisSlave  => packetizedTxSlave);  -- [in]
+
+   -- Feed packets into PGP TX Protocol engine
+   -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
+   U_Pgp3TxProtocol_1 : entity work.Pgp3TxProtocol
+      generic map (
+         TPD_G            => TPD_G,
+         NUM_VC_G         => NUM_VC_G,
+         SKP_INTERVAL_G   => SKP_INTERVAL_G,
+         SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
+      port map (
+         pgpTxClk        => pgpTxClk,              -- [in]
+         pgpTxRst        => pgpTxRst,              -- [in]
+         pgpTxIn         => pgpTxIn,               -- [in]
+         pgpTxOut        => pgpTxOut,              -- [out]
+         pgpTxMaster     => packetizedTxMaster,    -- [in]
+         pgpTxSlave      => packetizedTxSlave,     -- [out]
+         locRxFifoStatus => syncLocRxFifoStatus,   -- [in]
+         locRxLinkReady  => syncLocRxLinkReady,    -- [in]
+         phyTxData       => unscrambledTxData,     -- [out]
+         phyTxHeader     => unscrambledTxHeader);  -- [out]
+
+   -- Scramble the data for 64b66b
+   U_Scrambler_1 : entity work.Scrambler
+      generic map (
+         TPD_G            => TPD_G,
+         DIRECTION_G      => "SCRAMBLER",
+         DATA_WIDTH_G     => 64,
+         SIDEBAND_WIDTH_G => 2,
+         TAPS_G           => SCRAMBLER_TAPS_C)
+      port map (
+         clk         => pgpTxClk,             -- [in]
+         rst         => pgpTxRst,             -- [in]
+         dataIn      => unscrambledTxData,    -- [in]
+         sidebandIn  => unscrambledTxHeader,  -- [in]
+         inputEn     => '1',                  -- [in]
+         dataOut     => phyTxData,            -- [out]
+         sidebandOut => phyTxHeader);         -- [out]
+
+
+end architecture rtl;
