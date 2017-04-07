@@ -63,7 +63,25 @@ package Pgp3Pkg is
       linkReady   : sl;
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
-   end record Pgp3TxOutType;
+   end record;
+
+   type Pgp3RxInType is record
+      loopback : slv(2 downto 0);
+   end record Pgp3RxInType;
+
+   type Pgp3RxOutType is record
+      phyRxReady     : sl;
+      linkReady      : sl;                -- locRxLinkReady
+      frameRx        : sl;                -- A good frame was received
+      frameRxErr     : sl;                -- An errored frame was received
+      cellError      : sl;                -- A cell error has occured
+      opCodeEn       : sl;                -- Opcode valid
+      opCodeNumber   : slv(2 downto 0);   -- Opcode number
+      opCodeData     : slv(55 downto 0);  -- Opcode data
+      remRxLinkReady : sl;                -- Far end RX has link
+      remRxOverflow  : slv(15 downto 0);  -- Far end RX overflow status
+      remRxPause     : slv(15 downto 0);  -- Far end pause status
+   end record Pgp3RxOutType;
 
    function makeLinkInfo (
       locRxFifoCtrl  : AxiStreamCtrlArray;
