@@ -147,20 +147,20 @@ begin
          DOA_REG_G    => false,
          DOB_REG_G    => false,
          BYTE_WR_EN_G => false,
-         DATA_WIDTH_G => 33,
+         DATA_WIDTH_G => 17,
          ADDR_WIDTH_G => 8)
       port map (
          clka               => axisClk,                -- [in]
          rsta               => axisRst,                -- [in]
          wea                => r.ramWe,                -- [in]
          addra              => r.activeTDest,          -- [in]
-         dina(31 downto 0)  => r.packetNumber,         -- [in]
-         dina(32)           => r.packetActive,         -- [in]
+         dina(15 downto 0)  => r.packetNumber,         -- [in]
+         dina(16)           => r.packetActive,         -- [in]
          clkb               => axisClk,                -- [in]
          rstb               => axisRst,                -- [in]
          addrb              => inputAxisMaster.tDest,  -- [in]
-         doutb(31 downto 0) => packetNumberOut,        -- [out]
-         doutb(32)          => packetActiveOut);       --[out]
+         doutb(15 downto 0) => packetNumberOut,        -- [out]
+         doutb(16)          => packetActiveOut);       --[out]
 
    U_Crc32_1 : entity work.Crc32
       generic map (
@@ -208,11 +208,12 @@ begin
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
                v.outputAxisMaster.tValid              := inputAxisMaster.tValid;
-               v.outputAxisMaster.tData(31 downto 0)  := packetNumberOut;
-               v.outputAxisMaster.tData(32)           := packetActiveOut;
-               v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
-               v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
-               v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
+               v.outputAxisMaster.tData(7 downto 0)   := inputAxisMaster.tUser(7 downto 0);
+               v.outputAxisMaster.tData(15 downto 8)  := inputAxisMaster.tDest(7 downto 0);
+               v.outputAxisMaster.tData(23 downto 16) := inputAxisMaster.tId(7 downto 0);
+               v.outputAxisMaster.tData(24)           := not packetActiveOut;
+               v.outputAxisMaster.tData(47 downto 32) := packetNumberOut;
+               -- Frame ID on 63:48?
                axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
                v.packetNumber                         := packetNumberOut + 1;
                v.packetActive                         := '1';
@@ -258,7 +259,7 @@ begin
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
                   v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 3);
-                  v.crcDataWidth           := toSlv(getTKeep(inputAxisMaster.tKeep)-1, 3);
+--                  v.crcDataWidth           := toSlv(getTKeep(inputAxisMaster.tKeep)-1, 3);
                   v.outputAxisMaster.tLast := '0';
                end if;
 
@@ -297,7 +298,7 @@ begin
 
       rin <= v;
 
-      inputAxisSlave  <= v.inputAxisSlave;
+      inputAxisSlave   <= v.inputAxisSlave;
       outputAxisMaster <= r.outputAxisMaster;
 
    end process comb;
