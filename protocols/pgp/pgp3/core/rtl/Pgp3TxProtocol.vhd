@@ -48,7 +48,7 @@ entity Pgp3TxProtocol is
       pgpTxSlave  : out AxiStreamSlaveType;
 
       -- Status of local receive fifos
-      locRxFifoStatus : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      locRxFifoCtrl : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       locRxLinkReady  : in sl;
 
       -- Output data (to scrambler)
@@ -77,13 +77,13 @@ architecture rtl of Pgp3TxProtocol is
 
 begin
 
-   comb : process (locRxFifoStatus, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, r) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
    begin
       v := r;
 
-      linkInfo := makeLinkInfo(locRxFifoStatus, locRxLinkReady);
+      linkInfo := makeLinkInfo(locRxFifoCtrl, locRxLinkReady);
 
       -- Always increment skpCount
       v.skpCount := r.skpCount + 1;
@@ -95,6 +95,7 @@ begin
       -- Coded in reverse order of priority
 
       -- Send idle chars by default
+      -- Need to be able to only send this for some generic number of cycles after reset
       v.phyTxData(39 downto 0)  := linkInfo;
       v.phyTxData(55 downto 40) := (others => '0');
       v.phyTxData(63 downto 56) := IDLE_C;
@@ -107,10 +108,10 @@ begin
          if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
             -- SOF/SOC, format SOF/SOC char from data
             v.phyTxData               := (others => '0');
-            v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(32) = '1', SOF_C, SOC_C);
+            v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(32) = '1', SOC_C, SOF_C);
             v.phyTxData(39 downto 0)  := linkInfo;
-            v.phyTxData(43 downto 40) := pgpTxMaster.tData(43 downto 40);  -- Virtual Channel
-            v.phyTxData(55 downto 44) := pgpTxMaster.tData(11 downto 0);   -- Packet number
+            v.phyTxData(43 downto 40) := pgpTxMaster.tData(11 downto 8);  -- Virtual Channel
+            v.phyTxData(55 downto 44) := pgpTxMaster.tData(43 downto 32);   -- Packet number
             v.phyTxHeader             := K_HEADER_C;
 
          elsif (pgpTxMaster.tLast = '1') then
@@ -119,7 +120,7 @@ begin
             v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(8) = '1', EOF_C, EOC_C);
             v.phyTxData(7 downto 0)   := pgpTxMaster.tData(7 downto 0);    -- TUSER LAST
             v.phyTxData(18 downto 16) := pgpTxMaster.tData(18 downto 16);  -- Last byte count
-            v.phyTxData(63 downto 32) := pgpTxMaster.tData(63 downto 32);  -- CRC
+            v.phyTxData(56 downto 24) := pgpTxMaster.tData(63 downto 32);  -- CRC
             v.phyTxHeader             := K_HEADER_C;
 
          else
