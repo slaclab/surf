@@ -150,7 +150,7 @@ children:
       offset: 0x80
       nelms: 2
       stride: 32
-    shildren:
+    children:
       data:
         at:
           offset: 0x00
