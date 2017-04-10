@@ -54,7 +54,7 @@ end entity AxiStreamPacketizer2;
 architecture rtl of AxiStreamPacketizer2 is
 
    -- Packetizer constants
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
+   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 1;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -69,13 +69,13 @@ architecture rtl of AxiStreamPacketizer2 is
 
    type RegType is record
       state            : StateType;
-      packetNumber     : slv(31 downto 0);
+      packetNumber     : slv(15 downto 0);
       packetActive     : sl;
       activeTDest      : slv(7 downto 0);
       ramWe            : sl;
       wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
       eof              : sl;
-      lastByteCount    : slv(2 downto 0);
+      lastByteCount    : slv(3 downto 0);
       tUserLast        : slv(7 downto 0);
       rearbitrate      : sl;
       crcDataValid     : sl;
@@ -105,7 +105,7 @@ architecture rtl of AxiStreamPacketizer2 is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal packetNumberOut : slv(31 downto 0);
+   signal packetNumberOut : slv(15 downto 0);
    signal packetActiveOut : sl;
 
    signal inputAxisMaster  : AxiStreamMasterType;
@@ -223,7 +223,7 @@ begin
 
          when MOVE_S =>
             v.crcReset      := '0';
-            v.lastByteCount := "000";
+            v.lastByteCount := "1000";
             v.crcDataWidth  := "111";
             if (inputAxisMaster.tvalid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Accept the data
@@ -241,11 +241,13 @@ begin
                -- Reach max packet size. Append tail.
                if (r.wordCount = MAX_WORD_COUNT_C) then
                   v.state := TAIL_S;
+                  v.ramWe := '1';
                end if;
 
                -- Upstream interleave detected, append tail
                if (inputAxisMaster.tDest /= r.activeTDest) then
                   v.state                   := TAIL_S;
+                  v.ramWe                   := '1';
                   v.inputAxisSlave.tReady   := '0';  -- Hold acceptance of new data
                   v.outputAxisMaster        := r.outputAxisMaster;
                   v.outputAxisMaster.tValid := '0';  -- And transmission
@@ -253,12 +255,13 @@ begin
 
                -- End of frame, append tail
                if (inputAxisMaster.tLast = '1') then
+                  v.ramWe                  := '1';
                   v.packetNumber           := (others => '0');
                   v.packetActive           := '0';
                   v.state                  := TAIL_S;
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
-                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 3);
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 4);
 --                  v.crcDataWidth           := toSlv(getTKeep(inputAxisMaster.tKeep)-1, 3);
                   v.outputAxisMaster.tLast := '0';
                end if;
@@ -274,14 +277,13 @@ begin
                v.outputAxisMaster.tData               := (others => '0');
                v.outputAxisMaster.tData(8)            := r.eof;
                v.outputAxisMaster.tData(7 downto 0)   := r.tUserLast;
-               v.outputAxisMaster.tData(18 downto 16) := r.lastByteCount;
+               v.outputAxisMaster.tData(19 downto 16) := r.lastByteCount;
                v.outputAxisMaster.tData(63 downto 32) := ite(CRC_EN_G, crcOut, X"00000000");
                -- Myabe set tuser when SSI enabled?
                v.outputAxisMaster.tUser               := (others => '0');
                v.outputAxisMaster.tLast               := '1';
                v.eof                                  := '0';       -- Clear EOF for next frame
                v.tUserLast                            := (others => '0');
-               v.ramWe                                := '1';
                v.state                                := HEADER_S;  -- Go to idle and wait for new data
             end if;
 

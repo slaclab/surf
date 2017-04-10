@@ -33,8 +33,7 @@ entity AxiStreamDepacketizer2 is
       TPD_G                : time             := 1 ns;
       CRC_EN_G             : boolean          := true;
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      INPUT_PIPE_STAGES_G  : integer          := 0;
-      OUTPUT_PIPE_STAGES_G : integer          := 0);
+      INPUT_PIPE_STAGES_G  : integer          := 0);
    port (
       -- AXI-Lite Interface for local registers 
       axisClk : in sl;
@@ -66,7 +65,7 @@ architecture rtl of AxiStreamDepacketizer2 is
    type RegType is record
       state            : StateType;
       activeTDest      : slv(7 downto 0);
-      packetNumber     : slv(23 downto 0);
+      packetNumber     : slv(15 downto 0);
       packetActive     : sl;
       frameError       : sl;
       ramWe            : sl;
@@ -125,11 +124,12 @@ begin
 
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    -- Output pipeline
+   -- Output kinda stutters awkwardly without this
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+         PIPE_STAGES_G => 1)
       port map (
          axisClk     => axisClk,           -- [in]
          axisRst     => axisRst,           -- [in]
@@ -155,17 +155,17 @@ begin
       port map (
          clka               => axisClk,                             -- [in]
          rsta               => axisRst,                             -- [in]
-         wea                => r.ramWe,                             -- [in]
-         addra              => r.activeTDest,                       -- [in]
-         dina(15 downto 0)  => r.packetNumber,                      -- [in]
-         dina(16)           => r.packetActive,                      -- [in]
-         dina(17)           => r.frameError,                        -- [in]
+         wea                => rin.ramWe,                           -- [in]
+         addra              => rin.activeTDest,                     -- [in]
+         dina(15 downto 0)  => rin.packetNumber,                    -- [in]
+         dina(16)           => rin.packetActive,                    -- [in]
+         dina(17)           => rin.frameError,                      -- [in]
          clkb               => axisClk,                             -- [in]
          rstb               => axisRst,                             -- [in]
          addrb              => inputAxisMaster.tData(15 downto 8),  -- [in]
          doutb(15 downto 0) => packetNumberOut,                     -- [out]
          doutb(16)          => packetActiveOut,                     -- [out]
-         doutb(17)          => frameErrorOut);                      --[out]
+         doutb(17)          => frameErrorOut);                      -- [out]
 
    U_Crc32_1 : entity work.Crc32
       generic map (
@@ -239,6 +239,7 @@ begin
                      v.state        := MOVE_S;
                      v.sideband     := '1';
                      v.activeTDest  := v.outputAxisMaster(1).tDest(7 downto 0);
+                     -- Set packetActive in ram for this tdest
                      -- v.packetNumber is already correct
                      v.packetActive := '1';
                      v.frameError   := '0';  -- Clear any frame error
@@ -289,10 +290,10 @@ begin
                   v.crcDataValid               := '0';
 
                   -- Append EOF metadata to previous txn which has been held
-                  lastBytes := conv_integer(inputAxisMaster.tData(18 downto 16));
+                  lastBytes                   := conv_integer(inputAxisMaster.tData(18 downto 16));
                   axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(7 downto 0), lastBytes);
                   v.outputAxisMaster(0).tLast := inputAxisMaster.tData(8);
-                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(18 downto 16)));
+                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(19 downto 16)));
 
                   -- Verify the CRC. Set EOFE if fail.
                   if (crcOut /= inputAxisMaster.tData(63 downto 32) and CRC_EN_G) then
