@@ -121,25 +121,21 @@ children:
     mode: RW
     description: TwoComp
   ######################################################### 
-  adcData_0:
+  adcData:
     at:
-      offset: 0x60
-      nelms: 8
-      stride: 4
-    sizeBits: 16
-    lsBit: 0
-    mode: RW
-    description: adcData
-  ######################################################### 
-  adcData_1:
-    at:
-      offset: 0x68
-      nelms: 8
-      stride: 4
-    sizeBits: 16
-    lsBit: 0
-    mode: RO
-    description: adcData
+      offset: 0x180
+      nelms: 2
+      stride: 32
+    children:
+      data:
+        at:
+          offset: 0x00
+          nelms: 8
+          stride: 4
+        sizeBits: 16
+        lsBit: 0
+        mode: RW
+        description: adcData
   ######################################################### 
   delayRdy:
     at:
@@ -149,19 +145,19 @@ children:
     mode: RO
     description: delayRdy
   ######################################################### 
-  delayData_0:
+  delayData:
     at:
       offset: 0x80
-    sizeBits: 5
-    lsBit: 0
-    mode: RW
-    description: delayData
-  ######################################################### 
-  delayData_1:
-    at:
-      offset: 0x88
-    sizeBits: 5
-    lsBit: 0
-    mode: RW
-    description: delayData
+      nelms: 2
+      stride: 32
+    shildren:
+      data:
+        at:
+          offset: 0x00
+          nelms: 8
+          stride: 4
+        sizeBits: 5
+        lsBit: 0
+        mode: RW
+        description: delayData
   ######################################################### 
