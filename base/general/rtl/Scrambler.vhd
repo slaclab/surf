@@ -36,9 +36,10 @@ entity Scrambler is
    port (
       clk         : in  sl;
       rst         : in  sl;
+      inputEn     : in  sl := '1';
       dataIn      : in  slv(DATA_WIDTH_G-1 downto 0);
       sidebandIn  : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
-      inputEn     : in  sl := '1';
+      outputValid : out sl;
       dataOut     : out slv(DATA_WIDTH_G-1 downto 0);
       sidebandOut : out slv(SIDEBAND_WIDTH_G-1 downto 0));
 
@@ -50,12 +51,14 @@ architecture rtl of Scrambler is
 
    type RegType is record
       scrambler   : slv(SCRAMBLER_WIDTH_C-1 downto 0);
+      outputValid : sl;
       dataOut     : slv(DATA_WIDTH_G-1 downto 0);
       sidebandOut : slv(SIDEBAND_WIDTH_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       scrambler   => (others => '0'),
+      outputValid => '0',
       dataOut     => (others => '0'),
       sidebandOut => (others => '0'));
 
@@ -67,9 +70,10 @@ begin
    comb : process (dataIn, inputEn, r, rst, sidebandIn) is
       variable v : RegType;
    begin
-      v := r;
-
+      v             := r;
+      v.outputValid := '0';
       if (inputEn = '1') then
+         v.outputValid := '1';
          v.sidebandOut := sidebandIn;
 
          for i in 0 to DATA_WIDTH_G-1 loop
@@ -91,6 +95,7 @@ begin
       end if;
 
       rin         <= v;
+      outputValid <= r.outputValid;
       dataOut     <= r.dataOut;
       sidebandOut <= r.sidebandOut;
 
