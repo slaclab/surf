@@ -108,7 +108,7 @@ begin
          if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
             -- SOF/SOC, format SOF/SOC char from data
             v.phyTxData               := (others => '0');
-            v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(32) = '1', SOC_C, SOF_C);
+            v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(24) = '1', SOF_C, SOC_C);
             v.phyTxData(39 downto 0)  := linkInfo;
             v.phyTxData(43 downto 40) := pgpTxMaster.tData(11 downto 8);  -- Virtual Channel
             v.phyTxData(55 downto 44) := pgpTxMaster.tData(43 downto 32);   -- Packet number

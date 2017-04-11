@@ -170,7 +170,7 @@ begin
          TPD_G                => TPD_G,
          CRC_EN_G             => true,
          CRC_POLY_G           => X"04C11DB7",
-         MAX_PACKET_BYTES_G   => TX_CELL_WORDS_MAX_G*8,
+         MAX_PACKET_BYTES_G   => TX_CELL_WORDS_MAX_G*8*2,
          OUTPUT_SSI_G         => true,
          INPUT_PIPE_STAGES_G  => 0,
          OUTPUT_PIPE_STAGES_G => 0)

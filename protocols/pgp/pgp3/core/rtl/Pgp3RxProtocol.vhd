@@ -89,8 +89,9 @@ begin
 
       btf := phyRxData(63 downto 56);
 
-      v.pgpRxMaster.tValid := '0';
-      v.pgpRxOut.opCodeEn  := '0';
+      v.pgpRxMaster       := REG_INIT_C.pgpRxMaster;
+      v.pgpRxOut.opCodeEn := '0';
+
 
       -- Just translate straight to AXI-Stream packetizer2 format
       -- and let the depacketizer handle any errors?
@@ -105,7 +106,7 @@ begin
             elsif (btf = SOF_C or btf = SOC_C) then
                v.pgpRxMaster.tValid              := '1';
                v.pgpRxMaster.tData               := (others => '0');
-               v.pgpRxMaster.tData(32)           := ite(btf = SOF_C, '0', '1');  -- packetizer SOC bit
+               v.pgpRxMaster.tData(24)           := ite(btf = SOF_C, '1', '0');  -- packetizer SOC bit
                v.pgpRxMaster.tData(11 downto 8)  := phyRxData(43 downto 40);     -- VC
                v.pgpRxMaster.tData(43 downto 32) := phyRxData(55 downto 44);     -- packet number
                axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
