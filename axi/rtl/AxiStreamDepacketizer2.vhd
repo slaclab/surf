@@ -234,7 +234,7 @@ begin
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- SOF
 
 
-                  if (sof = not packetActiveOut and v.packetNumber = packetNumberOut) then
+                  if (sof = not packetActiveOut and v.packetNumber = packetNumberOut and frameErrorOut = '0') then
                      -- Header metadata as expected
                      v.state        := MOVE_S;
                      v.sideband     := '1';
