@@ -60,17 +60,20 @@ architecture rtl of Pgp3RxProtocol is
 
    type RegType is record
       pgpRxMaster    : AxiStreamMasterType;
-      pgpRxOut : Pgp3RxOutType;
+      pgpRxOut       : Pgp3RxOutType;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : sl;
       locRxLinkReady : sl;              -- This might come from aligner instead?
+      version        : slv(2 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       pgpRxMaster    => axiStreamMasterInit(PGP3_AXIS_CONFIG_C),
-      remRxFifoCtrl  => AXI_STREAM_CTRL_INIT_C,  -- maybe init paused?
+      pgpRxOut       => PGP3_RX_OUT_INIT_C,
+      remRxFifoCtrl  => (others => AXI_STREAM_CTRL_INIT_C),  -- maybe init paused?
       remRxLinkReady => '0',
-      locRxLinkReady => '0');
+      locRxLinkReady => '0',
+      version        => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -116,7 +119,7 @@ begin
                v.pgpRxMaster.tData               := (others => '0');
                v.pgpRxMaster.tData(7 downto 0)   := phyRxData(7 downto 0);       -- TUSER LAST
                v.pgpRxMaster.tData(18 downto 16) := phyRxData(18 downto 16);     -- Last byte count
-               v.pgpRxMaster.tData(63 downto 32) := phyRxData(56 downto 23);     -- CRC
+               v.pgpRxMaster.tData(63 downto 32) := phyRxData(55 downto 24);     -- CRC
             else
                for i in USER_C'range loop
                   if (btf = USER_C(i)) then

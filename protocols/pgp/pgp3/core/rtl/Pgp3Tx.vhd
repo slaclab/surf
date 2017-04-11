@@ -37,7 +37,7 @@ entity Pgp3Tx is
       SKP_INTERVAL_G               : integer               := 5000;
       SKP_BURST_SIZE_G             : integer               := 8;
       -- Mux configuration
-      MUX_MODE_G                   : string                := "ROUTED";  -- Or "ROUTED"
+      MUX_MODE_G                   : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
       MUX_INTERLEAVE_EN_G          : boolean               := true;
@@ -53,10 +53,10 @@ entity Pgp3Tx is
       pgpTxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Status of receive and remote FIFOs (Asynchronous)
-      locRxFifoStatus : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      locRxLinkReady  : in sl;
-      remRxFifoStatus : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      remRxLinkReady  : in sl;
+      locRxFifoCtrl  : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      locRxLinkReady : in sl;
+      remRxFifoCtrl  : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      remRxLinkReady : in sl;
 
       -- PHY interface
 --      phyTxClk    : in  sl;
@@ -68,10 +68,10 @@ end entity Pgp3Tx;
 architecture rtl of Pgp3Tx is
 
    -- Synchronized statuses
-   signal syncLocRxFifoStatus : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-   signal syncLocRxLinkReady  : sl;
-   signal syncRemRxFifoStatus : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-   signal syncRemRxLinkReady  : sl;
+   signal syncLocRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+   signal syncLocRxLinkReady : sl;
+   signal syncRemRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+   signal syncRemRxLinkReady : sl;
 
    -- Pipeline signals
    signal disableSel          : slv(NUM_VC_G-1 downto 0);
@@ -91,53 +91,53 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => pgpTxClk,                                -- [in]
-         rst     => pgpTxRst,                                -- [in]
-         dataIn  => remRxLinkReady,                          -- [in]
-         dataOut => syncRemRxLinkReady);                     -- [out]
+         clk     => pgpTxClk,                              -- [in]
+         rst     => pgpTxRst,                              -- [in]
+         dataIn  => remRxLinkReady,                        -- [in]
+         dataOut => syncRemRxLinkReady);                   -- [out]
    REM_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
       U_SynchronizerVector_1 : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
          port map (
-            clk        => pgpTxClk,                          -- [in]
-            rst        => pgpTxRst,                          -- [in]
-            dataIn(0)  => remRxFifoStatus(i).pause,          -- [in]
-            dataIn(1)  => remRxFifoStatus(i).overflow,       -- [in]
-            dataOut(0) => syncRemRxFifoStatus(i).pause,      -- [out]
-            dataOut(1) => syncRemRxFifoStatus(i).overflow);  -- [out]
+            clk        => pgpTxClk,                        -- [in]
+            rst        => pgpTxRst,                        -- [in]
+            dataIn(0)  => remRxFifoCtrl(i).pause,          -- [in]
+            dataIn(1)  => remRxFifoCtrl(i).overflow,       -- [in]
+            dataOut(0) => syncRemRxFifoCtrl(i).pause,      -- [out]
+            dataOut(1) => syncRemRxFifoCtrl(i).overflow);  -- [out]
    end generate;
 
    -- Drive synchronized remote fifo status out onto pgpTxCtrl
-   pgpTxCtrl <= syncRemRxFifoStatus;
+   pgpTxCtrl <= syncRemRxFifoCtrl;
 
    -- Synchronize local rx status
    U_Synchronizer_LOC : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => pgpTxClk,                                -- [in]
-         rst     => pgpTxRst,                                -- [in]
-         dataIn  => locRxLinkReady,                          -- [in]
-         dataOut => syncLocRxLinkReady);                     -- [out]
+         clk     => pgpTxClk,                              -- [in]
+         rst     => pgpTxRst,                              -- [in]
+         dataIn  => locRxLinkReady,                        -- [in]
+         dataOut => syncLocRxLinkReady);                   -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
       U_SynchronizerVector_1 : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
          port map (
-            clk        => pgpTxClk,                          -- [in]
-            rst        => pgpTxRst,                          -- [in]
-            dataIn(0)  => locRxFifoStatus(i).pause,          -- [in]
-            dataIn(1)  => locRxFifoStatus(i).overflow,       -- [in]
-            dataOut(0) => syncLocRxFifoStatus(i).pause,      -- [out]
-            dataOut(1) => syncLocRxFifoStatus(i).overflow);  -- [out]
+            clk        => pgpTxClk,                        -- [in]
+            rst        => pgpTxRst,                        -- [in]
+            dataIn(0)  => locRxFifoCtrl(i).pause,          -- [in]
+            dataIn(1)  => locRxFifoCtrl(i).overflow,       -- [in]
+            dataOut(0) => syncLocRxFifoCtrl(i).pause,      -- [out]
+            dataOut(1) => syncLocRxFifoCtrl(i).overflow);  -- [out]
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
    DISABLE_SEL_GEN : for i in NUM_VC_G-1 downto 0 generate
-      disableSel(i) <= syncRemRxFifoStatus(i).pause or syncRemRxFifoStatus(i).overflow;
+      disableSel(i) <= syncRemRxFifoCtrl(i).pause or syncRemRxFifoCtrl(i).overflow;
    end generate DISABLE_SEL_GEN;
 
    -- Multiplex the incomming tx streams with interleaving
@@ -192,16 +192,16 @@ begin
          SKP_INTERVAL_G   => SKP_INTERVAL_G,
          SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
       port map (
-         pgpTxClk        => pgpTxClk,              -- [in]
-         pgpTxRst        => pgpTxRst,              -- [in]
-         pgpTxIn         => pgpTxIn,               -- [in]
-         pgpTxOut        => pgpTxOut,              -- [out]
-         pgpTxMaster     => packetizedTxMaster,    -- [in]
-         pgpTxSlave      => packetizedTxSlave,     -- [out]
-         locRxFifoStatus => syncLocRxFifoStatus,   -- [in]
-         locRxLinkReady  => syncLocRxLinkReady,    -- [in]
-         phyTxData       => unscrambledTxData,     -- [out]
-         phyTxHeader     => unscrambledTxHeader);  -- [out]
+         pgpTxClk       => pgpTxClk,              -- [in]
+         pgpTxRst       => pgpTxRst,              -- [in]
+         pgpTxIn        => pgpTxIn,               -- [in]
+         pgpTxOut       => pgpTxOut,              -- [out]
+         pgpTxMaster    => packetizedTxMaster,    -- [in]
+         pgpTxSlave     => packetizedTxSlave,     -- [out]
+         locRxFifoCtrl  => syncLocRxFifoCtrl,     -- [in]
+         locRxLinkReady => syncLocRxLinkReady,    -- [in]
+         phyTxData      => unscrambledTxData,     -- [out]
+         phyTxHeader    => unscrambledTxHeader);  -- [out]
 
    -- Scramble the data for 64b66b
    U_Scrambler_1 : entity work.Scrambler
