@@ -290,7 +290,7 @@ begin
                   v.crcDataValid               := '0';
 
                   -- Append EOF metadata to previous txn which has been held
-                  lastBytes                   := conv_integer(inputAxisMaster.tData(18 downto 16));
+                  lastBytes                   := conv_integer(inputAxisMaster.tData(19 downto 16));
                   axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(7 downto 0), lastBytes);
                   v.outputAxisMaster(0).tLast := inputAxisMaster.tData(8);
                   v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(19 downto 16)));
