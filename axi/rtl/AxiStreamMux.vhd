@@ -2,7 +2,7 @@
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-04-05
+-- Last update: 2017-04-13
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -201,7 +201,7 @@ begin
 
 
                elsif (INTERLEAVE_EN_G) then
-                  if ((INTERLEAVE_MAX_TXNS_G /= 0) and (r.arbCnt = INTERLEAVE_MAX_TXNS_G-1)) or
+                  if ((INTERLEAVE_MAX_TXNS_G /= 0) and (r.arbCnt = INTERLEAVE_MAX_TXNS_G-2)) or
                      rearbitrate = '1' or
                      disableSel(conv_integer(r.ackNum)) = '1' then
                   -- rearbitrate after ILEAVE_MAX_TXNS_G txns
