@@ -3,7 +3,7 @@
 # Title      : PyRogue AXI-Lite Micron N25Q and Micron MT25Q PROM
 #-----------------------------------------------------------------------------
 # File       : AxiMicronN25Q.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Micron N25Q and Micron MT25Q PROM
@@ -20,56 +20,63 @@
 import pyrogue as pr
 
 class AxiMicronN25Q(pr.Device):
-    def __init__(self, name="AxiMicronN25Q", description="AXI-Lite Micron N25Q and Micron MT25Q PROM", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "AxiMicronN25Q",
+                    description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.Variable(   name         = "Test",
-                                description  = "Scratch Pad tester register",
-                                offset       =  0x00,
-                                bitSize      =  32,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "Test",
+                            description  = "Scratch Pad tester register",
+                            offset       =  0x00,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "Addr32BitMode",
-                                description  = "Enable 32-bit PROM mode",
-                                offset       =  0x04,
-                                bitSize      =  1,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "Addr32BitMode",
+                            description  = "Enable 32-bit PROM mode",
+                            offset       =  0x04,
+                            bitSize      =  1,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "Addr",
-                                description  = "Address Register",
-                                offset       =  0x08,
-                                bitSize      =  32,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "Addr",
+                            description  = "Address Register",
+                            offset       =  0x08,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "Cmd",
-                                description  = "Command Register",
-                                offset       =  0x0C,
-                                bitSize      =  32,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "Cmd",
+                            description  = "Command Register",
+                            offset       =  0x0C,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        for i in range(64):
-            self.add(pr.Variable(   name         = "Data_%.*i" % (2, i),
-                                    description  = "Data Register Array %.*i" % (2, i),
-                                    offset       =  0x200 + (i * 0x04),
-                                    bitSize      =  32,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RW",
-                                ))
+        self.addVariables(  name         = "Data",
+                            description  = "Data Register Array",
+                            offset       =  0x200,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                            number       =  64,
+                            stride       =  4,
+                        )
 

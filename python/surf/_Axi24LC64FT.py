@@ -23,13 +23,14 @@ from surf._GenericMemory import *
 
 class Axi24LC64FT(pr.Device):
     def __init__(   self, 
-                    name="Axi24LC64FT", 
-                    description="AMC Carrier core's Non-volatile memory (100k endurance)", 
-                    memBase=None, 
-                    offset=0x0, 
-                    hidden=False, 
-                    nelms= 0x800,
-                    instantiate=True):
+                    name        = "Axi24LC64FT", 
+                    description = "AMC Carrier core's Non-volatile memory (100k endurance)", 
+                    memBase     =  None, 
+                    offset      =  0x0, 
+                    hidden      =  False, 
+                    nelms       =  0x800,
+                    instantiate =  True
+                ):
         super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
 
         ##############################

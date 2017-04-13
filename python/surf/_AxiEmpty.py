@@ -3,7 +3,7 @@
 # Title      : PyRogue AxiEmpty Module as a placeholder for future module
 #-----------------------------------------------------------------------------
 # File       : AxiEmpty.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue AxiEmpty Module as a placeholder for future module
@@ -20,6 +20,12 @@
 import pyrogue as pr
 
 class AxiEmpty(pr.Device):
-    def __init__(self, name="AxiEmpty", description="AxiEmpty Module as a placeholder for future module", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "AxiEmpty",
+                    description = "AxiEmpty Module as a placeholder for future module",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 

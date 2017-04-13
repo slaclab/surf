@@ -31,7 +31,8 @@ class GenericMemory(pr.Device):
                     bitOffset   =  0, 
                     base        = "hex", 
                     mode        = "RW", 
-                    instantiate =  True):
+                    instantiate =  True,
+                ):
         super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
 
         ##############################
@@ -39,13 +40,13 @@ class GenericMemory(pr.Device):
         ##############################
         
         if (instantiate):
-            digits = len(str(abs(nelms-1))) 
-            for i in range(nelms):
-                self.add(pr.Variable(   name         = "Mem_%.*i" % (digits, i),
-                                        description  = "Memory Array: Element %.*i" % (digits, i),
-                                        offset       =  i * 0x04,
-                                        bitSize      =  bitSize,
-                                        bitOffset    =  bitOffset,
-                                        base         =  base,
-                                        mode         =  mode,
-                                    ))
+            self.addVariables(  name         = "Mem",
+                                description  = "Memory Array",
+                                offset       =  0x00,
+                                bitSize      =  bitSize,
+                                bitOffset    =  bitOffset,
+                                base         =  base,
+                                mode         =  mode,
+                                number       =  nelms,
+                                stride       =  4,
+                            )

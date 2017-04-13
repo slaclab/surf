@@ -3,7 +3,7 @@
 # Title      : PyRogue AXI-Lite Microchip SY56040 and Microchip SY58040
 #-----------------------------------------------------------------------------
 # File       : AxiSy56040.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Microchip SY56040 and Microchip SY58040
@@ -20,20 +20,27 @@
 import pyrogue as pr
 
 class AxiSy56040(pr.Device):
-    def __init__(self, name="AxiSy56040", description="AXI-Lite Microchip SY56040 and Microchip SY58040", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "AxiSy56040",
+                    description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 
         ##############################
         # Variables
         ##############################
 
-        for i in range(4):
-            self.add(pr.Variable(   name         = "OutputConfig_%i" % (i),
-                                    description  = "Output Configuration Register Array %i" % (i),
-                                    offset       =  0x00 + (i * 0x04),
-                                    bitSize      =  2,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RW",
-                                ))
+        self.addVariables(  name         = "OutputConfig",
+                            description  = "Output Configuration Register Array",
+                            offset       =  0x00,
+                            bitSize      =  2,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                            number       =  4,
+                            stride       =  4,
+                        )
 

@@ -3,7 +3,7 @@
 # Title      : PyRogue AXI-Lite Micron P30 PROM
 #-----------------------------------------------------------------------------
 # File       : AxiMicronP30.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Micron P30 PROM
@@ -20,64 +20,70 @@
 import pyrogue as pr
 
 class AxiMicronP30(pr.Device):
-    def __init__(self, name="AxiMicronP30", description="AXI-Lite Micron P30 PROM", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "AxiMicronP30",
+                    description = "AXI-Lite Micron P30 PROM",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.Variable(   name         = "WrData",
-                                description  = "Write Data",
-                                offset       =  0x00,
-                                bitSize      =  16,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "WrData",
+                            description  = "Write Data",
+                            offset       =  0x00,
+                            bitSize      =  16,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "WrCmd",
-                                description  = "Write Command",
-                                offset       =  0x02,
-                                bitSize      =  16,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "WrCmd",
+                            description  = "Write Command",
+                            offset       =  0x02,
+                            bitSize      =  16,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "Address",
-                                description  = "Read/Write Address",
-                                offset       =  0x04,
-                                bitSize      =  31,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "Address",
+                            description  = "Read/Write Address",
+                            offset       =  0x04,
+                            bitSize      =  31,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "RnW",
-                                description  = "Read/Write operation bit",
-                                offset       =  0x07,
-                                bitSize      =  1,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "RnW",
+                            description  = "Read/Write operation bit",
+                            offset       =  0x07,
+                            bitSize      =  1,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "RdData",
-                                description  = "Read Data",
-                                offset       =  0x08,
-                                bitSize      =  16,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RO",
-                            ))
+        self.addVariable(   name         = "RdData",
+                            description  = "Read Data",
+                            offset       =  0x08,
+                            bitSize      =  16,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                        )
 
-        self.add(pr.Variable(   name         = "Test",
-                                description  = "Scratch Pad tester register",
-                                offset       =  0x0C,
-                                bitSize      =  32,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "Test",
+                            description  = "Scratch Pad tester register",
+                            offset       =  0x0C,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
