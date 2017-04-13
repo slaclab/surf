@@ -119,6 +119,7 @@ begin
                v.pgpRxMaster.tValid              := '1';
                v.pgpRxMaster.tLast               := '1';
                v.pgpRxMaster.tData               := (others => '0');
+               v.pgpRxMaster.tData(8)            := toSl(btf = EOF_C);           -- EOF bit
                v.pgpRxMaster.tData(7 downto 0)   := phyRxData(7 downto 0);       -- TUSER LAST
                v.pgpRxMaster.tData(19 downto 16) := phyRxData(19 downto 16);     -- Last byte count
                v.pgpRxMaster.tData(63 downto 32) := phyRxData(55 downto 24);     -- CRC
