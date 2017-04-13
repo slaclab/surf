@@ -119,7 +119,7 @@ begin
             v.phyTxData               := (others => '0');
             v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(8) = '1', EOF_C, EOC_C);
             v.phyTxData(7 downto 0)   := pgpTxMaster.tData(7 downto 0);    -- TUSER LAST
-            v.phyTxData(18 downto 16) := pgpTxMaster.tData(18 downto 16);  -- Last byte count
+            v.phyTxData(19 downto 16) := pgpTxMaster.tData(19 downto 16);  -- Last byte count
             v.phyTxData(55 downto 24) := pgpTxMaster.tData(63 downto 32);  -- CRC
             v.phyTxHeader             := K_HEADER_C;
 
