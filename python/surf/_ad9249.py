@@ -97,14 +97,16 @@ class Ad9249Config(pr.Device):
             self.add(Ad9249ConfigGroup(name="BankConfig[1]", offset=0x0800));
         else:
             for i in range(chips):
-                self.add(pr.Variable(name = "Pdwn" + chip,
-                                     description = "Power down chip " + chip,
+                self.add(pr.Variable(name = "Pdwn" + str(i),
+                                     description = "Power down chip " + str(i),
                                      offset = PDWN_ADDR + (i*4),
                                      bitSize = 1,
                                      bitOffset = 0,
                                      base = 'bool',
                                      mode = "RW"))
-                self.add(Ad9249ChipConfig(name="Ad9249Chip[{:d}]".format(chip), offset=(i*(0x800))))
+                self.add(Ad9249ConfigGroup(name="Ad9249Chip["+str(i)+"].BankConfig[0]", offset=i*0x1000));
+                self.add(Ad9249ConfigGroup(name="Ad9249Chip["+str(i)+"].BankConfig[1]", offset=i*0x1000+0x0800));
+                #self.add(Ad9249ChipConfig(name="Ad9249Chip[{:d}]".format(i), offset=(i*(0x800))))
   
 
 class Ad9249ReadoutGroup(pr.Device):
